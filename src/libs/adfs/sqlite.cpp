@@ -336,19 +336,19 @@ stmt::data_count() const
 
 namespace adfs {
 
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const int32_t& v )
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
     
-    template<> bool 
+    template<> ADFSSHARED_EXPORT bool 
     stmt::bind_item::operator = ( const uint32_t& v )
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
     
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const long & v )
     {
 #if _MSC_VER
@@ -358,7 +358,7 @@ namespace adfs {
 #endif
     }
     
-    template<> bool 
+    template<> ADFSSHARED_EXPORT bool 
     stmt::bind_item::operator = ( const unsigned long & v )
     {
 #if _MSC_VER        
@@ -381,30 +381,30 @@ namespace adfs {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
 #else
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const int64_t& v )
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const uint64_t& v )
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
 #endif
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const double& v )
     {
         return sqlite3_bind_double( stmt_, nnn_, v ) == SQLITE_OK;
     }
     
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const std::string& v )
     {
         return sqlite3_bind_text( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
     
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const std::wstring& v )
     {
         std::string u = adportable::utf::to_utf8( v );
@@ -412,7 +412,7 @@ namespace adfs {
                                   , -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
 
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const blob& blob )
     {
         if ( blob.data() )
@@ -421,13 +421,13 @@ namespace adfs {
             return sqlite3_bind_zeroblob( stmt_, nnn_, blob.size() ) == SQLITE_OK;
     }
 
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const null& )
     {
         return sqlite3_bind_null( stmt_, nnn_ ) == SQLITE_OK;
     }
 
-    template<> bool
+    template<> ADFSSHARED_EXPORT bool
     stmt::bind_item::operator = ( const boost::uuids::uuid& uuid )
     {
         if ( sqlite::uuid_storage_format() == uuid_binary )
@@ -438,7 +438,7 @@ namespace adfs {
 
     //------------------------------------
 
-    template<> std::string stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT std::string stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
@@ -451,7 +451,7 @@ namespace adfs {
                                              % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
-    template<> std::wstring stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT std::wstring stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
@@ -464,7 +464,7 @@ namespace adfs {
                                              % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
-    template<> double stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT double stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_FLOAT )
             return sqlite3_column_double( stmt_, nCol );
@@ -476,7 +476,7 @@ namespace adfs {
                                              % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
-    template<> int64_t stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT int64_t stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
@@ -488,7 +488,7 @@ namespace adfs {
                                              % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
-    template<> uint64_t stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT uint64_t stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
             return sqlite3_column_int64( stmt_, nCol );
@@ -500,7 +500,7 @@ namespace adfs {
                                              % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
-    template<> blob stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT blob stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB ) {
             const void * pvoid = sqlite3_column_blob( stmt_, nCol );
@@ -514,7 +514,7 @@ namespace adfs {
                                              % column_name( nCol )  % column_decltype( nCol ) ).str() ) );
     }
 
-    template<> boost::uuids::uuid stmt::get_column_value( int nCol ) const
+    template<> ADFSSHARED_EXPORT boost::uuids::uuid stmt::get_column_value( int nCol ) const
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
 

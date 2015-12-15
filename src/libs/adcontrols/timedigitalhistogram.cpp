@@ -294,8 +294,8 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
         
     prop.setTimeSinceInjection( hgrm.initialXTimeSeconds() );
     prop.setTimeSinceEpoch( hgrm.timeSinceEpoch().first );
-    prop.setNumAverage( hgrm.trigger_count() );
-    prop.setTrigNumber( hgrm.serialnumber().first );
+    prop.setNumAverage( uint32_t( hgrm.trigger_count() ) );
+    prop.setTrigNumber( uint32_t( hgrm.serialnumber().first ) );
 
     prop.setDataInterpreterClsid( "u5303a" );
         

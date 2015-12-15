@@ -34,8 +34,10 @@
 # else
 #  define ADFSSHARED_EXPORT DECL_IMPORT
 #  define ADFSSHARED_TEMPLATE_EXPORT extern
+# endif
 #else
 #  define ADFSSHARED_EXPORT
 #  define ADFSSHARED_TEMPLATE_EXPORT
 #endif
 
+#include <compiler/pragma_warning.hpp>

@@ -93,17 +93,9 @@ rawdata::loadAcquiredConf()
                     readers_.push_back( reader );
             }
         }
-//#if 0
-        fcnCount_ = 0;
-        adfs::stmt sql( dbf_.db() );
-        sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData" );
-        while ( sql.step() == adfs::sqlite_row )
-            fcnCount_ += int32_t( sql.get_column_value< int64_t >( 0 ) );
-//#else
         fcnCount_ = 0;
         for ( auto reader : readers_ )
             fcnCount_ += int32_t( reader->ticCount() );
-//#endif
         return true;
     }
     

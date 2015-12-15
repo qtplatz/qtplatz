@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adfs_global.h"
 #include <vector>
 #include <boost/cstdint.hpp>
 #include "attributes.hpp"
@@ -34,7 +34,7 @@ namespace adfs {
     class file;
     class sqlite;
 
-    class folder : public attributes {
+    class ADFSSHARED_EXPORT folder : public attributes {
     public:
         ~folder();
         folder();
@@ -56,7 +56,9 @@ namespace adfs {
         inline sqlite& db() const { return *db_; }
     private:
         sqlite * db_;
+        pragma_msvc_warning_push_disable_4251
         std::wstring name_;
+        pragma_msvc_warning_pop
         boost::int64_t rowid_;
     };
 

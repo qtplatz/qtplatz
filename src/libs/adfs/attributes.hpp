@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adfs_global.h"
 #include <cstdint>
 #include <string>
 #include <map>
@@ -38,7 +38,7 @@ namespace adfs {
     class blob;
     typedef char char_t;
 
-    class attributes {
+    class ADFSSHARED_EXPORT attributes {
     public:
         virtual ~attributes() {}
         attributes();
@@ -76,7 +76,9 @@ namespace adfs {
 
     private:
         bool dirty_;
+        pragma_msvc_warning_push_disable_4251
         vector_type attrib_;
+        pragma_msvc_warning_pop
         uint32_t fetch_format_version() const;
 
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {

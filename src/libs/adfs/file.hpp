@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adfs_global.h"
 #include <string>
 #include <vector>
 #include <functional>
@@ -45,7 +45,7 @@ namespace adfs {
     // file class represents folium on portfolio library on adfs::filesystem, so that it is responsible
     // relatively low level io
 
-    class file : public attributes {
+    class ADFSSHARED_EXPORT file : public attributes {
     public:
         ~file();
         file();
@@ -89,7 +89,9 @@ namespace adfs {
 
     private:
         sqlite * db_;
+        pragma_msvc_warning_push_disable_4251
         std::wstring name_;
+        pragma_msvc_warning_pop
         int64_t rowid_;   // rowid on 'directory'
         int64_t fileid_;  // rowid on 'file'
         bool is_attachment_;

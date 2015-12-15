@@ -24,25 +24,29 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adfs_global.h"
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
 #include <exception>
+#include <compiler/pragma_warning.hpp>
 
 namespace adfs {
 
-    class exception : public std::exception {
+    class ADFSSHARED_EXPORT exception : public std::exception {
     public:
-        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
-        std::string message;
-        std::string category;
+        exception( const std::string& msg, const char * cat ) : message_(msg), category_(cat) {}
+    private:
+        pragma_msvc_warning_push_disable_4251
+        std::string message_;
+        std::string category_;
+        pragma_msvc_warning_pop
     };
 
-    const char * null_safe( const char * s );// { return ( s ? s : "" ); }
+    ADFSSHARED_EXPORT const char * null_safe( const char * s );// { return ( s ? s : "" ); }
 
-    std::wstring create_uuid();
+    ADFSSHARED_EXPORT std::wstring create_uuid();
 }
 
 

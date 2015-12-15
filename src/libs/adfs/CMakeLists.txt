@@ -2,11 +2,13 @@
 
 project( adfs )
 
+cmake_policy( SET CMP0022 NEW )
+
 set( SHARED_ADFS_LIBRARY ON )
 
 if ( SHARED_ADFS_LIBRARY )
   find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
-  add_definitions( -DADFS_SHARED_LIBRARY -DADFS_SHARED_LIBRARY )
+  add_definitions( -DADFS_SHARED_LIBRARY -DADFS_LIBRARY )
 endif()
 
 if ( MSVC )

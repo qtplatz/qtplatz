@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #pragma once
-
+#include "adfs_global.h"
 #include <string>
 #include <memory>
 #include <cstdint>
@@ -39,11 +39,13 @@ namespace adfs {
     class file;
     class folder;
 
-    class filesystem {
+    class ADFSSHARED_EXPORT filesystem {
+        pragma_msvc_warning_push_disable_4251
         std::shared_ptr< adfs::sqlite > db_;
-        int format_version_;
         std::mutex mutex_;
         std::string filename_;
+        pragma_msvc_warning_pop
+        int format_version_;
     public:
         ~filesystem();
         filesystem();
