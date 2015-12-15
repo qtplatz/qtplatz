@@ -75,7 +75,8 @@ add_library( acqrswidgets SHARED IMPORTED )
 add_library( acqrscontrols SHARED IMPORTED )
 
 add_library( acewrapper STATIC IMPORTED )
-add_library( adfs STATIC IMPORTED )
+#add_library( adfs STATIC IMPORTED ) #change 16-DEC-2015
+add_library( adfs SHARED IMPORTED )
 add_library( adinterface STATIC IMPORTED )
 add_library( adportable STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
@@ -107,6 +108,11 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcontrols.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcontrolsd.lib )
 
+  #add 16-DEC-2015
+  set_target_properties( adfs PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
+  
   set_target_properties( adicontroller PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adicontroller.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adicontrollerd.lib )
@@ -191,6 +197,10 @@ elseif ( APPLE )
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.dylib )
 
+  #add 16-DEC-2015
+  set_target_properties( adfs PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs.dylib )
+  
   set_target_properties( adicontroller PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadicontroller.dylib )
   
@@ -252,6 +262,10 @@ else()  #Linux
 
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.so )
+
+  #add 16-DEC-2015
+  set_target_properties( adfs PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs.so )
 
   set_target_properties( adicontroller PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadicontroller.so )
