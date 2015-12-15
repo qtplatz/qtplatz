@@ -70,7 +70,7 @@ loader::populate( const wchar_t * topdir )
                     if ( it->path().extension() == L".adplugin" ) {
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
-
+                        
                         for ( auto& dir : { branch, sharedlibs } ) {
                             QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
                             QLibrary lib( libname );

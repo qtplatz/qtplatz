@@ -46,7 +46,7 @@ namespace acqrsinterpreter {
         ~MassSpectrometer();
         MassSpectrometer( adcontrols::datafile * );
 
-        static MassSpectrometer * instance();
+        static MassSpectrometer * make_factory();
         static void dispose();
 
         // adcontrols::MassSpectrometer

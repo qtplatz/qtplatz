@@ -52,11 +52,6 @@ namespace adplugin {
         class data;
         data * d_;
         
-        pragma_msvc_warning_push_disable_4251
-        static std::unique_ptr< manager > instance_;
-        pragma_msvc_warning_pop
-
-
     protected:
         manager();
         ~manager();
@@ -64,7 +59,6 @@ namespace adplugin {
     public:
 
         static manager * instance();
-        static void dispose();
 
         bool install( QLibrary&, const std::string& adpluginspec );
 

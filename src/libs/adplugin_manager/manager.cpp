@@ -140,15 +140,11 @@ namespace adplugin {
 }
 ////////////////////////////////////
 
-std::unique_ptr< manager > manager::instance_;
-
 manager *
 manager::instance()
 {
-    static std::once_flag flag;
-
-    std::call_once( flag, [] () { instance_.reset( new manager() ); } );
-	return instance_.get();
+    static manager __manager__;
+    return &__manager__;
 }
 
 //////////////////////

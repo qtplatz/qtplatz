@@ -26,9 +26,11 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <functional>
 #include <memory>
 
 namespace boost { namespace uuids { struct uuid; } }
+namespace adfs { class sqlite; }
 
 namespace adcontrols {
 
@@ -42,13 +44,23 @@ namespace adcontrols {
 
     public:
         virtual ~DataReader(void);
-        DataReader( void );
-        DataReader( adcontrols::datafile * );
-        
-        static std::unique_ptr< DataReader > make_reader( const boost::uuids::uuid&, const char * traceid );
+        DataReader( const char * traceid = nullptr );
 
+        virtual bool initialize( adfs::sqlite&, const boost::uuids::uuid& ) { return false; }
+        virtual void finalize() { return ; }
+
+        //////////////////////////////////////////////////////////////
+        // singleton interfaces
+        typedef std::shared_ptr< DataReader >( factory_type )( const char * traceid );
+        
+        static std::shared_ptr< DataReader > make_reader( const char * traceid );
+
+        static void register_factory( std::function< factory_type >, const char * clsid );
+
+        static void assign_reader( const char * clsid, const char * traceid );
 
     private:
+        class impl;
 
     };
 

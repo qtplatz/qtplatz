@@ -34,22 +34,23 @@
 
 namespace acqrsinterpreter {
 
-    class factory : public adplugin::plugin {
+    class datareader_factory : public adplugin::plugin {
 
-        factory( const factory& ) = delete;
-        const factory& operator = ( const factory& ) = delete;
-        factory();
+        datareader_factory( const datareader_factory& ) = delete;
+        const datareader_factory& operator = ( const datareader_factory& ) = delete;
+        datareader_factory();
+
     public:
-        ~factory();
+        ~datareader_factory();
 
-        static factory * instance();
-
+        static adplugin::plugin * instance();
+        
         void accept( adplugin::visitor&, const char * adplugin ) override;
         const char * iid() const override;
+        void * query_interface_workaround( const char * typname ) override;
 
     private:
-        class impl;
-        static std::shared_ptr< factory > instance_;    // adplugin::plugin require make_shared
+        static std::shared_ptr< adplugin::plugin > instance_;
     };
 
 }

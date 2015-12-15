@@ -125,9 +125,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     adplugin::loader::populate( apppath.c_str() );
     
-	//populate .adplugin files under given folder.
-    //adplugin::loader::populate( plugindir.generic_wstring().c_str() );
-
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
 		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 

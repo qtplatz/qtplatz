@@ -28,13 +28,17 @@
 
 namespace adplugin {
 
+#
+
     namespace iid {
 
         const char * const iid_massspectrometer = "adplugins.massSpectrometer"; // "[clsid].adplugin.massSpectrometer.[provider]"
 
         const char * const iid_datafile_factory = "adplugins.datafile_factory"; // "[clsid].adplugin.dataInterpreter.[provider]"
 
-        const char * const iid_datainterpreter  = "adplugins.dataInterpreter";  // "[clsid].adplugin.dataInterpreter.[provider]"
+        const char * const iid_datainterpreter  = "adplugins.datainterpreter";  // "[clsid].adplugin.dataInterpreter.[provider]"
+
+        const char * const iid_datareader       = "adplugins.datareader";  // "[clsid].adplugin.dataReader.[provider]"
 
     }
 }

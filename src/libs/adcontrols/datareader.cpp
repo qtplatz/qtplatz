@@ -24,14 +24,29 @@
 **************************************************************************/
 
 #include "datareader.hpp"
+#include <map>
+
+namespace adcontrols {
+
+    class DataReader::impl {
+    public:
+        static impl * impl::instance() {
+            static impl __impl__;
+            return &__impl__;
+        }
+        ~impl() {}
+        impl() {}
+
+        std::shared_ptr< DataReader > make_reader( const char * traceid ) const;
+
+        std::map< std::string, std::function< factory_type > > reader_factories_;
+        std::map< std::string, std::string > reader_map_;  // <traceid, clsid>
+    };
+}
 
 using namespace adcontrols;
 
-DataReader::DataReader()
-{
-}
-
-DataReader::DataReader( adcontrols::datafile * datafile ) 
+DataReader::DataReader( const char * traceid )
 {
 }
 
@@ -40,8 +55,37 @@ DataReader::~DataReader()
 }
 
 //static
-std::unique_ptr< DataReader >
-DataReader::make_reader( const boost::uuids::uuid&, const char * traceid )
+std::shared_ptr< DataReader >
+DataReader::make_reader( const char * traceid )
 {
-    return 0;
+    return impl::instance()->make_reader( traceid );
 }
+
+//static
+void
+DataReader::register_factory( std::function< factory_type > f, const char * clsid )
+{
+        impl::instance()->reader_factories_[ clsid ] = f;
+}
+
+//static
+void
+DataReader::assign_reader( const char * clsid, const char * traceid )
+{
+    impl::instance()->reader_map_[ traceid ] = clsid;
+}
+
+////////////
+std::shared_ptr< DataReader >
+DataReader::impl::make_reader( const char * traceid ) const
+{
+    auto it = reader_map_.find( traceid );
+    if ( it != reader_map_.end() ) {
+        const auto& clsid = it->second;
+        auto factory = reader_factories_.find( clsid );
+        if ( factory != reader_factories_.end() )
+            return factory->second( traceid );
+    }
+    return nullptr;
+}
+

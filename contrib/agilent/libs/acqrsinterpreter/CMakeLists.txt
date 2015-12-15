@@ -17,13 +17,23 @@ endif()
 add_library( ${PROJECT_NAME}
   MODULE
   acqrsinterpreter_global.hpp
-  factory.cpp
-  factory.hpp
+  datareader.cpp
+  datareader.hpp
+  datareader_factory.cpp
+  datareader_factory.hpp
   acqrsinterpreter.cpp
   massspectrometer.cpp 
   massspectrometer.hpp
   datainterpreter.cpp
   datainterpreter.hpp
+  datainterpreter_histogram.cpp
+  datainterpreter_histogram.hpp
+  datainterpreter_timecount.cpp
+  datainterpreter_timecount.hpp
+  datainterpreter_softavgr.cpp
+  datainterpreter_softavgr.hpp
+  datainterpreter_u5303a.cpp
+  datainterpreter_u5303a.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

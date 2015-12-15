@@ -72,8 +72,6 @@ namespace adplugin {
         virtual const char * clsid() const { return clsid_.c_str(); }       // adplugin name
         virtual const char * adpluginspec() const { return spec_.c_str(); } // context of adplugin file (may be xml but may not be)
 
-        template< typename T > T* factory( const boost::uuids::uuid&, const char * objtext );
-
         template<typename T> T* query_interface() {
             T* p( 0 );
             try { p = dynamic_cast<T*>( this ); } catch ( ... ) {}

@@ -27,6 +27,7 @@
 #include <adicontroller/signalobserver.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -86,6 +87,10 @@ rawdata::loadAcquiredConf()
 
         for ( const auto& conf: conf_ ) {
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
+            if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
+                if ( reader->initialize( dbf_.db(), conf.objid ) )
+                    readers_.push_back( reader );
+            }
         }
 
         return true;

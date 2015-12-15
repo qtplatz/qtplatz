@@ -44,6 +44,7 @@ namespace adcontrols {
     class ProcessedDataset;
 	class TraceAccessor;
     class lockmass;
+    class DataReader;
 }
 
 namespace addatafile {
@@ -117,7 +118,9 @@ namespace addatafile {
             std::vector< std::pair< size_t, int > > fcnIdx_;
             std::vector< std::pair< double, int > > times_;
             std::vector< std::wstring > undefined_spectrometers_;
+            std::vector< std::shared_ptr< adcontrols::DataReader > > readers_;
         };
+
 
     }
 }

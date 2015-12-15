@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "acqrsinterpreter_global.hpp"
-#include "factory.hpp"
+#include "datareader_factory.hpp"
 
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
@@ -32,6 +32,6 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    return acqrsinterpreter::factory::instance();
+    return acqrsinterpreter::datareader_factory::instance();
 }
 

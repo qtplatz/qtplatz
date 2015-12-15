@@ -84,7 +84,7 @@ MassSpectrometer::MassSpectrometer( adcontrols::datafile * file ) : adcontrols::
 
 //static
 MassSpectrometer *
-MassSpectrometer::instance()
+MassSpectrometer::make_factory()
 {
     typedef MassSpectrometer T;
     T * tmp = instance_.load( std::memory_order_relaxed );

@@ -22,45 +22,38 @@
 **
 **************************************************************************/
 
-#include "factory.hpp"
-#include <adplugin/visitor.hpp>
+#pragma once
+
+#include <adcontrols/datareader.hpp>
+#include <adplugin/plugin.hpp>
+#include <boost/variant.hpp>
+#include <memory>
+#include <atomic>
+#include <mutex>
 
 namespace acqrsinterpreter {
 
-    std::shared_ptr< factory > factory::instance_;
-    
+    enum eTID {
+        TID_U5303A
+        , TID_TIMECOUNT
+        , TID_HISTOGRAM
+        , TID_SOFTAVGR
+    };
+
+    class DataReader : public adcontrols::DataReader {
+        DataReader( const DataReader& ) = delete;  // noncopyable
+        DataReader& operator = (const DataReader&) = delete;
+    public:
+        ~DataReader( void );
+        DataReader( const char * traceid );
+        
+        bool initialize( adfs::sqlite&, const boost::uuids::uuid& ) override;
+        void finalize() override;
+
+    private:
+        std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
+    };
+
 }
 
-using namespace acqrsinterpreter;
 
-factory::~factory()
-{
-}
-
-factory::factory()
-{
-}
-
-factory *
-factory::instance()
-{
-    static std::once_flag flag;
-    std::call_once( flag, [](){
-            struct make_shared_enabler : public factory {};
-            instance_ = std::make_shared< make_shared_enabler >();
-        });
-
-    return instance_.get();
-}
-
-void
-factory::accept( adplugin::visitor& visitor, const char * adplugin )
-{
-    visitor.visit( this, adplugin );
-}
-
-const char *
-factory::iid() const
-{
-    return "";
-}
