@@ -61,6 +61,7 @@ namespace adfs {
         file findFile( const folder&, const std::wstring& id );
         std::vector< folder > folders();
         inline sqlite& db() const { return *db_; }
+        inline std::shared_ptr< adfs::sqlite > _ptr() const { return db_; }
         int format_version() const;
     };
 

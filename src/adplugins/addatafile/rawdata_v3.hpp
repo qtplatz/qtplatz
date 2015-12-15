@@ -105,6 +105,8 @@ namespace addatafile {
             adcontrols::datafile& parent_;
 
             std::vector< adutils::v3::AcquiredConf::data > conf_;
+
+            int32_t fcnCount_;
         
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
             std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer

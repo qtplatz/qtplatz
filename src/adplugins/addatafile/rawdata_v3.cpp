@@ -68,6 +68,7 @@ rawdata::rawdata( adfs::filesystem& dbf
                                                    , parent_( parent )
                                                    , npos0_( 0 )
                                                    , configLoaded_( false )
+                                                   , fcnCount_( 0 )
 {
 }
 
@@ -88,11 +89,21 @@ rawdata::loadAcquiredConf()
         for ( const auto& conf: conf_ ) {
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                if ( reader->initialize( dbf_.db(), conf.objid ) )
+                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) )
                     readers_.push_back( reader );
             }
         }
-
+//#if 0
+        fcnCount_ = 0;
+        adfs::stmt sql( dbf_.db() );
+        sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData" );
+        while ( sql.step() == adfs::sqlite_row )
+            fcnCount_ += int32_t( sql.get_column_value< int64_t >( 0 ) );
+//#else
+        fcnCount_ = 0;
+        for ( auto reader : readers_ )
+            fcnCount_ += int32_t( reader->ticCount() );
+//#endif
         return true;
     }
     
@@ -391,7 +402,7 @@ rawdata::getChromatogramCount() const
 size_t
 rawdata::getFunctionCount() const
 {
-    return tic_.size();
+    return fcnCount_;
 }
 
 size_t

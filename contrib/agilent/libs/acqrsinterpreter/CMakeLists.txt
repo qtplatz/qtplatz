@@ -37,10 +37,10 @@ add_library( ${PROJECT_NAME}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adcontrols
+  adfs
   adplugin
   adportable
-  adcontrols
-  acewrapper
   )
 
 set_target_properties( ${PROJECT_NAME}

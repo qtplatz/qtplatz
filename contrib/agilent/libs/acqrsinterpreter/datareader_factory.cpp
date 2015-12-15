@@ -85,12 +85,9 @@ datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
         [] ( const char * traceid ) {  return std::make_shared< DataReader >( traceid ); }
         , typeid( DataReader ).name() );
 
-    for ( const auto& traceid: {  "1.u5303a.ms-cheminfo.com"
-                , "timecount.1.u5303a.ms-cheminfo.com"
-                , "histogram.timecount.1.u5303a.ms-cheminfo.com"
-                , "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" } ) {
-        adcontrols::DataReader::assign_reader( typeid( DataReader ).name(), traceid );
-    }
+    // register all supported 'traceid' by name
+    for ( const auto& traceid: DataReader::traceid_list() )
+        adcontrols::DataReader::assign_reader( typeid( DataReader ).name(), traceid.c_str() );
 
     if ( auto ptr = factory_plugin< histogram::DataInterpreter, IID_DataInterpreter >::make_this() ) {
         ptr->accept( visitor, adplugin );

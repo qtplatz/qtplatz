@@ -28,6 +28,8 @@
 #include "datainterpreter_timecount.hpp"
 #include "datainterpreter_softavgr.hpp"
 #include <adportable/debug.hpp>
+#include <adfs/filesystem.hpp>
+#include <adfs/sqlite.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <memory>
@@ -54,6 +56,14 @@ namespace acqrsinterpreter {
 
     template< typename T > struct wrap {};
 
+    struct make_list {
+        std::vector< std::string >& list;
+        make_list( std::vector< std::string >& _list ) : list(_list ){}
+        template < typename T > void operator () ( wrap<T> ) const {
+            list.push_back( T::value );
+        }
+    };
+        
     struct lookup_and_create {
         const char * id;
         std::unique_ptr< adcontrols::DataInterpreter >& interpreter;
@@ -76,13 +86,28 @@ DataReader::~DataReader()
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
 {
+    // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
+    // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
+
     boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_ ) );
 }
 
+// static
+std::vector< std::string >
+DataReader::traceid_list()
+{
+    std::vector< std::string > list;
+    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( make_list( list ) );
+    return list;
+}
+
 bool
-DataReader::initialize( adfs::sqlite& db, const boost::uuids::uuid& objid )
+DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
+        objid_ = objid; // objid tells channel/module id
+        objtext_ = objtext; // for debugging convension
+        db_ = dbf._ptr();
         return true;
     }
     return false;
@@ -91,5 +116,23 @@ DataReader::initialize( adfs::sqlite& db, const boost::uuids::uuid& objid )
 void
 DataReader::finalize()
 {
+}
+
+size_t
+DataReader::ticCount() const
+{
+    if ( auto db = db_.lock() ) {
+
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData WHERE objuuid = ?" );
+        sql.bind( 1 ) = objid_;
+        
+        size_t fcnCount( 0 );
+        while ( sql.step() == adfs::sqlite_row )
+            fcnCount += sql.get_column_value< int64_t >( 0 );
+        
+        return fcnCount;
+    }
+    return 0;
 }
 

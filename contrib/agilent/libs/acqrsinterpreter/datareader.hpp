@@ -27,18 +27,14 @@
 #include <adcontrols/datareader.hpp>
 #include <adplugin/plugin.hpp>
 #include <boost/variant.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <memory>
-#include <atomic>
 #include <mutex>
+#include <vector>
+
+namespace adfs { class sqlite; }
 
 namespace acqrsinterpreter {
-
-    enum eTID {
-        TID_U5303A
-        , TID_TIMECOUNT
-        , TID_HISTOGRAM
-        , TID_SOFTAVGR
-    };
 
     class DataReader : public adcontrols::DataReader {
         DataReader( const DataReader& ) = delete;  // noncopyable
@@ -47,11 +43,19 @@ namespace acqrsinterpreter {
         ~DataReader( void );
         DataReader( const char * traceid );
         
-        bool initialize( adfs::sqlite&, const boost::uuids::uuid& ) override;
+        static std::vector< std::string > traceid_list();        
+
+        // <===== adcontrols::DataReader 
+        bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
         void finalize() override;
+        size_t ticCount() const override;
+        // =============================>
 
     private:
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
+        std::weak_ptr< adfs::sqlite > db_;
+        boost::uuids::uuid objid_;
+        std::string objtext_;
     };
 
 }

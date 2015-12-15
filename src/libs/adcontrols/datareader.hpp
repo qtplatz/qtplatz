@@ -30,7 +30,7 @@
 #include <memory>
 
 namespace boost { namespace uuids { struct uuid; } }
-namespace adfs { class sqlite; }
+namespace adfs { class filesystem; }
 
 namespace adcontrols {
 
@@ -45,9 +45,11 @@ namespace adcontrols {
     public:
         virtual ~DataReader(void);
         DataReader( const char * traceid = nullptr );
+        DataReader( adfs::filesystem&, const char * traceid = nullptr );
 
-        virtual bool initialize( adfs::sqlite&, const boost::uuids::uuid& ) { return false; }
+        virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt = "" ) { return false; }
         virtual void finalize() { return ; }
+        virtual size_t ticCount() const { return 0; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

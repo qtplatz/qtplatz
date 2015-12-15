@@ -65,7 +65,7 @@ DataReader::make_reader( const char * traceid )
 void
 DataReader::register_factory( std::function< factory_type > f, const char * clsid )
 {
-        impl::instance()->reader_factories_[ clsid ] = f;
+    impl::instance()->reader_factories_[ clsid ] = f;
 }
 
 //static
