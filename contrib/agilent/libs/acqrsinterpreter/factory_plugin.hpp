@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adplugin/plugin.hpp>
+#include <adplugin/visitor.hpp>
 #include <memory>
 #include <mutex>
 

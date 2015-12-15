@@ -30,7 +30,7 @@ namespace adcontrols {
 
     class DataReader::impl {
     public:
-        static impl * impl::instance() {
+        static impl * instance() {
             static impl __impl__;
             return &__impl__;
         }

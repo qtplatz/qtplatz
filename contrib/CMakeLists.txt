@@ -1,10 +1,14 @@
 cmake_minimum_required (VERSION 2.8.9)
 
-message( STATUS "------------ contrib/shrader ----------------" )
-add_subdirectory( shrader )
+if ( NOT CMAKE_CROSSCOMPILING )
+  message( STATUS "------------ contrib/shrader ----------------" )
+  add_subdirectory( shrader )
+endif()
 
-message( STATUS "------------ contrib/agilent ----------------" )
-add_subdirectory( agilent )
+if ( NOT CMAKE_CROSSCOMPILING )
+  message( STATUS "------------ contrib/agilent ----------------" )
+  add_subdirectory( agilent )
+endif()
 
 if (WIN32)
   message( STATUS "------------ contrib/bruker ----------------" )  

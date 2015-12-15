@@ -43,10 +43,10 @@ namespace acqrsinterpreter {
         typedef Interpreter type;
     };
 
-    const std::string TID<u5303a::DataInterpreter >::value = "1.u5303a.ms-cheminfo.com";
-    const std::string TID<timecount::DataInterpreter >::value = "timecount.1.u5303a.ms-cheminfo.com";
-    const std::string TID<histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
-    const std::string TID<softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID<u5303a::DataInterpreter >::value = "1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID<timecount::DataInterpreter >::value = "timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID<histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID<softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
 
     typedef boost::mpl::vector<
         TID<u5303a::DataInterpreter >
@@ -70,7 +70,7 @@ namespace acqrsinterpreter {
         lookup_and_create( const char * _id, std::unique_ptr< adcontrols::DataInterpreter >& t ) : id( _id ), interpreter( t ) {}
         template < typename T > void operator () ( wrap<T> ) const {
             if ( id == T::value ) {
-                interpreter = std::unique_ptr< T::type >( new T::type() );
+                interpreter = std::unique_ptr< typename T::type >( new typename T::type() );
                 ADDEBUG() << "found: " << T::value;
             }
         }
