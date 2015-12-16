@@ -31,6 +31,7 @@
 #include "selchanged.hpp"
 #include "qtwidgets_name.hpp"
 #include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -93,6 +94,9 @@ namespace dataproc {
             data_ = ptr;
             chroWidget_->clear();
             chroWidget_->setData( ptr );
+            std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
+            if ( !name.empty() )
+                chroWidget_->setTitle( QString::fromStdWString( name ) );
             peakResult_.reset();
             if ( ptr->peaks().size() )
                 peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks() );

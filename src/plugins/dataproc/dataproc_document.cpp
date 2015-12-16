@@ -247,6 +247,14 @@ dataproc_document::findTIC( Dataprocessor * dp, int fcn )
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
             return cptr;
         }
+        //std::string query = "./folium[@name=\"" + pugi::as_utf8( name ) + "\"]";
+        std::ostringstream query;
+        //query << boost::format( "./folium[@name[matches(.,'/TIC.%d')]" ) % ( fcn + 1 );
+        query << boost::format( "./folium[contains(@name,'/TIC.%d')]" ) % ( fcn + 1 );
+        if ( auto folium = cfolder.findFoliumByRegex( query.str() ) ) {
+            auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+            return cptr;
+        }
     }
     return 0;
 }

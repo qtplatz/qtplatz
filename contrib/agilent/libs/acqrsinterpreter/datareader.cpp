@@ -28,14 +28,18 @@
 #include "datainterpreter_histogram.hpp"
 #include "datainterpreter_timecount.hpp"
 #include "datainterpreter_softavgr.hpp"
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/description.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
+#include <boost/format.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
-#include <memory>
 #include <atomic>
+#include <map>
+#include <memory>
 #include <mutex>
 
 namespace acqrsinterpreter {
@@ -79,12 +83,19 @@ namespace acqrsinterpreter {
     };
 
     struct total_ion_count : public boost::static_visitor< double > {
-
         template< typename T >
         double operator()( T& ptr ) const {
             return ptr->accumulate( 0.0, 0.0 ); // tic
         }
-        
+    };
+
+    struct make_title : public boost::static_visitor < std::wstring > {
+        std::wstring operator()( std::shared_ptr< adcontrols::TimeDigitalHistogram> & ) const {
+            return ( boost::wformat( L"Histogram" ) ).str();
+        }
+        std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::waveform >& ) const {
+            return ( boost::wformat( L"Averaged" ) ).str();
+        }
     };
 
 }
@@ -164,31 +175,45 @@ DataReader::loadTICs()
 {
     auto nfcn = fcnCount();
 
+    std::map< int, std::pair< std::shared_ptr< adcontrols::Chromatogram >, uint64_t > > tics;
+    
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
         if ( auto db = db_.lock() ) {
             
             adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT npos,fcn,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
+            sql.prepare( "SELECT npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
             sql.bind( 1 ) = objid_;
             
             while ( sql.step() == adfs::sqlite_row ) {
+                
                 auto pos = sql.get_column_value< int64_t >( 0 );
-                auto fcn = sql.get_column_value< int64_t >( 1 );
+                auto fcn = int( sql.get_column_value< int64_t >( 1 ) );
+                auto elapsed_time = sql.get_column_value< int64_t >( 2 ); // ns
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( 3 );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 4 );
 
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( 2 );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 3 );
+                if ( tics.find( fcn ) == tics.end() )
+                    tics[ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
+
+                auto pair = tics[ fcn ];
 
                 waveform_types waveform;
                 
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
+                    if ( pair.first->size() == 0 )
+                        pair.first->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+
                     double d = boost::apply_visitor( total_ion_count(), waveform );
+                    ( *pair.first ) << std::make_pair( double( elapsed_time - pair.second ) * 1.0e-9, d );
 
                 }
             }
 
+            for ( auto tic : tics )
+                tics_.push_back( tic.second.first );
         }
     }
 }

@@ -26,6 +26,7 @@
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
+#include <adportable/bzip2.hpp>
 
 using namespace acqrsinterpreter::histogram;
 
@@ -98,7 +99,18 @@ DataInterpreter::translate( acqrsinterpreter::waveform_types& waveform, const in
     waveform = native;
 
     if ( data && dsize ) {
-        adportable::serializer< adcontrols::TimeDigitalHistogram >::deserialize( *native, reinterpret_cast<const char *>( data ), dsize );
+
+        if ( adportable::bzip2::is_a( reinterpret_cast<const char *>( data ), dsize ) ) {
+
+            std::string ar;            
+            adportable::bzip2::decompress( ar, reinterpret_cast<const char *>( data ), dsize );
+            adportable::serializer< adcontrols::TimeDigitalHistogram >::deserialize( *native, ar.data(), ar.size() );
+
+        } else {
+
+            adportable::serializer< adcontrols::TimeDigitalHistogram >::deserialize( *native, reinterpret_cast<const char *>( data ), dsize );
+
+        }
         return adcontrols::translate_complete;
     }
 
