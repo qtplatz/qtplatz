@@ -194,20 +194,23 @@ rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterCls
 size_t
 rawdata::getSpectrumCount( int fcn ) const
 {
-#if 0
-	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
-            return c.trace_method == adicontroller::SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
-        });
-    if ( it != conf_.end() ) {
-        adfs::stmt sql( dbf_.db() );
-        if ( sql.prepare( "SELECT count(rowid) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn" ) ) {
-            sql.bind( 1 ) = it->objid;
-            sql.bind( 2 ) = fcn;
-            if ( sql.step() == adfs::sqlite_row )
-                return static_cast< size_t >( sql.get_column_value<int64_t>( 0 ) );
-        }
+    int tfcn(0);
+    if ( auto reader = findDataReader( fcn, tfcn ) ) {
+        if ( auto tic = reader->TIC( tfcn ) )
+            return tic->size();
     }
-#endif
+	// auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
+    //         return c.trace_method == adicontroller::SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+    //     });
+    // if ( it != conf_.end() ) {
+    //     adfs::stmt sql( dbf_.db() );
+    //     if ( sql.prepare( "SELECT count(rowid) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn" ) ) {
+    //         sql.bind( 1 ) = it->objid;
+    //         sql.bind( 2 ) = fcn;
+    //         if ( sql.step() == adfs::sqlite_row )
+    //             return static_cast< size_t >( sql.get_column_value<int64_t>( 0 ) );
+    //     }
+    // }
     return 0;
 }
 
