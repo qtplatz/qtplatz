@@ -48,7 +48,11 @@ namespace adcontrols {
     };
 
     class ADCONTROLSSHARED_EXPORT DataInterpreter {
+
+        virtual void * _narrow_workaround( const char * /* typename */ ) { return nullptr; }
+        
     public:
+
         DataInterpreter(void);
         ~DataInterpreter(void);
 
@@ -64,6 +68,14 @@ namespace adcontrols {
             translate( TraceAccessor&
                        , const char * data, size_t dsize
                        , const char * meta, size_t msize, unsigned long events ) const = 0;
+
+        template< typename Interpreter > Interpreter * _narrow() {
+            Interpreter * p( nullptr );
+            try { p = dynamic_cast<Interpreter*>( this ); } catch ( ... ) { /**/ }
+            if ( ! p )
+                p = reinterpret_cast< Interpreter *>( _narrow_workaround( typeid( Interpreter ).name() ) );
+            return p;
+        }
 
         virtual bool compile_header( MassSpectrum&, std::ifstream& ) const { return false; }
 

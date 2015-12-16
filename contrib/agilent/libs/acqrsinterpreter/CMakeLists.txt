@@ -14,6 +14,10 @@ if ( MSVC )
   add_definitions(-DACQRSINTERPRETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
 
+find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+
+include_directories( ${PROJECT_SOURCE_DIR}/.. )
+
 add_library( ${PROJECT_NAME}
   MODULE
   acqrsinterpreter_global.hpp
@@ -37,10 +41,12 @@ add_library( ${PROJECT_NAME}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  acqrscontrols
   adcontrols
   adfs
   adplugin
   adportable
+  ${Boost_LIBRARIES}
   )
 
 set_target_properties( ${PROJECT_NAME}

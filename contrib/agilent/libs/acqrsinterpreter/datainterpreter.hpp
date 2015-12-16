@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,14 +24,22 @@
 
 #pragma once
 
+#include <cstdint>
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
+#include <boost/variant.hpp>
 
 namespace adcontrols {
     class MassSpectrum;
     class TraceAccessor;
+    template< typename T > class waveform;
 }
 
 namespace acqrsinterpreter {
+
+    typedef boost::variant< std::shared_ptr< adcontrols::TimeDigitalHistogram >
+                            , std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_types;
 
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:
@@ -55,6 +63,19 @@ namespace acqrsinterpreter {
 
         bool make_device_text( std::vector< std::pair< std::string, std::string > >&
                                , const adcontrols::MSProperty& ) const override { return false; }
+
+        virtual adcontrols::translate_state
+        translate( waveform_types&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
+
+    private:
+        void * _narrow_workaround( const char * typname ) override {
+            if ( std::strcmp( typname, typeid( *this ).name() ) == 0 )
+                return reinterpret_cast< void * >( this );
+            else if ( std::strcmp( typname, typeid( acqrsinterpreter::DataInterpreter ).name() ) == 0 )
+                return reinterpret_cast<void *>( static_cast<acqrsinterpreter::DataInterpreter *>(this) );
+            return nullptr;
+        }
+        
     };
 
 }

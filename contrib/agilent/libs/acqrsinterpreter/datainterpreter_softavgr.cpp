@@ -23,6 +23,12 @@
 **************************************************************************/
 
 #include "datainterpreter_softavgr.hpp"
+#include <acqrscontrols/u5303a/waveform.hpp>
+#include <adcontrols/waveform.hpp>
+#include <adportable/bzip2.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/serializer.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace acqrsinterpreter::softavgr;
 
@@ -88,3 +94,32 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
     return adcontrols::translate_error;
 }
 
+adcontrols::translate_state
+DataInterpreter::translate( acqrsinterpreter::waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+{
+    if ( msize && dsize ) {
+        
+        auto native = std::make_shared< acqrscontrols::u5303a::waveform >();
+        waveform = native;
+
+        if ( native->deserialize_xmeta( reinterpret_cast<const char *>( meta ), msize ) ) {
+
+            if ( adportable::bzip2::is_a( reinterpret_cast<const char *>( data ), dsize ) ) {
+
+                std::string ar;
+                adportable::bzip2::decompress( ar, reinterpret_cast<const char *>( data ), dsize );
+                native->deserialize_xdata( ar.data(), ar.size() );
+                return adcontrols::translate_complete;
+
+            } else {
+
+                native->deserialize_xdata( reinterpret_cast<const char *>( data ), dsize );
+                return adcontrols::translate_complete;
+
+            }
+        }
+
+    }
+
+    return adcontrols::translate_error;
+}

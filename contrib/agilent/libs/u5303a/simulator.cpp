@@ -251,7 +251,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             for ( auto& w: vec ) {
                 w->setData( mblock, w->firstValidPoint_ );
                 if ( w->meta_.initialXTimeSeconds == 0 )
-                    w->meta_.initialXTimeSeconds = counter++;
+                    w->meta_.initialXTimeSeconds = double( counter++ );
             }
 
         } else {

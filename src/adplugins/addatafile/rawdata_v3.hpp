@@ -101,6 +101,8 @@ namespace addatafile {
             adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos
                                                        , adcontrols::MassSpectrum&, const std::wstring& traceId ) const;
 
+            std::shared_ptr< adcontrols::DataReader > findDataReader( int fcn, int& xfcn ) const;
+
             adfs::filesystem& dbf_;
             adcontrols::datafile& parent_;
 
@@ -120,7 +122,7 @@ namespace addatafile {
             std::vector< std::pair< size_t, int > > fcnIdx_;
             std::vector< std::pair< double, int > > times_;
             std::vector< std::wstring > undefined_spectrometers_;
-            std::vector< std::shared_ptr< adcontrols::DataReader > > readers_;
+            std::vector< std::pair< std::shared_ptr< adcontrols::DataReader >, int > > readers_; // <reader,fcn>
         };
 
 

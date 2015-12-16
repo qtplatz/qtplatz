@@ -36,6 +36,7 @@ namespace adcontrols {
 
     class DataInterpreter;
     class datafile;
+    class Chromatogram;
 
 	class ADCONTROLSSHARED_EXPORT DataReader {
 
@@ -49,7 +50,8 @@ namespace adcontrols {
 
         virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt = "" ) { return false; }
         virtual void finalize() { return ; }
-        virtual size_t ticCount() const { return 0; }
+        virtual size_t fcnCount() const { return 0; }
+        virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

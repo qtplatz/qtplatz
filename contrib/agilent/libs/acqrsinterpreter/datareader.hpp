@@ -48,14 +48,17 @@ namespace acqrsinterpreter {
         // <===== adcontrols::DataReader 
         bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
         void finalize() override;
-        size_t ticCount() const override;
+        size_t fcnCount() const override;
+        std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const override;
         // =============================>
 
     private:
+        void loadTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
         std::weak_ptr< adfs::sqlite > db_;
         boost::uuids::uuid objid_;
         std::string objtext_;
+        std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
     };
 
 }

@@ -112,20 +112,20 @@ histogram::append( const adcontrols::TimeDigitalHistogram& x )
         
         std::fill( data_.begin(), data_.end(), 0 );
 
-        serialnumber_0_ = x.serialnumber().first;
+        serialnumber_0_ = uint32_t ( x.serialnumber().first );
         timeSinceEpoch_0_ = x.timeSinceEpoch().first;
     }
 
     if ( x.size() ) {
 
         std::for_each( x.begin(), x.end(), [&] ( const std::pair<double, uint32_t>& value ) {
-                size_t idx = ( ( value.first - x.initialXOffset() ) / x.xIncrement() + 0.5 );
+                uint64_t idx = uint64_t( ( value.first - x.initialXOffset() ) / x.xIncrement() + 0.5 );
                 if ( idx < data_.size() )
                     data_[ idx ] += value.second;
             });
     }
     
-    serialnumber_ = x.serialnumber().second;
+    serialnumber_ = uint32_t( x.serialnumber().second );
     timeSinceEpoch_ = x.timeSinceEpoch().second;
     
     trigger_count_ += x.trigger_count();

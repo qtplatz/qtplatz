@@ -23,10 +23,12 @@
 **************************************************************************/
 
 #include "datareader.hpp"
+#include "datainterpreter.hpp"
 #include "datainterpreter_u5303a.hpp"
 #include "datainterpreter_histogram.hpp"
 #include "datainterpreter_timecount.hpp"
 #include "datainterpreter_softavgr.hpp"
+#include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
@@ -76,6 +78,18 @@ namespace acqrsinterpreter {
         }
     };
 
+    struct total_ion_count : public boost::static_visitor< double > {
+
+        double operator()( const adcontrols::TimeDigitalHistogram& t ) const {
+            return t.accumulate( 0.0, 0.0 ); // tic
+        }
+        
+        double operator()( const acqrscontrols::u5303a::waveform& t ) const {
+            return t.accumulate( 0.0, 0.0 );
+        }
+        
+    };
+
 }
 
 using namespace acqrsinterpreter;
@@ -119,7 +133,7 @@ DataReader::finalize()
 }
 
 size_t
-DataReader::ticCount() const
+DataReader::fcnCount() const
 {
     if ( auto db = db_.lock() ) {
 
@@ -134,5 +148,51 @@ DataReader::ticCount() const
         return fcnCount;
     }
     return 0;
+}
+
+std::shared_ptr< const adcontrols::Chromatogram >
+DataReader::TIC( int fcn ) const
+{
+    if ( tics_.empty() )
+        const_cast< DataReader * >(this)->loadTICs();
+
+    if ( tics_.size() > fcn )
+        return tics_[ fcn ];
+
+    return nullptr;
+}
+
+void
+DataReader::loadTICs()
+{
+    auto nfcn = fcnCount();
+
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+
+        if ( auto db = db_.lock() ) {
+            
+            adfs::stmt sql( *db );
+            
+            sql.prepare( "SELECT npos,fcn,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
+            sql.bind( 1 ) = objid_;
+            
+            while ( sql.step() == adfs::sqlite_row ) {
+                auto pos = sql.get_column_value< int64_t >( 0 );
+                auto fcn = sql.get_column_value< int64_t >( 1 );
+
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( 2 );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 3 );
+
+                waveform_types waveform;
+                
+                if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+
+                    double d = boost::apply_visitor( total_ion_count(), waveform );
+
+                }
+            }
+
+        }
+    }
 }
 

@@ -85,6 +85,8 @@ namespace acqrscontrols {
             
             waveform( const waveform&, std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
 
+            waveform();
+
             const int32_t * trim( metadata&, uint32_t& ) const;
 
             method method_;
@@ -123,6 +125,10 @@ namespace acqrscontrols {
 
             size_t serialize_xmeta( std::string& ) const;
             size_t serialize_xdata( std::string& ) const;
+            bool deserialize_xmeta( const char *, size_t );
+            bool deserialize_xdata( const char *, size_t );
+
+            double accumulate( double tof, double window ) const;
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
 

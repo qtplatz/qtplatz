@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "datainterpreter.hpp"
+#include <adcontrols/timedigitalhistogram.hpp>
+#include <acqrscontrols/u5303a/waveform.hpp>
 
 using namespace acqrsinterpreter;
 
@@ -88,3 +90,8 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
     return adcontrols::translate_error;
 }
 
+adcontrols::translate_state
+DataInterpreter::translate( waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+{
+    return adcontrols::translate_error;
+}

@@ -89,13 +89,14 @@ rawdata::loadAcquiredConf()
         for ( const auto& conf: conf_ ) {
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) )
-                    readers_.push_back( reader );
+                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) {
+                    readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
+                }
             }
         }
         fcnCount_ = 0;
         for ( auto reader : readers_ )
-            fcnCount_ += int32_t( reader->ticCount() );
+            fcnCount_ += reader.second; // fcnCount
         return true;
     }
     
@@ -377,11 +378,18 @@ rawdata::make_index( size_t pos, int& fcn ) const
 bool
 rawdata::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 {
-    if ( tic_.size() > unsigned( fcn ) ) {
-        c = *tic_[ fcn ];
-        c.setFcn( fcn );
-        return true;
+    int tfcn( 0 );
+    if ( auto reader = findDataReader( fcn, tfcn ) ) {
+        if ( auto pchro = reader->TIC( tfcn ) ) {
+            c = *pchro;
+            return true;
+        }
     }
+    // if ( tic_.size() > unsigned( fcn ) ) {
+    //     c = *tic_[ fcn ];
+    //     c.setFcn( fcn );
+    //     return true;
+    // }
     return false;
 }
 
@@ -682,4 +690,21 @@ rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
     }
     return false;
 #endif
+}
+
+std::shared_ptr< adcontrols::DataReader >
+rawdata::findDataReader( int fcn, int& xfcn ) const
+{
+    auto it = readers_.begin();
+
+    while ( it != readers_.end() ) {
+        if ( fcn < it->second ) { // nfcn
+            xfcn = fcn;
+            return it->first;
+        }
+        fcn -= it->second;
+        it++;
+    }
+    xfcn = 0;
+    return nullptr;
 }

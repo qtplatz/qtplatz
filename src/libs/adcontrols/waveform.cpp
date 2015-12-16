@@ -1,7 +1,6 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,16 +22,34 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "waveform.hpp"
 
-#include <compiler/decl_export.h>
-#include <compiler/pragma_warning.hpp>
+namespace adcontrols {
 
-#if defined(ADCONTROLS_LIBRARY)
-#  define ADCONTROLSSHARED_EXPORT DECL_EXPORT
-#  define ADCONTROLSSHARED_TEMPLATE_EXPORT
-#else
-#  define ADCONTROLSSHARED_EXPORT DECL_IMPORT
-#  define ADCONTROLSSHARED_TEMPLATE_EXPORT extern
-#endif
+    template<> class waveform<int32_t>::impl {
+    public:
+        
+    };
+
+}
+
+using namespace adcontrols;
+
+waveform<int32_t>::waveform() : impl_( new impl() )
+{
+}
+
+template<>
+waveform<int32_t>::~waveform()
+{
+}
+
+//static
+template<> ADCONTROLSSHARED_EXPORT std::shared_ptr< waveform< int32_t > >
+waveform<int32_t>::make_this()
+{
+    struct make_shared_enabler : public waveform< int32_t > {};
+    return std::make_shared< make_shared_enabler >();
+}
+
 

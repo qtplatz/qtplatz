@@ -23,6 +23,9 @@
 **************************************************************************/
 
 #include "datainterpreter_histogram.hpp"
+#include <adcontrols/waveform.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/serializer.hpp>
 
 using namespace acqrsinterpreter::histogram;
 
@@ -88,3 +91,16 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
     return adcontrols::translate_error;
 }
 
+adcontrols::translate_state
+DataInterpreter::translate( acqrsinterpreter::waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+{
+    auto native = std::make_shared< adcontrols::TimeDigitalHistogram >();
+    waveform = native;
+
+    if ( data && dsize ) {
+        adportable::serializer< adcontrols::TimeDigitalHistogram >::deserialize( *native, reinterpret_cast<const char *>( data ), dsize );
+        return adcontrols::translate_complete;
+    }
+
+    return adcontrols::translate_error;
+}

@@ -57,7 +57,8 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-namespace acqrscontrols { namespace u5303a {
+namespace acqrscontrols {
+    namespace u5303a {
 
         template<typename data_type> struct waveform_copy {
 
@@ -154,6 +155,13 @@ namespace acqrscontrols { namespace u5303a {
 
 using namespace acqrscontrols::u5303a;
 
+waveform::waveform() : serialnumber_( 0 )
+                     , wellKnownEvents_( 0 )
+                     , timeSinceEpoch_( 0 )
+                     , firstValidPoint_( 0 )
+{
+}
+
 waveform::waveform( std::shared_ptr< const identify > id
                     , uint32_t pos, uint32_t events, uint64_t tp ) : ident_( id )
                                                                    , serialnumber_( pos )
@@ -185,6 +193,40 @@ waveform::waveform( const waveform& rv
     }
 }
 
+double
+waveform::accumulate( double tof, double window ) const
+{
+    double tic(0), dbase(0), rms(0);
+    if ( meta_.dataType == 2 ) {
+        tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
+    } else if ( meta_.dataType == 4 ) {
+        tic = adportable::spectrum_processor::tic( size(), begin<int32_t>(), dbase, rms, 5 );
+    }
+    
+    if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
+
+        return tic;
+
+    } else {
+        auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset ) / meta_.xIncrement;
+        auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset ) / meta_.xIncrement;
+        adportable::spectrum_processor::areaFraction frac;
+        x1 = std::max( 0.0, x1 );
+        x2 = std::max( 0.0, x2 );
+        frac.lPos = size_t( std::ceil( x1 ) );
+        frac.uPos = size_t( std::floor( x2 ) );
+        if ( frac.lPos > 0 )
+            frac.lFrac = x1 - double( frac.lPos - 1 );
+        frac.uFrac = x2 - double( frac.uPos );
+
+        if ( meta_.dataType == 2 ) {
+            return adportable::spectrum_processor::area( frac, dbase, begin<int16_t>(), size() );
+        } else if ( meta_.dataType == 4 ) {
+            return adportable::spectrum_processor::area( frac, dbase, begin<int32_t>(), size() );
+        }
+    }
+    return 0;
+}
 
 const int32_t *
 waveform::trim( metadata& meta, uint32_t& nSamples ) const
@@ -272,6 +314,20 @@ waveform::serialize_xmeta( std::string& os ) const
     return os.size();
 }
 
+bool
+waveform::deserialize_xmeta( const char * data, size_t size )
+{
+    boost::iostreams::basic_array_source< char > device( data, size );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+
+    portable_binary_iarchive ar( st );
+
+    int version ( 0 );
+    waveform_xmeta_archive< waveform >().serialize( ar, *this, version );
+
+    return true;
+}
+
 size_t
 waveform::serialize_xdata( std::string& device ) const
 {
@@ -299,99 +355,48 @@ waveform::serialize_xdata( std::string& device ) const
     return device.size();
 }
 
-#if 0
-//static
-std::array< std::shared_ptr< const waveform >, 2 >
-waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb )
-{
-    if ( rb ) {
-        std::array< std::shared_ptr< waveform >, 2 > waveforms;
-
-        auto self( rb->shared_from_this() );
-        if ( !self || self->ndata() == 0 )
-            return std::array< std::shared_ptr< const waveform >, 2 >();
-
-        size_t nChannels = rb->ndata();
-
-        try {
-            waveform_xmeta_archive x;
-            if ( adportable::binary::deserialize<>()( x, reinterpret_cast<const char *>( rb->xmeta().data() ), rb->xmeta().size() ) ) {
-            
-                waveforms[ 0 ] = std::make_shared< waveform >( std::make_shared< identify >( x.ident_ ), rb->pos(), rb->events(), rb->timepoint() );
-                waveforms[ 0 ]->meta_ = x.meta_[ 0 ];
-                if ( x.method_ )
-                    waveforms[ 0 ]->method_ = *x.method_;
-            
-                const uint32_t * pdata = reinterpret_cast<const uint32_t *>( rb->xdata().data() );
-                for ( auto& waveform : waveforms ) {
-                    if ( *pdata == 0x7ffe0001 ) {
-                        ++pdata;
-                        uint32_t size = *pdata++;
-                        if ( size && waveform ) {
-                            auto * data_p = reinterpret_cast<const acqrscontrols::u5303a::waveform::value_type *>( pdata );
-							std::copy( data_p, data_p + size, waveform->data( size ) );
-                            pdata = reinterpret_cast<const uint32_t *>( data_p + size );
-                        }
-                    }
-                }
-            }
-            return std::array< std::shared_ptr< const waveform >, 2 >( { waveforms[ 0 ], nullptr } );
-        } catch ( ... ) {
-            ADERROR() << boost::current_exception_diagnostic_information();
-        }
-    }
-    return std::array< std::shared_ptr< const waveform >, 2 >();
-}
-
-//static
 bool
-waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
-                     , std::shared_ptr< const waveform > ch1
-                     , std::shared_ptr< const waveform > ch2 )
+waveform::deserialize_xdata( const char * data, size_t size )
 {
-    rb.ndata() = 0;
-    if ( ch1 || ch2 ) {
-        const waveform& waveform = ch1 ? *ch1 : *ch2;
+    if ( size < sizeof( int32_t ) * 2 )
+        return 0;
 
-        rb.pos() = waveform.serialnumber_;
-        rb.timepoint() = waveform.timeSinceEpoch_;
+    if ( !( meta_.dataType == 2 || meta_.dataType == 4 ) )
+        throw std::bad_cast();
 
-        waveform_xmeta_archive x;
+    const int32_t * src_p = reinterpret_cast<const int32_t *>( data );
+    size_t count( 0 );
 
-        const size_t data_count = ( ch1 ? ch1->d_.size() : 0 ) + ( ch2 ? ch2->d_.size() : 0 );
-        if ( ch1 )
-            x.meta_.push_back( ch1->meta_ );
-        if ( ch2 )
-            x.meta_.push_back( ch2->meta_ );
+    if ( *src_p++ != 0x7ffe0001 )
+        throw std::bad_cast();        
 
-        { // serialize xmeta
-            x.ident_ = *waveform.ident_;
-            x.method_ = std::make_shared< acqrscontrols::u5303a::method >( waveform.method_ );
-            std::ostringstream o;
-            portable_binary_oarchive ar( o );
-            ar << x;
-            const std::string& device = o.str();
-            rb.xmeta().resize( device.size() );
-            std::copy( device.data(), device.data() + device.size(), rb.xmeta().data() );
-        }
+    count = *src_p++;
+
+    assert( count == meta_.actualPoints );
+
+    if ( meta_.dataType == 2 ) {
+
+        // auto xcount = ( size - sizeof( int32_t ) * 2 ) / sizeof( int16_t );
+        // assert( xcount == count );
+
+        auto mblk = std::make_shared< adportable::mblock< int16_t > >( count );
+        mblock_ = mblk;
+        std::copy( reinterpret_cast< const int16_t * >(src_p), reinterpret_cast< const int16_t * >(src_p) + count, mblk->data() );
         
-        rb.xdata().resize( ( data_count + 4 ) * sizeof( int32_t ) );
-        int32_t * dest_p = reinterpret_cast<int32_t *>( rb.xdata().data() );
+    } else if ( meta_.dataType == 4 ) {
+
+        // auto xcount = ( size - sizeof( int32_t ) * 2 ) / sizeof( int32_t );
+        // assert( xcount == count );
         
-        for ( auto& ptr : { ch1, ch2 } ) {
-            *dest_p++ = 0x7ffe0001; // separater & endian marker
-            *dest_p++ = ptr ? int32_t( ptr->d_.size() ) : 0;
-            if ( ptr ) {
-                rb.ndata()++;
-                std::copy( ptr->d_.begin(), ptr->d_.end(), dest_p );
-                dest_p += ptr->d_.size();
-            }
-        }
-        return true;
+        auto mblk = std::make_shared< adportable::mblock< int32_t > >( count );
+        mblock_ = mblk;
+        std::copy( reinterpret_cast< const int32_t * >(src_p), reinterpret_cast< const int32_t * >(src_p) + count, mblk->data() );
+
     }
-    return false;
+    
+    return true;
 }
-#endif
+
 
 bool
 waveform::transform( std::vector< double >& v, const waveform& w, int scale )

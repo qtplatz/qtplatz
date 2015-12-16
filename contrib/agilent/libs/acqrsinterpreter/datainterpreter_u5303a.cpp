@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "datainterpreter_u5303a.hpp"
+#include <adcontrols/waveform.hpp>
 
 using namespace acqrsinterpreter::u5303a;
 
@@ -88,3 +89,8 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
     return adcontrols::translate_error;
 }
 
+adcontrols::translate_state
+DataInterpreter::translate( acqrsinterpreter::waveform_types&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+{
+    return adcontrols::translate_error;
+}

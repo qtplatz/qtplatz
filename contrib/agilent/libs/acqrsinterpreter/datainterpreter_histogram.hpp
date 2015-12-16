@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adcontrols/datainterpreter.hpp>
+#include "datainterpreter.hpp"
 
 namespace adcontrols {
     class MassSpectrum;
@@ -35,7 +36,7 @@ namespace acqrsinterpreter {
 
     namespace histogram {
 
-        class DataInterpreter : public adcontrols::DataInterpreter {
+        class DataInterpreter : public acqrsinterpreter::DataInterpreter {
         public:
             virtual ~DataInterpreter();
             DataInterpreter();
@@ -57,6 +58,10 @@ namespace acqrsinterpreter {
 
             bool make_device_text( std::vector< std::pair< std::string, std::string > >&
                                    , const adcontrols::MSProperty& ) const override { return false; }
+
+            adcontrols::translate_state
+            translate( waveform_types&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize ) override;
+            
         };
 
     }
