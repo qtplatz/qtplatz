@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -388,11 +388,6 @@ rawdata::getTIC( int fcn, adcontrols::Chromatogram& c ) const
             return true;
         }
     }
-    // if ( tic_.size() > unsigned( fcn ) ) {
-    //     c = *tic_[ fcn ];
-    //     c.setFcn( fcn );
-    //     return true;
-    // }
     return false;
 }
 
@@ -411,12 +406,27 @@ rawdata::getFunctionCount() const
 size_t
 rawdata::posFromTime( double seconds ) const
 {
-    if ( !times_.empty() ) {
-        typedef std::pair<double, int> time_type;
-        auto it = std::lower_bound( times_.begin(), times_.end(), seconds,
-                                    [=] ( const time_type& pos, double seconds ){ return pos.first < seconds; } );
-        return std::distance( times_.begin(), it );
-	}
+    adfs::stmt sql( dbf_.db() );
+    
+    uint64_t injTime (0);
+    
+    if ( sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData" ) ) {
+        if ( sql.step() == adfs::sqlite_row ) 
+            injTime = sql.get_column_value< int64_t >( 0 );
+    }
+    
+    sql.reset();
+
+    if ( sql.prepare( "SELECT npos, epoch_time FROM AcquiredData ORDER BY ABS( ? - epoch_time ) LIMIT 1" ) ) {
+        sql.bind( 1 ) = injTime;
+        if ( sql.step() == adfs::sqlite_row ) {
+            
+            auto pos = sql.get_column_value< int64_t >( 0 );
+            auto epoch_time = sql.get_column_value< int64_t >( 1 );
+            
+            return pos;
+        }
+    }
 	return 0;
 }
 
