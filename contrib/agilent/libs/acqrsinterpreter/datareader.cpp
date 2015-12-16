@@ -80,12 +80,9 @@ namespace acqrsinterpreter {
 
     struct total_ion_count : public boost::static_visitor< double > {
 
-        double operator()( const adcontrols::TimeDigitalHistogram& t ) const {
-            return t.accumulate( 0.0, 0.0 ); // tic
-        }
-        
-        double operator()( const acqrscontrols::u5303a::waveform& t ) const {
-            return t.accumulate( 0.0, 0.0 );
+        template< typename T >
+        double operator()( T& ptr ) const {
+            return ptr->accumulate( 0.0, 0.0 ); // tic
         }
         
     };

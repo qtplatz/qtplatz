@@ -61,9 +61,9 @@ namespace adcontrols {
         void reseize() { data_.resize(); }
 
         size_t size() const { return data_.size(); }
-        int operator [] ( size_t idx ) const { return data_[ idx ] };
+        int operator [] ( size_t idx ) const { return data_[ idx ]; }
 
-        int64_t serialnumber() const { return serialnumber_ } ; // a.k.a. trigger number
+        int64_t serialnumber() const { return serialnumber_; }  // a.k.a. trigger number
         void setSerialnumber( int64_t value ) { serialnumber_ = value; } 
         
         uint32_t wellKnownEvents() const { return wellKnownEvents_; }
@@ -88,7 +88,9 @@ namespace adcontrols {
         pragma_msvc_warning_pop
     };
 
-    // template<> ADCONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
+    template<> ADCONTROLSSHARED_EXPORT waveform<int32_t>::waveform();
+    template<> ADCONTROLSSHARED_EXPORT waveform<int32_t>::~waveform();
+
     // template<> ADCONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
     // template<> ADCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
     // template<> ADCONTROLSSHARED_EXPORT const int32_t * waveform::end() const;

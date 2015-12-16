@@ -126,7 +126,6 @@ add_library( adcontrols SHARED
   quancalibration.cpp 
   quancalibrations.cpp 
   serializer.cpp
-  waveform.cpp
   waveform_filter.cpp 
   )
 
@@ -247,6 +246,5 @@ install( FILES
   quancalibrations.hpp
   tofchromatogrammethod.hpp
   tofchromatogramsmethod.hpp
-  waveform.hpp
   waveform_filter.hpp 
   DESTINATION include/adcontrols COMPONENT headers )

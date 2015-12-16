@@ -35,7 +35,7 @@ namespace adcontrols {
 
 using namespace adcontrols;
 
-waveform<int32_t>::waveform() : impl_( new impl() )
+waveform<int32_t>::waveform() // : impl_( new impl() )
 {
 }
 

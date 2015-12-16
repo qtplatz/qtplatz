@@ -29,6 +29,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <typeinfo>
 
 namespace adcontrols {
 
