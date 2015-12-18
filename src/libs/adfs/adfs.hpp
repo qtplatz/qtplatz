@@ -37,6 +37,10 @@ namespace adfs {
     class ADFSSHARED_EXPORT exception : public std::exception {
     public:
         exception( const std::string& msg, const char * cat ) : message_(msg), category_(cat) {}
+
+        const std::string& message() const { return message_; }
+        const std::string& category() const { return category_; }
+
     private:
         pragma_msvc_warning_push_disable_4251
         std::string message_;

@@ -345,9 +345,6 @@ if (WIN32)
 
 else()
 
-  set_target_properties( adfs PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadfs.a )
-
   set_target_properties( adinterface PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadinterface.a )
 
