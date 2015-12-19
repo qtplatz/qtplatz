@@ -1,0 +1,40 @@
+=========================
+    INSTALL boost
+========================
+
+.\b2 -s BZIP2_SOURCE=C:\Users\src\bzip2-1.0.6 link=static install
+.\b2 --stagedir=./x86_64 --toolset=msvc-12.0 architecture=x86 address-model=64 -s BZIP2_SOURCE=C:\Users\src\bzip2-1.0.6 link=static stage
+
+Then copy x86_64 to C:/Boost
+
+=========================
+    INSTALL RDKit
+========================
+
+Add following lines on top (right after project(RDKit) line) of CMakefile
+
+set(CMAKE_DEBUG_POSTFIX "d")
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_INCLUDE_DIR C:/Boost/include/boost-1_60)
+set(Boost_LIBRARY_DIR C:/Boost/x86_64/lib)
+add_definitions(-DUNICODE -D_UNICODE)
+set(CMAKE_INSTALL_PREFIX "C:/RDKit")
+if (WIN32)
+  if ( MSVC_VERSION EQUAL 1900 )
+    set( LIB_SUFIX "_vc140" )
+  endif()
+  if ( MSVC_VERSION EQUAL 1800 )
+    set( LIB_SUFIX "_vc120" )
+  endif()
+endif()
+----------------
+
+Then set 'OFF' to RDK_INSTALL_INTREE and RDK_BUILD_PYTHON_WRAPPERS
+
+do
+
+mkdir build_vc120
+cd build_vc120
+cmake -G "Visual Studio 12 Win64" ..
+msbuild /m:4 /p:Configuration=Debug INSTALL.vcxproj
+msbuild /m:4 /p:Configuration=Release INSTALL.vcxproj
