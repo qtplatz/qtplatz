@@ -6,9 +6,24 @@ endif()
 
 # when run 'make install' or 'INSTALL.vcxproj', .libs are copied into RDKit's ${CMAKE_SOURCE_DIR}/rdkit/lib
 
+if ( WIN32 )
+  set( _rdkit "C:/RDKIT" )
+  if ( MSVC_VERSION EQUAL 1900 )
+    set( _rdkit_libdir "C:/RDKit/lib_vc140" )    
+  endif()
+  if ( MSVC_VERSION EQUAL 1800 )
+    set( _rdkit_libdir "C:/RDKit/lib_vc120" )    
+  endif()
+else()
+  set( _rdkit_libdir "/usr/local/lib" )    
+endif()
+
+message( STATUS "################## rdkit : " ${_rdkit_libdir} )
+
 find_package( rdkit CONFIG HINTS
-  ${CMAKE_SOURCE_DIR}/../rdkit/lib
+  ${_rdkit_libdir}
   $ENV{RDBASE}
+  ${CMAKE_SOURCE_DIR}/../rdkit/lib
   /usr/local/lib
   )
 

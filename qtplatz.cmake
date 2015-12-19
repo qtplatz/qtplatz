@@ -10,7 +10,10 @@ find_package( arch )
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_59" "C:/Boost/include/boost-1_58" "C:/Boost/include/boost-1_57" )
+    "C:/Boost/include/boost-1_60"
+    "C:/Boost/include/boost-1_59"
+    "C:/Boost/include/boost-1_58"
+    "C:/Boost/include/boost-1_57" )
 
   set( BOOST_ROOT ${_boost} )
   set( Boost_INCLUDE_DIR ${_boost} )
@@ -25,7 +28,11 @@ if( WIN32 )
 else()
 
   find_path( _boost NAMES include/boost HINTS
-    "/usr/local/boost-1_59" "/usr/local/boost-1_58" "/usr/local/boost-1_57" "/usr/local" )
+    "/usr/local"
+    "/usr/local/boost-1_60"
+    "/usr/local/boost-1_59"
+    "/usr/local/boost-1_58"
+    "/usr/local/boost-1_57" )
 
   if ( _boost )
     set(Boost_INCLUDE_DIR "${_boost}/include")
@@ -55,7 +62,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
       OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
 
-    message( "########## QMAKE ############: " ${QTDIR} )
+    message( STATUS "### QTDIR: " ${QTDIR} )
     
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
       OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
@@ -64,7 +71,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
     #find_program( XMLPATTERNS NAMES xmlpatterns HINTS ${QT_INSTALL_PREFIX}/bin ${QT_INSTALL_LIBEXECS} )
     #find_program( XMLPATTERNS NAMES xmlpatterns PATHS "${QTDIR}/bin" )
     set( XMLPATTERNS "${QTDIR}/bin/xmlpatterns" )
-    message( "########## QMAKE ############ " ${XMLPATTERNS} )    
+    message( STATUC "### XMLPATTERNS: " ${XMLPATTERNS} )    
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  

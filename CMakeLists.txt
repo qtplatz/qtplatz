@@ -74,6 +74,11 @@ else() # Linux
 endif()
 
 message( STATUS "---------------------------------" )
+
+if ( WIN32 )
+  message( STATUS "### MSVC VERSION: " ${MSVC_VERSION} )      
+endif()
+
 find_package( Boost REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
@@ -225,3 +230,18 @@ set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
 include( CPack )
 
+#---------------------------------
+message( STATUS "---------- SUMMARY ------------" )
+message( STATUS "# QTPLATZ_SUPPORT_CORBA: " ${QTPLATZ_SUPPORT_CORBA} )
+message( STATUS "# QTPLATZ_CORELIB_ONLY:  " ${QTPLATZ_CORELIB_ONLY} )
+message( STATUS "# Generating DEBUG SYMBOL and CONSOLE: " ${DEBUG_SYMBOL} )
+if ( WIN32 )
+  message( STATUS "# MSVC VERSION: " ${MSVC_VERSION} )      
+endif()
+message( STATUS "# Qt5_DIR     : " ${Qt5_DIR} )
+message( STATUS "# ENV{QTDIR}  : " ${QTDIR} )
+message( STATUS "# QWT DIR     : " ${qwt_DIR} )      
+message( STATUS "# ACE+TAO_DIR : " ${ace+tao_DIR} )
+message( STATUS "# XMLPATTERNS : " ${XMLPATTERNS} ) 
+message( STATUS "# RDKit VERSION: " ${RDKit_PACKAGE_VERSION} " at " ${RDKit_INCLUDE_DIRS} " libs: "  ${RDKit_LIBRARY_DIRS} )
+message( STATUS "---------- END SUMMARY ------------" )

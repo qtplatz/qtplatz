@@ -5,7 +5,14 @@ set build_root=..\build-x86_64
 set build_type=release
 set build_tests=false
 set build_clean=false
-set tools=vc12
+
+if %VisualStudioVersion% EQU 14.0 (
+   set tools=vc14
+   echo "############ building qtplatz using "%tools%" #############"
+) else (
+   set tools=vc12
+   echo "############ building qtplatz using " %tools% " #############"
+)
 
 for %%i in (%*) do (
     if %%i==release (
@@ -16,14 +23,13 @@ for %%i in (%*) do (
        set build_tests=true
     ) else if %%i==clean (
        set build_clean=true
-    ) else if %%i==vc14 (
-       set tools=vc14
     )
 )
 
+
 set build_dir=%build_root%\qtplatz.%build_type%
-if %tools%==vc14 (
-   set build_dir=%build_root%\qtplatz.%build_type%-vc14
+if not %tools%==vc12 (
+   set build_dir=%build_root%\qtplatz.%build_type%_%tools%
 )
 
 if %build_clean%==true (

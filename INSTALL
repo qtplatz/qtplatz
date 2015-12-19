@@ -8,7 +8,7 @@
 Then copy x86_64 to C:/Boost
 
 =========================
-    INSTALL RDKit
+    INSTALL RDKit (Windows/VisualStudio 2013, 2015)
 ========================
 
 Add following lines on top (right after project(RDKit) line) of CMakefile
@@ -21,15 +21,15 @@ add_definitions(-DUNICODE -D_UNICODE)
 set(CMAKE_INSTALL_PREFIX "C:/RDKit")
 if (WIN32)
   if ( MSVC_VERSION EQUAL 1900 )
-    set( LIB_SUFIX "_vc140" )
+    set( LIB_SUFFIX "_vc140" )
   endif()
   if ( MSVC_VERSION EQUAL 1800 )
-    set( LIB_SUFIX "_vc120" )
+    set( LIB_SUFFIX "_vc120" )
   endif()
 endif()
 ----------------
-
-Then set 'OFF' to RDK_INSTALL_INTREE and RDK_BUILD_PYTHON_WRAPPERS
+Also fix a type "LIB_SUFIX" to "LIB_SUFFIX" at L84
+And then set 'OFF' to RDK_INSTALL_INTREE and RDK_BUILD_PYTHON_WRAPPERS
 
 do
 
