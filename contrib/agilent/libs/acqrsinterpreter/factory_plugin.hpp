@@ -45,6 +45,9 @@ namespace acqrsinterpreter {
     
     template< typename T, typename _IID >
     class factory_plugin : public adplugin::plugin {
+#if _MSC_VER >= 1900
+	public:
+#endif
         factory_plugin() {
         }
 

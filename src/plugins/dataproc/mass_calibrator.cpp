@@ -34,7 +34,10 @@
 #include <adportable/polfit.hpp>
 
 #include <workaround/boost/uuid/uuid.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
+#endif
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>

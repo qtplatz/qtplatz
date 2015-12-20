@@ -38,6 +38,10 @@ namespace acqrsinterpreter {
 
         datareader_factory( const datareader_factory& ) = delete;
         const datareader_factory& operator = ( const datareader_factory& ) = delete;
+
+#if _MSC_VER >= 1900
+	public:
+#endif
         datareader_factory();
 
     public:

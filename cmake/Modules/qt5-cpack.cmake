@@ -10,8 +10,16 @@ find_package( Qt5
   MultimediaWidgets
   Network OpenGL PrintSupport Script Sensors Sql Svg
   Positioning Quick Qml WebChannel
-  WebKit WebKitWidgets Widgets
+  Widgets
   Xml XmlPatterns )
+
+if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
+  find_package( Qt5 REQUIRED WebKit WebKitWidgets )
+  set( _webkits Qt5::WebKit Qt5::WebKitWidgets )
+else()
+  find_package( Qt5 REQUIRED WebView )
+  set( _webkits Qt5::WebView )
+endif()
 
 message( STATUS "Qt5 Version: " ${Qt5_VERSION} "\t" ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR})
 
@@ -46,9 +54,7 @@ foreach( lib
     Qt5::Quick
     Qt5::Qml
     Qt5::WebChannel
-    Qt5::WebKit
-    Qt5::WebKitWidgets
-    Qt5::Widgets
+    ${_webkits}
     Qt5::Xml
     Qt5::XmlPatterns )
   

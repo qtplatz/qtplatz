@@ -31,7 +31,9 @@
 
 using namespace adutils::v3;
 
-AcquiredConf::data::data()
+AcquiredConf::data::data() : objid( {0} )
+                           , objtext( "" )
+                           , pobjid( boost::uuids::uuid{0} )
 {
 }
 

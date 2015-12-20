@@ -14,7 +14,17 @@ configure_file(
   "${PROJECT_BINARY_DIR}/share/qtplatz/xslt"  # <QtPlatz>/share/qtplatz/xslt
   )
 
-find_package( Qt5 CONFIG REQUIRED Concurrent Sql Svg Xml PrintSupport XmlPatterns WebKitWidgets WebKit Core )
+if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
+  find_package( Qt5 CONFIG REQUIRED Concurrent Sql Svg Xml PrintSupport XmlPatterns WebKitWidgets WebKit Core )
+  include_directories( ${Qt5WebKitWidgets_INCLUDE_DIRS} )
+  set( _libs "Qt5::WebKit" "Qt5::WebKitWidgets" )
+else()
+  # 5.6 or higher
+  find_package( Qt5 CONFIG REQUIRED Concurrent Sql Svg Xml PrintSupport XmlPatterns WebEngineWidgets Core )
+  include_directories( ${Qt5WebEngineWidgets_INCLUDE_DIRS} )
+  set( _libs "Qt5::WebEngineWidgets" )
+endif()
+
 find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
 
 add_definitions(-DADPUBLISHER_LIBRARY)
@@ -25,7 +35,6 @@ include_directories(
   ${Qt5PrintSupport_INCLUDE_DIRS}
   ${Qt5Xml_INCLUDE_DIRS}
   ${Qt5XmlPatterns_INCLUDE_DIRS}
-  ${Qt5WebKitWidgets_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
   )
 
@@ -100,8 +109,7 @@ target_link_libraries(
   xmlparser
   Qt5::Widgets
   Qt5::Core
-  Qt5::WebKit
-  Qt5::WebKitWidgets
+  ${_libs}
   Qt5::PrintSupport
   ${Boost_LIBRARIES}
   ${adpublisher_LIBS}

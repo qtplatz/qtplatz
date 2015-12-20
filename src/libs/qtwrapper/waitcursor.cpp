@@ -27,7 +27,7 @@
 
 using namespace qtwrapper;
 
-std::atomic_flag waitCursor::blocked_( { false } );
+std::atomic_flag waitCursor::blocked_ = ATOMIC_FLAG_INIT;// ({ false });
 
 void
 waitCursor::block()

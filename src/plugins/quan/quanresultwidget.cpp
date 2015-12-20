@@ -37,7 +37,10 @@
 #include <QLineEdit>
 #include <boost/lexical_cast.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
+#endif
 
 using namespace quan;
 

@@ -43,7 +43,10 @@ namespace adicontroller {
         
         Description::Description()
         {
+			conf_.objid = { 0 };
+			conf_.pobjid = { 0 };
             conf_.spectrometer = eUnknownSpectrometer;
+			conf_.trace_method = eTRACE_SPECTRA;
             conf_.axis_decimals_x = 2;
             conf_.axis_decimals_y = 0;
         }
@@ -65,6 +68,18 @@ namespace adicontroller {
             conf_.axis_label_y = axis_label_y;
             conf_.axis_decimals_x = axis_decimals_x;
             conf_.axis_decimals_y = axis_decimals_y;
+        }
+
+        void
+        Description::set_objtext( const char * objtext )
+        {
+            conf_.objtext = objtext;
+        }
+        
+        void
+        Description::set_objid( const boost::uuids::uuid& objid )
+        {
+            conf_.objid = objid;
         }
         
         eTRACE_METHOD

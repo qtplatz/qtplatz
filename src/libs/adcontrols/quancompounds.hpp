@@ -42,7 +42,7 @@
 namespace adcontrols {
 
 #if defined _MSC_VER
-    template class ADCONTROLSSHARED_EXPORT std::vector < QuanCompound > ;
+//    template class ADCONTROLSSHARED_EXPORT std::vector < QuanCompound > ;
 #endif
 
     class ADCONTROLSSHARED_EXPORT QuanCompounds  {

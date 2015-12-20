@@ -66,6 +66,9 @@ namespace adicontroller {
                          , int axis_decimals_x
                          , int axis_decimals_y );
 
+            void set_objtext( const char * objtext );
+            void set_objid( const boost::uuids::uuid& );
+
             eTRACE_METHOD trace_method() const;
             void set_trace_method( eTRACE_METHOD );
 

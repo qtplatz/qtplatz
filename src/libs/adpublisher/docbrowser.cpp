@@ -25,23 +25,34 @@
 #include "docbrowser.hpp"
 #include <memory>
 #include "adpublisher_global.hpp"
+#include <QtGlobal>
 #include <QByteArray>
 #include <QTextBrowser>
 #include <QLayout>
+#if QT_VERSION < 0x050600
 #include <QWebView>
+#else
+#include <QWebEngineView>
+#endif
 #include <QUrl>
 
 namespace adpublisher {
     
+#if QT_VERSION < 0x050600
     class docBrowser::impl {
     public:
-        //impl( QWidget * p ) : browser( new QTextBrowser ) {
         impl() : browser( new QWebView ) {
-            //browser->load( QUrl( "http://www.ms-cheminfo.com" ) );
         }
-        // QTextBrowser * browser;
         QWebView * browser;
     };
+#else
+    class docBrowser::impl {
+    public:
+        impl() : browser( new QWebEngineView ) {
+        }
+        QWebEngineView * browser;
+    };
+#endif
 
 }
 

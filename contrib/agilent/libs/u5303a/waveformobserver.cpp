@@ -22,17 +22,14 @@
 **
 **************************************************************************/
 
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4996)
-#endif
 #include "waveformobserver.hpp"
 #include <u5303a/digitizer.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#if defined _MSC_VER
-#pragma warning(pop)
 #endif
+#include <boost/uuid/uuid_generators.hpp>
+
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>

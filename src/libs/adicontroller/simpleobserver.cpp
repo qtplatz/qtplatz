@@ -23,7 +23,10 @@
 **************************************************************************/
 
 #include "simpleobserver.hpp"
+#include <boost/version.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
+#endif
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace adicontroller;
@@ -36,7 +39,9 @@ SimpleObserver::SimpleObserver( const char * objtext
                                                                 , desc_( desc )
 {
     desc_.set_trace_id( objtext );  // unique name for the trace, can be used as 'data storage name'
-    setDescription( desc );
+	desc_.set_objtext(objtext);
+	desc_.set_objid(objid_);
+    setDescription( desc_ );
 }
 
 SimpleObserver::~SimpleObserver()

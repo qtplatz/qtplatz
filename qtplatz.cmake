@@ -71,7 +71,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
     #find_program( XMLPATTERNS NAMES xmlpatterns HINTS ${QT_INSTALL_PREFIX}/bin ${QT_INSTALL_LIBEXECS} )
     #find_program( XMLPATTERNS NAMES xmlpatterns PATHS "${QTDIR}/bin" )
     set( XMLPATTERNS "${QTDIR}/bin/xmlpatterns" )
-    message( STATUC "### XMLPATTERNS: " ${XMLPATTERNS} )    
+    message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )    
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  

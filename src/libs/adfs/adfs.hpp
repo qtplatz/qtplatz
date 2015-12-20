@@ -34,7 +34,7 @@
 
 namespace adfs {
 
-    class ADFSSHARED_EXPORT exception : public std::exception {
+    class /* ADFSSHARED_EXPORT */ exception : public std::exception {
     public:
         exception( const std::string& msg, const char * cat ) : message_(msg), category_(cat) {}
 
@@ -48,7 +48,7 @@ namespace adfs {
         pragma_msvc_warning_pop
     };
 
-    ADFSSHARED_EXPORT const char * null_safe( const char * s );// { return ( s ? s : "" ); }
+    ADFSSHARED_EXPORT const char * null_safe( const char * s );
 
     ADFSSHARED_EXPORT std::wstring create_uuid();
 }

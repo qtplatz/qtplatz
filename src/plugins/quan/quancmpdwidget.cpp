@@ -31,7 +31,9 @@
 #include <QStandardItemModel>
 #include <QMessageBox>
 #include <workaround/boost/uuid/uuid.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
+#endif
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/all.hpp>
 

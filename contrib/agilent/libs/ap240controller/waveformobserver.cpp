@@ -28,7 +28,10 @@
 #endif
 #include "waveformobserver.hpp"
 #include <ap240/digitizer.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
+#endif
 #include <boost/uuid/uuid_generators.hpp>
 #if defined _MSC_VER
 #pragma warning(pop)

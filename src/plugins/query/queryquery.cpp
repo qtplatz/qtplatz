@@ -25,8 +25,8 @@
 #include "queryquery.hpp"
 #include <adfs/sqlite.hpp>
 #include <adfs/sqlite3.h>
-#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <workaround/boost/uuid/uuid.hpp>
 #include <boost/lexical_cast.hpp>
 #include <QObject>
 

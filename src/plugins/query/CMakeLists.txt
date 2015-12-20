@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( Query )
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network WebKit WebKitWidgets )
+find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 find_package( qwt )
 find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
 

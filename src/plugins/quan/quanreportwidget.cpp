@@ -64,7 +64,10 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
+#endif
 #include <boost/spirit/include/classic.hpp>
 #include <fstream>
 #include <algorithm>
