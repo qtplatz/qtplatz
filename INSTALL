@@ -7,13 +7,12 @@
 
 Then copy x86_64 to C:/Boost
 
-=========================
+====================================================
     INSTALL RDKit (Windows/VisualStudio 2013, 2015)
-========================
+====================================================
 
 Add following lines on top (right after project(RDKit) line) of CMakefile
-
------------------- Windows --------------------
+-----------------------------------------
 set(CMAKE_DEBUG_POSTFIX "d")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_INCLUDE_DIR C:/Boost/include/boost-1_60)
@@ -39,7 +38,14 @@ cmake -G "Visual Studio 12 Win64" ..
 msbuild /m:4 /p:Configuration=Debug INSTALL.vcxproj
 msbuild /m:4 /p:Configuration=Release INSTALL.vcxproj
 
------------------- *nix/mac --------------------
+
+====================================================
+    INSTALL RDKit (Linux, Mac)
+====================================================
+
+Add following line to top of rdkit/CMakeLists.txt;
+
+------------------------------------------------
 include( ${CMAKE_SOURCE_DIR}/../qtplatz.cmake )
 ------------------------------------------------
 

@@ -39,6 +39,7 @@ namespace adcontrols {
         threshold_action(void);
 		threshold_action(const threshold_action &);
         static const char * modelClass() { return "threshold_action"; }
+        static const char * itemLabel() { return "threshold_action"; }
 
         bool enable;
         double delay;

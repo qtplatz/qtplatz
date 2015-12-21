@@ -63,9 +63,9 @@ if %tools%==vc12 (
 ) else if %tools%==vc14 (
 
   if %build_type%==release (
-     cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=Release -DQTPLATZ_SUPPORT_CORBA:BOOL=ON -DDEBUG_SYMBOL:BOOL=ON %source_dir%
+     cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=Release -DQTPLATZ_SUPPORT_CORBA:BOOL=OFF -DDEBUG_SYMBOL:BOOL=ON %source_dir%
   ) else if %build_type%==package (
-     cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=Release -DQTPLATZ_SUPPORT_CORBA:BOOL=ON -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
+     cmake -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE=Release -DQTPLATZ_SUPPORT_CORBA:BOOL=OFF -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
      cd contrib\installer\wix
      nmake help
   ) else (

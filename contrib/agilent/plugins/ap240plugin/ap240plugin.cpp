@@ -92,10 +92,10 @@ ap240Plugin::initialize( const QStringList &arguments, QString *errorString )
         mode_->setWidget( widget );
     addObject( mode_.get() );
 
-    if ( auto iExtension = document::instance()->iSequence() ) {
-        mainWindow_->editor_factories( *iExtension );
-        addObject( iExtension );
-    }
+    // if ( auto iExtension = document::instance()->iSequence() ) {
+    //     mainWindow_->editor_factories( *iExtension );
+    //     addObject( iExtension );
+    // }
     
     if ( auto iExtension = document::instance()->iController() ) {
         addObject( iExtension );

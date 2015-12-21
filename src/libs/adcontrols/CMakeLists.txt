@@ -12,39 +12,70 @@ if ( MSVC )
 endif()
 
 add_library( adcontrols SHARED
-  acceptor.cpp 
-  acquireddataset.cpp 
+  acceptor.cpp
+  acceptor.hpp 
+  acquireddataset.cpp
+  acquireddataset.hpp 
   adcontrols.cpp
-  annotation.cpp 
-  annotations.cpp 
-  baseline.cpp 
-  baselines.cpp 
-  centroidmethod.cpp 
-  centroidprocess.cpp 
-  chemicalformula.cpp 
-  chromatogram.cpp 
+  adcontrols.hpp
+  annotation.cpp
+  annotation.hpp 
+  annotations.cpp
+  annotations.hpp 
+  baseline.cpp
+  baseline.hpp 
+  baselines.cpp
+  baselines.hpp 
+  centroidmethod.cpp
+  centroidmethod.hpp 
+  centroidprocess.cpp
+  centroidprocess.hpp 
+  chemicalformula.cpp
+  chemicalformula.hpp
+  chromatogram.cpp
+  chromatogram.hpp 
   controlmethod.cpp
-  ctable.cpp 
-  ctfile.cpp 
-  datafile.cpp 
-  datafilebroker.cpp 
+  controlmethod.hpp
+  ctable.cpp
+  ctable.hpp 
+  ctfile.cpp
+  ctfile.hpp 
+  datafile.cpp
+  datafile.hpp 
+  datafilebroker.cpp
+  datafilebroker.hpp  
   datainterpreter.cpp
-  datainterpreterbroker.cpp 
+  datainterpreter.hpp
+  datainterpreterbroker.cpp
+  datainterpreterbroker.hpp 
   datapublisher.cpp
+  datapublisher.hpp
   datareader.cpp
-  datasubscriber.cpp 
-  description.cpp 
-  descriptions.cpp 
-  elementalcomposition.cpp 
-  elementalcompositioncollection.cpp 
+  datareader.hpp
+  datasubscriber.cpp
+  datasubscriber.hpp 
+  description.cpp
+  description.hpp 
+  descriptions.cpp
+  descriptions.hpp 
+  elementalcomposition.cpp
+  elementalcomposition.hpp 
+  elementalcompositioncollection.cpp
+  elementalcompositioncollection.hpp 
   elementalcompositionmethod.cpp
+  elementalcompositionmethod.hpp
   error_code.cpp
-  isotopecluster.cpp 
+  error_code.hpp
+  isotopecluster.cpp
+  isotopecluster.hpp 
   isotopemethod.cpp
+  isotopemethod.hpp
   idaudit.cpp
   idaudit.hpp 
-  lcmsdataset.cpp 
+  lcmsdataset.cpp
+  lcmsdataset.hpp 
   lockmass.cpp
+  lockmass.hpp
   logging_hook.cpp
   logging_hook.hpp   
   mappedspectrum.cpp
@@ -53,80 +84,141 @@ add_library( adcontrols SHARED
   mappedspectra.hpp
   mappedimage.cpp
   mappedimage.hpp      
-  massspectrometer.cpp 
-  massspectrometerbroker.cpp 
-  massspectrometer_factory.cpp 
-  massspectra.cpp 
-  massspectrum.cpp 
-  molecule.cpp 
-  msassignedmass.cpp 
-  mscalibratemethod.cpp 
-  mscalibrateresult.cpp 
-  mscalibration.cpp 
-  mswatchions.cpp 
-  mslockmethod.cpp 
-  mspeakinfoitem.cpp 
-  msproperty.cpp 
-  msreference.cpp 
-  msreferencedefns.cpp 
+  massspectrometer.cpp
+  massspectrometer.hpp 
+  massspectrometerbroker.cpp
+  massspectrometerbroker.hpp 
+  massspectrometer_factory.cpp
+  massspectrometer_factory.hpp 
+  massspectra.cpp
+  massspectra.hpp 
+  massspectrum.cpp
+  massspectrum.hpp 
+  molecule.cpp
+  molecule.hpp 
+  msassignedmass.cpp
+  msassignedmass.hpp 
+  mscalibratemethod.cpp
+  mscalibratemethod.hpp 
+  mscalibrateresult.cpp
+  mscalibrateresult.hpp 
+  mscalibration.cpp
+  mscalibration.hpp 
+  mswatchions.cpp
+  mswatchions.hpp 
+  mslockmethod.cpp
+  mslockmethod.hpp 
+  mspeakinfoitem.cpp
+  mspeakinfoitem.hpp 
+  msproperty.cpp
+  msproperty.hpp 
+  msreference.cpp
+  msreference.hpp 
+  msreferencedefns.cpp
+  msreferencedefns.hpp 
   msreferences.cpp
-  msident.cpp 
+  msreferences.hpp
+  msident.cpp
+  msident.hpp 
   msquant.cpp
+  msquant.hpp
   mspeakinfo.cpp
   mspeakinfo.hpp   
-  mspeak.cpp 
-  mspeaks.cpp 
-  msqpeak.cpp 
+  mspeak.cpp
+  mspeak.hpp 
+  mspeaks.cpp
+  mspeaks.hpp 
+  msqpeak.cpp
+  msqpeak.hpp 
   msqpeaks.cpp
-  mschromatogramextractor.cpp     
+  msqpeaks.hpp
+  mschromatogramextractor.cpp
+  mschromatogramextractor.hpp     
   mschromatogrammethod.cpp
+  mschromatogrammethod.hpp
   mssimulatormethod.cpp
+  mssimulatormethod.hpp
   moltable.cpp
   moltable.hpp
-  peak.cpp 
-  peakasymmetry.cpp 
-  peakmethod.cpp 
-  peakresolution.cpp 
-  peaks.cpp 
-  processeddataset.cpp 
+  peak.cpp
+  peak.hpp 
+  peakasymmetry.cpp
+  peakasymmetry.hpp 
+  peakmethod.cpp
+  peakmethod.hpp 
+  peakresolution.cpp
+  peakresolution.hpp 
+  peaks.cpp
+  peaks.hpp 
+  processeddataset.cpp
+  processeddataset.hpp 
   processmethod.cpp
+  processmethod.hpp
   peakresult.cpp
+  peakresult.hpp
   profile_time_array.cpp
   profile_time_array.hpp  
-  quanmethod.cpp 
-  quancompounds.cpp 
-  quancompound.cpp 
-  quansequence.cpp 
-  quansample.cpp 
-  quanreport.cpp 
-  quanresponse.cpp 
-  reportmethod.cpp 
+  quanmethod.cpp
+  quanmethod.hpp 
+  quancompounds.cpp
+  quancompounds.hpp 
+  quancompound.cpp
+  quancompound.hpp 
+  quansequence.cpp
+  quansequence.hpp 
+  quansample.cpp
+  quansample.hpp 
+  quanreport.cpp
+  quanreport.hpp 
+  quanresponse.cpp
+  quanresponse.hpp 
+  reportmethod.cpp
+  reportmethod.hpp 
   retentiontime.cpp
+  retentiontime.hpp
   samplerun.cpp
+  samplerun.hpp
   scanlaw.hpp
   spectrogram.cpp
   spectrogram.hpp   
-  tableofelement.cpp 
+  tableofelement.cpp
+  tableofelement.hpp 
   targetingmethod.cpp
+  targetingmethod.hpp
   theoreticalplate.cpp
+  theoreticalplate.hpp
   threshold_method.cpp
+  threshold_method.hpp
   threshold_action.cpp
+  threshold_action.hpp
   timedigitalmethod.cpp
+  timedigitalmethod.hpp
   timedigitalhistogram.cpp
+  timedigitalhistogram.hpp
   timeutil.cpp
+  timeutil.hpp
   tofchromatogrammethod.cpp
+  tofchromatogrammethod.hpp
   tofchromatogramsmethod.cpp
-  trace.cpp 
-  traceaccessor.cpp 
+  tofchromatogramsmethod.hpp
+  trace.cpp
+  trace.hpp 
+  traceaccessor.cpp
+  traceaccessor.hpp 
   targeting.cpp
   targeting.hpp
   visitor.cpp 
   msfinder.cpp 
-  quanresponses.cpp 
-  quancalibration.cpp 
-  quancalibrations.cpp 
+  quanresponses.cpp
+  quanresponses.hpp 
+  quancalibration.cpp
+  quancalibration.hpp 
+  quancalibrations.cpp
+  quancalibrations.hpp 
   serializer.cpp
-  waveform_filter.cpp 
+  serializer.hpp
+  waveform_filter.cpp
+  waveform_filter.hpp 
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

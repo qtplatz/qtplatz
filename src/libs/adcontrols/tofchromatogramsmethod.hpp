@@ -43,7 +43,7 @@ namespace adcontrols {
         TofChromatogramsMethod( const TofChromatogramsMethod& );
 
         static const char * modelClass() { return "TofChromatograms"; }
-        static const char * itemClass() { return "Chromatograms.1"; }
+        static const char * itemLabel() { return "Chromatograms.1"; }
 
         typedef std::vector< TofChromatogramMethod >::iterator iterator;
         typedef std::vector< TofChromatogramMethod >::const_iterator const_iterator;

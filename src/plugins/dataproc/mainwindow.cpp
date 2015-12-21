@@ -52,6 +52,8 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adextension/idataproc.hpp>
+#include <adextension/ieditorfactory_t.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adextension/iwidgetfactory.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
@@ -1167,17 +1169,17 @@ MainWindow::saveDefaultMSCalibrateResult( portfolio::Folium& )
     
 }
 
-bool
-MainWindow::editor_factories( iSequenceImpl& impl ) 
+void
+MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
 {
-    impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::CentroidForm( p ); }
-         , adextension::iEditorFactory::PROCESS_METHOD
-         , "Centroid" );
-
-     impl << detail::iEditorFactoryImpl( [] ( QWidget * p )->QWidget*{ return new adwidgets::TargetingWidget( p ); }
-         , adextension::iEditorFactory::PROCESS_METHOD
-         , "Targeting" );
-     return true;
+    using namespace adextension;// ::iEditorFactory;
+    
+    if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidForm > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
+        impl << p;
+    };
+    if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::TargetingWidget > >( "Targeting",  iEditorFactory::PROCESS_METHOD ) ) {
+        impl << p;
+    };
 }
 
 ///

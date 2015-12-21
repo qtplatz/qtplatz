@@ -106,10 +106,10 @@ namespace acquire {
             runEditor_.reset();
             cmEditor_.reset();
         }
-        
-        // Don't manage instance memory, due to destractor will call from Utils::FancyMainWindow
-        //static std::unique_ptr< MainWindow > instance_;
-        static MainWindow * instance_;
+
+        static MainWindow * instance_; // dtor will be called from Untils::FancyMainWindow
+
+        std::set< QString > config_names_;
 
         std::unique_ptr< adwidgets::ControlMethodWidget > cmEditor_;
         std::unique_ptr< adwidgets::SampleRunWidget > runEditor_;
@@ -117,7 +117,6 @@ namespace acquire {
     };
 
     MainWindow * MainWindow::impl::instance_( 0 );
-    //std::unique_ptr< MainWindow > MainWindow::impl::instance_; 
 }
 
 using namespace acquire;
@@ -126,7 +125,6 @@ MainWindow *
 MainWindow::instance()
 {
     static std::once_flag flag;
-    //std::call_once( flag, [](){ impl::instance_.reset( new MainWindow() ); } );
     std::call_once( flag, [](){ impl::instance_ = new MainWindow(); } );
     return impl::instance_;
 }
@@ -172,28 +170,41 @@ MainWindow::OnInitialUpdate()
     
     impl_->cmEditor_->OnInitialUpdate();
     impl_->runEditor_->OnInitialUpdate();
-
     
     // then, series of individual control method widgets
-    auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
+    auto sequences = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
+    for ( auto s : sequences )
+        document::instance()->addConfiguration( s->configuration() );
+    
+    if ( auto combo = findChild< QComboBox * >( "Configuration" ) ) {
+        for ( const auto& name : document::instance()->configurations() )
+            combo->addItem( name );
+    }
 
-	for ( auto v: visitables ) {
+	for ( auto s: sequences ) {
 
-        for ( size_t i = 0; i < v->size(); ++i ) {
+        for ( size_t i = 0; i < s->size(); ++i ) {
 
-            const adextension::iEditorFactory& factory = ( *v )[ i ];
+            QString objname = QString("config/%1").arg( s->configuration() );
+            
+            const adextension::iEditorFactory& factory = ( *s )[ i ];
             if ( factory.method_type() == adextension::iEditorFactory::CONTROL_METHOD ) {
 
                 if ( auto widget = factory.createEditor( 0 ) ) {
                     widget->setObjectName( factory.title() );
-                    createDockWidget( widget, factory.title(), "ControlMethod" );
-                    impl_->cmEditor_->addEditor( widget ); // will call OnInitialUpdate
+                    if ( auto p = qobject_cast<adplugin::LifeCycle *>( widget ) )
+                        p->OnInitialUpdate();                    
+                    createDockWidget( widget, factory.title(), objname );
                 }
                 
             }
 
         }
     }
+
+    auto conf = document::instance()->currentConfiguration();
+    if ( ! conf.isEmpty() )
+        changeConfiguration( conf );
 
     // and this must be very last.
     createDockWidget( impl_->cmEditor_.get(), "Control Method", "ControlMethodWidget" );
@@ -271,18 +282,44 @@ MainWindow::setSimpleDockWidgetArrangement()
 		widget->setFloating( false );
 		removeDockWidget( widget );
 	}
-    
-    size_t nsize = widgets.size();
-    size_t npos = 0;
-    for ( auto widget: widgets ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-        if ( npos++ >= 1 && npos < nsize )
-            tabifyDockWidget( widgets[0], widget );
+
+    QList< QDockWidget * > left, right;
+    QString cconf = document::instance()->currentConfiguration();
+
+    auto it = std::find_if( widgets.begin(), widgets.end(), [] ( QDockWidget * dock ) { return dock->objectName() == "SampleRunWidget"; } );
+    if ( it != widgets.end() ) {
+        left.push_back( *it );
+        widgets.erase( it );
     }
 
-    if ( !widgets.isEmpty() )
-        (*widgets.begin())->raise();
+    it = std::find_if( widgets.begin(), widgets.end(), [] ( QDockWidget * dock ) { return dock->objectName() == "ControlMethodWidget"; } );
+    if ( it != widgets.end() ) {
+        right.push_back( *it );
+        widgets.erase( it );
+    }
+
+    for ( auto widget : widgets ) {
+        QString objname = widget->objectName();
+        if ( objname.contains( QString( "config/%1" ).arg( cconf ) ) ) {
+            left.push_back( widget );
+        }
+    }
+    for ( auto widget : widgets ) {
+        if ( !widget->objectName().contains( QString( "config" ) ) )
+            right.push_back( widget );
+    }
+
+    for ( const auto& list : { left, right } ) {
+        size_t pos = 0;
+        for ( auto widget : list ) {
+            addDockWidget( Qt::BottomDockWidgetArea, widget );
+            widget->show();
+            if ( pos++ >= 1 )
+                tabifyDockWidget( list [ 0 ], widget );
+        }
+        if ( !list.isEmpty() )
+            ( *list.begin() )->raise();
+    }
 }
 
 void
@@ -879,9 +916,20 @@ MainWindow::createMidStyledToolbar()
         toolBarLayout->setSpacing(0);
 
         if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget( toolButton( am->command( Constants::ACTION_SNAPSHOT )->action() ) ); //actionSnapshot_ ) );
-            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODOPEN )->action() ) ); //actMethodOpen_ ) );
-            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODSAVE )->action() ) ); //actMethodSave_ ) );
+
+            toolBarLayout->addWidget( toolButton( am->command( Constants::ACTION_SNAPSHOT )->action() ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODOPEN )->action() ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHODSAVE )->action() ) );
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+            if ( auto combo = new QComboBox ) {
+                combo->setObjectName( "Configuration" );
+                toolBarLayout->addWidget( new QLabel( tr("Configuration:") ) );
+                toolBarLayout->addWidget( combo );
+                toolBarLayout->addSpacerItem( new QSpacerItem( 40, 0 ) );
+                connect( combo, static_cast< void(QComboBox::*)(const QString&) >(&QComboBox::currentIndexChanged), [this](const QString& c){ changeConfiguration( c ); });
+            }
+
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
             impl_->traceBox_ = new QComboBox;
@@ -903,7 +951,25 @@ void
 MainWindow::createDockWidgets()
 {
     createDockWidget( impl_->runEditor_.get(), "Sample Run", "SampleRunWidget" ); // this must be first
-
-    if ( auto tree = new adwidgets::InstTreeView() )
-        createDockWidget( tree, "Status", "InstStatus" );
 }
+
+void
+MainWindow::changeConfiguration( const QString& config )
+{
+    document::instance()->setConfiguration( config );
+
+    impl_->cmEditor_->clearAllEditors();
+
+    QString objname = QString( "config/%1" ).arg( config );
+
+    for ( auto dock : dockWidgets() ) {
+        if ( dock->objectName().contains( objname ) )
+            impl_->cmEditor_->addEditor( dock->widget() );
+    }
+    
+    auto cm = document::instance()->controlMethod();
+    impl_->cmEditor_->setControlMethod( *cm );
+
+    setSimpleDockWidgetArrangement();
+}
+

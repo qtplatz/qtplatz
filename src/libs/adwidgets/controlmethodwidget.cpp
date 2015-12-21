@@ -96,6 +96,8 @@ namespace adwidgets {
             }
             return false;
         }
+
+        bool validate( std::shared_ptr< adcontrols::ControlMethod::Method > );
     };
 
 }
@@ -151,19 +153,25 @@ ControlMethodWidget::addWidget( QWidget * widget, const QIcon& icon, const QStri
 void
 ControlMethodWidget::addEditor( QWidget * widget )
 {
-    impl_->table_->addItem( widget->objectName() ); // for menu
+    impl_->table_->addEditor( widget->objectName() ); // for menu
 
     adplugin::LifeCycleAccessor accessor( widget );
     if ( auto lifecycle = accessor.get() ) {
 
-        lifecycle->OnInitialUpdate();
-
-        boost::any a( impl_->method_ );
-        lifecycle->getContents( a );
+        //boost::any a( impl_->method_ );
+        //lifecycle->getContents( a );
         impl_->editors_.push_back( std::make_pair( lifecycle, widget ) );
 
     }
     impl_->table_->setSharedPointer( impl_->method_ );
+}
+
+void
+ControlMethodWidget::clearAllEditors()
+{
+    impl_->editors_.clear();
+    impl_->table_->clearAllEditors();
+    impl_->method_.reset();
 }
 
 bool
@@ -192,6 +200,7 @@ void
 ControlMethodWidget::setControlMethod( const adcontrols::ControlMethod::Method& m )
 {
     impl_->method_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
+    impl_->validate( impl_->method_ );
     impl_->table_->setSharedPointer( impl_->method_ );
 }
 
@@ -236,4 +245,24 @@ void
 ControlMethodWidget::showContextMenu( const QPoint& pt )
 {
     impl_->table_->showContextMenu( pt );
+}
+
+bool
+ControlMethodWidget::impl::validate( std::shared_ptr< adcontrols::ControlMethod::Method > cm )
+{
+    // validate method according to current editor configuration
+
+    for ( auto& pair : this->editors_) {
+        adplugin::LifeCycle * editor = pair.first;
+        auto temp = std::make_shared< adcontrols::ControlMethod::Method >();
+        boost::any a( temp );
+        editor->getContents( a );
+        
+        for ( auto& item : *temp ) {
+            ADDEBUG() << item.modelname() << ", " << item.itemLabel();
+        }
+
+    }
+
+    return true;
 }

@@ -45,6 +45,8 @@ class QStackedWidget;
 class QLineEdit;
 class QComboBox;
 
+namespace adextension { class iController; class iSequenceImpl; }
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -107,7 +109,8 @@ namespace dataproc {
         void selPage( idPage );
         enum idPage curPage() const;
 
-		bool editor_factories( iSequenceImpl& );
+		// bool editor_factories( iSequenceImpl& );
+        void getEditorFactories( adextension::iSequenceImpl& );
 
     private:
         void handleProcessed( Dataprocessor *, portfolio::Folium& );

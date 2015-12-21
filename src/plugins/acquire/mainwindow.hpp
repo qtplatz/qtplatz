@@ -123,6 +123,7 @@ namespace acquire {
         void saveCurrentImage();
         void printCurrentView();
         void hideDock( bool );
+        void changeConfiguration( const QString& );
         
         class impl;
         std::unique_ptr< impl > impl_;

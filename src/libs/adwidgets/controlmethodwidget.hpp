@@ -59,6 +59,7 @@ namespace adwidgets {
         void addWidget( QWidget *, const QIcon&, const QString& );
 
         void addEditor( QWidget * );
+        void clearAllEditors();
         bool getControlMethod( adcontrols::ControlMethod::Method& );
         void setControlMethod( const adcontrols::ControlMethod::Method& );
 
@@ -69,6 +70,7 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any& ) override;
         // end LifeCycle
+        
         bool getMethod( adcontrols::ControlMethod::MethodItem& mi );
         bool setMethod( const adcontrols::ControlMethod::MethodItem& mi );
     private:

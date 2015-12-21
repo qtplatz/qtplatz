@@ -128,7 +128,8 @@ void
 ControlMethodTable::setSharedPointer( std::shared_ptr< adcontrols::ControlMethod::Method > ptr )
 {
     method_ = ptr;
-    setContents( *method_ );
+    if ( ptr )
+        setContents( *ptr );
 }
 
 bool 
@@ -153,9 +154,15 @@ ControlMethodTable::setContents( const adcontrols::ControlMethod::Method& m )
 }
 
 void
-ControlMethodTable::addItem( const QString& text )
+ControlMethodTable::addEditor( const QString& text )
 {
     items_ << text;
+}
+
+void
+ControlMethodTable::clearAllEditors()
+{
+    items_.clear();
 }
 
 void
@@ -165,11 +172,14 @@ ControlMethodTable::commit()
     auto mi = data( row );
     parent_->getMethod( mi ); // load details from current selected UI, which match up with modelname,funcid
     setData( mi, row );       // set it to master table
+
+    if ( auto ptr = method_.lock() ) {
     
-    method_->clear();
-    for ( int row = 0; row < model_->rowCount(); ++row ) {
-        mi = data( row );
-        method_->push_back( mi );
+        ptr->clear();
+        for ( int row = 0; row < model_->rowCount(); ++row ) {
+            mi = data( row );
+            ptr->push_back( mi );
+        }
     }
 }
 
@@ -191,8 +201,10 @@ void
 ControlMethodTable::sort()
 {
     commit();
-    method_->sort();
-    setContents( *method_ );
+    if ( auto ptr = method_.lock() ) {
+        ptr->sort();
+        setContents( *ptr );
+    }
 }
 
 void
@@ -209,9 +221,12 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
     QMenu menu;
 
     for ( auto item : items_ )
-        actions.push_back( menu.addAction( "Add line: " + item ) );
+        actions.push_back( menu.addAction( "Add: " + item ) );
+
+    menu.addSeparator();
     delete_action = menu.addAction( "Delete line" );
     sort_action = menu.addAction( "Sort" );
+
     QAction * import_init = menu.addAction( "Import Inital Condition" );
 
     TableView::addActionsToMenu( menu, pt );
@@ -239,11 +254,14 @@ ControlMethodTable::append( const adcontrols::ControlMethod::MethodItem& mi )
 {
     QStandardItemModel& model = *model_;
 
-    method_->push_back( mi );
+    if ( auto ptr = method_.lock() ) {
 
-    int row = model.rowCount();
-    model.setRowCount( row + 1 );
-    setData( mi, row );
+        ptr->push_back( mi );
+
+        int row = model.rowCount();
+        model.setRowCount( row + 1 );
+        setData( mi, row );
+    }
 
     return true;
 }

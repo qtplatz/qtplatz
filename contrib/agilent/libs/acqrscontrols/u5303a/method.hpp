@@ -43,12 +43,11 @@ namespace acqrscontrols {
             method();
             method( const method& t );
             static const char * modelClass() { return "u5303a"; }
+            static const char * itemLabel() { return "u5303a"; }
 
             uint32_t channels_;
             uint32_t mode_;  // 0 := digitizer, 2 := averager
             device_method method_;
-            // adcontrols::threshold_method threshold_;
-            // adcontrols::threshold_action action_;
 
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );

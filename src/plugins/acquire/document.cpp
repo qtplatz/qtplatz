@@ -86,7 +86,6 @@ namespace acquire {
         impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "acquire" ) ) )
-               , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                , sampleRun_( std::make_shared< adcontrols::SampleRun >() ) {
             connected_.clear();            
         }
@@ -137,16 +136,15 @@ namespace acquire {
     public:
         std::atomic_flag connected_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
+        std::set< QString > confignames_;
+        std::map< QString, std::shared_ptr< adcontrols::ControlMethod::Method > > cmMap_;
 
-    private:
-        friend class document;
         fsm::acquire fsm_;
         std::shared_ptr< MasterController > masterController_;
         std::shared_ptr< MasterObserver > masterObserver_;
         std::shared_ptr< MasterReceiver > receiver_;
         std::map< QString, bool > moduleStates_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
-        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         QString ctrlmethod_filename_;
         QString samplerun_filename_;
@@ -285,11 +283,13 @@ document::initialSetup()
     }
 
     Core::DocumentManager::setUseProjectsDirectory( true );
-
-    boost::filesystem::path mfile( dir / "default.cmth" );
-    adcontrols::ControlMethod::Method cm;
-    if ( load( QString::fromStdWString( mfile.wstring() ), cm ) )
-        setControlMethod( cm, QString() ); // don't save default name
+    if ( ! currentConfiguration().isEmpty() ) {
+        QString mfile = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), currentConfiguration() );
+        auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
+        load( mfile, *cm );
+        impl_->cmMap_ [ currentConfiguration() ] = cm;
+        setControlMethod( *cm, QString() ); // don't save default name
+    }
 
     boost::filesystem::path sfile( dir / "samplerun.sequ" );
     adcontrols::SampleRun sr;
@@ -315,9 +315,15 @@ document::finalClose( MainWindow * mainwindow )
             return;
         }
     }
-    mainwindow->getControlMethod( *impl_->cm_ );
-    boost::filesystem::path fname( dir / "default.cmth" );
-    save( QString::fromStdWString( fname.wstring() ), *impl_->cm_ );
+
+    auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
+    mainwindow->getControlMethod( *cm );
+    impl_->cmMap_[ currentConfiguration() ] = cm;
+
+    for ( const auto& pair : impl_->cmMap_ ) {
+        QString fname = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), pair.first );
+        save( fname, *pair.second );
+    }
 
     mainwindow->getSampleRun( *impl_->sampleRun_ );
     boost::filesystem::path sname( dir / "samplerun.sequ" );
@@ -327,7 +333,7 @@ document::finalClose( MainWindow * mainwindow )
 std::shared_ptr< adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
-    return impl_->cm_;
+    return impl_->cmMap_ [ currentConfiguration() ];
 }
 
 std::shared_ptr< adcontrols::SampleRun >
@@ -340,7 +346,7 @@ void
 document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename )
 {
     do {
-        impl_->cm_ = std::make_shared< adcontrols::ControlMethod::Method >( m );
+        impl_->cmMap_[ currentConfiguration() ] = std::make_shared< adcontrols::ControlMethod::Method >( m );
         for ( auto& item : m ) {
             ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
         }
@@ -679,5 +685,42 @@ document::impl::setControllerState( const QString& module, bool enable )
     settings_->endArray();
     settings_->endGroup();
 }
+
+void
+document::addConfiguration( const QString& name )
+{
+    impl_->confignames_.insert( name );
+    if ( impl_->settings_->value( "acquire/configuration" ).toString().isEmpty() )
+        setConfiguration( name );
+
+    if ( impl_->cmMap_.find( name ) == impl_->cmMap_.end() ) {
+        impl_->cmMap_[ name ] = std::make_shared< adcontrols::ControlMethod::Method >();
+
+        boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+        QString fname = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), name );
+
+        load( fname, *impl_->cmMap_[ name ] );
+    }
+}
+
+void
+document::setConfiguration( const QString& name )
+{
+    impl_->confignames_.insert( name );
+    impl_->settings_->setValue( "acquire/configuration", name );
+}
+
+const std::set< QString >&
+document::configurations() const
+{
+    return impl_->confignames_;
+}
+
+QString
+document::currentConfiguration() const
+{
+    return impl_->settings_->value( "acquire/configuration" ).toString();    
+}
+
 
 ////////////

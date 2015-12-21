@@ -30,7 +30,7 @@
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
-#include "isequenceimpl.hpp"
+#include <adextension/isequenceimpl.hpp>
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
 #include "mainwindow.hpp"
@@ -243,9 +243,9 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     widget->setObjectName( QLatin1String( "DataprocessingPage") );
     mode_->setWidget( widget );
 
-    iSequence_.reset( new iSequenceImpl );
-    if ( iSequence_ && mainWindow_->editor_factories( *iSequence_ ) )
-        addObject( iSequence_.get() );
+    // iSequence_.reset( new iSequenceImpl );
+    // if ( iSequence_ && mainWindow_->editor_factories( *iSequence_ ) )
+    //     addObject( iSequence_.get() );
 
     iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
     if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )

@@ -100,6 +100,11 @@ namespace acquire {
 
         void setControllerState( const QString& module, bool enable );
 
+        void addConfiguration( const QString& );
+        void setConfiguration( const QString& );
+        const std::set< QString >& configurations() const;
+        QString currentConfiguration() const;
+
     private:
         class impl;
         impl * impl_;

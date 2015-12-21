@@ -31,8 +31,11 @@
 namespace adextension {
 
     class iSequenceImpl : public adextension::iSequence {
+        QString configname_;
+
     public:
-        iSequenceImpl() { }
+        iSequenceImpl() {}
+        iSequenceImpl( const QString& configname ) : configname_( configname ) {}
         
         size_t size() const override { return v_.size(); }
 
@@ -42,6 +45,8 @@ namespace adextension {
             return * ( v_[ idx ].get() );
         }
 
+        const QString& configuration() const override { return configname_; }
+        
         iSequenceImpl& operator << ( std::shared_ptr< const adextension::iEditorFactory > ptr ) {
             v_.push_back( ptr );
             return *this;

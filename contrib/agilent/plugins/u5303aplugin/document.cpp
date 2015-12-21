@@ -124,7 +124,7 @@ namespace u5303a {
         impl() : tdcdoc_( std::make_shared< acqrscontrols::u5303a::tdcdoc >() )
                , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
-               , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >() )
+               , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "U5303A" ) )
                , isMethodDirty_( true )
                , device_status_( 0 )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )

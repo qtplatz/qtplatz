@@ -177,10 +177,12 @@ namespace adcontrols {
             const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
             
             template< typename T > bool append( const T& t
-                                                , const char * modelname = T::modelClass()
+                                                , const char * modelname = T::modelClass() // unique name "model,submodel"
                                                 , int unitnumber = ( -1 )
+                                                , const char * itemlabel = T::itemLabel()  // display name
                                                 , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
                 MethodItem mi( modelname, unitnumber );
+                mi.setItemLabel( itemlabel );
                 return MethodItem::set( mi, t, serialize ) && add( mi, true );
             }
             

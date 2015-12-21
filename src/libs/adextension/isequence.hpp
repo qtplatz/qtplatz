@@ -40,6 +40,7 @@ namespace adextension {
 
         virtual size_t size() const = 0;
         virtual const_reference operator [] ( size_t idx ) const = 0;
+        virtual const QString& configuration() const = 0;
     };
 
 }

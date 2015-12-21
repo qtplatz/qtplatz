@@ -50,6 +50,7 @@ namespace adcontrols {
 		TimeDigitalMethod( const TimeDigitalMethod& );
 
         static const char * modelClass() { return "TimeDigitalMethod"; }
+        static const char * itemLabel() { return "Counting"; }
 
         std::vector< threshold_method >& thresholds();
         const std::vector< threshold_method >& thresholds() const;

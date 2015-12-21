@@ -52,8 +52,9 @@ namespace adwidgets {
         const adcontrols::ControlMethod::MethodItem& operator []( int row ) const;
         QStandardItemModel& model();
 
-        void addItem( const QString& );
+        void addEditor( const QString& );
         bool append( const adcontrols::ControlMethod::MethodItem& );
+        void clearAllEditors();
         void commit();
 
         void showContextMenu( const QPoint& );
@@ -69,7 +70,7 @@ namespace adwidgets {
 
         ControlMethodWidget * parent_;
         QStandardItemModel * model_;
-        std::shared_ptr< adcontrols::ControlMethod::Method > method_;
+        std::weak_ptr< adcontrols::ControlMethod::Method > method_;
         QList< QString > items_;
 
     signals:
