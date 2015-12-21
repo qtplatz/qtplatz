@@ -33,10 +33,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
-#include <boost/version.hpp>
-#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
-#endif
 #include <string>
 
 #include <compiler/diagnostic_push.h>

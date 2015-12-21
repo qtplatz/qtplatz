@@ -68,6 +68,8 @@ WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( bas
     desc.set_axis_label( so::Description::axisY, L"mV" );
     desc.set_axis_decimals( so::Description::axisX, 3 );
     desc.set_axis_decimals( so::Description::axisY, 3 );
+    desc.set_objid( objid_ );
+    desc.set_objtext( objtext__ );
     setDescription( desc );
 }
 

@@ -57,8 +57,13 @@ using namespace adicontroller;
 
 MasterObserver::MasterObserver( const char * objtext ) : impl_( new impl( objtext ) )
 {
-    if ( objtext ) 
+    if ( objtext ) {
         impl_->uuid_ = boost::uuids::name_generator( adicontroller::SignalObserver::Observer::base_uuid() )( objtext );
+        so::Description desc;
+        desc.set_objid( impl_->uuid_ );
+        desc.set_objtext( objtext );
+        setDescription( desc );
+    }
 }
 
 MasterObserver::~MasterObserver()

@@ -173,8 +173,7 @@ MainWindow::OnInitialUpdate()
     impl_->cmEditor_->OnInitialUpdate();
     impl_->runEditor_->OnInitialUpdate();
 
-    createDockWidget( impl_->runEditor_.get(), "Sample Run", "SampleRunWidget" ); // this must be first
-
+    
     // then, series of individual control method widgets
     auto visitables = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
 
@@ -195,9 +194,6 @@ MainWindow::OnInitialUpdate()
 
         }
     }
-
-    if ( auto tree = new adwidgets::InstTreeView() )
-        createDockWidget( tree, "Status", "InstStatus" );
 
     // and this must be very last.
     createDockWidget( impl_->cmEditor_.get(), "Control Method", "ControlMethodWidget" );
@@ -770,8 +766,6 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( true );
         }
 
-        // if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
-        //     action->setChecked( true );
     } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
 
         for ( auto id : { Constants::ACTION_INJECT, Constants::ACTION_STOP, Constants::ACTION_SNAPSHOT } ) {
@@ -908,13 +902,8 @@ MainWindow::createMidStyledToolbar()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto widget = new adwidgets::CherryPicker ) {
+    createDockWidget( impl_->runEditor_.get(), "Sample Run", "SampleRunWidget" ); // this must be first
 
-        widget->setObjectName( "ModulePicker" );
-        createDockWidget( widget, "Modules", "CherryPicker" );
-
-        connect( widget, &adwidgets::CherryPicker::stateChanged, [this]( const QString& key, bool enable ){
-                document::instance()->setControllerState( key, enable );
-            });
-    }
+    if ( auto tree = new adwidgets::InstTreeView() )
+        createDockWidget( tree, "Status", "InstStatus" );
 }

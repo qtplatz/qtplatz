@@ -31,10 +31,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
-#include <boost/version.hpp>
-#if BOOST_VERSION < 106000
 #include <boost/uuid/uuid_io.hpp>
-#endif
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <compiler/diagnostic_push.h>

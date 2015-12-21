@@ -68,6 +68,8 @@ namespace adicontroller {
             conf_.axis_label_y = axis_label_y;
             conf_.axis_decimals_x = axis_decimals_x;
             conf_.axis_decimals_y = axis_decimals_y;
+            conf_.objid = { 0 };
+            conf_.pobjid = { 0 };
         }
 
         void
