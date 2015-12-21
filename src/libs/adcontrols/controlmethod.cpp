@@ -183,7 +183,7 @@ Method::push_back( const MethodItem& item )
     impl_->items_.push_back( item );
 }
 
-bool
+Method::iterator
 Method::add( const MethodItem& item, bool uniq )
 {
     if ( uniq ) {
@@ -191,8 +191,7 @@ Method::add( const MethodItem& item, bool uniq )
         if ( it != end() )
             impl_->items_.erase( it );
     }
-    insert( item );
-    return true;
+    return insert( item );
 }
 
 

@@ -165,7 +165,7 @@ namespace adcontrols {
             iterator erase( iterator first, iterator last );
             iterator insert( const MethodItem& );
             void push_back( const MethodItem& );
-            bool add( const MethodItem&, bool unique );
+            iterator add( const MethodItem&, bool unique );
             const idAudit& ident() const;
             void sort();
             void clear();
@@ -176,14 +176,16 @@ namespace adcontrols {
             iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
             const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
             
-            template< typename T > bool append( const T& t
-                                                , const char * modelname = T::modelClass() // unique name "model,submodel"
-                                                , int unitnumber = ( -1 )
-                                                , const char * itemlabel = T::itemLabel()  // display name
-                                                , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
+            template< typename T > iterator append( const T& t
+                                                    , const char * modelname = T::modelClass() // unique name "model,submodel"
+                                                    , int unitnumber = ( -1 )
+                                                    , const char * itemlabel = T::itemLabel()  // display name
+                                                    , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
                 MethodItem mi( modelname, unitnumber );
                 mi.setItemLabel( itemlabel );
-                return MethodItem::set( mi, t, serialize ) && add( mi, true );
+                if ( MethodItem::set( mi, t, serialize ) )
+                    return add( mi, true );
+                return end();
             }
             
             static bool archive( std::ostream&, const Method& );
