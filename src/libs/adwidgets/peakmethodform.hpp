@@ -60,7 +60,7 @@ namespace adwidgets {
 		virtual void OnInitialUpdate() override;
 		virtual void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;
+        bool setContents( boost::any&& ) override;
 
         //<--
 	public slots:

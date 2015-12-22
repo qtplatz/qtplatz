@@ -265,7 +265,7 @@ MSQuanTable::getContents( boost::any& ) const
 }
 
 bool
-MSQuanTable::setContents( boost::any& )
+MSQuanTable::setContents( boost::any&& )
 {
     return false;
 }

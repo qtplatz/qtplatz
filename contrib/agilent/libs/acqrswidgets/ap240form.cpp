@@ -185,7 +185,7 @@ ap240form::getContents( boost::any& a ) const
 }
 
 bool
-ap240form::setContents( boost::any& a )
+ap240form::setContents( boost::any&& a )
 {
     const adcontrols::ControlMethod::MethodItem * pi(0);
 

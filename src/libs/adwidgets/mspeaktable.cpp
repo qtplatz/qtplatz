@@ -302,7 +302,7 @@ MSPeakTable::getContents( boost::any& ) const
 }
 
 bool
-MSPeakTable::setContents( boost::any& a )
+MSPeakTable::setContents( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );

@@ -75,7 +75,7 @@ MSChromatogramForm::getContents( boost::any& any ) const
 }
 
 bool
-MSChromatogramForm::setContents( boost::any& any )
+MSChromatogramForm::setContents( boost::any&& any )
 {
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) ) {
         const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );

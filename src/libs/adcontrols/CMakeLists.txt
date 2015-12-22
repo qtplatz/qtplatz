@@ -8,7 +8,8 @@ find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wseriali
 
 add_definitions(-DADCONTROLS_LIBRARY)
 if ( MSVC )
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)  
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  add_definitions( -wd4251 -wd4244 -wd4348 )
 endif()
 
 add_library( adcontrols SHARED

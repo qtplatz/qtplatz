@@ -81,7 +81,7 @@ CentroidForm::getContents( boost::any& any ) const
 }
 
 bool
-CentroidForm::setContents( boost::any& any )
+CentroidForm::setContents( boost::any&& any )
 {
     if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) )
         return false;

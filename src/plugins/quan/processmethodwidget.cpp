@@ -94,14 +94,14 @@ ProcessMethodWidget::handleDataChanged( int id, bool load )
     if ( id == idProcMethod && load ) {
 
         const adcontrols::ProcessMethod pm = QuanDocument::instance()->procMethod();
-        boost::any a( pm );
+        //boost::any a( pm );
 
         if ( auto centroidform = findChild< adwidgets::CentroidForm * >() ) {
-            centroidform->setContents( a );
+            centroidform->setContents( boost::any(pm) );
         }
 
         if ( auto peakmethodform = findChild< adwidgets::PeakMethodForm * >() ) {
-            peakmethodform->setContents( a );
+            peakmethodform->setContents( boost::any(pm) );
         }
         
         if ( auto form = findChild< adwidgets::MSLockForm * >() ) {

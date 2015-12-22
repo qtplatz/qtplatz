@@ -86,7 +86,7 @@ FilePropertyWidget::getContents( boost::any& ) const
 }
 
 bool
-FilePropertyWidget::setContents( boost::any& a )
+FilePropertyWidget::setContents( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::MSCalibrateResult >::is_a( a ) ) {
         const adcontrols::MSCalibrateResult& calibResult = boost::any_cast< const adcontrols::MSCalibrateResult& >( a );

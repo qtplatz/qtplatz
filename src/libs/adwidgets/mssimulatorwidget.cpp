@@ -116,7 +116,7 @@ MSSimulatorWidget::getContents( boost::any& a ) const
 }
 
 bool
-MSSimulatorWidget::setContents( boost::any& a )
+MSSimulatorWidget::setContents( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
 

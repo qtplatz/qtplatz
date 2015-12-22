@@ -133,7 +133,7 @@ TargetingWidget::getContents( boost::any& a ) const
 }
 
 bool
-TargetingWidget::setContents( boost::any& a )
+TargetingWidget::setContents( boost::any&& a )
 {
 	if ( adportable::a_type< adprot::digestedPeptides >::is_a( a ) ) {
 

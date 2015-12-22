@@ -107,7 +107,7 @@ MSPeakWidget::getContents( boost::any& ) const
 }
 
 bool
-MSPeakWidget::setContents( boost::any& a )
+MSPeakWidget::setContents( boost::any&& a )
 {
     if ( adportable::a_type< QWidget * >::is_a( a ) ) {
         QWidget * w = boost::any_cast< QWidget * >( a );

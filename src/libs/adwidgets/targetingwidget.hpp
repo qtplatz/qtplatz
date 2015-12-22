@@ -53,7 +53,7 @@ namespace adwidgets {
         void onUpdate( boost::any& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;   
+        bool setContents( boost::any&& ) override;   
         
         //
         void loadFromUI( adcontrols::TargetingMethod& );

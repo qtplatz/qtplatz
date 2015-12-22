@@ -284,7 +284,8 @@ MainWindow::setSimpleDockWidgetArrangement()
 	}
 
     QList< QDockWidget * > left, right;
-    QString cconf = document::instance()->currentConfiguration();
+    QString cconf = QString("config/%1").arg( document::instance()->currentConfiguration() );
+
 
     auto it = std::find_if( widgets.begin(), widgets.end(), [] ( QDockWidget * dock ) { return dock->objectName() == "SampleRunWidget"; } );
     if ( it != widgets.end() ) {
@@ -298,15 +299,13 @@ MainWindow::setSimpleDockWidgetArrangement()
         widgets.erase( it );
     }
 
-    for ( auto widget : widgets ) {
-        QString objname = widget->objectName();
-        if ( objname.contains( QString( "config/%1" ).arg( cconf ) ) ) {
-            left.push_back( widget );
-        }
+    for ( auto dock : widgets ) {
+        if (  dock->objectName() == cconf )
+            left.push_back( dock );
     }
-    for ( auto widget : widgets ) {
-        if ( !widget->objectName().contains( QString( "config" ) ) )
-            right.push_back( widget );
+    for ( auto dock : widgets ) {
+        if ( !dock->objectName().contains( QString( "config/" ) ) )
+            right.push_back( dock );
     }
 
     for ( const auto& list : { left, right } ) {
@@ -963,8 +962,10 @@ MainWindow::changeConfiguration( const QString& config )
     QString objname = QString( "config/%1" ).arg( config );
 
     for ( auto dock : dockWidgets() ) {
-        if ( dock->objectName().contains( objname ) )
+        if ( dock->objectName() == objname ) {
             impl_->cmEditor_->addEditor( dock->widget() );
+            ADDEBUG() << "add editor: " << dock->objectName().toStdString() << " -> " << dock->widget()->objectName().toStdString();
+        }
     }
     
     auto cm = document::instance()->controlMethod();

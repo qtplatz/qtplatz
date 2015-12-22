@@ -210,7 +210,7 @@ TofChromatogramsWidget::getContents( boost::any& a ) const
 }
 
 bool
-TofChromatogramsWidget::setContents( boost::any& a )
+TofChromatogramsWidget::setContents( boost::any&& a )
 {
    adcontrols::TofChromatogramsMethod m;
 

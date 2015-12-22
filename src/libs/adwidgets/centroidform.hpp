@@ -58,7 +58,7 @@ namespace adwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         bool getContents( boost::any& ) const;
-        bool setContents( boost::any& );
+        bool setContents( boost::any&& );
 
         // QWidget
         QSize sizeHint() const override;

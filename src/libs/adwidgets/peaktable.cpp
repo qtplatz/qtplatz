@@ -174,7 +174,7 @@ PeakTable::getContents( boost::any& ) const
 }
 
 bool
-PeakTable::setContents( boost::any& )
+PeakTable::setContents( boost::any&& )
 {
     return false;
 }

@@ -78,20 +78,11 @@ namespace adwidgets {
         }
 
         bool setMatchedMethod( const adcontrols::ControlMethod::MethodItem& curr ) {
-            adcontrols::ControlMethod::MethodItem mi( curr );
-            boost::any a( &mi );
-            for ( auto editor : editors_ ) {
-                if ( editor.first->getContents( a ) ) {
-
-                    if ( mi.modelname() == curr.modelname() && mi.itemLabel() == curr.itemLabel() ) {
-
-                        boost::any a( curr );
-                        editor.first->setContents( a );
-                        emit this_->onCurrentChanged( editor.second );
-
-                        return true;
-
-                    }
+            //boost::any a( &curr );
+            for ( auto& editor : editors_ ) {
+                if ( editor.first->setContents( boost::any( &curr) ) ) {
+                    emit this_->onCurrentChanged( editor.second );
+                    return true;
                 }
             }
             return false;
@@ -158,8 +149,6 @@ ControlMethodWidget::addEditor( QWidget * widget )
     adplugin::LifeCycleAccessor accessor( widget );
     if ( auto lifecycle = accessor.get() ) {
 
-        //boost::any a( impl_->method_ );
-        //lifecycle->getContents( a );
         impl_->editors_.push_back( std::make_pair( lifecycle, widget ) );
 
     }
@@ -236,7 +225,7 @@ ControlMethodWidget::getContents( boost::any& ) const
 }
 
 bool
-ControlMethodWidget::setContents( boost::any& )
+ControlMethodWidget::setContents( boost::any&& )
 {
     return true;
 }
@@ -260,9 +249,12 @@ ControlMethodWidget::impl::validate( std::shared_ptr< adcontrols::ControlMethod:
         
         for ( auto& item : *temp ) {
             ADDEBUG() << item.modelname() << ", " << item.itemLabel();
+            auto it = cm->find( cm->begin(), cm->end(), item.modelname().c_str() );
+            if ( it == cm->end() )
+                cm->insert( item );
         }
-
     }
+    ADDEBUG() << "========================";
 
     return true;
 }

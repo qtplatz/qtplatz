@@ -592,8 +592,7 @@ MainWindow::createDockWidgets()
                 adplugin::LifeCycleAccessor accessor( pWidget );
                 if ( adplugin::LifeCycle * p = accessor.get() ) {
                     if ( auto wnd = findChild< MSPeaksWnd *>() ) {
-                        boost::any a( static_cast<QWidget *>(wnd) );
-                        p->setContents( a );
+                        p->setContents( boost::any( static_cast<QWidget *>(wnd) ) );
                     }
                 }
             }
@@ -741,16 +740,13 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         }
         
         // set data property to MSPropertyForm
-        boost::any afolium( folium );
-        boost::any acentroid( centroid );
-        boost::any atargeting( targeting );
         for ( auto widget: dockWidgets() ) {
             adplugin::LifeCycleAccessor accessor( widget->widget() );
             if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-                pLifeCycle->setContents( afolium );
-                pLifeCycle->setContents( acentroid );
+                pLifeCycle->setContents( boost::any( folium ) );
+                pLifeCycle->setContents( boost::any( centroid ) );
                 if ( targeting )
-                    pLifeCycle->setContents( atargeting );
+                    pLifeCycle->setContents( boost::any( targeting ) );
             }
         }
     }
@@ -873,12 +869,11 @@ MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
 void
 MainWindow::setProcessMethod( const adcontrols::ProcessMethod& pm )
 {
-	boost::any any( pm );
 	for ( auto widget: dockWidgets() ) {
 		adplugin::LifeCycleAccessor accessor( widget->widget() );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle )
-			pLifeCycle->setContents( any );
+			pLifeCycle->setContents( boost::any( pm ) );
 	}
 }
 
@@ -1119,9 +1114,8 @@ MainWindow::proteinSelected( const adprot::digestedPeptides& digested )
 
         (*it)->raise();
 
-        boost::any a( digested );
         if ( auto t = dynamic_cast< adwidgets::PeptideWidget *>( (*it)->widget() ) )
-            t->setContents( a );
+            t->setContents( boost::any( digested ) );
     }
 }
 

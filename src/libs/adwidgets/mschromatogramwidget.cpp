@@ -125,10 +125,10 @@ MSChromatogramWidget::getContents( boost::any& a ) const
 }
 
 bool
-MSChromatogramWidget::setContents( boost::any& a )
+MSChromatogramWidget::setContents( boost::any&& a )
 {
     if ( auto form = findChild< MSChromatogramForm * >() )
-        form->setContents( a );
+        form->setContents( std::move(a) );
 
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
 

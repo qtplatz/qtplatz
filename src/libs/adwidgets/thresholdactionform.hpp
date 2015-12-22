@@ -54,7 +54,7 @@ namespace adwidgets {
         void OnFinalClose() override;
         void onUpdate( boost::any& );
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;
+        bool setContents( boost::any&& ) override;
 
         bool get( adcontrols::threshold_action& ) const;
         bool set( const adcontrols::threshold_action& );

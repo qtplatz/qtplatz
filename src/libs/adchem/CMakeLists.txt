@@ -25,6 +25,7 @@ set( adchem_SOURCES
 
 if ( WIN32 )
   add_library( adchem SHARED ${adchem_SOURCES} )
+  add_definitions( -wd4996 -wd4348 )
 else()
   # workaround -- I couldn't fix an issue 'shared lib image not find' on mac even play with install_name change.
   add_library( adchem ${adchem_SOURCES} )  

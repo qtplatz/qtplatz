@@ -68,7 +68,7 @@ namespace adwidgets {
         void OnInitialUpdate() override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;
+        bool setContents( boost::any&& ) override;
         // end LifeCycle
         
         bool getMethod( adcontrols::ControlMethod::MethodItem& mi );

@@ -55,7 +55,7 @@ namespace adwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         bool getContents( boost::any& ) const;
-        bool setContents( boost::any& );
+        bool setContents( boost::any&& );
         int peakId( int row ) const;
         
     signals:

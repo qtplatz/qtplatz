@@ -138,7 +138,7 @@ u5303AWidget::getContents( boost::any& a ) const
 }
 
 bool
-u5303AWidget::setContents( boost::any& a )
+u5303AWidget::setContents( boost::any&& a )
 {
     const adcontrols::ControlMethod::MethodItem * pi(0);
     if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {

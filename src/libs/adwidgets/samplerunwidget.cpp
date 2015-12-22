@@ -248,7 +248,7 @@ SampleRunWidget::getContents( boost::any& a ) const
 }
 
 bool
-SampleRunWidget::setContents( boost::any& a )
+SampleRunWidget::setContents( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::SampleRun >::is_pointer( a ) ) {
 

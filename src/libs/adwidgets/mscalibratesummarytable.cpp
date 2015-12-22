@@ -222,7 +222,7 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
 
 
 bool
-MSCalibrateSummaryTable::setContents( boost::any& )
+MSCalibrateSummaryTable::setContents( boost::any&& )
 {
     return false;
 }

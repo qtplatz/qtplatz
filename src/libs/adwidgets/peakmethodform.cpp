@@ -140,7 +140,7 @@ PeakMethodForm::getContents( boost::any& any ) const
 }
 
 bool
-PeakMethodForm::setContents( boost::any& any )
+PeakMethodForm::setContents( boost::any&& any )
 {
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) ) {
 

@@ -85,7 +85,7 @@ MSPropertyForm::getContents( boost::any& ) const
 }
 
 bool
-MSPropertyForm::setContents( boost::any& a )
+MSPropertyForm::setContents( boost::any&& a )
 {
     if ( adportable::a_type< portfolio::Folium >::is_a( a ) ) {
         portfolio::Folium& folium = boost::any_cast< portfolio::Folium& >( a );

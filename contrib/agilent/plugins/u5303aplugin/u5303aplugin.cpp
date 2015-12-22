@@ -80,15 +80,21 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 
     addObject( mode_.get() );
 
+#if 0
+    // no control from acquire suppored.
     if ( auto iExtension = document::instance()->iController() ) {
         addObject( iExtension );
         connect( iExtension, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
+#endif
 
+#if 0
+    // no time function supported.
     if ( auto iExtension = document::instance()->iSequence() ) {
         MainWindow::instance()->getEditorFactories( *iExtension );
         addObject( iExtension );
     }
+#endif
     
     QAction *action = new QAction(tr("u5303A action"), this);
 

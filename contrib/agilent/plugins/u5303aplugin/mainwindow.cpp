@@ -167,11 +167,11 @@ MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
 
-    boost::any a( document::instance()->controlMethod() );
+    //boost::any a( document::instance()->controlMethod() );
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->OnInitialUpdate();
-            widget->setContents( a );
+            widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
     }
 
@@ -585,10 +585,9 @@ MainWindow::handleInstState( int status )
 void
 MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> m )
 {
-    boost::any a( m );
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
-            widget->setContents( a );
+            widget->setContents( boost::any(m) );
         }
     }
 }

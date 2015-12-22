@@ -79,7 +79,7 @@ ThresholdActionForm::getContents( boost::any& ) const
 }
 
 bool
-ThresholdActionForm::setContents( boost::any& )
+ThresholdActionForm::setContents( boost::any&& )
 {
     Q_ASSERT( 0 );    
     return false;

@@ -48,14 +48,13 @@ endif()
 if ( NOT CMAKE_CROSSCOMPILING )
 
   if ( WIN32 )
-    find_program( QMAKE NAMES qmake
-      HINTS
-      $ENV{QTDIR} "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
+    if((MSVC_VERSION GREATER 1900) OR (MSVC_VERSION EQUAL 1900))
+      find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR} "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
+    else()
+      find_program( QMAKE NAMES qmake HINTS $ENV{QTDIR} "C:/Qt/Qt5.6.0/5.6/msvc2015_64/bin" )
+    endif()
   else()
-    find_program( QMAKE NAMES qmake
-      HINTS
-      $ENV{QTDIR} "/opt/Qt/5.5/gcc_64/bin"
-      )
+    find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR} "/opt/Qt/5.5/gcc_64/bin" )
   endif()
 
   if ( QMAKE )

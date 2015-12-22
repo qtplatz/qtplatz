@@ -62,7 +62,7 @@ namespace adwidgets {
         void onUpdate( boost::any& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const;
-        bool setContents( boost::any& );
+        bool setContents( boost::any&& );
 
     protected:
         // reimplement QTableView

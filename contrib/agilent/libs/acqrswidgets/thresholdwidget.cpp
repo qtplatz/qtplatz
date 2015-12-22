@@ -36,6 +36,10 @@
 #include <QSignalBlocker>
 #include <QPair>
 #include <boost/exception/all.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/type_traits.hpp>
+#include <type_traits>
 #include <memory>
 
 using namespace acqrswidgets;
@@ -136,26 +140,49 @@ ThresholdWidget::getContents( boost::any& a ) const
     return false;
 }
 
+#if 0
+namespace acqrswidgets {
+
+    template< typename T > struct wrap {};
+
+    struct is_type {
+        boost::any a_;
+        is_type( boost::any& a ) : a_( a ) {}
+        template< typename T > bool operator()( wrap<T> t ) const {
+            return std::is_same<T, a.type() >::value; // std::remove_const<T>::type, std::shaerd_ptr< adcontrols::ControlMethod::Method > > ::value;
+        }
+
+    };
+}
+#endif
+
 bool
-ThresholdWidget::setContents( boost::any& a )
+ThresholdWidget::setContents( boost::any&& a )
 {
     const char * type = a.type().name();
 
-    std::shared_ptr< const adcontrols::ControlMethod::Method > ptr;
-
-    if ( adportable::a_type < std::shared_ptr< const adcontrols::ControlMethod::Method > >::is_a( a ) ) {
-        ptr = boost::any_cast <std::shared_ptr< const adcontrols::ControlMethod::Method>>( a );
-    } else if ( adportable::a_type < std::shared_ptr< adcontrols::ControlMethod::Method > >::is_a( a ) ) {
-        ptr = boost::any_cast <std::shared_ptr< adcontrols::ControlMethod::Method>>( a );
-    }
-    if ( ptr ) {
-        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::modelClass() );
-        if ( it != ptr->end() ) {        
-            adcontrols::TimeDigitalMethod tdm;
-            if ( it->get<>( *it, tdm ) )
-                set( tdm );
+    try {
+        if ( auto ptr = boost::any_cast <std::shared_ptr< const adcontrols::ControlMethod::Method>>( a ) ) {
+            auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::modelClass() );
+            if ( it != ptr->end() ) {
+                adcontrols::TimeDigitalMethod tdm;
+                if ( it->get<>( *it, tdm ) )
+                    set( tdm );
+                return true;
+            }
         }
-        return true;
+    } catch ( boost::bad_any_cast& ) {
+    }
+
+    try {
+        if ( auto item = boost::any_cast<const adcontrols::ControlMethod::MethodItem *>( a ) ) {
+            adcontrols::TimeDigitalMethod tdm;
+            if ( item->get<>( *item, tdm ) ) {
+                set( tdm );
+                return true;
+            }
+        }
+    } catch ( boost::bad_any_cast& ) {
     }
     return false;
 }

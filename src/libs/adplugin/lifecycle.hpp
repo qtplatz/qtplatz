@@ -44,7 +44,7 @@ namespace adplugin {
         virtual void OnFinalClose() = 0;
         virtual void onUpdate( boost::any& ) {}
         virtual bool getContents( boost::any& ) const { return false; }
-        virtual bool setContents( boost::any& ) { return false; }
+        virtual bool setContents( boost::any&& ) { return false; }
         virtual void * query_interface_workaround( const char * typenam ) { (void)typenam; return 0; }
 
         template<typename T> T* query_interface() {

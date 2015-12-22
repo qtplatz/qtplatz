@@ -103,7 +103,7 @@ MSCalibrateWidget::getContents( boost::any& a ) const
 }
 
 bool
-MSCalibrateWidget::setContents( boost::any& a )
+MSCalibrateWidget::setContents( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
 

@@ -119,7 +119,7 @@ PeptideWidget::getContents( boost::any& a ) const
 }
 
 bool
-PeptideWidget::setContents( boost::any& a )
+PeptideWidget::setContents( boost::any&& a )
 {
 	if ( adportable::a_type< adprot::digestedPeptides >::is_a( a ) ) {
 

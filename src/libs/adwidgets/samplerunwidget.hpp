@@ -49,7 +49,7 @@ namespace adwidgets {
         void OnFinalClose() override;
 
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;
+        bool setContents( boost::any&& ) override;
 
         void setSampleRun( const adcontrols::SampleRun& );
         void getSampleRun( adcontrols::SampleRun& ) const;
