@@ -40,15 +40,15 @@ namespace adinterface {
                                                , bool isInitialCondition = true
                                                , double time = (-1)
                                                , uint32_t unitNumber = 1 ) {
-            replace_or_add( m, device, T::modelClass(), T::itemClass(), isInitialCondition, time, unitNumber );
+            replace_or_add( m, device, T::modelClass(), T::itemLabel(), isInitialCondition, time, unitNumber );
         }
 
         template<class T> static const ::ControlMethod::MethodLine * find( const ::ControlMethod::Method& m, uint32_t unitNumber = 1 ) {
-            return find( m, T::modelClass(), T::itemClass(), unitNumber );
+            return find( m, T::modelClass(), T::itemLabel(), unitNumber );
         }
 
         template<class T> static ::ControlMethod::MethodLine * find( ::ControlMethod::Method& m, uint32_t unitNumber = 1 ) {
-            return find( m, T::modelClass(), T::itemClass(), unitNumber );
+            return find( m, T::modelClass(), T::itemLabel(), unitNumber );
         }
 
         static void replace_or_add( ::ControlMethod::Method& m
