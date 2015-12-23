@@ -27,6 +27,7 @@
 #include <adportable/debug.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/utf.hpp>
+#include <cstring>
 
 using namespace adinterface;
 
