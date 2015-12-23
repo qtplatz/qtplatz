@@ -51,6 +51,11 @@ namespace adcontrols {
         bool enableTimeRange;
         bool recordOnFile;
         bool exclusiveDisplay;
+        
+        static bool archive( std::ostream&, const threshold_action& );
+        static bool restore( std::istream&, threshold_action& );
+        static bool xml_archive( std::wostream&, const threshold_action& );
+        static bool xml_restore( std::wistream&, threshold_action& );        
 
     private:
         friend class boost::serialization::access;

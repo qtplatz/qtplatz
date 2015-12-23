@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <fstream>
 
 namespace boost {
     namespace serialization { class access; }
@@ -58,6 +59,11 @@ namespace adcontrols {
 
         bool operator != ( const threshold_method& ) const;
         bool operator == ( const threshold_method& a ) const { return !( *this != a ); }
+
+        static bool archive( std::ostream&, const threshold_method& );
+        static bool restore( std::istream&, threshold_method& );
+        static bool xml_archive( std::wostream&, const threshold_method& );
+        static bool xml_restore( std::wistream&, threshold_method& );        
 
     private:
         friend class boost::serialization::access;

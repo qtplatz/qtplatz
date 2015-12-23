@@ -107,8 +107,9 @@ namespace acquire {
         void setControllerState( const QString& module, bool enable );
 
         void addConfiguration( const QString& );
-        void setConfiguration( const QString& );
         const std::set< QString >& configurations() const;
+
+        void setCurrentConfiguration( const QString& );
         QString currentConfiguration() const;
 
         void onConfigurationChanged( const QString& config );

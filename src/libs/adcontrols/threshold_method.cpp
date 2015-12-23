@@ -90,6 +90,50 @@ namespace adcontrols {
         threshold_method_archive<>().serialize( ar, *this, version );        
     }
 
+    bool threshold_method::archive( std::ostream& os, const threshold_method& t )
+    {
+        try {
+            portable_binary_oarchive ar( os );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+    }
+
+    bool threshold_method::restore( std::istream& is, threshold_method& t )
+    {
+        try {
+            portable_binary_iarchive ar( is );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+    }
+
+    bool threshold_method::xml_archive( std::wostream& os, const threshold_method& t )
+    {
+        try {
+            boost::archive::xml_woarchive ar( os );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+    }
+
+    bool threshold_method::xml_restore( std::wistream& is, threshold_method& t )
+    {
+        try {
+            boost::archive::xml_wiarchive ar( is );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+
+    }
 }
 
 bool

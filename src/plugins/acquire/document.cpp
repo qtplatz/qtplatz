@@ -150,7 +150,7 @@ namespace acquire {
         void merge( const QString& configuration, std::shared_ptr< const adcontrols::ControlMethod::Method > rvalue ) override {
             if ( auto lvalue = document::instance()->controlMethod( configuration ) ) {
                 auto lhs = std::make_shared< adcontrols::ControlMethod::Method >( *lvalue );
-                (*lhs) += *rvalue;
+                //(*lhs) += *rvalue;
             }
         }
         
@@ -733,8 +733,6 @@ void
 document::addConfiguration( const QString& name )
 {
     impl_->confignames_.insert( name );
-    if ( impl_->settings_->value( "acquire/configuration" ).toString().isEmpty() )
-        setConfiguration( name );
 
     if ( impl_->cmMap_.find( name ) == impl_->cmMap_.end() ) {
         impl_->cmMap_[ name ] = std::make_shared< adcontrols::ControlMethod::Method >();
@@ -747,7 +745,7 @@ document::addConfiguration( const QString& name )
 }
 
 void
-document::setConfiguration( const QString& name )
+document::setCurrentConfiguration( const QString& name )
 {
     impl_->confignames_.insert( name );
     impl_->settings_->setValue( "acquire/configuration", name );

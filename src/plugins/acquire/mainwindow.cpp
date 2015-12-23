@@ -180,13 +180,23 @@ MainWindow::OnInitialUpdate()
     
     if ( auto combo = findChild< QComboBox * >( "Configuration" ) ) {
         auto list = document::instance()->configurations();
-        {
-            QSignalBlocker block( combo ); // prevent call of currentChanged
-            for ( const auto& name : list )
-                combo->addItem( name );
+        if ( ! list.empty() ) {
+            {
+                QSignalBlocker block( combo ); // prevent call of currentChanged
+                for ( const auto& name : list )
+                    combo->addItem( name );
+            }
+            if ( document::instance()->currentConfiguration().isEmpty() )
+                document::instance()->setCurrentConfiguration( *list.begin() );
+            auto it = std::find( list.begin(), list.end(), document::instance()->currentConfiguration() );
+            if ( it == list.end() ) {
+                document::instance()->setCurrentConfiguration( *list.begin() );
+                combo->setCurrentIndex( 0 );
+            } else {
+                document::instance()->setCurrentConfiguration( *it );
+                combo->setCurrentIndex( int( std::distance( list.begin(), it ) ) );
+            }
         }
-        auto idx = std::distance( list.begin(), std::find( list.begin(), list.end(), document::instance()->currentConfiguration() ) );
-        combo->setCurrentIndex( int( idx ) );
     }
 
 
@@ -964,7 +974,8 @@ MainWindow::createDockWidgets()
 void
 MainWindow::changeConfiguration( const QString& config )
 {
-    document::instance()->setConfiguration( config );
+    std::string stdconfig = config.toStdString(); // wordaround -- QString doesnt show on debugger
+    document::instance()->setCurrentConfiguration( config );
 
     impl_->cmEditor_->clearAllEditors();
 
@@ -977,8 +988,8 @@ MainWindow::changeConfiguration( const QString& config )
         }
     }
     
-    auto cm = document::instance()->controlMethod();
-    impl_->cmEditor_->setControlMethod( *cm );
+    if ( auto cm = document::instance()->controlMethod() )
+        impl_->cmEditor_->setControlMethod( *cm );
 
     setSimpleDockWidgetArrangement();
 

@@ -70,6 +70,52 @@ namespace adcontrols {
         threshold_action_archive<>().serialize( ar, *this, version );
     }
 
+    bool threshold_action::archive( std::ostream& os, const threshold_action& t )
+    {
+        try {
+            portable_binary_oarchive ar( os );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+    }
+
+    bool threshold_action::restore( std::istream& is, threshold_action& t )
+    {
+        try {
+            portable_binary_iarchive ar( is );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+    }
+
+    bool threshold_action::xml_archive( std::wostream& os, const threshold_action& t )
+    {
+        try {
+            boost::archive::xml_woarchive ar( os );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+    }
+
+    bool threshold_action::xml_restore( std::wistream& is, threshold_action& t )
+    {
+        try {
+            boost::archive::xml_wiarchive ar( is );
+            ar & boost::serialization::make_nvp( "m", t );
+            return true;
+        } catch ( std::exception& ) {
+        }
+        return false;
+
+    }
+    
+
 }
 
 using namespace adcontrols;

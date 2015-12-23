@@ -131,12 +131,17 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
 
     } else {
         
-        if ( waveform->dataType() == 2 )
-            (*impl_->averager_) += u16wrap( *waveform );
-        else
-            (*impl_->averager_) += u32wrap( *waveform );                
+        bool breakout( false );
+        try {
+            if ( waveform->dataType() == 2 )
+                ( *impl_->averager_ ) += u16wrap( *waveform );
+            else
+                ( *impl_->averager_ ) += u32wrap( *waveform );
+        } catch ( std::out_of_range& ) {
+            breakout = true;
+        }
         
-        if ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+        if ( breakout || ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) ) {
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
             w->meta_ = impl_->meta_;                 // replace with first trigger
