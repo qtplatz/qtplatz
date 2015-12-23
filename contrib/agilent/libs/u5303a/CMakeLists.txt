@@ -11,7 +11,7 @@ find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem ws
 add_definitions( -DU5303A_LIBRARY )
 
 if ( WIN32 )
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
   set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
   set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
 endif()

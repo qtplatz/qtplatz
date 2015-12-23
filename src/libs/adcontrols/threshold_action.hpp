@@ -29,7 +29,10 @@
 #include <boost/serialization/version.hpp>
 #include <memory>
 
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+    namespace uuids { struct uuid; }
+}
 
 namespace adcontrols {
 
@@ -40,6 +43,7 @@ namespace adcontrols {
 		threshold_action(const threshold_action &);
         static const char * modelClass() { return "threshold_action"; }
         static const char * itemLabel() { return "threshold_action"; }
+        static const boost::uuids::uuid& clsid();
 
         bool enable;
         double delay;

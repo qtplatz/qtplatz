@@ -33,7 +33,10 @@
 #include <vector>
 #include <iostream>
 
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+    namespace uuids { struct uuid; }
+}
 
 namespace adcontrols {
 
@@ -51,6 +54,7 @@ namespace adcontrols {
 
         static const char * modelClass() { return "TimeDigitalMethod"; }
         static const char * itemLabel() { return "Counting"; }
+        static const boost::uuids::uuid& clsid();
 
         std::vector< threshold_method >& thresholds();
         const std::vector< threshold_method >& thresholds() const;

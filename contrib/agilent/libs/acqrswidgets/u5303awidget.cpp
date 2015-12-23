@@ -122,7 +122,7 @@ u5303AWidget::getContents( boost::any& a ) const
         acqrscontrols::u5303a::method m;
 
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>( a );
-        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
+        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::clsid() );
 
         if ( it != ptr->end() )
             it->get( *it, m ); // save threshold method 
@@ -140,27 +140,7 @@ u5303AWidget::getContents( boost::any& a ) const
 bool
 u5303AWidget::setContents( boost::any&& a )
 {
-    const adcontrols::ControlMethod::MethodItem * pi(0);
-    if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
-        pi = boost::any_cast<const adcontrols::ControlMethod::MethodItem * >( a );             
-    } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_a( a ) ) {   
-        pi = &boost::any_cast<const adcontrols::ControlMethod::MethodItem& >( a );
-    }
-
-    if ( !pi ) {
-        std::shared_ptr< const adcontrols::ControlMethod::Method > ptr;
-        if ( adportable::a_type< std::shared_ptr< const adcontrols::ControlMethod::Method > >::is_a( a ) ) {
-            ptr = boost::any_cast<std::shared_ptr< const adcontrols::ControlMethod::Method >>( a );
-        } else if ( adportable::a_type< std::shared_ptr< adcontrols::ControlMethod::Method > >::is_a( a ) ) {
-            ptr = boost::any_cast<std::shared_ptr< adcontrols::ControlMethod::Method >>( a );
-        }
-        if ( ptr ) {
-            auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
-            if ( it != ptr->end() )
-                pi = &( *it );
-        }
-    }
-
+    auto pi = adcontrols::ControlMethod::any_cast<>()( a , acqrscontrols::u5303a::method::clsid());
 	if (pi) {
         acqrscontrols::u5303a::method m;
 		try {

@@ -38,6 +38,7 @@
 
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
+#include <adextension/iacquire.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adportable/debug.hpp>
@@ -109,6 +110,9 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     addObject( qbroker );
 #endif
     // <--
+    if ( auto iAcquire = document::instance()->iAcquire() ) {
+        addObject( iAcquire );
+    }
 
     if ( auto iExtension = document::instance()->masterController() ) {
         addObject( iExtension );
@@ -149,6 +153,9 @@ AcquirePlugin::aboutToShutdown()
     ADTRACE() << "====== AcquirePlugin shutting down...  ===============";
 
     document::instance()->actionDisconnect();
+
+    if ( auto iAcquire = document::instance()->iAcquire() )
+        removeObject( iAcquire );
 
 #if HAVE_CORBA
 

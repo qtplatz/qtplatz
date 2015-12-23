@@ -37,6 +37,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/samplerun.hpp>
+#include <adextension/iacquire.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
@@ -81,13 +82,14 @@ namespace acquire {
         }
     };
 
-    class document::impl {
+    class document::impl : public adextension::iAcquire {
     public:
         impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "acquire" ) ) )
                , sampleRun_( std::make_shared< adcontrols::SampleRun >() ) {
-            connected_.clear();            
+                       
+            connected_.clear();
         }
 
         ~impl() {
@@ -132,6 +134,31 @@ namespace acquire {
             MainWindow::instance()->getSampleRun( run );
             acquire::document::instance()->setSampleRun( run ); // commit
         }
+
+        // =================== iAcquire ================>
+        QList< QString > configurations() const override {
+            auto set = document::instance()->configurations();
+            QList< QString > list;
+            copy( set.begin(), set.end(), std::back_inserter( list ) );
+            return list;
+        }
+        
+        std::shared_ptr< const adcontrols::ControlMethod::Method > find( const QString& configuration ) const override {
+            return document::instance()->controlMethod( configuration );
+        }
+        
+        void merge( const QString& configuration, std::shared_ptr< const adcontrols::ControlMethod::Method > rvalue ) override {
+            if ( auto lvalue = document::instance()->controlMethod( configuration ) ) {
+                auto lhs = std::make_shared< adcontrols::ControlMethod::Method >( *lvalue );
+                (*lhs) += *rvalue;
+            }
+        }
+        
+        QString curentConfiguration() const override {
+            return document::instance()->currentConfiguration();
+        }
+
+        // <<================= iAcquire ================
 
     public:
         std::atomic_flag connected_;
@@ -263,6 +290,13 @@ document::instance()
     return tmp;
 }
 
+
+adextension::iAcquire *
+document::iAcquire()
+{
+    return impl_;
+}
+
 void
 document::initialSetup()
 {
@@ -336,6 +370,15 @@ document::controlMethod() const
     return impl_->cmMap_ [ currentConfiguration() ];
 }
 
+std::shared_ptr< const adcontrols::ControlMethod::Method >
+document::controlMethod( const QString& config ) const
+{
+    auto it = impl_->cmMap_.find( config );
+    if ( it != impl_->cmMap_.end() )
+        return it->second;
+    return nullptr;
+}
+
 std::shared_ptr< adcontrols::SampleRun >
 document::sampleRun() const
 {
@@ -347,9 +390,9 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
 {
     do {
         impl_->cmMap_[ currentConfiguration() ] = std::make_shared< adcontrols::ControlMethod::Method >( m );
-        for ( auto& item : m ) {
-            ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
-        }
+        // for ( auto& item : m ) {
+        //     ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
+        // }
     } while(0);
 
     if ( ! filename.isEmpty() ) {
@@ -720,6 +763,12 @@ QString
 document::currentConfiguration() const
 {
     return impl_->settings_->value( "acquire/configuration" ).toString();    
+}
+
+void
+document::onConfigurationChanged( const QString& config )
+{
+    emit impl_->currChanged( config );
 }
 
 

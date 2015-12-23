@@ -31,7 +31,9 @@
 #include <iostream>
 #include <compiler/pragma_warning.hpp>
 
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+}
 
 namespace adcontrols {
 

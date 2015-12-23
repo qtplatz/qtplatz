@@ -249,7 +249,7 @@ ControlMethodWidget::impl::validate( std::shared_ptr< adcontrols::ControlMethod:
         
         for ( auto& item : *temp ) {
             ADDEBUG() << item.modelname() << ", " << item.itemLabel();
-            auto it = cm->find( cm->begin(), cm->end(), item.modelname().c_str() );
+            auto it = cm->find( cm->begin(), cm->end(), item.clsid() );
             if ( it == cm->end() )
                 cm->insert( item );
         }

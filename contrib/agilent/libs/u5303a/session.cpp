@@ -253,7 +253,7 @@ bool
 Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
     if ( m ) {
-        auto it = m->find( m->begin(), m->end(), "u5303a" );
+        auto it = m->find( m->begin(), m->end(), acqrscontrols::u5303a::method::clsid() );
         if ( it != m->end() ) {
             acqrscontrols::u5303a::method method;
             if ( it->get<>( *it, method ) )

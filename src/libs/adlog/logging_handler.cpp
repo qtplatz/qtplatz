@@ -25,6 +25,7 @@
 #include "logging_handler.hpp"
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
 #include <boost/filesystem/path.hpp>
 #include <fstream>
 
@@ -92,6 +93,8 @@ logging_handler::appendLog( int pri, const std::string& msg, const std::string& 
     
 	std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
     of << adportable::date_string::logformat( tp ) << ":\t" << file << "(" << line << "): " << msg << std::endl;
+
+    adportable::debug() << adportable::date_string::logformat( tp ) << ":\t" << file << "(" << line << "): " << msg;
 }
 
 void

@@ -31,6 +31,7 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -141,7 +142,13 @@ method:: method() : channels_( 0x01 )
 method:: method( const method& t ) : channels_( t.channels_ )
                                    , mode_( t.mode_ )
                                    , method_( t.method_ )
-//                                   , threshold_( t.threshold_ )
-//                                   , action_( t.action_ )
 {
+}
+
+const boost::uuids::uuid&
+method::clsid()
+{
+    static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "acqrscontrols::u5303a::method" );
+    return myclsid;
 }

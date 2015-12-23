@@ -26,20 +26,20 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "idaudit.hpp"
-#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/utility.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <functional>
 #include <memory>
 #include <string>
 #include <sstream>
 #include <vector>
+#include <compiler/pragma_warning.hpp>
 
-
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+    namespace uuids { struct uuid; }
+    class any;
+}
 
 namespace adcontrols {
 
@@ -47,23 +47,24 @@ namespace adcontrols {
 
     namespace ControlMethod {
 
+        template<typename T> class MethodItem_archive;
+
         class ADCONTROLSSHARED_EXPORT MethodItem {
         public:
             MethodItem();
             MethodItem( const MethodItem& );
-            MethodItem( const std::string& model, uint32_t unitnumber = 1, uint32_t funcid = 0 );
-            
-            // An analytical instrument is consisted from serveral independent modules
-            // such as autosampler, solvent delivery system, 2 units of (same models of) UV detector
-            // and so on.  Each module can be indentified by a pair of modelname and unitnumber that 
-            // is counted from one (zero is reserved for internal use).
+            MethodItem( const boost::uuids::uuid&, const std::string& model, uint32_t unitnumber = 1, uint32_t funcid = 0 );
 
-            const std::string& modelname() const;
-            void setModelname( const char * );
-            
+            // uniq( clsid,unitnumber )
+            const boost::uuids::uuid& clsid() const;
+            void setClsid( const boost::uuids::uuid& );
+
             uint32_t unitnumber() const;
             void unitnumber( uint32_t );
 
+            const std::string& modelname() const; // display name 
+            void setModelname( const char * );
+            
             bool isInitialCondition() const;
             void isInitialCondition( bool );
 
@@ -102,11 +103,6 @@ namespace adcontrols {
             }
             
         private:
-
-#if defined _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 )
-#endif
             std::string modelname_;
             uint32_t unitnumber_;
             bool isInitialCondition_;
@@ -115,25 +111,12 @@ namespace adcontrols {
             std::string label_;
             std::string data_;             // serialized data
             std::string description_;      // utf8
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif            
+            boost::uuids::uuid clsid_;
         private:
+            friend class MethodItem_archive< MethodItem >;
+            friend class MethodItem_archive< const MethodItem >;
             friend class boost::serialization::access;
-            template<class Archive>
-                void serialize( Archive& ar, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP(modelname_)
-                    & BOOST_SERIALIZATION_NVP(unitnumber_)
-                    & BOOST_SERIALIZATION_NVP(isInitialCondition_)
-                    & BOOST_SERIALIZATION_NVP(time_)
-                    & BOOST_SERIALIZATION_NVP(funcid_)
-                    & BOOST_SERIALIZATION_NVP(label_)
-                    & BOOST_SERIALIZATION_NVP(data_)
-                    ;
-                if ( version >= 2 )
-                    ar & BOOST_SERIALIZATION_NVP( description_ );
-            }
+            template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
         ////////////////////////////////////////////////
@@ -173,21 +156,27 @@ namespace adcontrols {
             /*
              * find first item of specified modelname,unitnumer.  Ignore unitnumber if -1 was provided
              */
-            iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
-            const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
+            // iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
+            // const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
+
+            iterator find( iterator first, iterator last, const boost::uuids::uuid& clsid, int unitnumber = ( -1 ) );
+            const_iterator find( const_iterator first, const_iterator last, const boost::uuids::uuid& clsid, int unitnumber = ( -1 ) ) const;
             
             template< typename T > iterator append( const T& t
+                                                    , const boost::uuids::uuid& clsid = T::clsid()
                                                     , const char * modelname = T::modelClass() // unique name "model,submodel"
                                                     , int unitnumber = ( -1 )
                                                     , const char * itemlabel = T::itemLabel()  // display name
                                                     , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
-                MethodItem mi( modelname, unitnumber );
+                MethodItem mi( clsid, modelname, unitnumber );
                 mi.setItemLabel( itemlabel );
                 if ( MethodItem::set( mi, t, serialize ) )
                     return add( mi, true );
                 return end();
             }
-            
+
+            bool operator += ( const Method& );
+
             static bool archive( std::ostream&, const Method& );
             static bool restore( std::istream&, Method& );
             static bool xml_archive( std::wostream&, const Method& );
@@ -195,21 +184,22 @@ namespace adcontrols {
 
         private:
             class impl;
-#if defined _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 )
-#endif
             std::unique_ptr< impl > impl_;
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int );
         };
+
+        template< typename T = const MethodItem * > struct ADCONTROLSSHARED_EXPORT any_cast {
+            T operator()( boost::any& a, const boost::uuids::uuid& clsid ) const;
+        };
+
+        template<> MethodItem * any_cast<MethodItem *>::operator()( boost::any& a, const boost::uuids::uuid& clsid ) const;
+        template<> const MethodItem * any_cast<const MethodItem *>::operator()( boost::any& a, const boost::uuids::uuid& clsid ) const;
+        
     }
     typedef std::shared_ptr<ControlMethod::Method> ControlMethodPtr;
 }
 
 BOOST_CLASS_VERSION( adcontrols::ControlMethod::Method, 2 )
-BOOST_CLASS_VERSION( adcontrols::ControlMethod::MethodItem, 2 )
+BOOST_CLASS_VERSION( adcontrols::ControlMethod::MethodItem, 3 )
 

@@ -1,9 +1,8 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -23,16 +22,11 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "iacquire.hpp"
 
-namespace adcontrols {
-    namespace constants {
+using namespace adextension;
 
-        // Folium (attachment) name
-        const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
-        const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
-        const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
-        const wchar_t * const F_TARGETING          = L"Targeting";
-        const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
-    }
+iAcquire::iAcquire( QObject * parent ) : QObject( parent )
+{
 }
+

@@ -26,7 +26,10 @@
 
 #include "adcontrols_global.h"
 
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+    namespace uuids { struct uuid; }
+}
 
 namespace adcontrols {
 
@@ -38,6 +41,7 @@ namespace adcontrols {
         enum Slope { CrossUp, CrossDown };
 
         static const char * modelClass() { return "threshold_method"; }
+        static const boost::uuids::uuid& clsid();
 
         bool enable;
         double threshold_level;   // V

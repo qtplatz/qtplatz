@@ -30,7 +30,10 @@
 #include <map>
 #include <vector>
 
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+    namespace uuids { struct uuid; }
+}
 
 namespace adcontrols {
 
@@ -44,6 +47,7 @@ namespace adcontrols {
 
         static const char * modelClass() { return "TofChromatograms"; }
         static const char * itemLabel() { return "Chromatograms.1"; }
+        static const boost::uuids::uuid& clsid();
 
         typedef std::vector< TofChromatogramMethod >::iterator iterator;
         typedef std::vector< TofChromatogramMethod >::const_iterator const_iterator;

@@ -30,6 +30,7 @@ include_directories(
   )
 
 if ( WIN32 )
+  add_definitions( -wd4996 )
   include_directories( "C:/Program Files (x86)/Agilent/Acqiris/include" )
   link_directories( "C:/Program Files (x86)/Agilent/Acqiris/lib" )
   add_library( AqDrv4 SHARED IMPORTED )

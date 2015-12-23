@@ -12,6 +12,8 @@ add_definitions( -DADEXTENSION_LIBRARY )
 set( adextension_SOURCES
   adextension.cpp
   adextension.hpp
+  iacquire.cpp
+  iacquire.hpp
   ibroker.cpp
   ibroker.hpp
   icontroller.cpp

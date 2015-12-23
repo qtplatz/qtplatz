@@ -444,7 +444,7 @@ document::finalClose()
     }
 
     auto cm = MainWindow::instance()->getControlMethod();
-    auto it = cm->find( cm->begin(), cm->end(), acqrscontrols::u5303a::method::modelClass() );
+    auto it = cm->find( cm->begin(), cm->end(), acqrscontrols::u5303a::method::clsid() );
     if ( it != cm->end() ) {
         acqrscontrols::u5303a::method x;
         if ( it->get<>( *it, x ) ) {
@@ -609,7 +609,7 @@ void
 document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > ptr, const QString& filename )
 {
     do {
-        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
+        auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::clsid() );
         if ( it != ptr->end() ) {
             acqrscontrols::u5303a::method m;
             if ( it->get( *it, m ) ) {
@@ -620,7 +620,7 @@ document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method >
     } while(0);
 
     do {
-        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::modelClass() );
+        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::clsid() );
         if ( it != ptr->end() ) {
             adcontrols::TimeDigitalMethod tdm;
             if ( it->get( *it, tdm ) )

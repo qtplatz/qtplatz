@@ -31,6 +31,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace adcontrols {
 
@@ -95,3 +96,10 @@ threshold_action::threshold_action( const threshold_action& t ) : delay( t.delay
 {
 }
 
+const boost::uuids::uuid&
+threshold_action::clsid()
+{
+    static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "adcontrols::threshold_action" );
+    return myclsid;
+}

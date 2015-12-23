@@ -25,6 +25,7 @@
 
 #include "controlmethod.hpp"
 #include "serializer.hpp"
+#include "idaudit.hpp"
 #include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -35,6 +36,13 @@
 #include <adportable/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
+#include <boost/any.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 
 namespace adcontrols {
 
@@ -63,6 +71,46 @@ namespace adcontrols {
             }
 
         };
+
+        template< typename T = MethodItem > class MethodItem_archive {
+        public:
+            template<class Archive>
+                void serialize( Archive& ar, T& _, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP(_.modelname_)
+                    & BOOST_SERIALIZATION_NVP(_.unitnumber_)
+                    & BOOST_SERIALIZATION_NVP(_.isInitialCondition_)
+                    & BOOST_SERIALIZATION_NVP(_.time_)
+                    & BOOST_SERIALIZATION_NVP(_.funcid_)
+                    & BOOST_SERIALIZATION_NVP(_.label_)
+                    & BOOST_SERIALIZATION_NVP(_.data_)
+                    ;
+                if ( version >= 2 )
+                    ar & BOOST_SERIALIZATION_NVP( _.description_ );
+                if ( version >= 3 )
+                    ar & BOOST_SERIALIZATION_NVP( _.clsid_ );
+            }            
+        };
+
+        template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        {
+            MethodItem_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        {
+            MethodItem_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        {
+            MethodItem_archive<>().serialize( ar, *this, version );
+        }
+    
+        template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        {
+            MethodItem_archive<>().serialize( ar, *this, version );
+        }        
     }
 }
 
@@ -126,6 +174,22 @@ Method::operator = ( const Method & t )
     impl_.reset( new impl( *t.impl_ ) );
     return *this;
 }
+
+bool
+Method::operator += ( const Method& rhs )
+{
+    bool modified( false );
+    for ( const auto& item : rhs ) {
+        auto it = std::find_if( begin(), end(), [item] ( const MethodItem& a ) { return item == a; } );
+        if ( it != end() ) {
+            modified = true;
+            (*it) = item;
+        }
+        // nothing to be added if not in the lvalue
+    }
+    return modified;
+}
+
 
 Method::iterator
 Method::begin()
@@ -244,20 +308,26 @@ Method::setSubject( const char * t )
     impl_->subject_ = t ? t : "";
 }
 
+///////////////////////////////////////////////////////////
+
 MethodItem::MethodItem() : unitnumber_( 0 )
                          , isInitialCondition_( true )
                          , time_( -1 )
                          , funcid_( 0 )
+                         , clsid_( { 0 } )
 {
 }
 
-MethodItem::MethodItem( const std::string& model
+MethodItem::MethodItem( const boost::uuids::uuid& clsid
+                        , const std::string& model
                         , uint32_t unitnumber
                         , uint32_t funcid ) : modelname_( model )
-                                                , unitnumber_( unitnumber )
-                                                , isInitialCondition_( true )
-                                                , time_( -1 )
-                                                , funcid_( funcid ) {
+                                            , unitnumber_( unitnumber )
+                                            , isInitialCondition_( true )
+                                            , time_( -1 )
+                                            , funcid_( funcid )
+                                            , clsid_( clsid )
+{
 }
 
 
@@ -268,16 +338,31 @@ MethodItem::MethodItem( const MethodItem& t ) : modelname_( t.modelname_ )
                                               , funcid_( t.funcid_ )
                                               , label_( t.label_ )
                                               , data_( t.data_ )
+                                              , clsid_( t.clsid_ )
 {
+}
+
+const boost::uuids::uuid&
+MethodItem::clsid() const
+{
+    return clsid_;
+}
+
+void
+MethodItem::setClsid( const boost::uuids::uuid& uuid )
+{
+    clsid_ = uuid;
 }
 
 bool
 MethodItem::operator == ( const MethodItem& t ) const
 {
-    if ( isInitialCondition() ) {
-        return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && isInitialCondition();
+    if ( isInitialCondition_ ) {
+        return ( clsid_ == t.clsid_ ) && ( unitnumber_ == t.unitnumber_ ) && t.isInitialCondition_;
+        // return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && isInitialCondition();
     } else {
-        return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && adportable::compare<double>::essentiallyEqual( time_, t.time_ );
+        return ( clsid_ == t.clsid_ ) && ( unitnumber_ == t.unitnumber_ ) && adportable::compare<double>::essentiallyEqual( time_, t.time_ );
+        // return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && adportable::compare<double>::essentiallyEqual( time_, t.time_ );
     }
 }
 
@@ -432,6 +517,7 @@ Method::xml_restore( std::wistream& is, Method& t )
     }
 }
 
+#if 0
 Method::iterator
 Method::find( iterator first, iterator last, const char * modelname, int unitnumber )
 {
@@ -455,3 +541,68 @@ Method::find( const_iterator first, const_iterator last, const char * modelname,
             });
     }
 }
+#endif
+
+Method::iterator
+Method::find( iterator first, iterator last, const boost::uuids::uuid& clsid, int unitnumber )
+{
+    if ( unitnumber <= 0 ) {
+        return std::find_if( first, last, [&]( const MethodItem& a ){ return a.clsid() == clsid; });
+    } else {
+        return std::find_if( first, last, [&]( const MethodItem& a ){
+                return ( a.clsid() == clsid ) && ( a.unitnumber() == unitnumber );
+            });
+    }
+}
+
+Method::const_iterator
+Method::find( const_iterator first, const_iterator last, const boost::uuids::uuid& clsid, int unitnumber ) const
+{
+    if ( unitnumber <= 0 ) {
+        return std::find_if( first, last, [&]( const MethodItem& a ){ return a.clsid() == clsid; });
+    } else {
+        return std::find_if( first, last, [&]( const MethodItem& a ){
+                return ( a.clsid() == clsid ) && ( a.unitnumber() == unitnumber );
+            });
+    }
+}
+
+template<> const MethodItem *
+any_cast<const MethodItem *>::operator()( boost::any& a, const boost::uuids::uuid& clsid ) const
+{
+    try {
+        auto pi = boost::any_cast<const MethodItem *>( a );
+        return pi;
+    } catch ( boost::bad_any_cast& ) {
+    }
+    
+    try {
+        if ( auto ptr = boost::any_cast<std::shared_ptr< const Method > >( a ) ) {
+            auto it = ptr->find( ptr->begin(), ptr->end(), clsid );
+            if ( it != ptr->end() )
+                return &( *it );
+        }
+    } catch ( boost::bad_any_cast& ) {
+    }
+    return nullptr;
+}
+
+template<> MethodItem *
+any_cast<MethodItem *>::operator()( boost::any& a, const boost::uuids::uuid& clsid ) const
+{
+    try {
+        auto pi = boost::any_cast< MethodItem *>( a );
+        return pi;
+    } catch ( boost::bad_any_cast& ) {
+    }
+    try {
+        if ( auto ptr = boost::any_cast<std::shared_ptr< Method > >( a ) ) {
+            auto it = ptr->find( ptr->begin(), ptr->end(), clsid );
+            if ( it != ptr->end() )
+                return &( *it );
+        }
+    } catch ( boost::bad_any_cast& ) {
+    }
+    return nullptr;
+}
+

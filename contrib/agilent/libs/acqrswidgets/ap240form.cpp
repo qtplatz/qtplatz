@@ -156,7 +156,7 @@ ap240form::getContents( boost::any& a ) const
         
         acqrscontrols::ap240::method m;
         get( m );
-        adcontrols::ControlMethod::MethodItem item( "ap240" );
+        adcontrols::ControlMethod::MethodItem item( m.clsid(), m.modelClass() );
         item.setItemLabel( "ap240" );
         item.set<>( item, m ); // serialize
         ptr->insert( item );
@@ -193,7 +193,7 @@ ap240form::setContents( boost::any&& a )
         // adcontrols::ControlMethod::Method
         // find first one
         if ( auto ptr = boost::any_cast<std::shared_ptr< const adcontrols::ControlMethod::Method>>( a ) ) {
-            auto it = ptr->find( ptr->begin(), ptr->end(), "ap240" );
+            auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::ap240::method::clsid() );
             if ( it != ptr->end() )
                 pi = &( *it );
         }

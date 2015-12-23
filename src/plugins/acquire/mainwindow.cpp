@@ -68,6 +68,8 @@
 #include <boost/variant.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
@@ -177,9 +179,16 @@ MainWindow::OnInitialUpdate()
         document::instance()->addConfiguration( s->configuration() );
     
     if ( auto combo = findChild< QComboBox * >( "Configuration" ) ) {
-        for ( const auto& name : document::instance()->configurations() )
-            combo->addItem( name );
+        auto list = document::instance()->configurations();
+        {
+            QSignalBlocker block( combo ); // prevent call of currentChanged
+            for ( const auto& name : list )
+                combo->addItem( name );
+        }
+        auto idx = std::distance( list.begin(), std::find( list.begin(), list.end(), document::instance()->currentConfiguration() ) );
+        combo->setCurrentIndex( int( idx ) );
     }
+
 
 	for ( auto s: sequences ) {
 
@@ -972,5 +981,7 @@ MainWindow::changeConfiguration( const QString& config )
     impl_->cmEditor_->setControlMethod( *cm );
 
     setSimpleDockWidgetArrangement();
+
+    document::instance()->onConfigurationChanged( config );
 }
 

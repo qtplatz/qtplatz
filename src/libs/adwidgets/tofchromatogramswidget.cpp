@@ -212,20 +212,14 @@ TofChromatogramsWidget::getContents( boost::any& a ) const
 bool
 TofChromatogramsWidget::setContents( boost::any&& a )
 {
-   adcontrols::TofChromatogramsMethod m;
-
-    if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ||
-         adportable::a_type< std::shared_ptr< const adcontrols::ControlMethod::Method > >::is_a( a ) ) {
-        auto ptr = boost::any_cast< std::shared_ptr< const adcontrols::ControlMethod::Method > >( a );
-        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TofChromatogramsMethod::modelClass() );
-        if ( it != ptr->end() ) {
-            if ( it->get( *it, m ) ) {
-                setContents( m );
-                return true;
-            }
+    auto pi = adcontrols::ControlMethod::any_cast<>()( a, adcontrols::TofChromatogramsMethod::clsid() );
+    if ( pi ) {
+        adcontrols::TofChromatogramsMethod m;
+        if ( pi->get( *pi, m ) ) {
+            setContents( m );
+            return true;
         }
     }
-    
     return false;
 }
 

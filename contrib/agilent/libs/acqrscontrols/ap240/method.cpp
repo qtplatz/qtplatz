@@ -30,8 +30,17 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 using namespace acqrscontrols::ap240;
+
+const boost::uuids::uuid&
+method::clsid()
+{
+    static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "acqrscontrols::ap240::method" );
+    return myclsid;
+}
 
 method::method() : channels_( 0x01 )
 {

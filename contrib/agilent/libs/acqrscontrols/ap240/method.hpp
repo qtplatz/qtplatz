@@ -35,6 +35,8 @@
 #include <vector>
 #include <memory>
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace acqrscontrols {
     namespace ap240 {
 
@@ -109,6 +111,7 @@ namespace acqrscontrols {
 
             static const char * modelClass() { return "ap240"; };
             static const char * itemLabel() { return "ap240"; };
+            static const boost::uuids::uuid& clsid();
 
             uint32_t channels_;
             horizontal_method hor_;

@@ -39,6 +39,8 @@ namespace adcontrols {
     class TraceAccessor;
 }
 
+namespace adextension { class iAcquire; }
+
 namespace acquire {
 
     class MainWindow;
@@ -65,8 +67,12 @@ namespace acquire {
         std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
         void setControlMethod( const adcontrols::ControlMethod::Method&, const QString& filename = QString() );
 
+        std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod( const QString& config ) const;
+
         std::shared_ptr< adcontrols::SampleRun > sampleRun() const;
         void setSampleRun( const adcontrols::SampleRun&, const QString& filename = QString() );
+
+        adextension::iAcquire * iAcquire();
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
@@ -104,6 +110,8 @@ namespace acquire {
         void setConfiguration( const QString& );
         const std::set< QString >& configurations() const;
         QString currentConfiguration() const;
+
+        void onConfigurationChanged( const QString& config );
 
     private:
         class impl;

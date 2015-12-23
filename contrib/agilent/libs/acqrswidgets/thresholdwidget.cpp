@@ -161,28 +161,13 @@ ThresholdWidget::setContents( boost::any&& a )
 {
     const char * type = a.type().name();
 
-    try {
-        if ( auto ptr = boost::any_cast <std::shared_ptr< const adcontrols::ControlMethod::Method>>( a ) ) {
-            auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TimeDigitalMethod::modelClass() );
-            if ( it != ptr->end() ) {
-                adcontrols::TimeDigitalMethod tdm;
-                if ( it->get<>( *it, tdm ) )
-                    set( tdm );
-                return true;
-            }
+    auto pi = adcontrols::ControlMethod::any_cast<>( )( a, adcontrols::TimeDigitalMethod::clsid() );
+    if ( pi ) {
+        adcontrols::TimeDigitalMethod tdm;
+        if ( pi->get<>( *pi, tdm ) ) {
+            set( tdm );
+            return true;
         }
-    } catch ( boost::bad_any_cast& ) {
-    }
-
-    try {
-        if ( auto item = boost::any_cast<const adcontrols::ControlMethod::MethodItem *>( a ) ) {
-            adcontrols::TimeDigitalMethod tdm;
-            if ( item->get<>( *item, tdm ) ) {
-                set( tdm );
-                return true;
-            }
-        }
-    } catch ( boost::bad_any_cast& ) {
     }
     return false;
 }

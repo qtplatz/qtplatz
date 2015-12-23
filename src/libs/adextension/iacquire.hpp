@@ -1,9 +1,8 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -25,14 +24,28 @@
 
 #pragma once
 
-namespace adcontrols {
-    namespace constants {
+#include <QObject>
+#include "adextension_global.hpp"
+#include <memory>
 
-        // Folium (attachment) name
-        const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
-        const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
-        const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
-        const wchar_t * const F_TARGETING          = L"Targeting";
-        const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
-    }
+namespace adcontrols { namespace ControlMethod { class Method; } }
+
+namespace adextension {
+
+    class ADEXTENSIONSHARED_EXPORT iAcquire : public QObject {
+        Q_OBJECT
+    public:
+        iAcquire( QObject * perent = 0 );
+
+        virtual QList< QString > configurations() const = 0;
+
+        virtual std::shared_ptr< const adcontrols::ControlMethod::Method > find( const QString& configuration ) const = 0;
+        virtual void merge( const QString& configuration, std::shared_ptr< const adcontrols::ControlMethod::Method > ) = 0;
+        virtual QString curentConfiguration() const = 0;
+
+    signals:
+        void currChanged( const QString& configuration );
+        void dataChanged( const QString& configuration );
+    };
+
 }

@@ -33,6 +33,7 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace adcontrols {
 
@@ -178,3 +179,11 @@ TimeDigitalMethod::action() const
     return action_;    
 }
 
+//static
+const boost::uuids::uuid&
+TimeDigitalMethod::clsid()
+{
+    static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "adcontrols::TimeDigitalMethod" );
+    return myclsid;
+}

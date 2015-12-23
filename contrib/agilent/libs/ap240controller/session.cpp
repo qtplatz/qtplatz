@@ -231,7 +231,7 @@ bool
 Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
 {
     if ( m ) {
-        auto it = m->find( m->begin(), m->end(), "ap240" );
+        auto it = m->find( m->begin(), m->end(), acqrscontrols::ap240::method::clsid() ); // "ap240" );
         if ( it != m->end() ) {
             acqrscontrols::ap240::method method;
             if ( it->get<>( *it, method ) )

@@ -33,7 +33,11 @@
 #include <memory>
 #include <iostream>
 
-namespace boost { namespace serialization { class access; } }
+namespace boost {
+    namespace serialization { class access; }
+    namespace uuids { struct uuid; }
+}
+
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -44,6 +48,7 @@ namespace acqrscontrols {
             method( const method& t );
             static const char * modelClass() { return "u5303a"; }
             static const char * itemLabel() { return "u5303a"; }
+            static const boost::uuids::uuid& clsid();
 
             uint32_t channels_;
             uint32_t mode_;  // 0 := digitizer, 2 := averager

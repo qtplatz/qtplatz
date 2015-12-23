@@ -28,6 +28,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <string>
 #include <map>
 #include <vector>
@@ -155,4 +156,12 @@ bool
 TofChromatogramsMethod::xml_restore( std::wistream& is, TofChromatogramsMethod& t )
 {
     return internal::xmlSerializer("TofChromatogramsMethod").restore( is, *t.impl_ );
+}
+
+const boost::uuids::uuid&
+TofChromatogramsMethod::clsid()
+{
+    static boost::uuids::uuid baseid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "adcontrols::TofChromatogramsMethod" );
+    return myclsid;
 }
