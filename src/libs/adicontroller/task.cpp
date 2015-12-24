@@ -85,6 +85,7 @@ namespace adicontroller {
         boost::signals2::signal< void( Instrument::eInstEvent ) > signalInstEvents_;
         boost::signals2::signal< fsm_action_t > signalFSMAction_;
         boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
+        boost::signals2::signal< periodic_timer_t > signal_periodic_timer_;
         boost::asio::deadline_timer timer_;
         double methodTime_;
         bool inject_triggered_;
@@ -149,6 +150,12 @@ boost::signals2::connection
 task::connect_fsm_state( signal_fsm_state_changed_t f )
 {
     return impl_->signalFSMStateChanged_.connect( f );    
+}
+
+boost::signals2::connection
+task::connect_periodic_timer( signal_periodic_timer_t f )
+{
+	return impl_->signal_periodic_timer_.connect( f );
 }
 
 const std::chrono::steady_clock::time_point&
@@ -414,13 +421,19 @@ void
 task::impl:: handle_timeout( const boost::system::error_code& ec )
 {
     if ( !ec ) {
+
         if ( inject_triggered_ ) {
-            auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>( std::chrono::steady_clock::now() - tp_inject_ ).count();
-            ADDEBUG() << "***** handle_timeout( " << elapsed_time << " ) *****";
+
+            auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now() - tp_inject_ ).count();
+			double elapsed_time = double(ns) * 1.0e-9; 
+            
+            signal_periodic_timer_( elapsed_time );
+            
             if ( elapsed_time >= methodTime_ )
                 fsm_.process_event( fsm::Complete() );
-        }
-        timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
+		} 
+
+        timer_.expires_from_now( boost::posix_time::millisec( 1000 ) );
         timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
     }
 }

@@ -60,10 +60,14 @@ namespace adicontroller {
 
         typedef void( fsm_state_changed_t )(bool, int id_state, Instrument::eInstStatus);
         typedef std::function< fsm_state_changed_t > signal_fsm_state_changed_t;
+        
+        typedef void( periodic_timer_t )( double elapsed_time );
+        typedef std::function< periodic_timer_t > signal_periodic_timer_t;
 
         boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
         boost::signals2::connection connect_fsm_state( signal_fsm_state_changed_t );
-        boost::signals2::connection connect_inst_events( signal_inst_events_t );        
+        boost::signals2::connection connect_inst_events( signal_inst_events_t );
+        boost::signals2::connection connect_periodic_timer( signal_periodic_timer_t );
         
         void initialize();
         void finalize();

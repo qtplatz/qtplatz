@@ -10,7 +10,6 @@ find_package( arch )
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_60"
     "C:/Boost/include/boost-1_59"
     "C:/Boost/include/boost-1_58"
     "C:/Boost/include/boost-1_57" )
