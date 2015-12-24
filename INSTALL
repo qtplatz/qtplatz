@@ -46,7 +46,7 @@ msbuild /m:4 /p:Configuration=Release INSTALL.vcxproj
 Add following line to top of rdkit/CMakeLists.txt;
 
 ------------------------------------------------
-include( ${CMAKE_SOURCE_DIR}/../qtplatz.cmake )
+include( ${CMAKE_SOURCE_DIR}/../qtplatz/qtplatz.cmake )
 ------------------------------------------------
 
 Then, to OFF for RDK_INSTALL_INTREE and RDK_BUILD_PYTHON_WRAPPERS
