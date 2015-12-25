@@ -171,22 +171,31 @@ task::tp_inject() const
 }
 
 void
-task::post( std::shared_ptr< SampleProcessor >& sp )
+task::post( std::shared_ptr< SampleProcessor > sp )
 {
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
     (*impl_->sequence_) << sp;
+}
+
+std::shared_ptr< SampleProcessor >
+task::deque()
+{
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
+    return impl_->sequence_->deque();
 }
 
 const SampleSequence *
 task::sampleSequence() const
 {
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
     return impl_->sequence_.get();
 }
 
-SampleSequence *
-task::sampleSequence()
-{
-    return impl_->sequence_.get();
-}
+// SampleSequence *
+// task::sampleSequence()
+// {
+//     return impl_->sequence_.get();
+// }
 
 MasterObserver *
 task::masterObserver()
@@ -243,9 +252,11 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 void
 task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adicontroller::SignalObserver::DataWriter > dw )
 {
+    std::lock_guard< std::mutex > lock( impl::mutex_ );
+
     if ( impl_->sequence_->size() == 0 )
         ADDEBUG() << "handle_write -- no sample processor in sample sequence";
-
+    
     for ( auto& sampleprocessor : *impl_->sequence_ )
         sampleprocessor->write( uuid, *dw );
     
@@ -433,7 +444,7 @@ task::impl:: handle_timeout( const boost::system::error_code& ec )
                 fsm_.process_event( fsm::Complete() );
 		} 
 
-        timer_.expires_from_now( boost::posix_time::millisec( 1000 ) );
+        timer_.expires_from_now( boost::posix_time::millisec( 100 ) );
         timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
     }
 }

@@ -76,10 +76,12 @@ namespace adicontroller {
         const std::chrono::steady_clock::time_point& tp_uptime() const;
         const std::chrono::steady_clock::time_point& tp_inject() const;
 
-        void post( std::shared_ptr< SampleProcessor >& );
+        void post( std::shared_ptr< SampleProcessor > );
+
+        std::shared_ptr< SampleProcessor > deque();
 
         const SampleSequence * sampleSequence() const;
-        SampleSequence * sampleSequence();
+        //SampleSequence * sampleSequence();
         
         MasterObserver * masterObserver();
 

@@ -163,9 +163,9 @@ document::finalClose()
 }
 
 #if defined _DEBUG
-const char * libs[] = { "eventbrokerd", "eventbroker" };
+const char * libs[] = { "eventbrokerd", "eventbroker", "libeventbrokerd", "libeventbroker" };
 #else
-const char * libs[] = { "eventbroker", "eventbrokerd" };
+const char * libs[] = { "eventbroker", "eventbrokerd", "libeventbroker", "libeventbrokerd" };
 #endif
 
 void
