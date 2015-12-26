@@ -28,6 +28,7 @@
 #include <streambuf>
 #include <memory>
 #include <adfs/file.hpp>
+#include <adlog/logger.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>

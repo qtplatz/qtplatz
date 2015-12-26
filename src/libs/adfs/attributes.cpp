@@ -33,6 +33,7 @@
 #include <compiler/diagnostic_pop.h>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/debug.hpp>
 #include <boost/exception/all.hpp>
 #include "sqlite.hpp"
 
@@ -121,12 +122,11 @@ attributes::restore( std::istream& is, attributes& impl ) // binary
         portable_binary_iarchive ar( is );
         ar >> impl;
     } catch ( boost::archive::archive_exception& ex ) {
-        if ( ex.code == boost::archive::archive_exception::unsupported_version )
-            BOOST_THROW_EXCEPTION( ex );
-        else
-            BOOST_THROW_EXCEPTION( ex );
+        ADDEBUG() << "archive_exception code=" << ex.code << "\t" << boost::diagnostic_information( ex );
+        return false;
     } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+        ADDEBUG() << boost::diagnostic_information( ex );
+        return false;
     }
     return true;
 }
