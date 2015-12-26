@@ -1,6 +1,9 @@
 # qtplatz.cmake
 
-list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
+#list( APPEND CMAKE_MODULE_PATH ${QTPLATZ_SOURCE_DIR}/cmake/Modules )
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
+
+message( STATUS "### CMAKE_CURRENT_LIST_DIR: " "${CMAKE_CURRENT_LIST_DIR}" )
 
 find_package( arch )
 
@@ -10,8 +13,9 @@ find_package( arch )
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_59"
-    "C:/Boost/include/boost-1_58"
+    # "C:/Boost/include/boost-1_60"   # V14 
+    "C:/Boost/include/boost-1_59"   # V13 
+    "C:/Boost/include/boost-1_58"   # V12
     "C:/Boost/include/boost-1_57" )
 
   set( BOOST_ROOT ${_boost} )
@@ -28,9 +32,9 @@ else()
 
   find_path( _boost NAMES include/boost HINTS
     "/usr/local"
-    "/usr/local/boost-1_60"
-    "/usr/local/boost-1_59"
-    "/usr/local/boost-1_58"
+    # "/usr/local/boost-1_60"        # V14
+    "/usr/local/boost-1_59"        # V13
+    "/usr/local/boost-1_58"        # V12
     "/usr/local/boost-1_57" )
 
   if ( _boost )

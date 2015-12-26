@@ -48,6 +48,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/archive/archive_exception.hpp>
 #include <atomic>
 
 namespace dataproc {
@@ -269,19 +270,24 @@ dataproc_document::load( const QString& filename, adcontrols::ProcessMethod& pm 
         if ( fs.mount( filename.toStdWString().c_str() ) ) {
             adfs::folder folder = fs.findFolder( L"/ProcessMethod" );
         
-            auto files = folder.files();
-            if ( !files.empty() ) {
-                auto file = files.back();
-                try {
-                    file.fetch( pm );
+            try {
+                auto files = folder.files();
+                if ( !files.empty() ) {
+                    auto file = files.back();
+                    try {
+                        file.fetch( pm );
+                    } catch ( std::exception& ex ) {
+                        QMessageBox::information( 0, "dataproc -- Open default process method"
+                                                  , ( boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                                                      % filename.toStdString() % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
+                        return false;
+                    }
+                    return true;
                 }
-                catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "dataproc -- Open default process method"
-                                              , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
-                                                 % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
-                    return false;
-                }
-                return true;
+            } catch ( std::exception& ex ) { //boost::archive::archive_exception& ex ) {
+                QMessageBox::information( 0, "dataproc -- Open default process method"
+                                          , ( boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                                              % filename.toStdString() % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
             }
         }
     }

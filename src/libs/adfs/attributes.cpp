@@ -122,7 +122,7 @@ attributes::restore( std::istream& is, attributes& impl ) // binary
         ar >> impl;
     } catch ( boost::archive::archive_exception& ex ) {
         if ( ex.code == boost::archive::archive_exception::unsupported_version )
-            throw std::runtime_error( "Serializer unsupported version" );
+            BOOST_THROW_EXCEPTION( ex );
         else
             BOOST_THROW_EXCEPTION( ex );
     } catch ( std::exception& ex ) {

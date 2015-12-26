@@ -15,16 +15,17 @@ Add following lines on top (right after project(RDKit) line) of CMakefile
 -----------------------------------------
 set(CMAKE_DEBUG_POSTFIX "d")
 set(Boost_USE_STATIC_LIBS ON)
-set(Boost_INCLUDE_DIR C:/Boost/include/boost-1_60)
-set(Boost_LIBRARY_DIR C:/Boost/x86_64/lib)
+include( ../qtplatz/qtplatz.cmake )
+find_package( Boost )
+
 add_definitions(-DUNICODE -D_UNICODE)
 set(CMAKE_INSTALL_PREFIX "C:/RDKit")
 if (WIN32)
   if ( MSVC_VERSION EQUAL 1900 )
-    set( LIB_SUFFIX "_vc140" )
+    set( LIB_SUFFIX "${__arch}_vc140_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" )
   endif()
   if ( MSVC_VERSION EQUAL 1800 )
-    set( LIB_SUFFIX "_vc120" )
+    set( LIB_SUFFIX "${__arch}_vc120_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" )
   endif()
 endif()
 --------------------------------------------
@@ -51,3 +52,24 @@ include( ${CMAKE_SOURCE_DIR}/../qtplatz/qtplatz.cmake )
 
 Then, to OFF for RDK_INSTALL_INTREE and RDK_BUILD_PYTHON_WRAPPERS
 
+
+====================================================
+    INSTALL QWT (Windows/VisualStudio 2013, 2015)
+====================================================
+# Make sure current cmd.exe console is configured for x64 build by typing "cl -v"
+
+Change qwtconfig.pri as following (see qtplatz/cmake/Modules/Findqwt.cmake also)
+CAUTION: qmake can't handle '_' in the middle of macros, so it should be '-' (hyphone) instead
+
+win32 {
+    QWT_INSTALL_PREFIX    = C:/Qwt-$$QWT_VERSION-$$QMAKE_TARGET.arch-vc$$MSVC_VER
+    # QWT_INSTALL_PREFIX    = C:/Qwt-$$QWT_VERSION-svn
+    # QWT_INSTALL_PREFIX = C:/Qwt-$$QWT_VERSION-svn-qt-$$QT_VERSION
+}
+
+Comment out folowing lines
+QWT_CONFG	+= QwtDll
+QWT_CONFIG	+= QwtDesigner
+QWT_CONFIG	+= QwtDesignerSelfContained
+
+And then, do "qmake -r; nmake install"

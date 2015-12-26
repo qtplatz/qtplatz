@@ -6,9 +6,9 @@ endif()
 
 if ( WIN32 )
   if ( ${MSVC_VERSION} MATCHES "1900" ) # VS2015
-    find_path( qwt_DIR NAMES include/qwt.h HINTS C:/Qwt-6.1.3-svn-vc14 $ENV{QWT} )
+    find_path( qwt_DIR NAMES include/qwt.h HINTS C:/Qwt-6.1.3-${__arch}-vc14.0 C:/Qwt-6.1.3-svn_vc14.0 $ENV{QWT} )
   else()
-    find_path( qwt_DIR NAMES include/qwt.h HINTS C:/Qwt-6.1.3-svn-vc12 C:/Qwt-6.1.3-svn C:/Qwt-6.1.2-svn $ENV{QWT} )
+    find_path( qwt_DIR NAMES include/qwt.h HINTS C:/Qwt-6.1.3-${__arch}-vc12.0 C:/Qwt-6.1.3-svn_vc12.0 $ENV{QWT} )
   endif()
 else()
   find_path( qwt_DIR NAMES include/qwt.h HINTS 

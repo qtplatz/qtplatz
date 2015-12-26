@@ -7,23 +7,32 @@ endif()
 # when run 'make install' or 'INSTALL.vcxproj', .libs are copied into RDKit's ${CMAKE_SOURCE_DIR}/rdkit/lib
 
 if ( WIN32 )
-  set( _rdkit "C:/RDKIT" )
+
+  find_package( Boost QUIET )
+  
+  set( _rdkit "C:/RDKit" )
   if ( MSVC_VERSION EQUAL 1900 )
-    set( _rdkit_libdir "C:/RDKit/lib_vc140" )    
+    set( _vc "vc140" )
+  elseif ( MSVC_VERSION EQUAL 1800 )
+    set( _vc "vc120" )
   endif()
-  if ( MSVC_VERSION EQUAL 1800 )
-    set( _rdkit_libdir "C:/RDKit/lib_vc120" )    
-  endif()
+  set( _rdkit_libdirs 
+    "${_rdkit}/lib${__arch}_${_vc}_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" #ex: C:/RDKit/lib_vc140_boost-1_59
+    "${_rdkit}/lib${__arch}_${_vc}"
+    "${_rdkit}/lib_${_vc}"
+    "${_rdkit}/lib"
+    )
 else()
-  set( _rdkit_libdir "/usr/local/lib" )    
+  set( _rdkit_libdirs "/usr/local/lib" )    
 endif()
 
-message( STATUS "################## rdkit : " ${_rdkit_libdir} )
+foreach( dir ${_rdkit_libdirs} )
+  message( "##### RDKit libdirs: " ${dir} )
+endforeach()
 
 find_package( rdkit CONFIG HINTS
-  ${_rdkit_libdir}
+  ${_rdkit_libdirs}
   $ENV{RDBASE}
-  ${CMAKE_SOURCE_DIR}/../rdkit/lib
   /usr/local/lib
   )
 
