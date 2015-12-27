@@ -40,7 +40,7 @@ RM	= $(SH) /c del
 CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
 
-OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj vc120.wixobj bruker.wixobj qtplatz_translations.wixobj \
+OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj @vcvers@.wixobj bruker.wixobj qtplatz_translations.wixobj \
 	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj
 
 all: $(MSIFILE)
@@ -50,6 +50,7 @@ world: qtplatz $(INFITOF_TARGET) $(MALPIX_TARGET) $(MSIFILE)
 help:
 	@echo "* QTDIR=       " $(QTDIR)
 	@echo "* VCINSTALLDIR=" $(VCINSTALLDIR)
+	@echo "* BINARY_DIR  =" $(QTPLATZ_BINARY_DIR)
 	@echo "*	nmake help	;show this message"
 	@echo "*	nmake cmake	;regenerate make and project files"
 	@echo "*	nmake world	;will rebuild qtplatz @INFITOF_TARGET@ @MALPIX_TARGET@ and .MSI setup"
@@ -76,7 +77,7 @@ veryclean: clean
 cmake:
 	-@$(MD) $(QTPLATZ_BINARY_DIR)
 	cd $(QTPLATZ_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" $(QTPLATZ_SOURCE_DIR)
+	cmake -G "@Generator@" $(QTPLATZ_SOURCE_DIR)
 
 qtplatz:
 	cd $(MAKEDIR)
@@ -85,14 +86,14 @@ qtplatz:
 infitof:
 	-@$(MD) $(INFITOF_BINARY_DIR)
 	cd $(INFITOF_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(INFITOF_SOURCE_DIR)
+	cmake -G "@Generator@" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(INFITOF_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(INFITOF_BINARY_DIR)\infitof.sln /m /t:Build /p:Configuration=Release
 
 malpix:
 	-@$(MD) $(MALPIX_BINARY_DIR)
 	cd $(MALPIX_BINARY_DIR)
-	cmake -G "Visual Studio 12 Win64" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(MALPIX_SOURCE_DIR)
+	cmake -G "@Generator@" -DQTPLATZ_BUILD_DIR=$(QTPLATZ_BINARY_DIR) $(MALPIX_SOURCE_DIR)
 	cd $(MAKEDIR)
 	msbuild $(MALPIX_BINARY_DIR)\malpix.sln /m /t:Build /p:Configuration=Release
 
@@ -128,6 +129,9 @@ qt.wixobj: qt.wxi
 
 vc120.wixobj: vc120.wxi 
 	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC120.CRT" vc120.wxi
+
+vc140.wixobj: vc140.wxi 
+	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC140.CRT" vc140.wxi
 
 bruker.wixobj: bruker.wxi 
 	$(CANDLE) -dSourceDir="$(QTPLATZ_SOURCE_DIR)\..\Bruker Daltonik\3.1.2" bruker.wxi
@@ -172,6 +176,11 @@ vc120.wxi: makefile
 	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC120.CRT" \
 	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o vc120.wxi
+
+vc140.wxi: makefile
+	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC140.CRT" \
+	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t x64transform.xslt -o vc140.wxi
 
 bruker.wxi: makefile
 	$(HEAT) dir "C:\Program Files (x86)\Bruker Daltonik\3.1.2" \

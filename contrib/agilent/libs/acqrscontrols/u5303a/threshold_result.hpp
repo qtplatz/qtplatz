@@ -25,10 +25,13 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/access.hpp>
 #include <memory>
 #include <vector>
 #include <cstdint>
 #include <ostream>
+#include <compiler/pragma_warning.hpp>
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -36,21 +39,13 @@ namespace acqrscontrols {
         class waveform;
 
         class ACQRSCONTROLSSHARED_EXPORT threshold_result {
-
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
+            pragma_msvc_warning_push_disable_4251
             std::shared_ptr< const waveform > data_;
             std::vector< uint32_t > indecies_;
             std::vector< double > processed_;
             uint32_t foundIndex_;
             std::pair< uint32_t, uint32_t > findRange_;
-
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
-
+            pragma_msvc_warning_pop
         public:
             std::shared_ptr< const waveform >& data();
             std::vector< uint32_t >& indecies();
@@ -63,16 +58,20 @@ namespace acqrscontrols {
             uint32_t foundIndex() const;
             void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
 
-#if defined _MSC_VER
+# if defined _MSC_VER && _MSC_VER <= 1800
             static const uint32_t npos = (-1);
-#else
+# else
             static constexpr uint32_t npos = ( -1 );
-#endif
+# endif
             threshold_result();
             threshold_result( std::shared_ptr< const waveform > d );
             threshold_result( const threshold_result& t );
+
+            size_t serialize_xmeta( std::string& ) const;
+            size_t serialize_xdata( std::string& ) const;
         };
 
+        // text output
         ACQRSCONTROLSSHARED_EXPORT std::ostream& operator << ( std::ostream&, const threshold_result& );
 
     }

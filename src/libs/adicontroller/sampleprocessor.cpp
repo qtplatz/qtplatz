@@ -239,6 +239,7 @@ SampleProcessor::write( const boost::uuids::uuid& objId
     //           << " Epoch: " << double(writer.epoch_time()) * 1.0e-9
     //           << " pos: "   << writer.pos()
     //           << " ndata: " << writer.ndata();
+    assert( fs_ && fs_->db() );
     
     if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
         ts_inject_trigger_ = writer.epoch_time(); // uptime;

@@ -2,10 +2,16 @@
 cmake_minimum_required(VERSION 2.8.11)
 project( wix_installer )
 
-set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}/../qtplatz.package" )
-
 if ( QTPALTZ_SUPPORT_CORBA )
   find_package( ace+tao )
+endif()
+
+if ( MSVC_VERSION EQUAL 1900 )
+  set( Generator "Visual Studio 14 Win64" )
+  set( vcvers "vc140" )
+elseif( MSVC_VERSION EQUAL 1800 )
+  set( Generator "Visual Studio 12 Win64" )
+  set( vcvers "vc120" )
 endif()
 
 set( INFITOF_TARGET "" )
@@ -13,14 +19,22 @@ set( MALPIX_TARGET "" )
 
 find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${CMAKE_SOURCE_DIR}/../infitof )
 if ( INFITOF_SOURCE_DIR )
-  set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../infitof.package" )
   set( INFITOF_TARGET "infitof" )
+  if ( MSVC_VERSION EQUAL 1900 )
+    set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../${INFITOF_TARGET}.package_vc14" )
+  elseif( MSVC_VERSION EQUAL 1800 )
+    set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../${INFITOF_TARGET}.package_vc12" )    
+  endif()  
 endif()
 
 find_path( MALPIX_SOURCE_DIR NAMES "src/mpx4" "src/plugins/malpix" HINTS ${CMAKE_SOURCE_DIR}/../malpix/malpix )
 if ( MALPIX_SOURCE_DIR )
-  set( MALPIX_BINARY_DIR "${CMAKE_BINARY_DIR}/../malpix.package" )
   set( MALPIX_TARGET "malpix" )
+  if ( MSVC_VERSION EQUAL 1900 )
+    set( MALPIX_BINARY_DIR "${CMAKE_BINARY_DIR}/../${MALPIX_TARGET}.package_vc14" )
+  elseif( MSVC_VERSION EQUAL 1800 )
+    set( MALPIX_BINARY_DIR "${CMAKE_BINARY_DIR}/../${MALPIX_TARGET}.package_vc12" )
+  endif()
 endif()
 
 include( qtplatz-version )

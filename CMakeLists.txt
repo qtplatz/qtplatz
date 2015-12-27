@@ -235,6 +235,7 @@ set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 include( CPack )
 
 message( STATUS "---------- SUMMARY ------------" )
+message( STATUS "# QTPLATZ_BINARY_DIR    : " ${QTPLATZ_BINARY_DIR} )
 message( STATUS "# QTPLATZ_SUPPORT_CORBA : " ${QTPLATZ_SUPPORT_CORBA} )
 message( STATUS "# QTPLATZ_CORELIB_ONLY  : " ${QTPLATZ_CORELIB_ONLY} )
 message( STATUS "# DEBUG SYMBOL          : " ${DEBUG_SYMBOL} )

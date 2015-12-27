@@ -39,22 +39,13 @@ set( SOURCES
   ../shared/qtlockedfile/qtlockedfile.cpp
   )
 
-#if ( WIN32 AND CMALE_BUILD_TYPE MATCHES RELEASE )
-if ( WIN32 AND NOT DEBUG_SYMBOL )
-  add_executable( qtplatz WIN32
-    ${SOURCES}  
-    ${lockedfile_SOURCES}
-    ${${PROJECT_NAME}_Resources}
-    qtplatz.rc
-    )
-else()
-  add_executable( qtplatz
-    ${SOURCES}  
-    ${lockedfile_SOURCES}
-    ${${PROJECT_NAME}_Resources}
-    qtplatz.rc
-    )
-endif()
+# remove 'WIN32' below for run with console
+add_executable( qtplatz WIN32
+  ${SOURCES}  
+  ${lockedfile_SOURCES}
+  ${${PROJECT_NAME}_Resources}
+  qtplatz.rc
+  )
 
 target_link_libraries(
   qtplatz LINK_PUBLIC

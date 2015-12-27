@@ -322,8 +322,9 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 {
     auto& m = method.method_;
 
-    ADTRACE() << "u5303a::task::prepare_for_run";
-    ADTRACE() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
+#if 0
+    ADDEBUG() << "u5303a::task::prepare_for_run";
+    ADDEBUG() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
               << "\text_trigger_level: " << m.ext_trigger_level
               << "\tsamp_rate: " << m.samp_rate
               << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
@@ -331,6 +332,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
               << "\tinvert_signal: " << m.invert_signal
               << "\tnsa: " << m.nsa;
+#endif
 
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
 
@@ -638,7 +640,7 @@ task::waitForEndOfAcquisition( int timeout )
 {
     if ( simulated_ ) {
 #if defined _MSC_VER && defined _DEBUG
-        std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+        std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 #else
         std::this_thread::sleep_for( std::chrono::microseconds( 100 ) );
 #endif

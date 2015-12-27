@@ -25,6 +25,16 @@
 #include "threshold_result.hpp"
 #include "waveform.hpp"
 #include <boost/format.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 
 using namespace acqrscontrols::u5303a;
 
@@ -100,6 +110,31 @@ threshold_result::setFoundAction( uint32_t index, const std::pair< uint32_t, uin
 {
     foundIndex_ = index;
     findRange_ = range;
+}
+
+size_t
+threshold_result::serialize_xmeta( std::string& os ) const
+{
+    boost::iostreams::back_insert_device< std::string > inserter( os );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+    portable_binary_oarchive ar( device );
+    ar & data_->meta_;
+
+    return os.size();
+}
+
+size_t
+threshold_result::serialize_xdata( std::string& device ) const
+{
+    device.resize( ( indecies_.size() * sizeof(uint32_t) + ( 2 * sizeof(uint32_t) ) ) );
+    
+    uint32_t * dest_p = reinterpret_cast<uint32_t *>( const_cast< char * >( device.data() ) );
+    *dest_p++ = 0x7ffe0001; // separater & endian marker
+    *dest_p++ = uint32_t( indecies_.size() );
+    
+    std::copy( indecies_.begin(), indecies_.end(), dest_p );
+    return device.size();
 }
 
 namespace acqrscontrols {

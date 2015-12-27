@@ -134,6 +134,7 @@ static void printVersion(const PluginSpec *coreplugin)
     QTextStream str(&version);
     str << '\n' << appNameC << ' ' << coreplugin->version()<< " based on Qt " << qVersion() << "\n\n";
     PluginManager::formatPluginVersions(str);
+    str << '\n' << "Copyright (C) MS-Cheminformatics LLC" << '\n';
     str << '\n' << coreplugin->copyright() << '\n';
     displayHelpText(version);
 }
