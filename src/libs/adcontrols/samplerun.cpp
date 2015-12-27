@@ -270,7 +270,7 @@ SampleRun::findNextRunName() const
 size_t
 SampleRun::operator ++ ( )
 {
-    return impl_->runCount_++;
+    return ++impl_->runCount_;
 }
 
 size_t

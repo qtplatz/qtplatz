@@ -243,10 +243,11 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
         sp->prepare_storage( impl_->masterObserver_.get() );
 
         post( sp );
-        
+
+        impl_->methodTime_ = run->methodTime();
     }
 
-    ADDEBUG() << "\t# prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << run->methodTime();
+    ADDEBUG() << "\t# prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << impl_->methodTime_;
 }
 
 void
