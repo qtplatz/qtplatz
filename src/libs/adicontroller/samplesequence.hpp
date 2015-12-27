@@ -28,6 +28,7 @@
 #include "adicontroller_global.hpp"
 #include <deque>
 #include <memory>
+#include <compiler/pragma_warning.hpp>
 
 namespace adicontroller {
 
@@ -56,6 +57,8 @@ namespace adicontroller {
         const_iterator end() const;
 
         size_t size() const;
+        std::shared_ptr< const SampleProcessor > at( size_t ) const;
+        std::shared_ptr< const SampleProcessor > operator []( size_t ) const;
 
         void operator << ( value_type& );
         value_type deque();      // <-- stop run | reset
@@ -63,14 +66,9 @@ namespace adicontroller {
 
     private:
         class impl;
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
+        pragma_msvc_warning_push_disable_4251
         std::unique_ptr< impl > impl_;
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
+        pragma_msvc_warning_pop
     };
 
 } // namespace adicontroller

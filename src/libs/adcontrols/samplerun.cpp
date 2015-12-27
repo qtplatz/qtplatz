@@ -62,7 +62,8 @@ namespace adcontrols {
                , filePrefix_( L"RUN_0001" )
                , methodTime_( 60.0 )
                , replicates_( 999 )
-               , runCount_(0) {
+               , runCount_( 0 )
+               , runNumber_( 0 ) {
 
             std::ostringstream os;
 
@@ -72,6 +73,7 @@ namespace adcontrols {
                << "<p>by <i>" << adportable::utf::to_utf8( ident_.nameCreatedBy() ) << "</i></p>" << std::endl;
 
             description_ = os.str();
+            runNumber_ = findLastRunNumber();
         }
 
         impl( const impl& t ) : ident_( t.ident_ )
@@ -80,9 +82,28 @@ namespace adcontrols {
                               , dataDirectory_( t.dataDirectory_ )
                               , filePrefix_( t.filePrefix_ )
                               , description_( t.description_ )
-                              , runCount_( t.runCount_ ) {
+                              , runCount_( t.runCount_ )
+                              , runNumber_( t.runNumber_ ) {
         }
 
+        size_t findLastRunNumber() {
+            boost::filesystem::path dir( dataDirectory_ );
+            
+            boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );    
+            
+            size_t lastRunNumber(0);
+            if ( boost::filesystem::exists( dir ) && boost::filesystem::is_directory( dir ) ) {
+                using boost::filesystem::directory_iterator;
+                for ( directory_iterator it( dir ); it != directory_iterator(); ++it ) {
+                    boost::filesystem::path fname = (*it);
+                    if ( fname.extension().string() == ".adfs" || fname.extension().string() == ".adfs~" ) {
+                        lastRunNumber = std::max( int(lastRunNumber), adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
+                    }
+                }
+            }
+            return lastRunNumber;
+        }
+        
         idAudit ident_;
         double methodTime_;
         size_t replicates_;
@@ -92,6 +113,7 @@ namespace adcontrols {
 
         // exclude from archive
         size_t runCount_;
+        size_t runNumber_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
@@ -189,13 +211,14 @@ SampleRun::dataDirectory() const
 void
 SampleRun::dataDirectory( const wchar_t * v )
 {
-    impl_->dataDirectory_ = v ? v : L"";
+    setDataDirectory( v ? v : L"" );
 }
 
 void
 SampleRun::setDataDirectory( const std::wstring& dir )
 {
     impl_->dataDirectory_ = dir;
+    impl_->runNumber_ = impl_->findLastRunNumber();    
 }
 
 const wchar_t *
@@ -207,13 +230,14 @@ SampleRun::filePrefix() const // RUN_
 void
 SampleRun::filePrefix( const wchar_t * file )
 {
-    impl_->filePrefix_ = file ? file : L"";
+    setFilePrefix( file ? file : L"" );
 }
 
 void
 SampleRun::setFilePrefix( const std::wstring& file )
 {
     impl_->filePrefix_ = file;
+    impl_->runNumber_ = impl_->findLastRunNumber();    
 }
 
 const char * // utf8
@@ -231,29 +255,14 @@ SampleRun::description( const char * t )
 std::pair< std::wstring, size_t >
 SampleRun::findNextRunName() const
 {
-    boost::filesystem::path path( dataDirectory() );
+    auto runNumber = ++impl_->runNumber_;
 
-    boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix() );    
-
-    size_t runNumber(0);
-	if ( boost::filesystem::exists( path ) ) {
-
-        if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
-            using boost::filesystem::directory_iterator;
-            for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
-                boost::filesystem::path fname = (*it);
-                if ( fname.extension().string() == ".adfs" ) {
-                    runNumber = std::max( int(runNumber), adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
-                }
-            }
-        }
-    }
-    ++runNumber;
+    boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( impl_->filePrefix_ );    
     
     std::wostringstream o;
     o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( runNumber );
 
-    ADDEBUG() << "### NextRunName : " << o.str() << "; Run#=" << runNumber;
+    ADDEBUG() << "\t# NextRunName : " << o.str() << "\tRun#=" << runNumber << "\trun length: " << impl_->methodTime_;
 
     return std::make_pair( o.str(), runNumber );
 }

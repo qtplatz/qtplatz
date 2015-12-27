@@ -246,7 +246,7 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
         
     }
 
-    ADDEBUG() << "##### prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << run->methodTime();
+    ADDEBUG() << "\t# prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << run->methodTime();
 }
 
 void

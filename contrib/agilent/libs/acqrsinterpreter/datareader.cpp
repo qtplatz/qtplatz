@@ -77,7 +77,6 @@ namespace acqrsinterpreter {
         template < typename T > void operator () ( wrap<T> ) const {
             if ( id == T::value ) {
                 interpreter = std::unique_ptr< typename T::type >( new typename T::type() );
-                ADDEBUG() << "found: " << T::value;
             }
         }
     };
@@ -127,11 +126,13 @@ bool
 DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
+        ADDEBUG() << "initialize data for: " << objtext;
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
         db_ = dbf._ptr();
         return true;
     }
+    ADDEBUG() << "initialize failed for: " << objtext;
     return false;
 }
 

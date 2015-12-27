@@ -93,6 +93,21 @@ SampleSequence::size() const
     return impl_->que_.size();
 }
 
+std::shared_ptr< const SampleProcessor >
+SampleSequence::at( size_t idx ) const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    if ( idx < impl_->que_.size() )
+        return impl_->que_ [ idx ];
+    return nullptr;
+}
+
+std::shared_ptr< const SampleProcessor >
+SampleSequence::operator []( size_t idx ) const
+{
+    return at( idx );
+}
+
 void
 SampleSequence::operator << ( value_type& sp )
 {
