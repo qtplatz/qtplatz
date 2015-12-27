@@ -237,7 +237,6 @@ void
 SampleRun::setFilePrefix( const std::wstring& file )
 {
     impl_->filePrefix_ = file;
-    impl_->runNumber_ = impl_->findLastRunNumber();    
 }
 
 const char * // utf8
@@ -255,7 +254,7 @@ SampleRun::description( const char * t )
 std::pair< std::wstring, size_t >
 SampleRun::findNextRunName() const
 {
-    auto runNumber = ++impl_->runNumber_;
+    auto runNumber = impl_->runNumber_ + 1;
 
     boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( impl_->filePrefix_ );    
     
@@ -270,7 +269,8 @@ SampleRun::findNextRunName() const
 size_t
 SampleRun::operator ++ ( )
 {
-    return ++impl_->runCount_;
+    ++( impl_->runNumber_ );
+    return ++(impl_->runCount_);
 }
 
 size_t
