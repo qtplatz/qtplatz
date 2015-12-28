@@ -137,34 +137,31 @@ namespace acqrscontrols {
             }
         };
 
-        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int )
         {
-            ar & BOOST_SERIALIZATION_NVP( device_data_archive<>( *this ) );
-            //device_data_archive<>().serialize( ar, *this, version );
+            ar & boost::serialization::make_nvp( "device_data", device_data_archive<>( *this ) );
         }
 
-        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int )
         {
-            ar & BOOST_SERIALIZATION_NVP( device_data_archive<>( *this ) );
-            //device_data_archive<>().serialize( ar, *this, version );
+            ar & boost::serialization::make_nvp( "device_data", device_data_archive<>( *this ) );
         }
 
-        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int )
         {
             ar & device_data_archive<>( *this );
-            //device_data_archive<>().serialize( ar, *this, version );
         }
 
-        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int version )
+        template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int )
         {
             ar & device_data_archive<>( *this );
-            //device_data_archive<>().serialize( ar, *this, version );
         }
 
     }
 }
 
 //BOOST_CLASS_VERSION( acqrscontrols::u5303a::waveform_xmeta_archive<typename T>, 1 )
+//BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_data_archive<typename T>, 1 )
 namespace boost {
     namespace serialization {
 
