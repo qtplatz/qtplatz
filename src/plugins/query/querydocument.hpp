@@ -45,17 +45,12 @@ namespace query {
 
     class QueryDocument : public QObject {
         Q_OBJECT
+        QueryDocument();
     private:
         ~QueryDocument();
-        QueryDocument();
-        static std::atomic< QueryDocument * > instance_;
-        static std::mutex mutex_;
+        static std::unique_ptr< QueryDocument > instance_;
     public:
         static QueryDocument * instance();
-
-        void register_dataChanged( std::function< void( int, bool ) > );
-        void setResultFile( const std::wstring& );
-        void mslock_enabled( bool );
 
         void setConnection( QueryConnection * );
         QueryConnection * connection();
@@ -67,6 +62,7 @@ namespace query {
         QString lastDataDir() const;
 
     private:
+        friend std::unique_ptr< QueryDocument >::deleter_type;
         std::shared_ptr< QSettings > settings_;
         std::shared_ptr< QueryConnection > queryConnection_;
 

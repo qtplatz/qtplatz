@@ -48,8 +48,6 @@ namespace query {
 
         void executeQuery();
 
-        void handleQueryData( std::shared_ptr < QueryQuery > );
-
     signals:
         void onQueryData( std::shared_ptr< QueryQuery > );
 

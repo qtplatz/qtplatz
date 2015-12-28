@@ -92,7 +92,7 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     layout_->addWidget( table_.get() );
     //layout_->setRowStretch( 1, 0 );
     //layout_->setRowStretch( 2, 1 );
-    bool rcode = connect( this, &QueryQueryWidget::onQueryData, &QueryQueryWidget::handleQueryData );
+    //bool rcode = connect( this, &QueryQueryWidget::onQueryData, &QueryQueryWidget::handleQueryData );
 }
 
 void
@@ -100,6 +100,22 @@ QueryQueryWidget::handleConnectionChanged()
 {
     if ( auto edit = findChild< QLineEdit * >( Constants::editQueryFilename ) )
         edit->setText( QString::fromStdWString( QueryDocument::instance()->connection()->filepath() ) );
+
+    if ( auto conn = QueryDocument::instance()->connection() ) {
+        if ( auto form = findChild< QueryQueryForm * >() ) {
+            QList< QString > tables, sublist;
+            auto query = conn->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
+            while ( query.next() )
+                tables.push_back( query.value( 1 ).toString() );
+            form->setTableList( tables );
+
+            query = conn->sqlQuery( "SELECT * FROM AcquiredConf" );
+            while ( query.next() )
+                sublist.push_back( query.value( 0 ).toString() );
+            form->setSubList( sublist );
+        }
+    }
+
     executeQuery();
 }
 
@@ -109,16 +125,9 @@ QueryQueryWidget::executeQuery()
     if ( auto connection = QueryDocument::instance()->connection() ) {
         form_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
 
-        std::string sql = form_->sql().toStdString();
-
-        if ( auto query = connection->query() ) {
-            if ( query->prepare( sql ) ) {
-                table_->prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    table_->addRecord( *query );
-                }
-            }
-        }
+        auto query = connection->sqlQuery( form_->sql() );
+        table_->setQuery( query );
+        //table_->setDatabae( connection->sqlDatabase() );
     }
 }
 
@@ -126,33 +135,9 @@ void
 QueryQueryWidget::handleQuery( const QString& sql )
 {
     if ( auto connection = QueryDocument::instance()->connection() ) {
-        if ( auto query = connection->query() ) {
-            
-            qtwrapper::waitCursor wait;
 
-            std::wstring wsql = sql.toStdWString();
-            
-            wsql.erase( std::remove( wsql.begin(), wsql.end(), '\\' ) );
-            
-            if ( query->prepare( wsql ) ) {
-
-                table_->prepare( *query );
-
-                qtwrapper::ProgressHandler handler( 0, 5 );
-                Core::ProgressManager::addTask( handler.progress.future(), "Query database...", Constants::QUERY_TASK_OPEN );
-                
-                std::thread work( [&]{ 
-                        while ( query->step() == adfs::sqlite_row )
-                            emit onQueryData( query );
-                    });
-                work.join();
-            }
-        }
+        auto query = connection->sqlQuery( sql );
+        table_->setQuery( query );
     }
 }
 
-void
-QueryQueryWidget::handleQueryData( std::shared_ptr< QueryQuery > data )
-{
-    table_->addRecord( *data );
-}

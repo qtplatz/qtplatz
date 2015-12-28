@@ -46,20 +46,30 @@ QueryConnection::~QueryConnection()
 {
 }
 
-QueryConnection::QueryConnection()
+QueryConnection::QueryConnection() : db_( QSqlDatabase::addDatabase( "QSQLITE" ) )
 {
 }
 
 bool
 QueryConnection::connect( const std::wstring& database )
 {
-    if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
-        if ( fs_->mount( database.c_str() ) ) {
-            fs_->db().register_error_handler( [=](const char * msg){ QMessageBox::warning(0, "SQLite SQL Error", msg); });
-            filename_ = database;
-            return true;
+    db_.setDatabaseName( QString::fromStdWString( database ) );
+
+    if ( db_.open() ) {
+        if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
+            if ( fs_->mount( database.c_str() ) ) {
+                // this is qtplatz native data file
+                fs_->db().register_error_handler( [=] ( const char * msg ) { QMessageBox::warning( 0, "SQLite SQL Error", msg ); } );
+                filename_ = database;
+            } else
+                fs_.reset();
         }
+        return true;
     }
+
+    QMessageBox::critical( 0, QObject::tr( "Cannot open database" ),
+                           QObject::tr( "Unable to establish a database connection.\nClick Cancel to exit." ), QMessageBox::Cancel );
+
     return false;
 }
 
@@ -69,6 +79,18 @@ QueryConnection::query()
     if ( fs_ )
         return std::make_shared<QueryQuery>( fs_->db() );
     return 0;
+}
+
+QSqlDatabase&
+QueryConnection::sqlDatabase()
+{
+    return db_;
+}
+
+QSqlQuery
+QueryConnection::sqlQuery( const QString& query )
+{
+    return QSqlQuery( query, db_ );
 }
 
 adfs::sqlite&

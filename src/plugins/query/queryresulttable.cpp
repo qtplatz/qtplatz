@@ -24,15 +24,41 @@
 
 #include "queryresulttable.hpp"
 #include "queryquery.hpp"
+#include <acqrscontrols/constants.hpp>
+#include <adicontroller/signalobserver.hpp>
+#include <adportable/debug.hpp>
 #include <adwidgets/delegatehelper.hpp>
 #include <adwidgets/htmlheaderview.hpp>
-#include <adcontrols/chemicalformula.hpp>
 #include <qtwrapper/font.hpp>
 #include <QStyledItemDelegate>
-#include <QStandardItemModel>
+#include <QSqlField>
+#include <QSqlQuery>
+#include <QSqlQueryModel>
+#include <QSqlRecord>
 #include <QVariant>
 #include <QPainter>
+#include <QDebug>
 #include <boost/filesystem.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/lexical_cast.hpp>
+
+namespace query {
+
+    namespace so = adicontroller::SignalObserver;
+
+    static std::map< boost::uuids::uuid, std::string > __uuid_db__ = {
+        { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name ), acqrscontrols::u5303a::waveform_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::timecount_observer_name ), acqrscontrols::u5303a::timecount_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name ), acqrscontrols::u5303a::histogram_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_avgr_observer_name ), acqrscontrols::u5303a::tdcdoc_avgr_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_traces_observer_name ), acqrscontrols::u5303a::tdcdoc_traces_observer_name }
+    };
+
+}
+
+
 
 namespace query {
     namespace queryresulttable {
@@ -41,21 +67,32 @@ namespace query {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
-                if ( index.data().type() == QVariant::Double ) {
-                    painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
-                } else if ( index.data().type() == QVariant::String ) {
-                    std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
-                    if ( !formula.empty() )
-                        adwidgets::DelegateHelper::render_html( painter, op, QString::fromStdString( formula ) );
-                    else {
-                        boost::filesystem::path path( index.data().toString().toStdWString() );
-                        if ( path.is_complete() )
-                            op.textElideMode = Qt::ElideLeft; // elide left for filename, otherwise stay default
+                if ( auto queryModel = qobject_cast<const QSqlQueryModel *>( index.model() ) ) {
+                    if ( bool isAcquiredData = queryModel->query().lastQuery().contains( "AcquiredData", Qt::CaseInsensitive ) ) {
+                        auto column_name = queryModel->headerData( index.column(), Qt::Horizontal ).toString();
+                        if ( column_name == "elapsed_time" ) {
+                            auto t0 = queryModel->record(0).value( column_name ).toDouble();
+                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( (index.data().toDouble() - t0 ) * 1e-9, 'f', 5 ) );
+                        } else if ( index.data().type() == QVariant::ByteArray ) {
+                            auto v = queryModel->record(index.row()).value( "objuuid" );
+                            if ( v.isValid() ) {
+                                auto uuid = boost::uuids::string_generator()( v.toString().toStdString() );
+                                auto it = __uuid_db__.find( uuid );
+                                if ( it != __uuid_db__.end() )
+                                    painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( it->second ) );
+                            }
+                        } else if ( column_name == "meta" && index.data().type() == QVariant::ByteArray ) {
+
+                        } else {
+                            QStyledItemDelegate::paint( painter, op, index );
+                        }
+                    } else {
                         QStyledItemDelegate::paint( painter, op, index );
                     }
                 } else
                     QStyledItemDelegate::paint( painter, op, index );
             }
+
             void setEditorData( QWidget * editor, const QModelIndex& index ) const {
                 QStyledItemDelegate::setEditorData( editor, index );
             }
@@ -91,7 +128,7 @@ QueryResultTable::~QueryResultTable()
 }
 
 QueryResultTable::QueryResultTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                  , model_( new QStandardItemModel )
+                                                    , model_( new QSqlQueryModel() )
 {
     setAllowDelete( false );
     setModel( model_.get() );
@@ -100,52 +137,14 @@ QueryResultTable::QueryResultTable(QWidget *parent) : adwidgets::TableView(paren
 }
 
 void
-QueryResultTable::prepare( const QueryQuery& q )
+QueryResultTable::setDatabase( QSqlDatabase& db )
 {
-    model_->clear();
-    model_->setColumnCount( int( q.column_count() ) );
-
-    for ( int col = 0; col < int( q.column_count() ); ++col  ) {
-        model_->setHeaderData( col, Qt::Horizontal, QueryQuery::column_name_tr( q.column_name( col ) ) );
-        if ( hideColumns_.find( q.column_name( col ).toStdString() ) != hideColumns_.end() )
-            setColumnHidden( col, true );
-    }
-
-    for ( int col = 0; col < int( q.column_count() ); ++col ) {
-        QTextDocument document;
-        // document.setDefaultFont( option.font );
-        document.setHtml( QueryQuery::column_name_tr( q.column_name( col ) ) );
-        QSize size( document.size().width(), document.size().height() );
-        horizontalHeader()->model()->setHeaderData( col, Qt::Horizontal, QVariant( size ), Qt::SizeHintRole );
-    }    
-
 }
 
 void
-QueryResultTable::addRecord( const QueryQuery& q )
+QueryResultTable::setQuery( const QSqlQuery& query )
 {
-    int row = model_->rowCount();
-
-    if ( model_->insertRow( row ) ) {
-        for ( int col = 0; col < int( q.column_count() ); ++col ) {
-            model_->setData( model_->index( row, col ), q.column_value( col ) );
-            model_->itemFromIndex( model_->index( row, col ) )->setEditable( false );
-        }
-    }
-    resizeColumnsToContents();
-    resizeRowsToContents();
-}
-
-void
-QueryResultTable::setColumnHide( const std::string& hide )
-{
-    hideColumns_.insert( hide );
-}
-
-void
-QueryResultTable::clear()
-{
-    hideColumns_.clear();
+    model_->setQuery( query );
 }
 
 void

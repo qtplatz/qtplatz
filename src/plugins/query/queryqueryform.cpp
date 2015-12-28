@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,39 +28,87 @@
 using namespace query;
 
 QueryQueryForm::QueryQueryForm(QWidget *parent) :  QWidget(parent)
-                                              , ui(new Ui::QueryQueryForm)
-                                              , semiColonCaptured_( false )
+                                                   //, ui(new Ui::QueryQueryForm)
+                                                , semiColonCaptured_( false )
 {
-    ui->setupUi(this);
-    ui->comboBox->clear();
-    ui->comboBox->addItems( QStringList()
-                            << tr("View all (simple)")
-                            << tr("View STD (simple)")
-                            << tr("View UNK (simple)")
-                            << tr("View amounts")
-                            << tr("Viwe all")
-                            << tr("View STD")
-                            << tr("View UNK")
-                            << tr("Calibration") );
-    ui->plainTextEdit->installEventFilter( this );
+    resize( 200, 100 );
+
+    auto vLayout = new QVBoxLayout( this );
+    auto gridLayout = new QGridLayout();
+
+    if ( auto textEditor = new QPlainTextEdit() ) {
+        textEditor->installEventFilter( this );
+        textEditor->setMaximumHeight( 80 );
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(textEditor->sizePolicy().hasHeightForWidth());
+        textEditor->setSizePolicy(sizePolicy);
+        textEditor->setMaximumSize(QSize(16777215, 80));
+        gridLayout->addWidget( textEditor, 0, 0, /*row span= */ 1, /* column span = */ 4 );
+    }
+
+    if ( auto combo = new QComboBox() ) {
+        combo->setObjectName( "tableList" );
+        gridLayout->addWidget( combo, 1, 0, 1, 1 );
+
+        connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this, &QueryQueryForm::on_comboBox_currentIndexChanged );
+    }
+
+    if ( auto combo = new QComboBox() ) {
+        combo->setObjectName( "subList" );
+        gridLayout->addWidget( combo, 1, 1, 1, 1 );
+        connect( combo, static_cast<void( QComboBox::* )( const QString& )>( &QComboBox::currentIndexChanged ), this, &QueryQueryForm::on_subList_currentIndexChanged );
+    }
+
+    if ( auto button = new QPushButton( "execute query" ) ) {
+        gridLayout->addWidget( button, 1, 2, 1, 1 );
+        connect( button, &QPushButton::pressed, this, &QueryQueryForm::on_pushButton_pressed );
+    }
+
+    vLayout->addLayout( gridLayout );
 }
 
 QueryQueryForm::~QueryQueryForm()
 {
-    delete ui;
 }
 
 void
 QueryQueryForm::setSQL( const QString& t )
 {
-    ui->plainTextEdit->clear();
-    ui->plainTextEdit->insertPlainText( t );
+    if ( auto textEdit = findChild< QPlainTextEdit * >() )     {
+        textEdit->clear();
+        textEdit->insertPlainText( t );
+    }
 }
+
+void
+QueryQueryForm::setTableList( const QList< QString >& list )
+{
+    if ( auto combo = findChild< QComboBox * >( "tableList" ) ) {
+        combo->clear();
+        combo->addItems( list );
+    }
+}
+
+void
+QueryQueryForm::setSubList( const QList< QString >& list )
+{
+    if ( auto combo = findChild< QComboBox * >( "subList" ) ) {
+        combo->clear();
+        combo->addItem( "" );
+        combo->addItems( list );
+    }
+}
+
 
 QString
 QueryQueryForm::sql() const
 {
-    return ui->plainTextEdit->toPlainText();
+    if ( auto textEdit = findChild< QPlainTextEdit * >() )
+        return textEdit->toPlainText();
+
+    return QString();
 }
 
 void 
@@ -72,100 +119,48 @@ QueryQueryForm::on_plainTextEdit_textChanged()
 void 
 QueryQueryForm::on_pushButton_pressed()
 {
-    emit triggerQuery( ui->plainTextEdit->toPlainText() );
+    if ( auto textEdit = findChild< QPlainTextEdit * >() )
+        emit triggerQuery( textEdit->toPlainText() );
 }
 
 void 
-QueryQueryForm::on_comboBox_currentIndexChanged(int index)
+QueryQueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
 {
-    int idx = 0;
-    if ( index == idx++ ) { // view all (simple)
+    QString subItem;
+    if ( auto combo = findChild< QComboBox * >( "subList" ) )
+        subItem = combo->currentText();
 
-        setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
-    } else if ( index == idx++ ) {
+    if ( itemText == "AcquiredData" ) {
+        if ( subItem.isEmpty() )
+            setSQL( QString( "SELECT * FROM %1 ORDER BY npos" ).arg( itemText ));
+        else
+            setSQL( QString( "SELECT * FROM %1 WHERE objuuid = '%2' ORDER BY npos" ).arg( itemText, subItem ));
+    } else {
+        setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));
+    }
+}
 
-        setSQL("SELECT * from AcquiredData" );
-
-    } else if ( index == idx++ ) { // view all (simple)
-        setSQL("\
-SELECT dataSource, QuerySample.name, level, formula, mass, intensity, sampletype FROM QuerySample, QueryResponse \
-WHERE QuerySample.id = QueryResponse.idSample ORDER BY mass" );
-
-    } else if ( index == idx++ ) { // view STD (simple)
-
-        setSQL("\
-SELECT dataSource, QuerySample.name, level, formula, mass, intensity, sampletype FROM QuerySample, QueryResponse \
-WHERE QuerySample.id = QueryResponse.idSample AND sampleType = 1 ORDER BY mass" );
-
-    } else if ( index == idx++ ) { // view UNK (simple)
-
-        setSQL("\
-SELECT dataSource, QuerySample.name, level, formula, mass, intensity, sampletype FROM QuerySample, QueryResponse \
-WHERE QuerySample.id = QueryResponse.idSample AND sampleType = 0 ORDER BY mass" );
-
-    } else if ( index == idx++ ) { // view amounts
-
-        setSQL("\
-SELECT QueryCompound.id, QueryCompound.formula, QueryCompound.description, QueryAmount.level, QueryAmount.amount\n\
-FROM QueryAmount, QueryCompound WHERE QueryAmount.idCompound = QueryCompound.id ORDER BY QueryCompound.id" );
-
-    } else if ( index == idx++ ) { // view all
-
-        setSQL("\
-SELECT QuerySample.name, QuerySample.level, QueryCompound.formula, QueryCompound.mass AS \"exact mass\", QueryResponse.mass, intensity \
-, QueryCompound.description, sampletype, dataSource \
-FROM QuerySample, QueryResponse, QueryCompound \
-WHERE QuerySample.id = QueryResponse.idSample \
-AND QueryResponse.idCmpd = QueryCompound.uuid \
-ORDER BY QueryCompound.id, QuerySample.level");
-
-    } else if ( index == idx++ ) { // view STD
-
-        setSQL("\
-SELECT QuerySample.name, QueryCompound.formula, QueryCompound.mass AS \"exact mass\", QueryResponse.mass\
-, QueryCompound.mass - QueryResponse.mass AS 'error(Da)', intensity, QuerySample.level, QueryAmount.amount, QueryCompound.description, sampleType, dataSource \
-FROM QuerySample, QueryResponse, QueryCompound, QueryAmount \
-WHERE QuerySample.id = QueryResponse.idSample \
-AND QueryResponse.idCmpd = QueryCompound.uuid \
-AND sampleType = 1 \
-AND QueryAmount.idCompound = QueryCompound.id AND QueryAmount.level = QuerySample.level \
-ORDER BY QueryCompound.id, QuerySample.level");
-
-    } else if ( index == idx++ ) { // view UNK
-
-        setSQL("\
-SELECT QuerySample.name, QueryCompound.formula, QueryCompound.mass AS \"exact mass\", QueryResponse.mass\
-, QueryCompound.mass - QueryResponse.mass AS 'error(Da)', intensity, QueryResponse.amount, QueryCompound.description, dataSource \
-FROM QuerySample, QueryResponse, QueryCompound \
-WHERE QuerySample.id = QueryResponse.idSample \
-AND QueryResponse.idCmpd = QueryCompound.uuid \
-AND sampleType = 0 \
-ORDER BY QueryCompound.id");
-
-    } else if ( index == idx++ ) { // Calibration
-
-        setSQL("\
-SELECT idCompound, formula, description, n\
-, a AS 'Y = a'\
-, b AS '+ b&sdot;X'\
-, c AS '+ c&sdot;X<sup>2</sup>'\
-, d AS '+ d&sdot;X<sup>3</sup>'\
-, e AS '+ e&sdot;X<sup>4</sup>'\
-, f AS '+ f&sdot;X<sup>5</sup>'\
-, min_x, max_x, date  from QueryCalib, QueryCompound WHERE idCompound = QueryCompound.id" );
-    };
-
+void 
+QueryQueryForm::on_subList_currentIndexChanged( const QString& itemText )
+{
+    if ( auto combo = findChild< QComboBox * >( "tableList" ) ) {
+        if ( combo->currentText() == "AcquiredData" ) {
+            on_comboBox_currentIndexChanged( combo->currentText() );
+        }
+    }
 }
 
 bool
 QueryQueryForm::eventFilter( QObject * object, QEvent * event )
 {
-    if ( object == ui->plainTextEdit && event->type() == QEvent::KeyPress ) {
+    auto textEdit = qobject_cast<QPlainTextEdit *>( object );
+
+    if ( textEdit && event->type() == QEvent::KeyPress ) {
         if ( QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event) ) {
             if ( keyEvent->key() == ';' )
                 semiColonCaptured_ = true;
             else if ( keyEvent->key() == Qt::Key_Return && semiColonCaptured_ )
-                emit triggerQuery( ui->plainTextEdit->toPlainText() );
+                emit triggerQuery( textEdit->toPlainText() );
             else
                 semiColonCaptured_ = false;
         }

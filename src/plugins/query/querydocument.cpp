@@ -25,11 +25,6 @@
 #include "querydocument.hpp"
 #include "queryconnection.hpp"
 #include "queryconstants.hpp"
-//#include "paneldata.hpp"
-//#include "querydatawriter.hpp"
-//#include "querysampleprocessor.hpp"
-//#include "queryprocessor.hpp"
-//#include "queryprogress.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
@@ -39,7 +34,6 @@
 #include <adpublisher/document.hpp>
 #include <qtwrapper/settings.hpp>
 #include <qtwrapper/waitcursor.hpp>
-//#include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -68,8 +62,7 @@ namespace query {
 
 using namespace query;
 
-std::atomic< QueryDocument * > QueryDocument::instance_( 0 );
-std::mutex QueryDocument::mutex_;
+std::unique_ptr< QueryDocument > QueryDocument::instance_;
 
 QueryDocument::~QueryDocument()
 {
@@ -85,18 +78,9 @@ QueryDocument::QueryDocument() : settings_( std::make_shared< QSettings >(QSetti
 QueryDocument *
 QueryDocument::instance()
 {
-    QueryDocument * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new QueryDocument();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static std::once_flag flag;
+    std::call_once( flag, [] () { instance_.reset( new QueryDocument() ); } );
+    return instance_.get();
 }
 
 void
@@ -115,13 +99,6 @@ QueryDocument::setConnection( QueryConnection * conn )
 {
     queryConnection_ = conn->shared_from_this();
 
-    //qtwrapper::ProgressHandler handler( 0, 5 );
-    //qtwrapper::waitCursor w;
-    //if ( ( publisher_ = std::make_shared< QueryPublisher >() ) ) {
-        
-    //Core::ProgressManager::addTask( handler.progress.future(), "Query connecting database...", Constants::QUERY_TASK_OPEN );
-    //std::thread work( [&] () { ( *publisher_ )( conn, handler ); } );
-    //work.join();
     qtwrapper::settings( *settings_ ).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, QString::fromStdWString( conn->filepath() ) );
 
     emit onConnectionChanged();

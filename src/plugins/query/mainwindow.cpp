@@ -23,25 +23,14 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-//#include "doubletabwidget.hpp"
-//#include "datasequencewidget.hpp"
-//#include "panelswidget.hpp"
-//#include "paneldata.hpp"
-//#include "processmethodwidget.hpp"
 #include "queryconstants.hpp"
 #include "queryconnection.hpp"
 #include "querydocument.hpp"
-//#include "queryconfigwidget.hpp"
-//#include "queryresultwnd.hpp"
-//#include "queryreportwidget.hpp"
 #include "queryquerywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
-//#include <adcontrols/querysequence.hpp>
-//#include <adcontrols/querymethod.hpp>
-//#include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -232,11 +221,11 @@ MainWindow::handleOpen()
         if ( !name.isEmpty() ) {
 
             qtwrapper::waitCursor wait;
-
+            
             if ( auto connection = std::make_shared< QueryConnection >() ) {
 
                 if ( connection->connect( name.toStdWString() ) ) {
-                    // kick QuanReportWidget (calibartion & result view) updae
+
                     QueryDocument::instance()->setConnection( connection.get() );
                 }
             }

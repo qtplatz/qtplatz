@@ -45,6 +45,7 @@ add_definitions(
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${Qt5Core_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   )
@@ -94,6 +95,7 @@ target_link_libraries(
   Query LINK_PUBLIC
   adplugin
   adcontrols
+  adicontroller
   adlog
   adutils
   portfolio

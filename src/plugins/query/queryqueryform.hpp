@@ -43,18 +43,20 @@ namespace query {
         void setSQL( const QString& t);
         QString sql() const;
         //QSize sizeHint() const override { return QSize( 40, 600 ); }
+        void setTableList( const QList< QString >& );
+        void setSubList( const QList< QString >& );
 
     private slots:
         void on_plainTextEdit_textChanged();
         void on_pushButton_pressed();
 
-        void on_comboBox_currentIndexChanged(int index);
+        void on_comboBox_currentIndexChanged( const QString& );
+        void on_subList_currentIndexChanged( const QString& );
 
     signals:
         void triggerQuery( const QString& );
 
     private:
-        Ui::QueryQueryForm *ui;
         bool semiColonCaptured_;
         bool eventFilter( QObject *object, QEvent *event );
     };

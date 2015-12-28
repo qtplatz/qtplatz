@@ -29,7 +29,10 @@
 #include <memory>
 #include <set>
 
-class QStandardItemModel;
+class QSqlDatabase;
+class QSqlTableModel;
+class QSqlQueryModel;
+class QSqlQuery;
 
 namespace query {
 
@@ -41,17 +44,15 @@ namespace query {
         ~QueryResultTable();
         explicit QueryResultTable(QWidget *parent = 0);
 
-        void prepare( const QueryQuery& );
-        void addRecord( const QueryQuery& );
+        void setQuery( const QSqlQuery& );
+        void setDatabase( QSqlDatabase& );
 
-        void setColumnHide( const std::string& );
         void clear();
         int findColumn( const QString& );
 
-        inline QStandardItemModel& model() { return *model_; }
-
     private:
-        std::unique_ptr< QStandardItemModel > model_;
+        //std::unique_ptr< QSqlTableModel > model_;
+        std::unique_ptr< QSqlQueryModel > model_;
         std::set< std::string > hideColumns_;
 
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;

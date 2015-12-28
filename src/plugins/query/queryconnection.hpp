@@ -31,9 +31,10 @@
 #include <boost/variant.hpp>
 #include <adfs/sqlite.hpp>
 #include <adfs/file.hpp>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 
 namespace adfs { class filesystem; class stmt; class sqlite; }
-namespace adcontrols { class QueryMethod; class QuerySequence; class MassSpectrum; class MSPeakInfo; class ProcessMethod; }
 
 namespace query {
 
@@ -51,21 +52,18 @@ namespace query {
         std::shared_ptr< QueryQuery > query();
         adfs::sqlite& db();
 
-        adfs::file select_file( const std::wstring& dataClass, const wchar_t * folder = L"/Processed/Spectra" );
+        QSqlDatabase& sqlDatabase();
+        QSqlQuery sqlQuery( const QString& );
 
-        QueryPlotData * fetch( const std::wstring& dataGuid );
+        adfs::file select_file( const std::wstring& dataClass, const wchar_t * folder = L"/Processed/Spectra" );
 
         const std::wstring& filepath() const { return filename_; }
         
-        const adcontrols::ProcessMethod * processMethod();
-        const adcontrols::QuerySequence * querySequence();
 
     private:
         std::wstring filename_;
         std::shared_ptr< adfs::filesystem > fs_;
-        std::map< std::wstring, std::shared_ptr< QueryPlotData > > cache_;
-        std::shared_ptr< adcontrols::QuerySequence > sequence_;
-        std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
+        QSqlDatabase db_;
 
         bool readMethods();
     };
