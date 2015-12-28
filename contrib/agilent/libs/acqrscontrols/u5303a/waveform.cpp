@@ -139,12 +139,14 @@ namespace acqrscontrols {
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int )
         {
-            ar & boost::serialization::make_nvp( "device_data", device_data_archive<>( *this ) );
+            device_data_archive<> x( *this );            
+            ar & boost::serialization::make_nvp( "device_data", x );
         }
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int )
         {
-            ar & boost::serialization::make_nvp( "device_data", device_data_archive<>( *this ) );
+            device_data_archive<> x( *this );
+            ar & boost::serialization::make_nvp( "device_data", x );
         }
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int )
@@ -154,7 +156,8 @@ namespace acqrscontrols {
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int )
         {
-            ar & device_data_archive<>( *this );
+            device_data_archive<> x( *this );            
+            ar & x;
         }
 
     }
