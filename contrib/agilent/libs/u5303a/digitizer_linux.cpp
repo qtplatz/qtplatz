@@ -28,6 +28,7 @@
 #include "automaton.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adlog/logger.hpp>
+#include <adicontroller/constants.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
@@ -123,7 +124,8 @@ namespace u5303a {
             acqrscontrols::u5303a::method method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
             
-            uint64_t inject_timepoint_;
+            std::atomic<bool> request_inject_out_;
+            std::atomic<double> u5303_inject_timepoint_;
             std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -140,6 +142,7 @@ namespace u5303a {
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::u5303a::waveform& );
+            void set_time_since_inject( acqrscontrols::u5303a::waveform& );
         };
 
         struct device {
@@ -264,6 +267,8 @@ task::task() : work_( io_service_ )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
              , fsm_( this )
+             , request_inject_out_( false )
+             , u5303_inject_timepoint_( 0 )
 {
     acquire_posted_.clear();
     
@@ -355,6 +360,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
+    request_inject_out_ = true;
     return true;
 }
 
@@ -403,6 +409,7 @@ task::fsm_action_TSR_stop()
 void
 task::fsm_action_prepare()
 {
+
     if ( spDriver_->TSREnabled() )
         spDriver_->Abort();
 }
@@ -442,6 +449,16 @@ task::fsm_action_TSR_continue()
     if ( ! acquire_posted_.test_and_set() ) {
         io_service_.post( strand_.wrap( [this] { handle_TSR_acquire(); } ) );
     }
+}
+
+void
+task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
+{
+    if ( request_inject_out_ ) {
+        request_inject_out_ = false;
+        u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
+    }
+    waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;
 }
 
 bool
@@ -514,6 +531,9 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
     fsm_.process_event( fsm::Prepare() );
 
+    request_inject_out_ = false;
+    u5303_inject_timepoint_ = 0;
+
     device::initial_setup( *this, m, ident().Options() );
 
     if ( /* m.mode_ && */ simulated_ ) {
@@ -574,6 +594,9 @@ task::handle_TSR_acquire()
     spDriver_->TSRContinue();    
 
     for ( auto& waveform: vec ) {
+        // ==> set elapsed time for debugging 
+        set_time_since_inject( *waveform );
+        // <==
         acqrscontrols::u5303a::method m;
         for ( auto& reply: waveform_handlers_ ) {
             if ( reply( waveform.get(), nullptr, m ) )
@@ -602,16 +625,23 @@ task::handle_acquire()
                     simulator::instance()->touchup( vec );
 
                 for ( auto& waveform: vec ) {
+                    // ==> set elapsed time for debugging 
+                    set_time_since_inject( *waveform );
+                    // <==
+
                     acqrscontrols::u5303a::method m;
                     for ( auto& reply: waveform_handlers_ ) {
                         if ( reply( waveform.get(), nullptr, m ) )
                             handle_protocol( m );
                     }
                 }
-            } else {
+            } else { // average
                 uint32_t events( 0 );
                 auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
                 if ( readData( *waveform ) ) {
+                    // ==> set elapsed time for debugging 
+                    set_time_since_inject( *waveform );
+                    // <==
                     acqrscontrols::u5303a::method m;
                     for ( auto& reply : waveform_handlers_ ) {
                         if ( reply( waveform.get(), nullptr, m ) )
@@ -655,18 +685,33 @@ bool
 task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = spDriver()->dataSerialNumber();
-    
-    if ( /* method_.mode_ && */ simulated_ ) {
-        simulator::instance()->readData( data );
-        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
-        return true;        
-    }
 
-    if ( method_.mode_ == 0 ) {
-        return digitizer::readData16( *spDriver(), method_, data );
-    } else {
-        return digitizer::readData32( *spDriver(), method_, data );
+    if ( simulated_ ) {
+        if ( simulator::instance()->readData( data ) ) {
+            if ( request_inject_out_ ) {
+                request_inject_out_ = false;
+                data.wellKnownEvents_ &= adicontroller::SignalObserver::wkEvent_INJECT;
+                u5303_inject_timepoint_ = data.meta_.initialXTimeSeconds;
+            }
+            data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+            // ==> set elapsed time for debugging 
+            set_time_since_inject( data );
+            // <==
+            return true;
+        }
     }
+    //-------------------
+
+    bool result( false );
+    if ( method_.mode_ == 0 ) {
+        result = digitizer::readData16( *spDriver(), method_, data );
+    } else {
+        result = digitizer::readData32( *spDriver(), method_, data );
+    }
+    // ==> set elapsed time for debugging 
+    set_time_since_inject( data );
+    // <==
+    return result;
 }
 
 void
@@ -860,7 +905,8 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     d.meta_.scaleOffset = scaleOffset;
                     d.meta_.dataType = mblk->dataType();
 
-					d.timeSinceEpoch_ = acquire_tp_count + uint64_t( data->meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
+                    // time @ data read (U5303A has the large delay (~500us) after acquire trigger, so that read time is more accurate
+                    d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
                     d.setData( mblk, firstValidPoints[ iRecord ] );
 
                     vec.emplace_back( data );
@@ -916,7 +962,9 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.scaleFactor = scaleFactor;
             data.meta_.scaleOffset = scaleOffset;
             data.firstValidPoint_ = firstValidPoint[0];
-            data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
+
+            // time at data read (U5303A has the large delay (~500us) after acquire trigger, so that read time is more accurate
+            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
             
             return true;
         }

@@ -22,8 +22,11 @@
 **************************************************************************/
 
 #include "queryqueryform.hpp"
-#include "ui_queryqueryform.h"
 #include <QStringList>
+#include <QPlainTextEdit>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QPushButton>
 
 using namespace query;
 

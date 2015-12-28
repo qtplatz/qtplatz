@@ -156,8 +156,6 @@ namespace adcontrols {
             /*
              * find first item of specified modelname,unitnumer.  Ignore unitnumber if -1 was provided
              */
-            // iterator find( iterator first, iterator last, const char * modelname, int unitnumber = ( -1 ) );
-            // const_iterator find( const_iterator first, const_iterator last, const char * modelname, int unitnumber = ( -1 ) ) const;
 
             iterator find( iterator first, iterator last, const boost::uuids::uuid& clsid, int unitnumber = ( -1 ) );
             const_iterator find( const_iterator first, const_iterator last, const boost::uuids::uuid& clsid, int unitnumber = ( -1 ) ) const;

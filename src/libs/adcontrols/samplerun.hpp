@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <compiler/pragma_warning.hpp>
 
 namespace boost { 
     namespace uuids { struct uuid; }
@@ -81,11 +82,10 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, SampleRun& );
 
     private:
-#   if  defined _MSC_VER
-#   pragma warning(disable:4251)
-#   endif
+        pragma_msvc_warning_push_disable_4251
         class impl;
         std::unique_ptr< impl > impl_;
+        pragma_msvc_warning_pop
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );

@@ -56,6 +56,7 @@
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -80,43 +81,37 @@ namespace acqrscontrols {
 
         };
 
-        // class waveform_xmeta_archive {
-        //     waveform_xmeta_archive( const waveform_xmeta_archive& ) = delete;
-        //     waveform_xmeta_archive& operator = ( const waveform_xmeta_archive& ) = delete;
-        // public:
-        //     waveform_xmeta_archive() {}
-        //     ~waveform_xmeta_archive()
-        //     {}
-
-        //     identify ident_;
-        //     std::vector< acqrscontrols::u5303a::metadata > meta_;
-        //     std::shared_ptr< acqrscontrols::u5303a::method > method_;
-        // private:
-        //     friend class boost::serialization::access;
-        //     template<class Archive>
-        //     void serialize( Archive& ar, const unsigned int ) {
-        //         using namespace boost::serialization;
-        //         ar & BOOST_SERIALIZATION_NVP( ident_ );
-        //         ar & BOOST_SERIALIZATION_NVP( meta_ );
-        //         ar & BOOST_SERIALIZATION_NVP( method_ );
-        //     }
-        // };
-
         template<typename T = waveform >
         class waveform_xmeta_archive {
+            T& _;
         public:
+            waveform_xmeta_archive( T& t ) : _( t ) {}
+
             template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int ) {
+            void serialize( Archive& ar, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.ident_ );
                 ar & BOOST_SERIALIZATION_NVP( _.meta_ );
                 ar & BOOST_SERIALIZATION_NVP( _.method_ );
                 ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
                 ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
+                if ( version >= 1 )
+                    ar & BOOST_SERIALIZATION_NVP( _.timeSinceInject_ );
             }
+
+            // old bad implementation -- can't version this class -- for data compatibility
+            template<class Archive>
+            static void serialize( Archive& ar, T& x, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( x.ident_ );
+                ar & BOOST_SERIALIZATION_NVP( x.meta_ );
+                ar & BOOST_SERIALIZATION_NVP( x.method_ );
+                ar & BOOST_SERIALIZATION_NVP( x.serialnumber_ );
+                ar & BOOST_SERIALIZATION_NVP( x.timeSinceEpoch_ );
+            }
+
         };
 
-        
         ////////////////////
         template<typename T = device_data>
         class device_data_archive {
@@ -152,6 +147,18 @@ namespace acqrscontrols {
     }
 }
 
+//BOOST_CLASS_VERSION( acqrscontrols::u5303a::waveform_xmeta_archive<typename T>, 1 )
+namespace boost {
+    namespace serialization {
+        template< typename T >
+        struct version< acqrscontrols::u5303a::waveform_xmeta_archive<T> > {
+            typedef mpl::int_<1> type;
+            typedef mpl::integral_c_tag tag;
+            BOOST_STATIC_CONSTANT( unsigned int, value = version::type::value );
+        };
+    }
+}
+
 
 using namespace acqrscontrols::u5303a;
 
@@ -159,6 +166,7 @@ waveform::waveform() : serialnumber_( 0 )
                      , wellKnownEvents_( 0 )
                      , timeSinceEpoch_( 0 )
                      , firstValidPoint_( 0 )
+                     , timeSinceInject_( 0.0 )
 {
 }
 
@@ -168,6 +176,7 @@ waveform::waveform( std::shared_ptr< const identify > id
                                                                    , wellKnownEvents_( events )
                                                                    , timeSinceEpoch_( tp )
                                                                    , firstValidPoint_( 0 )
+                                                                   , timeSinceInject_( 0.0 )
 {
 }
 
@@ -182,6 +191,7 @@ waveform::waveform( const waveform& rv
                                     , timeSinceEpoch_( rv.timeSinceEpoch_ )
                                     , firstValidPoint_( 0 )
                                     , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
+                                    , timeSinceInject_( rv.timeSinceInject_ )
 {
     typedef int32_t value_type;
 
@@ -308,8 +318,8 @@ waveform::serialize_xmeta( std::string& os ) const
 
     portable_binary_oarchive ar( device );
 
-    int version ( 0 );
-    waveform_xmeta_archive< const waveform >().serialize( ar, *this, version );
+    waveform_xmeta_archive< const waveform > x( *this );
+    ar & x;
 
     return os.size();
 }
@@ -322,10 +332,30 @@ waveform::deserialize_xmeta( const char * data, size_t size )
 
     portable_binary_iarchive ar( st );
 
-    int version ( 0 );
-    waveform_xmeta_archive< waveform >().serialize( ar, *this, version );
+    // ==> workaround for old bad serializer implementation
+    if ( size >= 44 && 
+         data [ 39 ] == 'A' && data [ 40 ] == 'g' && data [ 41 ] == 'M' && data [ 42 ] == 'D' && data [ 43 ] == '2' ) {
 
-    return true;
+        // this data is only on WSPC, for CO2 and N2O quantitative analysis acquired from 2015-NOV-24 to 2015-DEC-28
+        try {
+            waveform_xmeta_archive< waveform >::serialize( ar, *this, 0 );
+            return true;
+        } catch ( ... ) {
+            ADDEBUG() << boost::current_exception_diagnostic_information();
+        }
+    }
+    // <== end of workaround
+
+    // good impl.
+    try {
+        waveform_xmeta_archive< waveform > x( *this );
+        ar & x;
+        return true;
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+    }
+
+    return false;
 }
 
 size_t

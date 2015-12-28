@@ -28,7 +28,6 @@
 #include "method.hpp"
 #include "identify.hpp"
 #include "metadata.hpp"
-#include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <array>
 #include <cstdint>
@@ -95,6 +94,7 @@ namespace acqrscontrols {
             uint32_t wellKnownEvents_;
             uint64_t timeSinceEpoch_;
             uint64_t firstValidPoint_;
+            double timeSinceInject_;
 
             size_t size() const; // number of samples
 

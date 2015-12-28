@@ -143,7 +143,7 @@ namespace acqrscontrols {
         std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
 
             if ( auto data = t.data() ) {
-                os << boost::format( "\n%d, %.8lf, " ) % data->serialnumber_ % data->meta_.initialXTimeSeconds
+                os << boost::format( "\n%d, %.8lf, %.8lf, " ) % data->serialnumber_ % data->meta_.initialXTimeSeconds % t.data()->timeSinceInject_
                     << t.data()->timeSinceEpoch_
                     << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
                     << boost::format( ", %.8e" ) % data->meta_.initialXOffset;

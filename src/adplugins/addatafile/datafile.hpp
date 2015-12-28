@@ -67,6 +67,8 @@ namespace addatafile {
 
         adcontrols::datafile::factory_type factory() override { return 0; }
 
+        int dataformat_version() const override;
+
     private:
         bool loadContents( portfolio::Portfolio&, const std::wstring& query );
 

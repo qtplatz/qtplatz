@@ -217,6 +217,8 @@ rawdata::getSpectrumCount( int fcn ) const
 bool
 rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
+    ADDEBUG() << "rawdata_v3 getSpectrum fcn=" << fcn << " pos=" << pos << " objid" << objid;
+
 #if 0    
     auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
             if ( objid == 0 )

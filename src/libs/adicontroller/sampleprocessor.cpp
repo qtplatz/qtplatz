@@ -115,8 +115,6 @@ SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * mast
 	
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
-
-	//Logging( L"Sample processor '%1%' is ready to run.", EventLog::pri_INFO ) % storage_name_.wstring();
 }
 
 boost::filesystem::path

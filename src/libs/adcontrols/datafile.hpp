@@ -53,6 +53,8 @@ namespace adcontrols {
 		virtual const std::wstring& filename() const;
         virtual void accept( dataSubscriber& ) = 0; // visitable
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const = 0;
+        //
+        virtual int dataformat_version() const { return 0; }
 
         // data update, modify operations
         virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& );
@@ -62,6 +64,7 @@ namespace adcontrols {
 
         virtual bool applyCalibration( const std::wstring&, const MSCalibrateResult& ) { return false; }
         virtual bool readCalibration( size_t idx, MSCalibrateResult& ) const { (void)idx; return false; }
+
 
         static bool access( const std::wstring& filename );
         static datafile * create( const std::wstring& filename );

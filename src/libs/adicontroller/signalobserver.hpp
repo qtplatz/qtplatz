@@ -136,14 +136,9 @@ namespace adicontroller {
             uint32_t events_;      // well known events
             octet_array xdata_;    // encoded data array
             octet_array xmeta_;
-#if defined _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 )
-#endif            
+            pragma_msvc_warning_push_disable_4251
             boost::any any_;
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif            
+            pragma_msvc_warning_pop
         };
 
         class ADICONTROLLERSHARED_EXPORT ObserverEvents : public std::enable_shared_from_this< ObserverEvents > {

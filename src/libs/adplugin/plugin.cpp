@@ -33,7 +33,7 @@ using namespace adplugin;
 
 plugin::~plugin()
 {
-    ADTRACE() << "##### plugin dtor called <" << clsid_ << "> #####";
+    ADTRACE() << "=====> plugin dtor <" << clsid_ << ">";
 }
 
 plugin::plugin()

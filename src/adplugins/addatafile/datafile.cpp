@@ -160,20 +160,6 @@ datafile::accept( adcontrols::dataSubscriber& sub )
             rawdata_ = std::unique_ptr< v3::rawdata >( new v3::rawdata( dbf_, *this ) );
         }
 
-        // if ( rawdata_.which() == 0 ) {
-        //     auto rawdata = boost::get< std::shared_ptr<v2::rawdata> >( rawdata_ );
-        //     rawdata->loadAcquiredConf();
-        //     sub.subscribe( *rawdata );
-        //     rawdata->loadCalibrations();
-
-        //     if ( ! rawdata->undefined_spectrometers().empty() ) {
-        //         std::wostringstream o;
-        //         for ( auto& s : rawdata->undefined_spectrometers() )
-        //             o << s << L"\r";
-        //         sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );                
-        //     }
-        // }
-
         if ( boost::apply_visitor( detail::is_valid_rawdata(), rawdata_ ) ) {
             
             boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
@@ -204,6 +190,14 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         }
         
     } while (0);
+}
+
+
+int
+datafile::dataformat_version() const
+{
+    // 0 = v2, 1 = v3
+    return rawdata_.which() + 2;
 }
 
 bool

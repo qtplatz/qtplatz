@@ -83,7 +83,7 @@ set( query_HEADERS
   )
 
 set( query_RESOURCES query.qrc )
-set( query_FORMS doubletabwidget.ui  queryconfigform.ui  queryqueryform.ui )
+set( query_FORMS doubletabwidget.ui  queryconfigform.ui )
 
 add_library( Query MODULE
   ${query_SOURCES}
