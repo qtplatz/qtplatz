@@ -39,12 +39,13 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <workaround/boost/asio.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/variant.hpp>
 #include <boost/bind.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/logic/tribool.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/variant.hpp>
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -124,7 +125,7 @@ namespace u5303a {
             acqrscontrols::u5303a::method method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
             
-            std::atomic<bool> request_inject_out_;
+            boost::tribool c_injection_status_; // true: acq. is active, indeterminant: inj. waiting, 
             std::atomic<double> u5303_inject_timepoint_;
             std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
@@ -267,7 +268,7 @@ task::task() : work_( io_service_ )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
              , fsm_( this )
-             , request_inject_out_( false )
+             , c_injection_status_( false )
              , u5303_inject_timepoint_( 0 )
 {
     acquire_posted_.clear();
@@ -360,7 +361,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
-    request_inject_out_ = true;
+    c_injection_status_ = boost::logic::indeterminate;
     return true;
 }
 
@@ -454,11 +455,16 @@ task::fsm_action_TSR_continue()
 void
 task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
 {
-    if ( request_inject_out_ ) {
-        request_inject_out_ = false;
+    if ( c_injection_status_ == boost::logic::indeterminate ) {
+        
+        c_injection_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
+        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
     }
+
     waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;
+    if ( c_injection_status_ )
+        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_AcqInProgress;
 }
 
 bool
@@ -531,7 +537,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
     fsm_.process_event( fsm::Prepare() );
 
-    request_inject_out_ = false;
+    c_injection_status_ = false;
     u5303_inject_timepoint_ = 0;
 
     device::initial_setup( *this, m, ident().Options() );
@@ -688,11 +694,6 @@ task::readData( acqrscontrols::u5303a::waveform& data )
 
     if ( simulated_ ) {
         if ( simulator::instance()->readData( data ) ) {
-            if ( request_inject_out_ ) {
-                request_inject_out_ = false;
-                data.wellKnownEvents_ &= adicontroller::SignalObserver::wkEvent_INJECT;
-                u5303_inject_timepoint_ = data.meta_.initialXTimeSeconds;
-            }
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
             // ==> set elapsed time for debugging 
             set_time_since_inject( data );

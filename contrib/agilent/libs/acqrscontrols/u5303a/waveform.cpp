@@ -57,6 +57,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/serialization/nvp.hpp>
 
 namespace acqrscontrols {
     namespace u5303a {
@@ -95,8 +96,10 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.method_ );
                 ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
                 ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
-                if ( version >= 1 )
+                if ( version >= 1 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.timeSinceInject_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
+                }
             }
 
             // old bad implementation -- can't version this class -- for data compatibility
@@ -115,9 +118,19 @@ namespace acqrscontrols {
         ////////////////////
         template<typename T = device_data>
         class device_data_archive {
+            T& _;
+        public:
+            device_data_archive( T& t ) : _( t ) {}
         public:
             template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
+            void serialize( Archive& ar, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( _.ident_ );
+                ar & BOOST_SERIALIZATION_NVP( _.meta_ );
+            }
+
+            template<class Archive>
+            static void serialize( Archive& ar, T& _, const unsigned int version ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.ident_ );
                 ar & BOOST_SERIALIZATION_NVP( _.meta_ );
@@ -126,22 +139,26 @@ namespace acqrscontrols {
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
         {
-            device_data_archive<>().serialize( ar, *this, version );
+            ar & BOOST_SERIALIZATION_NVP( device_data_archive<>( *this ) );
+            //device_data_archive<>().serialize( ar, *this, version );
         }
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
         {
-            device_data_archive<>().serialize( ar, *this, version );
+            ar & BOOST_SERIALIZATION_NVP( device_data_archive<>( *this ) );
+            //device_data_archive<>().serialize( ar, *this, version );
         }
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int version )
         {
-            device_data_archive<>().serialize( ar, *this, version );
+            ar & device_data_archive<>( *this );
+            //device_data_archive<>().serialize( ar, *this, version );
         }
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int version )
         {
-            device_data_archive<>().serialize( ar, *this, version );
+            ar & device_data_archive<>( *this );
+            //device_data_archive<>().serialize( ar, *this, version );
         }
 
     }
@@ -150,8 +167,16 @@ namespace acqrscontrols {
 //BOOST_CLASS_VERSION( acqrscontrols::u5303a::waveform_xmeta_archive<typename T>, 1 )
 namespace boost {
     namespace serialization {
+
         template< typename T >
         struct version< acqrscontrols::u5303a::waveform_xmeta_archive<T> > {
+            typedef mpl::int_<1> type;
+            typedef mpl::integral_c_tag tag;
+            BOOST_STATIC_CONSTANT( unsigned int, value = version::type::value );
+        };
+
+        template< typename T >
+        struct version< acqrscontrols::u5303a::device_data_archive<T> > {
             typedef mpl::int_<1> type;
             typedef mpl::integral_c_tag tag;
             BOOST_STATIC_CONSTANT( unsigned int, value = version::type::value );
