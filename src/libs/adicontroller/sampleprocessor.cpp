@@ -57,11 +57,11 @@ SampleProcessor::~SampleProcessor()
 {
     try {
         ADDEBUG() << "##### SampleProcessor dtor: " << storage_name_.string();
-    
+        
         fs_->close();
         boost::filesystem::path progress_name( storage_name_ );
         storage_name_.replace_extension( ".adfs" );
-
+        
         boost::system::error_code ec;
         boost::filesystem::rename( progress_name, storage_name_, ec );
         if ( ec )
@@ -229,42 +229,33 @@ void
 SampleProcessor::write( const boost::uuids::uuid& objId
                         , SignalObserver::DataWriter& writer )
 {
-    if ( !( fs_ && fs_->db() ) ) {
-        ADDEBUG() << "write: " << c_acquisition_active_
-            << " Time: " << double( writer.elapsed_time() ) * 1.0e-9
-            << " Epoch: " << double( writer.epoch_time() ) * 1.0e-9
-            << " pos: " << writer.pos()
-            << " ndata: " << writer.ndata();
-        ADERROR() << "null database accessed.";
-        abort();
-        return;
-    }
-    
-    if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
-        ADDEBUG() << boost::format( "SampleProcessor INJECT TRIGGERD by DATA 0x%x %s" ) % writer.events() % boost::lexical_cast<std::string>( objId );
-        if ( !c_acquisition_active_ ) { // protect from chattering
-            ts_inject_trigger_ = writer.epoch_time(); // uptime;
-            c_acquisition_active_ = true;
-        }
-    }
-
-	if ( ! c_acquisition_active_ )
-		return;
-
     writer.rewind();
     do {
-        std::string xdata, xmeta;
-        writer.xdata( xdata );
-        writer.xmeta( xmeta );
-        adutils::v3::AcquiredData::insert( fs_->db(), objId
-                                           , writer.elapsed_time()
-                                           , writer.epoch_time()
-                                           , writer.pos()
-                                           , writer.fcn()
-                                           , writer.ndata()
-                                           , writer.events()
-                                           , xdata
-                                           , xmeta );
+
+        if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
+            ADDEBUG() << boost::format( "SampleProcessor INJECT TRIGGERD by DATA 0x%x %s" ) % writer.events() % boost::lexical_cast<std::string>( objId );
+            if ( !c_acquisition_active_ ) { // protect from chattering
+                ts_inject_trigger_ = writer.epoch_time(); // uptime;
+                c_acquisition_active_ = true;
+            }
+        }
+
+        if ( c_acquisition_active_ ) {
+        
+            std::string xdata, xmeta;
+            writer.xdata( xdata );
+            writer.xmeta( xmeta );
+            adutils::v3::AcquiredData::insert( fs_->db(), objId
+                                               , writer.elapsed_time()
+                                               , writer.epoch_time()
+                                               , writer.pos()
+                                               , writer.fcn()
+                                               , writer.ndata()
+                                               , writer.events()
+                                               , xdata
+                                               , xmeta );
+        }
+        
     } while( writer.next() );
 
 }

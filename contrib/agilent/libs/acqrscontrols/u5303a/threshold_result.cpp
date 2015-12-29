@@ -145,6 +145,7 @@ namespace acqrscontrols {
             if ( auto data = t.data() ) {
                 os << boost::format( "\n%d, %.8lf, %.8lf, " ) % data->serialnumber_ % data->meta_.initialXTimeSeconds % t.data()->timeSinceInject_
                     << t.data()->timeSinceEpoch_
+                    << boost::format( ", 0x%08x" ) % t.data()->wellKnownEvents_
                     << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
                     << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
 

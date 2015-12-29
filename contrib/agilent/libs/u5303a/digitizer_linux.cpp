@@ -682,7 +682,7 @@ task::waitForEndOfAcquisition( int timeout )
 #if defined _MSC_VER && defined _DEBUG
         std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 #else
-        std::this_thread::sleep_for( std::chrono::microseconds( 100 ) );
+        std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
 #endif
         if ( method_.mode_ )
             return simulator::instance()->waitForEndOfAcquisition();
