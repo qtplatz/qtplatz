@@ -66,6 +66,7 @@ namespace acqrscontrols {
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > accumulated_histograms_;
             std::shared_ptr< averager_type > averager_;
             metadata meta_;
+            uint32_t wellKnownEvents_;
             std::shared_ptr< histogram > histogram_register_;
 
             std::mutex mutex_;
@@ -128,6 +129,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
             impl_->averager_ = std::make_shared< averager_type >( u32wrap( *waveform ) );
 
         impl_->meta_ = waveform->meta_;
+        impl_->wellKnownEvents_ = waveform->wellKnownEvents_;
 
     } else {
         
@@ -137,15 +139,20 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
                 ( *impl_->averager_ ) += u16wrap( *waveform );
             else
                 ( *impl_->averager_ ) += u32wrap( *waveform );
+
+            impl_->wellKnownEvents_ |= waveform->wellKnownEvents_;
+
         } catch ( std::out_of_range& ) {
             breakout = true;
         }
         
-        if ( breakout || ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) ) {
+        if ( breakout ||
+             ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) ) {
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
             w->meta_ = impl_->meta_;                 // replace with first trigger
             w->meta_.dataType = sizeof( uint32_t );  // match up with actual data format
+            w->wellKnownEvents_ = impl_->wellKnownEvents_;
             
             impl_->accumulated_waveforms_.emplace_back( w );
             impl_->averager_.reset();
