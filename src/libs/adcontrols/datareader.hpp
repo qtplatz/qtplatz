@@ -48,10 +48,13 @@ namespace adcontrols {
         DataReader( const char * traceid = nullptr );
         DataReader( adfs::filesystem&, const char * traceid = nullptr );
 
+        enum TimeSpec { ElapsedTime, EpochTime };
+
         virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt = "" ) { return false; }
         virtual void finalize() { return ; }
         virtual size_t fcnCount() const { return 0; }
         virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; }
+        virtual int64_t findPos( double seconds, bool closest = true, TimeSpec ts = ElapsedTime ) const = 0;
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

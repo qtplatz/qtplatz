@@ -91,8 +91,7 @@ rawdata::loadAcquiredConf()
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
                 if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) {
-                    if ( reader->fcnCount() ) // skip if no data 
-                        readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
+                    readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
                 }
             }
         }
@@ -201,18 +200,6 @@ rawdata::getSpectrumCount( int fcn ) const
         if ( auto tic = reader->TIC( tfcn ) )
             return tic->size();
     }
-	// auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
-    //         return c.trace_method == adicontroller::SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
-    //     });
-    // if ( it != conf_.end() ) {
-    //     adfs::stmt sql( dbf_.db() );
-    //     if ( sql.prepare( "SELECT count(rowid) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn" ) ) {
-    //         sql.bind( 1 ) = it->objid;
-    //         sql.bind( 2 ) = fcn;
-    //         if ( sql.step() == adfs::sqlite_row )
-    //             return static_cast< size_t >( sql.get_column_value<int64_t>( 0 ) );
-    //     }
-    // }
     return 0;
 }
 
@@ -373,14 +360,27 @@ size_t
 rawdata::posFromTime( double seconds ) const
 {
     ADDEBUG() << "rawdata(v3) pos from time(" << seconds << ")";
+    for ( auto& reader : readers_ ) {
+        reader.first->findPos( seconds );
+    }
 
     adfs::stmt sql( dbf_.db() );
-    
-    if ( sql.prepare( "SELECT npos FROM AcquiredData ORDER BY ABS( ? - elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) ) LIMIT 1" ) ) {
+    int64_t t0(0);
+    if ( sql.prepare( "SELECT MIN(elapsed_time) FROM AcquiredData" ) ) {
+        if ( sql.step() == adfs::sqlite_row ) 
+            t0 = sql.get_column_value< int64_t >( 0 );
+    }
+
+    int64_t tt = int64_t( seconds * 1.0e9 ) + t0;
+
+    if ( sql.prepare( "SELECT npos,elapsed_time FROM AcquiredData ORDER BY ABS( ? - elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) ) LIMIT 1" ) ) {
         sql.bind( 1 ) = int64_t( seconds * 1.0e9 ); // ns
         if ( sql.step() == adfs::sqlite_row ) {
             
             auto pos = sql.get_column_value< int64_t >( 0 );
+            auto elapsed_time = sql.get_column_value< int64_t >( 0 );
+
+            ADDEBUG() << "pos=" << pos << ", elapsed_time=" << elapsed_time << " (" << double( elapsed_time - t0 ) * 1.0e-9 << ")";
             
             return pos;
         }

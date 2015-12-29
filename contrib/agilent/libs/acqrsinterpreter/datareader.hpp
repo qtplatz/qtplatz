@@ -50,6 +50,7 @@ namespace acqrsinterpreter {
         void finalize() override;
         size_t fcnCount() const override;
         std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const override;
+        int64_t findPos( double seconds, bool closest, adcontrols::DataReader::TimeSpec ) const;
         // =============================>
 
     private:
@@ -59,6 +60,8 @@ namespace acqrsinterpreter {
         boost::uuids::uuid objid_;
         std::string objtext_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
+        struct index { size_t pos; int64_t elapsed_time; int fcn;  index( size_t _1 = 0, int64_t _2 = 0, int _3 = 0 ) : pos( _1 ), elapsed_time( _2 ), fcn(_3) {} };
+        std::vector< index > indecies_;
     };
 
 }

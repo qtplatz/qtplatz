@@ -154,6 +154,12 @@ DataReader::finalize()
 size_t
 DataReader::fcnCount() const
 {
+    // skip timecount data -- too large to handle in the dataproc
+    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter >() ) {
+        ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
+        return 0;
+    }
+
     if ( auto db = db_.lock() ) {
 
         adfs::stmt sql( *db );
@@ -167,6 +173,28 @@ DataReader::fcnCount() const
         return fcnCount;
     }
     return 0;
+}
+
+int64_t
+DataReader::findPos( double seconds, bool closest, adcontrols::DataReader::TimeSpec tspec ) const
+{
+    assert( tspec == adcontrols::DataReader::ElapsedTime );
+
+    if ( indecies_.empty() )
+        return -1;
+
+    int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 );
+    if ( indecies_.front().elapsed_time > elapsed_time )
+        return indecies_.front().pos;
+    if ( indecies_.back().elapsed_time < elapsed_time )
+        return indecies_.back().pos;
+
+    auto its = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
+    auto ite = std::upper_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( int64_t a, const index& b ) { return a < b.elapsed_time; } );
+
+    auto it = std::min_element( its, ite, [elapsed_time] ( const index& a, const index& b ) { return std::abs( elapsed_time - a.elapsed_time ) < std::abs( elapsed_time - b.elapsed_time); } );
+
+    return it->pos;
 }
 
 std::shared_ptr< const adcontrols::Chromatogram >
@@ -192,6 +220,8 @@ DataReader::loadTICs()
 
         if ( auto db = db_.lock() ) {
             
+            indecies_.clear();
+
             adfs::stmt sql( *db );
             
             sql.prepare( "SELECT npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
@@ -204,6 +234,8 @@ DataReader::loadTICs()
                 auto elapsed_time = sql.get_column_value< int64_t >( 2 ); // ns
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( 3 );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( 4 );
+
+                indecies_.push_back( index( pos, elapsed_time, fcn ) );
 
                 if ( tics.find( fcn ) == tics.end() )
                     tics[ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
