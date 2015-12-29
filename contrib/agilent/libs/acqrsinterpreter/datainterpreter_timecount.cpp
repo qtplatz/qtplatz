@@ -23,8 +23,12 @@
 **************************************************************************/
 
 #include "datainterpreter_timecount.hpp"
+#include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/waveform.hpp>
+#include <adportable/debug.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
+#include <adportable/serializer.hpp>
+#include <adportable/bzip2.hpp>
 
 using namespace acqrsinterpreter::timecount;
 
@@ -91,7 +95,26 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
 }
 
 adcontrols::translate_state
-DataInterpreter::translate( acqrsinterpreter::waveform_types&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+DataInterpreter::translate( acqrsinterpreter::waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
 {
+    auto native = std::make_shared< acqrscontrols::u5303a::threshold_result >();
+    waveform = native;
+
+    if ( data && dsize ) {
+
+        if ( adportable::bzip2::is_a( reinterpret_cast<const char *>( data ), dsize ) ) {
+
+            std::string ar;            
+            adportable::bzip2::decompress( ar, reinterpret_cast<const char *>( data ), dsize );
+            native->deserialize( reinterpret_cast< const int8_t *>(ar.data()), ar.size(), meta, msize );
+
+        } else {
+
+            native->deserialize( data, dsize, meta, msize );
+
+        }
+        return adcontrols::translate_complete;
+    }
+
     return adcontrols::translate_error;
 }

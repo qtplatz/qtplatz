@@ -91,7 +91,8 @@ rawdata::loadAcquiredConf()
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
                 if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) {
-                    readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
+                    if ( reader->fcnCount() ) // skip if no data 
+                        readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
                 }
             }
         }
@@ -371,6 +372,8 @@ rawdata::getFunctionCount() const
 size_t
 rawdata::posFromTime( double seconds ) const
 {
+    ADDEBUG() << "rawdata(v3) pos from time(" << seconds << ")";
+
     adfs::stmt sql( dbf_.db() );
     
     if ( sql.prepare( "SELECT npos FROM AcquiredData ORDER BY ABS( ? - elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) ) LIMIT 1" ) ) {

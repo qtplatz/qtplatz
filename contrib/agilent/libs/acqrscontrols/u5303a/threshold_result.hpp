@@ -67,8 +67,7 @@ namespace acqrscontrols {
             threshold_result( std::shared_ptr< const waveform > d );
             threshold_result( const threshold_result& t );
 
-            size_t serialize_xmeta( std::string& ) const;
-            size_t serialize_xdata( std::string& ) const;
+            bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
         };
 
         // text output

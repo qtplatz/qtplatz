@@ -28,10 +28,12 @@
 #include "datainterpreter_histogram.hpp"
 #include "datainterpreter_timecount.hpp"
 #include "datainterpreter_softavgr.hpp"
+#include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 #include <boost/format.hpp>
@@ -88,7 +90,15 @@ namespace acqrsinterpreter {
         }
     };
 
+    template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& ptr ) const
+    {
+        return ptr->indecies().size();
+    }
+
     struct make_title : public boost::static_visitor < std::wstring > {
+        std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
+            return ( boost::wformat( L"TDC" ) ).str();
+        }
         std::wstring operator()( std::shared_ptr< adcontrols::TimeDigitalHistogram> & ) const {
             return ( boost::wformat( L"Histogram" ) ).str();
         }

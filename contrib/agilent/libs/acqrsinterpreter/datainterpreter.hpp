@@ -38,7 +38,8 @@ namespace adcontrols {
 
 namespace acqrsinterpreter {
 
-    typedef boost::variant< std::shared_ptr< adcontrols::TimeDigitalHistogram >
+    typedef boost::variant< std::shared_ptr< acqrscontrols::u5303a::threshold_result >
+                            , std::shared_ptr< adcontrols::TimeDigitalHistogram >
                             , std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_types;
 
     class DataInterpreter : public adcontrols::DataInterpreter {

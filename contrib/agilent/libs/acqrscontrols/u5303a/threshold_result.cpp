@@ -112,29 +112,30 @@ threshold_result::setFoundAction( uint32_t index, const std::pair< uint32_t, uin
     findRange_ = range;
 }
 
-size_t
-threshold_result::serialize_xmeta( std::string& os ) const
+bool
+threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t * xmeta, size_t msize )
 {
-    boost::iostreams::back_insert_device< std::string > inserter( os );
-    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+    //
+    // see threshold_result_accessor.cpp in infitof/plugins/infitof2
+    //
+    auto data = std::make_shared< acqrscontrols::u5303a::waveform >();
 
-    portable_binary_oarchive ar( device );
-    ar & data_->meta_;
+    data->deserialize_xmeta( reinterpret_cast<const char *>( xmeta ), msize );
 
-    return os.size();
-}
+    data_ = data;
 
-size_t
-threshold_result::serialize_xdata( std::string& device ) const
-{
-    device.resize( ( indecies_.size() * sizeof(uint32_t) + ( 2 * sizeof(uint32_t) ) ) );
-    
-    uint32_t * dest_p = reinterpret_cast<uint32_t *>( const_cast< char * >( device.data() ) );
-    *dest_p++ = 0x7ffe0001; // separater & endian marker
-    *dest_p++ = uint32_t( indecies_.size() );
-    
-    std::copy( indecies_.begin(), indecies_.end(), dest_p );
-    return device.size();
+    // restore indecies
+    boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char *>(xdata), dsize );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+
+    try {
+        portable_binary_iarchive ar( st );
+        ar >> indecies_;
+    } catch ( std::exception& ) {
+        return false;
+    }
+
+    return true;
 }
 
 namespace acqrscontrols {

@@ -71,8 +71,9 @@ namespace query {
                     if ( bool isAcquiredData = queryModel->query().lastQuery().contains( "AcquiredData", Qt::CaseInsensitive ) ) {
                         auto column_name = queryModel->headerData( index.column(), Qt::Horizontal ).toString();
                         if ( column_name == "elapsed_time" ) {
-                            auto t0 = queryModel->record(0).value( column_name ).toDouble();
-                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( (index.data().toDouble() - t0 ) * 1e-9, 'f', 5 ) );
+                            auto t0 = queryModel->record(0).value( column_name ).toDouble() * 1.0e-9;
+                            double raw = index.data().toDouble() * 1.0e-9;
+                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
                         } else if ( index.data().type() == QVariant::ByteArray ) {
                             auto v = queryModel->record(index.row()).value( "objuuid" );
                             if ( v.isValid() ) {
