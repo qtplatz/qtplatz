@@ -31,13 +31,15 @@
 
 using namespace adutils::v3;
 
-AcquiredConf::data::data() : objid( {0} )
+AcquiredConf::data::data() : rowid(0)
+                           , objid( {0} )
                            , objtext( "" )
                            , pobjid( boost::uuids::uuid{0} )
 {
 }
 
-AcquiredConf::data::data( const data& t ) : objid( t.objid )
+AcquiredConf::data::data( const data& t ) : rowid( t.rowid )
+                                          , objid( t.objid )
                                           , objtext( t.objtext )
                                           , pobjid( t.pobjid )
                                           , dataInterpreterClsid( t.dataInterpreterClsid )
@@ -196,13 +198,14 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
     adfs::stmt sql( db );
 
     if ( sql.prepare(
-             "SELECT objuuid, objtext, pobjuuid, dataInterpreterClsid, trace_method, spectrometer,\
+             "SELECT rowid, objuuid, objtext, pobjuuid, dataInterpreterClsid, trace_method, spectrometer,\
  trace_id, trace_display_name, axis_x_label, axis_y_label, axis_x_decimals, axis_y_decimals FROM AcquiredConf" ) ) {
         
         while ( sql.step() == adfs::sqlite_row ) {
             data d;
             try {
                 int col = 0;
+                d.rowid = sql.get_column_value< int64_t >( col++ );
                 d.objid  = sql.get_column_value< boost::uuids::uuid >( col++ );
                 d.objtext  = sql.get_column_value<std::string>( col++ );
                 d.pobjid = sql.get_column_value< boost::uuids::uuid >( col++ );

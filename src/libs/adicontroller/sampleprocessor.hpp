@@ -72,7 +72,7 @@ namespace adicontroller {
         pragma_msvc_warning_push_disable_4251
         boost::filesystem::path storage_name_;
         std::unique_ptr< adfs::filesystem > fs_;
-		bool inProgress_;
+        bool c_acquisition_active_;
         size_t myId_;
         std::atomic<unsigned long> objId_front_;
         std::atomic<unsigned int> pos_front_;

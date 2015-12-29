@@ -74,6 +74,7 @@ namespace acqrscontrols {
             uint32_t serialnumber_;               // last waveform trigger#
             uint64_t timeSinceEpoch_0_;           // first waveform acquired time
             uint64_t timeSinceEpoch_;             // last waveform acquired time
+            uint32_t wellKnownEvents_;
 
             pragma_msvc_warning_push_disable_4251
 

@@ -55,6 +55,7 @@
 #include <cstdint>
 #include <sstream>
 #include <set>
+#include <regex>
 
 using namespace addatafile;
 using namespace addatafile::v3;
@@ -217,54 +218,16 @@ rawdata::getSpectrumCount( int fcn ) const
 bool
 rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
-    ADDEBUG() << "rawdata_v3 getSpectrum fcn=" << fcn << " pos=" << pos << " objid" << objid;
+    boost::uuids::uuid objuuid = { 0 };
+    std::vector< boost::uuids::uuid > uuids;
 
-#if 0    
-    auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
-            if ( objid == 0 )
-                return c.trace_method == adicontroller::SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
-            else
-                return c.objid == objid;
-        });
-    if ( it == conf_.end() )
-        return false;
-    adcontrols::translate_state state;
-    uint64_t npos = npos0_ + pos;
-
-    if ( fcn < 0 && fcnIdx_.size() > 1 ) {
-
-        // find 'index' from <pos, fcn> array that indicates first 'pos' after protocol has been switched
-        auto index = std::lower_bound( fcnIdx_.begin(), fcnIdx_.end(), npos
-                                       , [] ( const std::pair< size_t, int >& a, size_t npos ) { return a.first < npos; } );
-        if ( index == fcnIdx_.end() )
-            return false;
-        while ( index != fcnIdx_.begin() && index->first > npos )
-            --index;
-        int rep = int( npos - index->first );  // id within a replicates (rep'licates is the offset from (fcn=0,rep=0) spectrum)
-        while ( index != fcnIdx_.begin() && index->second != 0 ) // find fcn=0
-            --index;
-        
-        // read all protocols
-        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id ) )
-                == adcontrols::translate_indeterminate )
-                if ( ++index == fcnIdx_.end() )  // move forward to next protocol (rep'licates is the offset for actual spectrum)
-                    break;
-    } else {
-
-        state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms, it->trace_id );
-
+    adfs::stmt sql( dbf_.db() );
+    if ( sql.prepare( "SELECT objuuid from AcquiredData WHERE AcquiredData.npos = ?" ) ) {
+        sql.bind( 1 ) = pos;
+        while ( sql.step() == adfs::sqlite_row ) 
+            uuids.push_back( sql.get_column_value< boost::uuids::uuid >( 0 ) );
     }
 
-    if ( ms.getMSProperty().dataInterpreterClsid() == 0 ) {
-        // workaround for batchproc::import
-        adcontrols::MSProperty prop = ms.getMSProperty();
-        prop.setDataInterpreterClsid( adportable::utf::to_utf8( it->dataInterpreterClsid ).c_str() );
-    }
-    if ( fcn < 0 )
-        return state == adcontrols::translate_complete;
-    
-    return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
-#endif
     return true;
 }
 
@@ -410,21 +373,11 @@ rawdata::posFromTime( double seconds ) const
 {
     adfs::stmt sql( dbf_.db() );
     
-    uint64_t injTime (0);
-    
-    if ( sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData" ) ) {
-        if ( sql.step() == adfs::sqlite_row ) 
-            injTime = sql.get_column_value< int64_t >( 0 );
-    }
-    
-    sql.reset();
-
-    if ( sql.prepare( "SELECT npos, epoch_time FROM AcquiredData ORDER BY ABS( ? - epoch_time ) LIMIT 1" ) ) {
-        sql.bind( 1 ) = injTime;
+    if ( sql.prepare( "SELECT npos FROM AcquiredData ORDER BY ABS( ? - elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) ) LIMIT 1" ) ) {
+        sql.bind( 1 ) = int64_t( seconds * 1.0e9 ); // ns
         if ( sql.step() == adfs::sqlite_row ) {
             
             auto pos = sql.get_column_value< int64_t >( 0 );
-            auto epoch_time = sql.get_column_value< int64_t >( 1 );
             
             return pos;
         }

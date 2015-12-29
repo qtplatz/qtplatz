@@ -358,6 +358,7 @@ waveform::deserialize_xmeta( const char * data, size_t size )
     portable_binary_iarchive ar( st );
 
     // ==> workaround for old bad serializer implementation
+    // Only the data using old archive should have follwoing sequence of data, that does not match with collect serializer.
     if ( size >= 44 && 
          data [ 39 ] == 'A' && data [ 40 ] == 'g' && data [ 41 ] == 'M' && data [ 42 ] == 'D' && data [ 43 ] == '2' ) {
 

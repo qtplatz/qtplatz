@@ -45,6 +45,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <regex>
 #include <string>
 
@@ -76,7 +77,7 @@ SampleProcessor::~SampleProcessor()
 
 SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
                                   , std::shared_ptr< adcontrols::ControlMethod::Method > cmth ) : fs_( new adfs::filesystem )
-                                                                                                , inProgress_( false )
+                                                                                                , c_acquisition_active_( false )
                                                                                                 , myId_( __nid__++ )
                                                                                                 , objId_front_( 0 )
                                                                                                 , pos_front_( 0 )
@@ -180,14 +181,12 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
     if ( rdBuf.events() & SignalObserver::wkEvent_INJECT ) {
         ts_inject_trigger_ = rdBuf.epoch_time();
         tp_inject_trigger_ = std::chrono::steady_clock::now(); // CAUTION: this has some unknown delay from exact trigger.
-        //if ( !inProgress_ )
-        //    Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
-		inProgress_ = true;
+        if ( !c_acquisition_active_ )
+            ADTRACE() << boost::format( "Sample '%1%' got an INJECTION" ) % this->storage_name_.string();
+		c_acquisition_active_ = true;
     }
 
-    ADDEBUG() << "SampleProcessor::handle_data progress=" << inProgress_;
-
-	if ( ! inProgress_ ) 
+	if ( ! c_acquisition_active_ )
 		return;
 
 	adfs::stmt sql( fs_->db() );
@@ -207,12 +206,10 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
 
     if ( objId == objId_front_ && pos_front_ > unsigned( pos + 10 ) ) {
         size_t nBehind = pos_front_ - pos;
-#if 0
         if ( stop_triggered_ && ( nBehind % 5 == 0 ) )
-            Logging( L"'%1%' is being closed.  Saving %2% more data in background.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
+            ADTRACE() << boost::format( "'%1%' is being closed.  Saving %2% more data in background." ) % storage_name_.stem() % nBehind;
         else if ( nBehind % 25 == 0 )
-            Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
-#endif
+            ADTRACE() << boost::format( "Sample '%1%' %2% data behind." ) % storage_name_.stem() % nBehind;
     }
 
     auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
@@ -222,7 +219,7 @@ SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserve
         Logging( L"Elapsed time: %1%", EventLog::pri_INFO ) % double( elapsed_time.count() / 60.0 );
 #endif
     if ( elapsed_time.count() >= sampleRun_->methodTime() || double( elapsed_count ) * 1.0e-6 >= sampleRun_->methodTime() ) {
-        inProgress_ = false;
+        c_acquisition_active_ = false;
     }
 
 }
@@ -233,7 +230,7 @@ SampleProcessor::write( const boost::uuids::uuid& objId
                         , SignalObserver::DataWriter& writer )
 {
     if ( !( fs_ && fs_->db() ) ) {
-        ADDEBUG() << "write: " << inProgress_
+        ADDEBUG() << "write: " << c_acquisition_active_
             << " Time: " << double( writer.elapsed_time() ) * 1.0e-9
             << " Epoch: " << double( writer.epoch_time() ) * 1.0e-9
             << " pos: " << writer.pos()
@@ -244,12 +241,14 @@ SampleProcessor::write( const boost::uuids::uuid& objId
     }
     
     if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
-        ts_inject_trigger_ = writer.epoch_time(); // uptime;
-        ADDEBUG() << "SampleProcessor INJECT TRIGGERD by DATA" << writer.events();
-		inProgress_ = true;
+        ADDEBUG() << boost::format( "SampleProcessor INJECT TRIGGERD by DATA 0x%x %s" ) % writer.events() % boost::lexical_cast<std::string>( objId );
+        if ( !c_acquisition_active_ ) { // protect from chattering
+            ts_inject_trigger_ = writer.epoch_time(); // uptime;
+            c_acquisition_active_ = true;
+        }
     }
 
-	if ( ! inProgress_ ) 
+	if ( ! c_acquisition_active_ )
 		return;
 
     writer.rewind();
@@ -268,10 +267,6 @@ SampleProcessor::write( const boost::uuids::uuid& objId
                                            , xmeta );
     } while( writer.next() );
 
-    //v3::AcquiredData::insert( fs_->db(), objId, rdBuf );
-
-    //auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
-    //auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
 }
 
 void
@@ -325,13 +320,13 @@ SampleProcessor::sampleRun() const
 bool
 SampleProcessor::inject_triggered() const
 {
-    return inProgress_;
+    return c_acquisition_active_;
 }
 
 void
 SampleProcessor::set_inject_triggered( bool f )
 {
-    inProgress_ = f;
+    // inProgress_ = f;
 }
 
 const uint64_t&

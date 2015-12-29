@@ -125,7 +125,8 @@ namespace u5303a {
             acqrscontrols::u5303a::method method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
             
-            boost::tribool c_injection_status_; // true: acq. is active, indeterminant: inj. waiting, 
+            bool c_injection_requested_; 
+            bool c_acquisition_status_; // true: acq. is active, indeterminant: inj. waiting, 
             std::atomic<double> u5303_inject_timepoint_;
             std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
@@ -268,7 +269,8 @@ task::task() : work_( io_service_ )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
              , fsm_( this )
-             , c_injection_status_( false )
+             , c_injection_requested_( false )
+             , c_acquisition_status_( false )
              , u5303_inject_timepoint_( 0 )
 {
     acquire_posted_.clear();
@@ -361,7 +363,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
-    c_injection_status_ = boost::logic::indeterminate;
+    c_injection_requested_ = true;
     return true;
 }
 
@@ -455,15 +457,16 @@ task::fsm_action_TSR_continue()
 void
 task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
 {
-    if ( c_injection_status_ == boost::logic::indeterminate ) {
+    if ( c_injection_requested_ ) {
         
-        c_injection_status_ = true;
+        c_injection_requested_ = false;
+        c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
         waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
     }
 
     waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;
-    if ( c_injection_status_ )
+    if ( c_acquisition_status_ )
         waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_AcqInProgress;
 }
 
@@ -537,7 +540,8 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
     fsm_.process_event( fsm::Prepare() );
 
-    c_injection_status_ = false;
+    c_acquisition_status_ = false;
+    c_injection_requested_ = false;
     u5303_inject_timepoint_ = 0;
 
     device::initial_setup( *this, m, ident().Options() );

@@ -45,6 +45,7 @@ namespace adutils {
             struct data {
                 data();
                 data( const data& );
+                int64_t rowid;                    // SQLite rowid
                 boost::uuids::uuid objid;
                 std::string objtext;              // source text for create uuid
                 boost::uuids::uuid pobjid;

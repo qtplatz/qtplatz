@@ -37,6 +37,7 @@ histogram::histogram() : serialnumber_( 0 )
                        , timeSinceEpoch_( 0 )
                        , trigger_count_( 0 )
                        , reset_requested_( true )
+                       , wellKnownEvents_(0)
 {
 }
 
@@ -75,6 +76,7 @@ histogram::append( const threshold_result& result )
 
         serialnumber_0_ = result.data()->serialnumber_;
         timeSinceEpoch_0_ = result.data()->timeSinceEpoch_;
+        wellKnownEvents_ = 0;
     }
 
     assert( data_.size() );
@@ -84,6 +86,7 @@ histogram::append( const threshold_result& result )
     
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
+    wellKnownEvents_ |= result.data()->wellKnownEvents_;
 
     return ++trigger_count_;
 }
@@ -127,6 +130,7 @@ histogram::append( const adcontrols::TimeDigitalHistogram& x )
     
     serialnumber_ = uint32_t( x.serialnumber().second );
     timeSinceEpoch_ = x.timeSinceEpoch().second;
+    wellKnownEvents_ = x.wellKnownEvents();
     
     trigger_count_ += x.trigger_count();
 
@@ -159,6 +163,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.trigger_count()       = trigger_count_;
     x.serialnumber()        = std::make_pair( serialnumber_0_, serialnumber_ );
     x.timeSinceEpoch()      = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
+    x.wellKnownEvents()     = wellKnownEvents_;
 
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
