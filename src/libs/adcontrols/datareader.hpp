@@ -38,35 +38,24 @@ namespace adcontrols {
     class DataInterpreter;
     class datafile;
     class Chromatogram;
+    class DataReader;
 
-    class ADCONTROLSSHARED_EXPORT DataReader_index {
-    public:
-        virtual int64_t pos() const = 0;
-        virtual int64_t elapsed_time() const = 0;
-        virtual double time_since_inject() const = 0;
-        virtual void operator ++() = 0;
-        virtual bool operator == ( DataReader_index& t ) const = 0;
-        virtual bool operator != ( DataReader_index& t ) const = 0;
-    };
-
-    //template< typename T = DataReader_index >
     class ADCONTROLSSHARED_EXPORT DataReader_iterator {
-    protected:
-        std::unique_ptr<DataReader_index> index_;
+        const DataReader& reader_;
+        int64_t rowid_;
     public:
-        virtual ~DataReader_iterator() {};
+        DataReader_iterator( const DataReader& reader, int64_t rowid );
+        inline int64_t rowid() const { return rowid_; }
 
-        DataReader_iterator( std::unique_ptr<DataReader_index>&& i ) : index_( std::move(i) ) {}
-        DataReader_iterator( DataReader_iterator&& t ) : index_( std::move(t.index_) ) {}
-        //DataReader_iterator& operator = ( const DataReader_iterator&& t ) { index_ = std::move( t.index_ ); return * this; }
-        //DataReader_iterator& operator = ( const DataReader_iterator& t ) { index_.reset( t.index_.release() ); return * this; }
-        
-        DataReader_index& operator * () const { return *index_; }
-        DataReader_index* operator -> () const { return index_.operator->(); }
-        const DataReader_iterator& operator ++ () { ++( *index_ ); return *this; }
+        bool operator == ( const DataReader_iterator& rhs ) const { return rowid_ == rhs.rowid_; }
+        bool operator != ( const DataReader_iterator& rhs ) const { return rowid_ != rhs.rowid_; }
+        const DataReader_iterator& operator ++ ();
+        const DataReader_iterator operator ++ ( int );
 
-        bool operator == ( const DataReader_iterator& t ) const { return (*index_) == (*t.index_); }
-        bool operator != ( const DataReader_iterator& t ) const { return (*index_) != (*t.index_); }
+        int64_t pos() const;
+        int64_t elapsed_time() const;
+        double time_since_inject() const;
+        int fcn() const;
     };
 
 	class ADCONTROLSSHARED_EXPORT DataReader {
@@ -79,9 +68,7 @@ namespace adcontrols {
         DataReader( const char * traceid = nullptr );
         DataReader( adfs::filesystem&, const char * traceid = nullptr );
 
-        typedef DataReader_iterator iterator;
-        typedef const DataReader_iterator const_iterator;
-        typedef DataReader_index value_type;
+        typedef DataReader_iterator const_iterator;
 
         enum TimeSpec { ElapsedTime, EpochTime };
         enum IndexSpec { TriggerNumber, IndexCount };
@@ -99,6 +86,13 @@ namespace adcontrols {
 
         /* findTime returns elapsed time for the data specified by trigger number */
         virtual double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const = 0;
+
+        // Iterator reference methods
+        virtual int64_t next( int64_t rowid ) const = 0;
+        virtual int64_t pos( int64_t rowid ) const = 0;
+        virtual int64_t elapsed_time( int64_t rowid ) const = 0;
+        virtual double time_since_inject( int64_t rowid ) const = 0;
+        virtual int fcn( int64_t rowid ) const = 0;
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

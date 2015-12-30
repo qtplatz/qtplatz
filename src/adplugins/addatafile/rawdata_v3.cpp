@@ -361,15 +361,13 @@ rawdata::posFromTime( double seconds ) const
 {
     for ( auto& reader : readers_ ) {
 
-        auto rp = reader.first;
-        auto& tpos = rp->findPos( seconds );
-        ADDEBUG() << tpos->pos();
-/*
-       if ( tpos != reader.first->end() ) {
-           ADDEBUG() << "rawdata(v3) pos from time(" << seconds << ") = " << tpos.first << ", " << tpos.second;
-           return tpos.pos();
-       }
-       */
+        auto tpos = reader.first->findPos( seconds );
+        /*
+        if ( tpos != reader.first->end() ) {
+            ADDEBUG() << tpos->pos();
+            return tpos->time_since_inject();
+        }
+        */
     }
 	return 0;
 }

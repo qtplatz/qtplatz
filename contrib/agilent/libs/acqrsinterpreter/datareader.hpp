@@ -36,6 +36,8 @@ namespace adfs { class sqlite; }
 
 namespace acqrsinterpreter {
 
+    class DataReader_index;
+
     class DataReader : public adcontrols::DataReader {
         DataReader( const DataReader& ) = delete;  // noncopyable
         DataReader& operator = (const DataReader&) = delete;
@@ -58,17 +60,28 @@ namespace acqrsinterpreter {
         
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override;
 
-        // =============================>
+        // =============================> Iterator reference methods
+        int64_t next( int64_t rowid ) const override;
+        int64_t pos( int64_t rowid ) const override;
+        int64_t elapsed_time( int64_t rowid ) const override;
+        double time_since_inject( int64_t rowid ) const override;
+        int fcn( int64_t rowid ) const override;
+        // <============================
 
     private:
+        friend class DataReader_index;
         void loadTICs();
-        double time_since_inject( int64_t elapsed_time ) const;
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
         std::weak_ptr< adfs::sqlite > db_;
         boost::uuids::uuid objid_;
         std::string objtext_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
-        struct index { int64_t pos; int64_t elapsed_time; int fcn;  index( size_t _1 = 0, int64_t _2 = 0, int _3 = 0 ) : pos( _1 ), elapsed_time( _2 ), fcn(_3) {} };
+
+        struct index {
+            int64_t rowid; int64_t pos; int64_t elapsed_time; int fcn;
+            index( int64_t _0 = 0, int64_t _1 = 0, int64_t _2 = 0, int _3 = 0 ) : rowid( _0 ), pos( _1 ), elapsed_time( _2 ), fcn( _3 ) {}
+        };
+
         std::vector< index > indecies_;
     };
 

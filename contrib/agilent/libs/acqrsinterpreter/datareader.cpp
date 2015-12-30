@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "datareader.hpp"
-#include "datareader_iterator.hpp"
 #include "datainterpreter.hpp"
 #include "datainterpreter_u5303a.hpp"
 #include "datainterpreter_histogram.hpp"
@@ -117,6 +116,9 @@ using namespace acqrsinterpreter;
 
 DataReader::~DataReader()
 {
+    indecies_.clear();
+    tics_.clear();
+    interpreter_.reset();
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
@@ -182,51 +184,44 @@ DataReader::fcnCount() const
 adcontrols::DataReader::const_iterator
 DataReader::begin() const
 {
-    //return adcontrols::DataReader_iterator( std::unique_ptr< DataReader_index >( new DataReader_index( *this ) ) );
-    return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >(*this) );
+    return adcontrols::DataReader_iterator( *this, indecies_.front().rowid );
+    //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, indecies_.begin() ) );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
-    //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
-    return adcontrols::DataReader_iterator( std::unique_ptr< DataReader_index >( new DataReader_index( *this ) ) );
+    return adcontrols::DataReader_iterator( *this, indecies_.front().rowid );
+    //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, indecies_.end() ) );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
 {
-    //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
-    return adcontrols::DataReader_iterator( std::unique_ptr< DataReader_index >( new DataReader_index( *this ) ) );    
-#if 0
     if ( indecies_.empty() )
-        return std::make_pair(-1,0);
-
-    if ( tspec == EpochTime ) {
-        assert( 0 ); // tba
-        return std::make_pair(-1,0);
-    }
+        return end();
 
     if ( tspec == ElapsedTime ) {
 
         int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
 
         if ( indecies_.front().elapsed_time > elapsed_time )
-            return std::make_pair( indecies_.front().pos, time_since_inject( indecies_.front().elapsed_time ) );
+            return begin();
 
         if ( indecies_.back().elapsed_time < elapsed_time )
-            return std::make_pair(indecies_.back().pos, time_since_inject( indecies_.back().elapsed_time ) );
+            return adcontrols::DataReader_iterator( *this, indecies_.back().rowid );
+            //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, indecies_.end() - 1 ) );
 
         auto its = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
         auto ite = std::upper_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( int64_t a, const index& b ) { return a < b.elapsed_time; } );
 
         auto it = std::min_element( its, ite, [elapsed_time] ( const index& a, const index& b ) { return std::abs( elapsed_time - a.elapsed_time ) < std::abs( elapsed_time - b.elapsed_time ); } );
 
-        return std::make_pair( it->pos, time_since_inject( it->elapsed_time ) );
+        return adcontrols::DataReader_iterator( *this, it->rowid );
+        //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, it ) );
     }
 
-    return std::make_pair(-1,0);
-#endif
+    return end();
 }
 
 double
@@ -255,14 +250,6 @@ DataReader::TIC( int fcn ) const
     return nullptr;
 }
 
-double
-DataReader::time_since_inject( int64_t elapsed_time ) const
-{
-    if ( !indecies_.empty() )
-        return ( elapsed_time - indecies_.front().elapsed_time ) * 1.0e-9;
-    return -1.0;
-}
-
 void
 DataReader::loadTICs()
 {
@@ -278,18 +265,20 @@ DataReader::loadTICs()
 
             adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
+            sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
             sql.bind( 1 ) = objid_;
             
             while ( sql.step() == adfs::sqlite_row ) {
                 
-                auto pos = sql.get_column_value< int64_t >( 0 );
-                auto fcn = int( sql.get_column_value< int64_t >( 1 ) );
-                auto elapsed_time = sql.get_column_value< int64_t >( 2 ); // ns
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( 3 );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 4 );
+                int col = 0;
+                auto row = sql.get_column_value< int64_t >( col++ );
+                auto pos = sql.get_column_value< int64_t >( col++ );
+                auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
+                auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                indecies_.push_back( index( pos, elapsed_time, fcn ) );
+                indecies_.push_back( index( row, pos, elapsed_time, fcn ) );
 
                 if ( tics.find( fcn ) == tics.end() )
                     tics[ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
@@ -315,3 +304,47 @@ DataReader::loadTICs()
     }
 }
 
+int64_t
+DataReader::next( int64_t rowid ) const
+{
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() && ++it != indecies_.end() )
+        return it->rowid;
+    return -1;
+}
+
+int64_t
+DataReader::pos( int64_t rowid ) const
+{
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() )
+        return it->pos;
+    return -1;
+}
+
+int64_t
+DataReader::elapsed_time( int64_t rowid ) const
+{
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() )
+        return it->elapsed_time;
+    return -1;    
+}
+
+double
+DataReader::time_since_inject( int64_t rowid ) const
+{
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() )
+        return double( it->elapsed_time - indecies_.front().elapsed_time ) * 1.0e-9;
+    return -1;        
+}
+
+int
+DataReader::fcn( int64_t rowid ) const
+{
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() )
+        return it->fcn;
+    return -1;    
+}
