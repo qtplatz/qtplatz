@@ -45,16 +45,6 @@ namespace acqrsinterpreter {
         virtual bool operator != ( adcontrols::DataReader_index& t ) const override;
     };
 
-    // class DataReader_iterator : public adcontrols::DataReader_iterator<> {
-    // public:
-    //     virtual ~DataReader_iterator() {
-    //     }
-
-    //     DataReader_iterator( std::unique_ptr< DataReader_index >&& t ) : adcontrols::DataReader_iterator<>( t ) {
-    //     }
-
-    // };
-    
 }
 
 

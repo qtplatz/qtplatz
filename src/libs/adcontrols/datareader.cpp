@@ -42,6 +42,7 @@ namespace adcontrols {
         std::map< std::string, std::function< factory_type > > reader_factories_;
         std::map< std::string, std::string > reader_map_;  // <traceid, clsid>
     };
+
 }
 
 using namespace adcontrols;

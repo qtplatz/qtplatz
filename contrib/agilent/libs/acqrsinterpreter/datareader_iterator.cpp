@@ -70,3 +70,14 @@ DataReader_index::operator != ( adcontrols::DataReader_index& t ) const
     return false;
 }
 
+//datareader.obj : error LNK2019: unresolved external symbol
+//"__declspec(dllimport) public:
+//__cdecl
+// adcontrols::DataReader_iterator<class adcontrols::DataReader_index>::DataReader_iterator<class adcontrols::DataReader_index>(
+// class std::unique_ptr<class adcontrols::DataReader_index,struct std::default_delete<class adcontrols::DataReader_index> > &&)
+
+
+// "public: virtual class adcontrols::DataReader_iterator<class adcontrols::DataReader_index> const __cdecl acqrsinterpreter::DataReader::begin(void)const "
+
+// (?begin@DataReader@acqrsinterpreter@@UEBA?BV?$DataReader_iterator@VDataReader_index@adcontrols@@@adcontrols@@XZ)
+// 1>C:\Users\Toshi\src\build-x86_64\qtplatz.release_vc14\lib\qtplatz\plugins\MS-Cheminformatics\acqrsinterpreterd.dll : fatal error LNK1120: 1 unresolved externals

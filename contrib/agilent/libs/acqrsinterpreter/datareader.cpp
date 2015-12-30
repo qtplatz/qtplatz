@@ -182,22 +182,22 @@ DataReader::fcnCount() const
 adcontrols::DataReader::const_iterator
 DataReader::begin() const
 {
-    return adcontrols::DataReader_iterator<>( std::unique_ptr< adcontrols::DataReader_index >( new DataReader_index( *this ) ) );
-    //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
+    //return adcontrols::DataReader_iterator( std::unique_ptr< DataReader_index >( new DataReader_index( *this ) ) );
+    return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >(*this) );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
     //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
-    return adcontrols::DataReader_iterator<>( std::unique_ptr< adcontrols::DataReader_index >( new DataReader_index( *this ) ) );
+    return adcontrols::DataReader_iterator( std::unique_ptr< DataReader_index >( new DataReader_index( *this ) ) );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
 {
     //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
-    return adcontrols::DataReader_iterator<>( std::unique_ptr< adcontrols::DataReader_index >( new DataReader_index( *this ) ) );    
+    return adcontrols::DataReader_iterator( std::unique_ptr< DataReader_index >( new DataReader_index( *this ) ) );    
 #if 0
     if ( indecies_.empty() )
         return std::make_pair(-1,0);

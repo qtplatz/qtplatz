@@ -49,24 +49,24 @@ namespace adcontrols {
         virtual bool operator != ( DataReader_index& t ) const = 0;
     };
 
-    template< typename T = DataReader_index >
+    //template< typename T = DataReader_index >
     class ADCONTROLSSHARED_EXPORT DataReader_iterator {
     protected:
-        std::unique_ptr<T> index_;
+        std::unique_ptr<DataReader_index> index_;
     public:
-        virtual ~DataReader_iterator() {}
+        virtual ~DataReader_iterator() {};
 
-        DataReader_iterator( std::unique_ptr<T>&& i ) : index_( std::move(i) ) {}
-        DataReader_iterator( DataReader_iterator<T>&& t ) : index_( std::move(t.index_) ) {}
-        DataReader_iterator& operator = ( const DataReader_iterator&& t ) { index_ = std::move( t.index_ ); return * this; }
-        DataReader_iterator& operator = ( const DataReader_iterator& t ) { index_.reset( t.index_.release() ); return * this; }
+        DataReader_iterator( std::unique_ptr<DataReader_index>&& i ) : index_( std::move(i) ) {}
+        DataReader_iterator( DataReader_iterator&& t ) : index_( std::move(t.index_) ) {}
+        //DataReader_iterator& operator = ( const DataReader_iterator&& t ) { index_ = std::move( t.index_ ); return * this; }
+        //DataReader_iterator& operator = ( const DataReader_iterator& t ) { index_.reset( t.index_.release() ); return * this; }
         
-        virtual T& operator * () const { return *index_; }
-        virtual T* operator -> () const { return index_.get(); }
-        virtual const T& operator ++ () { ++(*index_); }
+        DataReader_index& operator * () const { return *index_; }
+        DataReader_index* operator -> () const { return index_.operator->(); }
+        const DataReader_iterator& operator ++ () { ++( *index_ ); return *this; }
 
-        virtual bool operator == ( const DataReader_iterator<T>& t ) const { return (*index_) == (*t.index_); }
-        virtual bool operator != ( const DataReader_iterator<T>& t ) const { return (*index_) != (*t.index_); }
+        bool operator == ( const DataReader_iterator& t ) const { return (*index_) == (*t.index_); }
+        bool operator != ( const DataReader_iterator& t ) const { return (*index_) != (*t.index_); }
     };
 
 	class ADCONTROLSSHARED_EXPORT DataReader {
@@ -79,8 +79,8 @@ namespace adcontrols {
         DataReader( const char * traceid = nullptr );
         DataReader( adfs::filesystem&, const char * traceid = nullptr );
 
-        typedef DataReader_iterator<DataReader_index> iterator;
-        typedef const DataReader_iterator<DataReader_index> const_iterator;
+        typedef DataReader_iterator iterator;
+        typedef const DataReader_iterator const_iterator;
         typedef DataReader_index value_type;
 
         enum TimeSpec { ElapsedTime, EpochTime };
