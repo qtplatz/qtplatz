@@ -69,3 +69,4 @@ DataReader_index::operator != ( adcontrols::DataReader_index& t ) const
 {
     return false;
 }
+

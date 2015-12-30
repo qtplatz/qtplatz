@@ -44,6 +44,9 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#if defined _MSC_VER && _MSC_VER <= 1800
+# include <compiler/make_unique.hpp>
+#endif
 
 namespace acqrsinterpreter {
 
@@ -179,19 +182,22 @@ DataReader::fcnCount() const
 adcontrols::DataReader::const_iterator
 DataReader::begin() const
 {
-    return DataReader_iterator( std::make_unique< DataReader_index >( *this ) );
+    return adcontrols::DataReader_iterator<>( std::unique_ptr< adcontrols::DataReader_index >( new DataReader_index( *this ) ) );
+    //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
-    return DataReader_iterator( std::make_unique< DataReader_index >( *this ) );
+    //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
+    return adcontrols::DataReader_iterator<>( std::unique_ptr< adcontrols::DataReader_index >( new DataReader_index( *this ) ) );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
 {
-    return DataReader_iterator( std::make_unique< DataReader_index >( *this ) );
+    //return adcontrols::DataReader_iterator<>( std::make_unique< adcontrols::DataReader_index >(*this) );
+    return adcontrols::DataReader_iterator<>( std::unique_ptr< adcontrols::DataReader_index >( new DataReader_index( *this ) ) );    
 #if 0
     if ( indecies_.empty() )
         return std::make_pair(-1,0);

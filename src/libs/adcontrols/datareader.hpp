@@ -51,6 +51,7 @@ namespace adcontrols {
 
     template< typename T = DataReader_index >
     class ADCONTROLSSHARED_EXPORT DataReader_iterator {
+    protected:
         std::unique_ptr<T> index_;
     public:
         virtual ~DataReader_iterator() {}
