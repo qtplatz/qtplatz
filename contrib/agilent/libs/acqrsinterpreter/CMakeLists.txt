@@ -25,6 +25,8 @@ add_library( ${PROJECT_NAME}
   datareader.hpp
   datareader_factory.cpp
   datareader_factory.hpp
+  datareader_iterator.cpp
+  datareader_iterator.hpp
   acqrsinterpreter.cpp
   massspectrometer.cpp 
   massspectrometer.hpp

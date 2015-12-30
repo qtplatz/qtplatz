@@ -359,31 +359,17 @@ rawdata::getFunctionCount() const
 size_t
 rawdata::posFromTime( double seconds ) const
 {
-    ADDEBUG() << "rawdata(v3) pos from time(" << seconds << ")";
     for ( auto& reader : readers_ ) {
-        reader.first->findPos( seconds );
-    }
 
-    adfs::stmt sql( dbf_.db() );
-    int64_t t0(0);
-    if ( sql.prepare( "SELECT MIN(elapsed_time) FROM AcquiredData" ) ) {
-        if ( sql.step() == adfs::sqlite_row ) 
-            t0 = sql.get_column_value< int64_t >( 0 );
-    }
-
-    int64_t tt = int64_t( seconds * 1.0e9 ) + t0;
-
-    if ( sql.prepare( "SELECT npos,elapsed_time FROM AcquiredData ORDER BY ABS( ? - elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) ) LIMIT 1" ) ) {
-        sql.bind( 1 ) = int64_t( seconds * 1.0e9 ); // ns
-        if ( sql.step() == adfs::sqlite_row ) {
-            
-            auto pos = sql.get_column_value< int64_t >( 0 );
-            auto elapsed_time = sql.get_column_value< int64_t >( 0 );
-
-            ADDEBUG() << "pos=" << pos << ", elapsed_time=" << elapsed_time << " (" << double( elapsed_time - t0 ) * 1.0e-9 << ")";
-            
-            return pos;
-        }
+        auto rp = reader.first;
+        auto& tpos = rp->findPos( seconds );
+        ADDEBUG() << tpos->pos();
+/*
+       if ( tpos != reader.first->end() ) {
+           ADDEBUG() << "rawdata(v3) pos from time(" << seconds << ") = " << tpos.first << ", " << tpos.second;
+           return tpos.pos();
+       }
+       */
     }
 	return 0;
 }

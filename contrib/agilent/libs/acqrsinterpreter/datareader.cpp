@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "datareader.hpp"
+#include "datareader_iterator.hpp"
 #include "datainterpreter.hpp"
 #include "datainterpreter_u5303a.hpp"
 #include "datainterpreter_histogram.hpp"
@@ -175,26 +176,65 @@ DataReader::fcnCount() const
     return 0;
 }
 
-int64_t
-DataReader::findPos( double seconds, bool closest, adcontrols::DataReader::TimeSpec tspec ) const
+adcontrols::DataReader::const_iterator
+DataReader::begin() const
 {
-    assert( tspec == adcontrols::DataReader::ElapsedTime );
+    return DataReader_iterator( std::make_unique< DataReader_index >( *this ) );
+}
+
+adcontrols::DataReader::const_iterator
+DataReader::end() const
+{
+    return DataReader_iterator( std::make_unique< DataReader_index >( *this ) );
+}
+
+adcontrols::DataReader::const_iterator
+DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
+{
+    return DataReader_iterator( std::make_unique< DataReader_index >( *this ) );
+#if 0
+    if ( indecies_.empty() )
+        return std::make_pair(-1,0);
+
+    if ( tspec == EpochTime ) {
+        assert( 0 ); // tba
+        return std::make_pair(-1,0);
+    }
+
+    if ( tspec == ElapsedTime ) {
+
+        int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
+
+        if ( indecies_.front().elapsed_time > elapsed_time )
+            return std::make_pair( indecies_.front().pos, time_since_inject( indecies_.front().elapsed_time ) );
+
+        if ( indecies_.back().elapsed_time < elapsed_time )
+            return std::make_pair(indecies_.back().pos, time_since_inject( indecies_.back().elapsed_time ) );
+
+        auto its = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
+        auto ite = std::upper_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( int64_t a, const index& b ) { return a < b.elapsed_time; } );
+
+        auto it = std::min_element( its, ite, [elapsed_time] ( const index& a, const index& b ) { return std::abs( elapsed_time - a.elapsed_time ) < std::abs( elapsed_time - b.elapsed_time ); } );
+
+        return std::make_pair( it->pos, time_since_inject( it->elapsed_time ) );
+    }
+
+    return std::make_pair(-1,0);
+#endif
+}
+
+double
+DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
+{
+    assert( ispec == TriggerNumber );
 
     if ( indecies_.empty() )
         return -1;
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), pos, [] ( const index& a, int64_t b ) { return a.pos < b; } );
+    if ( it != indecies_.end() )
+        return double( it->elapsed_time ) * 1.0e-9;
 
-    int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 );
-    if ( indecies_.front().elapsed_time > elapsed_time )
-        return indecies_.front().pos;
-    if ( indecies_.back().elapsed_time < elapsed_time )
-        return indecies_.back().pos;
-
-    auto its = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
-    auto ite = std::upper_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( int64_t a, const index& b ) { return a < b.elapsed_time; } );
-
-    auto it = std::min_element( its, ite, [elapsed_time] ( const index& a, const index& b ) { return std::abs( elapsed_time - a.elapsed_time ) < std::abs( elapsed_time - b.elapsed_time); } );
-
-    return it->pos;
+    return -1.0;
 }
 
 std::shared_ptr< const adcontrols::Chromatogram >
@@ -207,6 +247,14 @@ DataReader::TIC( int fcn ) const
         return tics_[ fcn ];
 
     return nullptr;
+}
+
+double
+DataReader::time_since_inject( int64_t elapsed_time ) const
+{
+    if ( !indecies_.empty() )
+        return ( elapsed_time - indecies_.front().elapsed_time ) * 1.0e-9;
+    return -1.0;
 }
 
 void
