@@ -184,14 +184,7 @@ DataReader::objtext() const
 int64_t
 DataReader::objrowid() const
 {
-    if ( auto db = db_.lock() ) {
-        adfs::stmt sql( *db );
-        sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ?" );
-        sql.bind( 1 ) = objid_;
-        if ( sql.step() == adfs::sqlite_row )
-            return sql.get_column_value< int64_t >( 0 );
-    }
-    return 0;
+    return objrowid_;
 }
 
 size_t
