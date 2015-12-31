@@ -641,3 +641,16 @@ ChromatogramImpl::getAcquisitionTimeRange() const
 {
     return timeRange_;
 }
+
+//static
+std::wstring
+Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
+{
+    std::wstring name;
+    for ( auto& desc: descs ) {
+        if ( ! name.empty() )
+            name += L"/";
+        name += desc.text();
+    }
+    return name;
+}

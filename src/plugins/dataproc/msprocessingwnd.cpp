@@ -31,6 +31,7 @@
 #include "mainwindow.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -370,40 +371,62 @@ MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
 void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
     portfolio::Portfolio portfolio = processor->getPortfolio();
 
-    if ( dset ) {
-		size_t nfcn = dset->getFunctionCount();
+    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
 
-		portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
-		if ( folder.nil() )
-			folder = processor->getPortfolio().addFolder( L"Chromatograms" );
+        portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
+        if ( folder.nil() )
+            folder = processor->getPortfolio().addFolder( L"Chromatograms" );
 
-		for ( size_t fcn = 0; fcn < nfcn; ++fcn ) {
-            std::wstring title = ( boost::wformat( L"TIC.%1%" ) % (fcn + 1) ).str();
-            
-			portfolio::Folium folium = folder.findFoliumByName( std::wstring( L"TIC/" ) + title );
-            if ( folium.nil() ) {   // add TIC if not yet added
-				adcontrols::Chromatogram c;
-                if ( dset->getTIC( static_cast<int>(fcn), c ) ) {
-                    if ( c.isConstantSampledData() )
-                        c.getTimeArray();
-                    c.addDescription( adcontrols::description( L"acquire.title", title ) );
-                    adcontrols::ProcessMethod m;
-                    MainWindow::instance()->getProcessMethod( m );
-                    folium = processor->addChromatogram( c, m, true );  // force checked
-				}
+        if ( dset->dataformat_version() >= 3 ) {
+
+            adcontrols::ProcessMethod m;
+            MainWindow::instance()->getProcessMethod( m );
+
+            auto vec = dset->dataReaders();
+            for ( auto& reader : vec ) {
+                for ( int fcn = 0; fcn < reader->fcnCount(); ++fcn ) {
+                    if ( auto tic = reader->TIC( fcn ) ) {
+                        auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
+                                                                 % adcontrols::Chromatogram::make_folder_name( tic->getDescriptions() )
+                                                                 % L"TIC" % ( fcn + 1 ) ).str() );
+                        if ( folium.nil() ) {
+                            adcontrols::Chromatogram c = *tic;
+                            c.addDescription( adcontrols::description( L"acquire.title", ( boost::wformat( L"TIC.%1%" ) % ( fcn + 1 ) ).str() ) );
+                            portfolio::Folium folium = processor->addChromatogram( c, m, true );
+                        }
+                        processor->setCurrentSelection( folium );
+                    }
+                }
             }
-            if ( folium.attribute(L"protoId").empty() )
-                folium.setAttribute( L"protoId", (boost::wformat( L"%d" ) % fcn).str() );
-		}
-        if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC/TIC.1" ) ) {
-            qtwrapper::waitCursor wait;
-			if ( folium.empty() )
-				processor->fetch( folium );
-			processor->setCurrentSelection( folium );
-		}
+        } else {
+            size_t nfcn = dset->getFunctionCount();
+            for ( size_t fcn = 0; fcn < nfcn; ++fcn ) {
+                std::wstring title = ( boost::wformat( L"TIC.%1%" ) % ( fcn + 1 ) ).str();
+
+                portfolio::Folium folium = folder.findFoliumByName( std::wstring( L"TIC/" ) + title );
+                if ( folium.nil() ) {   // add TIC if not yet added
+                    adcontrols::Chromatogram c;
+                    if ( dset->getTIC( static_cast<int>( fcn ), c ) ) {
+                        if ( c.isConstantSampledData() )
+                            c.getTimeArray();
+                        c.addDescription( adcontrols::description( L"acquire.title", title ) );
+                        adcontrols::ProcessMethod m;
+                        MainWindow::instance()->getProcessMethod( m );
+                        folium = processor->addChromatogram( c, m, true );  // force checked
+                    }
+                }
+                if ( folium.attribute( L"protoId" ).empty() )
+                    folium.setAttribute( L"protoId", ( boost::wformat( L"%d" ) % fcn ).str() );
+            }
+            if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC/TIC.1" ) ) {
+                qtwrapper::waitCursor wait;
+                if ( folium.empty() )
+                    processor->fetch( folium );
+                processor->setCurrentSelection( folium );
+            }
+        }
     }
 
     // show first spectrum on tree by default
@@ -411,8 +434,8 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
     if ( !spectra.nil() ) {
         portfolio::Folio folio = spectra.folio();
         if ( !folio.empty() ) {
-            processor->fetch( folio[0] );
-			processor->setCurrentSelection( folio[0] );
+            processor->fetch( folio [ 0 ] );
+            processor->setCurrentSelection( folio [ 0 ] );
         }
     }
 }

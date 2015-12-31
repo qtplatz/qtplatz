@@ -81,6 +81,8 @@ namespace adcontrols {
             template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
         };
 
+        static std::wstring make_folder_name( const adcontrols::descriptions& );
+
         size_t size() const;
         void resize( size_t );
 
