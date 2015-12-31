@@ -122,6 +122,8 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
+                                               , objid_( {0} )
+                                               , objrowid_(-1)
 {
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
@@ -146,6 +148,15 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
         db_ = dbf._ptr();
+
+        if ( auto db = db_.lock() ) {
+            adfs::stmt sql( *db );
+            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ?" );
+            sql.bind( 1 ) = objid_;
+            if ( sql.step() == adfs::sqlite_row )
+                objrowid_ = sql.get_column_value< int64_t >( 0 );
+        }
+    
         return true;
     }
     ADDEBUG() << "initialize failed for: " << objtext;
@@ -155,6 +166,32 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
 void
 DataReader::finalize()
 {
+}
+
+
+const boost::uuids::uuid&
+DataReader::objuuid() const
+{
+    return objid_;
+}
+
+const std::string&
+DataReader::objtext() const
+{
+    return objtext_;
+}
+
+int64_t
+DataReader::objrowid() const
+{
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ?" );
+        sql.bind( 1 ) = objid_;
+        if ( sql.step() == adfs::sqlite_row )
+            return sql.get_column_value< int64_t >( 0 );
+    }
+    return 0;
 }
 
 size_t
@@ -184,15 +221,13 @@ DataReader::fcnCount() const
 adcontrols::DataReader::const_iterator
 DataReader::begin() const
 {
-    return adcontrols::DataReader_iterator( *this, indecies_.front().rowid );
-    //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, indecies_.begin() ) );
+    return adcontrols::DataReader_iterator( *this, indecies_.empty() ? (-1) : indecies_.front().rowid );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
-    return adcontrols::DataReader_iterator( *this, indecies_.front().rowid );
-    //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, indecies_.end() ) );
+    return adcontrols::DataReader_iterator( *this, indecies_.empty() ? (-1) : indecies_.front().rowid );
 }
 
 adcontrols::DataReader::const_iterator
@@ -210,7 +245,6 @@ DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
 
         if ( indecies_.back().elapsed_time < elapsed_time )
             return adcontrols::DataReader_iterator( *this, indecies_.back().rowid );
-            //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, indecies_.end() - 1 ) );
 
         auto its = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
         auto ite = std::upper_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( int64_t a, const index& b ) { return a < b.elapsed_time; } );
@@ -218,7 +252,6 @@ DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
         auto it = std::min_element( its, ite, [elapsed_time] ( const index& a, const index& b ) { return std::abs( elapsed_time - a.elapsed_time ) < std::abs( elapsed_time - b.elapsed_time ); } );
 
         return adcontrols::DataReader_iterator( *this, it->rowid );
-        //return adcontrols::DataReader_iterator( std::make_unique< DataReader_index >( *this, it ) );
     }
 
     return end();

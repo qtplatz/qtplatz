@@ -47,14 +47,16 @@ namespace adcontrols {
 
 using namespace adcontrols;
 
-DataReader_iterator::DataReader_iterator( const DataReader& reader, int64_t rowid ) : reader_( reader ), rowid_( rowid )
+DataReader_iterator::DataReader_iterator( const DataReader& reader, int64_t rowid ) : reader_( reader )
+                                                                                    , rowid_( rowid )
+                                                                                    , value_( reader, rowid_ )
 {
 }
 
 const DataReader_iterator&
 DataReader_iterator::operator ++ ()
 {
-    rowid_ = reader_.next( rowid_ );
+    value_.rowid_ = rowid_ = reader_.next( rowid_ );
     return *this;
 }
 
@@ -62,34 +64,33 @@ const DataReader_iterator
 DataReader_iterator::operator ++ ( int )
 {
     DataReader_iterator temp( *this );
-    reader_.next( rowid_ );
+    value_.rowid_ = rowid_ = reader_.next( rowid_ );
     return temp;
 }
 
 int64_t
-DataReader_iterator::pos() const
+DataReader_value_type::pos() const
 {
     return reader_.pos( rowid_ );
 }
 
 int64_t
-DataReader_iterator::elapsed_time() const
+DataReader_value_type::elapsed_time() const
 {
     return reader_.elapsed_time( rowid_ );
 }
 
 double
-DataReader_iterator::time_since_inject() const
+DataReader_value_type::time_since_inject() const
 {
     return reader_.time_since_inject( rowid_ );
 }
 
 int
-DataReader_iterator::fcn() const
+DataReader_value_type::fcn() const
 {
     return reader_.fcn( rowid_ );
 }
-
 
 /////////////////////
 

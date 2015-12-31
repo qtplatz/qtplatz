@@ -104,6 +104,33 @@ rawdata::loadAcquiredConf()
     return false;
 }
 
+
+size_t
+rawdata::dataReaderCount() const
+{
+    return readers_.size();
+}
+
+const adcontrols::DataReader *
+rawdata::dataReader( size_t idx ) const
+{
+    if ( idx < readers_.size() )
+        return readers_ [ idx ].first.get();
+    return nullptr;
+}
+
+std::vector < std::shared_ptr< const adcontrols::DataReader > >
+rawdata::dataReaders() const
+{
+    std::vector < std::shared_ptr< const adcontrols::DataReader > > v;
+    v.reserve( readers_.size() );
+
+    for ( auto& reader : readers_ )
+        v.push_back( reader.first );
+
+    return v;
+}
+
 bool
 rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
 {
@@ -234,6 +261,18 @@ rawdata::index( size_t pos, int& idx, int& fcn, int& rep, double * time ) const
     //       1009   2     2
     // 1     1010   0     0 << change fcn, back to 0
     //       1011   0     1
+    //--------------
+    // When this method was desigened at 2010, the number 'pos' that is trigger id was unique in the datafile.
+    // But 'pos' no longer unique due to simultaneous 'counting' and 'soft-averaged waveforms' data streams.
+    // The rawid from datafile is only be unique.
+
+    for ( auto& reader : readers_ ) {
+        //if ( auto tpos = reader.first->findPos( seconds ) ) 
+        //    return tpos->time_since_inject();
+    }
+	return 0;
+
+
 
     if ( fcnIdx_.size() == 1 ) { // no protocol sequence acquisition
         if ( pos >= fcnVec_.size() )
@@ -360,14 +399,8 @@ size_t
 rawdata::posFromTime( double seconds ) const
 {
     for ( auto& reader : readers_ ) {
-
-        auto tpos = reader.first->findPos( seconds );
-        /*
-        if ( tpos != reader.first->end() ) {
-            ADDEBUG() << tpos->pos();
+        if ( auto tpos = reader.first->findPos( seconds ) ) 
             return tpos->time_since_inject();
-        }
-        */
     }
 	return 0;
 }

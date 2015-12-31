@@ -33,6 +33,9 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT AcquiredDataset {
     public:
         AcquiredDataset();
+
+        virtual int dataformat_version() const { return 0; }
+
     };
 
 }

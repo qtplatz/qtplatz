@@ -40,25 +40,46 @@ namespace adcontrols {
     class Chromatogram;
     class DataReader;
 
-    class ADCONTROLSSHARED_EXPORT DataReader_iterator {
+    class ADCONTROLSSHARED_EXPORT DataReader_value_type {
         const DataReader& reader_;
         int64_t rowid_;
+        friend class DataReader_iterator;
     public:
-        DataReader_iterator( const DataReader& reader, int64_t rowid );
+        DataReader_value_type( const DataReader& reader, int64_t rowid ) : reader_( reader ), rowid_( rowid ) {
+        }
+        DataReader_value_type( const DataReader_value_type& t ) : reader_( t.reader_ ), rowid_( t.rowid_ ) {
+        }
+
         inline int64_t rowid() const { return rowid_; }
-
-        bool operator == ( const DataReader_iterator& rhs ) const { return rowid_ == rhs.rowid_; }
-        bool operator != ( const DataReader_iterator& rhs ) const { return rowid_ != rhs.rowid_; }
-        const DataReader_iterator& operator ++ ();
-        const DataReader_iterator operator ++ ( int );
-
         int64_t pos() const;
         int64_t elapsed_time() const;
         double time_since_inject() const;
         int fcn() const;
     };
 
-	class ADCONTROLSSHARED_EXPORT DataReader {
+    class ADCONTROLSSHARED_EXPORT DataReader_iterator : public std::iterator< std::forward_iterator_tag, DataReader_iterator > {
+        const DataReader& reader_;
+        int64_t rowid_;
+        DataReader_value_type value_;
+    public:
+
+        DataReader_iterator( const DataReader& reader, int64_t rowid );
+
+        const DataReader_value_type& operator * () const {
+            return value_; };
+        const DataReader_value_type* operator -> () const {
+            return &value_; };
+
+        const DataReader_iterator& operator ++ ();
+        const DataReader_iterator operator ++ ( int );
+        bool operator == ( const DataReader_iterator& rhs ) const { return value_.rowid() == rhs.value_.rowid(); }
+        bool operator != ( const DataReader_iterator& rhs ) const { return value_.rowid() != rhs.value_.rowid(); }
+
+        operator bool() const { 
+            return value_.rowid_ != (-1); }
+    };
+
+	class ADCONTROLSSHARED_EXPORT DataReader : public std::enable_shared_from_this< DataReader > {
 
         DataReader( const DataReader& ) = delete;  // noncopyable
         DataReader& operator = (const DataReader&) = delete;
@@ -76,6 +97,11 @@ namespace adcontrols {
         virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt = "" ) { return false; }
         virtual void finalize() { return ; }
         virtual size_t fcnCount() const { return 0; }
+
+        virtual const boost::uuids::uuid& objuuid() const = 0;
+        virtual const std::string& objtext() const = 0;
+        virtual int64_t objrowid() const = 0; // rowid corresponding to objuuid; this is for backward (v2) compatibility
+
         virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; }
 
         virtual const_iterator begin() const = 0;

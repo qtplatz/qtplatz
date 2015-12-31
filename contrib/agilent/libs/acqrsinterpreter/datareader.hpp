@@ -51,6 +51,11 @@ namespace acqrsinterpreter {
 
         bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
         void finalize() override;
+
+        const boost::uuids::uuid& objuuid() const override;
+        const std::string& objtext() const override;
+        int64_t objrowid() const override;
+
         size_t fcnCount() const override;
         std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const override;
 
@@ -75,6 +80,7 @@ namespace acqrsinterpreter {
         std::weak_ptr< adfs::sqlite > db_;
         boost::uuids::uuid objid_;
         std::string objtext_;
+        int64_t objrowid_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
 
         struct index {

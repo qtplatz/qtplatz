@@ -56,6 +56,9 @@ namespace addatafile {
             ~rawdata();
             rawdata( adfs::filesystem&, adcontrols::datafile& );
 
+            // AcquiredDataset
+            int dataformat_version() const override { return 2; }
+
             // LCMSDataset
             size_t getFunctionCount() const override;
             size_t getSpectrumCount( int fcn = 0 ) const override;

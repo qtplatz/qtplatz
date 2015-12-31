@@ -62,6 +62,8 @@ namespace addatafile {
         public:
             ~rawdata();
             rawdata( adfs::filesystem&, adcontrols::datafile& );
+            // AcquiredDataset
+            int dataformat_version() const override { return 3; }
 
             // LCMSDataset
             size_t getFunctionCount() const override;
@@ -84,6 +86,8 @@ namespace addatafile {
             uint32_t findObjId( const std::wstring& traceId ) const override;
             bool getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char >& data, std::vector< char >& meta ) const override;
 
+            //
+
             bool loadAcquiredConf();
             void loadCalibrations();
 
@@ -94,6 +98,11 @@ namespace addatafile {
             adfs::sqlite* db() override;
         
             bool mslocker( adcontrols::lockmass&, uint32_t objid ) const override;
+
+            // v3 specific
+            size_t dataReaderCount() const override;
+            const adcontrols::DataReader * dataReader( size_t idx ) const override;
+            std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders() const override;
         
         private:
             bool fetchTraces( int64_t objid, const adcontrols::DataInterpreter&, adcontrols::TraceAccessor& );
