@@ -93,6 +93,8 @@ rawdata::loadAcquiredConf()
                 if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) {
                     readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
                 }
+            } else {
+                ADERROR() << "No data reader found for '" << conf.trace_id << "'";
             }
         }
         fcnCount_ = 0;

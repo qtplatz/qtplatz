@@ -39,8 +39,8 @@ namespace acqrsinterpreter {
     class DataReader_index;
 
     class DataReader : public adcontrols::DataReader {
-        DataReader( const DataReader& ) = delete;  // noncopyable
-        DataReader& operator = (const DataReader&) = delete;
+        //DataReader( const DataReader& ) = delete;  // noncopyable
+        //DataReader& operator = (const DataReader&) = delete;
     public:
         ~DataReader( void );
         DataReader( const char * traceid );

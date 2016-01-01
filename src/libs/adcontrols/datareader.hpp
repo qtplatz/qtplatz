@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <functional>
 #include <utility>
+#include <vector>
 #include <memory>
 
 namespace boost { namespace uuids { struct uuid; } }
@@ -39,18 +40,16 @@ namespace adcontrols {
     class datafile;
     class Chromatogram;
     class DataReader;
+    class DataReader_iterator;
 
     class ADCONTROLSSHARED_EXPORT DataReader_value_type {
-        const DataReader& reader_;
+        DataReader_iterator * iterator_;
         int64_t rowid_;
+        DataReader_value_type( const DataReader_value_type& t ) = delete;
         friend class DataReader_iterator;
     public:
-        DataReader_value_type( const DataReader& reader, int64_t rowid ) : reader_( reader ), rowid_( rowid ) {
-        }
-        DataReader_value_type( const DataReader_value_type& t ) : reader_( t.reader_ ), rowid_( t.rowid_ ) {
-        }
-
-        inline int64_t rowid() const { return rowid_; }
+        DataReader_value_type( DataReader_iterator * it );
+        int64_t rowid() const;
         int64_t pos() const;
         int64_t elapsed_time() const;
         double time_since_inject() const;
@@ -58,36 +57,38 @@ namespace adcontrols {
     };
 
     class ADCONTROLSSHARED_EXPORT DataReader_iterator : public std::iterator< std::forward_iterator_tag, DataReader_iterator > {
-        const DataReader& reader_;
+        const DataReader * reader_;
         int64_t rowid_;
         DataReader_value_type value_;
+        //friend class DataReader_value_type;
     public:
+        DataReader_iterator();
+        DataReader_iterator( const DataReader* reader, int64_t rowid );
+        DataReader_iterator( const DataReader_iterator& );
+        DataReader_iterator& operator = ( const DataReader_iterator& );
 
-        DataReader_iterator( const DataReader& reader, int64_t rowid );
-
-        const DataReader_value_type& operator * () const {
-            return value_; };
-        const DataReader_value_type* operator -> () const {
-            return &value_; };
+        const DataReader_value_type& operator * () const { return value_; };
+        const DataReader_value_type* operator -> () const { return &value_; };
 
         const DataReader_iterator& operator ++ ();
         const DataReader_iterator operator ++ ( int );
         bool operator == ( const DataReader_iterator& rhs ) const { return value_.rowid() == rhs.value_.rowid(); }
         bool operator != ( const DataReader_iterator& rhs ) const { return value_.rowid() != rhs.value_.rowid(); }
 
-        operator bool() const { 
-            return value_.rowid_ != (-1); }
+        operator bool() const { return rowid_ != (-1); }
+        const DataReader * dataReader() const { return reader_; }
+        inline int64_t rowid() const { return rowid_; }
     };
 
 	class ADCONTROLSSHARED_EXPORT DataReader : public std::enable_shared_from_this< DataReader > {
-
-        DataReader( const DataReader& ) = delete;  // noncopyable
-        DataReader& operator = (const DataReader&) = delete;
-
     public:
         virtual ~DataReader(void);
+
         DataReader( const char * traceid = nullptr );
-        DataReader( adfs::filesystem&, const char * traceid = nullptr );
+        //DataReader( adfs::filesystem&, const char * traceid = nullptr );
+
+        DataReader( const DataReader& );
+        DataReader& operator = ( const DataReader& );
 
         typedef DataReader_iterator const_iterator;
 
@@ -113,12 +114,15 @@ namespace adcontrols {
         /* findTime returns elapsed time for the data specified by trigger number */
         virtual double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const = 0;
 
+        enum findPosFlags { findPosRight, findPosClosest };
+        static const_iterator findPos( double seconds, const std::vector< std::shared_ptr< const DataReader > >&, findPosFlags = findPosRight );
+
         // Iterator reference methods
-        virtual int64_t next( int64_t rowid ) const = 0;
-        virtual int64_t pos( int64_t rowid ) const = 0;
-        virtual int64_t elapsed_time( int64_t rowid ) const = 0;
-        virtual double time_since_inject( int64_t rowid ) const = 0;
-        virtual int fcn( int64_t rowid ) const = 0;
+        virtual int64_t next( int64_t rowid ) const { return -1; }
+        virtual int64_t pos( int64_t rowid ) const { return -1; }
+        virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
+        virtual double time_since_inject( int64_t rowid ) const { return -1; }
+        virtual int fcn( int64_t rowid ) const { return -1; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

@@ -140,6 +140,20 @@ namespace dataproc {
             processedSpectrum_->setFocusedFcn( fcn );
         }
 
+        bool ticFinder3( Dataprocessor * dp, double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
+            if ( auto rawfile = dp->getLCMSDataset() ) {
+                auto readers = rawfile->dataReaders();
+                if ( auto it = adcontrols::DataReader::findPos( adcontrols::Chromatogram::toSeconds( x ), readers ) ) {
+                    pos = it->pos();
+                    minutes = it->time_since_inject() / 60.0;
+                    rep = 0;
+                    fcn = it->fcn();
+                    return true;
+                }
+            }
+            return false;
+        }
+
         bool ticFinder( double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
             index = 0;
             fcn = (-1);
@@ -147,6 +161,8 @@ namespace dataproc {
 
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto rawfile = dp->getLCMSDataset() ) {
+                    if ( rawfile->dataformat_version() >= 3 )
+                        return ticFinder3( dp, x, pos, index, rep, fcn, minutes );
                     pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
                     if ( rawfile->index( pos, index, fcn, rep ) ) {
                         minutes = adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );

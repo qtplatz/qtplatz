@@ -24,7 +24,9 @@
 **************************************************************************/
 
 #include "datareader.hpp"
+#include <boost/uuid/uuid.hpp>
 #include <map>
+#include <vector>
 
 namespace adcontrols {
 
@@ -38,25 +40,79 @@ namespace adcontrols {
         impl() {}
 
         std::shared_ptr< DataReader > make_reader( const char * traceid ) const;
-
         std::map< std::string, std::function< factory_type > > reader_factories_;
         std::map< std::string, std::string > reader_map_;  // <traceid, clsid>
+    };
+
+    class NullDataReader : public DataReader {
+        boost::uuids::uuid uuid_;
+        std::string objtext_;
+    public:
+        NullDataReader() : uuid_( { 0 } ) {}
+        const boost::uuids::uuid& objuuid() const override { return uuid_; }
+        const std::string& objtext() const { return objtext_; }
+        int64_t objrowid() const { return 0; }
+        const_iterator begin() const { return end(); }
+        const_iterator end() const { return const_iterator(this, -1); }
+        const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const { return end(); }
+        double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const { return end(); }
+
+        static DataReader& instance() {
+            static NullDataReader __instance;
+            return __instance;
+        }
     };
 
 }
 
 using namespace adcontrols;
 
-DataReader_iterator::DataReader_iterator( const DataReader& reader, int64_t rowid ) : reader_( reader )
-                                                                                    , rowid_( rowid )
-                                                                                    , value_( reader, rowid_ )
+DataReader_value_type::DataReader_value_type( DataReader_iterator * it ) : iterator_( it )
+                                                                         , rowid_( it->rowid() )
 {
+}
+
+#if 0
+DataReader_value_type::DataReader_value_type( const DataReader_value_type& t ) : iterator_( t.iterator_ )
+                                                                               , rowid_( t.rowid() )
+{
+}
+#endif
+
+/////////////
+
+DataReader_iterator::DataReader_iterator() : reader_( &NullDataReader::instance() )
+                                           , rowid_( -1 )
+                                           , value_( this )
+{
+}
+
+DataReader_iterator::DataReader_iterator( const DataReader* reader
+                                         , int64_t rowid ) : reader_( reader )
+                                                           , rowid_( rowid )
+                                                           , value_( this )
+{
+}
+
+DataReader_iterator::DataReader_iterator( const DataReader_iterator& t ) : reader_( t.reader_ )
+                                                                         , rowid_( t.rowid_ )
+                                                                         , value_( this )
+{
+}
+
+DataReader_iterator&
+DataReader_iterator::operator = ( const DataReader_iterator& t ) 
+{
+    reader_ = t.reader_;
+    rowid_ = t.rowid_;
+    value_ = t.value_;
+    return *this;
 }
 
 const DataReader_iterator&
 DataReader_iterator::operator ++ ()
 {
-    value_.rowid_ = rowid_ = reader_.next( rowid_ );
+    rowid_ = rowid_ = reader_->next( rowid_ );
     return *this;
 }
 
@@ -64,32 +120,38 @@ const DataReader_iterator
 DataReader_iterator::operator ++ ( int )
 {
     DataReader_iterator temp( *this );
-    value_.rowid_ = rowid_ = reader_.next( rowid_ );
+    rowid_ = rowid_ = reader_->next( rowid_ );
     return temp;
+}
+
+int64_t
+DataReader_value_type::rowid() const
+{
+    return rowid_;
 }
 
 int64_t
 DataReader_value_type::pos() const
 {
-    return reader_.pos( rowid_ );
+    return iterator_->dataReader()->pos( rowid_ );
 }
 
 int64_t
 DataReader_value_type::elapsed_time() const
 {
-    return reader_.elapsed_time( rowid_ );
+    return iterator_->dataReader()->elapsed_time( rowid_ );
 }
 
 double
 DataReader_value_type::time_since_inject() const
 {
-    return reader_.time_since_inject( rowid_ );
+    return iterator_->dataReader()->time_since_inject( rowid_ );
 }
 
 int
 DataReader_value_type::fcn() const
 {
-    return reader_.fcn( rowid_ );
+    return iterator_->dataReader()->fcn( rowid_ );
 }
 
 /////////////////////
@@ -137,3 +199,23 @@ DataReader::impl::make_reader( const char * traceid ) const
     return nullptr;
 }
 
+//////////////////////////
+
+//static
+DataReader::const_iterator 
+DataReader::findPos( double seconds, const std::vector< std::shared_ptr< const DataReader > >& readers, findPosFlags flag )
+{
+    double diff = std::numeric_limits<double>::max();
+    const_iterator result;
+
+    for ( auto& reader : readers ) {
+        if ( auto it = reader->findPos( seconds ) ) {
+            double tdiff = std::abs( it->time_since_inject() - seconds );
+            if ( diff > tdiff ) {
+                diff = tdiff;
+                result = it;
+            }
+        }
+    }
+    return result;
+}
