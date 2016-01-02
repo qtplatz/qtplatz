@@ -707,6 +707,23 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         typedef std::pair < QAction *, std::function<void()> > action_type;
         std::vector < action_type > actions;
 
+        //--- v3 support -->
+        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            if ( auto rawfile = dp->getLCMSDataset() ) {
+                if ( rawfile->dataformat_version() >= 3 ) {
+                    auto readers = rawfile->dataReaders();
+                    for ( auto& reader : readers ) {
+                        if ( auto it = reader->findPos( adcontrols::Chromatogram::toSeconds( rect.left() ) ) )
+                            actions.push_back( std::make_pair(
+                                menu.addAction( QString( "Select spectrum @%1min %2" ).arg( QString::number( rect.left(), 'f', 3 )
+                                                                                            , QString::fromStdString( reader->objtext() ) ) )
+                                , [=] () { DataprocPlugin::instance()->onSelectSpectrum( rect.left(), it ); } ) );
+                    }
+                }
+            }
+        }
+                    
+      //  xxxxxxxxxxxxxxxxxxxxxxxx
         size_t pos;
         int index, rep, fcn;
         double minutes;

@@ -77,7 +77,7 @@ namespace adcontrols {
         // v3 data support
         virtual size_t dataReaderCount() const { return 0; }
         virtual const adcontrols::DataReader * dataReader( size_t idx ) const { return nullptr; }
-        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders() const { return std::vector < std::shared_ptr< const adcontrols::DataReader > >(); }
+        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible = false ) const { return std::vector < std::shared_ptr< const adcontrols::DataReader > >(); }
 	};
 
 }

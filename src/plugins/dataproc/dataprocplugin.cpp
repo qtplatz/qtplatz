@@ -43,6 +43,7 @@
 #include <acewrapper/constants.hpp>
 #include <adcontrols/datafilebroker.hpp>
 #include <adcontrols/datafile_factory.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -311,6 +312,15 @@ DataprocPlugin::handle_folium_added( const QString fname, const QString path, co
     if ( it != SessionManager::instance()->end() ) {
 		Dataprocessor& processor = it->getDataprocessor();
 		processor.load( path.toStdWString(), id.toStdWString() );
+    }
+}
+
+void
+DataprocPlugin::onSelectSpectrum( double /*minutes*/, const adcontrols::DataReader_iterator& iterator )
+{
+    // read from v3 format data
+    if ( auto reader = iterator.dataReader() ) {
+
     }
 }
 

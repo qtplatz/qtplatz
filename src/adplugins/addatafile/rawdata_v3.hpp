@@ -102,7 +102,7 @@ namespace addatafile {
             // v3 specific
             size_t dataReaderCount() const override;
             const adcontrols::DataReader * dataReader( size_t idx ) const override;
-            std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders() const override;
+            std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible ) const override;
         
         private:
             bool fetchTraces( int64_t objid, const adcontrols::DataInterpreter&, adcontrols::TraceAccessor& );

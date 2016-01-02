@@ -39,6 +39,8 @@ namespace adportable {
 namespace adcontrols {
 	class ProcessMethod;
 	class MassSpectrum;
+    class DataReader;
+    class DataReader_iterator;
 }
 
 namespace adextension {
@@ -78,6 +80,7 @@ namespace dataproc {
         void applyMethod( const adcontrols::ProcessMethod& );
         void onSelectTimeRangeOnChromatogram( double x1, double x2 );
         void onSelectSpectrum( double minutes, size_t pos, int fcn );
+        void onSelectSpectrum( double /*minutes*/, const adcontrols::DataReader_iterator& );
         DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
         dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
         void handleFileCreated( const QString& filename );

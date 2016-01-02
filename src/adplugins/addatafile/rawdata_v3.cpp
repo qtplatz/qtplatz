@@ -122,13 +122,19 @@ rawdata::dataReader( size_t idx ) const
 }
 
 std::vector < std::shared_ptr< const adcontrols::DataReader > >
-rawdata::dataReaders() const
+rawdata::dataReaders( bool allPossible ) const
 {
     std::vector < std::shared_ptr< const adcontrols::DataReader > > v;
     v.reserve( readers_.size() );
 
-    for ( auto& reader : readers_ )
-        v.push_back( reader.first );
+    if ( allPossible ) {
+        for ( auto& reader : readers_ )
+            v.push_back( reader.first );
+    } else {
+        for ( auto& reader : readers_ )
+            if ( reader.first->fcnCount() > 0 )
+                v.push_back( reader.first );
+    }
 
     return v;
 }
@@ -267,14 +273,6 @@ rawdata::index( size_t pos, int& idx, int& fcn, int& rep, double * time ) const
     // When this method was desigened at 2010, the number 'pos' that is trigger id was unique in the datafile.
     // But 'pos' no longer unique due to simultaneous 'counting' and 'soft-averaged waveforms' data streams.
     // The rawid from datafile is only be unique.
-
-    for ( auto& reader : readers_ ) {
-        //if ( auto tpos = reader.first->findPos( seconds ) ) 
-        //    return tpos->time_since_inject();
-    }
-	return 0;
-
-
 
     if ( fcnIdx_.size() == 1 ) { // no protocol sequence acquisition
         if ( pos >= fcnVec_.size() )
