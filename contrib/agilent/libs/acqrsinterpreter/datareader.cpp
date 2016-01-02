@@ -31,6 +31,7 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
@@ -373,4 +374,36 @@ DataReader::fcn( int64_t rowid ) const
     if ( it != indecies_.end() )
         return it->fcn;
     return -1;    
+}
+
+std::shared_ptr< const adcontrols::MassSpectrum >
+DataReader::getSpectrum( int64_t rowid ) const
+{
+    if ( auto db = db_.lock() ) {
+
+        adfs::stmt sql( *db );
+
+        if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
+        
+            sql.bind( 1 ) = rowid;
+
+            if ( sql.step() == adfs::sqlite_row ) {
+
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
+
+                auto ptr = std::make_shared< adcontrols::MassSpectrum >();
+
+                interpreter_->translate( *ptr, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), 0 );
+                
+                // return interpreter.translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
+                //      , reinterpret_cast<const char *>(xmeta.data()), xmeta.size(), *spectrometer, idData++, traceId.c_str() );
+
+            }
+        }
+        // const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+        
+    }
+
+    return nullptr;
 }

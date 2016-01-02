@@ -41,6 +41,7 @@ namespace adcontrols {
     class Chromatogram;
     class DataReader;
     class DataReader_iterator;
+    class MassSpectrum;
 
     class ADCONTROLSSHARED_EXPORT DataReader_value_type {
         DataReader_iterator * iterator_;
