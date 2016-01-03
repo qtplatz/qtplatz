@@ -41,14 +41,16 @@ static std::once_flag flag;
 MassSpectrometerFactory *
 MassSpectrometerFactory::instance()
 {
-    std::call_once( flag, [] () { instance_ = std::make_shared< MassSpectrometerFactory >(); } );
-    return instance_.get();
+    //std::call_once( flag, [] () { instance_ = std::make_shared< MassSpectrometerFactory >(); } );
+    return 0; // instance_.get();
 }
 
 
 using namespace adspectrometer;
 
-MassSpectrometerFactory::MassSpectrometerFactory() : spectrometer_( new MassSpectrometer(0) )
+#if 0
+
+MassSpectrometerFactory::MassSpectrometerFactory() //: spectrometer_( new MassSpectrometer(0) )
 {
 }
 
@@ -116,3 +118,4 @@ MassSpectrometerFactory::query_interface_workaround( const char * typenam )
         return static_cast<adcontrols::massspectrometer_factory *>( this );
     return 0;
 }
+#endif

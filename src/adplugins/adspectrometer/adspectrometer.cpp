@@ -23,6 +23,44 @@
 **************************************************************************/
 
 #include "massspectrometerfactory.hpp"
+#include <adplugin/plugin.hpp>
+#include <memory>
+#include <mutex>
+
+namespace adspectrometer {
+
+    class adspectrometer_plugin : public adplugin::plugin {
+        adspectrometer_plugin( const adspectrometer_plugin& ) = delete;
+#if _MSC_VER >= 1900
+    public:
+#endif
+        adspectrometer_plugin() {}
+    public:
+        ~adspectrometer_plugin() {}
+
+        static std::shared_ptr< adspectrometer_plugin > instance_;
+
+        static adspectrometer_plugin * instance() {
+            static std::once_flag flag;
+            std::call_once( flag, [] () {
+                struct make_shared_enabler : public adspectrometer_plugin {};
+                instance_ = std::make_shared< make_shared_enabler >();
+            } );
+
+            return instance_.get();
+        }
+
+        // plugin
+        void * query_interface_workaround( const char * ) override { return 0; }
+
+        void accept( adplugin::visitor&, const char * adplugin ) override;
+
+        const char * iid() const override { return "adspectrometer.plugin.ms-cheminfo.com"; }
+    };
+
+    std::shared_ptr< adspectrometer_plugin > adspectrometer_plugin::instance_;
+
+}
 
 extern "C" {
     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
@@ -31,6 +69,13 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    return adspectrometer::MassSpectrometerFactory::instance();
+    return adspectrometer::adspectrometer_plugin::instance();
 }
 
+///////////////////////////
+using namespace adspectrometer;
+
+void
+adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
+{
+}
