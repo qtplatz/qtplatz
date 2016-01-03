@@ -34,9 +34,9 @@ namespace adcontrols {
     class MassSpectrometer;
     class datafile;
     
-    class ADCONTROLSSHARED_EXPORT massspectrometer_factory {
-    public:
+    class ADCONTROLSSHARED_EXPORT massspectrometer_factory : public std::enable_shared_from_this< massspectrometer_factory > {
         massspectrometer_factory(void);
+    public:
         virtual ~massspectrometer_factory(void);
 
         virtual const wchar_t * name() const = 0;
@@ -44,6 +44,57 @@ namespace adcontrols {
         virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
         virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
     };
+
+    namespace helper
+    {
+        template <std::size_t... Ts>
+        struct index {};
+        
+        template <std::size_t N, std::size_t... Ts>
+        struct gen_seq : gen_seq<N - 1, N - 1, Ts...> {};
+        
+        template <std::size_t... Ts>
+        struct gen_seq<0, Ts...> : index<Ts...> {};
+    }
+    
+    template< typename massspectrometer_type, typename... Args >
+    class massspectrometer_factory_type : public massspectrometer_factory {
+
+        massspectrometer_factory_type( const massspectrometer_factory_type& ) = delete;
+        massspectrometer_factory_type& operator = ( const massspectrometer_factory_type& ) = delete;
+
+        std::string iid_;
+        const std::tuple<Args...> args_;
+        
+    public:
+        massspectrometer_factory_type( const std::string& iid
+                                       , Args&&... args ) : iid_( iid )
+                                                          , args_( std::make_tuple( std::forward<Args>( args )... ) ) {
+        }
+        ~massspectrometer_factory_type() {
+        }
+
+        template< std::size_t... Is>
+        std::shared_ptr< MassSpectrometer > __creator( const std::tuple<Args...>& args, helper::index<Is...> ) const {
+            return std::make_shared< massspectrometer_type >( std::get<Is>(args)... );
+        }
+
+        std::shared_ptr< MassSpectrometer > creator( const std::tuple<Args...>& args ) const {
+            return __creator( args_, helper::gen_seq<sizeof...(Args)>{} );
+        }
+
+        //--------
+        const wchar_t * name() const override { return L""; }
+
+        MassSpectrometer * get( const wchar_t * modelname ) override { return 0; } // depricated 
+
+        std::shared_ptr< MassSpectrometer > create( const wchar_t * /* modelname */, adcontrols::datafile * ) const override {
+            return creator( args_ );
+        }
+
+        bool is_canonical_name( const wchar_t * )  const override { return false; }   
+    };
+
     
 }
 
