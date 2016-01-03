@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -23,24 +23,14 @@
 **
 **************************************************************************/
 
-#pragma once
-
-namespace boost { namespace uuids { struct uuid; } }
+#include "constants.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace adcontrols {
-    namespace constants {
-
-        // Folium (attachment) name
-        const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
-        const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
-        const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
-        const wchar_t * const F_TARGETING          = L"Targeting";
-        const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
-    }
-
     namespace iids {
 
-        extern const boost::uuids::uuid massspectrometer_uuid;
+        const boost::uuids::uuid massspectrometer_uuid = boost::uuids::string_generator()( "{85897CCB-8025-41AB-B01E-3147C44A8955}" );
 
     }
 }

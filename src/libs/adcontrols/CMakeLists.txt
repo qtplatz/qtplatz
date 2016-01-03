@@ -34,7 +34,9 @@ add_library( adcontrols SHARED
   chemicalformula.cpp
   chemicalformula.hpp
   chromatogram.cpp
-  chromatogram.hpp 
+  chromatogram.hpp
+  constants.hpp
+  constants.cpp
   controlmethod.cpp
   controlmethod.hpp
   ctable.cpp
