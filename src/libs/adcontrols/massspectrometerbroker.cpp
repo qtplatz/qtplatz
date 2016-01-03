@@ -26,12 +26,15 @@
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer.hpp"
 #include "massspectrometer_factory.hpp"
+#include "adcontrols.hpp"
+#include "constants.hpp"
+#include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <algorithm>
 #include <map>
 #include <string>
-#include <adportable/string.hpp>
-#include <adportable/debug.hpp>
-#include "adcontrols.hpp"
 
 using namespace adcontrols;
 
@@ -51,6 +54,11 @@ namespace adcontrols {
         
         bool register_factory( massspectrometer_factory* factory, const std::wstring& name ) {
             factories_[name] = factory;
+            try {
+                MassSpectrometerBroker::register_factory( factory, MassSpectrometerBroker::name_to_uuid( name ), adportable::utf::to_utf8( name ) );
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << ex.what();
+            }
             return true;
         }
         
@@ -128,4 +136,84 @@ massSpectrometerBroker::names()
     std::vector< std::wstring > vec;
 	MassSpectrometerBrokerImpl::instance()->names( vec );
     return vec;
+}
+
+////////////////////////////////////////////////////////////////
+/////// new generation
+///////////////////////////////////////////////////////////////
+
+namespace adcontrols {
+    
+    class MassSpectrometerBroker::impl {
+    public:
+        static impl& instance() {
+            static impl __impl;
+            return __impl;
+        }
+        typedef std::pair< std::string, std::shared_ptr< massspectrometer_factory > > value_type; 
+
+        std::map< boost::uuids::uuid, value_type > factories_;
+    };
+
+}
+
+MassSpectrometerBroker::MassSpectrometerBroker()
+{
+}
+
+MassSpectrometerBroker::~MassSpectrometerBroker()
+{
+}
+
+//static
+bool
+MassSpectrometerBroker::register_factory( massspectrometer_factory* f, const boost::uuids::uuid& uuid, const std::string& objtext )
+{
+    impl::instance().factories_ [ uuid ] = std::make_pair( objtext, f->shared_from_this() );
+    return true;
+}
+
+//static
+massspectrometer_factory*
+MassSpectrometerBroker::find_factory( const boost::uuids::uuid& uuid )
+{
+    auto it = impl::instance().factories_.find( uuid );
+    if ( it != impl::instance().factories_.end() ) {
+        if ( auto ptr = it->second.second )
+            return ptr.get();
+    }
+    return nullptr;
+}
+
+massspectrometer_factory*
+MassSpectrometerBroker::find_factory( const std::string& objtext )
+{
+    auto it = std::find_if( impl::instance().factories_.begin(), impl::instance().factories_.end()
+                            , [&] ( const std::pair<boost::uuids::uuid, impl::value_type>& a ) { return objtext == a.second.first; } );
+    if ( it != impl::instance().factories_.end() ) {
+        if ( auto ptr = it->second.second )
+            return ptr.get();
+    }
+    return nullptr;
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+MassSpectrometerBroker::make_massspectrometer( const boost::uuids::uuid& uuid )
+{
+    if ( auto factory = find_factory( uuid ) ) {
+        return factory->create( 0, 0 );
+    }
+    return nullptr;
+}
+
+const boost::uuids::uuid
+MassSpectrometerBroker::name_to_uuid( const std::wstring& objtext )
+{
+    return boost::uuids::name_generator( iids::massspectrometer_uuid )( adportable::utf::to_utf8( objtext ) );
+}
+
+const boost::uuids::uuid
+MassSpectrometerBroker::name_to_uuid( const std::string& objtext )
+{
+    return boost::uuids::name_generator( iids::massspectrometer_uuid )( objtext );
 }
