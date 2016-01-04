@@ -786,19 +786,15 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         // todo: chromatogram creation by m/z|time range
         using namespace adcontrols::metric;
 
+        QString left = QString::number( rect.left(), 'f', 3 );
+        QString right = QString::number( rect.right(), 'f', 3 );
+
 		QMenu menu;
-        std::array< QAction *, 3 > fixedActions;
-        if ( pImpl_->is_time_axis_ ) {
-            fixedActions[ 0 ] = menu.addAction( QString::fromStdString( (boost::format("RMS in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
-            fixedActions[ 1 ] = menu.addAction( QString::fromStdString( (boost::format("Max value in range %.3lf -- %.3lf(us)") % rect.left() % rect.right() ).str() ) );
-        } else {
-            fixedActions[ 0 ] = menu.addAction( QString::fromStdString( (boost::format("RMS in m/z range %.3lf -- %.3lf") % rect.left() % rect.right() ).str() ) );
-            fixedActions[ 1 ] = menu.addAction( QString::fromStdString( (boost::format("Max value in m/z range %.3lf -- %.3lf") % rect.left() % rect.right() ).str() ) );
-        }
-        fixedActions[ 2 ] = menu.addAction( "Frequency analysis" );
 
         std::pair<size_t, size_t> range;
+
         if ( auto ms = pProfileSpectrum_.second.lock() ) {
+            
             if ( pImpl_->is_time_axis_ )
                 range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) ), ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
             else {
@@ -806,36 +802,50 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 range = std::make_pair( std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.left() ) )
                                         , std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.right() ) ) );
             }
+            
+            std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
-            QAction * selectedItem = menu.exec( QCursor::pos() );
-            if ( fixedActions[ 0 ] == selectedItem ) {
-                if ( compute_rms( rect.left(), rect.right() ) > 0 )
-                    draw1();
-                return;
-            } else if ( fixedActions[ 1 ] == selectedItem ) {
-                compute_minmax( scale_to_base( rect.left(), micro), scale_to_base( rect.right(), micro ) );
-                draw1();
-                return;
-            } else if ( fixedActions[ 2 ] == selectedItem ) {
-                std::vector< double > freq, power;
-                double y_dc(0), y_nyquist(0);
-                if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
-                    std::ostringstream o;
-                    o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
-                    QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+            const auto f_rms = pImpl_->is_time_axis_ ? tr("RMS in range %1 -- %2(us)") : tr("RMS in m/z range %1 -- %2");
+            const auto f_maxval = pImpl_->is_time_axis_ ? tr("Max value in range %1 -- %2(us)") : tr("Max value in m/z range %1 -- %2");
+            
+            actions.push_back( 
+                std::make_pair( menu.addAction( QString( f_rms ).arg( left, right ) ), [=](){
+                    if ( compute_rms( rect.left(), rect.right() ) > 0 )
+                        draw1();                        
+                }) );
+            
+            actions.push_back( 
+                std::make_pair( menu.addAction( QString( f_maxval ).arg( left, right ) ), [=](){
+                    compute_minmax( scale_to_base( rect.left(), micro), scale_to_base( rect.right(), micro ) );
+                    draw1();                        
+                }) );
 
-                    pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
-                    pImpl_->pwplot_->setTitle( title );
-
-                    pImpl_->pwplot_->show();
+            actions.push_back( 
+                std::make_pair( menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ) ), [=](){
+                    std::vector< double > freq, power;
+                    double y_dc(0), y_nyquist(0);
+                    if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
+                        std::ostringstream o;
+                        o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
+                        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+                        pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
+                        pImpl_->pwplot_->setTitle( title );
+                        pImpl_->pwplot_->show();
+                    }
+                }) );
+            
+            if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
+                auto it = std::find_if( actions.begin(), actions.end(), [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) { return item.first == selectedItem; } );
+                if ( it != actions.end() ) {
+                    ( it->second )( );
                 }
             }
         }
-
+        
 	} else {
-
+        
         QMenu menu;
-
+        
         std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
         actions.push_back( std::make_pair( menu.addAction( tr( "Correct baseline" ) ), [this] () { correct_baseline(); draw1(); } ) );
