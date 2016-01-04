@@ -25,6 +25,8 @@
 
 #include "datareader.hpp"
 #include <boost/uuid/uuid.hpp>
+#include <cmath>
+#include <limits>
 #include <map>
 #include <vector>
 
