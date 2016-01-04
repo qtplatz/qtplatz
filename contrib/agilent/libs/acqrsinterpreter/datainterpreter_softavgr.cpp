@@ -41,7 +41,7 @@ DataInterpreter::DataInterpreter()
 }
 
 adcontrols::translate_state
-DataInterpreter::translate( adcontrols::MassSpectrum&
+DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , const char * data, size_t dsize
                             , const char * meta, size_t msize
                             , const adcontrols::MassSpectrometer&
@@ -51,23 +51,18 @@ DataInterpreter::translate( adcontrols::MassSpectrum&
     (void)meta;
     (void)msize;
 
-    if ( dsize > 0 ) {
- #if 0       
-        std::unique_ptr< infitofinterface::AveragerData > avgr( new infitofinterface::AveragerData );
-        
-        if ( infitofinterface::serializer::deserialize( *avgr, data, dsize ) ) {
+    if ( dsize > 0 && msize > 0 ) {
 
-            if ( avgr->avgrType == infitofinterface::Averager_AP240 ) {
+        acqrscontrols::u5303a::waveform waveform;
 
-                return ap240translator::translate( ms, *avgr, idData, spectrometer );
+        if ( waveform.deserialize_xmeta( meta, msize ) && waveform.deserialize_xdata( data, dsize ) ) {
 
-            } else if ( avgr->avgrType == infitofinterface::Averager_ARP ) {
+            if ( acqrscontrols::u5303a::waveform::translate( ms, waveform, 1000 ) ) {
 
-                return arptranslator::translate( ms, *avgr, idData, spectrometer );
+                return adcontrols::translate_complete;
             }
 
         }
-#endif
     }
     return adcontrols::translate_error;
 }
