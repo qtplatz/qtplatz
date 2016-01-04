@@ -229,3 +229,13 @@ MassSpectrometerBroker::name_to_uuid( const std::string& objtext )
 {
     return boost::uuids::name_generator( iids::massspectrometer_uuid )( objtext );
 }
+
+//static
+std::vector< std::pair< boost::uuids::uuid, std::string > >
+MassSpectrometerBroker::installed_uuids()
+{
+    std::vector< std::pair< boost::uuids::uuid, std::string > > values;
+    for ( auto& pair: impl::instance().factories_ )
+        values.push_back( std::make_pair( pair.first, pair.second.first ) );
+    return values;
+}

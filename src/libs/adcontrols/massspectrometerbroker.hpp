@@ -63,7 +63,10 @@ namespace adcontrols {
         static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const boost::uuids::uuid& );
 
         // compatibility for the objects defined prior to v3.2.5
-        static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const std::string& objtext ); 
+        static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const std::string& objtext );
+
+        //
+        static std::vector< std::pair< boost::uuids::uuid, std::string > > installed_uuids();
 
     private:
         class impl;

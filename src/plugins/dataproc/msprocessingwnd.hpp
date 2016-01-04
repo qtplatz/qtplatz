@@ -46,6 +46,8 @@ namespace portfolio {
     class Folium;
 }
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -103,7 +105,7 @@ namespace dataproc {
         std::wstring idChromatogramFolium_;
         std::wstring idSpectrumFolium_;
         int axis_;
-        bool assign_masses_to_profile( const std::wstring& model_name );
+        bool assign_masses_to_profile( const std::pair< boost::uuids::uuid, std::string >& );
         bool assign_masses_to_profile( );
         double correct_baseline();
         void init();
@@ -112,6 +114,10 @@ namespace dataproc {
         std::pair<double, double> compute_minmax( double, double );
         bool power_spectrum( const adcontrols::MassSpectrum&, std::vector<double>& x, std::vector<double>& y
                              , const std::pair<size_t, size_t>&, double& dc, double& nyquist );
+
+        // from menu
+        void frequency_analysis();
+        void save_image_file();
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );

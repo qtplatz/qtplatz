@@ -324,8 +324,9 @@ DataprocPlugin::onSelectSpectrum( double /*minutes*/, const adcontrols::DataRead
         if ( auto ms = iterator.dataReader()->getSpectrum( iterator->rowid() ) ) {
 
             std::wostringstream text;
-            text << boost::wformat( L"%s #%d fcn:%d/%d @ %.3lf(s)" ) % adportable::utf::to_wstring(reader->display_name())
-                                                                     % iterator->pos() % ms->protocolId() % ms->nProtocols() % iterator->time_since_inject();
+            text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfmin" ) % adportable::utf::to_wstring(reader->display_name())
+                                                                      % iterator->pos() % ms->protocolId() % ms->nProtocols()
+                                                                      % (iterator->time_since_inject() / 60.0);
 
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( L"create", text.str() ) );
