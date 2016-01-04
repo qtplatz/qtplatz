@@ -373,11 +373,15 @@ namespace dataproc {
 
     // dispatch method
     struct doSpectralProcess : public boost::static_visitor<bool> {
-        const adutils::MassSpectrumPtr& ptr_;
+        //const adutils::MassSpectrumPtr& ptr_;
+        std::shared_ptr< const adcontrols::MassSpectrum > ptr_;
 
         portfolio::Folium& folium;
 
         doSpectralProcess( const adutils::MassSpectrumPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+        }
+
+        doSpectralProcess( std::shared_ptr< const adcontrols::MassSpectrum >& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
         }
 
         template<typename T> bool operator () ( T& ) const {
@@ -825,6 +829,29 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
 }
+
+portfolio::Folium
+Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum >& ptr, const adcontrols::ProcessMethod& m )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
+
+    // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
+    std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
+
+    if ( auto folium = folder.findFoliumByName( name ) )
+        return folium; // already exists
+
+    portfolio::Folium folium = folder.addFolium( name );
+    // adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+    folium.assign( ptr, ptr->dataClass() );
+
+    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+        boost::apply_visitor( doSpectralProcess( ptr, folium ), *it );
+
+    SessionManager::instance()->updateDataprocessor( this, folium );
+	return folium;
+}
+
 
 portfolio::Folium
 Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m, bool checked )

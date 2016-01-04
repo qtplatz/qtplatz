@@ -30,13 +30,11 @@ endif()
 add_library( ${PROJECT_NAME}
   MODULE
   adspectrometer.cpp
+  constants.cpp
+  constants.hpp
   importdata.hpp
   massspectrometer.cpp
   massspectrometer.hpp
-  massspectrometerfactory.cpp
-  massspectrometerfactory.hpp
-  datainterpreter.cpp
-  datainterpreter.hpp
 )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

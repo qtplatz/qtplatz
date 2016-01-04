@@ -56,8 +56,8 @@ namespace adcontrols {
             factories_[name] = factory;
             try {
                 MassSpectrometerBroker::register_factory( factory, MassSpectrometerBroker::name_to_uuid( name ), adportable::utf::to_utf8( name ) );
-            } catch ( std::exception& ex ) {
-                ADDEBUG() << ex.what();
+            } catch ( std::bad_weak_ptr& ex ) {
+                ADDEBUG() << ex.what() << " for class " << name;
             }
             return true;
         }
@@ -203,6 +203,18 @@ MassSpectrometerBroker::make_massspectrometer( const boost::uuids::uuid& uuid )
     if ( auto factory = find_factory( uuid ) ) {
         return factory->create( 0, 0 );
     }
+    return nullptr;
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+MassSpectrometerBroker::make_massspectrometer( const std::string& objtext )
+{
+    if ( auto factory = find_factory( objtext ) )
+        return factory->create( 0, 0 );
+
+    if ( auto factory = find_factory( name_to_uuid( objtext ) ) )
+        return factory->create( 0, 0 );
+
     return nullptr;
 }
 

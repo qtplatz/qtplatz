@@ -35,6 +35,7 @@ namespace adcontrols {
     class datafile;
     
     class ADCONTROLSSHARED_EXPORT massspectrometer_factory : public std::enable_shared_from_this< massspectrometer_factory > {
+    protected:
         massspectrometer_factory(void);
     public:
         virtual ~massspectrometer_factory(void);
@@ -65,12 +66,13 @@ namespace adcontrols {
 
         std::string iid_;
         const std::tuple<Args...> args_;
-        
+
     public:
         massspectrometer_factory_type( const std::string& iid
                                        , Args&&... args ) : iid_( iid )
                                                           , args_( std::make_tuple( std::forward<Args>( args )... ) ) {
         }
+
         ~massspectrometer_factory_type() {
         }
 
@@ -93,6 +95,8 @@ namespace adcontrols {
         }
 
         bool is_canonical_name( const wchar_t * )  const override { return false; }   
+
+        const char * iid() const { return iid_.c_str(); }
     };
 
     

@@ -321,6 +321,20 @@ DataprocPlugin::onSelectSpectrum( double /*minutes*/, const adcontrols::DataRead
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
 
+        if ( auto ms = iterator.dataReader()->getSpectrum( iterator->rowid() ) ) {
+
+            std::wostringstream text;
+            text << boost::wformat( L"%s #%d fcn:%d/%d @ %.3lf(s)" ) % adportable::utf::to_wstring(reader->display_name())
+                                                                     % iterator->pos() % ms->protocolId() % ms->nProtocols() % iterator->time_since_inject();
+
+            adcontrols::ProcessMethod m;
+            ms->addDescription( adcontrols::description( L"create", text.str() ) );
+
+	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+                portfolio::Folium folium = dp->addSpectrum( *ms, m );
+
+        }
+
     }
 }
 

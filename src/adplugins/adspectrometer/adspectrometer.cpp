@@ -22,10 +22,15 @@
 **
 **************************************************************************/
 
-#include "massspectrometerfactory.hpp"
+#include "massspectrometer.hpp"
+#include "constants.hpp"
+#include <adcontrols/massspectrometer_factory.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adplugin/plugin.hpp>
 #include <memory>
 #include <mutex>
+
+namespace adcontrols { class datafile; }
 
 namespace adspectrometer {
 
@@ -55,7 +60,7 @@ namespace adspectrometer {
 
         void accept( adplugin::visitor&, const char * adplugin ) override;
 
-        const char * iid() const override { return "adspectrometer.plugin.ms-cheminfo.com"; }
+        const char * iid() const override { return adspectrometer::names::iid_adspectrometer_plugin; }
     };
 
     std::shared_ptr< adspectrometer_plugin > adspectrometer_plugin::instance_;
@@ -78,4 +83,7 @@ using namespace adspectrometer;
 void
 adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
+    if ( auto factory = std::make_shared< adcontrols::massspectrometer_factory_type< adspectrometer::MassSpectrometer, adcontrols::datafile * > >( adspectrometer::names::adspectrometer_objtext, nullptr ) ) {
+        adcontrols::MassSpectrometerBroker::register_factory( factory.get(), adspectrometer::iids::uuid_adspectrometer, adspectrometer::names::adspectrometer_objtext );
+    }
 }

@@ -24,6 +24,7 @@
 
 #include "datainterpreter_histogram.hpp"
 #include <adcontrols/waveform.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
@@ -39,33 +40,29 @@ DataInterpreter::DataInterpreter()
 }
 
 adcontrols::translate_state
-DataInterpreter::translate( adcontrols::MassSpectrum&
+DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , const char * data, size_t dsize
                             , const char * meta, size_t msize
                             , const adcontrols::MassSpectrometer&
                             , size_t idData
                             , const wchar_t * traceId ) const
 {
-    (void)meta;
-    (void)msize;
-
     if ( dsize > 0 ) {
- #if 0       
-        std::unique_ptr< infitofinterface::AveragerData > avgr( new infitofinterface::AveragerData );
-        
-        if ( infitofinterface::serializer::deserialize( *avgr, data, dsize ) ) {
 
-            if ( avgr->avgrType == infitofinterface::Averager_AP240 ) {
+        adcontrols::TimeDigitalHistogram histogram;
 
-                return ap240translator::translate( ms, *avgr, idData, spectrometer );
+        boost::iostreams::basic_array_source< char > source( data, dsize );
+        boost::iostreams::stream< boost::iostreams::basic_array_source< char > > is( source );
 
-            } else if ( avgr->avgrType == infitofinterface::Averager_ARP ) {
+        if ( adcontrols::TimeDigitalHistogram::restore( is, histogram ) ) {
 
-                return arptranslator::translate( ms, *avgr, idData, spectrometer );
+            if ( adcontrols::TimeDigitalHistogram::translate( ms, histogram ) ) {
+                
+                return adcontrols::translate_complete;
+
             }
-
         }
-#endif
+
     }
     return adcontrols::translate_error;
 }

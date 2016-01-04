@@ -102,7 +102,8 @@ namespace adcontrols {
 
         virtual const boost::uuids::uuid& objuuid() const = 0;
         virtual const std::string& objtext() const = 0;
-        virtual int64_t objrowid() const = 0; // rowid corresponding to objuuid; this is for backward (v2) compatibility
+        virtual int64_t objrowid() const = 0;                // rowid corresponding to objuuid; this is for backward (v2) compatibility
+        virtual const std::string& display_name() const = 0; // return value can be localized
 
         virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; }
         
@@ -125,7 +126,7 @@ namespace adcontrols {
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
         
-        virtual std::shared_ptr< const adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

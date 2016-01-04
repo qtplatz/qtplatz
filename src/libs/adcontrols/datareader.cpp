@@ -48,10 +48,11 @@ namespace adcontrols {
         boost::uuids::uuid uuid_;
         std::string objtext_;
     public:
-        NullDataReader() : uuid_( { 0 } ) {}
+        NullDataReader() : uuid_( { 0 } ), objtext_("null_reader") {}
         const boost::uuids::uuid& objuuid() const override { return uuid_; }
         const std::string& objtext() const { return objtext_; }
         int64_t objrowid() const { return 0; }
+        const std::string& display_name() const { return objtext_; }
         const_iterator begin() const { return end(); }
         const_iterator end() const { return const_iterator(this, -1); }
         const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const { return end(); }

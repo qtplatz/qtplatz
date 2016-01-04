@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "massspectrometer.hpp"
-#include "datainterpreter.hpp"
 #include "importdata.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -44,7 +43,6 @@ MassSpectrometer::~MassSpectrometer(void)
 }
 
 MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : adcontrols::MassSpectrometer( datafile )
-                                                                      , interpreter_( std::make_shared< DataInterpreter >() )
                                                                       , accessor_(0)
 {
 }
@@ -66,12 +64,6 @@ const adcontrols::ScanLaw&
 MassSpectrometer::getScanLaw() const 
 {
     BOOST_THROW_EXCEPTION( std::bad_cast() );
-}
-
-const adcontrols::DataInterpreter&
-MassSpectrometer::getDataInterpreter() const 
-{
-    return *interpreter_;
 }
 
 std::shared_ptr<adcontrols::ScanLaw>

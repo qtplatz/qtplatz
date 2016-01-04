@@ -57,17 +57,17 @@ namespace adspectrometer {
 
         const wchar_t * name() const override;
         const adcontrols::ScanLaw& getScanLaw() const override;
-        const adcontrols::DataInterpreter& getDataInterpreter() const override;
+        //const adcontrols::DataInterpreter& getDataInterpreter() const override;
 		std::shared_ptr<adcontrols::ScanLaw> scanLaw( const adcontrols::MSProperty& ) const override;
 		void setCalibration( int mode, const adcontrols::MSCalibrateResult& ) override;
         const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const override;
         const adcontrols::MSCalibration * findCalibration( int mode ) const override;
+        //-----------
         
         const import_continuum_massarray& continuum_massarray() const;
         void continuum_massarray( const import_continuum_massarray& );
 
     private:
-        std::shared_ptr< DataInterpreter > interpreter_;
         std::shared_ptr< import_continuum_massarray > continuum_massarray_;
         const adcontrols::LCMSDataset* accessor_;
         bool load_continuum_massarray();

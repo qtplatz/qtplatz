@@ -32,6 +32,8 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
@@ -52,6 +54,7 @@ namespace acqrsinterpreter {
 
     template< typename Interpreter > struct TID {
         static const std::string value;
+        static const std::string display_name;
         typedef Interpreter type;
     };
 
@@ -60,17 +63,24 @@ namespace acqrsinterpreter {
     template<> const std::string TID<histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID<softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
 
+    template<> const std::string TID<u5303a::DataInterpreter >::display_name = "1.u5303a";
+    template<> const std::string TID<timecount::DataInterpreter >::display_name = "timecount";
+    template<> const std::string TID<histogram::DataInterpreter >::display_name = "histogram";
+    template<> const std::string TID<softavgr::DataInterpreter>::display_name = "waveform";
+
     typedef boost::mpl::vector<
         TID<u5303a::DataInterpreter >
         , TID<timecount::DataInterpreter>
         , TID<histogram::DataInterpreter>
         , TID<softavgr::DataInterpreter> > interpreter_types;
 
+    //-------------------
+
     template< typename T > struct wrap {};
 
-    struct make_list {
+    struct make_trace_id_list {
         std::vector< std::string >& list;
-        make_list( std::vector< std::string >& _list ) : list(_list ){}
+        make_trace_id_list( std::vector< std::string >& _list ) : list(_list ){}
         template < typename T > void operator () ( wrap<T> ) const {
             list.push_back( T::value );
         }
@@ -79,10 +89,13 @@ namespace acqrsinterpreter {
     struct lookup_and_create {
         const char * id;
         std::unique_ptr< adcontrols::DataInterpreter >& interpreter;
-        lookup_and_create( const char * _id, std::unique_ptr< adcontrols::DataInterpreter >& t ) : id( _id ), interpreter( t ) {}
+        std::string& display_name;
+        lookup_and_create( const char * _id, std::unique_ptr< adcontrols::DataInterpreter >& t, std::string& name )
+            : id( _id ), interpreter( t ), display_name( name ) {}
         template < typename T > void operator () ( wrap<T> ) const {
             if ( id == T::value ) {
                 interpreter = std::unique_ptr< typename T::type >( new typename T::type() );
+                display_name = T::display_name;
             }
         }
     };
@@ -129,7 +142,7 @@ DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
 
-    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_ ) );
+    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
 }
 
 // static
@@ -137,7 +150,7 @@ std::vector< std::string >
 DataReader::traceid_list()
 {
     std::vector< std::string > list;
-    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( make_list( list ) );
+    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( make_trace_id_list( list ) );
     return list;
 }
 
@@ -156,8 +169,11 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             sql.bind( 1 ) = objid_;
             if ( sql.step() == adfs::sqlite_row )
                 objrowid_ = sql.get_column_value< int64_t >( 0 );
+
+            // todo: find spectrometer iid
+            spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( "InfiTOF" );
+
         }
-    
         return true;
     }
     ADDEBUG() << "initialize failed for: " << objtext;
@@ -186,6 +202,12 @@ int64_t
 DataReader::objrowid() const
 {
     return objrowid_;
+}
+
+const std::string&
+DataReader::display_name() const
+{
+    return display_name_;
 }
 
 size_t
@@ -376,7 +398,7 @@ DataReader::fcn( int64_t rowid ) const
     return -1;    
 }
 
-std::shared_ptr< const adcontrols::MassSpectrum >
+std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::getSpectrum( int64_t rowid ) const
 {
     if ( auto db = db_.lock() ) {
@@ -394,7 +416,12 @@ DataReader::getSpectrum( int64_t rowid ) const
 
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
 
-                interpreter_->translate( *ptr, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), 0 );
+                if ( interpreter_->translate( *ptr, reinterpret_cast< const char *>(xdata.data()), xdata.size()
+                                              , reinterpret_cast< const char *>(xmeta.data()), xmeta.size()
+                                              , *spectrometer_, size_t(0), L"" ) == adcontrols::translate_complete ) {
+
+                    return ptr;
+                }
                 
                 // return interpreter.translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
                 //      , reinterpret_cast<const char *>(xmeta.data()), xmeta.size(), *spectrometer, idData++, traceId.c_str() );

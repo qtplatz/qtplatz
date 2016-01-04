@@ -33,14 +33,14 @@
 #include <vector>
 
 namespace adfs { class sqlite; }
+namespace adcontrols { class MassSpectrometer; }
 
 namespace acqrsinterpreter {
 
     class DataReader_index;
 
     class DataReader : public adcontrols::DataReader {
-        //DataReader( const DataReader& ) = delete;  // noncopyable
-        //DataReader& operator = (const DataReader&) = delete;
+
     public:
         ~DataReader( void );
         DataReader( const char * traceid );
@@ -55,6 +55,7 @@ namespace acqrsinterpreter {
         const boost::uuids::uuid& objuuid() const override;
         const std::string& objtext() const override;
         int64_t objrowid() const override;
+        const std::string& display_name() const override;
 
         size_t fcnCount() const override;
         std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const override;
@@ -72,16 +73,18 @@ namespace acqrsinterpreter {
         double time_since_inject( int64_t rowid ) const override;
         int fcn( int64_t rowid ) const override;
         // <============================
-        std::shared_ptr< const adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
+        std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
 
     private:
         friend class DataReader_index;
         void loadTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
+        std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
         std::weak_ptr< adfs::sqlite > db_;
         boost::uuids::uuid objid_;
         std::string objtext_;
         int64_t objrowid_;
+        std::string display_name_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
 
         struct index {

@@ -52,13 +52,18 @@ namespace adcontrols {
         ~MassSpectrometerBroker(void);
     public:
         static bool register_factory( massspectrometer_factory*, const boost::uuids::uuid&, const std::string& objtext );
-        static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const boost::uuids::uuid& );
-
+        
         static massspectrometer_factory* find_factory( const boost::uuids::uuid& );
         static massspectrometer_factory* find_factory( const std::string& objtext );
 
+        // helper methods
         static const boost::uuids::uuid name_to_uuid( const std::wstring& objext );
         static const boost::uuids::uuid name_to_uuid( const std::string& objext );
+
+        static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const boost::uuids::uuid& );
+
+        // compatibility for the objects defined prior to v3.2.5
+        static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const std::string& objtext ); 
 
     private:
         class impl;
