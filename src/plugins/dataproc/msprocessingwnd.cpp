@@ -716,8 +716,8 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     for ( auto& reader : readers ) {
                         if ( auto it = reader->findPos( adcontrols::Chromatogram::toSeconds( rect.left() ) ) )
                             actions.push_back( std::make_pair(
-                                menu.addAction( QString( "Select spectrum @%1min %2" ).arg( QString::number( rect.left(), 'f', 3 )
-                                                                                            , QString::fromStdString( reader->display_name() ) ) )
+                                menu.addAction( QString( "Select spectrum (%1) @%2min" ).arg( QString::fromStdString( reader->display_name() )
+                                                                                              , QString::number( rect.left(), 'f', 3 ) ) )
                                 , [=] () { DataprocPlugin::instance()->onSelectSpectrum( rect.left(), it ); } ) );
                     }
                 }
