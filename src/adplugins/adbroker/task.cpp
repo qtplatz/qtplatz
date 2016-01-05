@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -29,7 +29,9 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/description.hpp>
 //--
 #include <adportfolio/portfolio.hpp>
@@ -180,8 +182,15 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
              ( desc->spectrometer == SignalObserver::eMassSpectrometer ) ) )
         return;
 
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
-    const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+    auto _spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid.in() );
+    if ( ! _spectrometer )
+        return;
+    auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( clsid.in() );
+    if ( ! interpreter )
+        return;
+    
+    const adcontrols::MassSpectrometer& spectrometer = *_spectrometer;
+    const adcontrols::DataInterpreter& dataInterpreter = *interpreter;
 
     long pos = observer->posFromTime( boost::uint64_t( x1 * 60 * 1000 * 1000 ) ); // us
     long pos2 = observer->posFromTime( boost::uint64_t( x2 * 60 * 1000 * 1000 ) ); // us

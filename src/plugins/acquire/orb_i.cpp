@@ -53,17 +53,19 @@
 #endif
 
 #include <adcontrols/controlmethod.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -468,7 +470,7 @@ orb_i::handle_update_data( unsigned long objId, long pos )
                 return;
 
             CORBA::String_var name = tgt->dataInterpreterClsid();
-            if ( auto spectrometer = adcontrols::MassSpectrometer::create( name.in() ))  {
+            if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( name.in() ))  {
 
                 SignalObserver::Description_var desc = tgt->getDescription();
                 observerMap_[ objId ] = std::make_tuple( tgt, desc, adportable::utf::to_wstring( name.in() ), false, spectrometer );
@@ -491,8 +493,12 @@ orb_i::handle_update_data( unsigned long objId, long pos )
         SignalObserver::Observer_ptr tgt = std::get<0>( it->second ).in();
         SignalObserver::Description_var& desc = std::get<1>( it->second );
         auto spectrometer = std::get<4>( it->second );
+        CORBA::String_var name = tgt->dataInterpreterClsid();
 
-        const adcontrols::DataInterpreter& dataInterpreter = spectrometer->getDataInterpreter();
+        auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( name.in() );
+        if ( !interpreter )
+            return;
+        const adcontrols::DataInterpreter& dataInterpreter = *interpreter; //spectrometer->getDataInterpreter();
 
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
 

@@ -262,10 +262,12 @@ DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
         if ( indecies_.back().elapsed_time < elapsed_time )
             return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
 
-        auto its = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
-        auto ite = std::upper_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( int64_t a, const index& b ) { return a < b.elapsed_time; } );
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
 
-        auto it = std::min_element( its, ite, [elapsed_time] ( const index& a, const index& b ) { return std::abs( elapsed_time - a.elapsed_time ) < std::abs( elapsed_time - b.elapsed_time ); } );
+        if ( closest && ( it != indecies_.end() ) ) {
+            if ( std::abs( elapsed_time - it->elapsed_time ) > std::abs( elapsed_time - ( it + 1 )->elapsed_time ) ) 
+                ++it;
+        }
 
         return adcontrols::DataReader_iterator( this, it->rowid );
     }

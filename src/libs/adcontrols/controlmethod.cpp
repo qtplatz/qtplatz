@@ -32,6 +32,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <workaround/boost/uuid/uuid_serialize.hpp>
+#include <adportable/base64.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -94,12 +95,14 @@ namespace adcontrols {
 
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
+            data_ = base64_encode( reinterpret_cast<const unsigned char *>( data_.data() ), data_.size() );
             MethodItem_archive<>().serialize( ar, *this, version );
         }
     
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
             MethodItem_archive<>().serialize( ar, *this, version );
+            data_ = base64_decode( data_ );
         }
     
         template<> ADCONTROLSSHARED_EXPORT void MethodItem::serialize( portable_binary_oarchive& ar, const unsigned int version )
@@ -516,32 +519,6 @@ Method::xml_restore( std::wistream& is, Method& t )
         return false;
     }
 }
-
-#if 0
-Method::iterator
-Method::find( iterator first, iterator last, const char * modelname, int unitnumber )
-{
-    if ( unitnumber <= 0 ) {
-        return std::find_if( first, last, [=]( const MethodItem& a ){ return a.modelname() == modelname; });
-    } else {
-        return std::find_if( first, last, [=]( const MethodItem& a ){
-                return a.modelname() == modelname && a.unitnumber() == unitnumber;
-            });
-    }
-}
-
-Method::const_iterator
-Method::find( const_iterator first, const_iterator last, const char * modelname, int unitnumber ) const
-{
-    if ( unitnumber <= 0 ) {
-        return std::find_if( first, last, [=]( const MethodItem& a ){ return a.modelname() == modelname; });
-    } else {
-        return std::find_if( first, last, [=]( const MethodItem& a ){
-                return a.modelname() == modelname && a.unitnumber() == unitnumber;
-            });
-    }
-}
-#endif
 
 Method::iterator
 Method::find( iterator first, iterator last, const boost::uuids::uuid& clsid, int unitnumber )
