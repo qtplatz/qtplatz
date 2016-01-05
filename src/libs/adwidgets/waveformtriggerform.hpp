@@ -50,7 +50,7 @@ namespace adwidgets {
         void OnInitialUpdate() override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any& ) override;
+        bool setContents( boost::any&& ) override;
         void * query_interface_workaround( const char * typenam ) override;
 
     private:
