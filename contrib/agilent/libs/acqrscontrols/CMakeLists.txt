@@ -37,8 +37,8 @@ add_library( ${PROJECT_NAME} SHARED
   ap240/datainterpreter.hpp
   ap240/histogram.cpp
   ap240/histogram.hpp
-  ap240/massspectrometer.cpp
-  ap240/massspectrometer.hpp
+#  ap240/massspectrometer.cpp
+#  ap240/massspectrometer.hpp
   ap240/method.cpp
   ap240/method.hpp
   ap240/threshold_result.cpp

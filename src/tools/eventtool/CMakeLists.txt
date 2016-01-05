@@ -1,6 +1,7 @@
 project( eventtool )
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
+cmake_policy(SET CMP0028 NEW)
 
 set( eventtool_SOURCES 
   document.cpp
@@ -24,7 +25,7 @@ file(GLOB Resources *.qrc)
 include_directories( ${QWT}/include )
 link_directories( ${QWT}/lib )
 
-find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg PrintSupport )
+find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
 find_package(Boost COMPONENTS system )
 
