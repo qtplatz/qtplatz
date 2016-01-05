@@ -26,13 +26,14 @@
 #include <compiler/disable_unused_parameter.h>
 
 #include "txtspectrum.hpp"
-#include <adportable/string.hpp>
-#include <adportable/spectrum_processor.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/string.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <fstream>
@@ -72,11 +73,12 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     std::array< std::vector<double>, 3 > cols; // (time, mass, intens) | ((time|mass), intensity)
 
     if ( dlg.hasDataInterpreter() ) {
-        std::wstring model = dlg.dataInterpreterClsid().toStdWString();
-        if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
-            const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+        auto model = dlg.dataInterpreterClsid().toStdString();
+        if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( model ) ) {
+        //if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
+            //const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
-            if ( interpreter.compile_header( *ms, in ) ) {
+            if ( interpreter->compile_header( *ms, in ) ) {
                 compiled_ = ms;
             }
         }

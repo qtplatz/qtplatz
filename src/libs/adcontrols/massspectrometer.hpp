@@ -51,7 +51,7 @@ namespace adcontrols {
         
         virtual const wchar_t * name() const;
         virtual const ScanLaw& getScanLaw() const;
-        virtual const DataInterpreter& getDataInterpreter() const;
+        //virtual const DataInterpreter& getDataInterpreter() const;
 		virtual std::shared_ptr<ScanLaw> scanLaw( const adcontrols::MSProperty& ) const;
 
 		virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
@@ -63,9 +63,9 @@ namespace adcontrols {
         virtual void setProcessMethod( const std::shared_ptr< adcontrols::ProcessMethod > ) { return; }
 
         // static methods 
-        static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
-        static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
-        static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid, adcontrols::datafile * );
+        //static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
+        //static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
+        //static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid, adcontrols::datafile * );
 
         static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
         static const MassSpectrometer* find( const char * dataInterpreterClsid );

@@ -37,12 +37,14 @@
 #include "txtchromatogram.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adportable/textfile.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -69,9 +71,9 @@ namespace adtextfile {
             
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
             for ( auto& model: adcontrols::MassSpectrometer::get_model_names() ) {
-                if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
-                    const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
-                    if ( interpreter.compile_header( *ms, in ) ) {
+                if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8(model )) ) {
+                //if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
+                    if ( interpreter->compile_header( *ms, in ) ) {
                         return txt.load( filename, dlg );
                     }
                 }

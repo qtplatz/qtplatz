@@ -53,7 +53,7 @@ namespace acqrscontrols {
             // adcontrols::MassSpectrometer
             const adcontrols::ScanLaw& getScanLaw() const override;
             std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override;
-            const adcontrols::DataInterpreter& getDataInterpreter() const override;
+            //const adcontrols::DataInterpreter& getDataInterpreter() const override;
 
             // massspectrometer_factory
             const wchar_t * name() const override;

@@ -420,104 +420,8 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
                            , int begPos
                            , int endPos ) const
 {
-    (void)begPos;
-    (void)endPos;
     result.clear();
-#if 0    
-	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
-        return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";  } );
-    
-	if ( it == conf_.end() )
-        return false;
-
-    auto spectrometer = getSpectrometer( it->objid, it->dataInterpreterClsid.c_str() );
-    if ( !spectrometer )
-        return false;
-
-    const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
-    
-    typedef std::tuple< int, double, double, std::vector< adcontrols::Chromatogram >::size_type > mass_window_t;
-    std::vector< mass_window_t > masses;
-
-    for ( auto& range: ranges ) {
-
-        result.push_back( adcontrols::Chromatogram() );
-        auto idChro = result.size() - 1;
-        
-        int fcn = std::get<0>( range );
-        
-        if ( std::get<2>( range ) <= 1.0 ) {
-            double mass = std::get<1>( range );
-            double width = std::get<2>( range );
-            result.back().addDescription( adcontrols::description( L"Create"
-                                                                  , ( boost::wformat( L"m/z %.4lf (W:%.4fmDa) %d" ) % mass % ( width * 1000 ) % fcn ).str() ) );
-            masses.push_back( std::make_tuple( fcn, mass - width / 2, mass + width / 2, idChro ) );
-        } else {
-            double lMass = std::get<1>( range );
-            double uMass = std::get<2>( range );
-            result.back().addDescription( adcontrols::description( L"Create"
-                                                            , ( boost::wformat( L"m/z (%.4lf - %.4lf) %d" ) % lMass % uMass % fcn ).str() ) );
-            masses.push_back( std::make_tuple( fcn, lMass, uMass, idChro ) );
-        }
-    }
-    
-    std::sort( masses.begin(), masses.end(), []( const mass_window_t& a, const mass_window_t& b ){ return std::get<1>(a) < std::get<1>(b); } );
-    
-    int nProgress = 0;
-    adfs::stmt sql( dbf_.db() );
-
-    uint64_t pos = npos0_;
-
-    for ( int i = 0; i < tic_[0]->size(); ++i ) {
-
-        progress( nProgress++, long( tic_[ 0 ]->size() ) );
-        
-        adcontrols::MassSpectrum _ms;
-        adcontrols::translate_state state;
-
-        // read all protocols
-        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, pos++, _ms, it->trace_id ) ) == adcontrols::translate_indeterminate )
-            ;
-
-        if ( state == adcontrols::translate_complete ) {
-
-            adcontrols::segment_wrapper<> segments( _ms );
-            for( auto& fms: segments ) {
-
-                double base(0), rms(0);
-                double tic = adportable::spectrum_processor::tic( uint32_t(fms.size()), fms.getIntensityArray(), base, rms );
-                double time = fms.getMSProperty().timeSinceInjection();
-                if ( time > 4000 ) // workaround for negative time at the begining of time event function delay
-                    time = 0;
-                
-                for ( auto& t: masses ) {
-                    
-                    double lMass = std::get<1>( t );
-                    double uMass = std::get<2>( t );
-
-                    if ( fms.getMass( 0 ) < lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
-                        auto idChro = std::get<3>( t );
-
-                        adportable::spectrum_processor::areaFraction fraction;
-                        adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
-
-                        double d = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
-
-                        result[ idChro ] << std::make_pair( time, d );
-
-                        ADDEBUG() << " tic=" << tic << ", mass=(" << lMass << ", " << uMass
-                                  << "), frac=(" << fraction.lPos << ", " << fraction.uPos << ", " << fraction.lFrac << ", " << fraction.uFrac
-                                  << "), d="  << d << ", time=" << fms.getMSProperty().timeSinceInjection();
-                    }
-                }
-
-            }
-        } else if ( state == adcontrols::no_more_data ) {
-            return true;
-        }
-    }
-#endif
-    return true;
+    return false;
 }
 
 // private
@@ -570,114 +474,41 @@ rawdata::fetchSpectrum( int64_t objid
                         , uint64_t npos, adcontrols::MassSpectrum& ms
 						, const std::wstring& traceId ) const
 {
-    if ( auto spectrometer = getSpectrometer( objid, dataInterpreterClsid ) ) {
-
-        const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
-
-        adfs::stmt sql( dbf_.db() );
-
-        if ( sql.prepare( "SELECT fcn, data, meta FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
-        
-            sql.bind( 1 ) = objid;
-            sql.bind( 2 ) = npos;
-
-            if ( sql.step() == adfs::sqlite_row ) {
-                int fcn = int( sql.get_column_value< int64_t >( 0 ) );
-                (void)fcn;
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( 1 );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 2 );
-
-                size_t idData = 0;
-                return interpreter.translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
-                                              , reinterpret_cast<const char *>(xmeta.data()), xmeta.size(), *spectrometer, idData++, traceId.c_str() );
-
-            }
-        }
-        return adcontrols::no_more_data;
-    }
+    // this method no longer supported for v3
+    assert( 0 );
     return adcontrols::no_interpreter;
 }
 
 bool
 rawdata::hasProcessedSpectrum( int, int ) const
 {
-#if 0
-    return std::find_if( conf_.begin(), conf_.end()
-                         , [](const adutils::AcquiredConf::data& d){ return d.trace_id == L"MS.CENTROID"; }) 
-        != conf_.end();
-#endif
+    // this method no longer supported for v3
+    assert( 0 );
     return false;
 }
 
 uint32_t
 rawdata::findObjId( const std::wstring& traceId ) const
 {
-#if 0
-    auto it =
-        std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& d ){ return d.trace_id == traceId; });
-    if ( it != conf_.end() )
-        return uint32_t(it->objid);
-#endif
-    return 0;
+    // this method no longer supported for v3
+    assert( 0 );
+    return false;
 }
 
 bool
 rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char >& xdata, std::vector< char >& xmeta ) const
 {
-    adfs::stmt sql( dbf_.db() );
-	
-	xdata.clear();
-	xmeta.clear();
-
-    if ( sql.prepare( "SELECT rowid, fcn FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
-
-        sql.bind( 1 ) = uint64_t(objid);
-        sql.bind( 2 ) = uint64_t(npos);
-
-        adfs::blob blob;
-
-        if ( sql.step() == adfs::sqlite_row ) {
-            uint64_t rowid = sql.get_column_value< int64_t >( 0 );
-            fcn            = sql.get_column_value< int64_t >( 1 );
-            
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
-                xdata.resize( blob.size() );
-                if ( blob.size() )
-                    blob.read( reinterpret_cast< int8_t *>( xdata.data() ), blob.size() );
-            }
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
-                xmeta.resize( blob.size() );
-                if ( blob.size() )
-                    blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
-            }
-			return true;
-        }
-    }
-    return adcontrols::translate_error;
+    // this method no longer supported for v3
+    assert( 0 );
+    return false;
 }
 
 bool
 rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
 {
+    // this method no longer supported for v3
+    assert( 0 );
     return false;
-#if 0
-    if ( objid == 0 ) {
-        auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
-                return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
-            });
-        if ( it == conf_.end() )
-            return false;
-        objid = uint32_t( it->objid );
-    }
-
-    auto it = spectrometers_.find( objid );
-    if ( it != spectrometers_.end() ) {
-        auto& interpreter = it->second->getDataInterpreter();
-        if ( interpreter.has_lockmass() )
-            return interpreter.lockmass( mslk );
-    }
-    return false;
-#endif
 }
 
 std::shared_ptr< adcontrols::DataReader >

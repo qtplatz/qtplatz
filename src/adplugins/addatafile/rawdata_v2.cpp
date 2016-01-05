@@ -27,9 +27,12 @@
 #include <adinterface/signalobserver.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msassignedmass.hpp>
@@ -37,7 +40,6 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/traceaccessor.hpp>
-#include <adcontrols/datainterpreter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
@@ -116,23 +118,24 @@ rawdata::loadAcquiredConf()
                 adcontrols::TraceAccessor accessor;
 
                 if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid ) ) {
+                    if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8( conf.dataInterpreterClsid ) ) ) {
 
-                    if ( fetchTraces( conf.objid, spectrometer->getDataInterpreter(), accessor ) ) {
-                        for ( int fcn = 0; unsigned(fcn) < accessor.nfcn(); ++fcn ) {
-                        
-                            std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
-                            cptr->addDescription( adcontrols::description( L"create",  conf.trace_display_name ) );
-                            accessor.copy_to( *cptr, fcn );
-                            cptr->setFcn( fcn );
-                            tic_.push_back( cptr );
-                            if ( const double * times = cptr->getTimeArray() ) {
-                                for ( size_t i = 0; i < cptr->size(); ++i )
-                                    times_.push_back( std::make_pair( times[i], fcn ) );
+                        if ( fetchTraces( conf.objid, *interpreter, accessor ) ) {
+                            for ( int fcn = 0; unsigned( fcn ) < accessor.nfcn(); ++fcn ) {
+
+                                std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
+                                cptr->addDescription( adcontrols::description( L"create", conf.trace_display_name ) );
+                                accessor.copy_to( *cptr, fcn );
+                                cptr->setFcn( fcn );
+                                tic_.push_back( cptr );
+                                if ( const double * times = cptr->getTimeArray() ) {
+                                    for ( size_t i = 0; i < cptr->size(); ++i )
+                                        times_.push_back( std::make_pair( times [ i ], fcn ) );
+                                }
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
                     cptr->addDescription( adcontrols::description( L"create", conf.trace_display_name ) );
                     tic_.push_back( cptr ); // add empty chromatogram for dieplay titiles
@@ -220,17 +223,31 @@ rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterCls
 {
     auto it = spectrometers_.find( objid );
     if ( it == spectrometers_.end() ) {
-		if ( auto ptr = adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ ) ) {
+        if ( auto ptr = adcontrols::MassSpectrometerBroker::make_massspectrometer( adportable::utf::to_utf8( dataInterpreterClsid)) ) {
             spectrometers_[ objid ] = ptr;
-			it = spectrometers_.find( objid );
+            return ptr;
 		} else {
             return 0;
-			//static adcontrols::MassSpectrometer x;
-			//return x;
 		}
     }
     return it->second;
 }
+
+std::shared_ptr< adcontrols::DataInterpreter >
+rawdata::getDataInterpreter( uint64_t objid, const std::wstring& dataInterpreterClsid ) const
+{
+    auto it = interpreters_.find( objid );
+    if ( it == interpreters_.end() ) {
+        if ( auto ptr = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8( dataInterpreterClsid ) ) ) {
+            const_cast< rawdata * >(this)->interpreters_[ objid ] = ptr;
+            return ptr;
+		} else {
+            return nullptr;
+		}
+    }
+    return it->second;
+}
+
 
 std::shared_ptr< adcontrols::MassSpectrometer >
 rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid ) const
@@ -482,7 +499,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
     if ( !spectrometer )
         return false;
 
-    const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+    auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8( it->dataInterpreterClsid ) );
     
     typedef std::tuple< int, double, double, std::vector< adcontrols::Chromatogram >::size_type > mass_window_t;
     std::vector< mass_window_t > masses;
@@ -617,9 +634,10 @@ rawdata::fetchSpectrum( int64_t objid
                         , uint64_t npos, adcontrols::MassSpectrum& ms
 						, const std::wstring& traceId ) const
 {
-    if ( auto spectrometer = getSpectrometer( objid, dataInterpreterClsid ) ) {
+    if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8( dataInterpreterClsid ) ) ) {
 
-        const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+        //auto interpreter = spectrometer->getDataInterpreter();
+        auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( adportable::utf::to_utf8( dataInterpreterClsid ) );
 
         adfs::stmt sql( dbf_.db() );
 
@@ -635,7 +653,7 @@ rawdata::fetchSpectrum( int64_t objid
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( 2 );
 
                 size_t idData = 0;
-                return interpreter.translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
+                return interpreter->translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
                                               , reinterpret_cast<const char *>(xmeta.data()), xmeta.size(), *spectrometer, idData++, traceId.c_str() );
 
             }
@@ -712,11 +730,12 @@ rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
         objid = uint32_t( it->objid );
     }
 
-    auto it = spectrometers_.find( objid );
-    if ( it != spectrometers_.end() ) {
-        auto& interpreter = it->second->getDataInterpreter();
-        if ( interpreter.has_lockmass() )
-            return interpreter.lockmass( mslk );
+    auto it = interpreters_.find( objid );
+    if ( it != interpreters_.end() ) {
+        if ( auto interpreter = it->second ) {
+            if ( interpreter->has_lockmass() )
+                return interpreter->lockmass( mslk );
+        }
     }
     return false;
 }

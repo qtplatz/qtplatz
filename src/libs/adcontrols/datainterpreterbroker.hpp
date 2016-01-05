@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include "datainterpreter.hpp"
+#include <memory>
 
 namespace boost { namespace uuids { struct uuid; } };
 
@@ -34,18 +35,25 @@ namespace adcontrols {
 
     class DataInterpreterFactory;
 
+    // This class supports v2 (rawdata_v2) access;
+    // (v3 access may use DataReader singleton interface directory)
+
     class ADCONTROLSSHARED_EXPORT DataInterpreterBroker {
-    protected:
         DataInterpreterBroker();
         ~DataInterpreterBroker();
-
     public:
-        static DataInterpreterBroker * instance();
-        bool register_factory( DataInterpreterFactory *, const std::wstring& name );
+        static bool register_factory( std::shared_ptr< DataInterpreterFactory >, const boost::uuids::uuid&, const std::string& dataInterpreterClsid );
+
+        static DataInterpreterFactory * find_factory( const std::string& dataInterpreterClsid );
+        static DataInterpreterFactory * find_factory( const boost::uuids::uuid& );
+        static std::shared_ptr< adcontrols::DataInterpreter > make_datainterpreter( const std::string& dataInterpreterClsid );
+        static std::shared_ptr< adcontrols::DataInterpreter > make_datainterpreter( const boost::uuids::uuid& );
+        static std::vector< std::pair< boost::uuids::uuid, std::string > > installed_uuids();
+
+        static boost::uuids::uuid name_to_uuid( const std::string& dataInterpreterClsid );
 
     private:
         class impl;
-        impl * impl_;
     };
     
 }

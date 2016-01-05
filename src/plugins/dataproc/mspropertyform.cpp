@@ -28,6 +28,7 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -239,28 +240,29 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         auto& prop = ms.getMSProperty();
         const char * ipClsid = prop.dataInterpreterClsid();
         if ( ipClsid && (std::strlen( ipClsid )) > 0 ) {
-            auto& interpreter = prop.spectrometer().getDataInterpreter();
-            if ( interpreter.make_device_text( textv, ms.getMSProperty() ) ) {
-                o << "<table border=\"1\" cellpadding=\"4\">";
-                o << "<caption>Averager/digitizer dependent information</caption>";
-                o << "<tr>";
-                o << "<th>#seg</th>";
-                std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
-                o << "</tr>";
-                int seg = 0;
-                for ( auto& m : segments ) {
-                    if ( interpreter.make_device_text( textv, m.getMSProperty() ) ) {
-                        o << "<tr>";
-                        o << "<td>" << seg++ << "</td>";
-                        std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
-                        o << "</tr>";
+            if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( prop.dataInterpreterClsid() ) ) {
+
+                if ( interpreter->make_device_text( textv, ms.getMSProperty() ) ) {
+                    o << "<table border=\"1\" cellpadding=\"4\">";
+                    o << "<caption>Averager/digitizer dependent information</caption>";
+                    o << "<tr>";
+                    o << "<th>#seg</th>";
+                    std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
+                    o << "</tr>";
+                    int seg = 0;
+                    for ( auto& m : segments ) {
+                        if ( interpreter->make_device_text( textv, m.getMSProperty() ) ) {
+                            o << "<tr>";
+                            o << "<td>" << seg++ << "</td>";
+                            std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
+                            o << "</tr>";
+                        }
                     }
+                    o << "</table>";
+                    o << "<hr>";
                 }
-                o << "</table>";
-                o << "<hr>";
             }
-        }
-        else {
+        } else {
             o << "<hr>No dataInterpreterClsid specifid.</hr>";
             ADERROR() << "no dataInterpreterClisidSpecified.";
         }

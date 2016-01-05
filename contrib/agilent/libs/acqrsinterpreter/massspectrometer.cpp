@@ -120,11 +120,11 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& ) const
     return std::make_shared< ScanLaw >();
 }
 
-const adcontrols::DataInterpreter&
-MassSpectrometer::getDataInterpreter() const
-{
-    return *interpreter_;
-}
+//const adcontrols::DataInterpreter&
+//MassSpectrometer::getDataInterpreter() const
+//{
+//    return *interpreter_;
+//}
 
 const wchar_t * 
 MassSpectrometer::name() const 

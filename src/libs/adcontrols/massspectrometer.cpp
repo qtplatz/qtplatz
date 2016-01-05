@@ -105,7 +105,8 @@ namespace adcontrols {
             std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override {
                 return std::make_shared< GenericTofSpectrometer >(*this);
             }
-            const adcontrols::DataInterpreter& getDataInterpreter() const override { return interpreter_; }
+
+            //const adcontrols::DataInterpreter& getDataInterpreter() const override { return interpreter_; }
 
             // massspectrometer_factory
             const wchar_t * name() const override { return L"Generic-TOF"; }
@@ -152,6 +153,7 @@ MassSpectrometer::getScanLaw() const
     throw std::bad_cast();
 }
 
+#if 0
 const DataInterpreter&
 MassSpectrometer::getDataInterpreter() const
 {
@@ -161,6 +163,7 @@ MassSpectrometer::getDataInterpreter() const
     static internal::DataInterpreter t;
     return t;
 }
+#endif
 
 std::shared_ptr<ScanLaw>
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
@@ -198,6 +201,7 @@ MassSpectrometer::getCalibrateResult( size_t idx ) const
     return 0;
 }
 
+#if 0
 std::shared_ptr< MassSpectrometer >
 MassSpectrometer::create( const wchar_t * dataInterpreterClsid )
 {
@@ -220,6 +224,7 @@ MassSpectrometer::create( const wchar_t * dataInterpreterClsid, adcontrols::data
         return factory->create( dataInterpreterClsid, datafile );
     return 0;
 }
+#endif
 
 adcontrols::datafile *
 MassSpectrometer::datafile() const
