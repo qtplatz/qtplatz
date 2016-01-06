@@ -102,6 +102,7 @@ namespace addatafile {
             // v3 specific
             size_t dataReaderCount() const override;
             const adcontrols::DataReader * dataReader( size_t idx ) const override;
+            const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const override;
             std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible ) const override;
         
         private:

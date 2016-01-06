@@ -271,50 +271,6 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 	emit onApplyMethod( m );
 }
 
-// void
-// DataprocPlugin::handleFileCreated( const QString& filename )
-// {
-//     handle_portfolio_created( filename );
-// }
-
-// void
-// DataprocPlugin::handle_portfolio_created( const QString filename )
-// {
-//     // simulate file->open()
-//     Core::ICore * core = Core::ICore::instance();
-//     if ( core ) {
-//         auto em = Core::EditorManager::instance();
-//         // Core::EditorManager * em = core->editorManager();
-//         if ( em && dataprocFactory_ ) {
-//             if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
-//                 if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
-//                     editor->portfolio_create( filename );
-//                     // em->pushEditor( editor );
-//                 }
-//             }
-//         }
-//     }
-// }
-
-// void
-// DataprocPlugin::handle_folium_added( const QString fname, const QString path, const QString id )
-// {
-//     qtwrapper::waitCursorBlocker block;
-
-// 	std::wstring filename = fname.toStdWString();
-
-//     SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
-//     if ( it == SessionManager::instance()->end() ) {
-// 		Core::EditorManager::instance()->openEditor( fname );
-//         it = SessionManager::instance()->find( filename );
-//     }
-
-//     if ( it != SessionManager::instance()->end() ) {
-// 		Dataprocessor& processor = it->getDataprocessor();
-// 		processor.load( path.toStdWString(), id.toStdWString() );
-//     }
-// }
-
 void
 DataprocPlugin::extensionsInitialized()
 {
@@ -336,20 +292,17 @@ DataprocPlugin::aboutToShutdown()
 	return SynchronousShutdown;
 }
 
-//void
-//DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factories )
-//{
-//    for ( size_t i = 0; i < factories.size(); ++i )
-//        delete factories[ i ];
-//    factories.clear();
-//}
-
 bool
 DataprocPlugin::connect_isnapshothandler_signals()
 {
     //connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, [] ( const QString& _1 ) { dataproc_document::instance()->handle_portfolio_created( _1 ); } );
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, [] ( const QString& _1, const QString& _2, const QString& _3 ) { dataproc_document::instance()->handle_folium_added( _1, _2, _3 ); } );
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, [] ( const QString& _1 ) {
+            dataproc_document::instance()->handle_portfolio_created( _1 );
+        } );
+
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
+            dataproc_document::instance()->handle_folium_added( _1, _2, _3 );
+        } );
 
     return true;
 }

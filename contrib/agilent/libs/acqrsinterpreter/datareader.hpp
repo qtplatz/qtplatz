@@ -73,8 +73,10 @@ namespace acqrsinterpreter {
         double time_since_inject( int64_t rowid ) const override;
         int fcn( int64_t rowid ) const override;
         // <============================
+        
         std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
-
+        std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override;
+        
     private:
         friend class DataReader_index;
         void loadTICs();

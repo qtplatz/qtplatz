@@ -438,3 +438,9 @@ DataReader::getSpectrum( int64_t rowid ) const
 
     return nullptr;
 }
+
+std::shared_ptr< adcontrols::Chromatogram >
+DataReader::getChromatogram( int fcn, double time, double width ) const
+{
+    return nullptr;    
+}

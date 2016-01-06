@@ -79,8 +79,6 @@ namespace dataproc {
         void setDataprocessorFactory( std::unique_ptr< DataprocessorFactory >&& );
         DataprocessorFactory * dataprocessorFactory();
 
-        void handleSelectTimeRangeOnChromatogram( double x1, double x2 );
-
         static bool load( const QString& filename, adcontrols::ProcessMethod& );
         static bool save( const QString& filename, const adcontrols::ProcessMethod& );
 
@@ -93,7 +91,8 @@ namespace dataproc {
     public slots:
         void handle_folium_added( const QString& fname, const QString& path, const QString& id );
         void handle_portfolio_created( const QString& token );
-        
+        void handleSelectTimeRangeOnChromatogram( double x1, double x2 );
+
     private:    
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
         std::shared_ptr< QSettings > settings_;  // user scope settings

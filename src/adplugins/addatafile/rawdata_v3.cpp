@@ -121,6 +121,17 @@ rawdata::dataReader( size_t idx ) const
     return nullptr;
 }
 
+const adcontrols::DataReader *
+rawdata::dataReader( const boost::uuids::uuid& uuid ) const
+{
+    typedef std::pair < std::shared_ptr< adcontrols::DataReader >, int> value_type;
+
+    auto it = std::find_if( readers_.begin(), readers_.end(), [&] ( const value_type& a ) { return a.first->objuuid() == uuid; } );
+    if ( it != readers_.end() )
+        return it->first.get();
+    return nullptr;
+}
+
 std::vector < std::shared_ptr< const adcontrols::DataReader > >
 rawdata::dataReaders( bool allPossible ) const
 {

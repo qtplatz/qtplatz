@@ -86,10 +86,13 @@
 #include <QMenu>
 #include <QSettings>
 #include <QSlider>
-#include <boost/variant.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/variant.hpp>
 #include "selchanged.hpp"
 #include <sstream>
 #include <array>
@@ -808,17 +811,39 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
 
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
-        // todo: chromatogram creation by m/z|time range
+
         using namespace adcontrols::metric;
 
         QString left = QString::number( rect.left(), 'f', 3 );
         QString right = QString::number( rect.right(), 'f', 3 );
 
 		QMenu menu;
+        std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
         std::pair<size_t, size_t> range;
 
         if ( auto ms = pProfileSpectrum_.second.lock() ) {
+
+            if ( ms->dataReaderUuid() != boost::uuids::uuid( {0} ) ) {
+                // v3 data
+                if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                    if ( auto rd = dp->getLCMSDataset() ) {
+                        if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
+                            auto display_name = QString::fromStdString( reader->display_name() );
+
+                            ADDEBUG() << boost::lexical_cast< std::string > ( ms->dataReaderUuid() );
+                            // todo: chromatogram creation by m/z|time range                
+                            const auto f_range = pImpl_->is_time_axis_ ? tr( "Make chromatogram from %1s in range %2 -- %3(us)" ) : tr( "Make chromatogram from %1 in m/z range %2 -- %3" );
+
+                            actions.push_back(
+                                std::make_pair( menu.addAction( QString( f_range ).arg( display_name, left, right ) )
+                                                , [=] () {
+                                                      make_chromatogram( reader, rect.left(), rect.right() );
+                                    }) );
+                        }
+                    }
+                }
+            }
             
             if ( pImpl_->is_time_axis_ )
                 range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) ), ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
@@ -828,7 +853,6 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                         , std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.right() ) ) );
             }
             
-            std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
             const auto f_rms = pImpl_->is_time_axis_ ? tr("RMS in range %1 -- %2(us)") : tr("RMS in m/z range %1 -- %2");
             const auto f_maxval = pImpl_->is_time_axis_ ? tr("Max value in range %1 -- %2(us)") : tr("Max value in m/z range %1 -- %2");
@@ -1362,6 +1386,11 @@ MSProcessingWnd::frequency_analysis()
             pImpl_->pwplot_->setTitle( title );
         }
     }
+}
+
+void
+MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, double s, double e )
+{
 }
 
 void

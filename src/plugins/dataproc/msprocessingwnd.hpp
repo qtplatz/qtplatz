@@ -34,11 +34,12 @@
 #include <memory>
 
 namespace adcontrols {
-    class MassSpectrum;
     class Chromatogram;
+    class DataReader;
+    class MassSpectrum;
+	class MSPeakInfo;
 	class PeakResult;
     class ProcessMethod;
-	class MSPeakInfo;
     class Targeting;
 }
 
@@ -118,6 +119,7 @@ namespace dataproc {
         // from menu
         void frequency_analysis();
         void save_image_file();
+        void make_chromatogram( const adcontrols::DataReader *, double, double );
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );
