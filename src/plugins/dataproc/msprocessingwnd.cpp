@@ -1391,6 +1391,30 @@ MSProcessingWnd::frequency_analysis()
 void
 MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, double s, double e )
 {
+    double w = ( e - s );
+    double t = s + ( w / 2 );
+    
+    if ( auto pChr = reader->getChromatogram( 0, t, w ) ) {
+
+        if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+
+            portfolio::Portfolio portfolio = processor->getPortfolio();
+            portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
+
+            std::wostringstream o;
+            o << boost::wformat( L"%s %.3lf(w=%.2lf)" ) % reader->display_name() % t % w;
+
+            //auto folium = folder.findFoliumByName( adcontrols::Chromatogram::make_folder_name( o.str() ) );
+            auto folium = folder.findFoliumByName( o.str() );
+            if ( folium.nil() ) {
+                pChr->addDescription( adcontrols::description( L"acquire.title", o.str() ) );
+                adcontrols::ProcessMethod m;
+                MainWindow::instance()->getProcessMethod( m );
+                portfolio::Folium folium = processor->addChromatogram( *pChr, m, true );
+            }
+            processor->setCurrentSelection( folium );
+        }
+    }
 }
 
 void

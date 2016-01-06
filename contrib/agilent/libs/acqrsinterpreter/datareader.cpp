@@ -442,5 +442,49 @@ DataReader::getSpectrum( int64_t rowid ) const
 std::shared_ptr< adcontrols::Chromatogram >
 DataReader::getChromatogram( int fcn, double time, double width ) const
 {
+    auto nfcn = fcnCount();
+    if ( fcn >= nfcn )
+        return nullptr;
+
+    auto ptr = std::make_shared< adcontrols::Chromatogram >();
+    ptr->setDataReaderUuid( objid_ );
+
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+
+        if ( auto db = db_.lock() ) {
+            
+            adfs::stmt sql( *db );
+            
+            sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? ORDER BY npos" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = fcn;
+            
+            while ( sql.step() == adfs::sqlite_row ) {
+                
+                int col = 0;
+                double t0(0);
+                
+                auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+
+                waveform_types waveform;
+                
+                if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+
+                    if ( ptr->size() == 0 ) {
+                        t0 = elapsed_time;
+                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                    }
+
+                    double d = boost::apply_visitor( total_ion_count(), waveform );
+                    *ptr << std::make_pair( double( elapsed_time - t0 ) * 1.0e-9, d );
+                    
+                }
+            }
+
+            return ptr;
+        }
+    }
     return nullptr;    
 }
