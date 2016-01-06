@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -142,7 +142,6 @@ DataprocPlugin::~DataprocPlugin()
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
                                  , pSessionManager_( new SessionManager() )
                                  , pActionManager_( new ActionManager( this ) ) 
-                                 , dataprocFactory_( 0 )
 {
     instance_ = this;
 }
@@ -228,9 +227,10 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
             ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
-
-        dataprocFactory_ = new DataprocessorFactory( this, mTypes );
-        addAutoReleasedObject( dataprocFactory_ );
+        dataproc_document::instance()->setDataprocessorFactory( std::make_unique< DataprocessorFactory >( this, mTypes ) );
+        
+        addAutoReleasedObject( dataproc_document::instance()->dataprocessorFactory() );
+        
     } while ( 0 );
 
     mode_.reset( new dataproc::Mode( this ) );
@@ -271,189 +271,49 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 	emit onApplyMethod( m );
 }
 
-void
-DataprocPlugin::handleFileCreated( const QString& filename )
-{
-    handle_portfolio_created( filename );
-}
+// void
+// DataprocPlugin::handleFileCreated( const QString& filename )
+// {
+//     handle_portfolio_created( filename );
+// }
 
-void
-DataprocPlugin::handle_portfolio_created( const QString filename )
-{
-    // simulate file->open()
-    Core::ICore * core = Core::ICore::instance();
-    if ( core ) {
-        auto em = Core::EditorManager::instance();
-        // Core::EditorManager * em = core->editorManager();
-        if ( em && dataprocFactory_ ) {
-            if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
-                if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
-                    editor->portfolio_create( filename );
-                    // em->pushEditor( editor );
-                }
-            }
-        }
-    }
-}
+// void
+// DataprocPlugin::handle_portfolio_created( const QString filename )
+// {
+//     // simulate file->open()
+//     Core::ICore * core = Core::ICore::instance();
+//     if ( core ) {
+//         auto em = Core::EditorManager::instance();
+//         // Core::EditorManager * em = core->editorManager();
+//         if ( em && dataprocFactory_ ) {
+//             if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
+//                 if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
+//                     editor->portfolio_create( filename );
+//                     // em->pushEditor( editor );
+//                 }
+//             }
+//         }
+//     }
+// }
 
-void
-DataprocPlugin::handle_folium_added( const QString fname, const QString path, const QString id )
-{
-    qtwrapper::waitCursorBlocker block;
+// void
+// DataprocPlugin::handle_folium_added( const QString fname, const QString path, const QString id )
+// {
+//     qtwrapper::waitCursorBlocker block;
 
-	std::wstring filename = fname.toStdWString();
+// 	std::wstring filename = fname.toStdWString();
 
-    SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
-    if ( it == SessionManager::instance()->end() ) {
-		Core::EditorManager::instance()->openEditor( fname );
-        it = SessionManager::instance()->find( filename );
-    }
+//     SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
+//     if ( it == SessionManager::instance()->end() ) {
+// 		Core::EditorManager::instance()->openEditor( fname );
+//         it = SessionManager::instance()->find( filename );
+//     }
 
-    if ( it != SessionManager::instance()->end() ) {
-		Dataprocessor& processor = it->getDataprocessor();
-		processor.load( path.toStdWString(), id.toStdWString() );
-    }
-}
-
-void
-DataprocPlugin::onSelectSpectrum( double /*minutes*/, const adcontrols::DataReader_iterator& iterator )
-{
-    // read from v3 format data
-    if ( auto reader = iterator.dataReader() ) {
-
-        if ( auto ms = iterator.dataReader()->getSpectrum( iterator->rowid() ) ) {
-
-            std::wostringstream text;
-            text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfmin" ) % adportable::utf::to_wstring(reader->display_name())
-                                                                      % iterator->pos() % ms->protocolId() % ms->nProtocols()
-                                                                      % (iterator->time_since_inject() / 60.0);
-
-            adcontrols::ProcessMethod m;
-            ms->addDescription( adcontrols::description( L"create", text.str() ) );
-
-	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
-                portfolio::Folium folium = dp->addSpectrum( *ms, m );
-
-        }
-
-    }
-}
-
-void
-DataprocPlugin::onSelectSpectrum( double /*minutes*/, size_t pos, int fcn )
-{
-	qtwrapper::waitCursor w;
-
-	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
-	if ( dp ) {
-		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
-			adcontrols::MassSpectrum ms;
-            try {
-                std::wostringstream text;
-                // size_t pos = dset->find_scan( index, fcn );
-                if ( dset->getSpectrum( fcn, pos, ms ) ) {
-                    double t = dset->timeFromPos( pos ) / 60.0;
-                    if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
-                        t = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
-                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfmin" ) % pos % ms.protocolId() % ms.nProtocols() % t;
-                    adcontrols::ProcessMethod m;
-                    ms.addDescription( adcontrols::description( L"create", text.str() ) );
-                    portfolio::Folium folium = dp->addSpectrum( ms, m );
-                }
-            }
-            catch ( ... ) {
-                ADTRACE() << boost::current_exception_diagnostic_information();
-                QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
-            }
-        }
-    }
-}
-
-void
-DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
-{
-	qtwrapper::waitCursor w;
-
-    ADTRACE() << "onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
-
-	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
-	if ( dp ) {
-
-		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
-            
-            auto cptr = dataproc_document::findTIC( dp, 0 );
-            if ( !cptr )
-                return;
-
-            //size_t cidx1 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x1 ) );
-            //size_t cidx2 = cptr->toDataIndex( adcontrols::Chromatogram::toSeconds( x2 ) );
-            size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) );
-            size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
-            double t1 = x1; //adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
-            double t2 = x2; // adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
-            
-            try {
-                adcontrols::MassSpectrum ms;
-
-                int pos = int( pos1 );
-                if ( dset->getSpectrum( -1, pos++, ms ) ) {
-
-                    t1 = adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
-                
-                    std::wostringstream text;
-                    if ( pos2 > pos1 ) {
-                        auto progress = adwidgets::ProgressWnd::instance()->addbar();
-                        adwidgets::ProgressWnd::instance()->show();
-                        adwidgets::ProgressWnd::instance()->raise();
-
-                        std::thread t( [&] (){
-                                progress->setRange( int( pos1 ), int( pos2 ) );
-                                adcontrols::MassSpectrum a;
-                                while ( pos < int( pos2 ) && dset->getSpectrum( -1, pos++, a ) ) {
-                                    adcontrols::segments_helper::add( ms, a );
-                                    (*progress)();
-                                }
-                                if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
-                                    t2 = adcontrols::Chromatogram::toMinutes( a.getMSProperty().timeSinceInjection() );
-                            } );
-
-                        t.join();
-                    
-
-                        text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")min";
-                    } else {
-                        text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
-                    }
-                    adcontrols::ProcessMethod m;
-                    ms.addDescription( adcontrols::description( L"create", text.str() ) );
-                    portfolio::Folium folium = dp->addSpectrum( ms, m );
-                
-                    // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
-                    if ( folium ) {
-                        bool hasCentroid( false );
-                        if ( pos == pos2 && dset->hasProcessedSpectrum( 0, static_cast<int>( pos1 ) ) ) {
-                            adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                            if ( dset->getSpectrum( 0, static_cast<int>( pos1 ), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
-                                hasCentroid = true;
-                                portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-                                att.assign( pCentroid, pCentroid->dataClass() );
-                                SessionManager::instance()->updateDataprocessor( dp, folium );
-                            }
-                        }
-                        if ( ! hasCentroid ) {
-                            mainWindow_->getProcessMethod( m );
-                            //dp->applyProcess( folium, m, CentroidProcess );
-                        }
-                    }
-                }
-            } catch ( ... ) {
-                ADTRACE() << boost::current_exception_diagnostic_information();
-                QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
-            }
-		}
-	}
-    ADTRACE() << "return onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
-}
+//     if ( it != SessionManager::instance()->end() ) {
+// 		Dataprocessor& processor = it->getDataprocessor();
+// 		processor.load( path.toStdWString(), id.toStdWString() );
+//     }
+// }
 
 void
 DataprocPlugin::extensionsInitialized()
@@ -487,8 +347,9 @@ DataprocPlugin::aboutToShutdown()
 bool
 DataprocPlugin::connect_isnapshothandler_signals()
 {
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &DataprocPlugin::handle_portfolio_created );
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &DataprocPlugin::handle_folium_added );
+    //connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, [] ( const QString& _1 ) { dataproc_document::instance()->handle_portfolio_created( _1 ); } );
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, [] ( const QString& _1, const QString& _2, const QString& _3 ) { dataproc_document::instance()->handle_folium_added( _1, _2, _3 ); } );
 
     return true;
 }
@@ -496,8 +357,8 @@ DataprocPlugin::connect_isnapshothandler_signals()
 void
 DataprocPlugin::disconnect_isnapshothandler_signals()
 {
-    disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &DataprocPlugin::handle_portfolio_created );
-    disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &DataprocPlugin::handle_folium_added );
+    //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
+    //disconnect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, &dataproc_document::handle_folium_added );
 }
 
 Q_EXPORT_PLUGIN( DataprocPlugin )

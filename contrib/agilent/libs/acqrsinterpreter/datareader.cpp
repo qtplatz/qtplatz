@@ -331,8 +331,10 @@ DataReader::loadTICs()
 
                 indecies_.push_back( index( row, pos, elapsed_time, fcn ) );
 
-                if ( tics.find( fcn ) == tics.end() )
-                    tics[ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
+                if ( tics.find( fcn ) == tics.end() ) {
+                    tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
+                    tics [ fcn ].first->setDataReaderUuid( objid_ );
+                }
 
                 auto pair = tics[ fcn ];
 
@@ -418,19 +420,19 @@ DataReader::getSpectrum( int64_t rowid ) const
 
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
 
-                if ( interpreter_->translate( *ptr, reinterpret_cast< const char *>(xdata.data()), xdata.size()
+                if ( interpreter_->translate( *ptr
+                                              , reinterpret_cast< const char *>(xdata.data()), xdata.size()
                                               , reinterpret_cast< const char *>(xmeta.data()), xmeta.size()
-                                              , *spectrometer_, size_t(0), L"" ) == adcontrols::translate_complete ) {
+                                              , *spectrometer_
+                                              , size_t(0), L"" ) == adcontrols::translate_complete ) {
+                    
+                    ptr->setDataReaderUuid( objid_ );
 
                     return ptr;
                 }
                 
-                // return interpreter.translate( ms, reinterpret_cast< const char *>(xdata.data()), xdata.size()
-                //      , reinterpret_cast<const char *>(xmeta.data()), xmeta.size(), *spectrometer, idData++, traceId.c_str() );
-
             }
         }
-        // const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
         
     }
 

@@ -24,23 +24,39 @@
 
 #include "dataproc_document.hpp"
 #include "dataprocessor.hpp"
+#include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#include <adcontrols/msqpeaks.hpp>
+#include "dataprocessorfactory.hpp"
+#include "dataproceditor.hpp"
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/datareader.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/msqpeaks.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/profile.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/settings.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>
+#include <coreplugin/icore.h>
+//#include <coreplugin/id.h>
 #include <coreplugin/documentmanager.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/editormanager/editormanager.h>
 #include <QFileInfo>
 #include <QSettings>
 #include <QMessageBox>
@@ -72,6 +88,7 @@ dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
                                     , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                                 , QLatin1String( "dataproc" ) ) )
+
 {
 }
 
@@ -370,4 +387,209 @@ dataproc_document::findScanLaw( const QString& model, double& flength, double& a
         settings_->endGroup();
     }
     return result;
+}
+
+void
+dataproc_document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
+{
+	qtwrapper::waitCursor w;
+
+	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
+	if ( dp ) {
+
+		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
+            
+            auto cptr = dataproc_document::findTIC( dp, 0 );
+            if ( !cptr )
+                return;
+
+            if ( dset->dataformat_version() >= 3 ) {
+
+                handleSelectTimeRangeOnChromatogram_v3( dp, dset, x1, x2 );
+
+            } else {
+
+                handleSelectTimeRangeOnChromatogram_v2( dp, dset, x1, x2 );
+
+            }
+        }
+    }
+}
+
+void
+dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
+{
+    try {
+        adcontrols::MassSpectrum ms;
+        size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) );
+        size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
+        double t1 = x1; //adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
+        double t2 = x2; // adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
+        
+        int pos = int( pos1 );
+
+        if ( dset->getSpectrum( -1, pos++, ms ) ) {
+            
+            t1 = adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
+
+            std::wostringstream text;
+            if ( pos2 > pos1 ) {
+                auto progress = adwidgets::ProgressWnd::instance()->addbar();
+                adwidgets::ProgressWnd::instance()->show();
+                adwidgets::ProgressWnd::instance()->raise();
+
+                std::thread t( [&] () {
+                        progress->setRange( int( pos1 ), int( pos2 ) );
+                        adcontrols::MassSpectrum a;
+                        while ( pos < int( pos2 ) && dset->getSpectrum( -1, pos++, a ) ) {
+                            adcontrols::segments_helper::add( ms, a );
+                            ( *progress )( );
+                        }
+                        if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
+                            t2 = adcontrols::Chromatogram::toMinutes( a.getMSProperty().timeSinceInjection() );
+                    } );
+
+                t.join();
+
+
+                text << L"Spectrum (" << std::fixed << std::setprecision( 3 ) << t1 << " - " << t2 << ")min";
+            } else {
+                text << L"Spectrum @ " << std::fixed << std::setprecision( 3 ) << t1 << "min";
+            }
+            adcontrols::ProcessMethod m;
+            ms.addDescription( adcontrols::description( L"create", text.str() ) );
+            portfolio::Folium folium = dp->addSpectrum( ms, m );
+
+            // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
+            if ( folium ) {
+                bool hasCentroid( false );
+                if ( pos == pos2 && dset->hasProcessedSpectrum( 0, static_cast<int>( pos1 ) ) ) {
+                    adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+                    if ( dset->getSpectrum( 0, static_cast<int>( pos1 ), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
+                        hasCentroid = true;
+                        portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+                        att.assign( pCentroid, pCentroid->dataClass() );
+                        SessionManager::instance()->updateDataprocessor( dp, folium );
+                    }
+                }
+                if ( !hasCentroid ) {
+                    MainWindow::instance()->getProcessMethod( m );
+                }
+            }
+        }
+    } catch ( ... ) {
+        ADTRACE() << boost::current_exception_diagnostic_information();
+        QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
+    }
+}
+
+void
+dataproc_document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
+{
+    
+}
+
+
+void
+dataproc_document::onSelectSpectrum_v3( double /*minutes*/, const adcontrols::DataReader_iterator& iterator )
+{
+    // read from v3 format data
+    if ( auto reader = iterator.dataReader() ) {
+
+        if ( auto ms = iterator.dataReader()->getSpectrum( iterator->rowid() ) ) {
+
+            std::wostringstream text;
+            text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfmin" ) % adportable::utf::to_wstring(reader->display_name())
+                                                                      % iterator->pos() % ms->protocolId() % ms->nProtocols()
+                                                                      % (iterator->time_since_inject() / 60.0);
+
+            adcontrols::ProcessMethod m;
+            ms->addDescription( adcontrols::description( L"create", text.str() ) );
+
+	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+                portfolio::Folium folium = dp->addSpectrum( *ms, m );
+
+        }
+
+    }
+}
+
+void
+dataproc_document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
+{
+	qtwrapper::waitCursor w;
+
+	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
+	if ( dp ) {
+		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
+			adcontrols::MassSpectrum ms;
+            try {
+                std::wostringstream text;
+                // size_t pos = dset->find_scan( index, fcn );
+                if ( dset->getSpectrum( fcn, pos, ms ) ) {
+                    double t = dset->timeFromPos( pos ) / 60.0;
+                    if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
+                        t = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
+                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfmin" ) % pos % ms.protocolId() % ms.nProtocols() % t;
+                    adcontrols::ProcessMethod m;
+                    ms.addDescription( adcontrols::description( L"create", text.str() ) );
+                    portfolio::Folium folium = dp->addSpectrum( ms, m );
+                }
+            }
+            catch ( ... ) {
+                ADTRACE() << boost::current_exception_diagnostic_information();
+                QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
+            }
+        }
+    }
+}
+
+void
+dataproc_document::handle_folium_added( const QString& fname, const QString& path, const QString& id )
+{
+    qtwrapper::waitCursorBlocker block;
+
+	std::wstring filename = fname.toStdWString();
+
+    SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
+    if ( it == SessionManager::instance()->end() ) {
+		Core::EditorManager::instance()->openEditor( fname );
+        it = SessionManager::instance()->find( filename );
+    }
+
+    if ( it != SessionManager::instance()->end() ) {
+		Dataprocessor& processor = it->getDataprocessor();
+		processor.load( path.toStdWString(), id.toStdWString() );
+    }
+}
+
+void
+dataproc_document::handle_portfolio_created( const QString& filename )
+{
+    // simulate file->open()
+    Core::ICore * core = Core::ICore::instance();
+    if ( core ) {
+        auto em = Core::EditorManager::instance();
+        // Core::EditorManager * em = core->editorManager();
+        if ( em && dataprocFactory_ ) {
+            if ( Core::IEditor * ie = dataprocFactory_->createEditor() ) {
+                if ( DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie ) ) {
+                    editor->portfolio_create( filename );
+                    // em->pushEditor( editor );
+                }
+            }
+        }
+    }
+}
+
+void
+dataproc_document::setDataprocessorFactory( std::unique_ptr< DataprocessorFactory >&& ptr )
+{
+    dataprocFactory_ = std::move(ptr);
+}
+
+DataprocessorFactory *
+dataproc_document::dataprocessorFactory()
+{
+    return dataprocFactory_.get();
 }

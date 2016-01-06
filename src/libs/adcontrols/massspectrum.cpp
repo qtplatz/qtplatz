@@ -34,23 +34,19 @@
 # if defined _DEBUG || defined DEBUG
 # include <adportable/debug.hpp>
 # endif
+
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
-//#include <boost/serialization/base_object.hpp>
-//#include <boost/serialization/shared_ptr.hpp>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
-
-#include <compiler/diagnostic_pop.h>
 
 #include <algorithm>
 #include <sstream>
@@ -139,12 +135,14 @@ namespace adcontrols {
            int64_t timeSinceInjTrigger_; // usec
            int64_t timeSinceFirmwareUp_; // usec
            uint32_t numSpectrumSinceInjTrigger_;
-           std::string uuid_; // out of serialization scope
+
            std::vector< MassSpectrum > vec_;
            int32_t protocolId_;
            int32_t nProtocols_;
+           boost::uuids::uuid dataReaderUuid_;
 
            // exclude from archive
+           std::string uuid_; // for instance equality check; out of serialization scope
            std::shared_ptr< ScanLaw > scanLaw_;
            std::tuple< bool, double, double > minmax_;
 	    
@@ -168,11 +166,13 @@ namespace adcontrols {
                if ( version >= 2 ) 
                    ar & BOOST_SERIALIZATION_NVP( vec_ );
                if ( version >= 3 ) {
-                   ar & BOOST_SERIALIZATION_NVP( protocolId_ )
-                       & BOOST_SERIALIZATION_NVP( nProtocols_ )
-                       ;
+                   ar & BOOST_SERIALIZATION_NVP( protocolId_ );
+                   ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
                }
-               // exclude
+               if ( version >= 4 ) {
+                   ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+               }
+                   // exclude
                scanLaw_.reset();
                minmax_ = std::make_tuple( false, 0.0, 0.0 );
            }
@@ -190,6 +190,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( annotations_ );
             ar & BOOST_SERIALIZATION_NVP( protocolId_ );
             ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
+            ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
 
             std::vector< datum > data;
             for ( size_t i = 0; i < massArray_.size(); ++i )
@@ -209,7 +210,7 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 3 )
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 4 )
 
 ///////////////////////////////////////////
 
@@ -248,6 +249,9 @@ MassSpectrum::operator += ( const MassSpectrum& t )
         assert( 0 );
     }
 #endif
+    if ( isCentroid() || t.isCentroid() )
+        throw std::runtime_error( "unsupported spectrum type" );
+
     const double * rhs = getIntensityArray();
     const double * lhs = t.getIntensityArray();
     
@@ -676,6 +680,19 @@ MassSpectrum::nProtocols( int32_t v )
     pImpl_->nProtocols_ = v;
 }
 
+// for v3 format datafile support
+void
+MassSpectrum::setDataReaderUuid( const boost::uuids::uuid& uuid )
+{
+    pImpl_->dataReaderUuid_ = uuid;
+}
+
+const boost::uuids::uuid&
+MassSpectrum::dataReaderUuid() const
+{
+    return pImpl_->dataReaderUuid_;
+}
+
 std::wstring
 MassSpectrum::saveXml() const
 {
@@ -855,6 +872,7 @@ MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
                                      , numSpectrumSinceInjTrigger_(0)
                                      , protocolId_(0)
                                      , nProtocols_(0)
+                                     , dataReaderUuid_( { 0 } )
                                      , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
 {
 }
@@ -875,6 +893,7 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
     property_ = t.property_;
     protocolId_ = t.protocolId_;
     nProtocols_ = t.nProtocols_;
+    dataReaderUuid_ = t.dataReaderUuid_;
 
 	if ( deep ) {
 		tofArray_ = t.tofArray_;

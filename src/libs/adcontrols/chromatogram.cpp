@@ -32,9 +32,11 @@
 #include "peak.hpp"
 #include "baselines.hpp"
 #include "baseline.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
@@ -111,9 +113,11 @@ namespace adcontrols {
             std::wstring axisLabelHorizontal_;
             std::wstring axisLabelVertical_;
             int32_t fcn_;
+            boost::uuids::uuid dataReaderUuid_;
 	   
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+
                 ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
                     & BOOST_SERIALIZATION_NVP(isConstantSampling_)
                     & BOOST_SERIALIZATION_NVP(timeRange_.first) 
@@ -129,12 +133,15 @@ namespace adcontrols {
                     ;
                 if ( version >= 2 ) 
                     ar & BOOST_SERIALIZATION_NVP( fcn_ );
+
+                if ( version >= 3 ) 
+                    ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 2 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 3 )
 
 ///////////////////////////////////////////
 
@@ -561,6 +568,7 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
                                      , dataDelayPoints_(0)
                                      , samplingInterval_(0)
                                      , fcn_(0)
+                                     , dataReaderUuid_( { 0 } )
 {
 }
 
@@ -576,6 +584,7 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
                                                                 , fcn_( t.fcn_ )
+                                                                , dataReaderUuid_( t.dataReaderUuid_ )
 {
     descriptions_ = t.descriptions_;
 }
@@ -653,4 +662,17 @@ Chromatogram::make_folder_name( const adcontrols::descriptions& descs )
         name += desc.text();
     }
     return name;
+}
+
+// for v3 format datafile support
+void
+Chromatogram::setDataReaderUuid( const boost::uuids::uuid& uuid )
+{
+    pImpl_->dataReaderUuid_ = uuid;
+}
+
+const boost::uuids::uuid&
+Chromatogram::dataReaderUuid() const
+{
+    return pImpl_->dataReaderUuid_;
 }

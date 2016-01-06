@@ -86,7 +86,6 @@ namespace adcontrols {
         virtual ~DataReader(void);
 
         DataReader( const char * traceid = nullptr );
-        //DataReader( adfs::filesystem&, const char * traceid = nullptr );
 
         DataReader( const DataReader& );
         DataReader& operator = ( const DataReader& );

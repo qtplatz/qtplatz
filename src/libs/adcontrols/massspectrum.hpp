@@ -33,12 +33,15 @@
 #include <vector>
 
 namespace boost {
-    namespace serialization {
-        class access;
-    }
     namespace archive { 
         class binary_oarchive; 
         class binary_iarchive;
+    }
+    namespace serialization {
+        class access;
+    }
+    namespace uuids {
+        struct uuid;
     }
 }
 
@@ -114,7 +117,12 @@ namespace adcontrols {
 		void setColorArray( const unsigned char * );
         bool isCentroid() const;
         void setCentroid( CentroidAlgorithm );
+
+        // ---
+        void setDataReaderUuid( const boost::uuids::uuid& );
+        const boost::uuids::uuid& dataReaderUuid() const;
         
+        // ---
         MS_POLARITY polarity() const;
         void setPolarity( MS_POLARITY );
         int mode() const;

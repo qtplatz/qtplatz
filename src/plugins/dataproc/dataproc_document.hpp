@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -37,16 +37,22 @@ namespace adcontrols {
     class MSQPeaks;
     class Chromatogram;
     class ProcessMethod;
+    class LCMSDataset;
+    class DataReader;
+    class DataReader_iterator;
 }
 
 namespace dataproc {
 
     class Dataprocessor;
+    class DataprocessorFactory;
 
     class dataproc_document : public QObject
     {
         Q_OBJECT
+        
         explicit dataproc_document(QObject *parent = 0);
+        
         static std::atomic<dataproc_document * > instance_;
         static std::mutex mutex_;
     public:
@@ -68,7 +74,12 @@ namespace dataproc {
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
 
         void saveScanLaw( const QString& model_name, double flength, double accv, double tdelay, double mass, const QString& );
-        bool findScanLaw( const QString& model_name, double& flength, double& accv, double& tdelay, double& mass, QString& );        
+        bool findScanLaw( const QString& model_name, double& flength, double& accv, double& tdelay, double& mass, QString& );
+
+        void setDataprocessorFactory( std::unique_ptr< DataprocessorFactory >&& );
+        DataprocessorFactory * dataprocessorFactory();
+
+        void handleSelectTimeRangeOnChromatogram( double x1, double x2 );
 
         static bool load( const QString& filename, adcontrols::ProcessMethod& );
         static bool save( const QString& filename, const adcontrols::ProcessMethod& );
@@ -76,17 +87,26 @@ namespace dataproc {
         static size_t findCheckedTICs( Dataprocessor *, std::set< int >& vfcn );
         static const std::shared_ptr< adcontrols::Chromatogram > findTIC( Dataprocessor *, int );
 
+        void onSelectSpectrum_v2( double minutes, size_t pos, int fcn );
+        void onSelectSpectrum_v3( double minutes, const adcontrols::DataReader_iterator& );
+
+    public slots:
+        void handle_folium_added( const QString& fname, const QString& path, const QString& id );
+        void handle_portfolio_created( const QString& token );
+        
     private:    
         std::shared_ptr< adcontrols::MSQPeaks > quant_;
         std::shared_ptr< QSettings > settings_;  // user scope settings
         std::shared_ptr< adcontrols::ProcessMethod > pm_;
         QString procmethod_filename_;
+        std::unique_ptr< DataprocessorFactory > dataprocFactory_;
+        
+        void handleSelectTimeRangeOnChromatogram_v2( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
+        void handleSelectTimeRangeOnChromatogram_v3( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
 
     signals:
         void onProcessMethodChanged( const QString& );
         void scanLawChanged( double length, double accV, double tdelay );
-
-    public slots:
 
     };
 

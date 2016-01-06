@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -141,35 +141,35 @@ namespace dataproc {
             processedSpectrum_->setFocusedFcn( fcn );
         }
 
-        bool ticFinder3( Dataprocessor * dp, double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
-            if ( auto rawfile = dp->getLCMSDataset() ) {
-                auto readers = rawfile->dataReaders();
-                if ( auto it = adcontrols::DataReader::findPos( adcontrols::Chromatogram::toSeconds( x ), readers ) ) {
-                    pos = it->pos();
-                    minutes = it->time_since_inject() / 60.0;
-                    rep = 0;
-                    fcn = it->fcn();
-                    return true;
+        bool ticFinder3( const adcontrols::LCMSDataset * rawfile, double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
+            size_t idx = 0;
+            double error = 999.0;
+            double seconds = adcontrols::Chromatogram::toSeconds( x );
+            while ( auto reader = rawfile->dataReader( idx++ ) ) {
+                if ( reader->fcnCount() ) {
+                    if ( auto it = reader->findPos( seconds ) ) {
+                        if ( error > std::abs( it->time_since_inject() - seconds ) ) {
+                            error = std::abs( it->time_since_inject() - seconds );
+                            pos = it->pos();
+                            minutes = it->time_since_inject() / 60.0;
+                            rep = 0;
+                            fcn = it->fcn();
+                        }
+                    }
                 }
             }
-            return false;
+            return true;
         }
 
-        bool ticFinder( double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
+        bool ticFinder2( const adcontrols::LCMSDataset * rawfile, double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
             index = 0;
             fcn = (-1);
             minutes = 0;
-
-            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                if ( auto rawfile = dp->getLCMSDataset() ) {
-                    if ( rawfile->dataformat_version() >= 3 )
-                        return ticFinder3( dp, x, pos, index, rep, fcn, minutes );
-                    pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
-                    if ( rawfile->index( pos, index, fcn, rep ) ) {
-                        minutes = adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
-                        return true;
-                    }
-                }
+            
+            pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
+            if ( rawfile->index( pos, index, fcn, rep ) ) {
+                minutes = adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
+                return true;
             }
 
             int traceId = -1;
@@ -195,14 +195,33 @@ namespace dataproc {
         }
 
         bool ticTracker( const QPointF& pos, QwtText& text ) {
-            size_t npos;
-            int fcn, rep, index;
-            double minutes;
-            if ( ticFinder( pos.x(), npos, index, rep, fcn, minutes ) ) {
-                QString ammend = QString::fromStdString( ( boost::format("[data#%d idx:%d [rep:%d] fcn:%d]") % npos % index % rep % fcn ).str() );
-                text.setText( QString( "%1 %2" ).arg( text.text() ).arg( ammend ), QwtText::RichText );
+            if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                if ( auto rawfile = dp->getLCMSDataset() ) {
+                    
+                    size_t npos(0);
+                    int fcn(0), rep(0), index(0);
+                    double minutes(0);
+                    
+                    if ( rawfile->dataformat_version() >= 3 ) {
+                        return true;
+#if 0
+                        // the code below is too slow
+                        if ( ticFinder3( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
+                            QString ammend = QString::fromStdString( ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
+                            text.setText( QString( "%1 %2" ).arg( text.text(), ammend ), QwtText::RichText );
+                            return true;
+                        }
+#endif
+                    } else {
+                        if ( ticFinder2( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
+                            QString ammend = QString::fromStdString( ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
+                            text.setText( QString( "%1 %2" ).arg( text.text(), ammend ), QwtText::RichText );
+                            return true;
+                        }
+                    }
+                }
             }
-            return true;
+            return false;
         }
 
         void clearChromatograms() {
@@ -703,62 +722,68 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 	double x0 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.right() );
 
-	if ( int( std::abs( x1 - x0 ) ) <= 2 ) {
-        QMenu menu;
-        typedef std::pair < QAction *, std::function<void()> > action_type;
-        std::vector < action_type > actions;
+    typedef std::pair < QAction *, std::function<void()> > action_type; 
 
-        //--- v3 support -->
+    QMenu menu; 
+    std::vector < action_type > actions;
+
+	if ( int( std::abs( x1 - x0 ) ) <= 2 ) {
+        
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
             if ( auto rawfile = dp->getLCMSDataset() ) {
+                //--- v3 support -->
                 if ( rawfile->dataformat_version() >= 3 ) {
+                    // v3 data
                     auto readers = rawfile->dataReaders();
                     for ( auto& reader : readers ) {
                         if ( auto it = reader->findPos( adcontrols::Chromatogram::toSeconds( rect.left() ) ) )
-                            actions.push_back( std::make_pair(
-                                menu.addAction( QString( "Select spectrum (%1) @%2min" ).arg( QString::fromStdString( reader->display_name() )
-                                                                                              , QString::number( rect.left(), 'f', 3 ) ) )
-                                , [=] () { DataprocPlugin::instance()->onSelectSpectrum( rect.left(), it ); } ) );
+                            actions.push_back(
+                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfmin" ) % reader->display_name() % rect.left() ).str().c_str() )
+                                                , [=] () {
+                                                    dataproc_document::instance()->onSelectSpectrum_v3( rect.left(), it );
+                                                } )
+                                );
                     }
+                    
+                } else {
+                    // v2 data
+                    size_t pos;
+                    int index, rep, fcn;
+                    double minutes;
+                    if ( ! pImpl_->ticFinder2( rawfile, rect.left(), pos, index, rep, fcn, minutes ) ) {
+                        minutes = 0;
+                        index = fcn = -1;
+                    }
+                    actions.push_back(
+                        std::make_pair( menu.addAction(
+                                            (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)" ) % minutes % index % fcn ).str().c_str() )
+                                        , [=] () {
+                                            dataproc_document::instance()->onSelectSpectrum_v2( minutes, pos, fcn );
+                                        } )
+                        );
+                    
+                    if ( index < 0 || fcn < 0 )
+                        actions.back().first->setEnabled( false );
+                    
+                    actions.push_back(
+                        std::make_pair( menu.addAction( (boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str().c_str() )
+                                        , [=] () {
+                                            dataproc_document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
+                                        } ) );
+                    
                 }
             }
         }
                     
-      //  xxxxxxxxxxxxxxxxxxxxxxxx
-        size_t pos;
-        int index, rep, fcn;
-        double minutes;
-        if ( !pImpl_->ticFinder( rect.left(), pos, index, rep, fcn, minutes ) ) {
-            minutes = 0;
-            index = fcn = -1;
-        }
-        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)" )
-                                                            % minutes % index % fcn ).str().c_str() )
-                                           , [=] () {
-                                               DataprocPlugin::instance()->onSelectSpectrum( minutes, pos, fcn );
-                                           } ) );
-
-        if ( index < 0 || fcn < 0 )
-            actions.back().first->setEnabled( false );
-        
-        actions.push_back( std::make_pair( menu.addAction( (boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str().c_str() )
-                                           , [=] () {
-                                               DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
-                                           } ) );
-        
-        actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") )
-                                           , [=] () {
+        actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [=] () {
                                                adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
                                            } ) );
         
-        actions.push_back( std::make_pair(
-                               menu.addAction( tr( "Save SVG File" ) )
-                               , [=] () {
-                                   QString name
-                                       = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                                       , "Save SVG File"
-                                                                       , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
-                                                                       , tr("SVG (*.svg)") );
+        actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
+            QString name = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                         , "Save SVG File"
+                                                         , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
+                                                         , tr( "SVG (*.svg)" ) );
                                    if ( ! name.isEmpty() )
                                        adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
                                }) );
@@ -769,9 +794,9 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
             if ( it != actions.end() )
                 (it->second)();
         }
-    }
-    else {
-        DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
+
+    } else {
+        dataproc_document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
     }
 
 }

@@ -38,6 +38,9 @@ namespace boost {
         class binary_oarchive; 
         class binary_iarchive;
     }
+    namespace uuids {
+        struct uuid;
+    }
 }
 
 class portable_binary_oarchive; 
@@ -143,6 +146,9 @@ namespace adcontrols {
         const std::wstring& axisLabelVertical() const;
         void axisLabelHorizontal( const std::wstring& );
         void axisLabelVertical( const std::wstring& );
+
+        void setDataReaderUuid( const boost::uuids::uuid& );
+        const boost::uuids::uuid& dataReaderUuid() const;
 
         Peaks& peaks();
         const Peaks& peaks() const;

@@ -38,9 +38,6 @@ namespace adportable {
 
 namespace adcontrols {
 	class ProcessMethod;
-	class MassSpectrum;
-    class DataReader;
-    class DataReader_iterator;
 }
 
 namespace adextension {
@@ -78,22 +75,18 @@ namespace dataproc {
         inline static MainWindow * mainWindow() { return instance_ ? instance_->mainWindow_ : 0; }
         
         void applyMethod( const adcontrols::ProcessMethod& );
-        void onSelectTimeRangeOnChromatogram( double x1, double x2 );
-        void onSelectSpectrum( double minutes, size_t pos, int fcn );
-        void onSelectSpectrum( double /*minutes*/, const adcontrols::DataReader_iterator& );
-        DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
+
+        //DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
+
         dataproc::ActionManager * actionManager() { return pActionManager_.get(); }
-        void handleFileCreated( const QString& filename );
+
+        //void handleFileCreated( const QString& filename );
         
     signals:
         void onApplyMethod( const adcontrols::ProcessMethod& );
                                                               
     public slots:
             
-    private slots:
-        void handle_portfolio_created( const QString token );
-        void handle_folium_added( const QString, const QString, const QString );
-        
     private:
         enum { idActSpectrogram, nActions };
         
@@ -103,8 +96,6 @@ namespace dataproc {
         std::unique_ptr< adportable::Configuration > pConfig_;
         std::unique_ptr< SessionManager > pSessionManager_;
         std::unique_ptr< ActionManager > pActionManager_;
-        
-        DataprocessorFactory * dataprocFactory_;
         
         std::unique_ptr< adextension::iSequenceImpl > iSequence_;
         std::unique_ptr< iSnapshotHandlerImpl > iSnapshotHandler_;

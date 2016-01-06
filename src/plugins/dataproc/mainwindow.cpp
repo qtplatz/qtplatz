@@ -1049,7 +1049,7 @@ MainWindow::handleImportChecked()
     } while ( 0 );
 
     if ( handled )
-        DataprocPlugin::instance()->handleFileCreated( filename );
+        dataproc_document::instance()->handle_portfolio_created( filename );
 }
 
 void
