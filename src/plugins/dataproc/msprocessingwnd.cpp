@@ -1402,7 +1402,7 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, doubl
             portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
 
             std::wostringstream o;
-            o << boost::wformat( L"%s %.3lf(w=%.2lf)" ) % reader->display_name() % t % w;
+            o << boost::wformat( L"%s %.3lf(w=%.2lf)" ) % adportable::utf::to_wstring( reader->display_name() ) % t % w;
 
             //auto folium = folder.findFoliumByName( adcontrols::Chromatogram::make_folder_name( o.str() ) );
             auto folium = folder.findFoliumByName( o.str() );
