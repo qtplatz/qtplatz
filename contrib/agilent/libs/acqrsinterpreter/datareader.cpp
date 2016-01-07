@@ -101,10 +101,10 @@ namespace acqrsinterpreter {
     };
 
     struct total_ion_count : public boost::static_visitor< double > {
+        double tof, width;
+        total_ion_count( double _tof = 0.0, double _width = 0.0 ) : tof( _tof ), width( _width ) {}
         template< typename T >
-        double operator()( T& ptr ) const {
-            return ptr->accumulate( 0.0, 0.0 ); // tic
-        }
+        double operator()( T& ptr ) const { return ptr->accumulate( tof, width ); }
     };
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& ptr ) const
@@ -458,11 +458,11 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
             sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? ORDER BY npos" );
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = fcn;
+            double t0(0);
             
             while ( sql.step() == adfs::sqlite_row ) {
                 
                 int col = 0;
-                double t0(0);
                 
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
@@ -476,8 +476,8 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
                         t0 = elapsed_time;
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                     }
-
-                    double d = boost::apply_visitor( total_ion_count(), waveform );
+                    
+                    double d = boost::apply_visitor( total_ion_count( time, width ), waveform );
                     *ptr << std::make_pair( double( elapsed_time - t0 ) * 1.0e-9, d );
                     
                 }

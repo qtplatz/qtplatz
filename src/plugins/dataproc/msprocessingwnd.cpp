@@ -1393,8 +1393,10 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, doubl
 {
     double w = ( e - s );
     double t = s + ( w / 2 );
+
+    using namespace adcontrols::metric;
     
-    if ( auto pChr = reader->getChromatogram( 0, t, w ) ) {
+    if ( auto pChr = reader->getChromatogram( 0, scale_to_base(t, micro), scale_to_base(w, micro) ) ) {
 
         if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 
