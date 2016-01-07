@@ -107,6 +107,7 @@ namespace u5303a {
         bool AcquisitionInitiate();
 
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
+        bool isAcquisitionIdle() const;
 
         bool setTSREnabled( bool );
         bool TSREnabled();

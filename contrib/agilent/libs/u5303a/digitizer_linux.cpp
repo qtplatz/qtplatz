@@ -843,10 +843,18 @@ device::acquire( task& task )
 bool
 device::waitForEndOfAcquisition( task& task, int timeout )
 {
-	(void)timeout;
+    auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( timeout );
 
+    while( ! task.spDriver()->isAcquisitionIdle() ) {
+        if ( tp < std::chrono::steady_clock::now() )
+            return false;
+    }
+    return true;
+
+#if 0
     long const timeoutInMs = 3000;
     return task.spDriver()->AcquisitionWaitForAcquisitionComplete(timeoutInMs);
+#endif
 }
 
 /////////////

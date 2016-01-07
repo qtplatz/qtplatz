@@ -314,6 +314,16 @@ AgMD2::AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds )
 }
 
 bool
+AgMD2::isAcquisitionIdle() const
+{
+    ViInt32 idle( AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE );
+    
+    log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_IS_IDLE, &idle ), __FILE__, __LINE__, [=]{ return ( boost::format("isIdle") ).str(); } );
+
+    return idle == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE;
+}
+
+bool
 AgMD2::setTSREnabled( bool enable )
 {
     ViBoolean value = enable ? VI_TRUE : VI_FALSE;
