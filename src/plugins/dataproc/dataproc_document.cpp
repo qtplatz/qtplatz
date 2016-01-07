@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -53,7 +53,6 @@
 #include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>
 #include <coreplugin/icore.h>
-//#include <coreplugin/id.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
@@ -66,6 +65,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <atomic>
+#include <thread>
 
 namespace dataproc {
 
