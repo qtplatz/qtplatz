@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -128,6 +128,8 @@ namespace adcontrols {
         virtual std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
         
         virtual std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

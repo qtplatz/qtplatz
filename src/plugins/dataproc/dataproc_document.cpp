@@ -486,7 +486,22 @@ dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, c
 void
 dataproc_document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
-    
+    double t1 = adcontrols::Chromatogram::toSeconds( x1 );
+    double t2 = adcontrols::Chromatogram::toSeconds( x2 );
+
+    for ( auto reader: dset->dataReaders() ) {
+        
+        auto begin = reader->findPos( t1 );
+        auto end = reader->findPos( t2 );
+        
+        if ( auto ms = reader->coaddSpectrum( begin, end ) ) {
+            std::ostringstream o;
+            o << "Spectrum " << reader->display_name() << " (" << std::fixed << std::setprecision( 3 ) << x1 << " - " << x2 << ")min";
+            adcontrols::ProcessMethod m;
+            ms->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( o.str() ) ) );
+            portfolio::Folium folium = dp->addSpectrum( *ms, m );
+        }
+    }
 }
 
 

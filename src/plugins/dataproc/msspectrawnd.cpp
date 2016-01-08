@@ -53,6 +53,12 @@
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
+#include <qwt_plot_renderer.h>
+#include <qwt_plot_marker.h>
+#include <qwt_symbol.h>
+
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 
@@ -116,6 +122,9 @@ namespace dataproc {
             for ( size_t i = 0; i < plots_.size(); ++i ) {
 
                 plots_[ i ] = std::make_shared< adplot::SpectrumWidget >();
+                plots_[ i ]->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+                plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+                
                 markers_[ i ] = std::make_shared< adplot::PeakMarker >();
 
             }
@@ -130,7 +139,7 @@ namespace dataproc {
         std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
 
         std::pair< std::wstring, datafolder > profile_;
-
+        
         std::shared_ptr< adwidgets::MSQuanTable > table_;
         std::array< std::shared_ptr< adplot::SpectrumWidget >, 2 > plots_;
         std::array< std::shared_ptr< adplot::PeakMarker >, 2 > markers_;

@@ -50,6 +50,8 @@ namespace adcontrols {
         TimeDigitalHistogram();
         TimeDigitalHistogram( const TimeDigitalHistogram& );
 
+        TimeDigitalHistogram& operator += ( const TimeDigitalHistogram& );
+
         size_t size() const;
         const value_type& operator [] ( size_t idx ) const;
         iterator begin();

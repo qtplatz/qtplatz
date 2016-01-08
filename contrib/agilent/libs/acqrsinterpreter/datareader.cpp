@@ -112,6 +112,16 @@ namespace acqrsinterpreter {
         return ptr->indecies().size();
     }
 
+    struct coadd_spectrum : public boost::static_visitor< void > {
+        waveform_types& waveform;
+        coadd_spectrum( waveform_types& _1 ) : waveform( _1 ) {}
+        
+        template< typename T > void operator()( T const& rhs ) const {
+            auto ptr = boost::get< decltype( rhs ) >( waveform );
+            //*ptr += *rhs;
+        }
+    };
+
     struct make_title : public boost::static_visitor < std::wstring > {
         std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
             return ( boost::wformat( L"TDC" ) ).str();
@@ -487,4 +497,62 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
         }
     }
     return nullptr;    
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
+{
+    auto ptr = std::make_shared< adcontrols::MassSpectrum >();
+    ptr->setDataReaderUuid( objid_ );
+
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+
+        if ( auto db = db_.lock() ) {
+            
+            adfs::stmt sql( *db );
+            
+            sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND pos >= ? AND pos <= ? ORDER BY npos" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = begin->fcn();
+            sql.bind( 3 ) = begin->pos();
+            sql.bind( 4 ) = end->pos();
+            double t0(0);
+
+            waveform_types coadded;
+
+            size_t n(0);
+            while ( sql.step() == adfs::sqlite_row ) {
+                
+                int col = 0;
+                auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+
+                waveform_types waveform;
+                if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+
+                    if ( ptr->size() == 0 ) {
+                        t0 = elapsed_time;
+                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                    }
+
+                    if ( waveform.which() == 1 ) {
+                        
+                    } else if ( waveform.which() == 2 ) {
+                        
+                    }
+                    if ( n++ == 0 )
+                        coadded = waveform;
+                    else
+                        boost::apply_visitor( coadd_spectrum( coadded ), waveform );
+                }
+            }
+
+            return ptr;
+        }
+    }
+    return nullptr;    
+    
+    
+    return nullptr;
 }

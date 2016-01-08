@@ -329,6 +329,31 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     return true;
 }
 
+TimeDigitalHistogram&
+TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
+{
+    const double resolution = xIncrement_;
+
+    auto dIt = histogram_.begin();    // std::vector< std::pair< double, uint32_t > >
+    auto sIt = t.histogram().begin(); 
+
+    while ( dIt != histogram_.end() && sIt != t.histogram().end() ) {
+
+        
+        
+        auto tail = it + 1;
+        while ( tail != histogram_.end() && std::abs( tail->first - it->first ) < resolution ) {
+
+            std::pair< double, uint32_t > sum
+                = std::accumulate( it, tail, std::make_pair( 0.0, 0 )
+                                   , []( const std::pair< double, uint32_t >& a, const std::pair< double, uint32_t >& b ) {
+                                       return std::make_pair( a.first, a.second + b.second ); } );
+        }
+    }
+    
+    return *this;
+}
+
 double
 TimeDigitalHistogram::triggers_per_second() const
 {
