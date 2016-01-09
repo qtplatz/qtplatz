@@ -705,7 +705,7 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     pk.peakTime( t0 + ( t1 - t0 ) / 2.0 );
     pk.peakArea( area );
     pk.peakHeight( height );
-    pk.name( L"Manually added" );
+    pk.name( L"added" );
 
     bs.startHeight( 0 );
     bs.stopHeight( 0 );

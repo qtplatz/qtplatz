@@ -24,11 +24,11 @@
 **************************************************************************/
 
 #include "chromatogramwnd.hpp"
-
-#if ! defined Q_MOC_RUN
 #include "dataprocessor.hpp"
 #include "dataprocconstants.hpp"
+#include "mainwindow.hpp"
 #include "selchanged.hpp"
+#include "sessionmanager.hpp"
 #include "qtwidgets_name.hpp"
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -41,7 +41,6 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
-//#include <adplugin/widget_factory.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/peakmarker.hpp>
@@ -49,17 +48,26 @@
 #include <adutils/processeddata.hpp>
 #include <adwidgets/peaktable.hpp>
 #include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
-#endif
+
+#include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
+#include <qwt_plot_renderer.h>
+#include <qwt_plot_marker.h>
 
 #include <coreplugin/minisplitter.h>
 #include <QAction>
+#include <QApplication>
 #include <QBoxLayout>
+#include <QFileDialog>
 #include <QShortcut>
 #include <QMessageBox>
 #include <QMenu>
+#include <QPrinter>
+#include <QSvgGenerator>
 
 using namespace dataproc;
 
@@ -130,6 +138,7 @@ namespace dataproc {
 
             if ( data_ && data_->add_manual_peak( *peakResult_, t1, t2 ) ) {
                 setData( peakResult_ );
+                chroWidget_->update();
             }
         }
 
@@ -141,6 +150,7 @@ namespace dataproc {
         std::shared_ptr< adplot::PeakMarker > marker_;
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
+        std::wstring idActiveFolium_;
     public slots:
         void copy() {
             peakTable_->handleCopyToClipboard();
@@ -250,9 +260,12 @@ void
 ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( selChanged<ChromatogramWnd>(*this), data );
+
+    if ( boost::apply_visitor( selChanged<ChromatogramWnd>(*this), data ) )
+        impl_->idActiveFolium_ = folium.id();
 
     portfolio::Folio attachments = folium.attachments();
+
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
         adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
         boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
@@ -262,6 +275,71 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& fol
 void
 ChromatogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
+}
+
+void
+ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
+{
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+    QSizeF sizeMM( 180, 80 );
+
+    int resolution = 85;
+	const double mmToInch = 1.0 / 25.4;
+    const QSizeF size = sizeMM * mmToInch * resolution;
+
+	QPrinter printer;
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+    
+	portfolio::Folium folium;
+    printer.setDocName( "QtPlatz Chromatogram Report" );
+	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        folium = dp->getPortfolio().findFolium( impl_->idActiveFolium_ );
+    }
+
+    printer.setOutputFileName( pdfname );
+    printer.setResolution( resolution );
+
+    QPainter painter( &printer );
+
+	QRectF boundingRect;
+	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
+
+	painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
+	
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+	drawRect.setTop( boundingRect.bottom() );
+	drawRect.setHeight( size.height() );
+	drawRect.setWidth( size.width() );
+	renderer.render( impl_->chroWidget_, &painter, drawRect );
+
+	QString formattedMethod;
+
+    portfolio::Folio attachments = folium.attachments();
+    portfolio::Folio::iterator it
+        = portfolio::Folium::find<adcontrols::ChromatogramPtr>( attachments.begin(), attachments.end() );
+    if ( it != attachments.end() ) {
+        adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+        const adcontrols::descriptions& desc = impl_->data_->getDescriptions();
+        for ( size_t i = 0; i < desc.size(); ++i ) {
+            const adcontrols::description& d = desc[i];
+            if ( ! std::string( d.xml() ).empty() ) {
+                formattedMethod.append( d.xml() );
+            }
+        }
+    }
+    drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+    drawRect.setHeight( printer.height() - drawRect.top() );
+    QFont font = painter.font();
+    font.setPointSize( 8 );
+    painter.setFont( font );
+    painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
+    
 }
 
 ///////////////////////////
@@ -284,14 +362,24 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
 
     }
 
-    if ( ! actions.empty() ) {
-        
-        if ( auto selected = menu.exec( QCursor::pos() ) ) {
-            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
-            if ( it != actions.end() )
-                (it->second)();
-        }
-
+    actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [&] () {
+                adplot::plot::copyToClipboard( this->chroWidget_ );
+            } ) );
+    
+    actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
+                QString name = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                             , "Save SVG File"
+                                                             , MainWindow::makePrintFilename( idActiveFolium_, L"_" )
+                                                             , tr( "SVG (*.svg)" ) );
+                if ( ! name.isEmpty() )
+                    adplot::plot::copyImageToFile( chroWidget_, name, "svg" );
+            }) );
+    
+    
+    if ( auto selected = menu.exec( QCursor::pos() ) ) {
+        auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
+        if ( it != actions.end() )
+            (it->second)();
     }
 
 }
