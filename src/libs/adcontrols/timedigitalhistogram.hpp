@@ -77,6 +77,7 @@ namespace adcontrols {
         const std::pair< uint64_t, uint64_t >& serialnumber() const;
         const std::pair< uint64_t, uint64_t >& timeSinceEpoch() const;
         std::vector< std::pair< double, uint32_t > >& histogram();
+        const std::vector< std::pair< double, uint32_t > >& histogram() const;
 
         uint32_t accumulate( double tof, double window ) const;
 

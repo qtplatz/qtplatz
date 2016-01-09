@@ -118,9 +118,29 @@ namespace acqrsinterpreter {
         
         template< typename T > void operator()( T const& rhs ) const {
             auto ptr = boost::get< decltype( rhs ) >( waveform );
-            //*ptr += *rhs;
+            *ptr += *rhs;
         }
     };
+
+    template<> void coadd_spectrum::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result > const& rhs ) const
+    {
+        // TBA
+    }
+
+    struct make_massspectrum : public boost::static_visitor< void > {
+        adcontrols::MassSpectrum& ms;
+
+        make_massspectrum( adcontrols::MassSpectrum& t ) : ms( t ) {}
+
+        template< typename T > void operator () ( T const& waveform ) const {
+            waveform->translate( ms, *waveform );
+        }
+    };
+
+    template<> void make_massspectrum::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result > const& rhs ) const
+    {
+        // TBA
+    }
 
     struct make_title : public boost::static_visitor < std::wstring > {
         std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
@@ -511,7 +531,7 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
             
             adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND pos >= ? AND pos <= ? ORDER BY npos" );
+            sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = begin->fcn();
             sql.bind( 3 ) = begin->pos();
@@ -536,17 +556,14 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                     }
 
-                    if ( waveform.which() == 1 ) {
-                        
-                    } else if ( waveform.which() == 2 ) {
-                        
-                    }
                     if ( n++ == 0 )
                         coadded = waveform;
                     else
                         boost::apply_visitor( coadd_spectrum( coadded ), waveform );
                 }
             }
+
+            boost::apply_visitor( make_massspectrum( *ptr ), coadded );
 
             return ptr;
         }

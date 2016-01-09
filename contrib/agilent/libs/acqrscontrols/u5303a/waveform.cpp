@@ -34,6 +34,7 @@
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
@@ -226,6 +227,31 @@ waveform::waveform( const waveform& rv
         auto p = this->template data< value_type >();
         std::transform( p, p + size, p, std::negate<value_type>() );
     }
+}
+
+waveform&
+waveform::operator += ( const waveform& t )
+{
+    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement ) &&
+         adportable::compare<double>::essentiallyEqual( meta_.initialXOffset, t.meta_.initialXOffset ) &&
+         ( meta_.dataType == t.meta_.dataType ) && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
+
+        meta_.actualAverages += t.meta_.actualAverages;
+        wellKnownEvents_ |= t.wellKnownEvents_;
+
+        if ( t.meta_.dataType == 2 ) {
+            if ( meta_.dataType == 2 )
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
+            else
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+        } else {
+            if ( meta_.dataType == 2 )
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int32_t>() );
+            else
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+        }
+    }
+    return *this;
 }
 
 double

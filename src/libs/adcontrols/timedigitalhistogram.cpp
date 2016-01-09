@@ -211,6 +211,12 @@ TimeDigitalHistogram::histogram()
     return histogram_;
 }
 
+const std::vector< std::pair< double, uint32_t > >&
+TimeDigitalHistogram::histogram() const
+{
+    return histogram_;
+}
+
 size_t
 TimeDigitalHistogram::size() const
 {
@@ -332,25 +338,73 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
 TimeDigitalHistogram&
 TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
 {
-    const double resolution = xIncrement_;
+    if ( trigger_count_ == 0 ) {
+        *this = t;
+        return *this;
+    }
 
-    auto dIt = histogram_.begin();    // std::vector< std::pair< double, uint32_t > >
-    auto sIt = t.histogram().begin(); 
+    trigger_count_ += t.trigger_count();
+    wellKnownEvents_ |= t.wellKnownEvents();
 
-    while ( dIt != histogram_.end() && sIt != t.histogram().end() ) {
+    if ( serialnumber_.first > t.serialnumber().first ) 
+        serialnumber_.first = t.serialnumber().first;
 
-        
-        
-        auto tail = it + 1;
-        while ( tail != histogram_.end() && std::abs( tail->first - it->first ) < resolution ) {
+    if ( serialnumber_.second < t.serialnumber().second ) 
+        serialnumber_.second = t.serialnumber().second;
 
-            std::pair< double, uint32_t > sum
-                = std::accumulate( it, tail, std::make_pair( 0.0, 0 )
-                                   , []( const std::pair< double, uint32_t >& a, const std::pair< double, uint32_t >& b ) {
-                                       return std::make_pair( a.first, a.second + b.second ); } );
+    if ( timeSinceEpoch_.first > t.timeSinceEpoch().first )
+        timeSinceEpoch_.first = t.timeSinceEpoch().first;
+
+    if ( timeSinceEpoch_.second < t.timeSinceEpoch().second )
+        timeSinceEpoch_.second = t.timeSinceEpoch().second;
+
+    if ( t.histogram().empty() )
+        return *this;
+
+    if ( histogram_.empty() ) {
+        histogram_ = t.histogram();
+        return *this;
+    }
+
+    typedef std::pair< double, uint32_t > value_type;
+
+    if ( histogram_.back().first < t.histogram().front().first ) {
+        histogram_.reserve( histogram_.size() + t.histogram().size() );
+        histogram_.insert( histogram_.end(), t.histogram().begin(), t.histogram().end() );
+        return *this;
+    }
+
+    if ( histogram_.front().first > t.histogram().back().first ) {
+        histogram_.reserve( histogram_.size() + t.histogram().size() );
+        histogram_.insert( histogram_.begin(), t.histogram().begin(), t.histogram().end() );
+        return *this;
+    }
+
+    const double resolution = xIncrement_ / 2.0;
+    std::vector< value_type > summed;
+    summed.reserve( histogram_.size() + t.histogram().size() );
+
+    auto lhs = histogram_.begin();
+    auto rhs = t.histogram().begin();
+
+    for ( auto rhs = t.histogram().begin(); rhs != t.histogram().end(); ++rhs ) {
+        while ( lhs != histogram_.end() && lhs->first < rhs->first ) {
+            summed.emplace_back( lhs->first, lhs->second );
+            ++lhs;
+        }
+        if ( lhs != histogram_.end() && std::abs( lhs->first - rhs->first ) < resolution ) {
+            summed.emplace_back( lhs->first, ( lhs->second + rhs->second ) );
+            ++lhs;
+        } else {
+            summed.emplace_back( *rhs );
         }
     }
-    
+
+    if ( lhs != histogram_.end() )
+        summed.insert( summed.end(), lhs, histogram_.end() );
+
+    histogram_ = std::move( summed );
+
     return *this;
 }
 
