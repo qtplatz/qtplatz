@@ -90,52 +90,52 @@ Peak::Peak( const Peak& t ) : name_( t.name_ )
 {
 }
 
-long
+int32_t
 Peak::parentId() const
 {
     return parentId_;
 }
 
 void
-Peak::parentId(long id)
+Peak::parentId(int32_t id)
 {
     parentId_ = id;
 }
 
-long
+int32_t
 Peak::baseId() const
 {
     return baseid_;
 }
 
 void
-Peak::baseId(long id)
+Peak::baseId(int32_t id)
 {
     baseid_ = id;
 }
 
-long
+int32_t
 Peak::peakId() const
 {
     return peakid_;
 }
 
 void
-Peak::peakId(long id)
+Peak::peakId(int32_t id)
 {
     peakid_ = id;
 }
 
-// long UserData() const;
-// void UserData(long);
+// int32_t UserData() const;
+// void UserData(int32_t);
 
 void
-Peak::peakFlags(unsigned long v )
+Peak::peakFlags(uint32_t v )
 {
     peak_flags_ = v;
 }
 
-unsigned long
+uint32_t
 Peak::peakFlags() const
 {
     return peak_flags_;
@@ -177,52 +177,52 @@ Peak::userData() const
     return userData_;
 }
 
-long
+int32_t
 Peak::appliedFunctions() const
 {
     return appliedFunctions_;
 }
 
 void
-Peak::appliedFunctions( long value )
+Peak::appliedFunctions( int32_t value )
 {
     appliedFunctions_ = value;
 }
 
-long
+int32_t
 Peak::startPos() const
 {
     return startPos_;
 }
 
-long
+int32_t
 Peak::topPos() const
 {
     return topPos_;
 }
 
-long
+int32_t
 Peak::endPos() const
 {
     return endPos_;
 }
 
 void
-Peak::startPos( long pos, peakheight_t h )
+Peak::startPos( int32_t pos, peakheight_t h )
 {
     startPos_ = pos;
     startHeight_ = h;
 }
 
 void
-Peak::topPos(long pos,   peakheight_t h)
+Peak::topPos(int32_t pos,   peakheight_t h)
 {
     topPos_ = pos;
     topHeight_ = h;
 }
 
 void
-Peak::endPos(long pos,   peakheight_t h)
+Peak::endPos(int32_t pos,   peakheight_t h)
 {
     endPos_ = pos;
     endHeight_ = h;

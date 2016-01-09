@@ -683,6 +683,7 @@ bool
 Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool horizontalBaseline, double baseLevel ) const
 {
     Peak pk;
+    Baseline bs;
 
     auto it0 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t0 );
     if ( it0 == pImpl_->timeArray_.end() )
@@ -704,6 +705,18 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     pk.peakTime( t0 + ( t1 - t0 ) / 2.0 );
     pk.peakArea( area );
     pk.peakHeight( height );
+    pk.name( L"Manually added" );
+
+    bs.startHeight( 0 );
+    bs.stopHeight( 0 );
+    bs.startPos( pk.startPos() );
+    bs.stopPos( pk.endPos() );
+    bs.startTime( t0 );
+    bs.stopTime( t1 );
+    bs.manuallyModified( true );
+
+    int bsid = result.baselines().add( bs );
+    pk.baseId( bsid );
 
     result.peaks().add( pk );
     

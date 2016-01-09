@@ -72,8 +72,8 @@ namespace adcontrols {
         vector_type::iterator find_first_peak( const Baseline& );
         vector_type::const_iterator find_first_peak( const Baseline& ) const;
 
-        vector_type::const_iterator find_peakId( long peakid ) const;
-        vector_type::iterator find_peakId( long peakid );
+        vector_type::const_iterator find_peakId( int32_t peakid ) const;
+        vector_type::iterator find_peakId( int32_t peakid );
 
     private:
 #if defined _MSC_VER

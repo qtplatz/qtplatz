@@ -36,6 +36,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <cstdint>
 
 namespace adcontrols {
 
@@ -46,15 +47,15 @@ namespace adcontrols {
         Peak( const Peak& );
         typedef double peakheight_t;
     public:
-        long parentId() const;
-        void parentId(long id);
-        long baseId() const;
-        void baseId(long id);
-        long peakId() const;
-        void peakId(long id);
+        std::int32_t parentId() const;
+        void parentId(std::int32_t id);
+        std::int32_t baseId() const;
+        void baseId(std::int32_t id);
+        std::int32_t peakId() const;
+        void peakId(std::int32_t id);
 
-        void peakFlags(unsigned long);
-        unsigned long peakFlags() const;
+        void peakFlags(std::uint32_t);
+        std::uint32_t peakFlags() const;
 
         const std::wstring& name() const;
         void  name(const std::wstring& );
@@ -62,15 +63,15 @@ namespace adcontrols {
         const char * formula() const;
         void  formula(const char * );
            
-        long  appliedFunctions() const;
-        void  appliedFunctions( long );
-        long  startPos() const;
-        long  topPos() const;
-        long  endPos() const;
+        std::int32_t  appliedFunctions() const;
+        void  appliedFunctions( std::int32_t );
+        std::int32_t  startPos() const;
+        std::int32_t  topPos() const;
+        std::int32_t  endPos() const;
 
-        void  startPos(long pos, peakheight_t h);
-        void  topPos(long pos,   peakheight_t h);
-        void  endPos(long pos,   peakheight_t h);
+        void  startPos(std::int32_t pos, peakheight_t h);
+        void  topPos(std::int32_t pos,   peakheight_t h);
+        void  endPos(std::int32_t pos,   peakheight_t h);
 
         seconds_t startTime() const;
         void   startTime( seconds_t newTime);
@@ -129,14 +130,14 @@ namespace adcontrols {
 #endif
         std::wstring name_;
         std::string formula_;
-        long parentId_;
-        long peakid_;
-        long baseid_;
-        long appliedFunctions_;
-        unsigned long peak_flags_;  // pair<front:3, rear:3>
-        long startPos_;
-        long topPos_;
-        long endPos_;
+        std::int32_t parentId_;
+        std::int32_t peakid_;
+        std::int32_t baseid_;
+        std::int32_t appliedFunctions_;
+        std::uint32_t peak_flags_;  // pair<front:3, rear:3>
+        std::int32_t startPos_;
+        std::int32_t topPos_;
+        std::int32_t endPos_;
     protected:
         seconds_t startTime_;
         seconds_t peakTime_;

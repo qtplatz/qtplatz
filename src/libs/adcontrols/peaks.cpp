@@ -50,13 +50,13 @@ Peaks::add( const Peak& pk )
 
 ///////////////
 Peaks::vector_type::const_iterator
-Peaks::find_peakId( long peakid ) const
+Peaks::find_peakId( int32_t peakid ) const
 {
     return std::find_if( peaks_.begin(), peaks_.end(), [peakid] ( const value_type& pk ) { return pk.peakId() == peakid; } );
 }
 
 Peaks::vector_type::iterator
-Peaks::find_peakId( long peakid )
+Peaks::find_peakId( int32_t peakid )
 {
     return std::find_if( peaks_.begin(), peaks_.end(), [peakid] ( value_type& pk ) { return pk.peakId() == peakid; } );
 }
