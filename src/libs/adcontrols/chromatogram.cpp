@@ -27,11 +27,13 @@
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 
+#include "baselines.hpp"
+#include "baseline.hpp"
 #include "descriptions.hpp"
 #include "peaks.hpp"
 #include "peak.hpp"
-#include "baselines.hpp"
-#include "baseline.hpp"
+#include "peakresult.hpp"
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
@@ -48,7 +50,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/float.hpp>
-
+#include <numeric>
 #include <sstream>
 #include <vector>
 
@@ -675,4 +677,35 @@ const boost::uuids::uuid&
 Chromatogram::dataReaderUuid() const
 {
     return pImpl_->dataReaderUuid_;
+}
+
+bool
+Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool horizontalBaseline, double baseLevel ) const
+{
+    Peak pk;
+
+    auto it0 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t0 );
+    if ( it0 == pImpl_->timeArray_.end() )
+        return false;
+    
+    auto it1 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t1 );
+
+    size_t pos0 = std::distance( pImpl_->timeArray_.begin(), it0 );
+    size_t pos1 = std::distance( pImpl_->timeArray_.begin(), it1 );
+
+    pk.startPos( int(pos0), pImpl_->dataArray_.at( pos0 ) );
+    pk.endPos( int(pos1), pImpl_->dataArray_.at( pos1 ) );
+
+    double area = std::accumulate( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1, 0.0 );
+    double height = *std::max_element( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1 );
+    
+    pk.startTime( t0 );
+    pk.endTime( t1 );
+    pk.peakTime( t0 + ( t1 - t0 ) / 2.0 );
+    pk.peakArea( area );
+    pk.peakHeight( height );
+
+    result.peaks().add( pk );
+    
+    return true;
 }

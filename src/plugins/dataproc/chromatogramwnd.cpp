@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -59,6 +59,7 @@
 #include <QBoxLayout>
 #include <QShortcut>
 #include <QMessageBox>
+#include <QMenu>
 
 using namespace dataproc;
 
@@ -83,6 +84,7 @@ namespace dataproc {
             auto shortcut = new QShortcut( QKeySequence::Copy, p );
             connect( shortcut, &QShortcut::activatedAmbiguously, this, &impl::copy );
             connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
+            connect( chroWidget_, static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram );
 
             marker_->attach( chroWidget_ );
             marker_->visible( true );
@@ -121,6 +123,17 @@ namespace dataproc {
                 }
             }
         }
+
+        void addPeak( double t1, double t2 ) {
+            if ( !peakResult_ )
+                peakResult_ = std::make_shared< adcontrols::PeakResult >();
+
+            if ( data_ && data_->add_manual_peak( *peakResult_, t1, t2 ) ) {
+                setData( peakResult_ );
+            }
+        }
+
+        void selectedOnChromatogram( const QRectF& );
 
         ChromatogramWnd * this_;
         adplot::ChromatogramWidget * chroWidget_;
@@ -252,5 +265,37 @@ ChromatogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 }
 
 ///////////////////////////
+
+void
+ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
+{
+    double x0 = chroWidget_->transform( QwtPlot::xBottom, rect.left() );
+	double x1 = chroWidget_->transform( QwtPlot::xBottom, rect.right() );
+
+    typedef std::pair < QAction *, std::function<void()> > action_type; 
+
+    QMenu menu; 
+    std::vector < action_type > actions;
+
+	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
+
+        actions.emplace_back( menu.addAction( QString( "Area in range %1 - %2" ).arg( QString::number( rect.left() ), QString::number( rect.right() ) ) )
+                           , [=]() { addPeak( adcontrols::Chromatogram::toSeconds( rect.left() ), adcontrols::Chromatogram::toSeconds( rect.right() ) ); } );
+
+    }
+
+    if ( ! actions.empty() ) {
+        
+        if ( auto selected = menu.exec( QCursor::pos() ) ) {
+            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
+            if ( it != actions.end() )
+                (it->second)();
+        }
+
+    }
+
+}
+
+/////////
 
 #include "chromatogramwnd.moc"

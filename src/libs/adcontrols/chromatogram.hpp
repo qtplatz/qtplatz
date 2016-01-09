@@ -56,6 +56,7 @@ namespace adcontrols {
     class descriptions;
     class Peaks;
     class Baselines;
+    class PeakResult;
 
     class ADCONTROLSSHARED_EXPORT Chromatogram {
     public:
@@ -149,6 +150,8 @@ namespace adcontrols {
 
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
+        
+        bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
         Peaks& peaks();
         const Peaks& peaks() const;
