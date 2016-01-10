@@ -22,6 +22,7 @@ INFITOF_BINARY_DIR = @INFITOF_BINARY_DIR@
 MALPIX_TARGET = @MALPIX_TARGET@
 MALPIX_SOURCE_DIR = @MALPIX_SOURCE_DIR@
 MALPIX_BINARY_DIR = @MALPIX_BINARY_DIR@
+CORBA_SUPPORT = @QTPLATZ_SUPPORT_CORBA@
 
 STAGEDIR = @STAGEDIR@
 
@@ -104,7 +105,7 @@ sign:
 	signtool sign /t http://timestamp.digicert.com /a $(MSIFILE)
 
 qtplatz.wixobj: version.wxi qtplatz.wxs
-	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) -dTOP=$(QTPLATZ_SOURCE_DIR) qtplatz.wxs
+	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) -dTOP=$(QTPLATZ_SOURCE_DIR) -dCORBA_SUPPORT=$(CORBA_SUPPORT) qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi
