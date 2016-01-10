@@ -73,11 +73,13 @@
             </Directory>
         </Directory>
     </Fragment>
+
     <!-- <?define TOP = "../../.." ?> -->
     <!-- <?define InfiTOFDir   = "$(var.TOP)/../infitof" ?> -->
     <?define EZUSBDir     = "$(var.InfiTOFDir)/libusb-win32/usbdriver" ?>
     <?define InMSCheminfo = "$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics" ?>
     <?define InQt         = "@QTDIR@" ?>
+    <?define ACE_ROOT     = "@ACE_ROOT@" ?>
     <?define InTAOLib     = "@ACE_ROOT@/lib" ?>
     <?define InTAOBin     = "@ACE_ROOT@/bin" ?>
     <Fragment>
@@ -93,7 +95,9 @@
                 <File Id="config.xsd" Source="$(var.TOP)/src/plugins/xsd/config.xsd" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
+	<?if "$(ver.ACE_ROOT)" != "" ?>
         <?include tao_components.wxi ?>
+	<?endif?>
     </Fragment>
 
     <?include $(var.InfiTOFDir)/libusb-win32/ezusb_components.wxi ?>

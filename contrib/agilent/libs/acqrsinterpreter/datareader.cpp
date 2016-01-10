@@ -536,7 +536,6 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
             sql.bind( 2 ) = begin->fcn();
             sql.bind( 3 ) = begin->pos();
             sql.bind( 4 ) = end->pos();
-            double t0(0);
 
             waveform_types coadded;
 
@@ -551,15 +550,12 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-                    if ( ptr->size() == 0 ) {
-                        t0 = elapsed_time;
+                    if ( n++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                    }
-
-                    if ( n++ == 0 )
                         coadded = waveform;
-                    else
+                    } else {
                         boost::apply_visitor( coadd_spectrum( coadded ), waveform );
+                    }
                 }
             }
 
