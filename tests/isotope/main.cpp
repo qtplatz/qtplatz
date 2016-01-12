@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
+#include "isotopecluster.hpp"
 #include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/molecule.hpp>
 #include <boost/format.hpp>
 #include <iostream>

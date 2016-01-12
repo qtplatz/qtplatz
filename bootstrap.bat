@@ -9,9 +9,9 @@ set build_clean=false
 if %VisualStudioVersion% EQU 14.0 (
    set tools=vc14
    echo "############ building qtplatz using "%tools%" #############"
-) else (
+) else {
    set tools=vc12
-   echo "############ building qtplatz using " %tools% " #############"
+   echo "############ building qtplatz using "%tools%" #############"
 )
 
 for %%i in (%*) do (

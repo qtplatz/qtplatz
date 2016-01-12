@@ -50,10 +50,18 @@ namespace adcontrols {
 
         typedef std::pair< std::string, std::shared_ptr< DataInterpreterFactory > > value_type;
         std::map< boost::uuids::uuid, value_type > factories_;
+#if _MSC_VER < 1900
+        static boost::uuids::uuid base_uuid;
+#else
         static constexpr boost::uuids::uuid base_uuid = boost::uuids::uuid({ 0xD0, 0xE0, 0x5C, 0xF0, 0x7E, 0x81, 0x46, 0xD1, 0xA1, 0x43, 0x47, 0x7A, 0xB4, 0x1B, 0x73, 0x5F });
+#endif
     };
 
+#if _MSC_VER < 1900
+    boost::uuids::uuid DataInterpreterBroker::impl::base_uuid = boost::uuids::uuid( { 0xD0, 0xE0, 0x5C, 0xF0, 0x7E, 0x81, 0x46, 0xD1, 0xA1, 0x43, 0x47, 0x7A, 0xB4, 0x1B, 0x73, 0x5F } );
+#else
     boost::uuids::uuid constexpr DataInterpreterBroker::impl::base_uuid;// = boost::uuids::string_generator()( "{D0E05CF0-7E81-46D1-A143-477AB41B735F}" );
+#endif
 
 }
 
