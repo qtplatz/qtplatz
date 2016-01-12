@@ -380,24 +380,40 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
         return *this;
     }
 
-    const double resolution = xIncrement_ / 2.0;
+    struct make_binary {
+        double xIncrement;
+        make_binary( double _1 ) : xIncrement( _1 ) {}
+        inline uint64_t operator()( const double& t ){ return t / xIncrement + 0.5; }
+    };
+
+    // const double resolution = xIncrement_ / 2.0;
     std::vector< value_type > summed;
     summed.reserve( histogram_.size() + t.histogram().size() );
 
-    auto lhs = histogram_.begin();
-    auto rhs = t.histogram().begin();
+    make_binary to_binary( xIncrement_ );
 
-    for ( auto rhs = t.histogram().begin(); rhs != t.histogram().end(); ++rhs ) {
-        while ( lhs != histogram_.end() && lhs->first < rhs->first ) {
+    auto lhs = histogram_.begin();
+
+    for ( auto rhs = t.histogram().begin(); rhs != t.histogram().end() && lhs != histogram_.end(); ++rhs ) {
+
+        while ( lhs != histogram_.end() && to_binary( lhs->first ) < to_binary( rhs->first ) ) {
             summed.emplace_back( lhs->first, lhs->second );
             ++lhs;
         }
-        if ( lhs != histogram_.end() && std::abs( lhs->first - rhs->first ) < resolution ) {
-            summed.emplace_back( lhs->first, ( lhs->second + rhs->second ) );
+        
+        if ( lhs != histogram_.end() && to_binary( lhs->first ) == to_binary( rhs->first ) ) {
+            double t = ( lhs->first * lhs->second + rhs->first * rhs->second ) / ( lhs->second + rhs->second );
+            summed.emplace_back( t, ( lhs->second + rhs->second ) );
             ++lhs;
         } else {
-            summed.emplace_back( *rhs );
+            summed.emplace_back( *rhs );            
         }
+        // if ( lhs != histogram_.end() && std::abs( lhs->first - rhs->first ) < resolution ) {
+        //     summed.emplace_back( lhs->first, ( lhs->second + rhs->second ) );
+        //     ++lhs;
+        // } else {
+        //     summed.emplace_back( *rhs );
+        // }
     }
 
     if ( lhs != histogram_.end() )
