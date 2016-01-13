@@ -204,6 +204,8 @@ add_library( adcontrols SHARED
   tofchromatogrammethod.hpp
   tofchromatogramsmethod.cpp
   tofchromatogramsmethod.hpp
+  tofprotocol.cpp
+  tofprotocol.hpp
   trace.cpp
   trace.hpp 
   traceaccessor.cpp

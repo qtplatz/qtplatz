@@ -46,9 +46,10 @@ namespace acqrscontrols {
             double xIncrement;
             double scaleFactor;
             double scaleOffset;
+            // CLASS VERSION 2
             int32_t dataType;  // 2(int16_t)|4(int32_t)
             // CLASS VERSION 3
-            double extTrigDelay; // external trigger delay made by delay generator for protocol handling
+            int32_t protocolIndex;
 
         private:
             friend class boost::serialization::access;

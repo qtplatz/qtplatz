@@ -24,6 +24,7 @@
 #pragma once
 
 #include "adcontrols/adcontrols_global.h"
+#include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <cstdint>
 #include <vector>
@@ -61,6 +62,7 @@ namespace adcontrols {
     private:
         double lower_mass_;
         double upper_mass_;
+        uint32_t number_of_triggers_; // 0 if averager mode
         std::vector< delay_pulse_type > delay_pulses_;
         std::vector< std::pair< int32_t, additional_value_type > > additionals_;
         uint32_t reference_;                    // lock mass reference (bit position indicate which formula in formulae
@@ -82,4 +84,4 @@ namespace adcontrols {
 
 };
 
-
+BOOST_CLASS_VERSION( adcontrols::TofProtocol, 0 )

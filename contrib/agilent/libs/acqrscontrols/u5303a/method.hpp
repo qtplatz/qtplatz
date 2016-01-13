@@ -28,6 +28,7 @@
 #include "device_method.hpp"
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/threshold_action.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <memory>
@@ -53,7 +54,8 @@ namespace acqrscontrols {
             uint32_t channels_;
             uint32_t mode_;  // 0 := digitizer, 2 := averager
             device_method method_;
-            double ext_trig_delay_; // additional delay made by external delay generator; V7
+            uint32_t protocolIndex_;
+            std::vector< adcontrols::TofProtocol > protocols_;
 
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );

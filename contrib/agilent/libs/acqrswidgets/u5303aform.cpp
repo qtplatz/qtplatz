@@ -121,7 +121,10 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     double width = m.method_.nbr_of_s_to_acquire_ / sampRate_;
     ui->doubleSpinBox_2->setValue( adcontrols::metric::scale_to_micro( width ) );
 
-    ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( m.ext_trig_delay_ ) );
+    if ( !m.protocols_.empty() && !m.protocols_ [ 0 ].delay_pulses().empty() ) {
+        auto ext_trig_delay = m.protocols_ [ 0 ].delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( ext_trig_delay ) );
+    }
 
     ui->spinBox->setValue( m.method_.nbr_of_averages );
 
@@ -147,7 +150,10 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
     double width = adcontrols::metric::scale_to_base( ui->doubleSpinBox_2->value(), adcontrols::metric::micro );
     m.method_.nbr_of_s_to_acquire_ = uint32_t( width * m.method_.samp_rate + 0.5 );
 
-    m.ext_trig_delay_ = adcontrols::metric::scale_to_base( ui->doubleSpinBox->value(), adcontrols::metric::micro );
+    auto ext_trig_delay = adcontrols::metric::scale_to_base( ui->doubleSpinBox->value(), adcontrols::metric::micro );
+    if ( !m.protocols_.empty() && !m.protocols_ [ 0 ].delay_pulses().empty() ) {
+        m.protocols_ [ 0 ].delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ] = std::make_pair( ext_trig_delay, 1.0e-6 );
+    }
 
     m.method_.nbr_of_averages = ui->spinBox->value();
 

@@ -46,6 +46,7 @@ namespace adcontrols {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.lower_mass_ );
             ar & BOOST_SERIALIZATION_NVP( _.upper_mass_ );
+            ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
             ar & BOOST_SERIALIZATION_NVP( _.delay_pulses_ );
             ar & BOOST_SERIALIZATION_NVP( _.additionals_ );
             ar & BOOST_SERIALIZATION_NVP( _.reference_ );
@@ -79,6 +80,7 @@ using namespace adcontrols;
 
 TofProtocol::TofProtocol() : lower_mass_( 0 )
                            , upper_mass_( 0 )
+                           , number_of_triggers_( 0 )
                            , delay_pulses_( { { 0,0 }   // push
                                    , { 0,0 }            // inject
                                    , { 0,0 }            // exit
@@ -89,6 +91,7 @@ TofProtocol::TofProtocol() : lower_mass_( 0 )
 
 TofProtocol::TofProtocol( const TofProtocol& t ) : lower_mass_( t.lower_mass_ )
                                                  , upper_mass_( t.upper_mass_ )
+                                                 , number_of_triggers_( t.number_of_triggers_ )
                                                  , delay_pulses_( t.delay_pulses_ )
                                                  , additionals_( t.additionals_ )
                                                  , reference_( t.reference_ )

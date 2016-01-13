@@ -917,7 +917,6 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     d.meta_.scaleFactor = scaleFactor;
                     d.meta_.scaleOffset = scaleOffset;
                     d.meta_.dataType = mblk->dataType();
-                    d.meta_.extTrigDelay = m.ext_trig_delay_;
 
                     // time @ data read (U5303A has the large delay (~500us) after acquire trigger, so that read time is more accurate
                     d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();

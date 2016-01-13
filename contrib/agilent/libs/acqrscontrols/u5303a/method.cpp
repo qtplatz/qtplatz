@@ -57,8 +57,10 @@ namespace acqrscontrols {
                     ar & BOOST_SERIALIZATION_NVP( threshold );
                     ar & BOOST_SERIALIZATION_NVP( action );
                 }
-                if ( version >= 7 )
-                    ar & BOOST_SERIALIZATION_NVP( _.ext_trig_delay_ );
+                if ( version >= 7 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
+                }
             }
 
         };
@@ -138,14 +140,16 @@ using namespace acqrscontrols::u5303a;
 
 method:: method() : channels_( 0x01 )
                   , mode_( 0 ) // digitizer mode
-                  , ext_trig_delay_( 0 ) // additional delay made by external delay generator
+                  , protocolIndex_( 0 )
+                  , protocols_( 1 ) // at lease one protocol data should be exist
 {
 }
 
 method:: method( const method& t ) : channels_( t.channels_ )
                                    , mode_( t.mode_ )
                                    , method_( t.method_ )
-                                   , ext_trig_delay_( t.ext_trig_delay_ ) // additional delay made by external delay generator
+                                   , protocolIndex_( t.protocolIndex_ )
+                                   , protocols_( t.protocols_ )
 {
 }
 
