@@ -48,6 +48,7 @@ namespace acqrswidgets {
         , idU5303ANbrSamples
         , idNbrRecords
         , idTSREnable
+        , idU5303AExtDelay
     };
     
 }

@@ -278,6 +278,14 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
 
 }
 
+void
+TofChromatogramsWidget::setDigitizerMode( bool softAverage )
+{
+    if ( auto form = findChild< TofChromatogramsForm * >() ) {
+        form->setDigitizerMode( softAverage );
+    }
+}
+
 #if 0
 void
 TofChromatogramsWidget::setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay )

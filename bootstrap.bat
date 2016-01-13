@@ -6,13 +6,19 @@ set build_type=release
 set build_tests=false
 set build_clean=false
 
+echo %VisualStudioVersion%
+
+if %VisualStudioVersion% EQU 12.0 (
+   set tools=vc12
+   echo "############ bootstrap: building qtplatz using "%tools%" #############"
+)
+
 if %VisualStudioVersion% EQU 14.0 (
    set tools=vc14
-   echo "############ building qtplatz using "%tools%" #############"
-) else {
-   set tools=vc12
-   echo "############ building qtplatz using "%tools%" #############"
+   echo "############ bootstrap: building qtplatz using "%tools%" #############"
 )
+
+pause
 
 for %%i in (%*) do (
     if %%i==release (
@@ -26,11 +32,7 @@ for %%i in (%*) do (
     )
 )
 
-
-set build_dir=%build_root%\qtplatz.%build_type%
-if not %tools%==vc12 (
-   set build_dir=%build_root%\qtplatz.%build_type%_%tools%
-)
+set build_dir=%build_root%\qtplatz.%build_type%_%tools%
 
 if %build_clean%==true (
   echo rmdir %build_dir% /s /q
@@ -44,15 +46,20 @@ cd %build_dir%
 if %tools%==vc12 (
 
    if %build_type%==release (
-     cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
+
+      cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
+
    ) else if %build_type%==package (
+
      cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF -DQTPLATZ_SUPPORT_CORBA:BOOL=ON %source_dir%
      cd contrib\installer\wix
      nmake help
      goto end
+
    ) else (
      cmake -G "Visual Studio 12 Win64" -DCMAKE_BUILD_TYPE=Debug -DDEBUG_SYMBOL:BOOL=ON %source_dir%
    )
+
    if %build_tests%==true (
       echo "Build tests directory on %cd%"
       mkdir tests

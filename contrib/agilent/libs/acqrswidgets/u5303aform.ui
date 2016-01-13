@@ -36,27 +36,7 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="1">
-           <widget class="adwidgets::DoubleSpinBox" name="doubleSpinBox_1">
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Width (&amp;mu;s)</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::RichText</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -69,6 +49,16 @@
             </property>
            </spacer>
           </item>
+          <item row="0" column="1">
+           <widget class="adwidgets::DoubleSpinBox" name="doubleSpinBox_1">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="1">
            <widget class="adwidgets::SpinBox" name="spinBox">
             <property name="minimum">
@@ -76,6 +66,16 @@
             </property>
             <property name="maximum">
              <number>520000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Width (&amp;mu;s)</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
             </property>
            </widget>
           </item>
@@ -106,6 +106,13 @@
             </property>
            </widget>
           </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="checkBox">
+            <property name="text">
+             <string>TSR</string>
+            </property>
+           </widget>
+          </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
@@ -120,10 +127,20 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="checkBox">
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>TSR</string>
+             <string>Ext. Trig. delay(&amp;mu;s)</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox">
+            <property name="maximum">
+             <double>1000.000000000000000</double>
             </property>
            </widget>
           </item>

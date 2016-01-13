@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>adwidgets::ScanLawDialog</class>
- <widget class="QDialog" name="ScanLawDialog">
+ <widget class="QDialog" name="adwidgets::ScanLawDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -75,7 +75,7 @@
            <double>-100.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>100.000000000000000</double>
+           <double>1000.000000000000000</double>
           </property>
           <property name="singleStep">
            <double>0.100000000000000</double>
@@ -190,7 +190,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ScanLawDialog</receiver>
+   <receiver>adwidgets::ScanLawDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -206,7 +206,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ScanLawDialog</receiver>
+   <receiver>adwidgets::ScanLawDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

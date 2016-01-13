@@ -56,6 +56,9 @@ namespace adwidgets {
         //
         bool getContents( adcontrols::TofChromatogramsMethod& ) const;
         bool setContents( const adcontrols::TofChromatogramsMethod& );
+        //
+        void setDigitizerMode( bool ); // true for soft accumulate, false for hard averaged
+        
     private:
         void handleContextMenu( QMenu&, const QPoint& );
         class impl;

@@ -44,6 +44,8 @@ namespace adwidgets {
         void getContents( adcontrols::TofChromatogramsMethod& ) const;
         void setContents( const adcontrols::TofChromatogramsMethod& );
 
+        void setDigitizerMode( bool );
+
     private:
         TofChromatogramsForm( const TofChromatogramsForm& ) = delete;
 

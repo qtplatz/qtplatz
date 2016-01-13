@@ -47,6 +47,8 @@ namespace acqrscontrols {
             double scaleFactor;
             double scaleOffset;
             int32_t dataType;  // 2(int16_t)|4(int32_t)
+            // CLASS VERSION 3
+            double extTrigDelay; // external trigger delay made by delay generator for protocol handling
 
         private:
             friend class boost::serialization::access;
@@ -55,4 +57,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 2 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 3 )

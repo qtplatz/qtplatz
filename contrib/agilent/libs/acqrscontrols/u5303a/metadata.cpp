@@ -56,6 +56,8 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.scaleOffset );
                 if ( version >= 2 )
                     ar & BOOST_SERIALIZATION_NVP( _.dataType );
+                if ( version >= 3 )
+                    ar & BOOST_SERIALIZATION_NVP( _.extTrigDelay );
             }
         };
 
@@ -92,8 +94,7 @@ metadata::metadata() : initialXTimeSeconds( 0 )
                      , scaleFactor( 0 )
                      , scaleOffset(0)
                      , dataType( 0 )
+                     , extTrigDelay(0)
 {
 }
-
-
 

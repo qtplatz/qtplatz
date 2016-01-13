@@ -57,7 +57,12 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
             ui->doubleSpinBox_2->setStyleSheet( "QDoubleSpinBox { color: #ff6347; }" );
             emit valueChanged( idU5303AWidth, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) );
         });
-    
+
+    // external trig delay
+    connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double d ) {
+            ui->doubleSpinBox->setStyleSheet( "QDoubleSpinBox { color: #ff6347; }" );
+            emit valueChanged( idU5303AExtDelay, 0, QVariant( adcontrols::metric::scale_to_base( d, adcontrols::metric::micro ) ) );
+        });
 
     // number of average
     connect( ui->spinBox, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int d ) {
@@ -80,7 +85,7 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
             ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: #ff6347; }" );
             if ( flag && ui->checkBox->isChecked() ) // exclusive w/ TSR
                 ui->checkBox->setChecked( false );
-            //emit valueChanged( idU5303AMode, 0, QVariant( flag ) );
+            emit valueChanged( idU5303AMode, 0, QVariant( flag ) ); // Digitizer | Averager ==> disable ion counting
         } );
 
     // TSR
@@ -106,7 +111,7 @@ void
 u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
 {
     QSignalBlocker blocks[] = {
-        QSignalBlocker( ui->doubleSpinBox_1 ), QSignalBlocker( ui->doubleSpinBox_2 )
+        QSignalBlocker( ui->doubleSpinBox_1 ), QSignalBlocker( ui->doubleSpinBox_2 ), QSignalBlocker( ui->doubleSpinBox ) 
         , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ), QSignalBlocker( ui->spinBox_2 )
         , QSignalBlocker( ui->checkBox ) };
 
@@ -115,6 +120,8 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     sampRate_ = m.method_.samp_rate;
     double width = m.method_.nbr_of_s_to_acquire_ / sampRate_;
     ui->doubleSpinBox_2->setValue( adcontrols::metric::scale_to_micro( width ) );
+
+    ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( m.ext_trig_delay_ ) );
 
     ui->spinBox->setValue( m.method_.nbr_of_averages );
 
@@ -139,6 +146,8 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
 
     double width = adcontrols::metric::scale_to_base( ui->doubleSpinBox_2->value(), adcontrols::metric::micro );
     m.method_.nbr_of_s_to_acquire_ = uint32_t( width * m.method_.samp_rate + 0.5 );
+
+    m.ext_trig_delay_ = adcontrols::metric::scale_to_base( ui->doubleSpinBox->value(), adcontrols::metric::micro );
 
     m.method_.nbr_of_averages = ui->spinBox->value();
 

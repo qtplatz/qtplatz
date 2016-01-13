@@ -53,6 +53,7 @@ namespace acqrscontrols {
             uint32_t channels_;
             uint32_t mode_;  // 0 := digitizer, 2 := averager
             device_method method_;
+            double ext_trig_delay_; // additional delay made by external delay generator; V7
 
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );
@@ -67,4 +68,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::method, 6 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::method, 7 )

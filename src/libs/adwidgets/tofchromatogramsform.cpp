@@ -119,3 +119,10 @@ TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
         spin->setValue( int( n ) );
     }
 }
+
+void
+TofChromatogramsForm::setDigitizerMode( bool digitizer )
+{
+    if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) )
+        spin->setEnabled( digitizer );
+}
