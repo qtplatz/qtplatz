@@ -139,6 +139,9 @@ CentroidForm::update_data( const adcontrols::CentroidMethod& method )
 	ui->cutoffMHz->setValue( method.cutoffFreqHz() / 1.0e6 + 0.5 );
 
     ui->comboBox->setCurrentIndex( method.areaMethod() );
+
+    ui->groupBox->setChecked( method.processOnTimeAxis() );
+    ui->doubleSpinBox->setValue( method.rsInSeconds() * 1.0e6 ); // s -> us
 }
 
 void
@@ -169,6 +172,9 @@ CentroidForm::update_data()
 	method.cutoffFreqHz( ui->cutoffMHz->value() * 1.0e6 );
 
     method.areaMethod( adcontrols::CentroidMethod::eAreaMethod( ui->comboBox->currentIndex() ) );
+
+    method.setProcessOnTimeAxis( ui->groupBox->isChecked() );
+    method.setRsInSeconds( ui->doubleSpinBox->value() * 1.0e-6 );
 }
 
 void

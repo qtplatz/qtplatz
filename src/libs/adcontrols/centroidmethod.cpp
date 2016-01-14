@@ -44,6 +44,8 @@ CentroidMethod::CentroidMethod() : baselineWidth_(500.0)
                                  , noiseFilterMethod_( eNoFilter )
                                  , cutoffFreqHz_( 100 * 1.0e6 ) // 100MHz
                                  , areaMethod_( eAreaTime )
+                                 , processOnTimeAxis_( false )
+                                 , rsInSeconds_( 10.0e-9 ) // 10ns
 {
 }
 
@@ -68,6 +70,9 @@ CentroidMethod::operator = ( const CentroidMethod& rhs )
     noiseFilterMethod_ = rhs.noiseFilterMethod_;
     cutoffFreqHz_ = rhs.cutoffFreqHz_;
     areaMethod_ = rhs.areaMethod_;
+    
+    processOnTimeAxis_ = rhs.processOnTimeAxis_;
+    rsInSeconds_ = rhs.rsInSeconds_;
 
 	return * this;
 }
@@ -233,3 +238,28 @@ CentroidMethod::areaMethod() const
 {
     return areaMethod_;
 }
+
+bool
+CentroidMethod::processOnTimeAxis() const
+{
+    return processOnTimeAxis_;
+}
+
+void
+CentroidMethod::setProcessOnTimeAxis( bool value )
+{
+    processOnTimeAxis_ = value;
+}
+
+double
+CentroidMethod::rsInSeconds() const
+{
+    return rsInSeconds_;
+}
+
+void
+CentroidMethod::setRsInSeconds( double value )
+{
+    rsInSeconds_ = value;
+}
+

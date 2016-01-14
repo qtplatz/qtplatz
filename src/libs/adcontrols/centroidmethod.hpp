@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -88,6 +88,11 @@ namespace adcontrols {
         eAreaMethod areaMethod() const;
         void areaMethod( eAreaMethod );
 
+        bool processOnTimeAxis() const;
+        void setProcessOnTimeAxis( bool );
+        double rsInSeconds() const;
+        void setRsInSeconds( double );
+
 	private:
 		double baselineWidth_; // depreicated
         double rsConstInDa_;
@@ -102,7 +107,12 @@ namespace adcontrols {
         eNoiseFilterMethod noiseFilterMethod_; // since v2.2.3
         double cutoffFreqHz_; // Hz
 
+        // CLASS VERSION 3
         eAreaMethod areaMethod_; // since v2.7.5
+
+        // CLASS VERSION 4
+        bool processOnTimeAxis_;
+        double rsInSeconds_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -125,10 +135,14 @@ namespace adcontrols {
             if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( areaMethod_ );
             }
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( processOnTimeAxis_ );
+                ar & BOOST_SERIALIZATION_NVP( rsInSeconds_ );
+            }
         }
 
 	};
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::CentroidMethod, 3 )
+BOOST_CLASS_VERSION( adcontrols::CentroidMethod, 4 )

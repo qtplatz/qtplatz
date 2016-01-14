@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -67,6 +67,7 @@ namespace adcontrols {
             void copy( MassSpectrum& );
             const CentroidMethod& method() const { return method_; }
             void findpeaks( const MassSpectrum& profile );
+            void findpeaks_by_time( const MassSpectrum& profile );
 
             friend class CentroidProcess;
             MSPeakInfo info_;
@@ -107,7 +108,7 @@ bool
 CentroidProcess::operator()( const CentroidMethod& method, const MassSpectrum& profile )
 {
 	pImpl_->setup( method );
-	adcontrols::MassSpectrum ms( profile );
+	//adcontrols::MassSpectrum ms( profile );
 	return (*this)( profile );
 }
 
@@ -116,7 +117,13 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 {
     pImpl_->clear();
 	pImpl_->setup( profile );
-    pImpl_->findpeaks( profile );
+    if ( profile.size() == 0 )
+        return false;
+    if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.getMass( 0 ) - profile.getMass( profile.size() - 1 ) ) < 0.001 ) {
+        pImpl_->findpeaks_by_time( profile );
+    } else {
+        pImpl_->findpeaks( profile );
+    }
     return true;
 }
 
@@ -308,4 +315,94 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     toferror /= toferror_weight;
     if ( toferror >= 20.0e-12 ) // warning if error was 20ps or larger
         adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
+}
+
+void
+CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
+{
+    using adportable::spectrum_processor;
+    using adportable::array_wrapper;
+
+    adportable::spectrum_peakfinder finder;
+    finder.width_method_ = adportable::spectrum_peakfinder::Constant;
+    finder.peakwidth_ = method_.rsInSeconds();
+
+    std::vector< double > times( profile.size() );
+    timeFunctor functor( profile );    
+    for ( size_t i = 0; i < times.size(); ++i )
+        times[ i ] = functor( int(i) );
+    
+    finder( profile.size(), times.data(), profile.getIntensityArray() );
+
+    array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
+    // array_wrapper<const double> times( profile.getTimeArray(), profile.size() );
+
+    double toferror = 0;
+    double toferror_weight = 0;
+
+	info_.mode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+    info_.protocol( profile.protocolId(), profile.nProtocols() );
+
+    for ( adportable::peakinfo& pk: finder.results_ ) {
+
+        adportable::array_wrapper<const double>::iterator it = 
+            std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
+        
+        double h = *it - pk.base;
+        double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
+
+        size_t idx = std::distance( intens.begin(), it );
+
+        double threshold = pk.base + h * method_.peakCentroidFraction();
+        do {
+            MSPeakInfoItem item;
+            
+            // centroid by time
+            timeFunctor functor( profile );
+            adportable::Moment< timeFunctor > time_moment( functor );
+            double time = time_moment.centreX( profile.getIntensityArray(), threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
+            item.time_from_time_ = time;
+            // workaround
+            item.time_from_mass_ = time;
+            // end workaround
+            item.centroid_left_time_ = time_moment.xLeft();
+            item.centroid_right_time_ = time_moment.xRight();
+            item.centroid_threshold_ = threshold;
+            time_moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second );
+            item.HH_left_time_ = time_moment.xLeft();
+            item.HH_right_time_ = time_moment.xRight();
+
+            item.base_height_ = pk.base;
+            item.height_ = h;
+            
+            // area in HH range
+            adportable::spectrum_processor::areaFraction fraction;
+            adportable::spectrum_processor::getFraction( fraction, times.data(), profile.size(), time_moment.xLeft(), time_moment.xRight() );
+            double area = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
+            
+            if ( method_.areaMethod() == CentroidMethod::eAreaTime || method_.areaMethod() == CentroidMethod::eAreaDa )
+                item.area_ = area * adcontrols::metric::scale_to_nano( time_moment.xRight() - time_moment.xLeft() ); // Intens. x ns
+            else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized )
+                item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac); // width of unit of sample interval
+            else if ( method_.areaMethod() == CentroidMethod::eAreaPoint )
+                item.area_ = area; // Intens x ns that assumes data is always 1ns interval
+            
+            double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
+            
+            toferror += difference * item.height_;
+            toferror_weight += item.height_;
+            
+            // prepare result
+            // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
+            item.set_peak_start_index( uint32_t(pk.first) );
+            item.set_peak_end_index( uint32_t(pk.second) );
+			
+            //if ( ( times[pk.second] - times[pk.first]) >= finder.peakwidth_ )
+                info_ << item;
+        } while(0);
+
+        toferror /= toferror_weight;    
+        if ( toferror >= 20.0e-12 ) // warning if error was 20ps or larger
+            adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
+    }
 }
