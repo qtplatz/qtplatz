@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <adcontrols/constants.hpp>
 #include <QWidget>
 #include <memory>
 #include <tuple>
@@ -38,7 +39,6 @@ namespace adcontrols {
     class Chromatogram;
 	class PeakResult;
     class ProcessMethod;
-    enum hor_axis;
 }
 
 namespace adwidgets { class MSQuanTable; }

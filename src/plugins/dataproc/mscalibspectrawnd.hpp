@@ -25,6 +25,7 @@
 #ifndef MSCALIBSPECTRAWND_HPP
 #define MSCALIBSPECTRAWND_HPP
 
+#include <adcontrols/constants.hpp>
 #include <QWidget>
 #if ! defined Q_MOC_RUN
 #include <adportfolio/folium.hpp>
@@ -48,7 +49,6 @@ namespace adcontrols {
     class MSAssignedMasses;
     class ProcessMethod;
     class MSPeaks;
-    enum hor_axis;
 }
 
 namespace adportable {  class Configuration; }

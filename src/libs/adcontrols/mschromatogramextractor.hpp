@@ -26,6 +26,7 @@
 
 #include "adcontrols_global.h"
 #include <compiler/disable_dll_interface.h>
+#include <adcontrols/constants.hpp>
 #include <string>
 #include <vector>
 #include <map>
@@ -41,7 +42,6 @@ namespace adcontrols {
     class MassSpectrum;
     class MSChromatogramMethod;
     class ProcessMethod;
-    enum hor_axis;
 
     class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
 

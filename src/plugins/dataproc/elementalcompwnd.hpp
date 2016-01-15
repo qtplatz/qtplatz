@@ -28,6 +28,7 @@
 
 #include <QWidget>
 #include <memory>
+#include <adcontrols/constants.hpp>
 
 namespace portfolio {
     class Folium;
@@ -37,7 +38,6 @@ namespace adcontrols {
     class MassSpectrum;
 	class ProcessMethod;
     class MSSimulatorMethod;
-    enum hor_axis;
 }
 
 namespace dataproc {

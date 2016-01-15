@@ -26,6 +26,7 @@
 #ifndef MSCALIBRATIONWND_H
 #define MSCALIBRATIONWND_H
 
+#include <adcontrols/constants.hpp>
 #include <QWidget>
 #include <QPrinter>
 #include <memory>
@@ -38,7 +39,6 @@ namespace adcontrols {
 	class MSAssignedMasses;
 	class MSProperty;
     class MSPeaks;
-    enum hor_axis;
 }
 
 namespace adportable {  class Configuration; }

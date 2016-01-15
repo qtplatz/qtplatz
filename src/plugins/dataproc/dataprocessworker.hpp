@@ -25,6 +25,7 @@
 #ifndef DATAPROCESSWORKER_HPP
 #define DATAPROCESSWORKER_HPP
 
+#include <adcontrols/constants.hpp>
 #include <workaround/boost/asio.hpp>
 #include <adportable/asio/thread.hpp>
 #include <mutex>
@@ -33,7 +34,7 @@
 #include <tuple>
 #include <vector>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis; }
+namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; }
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  }
 
