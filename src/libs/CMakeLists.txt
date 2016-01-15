@@ -24,25 +24,22 @@ if ( rdkit_FOUND )
   add_subdirectory (adchem)
 endif()
 
-if ( Qt5_FOUND )
+if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
+
+  add_subdirectory (adextension)
   
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
   add_subdirectory (adplugin_manager)
+  add_subdirectory (adplot)
+  add_subdirectory (aggregation)    
+  add_subdirectory (extensionsystem)
+  add_subdirectory (utils)
   
-  if ( NOT QTPLATZ_CORELIB_ONLY )  
-    add_subdirectory (adplot)  # this raize gcc internal compiler error at qwt header
-    add_subdirectory (adextension)
-    add_subdirectory (aggregation)    
-    add_subdirectory (extensionsystem)
-    add_subdirectory (utils)
-    
-    find_package( Qt5 COMPONENTS XmlPatterns QUIET )
-    
-    if ( Qt5XmlPatterns_FOUND )
-      add_subdirectory (adpublisher)
-    endif()
-
+  find_package( Qt5 COMPONENTS XmlPatterns QUIET )
+  
+  if ( Qt5XmlPatterns_FOUND )
+    add_subdirectory (adpublisher)
   endif()
 
 endif()
