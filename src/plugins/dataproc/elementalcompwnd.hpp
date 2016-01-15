@@ -37,6 +37,7 @@ namespace adcontrols {
     class MassSpectrum;
 	class ProcessMethod;
     class MSSimulatorMethod;
+    enum hor_axis;
 }
 
 namespace dataproc {
@@ -63,7 +64,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
-        void handleAxisChanged( int );        
+        void handleAxisChanged( adcontrols::hor_axis );        
       
     private:
         ElementalCompWndImpl * pImpl_;

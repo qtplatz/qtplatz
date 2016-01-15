@@ -337,6 +337,16 @@ MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 }
 
 size_t
+MSProperty::toIndex( double seconds, const SamplingInfo& info )
+{
+    if ( info.sampInterval ) {
+        return size_t( ( seconds / ( info.sampInterval * 1.0e-12 ) ) + 0.5 ) - info.nSamplingDelay;
+    } else {
+        return size_t( ( ( seconds - info.horPos() ) / info.fSampInterval() ) + 0.5 ) - info.nSamplingDelay;
+    }
+}
+
+size_t
 MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix pfx )
 {
     if ( info.sampInterval ) {

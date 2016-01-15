@@ -32,6 +32,7 @@
 #endif
 #include <map>
 #include <memory>
+#include <adcontrols/constants.hpp>
 
 namespace adcontrols {
     class Chromatogram;
@@ -75,7 +76,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );
-        void handleAxisChanged( int );
+        void handleAxisChanged( adcontrols::hor_axis );
         void handleFoliumDataChanged( const QString& );
 
         // slot for MSPeakTable
@@ -105,7 +106,7 @@ namespace dataproc {
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;
         std::wstring idSpectrumFolium_;
-        int axis_;
+        adcontrols::hor_axis axis_;
         bool assign_masses_to_profile( const std::pair< boost::uuids::uuid, std::string >& );
         bool assign_masses_to_profile( );
         double correct_baseline();
@@ -119,7 +120,8 @@ namespace dataproc {
         // from menu
         void frequency_analysis();
         void save_image_file();
-        void make_chromatogram( const adcontrols::DataReader *, double, double );
+        void make_chromatogram( const adcontrols::DataReader *, adcontrols::hor_axis, double, double );
+        void make_chromatograms( const adcontrols::DataReader *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );

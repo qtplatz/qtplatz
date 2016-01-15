@@ -826,12 +826,27 @@ MassSpectrum::findProtocol( int32_t proto ) const
 }
 
 size_t
-MassSpectrum::lower_bound( double mass ) const
+MassSpectrum::lower_bound( double value, bool isMass ) const
 {
-    const auto& vec = pImpl_->massArray_;
-    auto it = std::lower_bound( vec.begin(), vec.end(), mass );
-    if ( it != vec.end() )
-        return std::distance( vec.begin(), it );
+    if ( isMass ) {
+        const auto& vec = pImpl_->massArray_;
+        auto it = std::lower_bound( vec.begin(), vec.end(), value );
+        if ( it != vec.end() )
+            return std::distance( vec.begin(), it );
+        return npos; // size_t(-1)
+    } else {
+        if ( !pImpl_->tofArray_.empty() ) {
+            const auto& vec = pImpl_->tofArray_;
+            auto it = std::lower_bound( vec.begin(), vec.end(), value );
+            if ( it != vec.end() )
+                return std::distance( vec.begin(), it );
+        } else {
+            size_t idx = MSProperty::toIndex( value, pImpl_->getMSProperty().samplingInfo() );
+            double time = MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
+            double error = std::abs( value - time );
+            assert( value == time );
+        }
+    }
     return npos; // size_t(-1)
 }
 

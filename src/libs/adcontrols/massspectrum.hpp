@@ -89,7 +89,7 @@ namespace adcontrols {
 
         // algorithm
         const static size_t npos = size_t(-1);
-        size_t lower_bound( double mass ) const;
+        size_t lower_bound( double mass, bool isMass = true ) const;
         size_t find( double mass, double tolerance ) const;
         
         // methods

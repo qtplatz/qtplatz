@@ -314,7 +314,7 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 }
 
 void
-MSCalibSpectraWnd::handleAxisChanged( int axis )
+MSCalibSpectraWnd::handleAxisChanged( adcontrols::hor_axis axis )
 {
     axis_ = axis;
     for ( auto wnd: wndSpectra_ )

@@ -172,11 +172,12 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
 }
 
 void
-ElementalCompWnd::handleAxisChanged( int axis )
+ElementalCompWnd::handleAxisChanged( adcontrols::hor_axis axis )
 {
     using adplot::SpectrumWidget;
-    pImpl_->referenceSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
-    pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    using namespace adcontrols;
+    pImpl_->referenceSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    pImpl_->processedSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
 }
 
 void

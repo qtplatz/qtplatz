@@ -278,7 +278,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 }
 
 void
-MSCalibrationWnd::handleAxisChanged( int axis )
+MSCalibrationWnd::handleAxisChanged( adcontrols::hor_axis axis )
 {
     pImpl_->timeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
 	pImpl_->processedSpectrum_->setAxis( static_cast< adplot::SpectrumWidget::HorizontalAxis >( axis ) );

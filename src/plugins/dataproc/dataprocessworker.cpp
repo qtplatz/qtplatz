@@ -28,8 +28,9 @@
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
 #include <adlog/logger.hpp>
-#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/constants.hpp>
+#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/mschromatogramextractor.hpp>
@@ -120,6 +121,7 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor,  std::shared_p
 
 void
 DataprocessWorker::createChromatograms( Dataprocessor* processor
+                                        , adcontrols::hor_axis axis
                                         , const std::vector< std::tuple< int, double, double > >& ranges )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
@@ -130,8 +132,8 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
-
-    threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatograms( processor, pm, ranges, p ); } ) );
+    
+    threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatograms( processor, pm, axis, ranges, p ); } ) );
 }
 
 void
@@ -220,6 +222,7 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor * processor
 void
 DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
                                               , const std::shared_ptr< adcontrols::ProcessMethod > method
+                                              , adcontrols::hor_axis axis
                                               , const std::vector< std::tuple< int, double, double > >& ranges
 											  , std::shared_ptr<adwidgets::Progress> progress )
 {
@@ -228,7 +231,8 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
     if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
 
         adcontrols::MSChromatogramExtractor extract( dset );
-        extract( vec, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
+        extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
+        //extract( vec, *method, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
 
     }
 

@@ -41,6 +41,7 @@ namespace adcontrols {
     class MassSpectrum;
     class MSChromatogramMethod;
     class ProcessMethod;
+    enum hor_axis;
 
     class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
 
@@ -56,6 +57,7 @@ namespace adcontrols {
                          , std::function<bool( size_t, size_t )> progress );
 
         bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
+                         , adcontrols::hor_axis
                          , const std::vector< std::tuple< int, double, double > >& ranges
                          , std::function<bool( size_t, size_t )> progress );
         

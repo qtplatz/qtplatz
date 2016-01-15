@@ -91,7 +91,7 @@ namespace dataproc {
         void zoomedOnSpectrum( const QRectF& );
 
         void proteinSelected( const adprot::digestedPeptides& );
-        void setSpectrumAxisChoice( int );
+        void setSpectrumAxisChoice( adcontrols::hor_axis );
 
         static QString makePrintFilename( const std::wstring& id, const std::wstring& insertor = L"__", const char * extension = ".svg" );
         static QString makeDisplayName( const std::wstring& id, const char * insertor = "::", int nbsp = 0 );

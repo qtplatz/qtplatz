@@ -141,6 +141,7 @@ namespace adcontrols {
         };
 
         static double toSeconds( size_t idx, const SamplingInfo& info );
+        static size_t toIndex( double seconds, const SamplingInfo& info );
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:

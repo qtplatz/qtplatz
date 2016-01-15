@@ -38,6 +38,7 @@ namespace adcontrols {
     class Chromatogram;
 	class PeakResult;
     class ProcessMethod;
+    enum hor_axis;
 }
 
 namespace adwidgets { class MSQuanTable; }
@@ -61,7 +62,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
-        void handleAxisChanged( int );
+        void handleAxisChanged( adcontrols::hor_axis );
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
         
     private:

@@ -33,7 +33,7 @@
 #include <tuple>
 #include <vector>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; }
+namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis; }
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  }
 
@@ -57,7 +57,7 @@ namespace dataproc {
         static void dispose();
         
         void createChromatograms( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
-        void createChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >& );
+        void createChromatograms( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
         void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
@@ -74,6 +74,7 @@ namespace dataproc {
 
         void handleCreateChromatograms( Dataprocessor *
                                         , const std::shared_ptr< adcontrols::ProcessMethod >
+                                        , adcontrols::hor_axis
                                         , const std::vector< std::tuple< int, double, double > >&
                                         , std::shared_ptr<adwidgets::Progress> );
 

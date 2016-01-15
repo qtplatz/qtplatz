@@ -197,7 +197,7 @@ namespace dataproc {
         axis_changed_connector( QObject * p, QComboBox * choice ) : this_(p), sender_(choice) {}
         template< class T > bool operator () ( T* receiver ) const {
             return this_->connect( sender_, static_cast<void ( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), receiver, [=] ( int idx ) {
-                receiver->handleAxisChanged( idx ); } );
+                receiver->handleAxisChanged( idx == 0 ? adcontrols::hor_axis_mass : adcontrols::hor_axis_time ); } );
         }
     };
     // following 3 classes has no axis change handler
@@ -309,10 +309,10 @@ MainWindow::createStyledBarTop()
 }
 
 void
-MainWindow::setSpectrumAxisChoice( int sel )
+MainWindow::setSpectrumAxisChoice( adcontrols::hor_axis axis )
 {
     if ( axisChoice_ )
-        axisChoice_->setCurrentIndex( sel );
+        axisChoice_->setCurrentIndex( axis ); // 0 = mass, 1 = time
 }
 
 void

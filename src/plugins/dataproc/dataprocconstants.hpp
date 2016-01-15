@@ -76,12 +76,6 @@ namespace Constants {
         , PeakFindProcess 
     };
 
-    enum AxisType {
-        AxisMZ
-        , AxisTime
-    };
-
-
 } // namespace dataproc
 
 #endif // DATAPROCCONSTANTS_HPP

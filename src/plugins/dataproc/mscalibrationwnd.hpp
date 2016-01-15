@@ -38,6 +38,7 @@ namespace adcontrols {
 	class MSAssignedMasses;
 	class MSProperty;
     class MSPeaks;
+    enum hor_axis;
 }
 
 namespace adportable {  class Configuration; }
@@ -64,7 +65,7 @@ namespace dataproc {
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handlePrintCurrentView( const QString& outpdf );
-        void handleAxisChanged( int );
+        void handleAxisChanged( adcontrols::hor_axis );
 
     private slots:
         void handleSelSummary( size_t idx, size_t fcn );

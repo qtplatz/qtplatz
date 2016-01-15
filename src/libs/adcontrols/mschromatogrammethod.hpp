@@ -49,7 +49,7 @@ namespace adcontrols {
         static const wchar_t * dataClass() { return L"adcontrols::MSChromatogramMethod"; }
 
         enum DataSource { Profile, Centroid };
-        enum WidthMethod { widthInDa, widthInRP, widthPeakFWHM };
+        enum WidthMethod { widthInDa, widthInRP, widthPeakFWHM, widthTime };
 
         DataSource dataSource() const;
         void dataSource( enum DataSource );
@@ -77,20 +77,6 @@ namespace adcontrols {
         moltable& molecules();
         void setMolecules( const moltable& );
 
-        // struct ADCONTROLSSHARED_EXPORT value_type {
-        //     bool enable;
-        //     bool msref;
-        //     double mass;
-        //     std::string formula;
-        //     std::wstring memo;
-        //     value_type() : enable( true ), msref( false ), mass( 0 ) {}
-        //     value_type( const value_type& t ) : enable( t.enable ), msref( t.msref ), mass( t.mass ), formula( t.formula ), memo( t.memo ) {
-        //     }
-        // };
-
-        // const std::vector< value_type >& targets() const;
-        // void targets( const std::vector< value_type >& );
-        
     private:
 
         class impl;

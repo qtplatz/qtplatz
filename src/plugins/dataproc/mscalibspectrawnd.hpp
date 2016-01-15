@@ -48,6 +48,7 @@ namespace adcontrols {
     class MSAssignedMasses;
     class ProcessMethod;
     class MSPeaks;
+    enum hor_axis;
 }
 
 namespace adportable {  class Configuration; }
@@ -74,7 +75,7 @@ namespace dataproc {
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
         void handlePrintCurrentView( const QString& outpdf );
-        void handleAxisChanged( int );
+        void handleAxisChanged( adcontrols::hor_axis );
 
     signals:
         void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
