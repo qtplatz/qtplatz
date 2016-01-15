@@ -980,7 +980,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                     auto idx = fms.lower_bound( range.first, false );
                     if ( idx != fms.npos ) {
                         do {
-                            auto& info = vinfo [ fcn ].begin() + idx;
+                            auto info = vinfo [ fcn ].begin() + idx;
                             double time_window = info->widthHH( true );
                             ranges.push_back( std::make_tuple( fms.protocolId(), fms.getTime( idx ), time_window ) );
                         } while ( ++idx < fms.size() && fms.getTime( idx ) < range.second );

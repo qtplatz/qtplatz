@@ -280,7 +280,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 void
 MSCalibrationWnd::handleAxisChanged( adcontrols::hor_axis axis )
 {
-    pImpl_->timeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
+    pImpl_->timeAxis_ = ( axis == adcontrols::hor_axis_time );
 	pImpl_->processedSpectrum_->setAxis( static_cast< adplot::SpectrumWidget::HorizontalAxis >( axis ) );
 
     // replot profile

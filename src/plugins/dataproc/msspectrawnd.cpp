@@ -397,7 +397,7 @@ MSSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSSpectraWnd::handleAxisChanged( adcontrols::hor_axis axis )
 {
-    impl_->isTimeAxis_ = ( axis == adplot::SpectrumWidget::HorizontalAxisTime );
+    impl_->isTimeAxis_ = ( axis == adcontrols::hor_axis_time );
     for ( auto& plot: impl_->plots_ )
         plot->setAxis( adplot::SpectrumWidget::HorizontalAxis( axis ), true );
 }
