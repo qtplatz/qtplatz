@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "tofprotocol.hpp"
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cstdint>
@@ -95,6 +96,7 @@ namespace adcontrols {
         uint64_t actualPoints_;                            // digitizer waveform length (for spectrum display)
         uint64_t trigger_count_;
         uint32_t wellKnownEvents_;
+        adcontrols::TofProtocol this_protocol_;
 
         pragma_msvc_warning_push_disable_4251
 
@@ -113,3 +115,4 @@ namespace adcontrols {
 
 }
 
+BOOST_CLASS_VERSION( adcontrols::TimeDigitalHistogram, 1)

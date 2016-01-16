@@ -172,7 +172,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
 }
 
 void
-ElementalCompWnd::handleAxisChanged( adcontrols::hor_axis axis )
+ElementalCompWnd::handleAxisChanged( unsigned int axis )
 {
     using adplot::SpectrumWidget;
     using namespace adcontrols;

@@ -28,6 +28,7 @@
 
 #include <QWidget>
 #include <memory>
+#include <adcontrols/constants.hpp>
 
 namespace portfolio {
     class Folium;
@@ -53,7 +54,6 @@ namespace dataproc {
         ~ElementalCompWnd();
         void init();
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
-        // void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void simulate( const adcontrols::MSSimulatorMethod& );
         void estimateScanLaw( const QString&, std::shared_ptr< adcontrols::MassSpectrum >& );
       
@@ -64,7 +64,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
-        void handleAxisChanged( adcontrols::hor_axis );        
+        void handleAxisChanged( unsigned int );        
       
     private:
         ElementalCompWndImpl * pImpl_;

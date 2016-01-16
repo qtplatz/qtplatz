@@ -63,6 +63,8 @@ histogram::append( const threshold_result& result )
          ( std::abs( meta_.initialXOffset - result.data()->meta_.initialXOffset ) >= meta_.xIncrement * 2 ) ||
          !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
         
+        method_ = result.data()->method_; // delay pulse + protocols
+
         meta_ = result.data()->meta_;        
         
         assert ( meta_.actualPoints );

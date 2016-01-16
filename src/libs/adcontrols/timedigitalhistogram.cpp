@@ -56,6 +56,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
             ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
             ar & BOOST_SERIALIZATION_NVP( _.histogram_ );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( _.this_protocol_ );
         }
     };
     
@@ -106,6 +108,7 @@ TimeDigitalHistogram::TimeDigitalHistogram( const TimeDigitalHistogram& t ) : in
                                                                             , trigger_count_( t.trigger_count_ )
                                                                             , wellKnownEvents_( t.wellKnownEvents_ )
                                                                             , histogram_( t.histogram_ )
+                                                                            , this_protocol_( t.this_protocol_ )
 {
 }
 

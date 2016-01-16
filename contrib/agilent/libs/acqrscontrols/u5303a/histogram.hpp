@@ -69,6 +69,7 @@ namespace acqrscontrols {
 
         private:
             // metadata for initial trigger in this histogram
+            method method_;
             metadata meta_;
             uint32_t serialnumber_0_;             // first waveform trigger#
             uint32_t serialnumber_;               // last waveform trigger#
