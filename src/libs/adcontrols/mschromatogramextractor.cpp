@@ -39,6 +39,7 @@
 #include "mslockmethod.hpp"
 #include "msproperty.hpp"
 #include "processmethod.hpp"
+#include <adcontrols/constants.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include "waveform_filter.hpp"
 #include <boost/format.hpp>
@@ -167,8 +168,8 @@ namespace adcontrols {
         bool doMSLock( adcontrols::lockmass& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
         bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
         
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< hor_axis_mass > > > results_;
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< hor_axis_mass > > > debug_; // tic, base
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > results_;
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > debug_; // tic, base
 
         std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
         const adcontrols::LCMSDataset * raw_;

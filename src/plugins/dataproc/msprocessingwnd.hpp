@@ -32,7 +32,6 @@
 #endif
 #include <map>
 #include <memory>
-#include <adcontrols/constants.hpp>
 
 namespace adcontrols {
     class Chromatogram;
@@ -42,6 +41,7 @@ namespace adcontrols {
 	class PeakResult;
     class ProcessMethod;
     class Targeting;
+    enum hor_axis: unsigned int;
 }
 
 namespace portfolio {

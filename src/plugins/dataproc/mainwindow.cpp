@@ -44,6 +44,7 @@
 
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adcontrols/mspeakinfo.hpp>
