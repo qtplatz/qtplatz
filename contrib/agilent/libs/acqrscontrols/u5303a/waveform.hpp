@@ -28,7 +28,9 @@
 #include "method.hpp"
 #include "identify.hpp"
 #include "metadata.hpp"
+#include <adcontrols/tofprotocol.hpp>
 #include <boost/variant.hpp>
+#include <boost/serialization/version.hpp>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -55,10 +57,16 @@ namespace acqrscontrols {
             device_data& operator = ( const device_data& ) = delete;
         public:
             device_data() {}
-            device_data( const identify& ident, const metadata& meta ) : ident_( ident ), meta_( meta ) {
+            device_data( const identify& ident
+                         , const metadata& meta
+                         , const adcontrols::TofProtocol& proto ) : ident_( ident )
+                                                                  , meta_( meta ) 
+                                                                  , this_protocol_( proto ) {
             }
             identify ident_;
             metadata meta_;
+            adcontrols::TofProtocol this_protocol_;
+
         private:
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int );
@@ -162,3 +170,5 @@ namespace acqrscontrols {
         template<> ACQRSCONTROLSSHARED_EXPORT int32_t * waveform::data();
     }
 }
+
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_data, 1 )

@@ -26,6 +26,7 @@
 #include "serializer.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -58,6 +59,18 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.histogram_ );
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( _.this_protocol_ );
+        }
+    };
+
+    class TimeDigitalHistogram::device_data {
+    public:
+        const adcontrols::TofProtocol& this_protocol;
+        device_data( const adcontrols::TofProtocol& p ) : this_protocol( p ) {
+        }
+
+        template<class Archive>
+        void serialize( Archive& ar, const unsigned int version ) {
+            ar & BOOST_SERIALIZATION_NVP( this_protocol );
         }
     };
     
@@ -278,6 +291,9 @@ TimeDigitalHistogram::accumulate( double tof, double window ) const
                                     , []( const uint32_t& a, const std::pair<double, uint32_t>& b ){ return a + b.second; });
         }
 
+        // histogram_ is an array of digitizer time, so that adjust external (helio) trigger delay.
+        tof -= this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+
         auto lower = std::lower_bound( histogram_.begin(), histogram_.end(), (tof - window / 2.0)
                                        , []( const std::pair<double, uint32_t>& a, const double& b){ return a.first < b; } );
         
@@ -299,11 +315,13 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     sp.setCentroid( adcontrols::CentroidNative );
 
     using namespace adcontrols::metric;
-    
+
+    double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+
     adcontrols::MSProperty prop;
     adcontrols::MSProperty::SamplingInfo
         info( 0 /* int interval (must be zero) */
-              , uint32_t( hgrm.initialXOffset() / hgrm.xIncrement() + 0.5 )  // delay
+              , uint32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + 0.5 )  // delay
               , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
               , uint32_t( hgrm.trigger_count() )
               , 0 /* mode */);
@@ -318,32 +336,19 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     prop.setNumAverage( uint32_t( hgrm.trigger_count() ) );
     prop.setTrigNumber( uint32_t( hgrm.serialnumber().first ) );
 
-    prop.setDataInterpreterClsid( "u5303a" );
-        
-    // {
-    //     acqrscontrols::u5303a::device_data data;
-    //     data.meta_ = meta;
-    //     std::string ar;
-    //     adportable::binary::serialize<>()( data, ar );
-    //     prop.setDeviceData( ar.data(), ar.size() );
-    // }
+    prop.setDataInterpreterClsid( "adcontrols::TimeDigitalHistogram" );
+
+    TimeDigitalHistogram::device_data data( hgrm.this_protocol_ );
+    std::string ar;
+    adportable::binary::serialize<>()( data, ar );
+    prop.setDeviceData( ar.data(), ar.size() );
         
     sp.setMSProperty( prop );
-
-    // if ( resolution > meta.xIncrement ) {
-
-    //     std::vector< double > times, intens;
-    //     acqrscontrols::u5303a::histogram::average( hist, resolution, times, intens );
-    //     sp->resize( times.size() );
-    //     sp->setTimeArray( times.data() );
-    //     sp->setIntensityArray( intens.data() );
-
-    // } else {
 
     sp.resize( hgrm.size() );
     size_t idx = 0;
     for ( auto it = hgrm.begin(); it != hgrm.end(); ++it, ++idx ) {
-        sp.setTime( idx, it->first );
+        sp.setTime( idx, it->first + ext_trig_delay );
         sp.setIntensity( idx, it->second );
     }
     

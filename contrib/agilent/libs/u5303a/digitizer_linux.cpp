@@ -878,8 +878,6 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
         std::vector<ViReal64> initialXOffset( numRecords ), initialXTimeSeconds( numRecords ), initialXTimeFraction( numRecords );
         ViReal64 xIncrement(0), scaleFactor(0), scaleOffset(0);
 
-        auto tp = task::instance()->tp_acquire();
-        
         if ( AgMD2::log( AgMD2_FetchMultiRecordWaveformInt16( md2.session()
                                                               , "Channel1"
                                                               , 0

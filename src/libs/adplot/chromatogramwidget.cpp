@@ -174,6 +174,11 @@ namespace adplot {
                 grab_ = cp;
                 auto range_x = adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
+
+                // workaround for 'counting chromatogram', which can be complete flat signals
+                if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() ) {
+                    range_y.first = 0;
+                }
                 rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
                 if ( y2 )
                     curve_.p()->setYAxis( QwtPlot::yRight );

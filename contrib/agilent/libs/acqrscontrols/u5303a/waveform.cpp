@@ -29,6 +29,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <adcontrols/waveform_filter.hpp>
 
 #include <adportable/asio/thread.hpp>
@@ -269,8 +270,12 @@ waveform::accumulate( double tof, double window ) const
         return tic;
 
     } else {
-        auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset ) / meta_.xIncrement;
-        auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset ) / meta_.xIncrement;
+
+        const adcontrols::TofProtocol& this_protocol = method_.protocols() [ method_.protocolIndex() ];
+        double ext_adc_delay = this_protocol.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+
+        auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
+        auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
         adportable::spectrum_processor::areaFraction frac;
         x1 = std::max( 0.0, x1 );
         x2 = std::max( 0.0, x2 );
@@ -526,10 +531,19 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     using namespace adcontrols::metric;
 
     sp.setCentroid( adcontrols::CentroidNone );
+
+    const auto& method = waveform.method_;
+    const adcontrols::TofProtocol * this_protocol( 0 );
+
+    double ext_trig_delay( 0 );
+    if ( waveform.method_.protocols().size() > waveform.method_.protocolIndex() ) {
+        this_protocol = &waveform.method_.protocols() [ waveform.method_.protocolIndex() ];
+        ext_trig_delay = this_protocol->delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+    }
     
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
-                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
+                                               , uint32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.size() )
                                                , waveform.meta_.actualAverages
                                                , 0 /* mode */ );
@@ -541,7 +555,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
 
-    const device_data data( *waveform.ident_, waveform.meta_ );
+    const device_data data( *waveform.ident_, waveform.meta_, this_protocol ? *this_protocol : adcontrols::TofProtocol() );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
@@ -577,10 +591,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 
     sp.setCentroid( adcontrols::CentroidNone );
     const waveform& waveform = *result.data();
+
+    const adcontrols::TofProtocol& this_protocol = waveform.method_.protocols().at( waveform.method_.protocolIndex() );
+    double ext_adc_delay = this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
     
     adcontrols::MSProperty prop = sp.getMSProperty();
     adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
-                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
+                                               , uint32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.size() )
                                                , waveform.meta_.actualAverages
                                                , 0 /* mode */ );
@@ -592,7 +609,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
 
-    const device_data data( *waveform.ident_, waveform.meta_ );
+    const device_data data( *waveform.ident_, waveform.meta_, this_protocol );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );

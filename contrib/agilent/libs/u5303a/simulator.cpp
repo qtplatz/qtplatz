@@ -250,13 +250,13 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
             for ( auto& w: vec ) {
                 w->setData( mblock, w->firstValidPoint_ );
-                if ( w->meta_.initialXTimeSeconds == 0 )
-                    w->meta_.initialXTimeSeconds = double( counter++ );
+                if ( w->meta_.initialXTimeSeconds < 2.0e-6 )
+                    w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
             }
 
         } else {
 
-            std::shared_ptr< adportable::mblock< int16_t > > mblock;
+            std::shared_ptr< adportable::mblock< int32_t > > mblock;
             adportable::waveform_simulator()( mblock, int( vec.size() ) );
             for ( auto& w: vec )
                 w->setData( mblock, w->firstValidPoint_ );
