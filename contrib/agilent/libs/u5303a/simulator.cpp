@@ -199,9 +199,9 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
         auto dp = mblk->data();
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
         data.method_ = *method_;
-        data.method_.method_.digitizer_delay_to_first_sample = startDelay_;
-        data.method_.method_.nbr_of_averages = int32_t( nbrWaveforms_ );
-        data.method_.method_.digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+        data.method_.device_method().digitizer_delay_to_first_sample = startDelay_;
+        data.method_.device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        data.method_.device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
 
         data.meta_.initialXTimeSeconds = ptr->timestamp();
         data.wellKnownEvents_ = 0;
@@ -228,10 +228,10 @@ void
 simulator::setup( const acqrscontrols::u5303a::method& m )
 {
     *method_ = m;
-    sampInterval_ = 1.0 / m.method_.samp_rate;
-    startDelay_ = m.method_.digitizer_delay_to_first_sample;
-    nbrSamples_ = m.method_.digitizer_nbr_of_s_to_acquire;
-    nbrWaveforms_ = m.method_.nbr_of_averages;
+    sampInterval_ = 1.0 / m.device_method().samp_rate;
+    startDelay_ = m.device_method().digitizer_delay_to_first_sample;
+    nbrSamples_ = m.device_method().digitizer_nbr_of_s_to_acquire;
+    nbrWaveforms_ = m.device_method().nbr_of_averages;
 }
 
 void

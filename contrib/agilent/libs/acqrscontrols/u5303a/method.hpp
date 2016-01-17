@@ -43,6 +43,9 @@ namespace boost {
 namespace acqrscontrols {
     namespace u5303a {
 
+        class method;
+        template<typename T = method > class method_archive;
+
         class ACQRSCONTROLSSHARED_EXPORT method {
         public:
             method();
@@ -51,11 +54,16 @@ namespace acqrscontrols {
             static const char * itemLabel() { return "u5303a"; }
             static const boost::uuids::uuid& clsid();
 
-            uint32_t channels_;
-            uint32_t mode_;  // 0 := digitizer, 2 := averager
-            device_method method_;
-            uint32_t protocolIndex_;
-            std::vector< adcontrols::TofProtocol > protocols_;
+            uint32_t channels() const;
+            void setChannels( uint32_t );
+            uint32_t mode() const;  // 0 := digitizer, 2 := averager
+            void setMode( uint32_t );
+            const device_method& device_method() const;
+            class device_method& device_method();
+            uint32_t protocolIndex() const;
+            void setProtocolIndex( uint32_t );
+            std::vector< adcontrols::TofProtocol >& protocols();
+            const std::vector< adcontrols::TofProtocol >& protocols() const;
 
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );
@@ -63,6 +71,14 @@ namespace acqrscontrols {
             static bool xml_restore( std::wistream&, method& );
 
         private:
+            uint32_t channels_;
+            uint32_t mode_;  // 0 := digitizer, 2 := averager
+            acqrscontrols::u5303a::device_method method_;
+            uint32_t protocolIndex_;
+            std::vector< adcontrols::TofProtocol > protocols_;
+
+            friend class method_archive< method >;
+            friend class method_archive< const method >;
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };

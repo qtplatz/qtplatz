@@ -36,7 +36,7 @@
 namespace acqrscontrols {
     namespace u5303a {
 
-        template<typename T = method>
+        template<typename T>
         class method_archive {
         public:
             template<class Archive>
@@ -160,3 +160,65 @@ method::clsid()
     static const boost::uuids::uuid myclsid = boost::uuids::name_generator( baseid )( "acqrscontrols::u5303a::method" );
     return myclsid;
 }
+
+std::vector< adcontrols::TofProtocol >&
+method::protocols()
+{
+    return protocols_;
+}
+
+const std::vector< adcontrols::TofProtocol >&
+method::protocols() const
+{
+    return protocols_;
+}
+
+uint32_t
+method::channels() const
+{
+    return channels_;
+}
+
+void
+method::setChannels( uint32_t channels )
+{
+    channels_ = channels;
+}
+
+uint32_t
+method::mode() const
+{
+    // 0 := digitizer, 2 := averager
+    return mode_;
+}
+
+void
+method::setMode( uint32_t mode )
+{
+    mode_ = mode;
+}
+
+const device_method&
+method::device_method() const
+{
+    return method_;
+}
+
+device_method&
+method::device_method()
+{
+    return method_;
+}
+
+uint32_t
+method::protocolIndex() const
+{
+    return protocolIndex_;
+}
+
+void
+method::setProtocolIndex( uint32_t value )
+{
+    protocolIndex_ = value;
+}
+

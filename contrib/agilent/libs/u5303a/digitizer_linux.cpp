@@ -328,7 +328,7 @@ task::initialize()
 bool
 task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 {
-    auto& m = method.method_;
+    auto& m = method.device_method();
 
 #if 0
     ADDEBUG() << "u5303a::task::prepare_for_run";
@@ -548,13 +548,13 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 
     if ( /* m.mode_ && */ simulated_ ) {
         acqrscontrols::u5303a::method a( m );
-        a.method_.samp_rate = spDriver()->SampleRate();
+        a.device_method().samp_rate = spDriver()->SampleRate();
         simulator::instance()->setup( a );
     }
 
     method_ = m;
     
-    if ( m.method_.TSR_enabled ) {
+    if ( m.device_method().TSR_enabled ) {
         fsm_.process_event( fsm::TSRInitiate() );
     } else {
         fsm_.process_event( fsm::Initiate() );
@@ -566,7 +566,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 bool
 task::handle_protocol( const acqrscontrols::u5303a::method m )
 {
-    if ( m.mode_ == 0 )
+    if ( m.mode() == 0 )
         device::setup( *this, m );
     else
         device::setup( *this, m );
@@ -626,7 +626,7 @@ task::handle_acquire()
     if ( acquire() ) {
 
         if ( waitForEndOfAcquisition( 3000 ) ) {
-            if ( method_.mode_ == 0 ) { // digitizer
+            if ( method_.mode() == 0 ) { // digitizer
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
                 digitizer::readData( *spDriver(), method_, vec );
@@ -668,7 +668,7 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    if ( method_.mode_ && simulated_ )    
+    if ( method_.mode() && simulated_ )    
         return simulator::instance()->acquire();
 
     tp_acquire_ = std::chrono::steady_clock::now();
@@ -684,7 +684,7 @@ task::waitForEndOfAcquisition( int timeout )
 #else
         std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
 #endif
-        if ( method_.mode_ )
+        if ( method_.mode() )
             return simulator::instance()->waitForEndOfAcquisition();
     }
 
@@ -708,7 +708,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     //-------------------
 
     bool result( false );
-    if ( method_.mode_ == 0 ) {
+    if ( method_.mode() == 0 ) {
         result = digitizer::readData16( *spDriver(), method_, data );
     } else {
         result = digitizer::readData32( *spDriver(), method_, data );
@@ -772,13 +772,13 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
 
     task.spDriver()->log(
-        AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1", m.method_.front_end_range, m.method_.front_end_offset, coupling, VI_TRUE )
+        AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1", m.device_method().front_end_range, m.device_method().front_end_offset, coupling, VI_TRUE )
         , __FILE__, __LINE__ );
     task.spDriver()->setActiveTriggerSource( "External1" );
-    task.spDriver()->setTriggerLevel( "External1", m.method_.ext_trigger_level );
+    task.spDriver()->setTriggerLevel( "External1", m.device_method().ext_trigger_level );
     task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
     task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
-    task.spDriver()->setTriggerDelay( m.method_.digitizer_delay_to_first_sample );
+    task.spDriver()->setTriggerDelay( m.device_method().digitizer_delay_to_first_sample );
     // task.spDriver()->setTriggerHoldOff( 1.0e-6 ); // 1us
 
     bool success = false;
@@ -794,26 +794,26 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             max_rate = 3.2e9;
     }
     
-    for ( auto samp_rate : { m.method_.samp_rate, max_rate } ) {
+    for ( auto samp_rate : { m.device_method().samp_rate, max_rate } ) {
         if ( success = task.spDriver()->setSampleRate( samp_rate ) )
             break;
     }
         
-    if ( m.mode_ == 0 ) { // Digitizer 
+    if ( m.mode() == 0 ) { // Digitizer 
         // ADDEBUG() << "Normal Mode";
-        task.spDriver()->setTSREnabled( m.method_.TSR_enabled );
+        task.spDriver()->setTSREnabled( m.device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
-        task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
-        task.spDriver()->setAcquisitionNumRecordsToAcquire( m.method_.nbr_records );
+        task.spDriver()->setAcquisitionRecordSize( m.device_method().digitizer_nbr_of_s_to_acquire );
+        task.spDriver()->setAcquisitionNumRecordsToAcquire( m.device_method().nbr_records );
 
     } else { // Averager
 
         // ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
-        task.spDriver()->setDataInversionEnabled( "Channel1", m.method_.invert_signal ? true : false );
-        task.spDriver()->setAcquisitionRecordSize( m.method_.digitizer_nbr_of_s_to_acquire );
+        task.spDriver()->setDataInversionEnabled( "Channel1", m.device_method().invert_signal ? true : false );
+        task.spDriver()->setAcquisitionRecordSize( m.device_method().digitizer_nbr_of_s_to_acquire );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-        task.spDriver()->setAcquisitionNumberOfAverages( m.method_.nbr_of_averages );
+        task.spDriver()->setAcquisitionNumberOfAverages( m.device_method().nbr_of_averages );
 
         // It looks like this command should be issued as last
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
@@ -862,8 +862,8 @@ bool
 digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
 {
     ViInt64 arraySize = 0;
-    const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
-    const int64_t numRecords = m.method_.nbr_records;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
+    const int64_t numRecords = m.device_method().nbr_records;
     
     if ( AgMD2::log(
              AgMD2_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
@@ -934,7 +934,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
 bool
 digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data )
 {
-    const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
     ViInt64 const numRecords = 1;
     ViInt64 arraySize(0);
 
@@ -993,7 +993,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
 #else
     ViInt64 constexpr numRecords = 1;
 #endif
-    const int64_t recordSize = m.method_.digitizer_nbr_of_s_to_acquire;
+    const int64_t recordSize = m.device_method().digitizer_nbr_of_s_to_acquire;
     ViInt64 arraySize(0);
 
     if ( AgMD2::log(

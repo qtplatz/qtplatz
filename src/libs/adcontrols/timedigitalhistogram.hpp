@@ -68,6 +68,7 @@ namespace adcontrols {
         uint32_t& wellKnownEvents();
         std::pair< uint64_t, uint64_t >& serialnumber();
         std::pair< uint64_t, uint64_t >& timeSinceEpoch();
+
         double initialXTimeSeconds() const;
         double initialXOffset() const;
         double xIncrement() const;
@@ -79,6 +80,9 @@ namespace adcontrols {
         const std::pair< uint64_t, uint64_t >& timeSinceEpoch() const;
         std::vector< std::pair< double, uint32_t > >& histogram();
         const std::vector< std::pair< double, uint32_t > >& histogram() const;
+
+        TofProtocol& this_protocol();
+        const TofProtocol& this_protocol() const;
 
         uint32_t accumulate( double tof, double window ) const;
 

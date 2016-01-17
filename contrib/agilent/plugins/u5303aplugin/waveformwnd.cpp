@@ -165,11 +165,11 @@ void
 WaveformWnd::handle_method( const QString& )
 {
     if ( auto ptr = document::instance()->method() ) {
-        if ( ( ptr->channels_ & 0x01 ) == 0 && sp_[ 0 ] ) {
+        if ( ( ptr->channels() & 0x01 ) == 0 && sp_[ 0 ] ) {
             sp_[ 0 ]->resize( 0 );
             spw_->setData( sp_[ 0 ], 0, false );
         }
-        if ( ( ptr->channels_ & 0x02 ) == 0 && sp_[ 1 ] ) {
+        if ( ( ptr->channels() & 0x02 ) == 0 && sp_[ 1 ] ) {
             sp_[ 1 ]->resize( 0 );
             spw_->setData( sp_[ 1 ], 1, true );
         }

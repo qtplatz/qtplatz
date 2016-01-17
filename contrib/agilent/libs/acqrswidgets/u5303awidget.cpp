@@ -164,7 +164,7 @@ u5303AWidget::get( acqrscontrols::u5303a::method& m ) const
         form->getContents( m );
     }
     if ( auto table = findChild< u5303ATable *>() ) {
-        table->getContents( m.method_ );
+        table->getContents( m.device_method() );
     }
     return true;
 }
@@ -176,7 +176,7 @@ u5303AWidget::set( const acqrscontrols::u5303a::method& m )
         form->setContents( m );
     }
     if ( auto table = findChild< u5303ATable *>() ) {
-        table->setContents( m.method_ );
+        table->setContents( m.device_method() );
     }
     return true;
 }

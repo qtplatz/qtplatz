@@ -220,6 +220,18 @@ TimeDigitalHistogram::histogram() const
     return histogram_;
 }
 
+TofProtocol&
+TimeDigitalHistogram::this_protocol()
+{
+    return this_protocol_;
+}
+
+const TofProtocol&
+TimeDigitalHistogram::this_protocol() const
+{
+    return this_protocol_;
+}
+
 size_t
 TimeDigitalHistogram::size() const
 {
@@ -411,12 +423,6 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
         } else {
             summed.emplace_back( *rhs );            
         }
-        // if ( lhs != histogram_.end() && std::abs( lhs->first - rhs->first ) < resolution ) {
-        //     summed.emplace_back( lhs->first, ( lhs->second + rhs->second ) );
-        //     ++lhs;
-        // } else {
-        //     summed.emplace_back( *rhs );
-        // }
     }
 
     if ( lhs != histogram_.end() )
