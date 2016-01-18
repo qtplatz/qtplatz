@@ -264,7 +264,7 @@ namespace adwidgets {
 }
 
 TimedTableView::TimedTableView(QWidget *parent) : TableView(parent)
-                                            , impl_( new impl( this ) )
+                                                , impl_( new impl( this ) )
 {
     setHorizontalHeader( new HtmlHeaderView );
     setItemDelegate( new delegate( impl_.get() ) );

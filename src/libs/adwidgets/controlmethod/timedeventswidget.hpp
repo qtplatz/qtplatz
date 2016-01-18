@@ -61,6 +61,7 @@ namespace adwidgets {
         
     private:
         class impl;
+        class delegate;
         std::unique_ptr< impl > impl_;
         
     signals:

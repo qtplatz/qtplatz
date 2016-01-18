@@ -24,18 +24,21 @@
 
 #include "timedeventswidget.hpp"
 #include "timedtableview.hpp"
+#include "delegatehelper.hpp"
 #include <adportable/is_type.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/timedevent.hpp>
 #include <adcontrols/controlmethod/timedevents.hpp>
 #include <adcontrols/controlmethod/modulecap.hpp>
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QDebug>
 #include <QSplitter>
 #include <QMenu>
 #include <QMessageBox>
 #include <QStandardItemModel>
 #include <QPushButton>
+#include <QStyledItemDelegate>
 
 #include <QMetaType>
 Q_DECLARE_METATYPE( boost::uuids::uuid );
@@ -61,7 +64,7 @@ namespace adwidgets {
 
         ~impl() {
         }
-
+        
         void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
             emit this_->valueChanged();
         }
@@ -71,7 +74,45 @@ namespace adwidgets {
 
         // QSqlDatabase createConnection();
         std::unique_ptr< QStandardItemModel > model_;
-        std::vector < adcontrols::ControlMethod::ModuleCap > capList_;
+        //std::vector < adcontrols::ControlMethod::ModuleCap > capList_;
+        std::map < boost::uuids::uuid, adcontrols::ControlMethod::ModuleCap > capList_;
+    };
+
+    //-------------------------- delegate ---------------
+    class TimedEventsWidget::delegate : public QStyledItemDelegate {
+        impl& impl_;
+    public:
+        delegate( impl& t ) : impl_( t ) {
+        }
+        
+        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            QStyledItemDelegate::paint( painter, option, index );
+        }
+
+        void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+            QStyledItemDelegate::setModelData( editor, model, index );
+        }
+
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
+            if ( index.column() == impl::c_item_name ) {
+                auto combo = new QComboBox( parent );
+                auto model = index.model();
+                auto clsid = model->data( model->index( index.row(), impl::c_clsid ), Qt::UserRole + 1 ).value<boost::uuids::uuid>();
+                auto it = impl_.capList_.find( clsid );
+                if ( it != impl_.capList_.end() ) {
+                    for ( auto& cap : it->second.eventCaps() ) {
+                        combo->addItem( QString::fromStdString( cap.item_display_name() ) );
+                    }
+                }
+                return combo;
+            }
+            return QStyledItemDelegate::createEditor( parent, option, index );
+        }
+
+        QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            return QStyledItemDelegate::sizeHint( option, index );
+        }
+        
     };
     
 }
@@ -99,6 +140,7 @@ TimedEventsWidget::TimedEventsWidget(QWidget *parent) : QWidget(parent)
     if ( auto table = findChild< TimedTableView * >() ) {
         
         table->setModel( impl_->model_.get() );
+        table->setItemDelegate( new delegate( *impl_ ) );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
         table->setColumnHidden( impl::c_clsid, true );
 
@@ -203,8 +245,8 @@ TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
 
         std::vector< action_type > actions;
         for ( auto& cap: capList_ ) {
-            QString text = QString( "Add: %1" ).arg( cap.model_display_name().c_str() );
-            actions.push_back( std::make_pair( menu.addAction( text ), [=](){ addLine( cap ); }) );    
+            QString text = QString( "Add: %1" ).arg( cap.second.model_display_name().c_str() );
+            actions.push_back( std::make_pair( menu.addAction( text ), [=](){ addLine( cap.second ); }) );    
         }
         
         if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
@@ -261,5 +303,6 @@ TimedEventsWidget::impl::addLine( const adcontrols::ControlMethod::ModuleCap& mo
 void
 TimedEventsWidget::addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& cap )
 {
-    std::copy( cap.begin(), cap.end(), std::back_inserter( impl_->capList_ ) );
+    //std::copy( cap.begin(), cap.end(), std::back_inserter( impl_->capList_ ) );
+    std::for_each( cap.begin(), cap.end(), [&] ( const adcontrols::ControlMethod::ModuleCap& a ) { impl_->capList_ [ a.clsid() ] = a; } );
 }
