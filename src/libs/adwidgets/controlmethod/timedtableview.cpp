@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,17 +25,9 @@
 #include "timedtableview.hpp"
 #include "delegatehelper.hpp"
 #include "htmlheaderview.hpp"
-#include "moldraw.hpp"
-#include <adchem/drawing.hpp>
 #include <adportable/float.hpp>
-#include <adprot/digestedpeptides.hpp>
-#include <adprot/peptides.hpp>
-#include <adprot/peptide.hpp>
 #include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/isotopecluster.hpp>
-#include <adcontrols/moltable.hpp>
-#include <adcontrols/molecule.hpp>
-#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/controlmethod/modulecap.hpp>
 #include <adportable/float.hpp>
 #include <QApplication>
 #include <QByteArray>
@@ -54,22 +46,6 @@
 #include <QSvgRenderer>
 #include <QUrl>
 #include <sstream>
-
-#if defined HAVE_RDKit && HAVE_RDKit
-#if defined _MSC_VER
-# pragma warning( disable: 4267 4018 )
-#endif
-#include <RDGeneral/Invariant.h>
-#include <GraphMol/Depictor/RDDepictor.h>
-#include <GraphMol/Descriptors/MolDescriptors.h>
-#include <GraphMol/RDKitBase.h>
-#include <GraphMol/SmilesParse/SmilesParse.h>
-#include <GraphMol/SmilesParse/SmilesWrite.h>
-#include <GraphMol/Substruct/SubstructMatch.h>
-#include <GraphMol/FileParsers/FileParsers.h>
-#include <GraphMol/FileParsers/MolSupplier.h>
-#include <RDGeneral/RDLog.h>
-#endif
 
 #include <boost/format.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -97,6 +73,7 @@ namespace adwidgets {
         std::function<void(const QPoint& )> handleContextMenu_;
 
         //-------------------------------------------------
+        std::vector < adcontrols::ControlMethod::ModuleCap > capList_;
         
         std::map< int, ColumnState > columnStates_;
 
@@ -105,11 +82,11 @@ namespace adwidgets {
         inline ColumnState::fields field( int column ) { return columnStates_[ column ].field; }
 
         inline int findColumn( ColumnState::fields field ) const {
-            auto it = std::find_if( columnStates_.begin(), columnStates_.end()
-                                    , [field]( const std::pair< int, ColumnState >& c ){ return c.second.field == field; });
-            if ( it != columnStates_.end() )
-                return it->first;
-            return (-1);
+             auto it = std::find_if( columnStates_.begin(), columnStates_.end()
+                                     , [field]( const std::pair< int, ColumnState >& c ){ return c.second.field == field; });
+             if ( it != columnStates_.end() )
+                 return it->first;
+             return (-1);
         }
 
         QAbstractItemModel * model() { return this_->model(); }
@@ -355,190 +332,31 @@ TimedTableView::handleContextMenu( const QPoint& pt )
 void
 TimedTableView::dragEnterEvent( QDragEnterEvent * event )
 {
-	const QMimeData * mimeData = event->mimeData();
-
-	if ( mimeData->hasUrls() ) {
-		QList<QUrl> urlList = mimeData->urls();
-        for ( auto& url: urlList ) {
-            QFileInfo path( url.toLocalFile() );
-            if ( path.suffix() == "sdf" || path.suffix() == "mol" ) {
-                event->accept();
-                return;
-            }
-        }
-	}
 }
 
 void
 TimedTableView::dragMoveEvent( QDragMoveEvent * event )
 {
-    event->accept();
 }
 
 void
 TimedTableView::dragLeaveEvent( QDragLeaveEvent * event )
 {
-	event->accept();
 }
 
 void
 TimedTableView::dropEvent( QDropEvent * event )
 {
-	const QMimeData * mimeData = event->mimeData();
-    
-	if ( mimeData->hasUrls() ) {
-
-        QSignalBlocker block( this );
-#if 0
-        int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
-        
-        QList<QUrl> urlList = mimeData->urls();
-        for ( auto& url : urlList ) {
-
-#if HAVE_RDKit
-            std::string filename = url.toLocalFile().toStdString();
-            std::cout << "dropEvent: " << filename << std::endl;
-            
-            if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
-                
-                model_->insertRows( row, supplier->length() );
-                
-                for ( size_t i = 0; i < supplier->length(); ++i ) {
-                    if ( auto mol = std::unique_ptr< RDKit::ROMol >( ( *supplier )[ i ] ) ) {
-                        mol->updatePropertyCache( false );
-                        auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-                        auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-                        //auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                        //auto svg = RDKit::Drawing::DrawingToSVG( drawing );
-                        //impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
-                    }
-                    ++row;
-                }
-            }
-            resizeRowsToContents();
-#endif            
-        }
-        event->accept();
-#endif
-	}
 }
 
 void
 TimedTableView::handleCopyToClipboard()
 {
-	QModelIndexList indecies = selectionModel()->selectedIndexes();
-
-    qSort( indecies );
-    if ( indecies.size() < 1 )
-        return;
-
-    adcontrols::moltable molecules;
-    
-    QString selected_text;
-    QModelIndex prev = indecies.first();
-    QModelIndex last = indecies.last();
-
-    indecies.removeFirst();
-
-    adcontrols::moltable::value_type mol;
-
-    for( int i = 0; i < indecies.size(); ++i ) {
-        
-        QModelIndex index = indecies.at( i );
-
-        if ( !isRowHidden( prev.row() ) ) {
-
-            auto t = prev.data( Qt::EditRole ).type();
-            if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != ColumnState::f_svg ) ) {
-
-                QString text = prev.data( Qt::EditRole ).toString();
-                selected_text.append( text );
-
-                if ( index.row() == prev.row() )
-                    selected_text.append( '\t' );
-            }
-
-            switch( impl_->field( prev.column() ) ) {
-            case ColumnState::f_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
-            case ColumnState::f_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;                
-            case ColumnState::f_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            case ColumnState::f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
-            case ColumnState::f_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
-            }
-
-            if ( index.row() != prev.row() ) {
-                selected_text.append( '\n' );
-                molecules << mol;
-                mol = adcontrols::moltable::value_type();
-            }
-        }
-        prev = index;
-    }
-
-    if ( !isRowHidden( last.row() ) && !isColumnHidden( last.column() ) )
-        selected_text.append( last.data( Qt::EditRole ).toString() );
-
-    QApplication::clipboard()->setText( selected_text );
-    
-    std::wostringstream o;
-    try {
-        if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
-            QString xml( QString::fromStdWString( o.str() ) );
-            QMimeData * md = new QMimeData();
-            md->setData( QLatin1String( "application/moltable-xml" ), xml.toUtf8() );
-            md->setText( selected_text );
-            QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
-        }
-    } catch ( ... ) {
-    }
 }
 
 void
 TimedTableView::handlePaste()
 {
-    int row = model()->rowCount() - 1;
-
-    auto md = QApplication::clipboard()->mimeData();
-    auto data = md->data( "application/moltable-xml" );
-    if ( !data.isEmpty() ) {
-        QString utf8( QString::fromUtf8( data ) );
-        std::wistringstream is( utf8.toStdWString() );
-
-        adcontrols::moltable molecules;
-        if ( adcontrols::moltable::xml_restore( is, molecules ) ) {
-#if 0
-            impl_->model_->setRowCount( row + int( molecules.data().size() + 1 ) ); // add one free line for add formula
-
-            for ( auto& mol : molecules.data() ) {
-
-                impl_->setData( *this, row
-                               , QString::fromStdString( mol.formula() )
-                               , QString::fromStdString( mol.adducts() )
-                               , QString::fromStdString( mol.smiles() )
-                               , QByteArray()
-                               , QString::fromStdString( mol.synonym() )
-                               , QString::fromStdWString( mol.description() )
-                               , mol.mass()
-                               , mol.abundance()
-                               , mol.enable() );
-                ++row;
-            }
-#endif
-            resizeRowsToContents();
-            resizeColumnsToContents();
-        }
-    } else {
-        QString pasted = QApplication::clipboard()->text();
-        QStringList lines = pasted.split( "\n" );
-        for ( auto line : lines ) {
-            QStringList texts = line.split( "\t" );
-            for ( auto& test : texts ) {
-                // TODO...
-            }
-        }
-    }
 }
 
 void
@@ -549,17 +367,15 @@ TimedTableView::setColumnField( int column, ColumnState::fields f, bool editable
         impl_->columnStates_[ column ].precision = 7;
 }
 
-// static
-double
-TimedTableView::getMonoIsotopicMass( const QString& formula, const QString& adducts )
+void
+TimedTableView::addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& cap )
 {
-    auto expr = formula;
+    std::copy( cap.begin(), cap.end(), std::back_inserter( impl_->capList_ ) );
+}
 
-    if ( ! adducts.isEmpty() )
-        expr += " " + adducts;
-
-    double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
-
-    return exactMass;
+const std::vector< adcontrols::ControlMethod::ModuleCap >&
+TimedTableView::moduleCap() const
+{
+    return impl_->capList_;
 }
 

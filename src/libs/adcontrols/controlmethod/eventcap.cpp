@@ -27,3 +27,37 @@
 using namespace adcontrols::ControlMethod;
 
         
+EventCap::EventCap()
+{
+}
+
+EventCap::EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& )
+{
+}
+
+EventCap::EventCap( const EventCap& t ) : item_name_( t.item_name_ )
+                                        , item_display_name_( t.item_display_name_ )
+                                        , default_value_( t.default_value_ )
+{
+}
+
+const std::string&
+EventCap::item_name() const
+{
+    return item_name_;
+}
+
+const std::string&
+EventCap::item_display_name() const
+{
+    return item_display_name_;
+}
+
+const EventCap::value_type&
+EventCap::default_value() const
+{
+    return default_value_;
+}
+
+
+

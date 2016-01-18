@@ -37,21 +37,22 @@
 #include <QStandardItemModel>
 #include <QPushButton>
 
+#include <QMetaType>
+Q_DECLARE_METATYPE( boost::uuids::uuid );
+
 namespace adwidgets {
 
     class TimedEventsWidget::impl {
         TimedEventsWidget * this_;
     public:
-        enum columns { c_clsid, c_item, c_time, c_model_name, c_item_name, c_value, ncolumns };
+        enum columns { c_clsid, c_time, c_model_name, c_item_name, c_value, ncolumns };
         
         impl( TimedEventsWidget * p ) : this_( p )
                                       , model_( new QStandardItemModel() ) {
 
             model_->setColumnCount( ncolumns );
-            model_->setRowCount( 1 );
             
             model_->setHeaderData( c_clsid,        Qt::Horizontal, QObject::tr( "clsid" ) );
-            model_->setHeaderData( c_item,         Qt::Horizontal, QObject::tr( "itemClass" ) );
             model_->setHeaderData( c_time,         Qt::Horizontal, QObject::tr( "Time(seconds)" ) );
             model_->setHeaderData( c_model_name,   Qt::Horizontal, QObject::tr( "Module" ) );
             model_->setHeaderData( c_item_name,    Qt::Horizontal, QObject::tr( "Function" ) );
@@ -66,7 +67,7 @@ namespace adwidgets {
         }
 
         void handleContextMenu( const QPoint& pt );
-        void addLine();
+        void addLine( const adcontrols::ControlMethod::ModuleCap& );
 
         // QSqlDatabase createConnection();
         std::unique_ptr< QStandardItemModel > model_;
@@ -100,8 +101,6 @@ TimedEventsWidget::TimedEventsWidget(QWidget *parent) : QWidget(parent)
         table->setModel( impl_->model_.get() );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
         table->setColumnHidden( impl::c_clsid, true );
-        table->setColumnHidden( impl::c_item, true );
-        //enum columns { c_clsid, c_item, c_time, c_item_display, c_value, ncolumns };
 
         table->setColumnField( impl::c_time, ColumnState::f_time );
         table->setPrecision( impl::c_time, 4 );
@@ -130,7 +129,7 @@ TimedEventsWidget::OnInitialUpdate()
 {
     if ( auto table = findChild< TimedTableView *>() ) {
         table->onInitialUpdate();
-        connect( table, &TimedTableView::onContextMenu, this, &TimedEventsWidget::handleContextMenu );
+        //connect( table, &TimedTableView::onContextMenu, this, &TimedEventsWidget::handleContextMenu );
     }
 
 }
@@ -195,12 +194,6 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
 }
 
 void
-TimedEventsWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
-{
-    menu.addAction( "Simulate MS Spectrum", this, SLOT( run() ) );
-}
-
-void
 TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
@@ -209,8 +202,10 @@ TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
     if ( auto table = this_->findChild< TimedTableView * >() ) {
 
         std::vector< action_type > actions;
-        actions.push_back( std::make_pair( menu.addAction( "add line" ), [this](){ addLine(); }) );
-        //actions.push_back( std::make_pair( menu.addAction( "refresh" ), [this](){ model_->select(); }) );
+        for ( auto& cap: capList_ ) {
+            QString text = QString( "Add: %1" ).arg( cap.model_display_name().c_str() );
+            actions.push_back( std::make_pair( menu.addAction( text ), [=](){ addLine( cap ); }) );    
+        }
         
         if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
             auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){ return t.first == selected; });
@@ -221,12 +216,50 @@ TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
 }
 
 void
-TimedEventsWidget::impl::addLine()
+TimedEventsWidget::impl::addLine( const adcontrols::ControlMethod::ModuleCap& modcap )
 {
+    int row = model_->rowCount();
+
+    QList< QStandardItem * > items;
+
+    // clsid (hidden)
+    if ( auto item = new QStandardItem() ) {
+        QVariant v;
+        v.setValue<>( modcap.clsid() );
+        item->setData( v, Qt::UserRole + 1 );
+        items.push_back( item );
+    }
+    
+    // time (seconds)
+    if ( auto item = new QStandardItem() ) {
+        item->setData( 0.0, Qt::EditRole );
+        items.push_back( item );
+    }
+
+    // module display_name
+    if ( auto item = new QStandardItem() ) {
+        item->setData( QString::fromStdString( modcap.model_display_name() ), Qt::EditRole );
+        items.push_back( item );
+    }
+
+    // item display_name    
+    if ( auto item = new QStandardItem() ) {
+        item->setData( QString::fromStdString( modcap.eventCaps().at( 0 ).item_display_name() ), Qt::EditRole );
+        item->setData( 0, Qt::UserRole + 1 );
+        items.push_back( item );
+    }
+
+    // value
+    if ( auto item = new QStandardItem() ) {
+        item->setData( 0.0, Qt::EditRole );
+        items.push_back( item );
+    }
+    
+    model_->insertRow( row, items );
 }
 
 void
 TimedEventsWidget::addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& cap )
 {
-    //impl_->capList_.push_back( cap );
+    std::copy( cap.begin(), cap.end(), std::back_inserter( impl_->capList_ ) );
 }

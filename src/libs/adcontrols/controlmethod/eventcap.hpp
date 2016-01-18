@@ -64,13 +64,20 @@ namespace adcontrols {
 
         struct ADCONTROLSSHARED_EXPORT delay_width_type {
             std::pair<double, double> value;
-            delay_width_type( std::pair<double, double>&& _1 ) : value( _1 ) {}
+            delay_width_type( std::pair<double, double>&& _1 = { 0, 1.0e-8 } ) : value( _1 ) {}
             delay_width_type( const delay_width_type& t ) : value( t.value ) {}
         };
         
         class ADCONTROLSSHARED_EXPORT EventCap {
         public:
             typedef boost::variant< voltage_type, switch_type, choice_type, delay_width_type > value_type;
+
+            EventCap();
+            EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& );
+            EventCap( const EventCap& );
+            const std::string& item_name() const;
+            const std::string& item_display_name() const;
+            const value_type& default_value() const;
 
         private:
             std::string item_name_;             // id

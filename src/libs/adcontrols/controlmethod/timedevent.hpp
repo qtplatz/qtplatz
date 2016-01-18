@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "adcontrols_global.h"
+#include "../adcontrols_global.h"
 #include <boost/variant.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <memory>

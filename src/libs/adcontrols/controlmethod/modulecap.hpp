@@ -40,11 +40,13 @@ namespace adcontrols {
         class ADCONTROLSSHARED_EXPORT ModuleCap {
         public:
             ModuleCap();
-            ModuleCap( boost::uuids::uuid& clsid, const std::string& model_display_name );
+            ModuleCap( const boost::uuids::uuid& clsid, const std::string& model_display_name );
             ModuleCap( const ModuleCap& );
 
+            const boost::uuids::uuid& clsid() const;
             const std::string& model_display_name() const;
             const std::vector< EventCap >& eventCaps() const;
+            std::vector< EventCap >& eventCaps();
             
         private:
             boost::uuids::uuid clsid_; // model class

@@ -31,7 +31,9 @@
 
 class QMenu;
 
-namespace adcontrols { class moltable; }
+namespace adcontrols {
+    namespace ControlMethod { class ModuleCap; class EventCap; }
+}
 
 namespace adwidgets {
 
@@ -50,7 +52,11 @@ namespace adwidgets {
         void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
         void setPrecision( int column, int prec );
 
-        static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
+        void addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& );
+
+        const std::vector< adcontrols::ControlMethod::ModuleCap >& moduleCap() const;
+
+        void addLine( const adcontrols::ControlMethod::ModuleCap& );
 
     private:
         class delegate;

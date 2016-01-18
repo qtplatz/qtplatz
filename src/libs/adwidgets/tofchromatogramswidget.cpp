@@ -26,8 +26,8 @@
 #include "tofchromatogramsform.hpp"
 #include "moltableview.hpp"
 #include <adportable/is_type.hpp>
-#include <adcontrols/tofchromatogrammethod.hpp>
-#include <adcontrols/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <QBoxLayout>
 #include <QDebug>

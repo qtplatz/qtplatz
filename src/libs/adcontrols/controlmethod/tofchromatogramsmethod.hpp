@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "adcontrols_global.h"
+#include "../adcontrols_global.h"
 #include <string>
 #include <map>
 #include <vector>

@@ -37,7 +37,7 @@ namespace adcontrols { namespace ControlMethod { class TimedEvents; class Module
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT TimedEventsWidget : public QWidget
-                                                        , public adplugin::LifeCycle {
+                                                   , public adplugin::LifeCycle {
         
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
@@ -60,7 +60,6 @@ namespace adwidgets {
         void addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& );
         
     private:
-        void handleContextMenu( QMenu&, const QPoint& );
         class impl;
         std::unique_ptr< impl > impl_;
         

@@ -47,6 +47,10 @@ add_library( adcontrols SHARED
   controlmethod/modulecap.cpp
   controlmethod/eventcap.cpp
   controlmethod/eventcap.hpp
+  controlmethod/tofchromatogrammethod.cpp
+  controlmethod/tofchromatogrammethod.hpp
+  controlmethod/tofchromatogramsmethod.cpp
+  controlmethod/tofchromatogramsmethod.hpp
   ctable.cpp
   ctable.hpp 
   ctfile.cpp
@@ -208,10 +212,6 @@ add_library( adcontrols SHARED
   timedigitalhistogram.hpp
   timeutil.cpp
   timeutil.hpp
-  tofchromatogrammethod.cpp
-  tofchromatogrammethod.hpp
-  tofchromatogramsmethod.cpp
-  tofchromatogramsmethod.hpp
   tofprotocol.cpp
   tofprotocol.hpp
   trace.cpp

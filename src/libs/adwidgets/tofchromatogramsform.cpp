@@ -24,7 +24,7 @@
 
 #include "tofchromatogramsform.hpp"
 #include "create_widget.hpp"
-#include <adcontrols/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <QWidget>
 #include <QBoxLayout>
 #include <QDoubleSpinBox>

@@ -29,8 +29,8 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
-#include <adcontrols/tofchromatogramsmethod.hpp>
-#include <adcontrols/tofchromatogrammethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>

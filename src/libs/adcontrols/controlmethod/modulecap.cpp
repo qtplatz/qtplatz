@@ -31,7 +31,7 @@ ModuleCap::ModuleCap() : clsid_( {0})
 {
 }
 
-ModuleCap::ModuleCap( boost::uuids::uuid& clsid
+ModuleCap::ModuleCap( const boost::uuids::uuid& clsid
                       , const std::string& model_display_name ) : clsid_( clsid )
                                                                 , model_display_name_( model_display_name )
 {
@@ -39,9 +39,16 @@ ModuleCap::ModuleCap( boost::uuids::uuid& clsid
 
 ModuleCap::ModuleCap( const ModuleCap& t ) : clsid_( t.clsid_ )
                                            , model_display_name_( t.model_display_name_ )
+                                           , eventCaps_( t.eventCaps_ )
 {
 }
     
+const boost::uuids::uuid&
+ModuleCap::clsid() const
+{
+    return clsid_;
+}
+
 const std::string&
 ModuleCap::model_display_name() const
 {
@@ -50,6 +57,12 @@ ModuleCap::model_display_name() const
 
 const std::vector< EventCap >&
 ModuleCap::eventCaps() const
+{
+    return eventCaps_;
+}
+
+std::vector< EventCap >&
+ModuleCap::eventCaps()
 {
     return eventCaps_;
 }
