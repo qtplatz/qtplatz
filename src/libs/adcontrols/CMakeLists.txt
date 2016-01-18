@@ -39,6 +39,14 @@ add_library( adcontrols SHARED
   constants.cpp
   controlmethod.cpp
   controlmethod.hpp
+  controlmethod/timedevent.hpp
+  controlmethod/timedevent.cpp
+  controlmethod/timedevents.hpp
+  controlmethod/timedevents.cpp
+  controlmethod/modulecap.hpp
+  controlmethod/modulecap.cpp
+  controlmethod/eventcap.cpp
+  controlmethod/eventcap.hpp
   ctable.cpp
   ctable.hpp 
   ctfile.cpp
@@ -223,7 +231,7 @@ add_library( adcontrols SHARED
   serializer.cpp
   serializer.hpp
   waveform_filter.cpp
-  waveform_filter.hpp 
+  waveform_filter.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

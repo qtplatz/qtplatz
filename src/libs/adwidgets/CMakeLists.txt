@@ -89,6 +89,8 @@ set( ${PROJECT_NAME}_SOURCES
   tofchromatogramsform.cpp
   tofchromatogramswidget.cpp
   thresholdactionform.cpp
+  controlmethod/timedeventswidget.cpp
+  controlmethod/timedtableview.cpp
   ${_sources}
 )
 
@@ -144,6 +146,8 @@ set( ${PROJECT_NAME}_HEADERS
   tofchromatogramsform.hpp
   tofchromatogramswidget.hpp
   thresholdactionform.hpp
+  controlmethod/timedeventswidget.hpp
+  controlmethod/timedtableview.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
