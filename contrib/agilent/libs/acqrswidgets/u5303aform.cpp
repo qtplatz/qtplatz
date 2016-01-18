@@ -115,10 +115,10 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
         , QSignalBlocker( ui->spinBox ), QSignalBlocker( ui->checkBox_Avg ), QSignalBlocker( ui->spinBox_2 )
         , QSignalBlocker( ui->checkBox ) };
 
-    ui->doubleSpinBox_1->setValue( adcontrols::metric::scale_to_micro( m.device_method().delay_to_first_sample_ ) );
+    ui->doubleSpinBox_1->setValue( adcontrols::metric::scale_to_micro( m._device_method().delay_to_first_sample_ ) );
 
-    sampRate_ = m.device_method().samp_rate;
-    double width = m.device_method().nbr_of_s_to_acquire_ / sampRate_;
+    sampRate_ = m._device_method().samp_rate;
+    double width = m._device_method().nbr_of_s_to_acquire_ / sampRate_;
     ui->doubleSpinBox_2->setValue( adcontrols::metric::scale_to_micro( width ) );
 
     if ( !m.protocols().empty() && !m.protocols() [ 0 ].delay_pulses().empty() ) {
@@ -126,13 +126,13 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
         ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( ext_trig_delay ) );
     }
 
-    ui->spinBox->setValue( m.device_method().nbr_of_averages );
+    ui->spinBox->setValue( m._device_method().nbr_of_averages );
 
     ui->checkBox_Avg->setChecked( !( m.mode() == 0 ) );
 
-    ui->spinBox_2->setValue( m.device_method().nbr_records );
+    ui->spinBox_2->setValue( m._device_method().nbr_records );
 
-    ui->checkBox->setChecked( m.device_method().TSR_enabled );
+    ui->checkBox->setChecked( m._device_method().TSR_enabled );
 
     for ( auto w : { ui->doubleSpinBox_1, ui->doubleSpinBox_2 } )
         w->setStyleSheet( "QDoubleSpinBox { color: black; }" );
@@ -145,23 +145,23 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
 void
 u5303AForm::getContents( acqrscontrols::u5303a::method& m )
 {
-    m.device_method().delay_to_first_sample_ = adcontrols::metric::scale_to_base( ui->doubleSpinBox_1->value(), adcontrols::metric::micro );
+    m._device_method().delay_to_first_sample_ = adcontrols::metric::scale_to_base( ui->doubleSpinBox_1->value(), adcontrols::metric::micro );
 
     double width = adcontrols::metric::scale_to_base( ui->doubleSpinBox_2->value(), adcontrols::metric::micro );
-    m.device_method().nbr_of_s_to_acquire_ = uint32_t( width * m.device_method().samp_rate + 0.5 );
+    m._device_method().nbr_of_s_to_acquire_ = uint32_t( width * m._device_method().samp_rate + 0.5 );
 
     auto ext_trig_delay = adcontrols::metric::scale_to_base( ui->doubleSpinBox->value(), adcontrols::metric::micro );
     if ( !m.protocols().empty() && !m.protocols() [ 0 ].delay_pulses().empty() ) {
         m.protocols() [ 0 ].delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ] = std::make_pair( ext_trig_delay, 1.0e-6 );
     }
 
-    m.device_method().nbr_of_averages = ui->spinBox->value();
+    m._device_method().nbr_of_averages = ui->spinBox->value();
 
     m.setMode( ui->checkBox_Avg->isChecked() ? 2 : 0 );
 
-    m.device_method().nbr_records = ui->spinBox_2->value();
+    m._device_method().nbr_records = ui->spinBox_2->value();
 
-    m.device_method().TSR_enabled = ui->checkBox->isChecked();
+    m._device_method().TSR_enabled = ui->checkBox->isChecked();
 
     for ( auto w : { ui->doubleSpinBox_1, ui->doubleSpinBox_2 } )
         w->setStyleSheet( "QDoubleSpinBox { color: black; }" );

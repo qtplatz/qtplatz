@@ -58,8 +58,8 @@ namespace acqrscontrols {
             void setChannels( uint32_t );
             uint32_t mode() const;  // 0 := digitizer, 2 := averager
             void setMode( uint32_t );
-            const device_method& device_method() const;
-            class device_method& device_method();
+            const device_method& _device_method() const;
+            device_method& _device_method();
             uint32_t protocolIndex() const;
             void setProtocolIndex( uint32_t );
             std::vector< adcontrols::TofProtocol >& protocols();

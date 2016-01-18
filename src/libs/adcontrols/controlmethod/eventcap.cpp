@@ -24,10 +24,6 @@
 
 #include "eventcap.hpp"
 
-using namespace adwidgets::ControlMethod;
+using namespace adcontrols::ControlMethod;
 
-        // typedef struct voltage_type { double value_; };
-        // typedef struct switch_type  { bool value_; };
-        // typedef struct choice_type  { uint32_t value_; };
-        // typedef struct delay_width_type { std::pair<double, double> value_; };
         

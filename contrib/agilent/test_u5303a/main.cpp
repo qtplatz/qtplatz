@@ -173,24 +173,24 @@ main( int argc, char * argv [] )
             acqrscontrols::u5303a::method method;
             method.setChannels( 0x01 );
             method.setMode( vm[ "mode" ].as<int>() );
-            method.device_method().front_end_range = 1.0;  // V
-            method.device_method().front_end_offset = 0.0; // V
-            method.device_method().ext_trigger_level = 1.0;
-            method.device_method().samp_rate = 3.2e9;
+            method._device_method().front_end_range = 1.0;  // V
+            method._device_method().front_end_offset = 0.0; // V
+            method._device_method().ext_trigger_level = 1.0;
+            method._device_method().samp_rate = 3.2e9;
 
             // MultiRecords or single record
-            method.device_method().nbr_records = vm[ "records" ].as<int>();
-            method.device_method().nbr_of_averages = vm[ "average" ].as<int>();    // 0 for digitizer
+            method._device_method().nbr_records = vm[ "records" ].as<int>();
+            method._device_method().nbr_of_averages = vm[ "average" ].as<int>();    // 0 for digitizer
 
             // delay
-            method.device_method().delay_to_first_sample_ = method.device_method().digitizer_delay_to_first_sample = vm[ "delay" ].as<double>() * 1.0e-6;
+            method._device_method().delay_to_first_sample_ = method._device_method().digitizer_delay_to_first_sample = vm[ "delay" ].as<double>() * 1.0e-6;
 
             // data length
-            uint32_t width = uint32_t( ( vm[ "width" ].as<double>() * 1.0e-6 ) * method.device_method().samp_rate + 0.5 );
-            method.device_method().digitizer_nbr_of_s_to_acquire = method.device_method().nbr_of_s_to_acquire_ = width;
+            uint32_t width = uint32_t( ( vm[ "width" ].as<double>() * 1.0e-6 ) * method._device_method().samp_rate + 0.5 );
+            method._device_method().digitizer_nbr_of_s_to_acquire = method._device_method().nbr_of_s_to_acquire_ = width;
 
             // TSR
-            method.device_method().TSR_enabled = TSR_enabled;
+            method._device_method().TSR_enabled = TSR_enabled;
             
             auto ident = std::make_shared< acqrscontrols::u5303a::identify >();
             md2->Identify( ident );
@@ -211,7 +211,7 @@ main( int argc, char * argv [] )
 
             md2->setActiveTriggerSource( "External1" );
             
-            md2->setTriggerLevel( "External1", method.device_method().ext_trigger_level ); // 1V
+            md2->setTriggerLevel( "External1", method._device_method().ext_trigger_level ); // 1V
 
             std::cout << "TriggerLevel: " << md2->TriggerLevel( "External1" ) << std::endl;
 
@@ -227,16 +227,16 @@ main( int argc, char * argv [] )
             }
 
             md2->setSampleRate( max_rate );
-            method.device_method().samp_rate = md2->SampleRate();
-            std::cout << "SampleRate: " << method.device_method().samp_rate << std::endl;            
+            method._device_method().samp_rate = md2->SampleRate();
+            std::cout << "SampleRate: " << method._device_method().samp_rate << std::endl;            
 
-            md2->setAcquisitionRecordSize( method.device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
-            md2->setTriggerDelay( method.device_method().digitizer_delay_to_first_sample );
+            md2->setAcquisitionRecordSize( method._device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
+            md2->setTriggerDelay( method._device_method().digitizer_delay_to_first_sample );
 
-            md2->setAcquisitionNumRecordsToAcquire( method.device_method().nbr_records );
+            md2->setAcquisitionNumRecordsToAcquire( method._device_method().nbr_records );
             md2->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
 
-            md2->setTSREnabled( method.device_method().TSR_enabled );            
+            md2->setTSREnabled( method._device_method().TSR_enabled );            
 
             md2->CalibrationSelfCalibrate();
             

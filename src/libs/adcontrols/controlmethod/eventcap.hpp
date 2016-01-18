@@ -30,7 +30,7 @@
 #include <vector>
 #include <string>
 
-namespace adwidgets {
+namespace adcontrols {
 
     namespace ControlMethod {
 

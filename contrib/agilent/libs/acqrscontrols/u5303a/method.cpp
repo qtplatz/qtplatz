@@ -199,13 +199,13 @@ method::setMode( uint32_t mode )
 }
 
 const device_method&
-method::device_method() const
+method::_device_method() const
 {
     return method_;
 }
 
 device_method&
-method::device_method()
+method::_device_method()
 {
     return method_;
 }

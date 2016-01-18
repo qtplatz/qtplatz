@@ -24,7 +24,7 @@
 
 #include "modulecap.hpp"
 
-using namespace adwidgets::ControlMethod;
+using namespace adcontrols::ControlMethod;
 
 
 ModuleCap::ModuleCap() : clsid_( {0})

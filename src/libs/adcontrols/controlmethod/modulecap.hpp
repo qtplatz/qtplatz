@@ -30,7 +30,7 @@
 #include <vector>
 #include <tuple>
 
-namespace adwidgets {
+namespace adcontrols {
 
     namespace ControlMethod {
 

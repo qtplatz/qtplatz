@@ -300,14 +300,14 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
     meta = meta_;
 
     size_t offset = 0;
-    if ( method_.device_method().digitizer_delay_to_first_sample < method_.device_method().delay_to_first_sample_ )
-        offset = size_t( ( ( method_.device_method().delay_to_first_sample_ - method_.device_method().digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
+    if ( method_._device_method().digitizer_delay_to_first_sample < method_._device_method().delay_to_first_sample_ )
+        offset = size_t( ( ( method_._device_method().delay_to_first_sample_ - method_._device_method().digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
 
-    nSamples = method_.device_method().nbr_of_s_to_acquire_;
-    if ( nSamples + offset > method_.device_method().digitizer_nbr_of_s_to_acquire )
-        nSamples = uint32_t( method_.device_method().digitizer_nbr_of_s_to_acquire - offset );
+    nSamples = method_._device_method().nbr_of_s_to_acquire_;
+    if ( nSamples + offset > method_._device_method().digitizer_nbr_of_s_to_acquire )
+        nSamples = uint32_t( method_._device_method().digitizer_nbr_of_s_to_acquire - offset );
 
-    meta.initialXOffset = method_.device_method().delay_to_first_sample_;
+    meta.initialXOffset = method_._device_method().delay_to_first_sample_;
     meta.actualPoints = nSamples;
 
 	return begin<int32_t>() + offset;
