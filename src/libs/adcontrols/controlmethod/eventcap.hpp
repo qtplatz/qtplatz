@@ -25,7 +25,6 @@
 #pragma once
 
 #include "../adcontrols_global.h"
-#include <adcontrols/controlmethod/timedevent.hpp>
 #include <boost/variant.hpp>
 #include <vector>
 #include <string>

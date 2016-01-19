@@ -47,12 +47,13 @@ namespace adcontrols {
 
         class ADCONTROLSSHARED_EXPORT TimedEvent {
         public:
-            typedef adcontrols::ControlMethod::EventCap::value_type value_type;
+            // typedef adcontrols::ControlMethod::EventCap::value_type value_type;
+            typedef std::pair< double, double > delay_width_type;
+            typedef boost::variant< bool, uint32_t, uint64_t, double, delay_width_type > value_type;
             
             ~TimedEvent();
             TimedEvent();
             TimedEvent( const TimedEvent& );
-
             TimedEvent( const ModuleCap&, const EventCap&, const value_type& );
 
             void setModelClsid( const boost::uuids::uuid& );

@@ -56,26 +56,26 @@ namespace adcontrols {
 
         ////////// PORTABLE BINARY ARCHIVE //////////
         template<> void
-            TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        TimedEvent::serialize( portable_binary_oarchive& ar, const unsigned int version )
         {
             TimedEvent_archive<>().serialize( ar, *this, version );
         }
-
+        
         template<> void
-            TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        TimedEvent::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             TimedEvent_archive<>().serialize( ar, *this, version );
         }
-
+        
         ///////// XML archive ////////
         template<> void
-            TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        TimedEvent::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
         {
             TimedEvent_archive<>().serialize( ar, *this, version );
         }
-
+        
         template<> void
-            TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        TimedEvent::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
         {
             TimedEvent_archive<>().serialize( ar, *this, version );
         }
@@ -105,6 +105,7 @@ TimedEvent::TimedEvent( const TimedEvent& t ) : clsid_( t.clsid_ )
 
 TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, const value_type& value )
 {
+    
 }
 
 double
