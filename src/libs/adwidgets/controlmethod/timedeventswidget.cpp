@@ -492,14 +492,13 @@ bool
 TimedEventsWidget::getContents( boost::any& a ) const
 {
     adcontrols::ControlMethod::TimedEvents m;
-#if 0
     getContents( m );
 
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
         auto ptr = boost::any_cast< std::shared_ptr< adcontrols::ControlMethod::Method > >( a );
         ptr->append( m );
     }
-#endif
+
     return false;
 }
 
@@ -522,11 +521,25 @@ TimedEventsWidget::getContents( adcontrols::ControlMethod::TimedEvents& m ) cons
 {
     m.clear();
 
-#if 0
-    if ( auto form = findChild< TofChromatogramsForm *>() ) {
-        form->getContents( m );
+    const auto& model = *impl_->model_;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        double time = model.data( model.index( row, impl::c_time ), Qt::EditRole ).toDouble();
+        auto index = model.index( row, impl::c_item_name );
+        if ( auto modelCap = impl_->findModelCap( index ) ) {
+            if ( auto cap = impl_->findEventCap( index ) ) {
+                auto value = model.data( model.index( row, impl::c_value ), Qt::UserRole + 1 ).value< adcontrols::ControlMethod::EventCap::value_type >();
+                if ( cap->default_value().type() == value.type() ) {
+
+                    adcontrols::ControlMethod::TimedEvent timedEvent;
+                    timedEvent.setModelClsid( modelCap->clsid() );
+                    timedEvent.setTime( time );
+
+                    m << timedEvent;
+                }
+            }
+        }
     }
-#endif
     
     return true;
 }

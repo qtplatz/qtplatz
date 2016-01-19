@@ -26,6 +26,7 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include "eventcap.hpp"
 #include <boost/variant.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <memory>
@@ -40,23 +41,28 @@ namespace boost {
 namespace adcontrols {
     namespace ControlMethod {
 
+        class ModuleCap;
+
         template<typename T> class TimedEvent_archive;
 
         class ADCONTROLSSHARED_EXPORT TimedEvent {
         public:
+            typedef adcontrols::ControlMethod::EventCap::value_type value_type;
+            
             ~TimedEvent();
             TimedEvent();
             TimedEvent( const TimedEvent& );
 
-            typedef std::pair<double, double> delay_width_type;
-            typedef std::string formula_type;
-            typedef boost::variant< bool, uint32_t, uint64_t, double, formula_type, delay_width_type > value_type;
+            TimedEvent( const ModuleCap&, const EventCap&, const value_type& );
 
             void setModelClsid( const boost::uuids::uuid& );
             const boost::uuids::uuid& modelClsid() const;
 
             double time() const;
             void setTime( double seconds );
+
+            const value_type& value() const;
+            void setValue( const value_type& );
 
         private:
             boost::uuids::uuid clsid_; // model class id

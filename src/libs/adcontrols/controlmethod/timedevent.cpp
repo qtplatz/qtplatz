@@ -85,6 +85,10 @@ namespace adcontrols {
 
 using namespace adcontrols::ControlMethod;
 
+TimedEvent::~TimedEvent() 
+{
+}
+
 TimedEvent::TimedEvent() : clsid_( { 0 } )
                          , time_( 0 )
 {
@@ -99,7 +103,7 @@ TimedEvent::TimedEvent( const TimedEvent& t ) : clsid_( t.clsid_ )
 {
 }
 
-TimedEvent::~TimedEvent() 
+TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, const value_type& value )
 {
 }
 
@@ -114,4 +118,29 @@ TimedEvent::setTime( double seconds )
 {
     time_ = seconds;
 }
+
+void
+TimedEvent::setModelClsid( const boost::uuids::uuid& uuid )
+{
+    clsid_ = uuid;
+}
+
+const boost::uuids::uuid&
+TimedEvent::modelClsid() const
+{
+    return clsid_;
+}
+
+const TimedEvent::value_type&
+TimedEvent::value() const
+{
+    return value_;
+}
+
+void
+TimedEvent::setValue( const value_type& value )
+{
+    value_ = value;
+}
+
 
