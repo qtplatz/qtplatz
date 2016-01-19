@@ -31,7 +31,11 @@ EventCap::EventCap()
 {
 }
 
-EventCap::EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& )
+EventCap::EventCap( const std::string& item_name
+                    , const std::string& item_display_name
+                    , const value_type& default_value ) : item_name_( item_name )
+                                                        , item_display_name_( item_display_name )
+                                                        , default_value_( default_value )
 {
 }
 

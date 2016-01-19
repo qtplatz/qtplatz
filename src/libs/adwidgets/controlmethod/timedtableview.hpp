@@ -45,25 +45,23 @@ namespace adwidgets {
 
         void onInitialUpdate();
 
-        void setColumnField( int column, ColumnState::fields f, bool editable = true, bool checkable = false );
-        void setColumnEditable( int column, bool );
-        bool isColumnEditable( int column ) const;
+        //void setColumnField( int column, ColumnState::fields f, bool editable = true, bool checkable = false );
+        //void setColumnEditable( int column, bool );
+        //bool isColumnEditable( int column ) const;
         void setContextMenuHandler( std::function<void(const QPoint& )> );
-        void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
-        void setPrecision( int column, int prec );
+        //void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
+        //void setPrecision( int column, int prec );
 
-        void addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& );
-
-        const std::vector< adcontrols::ControlMethod::ModuleCap >& moduleCap() const;
-
-        void addLine( const adcontrols::ControlMethod::ModuleCap& );
+        //void addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& );
+        //const std::vector< adcontrols::ControlMethod::ModuleCap >& moduleCap() const;
+        //void addLine( const adcontrols::ControlMethod::ModuleCap& );
 
     private:
-        class delegate;
+        //class delegate;
         class impl;
         std::unique_ptr< impl > impl_;
 
-        void handleValueChanged( const QModelIndex& );
+        //void handleValueChanged( const QModelIndex& );
         void handleContextMenu( const QPoint& );
 
         void dragEnterEvent( QDragEnterEvent * ) override;

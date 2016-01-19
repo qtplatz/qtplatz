@@ -59,8 +59,8 @@ namespace adwidgets {
         //
         void addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& );
         
-    private:
         class impl;
+    private:
         class delegate;
         std::unique_ptr< impl > impl_;
         
