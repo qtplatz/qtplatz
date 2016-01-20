@@ -47,18 +47,24 @@ namespace adcontrols {
 
         class ADCONTROLSSHARED_EXPORT TimedEvent {
         public:
-            // typedef adcontrols::ControlMethod::EventCap::value_type value_type;
-            typedef std::pair< double, double > delay_width_type;
-            typedef boost::variant< bool, uint32_t, uint64_t, double, delay_width_type > value_type;
+            //typedef std::pair< double, double > delay_width_type;
+            //typedef boost::variant< bool, uint32_t, uint64_t, double, delay_width_type > value_type;
+            typedef EventCap::value_type value_type;
             
             ~TimedEvent();
             TimedEvent();
             TimedEvent( const TimedEvent& );
-            TimedEvent( const ModuleCap&, const EventCap&, const value_type& );
+            TimedEvent( const ModuleCap&, const EventCap&, double time, const value_type& );
 
             void setModelClsid( const boost::uuids::uuid& );
             const boost::uuids::uuid& modelClsid() const;
 
+            const std::string& item_name() const;
+            void setItem_name( const std::string& );
+            
+            const std::string& item_display_name() const;
+            void setItem_display_name( const std::string& );
+            
             double time() const;
             void setTime( double seconds );
 
@@ -67,8 +73,8 @@ namespace adcontrols {
 
         private:
             boost::uuids::uuid clsid_; // model class id
+            std::string module_display_name_;
             std::string item_name_;
-            std::string model_display_name_;
             std::string item_display_name_;
             double time_;
             value_type value_;

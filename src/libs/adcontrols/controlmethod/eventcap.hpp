@@ -32,6 +32,8 @@
 namespace adcontrols {
 
     namespace ControlMethod {
+        // xxx_type classes are serialized by adcontrols::ControlMethod::TimedEvent class in timedevent.cpp.
+        // If more xxx_types are added, also add serializer in timedevent.cpp
 
         struct ADCONTROLSSHARED_EXPORT voltage_type {
             double value;

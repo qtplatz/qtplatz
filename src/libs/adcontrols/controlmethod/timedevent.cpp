@@ -24,6 +24,8 @@
 
 #include "timedevent.hpp"
 #include "serializer.hpp"
+#include "modulecap.hpp"
+#include "eventcap.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
@@ -37,6 +39,31 @@
 namespace adcontrols {
     namespace ControlMethod {
 
+        template<class Archive>
+        void serialize( Archive& ar, adcontrols::ControlMethod::elapsed_time_type& _, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( _.value );
+            ar & BOOST_SERIALIZATION_NVP( _.limits );
+        }
+        template<class Archive>
+        void serialize( Archive& ar, adcontrols::ControlMethod::voltage_type& _, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( _.value);
+            ar & BOOST_SERIALIZATION_NVP( _.limits );
+        }
+        template<class Archive>
+        void serialize( Archive& ar, adcontrols::ControlMethod::switch_type& _, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( _.value );
+            ar & BOOST_SERIALIZATION_NVP( _.choice );
+        }
+        template<class Archive>
+        void serialize( Archive& ar, adcontrols::ControlMethod::choice_type& _, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( _.value );
+            ar & BOOST_SERIALIZATION_NVP( _.choice );
+        }
+        template<class Archive>
+        void serialize( Archive& ar, adcontrols::ControlMethod::delay_width_type& _, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( _.value );
+        }
+
         template< typename T = TimedEvent >
         class TimedEvent_archive {
         public:
@@ -46,8 +73,8 @@ namespace adcontrols {
                 using namespace boost::serialization;
 
                 ar & BOOST_SERIALIZATION_NVP( _.clsid_ );
+                ar & BOOST_SERIALIZATION_NVP( _.module_display_name_ );
                 ar & BOOST_SERIALIZATION_NVP( _.item_name_ );
-                ar & BOOST_SERIALIZATION_NVP( _.model_display_name_ );
                 ar & BOOST_SERIALIZATION_NVP( _.item_display_name_ );
                 ar & BOOST_SERIALIZATION_NVP( _.time_ );
                 ar & BOOST_SERIALIZATION_NVP( _.value_ );
@@ -95,17 +122,22 @@ TimedEvent::TimedEvent() : clsid_( { 0 } )
 }
 
 TimedEvent::TimedEvent( const TimedEvent& t ) : clsid_( t.clsid_ )
+                                              , module_display_name_( t.module_display_name_ )
                                               , item_name_( t.item_name_ )
-                                              , model_display_name_( t.model_display_name_ )
                                               , item_display_name_( t.item_display_name_ )
                                               , time_( t.time_ )
                                               , value_( t.value_ )
 {
 }
 
-TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, const value_type& value )
+TimedEvent::TimedEvent( const ModuleCap& moduleCap, const EventCap& eventCap, double time, const value_type& value )
 {
-    
+    clsid_ = moduleCap.clsid();
+    module_display_name_ = moduleCap.model_display_name();
+    item_name_ = eventCap.item_name();
+    item_display_name_ = eventCap.item_display_name();
+    time_ = time;
+    value_ = value;
 }
 
 double
@@ -144,4 +176,28 @@ TimedEvent::setValue( const value_type& value )
     value_ = value;
 }
 
+const std::string&
+TimedEvent::item_name() const
+{
+    return item_name_;
+}
+
+void
+TimedEvent::setItem_name( const std::string& name )
+{
+    item_name_ = name;
+}
+
+
+const std::string&
+TimedEvent::item_display_name() const
+{
+    return item_display_name_;
+}
+
+void
+TimedEvent::setItem_display_name( const std::string& name )
+{
+    item_display_name_ = name;
+}
 
