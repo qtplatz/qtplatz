@@ -74,10 +74,14 @@ namespace fticr {
 		struct acqu {
 			double ml1;
 			double ml2;
+			double ml3;
 			double fMax;
 			int ns;
             double mhigh;
 			double mlow;
+            double td;       // total number of measured time periods
+            double delay;    // first measured intensity after ##$DELay ns(t_0)
+            double dw;       // ns between each measurment point
 		};
         acqu acqu_;
 	};

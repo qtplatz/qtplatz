@@ -28,6 +28,7 @@
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adportable/float.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -60,10 +61,25 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 {
     // AcquireDataset <LCMSDataset>
 	sub.subscribe( *this );
-
+    
     // subscribe processed dataset
 	if ( processedDataset_ ) 
 		sub.subscribe( *processedDataset_ );
+}
+
+static double
+tof2mass( double tof, double c1, double c2, double c3 )
+{
+    double A = c3;
+    double B = std::sqrt( 1e12 / c1 );
+    double C = c2 - tof;
+    if ( adportable::compare<double>::essentiallyEqual( A, 0 ) )
+        return ( C * C ) / ( B *  B );
+    else {
+        double m2 = ( ( -B + sqrt( ( B * B ) - ( 4 * A * C ) ) ) / ( 2 * A ) );
+        return m2 * m2;
+    }
+
 }
 
 // virtual
@@ -87,11 +103,17 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
 		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
 		pMS->setIntensity( idx, double( x ) );
+#if 0 // original code
 		double fraction = acqu_.fMax - acqu_.fMax * idx / n + acqu_.ml2;
 		double mz = acqu_.ml1 / fraction;
+#endif
+        //double tof = (acqu_.delay * 1.0e-9) + idx * (acqu_.dw * 1.0e-9);
+        double tof = (acqu_.delay) + idx * (acqu_.dw);
+        double mz = tof2mass( tof, acqu_.ml1, acqu_.ml2, acqu_.ml3 );
 		pMS->setMass( idx, mz );
 	}
-	pMS->setAcquisitionMassRange( acqu_.mlow, acqu_.mhigh );
+    pMS->setAcquisitionMassRange( pMS->getMass( 0 ), pMS->getMass( pMS->size() - 1 ) );
+	//pMS->setAcquisitionMassRange( acqu_.mlow, acqu_.mhigh );
 	any = pMS;     
 	return any;
 }
@@ -178,12 +200,27 @@ datafile::_1open( const std::wstring& filename, portfolio::Portfolio& portfolio 
 	if ( boost::filesystem::is_regular_file( acqu ) ) {
 		jcampdxparser::vector_type map;
 		if ( jcampdxparser::parse_file( map, acqu.wstring() ) ) {
-			try { acqu_.ml1   = boost::lexical_cast<double>( map[ "$ML1" ] );   } catch ( boost::bad_lexical_cast& ) { return false; }
-			try { acqu_.ml2   = boost::lexical_cast<double>( map[ "$ML2" ] );   } catch ( boost::bad_lexical_cast& ) { return false; }
-			try { acqu_.fMax  = boost::lexical_cast<double>( map[ "$SW_h" ] );  } catch ( boost::bad_lexical_cast& ) { return false; }
-			try { acqu_.ns    = boost::lexical_cast<int>( map[ "$NS" ] );    } catch ( boost::bad_lexical_cast& ) { return false; }
-			try { acqu_.mhigh = boost::lexical_cast<double>( map[ "$MW_high" ]);} catch ( boost::bad_lexical_cast& ) { return false; }
-			try { acqu_.mlow  = boost::lexical_cast<double>( map[ "$MW_low" ] );} catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$ML1" ) != map.end() )
+                try { acqu_.ml1 = boost::lexical_cast<double>( map [ "$ML1" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$ML2" ) != map.end() )
+                try { acqu_.ml2 = boost::lexical_cast<double>( map [ "$ML2" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$ML3" ) != map.end() )
+                try { acqu_.ml3 = boost::lexical_cast<double>( map [ "$ML3" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$SW_h" ) != map.end() )
+                try { acqu_.fMax = boost::lexical_cast<double>( map [ "$SW_h" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$NS" ) != map.end() )
+                try { acqu_.ns = boost::lexical_cast<int>( map [ "$NS" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$MW_high" ) != map.end() )
+                try { acqu_.mhigh = boost::lexical_cast<double>( map [ "$MW_high" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$MW_low" ) != map.end() )
+                try { acqu_.mlow = boost::lexical_cast<double>( map [ "$MW_low" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+
+            if ( map.find( "$TD" ) != map.end() )
+                try { acqu_.td = boost::lexical_cast<double>( map [ "$TD" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$DELAY" ) != map.end() )
+                try { acqu_.delay = boost::lexical_cast<double>( map [ "$DELAY" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
+            if ( map.find( "$DW" ) != map.end() )
+                try { acqu_.dw = boost::lexical_cast<double>( map [ "$DW" ] ); } catch ( boost::bad_lexical_cast& ) { return false; }
 		}
 	}
 
