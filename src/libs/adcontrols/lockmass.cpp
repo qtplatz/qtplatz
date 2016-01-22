@@ -174,7 +174,8 @@ lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms, int
     auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
     if ( it != annots.end() ) {
         const std::string& formula = it->text();
-        double exactMass = formulaParser.getMonoIsotopicMass( formula );
+        auto list = adcontrols::ChemicalFormula::split( formula );
+        double exactMass = formulaParser.getMonoIsotopicMass( list );
         double matchedMass = segs[ fcn ].getMass( it->index() );
         double time        = segs[ fcn ].getTime( it->index() );
         lk << lockmass::reference( formula, exactMass, matchedMass, time );        
