@@ -51,7 +51,7 @@ namespace chemistry {
 
         boost::uuids::uuid insert_mol( const std::string& smiles, const std::string& svg, const std::string& formula, double mass, const std::string& synonym );
         bool insert_synonym( const boost::uuids::uuid&, const std::string& synonym );
-            
+
     private:
         adfs::sqlite_state state_;
         adfs::stmt sql_;

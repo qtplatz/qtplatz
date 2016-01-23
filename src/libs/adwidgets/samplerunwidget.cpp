@@ -97,7 +97,7 @@ namespace adwidgets {
             adportable::scoped_flag scope_lock( inProgress_ );
             QStandardItemModel& model = *model_;
             static const QPair< QString, QString > headings[] = {
-                { tr( "Method time (min):" ), tr( "Methond run length" ) }
+                { tr( "Method time (seconds):" ), tr( "Methond run length" ) }
                 , { tr( "Replicates:" ), tr( "Number of samples to be acquired" ) }
                 , { tr( "Data save in:" ), tr( "Data directory where data to be stored" ) }
                 , { tr( "Filename:" ), tr( "Initial filename for data, name to be incremented" ) }
@@ -121,7 +121,8 @@ namespace adwidgets {
             adportable::scoped_flag scope_lock( inProgress_ );
             QStandardItemModel& model = *model_;
 
-            model.setData( model.index( 0, 1 ), t.methodTime() / 60.0 ); // shows in minutes
+            //model.setData( model.index( 0, 1 ), t.methodTime() / 60.0 ); // shows in minutes
+            model.setData( model.index( 0, 1 ), t.methodTime() ); // shows in seconds
             model.setData( model.index( 1, 1 ), int( t.replicates() ) );
             model.setData( model.index( 2, 1 ), QString::fromStdWString( t.dataDirectory() ) );
             model.setData( model.index( 3, 1 ), QString::fromStdWString( t.filePrefix() ) );
@@ -133,7 +134,8 @@ namespace adwidgets {
 
         bool getContents( adcontrols::SampleRun& t ) const {
             QStandardItemModel& model = *model_;
-            t.methodTime( model.index( 0, 1 ).data().toDouble() * 60.0 ); // stored in seconds
+            //t.methodTime( model.index( 0, 1 ).data().toDouble() * 60.0 ); // stored in seconds
+            t.methodTime( model.index( 0, 1 ).data().toDouble() ); // stored in seconds
             t.replicates( model.index( 1, 1 ).data().toInt() );
             t.dataDirectory( model.index( 2, 1 ).data().toString().toStdWString().c_str() );
             t.filePrefix( model.index( 3, 1 ).data().toString().toStdWString().c_str() );

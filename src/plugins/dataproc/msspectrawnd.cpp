@@ -61,6 +61,10 @@
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
+#include <QFileDialog>
+#include <QMenu>
+#include <QPrinter>
+#include <functional>
 
 namespace dataproc {
 
@@ -180,7 +184,7 @@ MSSpectraWnd::init()
 
             connect( plot.get()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
-                     , [=] ( const QRectF& rc ) { impl_->table_->handleSelected( rc, impl_->isTimeAxis_ ); } );
+                     , [plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
 
             plot->enableAxis( QwtPlot::yRight );
             plot->setMinimumHeight( 80 );
@@ -317,6 +321,39 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         draw( 0 );
         impl_->dirty_ = false;
     }
+}
+
+void
+MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
+{
+    impl_->table_->handleSelected( rc, impl_->isTimeAxis_ );
+    
+    auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
+    if ( d <= 2 ) {
+
+		QMenu menu;
+        typedef std::pair < QAction *, std::function<void()> > action_type;
+        std::vector < action_type > actions;
+        
+        actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } ) );
+        
+        actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
+                    QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+                                                                 , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
+                                                                 , tr( "SVG (*.svg)" ) );
+                    if ( ! name.isEmpty() )
+                        adplot::plot::copyImageToFile( plot, name, "svg" );
+                }) );
+        
+        QAction * selected = menu.exec( QCursor::pos() );
+        if ( selected ) {
+            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
+            if ( it != actions.end() )
+                (it->second)();
+        }
+        
+    }
+    
 }
 
 void
@@ -508,3 +545,49 @@ MSSpectraWnd::handleDataChanged( const QString& dataGuid, int idx, int fcn, int 
 
 ///////////////////////////
 
+void
+MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
+{
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+    QSizeF sizeMM( 180, 80 );
+
+    int resolution = 85;
+	const double mmToInch = 1.0 / 25.4;
+    const QSizeF size = sizeMM * mmToInch * resolution;
+
+	QPrinter printer;
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+    
+    printer.setDocName( "QtPlatz Process Report" );
+    printer.setOutputFileName( pdfname );
+    printer.setResolution( resolution );
+
+    QPainter painter( &printer );
+
+	QRectF boundingRect;
+	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
+
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        painter.drawText( drawRect, Qt::TextWordWrap, QString::fromStdWString( dp->portfolio().fullpath()), &boundingRect );
+    }
+	
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+	drawRect.setTop( boundingRect.bottom() );
+	drawRect.setHeight( size.height() );
+	drawRect.setWidth( size.width() );
+
+    for ( auto& plot : impl_->plots_ ) {
+
+        renderer.render( plot.get(), &painter, drawRect );
+
+        drawRect.setTop( drawRect.bottom() );
+        drawRect.setHeight( size.height() );
+    }
+
+}

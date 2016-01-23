@@ -61,6 +61,7 @@ namespace chemistry {
         impl * impl_;
 
         void dbInit( ChemConnection * );
+        void dbUpdate( ChemConnection * );
 
     signals:
         void onConnectionChanged();

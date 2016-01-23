@@ -62,6 +62,7 @@ namespace dataproc {
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
+        void handlePrintCurrentView( const QString& outpdf );
         void handleAxisChanged( adcontrols::hor_axis );
         void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
         
@@ -69,7 +70,7 @@ namespace dataproc {
         void init();
         void handleDataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& );
         void handleCurrentChanged( const QString& dataGuid, int idx, int fcn );
-        void handleSelected( const QRectF& );
+        void handleSelected( const QRectF&, adplot::SpectrumWidget * );
         void update_quantable();
         void draw( int which = (-1) );
 
