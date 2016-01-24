@@ -41,21 +41,15 @@ EventCap::EventCap( const std::string& item_name
 
 EventCap::EventCap( const std::string& item_name
                     , const std::string& item_display_name
-                    , const boost::uuids::uuid& uuid ) : item_name_( item_name )
-                                                       , item_display_name_( item_display_name )
-                                                       , editorClsid_( uuid )
-{
-}
-
-EventCap::EventCap( const std::string& item_name
-                    , const std::string& item_display_name
+                    , const value_type& default_value
                     , const boost::uuids::uuid& uuid
                     , std::function< bool( any_type& )> edit
                     , std::function< std::string( const any_type& ) > display ) : item_name_( item_name )
-    , item_display_name_( item_display_name )
-    , editorClsid_( uuid )
-    , edit_any_( edit )
-    , display_any_( display )
+                                                                                , item_display_name_( item_display_name )
+                                                                                , default_value_( default_value )
+                                                                                , editorClsid_( uuid )
+                                                                                , edit_any_( edit )
+                                                                                , display_any_( display )
 {
 }
 
