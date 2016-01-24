@@ -244,6 +244,15 @@ namespace adwidgets {
         model_->setData( model_->index( index_.row(), TimedEventsWidget::impl::c_value_2 ), xvalue.value.second * 1.0e6 );
     }
 
+    template<> void
+    TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::any_type& t ) const
+    {
+        //if ( auto editor = qobject_cast<QWidget>( editor_ ) )
+        //        ;
+        model_->setData( index_, QByteArray(t.value.data(), int(t.value.size())), Qt::UserRole + 1 );
+        model_->setData( index_, QString::fromStdString(t.display_value( t.value )), Qt::DisplayRole );
+    }
+
     /////////////////////// Value ////////////////////////////
     struct TimedEventsWidget_createValueEditor : boost::static_visitor< QWidget * > {
         QWidget * parent_;
@@ -683,5 +692,6 @@ TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& m
             item->setEditable( false );
         }
     }
+
     return items;
 }

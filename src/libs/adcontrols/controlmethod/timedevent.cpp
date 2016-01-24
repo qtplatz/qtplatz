@@ -63,6 +63,10 @@ namespace adcontrols {
         void serialize( Archive& ar, adcontrols::ControlMethod::delay_width_type& _, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( _.value );
         }
+        template<class Archive>
+        void serialize( Archive& ar, adcontrols::ControlMethod::any_type& _, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( _.value );
+        }
 
         template< typename T = TimedEvent >
         class TimedEvent_archive {

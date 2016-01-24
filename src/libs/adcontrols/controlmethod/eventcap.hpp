@@ -26,8 +26,9 @@
 
 #include "../adcontrols_global.h"
 #include <boost/variant.hpp>
-#include <vector>
+#include <functional>
 #include <string>
+#include <vector>
 
 namespace adcontrols {
 
@@ -68,10 +69,19 @@ namespace adcontrols {
             delay_width_type( std::pair<double, double>&& _1 = { 0, 1.0e-8 } ) : value( _1 ) {}
             delay_width_type( const delay_width_type& t ) : value( t.value ) {}
         };
+
+        struct ADCONTROLSSHARED_EXPORT any_type {
+            std::string value; // serialized archive either xml or binary
+            std::function<bool( std::string& )> edit_value;
+            std::function<std::string( const std::string& )> display_value;
+            any_type() {}
+            any_type( std::string&& _1, std::function<bool(std::string&)> edit, std::function<std::string(const std::string&)> d ) : value( _1 ), edit_value(edit), display_value(d) {}
+            any_type( const any_type& t ) : value( t.value ), edit_value(t.edit_value), display_value(t.display_value) {}
+        };
         
         class ADCONTROLSSHARED_EXPORT EventCap {
         public:
-            typedef boost::variant< elapsed_time_type, voltage_type, switch_type, choice_type, delay_width_type > value_type;
+            typedef boost::variant< elapsed_time_type, voltage_type, switch_type, choice_type, delay_width_type, any_type > value_type;
 
             EventCap();
             EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& );

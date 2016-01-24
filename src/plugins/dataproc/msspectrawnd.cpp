@@ -119,17 +119,17 @@ namespace dataproc {
     class MSSpectraWnd::impl {
     public:
         impl( MSSpectraWnd * p ) : pThis_( p )
-                                 , table_( std::make_shared< adwidgets::MSQuanTable >() )
+                                 , table_( new adwidgets::MSQuanTable() )
                                  , isTimeAxis_( false )
                                  , dirty_( false ) {
             
             for ( size_t i = 0; i < plots_.size(); ++i ) {
 
-                plots_[ i ] = std::make_shared< adplot::SpectrumWidget >();
+                plots_[ i ] = std::make_unique< adplot::SpectrumWidget >();
                 plots_[ i ]->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
                 plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
                 
-                markers_[ i ] = std::make_shared< adplot::PeakMarker >();
+                markers_[ i ] = std::make_unique< adplot::PeakMarker >();
 
             }
             
@@ -144,9 +144,9 @@ namespace dataproc {
 
         std::pair< std::wstring, datafolder > profile_;
         
-        std::shared_ptr< adwidgets::MSQuanTable > table_;
-        std::array< std::shared_ptr< adplot::SpectrumWidget >, 2 > plots_;
-        std::array< std::shared_ptr< adplot::PeakMarker >, 2 > markers_;
+        std::unique_ptr< adwidgets::MSQuanTable > table_;
+        std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > plots_;
+        std::array< std::unique_ptr< adplot::PeakMarker >, 2 > markers_;
         bool isTimeAxis_;
         bool dirty_;
         
@@ -184,7 +184,7 @@ MSSpectraWnd::init()
 
             connect( plot.get()
                      , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
-                     , [plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
+                     , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
 
             plot->enableAxis( QwtPlot::yRight );
             plot->setMinimumHeight( 80 );
@@ -381,12 +381,16 @@ MSSpectraWnd::draw( int which )
     if ( which == 1 || which == ( -1 ) ) {
         impl_->plots_[ 1 ]->clear();
         impl_->plots_[ 1 ]->setTitle( impl_->profile_.second.display_name );
+
+        QColor color = impl_->plots_[ 0 ]->index_color( 0 );
         if ( auto ms = impl_->profile_.second.profile.lock() ) {
             impl_->plots_[ 1 ]->setData( ms, 0 );
+            impl_->plots_[ 1 ]->setColor( 0, color );
         }
         if ( auto ms = impl_->profile_.second.centroid.lock() ) {
             impl_->plots_[ 1 ]->setData( ms, 1, true );
-            impl_->plots_[ 1 ]->setAlpha( 0, 0x40 ); 
+            impl_->plots_[ 1 ]->setColor( 1, color );
+            impl_->plots_[ 1 ]->setAlpha( 1, 0x40 ); 
         }
     }
 
@@ -401,6 +405,7 @@ MSSpectraWnd::draw( int which )
 
             for ( auto& data: impl_->dataIds_ ) {
                 int idx = data.second.idx;
+                int traceid = idx * 2;
 
                 if ( title.isEmpty() ) {
                     title = QString::fromStdWString( data.second.display_name );
@@ -411,13 +416,13 @@ MSSpectraWnd::draw( int which )
                 QColor color = impl_->plots_[ 0 ]->index_color( idx );
 
                 if ( auto profile = data.second.profile.lock() ) {
-                    impl_->plots_[ 0 ]->setData( profile, idx * 2 );
-                    impl_->plots_[ 0 ]->setColor( idx * 2, color );
+                    impl_->plots_[ 0 ]->setData( profile, traceid );
+                    impl_->plots_[ 0 ]->setColor( traceid, color );
                 }
                 if ( auto centroid = data.second.centroid.lock() ) {
-                    impl_->plots_[ 0 ]->setData( centroid, idx * 2 + 1, true );
-                    impl_->plots_[ 0 ]->setColor( idx * 2 + 1, color );
-                    impl_->plots_[ 0 ]->setAlpha( idx * 2, 0x40 ); 
+                    impl_->plots_[ 0 ]->setData( centroid, traceid + 1, true );
+                    impl_->plots_[ 0 ]->setColor( traceid + 1, color );
+                    impl_->plots_[ 0 ]->setAlpha( traceid + 1, 0x40 ); 
                 }
                 
             }
