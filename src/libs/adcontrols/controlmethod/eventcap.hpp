@@ -90,10 +90,11 @@ namespace adcontrols {
             EventCap( const std::string& item_name
                       , const std::string& item_display_name 
                       , const value_type& value
-                      , const boost::uuids::uuid& clsid // editor id
-                      , std::function< bool( any_type& )> f 
+                      , std::function< bool( any_type& )>&& f 
                       , std::function< std::string( const any_type& ) > d = std::function< std::string( const any_type& ) >() );
+
             EventCap( const EventCap& );
+
             const std::string& item_name() const;
             const std::string& item_display_name() const;
             const value_type& default_value() const;
@@ -105,8 +106,6 @@ namespace adcontrols {
             std::string item_name_;             // id
             std::string item_display_name_;
             value_type default_value_;
-
-            boost::uuids::uuid editorClsid_;
             std::function< bool( any_type& ) > edit_any_;
             std::function< std::string( const any_type& ) > display_any_;
         };
