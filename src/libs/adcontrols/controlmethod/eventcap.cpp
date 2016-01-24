@@ -39,9 +39,32 @@ EventCap::EventCap( const std::string& item_name
 {
 }
 
+EventCap::EventCap( const std::string& item_name
+                    , const std::string& item_display_name
+                    , const boost::uuids::uuid& uuid ) : item_name_( item_name )
+                                                       , item_display_name_( item_display_name )
+                                                       , editorClsid_( uuid )
+{
+}
+
+EventCap::EventCap( const std::string& item_name
+                    , const std::string& item_display_name
+                    , const boost::uuids::uuid& uuid
+                    , std::function< bool( any_type& )> edit
+                    , std::function< std::string( const any_type& ) > display ) : item_name_( item_name )
+    , item_display_name_( item_display_name )
+    , editorClsid_( uuid )
+    , edit_any_( edit )
+    , display_any_( display )
+{
+}
+
 EventCap::EventCap( const EventCap& t ) : item_name_( t.item_name_ )
                                         , item_display_name_( t.item_display_name_ )
                                         , default_value_( t.default_value_ )
+    , editorClsid_( t.editorClsid_ )
+    , edit_any_( t.edit_any_ )
+    , display_any_( t.display_any_ )
 {
 }
 
@@ -63,5 +86,20 @@ EventCap::default_value() const
     return default_value_;
 }
 
+bool
+EventCap::edit_any( any_type& a ) const
+{
+    if ( edit_any_ )
+        return edit_any_( a );
+    return false;
+}
+
+std::string
+EventCap::display_value_any( const any_type& a ) const
+{
+    if ( display_any_ )
+        return display_any_( a );
+    return "";
+}
 
 

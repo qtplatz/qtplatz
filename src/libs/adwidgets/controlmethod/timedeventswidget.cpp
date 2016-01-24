@@ -31,17 +31,19 @@
 #include <adcontrols/controlmethod/timedevent.hpp>
 #include <adcontrols/controlmethod/timedevents.hpp>
 #include <adcontrols/controlmethod/modulecap.hpp>
+#include <QApplication>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QDebug>
-#include <QSplitter>
+#include <QDoubleSpinBox>
 #include <QMenu>
 #include <QMessageBox>
-#include <QStandardItemModel>
+#include <QMouseEvent>
 #include <QPushButton>
-#include <QStyledItemDelegate>
 #include <QPainter>
-#include <QDoubleSpinBox>
+#include <QSplitter>
+#include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include <QMetaType>
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 Q_DECLARE_METATYPE( adcontrols::ControlMethod::EventCap::value_type );
@@ -150,6 +152,18 @@ namespace adwidgets {
                                 , QString::number( value.value.second * 1.0e6, 'f', 4 ) ); /* microseconds, .01 (10ns resolution) */
         }
     }
+
+    template<> void
+    TimedEventsWidget_painter::operator()( const adcontrols::ControlMethod::any_type& value ) const {
+        assert( index_.column() == TimedEventsWidget::impl::c_value );
+        QStyleOptionButton button;
+        QRect r = option_.rect;
+        int x = r.left() + r.width() - 30;
+        button.rect = QRect( x, r.top(), 30, r.height() );
+        button.text = "=^.^=";
+        button.state = QStyle::State_Enabled;
+        QApplication::style()->drawControl( QStyle::CE_PushButton, &button, painter_ );
+    }
     
     /////////////////// set model data ////////////////////////////
     struct TimedEventsWidget_setModelData : boost::static_visitor< void > {
@@ -250,7 +264,7 @@ namespace adwidgets {
         //if ( auto editor = qobject_cast<QWidget>( editor_ ) )
         //        ;
         model_->setData( index_, QByteArray(t.value.data(), int(t.value.size())), Qt::UserRole + 1 );
-        model_->setData( index_, QString::fromStdString(t.display_value( t.value )), Qt::DisplayRole );
+        //model_->setData( index_, QString::fromStdString(t.display_value( t.value )), Qt::DisplayRole );
     }
 
     /////////////////////// Value ////////////////////////////
@@ -427,6 +441,24 @@ namespace adwidgets {
                 return TimedEventsWidget_createEditor<TimedEventsWidget::impl::c_value_2>( impl_ )( parent, option, index );
             }
             return QStyledItemDelegate::createEditor( parent, option, index );
+        }
+
+        bool editorEvent( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem& option, const QModelIndex& index ) override {
+            if ( ( index.column() == impl::c_value ) && ( event->type() == QEvent::MouseButtonRelease ) ) {
+                auto value = index.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
+                if ( value.type() == typeid( adcontrols::ControlMethod::any_type ) ) {
+                    QPoint pt = static_cast<QMouseEvent *>( event )->pos();
+                    auto rc = option.rect;
+                    rc.setLeft( rc.left() + rc.width() - 30 );
+                    if ( rc.contains( pt ) ) {
+                        auto xvalue = boost::get< adcontrols::ControlMethod::any_type >( value );
+                        if ( auto cap = impl_.findEventCap( index ) ) {
+                            return cap->edit_any( xvalue );
+                        }
+                    }
+                }
+            }
+            return QStyledItemDelegate::editorEvent( event, model, option, index );
         }
 
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {

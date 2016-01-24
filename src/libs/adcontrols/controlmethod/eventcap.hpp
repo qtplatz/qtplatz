@@ -26,7 +26,9 @@
 
 #include "../adcontrols_global.h"
 #include <boost/variant.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -71,12 +73,11 @@ namespace adcontrols {
         };
 
         struct ADCONTROLSSHARED_EXPORT any_type {
-            std::string value; // serialized archive either xml or binary
-            std::function<bool( std::string& )> edit_value;
-            std::function<std::string( const std::string& )> display_value;
+            std::string value;   // serialized archive either xml or binary
+            boost::uuids::uuid editor_;
             any_type() {}
-            any_type( std::string&& _1, std::function<bool(std::string&)> edit, std::function<std::string(const std::string&)> d ) : value( _1 ), edit_value(edit), display_value(d) {}
-            any_type( const any_type& t ) : value( t.value ), edit_value(t.edit_value), display_value(t.display_value) {}
+            any_type( std::string&& _1, const boost::uuids::uuid& editor ) : value( _1 ), editor_( editor ) {}
+            any_type( const any_type& t ) : value( t.value ), editor_( t.editor_ ) {}
         };
         
         class ADCONTROLSSHARED_EXPORT EventCap {
@@ -85,15 +86,31 @@ namespace adcontrols {
 
             EventCap();
             EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& );
+            EventCap( const std::string& item_name
+                      , const std::string& item_display_name
+                      , const boost::uuids::uuid& clsid );
+
+            EventCap( const std::string& item_name
+                      , const std::string& item_display_name 
+                      , const boost::uuids::uuid& clsid
+                      , std::function< bool( any_type& )> f 
+                      , std::function< std::string( const any_type& ) > d = std::function< std::string( const any_type& ) >() );
             EventCap( const EventCap& );
             const std::string& item_name() const;
             const std::string& item_display_name() const;
             const value_type& default_value() const;
 
+            bool edit_any( any_type& a ) const;
+            std::string display_value_any( const any_type& a ) const;
+
         private:
             std::string item_name_;             // id
             std::string item_display_name_;
             value_type default_value_;
+
+            boost::uuids::uuid editorClsid_;
+            std::function< bool( any_type& ) > edit_any_;
+            std::function< std::string( const any_type& ) > display_any_;
         };
         
     }
