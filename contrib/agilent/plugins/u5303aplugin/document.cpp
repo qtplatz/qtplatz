@@ -881,7 +881,6 @@ document::impl::takeSnapshot()
     std::pair< uint64_t, uint64_t > timeSinceEpoch;
     auto histogram = tdcdoc_->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
 
-    //std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds> tp( std::chrono::nanoseconds( timeSinceEpoch.second ) );
     std::chrono::system_clock::time_point tp = std::chrono::system_clock::now(); 
     std::string date = adportable::date_string::logformat( tp );
 

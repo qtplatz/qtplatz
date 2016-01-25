@@ -295,7 +295,6 @@ DataprocPlugin::aboutToShutdown()
 bool
 DataprocPlugin::connect_isnapshothandler_signals()
 {
-    //connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, [] ( const QString& _1 ) {
             dataproc_document::instance()->handle_portfolio_created( _1 );
         } );

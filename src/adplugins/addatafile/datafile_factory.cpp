@@ -74,6 +74,8 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
         return mode == adcontrols::read_access;
     if ( path.extension() == L".adfs" )
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
+    if ( path.extension() == L".adfs~" )
+        return mode == adcontrols::read_access || mode == adcontrols::write_access;
     return false;
 }
 
