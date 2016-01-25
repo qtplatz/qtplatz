@@ -349,7 +349,7 @@ install( FILES
   quanresponses.hpp 
   quancalibration.hpp 
   quancalibrations.hpp
-  tofchromatogrammethod.hpp
-  tofchromatogramsmethod.hpp
+  controlmethod/tofchromatogrammethod.hpp
+  controlmethod/tofchromatogramsmethod.hpp
   waveform_filter.hpp 
   DESTINATION include/adcontrols COMPONENT headers )
