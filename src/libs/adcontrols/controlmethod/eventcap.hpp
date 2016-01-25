@@ -101,7 +101,7 @@ namespace adcontrols {
             const value_type& default_value() const;
 
             bool edit_any( any_type& a, commit_type f ) const;
-            void commit_any();
+            void invalidate_any() const;
             std::string display_value_any( const any_type& a ) const;
 
         private:

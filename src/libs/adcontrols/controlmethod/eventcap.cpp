@@ -86,10 +86,12 @@ EventCap::edit_any( any_type& a, commit_type signal ) const
 }
 
 void
-EventCap::commit_any()
+EventCap::invalidate_any() const
 {
-    if ( edit_any_ )
-        edit_any_( any_type(), commit_type() );
+    if ( edit_any_ ) {
+        any_type a;
+        edit_any_( a, std::function< void( const any_type& ) >() );
+    }
 }
 
 std::string

@@ -54,17 +54,18 @@ namespace adwidgets {
     using adcontrols::ControlMethod::EventCap;
 
     struct TimedEvent_AnyData : public std::enable_shared_from_this< TimedEvent_AnyData > {
-        TimedEvent_AnyData( EventCap* cap, const QModelIndex& index, const adcontrols::ControlMethod::any_type& value ) : cap_( cap ), index_( index ), value_( value ) {}
+        TimedEvent_AnyData( const EventCap* cap, const QModelIndex& index, const adcontrols::ControlMethod::any_type& value ) : cap_( cap ), index_( index ), value_( value ) {}
         TimedEvent_AnyData( const QModelIndex& index, const adcontrols::ControlMethod::any_type& value ) : cap_( 0 ), index_( index ), value_( value ) {}
-        EventCap * cap_;
+        const EventCap * cap_;
         QModelIndex index_;
         adcontrols::ControlMethod::any_type value_;
 
         void callback( const adcontrols::ControlMethod::any_type& a ) {
             value_ = a;
         }
+        
         void commit() {
-            cap_->commit_any();
+            cap_->invalidate_any();
         }
     };
 
