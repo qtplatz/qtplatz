@@ -76,7 +76,7 @@ DataprocEditor::portfolio_create( const QString& filename )
 bool
 DataprocEditor::open( QString* errorMessage, const QString &filename, const QString& )
 {
-	qtwrapper::waitCursor wait;
+	//qtwrapper::waitCursor wait;
 
     QString emsg;
     if ( processor_ && processor_->open( filename,  emsg) ) {

@@ -94,7 +94,6 @@ namespace u5303a {
         bool isControllerEnabled( const QString& module ) const;
 
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
-        // std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double rs = 0.0 ) const;
 
         double triggers_per_second() const;
         size_t unprocessed_trigger_counts() const;
@@ -135,14 +134,9 @@ namespace u5303a {
         class impl;
         impl * impl_;
 
-        // void reply_handler( const std::string&, const std::string& );
-        // bool waveform_handler( const acqrscontrols::u5303a::waveform *
-        //                        , const acqrscontrols::u5303a::waveform *
-        //                        , acqrscontrols::u5303a::method& );
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();
-        // void on_status( int );
         void onControlMethodChanged( const QString& );
         void on_threshold_method_changed( int );
         void sampleRunChanged();

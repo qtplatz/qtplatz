@@ -90,7 +90,6 @@ namespace u5303a {
     //..........................................
     class document::impl {
     public:
-        //static std::unique_ptr< document > instance_;
         static document * instance_; // workaround
         static std::mutex mutex_;
         static const std::chrono::steady_clock::time_point uptime_;
@@ -136,6 +135,7 @@ namespace u5303a {
                , resultWriter_( std::make_shared< ResultWriter >() )  {
             
         }
+
         void addInstController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
         void handleLog( adextension::iController *, const QString& );
@@ -209,12 +209,13 @@ document::actionConnect()
 
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
-            if ( auto session = iController->getInstrumentSession() )
-                futures.push_back( std::async( std::launch::async, [session,cm](){
-                            return session->initialize() && session->prepare_for_run( cm );  } ) );
+            if ( auto session = iController->getInstrumentSession() ) {
+                session->initialize();
+                session->prepare_for_run( cm );
+            }
         }
 
-        task::instance()->post( futures );
+        // task::instance()->post( futures );
 
         // setup observer hiralchey
         impl_->masterObserver_ = std::make_shared< adicontroller::MasterObserver >();
@@ -283,11 +284,14 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
     using adextension::iController;
     using adicontroller::SignalObserver::Observer;
 
-    if ( document::instance()->isControllerEnabled( p->module_name() ) ) {
-        iControllers_.push_back( p );
-    }
-
     if ( p->module_name() == "u5303a" ) { // handle only this device
+
+        for ( auto it = iControllers_.begin(); it != iControllers_.end(); ++it )
+            if ( ( *it )->module_name() == "u5303a" )
+                return;
+
+        iControllers_.push_back( p );
+
         // switch to UI thread
         connect( p.get(), &iController::message, document::instance()
                  , [] ( iController * p, unsigned int code, unsigned int value ) { document::instance()->handleMessage( p, code, value ); } );

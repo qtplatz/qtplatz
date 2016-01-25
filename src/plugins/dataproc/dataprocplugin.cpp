@@ -296,11 +296,11 @@ bool
 DataprocPlugin::connect_isnapshothandler_signals()
 {
     //connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, &dataproc_document::handle_portfolio_created );
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, [] ( const QString& _1 ) {
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, [] ( const QString& _1 ) {
             dataproc_document::instance()->handle_portfolio_created( _1 );
         } );
 
-    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
+    connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
             dataproc_document::instance()->handle_folium_added( _1, _2, _3 );
         } );
 

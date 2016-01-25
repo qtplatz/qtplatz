@@ -27,6 +27,7 @@
 #include "waveformwnd.hpp"
 #include "document.hpp"
 #include "isequenceimpl.hpp"
+#include "icontrollerimpl.hpp"
 #include "u5303a_constants.hpp"
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -138,6 +139,7 @@ MainWindow::createDockWidgets()
 
     }
 
+#if 0
     if ( auto widget = new adwidgets::CherryPicker ) {
 
         widget->setObjectName( "ModulePicker" );
@@ -147,6 +149,7 @@ MainWindow::createDockWidgets()
                 document::instance()->setControllerState( key, enable );
             });
     }
+#endif
 }
 
 size_t
@@ -184,16 +187,21 @@ MainWindow::OnInitialUpdate()
             action->setEnabled( false );
     }
 
+    if ( auto u5303a = document::instance()->iController() )
+        document::instance()->addInstController( u5303a );
+
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         document::instance()->addInstController( iController );
     }
 
+#if 0
     if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {
         for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
             bool enable = document::instance()->isControllerEnabled( iController->module_name() );
             picker->addItem( iController->module_name(), iController->module_name(), enable, false );
         }
     }
+#endif
     
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
