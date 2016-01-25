@@ -53,6 +53,21 @@ namespace adwidgets {
     using adcontrols::ControlMethod::ModuleCap;
     using adcontrols::ControlMethod::EventCap;
 
+    struct TimedEvent_AnyData : public std::enable_shared_from_this< TimedEvent_AnyData > {
+        TimedEvent_AnyData( EventCap* cap, const QModelIndex& index, const adcontrols::ControlMethod::any_type& value ) : cap_( cap ), index_( index ), value_( value ) {}
+        TimedEvent_AnyData( const QModelIndex& index, const adcontrols::ControlMethod::any_type& value ) : cap_( 0 ), index_( index ), value_( value ) {}
+        EventCap * cap_;
+        QModelIndex index_;
+        adcontrols::ControlMethod::any_type value_;
+
+        void callback( const adcontrols::ControlMethod::any_type& a ) {
+            value_ = a;
+        }
+        void commit() {
+            cap_->commit_any();
+        }
+    };
+
     class TimedEventsWidget::impl {
         TimedEventsWidget * this_;
     public:
@@ -102,6 +117,7 @@ namespace adwidgets {
 
         std::unique_ptr< QStandardItemModel > model_;
         std::map < boost::uuids::uuid, adcontrols::ControlMethod::ModuleCap > capList_;
+        std::shared_ptr< TimedEvent_AnyData > any_data_;
     };
 
     /////////////////////// Paint ////////////////////////////
@@ -444,16 +460,20 @@ namespace adwidgets {
         }
 
         bool editorEvent( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem& option, const QModelIndex& index ) override {
+
             if ( ( index.column() == impl::c_value ) && ( event->type() == QEvent::MouseButtonRelease ) ) {
                 auto value = index.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
+
                 if ( value.type() == typeid( adcontrols::ControlMethod::any_type ) ) {
                     QPoint pt = static_cast<QMouseEvent *>( event )->pos();
                     auto rc = option.rect;
                     rc.setLeft( rc.left() + rc.width() - 30 );
                     if ( rc.contains( pt ) ) {
-                        auto xvalue = boost::get< adcontrols::ControlMethod::any_type >( value );
                         if ( auto cap = impl_.findEventCap( index ) ) {
-                            return cap->edit_any( xvalue );
+                            const auto& xvalue = boost::get< adcontrols::ControlMethod::any_type& >( value );
+                            impl_.any_data_ = std::make_shared< TimedEvent_AnyData >( cap, index, xvalue );
+                            cap->edit_any( impl_.any_data_->value_, [this] ( const adcontrols::ControlMethod::any_type& a ) { if ( impl_.any_data_ ) impl_.any_data_->callback( a ); } );
+                            return true;
                         }
                     }
                 }
@@ -468,21 +488,6 @@ namespace adwidgets {
         
     };
 
-#if 0
-    ////////////////////////////// UI data --> Method data
-    struct TimedEventsWidget_TimeEvent : boost::static_visitor< adcontrols::ControlMethod::TimedEvent::value_type > {
-        template<typename T>
-        adcontrols::ControlMethod::TimedEvent::value_type operator()( const T& t ) const {
-            return t.value;
-        }
-    };
-
-    //typedef boost::variant< bool, uint32_t, uint64_t, double, delay_width_type > value_type;
-    template<> EventCap::value_type make_eventcap_value::operator()( const adcontrols::ControlMethod::TimedEvent::delay_width_type& t ) const {
-        return EventCap::value_type( 0 );// std::make_pair( t.first, t.second ) );
-    };
-#endif
-    
 }
 
 using namespace adwidgets;
@@ -511,6 +516,20 @@ TimedEventsWidget::TimedEventsWidget(QWidget *parent) : QWidget(parent)
         table->setItemDelegate( new delegate( *impl_ ) );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
         table->setColumnHidden( impl::c_clsid, true );
+        table->setSelectionBehavior( QAbstractItemView::SelectRows );
+        table->setSelectionMode( QAbstractItemView::SingleSelection );
+        connect( table->selectionModel(), &QItemSelectionModel::currentRowChanged, [this] ( const QModelIndex& curr, const QModelIndex& prev ) {
+            if ( impl_->any_data_ ) {
+                if ( impl_->any_data_->index_ == prev ) {
+                    impl_->any_data_->commit();
+                    QVariant v;
+                    v.setValue<>( EventCap::value_type( impl_->any_data_->value_ ) );
+                    impl_->model_->setData( impl_->any_data_->index_, v, Qt::UserRole + 1 );
+                }
+                impl_->any_data_.reset();
+            }
+
+        } );
     }
 
     connect( impl_->model_.get(), &QStandardItemModel::dataChanged, [this] ( const QModelIndex& _1, const QModelIndex& _2 ) { impl_->dataChanged( _1, _2 ); } );

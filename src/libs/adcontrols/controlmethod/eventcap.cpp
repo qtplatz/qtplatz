@@ -42,7 +42,7 @@ EventCap::EventCap( const std::string& item_name
 EventCap::EventCap( const std::string& item_name
                     , const std::string& item_display_name
                     , const value_type& default_value
-                    , std::function< bool( any_type& )>&& edit
+                    , std::function< bool( any_type&, commit_type )>&& edit
                     , std::function< std::string( const any_type& ) > display ) : item_name_( item_name )
                                                                                 , item_display_name_( item_display_name )
                                                                                 , default_value_( default_value )
@@ -78,11 +78,18 @@ EventCap::default_value() const
 }
 
 bool
-EventCap::edit_any( any_type& a ) const
+EventCap::edit_any( any_type& a, commit_type signal ) const
 {
     if ( edit_any_ )
-        return edit_any_( a );
+        return edit_any_( a, signal );
     return false;
+}
+
+void
+EventCap::commit_any()
+{
+    if ( edit_any_ )
+        edit_any_( any_type(), commit_type() );
 }
 
 std::string

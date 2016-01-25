@@ -83,6 +83,7 @@ namespace adcontrols {
         class ADCONTROLSSHARED_EXPORT EventCap {
         public:
             typedef boost::variant< elapsed_time_type, voltage_type, switch_type, choice_type, delay_width_type, any_type > value_type;
+            typedef std::function< void( const any_type& ) > commit_type;
 
             EventCap();
             EventCap( const std::string& item_name, const std::string& item_display_name, const value_type& );
@@ -90,7 +91,7 @@ namespace adcontrols {
             EventCap( const std::string& item_name
                       , const std::string& item_display_name 
                       , const value_type& value
-                      , std::function< bool( any_type& )>&& f 
+                      , std::function< bool( any_type&, commit_type )>&& f 
                       , std::function< std::string( const any_type& ) > d = std::function< std::string( const any_type& ) >() );
 
             EventCap( const EventCap& );
@@ -99,14 +100,15 @@ namespace adcontrols {
             const std::string& item_display_name() const;
             const value_type& default_value() const;
 
-            bool edit_any( any_type& a ) const;
+            bool edit_any( any_type& a, commit_type f ) const;
+            void commit_any();
             std::string display_value_any( const any_type& a ) const;
 
         private:
             std::string item_name_;             // id
             std::string item_display_name_;
             value_type default_value_;
-            std::function< bool( any_type& ) > edit_any_;
+            std::function< bool( any_type&, commit_type ) > edit_any_;
             std::function< std::string( const any_type& ) > display_any_;
         };
         
