@@ -106,7 +106,7 @@ namespace acqrscontrols {
 
             // old bad implementation -- can't version this class -- for data compatibility
             template<class Archive>
-            static void serialize( Archive& ar, T& x, const unsigned int version ) {
+            static void serialize( Archive& ar, T& x, const unsigned int ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( x.ident_ );
                 ar & BOOST_SERIALIZATION_NVP( x.meta_ );
@@ -125,14 +125,14 @@ namespace acqrscontrols {
             device_data_archive( T& t ) : _( t ) {}
         public:
             template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
+            void serialize( Archive& ar, const unsigned int ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.ident_ );
                 ar & BOOST_SERIALIZATION_NVP( _.meta_ );
             }
 
             template<class Archive>
-            static void serialize( Archive& ar, T& _, const unsigned int version ) {
+            static void serialize( Archive& ar, T& _, const unsigned int ) {
                 using namespace boost::serialization;
                 ar & BOOST_SERIALIZATION_NVP( _.ident_ );
                 ar & BOOST_SERIALIZATION_NVP( _.meta_ );
@@ -150,7 +150,7 @@ namespace acqrscontrols {
             device_data_archive<> x( *this );
             ar & boost::serialization::make_nvp( "device_data", x );
         }
-
+        
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int )
         {
             ar & device_data_archive<>( *this );
@@ -165,29 +165,24 @@ namespace acqrscontrols {
     }
 }
 
-//BOOST_CLASS_VERSION( acqrscontrols::u5303a::waveform_xmeta_archive<typename T>, 1 )
-//BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_data_archive<typename T>, 1 )
-namespace boost {
-    namespace serialization {
-
-        template< typename T >
-        struct version< acqrscontrols::u5303a::waveform_xmeta_archive<T> > {
-            typedef mpl::int_<1> type;
-            typedef mpl::integral_c_tag tag;
-            BOOST_STATIC_CONSTANT( unsigned int, value = version::type::value );
-        };
-
-        template< typename T >
-        struct version< acqrscontrols::u5303a::device_data_archive<T> > {
-            typedef mpl::int_<1> type;
-            typedef mpl::integral_c_tag tag;
-            BOOST_STATIC_CONSTANT( unsigned int, value = version::type::value );
-        };
+// **** BOOST_CLASS_VERSION( T, N ) *****
+namespace boost { namespace serialization {
+        using namespace acqrscontrols::u5303a;
+        template< typename T > struct version< waveform_xmeta_archive< T > > { BOOST_STATIC_CONSTANT( int, value = 1 ); };
+        template< typename T > struct version< device_data_archive< T > > { BOOST_STATIC_CONSTANT( int, value = 1 ); };
     }
 }
 
-
 using namespace acqrscontrols::u5303a;
+
+// Apple clang required follwing declarations
+template<> const int boost::serialization::version< waveform_xmeta_archive< waveform > >::value;
+template<> const int boost::serialization::version< waveform_xmeta_archive< const waveform > >::value;
+
+template<> const int boost::serialization::version< device_data_archive< waveform > >::value;
+template<> const int boost::serialization::version< device_data_archive< const waveform > >::value;
+// end Apple specific
+
 
 waveform::waveform() : serialnumber_( 0 )
                      , wellKnownEvents_( 0 )
@@ -647,7 +642,7 @@ waveform::isDEAD() const
     size_t count( 99 );
 	if ( meta_.dataType == 2 ) {
 		for ( auto it = begin<int16_t>(); it != end<int16_t>() && count--; ++it )
-			if ( !( *it == 0 || *it == 0xdead ) )
+			if ( !( *it == 0 || *it == int16_t(0xdead) ) )
 				return false;
 	} else {
 		for ( auto it = begin<int32_t>(); it != end<int32_t>() && count--; ++it )

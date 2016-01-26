@@ -68,7 +68,7 @@ namespace dataproc {
         Core::Context context_;
         QString displayName_;
 
-        bool eventFilter( QObject * object, QEvent * event );
+        bool eventFilter( QObject * object, QEvent * event ) override;
     };
 
 }

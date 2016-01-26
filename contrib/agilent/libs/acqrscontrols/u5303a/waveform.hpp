@@ -172,3 +172,4 @@ namespace acqrscontrols {
 }
 
 BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_data, 1 )
+
