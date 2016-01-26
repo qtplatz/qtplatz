@@ -45,7 +45,7 @@ default:
 
 world:
 	make app
-	make ace+tao
+#	make ace+tao
 	make deployqt
 	make dmg
 

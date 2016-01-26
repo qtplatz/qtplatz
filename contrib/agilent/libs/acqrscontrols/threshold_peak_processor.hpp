@@ -26,6 +26,7 @@
 
 #include <adcontrols/threshold_action.hpp>
 #include <limits>
+#include <cmath>
 
 namespace acqrscontrols {
 
