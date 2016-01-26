@@ -54,6 +54,7 @@ foreach( lib
     Qt5::Quick
     Qt5::Qml
     Qt5::WebChannel
+    Qt5::Widgets
     ${_webkits}
     Qt5::Xml
     Qt5::XmlPatterns )
