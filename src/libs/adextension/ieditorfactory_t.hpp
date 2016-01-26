@@ -54,7 +54,7 @@ namespace adextension {
             return title_;
         }
         
-        iEditorFactory::METHOD_TYPE method_type() const {
+        iEditorFactory::METHOD_TYPE method_type() const override {
             return mtype_;
         }
         

@@ -91,7 +91,7 @@ namespace adplot {
                 , rect_( rc ) {
             }
 
-            size_t size() const { 
+            size_t size() const override { 
                 if ( auto ptr = cptr_.lock() )
                     return ptr->size();
                 return 0;
@@ -109,7 +109,7 @@ namespace adplot {
                 return QPointF();
             }
 
-            QRectF boundingRect() const { return rect_; }
+            QRectF boundingRect() const override { return rect_; }
         };
 
         template<class T> class series_data : public QwtSeriesData< QPointF >, boost::noncopyable {

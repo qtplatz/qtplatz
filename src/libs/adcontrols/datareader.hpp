@@ -95,7 +95,7 @@ namespace adcontrols {
         enum TimeSpec { ElapsedTime, EpochTime };
         enum IndexSpec { TriggerNumber, IndexCount };
 
-        virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt = "" ) { return false; }
+        virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt ) { return false; }
         virtual void finalize() { return ; }
         virtual size_t fcnCount() const { return 0; }
 

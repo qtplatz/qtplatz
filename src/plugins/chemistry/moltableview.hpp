@@ -74,8 +74,8 @@ namespace chemistry {
         std::set< std::string > hideColumns_;
 
     private slots:
-        void handleCopyToClipboard();
-        void handlePaste();
+        void handleCopyToClipboard() override;
+        void handlePaste() override;
     };
 
 }

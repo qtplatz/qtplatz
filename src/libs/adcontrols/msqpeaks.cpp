@@ -165,7 +165,7 @@ MSQPeaks::setData( const MassSpectrum& ms, const std::wstring& dataGuid, const s
 
             std::string protcol_text;
             auto& descs = fms.getDescriptions();
-            auto it = std::find_if( descs.begin(), descs.end(), []( const adcontrols::description& d ){return d.key() == L"acquire.protocol.label";});
+            auto it = std::find_if( descs.begin(), descs.end(), []( const adcontrols::description& d ){return std::wstring(d.key()) == L"acquire.protocol.label"; });
             if ( it != descs.end() )
                 prot_texts_[ dataGuid ][ fcn ] = it->text();
 

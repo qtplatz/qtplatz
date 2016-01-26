@@ -54,11 +54,11 @@ namespace adwidgets {
         virtual ~CentroidForm();
 
         // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& );
-        void OnInitialUpdate();
-        void OnFinalClose();
-        bool getContents( boost::any& ) const;
-        bool setContents( boost::any&& );
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any&& ) override;
 
         // QWidget
         QSize sizeHint() const override;

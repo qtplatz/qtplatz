@@ -42,7 +42,7 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
     
 
     if ( p_ == 0 ) {
-        if ( p_ = dynamic_cast<adplugin::LifeCycle *>( pObject_ ) ) {
+        if ( ( p_ = dynamic_cast<adplugin::LifeCycle *>( pObject_ ) ) ) {
 
             const char * name = target->metaObject()->className();
 

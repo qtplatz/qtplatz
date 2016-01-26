@@ -51,11 +51,11 @@ namespace adwidgets {
         explicit PeakTable(QWidget *parent = 0);
 
         // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& );
-        void OnInitialUpdate();
-        void OnFinalClose();
-        bool getContents( boost::any& ) const;
-        bool setContents( boost::any&& );
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any&& ) override;
         int peakId( int row ) const;
         
     signals:

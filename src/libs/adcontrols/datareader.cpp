@@ -28,6 +28,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <string>
 #include <vector>
 
 namespace adcontrols {
@@ -52,13 +53,13 @@ namespace adcontrols {
     public:
         NullDataReader() : uuid_( { 0 } ), objtext_("null_reader") {}
         const boost::uuids::uuid& objuuid() const override { return uuid_; }
-        const std::string& objtext() const { return objtext_; }
-        int64_t objrowid() const { return 0; }
-        const std::string& display_name() const { return objtext_; }
-        const_iterator begin() const { return end(); }
-        const_iterator end() const { return const_iterator(this, -1); }
-        const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const { return end(); }
-        double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const { return end(); }
+        const std::string& objtext() const override { return objtext_; }
+        int64_t objrowid() const override { return 0; }
+        const std::string& display_name() const override { return objtext_; }
+        const_iterator begin() const override { return end(); }
+        const_iterator end() const override { return const_iterator(this, -1); }
+        const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override { return end(); }
+        double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override { return end(); }
 
         static DataReader& instance() {
             static NullDataReader __instance;

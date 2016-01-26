@@ -52,7 +52,7 @@ namespace adwidgets {
         void OnCreate( const adportable::Configuration& ) override;
         void OnInitialUpdate() override;
         void OnFinalClose() override;
-        void onUpdate( boost::any& );
+        void onUpdate( boost::any& ) override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
 

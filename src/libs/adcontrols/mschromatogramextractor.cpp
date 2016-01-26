@@ -334,6 +334,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         }
         return true;
     }
+    return false;
 }
 
 size_t

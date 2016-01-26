@@ -90,8 +90,8 @@ namespace adwidgets {
         void keyPressEvent( QKeyEvent * e ) override;
         void insertCompletion( const QString& );
         QString textUnderCursor() const;
-        void focusInEvent( QFocusEvent * );
-        void contextMenuEvent( QContextMenuEvent * );
+        void focusInEvent( QFocusEvent * ) override;
+        void contextMenuEvent( QContextMenuEvent * ) override;
         void handleEnterKey();
         void handleBlockDeleted();
     private:

@@ -50,7 +50,7 @@ attributes::attributes( const attributes& t ) : dirty_( t.dirty_ )
 
 attributes::operator bool () const 
 {
-    return &db() != 0 && rowid() != 0;
+    return static_cast<sqlite *>(&db()) != 0 && rowid() != 0;
 }
 
 std::wstring

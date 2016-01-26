@@ -54,19 +54,19 @@ namespace adtextfile {
         bool open( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
-        virtual void accept( adcontrols::dataSubscriber& );
-        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
+        void accept( adcontrols::dataSubscriber& ) override;
+        boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
 
-        virtual adcontrols::datafile::factory_type factory() { return 0; }
+        adcontrols::datafile::factory_type factory() override { return 0; }
 
         // LCMSDataset
-        virtual size_t getFunctionCount() const;
-        virtual size_t getSpectrumCount( int fcn = 0 ) const;
-        virtual size_t getChromatogramCount() const;
-        virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
-        virtual bool getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum&, uint32_t objid ) const;
-		virtual size_t posFromTime( double ) const;
-		double timeFromPos( size_t ) const;
+        size_t getFunctionCount() const override;
+        size_t getSpectrumCount( int fcn = 0 ) const override;
+        size_t getChromatogramCount() const override;
+        bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+        bool getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum&, uint32_t objid ) const override;
+		size_t posFromTime( double ) const override;
+		double timeFromPos( size_t ) const override;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
                                , std::vector< adcontrols::Chromatogram >&
                                , std::function< bool (long curr, long total ) > progress
