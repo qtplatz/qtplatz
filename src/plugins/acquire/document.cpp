@@ -274,20 +274,8 @@ document::addToRecentFiles( const QString& filename )
 document * 
 document::instance()
 {
-    typedef document T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static document __document;
+    return &__document;
 }
 
 
@@ -319,10 +307,12 @@ document::initialSetup()
     Core::DocumentManager::setUseProjectsDirectory( true );
     if ( ! currentConfiguration().isEmpty() ) {
         QString mfile = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), currentConfiguration() );
-        auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
-        load( mfile, *cm );
-        impl_->cmMap_ [ currentConfiguration() ] = cm;
-        setControlMethod( *cm, QString() ); // don't save default name
+        adcontrols::ControlMethod::Method m;
+        if ( load( mfile, m ) ) {
+            auto cm = std::make_shared< adcontrols::ControlMethod::Method >( m );
+            impl_->cmMap_ [ currentConfiguration() ] = cm;
+            setControlMethod( *cm, QString() ); // don't save default name
+        }
     }
 
     boost::filesystem::path sfile( dir / "samplerun.sequ" );
