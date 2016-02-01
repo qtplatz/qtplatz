@@ -10,13 +10,15 @@ echo %VisualStudioVersion%
 
 if %VisualStudioVersion% EQU 12.0 (
    set tools=vc12
-   echo "############ bootstrap: building qtplatz using "%tools%" #############"
+   set QTDIR=C:\Qt\Qt5.6.0\5.6\msvc2015_64
 )
 
 if %VisualStudioVersion% EQU 14.0 (
    set tools=vc14
-   echo "############ bootstrap: building qtplatz using "%tools%" #############"
+   set QTDIR=C:\Qt\5.5\msvc2013_64
 )
+
+echo "############ bootstrap building qtplatz using "%tools%" #############"
 
 pause
 

@@ -357,6 +357,8 @@ document::finalClose( MainWindow * mainwindow )
 std::shared_ptr< adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
+    if ( impl_->cmMap_.find( currentConfiguration() ) == impl_->cmMap_.end() ) 
+        impl_->cmMap_ [ currentConfiguration() ] = std::make_shared< adcontrols::ControlMethod::Method >();
     return impl_->cmMap_ [ currentConfiguration() ];
 }
 
