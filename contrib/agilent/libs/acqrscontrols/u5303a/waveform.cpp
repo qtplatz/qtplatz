@@ -176,11 +176,13 @@ namespace boost { namespace serialization {
 using namespace acqrscontrols::u5303a;
 
 #if defined __APPLE__
+
 template<> const int boost::serialization::version< waveform_xmeta_archive< waveform > >::value;
 template<> const int boost::serialization::version< waveform_xmeta_archive< const waveform > >::value;
 
 template<> const int boost::serialization::version< device_data_archive< waveform > >::value;
 template<> const int boost::serialization::version< device_data_archive< const waveform > >::value;
+
 #endif
 
 waveform::waveform() : serialnumber_( 0 )
