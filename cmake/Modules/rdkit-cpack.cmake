@@ -1,37 +1,28 @@
 
-#message( STATUS "##### rdkit-cpack.cmake<qtplatz> #####" )
 cmake_policy( SET CMP0045 NEW )
 
 include( "soname" )
 
 if ( rdkit_FOUND )
 
-  foreach( lib
-      DataStructs
-      Depictor
-      Descriptors       
-      FileParsers
-      GraphMol
-      PartialCharges
-      RDGeneral
-      RDGeometryLib
-      SmilesParse
-      Subgraphs
-      SubstructMatch )
+  file( GLOB _libs "${RDKit_LIBRARY_DIRS}/*.${SO}" )
 
-    get_target_property( _loc ${lib} LOCATION )
-    #message( STATUS "## rdkit-cpack install " ${_loc} " --> runtime_libraries" )
-  
+  foreach( _lib ${_libs} )
+
     if ( WIN32 )
-      install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
-    else()
-      get_filename_component( name ${_loc} NAME_WE )
-      get_filename_component( path ${_loc} DIRECTORY )
-      file( GLOB files "${path}/${name}.${SO}.*" )
-      install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
-    endif()
-  
-  endforeach()
 
+      install( FILES ${_lib} DESTINATION ${dest} COMPONENT runtime_libraries )      
+
+    else()
+
+      get_filename_component( _name ${_lib} NAME_WE )
+      get_filename_component( _path ${_lib} DIRECTORY )
+      
+      file( GLOB files "${_path}/${_name}.${SO}.*" )
+      install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
+
+    endif()
+  endforeach()
+  
 endif()
 

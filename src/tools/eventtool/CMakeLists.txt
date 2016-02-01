@@ -32,8 +32,10 @@ find_package(Boost COMPONENTS system )
 if ( WIN32 )
   add_executable( eventtool WIN32 ${eventtool_SOURCES} ${Resources} )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4800" )
+  set ( libs "" )
 else()
   add_executable( eventtool ${eventtool_SOURCES} ${Resources} )
+  set ( libs "pthread" )
 endif()
 
 target_link_libraries( eventtool LINK_PUBLIC
@@ -42,7 +44,7 @@ target_link_libraries( eventtool LINK_PUBLIC
 		       acewrapper
 		       Qt5::Widgets
 		       Qt5::Widgets
-		       ${Boost_LIBRARIES} )
+		       ${Boost_LIBRARIES} ${libs} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
