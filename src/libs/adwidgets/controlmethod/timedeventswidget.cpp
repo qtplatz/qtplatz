@@ -114,7 +114,7 @@ namespace adwidgets {
 
         void handleContextMenu( const QPoint& pt );
         void addLine( const adcontrols::ControlMethod::ModuleCap& );
-        QList< QStandardItem * > make_row( const adcontrols::ControlMethod::ModuleCap&, const EventCap&, const EventCap::value_type& );
+        QList< QStandardItem * > make_row( const adcontrols::ControlMethod::ModuleCap&, const EventCap&, const EventCap::value_type&, double seconds );
 
         std::unique_ptr< QStandardItemModel > model_;
         std::map < boost::uuids::uuid, adcontrols::ControlMethod::ModuleCap > capList_;
@@ -181,6 +181,20 @@ namespace adwidgets {
         button.state = QStyle::State_Enabled;
         QApplication::style()->drawControl( QStyle::CE_PushButton, &button, painter_ );
     }
+
+    /////////////////// set edit value ////////////////////////////
+    struct TimedEventsWidget_displayValue : boost::static_visitor< QVariant > {
+        template< typename T > QVariant operator()( const T& t ) const { return QVariant( t.value ); } // voltage, switch & choice may handle here
+    };
+    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::elapsed_time_type& t ) const {
+        return t.value;  // seconds 
+    }
+    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::delay_width_type& t ) const {    
+        return t.value.first * 1.0e6; // delay (s) -> us
+    }    
+    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::any_type& t ) const {    
+        return QString( "" );
+    }    
     
     /////////////////// set model data ////////////////////////////
     struct TimedEventsWidget_setModelData : boost::static_visitor< void > {
@@ -193,17 +207,17 @@ namespace adwidgets {
     };
 
     template<> void
-    TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::voltage_type& t ) const
+    TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::voltage_type& ) const
     {
         try {
             auto value = index_.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
-            auto xvalue = boost::get< adcontrols::ControlMethod::voltage_type >( value );
-            if ( auto editor = qobject_cast<QDoubleSpinBox *>( editor_ ) )
-                xvalue.value = editor->value();
-            QVariant v;
-            v.setValue<>( EventCap::value_type( value ) );
-            model_->setData( index_, v, Qt::UserRole + 1 );
-            model_->setData( index_, xvalue.value, Qt::EditRole );
+            if ( auto editor = qobject_cast<QDoubleSpinBox *>( editor_ ) ) {
+                boost::get< adcontrols::ControlMethod::voltage_type >( value ).value = editor->value();
+                QVariant v;
+                v.setValue<>( value );
+                model_->setData( index_, v, Qt::UserRole + 1 );
+                model_->setData( index_, editor->value(), Qt::EditRole );
+            }
         } catch ( boost::bad_get& ex ) {
             ADDEBUG() << ex.what();
         }
@@ -213,13 +227,14 @@ namespace adwidgets {
     TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::switch_type& t ) const
     {
         auto value = index_.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
-        auto xvalue = boost::get< adcontrols::ControlMethod::switch_type >( value );
-        if ( auto editor = qobject_cast<QComboBox *>( editor_ ) )
-            xvalue.value = ( editor->currentIndex() == 0 ) ? false : true;
-        QVariant v;
-        v.setValue<>( EventCap::value_type( xvalue ) );
-        model_->setData( index_, v, Qt::UserRole + 1 );
-        model_->setData( index_, xvalue.value, Qt::EditRole );
+        if ( auto editor = qobject_cast<QComboBox *>( editor_ ) ) {
+            bool flag = ( editor->currentIndex() == 0 ) ? false : true;
+            boost::get< adcontrols::ControlMethod::switch_type >( value ) = flag;
+            QVariant v;
+            v.setValue<>( value );
+            model_->setData( index_, v, Qt::UserRole + 1 );
+            model_->setData( index_, flag, Qt::EditRole );
+        }
     }
 
     template<> void
@@ -228,13 +243,14 @@ namespace adwidgets {
         auto value = index_.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
         if ( value.empty() )
             value = t;
-        auto xvalue = boost::get< adcontrols::ControlMethod::choice_type >( value );
-        if ( auto editor = qobject_cast<QComboBox *>( editor_ ) )
-            xvalue.value = editor->currentIndex();
-        QVariant v;
-        v.setValue<>( EventCap::value_type( xvalue ) );
-        model_->setData( index_, v, Qt::UserRole + 1 );
-        model_->setData( index_, QString::fromStdString( xvalue.choice[xvalue.value] ), Qt::DisplayRole );
+        if ( auto editor = qobject_cast<QComboBox *>( editor_ ) ) {
+            boost::get< adcontrols::ControlMethod::choice_type >( value ) = editor->currentIndex();
+            QVariant v;
+            v.setValue<>( value );
+            model_->setData( index_, v, Qt::UserRole + 1 );
+            auto& xvalue = boost::get< adcontrols::ControlMethod::choice_type >( value );
+            model_->setData( index_, QString::fromStdString( xvalue.choice [ xvalue.value ] ), Qt::DisplayRole );
+        }
     }
 
     template<> void
@@ -243,33 +259,34 @@ namespace adwidgets {
         auto value = index_.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
         if ( value.empty() )
             value = t;
-        auto xvalue = boost::get< adcontrols::ControlMethod::elapsed_time_type >( value );
-        if ( auto editor = qobject_cast<QDoubleSpinBox *>( editor_ ) )
-            xvalue.value = editor->value();
-        QVariant v;
-        v.setValue<>( EventCap::value_type( xvalue ) );
-        model_->setData( index_, v, Qt::UserRole + 1 );
-        model_->setData( index_, xvalue.value, Qt::DisplayRole );
+        if ( auto editor = qobject_cast<QDoubleSpinBox *>( editor_ ) ) {
+            boost::get< adcontrols::ControlMethod::elapsed_time_type >( value ) = editor->value();
+            QVariant v;
+            v.setValue<>( value );
+            model_->setData( index_, v, Qt::UserRole + 1 );
+            const auto& xvalue = boost::get< adcontrols::ControlMethod::elapsed_time_type >( value );
+            model_->setData( index_, xvalue.value, Qt::DisplayRole );
+        }
     }
 
     template<> void
     TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::delay_width_type& t ) const
     {
-        double time( 0 );
+        double time( 0 ); // seconds
         if ( auto editor = qobject_cast<QDoubleSpinBox *>( editor_ ) )
             time = editor->value() * 1.0e-6; // us -> s
 
         auto value = model_->data( model_->index( index_.row(), TimedEventsWidget::impl::c_value ), Qt::UserRole + 1 ).value<EventCap::value_type>();
         if ( value.empty() )
             value = t;
-        auto xvalue = boost::get< adcontrols::ControlMethod::delay_width_type >( value );
 
         if ( index_.column() == TimedEventsWidget::impl::c_value )
-            xvalue.value.first = time;
+            boost::get< adcontrols::ControlMethod::delay_width_type >( value ).value.first = time;
         else if ( index_.column() ==  TimedEventsWidget::impl::c_value_2 )
-            xvalue.value.second = time;
+            boost::get< adcontrols::ControlMethod::delay_width_type >( value ).value.second = time;
         QVariant v;
-        v.setValue<>( adcontrols::ControlMethod::EventCap::value_type( xvalue ) );
+        v.setValue<>( value );
+        const auto& xvalue = boost::get< adcontrols::ControlMethod::delay_width_type >( value );
         model_->setData( model_->index( index_.row(), TimedEventsWidget::impl::c_value ), v, Qt::UserRole + 1 );
         model_->setData( model_->index( index_.row(), TimedEventsWidget::impl::c_value ), xvalue.value.first * 1.0e6 );
         model_->setData( model_->index( index_.row(), TimedEventsWidget::impl::c_value_2 ), xvalue.value.second * 1.0e6 );
@@ -278,10 +295,7 @@ namespace adwidgets {
     template<> void
     TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::any_type& t ) const
     {
-        //if ( auto editor = qobject_cast<QWidget>( editor_ ) )
-        //        ;
         model_->setData( index_, QByteArray(t.value.data(), int(t.value.size())), Qt::UserRole + 1 );
-        //model_->setData( index_, QString::fromStdString(t.display_value( t.value )), Qt::DisplayRole );
     }
 
     /////////////////////// Value ////////////////////////////
@@ -457,6 +471,7 @@ namespace adwidgets {
             } else if ( index.column() == impl::c_value_2 ) {
                 return TimedEventsWidget_createEditor<TimedEventsWidget::impl::c_value_2>( impl_ )( parent, option, index );
             }
+            // AnyData will handle by editorEvent + Modeless dialog
             return QStyledItemDelegate::createEditor( parent, option, index );
         }
 
@@ -473,7 +488,10 @@ namespace adwidgets {
                         if ( auto cap = impl_.findEventCap( index ) ) {
                             const auto& xvalue = boost::get< adcontrols::ControlMethod::any_type& >( value );
                             impl_.any_data_ = std::make_shared< TimedEvent_AnyData >( cap, index, xvalue );
-                            cap->edit_any( impl_.any_data_->value_, [this] ( const adcontrols::ControlMethod::any_type& a ) { if ( impl_.any_data_ ) impl_.any_data_->callback( a ); } );
+                            cap->edit_any( impl_.any_data_->value_, [this] ( const adcontrols::ControlMethod::any_type& a ) {
+                                    if ( impl_.any_data_ )
+                                        impl_.any_data_->callback( a );
+                                } );
                             return true;
                         }
                     }
@@ -634,7 +652,7 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
             const ModuleCap& moduleCap = it->second;
             auto capIt = std::find_if( moduleCap.eventCaps().begin(), moduleCap.eventCaps().end(), [&] ( const EventCap& cap ) { return cap.item_name() == timeEvent.item_name(); } );
             if ( capIt != moduleCap.eventCaps().end() ) {
-                auto items = impl_->make_row( moduleCap, *capIt, timeEvent.value() );
+                auto items = impl_->make_row( moduleCap, *capIt, timeEvent.value(), timeEvent.time() );
                 model.insertRow( row, items );
                 ++row;
             }
@@ -677,8 +695,11 @@ void
 TimedEventsWidget::impl::addLine( const adcontrols::ControlMethod::ModuleCap& modcap )
 {
     int row = model_->rowCount();
+    double seconds = 0;
+    if ( row ) 
+        seconds = model_->index( row - 1, c_time ).data().toDouble();
 
-    auto items = make_row( modcap, modcap.eventCaps().at( 0 ), modcap.eventCaps().at( 0 ).default_value() );
+    auto items = make_row( modcap, modcap.eventCaps().at( 0 ), modcap.eventCaps().at( 0 ).default_value(), seconds );
     if ( ! items.empty() ) {
         model_->insertRow( row, items );
     } else {
@@ -687,7 +708,7 @@ TimedEventsWidget::impl::addLine( const adcontrols::ControlMethod::ModuleCap& mo
 }
 
 QList< QStandardItem * >
-TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& modcap, const EventCap& cap, const EventCap::value_type& value )
+TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& modcap, const EventCap& cap, const EventCap::value_type& value, double seconds )
 {
     QList< QStandardItem * > items;
     if ( modcap.eventCaps().empty() )
@@ -704,7 +725,7 @@ TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& m
     
     // time (seconds)
     if ( auto item = new QStandardItem() ) {
-        item->setData( 0.0, Qt::EditRole );
+        item->setData( seconds, Qt::EditRole );
         items.push_back( item );
     }
 
@@ -718,13 +739,14 @@ TimedEventsWidget::impl::make_row( const adcontrols::ControlMethod::ModuleCap& m
     // item display_name    
     if ( auto item = new QStandardItem() ) {
         item->setData( QString::fromStdString( cap.item_display_name() ), Qt::EditRole );
-        item->setData( 0, Qt::UserRole + 1 );
+        //item->setData( 0, Qt::UserRole + 1 );
         items.push_back( item );
     }
 
     // value
     if ( auto item = new QStandardItem() ) {
         if ( !modcap.eventCaps().empty() ) {
+            item->setData( boost::apply_visitor( TimedEventsWidget_displayValue(), value ), Qt::DisplayRole );
             QVariant v;
             v.setValue<>( value );
             item->setData( v, Qt::UserRole + 1 );

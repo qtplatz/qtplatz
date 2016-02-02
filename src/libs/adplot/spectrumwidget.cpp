@@ -584,6 +584,7 @@ TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const
 
         int cid = ( idx_ + fcn ) % ( sizeof(color_table)/sizeof(color_table[0]) );
         QColor color( color_table[ cid ] );
+        color.setAlpha( alpha_ );
         ptr->setPen( color );
         ptr->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
         if ( yRight )
