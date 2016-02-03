@@ -43,6 +43,7 @@ CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
     QStringList areaMethods;
     areaMethods << "Intens. x mDa" << "Intens. x Time(ns)" << "Width Norm." << "Samp. Interval";
     ui->comboBox->addItems( areaMethods );
+    connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), this, [&] ( double ) { emit valueChanged(); } );
 }
 
 CentroidForm::~CentroidForm()
@@ -70,29 +71,46 @@ CentroidForm::OnFinalClose()
 bool
 CentroidForm::getContents( boost::any& any ) const
 {
-    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_pointer( any ) )
-        return false;
+    // is std::shared_ptr< adcontrols::ProcessMethod >
+    if ( adportable::a_type< std::shared_ptr< adcontrols::ProcessMethod > >::is_a( any ) ) {
+        if ( auto pm = boost::any_cast<std::shared_ptr< adcontrols::ProcessMethod >>( any ) ) {
+            const_cast<CentroidForm *>( this )->update_data();
+            pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
+            return true;
+        }
 
-    adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
-    const_cast< CentroidForm *>(this)->update_data();
-    pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
-    
-    return true;
+    } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_pointer( any ) ) {
+        adcontrols::ProcessMethod* pm = boost::any_cast<adcontrols::ProcessMethod*>( any );
+        const_cast<CentroidForm *>( this )->update_data();
+        pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
+        return true;
+    }
+    return false;
 }
 
 bool
 CentroidForm::setContents( boost::any&& any )
 {
-    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) )
-        return false;
+    // is std::shared_ptr< adcontrols::ProcessMethod >
+    if ( adportable::a_type< std::shared_ptr< const adcontrols::ProcessMethod > >::is_a( any ) ) {
+        if ( auto pm = boost::any_cast<std::shared_ptr< const adcontrols::ProcessMethod >>( any ) ) {
+            if ( const adcontrols::CentroidMethod * t = pm->find< adcontrols::CentroidMethod >() ) {
+                *pMethod_ = *t;
+                update_data( *pMethod_ );
+                return true;
+            }
+        }
 
-    const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
-    const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >();
-    if ( ! t )
-        return false;
-    *pMethod_ = *t;
-    update_data( *pMethod_ );
-    return true;
+    } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) ) {
+
+        const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( any );
+        if ( const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >() ) {
+            *pMethod_ = *t;
+            update_data( *pMethod_ );
+            return true;
+        }
+    }
+    return false;
 }
 
 ///
