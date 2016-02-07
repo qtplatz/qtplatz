@@ -55,8 +55,12 @@ echo "# build_dir: `pwd`"
 
 case $cross_target in
     helio)
-	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-$cross_target.cmake \
-	      -DCMAKE_PREFIX_PATH=/usr/local/qt5 -DQTPLATZ_CORELIB_ONLY=1 $source_dir
+	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-helio.cmake \
+	      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
+	;;
+    nano|de0-nano-soc)
+	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-helio.cmake \
+	      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
 	;;
     raspi)
 	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-raspi.cmake \
