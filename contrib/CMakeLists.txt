@@ -1,11 +1,11 @@
 cmake_minimum_required (VERSION 2.8.9)
 
-if ( NOT CMAKE_CROSSCOMPILING )
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   message( STATUS "------------ contrib/shrader ----------------" )
   add_subdirectory( shrader )
 endif()
 
-if ( NOT CMAKE_CROSSCOMPILING )
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   message( STATUS "------------ contrib/agilent ----------------" )
   add_subdirectory( agilent )
 endif()
