@@ -15,6 +15,6 @@ set ( CMAKE_FIND_ROOT_PATH  /usr/local/arm-linux-gnueabihf ${_bindir} ${_srcdir}
 set ( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
 
 # for libraries and headers in the target directories
-# multi-arch need this to both due to /usr/lib/<arch>-linux-gnueabihf
-set ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY BOTH ) 
+## multi-arch need this to both due to /usr/lib/<arch>-linux-gnueabihf
+set ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY ) 
 set ( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )

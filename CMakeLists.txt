@@ -254,5 +254,7 @@ message( STATUS "# RDKit VERSION         : " ${RDKit_PACKAGE_VERSION} " in " ${R
 foreach ( _dir ${RDKit_INCLUDE_DIRS} )
   message( STATUS "    # RDKit INCLUDE     : " ${_dir} )
 endforeach()
+message( STATUS "# TARGET_ARCHITECTURE  : "  ${__arch} )
+message( STATUS "# PACKAGE_ARCHITECTURE : "  ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE} )
 
 message( STATUS "---------- END SUMMARY ------------" )
