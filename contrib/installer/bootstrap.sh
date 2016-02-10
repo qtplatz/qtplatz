@@ -4,6 +4,15 @@ arch=`arch`
 cwd=`pwd`
 target_arch=$cross_target
 
+if [ $# -eq 0 ]; then
+    echo "usage:"
+    echo "native"
+    echo "\t./bootstrap.sh [boost [qt5 [ace+tao]]]"
+    echo "cross"
+    echo "\tcross_target=[arm-linux-gnueabihf|raspi] ./bootstrap.sh [boost [qt5 [ace+tao]]]"
+    exit
+fi
+
 if [ -z $cross_target ]; then
     target_arch=$arch    
     echo "No cross_target variable found -- creating native build for $target_arch."
@@ -11,9 +20,6 @@ fi
 
 args="$@"
 
-if [ $# -eq 0 ]; then
-    args="boost qt5 ace+tao"
-fi
 
 for var in $args
 do

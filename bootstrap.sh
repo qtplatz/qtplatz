@@ -21,7 +21,6 @@ fi
 while [ $# -gt 0 ]; do
     case "$1" in
 	debug|eclipse)
-	    echo "*********** building eclipse project"
 	    build_debug=true
 	    shift
 	    ;;
@@ -55,11 +54,11 @@ echo "# build_dir: `pwd`"
 
 case $cross_target in
     helio)
-	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-helio.cmake \
+	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-arm-linux-gnueabihf.cmake \
 	      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
 	;;
-    nano|de0-nano-soc)
-	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-helio.cmake \
+    nano|de0-nano-soc|arm-linux-gnueabihf)
+	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-arm-linux-gnueabihf.cmake \
 	      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
 	;;
     raspi)

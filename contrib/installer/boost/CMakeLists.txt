@@ -45,7 +45,7 @@ message( "##### boost runtime_directory: " ${TARGET_LIBRARY_DIRECTORY} )
 message( "##### boost source directory: " ${Boost_LIBRARY_DIRS} )
 message( "##### boost version: " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 
-set( CPACK_PACKAGE_NAME "boost" )
+set( CPACK_PACKAGE_NAME "libboost-dev" )
 set( CPACK_PACKAGE_VENDOR "ms-cheminfo.com" )
 set( CPACK_PACKAGE_VERSION ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 set( CPACK_PACKAGE_VERSION_MAJOR ${Boost_MAJOR_VERSION} )
@@ -61,5 +61,7 @@ cpack_add_component( headers           DISPLAY_NAME "C++ Headers" DESCRIPTION "C
 foreach( lib ${_libs} )
   install( FILES ${Boost_LIBRARY_DIRS}/${lib} DESTINATION lib COMPONENT runtime_libraries )
 endforeach()
+
+install( DIRECTORY ${Boost_INCLUDES_DIRS} DESTINATION . COMPONENT headers )
 
 include( CPack )
