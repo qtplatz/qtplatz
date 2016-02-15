@@ -193,7 +193,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         const adcontrols::MSCalibration& calib =  m.calibration();
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
-        const adcontrols::MSProperty::SamplingInfo& info = prop.getSamplingInfo();
+        const adcontrols::MSProperty::SamplingInfo& info = prop.samplingInfo();
         double start_delay = scale_to<double, micro>( info.sampInterval * info.nSamplingDelay, pico );
         double time_end = scale_to<double, micro>( info.sampInterval * ( info.nSamplingDelay + info.nSamples ), pico );
         o << "<tr>"

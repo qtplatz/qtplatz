@@ -252,7 +252,7 @@ TXTSpectrum::find_mode( size_t idx ) const
     if ( compiled_ ) {
 		adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *compiled_ );
 		if ( idx < segs.size() )
-			mode = segs[ idx ].getMSProperty().getSamplingInfo().mode;
+			mode = segs[ idx ].getMSProperty().samplingInfo().mode;
     }
     return mode;
 }

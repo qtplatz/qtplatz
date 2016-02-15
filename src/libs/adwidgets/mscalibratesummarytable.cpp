@@ -256,8 +256,10 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
 
 	if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
 		double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
-		double L = pCalibrantSpectrum_->scanLaw()->fLength( it->mode() );
-		normalized_time = ( it->time() - t0 ) / L;
+        if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() ) {
+            double L = scanLaw->fLength( it->mode() );
+            normalized_time = ( it->time() - t0 ) / L;
+        }
 	} else {
         if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() )
             normalized_time = (it->time()) / pCalibrantSpectrum_->scanLaw()->fLength( it->mode() );
@@ -314,7 +316,7 @@ MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int
         model.setData( model.index( row, c_fcn ),   idx.first );
         model.setData( model.index( row, c_index ), idx.second );
         
-        model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
+        model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
         model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
 
@@ -373,7 +375,7 @@ MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int
 
         adcontrols::MassSpectrum& ms = segments[ it->first ];
 
-        model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
+        model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( it->second ) );
 
         model.setData( model.index( row, c_time ),  ms.getTime( it->second ) );

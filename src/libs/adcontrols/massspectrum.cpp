@@ -268,7 +268,7 @@ void
 MassSpectrum::normalizeIntensities( uint32_t nImaginalAverage )
 {
     // no segment handling due to each segment may have different number of average
-    uint32_t nAvg = pImpl_->property_.getSamplingInfo().nAverage;
+    uint32_t nAvg = pImpl_->property_.samplingInfo().nAverage;
     std::transform( pImpl_->intsArray_.begin(), pImpl_->intsArray_.end(), pImpl_->intsArray_.begin(), [=] ( double d ) { return d * nImaginalAverage / nAvg; } );
     pImpl_->property_.setNumAverage( nImaginalAverage );
 }
@@ -394,7 +394,7 @@ MassSpectrum::getTime( size_t idx ) const
         const double * p = pImpl_->getTimeArray();
         if ( p )
             return p[ idx ];
-        return MSProperty::toSeconds( idx, pImpl_->getMSProperty().getSamplingInfo() );
+        return MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
     }
     return 0;
 }
@@ -406,7 +406,7 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
     if ( const double * p = pImpl_->getTimeArray() ) {
         idx = std::distance( p, std::lower_bound( p, p + pImpl_->size(), seconds ) );
     } else {
-        const MSProperty::SamplingInfo& info = pImpl_->getMSProperty().getSamplingInfo();
+        const MSProperty::SamplingInfo& info = pImpl_->getMSProperty().samplingInfo();
         idx = size_t( ( seconds - info.fSampDelay() ) / info.fSampInterval() );
     }
     if ( closest && idx < pImpl_->size() ) {
@@ -475,7 +475,7 @@ MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefi
 		}
         return i;
     }
-    return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().getSamplingInfo(), pfx );
+    return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().samplingInfo(), pfx );
 }
 
 void

@@ -46,11 +46,14 @@ namespace adcontrols {
     //-------------------------
     //-------------------------
     class MassSpectrometerBrokerImpl : public massSpectrometerBroker {
-		static MassSpectrometerBrokerImpl * instance_;
+        MassSpectrometerBrokerImpl() {}
     public:
         ~MassSpectrometerBrokerImpl() {}
 
-		static MassSpectrometerBrokerImpl * instance();
+        static MassSpectrometerBrokerImpl * instance() {
+            static MassSpectrometerBrokerImpl __instance;
+            return &__instance;
+        }
         
         bool register_factory( massspectrometer_factory* factory, const std::wstring& name ) {
             factories_[name] = factory;
@@ -85,19 +88,6 @@ namespace adcontrols {
         std::map< std::wstring, massspectrometer_factory *> factories_;
     };
 
-}
-
-MassSpectrometerBrokerImpl * MassSpectrometerBrokerImpl::instance_ = 0;
-
-MassSpectrometerBrokerImpl *
-MassSpectrometerBrokerImpl::instance()
-{
-	if ( instance_ == 0 ) {
-        std::lock_guard< std::mutex > lock( adcontrols::global_mutex::mutex() );
-        if ( instance_ == 0 )
-			instance_ = new MassSpectrometerBrokerImpl;
-	}
-	return instance_;
 }
 
 void

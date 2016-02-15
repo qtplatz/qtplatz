@@ -79,7 +79,7 @@ namespace adcontrols {
         struct timeFunctor {
             const adcontrols::MSProperty::SamplingInfo& info;
             timeFunctor( const adcontrols::MassSpectrum& profile )
-                : info( profile.getMSProperty().getSamplingInfo() ) {
+                : info( profile.getMSProperty().samplingInfo() ) {
             }
             double operator ()( int pos ) { 
                 return adcontrols::MSProperty::toSeconds( pos, info );
@@ -272,7 +272,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
 
                 double t0 = profile.getTime( index );
-				double td = profile.getMSProperty().getSamplingInfo().fSampInterval();
+				double td = profile.getMSProperty().samplingInfo().fSampInterval();
                 item.time_from_mass_ = t0 + td * ( mass - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
 
                 // centroid by time

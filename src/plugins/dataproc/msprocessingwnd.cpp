@@ -1342,8 +1342,8 @@ MSProcessingWnd::compute_minmax( double s, double e )
                 std::pair< size_t, size_t > index = std::make_pair( std::distance( data.begin(), pair.first ), std::distance( data.begin(), pair.second ) );
                 
                 std::pair< double, double > time = std::make_pair(
-                    adcontrols::MSProperty::toSeconds( index.first, ms.getMSProperty().getSamplingInfo() )
-                    , adcontrols::MSProperty::toSeconds( index.second, ms.getMSProperty().getSamplingInfo() )
+                    adcontrols::MSProperty::toSeconds( index.first, ms.getMSProperty().samplingInfo() )
+                    , adcontrols::MSProperty::toSeconds( index.second, ms.getMSProperty().samplingInfo() )
                     );
                 
                 ptr->addDescription( adcontrols::description( L"process"
@@ -1385,7 +1385,7 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
         spc[ i ] = std::complex< double >( intens[ i ] );
     adportable::fft::fourier_transform( fft, spc, false );
 
-	const double T = N * ms.getMSProperty().getSamplingInfo().fSampInterval();
+	const double T = N * ms.getMSProperty().samplingInfo().fSampInterval();
     x.resize( N / 2 );
     y.resize( N / 2 );
     for ( size_t i = 0; i < N / 2; ++i ) {

@@ -57,7 +57,7 @@ waveform_filter::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq 
 
 	const size_t NN = ms.size();
 
-	double sampInterval = ms.getMSProperty().getSamplingInfo().fSampInterval(); // seconds
+	double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
     if ( sampInterval == 0 )
         sampInterval = ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size();
 

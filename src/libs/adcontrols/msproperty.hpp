@@ -38,6 +38,9 @@
 
 namespace adcontrols {
 
+    template< typename T > class SamplingInfo_archive;
+    template< typename T > class MSProperty_archive;
+
     class ADCONTROLSSHARED_EXPORT MSProperty {
     public:
         MSProperty();
@@ -69,7 +72,6 @@ namespace adcontrols {
         uint32_t trigNumber( bool sinceOrigin = true ) const;
         void setTrigNumber( uint32_t, uint32_t origin = 0 );
 
-        const SamplingInfo& getSamplingInfo() const; // deprecated
         const SamplingInfo& samplingInfo() const;        
         void setSamplingInfo( const SamplingInfo& );
 
@@ -119,25 +121,10 @@ namespace adcontrols {
             double delayTime_;    // digitizer delay time (seconds), this can be negative!
 
         private:
+            friend class SamplingInfo_archive< SamplingInfo >;
+            friend class SamplingInfo_archive< const SamplingInfo >;
             friend class boost::serialization::access;
-            template<class Archive>
-            void serialize(Archive& ar, const unsigned int version ) {
-                ar & BOOST_SERIALIZATION_NVP(sampInterval);
-                ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
-                ar & BOOST_SERIALIZATION_NVP(nSamples);
-                ar & BOOST_SERIALIZATION_NVP(nAverage);
-                if ( version >= 3 )
-                    ar & BOOST_SERIALIZATION_NVP(mode);
-                if ( version >= 4 ) {
-                    ar & BOOST_SERIALIZATION_NVP(padding)
-                        & BOOST_SERIALIZATION_NVP(fsampInterval)
-                        ;
-                }
-                if ( version >= 5 ) {
-                    ar & BOOST_SERIALIZATION_NVP( horPos_ );
-                    ar & BOOST_SERIALIZATION_NVP( delayTime_ );
-                }
-            };
+            template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
         static double toSeconds( size_t idx, const SamplingInfo& info );
@@ -156,73 +143,70 @@ namespace adcontrols {
         std::string deviceData_;
         std::vector< double > deprecated_coeffs_; // deprecated
 
-        std::string encode( const std::string& );
-        std::string decode( const std::string& );
-#if defined _MSC_VER
-# pragma warning( push )        
-# pragma warning( disable: 4251 )
-#endif
+        static std::string encode( const std::string& );
+        static std::string decode( const std::string& );
         SamplingInfo samplingData_;
         std::pair< double, double > instMassRange_;
-#if defined _MSC_VER
-# pragma warning( pop )        
-#endif
+
+        friend class MSProperty_archive< MSProperty >;
+        friend class MSProperty_archive< const MSProperty >;
         friend class boost::serialization::access;
-        template<class Archive>
-            void serialize( Archive& ar, const unsigned int version ) {
-            if ( version >= 6 ) {
-                if ( version >= 8 ) {
-                    ar & BOOST_SERIALIZATION_NVP( time_since_injection_ );
-                    ar & BOOST_SERIALIZATION_NVP( time_since_epoch_ );
-                } else {                    
-                    uint32_t time_since_injection;
-                    ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
-                    time_since_injection_ = time_since_injection;
-                }
-                ar & BOOST_SERIALIZATION_NVP( instAccelVoltage_);
-                ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
-                ar & BOOST_SERIALIZATION_NVP( instMassRange_.first );
-                ar & BOOST_SERIALIZATION_NVP( instMassRange_.second );
-                ar & BOOST_SERIALIZATION_NVP( samplingData_ );
-                ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
-                if ( Archive::is_saving::value ) {
-                    std::string data = encode( deviceData_ );
-                    ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
-                }  else {
-                    ar & BOOST_SERIALIZATION_NVP( deviceData_ );
-                    if ( version >= 7 ) // v6 data has no encoded data
-                        deviceData_ = decode( deviceData_ );
-                }
-            } else {
-                uint32_t time_since_injection;
-                ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
-                time_since_injection_ = time_since_injection;
-                ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
-                ar & BOOST_SERIALIZATION_NVP(trig_number_);            // same data is in sampleData_ below
-                ar & BOOST_SERIALIZATION_NVP(trig_number_origin_);     // same data is in sampleData_ below
-                ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingInterval_);   // same data is in sampleData_ below
-                ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
-                ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
-                if ( version == 2 ) {
-                    std::vector< SamplingInfo > data;
-                    ar & BOOST_SERIALIZATION_NVP( data );
-                    if ( ! data.empty() )
-                        samplingData_ = data[ 0 ];
-                } else if ( version >= 3 ) {
-                    ar & BOOST_SERIALIZATION_NVP( samplingData_ );
-                }
-                if ( version >= 5 )
-                    ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
-                if ( version >= 4 ) {
-                    ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
-                    ar & BOOST_SERIALIZATION_NVP( deviceData_ );
-                    ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs_ );
-                }
-            }
-            if ( Archive::is_loading::value && version <= 8 ) {
-                time_since_injection_ *= 1000;  // us -> ns
-            }
-        }
+        template<class Archive>  void serialize( Archive& ar, const unsigned int version );
+        // template<class Archive>
+        //     void serialize( Archive& ar, const unsigned int version ) {
+        //     if ( version >= 6 ) {
+        //         if ( version >= 8 ) {
+        //             ar & BOOST_SERIALIZATION_NVP( time_since_injection_ );
+        //             ar & BOOST_SERIALIZATION_NVP( time_since_epoch_ );
+        //         } else {                    
+        //             uint32_t time_since_injection;
+        //             ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
+        //             time_since_injection_ = time_since_injection;
+        //         }
+        //         ar & BOOST_SERIALIZATION_NVP( instAccelVoltage_);
+        //         ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
+        //         ar & BOOST_SERIALIZATION_NVP( instMassRange_.first );
+        //         ar & BOOST_SERIALIZATION_NVP( instMassRange_.second );
+        //         ar & BOOST_SERIALIZATION_NVP( samplingData_ );
+        //         ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
+        //         if ( Archive::is_saving::value ) {
+        //             std::string data = encode( deviceData_ );
+        //             ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
+        //         }  else {
+        //             ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+        //             if ( version >= 7 ) // v6 data has no encoded data
+        //                 deviceData_ = decode( deviceData_ );
+        //         }
+        //     } else {
+        //         uint32_t time_since_injection;
+        //         ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
+        //         time_since_injection_ = time_since_injection;
+        //         ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
+        //         ar & BOOST_SERIALIZATION_NVP(trig_number_);            // same data is in sampleData_ below
+        //         ar & BOOST_SERIALIZATION_NVP(trig_number_origin_);     // same data is in sampleData_ below
+        //         ar & BOOST_SERIALIZATION_NVP(deprecated_instSamplingInterval_);   // same data is in sampleData_ below
+        //         ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
+        //         ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
+        //         if ( version == 2 ) {
+        //             std::vector< SamplingInfo > data;
+        //             ar & BOOST_SERIALIZATION_NVP( data );
+        //             if ( ! data.empty() )
+        //                 samplingData_ = data[ 0 ];
+        //         } else if ( version >= 3 ) {
+        //             ar & BOOST_SERIALIZATION_NVP( samplingData_ );
+        //         }
+        //         if ( version >= 5 )
+        //             ar & BOOST_SERIALIZATION_NVP( instTDelay_ );
+        //         if ( version >= 4 ) {
+        //             ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
+        //             ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+        //             ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs_ );
+        //         }
+        //     }
+        //     if ( Archive::is_loading::value && version <= 8 ) {
+        //         time_since_injection_ *= 1000;  // us -> ns
+        //     }
+        // }
     };
 }
 

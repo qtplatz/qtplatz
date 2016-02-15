@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,8 +27,147 @@
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
 #include <adportable/base64.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/archive_exception.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
+namespace adcontrols {
+
+    template<typename T = MSProperty::SamplingInfo >
+    class SamplingInfo_archive {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            ar & BOOST_SERIALIZATION_NVP(_.sampInterval);
+            ar & BOOST_SERIALIZATION_NVP(_.nSamplingDelay);
+            ar & BOOST_SERIALIZATION_NVP(_.nSamples);
+            ar & BOOST_SERIALIZATION_NVP(_.nAverage);
+            if ( version >= 3 )
+                ar & BOOST_SERIALIZATION_NVP(_.mode);
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP(_.padding);
+                ar & BOOST_SERIALIZATION_NVP(_.fsampInterval);
+            }
+            if ( version >= 5 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.horPos_ );
+                ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
+            }
+        }
+        
+    };
+
+    template<typename T = MSProperty >
+    class MSProperty_archive {
+    public:
+        template<class Archive>
+        void serialize( Archive& ar, T& _, const unsigned int version )
+        {
+            if ( version < 6 ) {
+                uint32_t time_since_injection;
+                ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
+                _.time_since_injection_ = time_since_injection;
+                ar & BOOST_SERIALIZATION_NVP( _.instAccelVoltage_ );
+                ar & BOOST_SERIALIZATION_NVP( _.trig_number_ );            // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP( _.trig_number_origin_ );     // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP( _.deprecated_instSamplingInterval_ );   // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.first );
+                ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.second );
+                if ( version == 2 ) {
+                    std::vector< MSProperty::SamplingInfo > data;
+                    ar & BOOST_SERIALIZATION_NVP( data );
+                    if ( !data.empty() )
+                        _.samplingData_ = data [ 0 ];
+                } else if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.samplingData_ );
+                }
+                if ( version >= 5 )
+                    ar & BOOST_SERIALIZATION_NVP( _.instTDelay_ );
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.dataInterpreterClsid_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.deviceData_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.deprecated_coeffs_ );
+                }
+            } else if ( version >= 6 ) {
+                if ( version >= 8 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.time_since_injection_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.time_since_epoch_ );
+                } else {
+                    uint32_t time_since_injection;
+                    ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
+                    _.time_since_injection_ = time_since_injection;
+                }
+                ar & BOOST_SERIALIZATION_NVP( _.instAccelVoltage_ );
+                ar & BOOST_SERIALIZATION_NVP( _.instTDelay_ );
+                ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.first );
+                ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.second );
+                ar & BOOST_SERIALIZATION_NVP( _.samplingData_ );
+                ar & BOOST_SERIALIZATION_NVP( _.dataInterpreterClsid_ );
+                if ( Archive::is_saving::value ) {
+                    std::string data = MSProperty::encode( _.deviceData_ );
+                    ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( _.deviceData_ );
+                    if ( version >= 7 ) // v6 data has no encoded data
+                        _.deviceData_ = MSProperty::decode( _.deviceData_ );
+                }
+            } else {
+            }
+            /// us --> ns
+            if ( Archive::is_loading::value && version <= 8 )
+                _.time_since_injection_ *= 1000;  // us -> ns
+        }
+    };
+    
+    ////////// SamplingInfo ///////////
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        SamplingInfo_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        SamplingInfo_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        SamplingInfo_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        SamplingInfo_archive<>().serialize( ar, *this, version );
+    }    
+
+    ////////// MSProperty ///////////
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        MSProperty_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        MSProperty_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        MSProperty_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        MSProperty_archive<>().serialize( ar, *this, version );
+    }    
+
+}
 
 using namespace adcontrols;
 
@@ -225,13 +364,6 @@ const std::pair<double, double>&
 MSProperty::instMassRange() const
 {
     return instMassRange_;
-}
-
-// depacreated -- use samplingInfo()
-const MSProperty::SamplingInfo&
-MSProperty::getSamplingInfo() const
-{
-    return samplingData_;
 }
 
 const MSProperty::SamplingInfo&

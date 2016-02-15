@@ -185,7 +185,7 @@ WaveformWnd::handle_waveform()
         if ( ms->size() > 0 )
             hpw_->setData( ms, 0 );
         
-        const auto& info = ms->getMSProperty().getSamplingInfo();
+        const auto& info = ms->getMSProperty().samplingInfo();
         hpw_->setTitle( ( boost::format( "triggers: %1%;&nbsp;&nbsp;%2% triggers in que; &nbsp; rate = %3% trig/s" )
                           % info.numberOfTriggers()
                           % document::instance()->unprocessed_trigger_counts()

@@ -812,9 +812,9 @@ TraceData::y_range( double left, double right ) const
                         return idx;
                     }
                 };
-                const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().getSamplingInfo();
-                idleft = index( seg.getMSProperty().getSamplingInfo() )( xleft );
-                idright = index( seg.getMSProperty().getSamplingInfo() )( xright );
+                const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().samplingInfo();
+                idleft = index( seg.getMSProperty().samplingInfo() )( xleft );
+                idright = index( seg.getMSProperty().samplingInfo() )( xright );
             } else {
                 if ( const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray() ) {
                     idleft = std::distance( x, std::lower_bound( x, x + seg.size(), xleft ) );
