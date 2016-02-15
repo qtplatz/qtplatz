@@ -34,11 +34,11 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/tuple/tuple.hpp>
 #include "massspectrometer.hpp"
-// #include "samplinginfo.hpp"
 
 namespace adcontrols {
 
     class SamplingInfo;
+    class TofProtocol;
     
     template< typename T > class MSProperty_archive;
 
@@ -96,6 +96,9 @@ namespace adcontrols {
         void setSamplingInterval( uint32_t ); // ps
         void setfSamplingInterval( double ); // seconds
 
+        void setTofProtocol( std::shared_ptr< const TofProtocol >& );
+        std::shared_ptr< const TofProtocol > tofProtocol();
+
         static double toSeconds( size_t idx, const SamplingInfo& info );
         static size_t toIndex( double seconds, const SamplingInfo& info );
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
@@ -107,15 +110,11 @@ namespace adcontrols {
         double instTDelay_;             // for scan law
         uint32_t trig_number_;          // trigger number ( a.k.a. 'pos' in the code)
         uint32_t trig_number_origin_;   // trigger number at 'inject' event
-        //uint32_t deprecated_instSamplingInterval_;   // deprecated
         std::string dataInterpreterClsid_;
         std::string deviceData_;
-        //std::vector< double > deprecated_coeffs_; // deprecated
-
-        // static std::string encode( const std::string& );
-        // static std::string decode( const std::string& );
-        std::unique_ptr< SamplingInfo > samplingData_;
         std::pair< double, double > instMassRange_;
+        std::unique_ptr< SamplingInfo > samplingData_;
+        std::shared_ptr< const TofProtocol > tofProtocol_;
         
         friend class MSProperty_archive< MSProperty >;
         friend class MSProperty_archive< const MSProperty >;
@@ -124,5 +123,5 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 9)
+BOOST_CLASS_VERSION( adcontrols::MSProperty, 10 )
 

@@ -27,10 +27,9 @@
 
 #include "adcontrols_global.h"
 #include "metric/prefix.hpp"
-#include <boost/any.hpp>
+#include <functional>
 #include <string>
 #include <memory>
-#include <vector>
 
 namespace boost {
     namespace archive { 
@@ -102,7 +101,8 @@ namespace adcontrols {
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
-        
+        const unsigned char * getColorArray() const;
+
         double compute_mass( double time ) const;
         size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
@@ -115,7 +115,6 @@ namespace adcontrols {
         void setMassArray( const double *, bool setRange = false );
         void setIntensityArray( const double * );
         void setTimeArray( const double * );
-        const unsigned char * getColorArray() const;
 		void setColorArray( const unsigned char * );
         bool isCentroid() const;
         void setCentroid( CentroidAlgorithm );
@@ -128,6 +127,8 @@ namespace adcontrols {
         MS_POLARITY polarity() const;
         void setPolarity( MS_POLARITY );
         int mode() const;
+
+        void setScanLaw( const adcontrols::ScanLaw&, bool assignMasses = false );
         
         void setCalibration( const adcontrols::MSCalibration&, bool assignMasses = false );
         const MSCalibration& calibration() const;

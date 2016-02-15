@@ -27,6 +27,7 @@
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
 #include "samplinginfo.hpp"
+#include "tofprotocol.hpp"
 #include <adportable/base64.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -100,10 +101,13 @@ namespace adcontrols {
                         _.deviceData_ = base64_decode( _.deviceData_ );
                 }
             }
-            
+
             /// us --> ns  : change at V9
-            if ( Archive::is_loading::value && version <= 8 )
+            if ( Archive::is_loading::value && version <= 8 ) // V9 change microseconds to nanoseconds
                 _.time_since_injection_ *= 1000;  // us -> ns
+
+            if ( version >= 10 ) // add TofProtocol
+                _.tofProtocol_;
         }
     };
     
@@ -139,7 +143,7 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
                          , trig_number_( 0 )
                          , trig_number_origin_( 0 )
                          , samplingData_( new SamplingInfo() )
-                         , instMassRange_( {0, 0})
+                         , instMassRange_( {0, 0} )
 {
 }
 
@@ -152,6 +156,7 @@ MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_si
                                               , dataInterpreterClsid_( t.dataInterpreterClsid_ )
                                               , deviceData_( t.deviceData_ )
                                               , samplingData_( std::make_unique< SamplingInfo >( *t.samplingData_ ) )
+                                              , tofProtocol_( t.tofProtocol_ )
 {
 }
 
@@ -168,6 +173,7 @@ MSProperty::operator = ( const MSProperty& t )
     deviceData_           = t.deviceData_;
     *samplingData_        = *t.samplingData_;
     instMassRange_        = t.instMassRange_;
+    tofProtocol_          = t.tofProtocol_;
 }
 
 void
@@ -409,14 +415,15 @@ MSProperty::scanLaw() const
         return 0;
 }
 
-// std::string
-// MSProperty::encode( const std::string& binary )
-// {
-//     return base64_encode( reinterpret_cast< const unsigned char * >(binary.data()), binary.size() );
-// }
+void
+MSProperty::setTofProtocol( std::shared_ptr< const TofProtocol >& ptr )
+{
+    tofProtocol_ = ptr;
+}
 
-// std::string
-// MSProperty::decode( const std::string& encoded )
-// {
-//     return base64_decode( encoded );
-// }
+std::shared_ptr< const TofProtocol >
+MSProperty::tofProtocol()
+{
+    return tofProtocol_;
+}
+
