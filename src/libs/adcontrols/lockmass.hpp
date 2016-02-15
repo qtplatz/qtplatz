@@ -33,7 +33,6 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <compiler/diagnostic_push.h>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -118,7 +117,5 @@ namespace adcontrols {
     template class ADCONTROLSSHARED_EXPORT std::vector < lockmass::reference > ;
 #endif
 }
-
-#include <compiler/diagnostic_pop.h>
 
 #endif // LOCKMASS_H

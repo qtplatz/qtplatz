@@ -98,9 +98,11 @@ namespace adcontrols {
         
         size_t size() const;
         void resize( size_t );
+
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
+        
         double compute_mass( double time ) const;
         size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
@@ -133,6 +135,7 @@ namespace adcontrols {
         void setMSProperty( const adcontrols::MSProperty& );
         const MSProperty& getMSProperty() const;
         MSProperty& getMSProperty();
+
         void normalizeIntensities( uint32_t nImaginalAverage );
 
         const ScanLaw* scanLaw() const;

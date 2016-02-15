@@ -75,9 +75,6 @@ namespace adcontrols {
         ALGORITHM algorithm() const;
         
     private:
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
         enum metric::prefix time_prefix_;
         std::string calibDate_;
         std::wstring calibId_;
