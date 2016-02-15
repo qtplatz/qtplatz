@@ -174,6 +174,7 @@ MSProperty::operator = ( const MSProperty& t )
     *samplingData_        = *t.samplingData_;
     instMassRange_        = t.instMassRange_;
     tofProtocol_          = t.tofProtocol_;
+    return *this;
 }
 
 void
@@ -257,7 +258,7 @@ MSProperty::instTimeRange() const
 uint32_t
 MSProperty::numAverage() const
 {
-    return samplingData_->numberOfTriggers();
+    return static_cast< uint32_t >(samplingData_->numberOfTriggers());
 }
 
 void

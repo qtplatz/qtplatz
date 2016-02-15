@@ -25,6 +25,7 @@
 
 #include "msassignedmass.hpp"
 #include "msproperty.hpp"
+#include "samplinginfo.hpp"
 #include <adportable/float.hpp>
 #include <boost/bind.hpp>
 

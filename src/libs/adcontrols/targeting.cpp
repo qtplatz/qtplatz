@@ -27,6 +27,7 @@
 #include "chemicalformula.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
+#include "samplinginfo.hpp"
 #include <adcontrols/moltable.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/combination.hpp>

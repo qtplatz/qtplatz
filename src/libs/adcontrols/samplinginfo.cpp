@@ -180,6 +180,12 @@ SamplingInfo::mode() const
 }
 
 void
+SamplingInfo::setMode( uint32_t value )
+{
+    mode_ = value;
+}
+
+void
 SamplingInfo::setSampInterval( uint32_t value )
 {
     sampInterval_ = value;

@@ -33,7 +33,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/tuple/tuple.hpp>
-#include "massspectrometer.hpp"
+#include "samplinginfo.hpp"
 
 namespace adcontrols {
 

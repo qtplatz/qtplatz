@@ -42,7 +42,7 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT SamplingInfo {
     public:
         SamplingInfo();
-        SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nCount, uint32_t nAvg, uint32_t mode );
+        SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode );
 
         uint32_t sampInterval() const;  // ps
         void setSampInterval( uint32_t );
@@ -52,6 +52,7 @@ namespace adcontrols {
 
         uint32_t nSamples() const;
         uint32_t mode() const;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
+        void setMode( uint32_t );
 
         void fSampInterval( double );
         double fSampInterval() const;
