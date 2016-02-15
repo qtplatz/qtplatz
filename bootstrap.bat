@@ -20,8 +20,6 @@ if %VisualStudioVersion% EQU 14.0 (
 
 echo "############ bootstrap building qtplatz using "%tools%" #############"
 
-pause
-
 for %%i in (%*) do (
     if %%i==release (
        set build_type=release

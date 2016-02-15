@@ -39,7 +39,7 @@
 #include <memory>
 #include <compiler/pragma_warning.hpp>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class ScanLaw; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace acqrscontrols { namespace u5303a { class method; class threshold_result; } }
 
@@ -142,7 +142,11 @@ namespace acqrscontrols {
             
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
+            static bool translate( adcontrols::MassSpectrum&, const waveform&, const adcontrols::ScanLaw&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+
+            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, const adcontrols::ScanLaw&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
         private:
             friend class waveform_xmeta_archive< waveform >;

@@ -26,11 +26,13 @@
 #include <QObject>
 
 #if HAVE_CORBA
+#  ifndef Q_MOC_RUN
 # include "receiver_i.hpp"
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/observerevents_i.hpp>
+#  endif
 #endif
 
 #include <map>

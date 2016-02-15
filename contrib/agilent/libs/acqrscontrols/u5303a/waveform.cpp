@@ -30,6 +30,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <adcontrols/waveform_filter.hpp>
 
@@ -518,6 +519,29 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
         return true;
     }
 
+    return false;
+}
+
+//static
+bool
+waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, const adcontrols::ScanLaw& scanLaw, int scale )
+{
+    if ( translate( sp, waveform, scale ) ) {
+        // apply scanlaw
+        //sp.setScanLaw( scanLaw, true );
+        return true;
+    }
+    return false;
+}
+
+bool
+waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, const adcontrols::ScanLaw& scanLaw, int scale )
+{
+    if ( translate( sp, result, scale ) ) {
+        // apply scanlaw
+        //sp.setScanLaw( scanLaw, true );
+        return true;
+    }
     return false;
 }
 
