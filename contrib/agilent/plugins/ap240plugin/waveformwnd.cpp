@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,6 +31,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/trace.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
@@ -253,11 +254,11 @@ WaveformWnd::handle_waveform()
             }
             
             adcontrols::MSProperty prop = sp->getMSProperty();
-            adcontrols::MSProperty::SamplingInfo info( 0
-                                                       , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
-                                                       , uint32_t( waveform->size() )
-                                                       , waveform->meta_.actualAverages
-                                                       , 0 );
+            adcontrols::SamplingInfo info( 0
+                                           , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
+                                           , uint32_t( waveform->size() )
+                                           , waveform->meta_.actualAverages
+                                           , 0 );
             
             info.fSampInterval( waveform->meta_.xIncrement );
             info.horPos( waveform->meta_.horPos );

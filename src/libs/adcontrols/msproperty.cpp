@@ -26,6 +26,7 @@
 #include "metric/prefix.hpp"
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
+#include "samplinginfo.hpp"
 #include <adportable/base64.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -40,29 +41,6 @@
 
 namespace adcontrols {
 
-    template<typename T = MSProperty::SamplingInfo >
-    class SamplingInfo_archive {
-    public:
-        template<class Archive>
-        void serialize( Archive& ar, T& _, const unsigned int version ) {
-            ar & BOOST_SERIALIZATION_NVP(_.sampInterval);
-            ar & BOOST_SERIALIZATION_NVP(_.nSamplingDelay);
-            ar & BOOST_SERIALIZATION_NVP(_.nSamples);
-            ar & BOOST_SERIALIZATION_NVP(_.nAverage);
-            if ( version >= 3 )
-                ar & BOOST_SERIALIZATION_NVP(_.mode);
-            if ( version >= 4 ) {
-                ar & BOOST_SERIALIZATION_NVP(_.padding);
-                ar & BOOST_SERIALIZATION_NVP(_.fsampInterval);
-            }
-            if ( version >= 5 ) {
-                ar & BOOST_SERIALIZATION_NVP( _.horPos_ );
-                ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
-            }
-        }
-        
-    };
-
     template<typename T = MSProperty >
     class MSProperty_archive {
     public:
@@ -70,29 +48,32 @@ namespace adcontrols {
         void serialize( Archive& ar, T& _, const unsigned int version )
         {
             if ( version < 6 ) {
-                uint32_t time_since_injection;
+                uint32_t time_since_injection(0);
+                uint32_t deprecated_instSamplingInterval(0);
+                
                 ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
                 _.time_since_injection_ = time_since_injection;
                 ar & BOOST_SERIALIZATION_NVP( _.instAccelVoltage_ );
-                ar & BOOST_SERIALIZATION_NVP( _.trig_number_ );            // same data is in sampleData_ below
-                ar & BOOST_SERIALIZATION_NVP( _.trig_number_origin_ );     // same data is in sampleData_ below
-                ar & BOOST_SERIALIZATION_NVP( _.deprecated_instSamplingInterval_ );   // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP( _.trig_number_ );                   // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP( _.trig_number_origin_ );            // same data is in sampleData_ below
+                ar & BOOST_SERIALIZATION_NVP( deprecated_instSamplingInterval );  // same data is in sampleData_ below
                 ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.first );
                 ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.second );
                 if ( version == 2 ) {
-                    std::vector< MSProperty::SamplingInfo > data;
+                    std::vector< SamplingInfo > data;
                     ar & BOOST_SERIALIZATION_NVP( data );
                     if ( !data.empty() )
-                        _.samplingData_ = data [ 0 ];
+                        *_.samplingData_ = data [ 0 ];
                 } else if ( version >= 3 ) {
-                    ar & BOOST_SERIALIZATION_NVP( _.samplingData_ );
+                    ar & BOOST_SERIALIZATION_NVP( *_.samplingData_ );
                 }
                 if ( version >= 5 )
                     ar & BOOST_SERIALIZATION_NVP( _.instTDelay_ );
                 if ( version >= 4 ) {
+                    std::vector< double > deprecated_coeffs;
                     ar & BOOST_SERIALIZATION_NVP( _.dataInterpreterClsid_ );
                     ar & BOOST_SERIALIZATION_NVP( _.deviceData_ );
-                    ar & BOOST_SERIALIZATION_NVP( _.deprecated_coeffs_ );
+                    ar & BOOST_SERIALIZATION_NVP( deprecated_coeffs );
                 }
             } else if ( version >= 6 ) {
                 if ( version >= 8 ) {
@@ -107,45 +88,25 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.instTDelay_ );
                 ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.first );
                 ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.second );
-                ar & BOOST_SERIALIZATION_NVP( _.samplingData_ );
+                ar & BOOST_SERIALIZATION_NVP( *_.samplingData_ );
                 ar & BOOST_SERIALIZATION_NVP( _.dataInterpreterClsid_ );
                 if ( Archive::is_saving::value ) {
-                    std::string data = MSProperty::encode( _.deviceData_ );
+                    auto data = base64_encode( reinterpret_cast< const unsigned char * >(_.deviceData_.data()), _.deviceData_.size() );
+                    // std::string data = MSProperty::encode( _.deviceData_ );
                     ar & boost::serialization::make_nvp( "deviceData_", data );  // for xml (u8 codecvt) safety
                 } else {
                     ar & BOOST_SERIALIZATION_NVP( _.deviceData_ );
                     if ( version >= 7 ) // v6 data has no encoded data
-                        _.deviceData_ = MSProperty::decode( _.deviceData_ );
+                        _.deviceData_ = base64_decode( _.deviceData_ );
                 }
-            } else {
             }
-            /// us --> ns
+            
+            /// us --> ns  : change at V9
             if ( Archive::is_loading::value && version <= 8 )
                 _.time_since_injection_ *= 1000;  // us -> ns
         }
     };
     
-    ////////// SamplingInfo ///////////
-    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-    {
-        SamplingInfo_archive<>().serialize( ar, *this, version );
-    }
-    
-    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-    {
-        SamplingInfo_archive<>().serialize( ar, *this, version );
-    }
-    
-    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        SamplingInfo_archive<>().serialize( ar, *this, version );
-    }
-    
-    template<> ADCONTROLSSHARED_EXPORT void MSProperty::SamplingInfo::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        SamplingInfo_archive<>().serialize( ar, *this, version );
-    }    
-
     ////////// MSProperty ///////////
     template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
@@ -177,23 +138,36 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
                          , instTDelay_( 0 )
                          , trig_number_( 0 )
                          , trig_number_origin_( 0 )
-                         , deprecated_instSamplingInterval_( 0 )
+                         , samplingData_( new SamplingInfo() )
+                         , instMassRange_( {0, 0})
 {
 }
 
-MSProperty::MSProperty( const MSProperty& t )
-    : time_since_injection_( t.time_since_injection_ )
-    , time_since_epoch_( t.time_since_epoch_ )
-    , instAccelVoltage_( t.instAccelVoltage_ )
-    , instTDelay_( t.instTDelay_ )
-    , trig_number_( t.trig_number_ )
-    , trig_number_origin_( t.trig_number_origin_ )
-    , deprecated_instSamplingInterval_( t.deprecated_instSamplingInterval_ ) // deprecated
-    , dataInterpreterClsid_( t.dataInterpreterClsid_ )
-    , deviceData_( t.deviceData_ )
-    , deprecated_coeffs_( t.deprecated_coeffs_ ) // deprecated
-    , samplingData_( t.samplingData_ )
+MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_since_injection_ )
+                                              , time_since_epoch_( t.time_since_epoch_ )
+                                              , instAccelVoltage_( t.instAccelVoltage_ )
+                                              , instTDelay_( t.instTDelay_ )
+                                              , trig_number_( t.trig_number_ )
+                                              , trig_number_origin_( t.trig_number_origin_ )
+                                              , dataInterpreterClsid_( t.dataInterpreterClsid_ )
+                                              , deviceData_( t.deviceData_ )
+                                              , samplingData_( std::make_unique< SamplingInfo >( *t.samplingData_ ) )
 {
+}
+
+MSProperty&
+MSProperty::operator = ( const MSProperty& t )
+{
+    time_since_injection_ = t.time_since_injection_;
+    time_since_epoch_     = t.time_since_epoch_;
+    instAccelVoltage_     = t.instAccelVoltage_;
+    instTDelay_           = t.instTDelay_;
+    trig_number_          = t.trig_number_;
+    trig_number_origin_   = t.trig_number_origin_;
+    dataInterpreterClsid_ = t.dataInterpreterClsid_;
+    deviceData_           = t.deviceData_;
+    *samplingData_        = *t.samplingData_;
+    instMassRange_        = t.instMassRange_;
 }
 
 void
@@ -254,52 +228,54 @@ MSProperty::tDelay( double t )
 int
 MSProperty::mode() const
 {
-    return samplingData_.mode;
+    return samplingData_->mode();
 }
 
 double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
 {
-	return double( samplingData_.nSamplingDelay + pos ) * samplingData_.fSampInterval() + samplingData_.horPos(); // seconds
+	return double( samplingData_->nSamplingDelay() + pos ) * samplingData_->fSampInterval() + samplingData_->horPos(); // seconds
 }
 
 std::pair<double, double>
 MSProperty::instTimeRange() const
 {
-	const SamplingInfo& x = samplingData_;
-    double t0 = metric::scale_to_base( double(x.nSamplingDelay * x.fSampInterval()), metric::base );
-    double t1 = metric::scale_to_base( double((x.nSamplingDelay + x.nSamples) * x.fSampInterval()), metric::base );
+	const SamplingInfo& x = *samplingData_;
+
+    double t0 = metric::scale_to_base( double(x.nSamplingDelay() * x.fSampInterval()), metric::base );
+    double t1 = metric::scale_to_base( double((x.nSamplingDelay() + x.nSamples()) * x.fSampInterval()), metric::base );
+
     return std::make_pair( t0, t1 );
 }
 
 uint32_t
 MSProperty::numAverage() const
 {
-    return samplingData_.nAverage;
+    return samplingData_->numberOfTriggers();
 }
 
 void
 MSProperty::setNumAverage(uint32_t v)
 {
-    samplingData_.nAverage = v;
+    samplingData_->setNumberOfTriggers( v );
 }
 
 void
 MSProperty::setSamplingDelay( uint32_t v )
 {
-    samplingData_.nSamplingDelay = v;
+    samplingData_->setNSamplingDelay( v );
 }
 
 void
 MSProperty::setSamplingInterval( uint32_t v ) // ps
 {
-    samplingData_.sampInterval = v;
+    samplingData_->setSampInterval( v );
 }
 
 void
 MSProperty::setfSamplingInterval( double v ) // seconds
 {
-	samplingData_.fSampInterval( v );
+	samplingData_->fSampInterval( v );
 }
 
 double
@@ -366,132 +342,52 @@ MSProperty::instMassRange() const
     return instMassRange_;
 }
 
-const MSProperty::SamplingInfo&
+const SamplingInfo&
 MSProperty::samplingInfo() const
 {
-    return samplingData_;
+    return *samplingData_;
 }
 
 void
 MSProperty::setSamplingInfo( const SamplingInfo& v )
 {
-    samplingData_ = v;
-}
-
-MSProperty::SamplingInfo::SamplingInfo( uint32_t interval
-                                        , uint32_t ndelay
-                                        , uint32_t nsamples
-                                        , uint32_t navgr
-                                        , uint32_t _mode )
-    : sampInterval( interval )
-    , nSamplingDelay( ndelay )
-    , nSamples( nsamples )  
-    , nAverage( navgr )
-    , mode( _mode )
-    , padding(0)
-    , fsampInterval( 0.0 )
-    , horPos_( 0.0 )
-    , delayTime_( 0.0 )
-{
-}
-
-MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
-                                         , nSamplingDelay( 0 )
-                                         , nSamples( 0 )
-                                         , nAverage( 0 )
-                                         , mode( 0 )
-                                         , padding( 0 )
-                                         , fsampInterval( 0.0 )
-                                         , horPos_( 0.0 )
-                                         , delayTime_( 0.0 )
-{
-}
-
-void
-MSProperty::SamplingInfo::fSampInterval( double v )
-{
-    fsampInterval = v;
-    sampInterval = 0;
-}
-
-double
-MSProperty::SamplingInfo::fSampInterval() const
-{
-    if ( sampInterval )
-        return double(sampInterval) * 1.0e-12; // ps --> seconds
-    return fsampInterval;
-}
-
-void
-MSProperty::SamplingInfo::horPos( double v )
-{
-    horPos_ = v;
-}
-
-double
-MSProperty::SamplingInfo::horPos() const
-{
-    return horPos_;
-}
-
-void 
-MSProperty::SamplingInfo::setDelayTime( double v )
-{
-    delayTime_ = v;
-}
-
-double
-MSProperty::SamplingInfo::delayTime() const
-{
-    return delayTime_;
-}
-
-double
-MSProperty::SamplingInfo::fSampDelay() const
-{
-	return nSamplingDelay * fSampInterval();
-}
-
-size_t
-MSProperty::SamplingInfo::numberOfTriggers() const
-{
-    return nAverage;
+    samplingData_ = std::make_unique< SamplingInfo >(v);
 }
 
 //static
 double
 MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 {
-    if ( info.sampInterval )
-        return ( info.nSamplingDelay + idx ) * info.sampInterval * 1e-12;
+    if ( info.sampInterval() )
+        return ( info.nSamplingDelay() + idx ) * info.sampInterval() * 1e-12;
     else
-        return ( info.nSamplingDelay + idx ) * info.fSampInterval() + info.horPos();
+        return ( info.nSamplingDelay() + idx ) * info.fSampInterval() + info.horPos();
 }
 
 size_t
 MSProperty::toIndex( double seconds, const SamplingInfo& info )
 {
-    if ( info.sampInterval ) {
-        return size_t( ( seconds / ( info.sampInterval * 1.0e-12 ) ) + 0.5 ) - info.nSamplingDelay;
+    if ( info.sampInterval() ) {
+        return size_t( ( seconds / ( info.sampInterval() * 1.0e-12 ) ) + 0.5 ) - info.nSamplingDelay();
     } else {
-        return size_t( ( ( seconds - info.horPos() ) / info.fSampInterval() ) + 0.5 ) - info.nSamplingDelay;
+        return size_t( ( ( seconds - info.horPos() ) / info.fSampInterval() ) + 0.5 ) - info.nSamplingDelay();
     }
 }
 
 size_t
 MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix pfx )
 {
-    if ( info.sampInterval ) {
+    if ( info.sampInterval() ) {
         size_t n = 0;
         for ( n = 0; n < size; ++n ) {
-            double d = double( ( info.nSamplingDelay + n ) * info.sampInterval ); 
+            double d = double( ( info.nSamplingDelay() + n ) * info.sampInterval() ); 
             p[ n ] = metric::scale_to<double>( pfx, d, metric::pico );
         }
         return n;
     } else {
         size_t n = 0;
         for ( n = 0; n < size; ++n ) {
-            double d = double( ( info.nSamplingDelay + n ) * info.fSampInterval() ); 
+            double d = double( ( info.nSamplingDelay() + n ) * info.fSampInterval() ); 
             p[ n ] = metric::scale_to<double>( pfx, d, metric::base );
         }
         return n;
@@ -513,14 +409,14 @@ MSProperty::scanLaw() const
         return 0;
 }
 
-std::string
-MSProperty::encode( const std::string& binary )
-{
-    return base64_encode( reinterpret_cast< const unsigned char * >(binary.data()), binary.size() );
-}
+// std::string
+// MSProperty::encode( const std::string& binary )
+// {
+//     return base64_encode( reinterpret_cast< const unsigned char * >(binary.data()), binary.size() );
+// }
 
-std::string
-MSProperty::decode( const std::string& encoded )
-{
-    return base64_decode( encoded );
-}
+// std::string
+// MSProperty::decode( const std::string& encoded )
+// {
+//     return base64_decode( encoded );
+// }

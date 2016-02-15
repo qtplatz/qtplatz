@@ -25,6 +25,7 @@
 #include "waveform_filter.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
+#include "samplinginfo.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/fft.hpp>
 #include <adportable/float.hpp>

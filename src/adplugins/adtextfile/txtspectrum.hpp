@@ -48,13 +48,13 @@ namespace adtextfile {
         std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
 
     private:
-        bool analyze_segments( std::vector< adcontrols::MSProperty::SamplingInfo >&
+        bool analyze_segments( std::vector< adcontrols::SamplingInfo >&
                                , const std::vector<double>&
                                , const adcontrols::MassSpectrum* compiled  );
-        bool validate_segments( const std::vector< adcontrols::MSProperty::SamplingInfo >&, const std::vector<double>& );
+        bool validate_segments( const std::vector< adcontrols::SamplingInfo >&, const std::vector<double>& );
         size_t create_spectrum( adcontrols::MassSpectrum&
                                 , size_t idx
-                                , const adcontrols::MSProperty::SamplingInfo&
+                                , const adcontrols::SamplingInfo&
                                 , const std::vector<double>&
                                 , const std::vector<double>&
                                 , const std::vector<double>&

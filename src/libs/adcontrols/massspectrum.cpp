@@ -24,16 +24,16 @@
 **************************************************************************/
 
 #include "massspectrum.hpp"
+#include "annotations.hpp"
 #include "descriptions.hpp"
 #include "mscalibration.hpp"
 #include "msproperty.hpp"
-#include "annotations.hpp"
 #include "massspectra.hpp"
+#include "samplinginfo.hpp"
 #include "scanlaw.hpp"
+
 #include <adportable/array_wrapper.hpp>
-# if defined _DEBUG || defined DEBUG
-# include <adportable/debug.hpp>
-# endif
+#include <adportable/debug.hpp>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
@@ -406,7 +406,7 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
     if ( const double * p = pImpl_->getTimeArray() ) {
         idx = std::distance( p, std::lower_bound( p, p + pImpl_->size(), seconds ) );
     } else {
-        const MSProperty::SamplingInfo& info = pImpl_->getMSProperty().samplingInfo();
+        const SamplingInfo& info = pImpl_->getMSProperty().samplingInfo();
         idx = size_t( ( seconds - info.fSampDelay() ) / info.fSampInterval() );
     }
     if ( closest && idx < pImpl_->size() ) {

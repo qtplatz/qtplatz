@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,11 +26,12 @@
 
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
-#include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
@@ -475,11 +476,11 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     
     adcontrols::MSProperty prop = sp->getMSProperty();
     
-    adcontrols::MSProperty::SamplingInfo info( 0 /* int interval (must be zero) */
-                                               , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
-                                               , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
-                                               , uint32_t( trigCount )
-                                               , 0 /* mode */);
+    adcontrols::SamplingInfo info( 0 /* int interval (must be zero) */
+                                   , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
+                                   , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
+                                   , uint32_t( trigCount )
+                                   , 0 /* mode */);
     info.fSampInterval( meta.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );

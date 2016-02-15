@@ -29,6 +29,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/tofprotocol.hpp>
 #include <adcontrols/waveform_filter.hpp>
 
@@ -538,7 +539,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     }
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
+    adcontrols::SamplingInfo info( 0 /* sampInterval (ps) */
                                                , uint32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.size() )
                                                , waveform.meta_.actualAverages
@@ -592,7 +593,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     double ext_adc_delay = this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0 /* sampInterval (ps) */
+    adcontrols::SamplingInfo info( 0 /* sampInterval (ps) */
                                                , uint32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + 0.5 )
                                                , uint32_t( waveform.size() )
                                                , waveform.meta_.actualAverages
