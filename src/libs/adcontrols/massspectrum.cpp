@@ -268,7 +268,7 @@ void
 MassSpectrum::normalizeIntensities( uint32_t nImaginalAverage )
 {
     // no segment handling due to each segment may have different number of average
-    uint32_t nAvg = pImpl_->property_.samplingInfo().nAverage();
+    auto nAvg = pImpl_->property_.samplingInfo().numberOfTriggers();
     std::transform( pImpl_->intsArray_.begin(), pImpl_->intsArray_.end(), pImpl_->intsArray_.begin(), [=] ( double d ) { return d * nImaginalAverage / nAvg; } );
     pImpl_->property_.setNumAverage( nImaginalAverage );
 }
