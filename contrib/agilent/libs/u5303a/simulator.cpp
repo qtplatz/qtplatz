@@ -250,8 +250,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
             for ( auto& w: vec ) {
                 w->setData( mblock, w->firstValidPoint_ );
-                if ( w->meta_.initialXTimeSeconds < 2.0e-6 )
-                    w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
+                w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
             }
 
         } else {
