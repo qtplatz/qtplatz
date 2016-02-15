@@ -28,11 +28,12 @@
 
 #include "centroidprocess.hpp"
 #include "centroidmethod.hpp"
+#include "description.hpp"
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
 #include "mspeakinfoitem.hpp"
 #include "mspeakinfo.hpp"
-#include "description.hpp"
+#include "samplinginfo.hpp"
 #include "waveform_filter.hpp"
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -77,10 +78,13 @@ namespace adcontrols {
         };
 
         struct timeFunctor {
-            const adcontrols::MSProperty::SamplingInfo& info;
+
+            const adcontrols::SamplingInfo& info;
+            
             timeFunctor( const adcontrols::MassSpectrum& profile )
                 : info( profile.getMSProperty().samplingInfo() ) {
             }
+
             double operator ()( int pos ) { 
                 return adcontrols::MSProperty::toSeconds( pos, info );
             }

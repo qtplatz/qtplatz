@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -39,6 +39,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>

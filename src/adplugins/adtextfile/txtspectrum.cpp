@@ -31,6 +31,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/string.hpp>
 #include <adportable/spectrum_processor.hpp>
@@ -117,7 +118,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     if ( compiled_ ) {
         const auto& tArray = cols[0];
         
-        std::vector<MSProperty::SamplingInfo> segments;
+        std::vector<SamplingInfo> segments;
         if ( analyze_segments( segments, tArray, compiled_.get() ) )
             validate_segments( segments, tArray );
         
@@ -157,14 +158,13 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 
             double interval = ( tArray.back() - tArray.front() ) / ( tArray.size() - 1 );
 
-            adcontrols::MSProperty::SamplingInfo info;
+            adcontrols::SamplingInfo info( 0, 0, uint32_t( nSamples ), /* navg */ 1, /*mode*/ 0 );
             info.fSampInterval( interval );
             info.setDelayTime( tArray[0] );
-            info.sampInterval = 0;
-            info.nSamplingDelay = ( tArray[0] ) / info.fSampInterval();
-            info.nSamples = uint32_t( nSamples );
-            info.nAverage = 1;
-            info.mode = 0;
+            info.setNSamplingDelay( ( tArray[0] ) / info.fSampInterval() );
+            //info.nSamples = uint32_t( nSamples );
+            //info.nAverage = 1;
+            //info.mode = 0;
             prop.setSamplingInfo( info );
 
             if ( nCols == 2 ) {
@@ -195,7 +195,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 }
 
 bool
-TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>& segments
+TXTSpectrum::analyze_segments( std::vector<adcontrols::SamplingInfo>& segments
                                , const std::vector<double>& timeArray
                                , const adcontrols::MassSpectrum * compiled )
 {
@@ -224,7 +224,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
         if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
 
 			int mode = find_mode( segments.size() );
-            segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1, mode ) );
+            segments.push_back( adcontrols::SamplingInfo(sampInterval, nDelay, nCount, 1, mode ) );
 
             if ( it + 1 != timeArray.end() ) {
                 sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
@@ -241,7 +241,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
         }
     }
 	int mode = find_mode( segments.size() );
-    segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1, mode ) );
+    segments.push_back( adcontrols::SamplingInfo(sampInterval, nDelay, nCount + 1, 1, mode ) );
     return true;
 }
 
@@ -252,13 +252,13 @@ TXTSpectrum::find_mode( size_t idx ) const
     if ( compiled_ ) {
 		adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *compiled_ );
 		if ( idx < segs.size() )
-			mode = segs[ idx ].getMSProperty().samplingInfo().mode;
+			mode = segs[ idx ].getMSProperty().samplingInfo().mode();
     }
     return mode;
 }
 
 bool
-TXTSpectrum::validate_segments( const std::vector<adcontrols::MSProperty::SamplingInfo>& segments, const std::vector<double>& timeArray )
+TXTSpectrum::validate_segments( const std::vector<adcontrols::SamplingInfo>& segments, const std::vector<double>& timeArray )
 {
 	/*
     for ( size_t i = 0; i < timeArray.size(); ++i ) {
@@ -277,7 +277,7 @@ TXTSpectrum::validate_segments( const std::vector<adcontrols::MSProperty::Sampli
 
 size_t
 TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
-                              , const adcontrols::MSProperty::SamplingInfo& info
+                              , const adcontrols::SamplingInfo& info
                               , const std::vector<double>& timeArray
                               , const std::vector<double>& massArray
                               , const std::vector<double>& intensArray
@@ -297,15 +297,15 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
 	prop.setSamplingInfo( info );
 
     ms.setMSProperty( prop );
-    ms.resize( info.nSamples );
+    ms.resize( info.nSamples() );
     ms.setIntensityArray( intensArray.data() + idx );
 
-    if ( info.nSamples ) {
+    if ( info.nSamples() ) {
         double tic, base, rms;
         const double * intens = ms.getIntensityArray();
-        tic = adportable::spectrum_processor::tic( info.nSamples, intens, base, rms );
+        tic = adportable::spectrum_processor::tic( info.nSamples(), intens, base, rms );
         (void)tic;
-        for ( size_t i = 0; i < info.nSamples; ++i )
+        for ( size_t i = 0; i < info.nSamples(); ++i )
             ms.setIntensity( i, intens[i] - base );
     }
     

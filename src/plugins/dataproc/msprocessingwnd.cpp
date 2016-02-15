@@ -45,6 +45,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adcontrols/scanlaw.hpp>

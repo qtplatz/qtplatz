@@ -227,7 +227,9 @@ add_library( adcontrols SHARED
   quancalibration.cpp
   quancalibration.hpp 
   quancalibrations.cpp
-  quancalibrations.hpp 
+  quancalibrations.hpp
+  samplinginfo.cpp
+  samplinginfo.hpp
   serializer.cpp
   serializer.hpp
   waveform_filter.cpp
@@ -349,6 +351,7 @@ install( FILES
   quanresponses.hpp 
   quancalibration.hpp 
   quancalibrations.hpp
+  samplinginfo.hpp
   controlmethod/tofchromatogrammethod.hpp
   controlmethod/tofchromatogramsmethod.hpp
   waveform_filter.hpp 

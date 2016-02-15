@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,6 +32,7 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportable/is_type.hpp>
@@ -193,17 +194,17 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         const adcontrols::MSCalibration& calib =  m.calibration();
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
-        const adcontrols::MSProperty::SamplingInfo& info = prop.samplingInfo();
-        double start_delay = scale_to<double, micro>( info.sampInterval * info.nSamplingDelay, pico );
-        double time_end = scale_to<double, micro>( info.sampInterval * ( info.nSamplingDelay + info.nSamples ), pico );
+        const adcontrols::SamplingInfo& info = prop.samplingInfo();
+        double start_delay = scale_to<double, micro>( info.sampInterval() * info.nSamplingDelay(), pico );
+        double time_end = scale_to<double, micro>( info.sampInterval() * ( info.nSamplingDelay() + info.nSamples() ), pico );
         o << "<tr>"
           << boost::format( "<td rowspan=\"%1%\">" ) % nrowspan << n++ << "</td>"
-          << "<td>" << info.sampInterval << "</td>"
+          << "<td>" << info.sampInterval() << "</td>"
           << "<td>" << boost::format( "%.4lf&mu;s" ) % start_delay << "</td>"
           << "<td>" << boost::format( "%.4lf&mu;s" ) % time_end << "</td>"
-          << "<td>" << info.nSamples << "</td>"
-          << "<td>" << info.nAverage << "</td>"
-          << "<td>" << info.mode << "</td>"
+          << "<td>" << info.nSamples() << "</td>"
+          << "<td>" << info.numberOfTriggers() << "</td>"
+          << "<td>" << info.mode() << "</td>"
 		  << "<td>" << prop.dataInterpreterClsid() << "</td>"
           << "</tr>";
 

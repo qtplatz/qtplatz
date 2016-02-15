@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -37,7 +37,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
-//#include <adcontrols/waveform_filter.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>
@@ -461,11 +461,11 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::ap2
     sp.setCentroid( adcontrols::CentroidNone );
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::MSProperty::SamplingInfo info( 0
-                                               , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.size() )
-                                               , waveform.method_.hor_.nbrAvgWaveforms
-                                               , 0 );
+    adcontrols::SamplingInfo info( 0
+                                   , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
+                                   , uint32_t( waveform.size() )
+                                   , waveform.method_.hor_.nbrAvgWaveforms
+                                   , 0 );
     info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
@@ -714,11 +714,11 @@ document::getHistogram( int channel, double resolution ) const
         sp->setCentroid( adcontrols::CentroidNative );
         
         adcontrols::MSProperty prop = sp->getMSProperty();
-        adcontrols::MSProperty::SamplingInfo info( 0
-                                                   , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
-                                                   , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
-                                                   , uint32_t( trigCount )
-                                                   , 0 );
+        adcontrols::SamplingInfo info( 0
+                                       , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
+                                       , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
+                                       , uint32_t( trigCount )
+                                       , 0 );
         info.fSampInterval( meta.xIncrement );
         prop.acceleratorVoltage( 3000 );
         prop.setSamplingInfo( info );

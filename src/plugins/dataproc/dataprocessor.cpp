@@ -56,6 +56,7 @@
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/spectrogram.hpp>

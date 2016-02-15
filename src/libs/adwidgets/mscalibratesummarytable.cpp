@@ -35,6 +35,7 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/mspeak.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adlog/logger.hpp>
@@ -316,7 +317,7 @@ MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int
         model.setData( model.index( row, c_fcn ),   idx.first );
         model.setData( model.index( row, c_index ), idx.second );
         
-        model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode ); // nTurns
+        model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode() ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
         model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
 
@@ -375,7 +376,7 @@ MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int
 
         adcontrols::MassSpectrum& ms = segments[ it->first ];
 
-        model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode ); // nTurns
+        model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode() ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( it->second ) );
 
         model.setData( model.index( row, c_time ),  ms.getTime( it->second ) );

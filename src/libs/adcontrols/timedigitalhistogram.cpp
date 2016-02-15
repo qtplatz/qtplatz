@@ -26,6 +26,7 @@
 #include "serializer.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -319,12 +320,11 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
 
     adcontrols::MSProperty prop;
-    adcontrols::MSProperty::SamplingInfo
-        info( 0 /* int interval (must be zero) */
-              , uint32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + 0.5 )  // delay
-              , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
-              , uint32_t( hgrm.trigger_count() )
-              , 0 /* mode */);
+    adcontrols::SamplingInfo info( 0 /* int interval (must be zero) */
+                                   , uint32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + 0.5 )  // delay
+                                   , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
+                                   , uint32_t( hgrm.trigger_count() )
+                                   , 0 /* mode */);
     
     info.fSampInterval( hgrm.xIncrement() );
 

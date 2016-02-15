@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,9 +31,10 @@
 #include "annotations.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
-#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/samplinginfo.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
@@ -800,19 +801,19 @@ TraceData::y_range( double left, double right ) const
 
             if ( isTimeAxis_ && !isCentroid ) {
                 struct index {
-                    const adcontrols::MSProperty::SamplingInfo& info_;
-                    index( const adcontrols::MSProperty::SamplingInfo& info ) : info_( info ) {}
+                    const adcontrols::SamplingInfo& info_;
+                    index( const adcontrols::SamplingInfo& info ) : info_( info ) {}
                     uint32_t operator ()( double t ) const {
                         uint32_t idx = uint32_t( t / info_.fSampInterval() + 0.5 );
-                        if ( idx < info_.nSamplingDelay )
+                        if ( idx < info_.nSamplingDelay() )
                             return 0;
-                        idx -= info_.nSamplingDelay;
-                        if ( idx >= info_.nSamples )
-                            return info_.nSamples - 1;
+                        idx -= info_.nSamplingDelay();
+                        if ( idx >= info_.nSamples() )
+                            return info_.nSamples() - 1;
                         return idx;
                     }
                 };
-                const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().samplingInfo();
+                const adcontrols::SamplingInfo& info = seg.getMSProperty().samplingInfo();
                 idleft = index( seg.getMSProperty().samplingInfo() )( xleft );
                 idright = index( seg.getMSProperty().samplingInfo() )( xright );
             } else {
