@@ -552,7 +552,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
 
-    const device_data data( *waveform.ident_, waveform.meta_, this_protocol ? *this_protocol : adcontrols::TofProtocol() );
+    if ( this_protocol )
+        prop.setTofProtocol( *this_protocol );
+    const device_data data( *waveform.ident_, waveform.meta_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
@@ -606,7 +608,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
 
-    const device_data data( *waveform.ident_, waveform.meta_, this_protocol );
+    prop.setTofProtocol( this_protocol );
+
+    const device_data data( *waveform.ident_, waveform.meta_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );

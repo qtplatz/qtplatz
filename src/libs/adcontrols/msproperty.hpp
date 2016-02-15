@@ -96,7 +96,7 @@ namespace adcontrols {
         void setSamplingInterval( uint32_t ); // ps
         void setfSamplingInterval( double ); // seconds
 
-        void setTofProtocol( std::shared_ptr< const TofProtocol >& );
+        void setTofProtocol( const TofProtocol& );
         std::shared_ptr< const TofProtocol > tofProtocol();
 
         static double toSeconds( size_t idx, const SamplingInfo& info );

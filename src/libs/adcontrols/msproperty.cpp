@@ -417,9 +417,9 @@ MSProperty::scanLaw() const
 }
 
 void
-MSProperty::setTofProtocol( std::shared_ptr< const TofProtocol >& ptr )
+MSProperty::setTofProtocol( const TofProtocol& proto )
 {
-    tofProtocol_ = ptr;
+    tofProtocol_ = std::make_shared< const TofProtocol >( proto );
 }
 
 std::shared_ptr< const TofProtocol >

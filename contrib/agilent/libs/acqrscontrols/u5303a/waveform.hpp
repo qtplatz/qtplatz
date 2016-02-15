@@ -58,14 +58,10 @@ namespace acqrscontrols {
         public:
             device_data() {}
             device_data( const identify& ident
-                         , const metadata& meta
-                         , const adcontrols::TofProtocol& proto ) : ident_( ident )
-                                                                  , meta_( meta ) 
-                                                                  , this_protocol_( proto ) {
+                         , const metadata& meta ) : ident_( ident ), meta_( meta ) {
             }
             identify ident_;
             metadata meta_;
-            adcontrols::TofProtocol this_protocol_;
 
         private:
             friend class boost::serialization::access;
