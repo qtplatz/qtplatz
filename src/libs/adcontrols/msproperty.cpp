@@ -276,11 +276,11 @@ MSProperty::setSamplingDelay( uint32_t v )
 void
 MSProperty::setSamplingInterval( uint32_t v ) // ps
 {
-    samplingData_->setSampInterval( v );
+    samplingData_->fSampInterval( v * 1.0e-12 );
 }
 
 void
-MSProperty::setfSamplingInterval( double v ) // seconds
+MSProperty::setSamplingInterval( double v ) // seconds
 {
 	samplingData_->fSampInterval( v );
 }
@@ -365,40 +365,24 @@ MSProperty::setSamplingInfo( const SamplingInfo& v )
 double
 MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 {
-    if ( info.sampInterval() )
-        return ( info.nSamplingDelay() + idx ) * info.sampInterval() * 1e-12;
-    else
-        return ( info.nSamplingDelay() + idx ) * info.fSampInterval() + info.horPos();
+    return ( info.nSamplingDelay() + idx ) * info.fSampInterval() + info.horPos();
 }
 
 size_t
 MSProperty::toIndex( double seconds, const SamplingInfo& info )
 {
-    if ( info.sampInterval() ) {
-        return size_t( ( seconds / ( info.sampInterval() * 1.0e-12 ) ) + 0.5 ) - info.nSamplingDelay();
-    } else {
-        return size_t( ( ( seconds - info.horPos() ) / info.fSampInterval() ) + 0.5 ) - info.nSamplingDelay();
-    }
+    return size_t( ( ( seconds - info.horPos() ) / info.fSampInterval() ) + 0.5 ) - info.nSamplingDelay();
 }
 
 size_t
 MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix pfx )
 {
-    if ( info.sampInterval() ) {
-        size_t n = 0;
-        for ( n = 0; n < size; ++n ) {
-            double d = double( ( info.nSamplingDelay() + n ) * info.sampInterval() ); 
-            p[ n ] = metric::scale_to<double>( pfx, d, metric::pico );
-        }
-        return n;
-    } else {
-        size_t n = 0;
-        for ( n = 0; n < size; ++n ) {
-            double d = double( ( info.nSamplingDelay() + n ) * info.fSampInterval() ); 
-            p[ n ] = metric::scale_to<double>( pfx, d, metric::base );
-        }
-        return n;
+    size_t n = 0;
+    for ( n = 0; n < size; ++n ) {
+        double d = double( ( info.nSamplingDelay() + n ) * info.fSampInterval() );
+        p [ n ] = metric::scale_to<double>( pfx, d, metric::base );
     }
+    return n;
 }
 
 const adcontrols::MassSpectrometer&

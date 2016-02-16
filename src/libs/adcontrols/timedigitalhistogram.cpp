@@ -310,6 +310,7 @@ TimeDigitalHistogram::accumulate( double tof, double window ) const
     return 0;
 }
 
+
 bool
 TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigitalHistogram& hgrm )
 {
@@ -320,14 +321,12 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
 
     adcontrols::MSProperty prop;
-    adcontrols::SamplingInfo info( 0 /* int interval (must be zero) */
+    adcontrols::SamplingInfo info( hgrm.xIncrement()
                                    , uint32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + 0.5 )  // delay
                                    , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
                                    , uint32_t( hgrm.trigger_count() )
-                                   , 0 /* mode */);
+                                   , hgrm.this_protocol_.mode() /* mode */);
     
-    info.fSampInterval( hgrm.xIncrement() );
-
     prop.acceleratorVoltage( 3000 ); // nominal
     prop.setSamplingInfo( info );
         

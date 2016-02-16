@@ -47,6 +47,12 @@ namespace adcontrols {
         std::vector< delay_pulse_type >& delay_pulses();
         const std::vector< delay_pulse_type >& delay_pulses() const;
 
+        uint32_t number_of_triggers() const;
+        void setNumber_of_triggers( uint32_t );
+
+        uint32_t mode() const;
+        void setMode( uint32_t );
+
         std::vector< std::pair< int32_t, additional_value_type > >& additionals();
         const std::vector< std::pair< int32_t, additional_value_type > >& additionals() const;
         
@@ -59,10 +65,14 @@ namespace adcontrols {
         void setReference( uint32_t );
         uint32_t reference() const;
 
+        void setMassRange( double lower, double upper );
+        std::pair< double, double > massRange() const;
+
     private:
         double lower_mass_;
         double upper_mass_;
-        uint32_t number_of_triggers_; // 0 if averager mode
+        uint32_t number_of_triggers_;           // 0 if averager mode
+        uint32_t mode_;                         // analyzer mode, 'number of laps' for multum; or "linear|reflectron" mode
         std::vector< delay_pulse_type > delay_pulses_;
         std::vector< std::pair< int32_t, additional_value_type > > additionals_;
         uint32_t reference_;                    // lock mass reference (bit position indicate which formula in formulae
@@ -84,4 +94,4 @@ namespace adcontrols {
 
 };
 
-BOOST_CLASS_VERSION( adcontrols::TofProtocol, 0 )
+BOOST_CLASS_VERSION( adcontrols::TofProtocol, 1 )

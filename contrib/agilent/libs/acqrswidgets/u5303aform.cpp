@@ -128,7 +128,7 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
 
     ui->spinBox->setValue( m._device_method().nbr_of_averages );
 
-    ui->checkBox_Avg->setChecked( !( m.mode() == 0 ) );
+    ui->checkBox_Avg->setChecked( !( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) );
 
     ui->spinBox_2->setValue( m._device_method().nbr_records );
 
@@ -157,7 +157,7 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
 
     m._device_method().nbr_of_averages = ui->spinBox->value();
 
-    m.setMode( ui->checkBox_Avg->isChecked() ? 2 : 0 );
+    m.setMode( ui->checkBox_Avg->isChecked() ? acqrscontrols::u5303a::method::DigiMode::Averager : acqrscontrols::u5303a::method::DigiMode::Digitizer );
 
     m._device_method().nbr_records = ui->spinBox_2->value();
 

@@ -195,13 +195,13 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
         const adcontrols::SamplingInfo& info = prop.samplingInfo();
-        double start_delay = scale_to<double, micro>( info.sampInterval() * info.nSamplingDelay(), pico );
-        double time_end = scale_to<double, micro>( info.sampInterval() * ( info.nSamplingDelay() + info.nSamples() ), pico );
+        double start_delay = info.fSampInterval() * info.nSamplingDelay();
+        double time_end = info.fSampInterval() * ( info.nSamplingDelay() + info.nSamples() );
         o << "<tr>"
           << boost::format( "<td rowspan=\"%1%\">" ) % nrowspan << n++ << "</td>"
-          << "<td>" << info.sampInterval() << "</td>"
-          << "<td>" << boost::format( "%.4lf&mu;s" ) % start_delay << "</td>"
-          << "<td>" << boost::format( "%.4lf&mu;s" ) % time_end << "</td>"
+          << "<td>" << boost::format( "%.1lfns" ) % scale_to_nano( info.fSampInterval() ) << "</td>"
+          << "<td>" << boost::format( "%.4lf&mu;s" ) % scale_to_micro( start_delay ) << "</td>"
+          << "<td>" << boost::format( "%.4lf&mu;s" ) % scale_to_micro( time_end ) << "</td>"
           << "<td>" << info.nSamples() << "</td>"
           << "<td>" << info.numberOfTriggers() << "</td>"
           << "<td>" << info.mode() << "</td>"

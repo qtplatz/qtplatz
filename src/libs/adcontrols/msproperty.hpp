@@ -93,8 +93,8 @@ namespace adcontrols {
         uint32_t numAverage() const;
         void setNumAverage( uint32_t );
         void setSamplingDelay( uint32_t );
-        void setSamplingInterval( uint32_t ); // ps
-        void setfSamplingInterval( double ); // seconds
+        [[deprecated("use SampleInfo api")]] void setSamplingInterval( uint32_t ); // ps
+        [[deprecated("use SampleInfo api")]] void setSamplingInterval( double );   // seconds
 
         void setTofProtocol( const TofProtocol& );
         std::shared_ptr< const TofProtocol > tofProtocol();

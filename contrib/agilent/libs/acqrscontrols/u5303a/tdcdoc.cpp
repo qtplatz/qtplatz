@@ -437,7 +437,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 
         if ( data.meta_.dataType == 2 )
             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
-        else
+        else if ( data.meta_.dataType == 4 )
             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
     }
 }
@@ -461,6 +461,7 @@ std::shared_ptr< adcontrols::MassSpectrum >
 tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const
 {
     acqrscontrols::u5303a::metadata meta;
+    acqrscontrols::u5303a::method method;
     std::vector< std::pair< double, uint32_t > > hist;
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();
@@ -468,20 +469,22 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 
     std::pair<uint32_t,uint32_t> serialnumber;
 
-    trigCount = impl_->histograms_[ channel ]->getHistogram( hist, meta, serialnumber, timeSinceEpoch );
+    trigCount = impl_->histograms_[ channel ]->getHistogram( hist, meta, method, serialnumber, timeSinceEpoch );
 
     const auto& histogram = impl_->histograms_[ channel ];
+
+    const auto& this_protocol = method.protocols().size() > method.protocolIndex() ? method.protocols().at( method.protocolIndex() ) : adcontrols::TofProtocol();
 
     using namespace adcontrols::metric;
     
     adcontrols::MSProperty prop = sp->getMSProperty();
     
-    adcontrols::SamplingInfo info( 0 /* int interval (must be zero) */
+    adcontrols::SamplingInfo info( meta.xIncrement
                                    , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
                                    , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
                                    , uint32_t( trigCount )
-                                   , 0 /* mode */);
-    info.fSampInterval( meta.xIncrement );
+                                   , this_protocol.mode() );
+
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
         
@@ -490,6 +493,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     prop.setNumAverage( uint32_t( trigCount ) );
     prop.setTrigNumber( histogram->trigNumber() );
     prop.setDataInterpreterClsid( "u5303a" );
+    prop.setTofProtocol( this_protocol );
         
     {
         acqrscontrols::u5303a::device_data data;

@@ -47,6 +47,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.lower_mass_ );
             ar & BOOST_SERIALIZATION_NVP( _.upper_mass_ );
             ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
             ar & BOOST_SERIALIZATION_NVP( _.delay_pulses_ );
             ar & BOOST_SERIALIZATION_NVP( _.additionals_ );
             ar & BOOST_SERIALIZATION_NVP( _.reference_ );
@@ -81,6 +83,7 @@ using namespace adcontrols;
 TofProtocol::TofProtocol() : lower_mass_( 0 )
                            , upper_mass_( 0 )
                            , number_of_triggers_( 0 )
+                           , mode_( 0 )
                            , delay_pulses_( { { 0,0 }   // push
                                    , { 0,0 }            // inject
                                    , { 0,0 }            // exit
@@ -92,6 +95,7 @@ TofProtocol::TofProtocol() : lower_mass_( 0 )
 TofProtocol::TofProtocol( const TofProtocol& t ) : lower_mass_( t.lower_mass_ )
                                                  , upper_mass_( t.upper_mass_ )
                                                  , number_of_triggers_( t.number_of_triggers_ )
+                                                 , mode_( t.mode_ )
                                                  , delay_pulses_( t.delay_pulses_ )
                                                  , additionals_( t.additionals_ )
                                                  , reference_( t.reference_ )
@@ -158,6 +162,30 @@ uint32_t
 TofProtocol::reference() const
 {
     return reference_;
+}
+
+uint32_t
+TofProtocol::number_of_triggers() const
+{
+    return number_of_triggers_;
+}
+
+void
+TofProtocol::setNumber_of_triggers( uint32_t value )
+{
+    number_of_triggers_ = value;
+}
+
+uint32_t
+TofProtocol::mode() const
+{
+    return mode_;
+}
+
+void
+TofProtocol::setMode( uint32_t value )
+{
+    mode_ = value;
 }
 
 ///////////////////

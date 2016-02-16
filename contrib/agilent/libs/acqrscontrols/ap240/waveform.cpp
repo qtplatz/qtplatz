@@ -386,12 +386,12 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     sp.setCentroid( adcontrols::CentroidNone );
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::SamplingInfo info( 0 /* sampInterval (ps) */
+    adcontrols::SamplingInfo info( waveform.meta_.xIncrement
                                    , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
                                    , 0 /* mode */ );
-    info.fSampInterval( waveform.meta_.xIncrement );
+    //info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );

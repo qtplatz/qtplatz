@@ -59,6 +59,7 @@ namespace acqrscontrols {
 
             size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
                                  , metadata& meta
+                                 , method& method
                                  , std::pair<uint32_t, uint32_t>& serialnumber
                                  , std::pair<uint64_t, uint64_t>& timeSinceEpoch );
 

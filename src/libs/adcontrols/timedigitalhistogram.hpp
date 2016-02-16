@@ -39,6 +39,7 @@ namespace boost {
 namespace adcontrols {
 
     class MassSpectrum;
+    class ScanLaw;
 
     template< typename T > class TimeDigitalHistogram_archive;
 

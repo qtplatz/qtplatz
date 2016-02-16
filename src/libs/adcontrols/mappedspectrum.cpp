@@ -326,7 +326,7 @@ MappedSpectrum::transform( adcontrols::MassSpectrum& ms )
     auto& prop = ms.getMSProperty();
 
     uint32_t nDelay = uint32_t( ( delay_ / sampInterval_ ) + 0.5 );
-    auto si = SamplingInfo( 0, nDelay, nSamples_, num_average_, 0 /* mode */ );
+    auto si = SamplingInfo( sampInterval_, nDelay, nSamples_, num_average_, 0 /* mode */ );
     si.fSampInterval( sampInterval_ );
     prop.setSamplingInfo( si );
     prop.setNumAverage( num_average_ );

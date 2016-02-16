@@ -566,7 +566,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 bool
 task::handle_protocol( const acqrscontrols::u5303a::method m )
 {
-    if ( m.mode() == 0 )
+    if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer )
         device::setup( *this, m );
     else
         device::setup( *this, m );
@@ -625,8 +625,9 @@ task::handle_acquire()
     
     if ( acquire() ) {
 
+        using acqrscontrols::u5303a::method;
         if ( waitForEndOfAcquisition( 3000 ) ) {
-            if ( method_.mode() == 0 ) { // digitizer
+            if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
                 digitizer::readData( *spDriver(), method_, vec );
@@ -668,7 +669,7 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    if ( method_.mode() && simulated_ )    
+    if ( (method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager) && simulated_ )    
         return simulator::instance()->acquire();
 
     tp_acquire_ = std::chrono::steady_clock::now();
@@ -684,7 +685,7 @@ task::waitForEndOfAcquisition( int timeout )
 #else
         std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
 #endif
-        if ( method_.mode() )
+        if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager )
             return simulator::instance()->waitForEndOfAcquisition();
     }
 
@@ -708,7 +709,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     //-------------------
 
     bool result( false );
-    if ( method_.mode() == 0 ) {
+    if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) {
         result = digitizer::readData16( *spDriver(), method_, data );
     } else {
         result = digitizer::readData32( *spDriver(), method_, data );
@@ -799,7 +800,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             break;
     }
         
-    if ( m.mode() == 0 ) { // Digitizer 
+    if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer 
         // ADDEBUG() << "Normal Mode";
         task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );

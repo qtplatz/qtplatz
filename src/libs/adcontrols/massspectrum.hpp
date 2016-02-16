@@ -77,6 +77,7 @@ namespace adcontrols {
     class MSProperty;
     class annotations;
 	class ScanLaw;
+
     
     class ADCONTROLSSHARED_EXPORT MassSpectrum {
     public:
@@ -128,8 +129,11 @@ namespace adcontrols {
         void setPolarity( MS_POLARITY );
         int mode() const;
 
-        void setScanLaw( const adcontrols::ScanLaw&, bool assignMasses = false );
+        typedef double( mass_assign_t )( double time, int mode );
+        typedef std::function< mass_assign_t > mass_assignee_t;
         
+        bool assign_masses( mass_assignee_t );
+        //void setScanLaw( const adcontrols::ScanLaw&, bool assignMasses = false );
         void setCalibration( const adcontrols::MSCalibration&, bool assignMasses = false );
         const MSCalibration& calibration() const;
         

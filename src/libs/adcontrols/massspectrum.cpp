@@ -1210,3 +1210,25 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
     return true;
 }
 
+bool
+MassSpectrum::assign_masses( mass_assignee_t assign_mass )
+{
+    const MSProperty& prop = pImpl_->getMSProperty();
+    int mode = prop.mode();
+        
+    if ( pImpl_->tofArray_.empty() ) {
+
+        size_t idx(0);
+        std::transform( pImpl_->massArray_.begin(), pImpl_->massArray_.end(), pImpl_->massArray_.begin()
+                       , [&]( const double& ){
+                           return assign_mass( MSProperty::toSeconds( idx++, prop.samplingInfo() ), mode );
+                       } );
+        
+    } else {
+
+        std::transform( pImpl_->tofArray_.begin(), pImpl_->tofArray_.end(), pImpl_->massArray_.begin(), [&]( const double& t ){ return assign_mass( t, mode ); } );
+
+    }
+
+    return true;
+}

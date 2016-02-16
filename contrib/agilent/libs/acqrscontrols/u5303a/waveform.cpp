@@ -524,24 +524,26 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
 
 //static
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, const adcontrols::ScanLaw& scanLaw, int scale )
+waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mass_assignor_t assign, int scale )
 {
     if ( translate( sp, waveform, scale ) ) {
-        // apply scanlaw
-        //sp.setScanLaw( scanLaw, true );
-        return true;
+
+        return sp.assign_masses( assign );
+
     }
+
     return false;
 }
 
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, const adcontrols::ScanLaw& scanLaw, int scale )
+waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, mass_assignor_t assign, int scale )
 {
     if ( translate( sp, result, scale ) ) {
-        // apply scanlaw
-        //sp.setScanLaw( scanLaw, true );
-        return true;
+
+        return sp.assign_masses( assign );
+
     }
+
     return false;
 }
 
@@ -563,12 +565,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     }
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::SamplingInfo info( 0 /* sampInterval (ps) */
-                                               , uint32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.size() )
-                                               , waveform.meta_.actualAverages
-                                               , 0 /* mode */ );
-    info.fSampInterval( waveform.meta_.xIncrement );
+    int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
+    adcontrols::SamplingInfo info( waveform.meta_.xIncrement
+                                   , uint32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + 0.5 )
+                                   , uint32_t( waveform.size() )
+                                   , waveform.meta_.actualAverages
+                                   , mode );
+    //info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
@@ -619,12 +622,12 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     double ext_adc_delay = this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::SamplingInfo info( 0 /* sampInterval (ps) */
-                                               , uint32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + 0.5 )
-                                               , uint32_t( waveform.size() )
-                                               , waveform.meta_.actualAverages
-                                               , 0 /* mode */ );
-    info.fSampInterval( waveform.meta_.xIncrement );
+    adcontrols::SamplingInfo info( waveform.meta_.xIncrement
+                                   , uint32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + 0.5 )
+                                   , uint32_t( waveform.size() )
+                                   , waveform.meta_.actualAverages
+                                   , this_protocol.mode() );
+    //info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     

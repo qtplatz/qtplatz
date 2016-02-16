@@ -139,7 +139,7 @@ namespace acqrscontrols {
 using namespace acqrscontrols::u5303a;
 
 method:: method() : channels_( 0x01 )
-                  , mode_( 0 ) // digitizer mode
+                  , mode_( DigiMode::Digitizer ) // digitizer mode
                   , protocolIndex_( 0 )
                   , protocols_( 1 ) // at lease one protocol data should be exist
 {
@@ -185,7 +185,7 @@ method::setChannels( uint32_t channels )
     channels_ = channels;
 }
 
-uint32_t
+method::DigiMode
 method::mode() const
 {
     // 0 := digitizer, 2 := averager
@@ -193,7 +193,7 @@ method::mode() const
 }
 
 void
-method::setMode( uint32_t mode )
+method::setMode( DigiMode mode )
 {
     mode_ = mode;
 }

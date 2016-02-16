@@ -45,20 +45,33 @@ namespace adcontrols {
     public:
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
-            ar & BOOST_SERIALIZATION_NVP(_.sampInterval_);
-            ar & BOOST_SERIALIZATION_NVP(_.nSamplingDelay_);
-            ar & BOOST_SERIALIZATION_NVP(_.nSamples_);
-            ar & BOOST_SERIALIZATION_NVP(_.nAverage_);
-            if ( version >= 3 )
-                ar & BOOST_SERIALIZATION_NVP(_.mode_);
-            if ( version >= 4 ) {
-                uint32_t padding(0);
-                ar & BOOST_SERIALIZATION_NVP(padding);
-                ar & BOOST_SERIALIZATION_NVP(_.fsampInterval_);
-            }
-            if ( version >= 5 ) {
+            if ( version >= 6 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.nSamplingDelay_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nSamples_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nAverage_ );
+                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+                ar & BOOST_SERIALIZATION_NVP( _.fsampInterval_ );
                 ar & BOOST_SERIALIZATION_NVP( _.horPos_ );
                 ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
+            } else {
+                uint32_t sampInterval;
+                ar & BOOST_SERIALIZATION_NVP( sampInterval );
+                ar & BOOST_SERIALIZATION_NVP( _.nSamplingDelay_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nSamples_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nAverage_ );
+                if ( version >= 3 )
+                    ar & BOOST_SERIALIZATION_NVP( _.mode_ );
+                if ( version >= 4 ) {
+                    uint32_t padding( 0 );
+                    ar & BOOST_SERIALIZATION_NVP( padding );
+                    ar & BOOST_SERIALIZATION_NVP( _.fsampInterval_ );
+                }
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.horPos_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
+                }
+                if ( sampInterval )
+                    _.fsampInterval_ = sampInterval * 1.0e-12; // ps -> s
             }
         }
         
@@ -89,23 +102,22 @@ namespace adcontrols {
 
 using namespace adcontrols;
 
-SamplingInfo::SamplingInfo( uint32_t interval
+SamplingInfo::SamplingInfo( double interval
                             , uint32_t ndelay
                             , uint32_t nsamples
                             , uint32_t navgr
-                            , uint32_t _mode )   : sampInterval_( interval )
-                                                 , nSamplingDelay_( ndelay )
+                            , uint32_t _mode )   : nSamplingDelay_( ndelay )
                                                  , nSamples_( nsamples )  
                                                  , nAverage_( navgr )
                                                  , mode_( _mode )
-                                                 , fsampInterval_( 0.0 )
+                                                 , fsampInterval_( interval )
                                                  , horPos_( 0.0 )
                                                  , delayTime_( 0.0 )
 {
+    assert( interval < 1.0e-6 );  // 1us limit, for security due to originally this was 'ps' in integer.
 }
 
-SamplingInfo::SamplingInfo() : sampInterval_( 0 )
-                             , nSamplingDelay_( 0 )
+SamplingInfo::SamplingInfo() : nSamplingDelay_( 0 )
                              , nSamples_( 0 )
                              , nAverage_( 0 )
                              , mode_( 0 )
@@ -119,14 +131,11 @@ void
 SamplingInfo::fSampInterval( double v )
 {
     fsampInterval_ = v;
-    sampInterval_ = 0;
 }
 
 double
 SamplingInfo::fSampInterval() const
 {
-    if ( sampInterval_ )
-        return double(sampInterval_) * 1.0e-12; // ps --> seconds
     return fsampInterval_;
 }
 
@@ -170,7 +179,7 @@ SamplingInfo::numberOfTriggers() const
 void
 SamplingInfo::setNumberOfTriggers( size_t value )
 {
-    nAverage_ = value;
+    nAverage_ = static_cast< uint32_t >(value);
 }
 
 uint32_t
@@ -184,19 +193,6 @@ SamplingInfo::setMode( uint32_t value )
 {
     mode_ = value;
 }
-
-void
-SamplingInfo::setSampInterval( uint32_t value )
-{
-    sampInterval_ = value;
-}
-
-uint32_t
-SamplingInfo::sampInterval() const
-{
-    return sampInterval_;
-}
-
 
 uint32_t
 SamplingInfo::nSamples() const

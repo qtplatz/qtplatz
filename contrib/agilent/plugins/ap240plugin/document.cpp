@@ -461,12 +461,12 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::ap2
     sp.setCentroid( adcontrols::CentroidNone );
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    adcontrols::SamplingInfo info( 0
+    adcontrols::SamplingInfo info( waveform.meta_.xIncrement
                                    , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
                                    , uint32_t( waveform.size() )
                                    , waveform.method_.hor_.nbrAvgWaveforms
                                    , 0 );
-    info.fSampInterval( waveform.meta_.xIncrement );
+    //info.fSampInterval( waveform.meta_.xIncrement );
     prop.acceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
@@ -714,12 +714,12 @@ document::getHistogram( int channel, double resolution ) const
         sp->setCentroid( adcontrols::CentroidNative );
         
         adcontrols::MSProperty prop = sp->getMSProperty();
-        adcontrols::SamplingInfo info( 0
+        adcontrols::SamplingInfo info( meta.xIncrement
                                        , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
                                        , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
                                        , uint32_t( trigCount )
                                        , 0 );
-        info.fSampInterval( meta.xIncrement );
+        //info.fSampInterval( meta.xIncrement );
         prop.acceleratorVoltage( 3000 );
         prop.setSamplingInfo( info );
         

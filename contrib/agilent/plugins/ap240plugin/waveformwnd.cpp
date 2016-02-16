@@ -254,13 +254,13 @@ WaveformWnd::handle_waveform()
             }
             
             adcontrols::MSProperty prop = sp->getMSProperty();
-            adcontrols::SamplingInfo info( 0
+            adcontrols::SamplingInfo info( waveform->meta_.xIncrement
                                            , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
                                            , uint32_t( waveform->size() )
                                            , waveform->meta_.actualAverages
                                            , 0 );
             
-            info.fSampInterval( waveform->meta_.xIncrement );
+            //info.fSampInterval( waveform->meta_.xIncrement );
             info.horPos( waveform->meta_.horPos );
             
             prop.setSamplingInfo( info );

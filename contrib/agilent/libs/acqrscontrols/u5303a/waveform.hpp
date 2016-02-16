@@ -142,12 +142,14 @@ namespace acqrscontrols {
             
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
-            static bool translate( adcontrols::MassSpectrum&, const waveform&, const adcontrols::ScanLaw&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
 
-            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, const adcontrols::ScanLaw&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            typedef double( mass_assign_t )( double time, int mode );
+            typedef std::function< mass_assign_t > mass_assignor_t;
 
+            static bool translate( adcontrols::MassSpectrum&, const waveform&, mass_assignor_t, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
+            
         private:
             friend class waveform_xmeta_archive< waveform >;
             friend class waveform_xmeta_archive< const waveform >;

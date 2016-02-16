@@ -54,10 +54,12 @@ namespace acqrscontrols {
             static const char * itemLabel() { return "u5303a"; }
             static const boost::uuids::uuid& clsid();
 
+            enum class DigiMode : uint32_t { Digitizer = 0, Averager = 2 };
+
             uint32_t channels() const;
             void setChannels( uint32_t );
-            uint32_t mode() const;  // 0 := digitizer, 2 := averager
-            void setMode( uint32_t );
+            DigiMode mode() const;  // 0 := digitizer, 2 := averager
+            void setMode( DigiMode );
             const device_method& _device_method() const;
             device_method& _device_method();
             uint32_t protocolIndex() const;
@@ -72,7 +74,7 @@ namespace acqrscontrols {
 
         private:
             uint32_t channels_;
-            uint32_t mode_;  // 0 := digitizer, 2 := averager
+            DigiMode mode_;  // 0 := digitizer, 2 := averager
             acqrscontrols::u5303a::device_method method_;
             uint32_t protocolIndex_;
             std::vector< adcontrols::TofProtocol > protocols_;

@@ -172,7 +172,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
             double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
-            x.histogram().emplace_back( std::make_pair( t, *it ) );
+            x.histogram().emplace_back( t, *it );
         }
     }
     reset_requested_ = reset;
@@ -181,6 +181,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
 size_t
 histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
                          , metadata& meta
+                         , method& method
                          , std::pair<uint32_t, uint32_t>& serialnumber
                          , std::pair<uint64_t, uint64_t>& timeSinceEpoch )
 {
@@ -189,6 +190,7 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
     hist.clear();
 
     meta = meta_;
+    method = method_;
     serialnumber = std::make_pair( serialnumber_0_, serialnumber_ );
     timeSinceEpoch = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
 

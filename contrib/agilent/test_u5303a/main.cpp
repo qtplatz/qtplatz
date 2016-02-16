@@ -172,7 +172,7 @@ main( int argc, char * argv [] )
 
             acqrscontrols::u5303a::method method;
             method.setChannels( 0x01 );
-            method.setMode( vm[ "mode" ].as<int>() );
+            method.setMode( static_cast<acqrscontrols::u5303a::method::DigiMode>( vm[ "mode" ].as<int>() ) );
             method._device_method().front_end_range = 1.0;  // V
             method._device_method().front_end_offset = 0.0; // V
             method._device_method().ext_trigger_level = 1.0;

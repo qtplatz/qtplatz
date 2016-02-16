@@ -42,11 +42,9 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT SamplingInfo {
     public:
         SamplingInfo();
-        SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode );
+        SamplingInfo( const uint32_t sampInterval, uint32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode ) = delete; // obsolete
+        SamplingInfo( const double fSampInterval, uint32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode );
 
-        uint32_t sampInterval() const;  // ps
-        void setSampInterval( uint32_t );
-        
         uint32_t nSamplingDelay() const;
         void setNSamplingDelay( uint32_t );
 
@@ -65,7 +63,6 @@ namespace adcontrols {
         void setNumberOfTriggers( size_t );
         
     private:
-        uint32_t sampInterval_;  // ps
         uint32_t nSamplingDelay_;
         uint32_t nSamples_;
         uint32_t nAverage_;
@@ -83,5 +80,5 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::SamplingInfo, 5 )
+BOOST_CLASS_VERSION( adcontrols::SamplingInfo, 6 )
 
