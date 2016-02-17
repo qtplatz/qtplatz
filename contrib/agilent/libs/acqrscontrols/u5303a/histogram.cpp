@@ -93,6 +93,7 @@ histogram::append( const threshold_result& result )
     return ++trigger_count_;
 }
 
+#if 0
 size_t
 histogram::append( const adcontrols::TimeDigitalHistogram& x )
 {
@@ -138,6 +139,7 @@ histogram::append( const adcontrols::TimeDigitalHistogram& x )
 
     return trigger_count_;
 }
+#endif
 
 size_t
 histogram::trigger_count() const

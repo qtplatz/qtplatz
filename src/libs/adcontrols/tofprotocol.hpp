@@ -59,8 +59,8 @@ namespace adcontrols {
         std::vector< std::string >& formulae();
         const std::vector< std::string >& formulae() const;
 
-        void setDescription( const std::string& );
-        const std::string& description() const;
+        void setDevicedata( const std::string& );
+        const std::string& devicedata() const;
 
         void setReference( uint32_t );
         uint32_t reference() const;
@@ -71,14 +71,16 @@ namespace adcontrols {
     private:
         double lower_mass_;
         double upper_mass_;
+        double acceleratorVoltage_;            // for scan law  // V2
+        double tDelay_;                        // for scan laaw // V2
+        uint32_t mode_;                         // analyzer mode, 'number of laps' for multum; or "linear|reflectron" mode // V1
         uint32_t number_of_triggers_;           // 0 if averager mode
-        uint32_t mode_;                         // analyzer mode, 'number of laps' for multum; or "linear|reflectron" mode
         std::vector< delay_pulse_type > delay_pulses_;
         std::vector< std::pair< int32_t, additional_value_type > > additionals_;
         uint32_t reference_;                    // lock mass reference (bit position indicate which formula in formulae
         std::vector< std::string > formulae_;   // formula list, separate with ';'
-        std::string description_;
-        
+        std::string devicedata_;                // device specific data
+
     public:
         TofProtocol();
         TofProtocol( const TofProtocol& t );
@@ -94,4 +96,4 @@ namespace adcontrols {
 
 };
 
-BOOST_CLASS_VERSION( adcontrols::TofProtocol, 1 )
+BOOST_CLASS_VERSION( adcontrols::TofProtocol, 2 )
