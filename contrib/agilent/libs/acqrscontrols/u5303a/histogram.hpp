@@ -49,7 +49,6 @@ namespace acqrscontrols {
             void clear();
             void reset();
             size_t append( const threshold_result& result );
-            size_t append( const adcontrols::TimeDigitalHistogram& );
             
             size_t trigger_count() const;
             double triggers_per_sec() const;
