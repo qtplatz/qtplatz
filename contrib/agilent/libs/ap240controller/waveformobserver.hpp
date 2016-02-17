@@ -53,6 +53,8 @@ namespace ap240controller {
 
         const char * dataInterpreterClsid() const override { return "ap240.digi"; }
         int32_t posFromTime( uint64_t usec ) const override;
+        bool prepareStorage( adicontroller::SampleProcessor& ) const override { return false; }
+        bool closingStorage( adicontroller::SampleProcessor& ) const override { return false; }
         
         // WaveformObserver
         typedef std::pair< std::shared_ptr< acqrscontrols::ap240::waveform >, std::shared_ptr< acqrscontrols::ap240::waveform > > waveform_pair_t;

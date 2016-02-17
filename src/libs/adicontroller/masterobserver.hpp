@@ -54,7 +54,11 @@ namespace adicontroller {
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
         const char * dataInterpreterClsid() const override;
 
+        bool prepareStorage( SampleProcessor& ) const override;
+        bool closingStorage( SampleProcessor& ) const override;
+
         virtual void dataChanged( SignalObserver::Observer * so, uint32_t pos );
+        
     };
 
 }

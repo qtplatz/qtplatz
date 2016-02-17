@@ -137,3 +137,21 @@ MasterObserver::dataChanged( adicontroller::SignalObserver::Observer * so, uint3
             });
     }
 }
+
+bool
+MasterObserver::prepareStorage( SampleProcessor& sp ) const
+{
+    for ( auto observer : siblings() ) {
+        observer->prepareStorage( sp );
+    }
+    return true;
+}
+
+bool 
+MasterObserver::closingStorage( SampleProcessor& sp ) const
+{
+    for ( auto observer : siblings() ) {
+        observer->closingStorage( sp );
+    }
+    return true;
+}

@@ -39,6 +39,8 @@ namespace boost { namespace uuids { struct uuid; } }
 
 namespace adicontroller {
 
+    class SampleProcessor;
+
     namespace SignalObserver {
 
         class DataReadBuffer;
@@ -191,7 +193,7 @@ namespace adicontroller {
              * Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
              * so application does not need to hookup events for shiblings.
              */
-            virtual std::vector< std::shared_ptr< Observer > > siblings();
+            virtual std::vector< std::shared_ptr< Observer > > siblings() const;
 
             /** Instrument controller will add/remove sibling by changing method while running sequence
              */
@@ -213,6 +215,16 @@ namespace adicontroller {
             virtual const char * dataInterpreterClsid() const  = 0;
             
             virtual int32_t posFromTime( uint64_t usec ) const { return 0; }
+
+            /** preparing stroage for the sample.
+             * This method give a chance to store device or sample specific data onto storage database at a preparing_for_run timing
+             */
+            virtual bool prepareStorage( SampleProcessor& ) const = 0;
+
+            /** finalize stroage for the sample.
+             * This method give a chance to store device or sample specific data onto storage database before close dababase
+             */
+            virtual bool closingStorage( SampleProcessor& ) const = 0;
 
             /** if instrument has one or more calibration information, adcontroller retrive them though this
              * interface start with idx = 0 until return false;  all data will be set to datainterpreter 

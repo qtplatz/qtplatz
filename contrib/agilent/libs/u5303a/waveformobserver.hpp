@@ -52,6 +52,8 @@ namespace u5303a {
 
         const char * dataInterpreterClsid() const override { return "u5303a.digi"; }
         int32_t posFromTime( uint64_t usec ) const override;
+        bool prepareStorage( adicontroller::SampleProcessor& ) const override { return false; }
+        bool closingStorage( adicontroller::SampleProcessor& ) const override { return false; }
         
         // WaveformObserver
         typedef std::pair< std::shared_ptr< acqrscontrols::u5303a::waveform >, std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_pair_t;

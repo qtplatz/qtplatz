@@ -79,7 +79,7 @@ namespace adicontroller {
         std::chrono::steady_clock::time_point tp_uptime_;
         std::chrono::steady_clock::time_point tp_inject_;
         std::unique_ptr< SampleSequence > sequence_;
-        std::unique_ptr< MasterObserver > masterObserver_;
+        std::shared_ptr< MasterObserver > masterObserver_;
 
         std::unique_ptr< acewrapper::udpEventReceiver > udpReceiver_;
         boost::signals2::signal< void( Instrument::eInstEvent ) > signalInstEvents_;
@@ -275,7 +275,7 @@ task::impl::impl() : fsm_( this )
                    , tp_uptime_( std::chrono::steady_clock::now() )
                    , tp_inject_( tp_uptime_ )
                    , sequence_( new SampleSequence )
-                   , masterObserver_( new MasterObserver )
+                   , masterObserver_( std::make_shared<MasterObserver>() )
                    , timer_( io_service_ )
                    , methodTime_( 60.0 )
                    , inject_triggered_( false )

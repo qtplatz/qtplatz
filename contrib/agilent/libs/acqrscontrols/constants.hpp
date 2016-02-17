@@ -27,16 +27,16 @@
 namespace acqrscontrols {
 
     namespace u5303a {
-        const char * const waveform_observer_name       = "1.u5303a.ms-cheminfo.com";
-        const char * const timecount_observer_name      = "timecount.1.u5303a.ms-cheminfo.com";
-        const char * const histogram_observer_name      = "histogram.timecount.1.u5303a.ms-cheminfo.com";
-        const char * const tdcdoc_avgr_observer_name    = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
-        const char * const tdcdoc_traces_observer_name  = "tdcdoc.traces.1.u5303a.ms-cheminfo.com";
+        const char * const waveform_observer_name        = "1.u5303a.ms-cheminfo.com";
+        const char * const timecount_observer_name       = "timecount.1.u5303a.ms-cheminfo.com";
+        const char * const histogram_observer_name       = "histogram.timecount.1.u5303a.ms-cheminfo.com";
+        const char * const softavgr_observer_name        = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
+        const char * const tdcdoc_traces_observer_name   = "tdcdoc.traces.1.u5303a.ms-cheminfo.com";
         
-        const char * const timecount_datainterpreter    = "timecount.u5303a.ms-cheminfo.com";
-        const char * const histogram_datainterpreter    = "histogram.timecount.u5303a.ms-cheminfo.com";
-        const char * const tdcdoc_avgr_datainterpreter  = "tdcdoc.waveform.u5303a.ms-cheminfo.com";
-        const char * const tdcdoc_traces_datainterpreter= "tdcdoc.traces.u5303a.ms-cheminfo.com";        
+        const char * const timecount_datainterpreter     = "timecount.u5303a.ms-cheminfo.com";
+        const char * const histogram_datainterpreter     = "histogram.timecount.u5303a.ms-cheminfo.com";
+        const char * const softavgr_datainterpreter      = "tdcdoc.waveform.u5303a.ms-cheminfo.com";
+        const char * const tdcdoc_traces_datainterpreter = "tdcdoc.traces.u5303a.ms-cheminfo.com";        
         enum { nchannels = 2 };
     }
 

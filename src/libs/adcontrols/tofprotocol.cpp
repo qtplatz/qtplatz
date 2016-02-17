@@ -44,19 +44,6 @@ namespace adcontrols {
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
-            if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP( _.lower_mass_ );
-                ar & BOOST_SERIALIZATION_NVP( _.upper_mass_ );
-                ar & BOOST_SERIALIZATION_NVP( _.acceleratorVoltage_ );
-                ar & BOOST_SERIALIZATION_NVP( _.tDelay_ );
-                ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
-                ar & BOOST_SERIALIZATION_NVP( _.mode_ );
-                ar & BOOST_SERIALIZATION_NVP( _.delay_pulses_ );
-                ar & BOOST_SERIALIZATION_NVP( _.additionals_ );
-                ar & BOOST_SERIALIZATION_NVP( _.reference_ );
-                ar & BOOST_SERIALIZATION_NVP( _.formulae_ );            
-                ar & BOOST_SERIALIZATION_NVP( _.devicedata_ );
-            } else {
                 ar & BOOST_SERIALIZATION_NVP( _.lower_mass_ );
                 ar & BOOST_SERIALIZATION_NVP( _.upper_mass_ );
                 ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
@@ -67,7 +54,6 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.reference_ );
                 ar & BOOST_SERIALIZATION_NVP( _.formulae_ );            
                 ar & BOOST_SERIALIZATION_NVP( _.devicedata_ );                
-            }
         }
     };
 
@@ -96,8 +82,6 @@ using namespace adcontrols;
 
 TofProtocol::TofProtocol() : lower_mass_( 0 )
                            , upper_mass_( 0 )
-                           , acceleratorVoltage_( 0 )   // for scan law  // V2
-                           , tDelay_( 0 )               // for scan laaw // V2
                            , number_of_triggers_( 0 )
                            , mode_( 0 )
                            , delay_pulses_( { { 0,0 }   // push
@@ -110,8 +94,6 @@ TofProtocol::TofProtocol() : lower_mass_( 0 )
 
 TofProtocol::TofProtocol( const TofProtocol& t ) : lower_mass_( t.lower_mass_ )
                                                  , upper_mass_( t.upper_mass_ )
-                                                 , acceleratorVoltage_( t.acceleratorVoltage_ )
-                                                 , tDelay_( t.tDelay_ )
                                                  , number_of_triggers_( t.number_of_triggers_ )
                                                  , mode_( t.mode_ )
                                                  , delay_pulses_( t.delay_pulses_ )

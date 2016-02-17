@@ -52,7 +52,7 @@ namespace query {
         { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name ), acqrscontrols::u5303a::waveform_observer_name }
         , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::timecount_observer_name ), acqrscontrols::u5303a::timecount_observer_name }
         , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name ), acqrscontrols::u5303a::histogram_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_avgr_observer_name ), acqrscontrols::u5303a::tdcdoc_avgr_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::softavgr_observer_name ), acqrscontrols::u5303a::softavgr_observer_name }
         , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_traces_observer_name ), acqrscontrols::u5303a::tdcdoc_traces_observer_name }
     };
 

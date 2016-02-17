@@ -61,6 +61,8 @@ namespace adicontroller {
 
         const uint64_t& elapsed_time() const;
 
+        adfs::filesystem& filesystem() const;
+
         static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
         const boost::filesystem::path& storage_name() const;
         
@@ -68,6 +70,7 @@ namespace adicontroller {
 		void create_acquireddata_table();
         void populate_descriptions( SignalObserver::Observer * );
         void populate_calibration( SignalObserver::Observer * );
+        void populate_scanlaw( SignalObserver::Observer * );
 
         pragma_msvc_warning_push_disable_4251
         boost::filesystem::path storage_name_;
@@ -80,6 +83,7 @@ namespace adicontroller {
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
         std::chrono::steady_clock::time_point tp_inject_trigger_;
+        std::weak_ptr< adicontroller::SignalObserver::Observer > masterObserver_;
         pragma_msvc_warning_pop
             
         uint64_t ts_inject_trigger_;

@@ -90,3 +90,30 @@ SimpleObserver::posFromTime( uint64_t nsec ) const
     return 0;
 }
 
+bool
+SimpleObserver::prepareStorage( SampleProcessor& sp ) const
+{
+    if ( preparing_ )
+        return preparing_( sp );
+    return false;
+}
+
+bool
+SimpleObserver::closingStorage( SampleProcessor& sp ) const
+{
+    if ( closing_ )
+        return closing_( sp );
+    return false;
+}
+
+void
+SimpleObserver::setPrepareStorage( std::function< bool( SampleProcessor& ) > f )
+{
+    preparing_ = f;
+}
+
+void
+SimpleObserver::setClosingStorage( std::function< bool( SampleProcessor& ) > f )
+{
+    closing_ = f;
+}

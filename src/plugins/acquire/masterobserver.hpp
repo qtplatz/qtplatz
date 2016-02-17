@@ -56,6 +56,8 @@ namespace acquire {
         const char * dataInterpreterClsid() const override             { return ""; }
 
         int32_t posFromTime( uint64_t usec ) const override            { return 0; }
+        bool prepareStorage( adicontroller::SampleProcessor& ) const override { return false; }
+        bool closingStorage( adicontroller::SampleProcessor& ) const override { return false; }
 
         // local impl
         void dataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );

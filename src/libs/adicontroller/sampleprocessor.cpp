@@ -57,16 +57,20 @@ SampleProcessor::~SampleProcessor()
 {
     try {
         ADDEBUG() << "##### SampleProcessor dtor: " << storage_name_.string();
+        if ( auto observer = masterObserver_.lock() ) {
+            observer->closingStorage( *this );
+            observer.reset();
+        }
         
         fs_->close();
         boost::filesystem::path progress_name( storage_name_ );
         storage_name_.replace_extension( ".adfs" );
-        
+
         boost::system::error_code ec;
         boost::filesystem::rename( progress_name, storage_name_, ec );
-        if ( ec )
-            ADERROR() << boost::format( "Sample %1% close failed: " ) % storage_name_.stem().string() % ec.message();
-        else
+        if ( ec ) 
+            ADDEBUG() << boost::format( "Sample %1% close failed: %2%" ) % storage_name_.stem().string() % ec.message();
+        else 
             ADTRACE() << boost::format( "Sample %1% closed." ) % storage_name_.stem().string();
     } catch ( std::exception& e ) {
         ADDEBUG() << boost::diagnostic_information( e );
@@ -92,6 +96,8 @@ SampleProcessor::SampleProcessor( std::shared_ptr< adcontrols::SampleRun > run
 void
 SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * masterObserver )
 {
+    masterObserver_ = masterObserver->shared_from_this();
+    
     boost::filesystem::path path( sampleRun_->dataDirectory() );
 
 	if ( ! boost::filesystem::exists( path ) )
@@ -116,6 +122,8 @@ SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * mast
 	
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
+
+    masterObserver->prepareStorage( *this );
 }
 
 boost::filesystem::path
@@ -324,4 +332,10 @@ const uint64_t&
 SampleProcessor::elapsed_time() const
 {
     return elapsed_time_;
+}
+
+adfs::filesystem&
+SampleProcessor::filesystem() const
+{
+    return *fs_;
 }

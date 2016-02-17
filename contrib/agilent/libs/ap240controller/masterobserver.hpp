@@ -51,6 +51,8 @@ namespace ap240controller {
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) { return 0; }
         const char * dataInterpreterClsid() const                      { return ""; } // master is not responcible to any specific data class
         int32_t posFromTime( uint64_t usec ) const                     { return 0; }
+        bool prepareStorage( adicontroller::SampleProcessor& ) const { return false; }
+        bool closingStorage( adicontroller::SampleProcessor& ) const { return false; }
 
         // local impl
         void dataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );

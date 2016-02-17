@@ -64,6 +64,15 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
 {
     adfs::stmt sql( db );
 
+    sql.exec(
+        "CREATE TABLE \
+ScanLaw (             \
+ objuuid UUID PRIMARY KEY \
+,objtext TEXT         \
+,acclVoltage REAL     \
+,tDelay  REAL )"
+        );
+
     return
         sql.exec(
             "CREATE TABLE \

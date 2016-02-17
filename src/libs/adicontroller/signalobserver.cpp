@@ -277,7 +277,7 @@ namespace adicontroller {
         }
 
         std::vector< std::shared_ptr< Observer > >
-        Observer::siblings()
+        Observer::siblings() const
         {
             std::lock_guard< std::mutex > lock( impl_->mutex_ );
             return impl_->siblings_;

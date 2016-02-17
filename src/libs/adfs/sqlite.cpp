@@ -161,10 +161,12 @@ bool
 sqlite::close()
 {
     sqlite3 * temp = db_;
-	if ( sqlite3_close( temp ) == SQLITE_OK ) {
+    int errc( 0 );
+	if ( ( errc = sqlite3_close( temp ) ) == SQLITE_OK ) {
 		db_ = 0;
 		return true;
 	}
+    ADDEBUG() << "sqlite::close failed: " << errc;
 	return false;
 }
 
@@ -173,7 +175,7 @@ sqlite::close()
 stmt::~stmt()
 {
     if ( transaction_active_ )
-        rollback();
+        commit();
     sqlite3_finalize( stmt_ );
 }
 
@@ -241,6 +243,9 @@ stmt::callback( void *, int argc, char ** argv, char ** azColName )
 bool
 stmt::prepare( const std::string& sql )
 {
+    if ( stmt_ )
+        sqlite3_finalize( stmt_ );
+
     const char * tail = 0;
     if ( sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
@@ -252,6 +257,9 @@ stmt::prepare( const std::string& sql )
 bool
 stmt::prepare( const std::wstring& sql )
 {
+    if ( stmt_ )
+        sqlite3_finalize( stmt_ );
+
     // I've trying to use std::codecvt for wstring to utf8 conversion, but it raise 'range_error' exeception when sql contains janese kanji-chars.
     // std::wstring_convert< deletable_facet<std::codecvt<wchar_t, char, std::mbstate_t> >, wchar_t> convert;
     // auto utf8 = convert.to_bytes( sql );

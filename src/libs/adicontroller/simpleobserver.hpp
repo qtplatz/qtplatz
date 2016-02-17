@@ -28,6 +28,7 @@
 #include "simpleobserver.hpp"
 #include "signalobserver.hpp"
 #include <workaround/boost/uuid/uuid.hpp>
+#include <functional>
 
 namespace adicontroller {
 
@@ -49,17 +50,21 @@ namespace adicontroller {
         const char * dataInterpreterClsid() const override;
         
         int32_t posFromTime( uint64_t usec ) const override;
+
+        bool prepareStorage( SampleProcessor& ) const override;
+
+        bool closingStorage( SampleProcessor& ) const override;
+        
+        //
+        void setPrepareStorage( std::function< bool( SampleProcessor& ) > );
+        void setClosingStorage( std::function< bool( SampleProcessor& ) > );
+
     private:
         const boost::uuids::uuid objid_;
-#if defined _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 )
-#endif            
         const std::string objtext_;
         const std::string clsid_;
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif            
         so::Description desc_;
+        std::function< bool( SampleProcessor& ) > preparing_;
+        std::function< bool( SampleProcessor& ) > closing_;
     };
 }

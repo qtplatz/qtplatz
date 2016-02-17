@@ -71,8 +71,6 @@ namespace adcontrols {
     private:
         double lower_mass_;
         double upper_mass_;
-        double acceleratorVoltage_;            // for scan law  // V2
-        double tDelay_;                        // for scan laaw // V2
         uint32_t mode_;                         // analyzer mode, 'number of laps' for multum; or "linear|reflectron" mode // V1
         uint32_t number_of_triggers_;           // 0 if averager mode
         std::vector< delay_pulse_type > delay_pulses_;
@@ -96,4 +94,4 @@ namespace adcontrols {
 
 };
 
-BOOST_CLASS_VERSION( adcontrols::TofProtocol, 2 )
+BOOST_CLASS_VERSION( adcontrols::TofProtocol, 1 )
