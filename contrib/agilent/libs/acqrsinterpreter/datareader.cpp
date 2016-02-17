@@ -194,13 +194,25 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
         db_ = dbf._ptr();
 
         if ( auto db = db_.lock() ) {
-            adfs::stmt sql( *db );
-            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ?" );
-            sql.bind( 1 ) = objid_;
-            if ( sql.step() == adfs::sqlite_row )
-                objrowid_ = sql.get_column_value< int64_t >( 0 );
+            {
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ?" );
+                sql.bind( 1 ) = objid_;
+                if ( sql.step() == adfs::sqlite_row )
+                    objrowid_ = sql.get_column_value< int64_t >( 0 );
+            }
 
-            // todo: find spectrometer iid
+            double acclVoltage( 0 ), tDelay( 0 );
+            {
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT acclVoltage, tDelay from ScanLaw WHERE objuuid = ?" );
+                sql.bind( 1 ) = objid_;
+                if ( sql.step() == adfs::sqlite_row ) {
+                    acclVoltage = sql.get_column_value< double >( 0 );
+                    tDelay = sql.get_column_value< double >( 1 );
+                }
+            }
+            // todo: find spectrometer iid, assing acclVoltage to massspectrometer class
             spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( "InfiTOF" );
 
         }
