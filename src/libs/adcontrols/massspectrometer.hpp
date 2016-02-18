@@ -42,8 +42,10 @@ namespace adcontrols {
     class ScanLaw;
 
 	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
+
         MassSpectrometer( const MassSpectrometer& ) = delete;  // noncopyable
         MassSpectrometer& operator = (const MassSpectrometer&) = delete;
+
     public:
         MassSpectrometer( void );
         MassSpectrometer( adcontrols::datafile * );

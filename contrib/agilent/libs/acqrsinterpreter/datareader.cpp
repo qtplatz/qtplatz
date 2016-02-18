@@ -203,18 +203,19 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             }
 
             double acclVoltage( 0 ), tDelay( 0 );
+            std::string clsid;
             {
                 adfs::stmt sql( *db );
-                sql.prepare( "SELECT acclVoltage, tDelay from ScanLaw WHERE objuuid = ?" );
+                sql.prepare( "SELECT acclVoltage, tDelay, spectrometer from ScanLaw WHERE objuuid = ?" );
                 sql.bind( 1 ) = objid_;
                 if ( sql.step() == adfs::sqlite_row ) {
                     acclVoltage = sql.get_column_value< double >( 0 );
                     tDelay = sql.get_column_value< double >( 1 );
+                    clsid = sql.get_column_value< std::string >( 2 );
                 }
             }
             // todo: find spectrometer iid, assing acclVoltage to massspectrometer class
-            spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( "InfiTOF" );
-
+            spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid );
         }
         return true;
     }
