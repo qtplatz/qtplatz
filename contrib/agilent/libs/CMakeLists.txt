@@ -12,8 +12,10 @@ if ( NOT CMAKE_CROSSCOMPILING )
     endif()
 
   endif()
-  
-  add_subdirectory( acqrswidgets )  # Qt GUI
+
+  if ( NOT QTPLATZ_CORELIB_ONLY )
+    add_subdirectory( acqrswidgets )  # Qt GUI
+  endif()
 endif()
 
 add_subdirectory( acqrsinterpreter )
