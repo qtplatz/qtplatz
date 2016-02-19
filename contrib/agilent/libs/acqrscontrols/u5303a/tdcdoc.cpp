@@ -128,6 +128,8 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
+    // ADDEBUG() << "accumulate_waveform protocol: " << waveform->method_.protocolIndex();
     
     if ( ! impl_->averager_ ) {
         
