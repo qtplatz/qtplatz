@@ -26,12 +26,13 @@
 #include "constants.hpp"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include "massspectrometer.hpp"
 
 namespace adspectrometer {
     
     namespace iids {
 
-        const boost::uuids::uuid uuid_adspectrometer = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
+        const boost::uuids::uuid uuid_adspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
         
     }
 

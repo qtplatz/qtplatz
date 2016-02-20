@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,8 +26,11 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/uuid/uuid.hpp>
 #include <string>
 #include <memory>
+
+namespace boost { namespace uuids { struct uuid; } }
 
 namespace adcontrols {
 
@@ -41,6 +44,8 @@ namespace adcontrols {
         virtual ~massspectrometer_factory(void);
 
         virtual const wchar_t * name() const = 0;
+        virtual const boost::uuids::uuid& objclsid() const = 0;  // object clsid (uuid) that will be created by this factory
+        virtual const char * objtext() const = 0;                      // object text (human readable id) that will be created by this factory
         virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
         virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
         virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
@@ -64,12 +69,15 @@ namespace adcontrols {
         massspectrometer_factory_type( const massspectrometer_factory_type& ) = delete;
         massspectrometer_factory_type& operator = ( const massspectrometer_factory_type& ) = delete;
 
-        std::string iid_;
+        boost::uuids::uuid objclsid_;
+        std::string objtext_;
         const std::tuple<Args...> args_;
 
     public:
-        massspectrometer_factory_type( const std::string& iid
-                                       , Args&&... args ) : iid_( iid )
+        massspectrometer_factory_type( const std::string& objtext
+                                       , const boost::uuids::uuid& objclsid
+                                       , Args&&... args ) : objtext_( objtext )
+                                                          , objclsid_( objclsid )
                                                           , args_( std::make_tuple( std::forward<Args>( args )... ) ) {
         }
 
@@ -96,7 +104,9 @@ namespace adcontrols {
 
         bool is_canonical_name( const wchar_t * )  const override { return false; }   
 
-        const char * iid() const { return iid_.c_str(); }
+        const char * objtext() const override { return objtext_.c_str(); }
+
+        const boost::uuids::uuid& objclsid() const override { return objclsid_; }
     };
 
     

@@ -37,28 +37,18 @@ namespace adcontrols {
     class MassSpectrometer;
 	class massspectrometer_factory;
 
-    class ADCONTROLSSHARED_EXPORT massSpectrometerBroker {
-    protected:
-        massSpectrometerBroker(void);
-        ~massSpectrometerBroker(void);
-    public:
-        static bool register_factory( massspectrometer_factory*, const std::wstring& name );
-        static massspectrometer_factory* find( const std::wstring& name );
-        static std::vector< std::wstring > names();
-    };
-
     class ADCONTROLSSHARED_EXPORT MassSpectrometerBroker {
         MassSpectrometerBroker(void);
         ~MassSpectrometerBroker(void);
     public:
-        static bool register_factory( massspectrometer_factory*, const boost::uuids::uuid&, const std::string& objtext );
+        static bool register_factory( massspectrometer_factory* );
         
         static massspectrometer_factory* find_factory( const boost::uuids::uuid& );
         static massspectrometer_factory* find_factory( const std::string& objtext );
 
         // helper methods
-        static const boost::uuids::uuid name_to_uuid( const std::wstring& objext );
-        static const boost::uuids::uuid name_to_uuid( const std::string& objext );
+        //static const boost::uuids::uuid name_to_uuid( const std::wstring& objext );
+        //static const boost::uuids::uuid name_to_uuid( const std::string& objext );
 
         static std::shared_ptr< adcontrols::MassSpectrometer > make_massspectrometer( const boost::uuids::uuid& );
 

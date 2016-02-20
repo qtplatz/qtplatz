@@ -25,6 +25,7 @@
 #ifndef MASSSPECTROMETER_HPP
 #define MASSSPECTROMETER_HPP
 
+#include "constants.hpp"
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <memory>
@@ -44,12 +45,12 @@ namespace adspectrometer {
     class import_continuum_massarray;
 
     class MassSpectrometer : public adcontrols::MassSpectrometer
-		                   , public adcontrols::dataSubscriber
-                           , public std::enable_shared_from_this< MassSpectrometer > {
+		                   , public adcontrols::dataSubscriber {
+
         MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
     public:
         virtual ~MassSpectrometer();
-        MassSpectrometer( adcontrols::datafile * datafile );
+        MassSpectrometer( adcontrols::datafile * datafile = 0 );
 
         // dataSubscriber
         bool subscribe( const adcontrols::LCMSDataset& ) override;
@@ -66,6 +67,9 @@ namespace adspectrometer {
         
         const import_continuum_massarray& continuum_massarray() const;
         void continuum_massarray( const import_continuum_massarray& );
+
+        static constexpr const char * clsid_text = "{E45D27E0-8478-414C-B33D-246F76CF62AD}";
+        static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext;
 
     private:
         std::shared_ptr< import_continuum_massarray > continuum_massarray_;

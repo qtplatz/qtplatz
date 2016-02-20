@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -83,6 +83,7 @@ namespace adcontrols {
 
         };
 
+#if 0
         class GenericTofSpectrometer : public adcontrols::MassSpectrometer
                                      , public adcontrols::ScanLaw
                                      , public adcontrols::massspectrometer_factory {
@@ -115,6 +116,7 @@ namespace adcontrols {
                 return std::make_shared< GenericTofSpectrometer >();
             }
         };
+#endif
 
     }
 }
@@ -201,31 +203,6 @@ MassSpectrometer::getCalibrateResult( size_t idx ) const
     return 0;
 }
 
-#if 0
-std::shared_ptr< MassSpectrometer >
-MassSpectrometer::create( const wchar_t * dataInterpreterClsid )
-{
-	if ( massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid ) ) {
-        return factory->create( dataInterpreterClsid, 0 );
-    }
-    return 0;
-}
-
-std::shared_ptr< MassSpectrometer >
-MassSpectrometer::create( const char * dataInterpreterClsid )
-{
-    return create( adportable::utf::to_wstring( dataInterpreterClsid ).c_str() );
-}
-
-std::shared_ptr< MassSpectrometer >
-MassSpectrometer::create( const wchar_t * dataInterpreterClsid, adcontrols::datafile * datafile )
-{
-	if ( massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid ) )
-        return factory->create( dataInterpreterClsid, datafile );
-    return 0;
-}
-#endif
-
 adcontrols::datafile *
 MassSpectrometer::datafile() const
 {
@@ -240,7 +217,8 @@ MassSpectrometer::setDebugTrace( const char * logfile, int level )
 const MassSpectrometer*
 MassSpectrometer::find( const wchar_t * dataInterpreterClsid )
 {
-	massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
+	//massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
+    auto factory = MassSpectrometerBroker::find_factory( adportable::utf::to_utf8( dataInterpreterClsid ) );
 	if ( factory )
 		return factory->get( dataInterpreterClsid );
 	return 0;
@@ -255,7 +233,8 @@ MassSpectrometer::find( const char * dataInterpreterClsid )
 const MassSpectrometer&
 MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
 {
-	massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
+	//massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
+    auto factory = MassSpectrometerBroker::find_factory( adportable::utf::to_utf8( dataInterpreterClsid ) );
 	if ( factory )
 		return *factory->get( dataInterpreterClsid );
     std::ostringstream o;
@@ -273,14 +252,17 @@ MassSpectrometer::get( const char * dataInterpreterClsid )
 std::vector< std::wstring > 
 MassSpectrometer::get_model_names()
 {
-    return massSpectrometerBroker::names();
+    std::vector< std::wstring > names;
+    auto list = MassSpectrometerBroker::installed_uuids();
+    std::for_each( list.begin(), list.end(), [&] ( const std::pair< boost::uuids::uuid, std::string >& a ) { names.push_back( adportable::utf::to_wstring( a.second ) ); } );
+    return names;
 }
 
 void
 MassSpectrometer::register_default_spectrometers()
 {
-    static adcontrols::internal::GenericTofSpectrometer * tof = new adcontrols::internal::GenericTofSpectrometer();
-    massSpectrometerBroker::register_factory( tof, tof->name() );
+   // static adcontrols::internal::GenericTofSpectrometer * tof = new adcontrols::internal::GenericTofSpectrometer();
+    //massSpectrometerBroker::register_factory( tof, tof->name() );
 }
 
 //////////////////////////////////////////////////////////////

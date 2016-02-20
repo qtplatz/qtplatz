@@ -40,6 +40,7 @@ using namespace adcontrols;
 
 namespace adcontrols {
 
+#if 0
     class MassSpectrometerBrokerImpl;
 	class massspectrometer_factory;
     
@@ -87,9 +88,11 @@ namespace adcontrols {
     private:
         std::map< std::wstring, massspectrometer_factory *> factories_;
     };
+#endif
 
 }
 
+#if 0
 void
 MassSpectrometerBrokerImpl::visit( adcontrols::MassSpectrometer& )
 {
@@ -127,6 +130,7 @@ massSpectrometerBroker::names()
 	MassSpectrometerBrokerImpl::instance()->names( vec );
     return vec;
 }
+#endif
 
 ////////////////////////////////////////////////////////////////
 /////// new generation
@@ -157,9 +161,10 @@ MassSpectrometerBroker::~MassSpectrometerBroker()
 
 //static
 bool
-MassSpectrometerBroker::register_factory( massspectrometer_factory* f, const boost::uuids::uuid& uuid, const std::string& objtext )
+MassSpectrometerBroker::register_factory( massspectrometer_factory* f )
 {
-    impl::instance().factories_ [ uuid ] = std::make_pair( objtext, f->shared_from_this() );
+    auto& uuid = f->objclsid();
+    impl::instance().factories_ [ uuid ] = std::make_pair( f->objtext(), f->shared_from_this() );
     return true;
 }
 
@@ -202,22 +207,7 @@ MassSpectrometerBroker::make_massspectrometer( const std::string& objtext )
     if ( auto factory = find_factory( objtext ) )
         return factory->create( 0, 0 );
 
-    if ( auto factory = find_factory( name_to_uuid( objtext ) ) )
-        return factory->create( 0, 0 );
-
     return nullptr;
-}
-
-const boost::uuids::uuid
-MassSpectrometerBroker::name_to_uuid( const std::wstring& objtext )
-{
-    return boost::uuids::name_generator( iids::massspectrometer_uuid )( adportable::utf::to_utf8( objtext ) );
-}
-
-const boost::uuids::uuid
-MassSpectrometerBroker::name_to_uuid( const std::string& objtext )
-{
-    return boost::uuids::name_generator( iids::massspectrometer_uuid )( objtext );
 }
 
 //static

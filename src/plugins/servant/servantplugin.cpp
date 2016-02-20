@@ -129,8 +129,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
 		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
 			adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
-			if ( factory )
-				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
+            if ( factory )
+                adcontrols::MassSpectrometerBroker::register_factory( factory );
 		});
 	}
     ADINFO() << "----> ServantPlugin::initialize() completed.";

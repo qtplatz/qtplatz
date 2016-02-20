@@ -30,8 +30,8 @@ namespace boost { namespace uuids { struct uuid; } }
 namespace adspectrometer {
 
     namespace names {
-        const char * const iid_adspectrometer_plugin = "adspectrometer.plugin.ms-cheminfo.com";
-        const char * const adspectrometer_objtext = "adspectrometer";
+        constexpr const char * const iid_adspectrometer_plugin = "adspectrometer.plugin.ms-cheminfo.com";
+        constexpr const char * const adspectrometer_objtext = "adspectrometer";
     }
     
     namespace iids {

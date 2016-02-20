@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -27,6 +27,7 @@
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adplugin/plugin.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <memory>
 #include <mutex>
 
@@ -83,7 +84,12 @@ using namespace adspectrometer;
 void
 adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
-    if ( auto factory = std::make_shared< adcontrols::massspectrometer_factory_type< adspectrometer::MassSpectrometer, adcontrols::datafile * > >( adspectrometer::names::adspectrometer_objtext, nullptr ) ) {
-        adcontrols::MassSpectrometerBroker::register_factory( factory.get(), adspectrometer::iids::uuid_adspectrometer, adspectrometer::names::adspectrometer_objtext );
+    using adcontrols::massspectrometer_factory_type;
+    static const boost::uuids::uuid clsid = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
+
+    if ( auto factory =
+         std::make_shared< massspectrometer_factory_type< MassSpectrometer > >( MassSpectrometer::class_name, clsid ) ) {
+        
+        adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
     }
 }
