@@ -65,6 +65,8 @@ histogram::append( const threshold_result& result )
         
         method_ = result.data()->method_; // delay pulse + protocols
 
+        ADDEBUG() << "append: " << method_.protocolIndex() << "/" << method_.protocols().size();        
+
         meta_ = result.data()->meta_;        
         
         assert ( meta_.actualPoints );
@@ -82,6 +84,12 @@ histogram::append( const threshold_result& result )
     }
 
     assert( data_.size() );
+
+    if ( method_.protocolIndex() != result.data()->method_.protocolIndex() ) {
+        ADDEBUG() << "## ERROR protocol index missmatch: " << method_.protocolIndex() << "/" << method_.protocols().size();
+    }
+    
+    assert( method_.protocolIndex() == result.data()->method_.protocolIndex() );
 
     if ( ! result.indecies().empty() )
         std::for_each( result.indecies().begin(), result.indecies().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
@@ -122,6 +130,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.wellKnownEvents()     = wellKnownEvents_;
     assert( method_.protocolIndex() < method_.protocols().size() );
     x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
+    x.setProtocolIndex( method_.protocolIndex(), method_.protocols().size() );
 
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
@@ -142,6 +151,8 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
     std::lock_guard< std::mutex > lock( mutex_ );
 
     hist.clear();
+
+    ADDEBUG() << "getHistgram: " << method_.protocolIndex() << "/" << method_.protocols().size();
 
     meta = meta_;
     method = method_;

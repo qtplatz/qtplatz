@@ -70,6 +70,7 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::TimeDigitalHistogram > longterm_histogram_; // total
             std::shared_ptr< averager_type > averager_;
             metadata meta_;
+            method method_;
             uint32_t wellKnownEvents_;
             std::shared_ptr< histogram > histogram_register_;
 
@@ -93,6 +94,8 @@ tdcdoc::~tdcdoc()
 void
 tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results )
 {
+    ADDEBUG() << "appendHistogram: " << results[0]->data()->method_.protocolIndex();
+    
     size_t channel = 0;
     for ( auto result: results ) {
         if ( result )
@@ -101,6 +104,9 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
     }
 }
 
+/*
+  Master entry point from 'task' module
+ */
 bool
 tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 {
@@ -114,6 +120,8 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         impl_->histogram_register_->move( *hgrm );
         impl_->periodic_histograms_.emplace_back( hgrm );
 
+        ADDEBUG() << "accumulate_histogram: " << hgrm->protocolIndex() << "/" << hgrm->nProtocols();
+        
         // long-term histogram
         (*impl_->longterm_histogram_) += *hgrm;
     }
@@ -126,11 +134,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
 {
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
-
+    
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    // ADDEBUG() << "accumulate_waveform protocol: " << waveform->method_.protocolIndex();
-    
     if ( ! impl_->averager_ ) {
         
         if ( waveform->dataType() == 2 )
@@ -139,12 +145,20 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
             impl_->averager_ = std::make_shared< averager_type >( u32wrap( *waveform ) );
 
         impl_->meta_ = waveform->meta_;
+        impl_->method_ = waveform->method_;
         impl_->wellKnownEvents_ = waveform->wellKnownEvents_;
+
+        ADDEBUG() << "accumulate_waveform protocol: " << waveform->method_.protocolIndex() << "/" << waveform->method_.protocols().size();
 
     } else {
         
         bool breakout( false );
         try {
+            if ( impl_->method_.protocolIndex() != waveform->method_.protocolIndex() ) {
+                ADDEBUG() << "## ERROR -- protocol index missmatch: averaging " << impl_->method_.protocolIndex()
+                          << " received: " << waveform->method_.protocolIndex();
+            }
+            
             if ( waveform->dataType() == 2 )
                 ( *impl_->averager_ ) += u16wrap( *waveform );
             else
@@ -163,6 +177,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), invertData );
             w->meta_ = impl_->meta_;                 // replace with first trigger
+            w->method_ = impl_->method_;
             w->meta_.dataType = sizeof( uint32_t );  // match up with actual data format
             w->wellKnownEvents_ = impl_->wellKnownEvents_;
             
@@ -497,8 +512,10 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 
     const auto& histogram = impl_->histograms_[ channel ];
 
-    const auto& this_protocol = method.protocols().size() > method.protocolIndex() ? method.protocols().at( method.protocolIndex() ) : adcontrols::TofProtocol();
-    ADDEBUG() << "******************** protocol: " << method.protocolIndex() << "/" << method.protocols().size();
+    const auto& this_protocol =
+        method.protocols().size() > method.protocolIndex() ? method.protocols().at( method.protocolIndex() ) : adcontrols::TofProtocol();
+    
+    ADDEBUG() << " protocol: " << method.protocolIndex() << "/" << method.protocols().size() << " count: " << trigCount;
 
     using namespace adcontrols::metric;
     

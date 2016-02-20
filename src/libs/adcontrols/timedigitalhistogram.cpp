@@ -60,6 +60,10 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.histogram_ );
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( _.this_protocol_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nProtocols_ );
+            }
         }
     };
 
@@ -110,6 +114,8 @@ TimeDigitalHistogram::TimeDigitalHistogram() : initialXTimeSeconds_( 0 )
                                              , serialnumber_( { 0, 0 } )
                                              , timeSinceEpoch_( { 0, 0 } )
                                              , wellKnownEvents_( 0 )
+                                             , protocolIndex_( 0 )
+                                             , nProtocols_( 1 )
 {
 }
 
@@ -123,6 +129,8 @@ TimeDigitalHistogram::TimeDigitalHistogram( const TimeDigitalHistogram& t ) : in
                                                                             , wellKnownEvents_( t.wellKnownEvents_ )
                                                                             , histogram_( t.histogram_ )
                                                                             , this_protocol_( t.this_protocol_ )
+                                                                            , protocolIndex_ ( t.protocolIndex_ )
+                                                                            , nProtocols_ ( t.nProtocols_ )
 {
 }
 
@@ -244,6 +252,25 @@ const TofProtocol&
 TimeDigitalHistogram::this_protocol() const
 {
     return this_protocol_;
+}
+
+size_t
+TimeDigitalHistogram::protocolIndex() const
+{
+    return protocolIndex_;
+}
+
+size_t
+TimeDigitalHistogram::nProtocols() const
+{
+    return nProtocols_;
+}
+
+void
+TimeDigitalHistogram::setProtocolIndex( size_t idx, size_t count )
+{
+    protocolIndex_ = idx;
+    nProtocols_ = count;
 }
 
 size_t

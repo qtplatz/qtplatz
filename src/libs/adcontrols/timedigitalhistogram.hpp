@@ -85,6 +85,10 @@ namespace adcontrols {
         TofProtocol& this_protocol();
         const TofProtocol& this_protocol() const;
 
+        size_t protocolIndex() const;
+        size_t nProtocols() const;
+        void setProtocolIndex( size_t idx, size_t count );
+        
         uint32_t accumulate( double tof, double window ) const;
 
         double triggers_per_second() const;
@@ -102,6 +106,8 @@ namespace adcontrols {
         uint64_t trigger_count_;
         uint32_t wellKnownEvents_;
         adcontrols::TofProtocol this_protocol_;
+        uint32_t protocolIndex_;
+        uint32_t nProtocols_;
 
         pragma_msvc_warning_push_disable_4251
 
@@ -122,4 +128,8 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::TimeDigitalHistogram, 1)
+BOOST_CLASS_VERSION( adcontrols::TimeDigitalHistogram, 2 )
+
+// V1 := + this_protocol
+// V2 := + protocolIndex_, nProtocol
+

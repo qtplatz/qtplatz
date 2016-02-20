@@ -886,8 +886,6 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
     const int64_t recordSize = m._device_method().digitizer_nbr_of_s_to_acquire;
     const int64_t numRecords = m._device_method().nbr_records;
 
-    // ADDEBUG() << "readData: " << m.protocolIndex() << "/" << m.protocols().size();
-    
     if ( AgMD2::log(
              AgMD2_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
@@ -942,6 +940,8 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     // time @ data read (U5303A has the large delay (~500us) after acquire trigger, so that read time is more accurate
                     d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
                     d.setData( mblk, firstValidPoints[ iRecord ] );
+
+                    // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size();
 
                     vec.emplace_back( data );
                 }

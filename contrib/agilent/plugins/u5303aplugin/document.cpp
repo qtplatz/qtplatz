@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -781,7 +781,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
     } while( 0 );
 
     emit dataChanged( objid, idx );
-
+    
     if ( objid == u5303a_observer ) {
         double resolution = 0;
         if ( auto tm = tdc()->threshold_method( idx ) )
