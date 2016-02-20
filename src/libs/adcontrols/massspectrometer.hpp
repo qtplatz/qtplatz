@@ -34,6 +34,7 @@
 namespace adcontrols {
 
     class DataInterpreter;
+    class MassSpectrum;
 	class MSProperty;
     class MSCalibrateResult;
 	class MSCalibration;
@@ -64,6 +65,11 @@ namespace adcontrols {
         virtual void setDebugTrace( const char * logfile, int level );
         virtual void setProcessMethod( const std::shared_ptr< adcontrols::ProcessMethod > ) { return; }
 
+        // v3 and later versions
+        virtual void setAcceleratorVoltage( double acclVolts, double tDelay ) { return; }
+        virtual bool assignMasses( adcontrols::MassSpectrum& ) { return false; }
+        
+        // helper methods
         static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
         static const MassSpectrometer* find( const char * dataInterpreterClsid );
 

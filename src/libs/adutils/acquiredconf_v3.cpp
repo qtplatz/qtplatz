@@ -72,6 +72,7 @@ ScanLaw (                 \
 ,acclVoltage    REAL      \
 ,tDelay         REAL      \
 ,spectrometer   TEXT      \
+,clsidSpectrometer UUID \
 )"
         );
 
