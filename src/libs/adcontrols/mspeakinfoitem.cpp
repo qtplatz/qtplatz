@@ -173,15 +173,6 @@ MSPeakInfoItem::time( bool time ) const
     return time ? time_from_time_ : time_from_mass_;
 }
 
-void
-MSPeakInfoItem::set_time( double t, bool from_time )
-{
-    if ( from_time )
-        time_from_time_ = t;
-    else
-        time_from_mass_ = t;
-}
-
 double
 MSPeakInfoItem::centroid_left( bool time ) const
 {
@@ -261,17 +252,39 @@ MSPeakInfoItem::annotation( const std::wstring& v )
 }
 
 void
-MSPeakInfoItem::assign_mass( double mass, double left, double right, double HHleft, double HHright )
+MSPeakInfoItem::set_mass( double mass, double left, double right )
 {
     mass_ = mass;
     centroid_left_mass_ = left;
     centroid_right_mass_ = right;
-    HH_left_mass_ = HHleft;
-    HH_right_mass_ = HHright;
 }
 
 void
-MSPeakInfoItem::mass( double mass )
+MSPeakInfoItem::set_time( double time, double left, double right, bool from_time )
+{
+    if ( from_time )
+        time_from_time_ = time;
+    else
+        time_from_mass_ = time;
+
+    centroid_left_time_ = left;
+    centroid_right_time_ = right;    
+}
+
+void
+MSPeakInfoItem::set_width_hh_lr( double left, double right, bool time )
+{
+    if ( time ) {
+        HH_left_time_ = left;
+        HH_right_time_ = right;
+    } else {
+        HH_left_mass_ = left;
+        HH_right_mass_ = right;        
+    }
+}
+
+void
+MSPeakInfoItem::assign_mass( double mass )
 {
     // this will cause when re-assign calibration to centroid spectrum occured
     double d = mass - mass_;

@@ -440,7 +440,8 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 							double centroid_right = calib.compute_mass( item.centroid_right( true ) );
 							double hhL = calib.compute_mass( item.hh_left_time() );
 							double hhR = calib.compute_mass( item.hh_right_time() );
-							item.assign_mass( mass, centroid_left, centroid_right, hhL, hhR );
+                            item.set_mass( mass, centroid_left, centroid_right );
+                            item.set_width_hh_lr( hhL, hhR, false );
                         }
                     }
 				}

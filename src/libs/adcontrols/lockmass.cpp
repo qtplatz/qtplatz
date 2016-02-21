@@ -284,14 +284,14 @@ lockmass::fitter::operator()( MSPeakInfo& pkInfo ) const
         // relative error correction
         for ( auto& item: pkInfo ) {
             double mass = item.mass() - item.mass() * coeffs_[ 0 ];
-            item.mass( mass );
+            item.assign_mass( mass );
         }
 
     } else {
 
         for ( auto& item: pkInfo ) { 
             double mass = item.mass() - adportable::polfit::estimate_y( coeffs_, item.mass() );
-            item.mass( mass );
+            item.assign_mass( mass );
         }
 
     }

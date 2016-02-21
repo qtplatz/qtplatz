@@ -44,13 +44,16 @@ namespace adcontrols {
         MSPeakInfoItem( const MSPeakInfoItem& );
 
         double mass() const;
-        void mass( double );     // historical api for re-calibration, this will also change centroid left/right values
+
+        void assign_mass( double );     // his will change centroid left/right values (for lock mass)
+        void set_mass( double mass, double left, double right );
+
         double area() const;
-        void set_area( double ); // deplicated, use set_mass instead
+        void set_area( double );
         double height() const;
         void set_height( double );
         double time( bool from_time = false ) const;
-        void set_time( double, bool from_time = false );
+        void set_time( double, double left, double right, bool from_time = false );
         unsigned int peak_index() const;
         void set_peak_index( unsigned int );
         unsigned int peak_start_index() const;
@@ -69,6 +72,8 @@ namespace adcontrols {
         double centroid_threshold() const;
         void set_centroid_threshold( double );
 
+        void set_width_hh_lr( double left, double right, bool time = false );
+
         double widthHH( bool time = false ) const;
         double hh_left_time() const;
         double hh_right_time() const;
@@ -82,8 +87,6 @@ namespace adcontrols {
         bool is_reference() const;
         void is_reference( bool );
 
-        // re-assign mass (usually call from calibration process)
-        void assign_mass( double mass, double left, double right, double hhLeft, double hhRight );
 
         static bool xml_archive( std::wostream&, const MSPeakInfoItem& );
         static bool xml_restore( std::wistream&, MSPeakInfoItem& );

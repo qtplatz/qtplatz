@@ -364,7 +364,7 @@ DataprocHandler::reverse_copy( adcontrols::MSPeakInfo& pkinfo, const adcontrols:
         
         for ( size_t i = 0; i < fms.size(); ++i ) {
             auto pk = fpk.begin() + i;
-            pk->mass( fms.getMass( i ) );
+            pk->assign_mass( fms.getMass( i ) );
         }
     }
 	return true;
