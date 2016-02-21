@@ -66,6 +66,9 @@ namespace adcontrols {
         size_t numberOfTriggers() const;
         void setNumberOfTriggers( size_t );
 
+        bool refreshHistogram() const;
+        void setRefreshHistogram( bool );
+
         static bool archive( std::ostream&, const TofChromatogramsMethod& );
         static bool restore( std::istream&, TofChromatogramsMethod& );
         static bool xml_archive( std::wostream&, const TofChromatogramsMethod& );

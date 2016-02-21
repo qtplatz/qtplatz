@@ -27,6 +27,7 @@
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <QWidget>
 #include <QBoxLayout>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QPushButton>
@@ -61,7 +62,11 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
     int col = 0;
     gridLayout->addWidget( create_widget<QLabel>( "label1", "# of triggers" ), row, col++ );
     gridLayout->addWidget( create_widget<QSpinBox>( "numTriggers" ), row, col++ );
-            
+
+    row++; col = 0;
+    gridLayout->addWidget( create_widget<QLabel>( "labelRefresh", "Refresh histogram" ), row, col++ );
+    gridLayout->addWidget( create_widget<QCheckBox>( "cbxRefresh" ), row, col++ );
+    
     row++; col = 0;
     gridLayout->addWidget( create_widget<QLabel>( "label2", "Response(s)" ), row, col++ );
     gridLayout->addWidget( create_widget<QDoubleSpinBox>( "response" ), row, col++ );
@@ -85,6 +90,10 @@ TofChromatogramsForm::TofChromatogramsForm( QWidget * parent ) : QWidget( parent
         connect( spin, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit valueChanged(); } );
     }
 
+    if ( auto cbx = findChild<QCheckBox *>( "cbxRefresh" ) ) {
+        connect( cbx, &QCheckBox::stateChanged, [this] ( double ) { emit valueChanged(); } );
+    }
+    
     if ( auto spin = findChild<QDoubleSpinBox *>( "response" ) ) {
         connect( spin, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit valueChanged(); } );
     }
@@ -106,6 +115,9 @@ TofChromatogramsForm::getContents( adcontrols::TofChromatogramsMethod& m ) const
     if ( auto spin = findChild< QSpinBox * >( "numTriggers" ) )
         m.setNumberOfTriggers( spin->value() );
 
+    if ( auto cbx = findChild< QCheckBox * >( "cbxRefresh" ) )
+        m.setRefreshHistogram( cbx->isChecked() );
+
     //if ( auto spin = findChild< QDoubleSpinBox *>( "response" ) )
     //    ; // not in use
 }
@@ -117,6 +129,10 @@ TofChromatogramsForm::setContents( const adcontrols::TofChromatogramsMethod& m )
         QSignalBlocker block( spin );
         size_t n = m.numberOfTriggers() == 0 ? 1 : m.numberOfTriggers();
         spin->setValue( int( n ) );
+    }
+    if ( auto cbx = findChild< QCheckBox * >( "cbxRefresh" ) ) {
+        QSignalBlocker block( cbx );
+        cbx->setChecked( m.refreshHistogram() );
     }
 }
 

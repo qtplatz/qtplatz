@@ -42,10 +42,12 @@ namespace adcontrols {
         }
 
         impl( const impl& t ) : numberOfTriggers_( t.numberOfTriggers_ )
+                              , refreshHistogram_( true )
                               , vec_( t.vec_ ) {
         }
 
         size_t numberOfTriggers_;
+        bool refreshHistogram_; // real-time monitoring parameter
         std::vector< TofChromatogramMethod > vec_;
 
     private:
@@ -55,11 +57,15 @@ namespace adcontrols {
             using namespace boost::serialization;
 
             ar & BOOST_SERIALIZATION_NVP( numberOfTriggers_ );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( refreshHistogram_ );
             ar & BOOST_SERIALIZATION_NVP( vec_ );
         }
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::TofChromatogramsMethod::impl, 1 )
 
 using namespace adcontrols;
 
@@ -129,6 +135,18 @@ void
 TofChromatogramsMethod::setNumberOfTriggers( size_t value )
 {
     impl_->numberOfTriggers_ = value;
+}
+
+bool
+TofChromatogramsMethod::refreshHistogram() const
+{
+    return impl_->refreshHistogram_;
+}
+
+void
+TofChromatogramsMethod::setRefreshHistogram( bool refresh )
+{
+    impl_->refreshHistogram_ = refresh;
 }
 
 bool

@@ -39,20 +39,24 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlTableModel>
+#include <QUuid>
+
 #if defined _DEBUG
 # include <fstream>
 #endif
 
 namespace adwidgets {
 
-    static const char * const ConnectionString = "TofChromatogramsWidget";
+    //static const char * const ConnectionString = "TofChromatogramsWidget";
     
     class TofChromatogramsWidget::impl {
         TofChromatogramsWidget * this_;
     public:
         enum columns { c_id, c_formula, c_mass, c_masswindow, c_time, c_timewindow, c_algo };
+
+        QString connString_;
         
-        impl( TofChromatogramsWidget * p ) : this_( p ) {
+        impl( TofChromatogramsWidget * p ) : this_( p ), connString_( QUuid::createUuid().toString() ) {
 
             auto db = createConnection();
             if ( db.isValid() ) {
@@ -76,10 +80,10 @@ namespace adwidgets {
         }
 
         ~impl() {
-            auto db = QSqlDatabase::database( ConnectionString );
+            auto db = QSqlDatabase::database( connString_ );
             if ( db.isValid() ) {
                 db.close();
-                QSqlDatabase::removeDatabase( ConnectionString );
+                QSqlDatabase::removeDatabase( connString_ );
             }
         }
 
@@ -232,7 +236,7 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         form->getContents( m );
     }
     
-    QSqlDatabase db = QSqlDatabase::database( ConnectionString );
+    QSqlDatabase db = QSqlDatabase::database( impl_->connString_ );
     QSqlQuery query( "SELECT * from tofChromatograms", db );
     while ( query.next() ) {
         adcontrols::TofChromatogramMethod item;
@@ -254,7 +258,7 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
         form->setContents( m );
     }
 
-    QSqlDatabase db = QSqlDatabase::database( ConnectionString );
+    QSqlDatabase db = QSqlDatabase::database( impl_->connString_ );
     QSqlQuery query( db );
 
     if ( !query.exec( "DELETE FROM tofChromatograms" ) )
@@ -310,7 +314,7 @@ TofChromatogramsWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
 QSqlDatabase
 TofChromatogramsWidget::impl::createConnection()
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", ConnectionString );
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connString_ );
     db.setDatabaseName(":memory:");
     
     if (!db.open()) {
@@ -362,7 +366,7 @@ TofChromatogramsWidget::impl::handleContextMenu( const QPoint& pt )
 void
 TofChromatogramsWidget::impl::addLine()
 {
-    QSqlDatabase db = QSqlDatabase::database( ConnectionString );
+    QSqlDatabase db = QSqlDatabase::database( connString_ );
     QSqlQuery query( db );
     if ( query.exec( "INSERT into tofChromatograms (formula,algorithm) VALUES( \"\",0)" ) ) {
         model_->select();
