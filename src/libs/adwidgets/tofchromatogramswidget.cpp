@@ -29,6 +29,7 @@
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <QBoxLayout>
 #include <QDebug>
 #include <QSplitter>
@@ -116,6 +117,7 @@ namespace adwidgets {
 
         QSqlDatabase createConnection();
         std::unique_ptr< QSqlTableModel > model_;
+        std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
     };
     
 }
@@ -374,4 +376,10 @@ TofChromatogramsWidget::impl::addLine()
         qDebug() << query.lastQuery();
         qDebug() << query.lastError();
     }    
+}
+
+void
+TofChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
+{
+    impl_->spectrometer_ = sp;
 }

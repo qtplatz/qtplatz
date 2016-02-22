@@ -32,7 +32,7 @@
 
 class QMenu;
 
-namespace adcontrols { class TofChromatogramsMethod; }
+namespace adcontrols { class TofChromatogramsMethod; class MassSpectrometer; }
 
 namespace adwidgets {
 
@@ -58,6 +58,7 @@ namespace adwidgets {
         bool setContents( const adcontrols::TofChromatogramsMethod& );
         //
         void setDigitizerMode( bool ); // true for soft accumulate, false for hard averaged
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
         
     private:
         void handleContextMenu( QMenu&, const QPoint& );
