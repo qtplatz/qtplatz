@@ -54,7 +54,8 @@ namespace acqrscontrols {
         public:
             ~impl() {}
             
-            impl() : histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } ) {
+            impl() : histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } )
+                   , longterm_histogram_( std::make_shared< adcontrols::TimeDigitalHistogram >() ) {
             }
 
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
@@ -64,7 +65,8 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > accumulated_histograms_;
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histograms_; // periodic
+            std::shared_ptr< adcontrols::TimeDigitalHistogram > longterm_histogram_; // total
             std::shared_ptr< averager_type > averager_;
             metadata meta_;
             uint32_t wellKnownEvents_;
@@ -99,19 +101,23 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
 }
 
 bool
-tdcdoc::accumulate_histogram( const_threshold_result_ptr tdc )
+tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 {
     if ( ! impl_->histogram_register_ )
         impl_->histogram_register_ = std::make_shared< histogram_type >();
     
-    if ( impl_->histogram_register_->append( *tdc ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+    if ( impl_->histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
 
+        // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
         impl_->histogram_register_->move( *hgrm );
-        impl_->accumulated_histograms_.emplace_back( hgrm );
+        impl_->periodic_histograms_.emplace_back( hgrm );
+
+        // long-term histogram
+        (*impl_->longterm_histogram_) += *hgrm;
     }
     
-    return !impl_->accumulated_histograms_.empty();
+    return !impl_->periodic_histograms_.empty();
 }
 
 bool
@@ -292,20 +298,26 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 size_t
 tdcdoc::readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& a )
 {
-    if ( ! impl_->accumulated_histograms_.empty() ) {
+    if ( ! impl_->periodic_histograms_.empty() ) {
 
-        a.reserve( a.size() + impl_->accumulated_histograms_.size() );
+        a.reserve( a.size() + impl_->periodic_histograms_.size() );
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-        std::move( impl_->accumulated_histograms_.begin(), impl_->accumulated_histograms_.end(), std::back_inserter( a ) );
+        std::move( impl_->periodic_histograms_.begin(), impl_->periodic_histograms_.end(), std::back_inserter( a ) );
 
-        impl_->accumulated_histograms_.clear();
+        impl_->periodic_histograms_.clear();
 
         return a.size();
     }
 
     return 0;
+}
+
+std::shared_ptr< const adcontrols::TimeDigitalHistogram >
+tdcdoc::longTermHistogram() const
+{
+    return impl_->longterm_histogram_;
 }
 
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
@@ -530,6 +542,8 @@ tdcdoc::clear_histogram()
 
     for ( auto h : impl_->histograms_ )
         h->clear();
+
+    impl_->longterm_histogram_ = std::make_shared< adcontrols::TimeDigitalHistogram >();
 }
 
 std::pair< uint32_t, uint32_t >

@@ -85,6 +85,8 @@ namespace acqrscontrols {
             
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
+            std::shared_ptr< const adcontrols::TimeDigitalHistogram > longTermHistogram() const; 
+
             bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
 
             bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );

@@ -38,11 +38,11 @@ namespace adcontrols {
     class TofChromatogramsMethod::impl {
     public:
 
-        impl() : numberOfTriggers_( 100 ) {
+        impl() : numberOfTriggers_( 100 ), refreshHistogram_( true ) {
         }
 
         impl( const impl& t ) : numberOfTriggers_( t.numberOfTriggers_ )
-                              , refreshHistogram_( true )
+                              , refreshHistogram_( t.refreshHistogram_ )
                               , vec_( t.vec_ ) {
         }
 
