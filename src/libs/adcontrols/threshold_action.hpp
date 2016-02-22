@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/version.hpp>
 #include <memory>
+#include <string>
 
 namespace boost {
     namespace serialization { class access; }
@@ -52,6 +53,12 @@ namespace adcontrols {
         bool recordOnFile;
         bool exclusiveDisplay;
         
+        // class v2
+        std::string objid_spectrometer;
+        std::string formula;
+        uint32_t mode;
+        double mass;
+        
         static bool archive( std::ostream&, const threshold_action& );
         static bool restore( std::istream&, threshold_action& );
         static bool xml_archive( std::wostream&, const threshold_action& );
@@ -67,5 +74,5 @@ namespace adcontrols {
 #endif    
 }
 
-BOOST_CLASS_VERSION( adcontrols::threshold_action, 1 )
+BOOST_CLASS_VERSION( adcontrols::threshold_action, 2 )
 

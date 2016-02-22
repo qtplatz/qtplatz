@@ -44,14 +44,20 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
              , [this] ( double value ) {
         emit valueChanged( channel_ ); } );
 
+    ui->doubleSpinBox->setSingleStep( 0.001 ); // 1uV step
     ui->doubleSpinBox->setAccelerated( true );
 
     // Time resolution (ns)
     connect( ui->doubleSpinBox_resolution, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this] ( double value ) { emit valueChanged( channel_ ); } );
-
+    ui->doubleSpinBox_resolution->setMinimum( 0 );
+    ui->doubleSpinBox_resolution->setMaximum( 1000 ); // 1us
+    ui->doubleSpinBox_resolution->setSingleStep( 0.01 );  // 10ps step
+    
     // Response time (ns)
+    ui->doubleSpinBox_resp->setMinimum( 0 );    
     ui->doubleSpinBox_resp->setMaximum( 100000 );
+    ui->doubleSpinBox_resp->setSingleStep( 0.01 );  // 10ps step
     connect( ui->doubleSpinBox_resp, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
              , [this] ( double value ) { emit valueChanged( channel_ ); } );
 

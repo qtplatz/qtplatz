@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,6 +31,7 @@
 #include <adportable/bzip2.hpp>
 #include <adlog/logger.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace adspectrometer {
     class MassSpectrometerException : public boost::exception, public std::exception {};
@@ -141,4 +142,12 @@ MassSpectrometer::load_continuum_massarray()
         }
     }
     return false;
+}
+
+
+const boost::uuids::uuid&
+MassSpectrometer::objclsid() const
+{
+    static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
+    return uuid;
 }

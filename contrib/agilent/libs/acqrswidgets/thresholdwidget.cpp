@@ -251,3 +251,10 @@ ThresholdWidget::set( const adcontrols::threshold_action& m )
     if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
         form->set( m );
 }
+
+void
+ThresholdWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
+{
+    if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
+        form->setMassSpectrometer( sp );
+}

@@ -47,6 +47,12 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.width );
             ar & BOOST_SERIALIZATION_NVP( _.recordOnFile );
             ar & BOOST_SERIALIZATION_NVP( _.exclusiveDisplay );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( _.objid_spectrometer );
+                ar & BOOST_SERIALIZATION_NVP( _.formula );
+                ar & BOOST_SERIALIZATION_NVP( _.mode );
+                ar & BOOST_SERIALIZATION_NVP( _.mass );
+            }
         }
     };
 

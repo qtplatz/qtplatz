@@ -26,6 +26,7 @@
 
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
+#include <acqrscontrols/threshold_action_finder.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -332,13 +333,20 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
     for ( size_t i = 0; i < waveforms.size(); ++i ) {
 
         if ( waveforms[ i ] ) {
+
+            auto& counts = impl_->threshold_action_counts_[ i ];
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
+            counts.second++;
 
             if ( methods[ i ] && methods[ i ]->enable ) {
 
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
-                
+
+                bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
+
+                if ( result )
+                    counts.first++;
             }
         }
     }

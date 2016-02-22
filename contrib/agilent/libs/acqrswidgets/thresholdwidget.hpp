@@ -31,7 +31,7 @@
 #include "constants.hpp"
 #include <memory>
 
-namespace adcontrols { class threshold_method; class threshold_action; class TimeDigitalMethod; }
+namespace adcontrols { class threshold_method; class threshold_action; class TimeDigitalMethod; class MassSpectrometer; }
 
 namespace acqrswidgets {
     
@@ -65,6 +65,8 @@ namespace acqrswidgets {
 
         void get( adcontrols::threshold_action& ) const;    
         void set( const adcontrols::threshold_action& );    
+
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
     signals:
         void valueChanged( idCategory cat, int ch );

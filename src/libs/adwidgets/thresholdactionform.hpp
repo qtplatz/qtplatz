@@ -28,10 +28,11 @@
 #include "adwidgets_global.hpp"
 #include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
+#include <memory>
 
 class QStandardItemModel;
 
-namespace adcontrols { class threshold_action; }
+namespace adcontrols { class threshold_action; class MassSpectrometer; }
 
 namespace adwidgets {
 
@@ -58,11 +59,19 @@ namespace adwidgets {
 
         bool get( adcontrols::threshold_action& ) const;
         bool set( const adcontrols::threshold_action& );
+        
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
+        std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const;
+            
     signals:
         void valueChanged();
 
     private:
         Ui::ThresholdActionForm *ui;
+        std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
+        void formulaChanged( const QString& );
+        void modeChanged( int );
+        void massChanged( double );
     };
 }
 

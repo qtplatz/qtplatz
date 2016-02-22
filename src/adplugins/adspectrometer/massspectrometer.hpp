@@ -71,6 +71,9 @@ namespace adspectrometer {
         static constexpr const char * clsid_text = "{E45D27E0-8478-414C-B33D-246F76CF62AD}";
         static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext;
 
+        const char * objtext() const override { return class_name; }
+        const boost::uuids::uuid& objclsid() const override;
+
     private:
         std::shared_ptr< import_continuum_massarray > continuum_massarray_;
         const adcontrols::LCMSDataset* accessor_;

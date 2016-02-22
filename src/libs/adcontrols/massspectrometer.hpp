@@ -31,6 +31,8 @@
 #include <vector>
 #include <map>
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace adcontrols {
 
     class DataInterpreter;
@@ -68,13 +70,16 @@ namespace adcontrols {
         // v3 and later versions
         virtual void setAcceleratorVoltage( double acclVolts, double tDelay ) { return; }
         virtual bool assignMasses( adcontrols::MassSpectrum& ) { return false; }
+
+        virtual const char * objtext() const = 0;
+        virtual const boost::uuids::uuid& objclsid() const = 0;
         
         // helper methods
-        static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
-        static const MassSpectrometer* find( const char * dataInterpreterClsid );
+        [[deprecated]] static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
+        [[deprecated]] static const MassSpectrometer* find( const char * dataInterpreterClsid );
 
-        static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
-		static const MassSpectrometer& get( const char * dataInterpreterClsid );
+        [[deprecated]] static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
+		[[deprecated]] static const MassSpectrometer& get( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
 
         static void register_default_spectrometers();
