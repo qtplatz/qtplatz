@@ -293,3 +293,8 @@ Session::stop_run()
     return impl_->digitizer_->peripheral_stop();
 }
 
+bool
+Session::next_protocol( const boost::any& a )
+{
+    return impl_->digitizer_->peripheral_protocol( a );
+}

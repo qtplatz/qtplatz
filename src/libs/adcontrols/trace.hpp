@@ -72,11 +72,6 @@ namespace adcontrols {
         typedef std::tuple< size_t, double, double, uint32_t > value_type;
 
         std::vector< value_type > values_;
-
-        //std::vector< size_t > npos_;
-        //std::vector< double > traceX_;
-        //std::vector< double > traceY_;
-        //std::vector< unsigned long > events_;
     };
 
 }

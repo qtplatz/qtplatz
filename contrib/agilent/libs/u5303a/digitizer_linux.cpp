@@ -233,6 +233,12 @@ digitizer::peripheral_trigger_inject()
     return task::instance()->trigger_inject_out();
 }
 
+bool
+digitizer::peripheral_protocol( const boost::any& a )
+{
+    return false;
+}
+
 void
 digitizer::connect_reply( command_reply_type f )
 {

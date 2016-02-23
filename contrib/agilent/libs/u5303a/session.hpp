@@ -76,6 +76,7 @@ namespace u5303a {
             bool suspend_run() override;
             bool resume_run() override;
             bool stop_run() override;
+            bool next_protocol( const boost::any& ) override;
         };
 
     };

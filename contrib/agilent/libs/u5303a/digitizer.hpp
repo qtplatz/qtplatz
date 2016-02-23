@@ -31,6 +31,7 @@
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/any.hpp>
 #include <cstdint>
 #include <functional>
 #include <vector>
@@ -77,6 +78,7 @@ namespace u5303a {
         bool peripheral_stop();
         bool peripheral_trigger_inject();
         bool peripheral_terminate();
+        bool peripheral_protocol( const boost::any& );
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef void (command_handler_type)( const std::string, const std::string );
