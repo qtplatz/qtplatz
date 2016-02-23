@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,6 +28,7 @@
 #include "constants.hpp"
 #include <memory>
 #include <string>
+#include <boost/any.hpp>
 
 namespace adcontrols { namespace ControlMethod { class Method; } }
 
@@ -82,6 +83,7 @@ namespace adicontroller {
             virtual bool shell( const std::string& cmdline ) = 0;
 
             virtual std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() = 0;
+
             virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) = 0;
     
             virtual bool event_out( uint32_t event ) = 0;
@@ -97,6 +99,8 @@ namespace adicontroller {
             virtual bool recording( bool ) { return false; }
 
             virtual bool isRecording() const { return false; }
+
+            virtual bool next_protocol( const boost::any& ) { return false; }
         };
 
 

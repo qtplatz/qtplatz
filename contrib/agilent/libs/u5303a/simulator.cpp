@@ -211,6 +211,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
         data.meta_.actualAverages = int32_t( nbrWaveforms_ );
         data.meta_.scaleFactor = 1.0;
         data.meta_.scaleOffset = 0.0;
+        data.setData( mblk, 0 );
 
         return true;
     }

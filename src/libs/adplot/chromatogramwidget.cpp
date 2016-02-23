@@ -374,8 +374,6 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
         trace->plot_curve().setYAxis( yRight ? QwtPlot::yRight : QwtPlot::yLeft );
         trace->setData( c );
 
-        //ADDEBUG() << "setData(" << idx << ", y=" << trace->plot_curve().yAxis() << ")" << "{" << rc.left() << ", " << rc.bottom() << "},{" << rc.right() << ", " << rc.top() << "}";
-
         auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
 
         auto rc = std::accumulate( impl_->traces_.begin(), impl_->traces_.end(), QRectF {}, [&] ( const QRectF& a, const trace_variant& b ) {
