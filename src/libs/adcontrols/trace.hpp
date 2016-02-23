@@ -26,6 +26,7 @@
 #pragma once
 
 #include <adcontrols/timeutil.hpp>
+#include <cstdint>
 #include <vector>
 #include "adcontrols_global.h"
 
