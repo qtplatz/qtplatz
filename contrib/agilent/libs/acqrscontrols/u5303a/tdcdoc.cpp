@@ -206,7 +206,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 
             if ( wend < waveform->xy( 0 ).first || wsta > waveform->xy( waveform->size() - 1 ).first ) {
 
-                results.emplace_back( std::make_pair( 0, 0 ) );  // out of range
+                results.emplace_back(  0, 0 );  // out of range
 
             } else {
 
@@ -235,7 +235,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 
                 ADDEBUG() << "a=" << a << ", " << area;
 #endif                
-                results.emplace_back( std::make_pair( a, height ) );
+                results.emplace_back( a, height );
             }
             
         }
