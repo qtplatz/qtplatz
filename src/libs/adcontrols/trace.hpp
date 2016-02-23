@@ -47,8 +47,13 @@ namespace adcontrols {
         size_t size() const;
         void resize( size_t size );
 
-        const double * getIntensityArray() const;
-        const double * getTimeArray() const;   // array of miniutes
+        void setIsCountingTrace( bool );
+        bool isCountingTrace() const;
+
+        double x( size_t ) const;
+        double y( size_t ) const;
+        std::pair< double, double > xy( size_t ) const;
+
         const unsigned long * getEventsArray() const;
         std::pair<double, double> range_y() const;
 
@@ -60,14 +65,17 @@ namespace adcontrols {
 		int fcn_;
         double minY_;
         double maxY_;
-#if defined _MSC_VER
-# pragma warning(disable:4251)
-#endif
+        bool isCountingTrace_;
 
-        std::vector< size_t > npos_;
-        std::vector< double > traceX_;
-        std::vector< double > traceY_;
-        std::vector< unsigned long > events_;
+        enum { data_number, x_value, y_value, event_flags };
+        typedef std::tuple< size_t, double, double, uint32_t > value_type;
+
+        std::vector< value_type > values_;
+
+        //std::vector< size_t > npos_;
+        //std::vector< double > traceX_;
+        //std::vector< double > traceY_;
+        //std::vector< unsigned long > events_;
     };
 
 }

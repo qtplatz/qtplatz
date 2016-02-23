@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,6 +27,8 @@
 #include "trace.hpp"
 #include <iostream>
 #include <algorithm>
+#include <numeric>
+#include <tuple>
 
 using namespace adcontrols;
 
@@ -37,7 +39,8 @@ Trace::~Trace()
 Trace::Trace( int fcn, unsigned lower, unsigned upper ) : fcn_( fcn )
                                                         , lower_limit( lower )
 														, upper_limit( upper )
-                                                        , minY_( -10 ), maxY_( 90 )
+                                                        , minY_( std::numeric_limits<double>::max() ), maxY_( std::numeric_limits<double>::lowest() )
+                                                        , isCountingTrace_( false )
 {
 }
 
@@ -46,9 +49,7 @@ Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
 							   , upper_limit( t.upper_limit )
                                , minY_( t.minY_ )
                                , maxY_( t.maxY_ )
-                               , traceX_( t.traceX_ )
-                               , traceY_( t.traceY_ )
-                               , events_( t.events_ )
+                               , values_( t.values_ )
 {
 }
 
@@ -60,9 +61,8 @@ Trace::operator = ( const Trace& t )
 	upper_limit = t.upper_limit;
     minY_ = t.minY_;
     maxY_ = t.maxY_;
-    traceX_ = t.traceX_;
-    traceY_ = t.traceY_;
-    events_ = t.events_;
+    values_ = t.values_;
+    isCountingTrace_ = t.isCountingTrace_;
     return *this;
 }
 
@@ -75,43 +75,39 @@ Trace::set_fcn( size_t n )
 bool
 Trace::push_back( size_t npos, double x, double y )
 {
-    if ( npos_.empty() || ( npos_.back() < npos ) ) {
+    if ( !values_.empty() && ( npos < std::get< data_number >( values_.back() ) ))
+        return false;
 
-        npos_.push_back( npos );
-        traceX_.push_back( x );
-        traceY_.push_back( y );
+    values_.emplace_back( npos, x, y, 0 );
 
-        if ( maxY_ < y )
-            maxY_ = y;
-        if ( minY_ > y )
-            minY_ = y;
-        if ( npos_.size() > upper_limit ) {
-            npos_.erase( npos_.begin(), npos_.begin() + ( upper_limit - lower_limit ) );
-            traceX_.erase( traceX_.begin(), traceX_.begin() + ( upper_limit - lower_limit ) );
-            traceY_.erase( traceY_.begin(), traceY_.begin() + ( upper_limit - lower_limit ) );
-        }
-        return true;
+    maxY_ = std::max( maxY_, y );
+    minY_ = isCountingTrace_ ? 0 : std::min( minY_, y );
+
+    if ( values_.size() > upper_limit ) {
+
+        values_.erase( values_.begin(), values_.begin() + ( upper_limit - lower_limit ) );
+
+        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) { return std::get<x_value>( a ) < std::get<y_value>( b ); } );;
+        maxY_ = std::get<y_value>(*minmax.second);
+        minY_ = isCountingTrace_ ? 0 : std::get<y_value>(*minmax.first);
+
     }
-    return false;
+    return true;
 }
 
 bool
 Trace::erase_before( size_t npos )
 {
-    auto it = std::upper_bound( npos_.begin(), npos_.end(), npos );
-    if ( it != npos_.end() ) {
+    auto it = std::upper_bound( values_.begin(), values_.end(), npos, [] ( size_t npos, const value_type& b ) { return npos < std::get<data_number>( b ); } );
 
-        size_t n = std::distance( npos_.begin(), it );
+    if ( it != values_.end() ) {
 
-        npos_.erase( npos_.begin(), npos_.begin() + n );
-        traceX_.erase( traceX_.begin(), traceX_.begin() + n );
-        traceY_.erase( traceY_.begin(), traceY_.begin() + n );
-        
-        auto y = std::minmax( traceY_.begin(), traceY_.end() );
+        values_.erase( values_.begin(), it );
 
-        minY_ = *y.first;
-        maxY_ = *y.second;
-        
+        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) { return std::get<x_value>( a ) < std::get<y_value>( b ); } );;
+        maxY_ = std::get<y_value>(*minmax.second);
+        minY_ = isCountingTrace_ ? 0 : std::get<y_value>(*minmax.first);
+
         return true;
     }
     return false;
@@ -120,53 +116,67 @@ Trace::erase_before( size_t npos )
 void
 Trace::clear()
 {
-    traceX_.clear();
-    traceY_.clear();
-    npos_.clear();
+    values_.clear();
+    minY_ = isCountingTrace_ ? 0 : std::numeric_limits<double>::max();
+    maxY_ = std::numeric_limits<double>::lowest();
 }
 
 size_t
 Trace::size() const
 {
-    return traceY_.size();
+    return values_.size();
 }
 
 void
 Trace::resize( size_t size )
 {
-    traceX_.resize( size );
-    traceY_.resize( size );
-    npos_.resize( size );
+    values_.resize( size );
 }
 
-const double *
-Trace::getIntensityArray() const
+double
+Trace::x( size_t idx ) const
 {
-    return traceY_.data();
+    return std::get< x_value >( values_.at( idx ) );
 }
 
-const double *
-Trace::getTimeArray() const   // array of miniutes
+double
+Trace::y( size_t idx ) const
 {
-    return traceX_.data();
+    return std::get< y_value >( values_.at( idx ) );
 }
 
-const unsigned long *
-Trace::getEventsArray() const
+std::pair< double, double >
+Trace::xy( size_t idx ) const
 {
-    return 0;
+    return std::make_pair( std::get< x_value >( values_.at( idx ) ), std::get< y_value >( values_.at( idx ) ) );
 }
 
 std::pair<double, double>
 Trace::range_y() const
 {
-	double y0 = minY_;
-	double y1 = maxY_;
-    return std::pair<double, double>( y0, y1 );
+    return std::make_pair( minY_, maxY_ );
 }
 
 size_t
 Trace::npos() const
 {
-    return npos_.empty() ? 0 : npos_.back();
+    return values_.empty() ? 0 : std::get< data_number >( values_.back() );
+}
+
+void
+Trace::setIsCountingTrace( bool f )
+{
+    if ( isCountingTrace_ != f ) {
+        clear();
+    }
+
+    isCountingTrace_ = f;
+    if ( isCountingTrace_ )
+        minY_ = 0;
+}
+
+bool
+Trace::isCountingTrace() const
+{
+    return isCountingTrace_;
 }

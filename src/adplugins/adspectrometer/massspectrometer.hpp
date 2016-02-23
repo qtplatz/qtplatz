@@ -58,7 +58,6 @@ namespace adspectrometer {
 
         const wchar_t * name() const override;
         const adcontrols::ScanLaw& getScanLaw() const override;
-        //const adcontrols::DataInterpreter& getDataInterpreter() const override;
 		std::shared_ptr<adcontrols::ScanLaw> scanLaw( const adcontrols::MSProperty& ) const override;
 		void setCalibration( int mode, const adcontrols::MSCalibrateResult& ) override;
         const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const override;

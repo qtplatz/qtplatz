@@ -55,8 +55,6 @@
 #include <queue>
 #include <memory>
 
-using namespace adplot;
-
 namespace adplot {
 
     namespace chromatogram_widget {
@@ -112,19 +110,25 @@ namespace adplot {
             QRectF boundingRect() const override { return rect_; }
         };
 
-        template<class T> class series_data : public QwtSeriesData< QPointF >, boost::noncopyable {
+        template<class T> class series_data : public QwtSeriesData< QPointF > {
+
+            series_data( const series_data& ) = delete;
+            series_data& operator = ( const series_data& ) = delete;
             T t_;
+
         public:
             series_data() { }
 			series_data( const T& t ) : t_( t ) { }
 			~series_data() { }
 			inline operator T& () {	return t_;	};
+
             // implements QwtSeriesData<>
-            virtual size_t size() const { return t_.size(); }
-            virtual QPointF sample( size_t idx ) const { 
-                using adcontrols::Chromatogram;
-                return QPointF( Chromatogram::toMinutes( t_.getTimeArray()[idx] ), t_.getIntensityArray()[idx] );
+            size_t size() const override { return t_.size(); }
+
+            QPointF sample( size_t idx ) const override { 
+                return QPointF( adcontrols::Chromatogram::toMinutes( t_.x(idx) ), t_.y(idx) );
             }
+            
             virtual QRectF boundingRect() const { return rect_; }
             void boundingRect( const QRectF& rc ) { rect_ = rc; }
         private:
@@ -140,6 +144,7 @@ namespace adplot {
             void setData( const std::shared_ptr<T>& ) {}
 			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
+			const QwtPlotCurve& plot_curve() const { return *curve_.p(); }
             void drawMarkers( QwtPlot *, const std::pair< double, double >& ) {}
 
         private:
@@ -149,15 +154,13 @@ namespace adplot {
 
         template<> void TraceData<adcontrols::Trace>::setData( const adcontrols::Trace& trace )
         {
-            using adcontrols::Trace;
-            namespace cw = chromatogram_widget;
-
             if ( trace.size() <= 2 )
                 return;
 
             // TODO:  refactor code in order to avoid full data copy
-			series_data< Trace > * d_trace = new series_data< Trace >( trace );
-            rect_.setCoords( d_trace->sample( 0 ).x(), trace.range_y().second, d_trace->sample( trace.size() - 1 ).x(), trace.range_y().first );
+			series_data< adcontrols::Trace > * d_trace = new series_data< adcontrols::Trace >( trace );
+            // make rect upside down due to QRectF 'or' operator flips y-coord for negative height
+            rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace.range_y().first ), QPointF(d_trace->sample( trace.size() - 1 ).x(), trace.range_y().second ));
             d_trace->boundingRect( rect_ );
 			curve_.p()->setData( d_trace );
         }
@@ -175,10 +178,10 @@ namespace adplot {
                 auto range_x = adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
-                // workaround for 'counting chromatogram', which can be complete flat signals
-                if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() ) {
-                    range_y.first = 0;
-                }
+                // // workaround for 'counting chromatogram', which can be complete flat signals
+                if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() ) 
+                     range_y.first = 0;
+
                 rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
                 if ( y2 )
                     curve_.p()->setYAxis( QwtPlot::yRight );
@@ -187,6 +190,8 @@ namespace adplot {
 
 			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
+			const QwtPlotCurve& plot_curve() const { return *curve_.p(); }
+
             void drawMarkers( QwtPlot * plot, const std::pair< double, double >& range ) {
                 if ( grab_ ) {
                     const double * times = grab_->getTimeArray();
@@ -214,6 +219,10 @@ namespace adplot {
 
         struct boundingRect_visitor : public boost::static_visitor< QRectF > {
             template<typename T> QRectF operator()( const T& t ) const { return t.boundingRect(); }
+        };
+
+        struct yAxis_visitor : public boost::static_visitor< int > {
+            template< typename T > int operator ()( const T& t ) const { return t.plot_curve().yAxis(); }
         };
 
         struct updateMarkers_visitor : public boost::static_visitor< void > {
@@ -246,8 +255,12 @@ namespace adplot {
         };
         
     }
-    
-    struct ChromatogramWidgetImpl : boost::noncopyable {
+
+    class ChromatogramWidget::impl {
+        impl( const impl& ) = delete;
+        impl& operator = ( const impl& ) = delete;
+    public:
+        impl() {}
         
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
@@ -268,8 +281,10 @@ namespace adplot {
         QwtText tracker2( const QPointF&, const QPointF& );
         
     };
-    
 }
+
+using namespace adplot;
+using namespace adplot::chromatogram_widget;
 
 ChromatogramWidget::~ChromatogramWidget()
 {
@@ -277,7 +292,7 @@ ChromatogramWidget::~ChromatogramWidget()
 }
 
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
-                                                        , impl_( new ChromatogramWidgetImpl )
+                                                        , impl_( new impl() )
 {
     setAxisTitle(QwtPlot::xBottom, QwtText( "Time[min]", QwtText::RichText ) );
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
@@ -290,8 +305,8 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
     
     if ( auto zoomer = plot::zoomer() ) {
         using namespace std::placeholders;
-        zoomer->tracker1( std::bind( &ChromatogramWidgetImpl::tracker1, impl_, _1 ) );
-        zoomer->tracker2( std::bind( &ChromatogramWidgetImpl::tracker2, impl_, _1, _2 ) );
+        zoomer->tracker1( std::bind( &impl::tracker1, impl_, _1 ) );
+        zoomer->tracker2( std::bind( &impl::tracker2, impl_, _1, _2 ) );
         
         // connect( zoomer, static_cast<void(Zoomer::*)(QRectF&)>(&Zoomer::zoom_override), this, &ChromatogramWidget::override_zoom_rect );
         connect( zoomer, &Zoomer::zoomed, this, &ChromatogramWidget::zoomed );
@@ -310,8 +325,8 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
 QColor
 ChromatogramWidget::color( int idx ) const
 {
-    if ( idx >= 0 && idx < sizeof( chromatogram_widget::color_table )/sizeof( chromatogram_widget::color_table[0] ) )
-        return QColor( chromatogram_widget::color_table[ idx ] );
+    if ( idx >= 0 && idx < sizeof( color_table )/sizeof( color_table[0] ) )
+        return QColor( color_table[ idx ] );
     return QColor( Qt::black );
 }
 
@@ -332,7 +347,7 @@ void
 ChromatogramWidget::removeData( int idx, bool bReplot )
 {
     if ( impl_->traces_.size() > size_t(idx) )
-        impl_->traces_[ idx ] = chromatogram_widget::ChromatogramData( *this );
+        impl_->traces_[ idx ] = ChromatogramData( *this );
     if ( bReplot )
         replot();
 }
@@ -343,37 +358,38 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
     if ( c.size() < 2 )
         return;
     
-    using adcontrols::Trace;
-    using chromatogram_widget::TraceData;
-    
     while ( int( impl_->traces_.size() ) <= idx )
-        impl_->traces_.push_back( TraceData<Trace>( *this ) );
+        impl_->traces_.emplace_back( TraceData< adcontrols::Trace >( *this ) );
     
-    TraceData<Trace> * trace = 0;
+    TraceData< adcontrols::Trace > * trace = 0;
     try {
-        trace = &boost::get< TraceData<Trace> >( impl_->traces_[ idx ] );
+        trace = &boost::get< TraceData< adcontrols::Trace > >( impl_->traces_[ idx ] );
     } catch ( boost::bad_get& ex ) {
         adportable::debug(__FILE__, __LINE__) << ex.what();
     }
     
     if ( trace ) {
-        
-        trace->plot_curve().setPen( QPen( chromatogram_widget::color_table[ idx ] ) );
+
+        trace->plot_curve().setPen( QPen( color_table [ idx ] ) );
+        trace->plot_curve().setYAxis( yRight ? QwtPlot::yRight : QwtPlot::yLeft );
         trace->setData( c );
-        
-        if ( idx == 0 ) {
-            QRectF rect = trace->boundingRect();
-            for ( const auto& it: impl_->traces_ ) {
-                QRectF rc = boost::apply_visitor( chromatogram_widget::boundingRect_visitor(),  it );
-                if ( rc.bottom() < rect.bottom() )
-                    rect.setBottom( rc.bottom() );
-                if ( rc.top() > rect.top() )
-                    rect.setTop( rc.top() );
-            }
-            setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() + rect.width() / 20.0 );
-            setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
-            zoomer()->setZoomBase();
-        }
+
+        //ADDEBUG() << "setData(" << idx << ", y=" << trace->plot_curve().yAxis() << ")" << "{" << rc.left() << ", " << rc.bottom() << "},{" << rc.right() << ", " << rc.top() << "}";
+
+        auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
+
+        auto rc = std::accumulate( impl_->traces_.begin(), impl_->traces_.end(), QRectF {}, [&] ( const QRectF& a, const trace_variant& b ) {
+            QRectF rect( boost::apply_visitor( boundingRect_visitor(), b ) );
+            if ( boost::apply_visitor( yAxis_visitor(), b ) == yAxis ) {
+                return a | rect; // this flips y-coodinate upside down when negative height
+            } else 
+                return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
+        } );
+
+        setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
+        setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale 
+
+        zoomer()->setZoomBase();
     }
 }
 
@@ -384,16 +400,14 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
         return;
 
     using adcontrols::Chromatogram;
-    using chromatogram_widget::ChromatogramData; // TraceData;
 
-    QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
-    
     while ( int ( impl_->traces_.size() ) <= idx )
 		impl_->traces_.push_back( ChromatogramData( *this ) );
-    
-	auto& trace = boost::get< ChromatogramData >(impl_->traces_[ idx ] );
 
-	trace.plot_curve().setPen( QPen( chromatogram_widget::color_table[idx] ) ); 
+    auto& trace = boost::get< ChromatogramData >( impl_->traces_ [ idx ] );
+    QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
+
+	trace.plot_curve().setPen( QPen( color_table[idx] ) ); 
     trace.setData( cp, yRight );
     impl_->peak_annotations_.clear();
 
@@ -533,7 +547,7 @@ void
 ChromatogramWidget::zoomed( const QRectF& rect )
 {
     auto range = std::make_pair( rect.left(), rect.right() );
-    chromatogram_widget::updateMarkers_visitor drawMarker( this, range );
+    updateMarkers_visitor drawMarker( this, range );
     for ( auto& trace : impl_->traces_ )
         boost::apply_visitor( drawMarker, trace );
     
@@ -564,7 +578,7 @@ ChromatogramWidget::selected( const QRectF& rect )
 
 //--------------
 void
-ChromatogramWidgetImpl::clear()
+ChromatogramWidget::impl::clear()
 {
     peaks_.clear();
     baselines_.clear();
@@ -573,7 +587,7 @@ ChromatogramWidgetImpl::clear()
 }
 
 void
-ChromatogramWidgetImpl::removeData( int idx )
+ChromatogramWidget::impl::removeData( int idx )
 {
     if ( traces_.size() > size_t(idx) ) {
         peaks_.clear();
@@ -583,18 +597,18 @@ ChromatogramWidgetImpl::removeData( int idx )
 }
 
 void
-ChromatogramWidgetImpl::clear_annotations()
+ChromatogramWidget::impl::clear_annotations()
 {
 	annotation_markers_.clear();
 }
 
 void
-ChromatogramWidgetImpl::update_markers( const std::pair<double, double>& ) const
+ChromatogramWidget::impl::update_markers( const std::pair<double, double>& ) const
 {
 }
 
 void
-ChromatogramWidgetImpl::update_annotations( const std::pair<double, double>& range
+ChromatogramWidget::impl::update_annotations( const std::pair<double, double>& range
                                             , adcontrols::annotations& vec ) const
 {
 	auto& peaks = peak_annotations_;
@@ -613,7 +627,7 @@ ChromatogramWidgetImpl::update_annotations( const std::pair<double, double>& ran
 }
 
 QwtText
-ChromatogramWidgetImpl::tracker1( const QPointF& pos )
+ChromatogramWidget::impl::tracker1( const QPointF& pos )
 {
     QwtText text = QwtText( (boost::format("%.3fmin, %.1f") % pos.x() % pos.y() ).str().c_str(), QwtText::RichText );
 
@@ -624,7 +638,7 @@ ChromatogramWidgetImpl::tracker1( const QPointF& pos )
 }
 
 QwtText
-ChromatogramWidgetImpl::tracker2( const QPointF& p1, const QPointF& pos )
+ChromatogramWidget::impl::tracker2( const QPointF& p1, const QPointF& pos )
 {
     QwtText text;
 

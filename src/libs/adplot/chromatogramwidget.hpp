@@ -72,20 +72,19 @@ namespace adplot {
 		void onMoved( const QPointF& );
 		void onSelected( const QPointF& );
 		void onSelected( const QRectF& );
-    private:
-        // virtual void zoom( const QRectF& ) override;
 
     public slots:
 		virtual void moved( const QPointF& );
 		virtual void selected( const QPointF& );
 		virtual void selected( const QRectF& );
 
-    private:
-        struct ChromatogramWidgetImpl * impl_;
-        void plotAnnotations( const adcontrols::annotations& );
-
     private slots:
 		void zoomed( const QRectF& );
+
+    private:
+        void plotAnnotations( const adcontrols::annotations& );
+        class impl;
+        impl * impl_;
     };
 
 }

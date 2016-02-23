@@ -41,6 +41,7 @@ namespace adplot {
         void setStyle( QwtPlotCurve::CurveStyle );
         void setData( const double * xData, const double * yData, size_t size );
 		inline QwtPlotCurve * p() { return curve_.get(); }
+		inline const QwtPlotCurve * p() const { return curve_.get(); }
     private:
 		std::shared_ptr< QwtPlotCurve > curve_;
         QwtSeriesData<QPointF> * series_;

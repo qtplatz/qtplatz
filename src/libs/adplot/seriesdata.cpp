@@ -70,18 +70,15 @@ SeriesData::setData( const adcontrols::Trace& trace )
     if ( trace.size() <= 2 )
         return;
 
-    values_.resize( trace.size() );
-    const double *x = trace.getTimeArray();
-    const double *y = trace.getIntensityArray();
-
+    values_.reserve( trace.size() );
     for ( size_t i = 0; i < trace.size(); ++i )
-        values_[i] = QPointF( x[i], y[i] );
+        values_.emplace_back( trace.x(i), trace.y(i) );
 }
 
 void
 SeriesData::setData( const adcontrols::Chromatogram& c )
 {
-    values_.resize( c.size() );
+    values_.reserve( c.size() );
 
     range_x_ = adcontrols::Chromatogram::toMinutes( c.timeRange() );
     range_y_ = std::pair<double, double>( c.getMinIntensity(), c.getMaxIntensity() );
@@ -92,10 +89,10 @@ SeriesData::setData( const adcontrols::Chromatogram& c )
 
     if ( x ) {
         for ( size_t i = 0; i < size; ++i )
-            values_[i] = QPointF( adcontrols::Chromatogram::toMinutes( x[i] ), y[i] );
+            values_.emplace_back( adcontrols::Chromatogram::toMinutes( x[i] ), y[i] );
     } else {
         for ( size_t i = 0; i < size; ++i )
-            values_[i] = QPointF( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), y[i] );
+            values_.emplace_back( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), y[i] );
     }
 
 }
@@ -103,8 +100,8 @@ SeriesData::setData( const adcontrols::Chromatogram& c )
 void
 SeriesData::setData( size_t size, const double * x, const double * y )
 {
-    values_.resize( size );
+    values_.reserve( size );
     for ( size_t i = 0; i < size; ++i )
-        values_[i] = QPointF( x[i], y[i] );
+        values_.emplace_back( x[i], y[i] );
 }
 
