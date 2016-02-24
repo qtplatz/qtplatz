@@ -100,7 +100,7 @@ namespace adicontroller {
 
             virtual bool isRecording() const { return false; }
 
-            virtual bool next_protocol( const boost::any& ) { return false; }
+            virtual bool next_protocol( uint32_t protoIdx, uint32_t nProtocols ) { return false; }
         };
 
 

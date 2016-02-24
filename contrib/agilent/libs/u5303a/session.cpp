@@ -294,7 +294,7 @@ Session::stop_run()
 }
 
 bool
-Session::next_protocol( const boost::any& a )
+Session::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
-    return impl_->digitizer_->peripheral_protocol( a );
+    return impl_->digitizer_->peripheral_protocol( protoIdx, nProtocols );
 }
