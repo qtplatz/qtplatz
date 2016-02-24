@@ -97,6 +97,8 @@ namespace u5303a {
             
             void error_reply( const std::string& emsg, const std::string& );
 
+            bool next_protocol( uint32_t protoIdx, uint32_t nProtocols );
+
         private:
             // fsm::handler
             void fsm_action_prepare() override;
@@ -234,9 +236,9 @@ digitizer::peripheral_trigger_inject()
 }
 
 bool
-digitizer::peripheral_protocol( const boost::any& a )
+digitizer::peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
-    return false;
+    return task::instance()->next_protocol( protoIdx, nProtocols );
 }
 
 void
@@ -328,6 +330,18 @@ task::initialize()
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
         
+    return true;
+}
+
+bool
+task::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
+{
+    // this method should be called same marshaling on readData(), which is under layer function of waveform_handler functor
+
+    if ( protoIdx < method_.protocols().size() ) {
+        method_.setProtocolIndex( protoIdx );
+        device::setup( *this, method_ ); // don't call 'handle_protocol which support previous version a.k.a. 'InfiTOF' plugin
+    }
     return true;
 }
 
@@ -572,12 +586,9 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 bool
 task::handle_protocol( const acqrscontrols::u5303a::method m )
 {
-    if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer )
-        device::setup( *this, m );
-    else
-        device::setup( *this, m );
+    device::setup( *this, m );
 
-    if ( /* m.mode_ && */ simulated_ )
+    if ( simulated_ )
         simulator::instance()->setup( m );
     
     method_ = m;
@@ -838,6 +849,9 @@ device::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
     // Originally, this was considered to use 'protocol' acquisition, which change acquisition parameter for each scan
     // However, acquisition parameter change require self-calibration on U5303A so that this can't be used.
+
+    // Now it is possible with environment variable: 
+    // AGMD2_SKIP_CAL_REQUIRED_CHECKS=1
     return true;
 }
 
@@ -871,6 +885,8 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
     ViInt64 arraySize = 0;
     const int64_t recordSize = m._device_method().digitizer_nbr_of_s_to_acquire;
     const int64_t numRecords = m._device_method().nbr_records;
+
+    // ADDEBUG() << "readData: " << m.protocolIndex() << "/" << m.protocols().size();
     
     if ( AgMD2::log(
              AgMD2_QueryMinWaveformMemory( md2.session(), 16, numRecords, 0, recordSize, &arraySize )
