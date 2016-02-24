@@ -156,8 +156,10 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
         
         if ( breakout ||
              ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) ) {
+
+            bool invertData = waveform->method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
             
-            auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), true );
+            auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), invertData );
             w->meta_ = impl_->meta_;                 // replace with first trigger
             w->meta_.dataType = sizeof( uint32_t );  // match up with actual data format
             w->wellKnownEvents_ = impl_->wellKnownEvents_;
