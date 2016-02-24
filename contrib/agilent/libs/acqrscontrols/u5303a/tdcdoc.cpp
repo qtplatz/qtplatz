@@ -496,6 +496,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     const auto& histogram = impl_->histograms_[ channel ];
 
     const auto& this_protocol = method.protocols().size() > method.protocolIndex() ? method.protocols().at( method.protocolIndex() ) : adcontrols::TofProtocol();
+    ADDEBUG() << "******************** protocol: " << method.protocolIndex() << "/" << method.protocols().size();
 
     using namespace adcontrols::metric;
     
