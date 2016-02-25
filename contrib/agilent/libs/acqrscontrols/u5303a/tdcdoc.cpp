@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
@@ -120,7 +120,7 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         impl_->histogram_register_->move( *hgrm );
         impl_->periodic_histograms_.emplace_back( hgrm );
 
-        ADDEBUG() << "accumulate_histogram: " << hgrm->protocolIndex() << "/" << hgrm->nProtocols();
+        // ADDEBUG() << "accumulate_histogram: " << hgrm->protocolIndex() << "/" << hgrm->nProtocols();
         
         // long-term histogram
         (*impl_->longterm_histogram_) += *hgrm;
@@ -148,7 +148,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
         impl_->method_ = waveform->method_;
         impl_->wellKnownEvents_ = waveform->wellKnownEvents_;
 
-        ADDEBUG() << "accumulate_waveform protocol: " << waveform->method_.protocolIndex() << "/" << waveform->method_.protocols().size();
+        // ADDEBUG() << "accumulate_waveform protocol: " << waveform->method_.protocolIndex() << "/" << waveform->method_.protocols().size();
 
     } else {
         
@@ -508,6 +508,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 
     std::pair<uint32_t,uint32_t> serialnumber;
 
+    trigCount = 0;
     trigCount = impl_->histograms_[ channel ]->getHistogram( hist, meta, method, serialnumber, timeSinceEpoch );
 
     const auto& histogram = impl_->histograms_[ channel ];
@@ -515,7 +516,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
     const auto& this_protocol =
         method.protocols().size() > method.protocolIndex() ? method.protocols().at( method.protocolIndex() ) : adcontrols::TofProtocol();
     
-    ADDEBUG() << " protocol: " << method.protocolIndex() << "/" << method.protocols().size() << " count: " << trigCount;
+    // ADDEBUG() << " protocol: " << method.protocolIndex() << "/" << method.protocols().size() << " count: " << trigCount;
 
     using namespace adcontrols::metric;
     

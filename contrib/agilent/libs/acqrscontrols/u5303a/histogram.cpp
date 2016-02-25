@@ -64,8 +64,8 @@ histogram::append( const threshold_result& result )
          !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
         
         method_ = result.data()->method_; // delay pulse + protocols
-
-        ADDEBUG() << "append: " << method_.protocolIndex() << "/" << method_.protocols().size();        
+        
+        // ADDEBUG() << "append: " << method_.protocolIndex() << "/" << method_.protocols().size();        
 
         meta_ = result.data()->meta_;        
         
@@ -151,8 +151,6 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
     std::lock_guard< std::mutex > lock( mutex_ );
 
     hist.clear();
-
-    ADDEBUG() << "getHistgram: " << method_.protocolIndex() << "/" << method_.protocols().size();
 
     meta = meta_;
     method = method_;

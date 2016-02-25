@@ -95,7 +95,7 @@ namespace acqrscontrols {
             void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
             
             [[deprecated]] std::shared_ptr< adcontrols::MassSpectrum >
-            getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const;
+                getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const;
 
             void update_rate( size_t, const std::pair<uint64_t, uint64_t>& timeSinceEpoch );
 
