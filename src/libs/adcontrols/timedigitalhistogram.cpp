@@ -254,20 +254,20 @@ TimeDigitalHistogram::this_protocol() const
     return this_protocol_;
 }
 
-size_t
+uint32_t
 TimeDigitalHistogram::protocolIndex() const
 {
     return protocolIndex_;
 }
 
-size_t
+uint32_t
 TimeDigitalHistogram::nProtocols() const
 {
     return nProtocols_;
 }
 
 void
-TimeDigitalHistogram::setProtocolIndex( size_t idx, size_t count )
+TimeDigitalHistogram::setProtocolIndex( uint32_t idx, uint32_t count )
 {
     protocolIndex_ = idx;
     nProtocols_ = count;

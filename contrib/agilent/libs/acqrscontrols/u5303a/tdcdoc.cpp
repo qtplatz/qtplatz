@@ -55,19 +55,18 @@ namespace acqrscontrols {
         public:
             ~impl() {}
             
-            impl() : histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } ) {
+            impl() { //: histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } ) {
                 // , longterm_histogram_( std::make_shared< adcontrols::TimeDigitalHistogram >() ) {
             }
 
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
-            std::array< std::shared_ptr< acqrscontrols::u5303a::histogram >, 2 > histograms_;
             std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
             std::shared_ptr< adcontrols::threshold_action > threshold_action_;
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histograms_; // periodic
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > longterm_histogram_; // <protocolIndex, histogram> total
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histograms_; // periodic (recent protocol)
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > longterm_histogram_; //
             std::shared_ptr< averager_type > averager_;
             metadata meta_;
             method method_;
@@ -91,6 +90,7 @@ tdcdoc::~tdcdoc()
     delete impl_;
 }
 
+#if 0
 void
 tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results )
 {
@@ -103,6 +103,7 @@ tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a
         ++channel;
     }
 }
+#endif
 
 /*
   Master entry point from 'task' module
@@ -117,24 +118,19 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 
         // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
+
         impl_->histogram_register_->move( *hgrm );
         impl_->periodic_histograms_.emplace_back( hgrm );
 
-        // ADDEBUG() << "accumulate_histogram: " << hgrm->protocolIndex() << "/" << hgrm->nProtocols();
-        
-        // long-term histogram
+         // dispatch histograms
         uint32_t index = hgrm->protocolIndex();
-        
         if ( impl_->longterm_histogram_.size() != hgrm->nProtocols() ) {
-            
             impl_->longterm_histogram_.resize( hgrm->nProtocols() );
-            
             std::for_each( impl_->longterm_histogram_.begin(), impl_->longterm_histogram_.end()
                            , [&]( std::shared_ptr< adcontrols::TimeDigitalHistogram >& a ){
                                a = std::make_shared< adcontrols::TimeDigitalHistogram >();
                            });
         }
-
         (*impl_->longterm_histogram_[ index ] ) += *hgrm;
     }
     
@@ -410,7 +406,7 @@ tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m
         
         if ( auto prev = impl_->threshold_methods_[ channel ] ) {
             if ( *prev != m )
-                impl_->histograms_[ channel ]->clear();
+                clear_histogram();
         }
         
         impl_->threshold_methods_[ channel ] = std::make_shared< adcontrols::threshold_method >( m );
@@ -517,7 +513,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();
     sp->setCentroid( adcontrols::CentroidNative );
-
+#if 0
     std::pair<uint32_t,uint32_t> serialnumber;
 
     trigCount = 0;
@@ -575,6 +571,7 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
             sp->setIntensity( idx, hist[ idx ].second );
         }
     }
+#endif
     return sp;
 }
 
@@ -583,8 +580,8 @@ tdcdoc::clear_histogram()
 {
     impl_->threshold_action_counts_ = { { { 0, 0 } } };
 
-    for ( auto h : impl_->histograms_ )
-        h->clear();
+    // for ( auto h : impl_->histograms_ )
+    //     h->clear();
 
     impl_->longterm_histogram_.clear();
 }

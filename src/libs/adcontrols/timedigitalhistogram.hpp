@@ -85,9 +85,9 @@ namespace adcontrols {
         TofProtocol& this_protocol();
         const TofProtocol& this_protocol() const;
 
-        size_t protocolIndex() const;
-        size_t nProtocols() const;
-        void setProtocolIndex( size_t idx, size_t count );
+        uint32_t protocolIndex() const;
+        uint32_t nProtocols() const;
+        void setProtocolIndex( uint32_t idx, uint32_t count );
         
         uint32_t accumulate( double tof, double window ) const;
 

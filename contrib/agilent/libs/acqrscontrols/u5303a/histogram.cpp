@@ -130,7 +130,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.wellKnownEvents()     = wellKnownEvents_;
     assert( method_.protocolIndex() < method_.protocols().size() );
     x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
-    x.setProtocolIndex( method_.protocolIndex(), method_.protocols().size() );
+    x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
 
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
