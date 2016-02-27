@@ -95,6 +95,8 @@ namespace adcontrols {
 
         std::shared_ptr< TimeDigitalHistogram > clone( const std::vector< std::pair<double, uint32_t > >& ) const;
 
+        static bool average_time( const std::vector< std::pair< double, uint32_t > >&, double resolution, std::vector< std::pair< double, uint32_t > >&);
+
         static bool translate( adcontrols::MassSpectrum&, const TimeDigitalHistogram& );
 
         static bool archive( std::ostream&, const TimeDigitalHistogram& );

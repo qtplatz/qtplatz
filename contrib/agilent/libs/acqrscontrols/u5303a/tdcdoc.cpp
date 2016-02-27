@@ -65,8 +65,16 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histograms_; // periodic (recent protocol)
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > longterm_histogram_; //
+
+            // periodic histograms (primary que) [time array] := (proto 0, proto 1, ...), (proto 0, proto 1, ...),...
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_que_;
+
+            // recent protocol sequence histograms (periodic); (proto 0, proto 1, ...)
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > recent_periodic_histograms_;
+
+            // long term averaged histograms
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > longterm_histogram_;
+            
             std::shared_ptr< averager_type > averager_;
             metadata meta_;
             method method_;
@@ -90,21 +98,6 @@ tdcdoc::~tdcdoc()
     delete impl_;
 }
 
-#if 0
-void
-tdcdoc::appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results )
-{
-    ADDEBUG() << "appendHistogram: " << results[0]->data()->method_.protocolIndex();
-    
-    size_t channel = 0;
-    for ( auto result: results ) {
-        if ( result )
-            impl_->histograms_[ channel ]->append( *result );
-        ++channel;
-    }
-}
-#endif
-
 /*
   Master entry point from 'task' module
  */
@@ -120,21 +113,31 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
 
         impl_->histogram_register_->move( *hgrm );
-        impl_->periodic_histograms_.emplace_back( hgrm );
+        impl_->periodic_que_.emplace_back( hgrm );
 
          // dispatch histograms
         uint32_t index = hgrm->protocolIndex();
+
         if ( impl_->longterm_histogram_.size() != hgrm->nProtocols() ) {
-            impl_->longterm_histogram_.resize( hgrm->nProtocols() );
+
+            impl_->recent_periodic_histograms_.resize( hgrm->nProtocols() );  // recent periodic protocol sequence
+
+            impl_->longterm_histogram_.resize( hgrm->nProtocols() );          // long term protocol sequence
+
             std::for_each( impl_->longterm_histogram_.begin(), impl_->longterm_histogram_.end()
                            , [&]( std::shared_ptr< adcontrols::TimeDigitalHistogram >& a ){
                                a = std::make_shared< adcontrols::TimeDigitalHistogram >();
                            });
         }
+
+        // copy recent periodic histogram
+        impl_->recent_periodic_histograms_[ index ] = hgrm;
+
+        // accumulate into long term histogram
         (*impl_->longterm_histogram_[ index ] ) += *hgrm;
     }
     
-    return !impl_->periodic_histograms_.empty();
+    return !impl_->periodic_que_.empty();
 }
 
 bool
@@ -326,15 +329,15 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 size_t
 tdcdoc::readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& a )
 {
-    if ( ! impl_->periodic_histograms_.empty() ) {
+    if ( ! impl_->periodic_que_.empty() ) {
 
-        a.reserve( a.size() + impl_->periodic_histograms_.size() );
+        a.reserve( a.size() + impl_->periodic_que_.size() );
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-        std::move( impl_->periodic_histograms_.begin(), impl_->periodic_histograms_.end(), std::back_inserter( a ) );
+        std::move( impl_->periodic_que_.begin(), impl_->periodic_que_.end(), std::back_inserter( a ) );
 
-        impl_->periodic_histograms_.clear();
+        impl_->periodic_que_.clear();
 
         return a.size();
     }
@@ -348,6 +351,24 @@ tdcdoc::longTermHistogram( int protocolIndex ) const
     if ( impl_->longterm_histogram_.empty() )
         return nullptr;
     return impl_->longterm_histogram_[ protocolIndex ];
+}
+
+std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >
+tdcdoc::longTermHistograms() const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > d( impl_->longterm_histogram_.size() );
+    std::copy( impl_->longterm_histogram_.begin(), impl_->longterm_histogram_.end(), d.begin() );
+    return d;
+}
+
+std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >
+tdcdoc::recentHistograms() const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > d( impl_->recent_periodic_histograms_.size() );
+    std::copy( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.end(), d.begin() );
+    return d;
 }
 
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
@@ -490,77 +511,6 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
     }
 }
-
-#if 0
-std::shared_ptr< adcontrols::MassSpectrum >
-tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const
-{
-    acqrscontrols::u5303a::metadata meta;
-    acqrscontrols::u5303a::method method;
-    std::vector< std::pair< double, uint32_t > > hist;
-
-    auto sp = std::make_shared< adcontrols::MassSpectrum >();
-    sp->setCentroid( adcontrols::CentroidNative );
-    std::pair<uint32_t,uint32_t> serialnumber;
-
-    trigCount = 0;
-    trigCount = impl_->histograms_[ channel ]->getHistogram( hist, meta, method, serialnumber, timeSinceEpoch );
-
-    const auto& histogram = impl_->histograms_[ channel ];
-
-    const auto& this_protocol =
-        method.protocols().size() > method.protocolIndex() ? method.protocols().at( method.protocolIndex() ) : adcontrols::TofProtocol();
-    
-    // ADDEBUG() << " protocol: " << method.protocolIndex() << "/" << method.protocols().size() << " count: " << trigCount;
-
-    using namespace adcontrols::metric;
-    
-    adcontrols::MSProperty prop = sp->getMSProperty();
-    
-    adcontrols::SamplingInfo info( meta.xIncrement
-                                   , uint32_t( meta.initialXOffset / meta.xIncrement + 0.5 )
-                                   , uint32_t( meta.actualPoints ) // this is for acq. time range calculation
-                                   , uint32_t( trigCount )
-                                   , this_protocol.mode() );
-
-    prop.acceleratorVoltage( 3000 );
-    prop.setSamplingInfo( info );
-        
-    prop.setTimeSinceInjection( meta.initialXTimeSeconds );
-    prop.setTimeSinceEpoch( histogram->timeSinceEpoch() );
-    prop.setNumAverage( uint32_t( trigCount ) );
-    prop.setTrigNumber( histogram->trigNumber() );
-    prop.setDataInterpreterClsid( "u5303a" );
-    prop.setTofProtocol( this_protocol );
-        
-    {
-        acqrscontrols::u5303a::device_data data;
-        data.meta_ = meta;
-        std::string ar;
-        adportable::binary::serialize<>()( data, ar );
-        prop.setDeviceData( ar.data(), ar.size() );
-    }
-        
-    sp->setMSProperty( prop );
-
-    if ( resolution > meta.xIncrement ) {
-
-        std::vector< double > times, intens;
-        acqrscontrols::u5303a::histogram::average( hist, resolution, times, intens );
-        sp->resize( times.size() );
-        sp->setTimeArray( times.data() );
-        sp->setIntensityArray( intens.data() );
-
-    } else {
-        sp->resize( hist.size() );
-        for ( size_t idx = 0; idx < hist.size(); ++idx ) {
-            sp->setTime( idx, hist[ idx ].first );
-            sp->setIntensity( idx, hist[ idx ].second );
-        }
-    }
-    return sp;
-}
-#endif
 
 void
 tdcdoc::clear_histogram()

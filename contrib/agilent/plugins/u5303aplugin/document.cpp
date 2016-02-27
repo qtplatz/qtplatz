@@ -796,7 +796,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
 
             if ( resolution > hgrm->xIncrement() ) {
                 std::vector< std::pair<double, uint32_t > > time_merged;
-                acqrscontrols::u5303a::histogram::average( hgrm->histogram(), resolution, time_merged );
+                adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
                 hgrm = hgrm->clone( time_merged );
             }
 
@@ -875,7 +875,7 @@ document::impl::getHistogram( double resolution ) const
         
         if ( resolution > hgrm->xIncrement() ) {
             std::vector< std::pair<double, uint32_t > > time_merged;
-            acqrscontrols::u5303a::histogram::average( hgrm->histogram(), resolution, time_merged );
+            adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
             hgrm = hgrm->clone( time_merged );
         }
 

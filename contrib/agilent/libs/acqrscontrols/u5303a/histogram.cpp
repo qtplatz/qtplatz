@@ -176,28 +176,19 @@ histogram::average( const std::vector< std::pair< double, uint32_t > >& hist
                     , std::vector< double >& times
                     , std::vector< double >& intens )
 {
-    auto it = hist.begin();
+    std::vector< std::pair< double, uint32_t > > time_merged;
     
-    while ( it != hist.end() ) {
+    if ( adcontrols::TimeDigitalHistogram::average_time( hist, resolution, time_merged ) ) {
 
-        auto tail = it + 1;
+        times.resize( time_merged.size() );
+        intens.resize( time_merged.size() );
+        std::transform( time_merged.begin(), time_merged.end(), times.begin(), []( const std::pair< double, uint32_t >& a ){ return a.first; } );
+        std::transform( time_merged.begin(), time_merged.end(), intens.begin(), []( const std::pair< double, uint32_t >& a ){ return a.second; } );
+        return true;
 
-        while ( tail != hist.end() && std::abs( tail->first - it->first ) < resolution )
-            ++tail;
-
-        std::pair< double, double > sum
-            = std::accumulate( it, tail, std::make_pair( 0.0, 0.0 )
-                               , []( const std::pair<double, double>& a, const std::pair<double, uint32_t>& b ) {
-                                   return std::make_pair( a.first + (b.first * b.second), double(a.second + b.second) );
-                               });
-        
-        times.push_back( sum.first / sum.second );
-        intens.push_back( sum.second );
-
-        it = tail;
     }
-    
-    return true;
+
+    return false;
 }
 
 //static
@@ -206,27 +197,7 @@ histogram::average( const std::vector< std::pair< double, uint32_t > >& hist
                     , double resolution
                     , std::vector< std::pair< double, uint32_t > >& time_merged )
 {
-    auto it = hist.begin();
-    
-    while ( it != hist.end() ) {
-
-        auto tail = it + 1;
-
-        while ( tail != hist.end() && std::abs( tail->first - it->first ) < resolution )
-            ++tail;
-
-        std::pair< double, double > sum
-            = std::accumulate( it, tail, std::make_pair( 0.0, 0.0 )
-                               , []( const std::pair<double, double>& a, const std::pair<double, uint32_t>& b ) {
-                                   return std::make_pair( a.first + (b.first * b.second), double(a.second + b.second) );
-                               });
-        
-        time_merged.emplace_back( ( sum.first / sum.second ), sum.second );
-
-        it = tail;
-    }
-    
-    return true;
+    return adcontrols::TimeDigitalHistogram::average_time( hist, resolution, time_merged );
 }
 
 

@@ -86,22 +86,18 @@ namespace acqrscontrols {
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
             std::shared_ptr< const adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
+            std::shared_ptr< const adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const; 
+
+            // return as protocol sequence
+            std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > longTermHistograms() const;
+            // protocol sequence but no order garanteed
+            std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > recentHistograms() const; 
 
             bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
 
             bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
 
-            // strand required
-            //void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
-            
-            //[[deprecated]] std::shared_ptr< adcontrols::MassSpectrum >
-            //    getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const;
-
-            //void update_rate( size_t, const std::pair<uint64_t, uint64_t>& timeSinceEpoch );
-
             void clear_histogram();
-
-            //double trig_per_seconds() const;
 
             std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
 
