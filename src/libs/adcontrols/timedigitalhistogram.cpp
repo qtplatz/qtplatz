@@ -134,6 +134,25 @@ TimeDigitalHistogram::TimeDigitalHistogram( const TimeDigitalHistogram& t ) : in
 {
 }
 
+std::shared_ptr< TimeDigitalHistogram >
+TimeDigitalHistogram::clone( const std::vector< std::pair<double, uint32_t > >& histogram ) const
+{
+    auto t = std::make_shared< TimeDigitalHistogram >();
+    t->initialXTimeSeconds_ = initialXTimeSeconds_;
+    t->initialXOffset_ = initialXOffset_;
+    t->xIncrement_ = xIncrement_;
+    t->actualPoints_ = actualPoints_;
+    t->serialnumber_ = serialnumber_;
+    t->timeSinceEpoch_ = timeSinceEpoch_;
+    t->trigger_count_ = trigger_count_;
+    t->wellKnownEvents_ = wellKnownEvents_;
+    t->histogram_ = histogram;                 // <-- replace histogram
+    t->this_protocol_ = this_protocol_;
+    t->protocolIndex_ = protocolIndex_;
+    t->nProtocols_ = nProtocols_;
+    return t;
+}
+
 double&
 TimeDigitalHistogram::initialXTimeSeconds()
 {
@@ -308,6 +327,7 @@ TimeDigitalHistogram::end() const
 {
     return histogram_.end();        
 }
+
 
 uint32_t
 TimeDigitalHistogram::accumulate( double tof, double window ) const

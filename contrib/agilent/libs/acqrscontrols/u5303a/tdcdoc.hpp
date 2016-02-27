@@ -92,16 +92,16 @@ namespace acqrscontrols {
             bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
 
             // strand required
-            void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
+            //void appendHistogram( std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels > results );
             
-            [[deprecated]] std::shared_ptr< adcontrols::MassSpectrum >
-                getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const;
+            //[[deprecated]] std::shared_ptr< adcontrols::MassSpectrum >
+            //    getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const;
 
-            void update_rate( size_t, const std::pair<uint64_t, uint64_t>& timeSinceEpoch );
+            //void update_rate( size_t, const std::pair<uint64_t, uint64_t>& timeSinceEpoch );
 
             void clear_histogram();
 
-            double trig_per_seconds() const;
+            //double trig_per_seconds() const;
 
             std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
 

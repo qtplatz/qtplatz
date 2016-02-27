@@ -389,7 +389,7 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
         
         if ( threshold_results[0] || threshold_results[1] ) {
             
-            document::instance()->tdc()->appendHistogram( threshold_results );
+            document::instance()->tdc()->accumulate_histogram( threshold_results [ 0 ] ); // > appendHistogram( threshold_results );
             handle_u5303a_average( status, threshold_results ); // draw spectrogram and TIC
   
         }

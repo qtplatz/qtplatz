@@ -55,8 +55,8 @@ namespace acqrscontrols {
         public:
             ~impl() {}
             
-            impl() { //: histograms_( { std::make_shared< histogram_type >(), std::make_shared<histogram_type>() } ) {
-                // , longterm_histogram_( std::make_shared< adcontrols::TimeDigitalHistogram >() ) {
+            impl() : threshold_action_( std::make_shared< adcontrols::threshold_action >() )
+                   , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() ) {
             }
 
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
@@ -345,6 +345,8 @@ tdcdoc::readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrol
 std::shared_ptr< const adcontrols::TimeDigitalHistogram >
 tdcdoc::longTermHistogram( int protocolIndex ) const
 {
+    if ( impl_->longterm_histogram_.empty() )
+        return nullptr;
     return impl_->longterm_histogram_[ protocolIndex ];
 }
 
@@ -489,21 +491,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
     }
 }
 
-void
-tdcdoc::update_rate( size_t trigCount, const std::pair<uint64_t, uint64_t>& timeSinceEpoch )
-{
-    int64_t duration = timeSinceEpoch.second - timeSinceEpoch.first;
-    if ( duration )
-        impl_->trig_per_seconds_ = double( trigCount ) / ( double( timeSinceEpoch.second - timeSinceEpoch.first ) * 1.0e-9 );
-}
-
-double
-tdcdoc::trig_per_seconds() const
-{
-    return impl_->trig_per_seconds_;
-}
-
-
+#if 0
 std::shared_ptr< adcontrols::MassSpectrum >
 tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pair<uint64_t, uint64_t>& timeSinceEpoch ) const
 {
@@ -513,7 +501,6 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
 
     auto sp = std::make_shared< adcontrols::MassSpectrum >();
     sp->setCentroid( adcontrols::CentroidNative );
-#if 0
     std::pair<uint32_t,uint32_t> serialnumber;
 
     trigCount = 0;
@@ -571,9 +558,9 @@ tdcdoc::getHistogram( double resolution, int channel, size_t& trigCount, std::pa
             sp->setIntensity( idx, hist[ idx ].second );
         }
     }
-#endif
     return sp;
 }
+#endif
 
 void
 tdcdoc::clear_histogram()

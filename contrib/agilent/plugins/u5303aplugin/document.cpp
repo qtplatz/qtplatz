@@ -29,6 +29,7 @@
 #include "task.hpp"
 #include "u5303a_constants.hpp"
 #include "icontrollerimpl.hpp"
+#include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/metadata.hpp>
 #include <acqrscontrols/u5303a/tdcdoc.hpp>
@@ -41,6 +42,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/timedigitalmethod.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
@@ -111,6 +113,7 @@ namespace u5303a {
         std::shared_ptr< ResultWriter > resultWriter_;
 
         int32_t device_status_;
+        double triggers_per_second_;
         
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
@@ -132,6 +135,7 @@ namespace u5303a {
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "u5303a" ) ) )
+               , triggers_per_second_(0)
                , resultWriter_( std::make_shared< ResultWriter >() )  {
             
         }
@@ -143,6 +147,7 @@ namespace u5303a {
         void setControllerState( const QString&, bool enable );
         void loadControllerState();
         void takeSnapshot();
+        std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double resolution ) const;
     };
 
     std::mutex document::impl::mutex_;
@@ -650,7 +655,7 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
 double
 document::triggers_per_second() const
 {
-    return impl_->tdcdoc_->trig_per_seconds();
+    return impl_->triggers_per_second_;
 }
 
 size_t
@@ -783,21 +788,27 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
     emit dataChanged( objid, idx );
     
     if ( objid == u5303a_observer ) {
-        double resolution = 0;
-        if ( auto tm = tdc()->threshold_method( idx ) )
-            resolution = tm->time_resolution;
+        if ( auto hgrm = tdc()->longTermHistogram() ) {
 
-        size_t trigCount;
-        std::pair< uint64_t, uint64_t > timeSinceEpoch;
+            double resolution = 0;
+            if ( auto tm = tdc()->threshold_method( idx ) )
+                resolution = tm->time_resolution;
 
-        auto histogram = tdc()->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
-        tdc()->update_rate( trigCount, timeSinceEpoch );
-        do {
-            std::lock_guard< std::mutex > lock( impl_->mutex_ );
-            impl_->spectra_[ histogram_observer ][ idx ] = histogram;
-        } while ( 0 );
+            if ( resolution > hgrm->xIncrement() ) {
+                std::vector< std::pair<double, uint32_t > > time_merged;
+                acqrscontrols::u5303a::histogram::average( hgrm->histogram(), resolution, time_merged );
+                hgrm = hgrm->clone( time_merged );
+            }
 
-        emit dataChanged( histogram_observer, idx );
+            auto ms = std::make_shared< adcontrols::MassSpectrum >();
+            adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
+
+            impl_->triggers_per_second_ = hgrm->triggers_per_second();
+            
+            impl_->spectra_ [ histogram_observer ] [ idx ] = ms; // histogram
+            
+            emit dataChanged( histogram_observer, idx );
+        }
     }
 }
 
@@ -808,6 +819,7 @@ document::commitData()
     // save time data
     impl_->resultWriter_->commitData();
 
+#if 0
     // save histogram
     double resolution = 0;
     const int channel = 0;
@@ -822,6 +834,7 @@ document::commitData()
         impl_->resultWriter_->writeHistogram( trigCount, timeSinceEpoch, histogram );
     
     }
+#endif
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
@@ -851,6 +864,28 @@ document::takeSnapshot()
     task::instance()->post( futures );
 }
 
+std::shared_ptr< adcontrols::MassSpectrum >
+document::impl::getHistogram( double resolution ) const
+{
+    if ( auto hgrm = tdcdoc_->longTermHistogram() ) {
+
+        double resolution = 0;
+        if ( auto tm = tdcdoc_->threshold_method( 0 ) )
+            resolution = tm->time_resolution;
+        
+        if ( resolution > hgrm->xIncrement() ) {
+            std::vector< std::pair<double, uint32_t > > time_merged;
+            acqrscontrols::u5303a::histogram::average( hgrm->histogram(), resolution, time_merged );
+            hgrm = hgrm->clone( time_merged );
+        }
+
+        auto ms = std::make_shared< adcontrols::MassSpectrum >();
+        adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
+        return ms;
+    }
+    return nullptr;
+}
+
 void
 document::impl::takeSnapshot()
 {
@@ -877,9 +912,9 @@ document::impl::takeSnapshot()
     if ( auto tm = tdcdoc_->threshold_method( idx ) )
         resolution = tm->time_resolution;
 
-    size_t trigCount;
-    std::pair< uint64_t, uint64_t > timeSinceEpoch;
-    auto histogram = tdcdoc_->getHistogram( resolution, idx, trigCount, timeSinceEpoch );
+    //size_t trigCount;
+    //std::pair< uint64_t, uint64_t > timeSinceEpoch;
+    auto histogram = getHistogram( resolution ); // , , trigCount, timeSinceEpoch );
 
     std::chrono::system_clock::time_point tp = std::chrono::system_clock::now(); 
     std::string date = adportable::date_string::logformat( tp );

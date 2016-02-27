@@ -195,7 +195,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 
         } else if ( uuid == histogram_observer ) {
 
-            double rate = document::instance()->tdc()->trig_per_seconds();
+            double rate = document::instance()->triggers_per_second();
 
             QString title = QString( "U5303A: %1 samples / Trig# %2 (%3/s)" ).arg( QString::number( sp->getMSProperty().numAverage() )
                                                                                    , QString::number( sp->getMSProperty().trigNumber() )

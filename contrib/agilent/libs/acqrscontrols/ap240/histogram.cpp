@@ -157,3 +157,29 @@ histogram::average( const std::vector< std::pair< double, uint32_t > >& hist
 }
 
 
+//static
+bool
+histogram::average( const std::vector< std::pair< double, uint32_t > >& in, double resolution, std::vector < std::pair< double, uint32_t > >& out )
+{
+    auto it = in.begin();
+    
+    while ( it != in.end() ) {
+
+        auto tail = it + 1;
+
+        while ( tail != in.end() && std::abs( tail->first - it->first ) < resolution )
+            ++tail;
+
+        std::pair< double, double > sum
+            = std::accumulate( it, tail, std::make_pair( 0.0, 0.0 )
+                               , []( const std::pair<double, double>& a, const std::pair<double, uint32_t>& b ) {
+                                   return std::make_pair( a.first + (b.first * b.second), double(a.second + b.second) );
+                               });
+        
+        out.emplace_back( sum.first / sum.second, sum.second );
+
+        it = tail;
+    }
+    
+    return true;
+}

@@ -66,6 +66,9 @@ namespace acqrscontrols {
 
             static bool average( const std::vector< std::pair< double, uint32_t > >&
                                  , double resolution, std::vector< double >& times, std::vector< double >& intens );
+            
+            static bool average( const std::vector< std::pair< double, uint32_t > >&
+                                 , double resolution, std::vector< std::pair< double, uint32_t > >&);
 
         private:
             // metadata for initial trigger in this histogram
