@@ -59,7 +59,10 @@ namespace acqrscontrols {
                    , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() ) {
             }
 
-            bool recentProfile( adcontrols::MassSpectrum&, tdcdoc::mass_assignee_t ) const;
+            bool recentProfile( adcontrols::MassSpectrum&
+                                , const std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > >&
+                                , tdcdoc::mass_assignee_t ) const;
+            
             bool recentHistogram( adcontrols::MassSpectrum&
                                   , const std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > >&
                                   , tdcdoc::mass_assignee_t ) const;
@@ -83,12 +86,14 @@ namespace acqrscontrols {
             // recent protocol sequence waveforms (averaged)
             std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_waveforms_;
 
+            // recent protocol sequence waveforms (raw)
+            std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_raw_waveform_;
+            
             std::shared_ptr< averager_type > averager_;
             std::shared_ptr< histogram > histogram_register_;
             metadata meta_;
             method method_;
             uint32_t wellKnownEvents_;
-
             std::mutex mutex_;
         };
         
@@ -156,7 +161,6 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    
 
     if ( ! impl_->averager_ ) {
         
@@ -192,7 +196,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
         
         if ( breakout ||
              ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) ) {
-
+            
             bool invertData = waveform->method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
             
             auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), invertData );
@@ -205,8 +209,11 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
             impl_->averager_.reset();
 
             // copy recent waveform
-            if ( impl_->recent_waveforms_.size() != impl_->method_.protocols().size() )
+            if ( impl_->recent_waveforms_.size() != impl_->method_.protocols().size() ) {
                 impl_->recent_waveforms_.resize( impl_->method_.protocols().size() );
+                impl_->recent_raw_waveform_.resize( impl_->method_.protocols().size() );
+            }
+            impl_->recent_raw_waveform_[ index ] = waveform;
             impl_->recent_waveforms_[ index ] = w;
         }
         
@@ -550,9 +557,11 @@ tdcdoc::recentSpectrum( SpectrumType choice, mass_assignee_t assignee, int proto
     bool success( false );
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    
-    if ( choice == Profile ) {
-        success = impl_->recentProfile( *ms, assignee );
+
+    if ( choice == Raw ) {
+        success = impl_->recentProfile( *ms, impl_->recent_waveforms_, assignee );    
+    } else if ( choice == Profile ) {
+        success = impl_->recentProfile( *ms, impl_->recent_raw_waveform_, assignee );
     } else if ( choice == PeriodicHistogram ) {
         success = impl_->recentHistogram( *ms, impl_->recent_periodic_histograms_, assignee );
     } else if ( choice == LongTermHistogram ) {
@@ -565,10 +574,10 @@ tdcdoc::recentSpectrum( SpectrumType choice, mass_assignee_t assignee, int proto
 }
 
 bool
-tdcdoc::impl::recentProfile( adcontrols::MassSpectrum& ms, mass_assignee_t assignee ) const
+tdcdoc::impl::recentProfile( adcontrols::MassSpectrum& ms
+                             , const std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > >& v
+                             , mass_assignee_t assignee ) const
 {
-    const auto& v = recent_waveforms_;
-
     if ( v.empty() )
         return false;
 

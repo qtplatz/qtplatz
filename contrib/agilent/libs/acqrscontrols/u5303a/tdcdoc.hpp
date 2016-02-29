@@ -94,7 +94,7 @@ namespace acqrscontrols {
             // protocol sequence but no order garanteed
             std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > recentHistograms() const;
 
-            enum SpectrumType { Profile, PeriodicHistogram, LongTermHistogram };
+            enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
 
             typedef std::function< double( double, int ) > mass_assignee_t;
             std::shared_ptr< adcontrols::MassSpectrum > recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;

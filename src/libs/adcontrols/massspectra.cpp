@@ -28,7 +28,7 @@
 #include "chromatogram.hpp"
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/serialization_shared_ptr.hpp>
+//#include <adportable/serialization_shared_ptr.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 #include <fstream>
