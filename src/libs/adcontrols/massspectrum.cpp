@@ -929,7 +929,9 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 		colArray_ = t.colArray_;
         annotations_ = t.annotations_;
         uuid_ = t.uuid_;
-        vec_ = t.vec_;
+        vec_.clear();
+        for ( const auto& a: t.vec_ )
+            vec_.push_back(  std::make_shared< MassSpectrum >( *a ) );
 	} else {
 		tofArray_.clear();
 		massArray_.clear();
@@ -1248,9 +1250,10 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
 MassSpectrum&
 MassSpectrum::operator << ( std::shared_ptr< MassSpectrum >&& ms )
 {
-    auto it = std::lower_bound( pImpl_->vec_.begin(), pImpl_->vec_.end(), ms->protocolId()
-                                , [] ( const std::shared_ptr< MassSpectrum >& a, int32_t b ) { return a->protocolId() < b; } );
-    pImpl_->vec_.emplace( it, ms );
+    // auto it = std::lower_bound( pImpl_->vec_.begin(), pImpl_->vec_.end(), ms->protocolId()
+    //                             , [] ( const std::shared_ptr< MassSpectrum >& a, int32_t b ) { return a->protocolId() < b; } );
+    //pImpl_->vec_.emplace( it, ms );
+    pImpl_->vec_.emplace_back( ms );
     return *this;
 }
 
