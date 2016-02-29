@@ -86,12 +86,18 @@ namespace acqrscontrols {
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
             std::shared_ptr< const adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
-            std::shared_ptr< const adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const; 
+            std::shared_ptr< const adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
+            double triggers_per_second() const;
 
             // return as protocol sequence
             std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > longTermHistograms() const;
             // protocol sequence but no order garanteed
-            std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > recentHistograms() const; 
+            std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > recentHistograms() const;
+
+            enum SpectrumType { Profile, PeriodicHistogram, LongTermHistogram };
+
+            typedef std::function< double( double, int ) > mass_assignee_t;
+            std::shared_ptr< adcontrols::MassSpectrum > recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;
 
             bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
 

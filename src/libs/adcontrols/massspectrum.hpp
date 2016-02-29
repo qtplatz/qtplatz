@@ -182,9 +182,7 @@ namespace adcontrols {
         [[deprecated]] size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* o..n */ );
 
-
         const MassSpectrum& getSegment( size_t fcn /* 0..n */ ) const;
-
 
         MassSpectrum * findProtocol( int32_t proto );
         const MassSpectrum * findProtocol( int32_t proto ) const;
