@@ -87,7 +87,7 @@ namespace acqrscontrols {
             std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_waveforms_;
 
             // recent protocol sequence waveforms (raw)
-            std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_raw_waveform_;
+            std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_raw_waveforms_;
             
             std::shared_ptr< averager_type > averager_;
             std::shared_ptr< histogram > histogram_register_;
@@ -211,9 +211,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
             // copy recent waveform
             if ( impl_->recent_waveforms_.size() != impl_->method_.protocols().size() ) {
                 impl_->recent_waveforms_.resize( impl_->method_.protocols().size() );
-                impl_->recent_raw_waveform_.resize( impl_->method_.protocols().size() );
+                impl_->recent_raw_waveforms_.resize( impl_->method_.protocols().size() );
             }
-            impl_->recent_raw_waveform_[ index ] = waveform;
+            impl_->recent_raw_waveforms_[ index ] = waveform;
             impl_->recent_waveforms_[ index ] = w;
         }
         
@@ -559,9 +559,9 @@ tdcdoc::recentSpectrum( SpectrumType choice, mass_assignee_t assignee, int proto
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
     if ( choice == Raw ) {
-        success = impl_->recentProfile( *ms, impl_->recent_waveforms_, assignee );    
+        success = impl_->recentProfile( *ms, impl_->recent_raw_waveforms_, assignee );    
     } else if ( choice == Profile ) {
-        success = impl_->recentProfile( *ms, impl_->recent_raw_waveform_, assignee );
+        success = impl_->recentProfile( *ms, impl_->recent_waveforms_, assignee );
     } else if ( choice == PeriodicHistogram ) {
         success = impl_->recentHistogram( *ms, impl_->recent_periodic_histograms_, assignee );
     } else if ( choice == LongTermHistogram ) {
