@@ -30,6 +30,7 @@
 #include <functional>
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace boost {
     namespace archive { 
@@ -178,16 +179,30 @@ namespace adcontrols {
         static bool restore( std::istream&, MassSpectrum& );
 
         // on trial
-        size_t addSegment( const MassSpectrum& );
+        [[deprecated]] size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* o..n */ );
+
+
         const MassSpectrum& getSegment( size_t fcn /* 0..n */ ) const;
+
+
         MassSpectrum * findProtocol( int32_t proto );
         const MassSpectrum * findProtocol( int32_t proto ) const;
+
         void clearSegments();
         size_t numSegments() const;
         void uuid( const char * uuid );
         const char * uuid() const;
         bool trim( adcontrols::MassSpectrum&, const std::pair<double, double>& massrange ) const;
+
+        typedef std::vector< std::shared_ptr< MassSpectrum > >::iterator iterator;
+        typedef std::vector< std::shared_ptr< MassSpectrum > >::const_iterator const_iterator;
+
+        MassSpectrum& operator << ( std::shared_ptr< MassSpectrum >&& );
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
         
     private:
         friend class boost::serialization::access;

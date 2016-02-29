@@ -31,33 +31,38 @@
 #include <boost/serialization/tracking.hpp>
 #include <memory>
 
-namespace boost {
-    namespace serialization {
-        
-        template<class Archive, class T>
-        inline void save( Archive& ar, const std::shared_ptr< T >& t, const unsigned int /* file version */) {
-            //const T* t_ptr = t.get();
-            ar << boost::serialization::make_nvp( "sh_ptr", *t );
-        }
+namespace adportable {
 
-        template<class Archive, class T>
-        inline void load( Archive& ar, std::shared_ptr< T >& t, const unsigned int /* file_version */) {
-            t = std::make_shared<T>();
-            ar >> boost::serialization::make_nvp( "sh_ptr", *t );
-        }
+    namespace boost {
+        namespace serialization {
 
-        template<class Archive, class T>
-        inline void serialize( Archive & ar, std::shared_ptr< T > &t, const unsigned int file_version ) {
-            // correct shared_ptr serialization depends upon object tracking
-            // being used.
-            BOOST_STATIC_ASSERT(
-                boost::serialization::tracking_level< T >::value
-                != boost::serialization::track_never
-                );
-            boost::serialization::split_free(ar, t, file_version);
-        }
+            template<class Archive, class T>
+            inline void save( Archive& ar, const std::shared_ptr< T >& t, const unsigned int /* file version */ )
+            {
+                ar << boost::serialization::make_nvp( "sh_ptr", *t );
+            }
 
-    } // serialization
-} // boost
+            template<class Archive, class T>
+            inline void load( Archive& ar, std::shared_ptr< T >& t, const unsigned int /* file_version */ )
+            {
+                t = std::make_shared<T>();
+                ar >> boost::serialization::make_nvp( "sh_ptr", *t );
+            }
+
+            template<class Archive, class T>
+            inline void serialize( Archive & ar, std::shared_ptr< T > &t, const unsigned int file_version )
+            {
+                // correct shared_ptr serialization depends upon object tracking
+                // being used.
+                BOOST_STATIC_ASSERT(
+                    boost::serialization::tracking_level< T >::value
+                    != boost::serialization::track_never
+                    );
+                boost::serialization::split_free( ar, t, file_version );
+            }
+
+        } // serialization
+    }
+}
         
 

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -39,8 +39,9 @@
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
 
 #include <boost/archive/xml_woarchive.hpp>
@@ -136,7 +137,7 @@ namespace adcontrols {
            int64_t timeSinceFirmwareUp_; // usec
            uint32_t numSpectrumSinceInjTrigger_;
 
-           std::vector< MassSpectrum > vec_;
+           std::vector< std::shared_ptr< MassSpectrum > > vec_;
            int32_t protocolId_;
            int32_t nProtocols_;
            boost::uuids::uuid dataReaderUuid_;
@@ -163,8 +164,16 @@ namespace adcontrols {
                    & BOOST_SERIALIZATION_NVP(colArray_)
                    & BOOST_SERIALIZATION_NVP( annotations_ )
                    ;
-               if ( version >= 2 ) 
-                   ar & BOOST_SERIALIZATION_NVP( vec_ );
+               if ( version >= 2 ) {
+                   if ( version >= 5 ) {
+                       ar & BOOST_SERIALIZATION_NVP( vec_ );
+                   } else {
+                       vec_.clear();                       
+                       std::vector< MassSpectrum > v;
+                       ar & BOOST_SERIALIZATION_NVP( v );
+                       for ( const auto& a: v ) { vec_.emplace_back( std::make_shared< MassSpectrum >( a ) ); }
+                   }
+               }
                if ( version >= 3 ) {
                    ar & BOOST_SERIALIZATION_NVP( protocolId_ );
                    ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
@@ -172,7 +181,9 @@ namespace adcontrols {
                if ( version >= 4 ) {
                    ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
                }
-                   // exclude
+
+
+               // exclude
                scanLaw_.reset();
                minmax_ = std::make_tuple( false, 0.0, 0.0 );
            }
@@ -210,7 +221,8 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 4 )
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 5 ) 
+// V4 -> V5: change std::vector< MassSpectrum > --> std::vector< std::shared_ptr< MassSpectrum > >
 
 ///////////////////////////////////////////
 
@@ -771,7 +783,7 @@ namespace adcontrols {
 size_t
 MassSpectrum::addSegment( const MassSpectrum& sub )
 {
-    pImpl_->vec_.push_back( sub );
+    pImpl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
     return pImpl_->vec_.size();
 }
 
@@ -779,7 +791,7 @@ MassSpectrum&
 MassSpectrum::getSegment( size_t fcn )
 {
     if ( pImpl_->vec_.size() > fcn )
-        return pImpl_->vec_[ fcn ];
+        return *pImpl_->vec_[ fcn ];
     throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
 }
 
@@ -787,7 +799,7 @@ const MassSpectrum&
 MassSpectrum::getSegment( size_t fcn ) const
 {
     if ( pImpl_->vec_.size() > fcn )
-        return pImpl_->vec_[ fcn ];
+        return *pImpl_->vec_[ fcn ];
     throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
 }
 
@@ -808,9 +820,9 @@ MassSpectrum::findProtocol( int32_t proto )
 {
     if ( protocolId() == proto )
         return this;
-    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const MassSpectrum& ms ){ return ms.protocolId() == proto; } );
+    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const std::shared_ptr<const MassSpectrum>& ms ){ return ms->protocolId() == proto; } );
     if ( it != pImpl_->vec_.end() )
-        return &(*it);
+        return it->get();// &( *it );
     return 0;
 }
 
@@ -819,9 +831,9 @@ MassSpectrum::findProtocol( int32_t proto ) const
 {
     if ( protocolId() == proto )
         return this;
-    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const MassSpectrum& ms ){ return ms.protocolId() == proto; } );
+    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const std::shared_ptr< const MassSpectrum >& ms ){ return ms->protocolId() == proto; } );
     if ( it != pImpl_->vec_.end() )
-        return &(*it);
+        return it->get();
     return 0;
 }
 
@@ -1231,4 +1243,37 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
     }
 
     return true;
+}
+
+MassSpectrum&
+MassSpectrum::operator << ( std::shared_ptr< MassSpectrum >&& ms )
+{
+    auto it = std::lower_bound( pImpl_->vec_.begin(), pImpl_->vec_.end(), ms->protocolId()
+                                , [] ( const std::shared_ptr< MassSpectrum >& a, int32_t b ) { return a->protocolId() < b; } );
+    pImpl_->vec_.emplace( it, ms );
+    return *this;
+}
+
+MassSpectrum::iterator
+MassSpectrum::begin()
+{
+    return pImpl_->vec_.begin();
+}
+
+MassSpectrum::iterator
+MassSpectrum::end()
+{
+    return pImpl_->vec_.end();
+}
+
+MassSpectrum::const_iterator
+MassSpectrum::begin() const
+{
+    return pImpl_->vec_.begin();
+}
+
+MassSpectrum::const_iterator
+MassSpectrum::end() const
+{
+    return pImpl_->vec_.end();
 }

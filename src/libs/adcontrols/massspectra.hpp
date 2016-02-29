@@ -26,14 +26,12 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "massspectrum.hpp"
+#include <boost/serialization/version.hpp>
 #include <string>
 #include <memory>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/vector.hpp>
-#include <adportable/serialization_shared_ptr.hpp>
+#include <vector>
 
-#include <compiler/disable_dll_interface.h>
+namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
@@ -87,11 +85,11 @@ namespace adcontrols {
         double z_max_;
 
 	    friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int) {
-            ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
-        }
+        template<class Archive> void serialize(Archive& ar, const unsigned int);
     };    
     typedef std::shared_ptr<MassSpectra> MassSpectraPtr;
 }
+
+BOOST_CLASS_VERSION( adcontrols::MassSpectra, 1 )
 
 

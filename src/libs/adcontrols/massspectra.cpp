@@ -28,7 +28,32 @@
 #include "chromatogram.hpp"
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/serialization_shared_ptr.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 #include <fstream>
+
+namespace adcontrols {
+
+    ////////// PORTABLE BINARY ARCHIVE //////////
+    template<> void
+    MassSpectra::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
+    }
+
+    template<> void
+    MassSpectra::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        if ( version == 0 ) {
+            // adportable/serialization_shared_ptr.hpp
+            ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
+        } else {
+            ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
+        }
+    }
+
+}
 
 using namespace adcontrols;
 
