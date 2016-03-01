@@ -292,6 +292,7 @@ waveform::accumulate( double tof, double window ) const
     return 0;
 }
 
+#if 0
 const int32_t *
 waveform::trim( metadata& meta, uint32_t& nSamples ) const
 {
@@ -310,6 +311,7 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
 
 	return begin<int32_t>() + offset;
 }
+#endif
 
 size_t
 waveform::size() const
