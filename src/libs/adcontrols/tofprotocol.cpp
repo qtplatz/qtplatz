@@ -49,6 +49,8 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
                 if ( version == 1 )
                     ar & BOOST_SERIALIZATION_NVP( _.mode_ );                
+                if ( version == 2 )
+                    ar & BOOST_SERIALIZATION_NVP( _.digitizer_delay_width_ );
                 ar & BOOST_SERIALIZATION_NVP( _.delay_pulses_ );
                 ar & BOOST_SERIALIZATION_NVP( _.additionals_ );
                 ar & BOOST_SERIALIZATION_NVP( _.reference_ );
@@ -84,6 +86,7 @@ TofProtocol::TofProtocol() : lower_mass_( 0 )
                            , upper_mass_( 0 )
                            , number_of_triggers_( 0 )
                            , mode_( 0 )
+                           , digitizer_delay_width_( { 0, 0 })
                            , delay_pulses_( { { 0,0 }   // push
                                    , { 0,0 }            // inject
                                    , { 0,0 }            // exit
@@ -96,6 +99,7 @@ TofProtocol::TofProtocol( const TofProtocol& t ) : lower_mass_( t.lower_mass_ )
                                                  , upper_mass_( t.upper_mass_ )
                                                  , number_of_triggers_( t.number_of_triggers_ )
                                                  , mode_( t.mode_ )
+                                                 , digitizer_delay_width_( t.digitizer_delay_width_ )
                                                  , delay_pulses_( t.delay_pulses_ )
                                                  , additionals_( t.additionals_ )
                                                  , reference_( t.reference_ )
@@ -186,6 +190,18 @@ void
 TofProtocol::setMode( uint32_t value )
 {
     mode_ = value;
+}
+
+void
+TofProtocol::setDigitizerDelayWidth( std::pair< double, double >&& pair )
+{
+    digitizer_delay_width_ = pair;
+}
+
+const std::pair<double, double>&
+TofProtocol::digitizerDelayWidth() const
+{
+    return digitizer_delay_width_;
 }
 
 ///////////////////

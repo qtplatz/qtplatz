@@ -61,16 +61,15 @@ namespace acqrscontrols {
             DigiMode mode() const;  // 0 := digitizer, 2 := averager
             void setMode( DigiMode );
 
-            // At the begining, U5303A did not accept quick parameter change due to self-calibration
-            // threfore software setup device method that covers all protocols time range, then trimmed
-            // into protocol requested fragments.  Workaround for this is set environment variable
+            // By default, U5303A prohibit to run w/o calibration when change delay, width or other paramters.
+            // In order to success 'rapid protocol' acquisition, need following environmental variable set
             // AGMD2_SKIP_CAL_REQUIRED_CHECKS=1
 
             const device_method& _device_method() const;
             device_method& _device_method();
 
             uint32_t protocolIndex() const;
-            void setProtocolIndex( uint32_t );
+            bool setProtocolIndex( uint32_t, bool modifyDeviceMethod );
 
             std::vector< adcontrols::TofProtocol >& protocols();
             const std::vector< adcontrols::TofProtocol >& protocols() const;

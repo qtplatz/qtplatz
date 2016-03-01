@@ -23,11 +23,12 @@
 **************************************************************************/
 
 #include "method.hpp"
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
@@ -216,9 +217,27 @@ method::protocolIndex() const
     return protocolIndex_;
 }
 
-void
-method::setProtocolIndex( uint32_t value )
+bool
+method::setProtocolIndex( uint32_t value , bool modifyDeviceMethod )
 {
     protocolIndex_ = value;
+
+    bool dirty( false );
+    if ( modifyDeviceMethod && protocolIndex_ < protocols_.size() ) {
+
+        const auto& proto = protocols_ [ protocolIndex_ ];
+
+        if ( !adportable::compare<double>::essentiallyEqual( method_.delay_to_first_sample_, proto.digitizerDelayWidth().first ) ) {
+            dirty = true;
+            method_.delay_to_first_sample_ = proto.digitizerDelayWidth().first;
+        }
+
+        auto nbrSamples = uint32_t( proto.digitizerDelayWidth().second * method_.samp_rate + 0.5 );
+        if ( method_.nbr_of_s_to_acquire_ != nbrSamples ) {
+            dirty = true;
+            method_.nbr_of_s_to_acquire_ = nbrSamples;
+        }
+    }
+    return dirty;
 }
 

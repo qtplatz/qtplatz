@@ -68,11 +68,15 @@ namespace adcontrols {
         void setMassRange( double lower, double upper );
         std::pair< double, double > massRange() const;
 
+        void setDigitizerDelayWidth( std::pair< double, double >&& );
+        const std::pair<double, double>& digitizerDelayWidth() const;  // actual tof start will be "delay_pulse()[EXT_ADC_TRIG].first + digitizerRange().first"
+
     private:
         double lower_mass_;
         double upper_mass_;
         uint32_t mode_;                         // analyzer mode, 'number of laps' for multum; or "linear|reflectron" mode // V1
         uint32_t number_of_triggers_;           // 0 if averager mode
+        std::pair< double, double > digitizer_delay_width_;
         std::vector< delay_pulse_type > delay_pulses_;
         std::vector< std::pair< int32_t, additional_value_type > > additionals_;
         uint32_t reference_;                    // lock mass reference (bit position indicate which formula in formulae
@@ -94,4 +98,4 @@ namespace adcontrols {
 
 };
 
-BOOST_CLASS_VERSION( adcontrols::TofProtocol, 1 )
+BOOST_CLASS_VERSION( adcontrols::TofProtocol, 2 )

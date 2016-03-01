@@ -172,6 +172,11 @@ std::mutex task::mutex_;
 digitizer::digitizer()
 {
     boost::interprocess::shared_memory_object::remove( "waveform_simulator" );
+#if WIN32
+    _putenv_s( "AGMD2_SKIP_CAL_REQUIRED_CHECKS", "1" );
+#else
+    setenv( "AGMD2_SKIP_CAL_REQUIRED_CHECKS", "1", true );
+#endif    
 }
 
 digitizer::~digitizer()
@@ -337,10 +342,16 @@ bool
 task::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
     // this method should be called same marshaling on readData(), which is under layer function of waveform_handler functor
-
     if ( protoIdx < method_.protocols().size() ) {
-        method_.setProtocolIndex( protoIdx );
-        device::setup( *this, method_ ); // don't call 'handle_protocol which support previous version a.k.a. 'InfiTOF' plugin
+        
+        if ( method_.setProtocolIndex( protoIdx, true ) ) {
+            // don't call 'handle_protocol' from here.  It is for previous version of 'InfiTOF' plugin
+            // next_protocol() method will be called from new implementation 'InfiTOF2' plugin
+            device::setup( *this, method_ );
+        }
+
+        if ( simulated_ )
+            simulator::instance()->setup( method_ );
     }
     return true;
 }
@@ -792,11 +803,13 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     task.spDriver()->log(
         AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1", m._device_method().front_end_range, m._device_method().front_end_offset, coupling, VI_TRUE )
         , __FILE__, __LINE__ );
+
     task.spDriver()->setActiveTriggerSource( "External1" );
     task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );
     task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
     task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
-    task.spDriver()->setTriggerDelay( m._device_method().digitizer_delay_to_first_sample );
+    //task.spDriver()->setTriggerDelay( m._device_method().digitizer_delay_to_first_sample );
+    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
     // task.spDriver()->setTriggerHoldOff( 1.0e-6 ); // 1us
 
     bool success = false;
@@ -821,7 +834,8 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         // ADDEBUG() << "Normal Mode";
         task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
-        task.spDriver()->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
+        //task.spDriver()->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
+        task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
 
     } else { // Averager
@@ -829,7 +843,8 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         // ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
         task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? true : false );
-        task.spDriver()->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
+        //task.spDriver()->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
+        task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
         task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
 
@@ -847,11 +862,12 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 bool
 device::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
-    // Originally, this was considered to use 'protocol' acquisition, which change acquisition parameter for each scan
-    // However, acquisition parameter change require self-calibration on U5303A so that this can't be used.
+    // Don't forget environment variable: 'AGMD2_SKIP_CAL_REQUIRED_CHECKS=1'
 
-    // Now it is possible with environment variable: 
-    // AGMD2_SKIP_CAL_REQUIRED_CHECKS=1
+    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );    
+    task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+    task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
+
     return true;
 }
 
