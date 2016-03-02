@@ -367,6 +367,8 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
 
     double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
 
+    ADDEBUG() << "ext_trig_delay = " << ext_trig_delay;
+
     adcontrols::MSProperty prop;
     adcontrols::SamplingInfo info( hgrm.xIncrement()
                                    , uint32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + 0.5 )  // delay

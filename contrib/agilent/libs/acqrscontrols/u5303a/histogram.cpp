@@ -132,6 +132,8 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
     x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
 
+    // external trig. delay will to be taken account at TimeDigitalHistogram::translate()
+    
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
             double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
@@ -157,6 +159,7 @@ histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
     serialnumber = std::make_pair( serialnumber_0_, serialnumber_ );
     timeSinceEpoch = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
 
+    // external trig. delay will to be taken account at TimeDigitalHistogram::translate() 
     double t0 = meta_.initialXOffset;
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {

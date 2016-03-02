@@ -176,10 +176,8 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
             impl_->recent_periodic_histograms_.resize( hgrm->nProtocols() );  // recent periodic protocol sequence
             impl_->recent_longterm_histogram_.resize( hgrm->nProtocols() );          // long term protocol sequence
 
-            std::for_each( impl_->recent_longterm_histogram_.begin(), impl_->recent_longterm_histogram_.end()
-                           , [&]( std::shared_ptr< adcontrols::TimeDigitalHistogram >& a ){
-                               a = std::make_shared< adcontrols::TimeDigitalHistogram >();
-                           });
+            for ( auto& p: impl_->recent_longterm_histogram_ )
+                p = std::make_shared< adcontrols::TimeDigitalHistogram >();
         }
 
         // copy recent periodic histogram
@@ -647,7 +645,7 @@ tdcdoc::impl::recentHistogram( adcontrols::MassSpectrum& ms
     std::for_each( v.begin() + 1, v.end(), [&] ( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& hgrm ) {
         if ( hgrm ) {
             auto sp = std::make_shared< adcontrols::MassSpectrum >();
-            adcontrols::TimeDigitalHistogram::translate( *sp, *v [ 0 ] );
+            adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm );
             sp->assign_masses( assignee );
             ms << std::move(sp);
         }
