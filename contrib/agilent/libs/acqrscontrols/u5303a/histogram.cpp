@@ -31,6 +31,7 @@
 #include <numeric>
 #include <cassert>
 
+using namespace acqrscontrols;
 using namespace acqrscontrols::u5303a;
 
 histogram::histogram() : serialnumber_( 0 )
