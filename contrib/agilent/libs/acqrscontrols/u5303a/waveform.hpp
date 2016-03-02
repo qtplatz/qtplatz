@@ -86,7 +86,15 @@ namespace acqrscontrols {
         public:
             waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0 );
             
-            waveform( const waveform&, std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
+            waveform( const method&
+                      , const metadata&
+                      , uint32_t serialnumber
+                      , uint32_t wellKnownEvents
+                      , uint64_t timeSinceEpoch
+                      , uint64_t firstValidPoint
+                      , double timeSinceInject
+                      , const std::shared_ptr< const identify >& id
+                      , std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
 
             waveform();
 
