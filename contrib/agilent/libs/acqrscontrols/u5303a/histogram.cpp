@@ -132,12 +132,12 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
     x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
 
-    // external trig. delay will to be taken account at TimeDigitalHistogram::translate()
+    double ext_trig_delay = x.this_protocol().delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
     
     for ( auto it = data_.begin(); it < data_.end(); ++it ) {
         if ( *it ) {
             double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
-            x.histogram().emplace_back( t, *it );
+            x.histogram().emplace_back( t + ext_trig_delay, *it );
         }
     }
     reset_requested_ = reset;

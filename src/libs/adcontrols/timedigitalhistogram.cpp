@@ -28,6 +28,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/float.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -365,9 +366,9 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
 
     using namespace adcontrols::metric;
 
-    double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+    // ext_trig_delay should be managed before came here.  (ex. histogram::move())
 
-    ADDEBUG() << "ext_trig_delay = " << ext_trig_delay;
+    double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
 
     adcontrols::MSProperty prop;
     adcontrols::SamplingInfo info( hgrm.xIncrement()
@@ -396,7 +397,7 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     sp.resize( hgrm.size() );
     size_t idx = 0;
     for ( auto it = hgrm.begin(); it != hgrm.end(); ++it, ++idx ) {
-        sp.setTime( idx, it->first + ext_trig_delay );
+        sp.setTime( idx, it->first );
         sp.setIntensity( idx, it->second );
     }
     
@@ -406,7 +407,9 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
 TimeDigitalHistogram&
 TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
 {
-    if ( trigger_count_ == 0 ) {
+    if ( trigger_count_ == 0 ||
+         !adportable::compare<double>::essentiallyEqual( this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first
+                                                        , t.this_protocol().delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first ) ) {
         *this = t;
         return *this;
     }
