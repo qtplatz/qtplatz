@@ -248,7 +248,8 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
             std::shared_ptr< adportable::mblock< int16_t > > mblock;
             adportable::waveform_simulator( w.meta_.initialXOffset, w.meta_.actualPoints, w.meta_.xIncrement )( mblock, int( vec.size() ) );
-
+            w.firstValidPoint_ = 0;
+            
             for ( auto& w: vec ) {
                 w->setData( mblock, w->firstValidPoint_ );
                 w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 

@@ -266,23 +266,6 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     }
 
     return ! impl_->accumulated_waveforms_.empty();
-
-//             if ( impl_->recent_waveforms_.size() != impl_->method_.protocols().size() ) {
-//                 impl_->recent_waveforms_.resize( impl_->method_.protocols().size() );
-//                 impl_->recent_raw_waveforms_.resize( impl_->method_.protocols().size() );
-//             }
-            
-//             impl_->recent_raw_waveforms_[ index ] = waveform;
-            
-//         }
-
-//     } else {
-
-//         impl_->push_averaged_waveform( *waveform );
-//         impl_->average_waveform( *waveform );
-
-//     }
-// #endif    
 }
 
 

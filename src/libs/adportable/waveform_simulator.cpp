@@ -85,6 +85,7 @@ namespace adportable {
         void generate( std::shared_ptr< mblock<value_type> >& mblk, int numRecords ) {
 
             mblk = std::make_shared < adportable::mblock< value_type > >( actualPoints_ * numRecords );
+
             generate();
             
             auto * dp = mblk->data();
@@ -94,6 +95,7 @@ namespace adportable {
                 std::transform( sp, sp + actualPoints_, dp, [] ( int y ) { return y + impl::instance().noise(); } );
                 dp += impl::instance().actualPoints_;
             }
+
         }
 
     };
