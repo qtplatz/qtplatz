@@ -47,9 +47,9 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.lower_mass_ );
                 ar & BOOST_SERIALIZATION_NVP( _.upper_mass_ );
                 ar & BOOST_SERIALIZATION_NVP( _.number_of_triggers_ );
-                if ( version == 1 )
+                if ( version >= 1 )
                     ar & BOOST_SERIALIZATION_NVP( _.mode_ );                
-                if ( version == 2 )
+                if ( version >= 2 )
                     ar & BOOST_SERIALIZATION_NVP( _.digitizer_delay_width_ );
                 ar & BOOST_SERIALIZATION_NVP( _.delay_pulses_ );
                 ar & BOOST_SERIALIZATION_NVP( _.additionals_ );

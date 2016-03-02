@@ -160,9 +160,6 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
     
     if ( impl_->histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
 
-        // ADDEBUG() << " -- histogram protocol: " << impl_->histogram_register_->method().protocolIndex()
-        //           << " trig# " << impl_->histogram_register_->trigger_count() << " s/n=" << impl_->histogram_register_->trigNumber();
-
         // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
 
@@ -625,7 +622,7 @@ tdcdoc::impl::recentProfile( adcontrols::MassSpectrum& ms
         return false;
 
     waveform::translate( ms, v[0], assignee );
-
+    
     std::for_each( v.begin() + 1, v.end(), [&] ( const std::shared_ptr< const waveform >& w ) {
         if ( w ) {
             auto sp = std::make_shared< adcontrols::MassSpectrum >();
@@ -645,13 +642,13 @@ tdcdoc::impl::recentHistogram( adcontrols::MassSpectrum& ms
     if ( v.empty() )
         return false;
     adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ] );
+    ms.assign_masses( assignee );
 
     std::for_each( v.begin() + 1, v.end(), [&] ( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& hgrm ) {
         if ( hgrm ) {
             auto sp = std::make_shared< adcontrols::MassSpectrum >();
             adcontrols::TimeDigitalHistogram::translate( *sp, *v [ 0 ] );
-            if ( assignee )
-                sp->assign_masses( assignee );
+            sp->assign_masses( assignee );
             ms << std::move(sp);
         }
     } );

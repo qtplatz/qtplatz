@@ -575,6 +575,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     
     adcontrols::MSProperty prop = sp.getMSProperty();
     int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
+
     adcontrols::SamplingInfo info( waveform.meta_.xIncrement
                                    , uint32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + 0.5 )
                                    , uint32_t( waveform.size() )
