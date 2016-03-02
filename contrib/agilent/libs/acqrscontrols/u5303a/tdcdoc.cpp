@@ -650,6 +650,8 @@ tdcdoc::impl::recentHistogram( adcontrols::MassSpectrum& ms
         if ( hgrm ) {
             auto sp = std::make_shared< adcontrols::MassSpectrum >();
             adcontrols::TimeDigitalHistogram::translate( *sp, *v [ 0 ] );
+            if ( assignee )
+                sp->assign_masses( assignee );
             ms << std::move(sp);
         }
     } );
