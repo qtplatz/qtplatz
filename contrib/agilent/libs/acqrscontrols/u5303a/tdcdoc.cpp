@@ -67,6 +67,58 @@ namespace acqrscontrols {
                                   , const std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > >&
                                   , tdcdoc::mass_assignee_t ) const;
 
+            size_t average_waveform( const acqrscontrols::u5303a::waveform& waveform ) {
+
+                typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
+                typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
+
+                if ( ! averager_ ) {
+                    if ( waveform.dataType() == 2 )
+                        averager_ = std::make_shared< averager_type >( u16wrap( waveform ) );
+                    else
+                        averager_ = std::make_shared< averager_type >( u32wrap( waveform ) );
+
+                    meta_ = waveform.meta_;
+                    method_ = waveform.method_;
+                    wellKnownEvents_ = waveform.wellKnownEvents_;
+                    
+                } else {
+                    wellKnownEvents_ |= waveform.wellKnownEvents_;
+                    try {
+                        if ( waveform.dataType() == 2 )
+                            ( *averager_ ) += u16wrap( waveform );
+                        else
+                            ( *averager_ ) += u32wrap( waveform );
+                        
+                    } catch ( std::out_of_range& ) {
+                    }
+                }
+
+                return averager_->actualAverages();
+            }
+            
+            bool push_averaged_waveform( const acqrscontrols::u5303a::waveform& last ) {
+
+                const bool invertData = method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
+                
+                auto w = std::make_shared< acqrscontrols::u5303a::waveform >( last, averager_->data(), averager_->size(), invertData );
+                averager_.reset();
+
+                w->meta_ = meta_;                 // first trigger data
+                w->method_ = method_;
+                w->meta_.dataType = sizeof( uint32_t );  // set actual data length
+                w->wellKnownEvents_ = wellKnownEvents_;
+                
+                accumulated_waveforms_.emplace_back( w );
+                // display data
+                if ( recent_waveforms_.size() != method_.protocols().size() )
+                    recent_waveforms_.resize( method_.protocols().size() );
+                recent_waveforms_[ method_.protocolIndex() ] = w;
+                // end display data
+
+                return true;
+            }
+
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
             std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
             std::shared_ptr< adcontrols::threshold_action > threshold_action_;
@@ -117,10 +169,16 @@ tdcdoc::~tdcdoc()
 bool
 tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 {
-    if ( ! impl_->histogram_register_ )
+    if ( ! impl_->histogram_register_ ) {
+
         impl_->histogram_register_ = std::make_shared< histogram_type >();
+
+    }
     
     if ( impl_->histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+
+        // ADDEBUG() << " -- histogram protocol: " << impl_->histogram_register_->method().protocolIndex()
+        //           << " trig# " << impl_->histogram_register_->trigger_count() << " s/n=" << impl_->histogram_register_->trigNumber();
 
         // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
@@ -132,9 +190,9 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         
         // dispatch histograms
         uint32_t index = hgrm->protocolIndex();
-
+        
         if ( impl_->recent_longterm_histogram_.size() != hgrm->nProtocols() ) {
-
+            
             impl_->recent_periodic_histograms_.resize( hgrm->nProtocols() );  // recent periodic protocol sequence
             impl_->recent_longterm_histogram_.resize( hgrm->nProtocols() );          // long term protocol sequence
 
@@ -157,68 +215,44 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 bool
 tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::waveform > waveform )
 {
-    typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
-    typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
-
+    bool breakout( false );
+    const uint32_t index = waveform->method_.protocolIndex();
+    
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    if ( ! impl_->averager_ ) {
-        
-        if ( waveform->dataType() == 2 )
-            impl_->averager_ = std::make_shared< averager_type >( u16wrap( *waveform ) );
-        else
-            impl_->averager_ = std::make_shared< averager_type >( u32wrap( *waveform ) );
+    ADDEBUG() << "\t ------------> p" << waveform->method_.protocolIndex()
+              << " n= " << impl_->averager_->actualAverages() << " s/n=" << waveform->serialnumber_;
 
-        impl_->meta_ = waveform->meta_;
-        impl_->method_ = waveform->method_;
-        impl_->wellKnownEvents_ = waveform->wellKnownEvents_;
+    if ( impl_->recent_raw_waveforms_.size() != impl_->method_.protocols().size() )
+        impl_->recent_raw_waveforms_.resize( impl_->method_.protocols().size() );
+    impl_->recent_raw_waveforms_[ index ] = waveform; // data for display
+    
+    if ( impl_->method_.protocolIndex() == index )  {
 
-    } else {
-        
-        bool breakout( false );
-
-        uint32_t index = waveform->method_.protocolIndex();
-
-        try {
-            if ( impl_->method_.protocolIndex() != index ) 
-                ADDEBUG() << "## ERROR -- protocol index missmatch: " << impl_->method_.protocolIndex() << " != " << waveform->method_.protocolIndex();
+        if ( impl_->average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
             
-            if ( waveform->dataType() == 2 )
-                ( *impl_->averager_ ) += u16wrap( *waveform );
-            else
-                ( *impl_->averager_ ) += u32wrap( *waveform );
+            impl_->push_averaged_waveform( *waveform );
 
-            impl_->wellKnownEvents_ |= waveform->wellKnownEvents_;
-
-        } catch ( std::out_of_range& ) {
-            breakout = true;
-        }
-        
-        if ( breakout ||
-             ( impl_->averager_->actualAverages() >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) ) {
-            
-            bool invertData = waveform->method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
-            
-            auto w = std::make_shared< acqrscontrols::u5303a::waveform >(*waveform, impl_->averager_->data(), impl_->averager_->size(), invertData );
-            w->meta_ = impl_->meta_;                 // replace with first trigger
-            w->method_ = impl_->method_;
-            w->meta_.dataType = sizeof( uint32_t );  // match up with actual data format
-            w->wellKnownEvents_ = impl_->wellKnownEvents_;
-
-            impl_->accumulated_waveforms_.emplace_back( w );
-            impl_->averager_.reset();
-
-            // copy recent waveform
             if ( impl_->recent_waveforms_.size() != impl_->method_.protocols().size() ) {
                 impl_->recent_waveforms_.resize( impl_->method_.protocols().size() );
                 impl_->recent_raw_waveforms_.resize( impl_->method_.protocols().size() );
             }
+            
             impl_->recent_raw_waveforms_[ index ] = waveform;
-            impl_->recent_waveforms_[ index ] = w;
+            
         }
+
+    } else {
+
+        ADDEBUG() << "## ERROR -- waveform protocol: " << index << " != " << impl_->method_.protocolIndex()
+                  << " nAvg=" << impl_->averager_->actualAverages() << " s/n=" << waveform->serialnumber_;
         
+        impl_->push_averaged_waveform( *waveform );
+        impl_->average_waveform( *waveform );
+
     }
-    return !impl_->accumulated_waveforms_.empty();
+    
+    return ! impl_->accumulated_waveforms_.empty();
 }
 
 
@@ -537,10 +571,6 @@ void
 tdcdoc::clear_histogram()
 {
     impl_->threshold_action_counts_ = { { { 0, 0 } } };
-
-    // for ( auto h : impl_->histograms_ )
-    //     h->clear();
-
     impl_->recent_longterm_histogram_.clear();
 }
 

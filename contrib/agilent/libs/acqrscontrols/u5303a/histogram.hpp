@@ -70,9 +70,11 @@ namespace acqrscontrols {
             [[deprecated]] static bool average( const std::vector< std::pair< double, uint32_t > >&
                                                 , double resolution, std::vector< std::pair< double, uint32_t > >&);
 
+            const u5303a::method& method() const { return method_; }
+
         private:
             // metadata for initial trigger in this histogram
-            method method_;
+            u5303a::method method_;
             metadata meta_;
             uint32_t serialnumber_0_;             // first waveform trigger#
             uint32_t serialnumber_;               // last waveform trigger#

@@ -85,10 +85,9 @@ histogram::append( const threshold_result& result )
 
     assert( data_.size() );
 
-    if ( method_.protocolIndex() != result.data()->method_.protocolIndex() ) {
-        ADDEBUG() << "## ERROR protocol index missmatch: " << method_.protocolIndex() << "/" << method_.protocols().size();
-    }
-    
+    if ( method_.protocolIndex() != result.data()->method_.protocolIndex() )
+        ADDEBUG() << "## ERROR protocol index missmatch: " << method_.protocolIndex() << " != " << result.data()->method_.protocolIndex();
+
     assert( method_.protocolIndex() == result.data()->method_.protocolIndex() );
 
     if ( ! result.indecies().empty() )
@@ -144,7 +143,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
 size_t
 histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
                          , metadata& meta
-                         , method& method
+                         , u5303a::method& method
                          , std::pair<uint32_t, uint32_t>& serialnumber
                          , std::pair<uint64_t, uint64_t>& timeSinceEpoch )
 {
