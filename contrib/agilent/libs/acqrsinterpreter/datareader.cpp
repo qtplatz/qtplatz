@@ -380,6 +380,7 @@ DataReader::loadTICs()
                 if ( tics.find( fcn ) == tics.end() ) {
                     tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
                     tics [ fcn ].first->setDataReaderUuid( objid_ );
+                    tics [ fcn ].first->setFcn( fcn );
                 }
 
                 auto pair = tics[ fcn ];
