@@ -75,6 +75,7 @@
 #include <QLabel>
 #include <QIcon>
 #include <qdebug.h>
+#include <boost/uuid/string_generator.hpp>
 
 using namespace ap240;
 
@@ -573,7 +574,9 @@ bool
 MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 {
     if ( std::shared_ptr< const adextension::iEditorFactory > ptr =
-         std::make_shared< adextension::iEditorFactoryT< acqrswidgets::ap240form > >( "AP240", adextension::iEditorFactory::CONTROL_METHOD ) ) {
+         std::make_shared< adextension::iEditorFactoryT< acqrswidgets::ap240form > >( "AP240"
+                                                                                      , boost::uuids::string_generator()(acqrswidgets::ap240form::clsid_text)
+                                                                                      , adextension::iEditorFactory::CONTROL_METHOD ) ) {
         impl << ptr;
     }
     return true;        

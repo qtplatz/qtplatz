@@ -23,10 +23,11 @@
 **************************************************************************/
 
 #include "session.hpp"
-#include "masterobserver.hpp"
+//#include "masterobserver.hpp"
 #include "waveformobserver.hpp"
 #include <ap240/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adicontroller/masterobserver.hpp>
 #include <adicontroller/receiver.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/utf.hpp>
@@ -43,11 +44,12 @@ namespace adi = adicontroller;
 namespace ap240controller { namespace Instrument {
 
         struct Session::impl {
-
+            
             impl() : work_( io_service_ )
-                   , masterObserver_( std::make_shared< MasterObserver >() )
+                   , masterObserver_( std::make_shared< adicontroller::MasterObserver >( "master.ap240.ms-cheminfo.com" ) )
                    , waveformObserver_( std::make_shared< WaveformObserver >() ) {
 
+                // {5df0f451-4b42-597f-b223-4378f92baa48}
                 masterObserver_->addSibling( waveformObserver_.get() );
 
             }
@@ -65,7 +67,7 @@ namespace ap240controller { namespace Instrument {
             inline std::mutex& mutex() { return mutex_; }
 
             std::shared_ptr< ap240::digitizer > digitizer_;
-            std::shared_ptr< MasterObserver > masterObserver_;
+            std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
             std::shared_ptr< WaveformObserver > waveformObserver_;
             
             void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {

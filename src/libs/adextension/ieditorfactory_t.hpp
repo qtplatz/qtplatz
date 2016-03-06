@@ -27,19 +27,30 @@
 #include "ieditorfactory.hpp"
 #include <functional>
 #include <QString>
+#include <boost/uuid/uuid.hpp>
 
 namespace adextension {
 
+#if 0
     template< typename Editor>
     class iEditorFactoryT : public iEditorFactory {
 
         QString title_;
+        boost::uuids::uuid clsid_;
         iEditorFactory::METHOD_TYPE mtype_;
 
     public:
         
 		iEditorFactoryT( const QString& title
                          , iEditorFactory::METHOD_TYPE type ) : title_( title )
+                                                              , clsid_( { 0 } )
+                                                              , mtype_( type ) {
+        }
+
+		iEditorFactoryT( const QString& title
+                         , const boost::uuids::uuid& clsid
+                         , iEditorFactory::METHOD_TYPE type ) : title_( title )
+                                                              , clsid_( clsid )
                                                               , mtype_( type ) {
         }
 
@@ -57,8 +68,13 @@ namespace adextension {
         iEditorFactory::METHOD_TYPE method_type() const override {
             return mtype_;
         }
+
+        const boost::uuids::uuid& clsid() const override {
+            return clsid_;
+        }
         
     };
+#endif
 
     namespace helper
     {
@@ -73,23 +89,34 @@ namespace adextension {
     }
     
     template< typename Editor, typename... Args >
-    class iEditorFactoryV : public iEditorFactory {
+    class iEditorFactoryT : public iEditorFactory {
 
-        iEditorFactoryV( const iEditorFactoryV& ) = delete;
-        iEditorFactoryV& operator = ( const iEditorFactoryV& ) = delete;
+        iEditorFactoryT( const iEditorFactoryT& ) = delete;
+        iEditorFactoryT& operator = ( const iEditorFactoryT& ) = delete;
         QString title_;
+        boost::uuids::uuid clsid_;
         iEditorFactory::METHOD_TYPE mtype_;
         const std::tuple<Args...> args_;
     public:
         
-		iEditorFactoryV( const QString& title
+		iEditorFactoryT( const QString& title
                          , iEditorFactory::METHOD_TYPE type
                          , Args&&... args ) : title_( title )
+                                            , clsid_( {0})
                                             , mtype_( type )
                                             , args_( std::make_tuple(std::forward<Args>(args)...) ) {
         }
 
-		~iEditorFactoryV() {
+		iEditorFactoryT( const QString& title
+                         , const boost::uuids::uuid& clsid
+                         , iEditorFactory::METHOD_TYPE type
+                         , Args&&... args ) : title_( title )
+                                            , clsid_( clsid )
+                                            , mtype_( type )
+                                            , args_( std::make_tuple(std::forward<Args>(args)...) ) {
+        }
+
+		~iEditorFactoryT() {
         }
 
         template</*typename... Args,*/ std::size_t... Is>
@@ -112,6 +139,10 @@ namespace adextension {
         
         iEditorFactory::METHOD_TYPE method_type() const {
             return mtype_;
+        }
+
+        const boost::uuids::uuid& clsid() const override {
+            return clsid_;
         }
         
     };

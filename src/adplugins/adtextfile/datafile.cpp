@@ -247,7 +247,7 @@ datafile::prepare_portfolio( const TXTSpectrum& txt, const std::wstring& filenam
             auto ptr = std::make_shared< adcontrols::MassSpectrum >( *it->get() );
             
             std::for_each( it + 1, txt.spectra_.end()
-                           , [&ptr] ( std::shared_ptr< adcontrols::MassSpectrum > sub ) { ptr->addSegment( *sub ); } );
+                           , [&ptr] ( std::shared_ptr< adcontrols::MassSpectrum > sub ) { *ptr << std::move( sub ); } );
             
             std::wstring name = path.stem().wstring();
             portfolio::Folium folium = spectra.addFolium( name );

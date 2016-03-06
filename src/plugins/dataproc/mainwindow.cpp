@@ -32,7 +32,6 @@
 #include "dataprocessorfactory.hpp"
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
-#include "isequenceimpl.hpp"
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"

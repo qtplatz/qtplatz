@@ -19,8 +19,6 @@ set( _sources
   ap240controller.cpp
   waveformobserver.hpp
   waveformobserver.cpp
-  masterobserver.hpp
-  masterobserver.cpp
   session.hpp
   session.cpp
   )

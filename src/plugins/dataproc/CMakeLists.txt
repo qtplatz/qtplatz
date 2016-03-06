@@ -76,7 +76,7 @@ add_library( ${PROJECT_NAME} MODULE
   dataprocessorfactory.cpp
   dataprochandler.cpp
   elementalcompwnd.cpp
-  isequenceimpl.cpp
+#  isequenceimpl.cpp
   isnapshothandlerimpl.cpp
   mscalibrationwnd.cpp
   mscalibspectrawnd.cpp
@@ -111,7 +111,7 @@ add_library( ${PROJECT_NAME} MODULE
   dataprochandler.hpp
   dataprocplugin.hpp
   elementalcompwnd.hpp
-  isequenceimpl.hpp
+#  isequenceimpl.hpp
   isnapshothandlerimpl.hpp
   mscalibrationwnd.hpp
   mscalibspectrawnd.hpp

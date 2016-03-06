@@ -617,7 +617,7 @@ void
 MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
 {
     if ( std::shared_ptr< const adextension::iEditorFactory > p
-         = std::make_shared< adextension::iEditorFactoryV< acqrswidgets::ThresholdWidget, QString, int > >(
+         = std::make_shared< adextension::iEditorFactoryT< acqrswidgets::ThresholdWidget, QString, int > >(
          QString( "U5303A Threshold" ), adextension::iEditorFactory::CONTROL_METHOD, QString("u5303a"), 1 ) ) {
         impl << p;
     }

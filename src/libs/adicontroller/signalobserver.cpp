@@ -287,6 +287,7 @@ namespace adicontroller {
         Observer::addSibling( Observer * observer )
         {
             if ( observer ) {
+                assert( observer->objid() != boost::uuids::uuid( { 0 } ) );
                 std::lock_guard< std::mutex > lock( impl_->mutex_ );
                 impl_->siblings_.push_back( observer->shared_from_this() );
                 return true;

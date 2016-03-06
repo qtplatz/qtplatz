@@ -179,7 +179,7 @@ namespace adcontrols {
         static bool restore( std::istream&, MassSpectrum& );
 
         // on trial
-        [[deprecated]] size_t addSegment( const MassSpectrum& );
+        [[deprecated("Use operator << std::move( ptr )")]] size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* o..n */ );
 
         const MassSpectrum& getSegment( size_t fcn /* 0..n */ ) const;

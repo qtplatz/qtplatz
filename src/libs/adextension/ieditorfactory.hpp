@@ -30,6 +30,8 @@
 class QWidget;
 class QString;
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace adextension {
 
     class ADEXTENSIONSHARED_EXPORT iEditorFactory {
@@ -40,6 +42,7 @@ namespace adextension {
         virtual QWidget * createEditor( QWidget * pearent = 0 ) const = 0;
         virtual QString title() const = 0;
         virtual METHOD_TYPE method_type() const { return PROCESS_METHOD; }
+        virtual const boost::uuids::uuid& clsid() const = 0;
     };
 
 }
