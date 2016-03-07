@@ -51,7 +51,7 @@ namespace acqrswidgets {
         explicit ap240form(QWidget *parent = 0);
         ~ap240form();
 
-        static constexpr char * clsid_text = "{E13469DF-372B-4825-A6D3-FA93BEC2101D}";
+        static constexpr const char * clsid_text = "{E13469DF-372B-4825-A6D3-FA93BEC2101D}";
 
         // LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
