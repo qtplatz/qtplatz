@@ -85,7 +85,7 @@ void
 adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
     using adcontrols::massspectrometer_factory_type;
-    static const boost::uuids::uuid clsid = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
+    static const boost::uuids::uuid clsid = boost::uuids::string_generator()( MassSpectrometer::clsid_text );
 
     if ( auto factory =
          std::make_shared< massspectrometer_factory_type< MassSpectrometer > >( MassSpectrometer::class_name, clsid ) ) {
