@@ -49,7 +49,7 @@
 #include <adlog/logging_handler.hpp>
 #include <adcontrols/logging_hook.hpp>
 #include <adportfolio/logging_hook.hpp>
-
+#include <adportable/debug.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adportable/configloader.hpp>
@@ -95,7 +95,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
 	(void)error_message;
 
-    ADINFO() << "<----- ServantPlugin::initialize() ...";
+    ADDEBUG() << "<----- ServantPlugin::initialize() ...";
     do {
         adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
         adcontrols::logging_hook::register_hook( adlog::logging_handler::log );} while(0);
@@ -133,7 +133,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 adcontrols::MassSpectrometerBroker::register_factory( factory );
 		});
 	}
-    ADINFO() << "----> ServantPlugin::initialize() completed.";
     return true;
 }
 
@@ -141,7 +140,7 @@ void
 ServantPlugin::extensionsInitialized()
 {
     adcontrols::MassSpectrometer::register_default_spectrometers();
-    ADINFO() << "ServantPlugin::extensionsInitialized.";
+    ADDEBUG() << "ServantPlugin::extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

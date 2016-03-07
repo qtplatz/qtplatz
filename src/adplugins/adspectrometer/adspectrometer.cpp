@@ -26,8 +26,10 @@
 #include "constants.hpp"
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adportable/debug.hpp>
 #include <adplugin/plugin.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/exception/all.hpp>
 #include <memory>
 #include <mutex>
 
@@ -37,22 +39,23 @@ namespace adspectrometer {
 
     class adspectrometer_plugin : public adplugin::plugin {
         adspectrometer_plugin( const adspectrometer_plugin& ) = delete;
-#if _MSC_VER >= 1900
     public:
-#endif
         adspectrometer_plugin() {}
-    public:
         ~adspectrometer_plugin() {}
 
         static std::shared_ptr< adspectrometer_plugin > instance_;
 
         static adspectrometer_plugin * instance() {
+            
             static std::once_flag flag;
-            std::call_once( flag, [] () {
-                struct make_shared_enabler : public adspectrometer_plugin {};
-                instance_ = std::make_shared< make_shared_enabler >();
-            } );
-
+            std::call_once( flag, [] () { instance_ = std::make_shared< adspectrometer_plugin >(); } );
+            return instance_.get();
+            
+            // static std::once_flag flag;
+            // std::call_once( flag, [] () {
+            //         struct make_shared_enabler : public adspectrometer_plugin {};
+            //         instance_ = std::make_shared< make_shared_enabler >();
+            //     } );
             return instance_.get();
         }
 
@@ -75,6 +78,7 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
+    ADDEBUG() << "######### adspectrometer_plugin_instance ########";
     return adspectrometer::adspectrometer_plugin::instance();
 }
 
@@ -84,6 +88,10 @@ using namespace adspectrometer;
 void
 adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
+    ADDEBUG() << "######### adspectrometer_plugin::accept ########"
+              << MassSpectrometer::clsid_text
+              << ", " << MassSpectrometer::class_name;
+
     using adcontrols::massspectrometer_factory_type;
     static const boost::uuids::uuid clsid = boost::uuids::string_generator()( MassSpectrometer::clsid_text );
 
@@ -92,4 +100,6 @@ adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin
         
         adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
     }
+    
+    ADDEBUG() << "######### adspectrometer_plugin::accept ########";
 }

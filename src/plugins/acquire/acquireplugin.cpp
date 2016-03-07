@@ -94,8 +94,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
             mainWindow->activateWindow();
             mainWindow->createActions();
             
-            //mainWindow->init( *pConfig_ );
-            
             mode->setWidget( mainWindow->createContents( mode ) );
             
             addAutoReleasedObject(mode);
@@ -103,13 +101,12 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     }
 
-    // CORBA DEPENDENT
 #if HAVE_CORBA
     auto qbroker = new QBroker();
     connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
     addObject( qbroker );
 #endif
-    // <--
+
     if ( auto iAcquire = document::instance()->iAcquire() ) {
         addObject( iAcquire );
     }

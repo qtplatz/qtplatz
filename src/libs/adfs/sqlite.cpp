@@ -56,12 +56,12 @@ namespace adfs {
 
     namespace detail {
         struct error_log {
-            static void log( const std::string& sql, const char * msg ) {
-                ADDEBUG() << sql << "\terror : " << (msg ? msg : "nullstr");
+            static void log( const std::string& sql, const char * msg, const char * file, int line ) {
+                ADDEBUG() << sql << "\terror : " << (msg ? msg : "nullstr") << " at " << file << " line: " << line;
             }
-            static void log( const std::wstring& sql, const char * msg ) {
+            static void log( const std::wstring& sql, const char * msg, const char * file, int line ) {
                 if ( msg )
-                    ADDEBUG() << sql << "\terror : " << ( msg ? msg : "nullstr" );
+                    ADDEBUG() << sql << "\terror : " << ( msg ? msg : "nullstr" ) << " at " << file << " line: " << line;
             }
         };
     };
@@ -192,7 +192,7 @@ stmt::begin()
         return true;
     }
     sqlite_.error_message( msg.p );
-    detail::error_log::log( "BEGIN DEFERRED", msg.p );
+    detail::error_log::log( "BEGIN DEFERRED", msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -204,7 +204,7 @@ stmt::commit()
     if ( sqlite3_exec( sqlite_, "COMMIT", callback, 0, msg ) == SQLITE_OK )
         return true;
     sqlite_.error_message( msg.p );
-    detail::error_log::log( "COMMIT", msg.p );
+    detail::error_log::log( "COMMIT", msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -216,7 +216,7 @@ stmt::rollback()
     if ( sqlite3_exec( sqlite_, "ROLLBACK", callback, 0, msg ) == SQLITE_OK )
         return true;
     sqlite_.error_message( msg.p );
-    detail::error_log::log( "ROOLBACK", msg.p );
+    detail::error_log::log( "ROOLBACK", msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -226,8 +226,8 @@ stmt::exec( const std::string& sql )
     Msg msg;
     if ( sqlite3_exec( sqlite_, sql.c_str(), callback, 0, msg ) == SQLITE_OK )
         return true;
-    detail::error_log::log( sql, msg.p );
     sqlite_.error_message( msg.p );
+    detail::error_log::log( sql, msg.p, __FILE__, __LINE__ );
     return false;
 }
 
@@ -249,7 +249,7 @@ stmt::prepare( const std::string& sql )
     const char * tail = 0;
     if ( sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
-    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
+    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
     sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
     return false;
 }
@@ -268,7 +268,7 @@ stmt::prepare( const std::wstring& sql )
     const char * tail = 0;
     if ( sqlite3_prepare_v2( sqlite_, utf8.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
-    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
+    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
     sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
     return false;
 }
@@ -295,7 +295,7 @@ stmt::step()
     case SQLITE_CONSTRAINT: return sqlite_constraint;
     default: break;
     }
-    detail::error_log::log( "", sqlite3_errmsg( sqlite_ ) );
+    detail::error_log::log( "", sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );
     sqlite_.error_message( sqlite3_errmsg( sqlite_ ) );
     return sqlite_error;
 }

@@ -49,8 +49,9 @@
 #include <compiler/disable_unused_variable.h>
 #include <boost/filesystem.hpp>
 #include <compiler/diagnostic_pop.h>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/cast.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #if defined _MSC_VER // std::regex on VS2012 got clash due to no instance of _CType.table depend on the timing
 #define BOOST_REGEX
@@ -236,18 +237,21 @@ manager::data::install( QLibrary& lib, const std::string& adpluginspec, const st
     if ( plugins_.find( adpluginspec ) != plugins_.end() )
         return true; // already in, so that does not need unload() call
 
-    typedef adplugin::plugin * (*factory)();
+    typedef adplugin::plugin * (*factory_type)();
 
     if ( lib.isLoaded() ) {
-        factory f = reinterpret_cast< factory >( lib.resolve( "adplugin_plugin_instance" ) );
-        if ( f ) {
-            if ( adplugin::plugin * pptr = f() ) {
-                pptr->setConfig( adpluginspec, specxml );
-				plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
-
-                pptr->accept( *this, adpluginspec.c_str() );
-
-                return true;
+        if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
+            try {
+                ADDEBUG() << "## loading '" << adpluginspec << "'";
+                if ( adplugin::plugin * pptr = factory() ) {
+                    ADDEBUG() << "## " << adpluginspec << " load ok";
+                    pptr->setConfig( adpluginspec, specxml );
+                    plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
+                    pptr->accept( *this, adpluginspec.c_str() );
+                    return true;
+                }
+            } catch ( ... ) {
+                ADDEBUG() << boost::current_exception_diagnostic_information();
             }
         }
     }
