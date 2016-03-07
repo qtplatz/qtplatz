@@ -39,8 +39,6 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
 {
     p_ = qobject_cast< adplugin::LifeCycle *>( pObject_ );
 
-    
-
     if ( p_ == 0 ) {
         if ( ( p_ = dynamic_cast<adplugin::LifeCycle *>( pObject_ ) ) ) {
 
@@ -51,7 +49,7 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
                             // but on Windows with RTTI enabled.
         }
 
-        if ( p_ == 0 ) {
+        if ( p_ == nullptr ) {
             conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
             emit trigger( p_ );
             disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
