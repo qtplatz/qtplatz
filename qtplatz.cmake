@@ -85,8 +85,7 @@ endif()
 #
 if (MSVC)
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
-  add_definitions(-DUNICODE -D_UNICODE)
+  add_definitions( "-DUNICODE" "-D_UNICODE" "-D_WIN32_WINNT=0x0601" "-D_SCL_SECURE_NO_WARNINGS" )
   message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
 
 else()

@@ -57,8 +57,8 @@ namespace adcontrols {
         int mode() const;
 
         // helper method for quick access to spectrometer class
-        const MassSpectrometer& spectrometer() const;
-        std::shared_ptr< ScanLaw > scanLaw() const;
+        [[deprecated]] const MassSpectrometer& spectrometer() const;
+        [[deprecated]] std::shared_ptr< ScanLaw > scanLaw() const;
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
