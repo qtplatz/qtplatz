@@ -59,18 +59,18 @@ namespace acqrscontrols {
 
         class ACQRSCONTROLSSHARED_EXPORT metadata {
         public:
-            metadata() : initialXTimeSeconds( 0 )
-                , actualPoints( 0 )
+            metadata() : actualPoints( 0 )
                 , flags( 0 )
                 , actualAverages( 0 )
-                , initialXOffset( 0 )
-                , xIncrement( 0 )
-                , scaleFactor( 0 )
-                , scaleOffset( 0 )
-                , horPos( 0 )
                 , indexFirstPoint( 0 )
                 , channel( 1 )
                 , dataType( 1 )
+                , initialXTimeSeconds( 0 )
+                , initialXOffset( 0 )
+                , scaleFactor( 0 )
+                , xIncrement( 0 )
+                , scaleOffset( 0 )
+                , horPos( 0 )
             { }
             int64_t actualPoints;
             int32_t flags;           // IO pin states
