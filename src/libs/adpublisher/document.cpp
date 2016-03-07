@@ -100,6 +100,7 @@ document::document() : doc_( std::make_shared< pugi::xml_document >() )
             }
             
             if ( auto sec = article.append_child( "results" ) ) {
+                (void)sec;
             }
         }
     }

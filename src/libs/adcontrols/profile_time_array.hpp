@@ -35,7 +35,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT profile_time_array  {
     public:
-        profile_time_array( std::function< double(size_t) > f, size_t size ) : timef_( f ), size_( size ) {
+        profile_time_array( std::function< double(size_t) > f, size_t size ) : timef_( f ) {
         }
 
         double operator [] ( size_t idx ) const {
@@ -43,7 +43,7 @@ namespace adcontrols {
         }
     private:
         std::function<double(size_t)> timef_;
-        std::size_t size_;
+        //std::size_t size_;
     };
 
 }

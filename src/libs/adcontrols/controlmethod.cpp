@@ -317,7 +317,7 @@ MethodItem::MethodItem() : unitnumber_( 0 )
                          , isInitialCondition_( true )
                          , time_( -1 )
                          , funcid_( 0 )
-                         , clsid_( { 0 } )
+                         , clsid_( { {0} } )
 {
 }
 

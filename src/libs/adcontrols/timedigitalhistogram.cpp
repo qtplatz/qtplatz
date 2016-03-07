@@ -110,13 +110,13 @@ using namespace adcontrols;
 TimeDigitalHistogram::TimeDigitalHistogram() : initialXTimeSeconds_( 0 )
                                              , initialXOffset_( 0 )
                                              , xIncrement_( 0 )
-                                             , trigger_count_( 0 )
                                              , actualPoints_( 0 )
-                                             , serialnumber_( { 0, 0 } )
-                                             , timeSinceEpoch_( { 0, 0 } )
+                                             , trigger_count_( 0 )
                                              , wellKnownEvents_( 0 )
                                              , protocolIndex_( 0 )
                                              , nProtocols_( 1 )
+                                             , serialnumber_( { 0, 0 } )
+                                             , timeSinceEpoch_( { 0, 0 } )
 {
 }
 
@@ -124,14 +124,14 @@ TimeDigitalHistogram::TimeDigitalHistogram( const TimeDigitalHistogram& t ) : in
                                                                             , initialXOffset_( t.initialXOffset_ )
                                                                             , xIncrement_( t.xIncrement_ )
                                                                             , actualPoints_( t.actualPoints_ )
-                                                                            , serialnumber_( t.serialnumber_ )
-                                                                            , timeSinceEpoch_( t.timeSinceEpoch_ )
                                                                             , trigger_count_( t.trigger_count_ )
                                                                             , wellKnownEvents_( t.wellKnownEvents_ )
-                                                                            , histogram_( t.histogram_ )
                                                                             , this_protocol_( t.this_protocol_ )
                                                                             , protocolIndex_ ( t.protocolIndex_ )
                                                                             , nProtocols_ ( t.nProtocols_ )
+                                                                            , serialnumber_( t.serialnumber_ )
+                                                                            , timeSinceEpoch_( t.timeSinceEpoch_ )
+                                                                            , histogram_( t.histogram_ )
 {
 }
 

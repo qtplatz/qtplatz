@@ -32,6 +32,9 @@ add_definitions(  -DCORE_LIBRARY )
 if ( WIN32 )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
+if ( APPLE )
+  add_definitions( "-Wno-inconsistent-missing-override" )
+endif()
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src		# app/app_version.h

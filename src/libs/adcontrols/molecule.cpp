@@ -31,8 +31,8 @@ molecule::molecule()
 {
 }
 
-molecule::molecule( const molecule& t ) : elements( t.elements )
-                                        , cluster( t.cluster )
+molecule::molecule( const molecule& t ) : cluster( t.cluster )
+                                        , elements( t.elements )
 {
 }
 

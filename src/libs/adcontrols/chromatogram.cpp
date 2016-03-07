@@ -570,7 +570,7 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
                                      , dataDelayPoints_(0)
                                      , samplingInterval_(0)
                                      , fcn_(0)
-                                     , dataReaderUuid_( { 0 } )
+                                     , dataReaderUuid_( { {0} } )
 {
 }
 

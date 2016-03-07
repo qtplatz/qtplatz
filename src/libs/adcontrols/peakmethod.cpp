@@ -407,17 +407,13 @@ PeakMethod::TimedEvent::isBool( adcontrols::chromatography::ePeakEvent t )
     case ePeakEvent_Elimination:
     case ePeakEvent_Manual:
         return true;
+    case ePeakEvent_Slope:
+    case ePeakEvent_MinWidth:
+    case ePeakEvent_MinHeight:
+    case ePeakEvent_MinArea:
+    case ePeakEvent_Drift:
+       return false;
     }
-    return false;
-    // case ePeakEvent_Slope:
-    // case ePeakEvent_MinWidth:
-    // case ePeakEvent_MinHeight:
-    // case ePeakEvent_MinArea:
-    // case ePeakEvent_Drift:
-    //     return false;
-    // default:
-    //     return true;
-    // }
     return false;
 }
 

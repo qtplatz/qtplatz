@@ -315,7 +315,6 @@ Integrator::operator << ( double adval )
 
     double d0 = adval;
     double d1 = 0;
-    double d2 = 0;
 
     Averager avgr(impl_->numAverage_);
 
@@ -454,7 +453,7 @@ Integrator::impl::pkfind( long pos, double df1, double )
     if ( mwup < 2 )
         mwup = 2;
 
-    uint32_t mwflat( mwup / 2 ), mwdn( mwup );
+    uint32_t /*mwflat( mwup / 2 ),*/ mwdn( mwup );
 
     if ( stf_ > 0 ) {
         mwdn = 3;

@@ -30,16 +30,16 @@ QuanMethod::~QuanMethod()
 {
 }
 
-QuanMethod::QuanMethod() : eq_(idCalibLinear)
-                         , polynomialOrder_(2)
-                         , isChromatogram_( false )
+QuanMethod::QuanMethod() : isChromatogram_( false )
+                         , eq_(idCalibLinear)
                          , isISTD_( false )
+                         , polynomialOrder_(2)
                          , use_weighting_( false )
                          , weighting_( idWeight_C1 )
-                         , levels_(1)
-                         , replicates_(1)
                          , use_bracketing_( true )
+                         , levels_(1)
                          , bracketing_( idBracketStandard )
+                         , replicates_(1)
                          , debug_level_( 0 )
                          , save_on_datasource_( false )
 {
@@ -57,10 +57,10 @@ QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
                                               , replicates_( t.replicates_ )
                                               , polynomialOrder_( t.polynomialOrder_ )
                                               , quanMethodFilename_( t.quanMethodFilename_ )
-                                              , quanCompoundsFilename_( t.quanCompoundsFilename_ )
-                                              , quanSequenceFilename_( t.quanSequenceFilename_ )
                                               , debug_level_( t.debug_level_ )
+                                              , quanCompoundsFilename_( t.quanCompoundsFilename_ )
                                               , save_on_datasource_( t.save_on_datasource_ )
+                                              , quanSequenceFilename_( t.quanSequenceFilename_ )
 {
 }
 

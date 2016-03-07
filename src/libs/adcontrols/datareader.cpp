@@ -51,7 +51,7 @@ namespace adcontrols {
         boost::uuids::uuid uuid_;
         std::string objtext_;
     public:
-        NullDataReader() : uuid_( { 0 } ), objtext_("null_reader") {}
+        NullDataReader() : uuid_( { {0} } ), objtext_("null_reader") {}
         const boost::uuids::uuid& objuuid() const override { return uuid_; }
         const std::string& objtext() const override { return objtext_; }
         int64_t objrowid() const override { return 0; }

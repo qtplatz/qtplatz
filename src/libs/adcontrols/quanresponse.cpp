@@ -40,10 +40,10 @@ QuanResponse::QuanResponse() : idx_( 0 )
 }
 
 QuanResponse::QuanResponse( const QuanResponse& t ) : idx_( t.idx_ )
-                                                    , fcn_( t.fcn_ )
+                                                    , idTable_( t.idTable_ )
                                                     , idCompound_( t.idCompound_ )
                                                     , dataGuid_( t.dataGuid_ )
-                                                    , idTable_( t.idTable_ )
+                                                    , fcn_( t.fcn_ )
                                                     , intensity_( t.intensity_ )
                                                     , amounts_( t.amounts_ )
                                                     , mass_( t.mass_ )

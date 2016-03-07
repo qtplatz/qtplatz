@@ -40,7 +40,7 @@ if ( APPLE )
   
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
   set( QTPLATZ_PLUGIN_DESTINATION bin/qtplatz.app/Contents/PlugIns )
-  
+
 else()
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib) # static libs, dll's import lib/exp
@@ -95,7 +95,6 @@ if ( NOT QTPLATZ_CORELIB_ONLY )
     message( STATUS "Found the QWT library at " ${qwt_DIR} )
   else()
     message( STATUS "Qt5 NOT Found while NOT QTPLATZ_CORELIB_ONLY" )
-    #fatal_error( STATUS "##### Qt5 NOT Found while NOT QTPLATZ_CORELIB_ONLY" )
     message( STATUS "##### Qt5 NOT Found while NOT QTPLATZ_CORELIB_ONLY" )
     set( QTPLATZ_CORELIB_ONLY 1 )
   endif()

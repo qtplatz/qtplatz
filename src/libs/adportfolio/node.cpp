@@ -59,7 +59,7 @@ namespace portfolio { namespace internal {
 boost::uuids::uuid
 Node::uuidFromString( const std::string& id )
 {
-    boost::uuids::uuid uuid = { 0 };
+    boost::uuids::uuid uuid = { {0} };
     if ( !id.empty() ) {
         try {
             if ( id[ 0 ] == '{' ) { // Windows CreateGUID format
@@ -78,7 +78,7 @@ Node::uuidFromString( const std::string& id )
 }
 
 Node::Node() : impl_(0)
-             , uuid_({ 0 })
+             , uuid_({ {0} })
 {
 }
 

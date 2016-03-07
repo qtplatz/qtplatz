@@ -44,7 +44,7 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
     if ( p_ == 0 ) {
         if ( ( p_ = dynamic_cast<adplugin::LifeCycle *>( pObject_ ) ) ) {
 
-            const char * name = target->metaObject()->className();
+            //const char * name = target->metaObject()->className();
 
             Q_ASSERT( p_ ); // if this is true, target is inherit from LifeCycle but not Q_INTERFACES decleard.
                             // dynamic_cast may not work for dynamically loaded objects on Linux and Mac 

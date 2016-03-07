@@ -94,6 +94,7 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
                                 , QSignalBlocker( ui->doubleSpinBox_3 )
                                 , QSignalBlocker( ui->doubleSpinBox_4 )
                                 , QSignalBlocker( ui->doubleSpinBox_5 ) };
+    (void)blocks;
 
     ui->spinBox->setValue( m.resolvingPower() );
     ui->checkBox->setChecked( m.lMassLimit() > 0 );    

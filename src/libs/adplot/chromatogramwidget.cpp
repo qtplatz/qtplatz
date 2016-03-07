@@ -129,7 +129,7 @@ namespace adplot {
                 return QPointF( adcontrols::Chromatogram::toMinutes( t_.x(idx) ), t_.y(idx) );
             }
             
-            virtual QRectF boundingRect() const { return rect_; }
+            virtual QRectF boundingRect() const override { return rect_; }
             void boundingRect( const QRectF& rc ) { rect_ = rc; }
         private:
 			QRectF rect_;
@@ -403,7 +403,7 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
 		impl_->traces_.push_back( ChromatogramData( *this ) );
 
     auto& trace = boost::get< ChromatogramData >( impl_->traces_ [ idx ] );
-    QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
+    //QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
 
 	trace.plot_curve().setPen( QPen( color_table[idx] ) ); 
     trace.setData( cp, yRight );

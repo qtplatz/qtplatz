@@ -248,7 +248,7 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
     double mass( 0 );
     if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() ) {
-        adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *pCalibrantSpectrum_->scanLaw(), calib );
+        adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, calib );
         mass = mass_calculator( it->time(), it->mode() );
     }
     else {
@@ -263,7 +263,7 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
         }
 	} else {
         if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() )
-            normalized_time = (it->time()) / pCalibrantSpectrum_->scanLaw()->fLength( it->mode() );
+            normalized_time = (it->time()) / scanLaw->fLength( it->mode() );
         else
             normalized_time = it->time();
 	}

@@ -130,7 +130,7 @@ namespace adwidgets {
                 QSvgRenderer renderer( index.data().toByteArray() );
 
                 painter->translate( option.rect.x(), option.rect.y() );
-                QRectF viewport = painter->viewport();
+                //QRectF viewport = painter->viewport();
                 painter->scale( 1.0, 1.0 );
 
                 QRect target( 0, 0, option.rect.width(), option.rect.height() );
@@ -579,7 +579,7 @@ MolTable::handleCopyToClipboard()
 
         if ( !isRowHidden( prev.row() ) ) {
 
-            auto t = prev.data( Qt::EditRole ).type();
+            //auto t = prev.data( Qt::EditRole ).type();
             if ( !isColumnHidden( prev.column() ) && ( prev.column() != MolTable::c_svg ) ) {
 
                 QString text = prev.data( Qt::EditRole ).toString();
@@ -665,6 +665,7 @@ MolTable::handlePaste()
         for ( auto line : lines ) {
             QStringList texts = line.split( "\t" );
             for ( auto& test : texts ) {
+                (void)test;
                 // TODO...
             }
         }

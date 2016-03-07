@@ -93,8 +93,8 @@ namespace adcontrols {
                            , uint32_t fcn
                            , uint32_t target_index ) : fcn_( fcn )
                                                      , target_index_( target_index )
-                                                     , target_( target )
                                                      , count_( 0 )
+                                                     , target_( target )
                                                      , pchr_( std::make_shared< adcontrols::Chromatogram >() )  {
                 pchr_->addDescription(
                     adcontrols::description( L"Create"
@@ -356,6 +356,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
     adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( ms );
 
     double width = cm.width( cm.widthMethod() );
+    (void)(width);
 
     uint32_t fcn = 0;
 
@@ -384,6 +385,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
 
                     double base, rms;
                     double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
+                    (void)tic;
 
                     adportable::spectrum_processor::areaFraction fraction;
                     adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
@@ -457,6 +459,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                     
                     double base, rms;
                     double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
+                    (void)tic;
                     adportable::spectrum_processor::areaFraction fraction;
                     adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
                     y = adportable::spectrum_processor::area( fraction, base, fms.getIntensityArray(), fms.size() );
@@ -552,11 +555,11 @@ MSChromatogramExtractor::impl::doCentroid(adcontrols::MassSpectrum& centroid
     
     if ( profile.numSegments() > 0 ) {
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
-            adcontrols::MassSpectrum temp;
+            auto temp = std::make_shared< adcontrols::MassSpectrum >();
             result |= peak_detector( profile.getSegment( fcn ) );
             // pkInfo.addSegment( peak_detector.getPeakInfo() );
-            peak_detector.getCentroidSpectrum( temp );
-            centroid.addSegment( temp );
+            peak_detector.getCentroidSpectrum( *temp );
+            centroid <<  std::move( temp );
         }
     }
     return result;

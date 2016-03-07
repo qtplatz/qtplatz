@@ -26,13 +26,14 @@
 
 using namespace adcontrols;
 
-error_code::error_code() : code_( 0 ), cat_( noerror )
+error_code::error_code() : cat_( noerror ), code_( 0 )
 {
 }
 
-error_code::error_code( const error_code& t ) : ec_( t.ec_ )
-                                              , cat_( t.cat_ )
+error_code::error_code( const error_code& t ) : cat_( t.cat_ )
+                                              , code_( t.code_ )
                                               , message_( t.message_ )
+                                              , ec_( t.ec_ )
 {
 }
 

@@ -34,7 +34,7 @@ namespace dataproc {
 
     class assign_peaks {
         double tolerance_;
-        double threshold_;
+        //double threshold_;
     public:
         assign_peaks( double tolerance, double threshold ) : tolerance_( tolerance ), threshold_( threshold ) {
         }

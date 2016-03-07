@@ -43,8 +43,8 @@
 using namespace dataproc;
 
 DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
-                                                                 , factory_(factory)
                                                                  , widget_( new QWidget )
+                                                                 , factory_(factory)
 {
     widget_->installEventFilter( this );
     setWidget( widget_ );

@@ -55,9 +55,9 @@ namespace adpublisher {
             
         };
 
-        static const char* node_types[] = {
-            "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration"
-        };
+        //static const char* node_types[] = {
+        //    "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration"
+        //};
 
         class text_writer {
             docEdit& edit;
@@ -245,7 +245,7 @@ docEdit::repaint( const pugi::xml_document& doc )
         }
     }
     else if ( const pugi::xpath_node node = doc.select_single_node( "/qtplatz_document" ) ) {
-        // do nothing
+        (void)node;
     }
     else {
         try {

@@ -36,17 +36,18 @@ Trace::~Trace()
 {
 }
 
-Trace::Trace( int fcn, unsigned lower, unsigned upper ) : fcn_( fcn )
-                                                        , lower_limit( lower )
-														, upper_limit( upper )
-                                                        , minY_( std::numeric_limits<double>::max() ), maxY_( std::numeric_limits<double>::lowest() )
+Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
+														, lower_limit( lower )
+                                                        , fcn_( fcn )
+                                                        , minY_( std::numeric_limits<double>::max() )
+                                                        , maxY_( std::numeric_limits<double>::lowest() )
                                                         , isCountingTrace_( false )
 {
 }
 
-Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
+Trace::Trace( const Trace& t ) : upper_limit( t.upper_limit )
                                , lower_limit( t.lower_limit )
-							   , upper_limit( t.upper_limit )
+							   , fcn_( t.fcn_ )
                                , minY_( t.minY_ )
                                , maxY_( t.maxY_ )
                                , values_( t.values_ )

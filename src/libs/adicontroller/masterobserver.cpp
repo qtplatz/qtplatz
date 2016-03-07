@@ -43,7 +43,7 @@ namespace adicontroller {
         std::vector< client_type > clients_;
         
         impl( const char * objtext ) : objtext_( objtext ? objtext : "" )
-                                     , uuid_( { 0 } ) {
+                                     , uuid_( { {0} } ) {
         }
 
         ~impl()  {

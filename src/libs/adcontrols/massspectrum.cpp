@@ -855,7 +855,7 @@ MassSpectrum::lower_bound( double value, bool isMass ) const
         } else {
             size_t idx = MSProperty::toIndex( value, pImpl_->getMSProperty().samplingInfo() );
             double time = MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
-            double error = std::abs( value - time );
+            //double error = std::abs( value - time );
             assert( value == time );
         }
     }
@@ -899,7 +899,7 @@ MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
                                      , numSpectrumSinceInjTrigger_(0)
                                      , protocolId_(0)
                                      , nProtocols_(0)
-                                     , dataReaderUuid_( { 0 } )
+                                     , dataReaderUuid_( { {0} } )
                                      , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
 {
 }

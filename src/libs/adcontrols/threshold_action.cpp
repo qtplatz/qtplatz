@@ -131,8 +131,8 @@ threshold_action::~threshold_action(void)
 }
 
 threshold_action::threshold_action() : delay( 0.0 )
-                                     , width( 1.0e-6 )
                                      , enable( false )
+                                     , width( 1.0e-6 )
                                      , enableTimeRange( false )
                                      , recordOnFile( true )
                                      , exclusiveDisplay( true )
@@ -140,8 +140,8 @@ threshold_action::threshold_action() : delay( 0.0 )
 }
 
 threshold_action::threshold_action( const threshold_action& t ) : delay( t.delay )
-                                                          , width( t.width )
                                                           , enable( t.enable )
+                                                          , width( t.width )
                                                           , enableTimeRange( t.enableTimeRange )
                                                           , recordOnFile( t.recordOnFile )
                                                           , exclusiveDisplay( t.exclusiveDisplay )

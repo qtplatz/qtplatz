@@ -95,7 +95,7 @@ TableView::handleCopyToClipboard()
 
         if ( !isRowHidden( prev.row() ) ) {
 
-            auto t = prev.data( Qt::EditRole ).type();
+            //auto t = prev.data( Qt::EditRole ).type();
             if ( !isColumnHidden( prev.column() ) ) {
 
                 QString text = prev.data( Qt::EditRole ).toString();

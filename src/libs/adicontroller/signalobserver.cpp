@@ -43,8 +43,8 @@ namespace adicontroller {
         
         Description::Description()
         {
-			conf_.objid = { 0 };
-			conf_.pobjid = { 0 };
+            conf_.objid = { {0} };
+            conf_.pobjid = { {0} };
             conf_.spectrometer = eUnknownSpectrometer;
 			conf_.trace_method = eTRACE_SPECTRA;
             conf_.axis_decimals_x = 2;
@@ -68,8 +68,8 @@ namespace adicontroller {
             conf_.axis_label_y = axis_label_y;
             conf_.axis_decimals_x = axis_decimals_x;
             conf_.axis_decimals_y = axis_decimals_y;
-            conf_.objid = { 0 };
-            conf_.pobjid = { 0 };
+            conf_.objid = { {0} };
+            conf_.pobjid = { {0} };
         }
 
         void
@@ -287,7 +287,7 @@ namespace adicontroller {
         Observer::addSibling( Observer * observer )
         {
             if ( observer ) {
-                assert( observer->objid() != boost::uuids::uuid( { 0 } ) );
+                assert( observer->objid() != boost::uuids::uuid( { {0} } ) );
                 std::lock_guard< std::mutex > lock( impl_->mutex_ );
                 impl_->siblings_.push_back( observer->shared_from_this() );
                 return true;

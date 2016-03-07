@@ -40,9 +40,6 @@ namespace adpublisher {
         // static const char* node_types[] = {
         //     "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration"
         // };
-        static const char * ignore_nodes [] = {
-            "row", "column", "item", "svg"
-        };
 
         class model_writer {
             QStandardItemModel& model;

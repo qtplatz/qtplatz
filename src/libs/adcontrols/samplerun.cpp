@@ -57,11 +57,11 @@ namespace adcontrols {
         ~impl() {
         }
 
-        impl() : dataDirectory_( adportable::profile::user_data_dir<wchar_t>() + L"/data/"
+        impl() : methodTime_( 60.0 )
+               , replicates_( 999 )
+               , dataDirectory_( adportable::profile::user_data_dir<wchar_t>() + L"/data/"
                                  + adportable::date_string::wstring( boost::posix_time::second_clock::local_time().date() ) )
                , filePrefix_( L"RUN_0001" )
-               , methodTime_( 60.0 )
-               , replicates_( 999 )
                , runCount_( 0 )
                , runNumber_( 0 ) {
 

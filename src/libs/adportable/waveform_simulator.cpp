@@ -31,15 +31,15 @@ namespace adportable {
 
     class waveform_simulator::impl {
     public:
-        impl() : actualPoints_( 1000 * 10 ) // 10us
-               , xIncrement_( 1.0e-9 )
+        impl() : sigma_( 1.0e-9 )
                , delay_( 0.0 )
-               , dist_( -5, 5 )
+               , xIncrement_( 1.0e-9 )
+               , actualPoints_( 1000 * 10 ) // 10us
                , sign_( -1 )
-               , sigma_( 1.0e-9 )
+               , dist_( -5, 5 )
                , pseudo_peaks_( { { 1.5e-6, 100 }, { 2.0e-6, 200 }, { 2.5e-6, 80 } } ) {
 
-            const double sigma_( 1.0e-9 );
+            //const double sigma_( 1.0e-9 );
             
         }
 

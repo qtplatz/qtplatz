@@ -28,14 +28,14 @@
 
 using namespace adplot;
 
-SpanMarker::SpanMarker() : markers_( { new QwtPlotMarker(), new QwtPlotMarker() } )
+SpanMarker::SpanMarker() : markers_( { {new QwtPlotMarker(), new QwtPlotMarker()} } )
 {
 }
 
 SpanMarker::SpanMarker( const QColor& color
                         , QwtPlotMarker::LineStyle style
                         , double lineWidth
-                        , Qt::PenStyle penStyle ) : markers_( { new QwtPlotMarker(), new QwtPlotMarker() } )
+                        , Qt::PenStyle penStyle ) : markers_( { {new QwtPlotMarker(), new QwtPlotMarker()} } )
 {
     for ( auto marker : markers_ ) {
         marker->setLineStyle( style );

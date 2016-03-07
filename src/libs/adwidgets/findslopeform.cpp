@@ -116,6 +116,7 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
         , QSignalBlocker( ui->spinBox_sg ), QSignalBlocker( ui->spinBox_dft )
         , QSignalBlocker( ui->radioButton_pos ), QSignalBlocker( ui->radioButton_neg ), QSignalBlocker( ui->radioButton_sg ), QSignalBlocker( ui->radioButton_dft )
     };
+    (void)bloks;
 
     QSignalBlocker block( this );
 

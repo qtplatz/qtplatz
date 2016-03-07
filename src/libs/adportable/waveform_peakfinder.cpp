@@ -151,7 +151,8 @@ namespace adportable { namespace peakfind {
 
         waveform_peakfinder_i( std::function< double( size_t idx, int& n )>& fpeakw, double dbase, double rms )
             : fpeakw_( fpeakw )
-            , dbase_( dbase ), rms_( rms ) {
+            , rms_( rms )
+            , dbase_( dbase ) {
         }
         
         template< typename _fx, typename Ty >

@@ -123,7 +123,7 @@ TimedEvent::~TimedEvent()
 {
 }
 
-TimedEvent::TimedEvent() : clsid_( { 0 } )
+TimedEvent::TimedEvent() : clsid_( { {0} } )
                          , time_( 0 )
 {
 }

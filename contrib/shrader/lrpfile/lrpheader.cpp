@@ -211,10 +211,10 @@ lrpheader::data_type_code() const
 {
     std::ostringstream o;
     uint32_t code = type();
-    o << ( code & 0x0001 ) ? "Mass Data" : "Raw Data";
-    o << ", " << ( code & 0x0002 ) ? "Internal Mass Reference" : "External Mass Reference";
-    o << ", " << ( code & 0x0004 ) ? "Bar data" : "Profile";
-    o << ", " << (code & 0x8000) ? "Ion mobility data" : "";
+    o <<  ( code & 0x0001 ? "Mass Data" : "Raw Data" );
+    o << ", " << ( code & 0x0002 ? "Internal Mass Reference" : "External Mass Reference");
+    o << ", " << ( code & 0x0004 ? "Bar data" : "Profile" );
+    o << ", " << (code & 0x8000  ? "Ion mobility data" : "" );
     return o.str();
 }
 

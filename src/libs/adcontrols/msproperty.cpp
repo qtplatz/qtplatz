@@ -33,6 +33,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -107,7 +108,7 @@ namespace adcontrols {
                 _.time_since_injection_ *= 1000;  // us -> ns
 
             if ( version >= 10 ) // add TofProtocol
-                _.tofProtocol_;
+                ar & BOOST_SERIALIZATION_NVP( _.tofProtocol_ );
         }
     };
     
@@ -142,8 +143,8 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
                          , instTDelay_( 0 )
                          , trig_number_( 0 )
                          , trig_number_origin_( 0 )
-                         , samplingData_( new SamplingInfo() )
                          , instMassRange_( {0, 0} )
+                         , samplingData_( new SamplingInfo() )
 {
 }
 

@@ -488,7 +488,7 @@ instsetup::describe_scanlaw() const
 {
     const int32_t code = scanlaw();
     std::ostringstream o;
-    o << ( code & 0x0001 ) ? "Down" : "Up";
+    o << ( code & 0x0001 ? "Down" : "Up" );
     switch( code & 0xfffe ) {
     case 2: o << ", Linear"; break;
     case 4: o << ", Inverse"; break;

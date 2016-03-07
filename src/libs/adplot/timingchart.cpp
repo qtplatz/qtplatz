@@ -104,11 +104,11 @@ namespace adplot {
 
     class TimingChart::impl {
     public:
-        impl( TimingChart * p ) : this_( p ) 
+        impl( TimingChart * p ) : pulseMarker_( std::make_shared< pulseMarker >() )
                                 , selectedCurve_( 0 )
                                 , selectedPoint_( -1 )
                                 , wheelCurve_( 0 )
-                                , pulseMarker_( std::make_shared< pulseMarker >() )
+                                , this_( p )
             {}
 
         void addPulse( const timingchart::pulse& );
@@ -503,17 +503,17 @@ namespace adplot { namespace timingchart {
 pulse::pulse( double delay
               , double duration
               , const QString& name
-              , int uniqId ) : delay_( delay )
+              , int uniqId ) : uniqId_( uniqId )
+                             , delay_( delay )
                              , duration_( duration )
                              , name_( name )
-                             , uniqId_( uniqId )
 {
 }
 
-pulse::pulse( const pulse& t ) : delay_( t.delay_ )
+pulse::pulse( const pulse& t ) : uniqId_( t.uniqId_ )
+                               , delay_( t.delay_ )
                                , duration_( t.duration_ )
                                , name_( t.name_ )
-                               , uniqId_( t.uniqId_ )
 {
 }
 

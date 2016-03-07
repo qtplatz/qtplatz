@@ -67,10 +67,8 @@ namespace adwidgets {
     }
 
     class PeakMethodForm::impl {
-        PeakMethodForm * this_;
     public:
-        impl( PeakMethodForm * p ) : this_( p )
-                                   , model_( new QStandardItemModel ) {
+        impl( PeakMethodForm * ) : model_( new QStandardItemModel ) {
         }
                  
         std::unique_ptr< QStandardItemModel > model_;
@@ -219,6 +217,8 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
     case ePHARMACOPOEIA_JP:
         method.theoreticalPlateMethod( ePeakWidth_HalfHeight );
         method.peakWidthMethod( ePeakWidth_HalfHeight );        
+        break;
+    case ePHARMACOPOEIA_NotSpcified:
         break;
     }
 

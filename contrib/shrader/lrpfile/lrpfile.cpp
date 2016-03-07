@@ -266,7 +266,7 @@ lrpfile::getMS( const msdata& msdata, std::vector< double >& time, std::vector< 
     
         for ( int blk = 0; blk < nblocks; ++blk ) {
 
-            auto flags = msdata.flags( blk );
+            //auto flags = msdata.flags( blk );
             auto nions = msdata.nions( blk );
             auto xrange = std::make_pair( msdata.xlow( blk ), msdata.xhigh( blk ) );
             auto range = std::make_pair( double( xrange.first ) / 16, double( xrange.second ) / 16 );

@@ -65,7 +65,7 @@ namespace servant {
         bool canNavigate() const override { return false; }
                           
     public slots:
-        void clearContents();
+        void clearContents() override;
         void handleLogging( const QString&, bool );
         
     private:

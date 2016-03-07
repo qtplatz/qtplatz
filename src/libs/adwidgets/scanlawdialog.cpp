@@ -103,6 +103,7 @@ ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
              , [this] ( double mass ) {
                  auto law = impl_->scanLaw( ui );
                  QSignalBlocker blocks [] = { QSignalBlocker( ui->doubleSpinBox_5 ), QSignalBlocker( ui->lineEdit ) };
+                 (void)blocks;
                  ui->lineEdit->setText( QString() );  // clear formula
                  if ( ui->checkBox->isChecked() ) {
                      double tof = ui->doubleSpinBox_5->value() / 1.0e6;
@@ -115,6 +116,7 @@ ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
              , [this] ( double tof ) {
                  tof /= 1.0e6;
                  QSignalBlocker blocks [] = { QSignalBlocker( ui->doubleSpinBox_4 ), QSignalBlocker( ui->lineEdit ) };
+                 (void)blocks;
                  auto law = impl_->scanLaw( ui );
                  if ( ui->checkBox->isChecked() ) {
                      double mass = ui->doubleSpinBox_4->value();
@@ -196,6 +198,7 @@ ScanLawDialog::setValues( double fLength, double accVoltage, double tDelay )
 {
     QSignalBlocker blocks[] = { QSignalBlocker(ui->doubleSpinBox), QSignalBlocker(ui->doubleSpinBox_2)
                                 , QSignalBlocker( ui->doubleSpinBox_3 ), QSignalBlocker( ui->doubleSpinBox_6 ) };
+    (void)blocks;
 
     ui->doubleSpinBox->setValue( fLength );
     ui->doubleSpinBox_2->setValue( accVoltage );

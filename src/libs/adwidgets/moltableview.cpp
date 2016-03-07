@@ -498,8 +498,6 @@ MolTableView::handleCopyToClipboard()
 void
 MolTableView::handlePaste()
 {
-    int row = model()->rowCount() - 1;
-
     auto md = QApplication::clipboard()->mimeData();
     auto data = md->data( "application/moltable-xml" );
     if ( !data.isEmpty() ) {
@@ -535,6 +533,7 @@ MolTableView::handlePaste()
         for ( auto line : lines ) {
             QStringList texts = line.split( "\t" );
             for ( auto& test : texts ) {
+                (void)test;
                 // TODO...
             }
         }

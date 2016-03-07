@@ -65,8 +65,8 @@ namespace adcontrols {
         
         impl() : mass_limits_( -1, -1 )
                , charge_state_( 1, 1 )
-               , is_polarity_positive_( true )
                , resolving_power_( 10000.0 )
+               , is_polarity_positive_( true )
                , is_tof_( true )
                , tof_length_( 0.5 )
                , tof_accelerator_voltage_( 5000.0 )
@@ -77,11 +77,11 @@ namespace adcontrols {
                               , charge_state_( t.charge_state_ )
                               , resolving_power_( t.resolving_power_ )
                               , is_polarity_positive_( t.is_polarity_positive_ )
+                              , molecules_( t.molecules_ )
                               , is_tof_( t.is_tof_ )
                               , tof_length_( t.tof_length_ )
                               , tof_accelerator_voltage_( t.tof_accelerator_voltage_ )
-                              , tof_tDelay_( t.tof_tDelay_ )
-                              , molecules_( t.molecules_ )  {
+                              , tof_tDelay_( t.tof_tDelay_ ) {
         }
     };
 }

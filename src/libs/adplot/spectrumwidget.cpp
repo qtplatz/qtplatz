@@ -143,10 +143,10 @@ namespace adplot {
                                             , alpha_( 0xff )
                                             , rect_( t.rect_ )
                                             , yRight_( t.yRight_ )
+                                            , color_( t.color_ )
                                             , curves_( t.curves_ )
                                             , pSpectrum_( t.pSpectrum_ )
-                                            , isTimeAxis_( t.isTimeAxis_ )
-                                            , color_( t.color_ ) {
+                                            , isTimeAxis_( t.isTimeAxis_ ) {
             }
             
             ~TraceData();
@@ -512,7 +512,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     impl_->baseScale( yRight, baseRect );
 
     auto rectIndex = zoomer()->zoomRectIndex();
-    QRectF z = zoomer()->zoomRect();
+    //QRectF z = zoomer()->zoomRect();
 
     if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
 
@@ -813,7 +813,7 @@ TraceData::y_range( double left, double right ) const
                         return idx;
                     }
                 };
-                const adcontrols::SamplingInfo& info = seg.getMSProperty().samplingInfo();
+                //const adcontrols::SamplingInfo& info = seg.getMSProperty().samplingInfo();
                 idleft = index( seg.getMSProperty().samplingInfo() )( xleft );
                 idright = index( seg.getMSProperty().samplingInfo() )( xright );
             } else {

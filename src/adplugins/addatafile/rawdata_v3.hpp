@@ -114,7 +114,6 @@ namespace addatafile {
             std::shared_ptr< adcontrols::DataReader > findDataReader( int fcn, int& xfcn ) const;
 
             adfs::filesystem& dbf_;
-            adcontrols::datafile& parent_;
 
             std::vector< adutils::v3::AcquiredConf::data > conf_;
 

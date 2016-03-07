@@ -164,6 +164,7 @@ ThresholdActionForm::formulaChanged( const QString& formula )
     if ( auto sp = spectrometer_.lock() ) {
 
         QSignalBlocker blocks[] = { QSignalBlocker( ui->doubleSpinBox_3 ), QSignalBlocker( ui->doubleSpinBox ) };
+        (void)blocks;
         
         double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula.toStdString() );
         ui->doubleSpinBox_3->setValue( mass );

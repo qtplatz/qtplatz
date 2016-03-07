@@ -27,7 +27,7 @@
 using namespace adcontrols::ControlMethod;
 
 
-ModuleCap::ModuleCap() : clsid_( {0})
+ModuleCap::ModuleCap() : clsid_( {{0}})
 {
 }
 

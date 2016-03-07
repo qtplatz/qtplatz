@@ -67,10 +67,10 @@ msdata::msdata(std::istream& in, size_t fsize) : loaded_( false )
 
     int16_t scan = 0;
     while ( ( fsize - in.tellg() ) >= block_size ) {
-        auto pos = in.tellg();
+        //auto pos = in.tellg();
         auto d = std::make_shared< detail::msdata >();
         in.read( reinterpret_cast<char *>(d.get()), block_size );
-        const detail::msdata * pdata = d.get();
+        //const detail::msdata * pdata = d.get();
         if ( in.fail() )
             return;
         if ( (d->flags & 0x0f) != record_type_code ) 

@@ -93,7 +93,7 @@ AcquiredConf::insert( adfs::sqlite& dbf
 ,:axis_y_decimals      \
 )" );
     
-    static boost::uuids::uuid nullid { 0 } ;
+    static boost::uuids::uuid nullid { {(0)} } ;
     int col = 1;
     sql.bind( col++ ) = objid;
     sql.bind( col++ ) = pobjid;

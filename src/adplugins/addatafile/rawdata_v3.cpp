@@ -66,10 +66,9 @@ rawdata::~rawdata()
 
 rawdata::rawdata( adfs::filesystem& dbf
                   , adcontrols::datafile& parent ) : dbf_( dbf )
-                                                   , parent_( parent )
+                                                   , fcnCount_( 0 )
                                                    , npos0_( 0 )
                                                    , configLoaded_( false )
-                                                   , fcnCount_( 0 )
 {
 }
 
@@ -252,7 +251,6 @@ rawdata::getSpectrumCount( int fcn ) const
 bool
 rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
-    boost::uuids::uuid objuuid = { 0 };
     std::vector< boost::uuids::uuid > uuids;
 
     adfs::stmt sql( dbf_.db() );
@@ -306,7 +304,7 @@ rawdata::index( size_t pos, int& idx, int& fcn, int& rep, double * time ) const
 
     typedef decltype(*fcnIdx_.begin()) value_type;
 
-    idx = int( std::count_if( fcnIdx_.begin(), index, [] ( const value_type& a ){ return a.second == 0; } ) );
+    idx = int( std::count_if( fcnIdx_.begin(), index, [] ( value_type& a ){ return a.second == 0; } ) );
 
     if ( pos < fcnVec_.size() ) {
         fcn = std::get<1>( fcnVec_[ pos ] );
@@ -326,10 +324,10 @@ rawdata::find_scan( int idx, int fcn ) const
 
     if ( idx < 0 && fcn < 0 ) { // find last data can be read for a set of entire protocols
         typedef decltype(*fcnIdx_.rbegin()) value_type;
-        auto it = std::find_if( fcnIdx_.rbegin(), fcnIdx_.rend(), [] ( const value_type& a ){ return a.second == 0; } );
+        auto it = std::find_if( fcnIdx_.rbegin(), fcnIdx_.rend(), [] ( value_type& a ){ return a.second == 0; } );
         if ( it != fcnIdx_.rend() ) {
             // find next fcn=0
-            it = std::find_if( ++it, fcnIdx_.rend(), [] ( const value_type& a ){ return a.second == 0; } );
+            it = std::find_if( ++it, fcnIdx_.rend(), [] ( value_type& a ){ return a.second == 0; } );
             if ( it != fcnIdx_.rend() )
                 return it->first - npos0_;
         }
@@ -348,7 +346,7 @@ rawdata::find_scan( int idx, int fcn ) const
 
     if ( idx < 0 && fcn >= 0 ) { // find last data for specified protocol
         typedef decltype(*fcnIdx_.rbegin()) value_type;
-        auto it = std::find_if( fcnIdx_.rbegin(), fcnIdx_.rend(), [fcn] ( const value_type& a ){ return a.second == fcn; } );
+        auto it = std::find_if( fcnIdx_.rbegin(), fcnIdx_.rend(), [fcn] ( value_type& a ){ return a.second == fcn; } );
         if ( it != fcnIdx_.rend() )
             return it->first - npos0_; // 1st spectrum of a set of acquisition replicates for specified protocol (fcn)
         return size_t(-1);
@@ -374,7 +372,7 @@ rawdata::make_index( size_t pos, int& fcn ) const
         fcn = std::get<1>( fcnVec_[ pos ] );
 
         typedef decltype( *fcnVec_.begin() ) iterator;
-        auto idx = std::count_if( fcnVec_.begin(), fcnVec_.begin() + pos, [=] ( const iterator& v ){return std::get<1>( v ) == fcn; } );
+        auto idx = std::count_if( fcnVec_.begin(), fcnVec_.begin() + pos, [=] ( iterator& v ){return std::get<1>( v ) == fcn; } );
 
         return int( idx );
     }

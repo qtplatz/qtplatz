@@ -353,7 +353,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
         
         double h = *it - pk.base;
-        double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
+        //double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
 
         size_t idx = std::distance( intens.begin(), it );
 

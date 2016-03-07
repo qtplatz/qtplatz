@@ -45,11 +45,11 @@ Targeting::Targeting() : method_( std::make_shared< TargetingMethod >() )
 {
 }
 
-Targeting::Targeting( const Targeting& t ) : candidates_( t.candidates_ )
+Targeting::Targeting( const Targeting& t ) : method_( t.method_ )
+                                           , candidates_( t.candidates_ )
                                            , active_formula_( t.active_formula_ )
                                            , pos_adducts_( t.pos_adducts_ )
                                            , neg_adducts_( t.neg_adducts_ )
-                                           , method_( t.method_ )
 {
 }
 

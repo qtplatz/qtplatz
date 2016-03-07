@@ -301,7 +301,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
     for ( auto observer : vec ) {
 
         if ( auto clsid = observer->dataInterpreterClsid() ) {
-
+            (void)clsid;
             adutils::v3::AcquiredConf::insert( fs_->db()
                                                , observer->objid()
                                                , observer->description().data() );

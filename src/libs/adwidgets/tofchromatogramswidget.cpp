@@ -95,6 +95,7 @@ namespace adwidgets {
                 auto record = model_->record( row );
                 
                 size_t id = record.value( "id" ).toLongLong();
+                (void)id;
                 double exactMass = MolTableView::getMonoIsotopicMass( record.value( "formula" ).toString() );
                 if ( exactMass > 0.7 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );

@@ -76,8 +76,8 @@ namespace adwidgets {
 using namespace adwidgets;
 
 ControlMethodTable::ControlMethodTable( ControlMethodWidget * parent ) : adwidgets::TableView( parent )
-                                                                       , model_( new QStandardItemModel )
                                                                        , parent_( parent )
+                                                                       , model_( new QStandardItemModel )
 {
     setModel( model_ );
 

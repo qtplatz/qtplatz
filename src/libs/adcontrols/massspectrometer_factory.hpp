@@ -77,8 +77,8 @@ namespace adcontrols {
     public:
         massspectrometer_factory_type( const std::string& objtext
                                        , const boost::uuids::uuid& objclsid
-                                       , Args&&... args ) : objtext_( objtext )
-                                                          , objclsid_( objclsid )
+                                       , Args&&... args ) : objclsid_( objclsid )
+                                                          , objtext_( objtext )
                                                           , args_( std::make_tuple( std::forward<Args>( args )... ) ) {
         }
 

@@ -58,7 +58,7 @@ namespace adcontrols {
     };
 
 #if _MSC_VER < 1900
-    boost::uuids::uuid DataInterpreterBroker::impl::base_uuid = boost::uuids::uuid( { 0xD0, 0xE0, 0x5C, 0xF0, 0x7E, 0x81, 0x46, 0xD1, 0xA1, 0x43, 0x47, 0x7A, 0xB4, 0x1B, 0x73, 0x5F } );
+    boost::uuids::uuid DataInterpreterBroker::impl::base_uuid = boost::uuids::uuid( { {0xD0, 0xE0, 0x5C, 0xF0, 0x7E, 0x81, 0x46, 0xD1, 0xA1, 0x43, 0x47, 0x7A, 0xB4, 0x1B, 0x73, 0x5F} } );
 #else
     boost::uuids::uuid constexpr DataInterpreterBroker::impl::base_uuid;// = boost::uuids::string_generator()( "{D0E05CF0-7E81-46D1-A143-477AB41B735F}" );
 #endif
@@ -76,7 +76,7 @@ DataInterpreterBroker::~DataInterpreterBroker()
 bool
 DataInterpreterBroker::register_factory( std::shared_ptr< DataInterpreterFactory > factory, const boost::uuids::uuid& uuid, const std::string& dataInterpreterClsid )
 {
-    if ( uuid == boost::uuids::uuid{ 0 } ) {
+    if ( uuid == boost::uuids::uuid{ {0} } ) {
         impl::instance().factories_[ name_to_uuid( dataInterpreterClsid ) ] = std::make_pair( dataInterpreterClsid, factory );
     } else {
         impl::instance().factories_[ uuid ] = std::make_pair( dataInterpreterClsid, factory );

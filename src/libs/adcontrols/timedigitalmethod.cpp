@@ -132,8 +132,8 @@ TimeDigitalMethod::TimeDigitalMethod()
     thresholds_.push_back( threshold_method() ); // at least one
 }
 
-TimeDigitalMethod::TimeDigitalMethod( const TimeDigitalMethod& t ) : action_( t.action_ )
-                                                                   , thresholds_( t.thresholds_ )
+TimeDigitalMethod::TimeDigitalMethod( const TimeDigitalMethod& t ) : thresholds_( t.thresholds_ )
+                                                                   , action_( t.action_ )
 {
 }
 

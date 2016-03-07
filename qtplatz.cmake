@@ -87,15 +87,14 @@ if (MSVC)
 
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
   add_definitions(-DUNICODE -D_UNICODE)
-#  add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
   message(STATUS "Using ${CMAKE_CXX_COMPILER}. C++11 support is native.")
 
 else()
 
   include(CheckCXXCompilerFlag)
-  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-  CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
   CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+  CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
   CHECK_CXX_COMPILER_FLAG("-std=c++03" COMPILER_SUPPORTS_CXX03)
 
   if(COMPILER_SUPPORTS_CXX17)
@@ -115,7 +114,11 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   endif()
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-register")
+  if ( APPLE )
+    add_definitions( "-Wno-unused-local-typedefs" )
+  endif()
+
+  add_definitions( "-Wno-deprecated-register" )
 
 endif()
 
