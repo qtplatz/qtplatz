@@ -48,6 +48,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <regex>
 #include <string>
+#include <cassert>
 
 using namespace adicontroller;
 
@@ -302,6 +303,12 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 
         if ( auto clsid = observer->dataInterpreterClsid() ) {
             (void)clsid;
+
+            if ( observer->objid() != observer->description().data().objid ) {
+                assert( observer->objid() == observer->description().data().objid );
+                return;
+            }
+
             adutils::v3::AcquiredConf::insert( fs_->db()
                                                , observer->objid()
                                                , observer->description().data() );
