@@ -140,15 +140,28 @@ WaveformObserver::operator << ( const_waveform_pair_t& pair )
 {
     auto rb = std::make_shared< so::DataReadBuffer >();
 
-    acqrscontrols::ap240::waveform::serialize( *rb, pair.first, pair.second );
+    if ( pair.first || pair.second ) {
+
+        auto pos = pair.first ? pair.first->serialnumber_ : pair.second->serialnumber_;
+        rb->pos() = pos;
+        rb->timepoint() = pair.first ? pair.first->timeSinceEpoch_ : pair.second->timeSinceEpoch_;
+        rb->setData( boost::any( pair ) );
+
+        // acqrscontrols::ap240::waveform::serialize( *rb, pair.first, pair.second );
     
-    std::lock_guard< std::mutex > lock( mutex() );
-    if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
-        auto tail = que_.begin();
-        std::advance( tail, 500 );
-        que_.erase( que_.begin(), tail );
+        std::lock_guard< std::mutex > lock( mutex() );
+
+        if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
+            auto tail = que_.begin();
+            std::advance( tail, 500 );
+            que_.erase( que_.begin(), tail );
+        }
+
+        que_.emplace_back( std::move( rb ) );
+
+        return pos;
     }
-    que_.push_back( rb );
-    return rb->pos();
+    
+    return uint32_t( -1 );
 }
 

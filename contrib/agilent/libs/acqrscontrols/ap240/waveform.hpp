@@ -137,7 +137,7 @@ namespace acqrscontrols {
             typedef int32_t value_type; // referenced from archiver in WaveformObserver
 
             value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
-
+            
             const value_type * data() const { return d_.data(); }
             size_t data_size() const { return d_.size(); }  // internal data count
 
