@@ -353,8 +353,6 @@ task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adicontrolle
         document::instance()->tdc()->appendHistogram( threshold_results );
         handle_ap240_average( status, threshold_results ); // draw spectrogram and TIC
 
-        // io_service_.post( [=]() { document::instance()->tdc()->appendHistogram( threshold_results ); } );
-        // io_service_.post( [=] () { handle_ap240_average( status, threshold_results ); } ); // draw spectrogram and TIC
     }
 }
 
@@ -362,9 +360,8 @@ void
 task::impl::handle_ap240_average( const data_status status, std::array< threshold_result_ptr, 2 > threshold_results )
 {
     do {
-        // document::instance()->result_to_file( threshold_results[0] );
-
         std::lock_guard< std::mutex > lock( mutex_ );
+
         que_.push_back( threshold_results );
         if ( que_.size() >= 10 )
             que_.erase( que_.begin(), que_.begin() + 5 );
