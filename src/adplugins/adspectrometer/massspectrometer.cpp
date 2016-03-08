@@ -36,8 +36,10 @@
 namespace adspectrometer {
     class MassSpectrometerException : public boost::exception, public std::exception {};
 
+#if __APPLE__ || __linux__
     constexpr const char * MassSpectrometer::clsid_text;
     constexpr const char * MassSpectrometer::class_name;
+#endif
 }
 
 using namespace adspectrometer;
