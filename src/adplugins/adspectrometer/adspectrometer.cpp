@@ -51,11 +51,6 @@ namespace adspectrometer {
             std::call_once( flag, [] () { instance_ = std::make_shared< adspectrometer_plugin >(); } );
             return instance_.get();
             
-            // static std::once_flag flag;
-            // std::call_once( flag, [] () {
-            //         struct make_shared_enabler : public adspectrometer_plugin {};
-            //         instance_ = std::make_shared< make_shared_enabler >();
-            //     } );
             return instance_.get();
         }
 
