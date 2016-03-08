@@ -234,18 +234,8 @@ task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos 
 task *
 task::instance()
 {
-    task * tmp = impl::instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( impl::mutex_ );
-        tmp = impl::instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new task();
-            std::atomic_thread_fence( std::memory_order_release );
-            impl::instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static task __instance;
+    return &__instance;
 }
 
 void
