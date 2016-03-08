@@ -57,6 +57,8 @@ loader::populate( const wchar_t * topdir )
     boost::filesystem::path modules( appdir / pluginDirectory );
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
 
+    ADDEBUG() << "loader populating : " << topdir;
+
     if ( boost::filesystem::is_directory( modules ) ) {
 
         boost::system::error_code ec;
@@ -67,16 +69,24 @@ loader::populate( const wchar_t * topdir )
             while ( it != boost::filesystem::recursive_directory_iterator() ) {
 
                 if ( boost::filesystem::is_regular_file( it->status() ) ) {
-                    if ( it->path().extension() == L".adplugin" ) {
+
+                    if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
+
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
-                        
+
                         for ( auto& dir : { branch, sharedlibs } ) {
                             QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
                             QLibrary lib( libname );
-                            if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
+
+                            ADDEBUG() << "\tloading : " << libname.toStdString();
+                                                    
+                            if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
                                 break;
-                            lib.unload();
+                            } else {
+                                ADDEBUG() << "## failed to load: " << libname.toStdString()
+                                          << "\n\t" << lib.errorString().toStdString();
+                            }
                         }
                     }
                 }
@@ -84,7 +94,7 @@ loader::populate( const wchar_t * topdir )
             }
         }
     } else {
-        BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "adcontrols::loaser -- %1% is not directory" ) % modules.generic_string() ).str() ) );
+        BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "loader %1% is not directory" ) % modules.generic_string() ).str() ) );
     }
 	manager::instance()->populated();
 }

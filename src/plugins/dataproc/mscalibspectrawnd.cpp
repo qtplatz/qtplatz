@@ -800,20 +800,20 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
 
         adcontrols::segment_wrapper<> segments( *ms );
 
-        adcontrols::MassSpectrum clone;
-        clone.clone( segments[0] );
-        clone.resize( calibResult->assignedMasses().size() );
+        auto clone = std::make_shared< adcontrols::MassSpectrum >();
+        clone->clone( segments[0] );
+        clone->resize( calibResult->assignedMasses().size() );
 
         // reconstract mass spectrum and corresponding MSAssignedMasses
         int idPeak = 0;
         for ( auto& t: calibResult->assignedMasses() ) {
 
 			auto& fms = segments[ t.idMassSpectrum() ];
-            clone.setMass( idPeak, fms.getMass( t.idPeak() ) );
-            clone.setIntensity( idPeak, fms.getIntensity( t.idPeak() ) );
-            clone.setTime( idPeak, fms.getTime( t.idPeak() ) );
+            clone->setMass( idPeak, fms.getMass( t.idPeak() ) );
+            clone->setIntensity( idPeak, fms.getIntensity( t.idPeak() ) );
+            clone->setTime( idPeak, fms.getTime( t.idPeak() ) );
 			if ( const unsigned char * colors = fms.getColorArray() )
-                clone.setColor( idPeak, colors[ t.idPeak() ] );
+                clone->setColor( idPeak, colors[ t.idPeak() ] );
 
             adcontrols::MSAssignedMass x( t );
             x.idMassSpectrum( static_cast<uint32_t>(idSpectrum) );
@@ -822,9 +822,9 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
             ++idPeak;
         }
         if ( idSpectrum == 0 )
-            *margedSpectrum_ = clone;
+            *margedSpectrum_ = *clone;
         else
-            margedSpectrum_->addSegment( clone );
+            *margedSpectrum_ << std::move( clone );
         ++idSpectrum; // move on to next spectrum
     }
     margedSpectrum_->addDescription( adcontrols::description( L"Calibration", L"Coadded Summary" ) );

@@ -163,25 +163,13 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     // Core::Context context( (Core::Id( Constants::C_DATAPROCESSOR )) );
 
     //-------------------------------------------------------------------------------------------
-    const wchar_t * query = L"/DataprocConfiguration/Configuration";
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config" );
-    //boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
     
     try {
         adplugin::loader::populate( apppath.c_str() );
     } catch ( boost::exception& ex ) {
         QMessageBox::warning( 0, tr( "Processing" ), boost::diagnostic_information( ex ).c_str() );
     }
-
-    pConfig_.reset( new adportable::Configuration() );
-    adportable::Configuration& config = *pConfig_;
-
-    if ( ! adportable::ConfigLoader::loadConfigFile( config, configFile, query ) ) {
-        *error_message = "loadConfig load failed";
-        return false;
-    }
-    //------------------------------------------------
 
     do {
         std::vector< std::string > mime;
@@ -192,7 +180,8 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
                 std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
                     adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
                     if ( factory ) {
-                        adcontrols::datafileBroker::register_factory( factory, d->clsid() ); // factory->name() );
+                        ADDEBUG() << "installing " << factory->name() << "...";
+                        adcontrols::datafileBroker::register_factory( factory, d->clsid() );
                         if ( factory->mimeTypes() )
                             mime.push_back( factory->mimeTypes() );
                     }

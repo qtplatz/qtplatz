@@ -37,6 +37,8 @@ namespace adcontrols { class datafile; }
 
 namespace adspectrometer {
 
+    // inherit from enable_shared_from_this
+
     class adspectrometer_plugin : public adplugin::plugin {
         adspectrometer_plugin( const adspectrometer_plugin& ) = delete;
     public:
@@ -50,13 +52,7 @@ namespace adspectrometer {
             static std::once_flag flag;
             std::call_once( flag, [] () { instance_ = std::make_shared< adspectrometer_plugin >(); } );
             return instance_.get();
-            
-            // static std::once_flag flag;
-            // std::call_once( flag, [] () {
-            //         struct make_shared_enabler : public adspectrometer_plugin {};
-            //         instance_ = std::make_shared< make_shared_enabler >();
-            //     } );
-            return instance_.get();
+
         }
 
         // plugin
@@ -78,7 +74,6 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    ADDEBUG() << "######### adspectrometer_plugin_instance ########";
     return adspectrometer::adspectrometer_plugin::instance();
 }
 
@@ -88,10 +83,6 @@ using namespace adspectrometer;
 void
 adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
-    ADDEBUG() << "######### adspectrometer_plugin::accept ########"
-              << MassSpectrometer::clsid_text
-              << ", " << MassSpectrometer::class_name;
-
     using adcontrols::massspectrometer_factory_type;
     static const boost::uuids::uuid clsid = boost::uuids::string_generator()( MassSpectrometer::clsid_text );
 
@@ -100,6 +91,4 @@ adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin
         
         adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
     }
-    
-    ADDEBUG() << "######### adspectrometer_plugin::accept ########";
 }

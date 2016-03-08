@@ -862,7 +862,7 @@ MainWindow::handleInstState( int status )
         // }
     }
 
-    ADDEBUG() << "handleInstState(" << status << ")";
+    //ADDEBUG() << "handleInstState(" << status << ")";
 
 }
 
@@ -952,8 +952,8 @@ MainWindow::createMidStyledToolbar()
             toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
             impl_->traceBox_ = new QComboBox;
             impl_->traceBox_->addItem( "-----------------------------" );
-            connect( impl_->traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
-            connect( impl_->traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
+            //connect( impl_->traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
+            //connect( impl_->traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
             toolBarLayout->addWidget( impl_->traceBox_ );
             toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
         }

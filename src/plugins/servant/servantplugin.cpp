@@ -95,7 +95,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
 	(void)error_message;
 
-    ADDEBUG() << "<----- ServantPlugin::initialize() ...";
     do {
         adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
         adcontrols::logging_hook::register_hook( adlog::logging_handler::log );} while(0);
@@ -115,23 +114,17 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     context.add( Core::Id( "Servant.MainView" ) );
     context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
     
-	boost::filesystem::path plugindir;
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    do {
-		std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/does-not-exist.adplugin" );
-		plugindir = boost::filesystem::path( configFile ).branch_path();  // qtplatz/lib/qtplatz/plugins/MS-Cheminformatics
-                                                                          // qtpaltz.app/Contents/PlugIns/MS-Cheminformatics
-    } while(0);
 
     adplugin::loader::populate( apppath.c_str() );
     
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
 		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
-			adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
-            if ( factory )
-                adcontrols::MassSpectrometerBroker::register_factory( factory );
-		});
+                adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
+                if ( factory )
+                    adcontrols::MassSpectrometerBroker::register_factory( factory );
+            });
 	}
     return true;
 }

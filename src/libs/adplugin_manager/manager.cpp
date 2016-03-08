@@ -129,6 +129,8 @@ namespace adplugin {
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
 
         size_t select_clsids( const char * regex, std::vector< plugin_ptr >& );
+
+        bool isLoaded( const std::string& adpluginspec ) const;
         
         // visitor 
         void visit( adplugin::plugin * plugin, const char * adpluginspec );
@@ -172,6 +174,12 @@ manager::install( QLibrary& lib, const std::string& adpluginspec )
     return d_->install( lib, adpluginspec, s.str() );
 }
 
+bool
+manager::isLoaded( const std::string& adpluginspec ) const
+{
+    return d_->isLoaded( adpluginspec );
+}
+
 void
 manager::populated()
 {
@@ -212,8 +220,8 @@ manager::data::visit( adplugin::plugin * plugin, const char * adpluginspec )
 
     // make it unique
 	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){
-		return d.second == (*plugin);
-	});
+            return d.second == (*plugin);
+        });
 
 	if ( it == plugins_.end() )
 		additionals_.push_back( plugin_data( plugin->pThis() ) );
@@ -232,27 +240,33 @@ manager::data::populated()
 }
 
 bool
+manager::data::isLoaded( const std::string& adpluginspec ) const
+{
+    return plugins_.find( adpluginspec ) != plugins_.end();
+}
+
+bool
 manager::data::install( QLibrary& lib, const std::string& adpluginspec, const std::string& specxml )
 {
     if ( plugins_.find( adpluginspec ) != plugins_.end() )
         return true; // already in, so that does not need unload() call
 
-    typedef adplugin::plugin * (*factory_type)();
+    typedef adplugin::plugin * ( *factory_type )();
 
-    if ( lib.isLoaded() ) {
-        if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
-            try {
-                ADDEBUG() << "## loading '" << adpluginspec << "'";
-                if ( adplugin::plugin * pptr = factory() ) {
-                    ADDEBUG() << "## " << adpluginspec << " load ok";
-                    pptr->setConfig( adpluginspec, specxml );
-                    plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
-                    pptr->accept( *this, adpluginspec.c_str() );
-                    return true;
-                }
-            } catch ( ... ) {
-                ADDEBUG() << boost::current_exception_diagnostic_information();
+    boost::filesystem::path path( lib.fileName().toStdString() );
+
+    if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
+        try {
+            if ( adplugin::plugin * pptr = factory() ) {
+                ADDEBUG() << "\t\tsuccess: " << path.string();
+
+                pptr->setConfig( adpluginspec, specxml );
+                plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
+                pptr->accept( *this, adpluginspec.c_str() );
+                return true;
             }
+        } catch ( std::exception& e ) {
+            ADDEBUG() << boost::diagnostic_information( e );
         }
     }
     return false;
@@ -310,3 +324,5 @@ manager::data::select_clsids( const char * regex, std::vector< plugin_ptr >& vec
 {
     return 0;
 }
+
+
