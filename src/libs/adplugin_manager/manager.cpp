@@ -256,18 +256,15 @@ manager::data::install( QLibrary& lib, const std::string& adpluginspec, const st
     boost::filesystem::path path( lib.fileName().toStdString() );
 
     if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
-        try {
-            if ( adplugin::plugin * pptr = factory() ) {
-                ADDEBUG() << "\t\tsuccess: " << path.string();
 
-                pptr->setConfig( adpluginspec, specxml );
-                plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
-                pptr->accept( *this, adpluginspec.c_str() );
-                return true;
-            }
-        } catch ( std::exception& e ) {
-            ADDEBUG() << boost::diagnostic_information( e );
+        if ( adplugin::plugin * pptr = factory() ) {
+            
+            pptr->setConfig( adpluginspec, specxml );
+            plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
+            pptr->accept( *this, adpluginspec.c_str() );
+            return true;
         }
+
     }
     return false;
 }

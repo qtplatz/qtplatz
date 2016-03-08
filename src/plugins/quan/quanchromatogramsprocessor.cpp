@@ -506,10 +506,10 @@ QuanChromatogramProcessor::doMSLock( adcontrols::MassSpectrum& profile )
             peak_detector.getCentroidSpectrum( *centroid );
 
             for ( auto fcn = 0; fcn < profile.numSegments(); ++fcn ) {
-                adcontrols::MassSpectrum cseg;
+                auto cseg = std::make_shared< adcontrols::MassSpectrum >();
                 peak_detector( profile.getSegment( fcn ) );
-                peak_detector.getCentroidSpectrum( cseg );
-                centroid->addSegment( cseg );
+                peak_detector.getCentroidSpectrum( *cseg );
+                *centroid << std::move( cseg ); 
             }
 
         }

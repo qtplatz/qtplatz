@@ -303,7 +303,7 @@ MappedSpectrum::operator += ( const MappedSpectrum& t )
             } else {
 
                 while ( inIt != t.data_.end() )
-                    data_.push_back( *inIt++ );
+                    data_.emplace_back( *inIt++ );
                 break;
 
             }

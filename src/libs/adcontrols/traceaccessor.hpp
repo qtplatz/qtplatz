@@ -60,6 +60,10 @@ namespace adcontrols {
             uint32_t events;
             seconds_t x;
             double y;
+
+            fcnData( int _fcn, uint32_t _npos, uint32_t _events, seconds_t _x, double _y )
+                : fcn(_fcn), npos(_npos), events(_events), x(_x), y(_y) {
+            }
         };
 
         void clear();

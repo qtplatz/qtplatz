@@ -63,18 +63,9 @@ TraceAccessor::clear()
 void
 TraceAccessor::push_back( int fcn, uint32_t pos, const seconds_t& t, double value, unsigned long events )
 {
-    fcnData d;
-
     if ( fcn > maxfcn_ )
         maxfcn_ = fcn;
-
-    d.fcn = fcn;
-    d.npos = pos;
-    d.x = t;
-    d.y = value;
-    d.events = events;
-
-    trace_.push_back( d );
+    trace_.emplace_back( fcn, pos, events, t, value );
 }
 
 size_t
