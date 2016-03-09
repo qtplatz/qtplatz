@@ -412,7 +412,6 @@ document::appendOnFile( const boost::filesystem::path& path
 void
 document::initialSetup()
 {
-
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
     if ( !boost::filesystem::exists( dir ) ) {
@@ -430,15 +429,10 @@ document::initialSetup()
     }
 
     if ( auto ptr = std::make_shared< adcontrols::ControlMethod::Method >() ) {
-        QString method = recentFile( Constants::GRP_METHOD_FILES, false );
-        if ( ! method.isEmpty() ) {
-            if ( load( method, *ptr ) )
-                setControlMethod( ptr, method );
-        } else {
-            boost::filesystem::path fname( dir / Constants::LAST_METHOD );
-            if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) )
-                setControlMethod( ptr, QString() );
-        } 
+        // always load 'latest', which may not be same with methodName if user did not save with the name
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) )
+            impl_->cm_ = ptr;
     }
 
     if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
@@ -494,17 +488,12 @@ document::finalClose()
         adcontrols::SampleRun::xml_archive( outf, *run );
     }
 
-#if 0
-    if ( auto pm = MainWindow::instance()->getProcessMethod() ) {
-        boost::filesystem::path fname( dir / Constants::LAST_PROC_METHOD );
-        save( QString::fromStdWString( fname.wstring() ), *pm );        
-    }
-#endif
-
     // for debugging convension
     for ( auto& mi : *cm ) {
         if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
             xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
+        } else if ( mi.clsid() == adcontrols::TimeDigitalMethod::clsid() ) {
+            xmlWriter< adcontrols::TimeDigitalMethod >()( mi, dir );            
         } else if ( mi.clsid() == adcontrols::threshold_method::clsid() ) {
             xmlWriter< adcontrols::threshold_method >()( mi, dir );            
         } else if ( mi.clsid() == adcontrols::threshold_action::clsid() ) {
@@ -604,8 +593,7 @@ document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
                 auto file = files.back();
                 try {
                     file.fetch( m );
-                }
-                catch ( std::exception& ex ) {
+                } catch ( std::exception& ex ) {
                     QMessageBox::information( 0, "acquire -- Open default process method"
                                               , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
                                                  % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
@@ -658,7 +646,7 @@ document::save( const QString& filename, const adcontrols::ControlMethod::Method
     return true;
 }
 
-std::shared_ptr< adcontrols::ControlMethod::Method >
+std::shared_ptr< const adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
     return impl_->cm_;

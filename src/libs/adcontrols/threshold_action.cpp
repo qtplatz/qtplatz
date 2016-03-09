@@ -136,15 +136,21 @@ threshold_action::threshold_action() : delay( 0.0 )
                                      , enableTimeRange( false )
                                      , recordOnFile( true )
                                      , exclusiveDisplay( true )
+                                     , mode( 0 )
+                                     , mass( 0 )
 {
 }
 
 threshold_action::threshold_action( const threshold_action& t ) : delay( t.delay )
-                                                          , enable( t.enable )
-                                                          , width( t.width )
-                                                          , enableTimeRange( t.enableTimeRange )
-                                                          , recordOnFile( t.recordOnFile )
-                                                          , exclusiveDisplay( t.exclusiveDisplay )
+                                                                , enable( t.enable )
+                                                                , width( t.width )
+                                                                , enableTimeRange( t.enableTimeRange )
+                                                                , recordOnFile( t.recordOnFile )
+                                                                , exclusiveDisplay( t.exclusiveDisplay )
+                                                                , objid_spectrometer( t.objid_spectrometer )
+                                                                , formula( t.formula )
+                                                                , mode( t.mode )
+                                                                , mass( t.mass )
 {
 }
 

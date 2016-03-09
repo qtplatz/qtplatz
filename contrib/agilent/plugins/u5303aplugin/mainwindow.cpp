@@ -162,8 +162,15 @@ MainWindow::OnInitialUpdate()
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->OnInitialUpdate();
+            // setup control method on ui
             widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
+    }
+    // Set control method name on MidToolBar
+    if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
+        QString methodName = document::instance()->recentFile( Constants::GRP_METHOD_FILES, false );
+        if ( ! methodName.isEmpty() )
+            edit->setText( methodName );
     }
 
     setSimpleDockWidgetArrangement();
@@ -222,8 +229,11 @@ MainWindow::createContents( Core::IMode * mode )
 
     // handle ControlMethod (load/save)
     connect( document::instance(), &document::onControlMethodChanged, this, [this]( const QString& name ) {
-            if ( auto edit = findChild< QLineEdit * >( "methodName" ) )
-                edit->setText( name );
+            this->setControlMethod( document::instance()->controlMethod() );
+            if ( !name.isEmpty() ) {
+                if ( auto edit = findChild< QLineEdit * >( "methodName" ) )
+                    edit->setText( name );
+            }
         } );
 	    
     if ( QWidget * editorWidget = new QWidget ) {
@@ -236,10 +246,9 @@ MainWindow::createContents( Core::IMode * mode )
             connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
             connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );
             bool res = connect( document::instance(), &document::dataChanged, wnd, &WaveformWnd::dataChanged );
-//#if defined _DEBUG
+            // validation for uuid class registoration -- will be compile error if not registered
             QVariant v;
             v.setValue( boost::uuids::uuid() );
-//#endif
         }
         
         //---------- central widget ------------

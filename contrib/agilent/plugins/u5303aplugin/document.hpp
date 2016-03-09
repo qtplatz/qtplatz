@@ -83,7 +83,7 @@ namespace u5303a {
         
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
-        std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
+        std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod() const;
 
         void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
         void setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > m, const QString& filename = QString() );
