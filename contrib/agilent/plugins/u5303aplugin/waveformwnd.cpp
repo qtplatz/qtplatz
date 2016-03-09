@@ -136,6 +136,9 @@ WaveformWnd::onInitialUpdate()
 {
     spw_->setKeepZoomed( false );
     hpw_->setKeepZoomed( false );
+
+    handle_method( QString() );
+    handle_threshold_method( 0 );
 }
 
 void

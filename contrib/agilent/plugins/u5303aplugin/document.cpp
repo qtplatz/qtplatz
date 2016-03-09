@@ -305,6 +305,7 @@ document::actionConnect()
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
         tdc()->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
+        tdc()->set_threshold_action( impl_->tdm_->action() );
 
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
@@ -552,8 +553,11 @@ document::initialSetup()
     if ( auto ptr = std::make_shared< adcontrols::ControlMethod::Method >() ) {
         // always load 'latest', which may not be same with methodName if user did not save with the name
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
-        if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) )
-            impl_->cm_ = ptr;
+        if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) ) {
+            setControlMethod( ptr );
+            impl_->tdcdoc_->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
+            impl_->tdcdoc_->set_threshold_action( impl_->tdm_->action() );
+        }
     }
 
     if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
@@ -569,6 +573,7 @@ document::initialSetup()
             }
         }
     }
+
 
 #if 0
     if ( auto pm = std::make_shared< adcontrols::ProcessMethod >() ) {
@@ -795,7 +800,7 @@ document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method >
         if ( it != ptr->end() ) {
             adcontrols::TimeDigitalMethod tdm;
             if ( it->get( *it, tdm ) )
-                *impl_->tdm_;
+                *impl_->tdm_ = tdm;
         }
     } while ( 0 );
 

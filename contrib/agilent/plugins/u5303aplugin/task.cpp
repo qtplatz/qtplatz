@@ -416,20 +416,6 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
     }
 }
 
-// void
-// task::prepare_next_sample( adicontroller::SignalObserver::Observer * masterObserver
-//                            , std::shared_ptr< adcontrols::SampleRun > srun, const adcontrols::ControlMethod::Method& cm )
-// {
-//     auto method = std::make_shared< adcontrols::ControlMethod::Method >( cm );
-//     if ( auto proc = std::make_shared< adicontroller::SampleProcessor >( srun, method ) ) {
-
-//         proc->prepare_storage( masterObserver );
-//         emit document::instance()->sampleRunChanged();
-
-//     }
-
-// }
-
 void
 task::sample_started()
 {
