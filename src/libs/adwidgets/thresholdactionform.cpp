@@ -66,6 +66,7 @@ ThresholdActionForm::OnCreate( const adportable::Configuration& )
 void
 ThresholdActionForm::OnInitialUpdate()
 {
+    ui->checkBox->setEnabled( false );
 }
 
 void

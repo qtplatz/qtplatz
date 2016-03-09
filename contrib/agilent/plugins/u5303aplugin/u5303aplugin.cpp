@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "u5303aplugin.hpp"
-#include "u5303a_constants.hpp"
+#include "constants.hpp"
 #include "u5303amode.hpp"
 #include "mainwindow.hpp"
 #include "icontrollerimpl.hpp"
@@ -114,8 +114,6 @@ u5303APlugin::initialize( const QStringList &arguments, QString *errorString )
 void
 u5303APlugin::extensionsInitialized()
 {
-    //auto factory = u5303aspectrometer::MassSpectrometer::instance();
-	//adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
     document::instance()->initialSetup(); // load default control method
 	mainWindow_->OnInitialUpdate();
 }

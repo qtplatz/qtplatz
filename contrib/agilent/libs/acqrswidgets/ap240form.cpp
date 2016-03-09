@@ -34,10 +34,11 @@
 #include <adportable/serializer.hpp>
 #include <adwidgets/thresholdactionform.hpp>
 #include <adwidgets/findslopeform.hpp>
+#include <QDoubleSpinBox>
+#include <QSignalBlocker>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QMessageBox>
-#include <QSignalBlocker>
 #include <QPair>
 #include <boost/exception/all.hpp>
 
@@ -140,6 +141,10 @@ ap240form::OnInitialUpdate()
 {
     if ( auto form = findChild< adwidgets::ThresholdActionForm * >() )
         form->OnInitialUpdate();
+
+    // don't response to each key strokes on DoubleSpinBox
+    for ( auto spin : findChildren< QDoubleSpinBox * >() )
+        spin->setKeyboardTracking( false );
 }
 
 void

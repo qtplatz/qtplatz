@@ -88,7 +88,7 @@ Trace::push_back( size_t npos, double x, double y )
 
         values_.erase( values_.begin(), values_.begin() + ( upper_limit - lower_limit ) );
 
-        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) { return std::get<x_value>( a ) < std::get<y_value>( b ); } );;
+        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) { return std::get<y_value>( a ) < std::get<y_value>( b ); } );;
         maxY_ = std::get<y_value>(*minmax.second);
         minY_ = isCountingTrace_ ? 0 : std::get<y_value>(*minmax.first);
 

@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "u5303amode.hpp"
-#include "u5303a_constants.hpp"
+#include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/id.h>

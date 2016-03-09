@@ -27,7 +27,6 @@
 #include "mainwindow.hpp"
 #include "resultwriter.hpp"
 #include "task.hpp"
-#include "u5303a_constants.hpp"
 #include "icontrollerimpl.hpp"
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -84,6 +83,18 @@ namespace u5303a {
         static boost::filesystem::path path( QSettings * settings ) {
             boost::filesystem::path dir( settings->fileName().toStdWString() );
             return dir.remove_filename() / "u5303a";
+        }
+    };
+
+    template< typename T > struct xmlWriter {
+        void operator()( const adcontrols::ControlMethod::MethodItem& mi, const boost::filesystem::path& dir ) const {
+            T x;
+            if ( mi.get<>( mi, x ) ) {
+                boost::filesystem::path fname( dir / mi.modelname() );
+                fname.replace_extension( ".cmth.xml" );
+                std::wofstream outf( fname.string() );
+                T::xml_archive( outf, x );
+            }
         }
     };
 
@@ -401,6 +412,7 @@ document::appendOnFile( const boost::filesystem::path& path
 void
 document::initialSetup()
 {
+
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
     if ( !boost::filesystem::exists( dir ) ) {
@@ -417,27 +429,45 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
 
-    do {
-        boost::filesystem::path mfile( dir / "u5303a.cmth.xml" );
-        acqrscontrols::u5303a::method m;
-        if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
-            *impl_->method_ = m;
+    if ( auto ptr = std::make_shared< adcontrols::ControlMethod::Method >() ) {
+        QString method = recentFile( Constants::GRP_METHOD_FILES, false );
+        if ( ! method.isEmpty() ) {
+            if ( load( method, *ptr ) )
+                setControlMethod( ptr, method );
+        } else {
+            boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+            if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) )
+                setControlMethod( ptr, QString() );
+        } 
+    }
 
-        if ( impl_->cm_ ) {
-            impl_->cm_->append<>( m );
+    if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
+        boost::filesystem::path fname( dir / "samplerun.xml" );
+        if ( boost::filesystem::exists( fname ) ) {
+            std::wifstream inf( fname.string() );
+            try { 
+                adcontrols::SampleRun::xml_restore( inf, *run );
+                MainWindow::instance()->setSampleRun( *run );
+                document::setSampleRun( run );
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << ex.what();
+            }
         }
+    }
 
-    } while ( 0 );
-
-    impl_->loadControllerState();
-
+#if 0
+    if ( auto pm = std::make_shared< adcontrols::ProcessMethod >() ) {
+        boost::filesystem::path fname( dir / Constants::LAST_PROC_METHOD );
+        if ( load( QString::fromStdWString( fname.wstring() ), *pm ) )
+            impl_->pm_ = pm;
+    }
+#endif
+    
 }
 
 void
 document::finalClose()
 {
-    ADTRACE() << "=====> document::finalClose()";
-
     task::instance()->finalize();
 
     if ( auto session = impl_->iControllerImpl_->getInstrumentSession() )
@@ -453,18 +483,37 @@ document::finalClose()
     }
 
     auto cm = MainWindow::instance()->getControlMethod();
-    auto it = cm->find( cm->begin(), cm->end(), acqrscontrols::u5303a::method::clsid() );
-    if ( it != cm->end() ) {
-        acqrscontrols::u5303a::method x;
-        if ( it->get<>( *it, x ) ) {
-            boost::filesystem::path fname( dir / "u5303a.cmth.xml" );
-            save( QString::fromStdWString( fname.wstring() ), x );
+    if ( cm ) {
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        save( QString::fromStdWString( fname.wstring() ), *cm );        
+    }
+
+    if ( auto run = sampleRun() ) {
+        boost::filesystem::path fname( dir / "samplerun.xml" );
+        std::wofstream outf( fname.string() );
+        adcontrols::SampleRun::xml_archive( outf, *run );
+    }
+
+#if 0
+    if ( auto pm = MainWindow::instance()->getProcessMethod() ) {
+        boost::filesystem::path fname( dir / Constants::LAST_PROC_METHOD );
+        save( QString::fromStdWString( fname.wstring() ), *pm );        
+    }
+#endif
+
+    // for debugging convension
+    for ( auto& mi : *cm ) {
+        if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
+            xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
+        } else if ( mi.clsid() == adcontrols::threshold_method::clsid() ) {
+            xmlWriter< adcontrols::threshold_method >()( mi, dir );            
+        } else if ( mi.clsid() == adcontrols::threshold_action::clsid() ) {
+            xmlWriter< adcontrols::threshold_action >()( mi, dir );
         }
-        impl_->cm_ = cm;
     }
 
     if ( auto settings = impl_->settings_ ) {
-        settings->beginGroup( "u5303a" );
+        settings->beginGroup( Constants::THIS_GROUP );
         
         settings->beginWriteArray( "ControlModule" );
 
@@ -477,8 +526,9 @@ document::finalClose()
 
         settings->endArray();
         settings->endGroup();
+
+        settings->sync();
     }
-    ADTRACE() << "=====> document finalClose completed.";
 }
 
 void
@@ -972,64 +1022,19 @@ document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_resu
     *( impl_->resultWriter_ ) << ch1;
 }
 
+#if 0
 void
 document::setControllerState( const QString& module, bool enable )
 {
     impl_->setControllerState( module, enable );
 }
+#endif
 
 bool
 document::isControllerEnabled( const QString& module ) const
 {
-    auto it = impl_->moduleStates_.find( module );
-
-    if ( it != impl_->moduleStates_.end() )
-        return it->second;
-
+    if ( impl_->iControllerImpl_->module_name() == module )
+        return true;
     return false;
 }
 
-void
-document::impl::setControllerState( const QString& module, bool enable )
-{
-    moduleStates_[ module ] = enable;
-
-    // update settings
-    settings_->beginGroup( "u5303a" );
-        
-    settings_->beginWriteArray( "Controllers" );
-
-    int i = 0;
-    for ( auto& state : moduleStates_ ) {
-        settings_->setArrayIndex( i++ );
-        settings_->setValue( "module_name", state.first );
-        settings_->setValue( "enable", state.second );
-    }
-
-    settings_->endArray();
-    settings_->endGroup();
-}
-
-void
-document::impl::loadControllerState()
-{
-    settings_->beginGroup( "u5303a" );
-        
-    int size = settings_->beginReadArray( "Controllers" );
-    
-    for ( int i = 0; i < size; ++i ) {
-        settings_->setArrayIndex( i );
-        QString module_name = settings_->value("module_name").toString();
-        bool enable = settings_->value( "enable" ).toBool();
-        moduleStates_[ module_name ] = enable;
-    }
-    
-    settings_->endArray();
-    settings_->endGroup();
-
-    auto it = this->moduleStates_.find( "Acquire" );
-    if ( it == moduleStates_.end() )
-        moduleStates_[ "Acquire" ] = true;
-
-    setControllerState( "u5303a", true );
-}

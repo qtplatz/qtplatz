@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -90,7 +90,7 @@ namespace u5303a {
 
         void addInstController( adextension::iController * p );
 
-        void setControllerState( const QString& module, bool );
+        //void setControllerState( const QString& module, bool );
         bool isControllerEnabled( const QString& module ) const;
 
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
