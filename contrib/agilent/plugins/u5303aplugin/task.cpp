@@ -47,6 +47,7 @@
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adicontroller/sampleprocessor.hpp>
+#include <adicontroller/task.hpp>
 #include <adlog/logger.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -188,7 +189,6 @@ task::task() : impl_( new impl() )
 
 task::~task()
 {
-    finalize();  // make sure
     delete impl_;
 }
 
@@ -255,18 +255,8 @@ task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos 
 task *
 task::instance()
 {
-    task * tmp = impl::instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( impl::mutex_ );
-        tmp = impl::instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new task();
-            std::atomic_thread_fence( std::memory_order_release );
-            impl::instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static task __instance;
+    return &__instance;
 }
 
 void
@@ -426,18 +416,43 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
     }
 }
 
+// void
+// task::prepare_next_sample( adicontroller::SignalObserver::Observer * masterObserver
+//                            , std::shared_ptr< adcontrols::SampleRun > srun, const adcontrols::ControlMethod::Method& cm )
+// {
+//     auto method = std::make_shared< adcontrols::ControlMethod::Method >( cm );
+//     if ( auto proc = std::make_shared< adicontroller::SampleProcessor >( srun, method ) ) {
+
+//         proc->prepare_storage( masterObserver );
+//         emit document::instance()->sampleRunChanged();
+
+//     }
+
+// }
+
 void
-task::prepare_next_sample( adicontroller::SignalObserver::Observer * masterObserver
-                           , std::shared_ptr< adcontrols::SampleRun > srun, const adcontrols::ControlMethod::Method& cm )
+task::sample_started()
 {
-    auto method = std::make_shared< adcontrols::ControlMethod::Method >( cm );
-    if ( auto proc = std::make_shared< adicontroller::SampleProcessor >( srun, method ) ) {
+    ADDEBUG() << "=====> sample_started()";
+    //workaround::method::instance().reset();
+    //exec_method::instance().reset();
+}
 
-        proc->prepare_storage( masterObserver );
-        emit document::instance()->sampleRunChanged();
-
+void
+task::sample_stopped()
+{
+    ADDEBUG() << "=====> sample_stopped()";
+    if ( auto sampleProcessor = adicontroller::task::instance()->deque() ) { // ::task::instance()->sampleSequence()->deque() ) {
+        // todo: post process
+        ADDEBUG() << "=====> sample_stopped: " << sampleProcessor->sampleRun()->filePrefix();
     }
+}
 
+void
+task::sample_injected()
+{
+    // invoked by exec_fsm_injected
+    impl_->inject_triggered();
 }
 
 void

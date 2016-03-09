@@ -68,9 +68,11 @@ namespace u5303a {
 
         bool isRecording() const;
         void actionSyncTrig();
-        void actionRun( bool );
+        void actionRun();
+        void actionStop();
         void actionRec( bool );
         void actionConnect();
+        void actionInject();
 
         void prepare_for_run();
         void start_run();
@@ -106,6 +108,7 @@ namespace u5303a {
         u5303a::iControllerImpl * iController();
 
         const adcontrols::SampleRun * sampleRun() const;
+        adcontrols::SampleRun * sampleRun();
         void setSampleRun( std::shared_ptr< adcontrols::SampleRun > );
 
         void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );
@@ -126,6 +129,9 @@ namespace u5303a {
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
         static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
         static bool save( const QString& filename, const acqrscontrols::u5303a::method& );
+
+    private:
+        void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
 
     private slots:
         void handleMessage( adextension::iController *, uint32_t code, uint32_t value );

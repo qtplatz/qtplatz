@@ -17,6 +17,7 @@
     <file>images/disk--plus.png</file>
     <file>images/document-pdf.png</file>
     <file>images/folder-horizontal-open.png</file>
+    <file>images/plus-circle.png</file>
     <file>images/image.png</file>
   </qresource>
 </RCC>

@@ -159,6 +159,13 @@ MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
 
+    connect( document::instance(), &document::sampleRunChanged, this, [this] {
+            if ( auto edit = findChild< QLineEdit *>( "dataSaveIn" ) )
+                edit->setText( QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() ) );
+            if ( auto edit = findChild< QLineEdit *>( "runName" ) )
+                edit->setText( QString::fromStdWString( document::instance()->sampleRun()->filePrefix() ) );
+        });
+
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->OnInitialUpdate();
@@ -372,6 +379,13 @@ MainWindow::createTopStyledToolbar()
         if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //---
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_INJECT)->action()));
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );            
+            
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
 
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_REC)->action()));
@@ -475,6 +489,7 @@ MainWindow::createActions()
     
     menu->menu()->setTitle( "U5303A" );
 
+
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
         action->setEnabled( false );
@@ -488,14 +503,21 @@ MainWindow::createActions()
     }
 
     if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
-        connect( action, &QAction::triggered, [] () { document::instance()->start_run(); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->actionRun(); } );
         action->setEnabled( false );        
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, context );
         menu->addAction( cmd );        
     }
 
+    if ( auto action = createAction( Constants::ICON_INJECT, tr( "Inject" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionInject(); } );
+        action->setEnabled( false );        
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_INJECT, context );
+        menu->addAction( cmd );        
+    }
+    
     if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
-        connect( action, &QAction::triggered, [] () { document::instance()->stop(); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->actionStop(); } );
         action->setEnabled( false );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, context );
         menu->addAction( cmd );        
@@ -551,7 +573,6 @@ MainWindow::createActions()
 
     handleInstState( 0 );
     Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
-
 }
 
 QAction *
@@ -582,6 +603,80 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 void
 MainWindow::handleInstState( int status )
 {
+    if ( status <= adicontroller::Instrument::eNotConnected ) {
+
+        if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
+            action->setEnabled( true  );
+
+        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( false );
+        }
+
+    } else if ( status == adicontroller::Instrument::eStandBy ) {
+
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
+            action->setEnabled( false );
+        
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+
+    } else if ( status == adicontroller::Instrument::ePreparingForRun ||
+                status == adicontroller::Instrument::eReadyForRun ) {
+
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+
+    } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
+
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, true )  // <== true
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+
+    } else if ( status == adicontroller::Instrument::eRunning ) {
+
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+        
+    } else if ( status == adicontroller::Instrument::eStop ) {
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
+                    , std::make_pair( Constants::ACTION_STOP, false )
+                    , std::make_pair( Constants::ACTION_REC, false )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+    }
+#if 0
     if ( status <= adicontroller::Instrument::eNotConnected ) {
 
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
@@ -630,7 +725,7 @@ MainWindow::handleInstState( int status )
     }
 
     ADDEBUG() << "handleInstState(" << status << ")";
-
+#endif
 }
 
 void

@@ -51,7 +51,7 @@ namespace u5303a {
         void onDataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );
         void instInitialize( adicontroller::Instrument::Session * session );
         void post( std::vector< std::future<bool> >& futures );
-        void prepare_next_sample( adicontroller::SignalObserver::Observer *, std::shared_ptr< adcontrols::SampleRun >, const adcontrols::ControlMethod::Method& );
+        //void prepare_next_sample( adicontroller::SignalObserver::Observer *, std::shared_ptr< adcontrols::SampleRun >, const adcontrols::ControlMethod::Method& );
 
         void clear_histogram();
         void setCellSelectionEnabled( bool );
@@ -63,6 +63,10 @@ namespace u5303a {
         void setHistogramClearCycle( uint32_t );
         void setRecording( bool );
         bool isRecording() const;
+
+        void sample_started();  // autosampler start
+        void sample_injected(); // data acquisition start, being time zero
+        void sample_stopped();  // data close, if ( injected ) { post process start } else { delete data }
 
     private:
         class impl;
