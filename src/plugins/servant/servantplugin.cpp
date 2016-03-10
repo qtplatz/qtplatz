@@ -133,7 +133,6 @@ void
 ServantPlugin::extensionsInitialized()
 {
     adcontrols::MassSpectrometer::register_default_spectrometers();
-    ADDEBUG() << "ServantPlugin::extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

@@ -254,7 +254,5 @@ ControlMethodWidget::impl::validate( std::shared_ptr< adcontrols::ControlMethod:
                 cm->insert( item );
         }
     }
-    ADDEBUG() << "========================";
-
     return true;
 }
