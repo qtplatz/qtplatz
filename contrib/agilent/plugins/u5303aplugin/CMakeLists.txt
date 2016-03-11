@@ -67,7 +67,6 @@ add_library(
   task.cpp
   task.hpp
   u5303a_global.hpp
-  u5303a_constants.hpp
   u5303amode.hpp
   u5303amode.cpp
   u5303aplugin.cpp
