@@ -135,6 +135,7 @@ namespace acqrscontrols {
             template< typename value_type > value_type* begin();
             template< typename value_type > value_type* end();
 
+            template< typename value_type > const value_type* data() const;
 			template< typename value_type > value_type* data();
 
             size_t serialize_xmeta( std::string& ) const;
@@ -177,7 +178,9 @@ namespace acqrscontrols {
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
 		template<> ACQRSCONTROLSSHARED_EXPORT int16_t * waveform::data();
+		template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::data() const;
         template<> ACQRSCONTROLSSHARED_EXPORT int32_t * waveform::data();
+        template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::data() const;
     }
 }
 

@@ -749,6 +749,16 @@ waveform::end() const
     throw std::bad_cast();
 }
 
+template<> const int16_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 1 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();
+}
+
 template<> int16_t *
 waveform::data()
 {
@@ -757,6 +767,16 @@ waveform::data()
         return mblk->data() + firstValidPoint_;
     }
     throw std::bad_cast();    
+}
+
+template<> const int32_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 0 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();        
 }
 
 template<> int32_t *
@@ -768,5 +788,4 @@ waveform::data()
     }
     throw std::bad_cast();        
 }
-
 
