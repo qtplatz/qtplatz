@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,7 +33,10 @@
 #include <tuple>
 #include <vector>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis: unsigned int; }
+namespace adcontrols {
+    class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis: unsigned int;
+    class DataReader; 
+}
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  }
 
@@ -78,8 +81,15 @@ namespace dataproc {
                                         , const std::vector< std::tuple< int, double, double > >&
                                         , std::shared_ptr<adwidgets::Progress> );
 
+        // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >
+                                      , std::shared_ptr<adwidgets::Progress> );
+
+        // for v3 data format
+        void handleCreateSpectrogram( Dataprocessor *
+                                      , std::shared_ptr< const adcontrols::ProcessMethod >
+                                      , std::shared_ptr< const adcontrols::DataReader >
                                       , std::shared_ptr<adwidgets::Progress> );
         
         void handleClusterSpectrogram( Dataprocessor *

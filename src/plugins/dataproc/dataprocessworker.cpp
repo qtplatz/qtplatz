@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,6 +30,7 @@
 #include <adlog/logger.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/constants.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
@@ -139,16 +140,31 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor
 void
 DataprocessWorker::createSpectrogram( Dataprocessor* processor )
 {
-    auto p( adwidgets::ProgressWnd::instance()->addbar() );//qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
+    auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
 		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
-	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
-	MainWindow::instance()->getProcessMethod( *pm );
-
-    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
+    adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
+    MainWindow::instance()->getProcessMethod( *pm );
+    
+    if ( auto rawfile = processor->getLCMSDataset() ) {
+        if ( rawfile->dataformat_version() >= 3 ) {
+            std::shared_ptr< const adcontrols::DataReader > rp;
+            for ( auto& it: rawfile->dataReaders() ) {
+                ADTRACE() << it->display_name() << ", " << it->objtext(); // need pop up dialog
+                if ( it->objtext().find( "waveform" ) != std::string::npos )
+                    rp = it;
+            }
+            if ( rp ) {
+                // todo: replace with std::future 
+                threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, rp, p ); } ) );
+            }
+        } else {
+            threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
+        }
+    }
 }
 
 void
@@ -252,22 +268,22 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
     if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
 
         bool hasCentroid = dset->hasProcessedSpectrum( 0, 0 );
-        const adcontrols::CentroidMethod *centroidMethod = pm->find< adcontrols::CentroidMethod >();
-
+        const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
+        
         auto spectra = std::make_shared< adcontrols::MassSpectra >();
         auto objId = dset->findObjId( L"MS.CENTROID" );
         
         adcontrols::Chromatogram tic;
         if ( dset->getTIC( 0, tic ) ) {
-
+            
             spectra->setChromatogram( tic );
-
+            
             for ( int pos = 0; pos < int( tic.size() ); ++pos ) {
                 if ( auto ptr = std::make_shared< adcontrols::MassSpectrum >() ) {
                     if ( pos == 0 )
                         progress->setRange( 0, static_cast<int>(tic.size()) );
                     (*progress)( pos );
-
+                    
                     if ( hasCentroid ) {
                         if ( dset->getSpectrum( 0, pos, *ptr, objId ) ) {
                             ADTRACE() << "Creating spectrogram from centroid: " << pos << "/" << tic.size();
@@ -276,10 +292,11 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                     } else {
                         adcontrols::MassSpectrum profile;
                         if ( dset->getSpectrum( 0, pos, profile, 0 ) ) {
-                            ADTRACE() << "Creating spectrogram from profile: " << pos << "/" << tic.size();
                             adcontrols::MSPeakInfo result;
                             DataprocHandler::doCentroid( result, *ptr, profile, *centroidMethod );
                             (*spectra) << ptr;
+                            ADTRACE() << "Creating spectrogram from profile: " << pos << "/" << tic.size()
+                                      << " found peaks: " << result.size();
                         }
                     }
                 }
@@ -291,6 +308,53 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
     
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
     
+}
+
+void
+DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
+                                            , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                            , std::shared_ptr< const adcontrols::DataReader > reader
+                                            , std::shared_ptr<adwidgets::Progress> progress )
+{
+    const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
+        
+    auto spectra = std::make_shared< adcontrols::MassSpectra >();
+
+#if 0    
+    if ( dset->getTIC( 0, tic ) ) {
+        
+        spectra->setChromatogram( tic );
+        
+        for ( int pos = 0; pos < int( tic.size() ); ++pos ) {
+            if ( auto ptr = std::make_shared< adcontrols::MassSpectrum >() ) {
+                if ( pos == 0 )
+                    progress->setRange( 0, static_cast<int>(tic.size()) );
+                (*progress)( pos );
+                
+                if ( hasCentroid ) {
+                    if ( dset->getSpectrum( 0, pos, *ptr, objId ) ) {
+                        ADTRACE() << "Creating spectrogram from centroid: " << pos << "/" << tic.size();
+                        (*spectra) << ptr;
+                    }
+                } else {
+                    adcontrols::MassSpectrum profile;
+                    if ( dset->getSpectrum( 0, pos, profile, 0 ) ) {
+                        adcontrols::MSPeakInfo result;
+                        DataprocHandler::doCentroid( result, *ptr, profile, *centroidMethod );
+                        (*spectra) << ptr;
+                        ADTRACE() << "Creating spectrogram from profile: " << pos << "/" << tic.size()
+                                  << " found peaks: " << result.size();
+                    }
+                    }
+                }
+            }
+        }
+        portfolio::Folium folium = processor->addSpectrogram( spectra );
+        SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+    }
+    
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
+#endif
 }
 
 void

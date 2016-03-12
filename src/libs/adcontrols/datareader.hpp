@@ -56,7 +56,7 @@ namespace adcontrols {
         double time_since_inject() const;
         int fcn() const;
     };
-
+    
     class ADCONTROLSSHARED_EXPORT DataReader_iterator : public std::iterator< std::forward_iterator_tag, DataReader_iterator > {
         const DataReader * reader_;
         int64_t rowid_;

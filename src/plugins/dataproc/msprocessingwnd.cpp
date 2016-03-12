@@ -235,6 +235,7 @@ namespace dataproc {
         void setCheckedChromatogram( std::shared_ptr< adcontrols::Chromatogram >& ptr, int idx ) {
             checkedChromatograms_[ idx ] = ptr;
         }
+        
         adplot::ChromatogramWidget * ticPlot_;
         adplot::SpectrumWidget * profileSpectrum_;
         adplot::SpectrumWidget * processedSpectrum_;
@@ -824,14 +825,14 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         std::pair<size_t, size_t> range;
 
         if ( auto ms = pProfileSpectrum_.second.lock() ) {
-
+            
             if ( ms->dataReaderUuid() != boost::uuids::uuid( {0} ) ) {
                 // v3 data
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
                     if ( auto rd = dp->getLCMSDataset() ) {
                         if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
                             auto display_name = QString::fromStdString( reader->display_name() );
-
+                            
                             ADDEBUG() << boost::lexical_cast< std::string > ( ms->dataReaderUuid() );
                             // todo: chromatogram creation by m/z|time range
                             if ( axis_ == adcontrols::hor_axis_mass ) {
@@ -840,8 +841,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                 actions.emplace_back( menu.addAction( title.c_str() )
                                                       , [=] () { make_chromatogram( reader, axis_, rect.left(), rect.right() ); } );
                             } else {
-                                auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" ) %
-                                               reader->display_name() % rect.left() % rect.right() ).str();
+                                auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" )
+                                               % reader->display_name() % rect.left() % rect.right() ).str();
                                 actions.emplace_back( menu.addAction( title.c_str() )
                                                       , [=] () { make_chromatogram( reader, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
                             }
@@ -1431,7 +1432,7 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, adcon
     if ( auto pChr = reader->getChromatogram( 0, t, w ) ) {
 
         if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-
+            
             portfolio::Portfolio portfolio = processor->getPortfolio();
             portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
 
