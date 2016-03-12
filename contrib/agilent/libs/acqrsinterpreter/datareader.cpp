@@ -289,7 +289,7 @@ DataReader::begin() const
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
-    return adcontrols::DataReader_iterator( this, indecies_.empty() ? (-1) : indecies_.front().rowid );
+    return adcontrols::DataReader_iterator( this, indecies_.empty() ? (-1) : indecies_.back().rowid );
 }
 
 adcontrols::DataReader::const_iterator

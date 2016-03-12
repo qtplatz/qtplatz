@@ -45,6 +45,7 @@ set( ${PROJECT_NAME}_SOURCES
   controlmethodwidget.cpp
   consolewidget.cpp
   cherrypicker.cpp
+  datareaderchoicedialog.cpp
   delegatehelper.cpp
   doublespinbox.cpp
   dualspinslider.cpp
@@ -102,6 +103,7 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethodwidget.hpp
   centroidform.hpp
   cherrypicker.hpp
+  datareaderchoicedialog.hpp
   delegatehelper.hpp
   doublespinbox.hpp
   dualspinslider.hpp

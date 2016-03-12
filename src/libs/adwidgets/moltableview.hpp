@@ -41,20 +41,6 @@ namespace adwidgets {
         explicit MolTableView( QWidget *parent = 0);
         ~MolTableView();
 
-        // enum fields {
-        //     f_any
-        //     , f_formula
-        //     , f_adducts
-        //     , f_mass
-        //     , f_msref
-        //     , f_abundance
-        //     , f_synonym
-        //     , f_description
-        //     , f_svg
-        //     , f_smiles
-        //     , f_time
-        // };
-
         void onInitialUpdate();
 
         void setColumnField( int column, ColumnState::fields f, bool editable = true, bool checkable = false );

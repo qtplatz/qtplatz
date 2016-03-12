@@ -37,8 +37,6 @@ namespace adcontrols { class MassSpectrometer; }
 
 namespace acqrsinterpreter {
 
-    class DataReader_index;
-
     class DataReader : public adcontrols::DataReader {
 
     public:
@@ -79,7 +77,6 @@ namespace acqrsinterpreter {
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const override;
         
     private:
-        friend class DataReader_index;
         void loadTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
