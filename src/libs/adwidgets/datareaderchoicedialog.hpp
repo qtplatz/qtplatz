@@ -37,7 +37,7 @@ namespace adwidgets {
         Q_OBJECT
     public:
         explicit DataReaderChoiceDialog( QWidget * parent = 0 );
-        DataReaderChoiceDialog( std::vector< std::shared_ptr< const adcontrols::DataReader > >&, QWidget * parent = 0 );
+        DataReaderChoiceDialog( std::vector< std::shared_ptr< const adcontrols::DataReader > >&&, QWidget * parent = 0 );
 
         int currentSelection() const;
 
