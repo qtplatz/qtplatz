@@ -34,6 +34,8 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
@@ -489,8 +491,13 @@ DataReader::getSpectrum( int64_t rowid ) const
                                               , reinterpret_cast< const char *>(xmeta.data()), xmeta.size()
                                               , *spectrometer_
                                               , size_t(0), L"" ) == adcontrols::translate_complete ) {
-                    if ( spectrometer_ )
+                    if ( spectrometer_ ) {
                         spectrometer_->assignMasses( *ptr );
+                        const auto& info = ptr->getMSProperty().samplingInfo();
+                        double lMass = spectrometer_->getScanLaw().getMass( info.fSampDelay(), int( info.mode() ) );
+                        double uMass = spectrometer_->getScanLaw().getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                        ptr->setAcquisitionMassRange( lMass, uMass );
+                    }
                     
                     ptr->setDataReaderUuid( objid_ );
 

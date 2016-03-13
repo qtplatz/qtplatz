@@ -882,7 +882,12 @@ portfolio::Folium
 Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spectra )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
-    portfolio::Folium folium = folder.addFolium( L"Spectrogram" );  // "Spectrograms/Spectrogram"
+
+    const auto& desc = spectra->getDescriptions();
+    std::wstring name = 
+        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Spectrogram " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text(); } );
+
+    portfolio::Folium folium = folder.addFolium( name );  // "Spectrograms/Spectrogram"
 	folium.assign( spectra, spectra->dataClass() );
 
     SessionManager::instance()->updateDataprocessor( this, folium );

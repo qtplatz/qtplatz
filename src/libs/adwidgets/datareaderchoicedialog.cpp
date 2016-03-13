@@ -144,7 +144,7 @@ DataReaderChoiceDialog::fcn() const
 {
     if ( auto table = findChild< QTableView * >() ) {
         auto model = table->model();
-        return model->index( table->currentIndex().row(), 2 ).data().toInt();
+        return model->index( table->currentIndex().row(), c_fcn ).data().toInt();
     }
     return 0;
 }

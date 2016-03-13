@@ -26,9 +26,10 @@
 #include "massspectra.hpp"
 #include "massspectrum.hpp"
 #include "chromatogram.hpp"
+#include "description.hpp"
+#include "descriptions.hpp"
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
-//#include <adportable/serialization_shared_ptr.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 #include <fstream>
@@ -40,6 +41,8 @@ namespace adcontrols {
     MassSpectra::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
+        if ( version >= 2 )
+            ar & *descriptions_;
     }
 
     template<> void
@@ -51,6 +54,8 @@ namespace adcontrols {
         } else {
             ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
         }
+        if ( version >= 2 )
+            ar & *descriptions_;
     }
 
 }
@@ -64,6 +69,7 @@ MassSpectra::~MassSpectra()
 MassSpectra::MassSpectra() : lower_mass_( 0 )
                            , upper_mass_( 0 )
                            , z_max_( 0 )
+                           , descriptions_( std::make_unique< descriptions >() )
 {
 }
 
@@ -83,9 +89,8 @@ MassSpectra::operator << ( const MassSpectrum& t )
 }
 
 MassSpectra&
-MassSpectra::operator << ( value_type v )
+MassSpectra::operator << ( value_type&& v )
 {
-    vec_.push_back( v ); // keep shared object pointer
     const std::pair< double, double >& range = v->getAcquisitionMassRange();
     double z_max = segments_helper::max_intensity( *v );
     if ( vec_.empty() ) {
@@ -97,6 +102,7 @@ MassSpectra::operator << ( value_type v )
         upper_mass_ = std::max( upper_mass_, range.second );
         z_max_ = std::max( z_max_, z_max );
     }
+    vec_.emplace_back( v ); // shared object pointer
 	return *this;
 }
 
@@ -198,6 +204,18 @@ MassSpectra::find( double t, bool closest ) const
         return vec_[ idx ];
     }
     return 0;
+}
+
+void
+MassSpectra::addDescription( const description& t )
+{
+	descriptions_->append( t );
+}
+
+const descriptions&
+MassSpectra::getDescriptions() const
+{
+	return *descriptions_;
 }
 
 bool

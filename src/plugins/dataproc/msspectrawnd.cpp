@@ -256,16 +256,14 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    try {
-        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) 
+        return;
+
+    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
             std::wstring display_name = processor->file().filename() + L"::" + folium.name();
             impl_->profile_ = std::make_pair( folium.id(), datafolder( 0, display_name, folium ) );
             draw( 1 );
-        } else {
-            return;
-        }
-    } catch ( ... ) {
-        ADERROR() << boost::current_exception_diagnostic_information();
+    } else {
         return;
     }
 
