@@ -90,6 +90,7 @@ namespace dataproc {
         void handleCreateSpectrogram( Dataprocessor *
                                       , std::shared_ptr< const adcontrols::ProcessMethod >
                                       , std::shared_ptr< const adcontrols::DataReader >
+                                      , int fcn
                                       , std::shared_ptr<adwidgets::Progress> );
         
         void handleClusterSpectrogram( Dataprocessor *

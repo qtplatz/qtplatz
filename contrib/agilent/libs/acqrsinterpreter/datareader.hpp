@@ -58,7 +58,7 @@ namespace acqrsinterpreter {
         size_t fcnCount() const override;
         std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const override;
 
-        const_iterator begin() const override;
+        const_iterator begin( int fcn ) const override;
         const_iterator end() const override;
         const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override;
         
@@ -66,6 +66,7 @@ namespace acqrsinterpreter {
 
         // =============================> Iterator reference methods
         int64_t next( int64_t rowid ) const override;
+        int64_t next( int64_t rowid, int fcn ) const override;
         int64_t pos( int64_t rowid ) const override;
         int64_t elapsed_time( int64_t rowid ) const override;
         double time_since_inject( int64_t rowid ) const override;

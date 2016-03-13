@@ -281,15 +281,17 @@ DataReader::fcnCount() const
 }
 
 adcontrols::DataReader::const_iterator
-DataReader::begin() const
+DataReader::begin( int fcn ) const
 {
-    return adcontrols::DataReader_iterator( this, indecies_.empty() ? (-1) : indecies_.front().rowid );
+    if ( indecies_.empty() )
+        return end();
+    return adcontrols::DataReader_iterator( this, next( 0, fcn ), fcn );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
-    return adcontrols::DataReader_iterator( this, indecies_.empty() ? (-1) : indecies_.back().rowid );
+    return adcontrols::DataReader_iterator( this, (-1) );
 }
 
 adcontrols::DataReader::const_iterator
@@ -303,7 +305,7 @@ DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
         int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
 
         if ( indecies_.front().elapsed_time > elapsed_time )
-            return begin();
+            return begin( (-1) );
 
         if ( indecies_.back().elapsed_time < elapsed_time )
             return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
@@ -375,7 +377,7 @@ DataReader::loadTICs()
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                indecies_.push_back( index( row, pos, elapsed_time, fcn ) );
+                indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
 
                 if ( tics.find( fcn ) == tics.end() ) {
                     tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
@@ -411,6 +413,21 @@ DataReader::next( int64_t rowid ) const
     if ( it != indecies_.end() && ++it != indecies_.end() )
         return it->rowid;
     return -1;
+}
+
+int64_t
+DataReader::next( int64_t rowid, int fcn ) const
+{
+    if ( fcn == ( -1 ) )
+        return next( rowid );
+
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() ) {
+        while ( ++it != indecies_.end() )
+            if ( it->fcn == fcn )
+                return it->rowid;
+    }
+    return (-1);
 }
 
 int64_t

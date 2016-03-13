@@ -26,12 +26,53 @@
 #include "tableview.hpp"
 #include <adcontrols/datareader.hpp>
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QDialogButtonBox>
 #include <QHeaderView>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
+#include <QLabel>
 #include <boost/uuid/uuid.hpp>
 #include <stdexcept>
 #include <sstream>
+
+namespace adwidgets {
+    
+    enum {
+        c_display_name
+        , c_fcn
+        , c_objtext
+    };
+
+
+    class DataReaderChoiceDialog::delegate : public QStyledItemDelegate {
+    public:
+        delegate( QWidget * parent ) : QStyledItemDelegate( parent ) {
+        }
+        
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            if ( index.column() == c_fcn ) {
+                auto combo = new QComboBox( parent );
+                for ( int fcn = 0; fcn < index.data( Qt::UserRole + 1 ).toInt(); ++fcn )
+                    combo->addItem( QString::number( fcn ) );
+                return combo;
+            }
+            return createEditor( parent, option, index );
+        }
+
+        void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+            if ( index.column() == c_fcn ) {
+                if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
+                    int idx = combo->currentIndex();
+                    if ( idx < index.data( Qt::UserRole + 1 ).toInt() )
+                        model->setData( index, idx );
+                }
+            }
+        }
+        
+    };
+
+}
 
 using namespace adwidgets;
 
@@ -53,33 +94,57 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< co
         auto table = new TableView( this );
         auto model = new QStandardItemModel();
 
-        model->setColumnCount( 2 );
+        model->setColumnCount( 3 );
         model->setRowCount( int( readers.size() ) );
+        model->setHeaderData( c_display_name, Qt::Horizontal, tr( "name" ) );
+        model->setHeaderData( c_fcn, Qt::Horizontal, tr( "Protocol#" ) );
+        model->setHeaderData( c_objtext, Qt::Horizontal, tr( "id" ) );
         for ( int row = 0; row < int( readers.size() ); ++row ) {
             const auto& reader = readers[ row ];
-            model->setData( model->index( row, 0 ), QString::fromStdString( reader->display_name() ) );
-            model->setData( model->index( row, 1 ), QString::fromStdString( reader->objtext() ) );
+            model->setData( model->index( row, c_display_name ), QString::fromStdString( reader->display_name() ) );
+            model->setData( model->index( row, c_objtext ), QString::fromStdString( reader->objtext() ) );
+            model->setData( model->index( row, c_fcn ), 0 ); // fcn
+            model->setData( model->index( row, c_fcn ), reader->fcnCount(), Qt::UserRole + 1 );
+            model->item( row, c_display_name )->setEditable( false );
+            model->item( row, c_objtext )->setEditable( false );
         }
         table->setModel( model );
+        table->setItemDelegate( new delegate( this ) );
         table->setSelectionBehavior( QAbstractItemView::SelectRows );
         table->resizeColumnsToContents();
         table->resizeRowsToContents();
         table->horizontalHeader()->setStretchLastSection( true );
+        table->horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
+
         layout->addWidget( table );
+
+        auto label = new QLabel;
+        label->setText( "Select trace and protocol# from the above table." );
+        layout->addWidget( label );
+
         auto buttons = new QDialogButtonBox( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
         connect( buttons, &QDialogButtonBox::accepted, this, [&] () { QDialog::accept(); } );
         connect( buttons, &QDialogButtonBox::rejected, this, [&] () { QDialog::reject(); } );
         layout->addWidget( buttons );
-        adjustSize();
+
     }
-    
+    adjustSize();
 }
 
 int
 DataReaderChoiceDialog::currentSelection() const
 {
+    if ( auto table = findChild< QTableView * >() )
+        return table->currentIndex().row();
+    return 0;
+}
+
+int
+DataReaderChoiceDialog::fcn() const
+{
     if ( auto table = findChild< QTableView * >() ) {
-         return table->currentIndex().row();
+        auto model = table->model();
+        return model->index( table->currentIndex().row(), 2 ).data().toInt();
     }
     return 0;
 }

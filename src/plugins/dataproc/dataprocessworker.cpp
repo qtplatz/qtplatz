@@ -28,6 +28,7 @@
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
@@ -156,8 +157,9 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
         if ( rawfile->dataformat_version() >= 3 ) {
             adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
             if ( dlg.exec() == QDialog::Accepted ) {
+                int fcn = dlg.fcn();
                 if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, reader, p ); } ) );
+                    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, reader, fcn, p ); } ) );
             }
         } else {
             threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
@@ -312,6 +314,7 @@ void
 DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm
                                             , std::shared_ptr< const adcontrols::DataReader > reader
+                                            , int fcn
                                             , std::shared_ptr<adwidgets::Progress> progress )
 {
     const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
@@ -319,12 +322,12 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
     auto spectra = std::make_shared< adcontrols::MassSpectra >();
 
     // todo: handle fcn
-    if ( auto tic = reader->TIC( 0 ) ) {
+    if ( auto tic = reader->TIC( fcn ) ) {
         progress->setRange( 0, static_cast<int>( tic->size() ) );
 
         int pos( 0 );
 
-        for ( auto it = reader->begin(); it != reader->end(); ++it ) {
+        for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
 
             auto ms = reader->getSpectrum( it->rowid() );
             (*progress)( pos++ );
@@ -333,6 +336,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                 adcontrols::MSPeakInfo result;
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
                 DataprocHandler::doCentroid( result, *ptr, *ms, *centroidMethod );
+                ADDEBUG() << pos << "/" << tic->size() << " : " << it->rowid() << " fcn:" << it->fcn() << ", " << double(it->elapsed_time() * 1.0e-9 / 60.0) << "min , " << ptr->size();
                 ( *spectra ) << ptr;
 
             } else {

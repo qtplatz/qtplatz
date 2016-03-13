@@ -40,7 +40,9 @@ namespace adwidgets {
         DataReaderChoiceDialog( std::vector< std::shared_ptr< const adcontrols::DataReader > >&&, QWidget * parent = 0 );
 
         int currentSelection() const;
-
+        int fcn() const;
+    private:
+        class delegate;
     };
 
 }
