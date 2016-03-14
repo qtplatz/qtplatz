@@ -269,7 +269,7 @@ MSPeakTable::OnInitialUpdate()
 }
 
 void
-MSPeakTable::onUpdate( boost::any& a )
+MSPeakTable::onUpdate( boost::any&& a )
 {
     if ( adportable::a_type< adcontrols::MassSpectrumPtr >::is_a( a ) ) {
         // lockMassHandled on MainWindow invoke this method

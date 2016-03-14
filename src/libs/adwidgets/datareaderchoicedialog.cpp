@@ -104,7 +104,7 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< co
             model->setData( model->index( row, c_display_name ), QString::fromStdString( reader->display_name() ) );
             model->setData( model->index( row, c_objtext ), QString::fromStdString( reader->objtext() ) );
             model->setData( model->index( row, c_fcn ), 0 ); // fcn
-            model->setData( model->index( row, c_fcn ), reader->fcnCount(), Qt::UserRole + 1 );
+            model->setData( model->index( row, c_fcn ), int( reader->fcnCount() ), Qt::UserRole + 1 );
             model->item( row, c_display_name )->setEditable( false );
             model->item( row, c_objtext )->setEditable( false );
         }

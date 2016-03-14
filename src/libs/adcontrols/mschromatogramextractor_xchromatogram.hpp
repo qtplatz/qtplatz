@@ -26,6 +26,11 @@
 
 #include "moltable.hpp"
 #include "mspeakinfoitem.hpp"
+#include "chromatogram.hpp"
+#include "description.hpp"
+#include <adportable/utf.hpp>
+#include <boost/format.hpp>
+
 
 namespace adcontrols {
 
@@ -46,7 +51,7 @@ namespace adcontrols {
                                                      , pchr_( std::make_shared< adcontrols::Chromatogram >() )  {
                 pchr_->addDescription(
                     adcontrols::description( L"Create"
-                                                 , ( boost::wformat( L"%s %.4f (W:%.4gmDa) #%d" )
+                                             , ( boost::wformat( L"%s %.4f (W:%.4gmDa) #%d" )
                                                  % adportable::utf::to_wstring( target.formula() )
                                                  % target.mass()
                                                  % ( width * 1000 )
@@ -69,7 +74,7 @@ namespace adcontrols {
             }
 
             xChromatogram( const wchar_t * debug ) : fcn_( 0 ), target_index_( 0 ), pos_( 0 ), count_( 0 )
-                                                      , pchr_( std::make_shared< adcontrols::Chromatogram >() ) {
+                                                   , pchr_( std::make_shared< adcontrols::Chromatogram >() ) {
                 pchr_->addDescription( adcontrols::description( L"Create", debug ) );
             }
 

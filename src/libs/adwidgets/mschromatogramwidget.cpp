@@ -93,7 +93,7 @@ MSChromatogramWidget::OnInitialUpdate()
 }
 
 void
-MSChromatogramWidget::onUpdate( boost::any& )
+MSChromatogramWidget::onUpdate( boost::any&& )
 {
 }
 

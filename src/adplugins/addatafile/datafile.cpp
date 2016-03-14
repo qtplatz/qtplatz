@@ -486,8 +486,7 @@ namespace addatafile {
                 import::attributes( dbf, folium.attributes() );
                 try {
                     adutils::cpio::save( dbf, any );
-                }
-                catch ( boost::exception& ex ) {
+                } catch ( boost::exception& ex ) {
                     ADTRACE() << boost::diagnostic_information( ex );
                 }
 

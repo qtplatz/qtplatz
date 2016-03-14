@@ -164,7 +164,7 @@ MSCalibrateSummaryTable::OnInitialUpdate()
 }
 
 void
-MSCalibrateSummaryTable::onUpdate( boost::any& )
+MSCalibrateSummaryTable::onUpdate( boost::any&& )
 {
 }
 

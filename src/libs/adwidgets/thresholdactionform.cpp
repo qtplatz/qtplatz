@@ -75,7 +75,7 @@ ThresholdActionForm::OnFinalClose()
 }
 
 void
-ThresholdActionForm::onUpdate( boost::any& )
+ThresholdActionForm::onUpdate( boost::any&& )
 {
 }
 

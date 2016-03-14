@@ -249,7 +249,7 @@ MSQuanTable::handleSelected( const QRectF& rc, bool isTime )
 }
 
 void
-MSQuanTable::onUpdate( boost::any& )
+MSQuanTable::onUpdate( boost::any&& )
 {
 }
 

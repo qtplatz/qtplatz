@@ -87,7 +87,7 @@ MSPeakWidget::OnInitialUpdate()
 }
 
 void
-MSPeakWidget::onUpdate( boost::any& )
+MSPeakWidget::onUpdate( boost::any&& )
 {
 }
 

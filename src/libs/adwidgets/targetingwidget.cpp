@@ -96,7 +96,7 @@ TargetingWidget::OnInitialUpdate()
 }
 
 void
-TargetingWidget::onUpdate( boost::any& )
+TargetingWidget::onUpdate( boost::any&& )
 {
 }
 

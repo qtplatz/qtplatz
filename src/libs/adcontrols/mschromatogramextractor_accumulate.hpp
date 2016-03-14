@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <numeric>
+
 namespace adcontrols {
 
     namespace mschromatogramextractor {
