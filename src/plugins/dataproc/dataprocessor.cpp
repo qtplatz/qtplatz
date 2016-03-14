@@ -1116,9 +1116,11 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     using namespace portfolio;
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+#if 0
 	if ( ! adcontrols::MassSpectrometer::find( pProfile->getMSProperty().dataInterpreterClsid() ) ) {
         fixupDataInterpreterClsid( folium );
 	}
+#endif
 
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );

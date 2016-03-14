@@ -82,55 +82,17 @@ namespace adcontrols {
             }
 
         };
-
-#if 0
-        class GenericTofSpectrometer : public adcontrols::MassSpectrometer
-                                     , public adcontrols::ScanLaw
-                                     , public adcontrols::massspectrometer_factory {
-
-            adportable::TimeSquaredScanLaw law_;
-            DataInterpreter interpreter_;
-        public:
-            GenericTofSpectrometer() {}
-            GenericTofSpectrometer( const GenericTofSpectrometer& t ) : law_( t.law_ ) {}
-
-            // adcontrols::ScanLaw
-            double getMass( double t, int mode ) const override { return law_.getMass( t, mode );  }
-            double getTime( double m, int mode ) const override { return law_.getTime( m, mode );  }
-            double getMass( double t, double fLength ) const override { return law_.getMass( t, fLength ); }
-            double getTime( double m, double fLength ) const override { return law_.getTime( m, fLength ); }
-            double fLength( int type ) const override { return law_.fLength( type ); }            
-
-            // MassSpectrometer
-            const adcontrols::ScanLaw& getScanLaw() const override { return *this; }
-            std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override {
-                return std::make_shared< GenericTofSpectrometer >(*this);
-            }
-
-            //const adcontrols::DataInterpreter& getDataInterpreter() const override { return interpreter_; }
-
-            // massspectrometer_factory
-            const wchar_t * name() const override { return L"Generic-TOF"; }
-            adcontrols::MassSpectrometer * get( const wchar_t * modelname ) override { return this; } // depricated
-            std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * file ) const override {
-                return std::make_shared< GenericTofSpectrometer >();
-            }
-        };
-#endif
-
     }
 }
 
 
 
 ///////////////////////////////////////////////
-MassSpectrometer::MassSpectrometer() : proxy_instance_( 0 )
-                                     , datafile_(0)
+MassSpectrometer::MassSpectrometer() : datafile_(0)
 {
 }
 
-MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : proxy_instance_( 0 )
-                                                                      , datafile_( datafile )
+MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : datafile_( datafile )
 {
 }
 
@@ -141,37 +103,12 @@ MassSpectrometer::~MassSpectrometer()
 const wchar_t *
 MassSpectrometer::name() const
 {
-    if ( proxy_instance_ )
-        return proxy_instance_->name();
     return 0;
 }
-
-const ScanLaw&
-MassSpectrometer::getScanLaw() const
-{
-    if ( proxy_instance_ )
-        return proxy_instance_->getScanLaw();
-
-    throw std::bad_cast();
-}
-
-#if 0
-const DataInterpreter&
-MassSpectrometer::getDataInterpreter() const
-{
-    if ( proxy_instance_ )
-        return proxy_instance_->getDataInterpreter();
-
-    static internal::DataInterpreter t;
-    return t;
-}
-#endif
 
 std::shared_ptr<ScanLaw>
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 {
-    if ( proxy_instance_ ) 
-        return proxy_instance_->scanLaw( prop );
     return 0;
 }
 
@@ -214,39 +151,11 @@ MassSpectrometer::setDebugTrace( const char * logfile, int level )
 {
 }
 
-const MassSpectrometer*
-MassSpectrometer::find( const wchar_t * dataInterpreterClsid )
+// create
+std::shared_ptr< adcontrols::MassSpectrometer >
+MassSpectrometer::create( const char * dataInterpreterClsid )
 {
-	//massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
-    auto factory = MassSpectrometerBroker::find_factory( adportable::utf::to_utf8( dataInterpreterClsid ) );
-	if ( factory )
-		return factory->get( dataInterpreterClsid );
-	return 0;
-}
-
-const MassSpectrometer*
-MassSpectrometer::find( const char * dataInterpreterClsid )
-{
-	return find( adportable::utf::to_wstring( dataInterpreterClsid ).c_str() );
-}
-
-const MassSpectrometer&
-MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
-{
-	//massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
-    auto factory = MassSpectrometerBroker::find_factory( adportable::utf::to_utf8( dataInterpreterClsid ) );
-	if ( factory )
-		return *factory->get( dataInterpreterClsid );
-    std::ostringstream o;
-    o << "Data interpreter: \"" << adportable::utf::to_utf8( dataInterpreterClsid ) << "\" does not installed";
-	BOOST_THROW_EXCEPTION( MassSpectrometerException( o.str() ) );
-}
-
-const MassSpectrometer&
-MassSpectrometer::get( const char * dataInterpreterClsid )
-{
-	std::wstring clsid = adportable::utf::to_wstring( dataInterpreterClsid );
-	return get( clsid.c_str() );
+    return MassSpectrometerBroker::make_massspectrometer( dataInterpreterClsid );
 }
 
 std::vector< std::wstring > 

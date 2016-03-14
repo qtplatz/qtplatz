@@ -494,8 +494,8 @@ DataReader::getSpectrum( int64_t rowid ) const
                     if ( spectrometer_ ) {
                         spectrometer_->assignMasses( *ptr );
                         const auto& info = ptr->getMSProperty().samplingInfo();
-                        double lMass = spectrometer_->getScanLaw().getMass( info.fSampDelay(), int( info.mode() ) );
-                        double uMass = spectrometer_->getScanLaw().getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                        double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                        double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
                         ptr->setAcquisitionMassRange( lMass, uMass );
                     }
                     
@@ -608,7 +608,10 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
         }
     }
     return nullptr;    
-    
-    
-    return nullptr;
+}
+
+std::shared_ptr< const adcontrols::MassSpectrometer >
+DataReader::massSpectrometer() const
+{
+    return spectrometer_;
 }

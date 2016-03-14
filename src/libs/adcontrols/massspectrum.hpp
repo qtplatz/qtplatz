@@ -105,8 +105,8 @@ namespace adcontrols {
         const double * getTimeArray() const;
         const unsigned char * getColorArray() const;
 
-        double compute_mass( double time ) const;
-        size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
+        //double compute_mass( double time ) const;
+        //size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
 
         void setMass( size_t idx, double mass );
@@ -154,7 +154,7 @@ namespace adcontrols {
         double getMass( size_t idx ) const;
         double getIntensity( size_t idx ) const;
         double getTime( size_t idx ) const;
-        double getNormalizedTime( size_t idx ) const;
+        //double getNormalizedTime( size_t idx ) const;
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 
 		int getColor( size_t idx ) const;

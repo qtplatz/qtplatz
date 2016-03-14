@@ -55,8 +55,8 @@ namespace adcontrols {
         virtual ~MassSpectrometer(void);
         
         virtual const wchar_t * name() const;
-        virtual const ScanLaw& getScanLaw() const;
 
+        // data format v2 interface
 		virtual std::shared_ptr<ScanLaw> scanLaw( const adcontrols::MSProperty& ) const;
 
 		virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
@@ -73,20 +73,19 @@ namespace adcontrols {
 
         virtual const char * objtext() const = 0;
         virtual const boost::uuids::uuid& objclsid() const = 0;
-        
-        // helper methods
-        [[deprecated]] static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
-        [[deprecated]] static const MassSpectrometer* find( const char * dataInterpreterClsid );
+        virtual const ScanLaw * scanLaw() const = 0; // v3
 
-        [[deprecated]] static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
-		[[deprecated]] static const MassSpectrometer& get( const char * dataInterpreterClsid );
+        // helper methods
+        static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
+        //[[deprecated]] static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
+        //[[deprecated]] static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
+		//[[deprecated]] static const MassSpectrometer& get( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
 
         static void register_default_spectrometers();
 
     protected:
-
-        const MassSpectrometer * proxy_instance_;
+        //const MassSpectrometer * proxy_instance_;
         adcontrols::datafile * datafile_;
 
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;

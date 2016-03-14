@@ -43,27 +43,30 @@ namespace adcontrols {
     class MSChromatogramMethod;
     class ProcessMethod;
 
-    class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
+    namespace v2 {
 
-        MSChromatogramExtractor( const MSChromatogramExtractor& ) = delete;
-        MSChromatogramExtractor& operator = ( const MSChromatogramExtractor& ) = delete;
+        class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
 
-    public:
-        ~MSChromatogramExtractor();
-        MSChromatogramExtractor( const adcontrols::LCMSDataset * );
+            MSChromatogramExtractor( const MSChromatogramExtractor& ) = delete;
+            MSChromatogramExtractor& operator = ( const MSChromatogramExtractor& ) = delete;
 
-        bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                         , const ProcessMethod&
-                         , std::function<bool( size_t, size_t )> progress );
+        public:
+            ~MSChromatogramExtractor();
+            MSChromatogramExtractor( const adcontrols::LCMSDataset * );
 
-        bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                         , adcontrols::hor_axis
-                         , const std::vector< std::tuple< int, double, double > >& ranges
-                         , std::function<bool( size_t, size_t )> progress );
+            bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
+                             , const ProcessMethod&
+                             , std::function<bool( size_t, size_t )> progress );
+
+            bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
+                             , adcontrols::hor_axis
+                             , const std::vector< std::tuple< int, double, double > >& ranges
+                             , std::function<bool( size_t, size_t )> progress );
         
-    private:
-        class impl;
-        impl * impl_;
-    };
+        private:
+            class impl;
+            impl * impl_;
+        };
+    }
 }
 

@@ -1019,11 +1019,13 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                 if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
                     auto rd = processor->getLCMSDataset();
                     if ( rd->dataformat_version() >= 3 ) {
-                        if ( auto reader = rd->dataReader( ptr->dataReaderUuid() ) ) {
-                            make_chromatograms( reader, axis_, ranges );
-                        }
+                        // format_v3
+                        if ( auto reader = rd->dataReader( ptr->dataReaderUuid() ) ) 
+                            DataprocessWorker::instance()->createChromatogramsV3( processor, axis_, ranges, reader );
+                            //make_chromatograms( reader, axis_, ranges );
                     } else {
-                        DataprocessWorker::instance()->createChromatograms( processor, axis_, ranges );
+                        // format_v2
+                        DataprocessWorker::instance()->createChromatogramsV2( processor, axis_, ranges );
                     }
                 }
             }
@@ -1060,8 +1062,8 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
                 if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.second.lock() ) {
 					// create chromatograms for all peaks in current zoomed scope
-                    Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-					DataprocessWorker::instance()->createChromatograms( processor, ptr, rc.left(), rc.right() );
+                    //Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+					//DataprocessWorker::instance()->createChromatograms( processor, ptr, rc.left(), rc.right() );
 				}
             }
         }
@@ -1144,7 +1146,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
  
     try {
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( iid_spectrometer.first ) ) {
-            dlg.setScanLaw( spectrometer->getScanLaw() );
+            dlg.setScanLaw( *spectrometer->scanLaw() );
 
             do {
                 double fLength, accVoltage, tDelay, mass;
@@ -1464,8 +1466,8 @@ MSProcessingWnd::make_chromatograms( const adcontrols::DataReader * reader
     for ( auto& range: ranges ) {
 
         std::pair< double, double > display_value = ( axis == adcontrols::hor_axis_time ) ?
-            std::make_pair( std::get<1>(range) * 1.0e6, std::get<2>(range) * 1.0e6 ) : std::make_pair( std::get< 1 >( range ), std::get< 2 >( range ) );
-        
+            std::make_pair( std::get<1>(range) * 1.0e6, std::get<2>(range) * 1.0e6 ) : std::make_pair( std::get< 1 >( range ), std::get< 2 >( range ) ); 
+
         // mass|time,width pair
         if ( auto pChr = reader->getChromatogram( std::get<0>(range), std::get<1>(range), std::get<2>(range) ) ) {
             

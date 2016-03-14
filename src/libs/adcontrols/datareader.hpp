@@ -42,6 +42,7 @@ namespace adcontrols {
     class DataReader;
     class DataReader_iterator;
     class MassSpectrum;
+    class MassSpectrometer;
 
     class ADCONTROLSSHARED_EXPORT DataReader_value_type {
         DataReader_iterator * iterator_;
@@ -126,10 +127,9 @@ namespace adcontrols {
         virtual int fcn( int64_t rowid ) const { return -1; }
         
         virtual std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
-        
         virtual std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const { return nullptr; }
-
         virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+        virtual std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

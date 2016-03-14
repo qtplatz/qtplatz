@@ -147,8 +147,13 @@ add_library( adcontrols SHARED
   msqpeak.hpp 
   msqpeaks.cpp
   msqpeaks.hpp
-  mschromatogramextractor.cpp
-  mschromatogramextractor.hpp     
+  mschromatogramextractor.hpp
+  mschromatogramextractor_accumulate.hpp
+  mschromatogramextractor_xchromatogram.hpp
+  mschromatogramextractor_v2.cpp
+  mschromatogramextractor_v2.hpp
+  mschromatogramextractor_v3.cpp
+  mschromatogramextractor_v3.hpp       
   mschromatogrammethod.cpp
   mschromatogrammethod.hpp
   mssimulatormethod.cpp

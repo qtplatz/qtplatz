@@ -46,7 +46,7 @@
 using namespace dataproc;
 
 mass_calibrator::mass_calibrator( const adcontrols::MSAssignedMasses& assigned
-                                  , const adcontrols::MSProperty& prop ) : scanLaw_( prop.scanLaw() )
+                                  , const adcontrols::MSProperty& prop ) //: scanLaw_( prop.scanLaw() )
 {
     for ( auto it: assigned ) {
         if ( it.enable() ) {

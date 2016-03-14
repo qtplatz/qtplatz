@@ -172,7 +172,7 @@ ThresholdActionForm::formulaChanged( const QString& formula )
 
         auto mode = ui->spinBox->value();
 
-        double time = sp->getScanLaw().getTime( mass, mode );
+        double time = sp->scanLaw()->getTime( mass, mode );
         ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );            
         
         emit valueChanged();
@@ -185,7 +185,7 @@ ThresholdActionForm::modeChanged( int mode )
     if ( auto sp = spectrometer_.lock() ) {
 
         double mass = ui->doubleSpinBox_3->value();
-        double time = sp->getScanLaw().getTime( mass, mode );
+        double time = sp->scanLaw()->getTime( mass, mode );
         
         QSignalBlocker block( ui->doubleSpinBox );
         ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );            
@@ -199,7 +199,7 @@ ThresholdActionForm::massChanged( double mass )
 {
     if ( auto sp = spectrometer_.lock() ) {
 
-        double time = sp->getScanLaw().getTime( mass, ui->spinBox->value() );        
+        double time = sp->scanLaw()->getTime( mass, ui->spinBox->value() );        
 
         QSignalBlocker block( ui->doubleSpinBox );
         

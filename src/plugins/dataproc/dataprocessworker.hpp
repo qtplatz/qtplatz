@@ -48,8 +48,7 @@ namespace dataproc {
 
     class DataprocessWorker {
         DataprocessWorker();
-        static DataprocessWorker * instance_;
-        static std::mutex mutex_;
+        std::mutex mutex_;
         std::vector< adportable::asio::thread > threads_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
@@ -57,30 +56,46 @@ namespace dataproc {
         ~DataprocessWorker();
 
         static DataprocessWorker * instance();
-        static void dispose();
-        
+
+        // this will shows up Reader Choice Dialog
         void createChromatograms( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
-        void createChromatograms( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
-        void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
+        
+        void createChromatogramsV2( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
+        void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
+
+        void createChromatogramsV3( Dataprocessor *
+                                    , adcontrols::hor_axis
+                                    , const std::vector< std::tuple< int, double, double > >& ranges // <fcn, (m/z, width)|(tof0, tof1)>
+                                    , const adcontrols::DataReader * reader );
+
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
         void findPeptide( Dataprocessor *, const adprot::digestedPeptides& );
 
     private:
-        void terminate();
 
         /* Generage chromatogram by MSChromatoramMethod::targets vector */
-        void handleCreateChromatograms( Dataprocessor *
-                                        , const adcontrols::MSChromatogramMethod&
-                                        , std::shared_ptr< const adcontrols::ProcessMethod >
-                                        , std::shared_ptr<adwidgets::Progress> );
+        // for v2 data format        
+        void handleCreateChromatogramsV2( Dataprocessor *
+                                          , const adcontrols::MSChromatogramMethod&
+                                          , std::shared_ptr< const adcontrols::ProcessMethod >
+                                          , std::shared_ptr<adwidgets::Progress> );
 
-        void handleCreateChromatograms( Dataprocessor *
-                                        , const std::shared_ptr< adcontrols::ProcessMethod >
-                                        , adcontrols::hor_axis
-                                        , const std::vector< std::tuple< int, double, double > >&
-                                        , std::shared_ptr<adwidgets::Progress> );
-
+        // for v2 data format
+        void handleCreateChromatogramsV2( Dataprocessor *
+                                          , const std::shared_ptr< adcontrols::ProcessMethod >
+                                          , adcontrols::hor_axis
+                                          , const std::vector< std::tuple< int, double, double > >&
+                                          , std::shared_ptr<adwidgets::Progress> );
+        
+        // for v3 data format
+        void handleCreateChromatogramsV3( Dataprocessor *
+                                          , const adcontrols::MSChromatogramMethod&
+                                          , std::shared_ptr< const adcontrols::ProcessMethod >
+                                          , std::shared_ptr< const adcontrols::DataReader >
+                                          , int fcn                                        
+                                          , std::shared_ptr<adwidgets::Progress> );
+        
         // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >

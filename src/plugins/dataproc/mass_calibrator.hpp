@@ -43,7 +43,7 @@ namespace dataproc {
         std::vector< double > times_;
         std::vector< double > sqrtMz_;
         std::wstring ident_;
-		std::shared_ptr< adcontrols::ScanLaw > scanLaw_;
+		//std::shared_ptr< adcontrols::ScanLaw > scanLaw_;
 
     public:
         mass_calibrator( const adcontrols::MSAssignedMasses&, const adcontrols::MSProperty& );

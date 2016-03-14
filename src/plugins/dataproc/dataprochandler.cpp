@@ -336,6 +336,7 @@ DataprocHandler::apply_calibration( adcontrols::MassSpectrum& ms, const adcontro
     if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
         for ( auto& fms: segments ) {
             const adcontrols::MSProperty& prop = fms.getMSProperty();
+            auto sp = adcontrols::MassSpectrometer::create( prop.dataInterpreterClsid() );
             adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *fms.scanLaw(), calib );
             for ( size_t i = 0; i < fms.size(); ++i ) {
                 double mass = mass_calculator( fms.getTime( i ), prop.mode() );

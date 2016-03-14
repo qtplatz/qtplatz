@@ -336,8 +336,13 @@ MassSpectrum::mode() const
 const ScanLaw*
 MassSpectrum::scanLaw() const
 {
-    if ( ! pImpl_->scanLaw_ )
-        pImpl_->scanLaw_ = pImpl_->getMSProperty().scanLaw(); // cache
+    // deprecated
+    if ( !pImpl_->scanLaw_ ) {
+        if ( auto spectrometer = adcontrols::MassSpectrometer::create( getMSProperty().dataInterpreterClsid() ) ) {
+            spectrometer->setAcceleratorVoltage( getMSProperty().acceleratorVoltage(), 0 );
+            return spectrometer->scanLaw();
+        }
+    }
     return pImpl_->scanLaw_.get();
 }
 
@@ -429,6 +434,7 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
     return idx; // will return size() when 'seconds' does not exist
 }
 
+#if 0
 double
 MassSpectrum::getNormalizedTime( size_t idx ) const
 {
@@ -438,6 +444,7 @@ MassSpectrum::getNormalizedTime( size_t idx ) const
     else
         return time;
 }
+#endif
 
 void
 MassSpectrum::setIntensity( size_t idx, double intensity )
@@ -461,6 +468,7 @@ MassSpectrum::getTimeArray() const
     return pImpl_->getTimeArray();
 }
 
+#if 0
 double
 MassSpectrum::compute_mass( double time ) const
 {
@@ -475,7 +483,9 @@ MassSpectrum::compute_mass( double time ) const
     }
     return 0;
 }
+#endif
 
+#if 0
 size_t
 MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefix pfx ) const
 {
@@ -489,6 +499,7 @@ MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefi
     }
     return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().samplingInfo(), pfx );
 }
+#endif
 
 void
 MassSpectrum::setAcquisitionMassRange( double min, double max )

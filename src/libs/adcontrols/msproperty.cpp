@@ -386,12 +386,13 @@ MSProperty::compute_profile_time_array( double * p, std::size_t size, const Samp
     return n;
 }
 
-const adcontrols::MassSpectrometer&
-MSProperty::spectrometer() const
-{
-	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() );
-}
+//const adcontrols::MassSpectrometer&
+//MSProperty::spectrometer() const
+//{
+//	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() );
+//}
 
+#if 0
 std::shared_ptr< ScanLaw >
 MSProperty::scanLaw() const
 {
@@ -400,6 +401,7 @@ MSProperty::scanLaw() const
     else
         return 0;
 }
+#endif
 
 void
 MSProperty::setTofProtocol( const TofProtocol& proto )

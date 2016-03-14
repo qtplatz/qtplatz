@@ -196,7 +196,7 @@ std::shared_ptr< adcontrols::MassSpectrometer >
 MassSpectrometerBroker::make_massspectrometer( const boost::uuids::uuid& uuid )
 {
     if ( auto factory = find_factory( uuid ) ) {
-        return factory->create( 0, 0 );
+        return factory->create();
     }
     return nullptr;
 }
@@ -205,7 +205,7 @@ std::shared_ptr< adcontrols::MassSpectrometer >
 MassSpectrometerBroker::make_massspectrometer( const std::string& objtext )
 {
     if ( auto factory = find_factory( objtext ) )
-        return factory->create( 0, 0 );
+        return factory->create();
 
     return nullptr;
 }
