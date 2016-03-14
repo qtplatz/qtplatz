@@ -63,6 +63,8 @@ namespace adwidgets {
         bool setContents( boost::any&& ) override;
         void * query_interface_workaround( const char * ) override;
 
+        void dataMayChanged();
+
         // interface for InfiTOF
         enum GETPEAKOPTS { AllPeaks, AssignedPeaks, SelectedPeaks };
         bool getMSPeaks( adcontrols::MSPeaks&, GETPEAKOPTS opt = AllPeaks ) const;

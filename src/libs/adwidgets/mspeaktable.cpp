@@ -291,6 +291,12 @@ MSPeakTable::onUpdate( boost::any& a )
 }
 
 void
+MSPeakTable::dataMayChanged()
+{
+    boost::apply_visitor( detail::dataMayChanged( this ), impl_->data_source_ );
+}
+
+void
 MSPeakTable::OnFinalClose()
 {
 }

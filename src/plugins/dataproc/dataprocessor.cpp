@@ -796,7 +796,8 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                         lockmass( *ptr );
                 }
 
-                lockmass( *ptr ); // update profile spectrum
+                if ( lockmass( *ptr ) ) // update profile spectrum
+                    ptr->addDescription( adcontrols::description( L"Process", L"Mass locked" ) );
                 setModified( true );
             }
         }
@@ -1116,11 +1117,10 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     using namespace portfolio;
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
-#if 0
-	if ( ! adcontrols::MassSpectrometer::find( pProfile->getMSProperty().dataInterpreterClsid() ) ) {
+
+    auto spectrometer = adcontrols::MassSpectrometer::create( pProfile->getMSProperty().dataInterpreterClsid() );
+    if ( !spectrometer )
         fixupDataInterpreterClsid( folium );
-	}
-#endif
 
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );

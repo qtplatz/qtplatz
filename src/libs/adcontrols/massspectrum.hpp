@@ -160,6 +160,7 @@ namespace adcontrols {
 		int getColor( size_t idx ) const;
     
         void addDescription( const description& );
+        void addDescription( description&& );
         const descriptions& getDescriptions() const;
 
         void set_annotations( const annotations& );

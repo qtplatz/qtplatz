@@ -121,7 +121,6 @@ namespace dataproc {
         void frequency_analysis();
         void save_image_file();
         void make_chromatogram( const adcontrols::DataReader *, adcontrols::hor_axis, double, double );
-        void make_chromatograms( const adcontrols::DataReader *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );

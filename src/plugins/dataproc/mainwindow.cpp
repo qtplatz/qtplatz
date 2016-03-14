@@ -793,28 +793,20 @@ MainWindow::handleProcess( const QString& origin )
 void
 MainWindow::lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& ptr )
 {
-    for ( auto& dock : dockWidgets() ) {
-        if ( dock->objectName() == "MSPeakTable" ) {
-            adplugin::LifeCycleAccessor accessor( dock->widget() );
-            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-                boost::any any( ptr );
-                pLifeCycle->onUpdate( any );
-            }
-        }
+    if ( auto pktable = findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
+
+        pktable->onUpdate( boost::any( ptr ) );
+
     }
 }
 
 void
 MainWindow::dataMayChanged()
 {
-    for ( auto& dock : dockWidgets() ) {
-        if ( dock->objectName() == "MSPeakTable" ) {
-            adplugin::LifeCycleAccessor accessor( dock->widget() );
-            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-                boost::any any( int( 0 ) );
-                pLifeCycle->onUpdate( any );
-            }
-        }
+    if ( auto pktable = findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
+
+        pktable->dataMayChanged();
+
     }
     emit onDataMayCanged();
 }

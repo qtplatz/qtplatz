@@ -59,7 +59,7 @@ namespace adcontrols {
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
-        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const std::vector< std::tuple<int, double, double > >& ranges );
+        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
         size_t read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& );
 
         bool doMSLock( adcontrols::lockmass& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
@@ -122,9 +122,9 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         adcontrols::lockmass mslock;
         do {
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
-
+            
             if ( ( pos = impl_->read_raw_spectrum( pos, impl_->raw_, *ms ) ) ) {
-
+                
                 if ( cm->lockmass() ) {
                     impl_->apply_mslock( ms, pm, mslock );
                 } else {
@@ -172,7 +172,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 bool
 MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                        , adcontrols::hor_axis axis
-                                       , const std::vector< std::tuple< int, double, double > >& ranges
+                                       , const std::vector< std::pair< int /* fcn */, adcontrols::MSPeakInfoItem > >& ranges
                                        , std::function<bool( size_t, size_t )> progress )
 {
     using namespace mschromatogramextractor;
@@ -319,7 +319,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
 void
 MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                                                        , const adcontrols::MassSpectrum& ms
-                                                       , const std::vector< std::tuple<int, double, double> >& ranges )
+                                                       , const std::vector< std::pair<int, adcontrols::MSPeakInfoItem> >& ranges )
 {
     using namespace adcontrols::mschromatogramextractor;
     
@@ -329,16 +329,9 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
     
     for ( auto& range : ranges ) {
         
-        int rfcn = std::get< 0 >( range );
-        double lMass = std::get< 1 >( range );
-        double uMass = std::get< 2 >( range );
-
-        if ( std::get<2>( range ) <= 1.0 ) {
-            double mass = std::get< 1 >( range );
-            double width = std::get< 2 >( range );
-            lMass = mass - width / 2;
-            uMass = mass + width / 2;
-        }
+        int rfcn = range.first;
+        double lMass = range.second.mass() - range.second.widthHH() / 2; // std::get< 1 >( range );
+        double uMass = range.second.mass() + range.second.widthHH() / 2; // std::get< 1 >( range );
 
         uint32_t fcn = 0;
         for ( auto& fms: segments ) {

@@ -561,6 +561,12 @@ MassSpectrum::addDescription( const description& t )
   pImpl_->addDescription( t );
 }
 
+void
+MassSpectrum::addDescription( description&& t )
+{
+  pImpl_->addDescription( t );
+}
+
 const descriptions&
 MassSpectrum::getDescriptions() const
 {

@@ -75,54 +75,52 @@ DataprocessWorker::instance()
     return &__instance;
 }
 
-// void
-// DataprocessWorker::createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass )
-// {
-// 	(void)lMass;
-// 	(void)hMass;
-// }
+
 
 void
-DataprocessWorker::createChromatograms( Dataprocessor* processor,  std::shared_ptr< const adcontrols::ProcessMethod > pm, const QString& origin )
+DataprocessWorker::createChromatograms( Dataprocessor* processor
+                                        , adcontrols::hor_axis axis
+                                        , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
+                                        , const boost::uuids::uuid& dataReaderUuid )
 {
+    if ( auto rawfile = processor->getLCMSDataset() ) {
+        if ( rawfile->dataformat_version() >= 3 ) {
+            if ( auto reader = rawfile->dataReader( dataReaderUuid ) )
+                createChromatogramsV3( processor, axis, ranges, reader );
+        } else {
+            createChromatogramsV2( processor, axis, ranges );
+        }
+    }
 }
+
 
 void
 DataprocessWorker::createChromatogramsV3( Dataprocessor* processor
                                           , adcontrols::hor_axis axis
-                                          , const std::vector< std::tuple< int, double, double > >& ranges
+                                          , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
                                           , const adcontrols::DataReader * reader )
 {
-    // Time axis can only be accepted
-    if ( axis == adcontrols::hor_axis_mass )
-        return;
-
-    // copied from msprocessingwnd::make_chromatograms
     for ( auto& range: ranges ) {
-
-        std::pair< double, double > display_value = std::make_pair( std::get<1>( range ), std::get<2>( range ) );
-        if ( axis == adcontrols::hor_axis_time )
-            display_value = std::make_pair( adcontrols::metric::scale_to_micro( display_value.first ), adcontrols::metric::scale_to_micro( display_value.second ) );
-
-        int fcn = std::get<0>( range );
-        double time = std::get<1>( range );
-        double width = std::get<2>( range );
-
+        
+        int fcn = range.first;
+        double time = range.second.time();
+        double width = range.second.widthHH( true );
+        
         // mass|time,width pair
-        if ( auto pChr = reader->getChromatogram( std::get<0>( range ) /*fcn*/, std::get<1>( range ), std::get<2>( range ) ) ) {
-
+        if ( auto pChr = reader->getChromatogram( fcn, time, width ) ) {
+            
             portfolio::Portfolio portfolio = processor->getPortfolio();
             portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
-
+            
             std::wostringstream o;
             if ( axis == adcontrols::hor_axis_time ) {
                 o << boost::wformat( L"%s %.3lf(us)(w=%.2lf(ns))" )
-                    % adportable::utf::to_wstring( reader->display_name() ) % ( std::get<1>( range ) * 1.0e6 ) % ( std::get<2>( range ) * 1.0e9 );
+                    % adportable::utf::to_wstring( reader->display_name() ) % ( time * 1.0e6 ) % ( width * 1.0e9 );
             } else {
                 o << boost::wformat( L"%s %.3lf(w=%.2lf(mDa))" )
-                    % adportable::utf::to_wstring( reader->display_name() ) % ( std::get<1>( range ) ) % ( std::get<2>( range ) * 1000 );
+                    % adportable::utf::to_wstring( reader->display_name() ) % ( range.second.mass() ) % ( range.second.widthHH( false ) * 1000 );
             }
-
+            
             auto folium = folder.findFoliumByName( o.str() );
             if ( folium.nil() ) {
                 pChr->addDescription( adcontrols::description( L"acquire.title", o.str() ) );
@@ -133,14 +131,14 @@ DataprocessWorker::createChromatogramsV3( Dataprocessor* processor
             processor->setCurrentSelection( folium );
         }
     }
-
-	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
-	MainWindow::instance()->getProcessMethod( *pm );
+    
+    adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
+    MainWindow::instance()->getProcessMethod( *pm );
 }
 
 
 void
-DataprocessWorker::createChromatogramsV2( Dataprocessor* processor,  std::shared_ptr< const adcontrols::ProcessMethod > pm, const QString& origin )
+DataprocessWorker::createChromatograms( Dataprocessor* processor,  std::shared_ptr< const adcontrols::ProcessMethod > pm, const QString& origin )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
@@ -167,9 +165,9 @@ DataprocessWorker::createChromatogramsV2( Dataprocessor* processor,  std::shared
 }
 
 void
-DataprocessWorker::createChromatogramsV2( Dataprocessor* processor
+DataprocessWorker::createChromatogramsV2( Dataprocessor * processor
                                           , adcontrols::hor_axis axis
-                                          , const std::vector< std::tuple< int, double, double > >& ranges )
+                                          , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
     
@@ -278,14 +276,38 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
 
 }
 
+void
+DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
+                                              , const std::shared_ptr< adcontrols::ProcessMethod > method
+                                              , adcontrols::hor_axis axis
+                                              , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
+											  , std::shared_ptr<adwidgets::Progress> progress )
+{
+    std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
+
+    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
+
+        adcontrols::v2::MSChromatogramExtractor extract( dset );
+        extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
+
+    }
+
+    portfolio::Folium folium;
+    for ( auto c: vec )
+        folium = processor->addChromatogram( *c, *method );
+	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
+}
+
 // data format v3 (read chrmatograms from an fcn)
 void
 DataprocessWorker::handleCreateChromatogramsV3( Dataprocessor * processor
-                                              , const adcontrols::MSChromatogramMethod& cm
-                                              , std::shared_ptr< const adcontrols::ProcessMethod > pm
-                                              , std::shared_ptr< const adcontrols::DataReader > reader
-                                              , int fcn                                        
-                                              , std::shared_ptr<adwidgets::Progress> progress )
+                                                , const adcontrols::MSChromatogramMethod& cm
+                                                , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                                , std::shared_ptr< const adcontrols::DataReader > reader
+                                                , int fcn                                        
+                                                , std::shared_ptr<adwidgets::Progress> progress )
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
@@ -307,30 +329,6 @@ DataprocessWorker::handleCreateChromatogramsV3( Dataprocessor * processor
 
 }
 
-
-void
-DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
-                                              , const std::shared_ptr< adcontrols::ProcessMethod > method
-                                              , adcontrols::hor_axis axis
-                                              , const std::vector< std::tuple< int, double, double > >& ranges
-											  , std::shared_ptr<adwidgets::Progress> progress )
-{
-    std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
-
-    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
-
-        adcontrols::v2::MSChromatogramExtractor extract( dset );
-        extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
-
-    }
-
-    portfolio::Folium folium;
-    for ( auto c: vec )
-        folium = processor->addChromatogram( *c, *method );
-	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
-
-    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
-}
 
 void
 DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor

@@ -657,11 +657,13 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 
         adcontrols::lockmass lockmass;
         
-        for ( auto ref: refs )
+        for ( auto ref : refs ) {
             adcontrols::lockmass::findReferences( lockmass, *ms, ref.first, ref.second );
+        }
 
         if ( lockmass.fit() ) {
             if ( lockmass( *ms ) ) {
+                ms->addDescription( adcontrols::description( L"Process", L"Mass Locked" ) );
                 pImpl_->processedSpectrum_->setZoomBase( ms->getAcquisitionMassRange() );
                 pImpl_->processedSpectrum_->update_annotation();
 
@@ -963,7 +965,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
             if ( !ptr->isCentroid() )
                 return;
 
-            ADDEBUG() << boost::lexical_cast< std::string > ( ptr->dataReaderUuid() );                    
+            //ADDEBUG() << boost::lexical_cast< std::string > ( ptr->dataReaderUuid() );                    
 
             auto pkinfo = pkinfo_.second.lock();
             adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > vinfo( *pkinfo );
@@ -971,62 +973,21 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
             adcontrols::ProcessMethod pm;
             MainWindow::instance()->getProcessMethod( pm );
 
-            std::vector< std::tuple< int, double, double > > ranges;  // fcn, mass (beg, end)
-
-            if ( axis_ == adcontrols::hor_axis_time ) {
-                size_t fcn = 0;
-                for ( auto& fms : adcontrols::segment_wrapper<>( *ptr ) ) {
-                    std::pair<double, double> range
-                        = std::make_pair( adcontrols::metric::scale_to_base( rect.left(), adcontrols::metric::micro )
-                                          , adcontrols::metric::scale_to_base( rect.right(), adcontrols::metric::micro ) );
-                    auto idx = fms.lower_bound( range.first, false );
-                    if ( idx != fms.npos ) {
-                        do {
-                            auto info = vinfo [ fcn ].begin() + idx;
-                            double time_window = info->widthHH( true );
-                            ranges.push_back( std::make_tuple( fms.protocolId(), fms.getTime( idx ), time_window ) );
-                        } while ( ++idx < fms.size() && fms.getTime( idx ) < range.second );
-                    }
-                    ++fcn;
-                }
-
-            } else {
-                if ( const auto mchro = pm.find< adcontrols::MSChromatogramMethod >() ) {
-                    size_t fcn = 0;
-                    for ( auto& fms : adcontrols::segment_wrapper<>( *ptr ) ) {
-                        size_t idx = fms.lower_bound( rect.left() );
-                        if ( idx != fms.npos ) {
-                            do {
-                                if ( fms.getIntensity( idx ) >= rect.top() ) {
-                                    if ( axis_ == adcontrols::hor_axis_mass ) {
-                                        double mass_window = mchro->width_at_mass( fms.getMass( idx ) );
-                                        if ( mass_window < 1.0e-9 /* nDa */ && pkinfo ) {
-                                            auto info = vinfo [ fcn ].begin() + idx;
-                                            mass_window = info->widthHH();
-                                        }
-                                        ranges.push_back( std::make_tuple( fms.protocolId(), fms.getMass( idx ), mass_window ) );
-                                    }
-                                }
-                                
-                            } while ( ++idx < fms.size() && fms.getMass( idx ) < rect.right() );
-                        }
-                        ++fcn;
-                    }
+            std::vector< std::pair< int, adcontrols::MSPeakInfoItem > > ranges;  // fcn, peaks
+            for ( auto pkinfo : vinfo ) {
+                using namespace adcontrols::metric;
+                auto it = std::lower_bound( pkinfo.begin(), pkinfo.end(), rect.left(), [&] ( const adcontrols::MSPeakInfoItem& a, const double& b ) {
+                    return axis_ == adcontrols::hor_axis_time ? a.time() < scale_to_base( rect.left(), micro ) : a.mass() < rect.left();
+                } );
+                while ( it != pkinfo.end() && 
+                        ( axis_ == adcontrols::hor_axis_time ) ? it->time() < scale_to_base( rect.right(), micro ) : it->mass() < rect.right() ) {
+                    ranges.emplace_back( pkinfo.protocolId(), *it++ );
                 }
             }
             
             if ( ! ranges.empty() ) {
                 if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-                    auto rd = processor->getLCMSDataset();
-                    if ( rd->dataformat_version() >= 3 ) {
-                        // format_v3
-                        if ( auto reader = rd->dataReader( ptr->dataReaderUuid() ) ) 
-                            DataprocessWorker::instance()->createChromatogramsV3( processor, axis_, ranges, reader );
-                            //make_chromatograms( reader, axis_, ranges );
-                    } else {
-                        // format_v2
-                        DataprocessWorker::instance()->createChromatogramsV2( processor, axis_, ranges );
-                    }
+                    DataprocessWorker::instance()->createChromatograms( processor, axis_, ranges, ptr->dataReaderUuid() );
                 }
             }
         }
@@ -1422,6 +1383,7 @@ MSProcessingWnd::frequency_analysis()
     }
 }
 
+
 void
 MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, adcontrols::hor_axis axis, double s, double e )
 {
@@ -1454,44 +1416,6 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, adcon
                 portfolio::Folium folium = processor->addChromatogram( *pChr, m, true );
             }
             processor->setCurrentSelection( folium );
-        }
-    }
-}
-
-void
-MSProcessingWnd::make_chromatograms( const adcontrols::DataReader * reader
-                                     , adcontrols::hor_axis axis
-                                     , const std::vector< std::tuple< int, double, double > >& ranges )
-{
-    for ( auto& range: ranges ) {
-
-        std::pair< double, double > display_value = ( axis == adcontrols::hor_axis_time ) ?
-            std::make_pair( std::get<1>(range) * 1.0e6, std::get<2>(range) * 1.0e6 ) : std::make_pair( std::get< 1 >( range ), std::get< 2 >( range ) ); 
-
-        // mass|time,width pair
-        if ( auto pChr = reader->getChromatogram( std::get<0>(range), std::get<1>(range), std::get<2>(range) ) ) {
-            
-            if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-
-                portfolio::Portfolio portfolio = processor->getPortfolio();
-                portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
-
-                std::wostringstream o;            
-                if ( axis == adcontrols::hor_axis_time ) {
-                    o << boost::wformat( L"%s %.3lf(us)(w=%.2lf(ns))" ) % adportable::utf::to_wstring( reader->display_name() ) % ( std::get<1>(range) * 1.0e6 ) % ( std::get<2>(range) * 1.0e9 );
-                } else {
-                    o << boost::wformat( L"%s %.3lf(w=%.2lf(mDa))" ) % adportable::utf::to_wstring( reader->display_name() ) % ( std::get<1>(range) ) % ( std::get<2>(range) * 1000 );
-                }
-
-                auto folium = folder.findFoliumByName( o.str() );
-                if ( folium.nil() ) {
-                    pChr->addDescription( adcontrols::description( L"acquire.title", o.str() ) );
-                    adcontrols::ProcessMethod m;
-                    MainWindow::instance()->getProcessMethod( m );
-                    portfolio::Folium folium = processor->addChromatogram( *pChr, m, true );
-                }
-                processor->setCurrentSelection( folium );
-            }
         }
     }
 }

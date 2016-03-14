@@ -33,7 +33,6 @@
 #include <memory>
 #include <functional>
 
-
 namespace adcontrols {
 
     class datafile;
@@ -41,6 +40,7 @@ namespace adcontrols {
     class LCMSDataset;
     class MassSpectrum;
     class MSChromatogramMethod;
+    class MSPeakInfoItem;
     class ProcessMethod;
     class DataReader;
 
@@ -61,10 +61,12 @@ namespace adcontrols {
                              , std::shared_ptr< const adcontrols::DataReader >
                              , int fcn
                              , std::function<bool( size_t, size_t )> progress );
-
+            
             bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
+                               , const ProcessMethod&
                                , adcontrols::hor_axis axis
-                               , const std::vector< std::tuple< int /* fcn */, double, double > >& ranges
+                               , const std::vector< std::pair< int /* fcn */, adcontrols::MSPeakInfoItem > >& ranges
+                               , const adcontrols::DataReader *
                                , std::function<bool( size_t, size_t )> progress );
             
         private:

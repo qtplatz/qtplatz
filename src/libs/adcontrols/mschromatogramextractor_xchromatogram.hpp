@@ -25,6 +25,7 @@
 #pragma once
 
 #include "moltable.hpp"
+#include "mspeakinfoitem.hpp"
 
 namespace adcontrols {
 
@@ -54,24 +55,16 @@ namespace adcontrols {
                 
             }
             
-            xChromatogram( const std::tuple< int, double, double >& range
+            xChromatogram( const std::pair< int, adcontrols::MSPeakInfoItem >& range
                            , uint32_t idx ) : fcn_( std::get< 0 >( range ) )
                                             , target_index_( idx )
                                             , count_( 0 )
                                             , pchr_( std::make_shared< adcontrols::Chromatogram >() )  {
                 
-                if ( std::get<2>( range ) <= 1.0 ) {
-                    
-                    double mass = std::get<1>( range );
-                    double width = std::get<2>( range );
+                    double mass = range.second.mass();
+                    double width = range.second.widthHH();
                     pchr_->addDescription( adcontrols::description( L"Create"
                         , ( boost::wformat( L"m/z %.4lf (W:%.4gmDa) #%d" ) % mass % ( width * 1000 ) % fcn_ ).str() ) );
-                } else {
-                    double lMass = std::get<1>( range );
-                    double uMass = std::get<2>( range );
-                    pchr_->addDescription( adcontrols::description( L"Create"
-                        , ( boost::wformat( L"m/z (%.4lf - %.4lf) #%d" ) % lMass % uMass % fcn_ ).str() ) );
-                }
 
             }
 

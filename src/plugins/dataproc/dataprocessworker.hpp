@@ -30,15 +30,15 @@
 #include <mutex>
 #include <memory>
 #include <thread>
-#include <tuple>
 #include <vector>
 
 namespace adcontrols {
     class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis: unsigned int;
-    class DataReader; 
+    class DataReader; class MSPeakInfoItem;
 }
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  }
+namespace boost { namespace uuids { struct uuid; } }
 
 class QString;
 
@@ -59,13 +59,17 @@ namespace dataproc {
 
         // this will shows up Reader Choice Dialog
         void createChromatograms( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
+
+        void createChromatograms( Dataprocessor * processor
+                                  , adcontrols::hor_axis axis
+                                  , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
+                                  , const boost::uuids::uuid& dataReaderUuid );
         
-        void createChromatogramsV2( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
-        void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
+        void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& );
 
         void createChromatogramsV3( Dataprocessor *
                                     , adcontrols::hor_axis
-                                    , const std::vector< std::tuple< int, double, double > >& ranges // <fcn, (m/z, width)|(tof0, tof1)>
+                                    , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges                                    
                                     , const adcontrols::DataReader * reader );
 
         void createSpectrogram( Dataprocessor * );
@@ -85,7 +89,7 @@ namespace dataproc {
         void handleCreateChromatogramsV2( Dataprocessor *
                                           , const std::shared_ptr< adcontrols::ProcessMethod >
                                           , adcontrols::hor_axis
-                                          , const std::vector< std::tuple< int, double, double > >&
+                                          , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
                                           , std::shared_ptr<adwidgets::Progress> );
         
         // for v3 data format
@@ -95,7 +99,7 @@ namespace dataproc {
                                           , std::shared_ptr< const adcontrols::DataReader >
                                           , int fcn                                        
                                           , std::shared_ptr<adwidgets::Progress> );
-        
+
         // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >
