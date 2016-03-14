@@ -998,7 +998,6 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
         std::vector< QAction * > actions;
         actions.push_back( menu.addAction( "Copy to clipboard" ) );
         actions.push_back( menu.addAction( "Save as SVG File..." ) );
-        actions.push_back( menu.addAction( "Create chromatograms" ) );
 
         QAction * selectedItem = menu.exec( QCursor::pos() );
         auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
@@ -1017,15 +1016,6 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                 if ( ! name.isEmpty() )
                     adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
 
-            } else if ( *it == actions[ 2 ] ) {
-
-                QRectF rc = pImpl_->processedSpectrum_->zoomRect();
-
-                if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.second.lock() ) {
-					// create chromatograms for all peaks in current zoomed scope
-                    //Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-					//DataprocessWorker::instance()->createChromatograms( processor, ptr, rc.left(), rc.right() );
-				}
             }
         }
     }
