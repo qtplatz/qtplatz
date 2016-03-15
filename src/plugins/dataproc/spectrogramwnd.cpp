@@ -317,8 +317,7 @@ SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const Q
         if ( dlg.getContents( cm ) ) {
             for ( auto& target : cm.molecules().data() ) {
                 if ( target.flags() ) {
-                    double exactmass = adcontrols::ChemicalFormula().getMonoIsotopicMass( target.formula() );
-                    msrefs.push_back( std::make_pair( target.formula(), exactmass ) );
+                    msrefs.push_back( std::make_pair( target.formula(), target.mass() ) );
                 }
             }
         }
