@@ -54,6 +54,9 @@ namespace adwidgets {
         void OnFinalClose();
         bool getContents( boost::any& ) const;
         bool setContents( boost::any&& );
+        //
+        void setContents( const adcontrols::MSChromatogramMethod& );
+        void getContents( adcontrols::MSChromatogramMethod& ) const;
 
     signals:
         void onEnableLockMass( bool );
@@ -61,8 +64,6 @@ namespace adwidgets {
 
     private:
         Ui::MSChromatogramForm *ui;
-        void setContents( const adcontrols::MSChromatogramMethod& );
-        void getContents( adcontrols::MSChromatogramMethod& ) const;
     };
 }
 

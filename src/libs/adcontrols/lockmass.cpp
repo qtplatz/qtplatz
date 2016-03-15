@@ -132,6 +132,17 @@ lockmass::empty() const
     return references_.empty();
 }
 
+lockmass::const_iterator 
+lockmass::begin() const
+{
+    return references_.begin();
+}
+
+lockmass::const_iterator
+lockmass::end() const
+{
+    return references_.end();
+}
 ///////////////////
 
 // static

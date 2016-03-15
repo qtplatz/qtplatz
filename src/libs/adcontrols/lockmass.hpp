@@ -97,6 +97,9 @@ namespace adcontrols {
         bool fit();
         bool operator()( MassSpectrum&, bool applyToAll = true ) const; // correct mass array
         bool operator()( MSPeakInfo&, bool applyToAll = true ) const;
+        typedef std::vector< reference >::const_iterator const_iterator;
+        const_iterator begin() const;
+        const_iterator end() const;
         
     private:
         std::vector< reference > references_;

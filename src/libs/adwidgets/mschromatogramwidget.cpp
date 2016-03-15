@@ -131,7 +131,7 @@ MSChromatogramWidget::setContents( boost::any&& a )
         form->setContents( std::move(a) );
 
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
-
+        
         const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( a );
         
         if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
@@ -142,6 +142,25 @@ MSChromatogramWidget::setContents( boost::any&& a )
         }
     }
     return false;
+}
+
+void
+MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& cm )
+{
+    if ( auto form = findChild< MSChromatogramForm * >() )
+        form->setContents( cm );
+    if ( auto table = findChild< MolTable *>() )
+        table->setContents( cm.molecules() );
+}
+
+bool
+MSChromatogramWidget::getContents( adcontrols::MSChromatogramMethod& cm ) const
+{
+    if ( auto form = findChild< MSChromatogramForm * >() )
+        form->getContents( cm );
+    if ( auto table = findChild< MolTable *>() ) 
+        table->getContents( cm.molecules() );
+    return true;
 }
 
 void

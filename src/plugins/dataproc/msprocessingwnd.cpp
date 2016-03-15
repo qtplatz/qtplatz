@@ -663,7 +663,7 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 
         if ( lockmass.fit() ) {
             if ( lockmass( *ms ) ) {
-                ms->addDescription( adcontrols::description( L"Process", L"Mass Locked" ) );
+                ms->addDescription( adcontrols::description( L"Process", L"Mass locked" ) );
                 pImpl_->processedSpectrum_->setZoomBase( ms->getAcquisitionMassRange() );
                 pImpl_->processedSpectrum_->update_annotation();
 

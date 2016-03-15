@@ -56,7 +56,9 @@ namespace adwidgets {
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;   
-        
+        //
+        void setContents( const adcontrols::MSChromatogramMethod& );
+        bool getContents( adcontrols::MSChromatogramMethod& ) const;
         //
     private:
         void handleContextMenu( QMenu&, const QPoint& );

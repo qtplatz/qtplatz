@@ -30,9 +30,7 @@
 #include <QItemDelegate>
 #include <adplugin_manager/lifecycle.hpp>
 #include <memory>
-#if !defined Q_MOC_RUN
-# include <boost/variant.hpp>
-#endif
+#include <functional>
 
 class QStandardItemModel;
 
@@ -64,6 +62,11 @@ namespace adwidgets {
         void * query_interface_workaround( const char * ) override;
 
         void dataMayChanged();
+
+        enum Events { formula_changed, lockmass_triggered };
+        typedef void( callback_t )( int event, const QVector< QPair<int, int> >& );
+
+		void setContents( std::shared_ptr< adcontrols::MassSpectrum >, std::function< callback_t > callback );
 
         // interface for InfiTOF
         enum GETPEAKOPTS { AllPeaks, AssignedPeaks, SelectedPeaks };
@@ -115,10 +118,8 @@ namespace adwidgets {
     public:
         explicit MSPeakTableDelegate(QObject *parent = 0);
         void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-		// void setEditorData(QWidget *editor, const QModelIndex &index) const override;
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-        // bool editorEvent( QEvent * event, QAbstractItemModel *
-        //                   , const QStyleOptionViewItem&, const QModelIndex& ) override;
+
     signals:
         void valueChanged( const QModelIndex& ) const;
 

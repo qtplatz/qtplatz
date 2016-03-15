@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,9 +25,12 @@
 #include "spectrogramwnd.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
-#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/moltable.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
@@ -37,6 +40,8 @@
 #include <adplot/spectrogramdata.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>
+#include <adwidgets/mspeaktable.hpp>
+#include <adwidgets/lockmassdialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qwt_plot_renderer.h>
 #include <QBoxLayout>
@@ -215,14 +220,25 @@ SpectrogramWnd::handleSelected( const QPointF& pos )
 void
 SpectrogramWnd::handleSelected( const QRectF& rect )
 {
+    QMenu menu;
+    std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
+    int w = int( std::abs( plot_->transform( QwtPlot::xBottom, rect.left() ) - plot_->transform( QwtPlot::xBottom, rect.right() ) ) + 0.5 );
+    int h = int( std::abs( plot_->transform( QwtPlot::yLeft, rect.top() ) - plot_->transform( QwtPlot::yLeft, rect.bottom() ) ) + 0.5 );
+    
     if ( adcontrols::MassSpectraPtr ptr = data_.lock() ) {
         
         qtwrapper::waitCursor wait;
-
+        
         if ( const adcontrols::MassSpectrumPtr ms = ptr->find( rect.left() ) ) {
             sp_->setData( ms, 0 );
             sp_->setTitle( (boost::format("Spectrum @ %.3fmin") % rect.left()).str() );
+            MainWindow::instance()->selectionChanged( ms, [ms,this] ( int event, const QVector< QPair<int, int > >& indecies ) {
+                    if ( event == adwidgets::MSPeakTable::formula_changed )
+                        sp_->setData( ms, 0 );
+                    else if ( event == adwidgets::MSPeakTable::lockmass_triggered )
+                        mslock( ms, indecies );
+                } );
         }
 
         double m1 = rect.top();
@@ -256,16 +272,59 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
         chromatogr_->setTitle( (boost::format( "Chromatogram @ <i>m/z</i>=%.4f -- %.4f" ) % m1 % m2).str() );
 
     } else {
-        QMenu menu;
-        std::vector < std::pair< QAction *, std::function<void()> > > actions;
-        actions.emplace_back( menu.addAction( "Create" ), [&](){ MainWindow::instance()->actCreateSpectrogram(); } );
+        if ( w < 2 && h < 2 )
+            actions.emplace_back( menu.addAction( "Create" ), [&](){ MainWindow::instance()->actCreateSpectrogram(); } );
+    }
+
+    if ( ! actions.empty() ) {
         if ( auto selected = menu.exec( QCursor::pos() ) ) {
             auto it = std::find_if( actions.begin(), actions.end(), [selected]( const std::pair< QAction *, std::function<void()> >& item ){ return item.first == selected; });
             if ( it != actions.end() )
                 ( it->second )();
-        }        
+        }
+    }
+}
+
+bool
+SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVector< QPair<int, int> >& indecies )
+{
+    adcontrols::lockmass lkms;
+    for ( auto& index: indecies )
+        adcontrols::lockmass::findReferences( lkms, *ref, index.first, index.second );
+
+    adcontrols::moltable mols;
+    for ( auto& mol : lkms ) {
+        adcontrols::moltable::value_type v;
+        v.enable() = true;
+        v.formula() = mol.formula();
+        v.mass() = mol.exactMass();
+        mols << v;
     }
 
+    adwidgets::LockMassDialog dlg(this);
+
+    adcontrols::ProcessMethod pm;
+    MainWindow::instance()->getProcessMethod( pm );
+    if ( auto it = pm.find< adcontrols::MSChromatogramMethod >() ) {
+        it->setMolecules( mols );
+        dlg.setContents( *it );
+    }
+
+    std::vector< std::pair< std::string, double > > msrefs;
+    
+    if ( dlg.exec() == QDialog::Accepted ) {
+        adcontrols::MSChromatogramMethod cm;
+        if ( dlg.getContents( cm ) ) {
+            for ( auto& target : cm.molecules().data() ) {
+                if ( target.flags() ) {
+                    double exactmass = adcontrols::ChemicalFormula().getMonoIsotopicMass( target.formula() );
+                    msrefs.push_back( std::make_pair( target.formula(), exactmass ) );
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 //

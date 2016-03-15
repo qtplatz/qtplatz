@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -51,6 +51,8 @@
 #include <QMenu>
 #include <QPair>
 #include <boost/format.hpp>
+#include <boost/signals2.hpp>
+#include <boost/variant.hpp>
 #include <sstream>
 #include <set>
 
@@ -213,14 +215,14 @@ namespace adwidgets {
         std::shared_ptr< QItemDelegate > delegate_;
 
         impl() : model_( std::make_shared< QStandardItemModel >() )
-            , delegate_( std::make_shared< MSPeakTableDelegate >() )
-            , inProgress_( false ) {
-
+               , delegate_( std::make_shared< MSPeakTableDelegate >() )
+               , inProgress_( false ) {
         }
-
         
         boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
                         , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
+        
+        boost::signals2::signal< callback_t > callback_;
         bool inProgress_;
     };
 }
@@ -310,6 +312,8 @@ MSPeakTable::getContents( boost::any& ) const
 bool
 MSPeakTable::setContents( boost::any&& a )
 {
+    impl_->callback_.disconnect_all_slots();
+
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
         impl_->data_source_ = wptr;
@@ -333,6 +337,17 @@ MSPeakTable::setContents( boost::any&& a )
     }
 
     return false;
+}
+
+void
+MSPeakTable::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::function< callback_t > callback )
+{
+    impl_->data_source_ = ms;
+
+    impl_->callback_.disconnect_all_slots();
+    if ( callback )
+        impl_->callback_.connect( callback );
+    setPeakInfo( *ms );            
 }
 
 QStandardItemModel&
@@ -391,7 +406,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
     }
     if ( impl_->data_source_.which() == 1 ) {
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
-        if ( adcontrols::MassSpectrumPtr ptr = wptr.lock() ) {
+        if ( auto ptr = wptr.lock() ) {
             std::for_each( candidates.begin(), candidates.end(), [&] ( const adcontrols::Targeting::Candidate& c ){
                 detail::annotation_updator()(ptr, c.idx, c.fcn, c.formula);
                 emit formulaChanged( c.idx, c.fcn );
@@ -692,6 +707,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         o << "Lock mass with ";
 
         QVector< QPair<int, int> > refs;
+        std::vector< std::string > formulae;
 
         for ( int row: rows ) {
             
@@ -701,7 +717,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
                 if ( !refs.isEmpty() )
                     o << ", ";
                 o << formula.toStdString();
-                
+
                 int idx = model.data( model.index( row, c_mspeaktable_index ) ).toInt();
                 int fcn = model.data( model.index( row, c_mspeaktable_fcn ) ).toInt();
                 
@@ -714,8 +730,12 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         addActionsToMenu( menu, pt );
 
         if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
-            if ( selected == action_lock_mass )
-                emit triggerLockMass( refs );
+            if ( selected == action_lock_mass ) {
+                if ( !impl_->callback_.empty() )
+                    impl_->callback_( lockmass_triggered, refs );
+                else
+                    emit triggerLockMass( refs );
+            }
         }
     }
 }
@@ -757,8 +777,12 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
         } else {
             auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
             if ( auto ptr = wptr.lock() ) {
-                if ( detail::annotation_updator()( ptr, idx, fcn, formula ) )
-                    emit formulaChanged( idx, fcn );                    
+                if ( detail::annotation_updator()( ptr, idx, fcn, formula ) ) {
+                    if ( !impl_->callback_.empty() )
+                        impl_->callback_( formula_changed, QVector< QPair<int,int> >() );
+                    else
+                        emit formulaChanged( idx, fcn );
+                }
             }
         }
     }
