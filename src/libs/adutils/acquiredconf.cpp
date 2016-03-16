@@ -74,9 +74,7 @@ AcquiredConf::create_mslock( adfs::sqlite& db )
              ",formula     TEXT"
              ",exactMass   REAL"
              ",matchedMass REAL"
-             ",matchedTime REAL"
-             ",a           REAL"
-             ",b           REAL )"
+             ",matchedTime REAL)"
              ) )
         return true;
     
@@ -99,7 +97,7 @@ AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn
     adfs::stmt sql( db );
     sql.begin();
     for ( const auto& ref: lkms ) {
-        sql.prepare( "INSERT INTO MSLock VALUES(?,?,?,?,?,?,?,?,?)" );
+        sql.prepare( "INSERT INTO MSLock VALUES(?,?,?,?,?,?,?)" );
         int col = 1;
         sql.bind( col++ ) = objid;
         sql.bind( col++ ) = fcn;
@@ -108,12 +106,6 @@ AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn
         sql.bind( col++ ) = ref.exactMass();
         sql.bind( col++ ) = ref.matchedMass();
         sql.bind( col++ ) = ref.time();
-        sql.bind( col++ ) = lkms.coeffs()[0];
-        if ( lkms.coeffs().size() > 1 )
-            sql.bind( col++ ) = lkms.coeffs()[1];
-        else
-            sql.bind( col++ ) = 0;
-
         if ( sql.step() != adfs::sqlite_done )
             return false;
     }
