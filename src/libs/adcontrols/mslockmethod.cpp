@@ -140,6 +140,7 @@ MSLockMethod::setPeakIntensityThreshold( double value )
     peakIntensityThreshold_ = value;
 }
 
+#if 0
 void
 MSLockMethod::setReferences( const wchar_t * dataClass, const wchar_t * xml )
 {
@@ -158,4 +159,4 @@ MSLockMethod::xmlReferences() const
 {
     return xmlReferences_.c_str();
 }
-
+#endif

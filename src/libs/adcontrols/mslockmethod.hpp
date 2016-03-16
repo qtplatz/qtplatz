@@ -63,9 +63,9 @@ namespace adcontrols {
         idFindAlgorithm algorithm() const;
         void setAlgorithm( idFindAlgorithm );
 
-        void setReferences( const wchar_t * dataClass, const wchar_t * xml );
-        const wchar_t * xmlDataClass() const;
-        const wchar_t * xmlReferences() const;
+        // void setReferences( const wchar_t * dataClass, const wchar_t * xml );
+        // const wchar_t * xmlDataClass() const;
+        // const wchar_t * xmlReferences() const;
 
     private:
         bool enabled_;
@@ -75,27 +75,37 @@ namespace adcontrols {
         double toleranceDa_;
         double tolerancePpm_;
         double peakIntensityThreshold_;
-        std::wstring xmlDataClass_;
-        std::wstring xmlReferences_; // << lockmass::references
+        // std::wstring xmlDataClass_;
+        // std::wstring xmlReferences_; // << lockmass::references
 
         friend class boost::serialization::access;
         template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            (void)version;
-            ar & BOOST_SERIALIZATION_NVP(enabled_)
-                & BOOST_SERIALIZATION_NVP(toleranceMethod_)
-                & BOOST_SERIALIZATION_NVP(algorithm_)
-                & BOOST_SERIALIZATION_NVP(toleranceDa_)
-                & BOOST_SERIALIZATION_NVP(tolerancePpm_)
-                & BOOST_SERIALIZATION_NVP(peakIntensityThreshold_)
-                & BOOST_SERIALIZATION_NVP(xmlDataClass_)
-                & BOOST_SERIALIZATION_NVP(xmlReferences_)
-                ;
+            if ( version == 0 ) {
+                std::wstring xmlDataClass, xmlReferences;
+                ar & BOOST_SERIALIZATION_NVP(enabled_)
+                    & BOOST_SERIALIZATION_NVP(toleranceMethod_)
+                    & BOOST_SERIALIZATION_NVP(algorithm_)
+                    & BOOST_SERIALIZATION_NVP(toleranceDa_)
+                    & BOOST_SERIALIZATION_NVP(tolerancePpm_)
+                    & BOOST_SERIALIZATION_NVP(peakIntensityThreshold_)
+                    & BOOST_SERIALIZATION_NVP(xmlDataClass)
+                    & BOOST_SERIALIZATION_NVP(xmlReferences);
+            } else {
+                ar & BOOST_SERIALIZATION_NVP(enabled_);
+                ar & BOOST_SERIALIZATION_NVP(toleranceMethod_);
+                ar & BOOST_SERIALIZATION_NVP(algorithm_);
+                ar & BOOST_SERIALIZATION_NVP(toleranceDa_);
+                ar & BOOST_SERIALIZATION_NVP(tolerancePpm_);
+                ar & BOOST_SERIALIZATION_NVP(peakIntensityThreshold_);
+            }
         }
 
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::MSLockMethod, 1 )
 
 #endif // MSLOCKMETHOD_H
