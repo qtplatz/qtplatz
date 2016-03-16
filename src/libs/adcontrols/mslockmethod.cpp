@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,7 +24,71 @@
 **************************************************************************/
 
 #include "mslockmethod.hpp"
+#include "msfinder.hpp"
+#include "moltable.hpp"
 #include <adportable/is_equal.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/archive_exception.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+
+
+namespace adcontrols {
+
+    template< typename T = MSLockMethod >
+    class MSLockMethod_archive {
+    public:
+        template< class Archive >
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
+            if ( version == 0 ) {
+                std::wstring xmlDataClass, xmlReferences;
+                ar & BOOST_SERIALIZATION_NVP(_.enabled_);
+                ar & BOOST_SERIALIZATION_NVP(_.toleranceMethod_);
+                ar & BOOST_SERIALIZATION_NVP(_.algorithm_);
+                ar & BOOST_SERIALIZATION_NVP(_.toleranceDa_);
+                ar & BOOST_SERIALIZATION_NVP(_.tolerancePpm_);
+                ar & BOOST_SERIALIZATION_NVP(_.peakIntensityThreshold_);
+                ar & BOOST_SERIALIZATION_NVP(xmlDataClass); // throw away
+                ar & BOOST_SERIALIZATION_NVP(xmlReferences); // throw away
+            } else {
+                ar & BOOST_SERIALIZATION_NVP(_.enabled_);
+                ar & BOOST_SERIALIZATION_NVP(_.toleranceMethod_);
+                ar & BOOST_SERIALIZATION_NVP(_.algorithm_);
+                ar & BOOST_SERIALIZATION_NVP(_.toleranceDa_);
+                ar & BOOST_SERIALIZATION_NVP(_.tolerancePpm_);
+                ar & BOOST_SERIALIZATION_NVP(_.peakIntensityThreshold_);
+                ar & BOOST_SERIALIZATION_NVP( *_.molecules_ );
+            }
+        }
+    };
+
+    template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        MSLockMethod_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        MSLockMethod_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        MSLockMethod_archive<>().serialize( ar, *this, version );
+    }
+    
+    template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        MSLockMethod_archive<>().serialize( ar, *this, version );
+    }    
+}
 
 using namespace adcontrols;
 
@@ -39,6 +103,7 @@ MSLockMethod::MSLockMethod() : enabled_( false )
                              , toleranceDa_( 0.2 )
                              , tolerancePpm_( 10.0 )
                              , peakIntensityThreshold_( 10000.0 )
+                             , molecules_( std::make_unique< moltable >() )
 {
 }
 
@@ -49,6 +114,7 @@ MSLockMethod::MSLockMethod(const MSLockMethod & t) : enabled_( t.enabled_ )
                                                    , toleranceDa_( t.toleranceDa_ )
                                                    , tolerancePpm_( t.tolerancePpm_ )
                                                    , peakIntensityThreshold_( t.peakIntensityThreshold_ )
+                                                   , molecules_( std::make_unique< moltable >( *t.molecules_ ))
 {
 }
 
@@ -62,6 +128,7 @@ MSLockMethod::operator=(const MSLockMethod& t)
     toleranceDa_ = t.toleranceDa_;
     tolerancePpm_ = t.tolerancePpm_;
     peakIntensityThreshold_ = t.peakIntensityThreshold_;
+    molecules_ = std::make_unique< moltable >( *t.molecules_ );
     return *this;
 }
 
@@ -140,23 +207,20 @@ MSLockMethod::setPeakIntensityThreshold( double value )
     peakIntensityThreshold_ = value;
 }
 
-#if 0
+const moltable&
+MSLockMethod::molecules() const
+{
+    return *molecules_;
+}
+
+moltable&
+MSLockMethod::molecules()
+{
+    return *molecules_;
+}
+
 void
-MSLockMethod::setReferences( const wchar_t * dataClass, const wchar_t * xml )
+MSLockMethod::setMolecules( const moltable& mols )
 {
-    xmlDataClass_ = dataClass;
-    xmlReferences_ = xml;
+    molecules_ = std::make_unique< moltable >( mols );
 }
-
-const wchar_t *
-MSLockMethod::xmlDataClass() const
-{
-    return xmlDataClass_.c_str();
-}
-
-const wchar_t *
-MSLockMethod::xmlReferences() const
-{
-    return xmlReferences_.c_str();
-}
-#endif

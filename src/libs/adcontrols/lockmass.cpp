@@ -143,6 +143,13 @@ lockmass::end() const
 {
     return references_.end();
 }
+
+const std::vector< double >&
+lockmass::coeffs() const
+{
+    return fitter_.coeffs_;
+}
+
 ///////////////////
 
 // static

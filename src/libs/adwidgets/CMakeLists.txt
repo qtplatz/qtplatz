@@ -52,7 +52,7 @@ set( ${PROJECT_NAME}_SOURCES
   filedialog.cpp
   findslopeform.cpp
   insttreeview.cpp
-  lockmassdialog.cpp
+  mslockdialog.cpp
   moldraw.hpp
   moldraw.cpp
   moltable.cpp
@@ -113,7 +113,7 @@ set( ${PROJECT_NAME}_HEADERS
   insttreeview.hpp
   peptidewidget.hpp
   peptidetable.hpp
-  lockmassdialog.hpp
+  mslockdialog.hpp
   moltable.hpp
   mspeaktable.hpp
   msquantable.hpp

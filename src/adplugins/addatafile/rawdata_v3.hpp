@@ -95,7 +95,7 @@ namespace addatafile {
 
             const std::vector< std::wstring > undefined_spectrometers() const { return undefined_spectrometers_; }
 
-            adfs::sqlite* db() override;
+            adfs::sqlite* db() const override;
         
             bool mslocker( adcontrols::lockmass&, uint32_t objid ) const override;
 

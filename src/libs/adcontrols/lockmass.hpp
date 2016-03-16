@@ -100,6 +100,7 @@ namespace adcontrols {
         typedef std::vector< reference >::const_iterator const_iterator;
         const_iterator begin() const;
         const_iterator end() const;
+        const std::vector< double >& coeffs() const;
         
     private:
         std::vector< reference > references_;

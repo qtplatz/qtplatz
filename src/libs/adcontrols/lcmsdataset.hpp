@@ -72,7 +72,7 @@ namespace adcontrols {
         virtual uint32_t findObjId( const std::wstring& /* traceId */) const { return 0; }
         virtual bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
                              , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const { return 0; }
-        virtual adfs::sqlite * db() { return 0; }
+        virtual adfs::sqlite * db() const { return 0; }
         virtual bool mslocker( lockmass&, uint32_t = 0 ) const { return 0; }
 
         // v3 data support

@@ -29,17 +29,17 @@
 #include <memory>
 
 namespace boost { namespace uuids { struct uuid; } }
-namespace adcontrols { class MSChromatogramMethod; }
+namespace adcontrols { class MSLockMethod; }
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT LockMassDialog : public QDialog {
+    class ADWIDGETSSHARED_EXPORT MSLockDialog : public QDialog {
         Q_OBJECT
     public:
-        explicit LockMassDialog( QWidget * parent = 0 );
+        explicit MSLockDialog( QWidget * parent = 0 );
 
-        void setContents( const adcontrols::MSChromatogramMethod& );
-        bool getContents( adcontrols::MSChromatogramMethod& ) const;
+        void setContents( const adcontrols::MSLockMethod& );
+        bool getContents( adcontrols::MSLockMethod& ) const;
 
     };
 

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,12 +22,16 @@
 **
 **************************************************************************/
 
-#include "lockmassdialog.hpp"
-#include "mschromatogramwidget.hpp"
+#include "mslockdialog.hpp"
+#include "mslockform.hpp"
+#include "moltable.hpp"
+#include <adcontrols/moltable.hpp>
+#include <adcontrols/mslockmethod.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QHeaderView>
+#include <QSplitter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QLabel>
@@ -37,36 +41,55 @@
 
 using namespace adwidgets;
 
-LockMassDialog::LockMassDialog( QWidget *parent ) : QDialog( parent )
+MSLockDialog::MSLockDialog( QWidget *parent ) : QDialog( parent )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
 
-        auto widget = new MSChromatogramWidget( this );
-        layout->addWidget( widget );
+        layout->setMargin( 0 );
+        layout->setSpacing( 2 );
+
+        if ( QSplitter * splitter = new QSplitter ) {
+            splitter->addWidget( ( new MSLockForm ) ); 
+            splitter->addWidget( ( new MolTable ) );
+            splitter->setStretchFactor( 0, 0 );
+            splitter->setStretchFactor( 1, 4 );
+            splitter->setOrientation ( Qt::Horizontal );
+            layout->addWidget( splitter );
+        }
+        if ( auto table = findChild< MolTable * >() )
+            table->onInitialUpdate();
 
         auto buttons = new QDialogButtonBox( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
         layout->addWidget( buttons );
 
-        widget->OnInitialUpdate();
         connect( buttons, &QDialogButtonBox::accepted, this, [&] () { QDialog::accept(); } );
         connect( buttons, &QDialogButtonBox::rejected, this, [&] () { QDialog::reject(); } );
     }
 
+    resize( 400, size().height() );
     adjustSize();
 }
 
 void
-LockMassDialog::setContents( const adcontrols::MSChromatogramMethod& cm )
+MSLockDialog::setContents( const adcontrols::MSLockMethod& cm )
 {
-    if ( auto widget = findChild< MSChromatogramWidget * >() )
-        widget->setContents( cm );
+    if ( auto table = findChild< MolTable * >() )
+        table->setContents( cm.molecules() );
+
+    if ( auto form = findChild< MSLockForm * >() )
+        form->setContents( cm );
 }
 
 bool
-LockMassDialog::getContents( adcontrols::MSChromatogramMethod& cm ) const
+MSLockDialog::getContents( adcontrols::MSLockMethod& cm ) const
 {
-    if ( auto widget = findChild< MSChromatogramWidget * >() )
-        return widget->getContents( cm );    
+    if ( auto form = findChild< MSLockForm * >() ) {
+        if ( form->getContents( cm ) ) {
+            if ( auto table = findChild< MolTable * >() ) 
+                table->getContents( cm.molecules() );
+            return true;
+        }
+    }
     return false;
 }
 

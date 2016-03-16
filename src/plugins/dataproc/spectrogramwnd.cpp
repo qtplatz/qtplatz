@@ -25,11 +25,14 @@
 #include "spectrogramwnd.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
+#include "dataprocessworker.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adcontrols/mschromatogrammethod.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adlog/logger.hpp>
@@ -41,7 +44,7 @@
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adwidgets/mspeaktable.hpp>
-#include <adwidgets/lockmassdialog.hpp>
+#include <adwidgets/mslockdialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qwt_plot_renderer.h>
 #include <QBoxLayout>
@@ -273,9 +276,10 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
         chromatogr_->setData( cp, 0 );
         chromatogr_->setTitle( (boost::format( "Chromatogram @ <i>m/z</i>=%.4f -- %.4f" ) % m1 % m2).str() );
 
+        // if ( w < 2 )
+        //     actions.emplace_back( menu.addAction( "Lock mass" ), [&](){ mslock(); } );
     } else {
-        if ( w < 2 && h < 2 )
-            actions.emplace_back( menu.addAction( "Create" ), [&](){ MainWindow::instance()->actCreateSpectrogram(); } );
+        actions.emplace_back( menu.addAction( "Create" ), [&](){ MainWindow::instance()->actCreateSpectrogram(); } );
     }
 
     if ( ! actions.empty() ) {
@@ -285,6 +289,38 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
                 ( it->second )();
         }
     }
+}
+
+bool
+SpectrogramWnd::mslock()
+{
+    adcontrols::MSLockMethod lockm;
+    adcontrols::ProcessMethod pm;
+    MainWindow::instance()->getProcessMethod( pm );
+    if ( auto it = pm.find< adcontrols::MSLockMethod >() ) {
+        lockm = *it;
+    } else {
+        if ( auto it = pm.find< adcontrols::MSChromatogramMethod >() )
+            lockm.setMolecules( it->molecules() );
+        if ( auto it = pm.find< adcontrols::TargetingMethod >() )
+            lockm.molecules() += it->molecules();
+    }
+
+    lockm.setEnabled( true );
+
+    adwidgets::MSLockDialog dlg(this);
+    dlg.setContents( lockm );
+
+    if ( dlg.exec() == QDialog::Accepted ) {
+        if ( dlg.getContents( lockm ) && !lockm.molecules().empty() ) {
+            if ( auto spectra = data_.lock() ) {
+                if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+                    DataprocessWorker::instance()->mslock( dp, spectra, lockm );
+            }
+        }
+    }
+
+    return true;
 }
 
 bool
@@ -307,36 +343,23 @@ SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const Q
         mols << v;
     }
 
-    adwidgets::LockMassDialog dlg(this);
-
-    if ( auto form = dlg.findChild< QWidget * >("adwidgets__MSChromatogramForm") ) {
-        if ( auto bbox = form->findChild< QDialogButtonBox * >("buttonBox") )
-            bbox->setEnabled( false );
-        if ( auto gbox = form->findChild< QGroupBox * >("groupBox") )
-            gbox->setEnabled( false );
-    }
-
+    adcontrols::MSLockMethod lockm;
     adcontrols::ProcessMethod pm;
     MainWindow::instance()->getProcessMethod( pm );
-    if ( auto it = pm.find< adcontrols::MSChromatogramMethod >() ) {
-        it->setMolecules( mols );
-        it->dataSource( adcontrols::MSChromatogramMethod::Centroid );
-        it->lockmass( true );
-        it->tolerance( mserr );
-        it->widthMethod( adcontrols::MSChromatogramMethod::widthInDa );
-        it->lower_limit( ref->getAcquisitionMassRange().first );
-        it->upper_limit( ref->getAcquisitionMassRange().second );
-        dlg.setContents( *it );
-    }
+    if ( auto it = pm.find< adcontrols::MSLockMethod >() ) 
+        lockm = *it;
+    lockm.setMolecules( mols );
+    lockm.setEnabled( true );
+    lockm.setTolerance( adcontrols::idToleranceDaltons, mserr );
 
-    std::vector< std::pair< std::string, double > > msrefs;
-    
+    adwidgets::MSLockDialog dlg(this);
+    dlg.setContents( lockm );
+
     if ( dlg.exec() == QDialog::Accepted ) {
-        adcontrols::MSChromatogramMethod cm;
-        if ( dlg.getContents( cm ) ) {
-            for ( auto& target : cm.molecules().data() ) {
-                if ( target.flags() ) 
-                    msrefs.push_back( std::make_pair( target.formula(), target.mass() ) );
+        if ( dlg.getContents( lockm ) && !lockm.molecules().empty() ) {
+            if ( auto spectra = data_.lock() ) {
+                if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
+                    DataprocessWorker::instance()->mslock( dp, spectra, lockm );
             }
         }
     }

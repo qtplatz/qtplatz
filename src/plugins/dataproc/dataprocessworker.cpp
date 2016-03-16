@@ -27,27 +27,35 @@
 #include "dataprochandler.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#include <adlog/logger.hpp>
-#include <adportable/debug.hpp>
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mschromatogramextractor.hpp>
+#include <adcontrols/msfinder.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <adwidgets/progresswnd.hpp>
-#include <adwidgets/datareaderchoicedialog.hpp>
+#include <adfs/sqlite.hpp>
+#include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
+#include <adutils/acquiredconf.hpp>
+#include <adwidgets/progresswnd.hpp>
+#include <adwidgets/datareaderchoicedialog.hpp>
 #include <coreplugin/icore.h>
 #include <QMessageBox>
 #include <boost/format.hpp>
@@ -74,7 +82,6 @@ DataprocessWorker::instance()
     static DataprocessWorker __instance;
     return &__instance;
 }
-
 
 
 void
@@ -201,7 +208,7 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
             if ( dlg.exec() == QDialog::Accepted ) {
                 int fcn = dlg.fcn();
                 if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, reader, fcn, p ); } ) );
+                    threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, reader.get(), fcn, p ); } ) );
             }
         } else {
             threads_.push_back( adportable::asio::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
@@ -240,6 +247,29 @@ DataprocessWorker::findPeptide( Dataprocessor * processor, const adprot::digeste
 }
 
 void
+DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrols::MassSpectra > spectra, const adcontrols::MSLockMethod& lockm )
+{
+    if ( spectra->size() == 0 )
+        return;
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+	if ( threads_.empty() )
+		threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
+
+    if ( spectra->mslocked() ) {
+        int result = QMessageBox::question( MainWindow::instance()
+                                            , QObject::tr("Already mass locked")
+                                            , QObject::tr( "delete assigned masses?" )
+                                            , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+        if ( result == QMessageBox::No ) 
+            return;
+    }
+
+    auto p( adwidgets::ProgressWnd::instance()->addbar() );
+    threads_.push_back( adportable::asio::thread( [=] { handleMSLock( processor, spectra, lockm, p ); } ) );
+}
+
+void
 DataprocessWorker::join( const adportable::asio::thread::id& id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -253,9 +283,9 @@ DataprocessWorker::join( const adportable::asio::thread::id& id )
 
 void
 DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
-                                            , const adcontrols::MSChromatogramMethod& cm
-                                            , std::shared_ptr< const adcontrols::ProcessMethod > pm
-                                            , std::shared_ptr<adwidgets::Progress> progress )
+                                                , const adcontrols::MSChromatogramMethod& cm
+                                                , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                                , std::shared_ptr<adwidgets::Progress> progress )
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
@@ -329,6 +359,67 @@ DataprocessWorker::handleCreateChromatogramsV3( Dataprocessor * processor
 
 }
 
+void
+DataprocessWorker::handleMSLock( Dataprocessor * processor
+                                 , std::shared_ptr< adcontrols::MassSpectra > spectra
+                                 , const adcontrols::MSLockMethod& lockm
+                                 , std::shared_ptr<adwidgets::Progress> progress )                                 
+{
+    if ( spectra->size() == 0 )
+        return;
+
+    progress->setRange( 0, static_cast<int>( spectra->size() ) );
+
+    adcontrols::MSFinder finder( lockm.tolerance( lockm.toleranceMethod() ), lockm.algorithm(), lockm.toleranceMethod() );
+    const auto& mols = lockm.molecules();
+
+    int fcn = ( *spectra->begin() )->protocolId();
+    const auto& objid = ( *spectra->begin() )->dataReaderUuid();
+
+    adfs::sqlite * db(0);
+    if ( auto rawfile = processor->getLCMSDataset() ) {
+        if ( rawfile->dataformat_version() >= 3 ) {
+            if ( db = rawfile->db() ) {
+                adutils::AcquiredConf::create_mslock( *db );
+                adutils::AcquiredConf::delete_mslock( *db, objid, fcn );
+            }
+        }
+        if ( spectra->mslocked() ) {
+            for ( auto& ms : *spectra ) {
+                auto reader = rawfile->dataReader( ms->dataReaderUuid() );
+                reader->massSpectrometer()->assignMasses( *ms );
+            }
+        }
+    }
+
+    int pos(0);
+    spectra->setMSLocked( true );
+
+    for ( auto ms: *spectra ) {
+
+        if ( ms->isCentroid() ) {
+
+            adcontrols::lockmass lkms;
+            for ( const auto& mol: mols.data() ) {
+                auto idx = finder( *ms, mol.mass() );
+                if ( idx != adcontrols::MSFinder::npos ) {
+                    lkms << adcontrols::lockmass::reference( mol.formula(), mol.mass(), ms->getMass( idx ), ms->getTime( idx ) );
+                    ms->addAnnotation( adcontrols::annotation( mol.formula(), mol.mass(), ms->getIntensity( idx ), int(idx), 999, adcontrols::annotation::dataFormula ) );
+                }
+            }
+            if ( lkms.fit() ) {
+                lkms( *ms );
+                if ( db ) 
+                    adutils::AcquiredConf::insert( *db, objid, fcn, ms->rowid(), lkms );
+            }
+        }
+        (*progress)( pos++ );
+    }
+    
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
+}
+
+
 
 void
 DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
@@ -383,7 +474,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
 void
 DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm
-                                            , std::shared_ptr< const adcontrols::DataReader > reader
+                                            , const adcontrols::DataReader * reader
                                             , int fcn
                                             , std::shared_ptr<adwidgets::Progress> progress )
 {
@@ -417,7 +508,8 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
             }
 
         }
-        spectra->addDescription( adcontrols::description( L"Create", (boost::wformat( L"fcn(%d)" ) % fcn ).str() ) );
+        using adportable::utf;
+        spectra->addDescription( adcontrols::description( L"Create", ( boost::wformat( L"%s,fcn(%d)" ) % utf::to_wstring( reader->display_name() ) % fcn ).str() ) );
         portfolio::Folium folium = processor->addSpectrogram( spectra );
         SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
     }
@@ -497,3 +589,4 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
+

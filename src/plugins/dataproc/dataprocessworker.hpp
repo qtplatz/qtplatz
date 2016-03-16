@@ -33,9 +33,16 @@
 #include <vector>
 
 namespace adcontrols {
-    class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis: unsigned int;
-    class DataReader; class MSPeakInfoItem;
+    enum hor_axis: unsigned int;
+    class MassSpectra;
+    class MassSpectrum;
+    class ProcessMethod;
+    class MSChromatogramMethod;
+    class DataReader;
+    class MSPeakInfoItem;
+    class MSLockMethod;
 }
+
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  }
 namespace boost { namespace uuids { struct uuid; } }
@@ -75,6 +82,7 @@ namespace dataproc {
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
         void findPeptide( Dataprocessor *, const adprot::digestedPeptides& );
+        void mslock( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectra >, const adcontrols::MSLockMethod& );
 
     private:
 
@@ -108,7 +116,7 @@ namespace dataproc {
         // for v3 data format
         void handleCreateSpectrogram( Dataprocessor *
                                       , std::shared_ptr< const adcontrols::ProcessMethod >
-                                      , std::shared_ptr< const adcontrols::DataReader >
+                                      , const adcontrols::DataReader *
                                       , int fcn
                                       , std::shared_ptr<adwidgets::Progress> );
         
@@ -119,6 +127,11 @@ namespace dataproc {
         void handleFindPeptide( Dataprocessor *
                                 , const std::shared_ptr< adcontrols::ProcessMethod >
                                 , std::shared_ptr<adwidgets::Progress> );
+        
+        void handleMSLock( Dataprocessor *
+                           , std::shared_ptr< adcontrols::MassSpectra >
+                           , const adcontrols::MSLockMethod&
+                           , std::shared_ptr<adwidgets::Progress> );
 
         void join( const adportable::asio::thread::id& );
     };

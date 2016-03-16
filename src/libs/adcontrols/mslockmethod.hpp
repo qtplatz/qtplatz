@@ -30,16 +30,22 @@
 
 #include <compiler/disable_dll_interface.h>
 #include "adcontrols_global.h"
-#include "msfinder.hpp"
-#include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <string>
+#include <memory>
+
+namespace boost {
+    namespace serialization { class access; }
+}
 
 namespace adcontrols {
 
     enum idToleranceMethod : int;
     enum idFindAlgorithm : int;
+    class moltable;
 
+    template< typename T > class MSLockMethod_archive;
+    
     class ADCONTROLSSHARED_EXPORT MSLockMethod {
     public:
 		~MSLockMethod(void);
@@ -63,9 +69,9 @@ namespace adcontrols {
         idFindAlgorithm algorithm() const;
         void setAlgorithm( idFindAlgorithm );
 
-        // void setReferences( const wchar_t * dataClass, const wchar_t * xml );
-        // const wchar_t * xmlDataClass() const;
-        // const wchar_t * xmlReferences() const;
+        const moltable& molecules() const;
+        moltable& molecules();
+        void setMolecules( const moltable& );
 
     private:
         bool enabled_;
@@ -75,33 +81,12 @@ namespace adcontrols {
         double toleranceDa_;
         double tolerancePpm_;
         double peakIntensityThreshold_;
-        // std::wstring xmlDataClass_;
-        // std::wstring xmlReferences_; // << lockmass::references
+        std::unique_ptr< moltable > molecules_;
 
         friend class boost::serialization::access;
-        template<class Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-            using namespace boost::serialization;
-            if ( version == 0 ) {
-                std::wstring xmlDataClass, xmlReferences;
-                ar & BOOST_SERIALIZATION_NVP(enabled_)
-                    & BOOST_SERIALIZATION_NVP(toleranceMethod_)
-                    & BOOST_SERIALIZATION_NVP(algorithm_)
-                    & BOOST_SERIALIZATION_NVP(toleranceDa_)
-                    & BOOST_SERIALIZATION_NVP(tolerancePpm_)
-                    & BOOST_SERIALIZATION_NVP(peakIntensityThreshold_)
-                    & BOOST_SERIALIZATION_NVP(xmlDataClass)
-                    & BOOST_SERIALIZATION_NVP(xmlReferences);
-            } else {
-                ar & BOOST_SERIALIZATION_NVP(enabled_);
-                ar & BOOST_SERIALIZATION_NVP(toleranceMethod_);
-                ar & BOOST_SERIALIZATION_NVP(algorithm_);
-                ar & BOOST_SERIALIZATION_NVP(toleranceDa_);
-                ar & BOOST_SERIALIZATION_NVP(tolerancePpm_);
-                ar & BOOST_SERIALIZATION_NVP(peakIntensityThreshold_);
-            }
-        }
-
+        template<class Archive> void serialize( Archive& ar, const unsigned int version );
+        friend class MSLockMethod_archive< MSLockMethod >;
+        friend class MSLockMethod_archive< const MSLockMethod >;
     };
 
 }

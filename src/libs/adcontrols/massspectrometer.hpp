@@ -69,7 +69,7 @@ namespace adcontrols {
 
         // v3 and later versions
         virtual void setAcceleratorVoltage( double acclVolts, double tDelay ) { return; }
-        virtual bool assignMasses( adcontrols::MassSpectrum& ) { return false; }
+        virtual bool assignMasses( adcontrols::MassSpectrum& ) const { return false; }
 
         virtual const char * objtext() const = 0;
         virtual const boost::uuids::uuid& objclsid() const = 0;

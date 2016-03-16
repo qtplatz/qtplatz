@@ -45,10 +45,6 @@ namespace adcontrols {
             uint32_t flags_;
             double mass_;
             double abundance_;
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
             std::string formula_;
             std::string adducts_;
             std::string synonym_;
@@ -56,9 +52,6 @@ namespace adcontrols {
             std::wstring description_;
             std::vector < std::pair< std::string, custom_type > > customValues_;
 
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
         public:
             bool& enable() { return enable_; }
             uint32_t& flags() { return flags_; }
@@ -103,6 +96,7 @@ namespace adcontrols {
         moltable();
         moltable( const moltable& );
         moltable& operator = ( const moltable& );
+        moltable& operator += ( const moltable& );
         
         const std::vector< value_type >& data() const;
         std::vector< value_type >& data();

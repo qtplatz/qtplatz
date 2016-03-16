@@ -73,7 +73,7 @@ rawdata::rawdata( adfs::filesystem& dbf
 }
 
 adfs::sqlite *
-rawdata::db()
+rawdata::db() const
 {
     return &dbf_.db();
 }

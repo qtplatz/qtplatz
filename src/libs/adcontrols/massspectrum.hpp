@@ -72,6 +72,7 @@ namespace adcontrols {
         class MassSpectrumImpl;
     }
     
+    class annotation;
     class description;
     class descriptions;
     class MSCalibration;
@@ -166,11 +167,15 @@ namespace adcontrols {
         void set_annotations( const annotations& );
         const annotations& get_annotations() const;
 		annotations& get_annotations();
+        void addAnnotation( annotation&& a, bool uniq = true );
 
         int32_t protocolId() const;
         int32_t nProtocols() const;
         void protocolId( int32_t );
         void nProtocols( int32_t );
+
+        int64_t rowid() const;
+        void setRowid( int64_t );
 
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );

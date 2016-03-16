@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "acquiredconf.hpp"
+#include <adcontrols/lockmass.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <typeinfo>
@@ -58,6 +59,66 @@ AcquiredConf::create_table( adfs::sqlite& db )
         return true;
     
     return false;
+}
+
+// static
+bool
+AcquiredConf::create_mslock( adfs::sqlite& db )
+{
+    adfs::stmt sql( db );
+    if ( sql.exec(
+             "CREATE TABLE IF NOT EXISTS MSLock ("
+             " objid       UUID"
+             ",fcn         INTEGER"
+             ",rowid       INTEGER"
+             ",formula     TEXT"
+             ",exactMass   REAL"
+             ",matchedMass REAL"
+             ",matchedTime REAL"
+             ",a           REAL"
+             ",b           REAL )"
+             ) )
+        return true;
+    
+    return false;
+}
+
+bool
+AcquiredConf::delete_mslock( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn )
+{
+    adfs::stmt sql( db );
+    sql.prepare( "DELETE FROM MSLock WHERE objid = ? AND fcn = ?" );
+    sql.bind( 1 ) = objid;
+    sql.bind( 2 ) = fcn;
+    return sql.step() == adfs::sqlite_done;
+}
+
+bool
+AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn, int64_t rowid, const adcontrols::lockmass& lkms )
+{
+    adfs::stmt sql( db );
+    sql.begin();
+    for ( const auto& ref: lkms ) {
+        sql.prepare( "INSERT INTO MSLock VALUES(?,?,?,?,?,?,?,?,?)" );
+        int col = 1;
+        sql.bind( col++ ) = objid;
+        sql.bind( col++ ) = fcn;
+        sql.bind( col++ ) = rowid;
+        sql.bind( col++ ) = ref.formula();
+        sql.bind( col++ ) = ref.exactMass();
+        sql.bind( col++ ) = ref.matchedMass();
+        sql.bind( col++ ) = ref.time();
+        sql.bind( col++ ) = lkms.coeffs()[0];
+        if ( lkms.coeffs().size() > 1 )
+            sql.bind( col++ ) = lkms.coeffs()[1];
+        else
+            sql.bind( col++ ) = 0;
+
+        if ( sql.step() != adfs::sqlite_done )
+            return false;
+    }
+    sql.commit();
+    return true;
 }
 
 // static

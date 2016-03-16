@@ -32,6 +32,7 @@
 
 namespace adfs { class sqlite; }
 
+namespace adcontrols { class lockmass; }
 
 namespace adutils {
 
@@ -92,6 +93,11 @@ namespace adutils {
         static bool fetch( adfs::sqlite& dbf, std::vector< data >& );
 
         static bool create_table( adfs::sqlite& db );
+
+        static bool create_mslock( adfs::sqlite& db );
+        static bool delete_mslock( adfs::sqlite& db, const boost::uuids::uuid&, int fcn );
+        static bool insert( adfs::sqlite& db, const boost::uuids::uuid& reader, int fcn, int64_t rowid, const adcontrols::lockmass& );
+        
     };
 
 }

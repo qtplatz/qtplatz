@@ -500,6 +500,7 @@ DataReader::getSpectrum( int64_t rowid ) const
                     }
                     
                     ptr->setDataReaderUuid( objid_ );
+                    ptr->setRowid( rowid );
 
                     return ptr;
                 }

@@ -43,6 +43,7 @@ namespace dataproc {
 
     private:
         bool mslock( std::shared_ptr< adcontrols::MassSpectrum >, const QVector< QPair<int, int> >& );
+        bool mslock();
 
     signals:
 

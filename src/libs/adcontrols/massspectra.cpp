@@ -41,21 +41,18 @@ namespace adcontrols {
     MassSpectra::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
-        if ( version >= 2 )
-            ar & *descriptions_;
+        ar & *descriptions_;
+        ar & mslocked_;
     }
 
     template<> void
     MassSpectra::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        if ( version == 0 ) {
-            // adportable/serialization_shared_ptr.hpp
-            ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
-        } else {
-            ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
-        }
+        ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
         if ( version >= 2 )
             ar & *descriptions_;
+        if ( version >= 3 )
+            ar & mslocked_;
     }
 
 }
@@ -70,6 +67,7 @@ MassSpectra::MassSpectra() : lower_mass_( 0 )
                            , upper_mass_( 0 )
                            , z_max_( 0 )
                            , descriptions_( std::make_unique< descriptions >() )
+                           , mslocked_( false )
 {
 }
 
@@ -78,6 +76,7 @@ MassSpectra::MassSpectra( const MassSpectra& t ) : vec_( t.vec_ )
                                                  , lower_mass_( t.lower_mass_ )
                                                  , upper_mass_( t.upper_mass_ )
                                                  , z_max_( t.z_max_ )
+                                                 , mslocked_( t.mslocked_ )
 {
 }
 
@@ -216,6 +215,18 @@ const descriptions&
 MassSpectra::getDescriptions() const
 {
 	return *descriptions_;
+}
+
+void
+MassSpectra::setMSLocked( bool f )
+{
+    mslocked_ = f;
+}
+
+bool
+MassSpectra::mslocked() const
+{
+    return mslocked_;
 }
 
 bool
