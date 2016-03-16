@@ -45,6 +45,8 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <qwt_plot_renderer.h>
 #include <QBoxLayout>
+#include <QDialogButtonBox>
+#include <QGroupBox>
 #include <QMenu>
 #include <QPrinter>
 #include <QPrintDialog>
@@ -289,13 +291,17 @@ bool
 SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVector< QPair<int, int> >& indecies )
 {
     adcontrols::lockmass lkms;
-    for ( auto& index: indecies )
+    for ( auto& index : indecies ) 
         adcontrols::lockmass::findReferences( lkms, *ref, index.first, index.second );
+    double mserr( 0.010 );
+    for ( auto m : lkms ) 
+        mserr = std::max( mserr, std::abs( m.exactMass() - m.matchedMass() ) * 1.05 );
 
     adcontrols::moltable mols;
     for ( auto& mol : lkms ) {
         adcontrols::moltable::value_type v;
         v.enable() = true;
+        v.setIsMSRef( true );
         v.formula() = mol.formula();
         v.mass() = mol.exactMass();
         mols << v;
@@ -303,10 +309,23 @@ SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const Q
 
     adwidgets::LockMassDialog dlg(this);
 
+    if ( auto form = dlg.findChild< QWidget * >("adwidgets__MSChromatogramForm") ) {
+        if ( auto bbox = form->findChild< QDialogButtonBox * >("buttonBox") )
+            bbox->setEnabled( false );
+        if ( auto gbox = form->findChild< QGroupBox * >("groupBox") )
+            gbox->setEnabled( false );
+    }
+
     adcontrols::ProcessMethod pm;
     MainWindow::instance()->getProcessMethod( pm );
     if ( auto it = pm.find< adcontrols::MSChromatogramMethod >() ) {
         it->setMolecules( mols );
+        it->dataSource( adcontrols::MSChromatogramMethod::Centroid );
+        it->lockmass( true );
+        it->tolerance( mserr );
+        it->widthMethod( adcontrols::MSChromatogramMethod::widthInDa );
+        it->lower_limit( ref->getAcquisitionMassRange().first );
+        it->upper_limit( ref->getAcquisitionMassRange().second );
         dlg.setContents( *it );
     }
 
@@ -316,9 +335,8 @@ SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const Q
         adcontrols::MSChromatogramMethod cm;
         if ( dlg.getContents( cm ) ) {
             for ( auto& target : cm.molecules().data() ) {
-                if ( target.flags() ) {
+                if ( target.flags() ) 
                     msrefs.push_back( std::make_pair( target.formula(), target.mass() ) );
-                }
             }
         }
     }
