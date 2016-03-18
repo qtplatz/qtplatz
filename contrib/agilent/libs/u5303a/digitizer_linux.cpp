@@ -696,7 +696,13 @@ task::handle_acquire()
                 }
             }
             return true;
+        } else {
+            ADDEBUG() << "Acquisition timed out";
         }
+    } else {
+        std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+        if ( ! spDriver_->isIdle() )
+            spDriver_->Abort();
     }
     return false;
 }
