@@ -66,6 +66,7 @@
 #include <functional>
 #include <chrono>
 #include <iomanip>
+#include <fstream>
 
 using namespace dataproc;
 
@@ -409,7 +410,7 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
     adfs::sqlite * db(0);
     if ( auto rawfile = processor->getLCMSDataset() ) {
         if ( rawfile->dataformat_version() >= 3 ) {
-            if ( db = rawfile->db() ) {
+            if ( ( db = rawfile->db() ) ) {
                 adutils::AcquiredConf::create_mslock( *db );
                 adutils::AcquiredConf::delete_mslock( *db, objid, fcn );
             }
@@ -471,35 +472,37 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
         std::string name = ( boost::format( "%s_%s_%d.txt" ) % base.string() % mol.formula() % (*spectra->begin())->mode() ).str();
         std::ofstream outf( name );
         
-        auto drift = std::make_shared< adcontrols::MassSpectrum >();
-        drift->resize( spectra->size() );
-
-        size_t pos( 0 );
+        // auto drift = std::make_shared< adcontrols::MassSpectrum >();
+        // drift->resize( spectra->size() );
+        
         int nprog( 0 );
-        std::vector< double > times, masses;
+        std::vector< double > masses, times;
         for ( auto& ms : *spectra ) {
             (*progress)( nprog++ );
             if ( auto idx = finder( *ms, mol.mass() ) ) {
                 times.push_back( ms->getMSProperty().timeSinceInjection() - t0 );
                 masses.push_back( ms->getMass( idx ) );
-                outf << std::fixed << std::setprecision( 14 ) << times.back() << "," << masses.back() << std::endl;
             }
         }
-#if 0
-        auto sum = std::accumulate( masses.begin(), masses.end(), double(0), []( 
-                avg += 
-                navg++;
-                drift->setIntensity( pos, ms->getMass( idx ) );
-                drift->setTime( pos, ms->getMSProperty().timeSinceInjection() - t0 );
-                ++pos;
-                }
-        }
-#endif
+        // auto mean = std::accumulate( masses.begin(), masses.end(), double(0) ) / masses.size();
+        // auto sdsum = std::accumulate( masses.begin(), masses.end(), double(0), [&]( double a, double b ){ return a + ( b - mean ) * ( b - mean ); } );
+        // double sd = std::sqrt( sdsum / ( masses.size() - 1 ) );
+        // std::transform( masses.begin(), masses.end(), masses.begin(), [&]( double d ){ return std::abs( d - mean ) > 0.010 ? mean : d ; } );
+
+        auto drift = std::make_shared< adcontrols::Chromatogram >();
+        drift->resize( masses.size() );
+        
+        drift->setIntensityArray( masses.data() );
+        drift->setTimeArray( times.data() );
+
+        for ( size_t i = 0; i < drift->size(); ++i )
+            outf << std::fixed << std::setprecision( 14 ) << times[i] << "," << masses[i] << std::endl;
+            
         drift->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( mol.formula() ) ) );
         for ( auto& desc: spectra->getDescriptions() )
             drift->addDescription( desc );
         
-        auto folium = processor->addSpectrum( *drift, m );
+        auto folium = processor->addChromatogram( *drift, m );
     }
     
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );    

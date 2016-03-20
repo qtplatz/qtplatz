@@ -218,7 +218,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             }
 
             // todo: find spectrometer iid, assing acclVoltage to massspectrometer class
-            if ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) 
+            if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) ) 
                 spectrometer_->setAcceleratorVoltage( acclVoltage, tDelay );
 
         }
