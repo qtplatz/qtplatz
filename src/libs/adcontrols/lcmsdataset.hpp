@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -45,12 +45,13 @@ namespace adcontrols {
     class Chromatogram;
     class MassSpectrum;
 	class MSCalibrateResult;
+    class MSFractuation;
 
     // v3 dataformat only
     class DataReader;
     //
 
-    class LCMSDataset : public AcquiredDataset {
+    class ADCONTROLSSHARED_EXPORT LCMSDataset : public AcquiredDataset {
     public:
         // LCMSDataset();
         virtual size_t getFunctionCount() const = 0;
@@ -80,7 +81,8 @@ namespace adcontrols {
         virtual size_t dataReaderCount() const { return 0; }
         virtual const adcontrols::DataReader * dataReader( size_t idx ) const { return nullptr; }
         virtual const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const { return nullptr; }
-        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible = false ) const { return std::vector < std::shared_ptr< const adcontrols::DataReader > >(); }
+        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible = false ) const;
+        virtual adcontrols::MSFractuation * msFractuation() const;
 	};
 
 }

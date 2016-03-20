@@ -68,25 +68,25 @@ mslock::operator << ( const reference& t )
 }
 
 reference::reference() : exactMass_(0)
-                                 , matchedMass_(0)
-                                 , time_(0)
+                       , matchedMass_(0)
+                       , time_(0)
 {
 }
 
 reference::reference( const reference& t ) : formula_( t.formula_ )
-                                                               , exactMass_( t.exactMass_ )
-                                                               , matchedMass_( t.matchedMass_ )
-                                                               , time_( t.time_ )
+                                           , exactMass_( t.exactMass_ )
+                                           , matchedMass_( t.matchedMass_ )
+                                           , time_( t.time_ )
 {
 }
 
 reference::reference( const std::string& formula
-                                , double exactMass
-                                , double matchedMass
-                                , double time ) : formula_( formula )
-                                                 , exactMass_( exactMass )
-                                                 , matchedMass_( matchedMass )
-                                                 , time_( time )
+                      , double exactMass
+                      , double matchedMass
+                      , double time ) : formula_( formula )
+                                      , exactMass_( exactMass )
+                                      , matchedMass_( matchedMass )
+                                      , time_( time )
 {
 }
 
@@ -149,6 +149,12 @@ const std::vector< double >&
 mslock::coeffs() const
 {
     return fitter_.coeffs();
+}
+
+const lockmass::fitter&
+mslock::fitter() const
+{
+    return fitter_;
 }
 
 ///////////////////

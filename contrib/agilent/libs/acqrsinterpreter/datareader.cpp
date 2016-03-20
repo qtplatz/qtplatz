@@ -218,7 +218,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             }
 
             // todo: find spectrometer iid, assing acclVoltage to massspectrometer class
-            if ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) )
+            if ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) 
                 spectrometer_->setAcceleratorVoltage( acclVoltage, tDelay );
 
         }
@@ -611,7 +611,7 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
     return nullptr;    
 }
 
-std::shared_ptr< const adcontrols::MassSpectrometer >
+std::shared_ptr< adcontrols::MassSpectrometer >
 DataReader::massSpectrometer() const
 {
     return spectrometer_;

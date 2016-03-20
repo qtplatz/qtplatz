@@ -33,6 +33,7 @@
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -43,6 +44,7 @@
 #include <adcontrols/msfinder.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targetingmethod.hpp>
@@ -56,11 +58,14 @@
 #include <adutils/acquiredconf.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
+#include <adwidgets/mslockdialog.hpp>
 #include <coreplugin/icore.h>
 #include <QMessageBox>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
 #include <functional>
 #include <chrono>
+#include <iomanip>
 
 using namespace dataproc;
 
@@ -270,6 +275,31 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
 }
 
 void
+DataprocessWorker::exportMatchedMasses( Dataprocessor * processor
+                                        , std::shared_ptr< const adcontrols::MassSpectra > spectra
+                                        , const std::wstring& foliumId )
+{
+    if ( spectra->size() == 0 )
+        return;
+
+    adcontrols::MSLockMethod lockm;
+    lockm.setEnabled( true );
+    
+    adwidgets::MSLockDialog dlg;
+    dlg.setContents( lockm );
+    
+    if ( dlg.exec() == QDialog::Accepted ) {
+
+        if ( dlg.getContents( lockm ) && !lockm.molecules().empty() ) {
+            
+            auto p( adwidgets::ProgressWnd::instance()->addbar() );
+            threads_.push_back( adportable::asio::thread( [=] { handleExportMatchedMasses( processor, spectra, lockm, p ); } ) );
+        }
+    }
+}
+
+
+void
 DataprocessWorker::join( const adportable::asio::thread::id& id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -418,6 +448,62 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
+void
+DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
+                                              , std::shared_ptr< const adcontrols::MassSpectra > spectra
+                                              , const adcontrols::MSLockMethod& lockm
+                                              , std::shared_ptr<adwidgets::Progress> progress )                                 
+{
+    auto& mols = lockm.molecules();
+    progress->setRange( 0, static_cast<int>( spectra->size() * mols.data().size() ) );
+
+    adcontrols::ProcessMethod m;
+    m << lockm;
+    
+    adcontrols::MSFinder finder( lockm.tolerance( lockm.toleranceMethod() ), lockm.algorithm(), lockm.toleranceMethod() );
+
+    boost::filesystem::path base = boost::filesystem::path( processor->filename() ).parent_path() / boost::filesystem::path( processor->filename() ).stem();
+
+    int nprog( 0 );
+    for ( auto& mol : lockm.molecules().data() ) {
+
+        double t0 = (*spectra->begin())->getMSProperty().timeSinceInjection();
+        std::string name = ( boost::format( "%s_%s_%d.txt" ) % base.string() % mol.formula() % (*spectra->begin())->mode() ).str();
+        std::ofstream outf( name );
+        
+        auto drift = std::make_shared< adcontrols::MassSpectrum >();
+        drift->resize( spectra->size() );
+
+        size_t pos( 0 );
+        int nprog( 0 );
+        std::vector< double > times, masses;
+        for ( auto& ms : *spectra ) {
+            (*progress)( nprog++ );
+            if ( auto idx = finder( *ms, mol.mass() ) ) {
+                times.push_back( ms->getMSProperty().timeSinceInjection() - t0 );
+                masses.push_back( ms->getMass( idx ) );
+                outf << std::fixed << std::setprecision( 14 ) << times.back() << "," << masses.back() << std::endl;
+            }
+        }
+#if 0
+        auto sum = std::accumulate( masses.begin(), masses.end(), double(0), []( 
+                avg += 
+                navg++;
+                drift->setIntensity( pos, ms->getMass( idx ) );
+                drift->setTime( pos, ms->getMSProperty().timeSinceInjection() - t0 );
+                ++pos;
+                }
+        }
+#endif
+        drift->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( mol.formula() ) ) );
+        for ( auto& desc: spectra->getDescriptions() )
+            drift->addDescription( desc );
+        
+        auto folium = processor->addSpectrum( *drift, m );
+    }
+    
+    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );    
+}
 
 
 void

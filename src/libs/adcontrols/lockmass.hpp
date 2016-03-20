@@ -110,10 +110,11 @@ namespace adcontrols {
             const_iterator begin() const;
             const_iterator end() const;
             const std::vector< double >& coeffs() const;
+            const fitter& fitter() const;
             
         private:
             std::vector< reference > references_;
-            fitter fitter_;
+            lockmass::fitter fitter_;
             
             friend class boost::serialization::access;
             template<class Archive>

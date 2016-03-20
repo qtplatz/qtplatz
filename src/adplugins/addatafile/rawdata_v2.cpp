@@ -195,6 +195,12 @@ rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcon
 }
 
 void
+rawdata::loadMSFractuation()
+{
+
+}
+
+void
 rawdata::loadCalibrations()
 {
     // using adportable::serializer;

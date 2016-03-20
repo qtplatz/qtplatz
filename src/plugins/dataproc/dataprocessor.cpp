@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,6 +48,7 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/msfractuation.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -1383,4 +1384,23 @@ Dataprocessor::exportXML() const
     boost::filesystem::path path( filename() );
     path += ".xml";
     portfolio_->save( path.wstring() );
+}
+
+void
+Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra )
+{
+    if ( auto rawfile = getLCMSDataset() ) {
+        auto msfractuation = rawfile->msFractuation();
+
+        for ( auto& ms : *spectra ) {
+            auto fitter = msfractuation->find( ms->rowid() );
+            fitter( *ms );
+        }
+    }
+}
+
+void
+Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > spectra, const std::wstring& foliumId )
+{
+    DataprocessWorker::instance()->exportMatchedMasses( this, spectra, foliumId );
 }

@@ -83,6 +83,7 @@ namespace dataproc {
 		void clusterSpectrogram( Dataprocessor * );
         void findPeptide( Dataprocessor *, const adprot::digestedPeptides& );
         void mslock( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectra >, const adcontrols::MSLockMethod& );
+        void exportMatchedMasses( Dataprocessor *, std::shared_ptr< const adcontrols::MassSpectra >, const std::wstring& foliumId );
 
     private:
 
@@ -132,6 +133,11 @@ namespace dataproc {
                            , std::shared_ptr< adcontrols::MassSpectra >
                            , const adcontrols::MSLockMethod&
                            , std::shared_ptr<adwidgets::Progress> );
+
+        void handleExportMatchedMasses( Dataprocessor *
+                                        , std::shared_ptr< const adcontrols::MassSpectra >
+                                        , const adcontrols::MSLockMethod&
+                                        , std::shared_ptr<adwidgets::Progress> );
 
         void join( const adportable::asio::thread::id& );
     };

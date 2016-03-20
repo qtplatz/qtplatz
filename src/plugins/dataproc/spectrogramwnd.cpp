@@ -276,8 +276,9 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
         chromatogr_->setData( cp, 0 );
         chromatogr_->setTitle( (boost::format( "Chromatogram @ <i>m/z</i>=%.4f -- %.4f" ) % m1 % m2).str() );
 
-        // if ( w < 2 )
+        //if ( w < 2 )
         //     actions.emplace_back( menu.addAction( "Lock mass" ), [&](){ mslock(); } );
+
     } else {
         actions.emplace_back( menu.addAction( "Create" ), [&](){ MainWindow::instance()->actCreateSpectrogram(); } );
     }

@@ -709,9 +709,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
-                //menu.add( tr( "Check all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
-                //menu.add( tr( "Uncheck all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
-            
                 portfolio::Folium folium = data.value< portfolio::Folium >();
             
                 if ( (folium.getParentFolder().name() == L"Spectra") ||
@@ -758,6 +755,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                     menu.add( tr("Save Chromatogram as..."), SaveChromatogramAs( folium ), true );
                 }
+                if ( folium.getParentFolder().name() == L"Spectrograms" ) {
+                    menu.add( tr("Apply lock mass"), [&]( Dataprocessor * processor ){
+                            if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
+                                processor->applyLockMass( v );
+                        } );
+                    menu.add( tr("Export matched masses..."), [&]( Dataprocessor * processor ){
+                            if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
+                                processor->exportMatchedMasses( v, folium.id() );
+                        } );
+                }
             }
 
             menu.add( tr( "Export data tree to XML" ), [] ( Dataprocessor * processor ) { processor->exportXML(); } );
@@ -768,8 +775,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         } // if dataprocessor
     } // if index.isValid
 }
-
-
 
 void
 NavigationWidget::handleAllCheckState( bool checked, const QString& node )

@@ -43,7 +43,7 @@ MSFractuation::~MSFractuation(void)
 {
 }
 
-MSFractuation::MSFractuation()
+MSFractuation::MSFractuation() : impl_( std::make_unique< impl >() )
 {
     static_assert( std::is_base_of< std::enable_shared_from_this< MSFractuation >, MSFractuation >::value
                              , "MSFractuation must be decendent of std::enable_shared_from_this<>" );
@@ -67,9 +67,16 @@ MSFractuation::find( int64_t rowid )
 {
     auto it = impl_->fitter_.lower_bound( rowid );
 
-    if ( it == impl_->fitter_.end() ) {
+    if ( it == impl_->fitter_.end() ) 
         return lockmass::fitter();
-    }
+
+    if ( it == impl_->fitter_.begin() || it->first == rowid )
+        return it->second;
+
+    auto prev = it;
+    --prev;
+    if ( rowid - prev->first <= it->first - rowid )
+        return prev->second;
     return it->second;
 }
 

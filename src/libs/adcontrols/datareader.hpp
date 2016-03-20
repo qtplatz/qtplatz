@@ -129,7 +129,7 @@ namespace adcontrols {
         virtual std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
-        virtual std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

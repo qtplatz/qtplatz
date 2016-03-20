@@ -113,6 +113,7 @@ namespace addatafile { namespace detail {
                 t->loadAcquiredConf();
                 subscriber_.subscribe( *t );
                 t->loadCalibrations();
+                t->loadMSFractuation();
             }
         };
 

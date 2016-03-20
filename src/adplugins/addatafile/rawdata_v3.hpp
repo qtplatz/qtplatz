@@ -89,6 +89,7 @@ namespace addatafile {
 
             bool loadAcquiredConf();
             void loadCalibrations();
+            void loadMSFractuation();
 
             bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
 
