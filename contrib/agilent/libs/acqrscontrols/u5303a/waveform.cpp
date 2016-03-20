@@ -239,7 +239,6 @@ waveform&
 waveform::operator += ( const waveform& t )
 {
     if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement ) &&
-         //adportable::compare<double>::essentiallyEqual( meta_.initialXOffset, t.meta_.initialXOffset ) &&
          ( meta_.dataType == t.meta_.dataType ) && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
 
         meta_.actualAverages += t.meta_.actualAverages;

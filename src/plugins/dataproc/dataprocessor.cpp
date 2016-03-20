@@ -768,7 +768,7 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
 void
 Dataprocessor::lockMassHandled( const std::wstring& foliumId
                                 , const adcontrols::MassSpectrumPtr& ms
-                                , const adcontrols::lockmass& lockmass )
+                                , const adcontrols::lockmass::mslock& lockmass )
 {
 	if ( portfolio::Folium folium = this->portfolio().findFolium( foliumId ) ) {
         

@@ -43,7 +43,6 @@ namespace adcontrols {
     class MSCalibrateResult;
     class ProcessedDataset;
 	class TraceAccessor;
-    class lockmass;
     class DataReader;
 }
 
@@ -97,7 +96,7 @@ namespace addatafile {
 
             adfs::sqlite* db() const override;
         
-            bool mslocker( adcontrols::lockmass&, uint32_t objid ) const override;
+            bool mslocker( adcontrols::lockmass::mslock&, uint32_t objid ) const override;
 
             // v3 specific
             size_t dataReaderCount() const override;

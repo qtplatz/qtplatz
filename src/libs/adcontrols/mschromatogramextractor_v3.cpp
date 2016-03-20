@@ -58,23 +58,23 @@ namespace adcontrols {
             {}
 
         void prepare_mslock( const adcontrols::MSChromatogramMethod&, const adcontrols::ProcessMethod& );
-        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, adcontrols::lockmass& );
+        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, lockmass::mslock& );
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
-        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
-        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
+        void append_to_chromatogram( size_t pos, const MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
+        void append_to_chromatogram( size_t pos, const MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
 
-        bool doMSLock( adcontrols::lockmass& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
-        bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
+        bool doMSLock( lockmass::mslock& mslock, const MassSpectrum& centroid, const MSLockMethod& m );
+        bool doCentroid( MassSpectrum& centroid, const MassSpectrum& profile, const CentroidMethod& );
         
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > results_;
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > debug_; // tic, base
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< hor_axis_mass > > > results_;
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< hor_axis_mass > > > debug_; // tic, base
 
-        std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+        std::map< size_t, std::shared_ptr< MassSpectrum > > spectra_;
         const adcontrols::LCMSDataset * raw_;
-        std::shared_ptr< adcontrols::MSLockMethod > lockm_;
+        std::shared_ptr< MSLockMethod > lockm_;
         std::vector< std::pair< std::string, double > > msrefs_;
-        std::shared_ptr< adcontrols::CentroidMethod > centroidMetod_;
+        std::shared_ptr< CentroidMethod > centroidMetod_;
     };
 }
 
@@ -123,7 +123,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         size_t pos = 0;
         size_t n( 0 );
         
-        adcontrols::lockmass mslock;
+        adcontrols::lockmass::mslock mslock;
         
         for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
 
@@ -183,7 +183,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
             impl_->prepare_mslock( *cm, pm );
         }
     }
-    adcontrols::lockmass mslock;
+    adcontrols::lockmass::mslock mslock;
 
     size_t nSpectra( 0 );
     std::set< int > fcnList;
@@ -388,7 +388,7 @@ MSChromatogramExtractor::impl::prepare_mslock( const adcontrols::MSChromatogramM
 
 void
 MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > profile
-                                             , const adcontrols::ProcessMethod& pm, adcontrols::lockmass& mslock )
+                                             , const adcontrols::ProcessMethod& pm, adcontrols::lockmass::mslock& mslock )
 {
     if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
 
@@ -412,7 +412,7 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
         }
         
         if ( centroid.size() > 0 ) {
-            adcontrols::lockmass temp;
+            adcontrols::lockmass::mslock temp;
             if ( doMSLock( temp, centroid, *lockm_ ) )
                 mslock = temp;
         }
@@ -450,7 +450,7 @@ MSChromatogramExtractor::impl::doCentroid(adcontrols::MassSpectrum& centroid
 }
 
 bool
-MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass& mslock
+MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass::mslock& mslock
                                        , const adcontrols::MassSpectrum& centroid
                                        , const adcontrols::MSLockMethod& m )
 {

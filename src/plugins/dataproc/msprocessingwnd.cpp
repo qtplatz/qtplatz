@@ -655,10 +655,10 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
 {
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
 
-        adcontrols::lockmass lockmass;
+        adcontrols::lockmass::mslock lockmass;
         
         for ( auto ref : refs ) {
-            adcontrols::lockmass::findReferences( lockmass, *ms, ref.first, ref.second );
+            adcontrols::lockmass::mslock::findReferences( lockmass, *ms, ref.first, ref.second );
         }
 
         if ( lockmass.fit() ) {

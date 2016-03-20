@@ -36,7 +36,9 @@ namespace boost { namespace uuids { struct uuid; } }
 namespace adcontrols {
 
     class DataInterpreter;
+    class DataReader;
     class MassSpectrum;
+    class MSFractuation;
 	class MSProperty;
     class MSCalibrateResult;
 	class MSCalibration;
@@ -58,37 +60,39 @@ namespace adcontrols {
 
         // data format v2 interface
 		virtual std::shared_ptr<ScanLaw> scanLaw( const adcontrols::MSProperty& ) const;
-
 		virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
-
         virtual const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const;
         virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
         virtual adcontrols::datafile * datafile() const;
         virtual void setDebugTrace( const char * logfile, int level );
         virtual void setProcessMethod( const std::shared_ptr< adcontrols::ProcessMethod > ) { return; }
+        // end v2 specific
 
-        // v3 and later versions
+        // data format v3 interface
         virtual void setAcceleratorVoltage( double acclVolts, double tDelay ) { return; }
-        virtual bool assignMasses( adcontrols::MassSpectrum& ) const { return false; }
+        virtual bool assignMasses( adcontrols::MassSpectrum& ) const;
+        virtual void setDataReader( adcontrols::DataReader * );
+        virtual void setMSFractuation( adcontrols::MSFractuation * );
+        virtual adcontrols::MSFractuation * msFractuation() const;
 
         virtual const char * objtext() const = 0;
         virtual const boost::uuids::uuid& objclsid() const = 0;
-        virtual const ScanLaw * scanLaw() const = 0; // v3
+        virtual const ScanLaw * scanLaw() const = 0; 
+        // end v3 specific
 
         // helper methods
         static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
-        //[[deprecated]] static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
-        //[[deprecated]] static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
-		//[[deprecated]] static const MassSpectrometer& get( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
 
         static void register_default_spectrometers();
 
     protected:
-        //const MassSpectrometer * proxy_instance_;
+        // v2
         adcontrols::datafile * datafile_;
-
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
+        // v3
+        std::weak_ptr< adcontrols::DataReader > reader_;
+        std::shared_ptr< adcontrols::MSFractuation > msfractuation_;
     };
 
 }

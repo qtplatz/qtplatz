@@ -399,7 +399,7 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
 
         if ( ms->isCentroid() ) {
 
-            adcontrols::lockmass lkms;
+            adcontrols::lockmass::mslock lkms;
             for ( const auto& mol: mols.data() ) {
                 auto idx = finder( *ms, mol.mass() );
                 if ( idx != adcontrols::MSFinder::npos ) {
@@ -409,8 +409,7 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
             }
             if ( lkms.fit() ) {
                 lkms( *ms );
-                if ( db ) 
-                    adutils::AcquiredConf::insert( *db, objid, fcn, ms->rowid(), lkms );
+                db && adutils::AcquiredConf::insert( *db, objid, fcn, ms->rowid(), lkms );
             }
         }
         (*progress)( pos++ );

@@ -718,7 +718,7 @@ rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char
 }
 
 bool
-rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
+rawdata::mslocker( adcontrols::lockmass::mslock& mslk, uint32_t objid ) const
 {
     return false;
 

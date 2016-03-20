@@ -118,7 +118,7 @@ QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adc
             if ( lkm->enabled() ) {
                 
                 mslockm_ = std::make_shared< adcontrols::MSLockMethod >( *lkm );
-                mslock_ = std::make_shared< adcontrols::lockmass >();
+                mslock_ = std::make_shared< adcontrols::lockmass::mslock >();
 
             }
         }
@@ -152,7 +152,7 @@ QuanChromatogramProcessor::process1st( size_t pos, std::shared_ptr< adcontrols::
     if ( mslockm_ && mslock_ ) {
         bool locked = false;
         if ( auto raw = sampleprocessor.getLCMSDataset() ) {
-            adcontrols::lockmass lkms;
+            adcontrols::lockmass::mslock lkms;
             if ( raw->mslocker( lkms ) )
                 locked = lkms( *ms, true );
         }

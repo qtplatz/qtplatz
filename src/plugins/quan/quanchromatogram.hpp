@@ -44,8 +44,8 @@ namespace adcontrols {
     class QuanResponse;
     class QuanSample;
     class TargetingMethod;
-    class lockmass;
 }
+
 namespace portfolio { class Portfolio; }
 
 namespace quan {

@@ -92,7 +92,7 @@ AcquiredConf::delete_mslock( adfs::sqlite& db, const boost::uuids::uuid& objid, 
 }
 
 bool
-AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn, int64_t rowid, const adcontrols::lockmass& lkms )
+AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn, int64_t rowid, const adcontrols::lockmass::mslock& lkms )
 {
     adfs::stmt sql( db );
     sql.begin();

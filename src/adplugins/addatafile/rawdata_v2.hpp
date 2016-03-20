@@ -43,7 +43,7 @@ namespace adcontrols {
     class MSCalibrateResult;
     class ProcessedDataset;
 	class TraceAccessor;
-    class lockmass;
+    namespace lockmass { class mslock; }
 }
 
 namespace addatafile {
@@ -89,7 +89,7 @@ namespace addatafile {
 
             adfs::sqlite* db() const override;
         
-            bool mslocker( adcontrols::lockmass&, uint32_t objid ) const override;
+            bool mslocker( adcontrols::lockmass::mslock&, uint32_t objid ) const override;
         
         private:
             bool fetchTraces( int64_t objid, const adcontrols::DataInterpreter&, adcontrols::TraceAccessor& );

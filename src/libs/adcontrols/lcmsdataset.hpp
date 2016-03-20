@@ -40,10 +40,11 @@ namespace boost { namespace uuids { struct uuid; } }
 
 namespace adcontrols {
 
+    namespace lockmass { class mslock; }
+
     class Chromatogram;
     class MassSpectrum;
 	class MSCalibrateResult;
-    class lockmass;
 
     // v3 dataformat only
     class DataReader;
@@ -73,7 +74,7 @@ namespace adcontrols {
         virtual bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
                              , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const { return 0; }
         virtual adfs::sqlite * db() const { return 0; }
-        virtual bool mslocker( lockmass&, uint32_t = 0 ) const { return 0; }
+        virtual bool mslocker( lockmass::mslock&, uint32_t = 0 ) const { return 0; }
 
         // v3 data support
         virtual size_t dataReaderCount() const { return 0; }

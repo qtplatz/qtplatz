@@ -36,7 +36,6 @@
 namespace adcontrols {
     class datafile;
     class LCMSDataset;
-    class lockmass;
     class ProcessMethod;
     class MassSpectrum;
     class MassSpectra;
@@ -46,6 +45,7 @@ namespace adcontrols {
 	class MSCalibrateResult;
     class CentroidMethod;
     class SpectrogramClusters;
+    namespace lockmass { class mslock; }
 }
 
 namespace adprot { class digestedPeptides; }
@@ -108,7 +108,7 @@ namespace dataproc {
 
         // apply calibration to entire dataset
         void applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
-		void lockMassHandled( const std::wstring& foliumId, const std::shared_ptr< adcontrols::MassSpectrum >&, const adcontrols::lockmass& );
+		void lockMassHandled( const std::wstring& foliumId, const std::shared_ptr< adcontrols::MassSpectrum >&, const adcontrols::lockmass::mslock& );
         void formulaChanged();
 
         void sendCheckedSpectraToCalibration( Dataprocessor * );

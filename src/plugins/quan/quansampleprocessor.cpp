@@ -545,7 +545,7 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
                                , const adcontrols::QuanCompounds& compounds )
 {
     // find reference peak by mass window
-    adcontrols::lockmass mslock;
+    adcontrols::lockmass::mslock mslock;
 
     // TODO: consider how to handle segmented spectrum -- current impl is always process first 
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );

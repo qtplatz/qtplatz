@@ -34,26 +34,27 @@
 #include <adportable/float.hpp>
 
 using namespace adcontrols;
+using namespace adcontrols::lockmass;
 
-lockmass::lockmass()
+mslock::mslock()
 {
 }
 
-lockmass::lockmass( const lockmass& t ) : references_( t.references_ )
+mslock::mslock( const mslock& t ) : references_( t.references_ )
 {
 }
 
-lockmass::operator bool () const
+mslock::operator bool () const
 {
     return !references_.empty();
 }
 
-lockmass&
-lockmass::operator << ( const lockmass::reference& t )
+mslock&
+mslock::operator << ( const reference& t )
 {
     if ( ! references_.empty() ) {
 
-        auto it = std::find_if( references_.begin(), references_.end(), [t]( const lockmass::reference& a ){
+        auto it = std::find_if( references_.begin(), references_.end(), [t]( const reference& a ){
                 return adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() ); });
 
         if ( it != references_.end() )
@@ -66,20 +67,20 @@ lockmass::operator << ( const lockmass::reference& t )
 	return *this;
 }
 
-lockmass::reference::reference() : exactMass_(0)
+reference::reference() : exactMass_(0)
                                  , matchedMass_(0)
                                  , time_(0)
 {
 }
 
-lockmass::reference::reference( const lockmass::reference& t ) : formula_( t.formula_ )
+reference::reference( const reference& t ) : formula_( t.formula_ )
                                                                , exactMass_( t.exactMass_ )
                                                                , matchedMass_( t.matchedMass_ )
                                                                , time_( t.time_ )
 {
 }
 
-lockmass::reference::reference( const std::string& formula
+reference::reference( const std::string& formula
                                 , double exactMass
                                 , double matchedMass
                                 , double time ) : formula_( formula )
@@ -90,71 +91,71 @@ lockmass::reference::reference( const std::string& formula
 }
 
 const std::string&
-lockmass::reference::formula() const
+reference::formula() const
 {
     return formula_;
 }
 
 double
-lockmass::reference::exactMass() const
+reference::exactMass() const
 {
     return exactMass_;
 }
 
 double
-lockmass::reference::matchedMass() const
+reference::matchedMass() const
 {
     return matchedMass_;
 }
 
 double
-lockmass::reference::time() const
+reference::time() const
 {
     return time_;
 }
 
 //////////////////////
 void
-lockmass::clear()
+mslock::clear()
 {
     references_.clear();
 }
 
 size_t
-lockmass::size() const
+mslock::size() const
 {
     return references_.size();
 }
 
 bool
-lockmass::empty() const
+mslock::empty() const
 {
     return references_.empty();
 }
 
-lockmass::const_iterator 
-lockmass::begin() const
+mslock::const_iterator 
+mslock::begin() const
 {
     return references_.begin();
 }
 
-lockmass::const_iterator
-lockmass::end() const
+mslock::const_iterator
+mslock::end() const
 {
     return references_.end();
 }
 
 const std::vector< double >&
-lockmass::coeffs() const
+mslock::coeffs() const
 {
-    return fitter_.coeffs_;
+    return fitter_.coeffs();
 }
 
 ///////////////////
 
 // static
 bool
-lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms )
+mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms )
 {
     static ChemicalFormula formulaParser;
 
@@ -176,7 +177,7 @@ lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms )
 
 // static
 bool
-lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms, int idx, int fcn )
+mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx, int fcn )
 {
     static ChemicalFormula formulaParser;
 
@@ -196,7 +197,7 @@ lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms, int
         double exactMass = formulaParser.getMonoIsotopicMass( list );
         double matchedMass = segs[ fcn ].getMass( it->index() );
         double time        = segs[ fcn ].getTime( it->index() );
-        lk << lockmass::reference( formula, exactMass, matchedMass, time );        
+        lk << reference( formula, exactMass, matchedMass, time );        
 
         return true;
     }
@@ -204,16 +205,16 @@ lockmass::findReferences( lockmass& lk,  const adcontrols::MassSpectrum& ms, int
 }
 
 bool
-lockmass::fit()
+mslock::fit()
 {
-    fitter_.coeffs_.clear();
+    fitter_.clear();
     
     if ( references_.size() == 1 ) {
         auto& ref = references_[0];
         double error = ref.matchedMass() - ref.exactMass();
         double relativeError = error / ref.matchedMass();
 
-        fitter_.coeffs_.push_back( relativeError );
+        fitter_ = std::vector< double >{  relativeError };
         return true;
 
     } else if ( references_.size() >= 2 ) {
@@ -225,14 +226,14 @@ lockmass::fit()
             x.push_back( ref.matchedMass() );
             y.push_back( error );
         }
-        return adportable::polfit::fit( x.data(), y.data(), x.size(), 2, fitter_.coeffs_ );
+        return adportable::polfit::fit( x.data(), y.data(), x.size(), 2, fitter_.coeffs() );
     }
 
     return false;
 }
 
 bool
-lockmass::operator()( MassSpectrum& ms, bool applyToAll ) const
+mslock::operator()( MassSpectrum& ms, bool applyToAll ) const
 {
     if ( applyToAll ) {
         std::pair< double, double > range(1000000.0, 0.0);
@@ -255,7 +256,7 @@ lockmass::operator()( MassSpectrum& ms, bool applyToAll ) const
 }
 
 bool
-lockmass::operator()( MSPeakInfo& info, bool applyToAll ) const
+mslock::operator()( MSPeakInfo& info, bool applyToAll ) const
 {
     if ( applyToAll ) {
         for ( auto& xinfo : adcontrols::segment_wrapper< MSPeakInfo >( info ) )
@@ -265,8 +266,40 @@ lockmass::operator()( MSPeakInfo& info, bool applyToAll ) const
         return fitter_( info );
 }
 
+fitter::fitter()
+{
+}
+
+fitter::fitter( const fitter& t ) : coeffs_( t.coeffs_ )
+{
+}
+
+fitter::fitter( std::vector< double >&& a )
+{
+    coeffs_ = std::move( a );
+}
+
+fitter&
+fitter::operator = ( std::vector< double >&& a )
+{
+    coeffs_ = std::move( a );   
+    return *this;
+}
+
+const std::vector< double >& 
+fitter::coeffs() const
+{
+    return coeffs_;
+}
+
+std::vector< double >& 
+fitter::coeffs()
+{
+    return coeffs_;
+}
+
 bool
-lockmass::fitter::operator()( MassSpectrum& ms ) const
+fitter::operator()( MassSpectrum& ms ) const
 {
     if ( coeffs_.empty() )
         return false;
@@ -293,7 +326,7 @@ lockmass::fitter::operator()( MassSpectrum& ms ) const
 }
 
 bool
-lockmass::fitter::operator()( MSPeakInfo& pkInfo ) const
+fitter::operator()( MSPeakInfo& pkInfo ) const
 {
     if ( coeffs_.empty() )
         return false;
@@ -318,7 +351,7 @@ lockmass::fitter::operator()( MSPeakInfo& pkInfo ) const
 }
 
 void
-lockmass::fitter::clear()
+fitter::clear()
 {
     coeffs_.clear();
 }

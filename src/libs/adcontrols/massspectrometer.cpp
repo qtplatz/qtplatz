@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
@@ -24,13 +24,16 @@
 **************************************************************************/
 
 #include "massspectrometer.hpp"
-#include "scanlaw.hpp"
+#include "adcontrols.hpp"
 #include "datainterpreter.hpp"
+#include "datareader.hpp"
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer_factory.hpp"
-#include "adcontrols.hpp"
+#include "massspectrum.hpp"
 #include "mscalibrateresult.hpp"
 #include "mscalibration.hpp"
+#include "msfractuation.hpp"
+#include "scanlaw.hpp"
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/utf.hpp>
 #include <boost/exception/all.hpp>
@@ -85,8 +88,6 @@ namespace adcontrols {
     }
 }
 
-
-
 ///////////////////////////////////////////////
 MassSpectrometer::MassSpectrometer() : datafile_(0)
 {
@@ -140,6 +141,33 @@ MassSpectrometer::getCalibrateResult( size_t idx ) const
     return 0;
 }
 
+// v3
+bool
+MassSpectrometer::assignMasses( MassSpectrum& ms ) const
+{
+    auto mode = ms.mode();
+    return ms.assign_masses( [&]( double time, int mode ) { return scanLaw()->getMass( time, mode ); } );
+}
+
+void
+MassSpectrometer::setDataReader( DataReader * reader )
+{
+    reader_ = reader->shared_from_this();
+}
+
+void
+MassSpectrometer::setMSFractuation( MSFractuation * fractuation )
+{
+    msfractuation_ = fractuation->shared_from_this();
+}
+
+MSFractuation *
+MassSpectrometer::msFractuation() const
+{
+    return msfractuation_.get();
+}
+
+// v2 interface
 adcontrols::datafile *
 MassSpectrometer::datafile() const
 {

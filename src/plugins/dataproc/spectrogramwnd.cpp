@@ -326,9 +326,9 @@ SpectrogramWnd::mslock()
 bool
 SpectrogramWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVector< QPair<int, int> >& indecies )
 {
-    adcontrols::lockmass lkms;
+    adcontrols::lockmass::mslock lkms;
     for ( auto& index : indecies ) 
-        adcontrols::lockmass::findReferences( lkms, *ref, index.first, index.second );
+        adcontrols::lockmass::mslock::findReferences( lkms, *ref, index.first, index.second );
     double mserr( 0.010 );
     for ( auto m : lkms ) 
         mserr = std::max( mserr, std::abs( m.exactMass() - m.matchedMass() ) * 1.05 );

@@ -49,20 +49,21 @@
 
 namespace adcontrols {
 
+
     class v2::MSChromatogramExtractor::impl {
     public:
         impl( const adcontrols::LCMSDataset * raw ) : raw_( raw )
             {}
 
         void prepare_mslock( const adcontrols::MSChromatogramMethod&, const adcontrols::ProcessMethod& );
-        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, adcontrols::lockmass& );
+        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, adcontrols::lockmass::mslock& );
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
         size_t read_raw_spectrum( size_t pos, const adcontrols::LCMSDataset * raw, adcontrols::MassSpectrum& );
 
-        bool doMSLock( adcontrols::lockmass& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
+        bool doMSLock( lockmass::mslock& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
         bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
         
         std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > results_;
@@ -119,7 +120,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         size_t pos = 0;
         size_t n( 0 );
 
-        adcontrols::lockmass mslock;
+        lockmass::mslock mslock;
         do {
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
             
@@ -128,7 +129,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
                 if ( cm->lockmass() ) {
                     impl_->apply_mslock( ms, pm, mslock );
                 } else {
-                    adcontrols::lockmass lkms;
+                    lockmass::mslock lkms;
                     if ( impl_->raw_->mslocker( lkms ) ) // if acquisition on-the-fly lock-mass
                         lkms( *ms );
                 }
@@ -207,7 +208,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 
             if ( ( pos = impl_->read_raw_spectrum( pos, impl_->raw_, *ms ) ) ) {
 
-                adcontrols::lockmass lkms;
+                adcontrols::lockmass::mslock lkms;
                 if ( impl_->raw_->mslocker( lkms ) ) // if acquisition on-the-fly lock-mass
                     lkms( *ms );
 
@@ -395,7 +396,7 @@ MSChromatogramExtractor::impl::prepare_mslock( const adcontrols::MSChromatogramM
 
 void
 MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSpectrum > profile
-                                             , const adcontrols::ProcessMethod& pm, adcontrols::lockmass& mslock )
+                                             , const adcontrols::ProcessMethod& pm, adcontrols::lockmass::mslock& mslock )
 {
     if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
 
@@ -419,7 +420,7 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
         }
         
         if ( centroid.size() > 0 ) {
-            adcontrols::lockmass temp;
+            adcontrols::lockmass::mslock temp;
             if ( doMSLock( temp, centroid, *lockm_ ) )
                 mslock = temp;
         }
@@ -457,7 +458,7 @@ MSChromatogramExtractor::impl::doCentroid(adcontrols::MassSpectrum& centroid
 }
 
 bool
-MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass& mslock
+MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass::mslock& mslock
                                        , const adcontrols::MassSpectrum& centroid
                                        , const adcontrols::MSLockMethod& m )
 {
