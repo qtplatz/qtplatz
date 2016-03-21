@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-namespace adfs { class sqlite; }
+namespace adfs { class sqlite; class stmt; }
 namespace adcontrols { namespace lockmass { class mslock; } }
 
 namespace adutils {
@@ -71,7 +71,7 @@ namespace adutils {
                             , uint64_t axis_x_decimals
                             , uint64_t axis_y_decimale );
         
-        static bool insert( adfs::sqlite& dbf
+        static bool insert( adfs::sqlite& db
                             , uint32_t objid
                             , uint32_t pobjid
                             , const boost::uuids::uuid& uuid
@@ -95,7 +95,7 @@ namespace adutils {
 
         static bool create_mslock( adfs::sqlite& db );
         static bool delete_mslock( adfs::sqlite& db, const boost::uuids::uuid&, int fcn );
-        static bool insert( adfs::sqlite& db, const boost::uuids::uuid& reader, int fcn, int64_t rowid, const adcontrols::lockmass::mslock& );
+        static bool insert( adfs::stmt& sql, const boost::uuids::uuid& reader, int fcn, int64_t rowid, const adcontrols::lockmass::mslock& );
         
     };
 

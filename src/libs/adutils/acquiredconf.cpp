@@ -92,10 +92,8 @@ AcquiredConf::delete_mslock( adfs::sqlite& db, const boost::uuids::uuid& objid, 
 }
 
 bool
-AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn, int64_t rowid, const adcontrols::lockmass::mslock& lkms )
+AcquiredConf::insert( adfs::stmt& sql, const boost::uuids::uuid& objid, int fcn, int64_t rowid, const adcontrols::lockmass::mslock& lkms )
 {
-    adfs::stmt sql( db );
-    sql.begin();
     for ( const auto& ref: lkms ) {
         sql.prepare( "INSERT INTO MSLock VALUES(?,?,?,?,?,?,?)" );
         int col = 1;
@@ -109,7 +107,6 @@ AcquiredConf::insert( adfs::sqlite& db, const boost::uuids::uuid& objid, int fcn
         if ( sql.step() != adfs::sqlite_done )
             return false;
     }
-    sql.commit();
     return true;
 }
 

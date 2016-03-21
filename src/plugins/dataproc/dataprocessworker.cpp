@@ -426,6 +426,9 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
     int pos(0);
     spectra->setMSLocked( true );
 
+    adfs::stmt sql( *db );
+    sql.begin();
+
     for ( auto ms: *spectra ) {
 
         if ( ms->isCentroid() ) {
@@ -440,11 +443,13 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
             }
             if ( lkms.fit() ) {
                 lkms( *ms );
-                db && adutils::AcquiredConf::insert( *db, objid, fcn, ms->rowid(), lkms );
+                db && adutils::AcquiredConf::insert( sql, objid, fcn, ms->rowid(), lkms );
             }
         }
         (*progress)( pos++ );
     }
+
+    sql.commit();
     
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
@@ -472,22 +477,16 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
         std::string name = ( boost::format( "%s_%s_%d.txt" ) % base.string() % mol.formula() % (*spectra->begin())->mode() ).str();
         std::ofstream outf( name );
         
-        // auto drift = std::make_shared< adcontrols::MassSpectrum >();
-        // drift->resize( spectra->size() );
-        
         int nprog( 0 );
         std::vector< double > masses, times;
         for ( auto& ms : *spectra ) {
             (*progress)( nprog++ );
-            if ( auto idx = finder( *ms, mol.mass() ) ) {
+            size_t idx = finder( *ms, mol.mass() );
+            if ( idx != adcontrols::MSFinder::npos ) {
                 times.push_back( ms->getMSProperty().timeSinceInjection() - t0 );
                 masses.push_back( ms->getMass( idx ) );
             }
         }
-        // auto mean = std::accumulate( masses.begin(), masses.end(), double(0) ) / masses.size();
-        // auto sdsum = std::accumulate( masses.begin(), masses.end(), double(0), [&]( double a, double b ){ return a + ( b - mean ) * ( b - mean ); } );
-        // double sd = std::sqrt( sdsum / ( masses.size() - 1 ) );
-        // std::transform( masses.begin(), masses.end(), masses.begin(), [&]( double d ){ return std::abs( d - mean ) > 0.010 ? mean : d ; } );
 
         auto drift = std::make_shared< adcontrols::Chromatogram >();
         drift->resize( masses.size() );

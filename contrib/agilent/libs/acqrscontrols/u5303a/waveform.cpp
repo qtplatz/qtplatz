@@ -587,7 +587,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
-
+    
     if ( this_protocol )
         prop.setTofProtocol( *this_protocol );
     const device_data data( *waveform.ident_, waveform.meta_ );
@@ -598,6 +598,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
     sp.resize( waveform.size() );
+    sp.protocolId( waveform.method_.protocolIndex() );
 
 	if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
 
