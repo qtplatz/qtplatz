@@ -32,7 +32,9 @@ namespace adcontrols {
 
     class MSFractuation::impl {
     public:
+        std::map< int64_t, std::pair< double, double > > values_;
         std::map< int64_t /* rowid */, lockmass::fitter > fitter_;
+        std::map< int64_t /* rowid */, lockmass::fitter > interporated_;
     };
 
 }
@@ -57,13 +59,22 @@ MSFractuation::create()
 }
 
 void
-MSFractuation::insert( int64_t rowid, const lockmass::fitter& fitter )
+MSFractuation::insert( int64_t rowid, const lockmass::mslock& mslock )
 {
-    impl_->fitter_[ rowid ] = fitter;
+    impl_->fitter_[ rowid ] = mslock.fitter();
+
+    for ( auto& ref : mslock ) 
+        impl_->values_ [ rowid ] = std::make_pair( ref.exactMass(), ref.matchedMass() );
+}
+
+bool
+MSFractuation::has_a( int64_t rowid ) const
+{
+    return impl_->fitter_.find( rowid ) != impl_->fitter_.end();
 }
 
 const lockmass::fitter
-MSFractuation::find( int64_t rowid )
+MSFractuation::find( int64_t rowid, bool interporate )
 {
     auto it = impl_->fitter_.lower_bound( rowid );
 
@@ -75,6 +86,23 @@ MSFractuation::find( int64_t rowid )
 
     auto prev = it;
     --prev;
+    if ( interporate ) {
+        auto xit = impl_->values_.lower_bound( rowid );
+        lockmass::mslock lk;
+        lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
+        --xit;
+        lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
+        // trial
+        if ( xit != impl_->values_.begin() ) {
+            --xit;
+            lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
+        }
+        // end trial
+        if ( lk.fit() )
+            impl_->interporated_ [ rowid ] = lk.fitter();
+        return impl_->interporated_ [ rowid ];
+    }
+    // find closest or lower if equal distance.
     if ( rowid - prev->first <= it->first - rowid )
         return prev->second;
     return it->second;

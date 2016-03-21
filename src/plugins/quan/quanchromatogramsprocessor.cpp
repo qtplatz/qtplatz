@@ -429,7 +429,7 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor, adcontrols::Qua
                             resp.fcn_ = c->fcn();
                             resp.intensity_ = pk->peakArea();
                             resp.amounts_ = 0;
-                            resp.tR_ = double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
+                            resp.tR_ = pk->peakTime(); // double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
 
                             sample << resp;
                         }

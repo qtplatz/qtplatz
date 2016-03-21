@@ -52,6 +52,7 @@ mslock::operator bool () const
 mslock&
 mslock::operator << ( const reference& t )
 {
+#if 0
     if ( ! references_.empty() ) {
 
         auto it = std::find_if( references_.begin(), references_.end(), [t]( const reference& a ){
@@ -61,6 +62,7 @@ mslock::operator << ( const reference& t )
             references_.erase( it );
 
     }
+#endif
     
     references_.push_back( t );
     

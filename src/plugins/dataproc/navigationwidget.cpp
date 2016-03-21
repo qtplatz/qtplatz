@@ -703,8 +703,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             if ( data.canConvert< portfolio::Folder >() ) {
 
                 if ( auto folder = data.value< portfolio::Folder >() ) {
-                    menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                     menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
+                    menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                 }
 
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected

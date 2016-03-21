@@ -31,7 +31,7 @@
 
 namespace adcontrols {
 
-    namespace lockmass { class fitter; }
+    namespace lockmass { class mslock; class fitter; }
 
     class ADCONTROLSSHARED_EXPORT MSFractuation : public std::enable_shared_from_this< MSFractuation > {
 
@@ -44,8 +44,9 @@ namespace adcontrols {
 
         static std::shared_ptr< MSFractuation > create();
 
-        void insert( int64_t rowid, const lockmass::fitter& );
-        const lockmass::fitter find( int64_t rowid );
+        void insert( int64_t rowid, const lockmass::mslock& );
+        const lockmass::fitter find( int64_t rowid, bool interporate );
+        bool has_a( int64_t rowid ) const;
 
     private:
         class impl;

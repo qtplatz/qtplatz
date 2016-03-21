@@ -165,14 +165,14 @@ namespace dataproc {
             return true;
         }
 
-        bool ticFinder2( const adcontrols::LCMSDataset * rawfile, double x, size_t& pos, int& index, int& rep, int& fcn, double& minutes ) {
+        bool ticFinder2( const adcontrols::LCMSDataset * rawfile, double x, size_t& pos, int& index, int& rep, int& fcn, double& seconds ) {
             index = 0;
             fcn = (-1);
-            minutes = 0;
+            seconds = 0;
             
             pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
             if ( rawfile->index( pos, index, fcn, rep ) ) {
-                minutes = adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
+                seconds = rawfile->timeFromPos( pos ); // adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
                 return true;
             }
 
@@ -194,7 +194,7 @@ namespace dataproc {
                     }
                 }
             }
-            minutes = adcontrols::Chromatogram::toMinutes( t );
+            seconds = t; // adcontrols::Chromatogram::toMinutes( t );
             return ( traceId >= 0 ) && ( index >= 0 );
         }
 
@@ -745,7 +745,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     for ( auto& reader : readers ) {
                         if ( auto it = reader->findPos( adcontrols::Chromatogram::toSeconds( rect.left() ) ) )
                             actions.push_back(
-                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfmin" ) % reader->display_name() % rect.left() ).str().c_str() )
+                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lf<i>s</i>" ) % reader->display_name() % rect.left() ).str().c_str() )
                                                 , [=] () {
                                                     dataproc_document::instance()->onSelectSpectrum_v3( rect.left(), it );
                                                 } )
@@ -756,17 +756,15 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     // v2 data
                     size_t pos;
                     int index, rep, fcn;
-                    double minutes;
-                    if ( ! pImpl_->ticFinder2( rawfile, rect.left(), pos, index, rep, fcn, minutes ) ) {
-                        minutes = 0;
+                    double seconds;
+                    if ( ! pImpl_->ticFinder2( rawfile, rect.left(), pos, index, rep, fcn, seconds ) ) {
+                        seconds = 0;
                         index = fcn = -1;
                     }
                     actions.push_back(
                         std::make_pair( menu.addAction(
-                                            (boost::format( "Select a part of spectrum @%.3fmin (%d/%d)" ) % minutes % index % fcn ).str().c_str() )
-                                        , [=] () {
-                                            dataproc_document::instance()->onSelectSpectrum_v2( minutes, pos, fcn );
-                                        } )
+                                            (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str().c_str() )
+                                        , [=] () { dataproc_document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } )
                         );
                     
                     if ( index < 0 || fcn < 0 )
@@ -783,18 +781,27 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         }
                     
         actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [=] () {
-                                               adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
-                                           } ) );
+                    adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
+                } ) );
         
         actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
-            QString name = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                         , "Save SVG File"
-                                                         , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
-                                                         , tr( "SVG (*.svg)" ) );
-                                   if ( ! name.isEmpty() )
-                                       adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
-                               }) );
-        
+                    QString name = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                                 , "Save SVG File"
+                                                                 , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
+                                                                 , tr( "SVG (*.svg)" ) );
+                    if ( ! name.isEmpty() )
+                        adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
+                }) );
+
+        actions.push_back( std::make_pair( menu.addAction( tr("Frequency analysis") ), [&] () {
+                    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                        auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                        if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                            power_spectrum( *chr );
+                        }
+                    }
+                }) );
+                
         QAction * selected = menu.exec( QCursor::pos() );
         if ( selected ) {
             auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
@@ -877,17 +884,10 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                     }) );
             
             actions.push_back( 
-                std::make_pair( menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ) ), [=](){
-                        std::vector< double > freq, power;
-                        double y_dc(0), y_nyquist(0);
-                        if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
-                            std::ostringstream o;
-                            o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (freq.size() * 2) % y_dc % y_nyquist;
-                            QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
-                            pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
-                            pImpl_->pwplot_->setTitle( title );
-                            pImpl_->pwplot_->show();
-                        }
+                std::make_pair( menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ) ), [&](){
+                        //std::vector< double > freq, power;
+                        //double y_dc(0), y_nyquist(0);
+                        power_spectrum( *ms, range );
                     }) );
             
             if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
@@ -1322,9 +1322,9 @@ MSProcessingWnd::compute_minmax( double s, double e )
 
 bool
 MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
-                                 , std::vector< double >& x, std::vector< double >& y
-                                 , const std::pair< size_t, size_t >& range
-                                 , double& dc, double& nyquist )
+                                 //, std::vector< double >& x, std::vector< double >& y
+                                 , const std::pair< size_t, size_t >& range )
+//, double& dc, double& nyquist )
 {
     const size_t size = range.second - range.first + 1;
     if ( size < 8 )
@@ -1334,23 +1334,73 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
         ++n;
     size_t N = 1 << ( n - 1 );
 
-    std::vector< std::complex< double > > spc(N), fft(N);
+    std::vector< std::complex< double > > spc( N ), fft( N );
 	const double * intens = ms.getIntensityArray() + range.first;
 	for ( size_t i = 0; i < N && i < size; ++i )
         spc[ i ] = std::complex< double >( intens[ i ] );
+
     adportable::fft::fourier_transform( fft, spc, false );
 
 	const double T = N * ms.getMSProperty().samplingInfo().fSampInterval();
-    x.resize( N / 2 );
-    y.resize( N / 2 );
+    std::vector< double > x( N / 2 ), y( N / 2 );
     for ( size_t i = 0; i < N / 2; ++i ) {
         y[i] = ( ( fft[ i ].real() * fft[ i ].real() ) + ( fft[ i ].imag() * fft[ i ].imag() ) ) / ( double(N) * N );
         x[i] = double( i ) / T * 1e-6; // MHz
     }
-    dc = fft[0].real();
-    nyquist = fft[ N / 2 ].real();
+    double dc = fft[0].real();
+    double nyquist = fft[ N / 2 ].real();
 
+    //----- draw 
+    std::ostringstream o;
+    o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (x.size() * 2) % dc % nyquist;
+    QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+    pImpl_->pwplot_->setData( x.size() - 1, x.data() + 1, y.data() + 1 );
+    pImpl_->pwplot_->setTitle( title );
+    pImpl_->pwplot_->show();
+    pImpl_->pwplot_->xBottomTitle( "Frequency (MHz)" );
 	return true;
+}
+
+void
+MSProcessingWnd::power_spectrum( const adcontrols::Chromatogram& c )
+{
+    const size_t size = c.size();
+    if ( size >= 8 ) {
+        size_t n = 1;
+        while ( size >> n )
+            ++n;
+        size_t N = 1 << ( n - 1 );
+
+        std::vector< std::complex< double > > spc(N), fft(N);
+        int idx( 0 );
+        for ( auto it = c.begin(); it != c.end() && idx < N; ++it )
+            spc[ idx++ ] = std::complex< double >( it.intensity() );
+
+        double fInterval = c.sampInterval();
+        
+        adportable::fft::fourier_transform( fft, spc, false );
+        
+        const double T = N * fInterval;
+        std::vector< double > x( N / 2 ), y( N / 2 );
+
+        std::transform( fft.begin(), fft.begin() + N / 2, y.begin(), [&]( const std::complex<double>& d ){
+                return ( ( d.real() * d.real() ) + ( d.imag() * d.imag() ) ) / ( double(N) * N ); } );
+
+        //std::iota( x.begin(), x.end(), frequency(T) );
+        for ( size_t i = 0; i < N / 2; ++i )
+            x [ i ] = double( i ) / T; // Hz 
+
+        double dc = fft[0].real();
+        double nyquist = fft[ N / 2 ].real();
+
+        std::ostringstream o;
+        o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (x.size() * 2) % dc % nyquist;
+        QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idChromatogramFolium_ ), QString::fromStdString( o.str() ) );
+        pImpl_->pwplot_->setData( x.size() - 1, x.data() + 1, y.data() + 1 ); // skip DC component from plot
+        pImpl_->pwplot_->setTitle( title );
+        pImpl_->pwplot_->show();
+        pImpl_->pwplot_->xBottomTitle( "Frequency (Hz)" );
+    }
 }
 
 void
@@ -1358,18 +1408,7 @@ MSProcessingWnd::frequency_analysis()
 {
     if ( auto ms = pProfileSpectrum_.second.lock() ) {
         auto range = std::make_pair( size_t( 0 ), ms->size() - 1 );
-        std::vector< double > freq, power;
-        double y_dc( 0 ), y_nyquist( 0 );
-        if ( power_spectrum( *ms, freq, power, range, y_dc, y_nyquist ) ) {
-                    
-            std::ostringstream o;
-            o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % ( freq.size() * 2 ) % y_dc % y_nyquist;
-            QString title = QString( "[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2" ).arg( MainWindow::makeDisplayName( idSpectrumFolium_ )
-                                                                             , QString::fromStdString( o.str() ) );
-                    
-            pImpl_->pwplot_->setData( freq.size() - 1, freq.data() + 1, power.data() + 1 );
-            pImpl_->pwplot_->setTitle( title );
-        }
+        power_spectrum( *ms, range );
     }
 }
 

@@ -47,6 +47,7 @@
 #include <adportable/configuration.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/peaktable.hpp>
+#include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -244,6 +245,11 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * )
 }
 
 void
+ChromatogramWnd::handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool )
+{
+}
+
+void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
@@ -257,7 +263,7 @@ ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 }
 
 void
-ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& folium )
+ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
@@ -270,6 +276,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& fol
         adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
         boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
     }
+
 }
 
 void

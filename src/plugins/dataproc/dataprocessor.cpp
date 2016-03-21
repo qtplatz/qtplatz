@@ -1389,11 +1389,27 @@ Dataprocessor::exportXML() const
 void
 Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra )
 {
+    if ( spectra->size() == 0 )
+        return;
+
     if ( auto rawfile = getLCMSDataset() ) {
         auto msfractuation = rawfile->msFractuation();
 
+        bool interporate( false );
+
+        if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
+
+            QMessageBox mbx;
+            mbx.setText( QObject::tr( "Find lock mass reference" ) );
+            mbx.setInformativeText( QObject::tr( "Blacketing or pick Closest" ) );
+
+            mbx.setButtonText( QMessageBox::Yes, QObject::tr( "Blacketing" ) );
+            mbx.setButtonText( QMessageBox::No, QObject::tr( "Closest" ) );
+            interporate = mbx.exec() == QMessageBox::Yes;
+        }
+
         for ( auto& ms : *spectra ) {
-            auto fitter = msfractuation->find( ms->rowid() );
+            auto fitter = msfractuation->find( ms->rowid(), interporate );
             fitter( *ms );
         }
     }

@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -60,7 +60,8 @@ namespace dataproc {
         
     signals:
                                                          
-    public slots:
+    public slots :
+        void handleCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
         void handleSessionAdded( Dataprocessor* );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
@@ -68,7 +69,6 @@ namespace dataproc {
         void handlePrintCurrentView( const QString& );
         
     private:
-        // std::shared_ptr<ChromatogramWndImpl> pImpl_;
         class impl;
         std::unique_ptr< impl > impl_;
     };

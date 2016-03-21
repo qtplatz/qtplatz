@@ -134,7 +134,7 @@ rawdata::loadMSFractuation()
         }
 
         if ( mslock.fit() )
-            fractuation->insert( rowid, mslock.fitter() );
+            fractuation->insert( rowid, mslock );
     }
 
     for ( auto reader : readers_ ) {

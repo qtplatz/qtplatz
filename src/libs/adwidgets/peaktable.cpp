@@ -207,7 +207,8 @@ PeakTable::add( const adcontrols::Peak& peak )
     
     model.setData( model.index( row, c_id ), static_cast< int >( peak.peakId() ) );
     model.setData( model.index( row, c_name ), QString::fromStdWString( peak.name() ) );
-    model.setData( model.index( row, c_tr ), static_cast<double>( adcontrols::timeutil::toMinutes( peak.peakTime() ) ), Qt::EditRole );
+    model.setData( model.index( row, c_tr ), static_cast<double>( peak.peakTime() ), Qt::EditRole );
+   // model.setData( model.index( row, c_tr ), static_cast<double>( adcontrols::timeutil::toMinutes( peak.peakTime() ) ), Qt::EditRole );
     model.setData( model.index( row, c_area ), peak.peakArea(), Qt::EditRole );
     model.setData( model.index( row, c_height ), peak.peakHeight(), Qt::EditRole );
     model.setData( model.index( row, c_width ), peak.peakWidth(), Qt::EditRole );

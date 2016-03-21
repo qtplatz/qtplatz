@@ -57,6 +57,8 @@ namespace adcontrols {
     class Peaks;
     class Baselines;
     class PeakResult;
+    class Chromatogram_iterator;
+
 
     class ADCONTROLSSHARED_EXPORT Chromatogram {
     public:
@@ -86,6 +88,14 @@ namespace adcontrols {
         };
 
         static std::wstring make_folder_name( const adcontrols::descriptions& );
+
+        typedef Chromatogram_iterator iterator;
+        typedef const Chromatogram_iterator const_iterator;
+
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
 
         size_t size() const;
         void resize( size_t );
@@ -171,5 +181,21 @@ namespace adcontrols {
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;   
 
+    class ADCONTROLSSHARED_EXPORT Chromatogram_iterator : public std::iterator< std::forward_iterator_tag, Chromatogram_iterator > {
+        const Chromatogram * chromatogram_;
+        size_t idx_;
+    public:
+        Chromatogram_iterator();
+        Chromatogram_iterator( const Chromatogram *, size_t idx );
+        Chromatogram_iterator( const Chromatogram_iterator& );
+        Chromatogram_iterator& operator = ( const Chromatogram_iterator& );
+        const Chromatogram_iterator& operator ++ ();
+        const Chromatogram_iterator operator ++ ( int );
+        inline bool operator == ( const Chromatogram_iterator& rhs ) const { return idx_ == rhs.idx_; }
+        inline bool operator != ( const Chromatogram_iterator& rhs ) const { return idx_ != rhs.idx_; }
+        //inline operator bool() const { return idx_ != ( -1 ); }
+        inline double time() const { return chromatogram_->time( idx_ ); }
+        inline double intensity() const { return chromatogram_->intensity( idx_ ); };
+    };
 }
 

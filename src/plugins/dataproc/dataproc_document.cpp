@@ -430,7 +430,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, c
 
         if ( dset->getSpectrum( -1, pos++, ms ) ) {
             
-            t1 = adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
+            t1 = ms.getMSProperty().timeSinceEpoch(); // adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
 
             std::wostringstream text;
             if ( pos2 > pos1 ) {
@@ -446,7 +446,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, c
                             ( *progress )( );
                         }
                         if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
-                            t2 = adcontrols::Chromatogram::toMinutes( a.getMSProperty().timeSinceInjection() );
+                            t2 = a.getMSProperty().timeSinceInjection(); // adcontrols::Chromatogram::toMinutes( a.getMSProperty().timeSinceInjection() );
                     } );
 
                 t.join();

@@ -101,7 +101,8 @@ namespace adplot {
                         using adcontrols::Chromatogram;
                         const double * times = ptr->getTimeArray();
                         const double * intens = ptr->getIntensityArray();
-                        return QPointF( Chromatogram::toMinutes( times[ idx ] ), intens[ idx ] );
+                        return QPointF( times[ idx ], intens[ idx ] );
+                        //return QPointF( Chromatogram::toMinutes( times[ idx ] ), intens[ idx ] );
                     }
                 }
                 return QPointF();
@@ -126,7 +127,8 @@ namespace adplot {
             size_t size() const override { return t_.size(); }
 
             QPointF sample( size_t idx ) const override { 
-                return QPointF( adcontrols::Chromatogram::toMinutes( t_.x(idx) ), t_.y(idx) );
+                return QPointF( t_.x(idx), t_.y(idx) );
+                //return QPointF( adcontrols::Chromatogram::toMinutes( t_.x(idx) ), t_.y(idx) );
             }
             
             virtual QRectF boundingRect() const override { return rect_; }
@@ -175,7 +177,7 @@ namespace adplot {
 
             void setData( const std::shared_ptr< adcontrols::Chromatogram>& cp, bool y2 ) {
                 grab_ = cp;
-                auto range_x = adcontrols::Chromatogram::toMinutes( cp->timeRange() );
+                auto range_x = cp->timeRange(); // adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
                 // // workaround for 'counting chromatogram', which can be complete flat signals
@@ -247,7 +249,7 @@ namespace adplot {
                 QColor bg( Qt::white );
                 bg.setAlpha( 128 );
                 QwtText text;
-                text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.3fmin") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
+                text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.4fs") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
                 text.setBackgroundBrush( QBrush( bg ) );
                 return text;
             }
@@ -260,7 +262,7 @@ namespace adplot {
         impl( const impl& ) = delete;
         impl& operator = ( const impl& ) = delete;
     public:
-        impl() {}
+        impl() : axis_( HorizontalAxisSeconds ) {}
         
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
@@ -270,6 +272,7 @@ namespace adplot {
         std::vector< Baseline > baselines_;	
         std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
+        ChromatogramWidget::HorizontalAxis axis_;
         
         void clear();
         void removeData( int );
@@ -279,7 +282,8 @@ namespace adplot {
         
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
-        
+
+        void redraw();
     };
 }
 
@@ -294,7 +298,7 @@ ChromatogramWidget::~ChromatogramWidget()
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
                                                         , impl_( new impl() )
 {
-    setAxisTitle(QwtPlot::xBottom, QwtText( "Time[min]", QwtText::RichText ) );
+    setAxisTitle(QwtPlot::xBottom, QwtText( "Time[seconds]", QwtText::RichText ) );
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
     
     // -----------
@@ -308,7 +312,6 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
         zoomer->tracker1( std::bind( &impl::tracker1, impl_, _1 ) );
         zoomer->tracker2( std::bind( &impl::tracker2, impl_, _1, _2 ) );
         
-        // connect( zoomer, static_cast<void(Zoomer::*)(QRectF&)>(&Zoomer::zoom_override), this, &ChromatogramWidget::override_zoom_rect );
         connect( zoomer, &Zoomer::zoomed, this, &ChromatogramWidget::zoomed );
 	}
     
@@ -350,6 +353,13 @@ ChromatogramWidget::removeData( int idx, bool bReplot )
         impl_->traces_[ idx ] = ChromatogramData( *this );
     if ( bReplot )
         replot();
+}
+void
+ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot )
+{
+    impl_->axis_ = axis;
+    if ( replot )
+        impl_->redraw();
 }
 
 void
@@ -403,7 +413,6 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
 		impl_->traces_.push_back( ChromatogramData( *this ) );
 
     auto& trace = boost::get< ChromatogramData >( impl_->traces_ [ idx ] );
-    //QRectF z = zoomer()->zoomRect(); // current (:= previous) zoom
 
 	trace.plot_curve().setPen( QPen( color_table[idx] ) ); 
     trace.setData( cp, yRight );
@@ -438,10 +447,6 @@ ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& 
     setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, vertical.first, vertical.second );
 
     zoomer()->setZoomBase(); // zoom base set to data range
-
-    //if keep zoomed
-    //if ( z.left() < horizontal.first || horizontal.second < z.right() )
-    //    plot::zoom( z ); // push previous rect
 }
 
 void
@@ -480,12 +485,13 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 void
 ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotations& vec )
 {
-    double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
+    //double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
+    double tR = peak.peakTime();
     
     int pri = 0;
     std::wstring label = peak.name();
     if ( label.empty() )
-        label = ( boost::wformat( L"%.3lf" ) % tR ).str();
+        label = ( boost::wformat( L"%.4lf" ) % tR ).str();
 
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
     
@@ -532,7 +538,8 @@ ChromatogramWidget::drawPeakParameter( const adcontrols::Peak& pk )
         for ( int i = 0; i <= width; ++i ) {
             double x = tr.boundary( 0 ) + ( ( tr.boundary( 1 ) - tr.boundary( 0 ) ) * i ) / width;
             double y = a + ( b * x ) + ( c * x * x );
-            points << QPointF( adcontrols::Chromatogram::toMinutes( x ), y );
+            //points << QPointF( adcontrols::Chromatogram::toMinutes( x ), y );
+            points << QPointF( x, y );
             curve->setSamples( points );
         }
         curve->setPen( QPen( QColor( 240, 0, 0, 0x80 ) ) );
@@ -627,7 +634,7 @@ ChromatogramWidget::impl::update_annotations( const std::pair<double, double>& r
 QwtText
 ChromatogramWidget::impl::tracker1( const QPointF& pos )
 {
-    QwtText text = QwtText( (boost::format("%.3fmin, %.1f") % pos.x() % pos.y() ).str().c_str(), QwtText::RichText );
+    QwtText text = QwtText( (boost::format("%.3fs, %.3f") % pos.x() % pos.y() ).str().c_str(), QwtText::RichText );
 
     if ( tracker_hook_ && tracker_hook_( pos, text ) )
         return text;
@@ -640,11 +647,10 @@ ChromatogramWidget::impl::tracker2( const QPointF& p1, const QPointF& pos )
 {
     QwtText text;
 
-    double d = ( pos.x() - p1.x() );
-    if ( std::abs( d ) < 1.0 )
-        text = QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>s</i>),%.1f") % pos.x() % (d * 60.0) % pos.y() ).str().c_str(), QwtText::RichText );
-    else
-        text = QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>min</i>),%.1f") % pos.x() % d % pos.y() ).str().c_str(), QwtText::RichText );
+    double dx = ( pos.x() - p1.x() );
+    double dy = ( pos.y() - p1.y() );
+
+    text = QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>s</i>,%.3f),%.3f") % pos.x() % dx % dy % pos.y() ).str().c_str(), QwtText::RichText );
 
     if ( tracker_hook_ && tracker_hook_( pos, text ) )
         return text;
@@ -652,6 +658,10 @@ ChromatogramWidget::impl::tracker2( const QPointF& p1, const QPointF& pos )
     return text;
 }
 
+void
+ChromatogramWidget::impl::redraw()
+{
+}
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
