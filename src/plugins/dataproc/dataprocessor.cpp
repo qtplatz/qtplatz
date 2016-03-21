@@ -1399,13 +1399,12 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
 
         if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
 
-            QMessageBox mbx;
-            mbx.setText( QObject::tr( "Find lock mass reference" ) );
-            mbx.setInformativeText( QObject::tr( "Blacketing or pick Closest" ) );
-
-            mbx.setButtonText( QMessageBox::Yes, QObject::tr( "Blacketing" ) );
-            mbx.setButtonText( QMessageBox::No, QObject::tr( "Closest" ) );
-            interporate = mbx.exec() == QMessageBox::Yes;
+            int result = QMessageBox::question( MainWindow::instance()
+                                                , QObject::tr("Lock mass")
+                                                , QObject::tr( "Blacketing ?" )
+                                                , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+            if ( result == QMessageBox::Yes ) 
+                interporate = true;
         }
 
         for ( auto& ms : *spectra ) {

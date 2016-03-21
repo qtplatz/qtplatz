@@ -92,12 +92,12 @@ MSFractuation::find( int64_t rowid, bool interporate )
         lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
         --xit;
         lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
-        // trial
+//#if 0  // trial
         if ( xit != impl_->values_.begin() ) {
             --xit;
             lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
         }
-        // end trial
+//#endif
         if ( lk.fit() )
             impl_->interporated_ [ rowid ] = lk.fitter();
         return impl_->interporated_ [ rowid ];
