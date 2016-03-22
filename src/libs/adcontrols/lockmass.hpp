@@ -90,8 +90,6 @@ namespace adcontrols {
         };
 
         class ADCONTROLSSHARED_EXPORT mslock {
-            
-            //class ADCONTROLSSHARED_EXPORT mslock {
         public:
             mslock();
             mslock( const mslock& );
@@ -110,7 +108,7 @@ namespace adcontrols {
             const_iterator begin() const;
             const_iterator end() const;
             const std::vector< double >& coeffs() const;
-            const fitter& fitter() const;
+            const lockmass::fitter& fitter() const;
             
         private:
             std::vector< reference > references_;
