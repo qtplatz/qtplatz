@@ -66,6 +66,8 @@ namespace u5303a {
 
         bool GetAttributeViString ( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
 
+        bool GetAttributeViInt32( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result );
+
         bool Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& );
         std::shared_ptr< acqrscontrols::u5303a::identify > Identify();
 

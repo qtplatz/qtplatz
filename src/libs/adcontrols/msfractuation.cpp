@@ -25,6 +25,7 @@
 
 #include "msfractuation.hpp"
 #include "lockmass.hpp"
+#include <adportable/float.hpp>
 #include <type_traits>
 #include <map>
 
@@ -89,15 +90,16 @@ MSFractuation::find( int64_t rowid, bool interporate )
     if ( interporate ) {
         auto xit = impl_->values_.lower_bound( rowid );
         lockmass::mslock lk;
-        lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
+        auto value = xit->second;
+        //lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
         --xit;
-        lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
-//#if 0  // trial
-        if ( xit != impl_->values_.begin() ) {
-            --xit;
+
+        if ( adportable::compare<double>::essentiallyEqual( value.first, xit->second.first ) ) {
+            lk << lockmass::reference( "", value.first, ( value.second + xit->second.second ) / 2, 0);
+        } else {
+            lk << lockmass::reference( "", value.first, value.second , 0 );
             lk << lockmass::reference( "", xit->second.first, xit->second.second, 0 );
         }
-//#endif
         if ( lk.fit() )
             impl_->interporated_ [ rowid ] = lk.fitter();
         return impl_->interporated_ [ rowid ];

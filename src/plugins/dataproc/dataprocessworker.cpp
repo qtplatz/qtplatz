@@ -587,7 +587,6 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                 adcontrols::MSPeakInfo result;
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
                 DataprocHandler::doCentroid( result, *ptr, *ms, *centroidMethod );
-                //ADDEBUG() << pos << "/" << tic->size() << " : " << it->rowid() << " fcn:" << it->fcn() << ", " << double(it->elapsed_time() * 1.0e-9 / 60.0) << "min , " << ptr->size();
                 ( *spectra ) << std::move( ptr );
 
             } else {

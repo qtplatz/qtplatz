@@ -514,9 +514,9 @@ dataproc_document::onSelectSpectrum_v3( double /*minutes*/, const adcontrols::Da
         if ( auto ms = iterator.dataReader()->getSpectrum( iterator->rowid() ) ) {
 
             std::wostringstream text;
-            text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfmin" ) % adportable::utf::to_wstring(reader->display_name())
+            text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring(reader->display_name())
                                                                       % iterator->pos() % ms->protocolId() % ms->nProtocols()
-                                                                      % (iterator->time_since_inject() / 60.0);
+                                                                      % (iterator->time_since_inject() );
 
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( L"create", text.str() ) );
@@ -542,10 +542,10 @@ dataproc_document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn 
                 std::wostringstream text;
                 // size_t pos = dset->find_scan( index, fcn );
                 if ( dset->getSpectrum( fcn, pos, ms ) ) {
-                    double t = dset->timeFromPos( pos ) / 60.0;
+                    double t = dset->timeFromPos( pos );
                     if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
-                        t = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
-                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfmin" ) % pos % ms.protocolId() % ms.nProtocols() % t;
+                        t = ms.getMSProperty().timeSinceInjection();
+                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfs" ) % pos % ms.protocolId() % ms.nProtocols() % t;
                     adcontrols::ProcessMethod m;
                     ms.addDescription( adcontrols::description( L"create", text.str() ) );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );

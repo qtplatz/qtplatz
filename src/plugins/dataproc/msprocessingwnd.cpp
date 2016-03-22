@@ -155,7 +155,7 @@ namespace dataproc {
                         if ( error > std::abs( it->time_since_inject() - seconds ) ) {
                             error = std::abs( it->time_since_inject() - seconds );
                             pos = it->pos();
-                            minutes = it->time_since_inject() / 60.0;
+                            minutes = it->time_since_inject();
                             rep = 0;
                             fcn = it->fcn();
                         }
@@ -743,9 +743,9 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     // v3 data
                     auto readers = rawfile->dataReaders();
                     for ( auto& reader : readers ) {
-                        if ( auto it = reader->findPos( adcontrols::Chromatogram::toSeconds( rect.left() ) ) )
+                        if ( auto it = reader->findPos( rect.left() ) )
                             actions.push_back(
-                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lf<i>s</i>" ) % reader->display_name() % rect.left() ).str().c_str() )
+                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str().c_str() )
                                                 , [=] () {
                                                     dataproc_document::instance()->onSelectSpectrum_v3( rect.left(), it );
                                                 } )

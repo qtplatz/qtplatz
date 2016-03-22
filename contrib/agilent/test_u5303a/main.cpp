@@ -205,6 +205,23 @@ main( int argc, char * argv [] )
                       << "SerialNumber:     " << ident->SerialNumber() << std::endl
                       << "IOVersion:        " << ident->IOVersion() << std::endl
                       << "NbrADCBits:       " << ident->NbrADCBits() << std::endl;
+
+            ViStatus rcode;
+            std::string result;
+
+            int32_t count(0);
+            md2->GetAttributeViInt32( rcode, "ControlIO", AGMD2_ATTR_CONTROL_IO_COUNT, count );
+
+            ViChar name [ 256 ];
+            for ( int i = 1; i <= count; ++i ) {
+                rcode = AgMD2_GetControlIOName( md2->session(), i, 256, name );
+                if ( rcode == 0 ) {
+                    md2->GetAttributeViString( rcode, name, AGMD2_ATTR_CONTROL_IO_SIGNAL, result );
+                    std::cout << name << "\t" << result << std::endl;
+                    if ( md2->GetAttributeViString( rcode, name, AGMD2_ATTR_CONTROL_IO_AVAILABLE_SIGNALS, result ) )
+                        std::cout << "\t" << result << std::endl;
+                }
+            }
             
             if ( ident->Options().find( "INT" ) != std::string::npos ) // Interleave ON
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );

@@ -255,7 +255,7 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
 
         std::vector< double > seconds;
         for ( auto& x: ptr->x() )
-            seconds.push_back( x * 60.0 );
+            seconds.push_back( x );
         cp->resize( seconds.size() );
         cp->setTimeArray( seconds.data() );
 
