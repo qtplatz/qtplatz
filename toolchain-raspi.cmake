@@ -5,8 +5,9 @@ SET(CMAKE_C_COMPILER   /opt/raspi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabi
 SET(CMAKE_CXX_COMPILER /opt/raspi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++)
 
 # where is the target environment
-get_filename_component (_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-SET( CMAKE_FIND_ROOT_PATH /opt/raspi/arm-linux-gnueabihf /opt/raspi/arm-linux-gnueabihf-rootfs ${_dir} ${_dir}/.. )
+get_filename_component (_srcdir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component (_bindir "${CMAKE_BINARY_DIR}" PATH )
+SET( CMAKE_FIND_ROOT_PATH /opt/raspi/arm-linux-gnueabihf /opt/raspi/arm-linux-gnueabihf-rootfs ${_bindir} ${_srcdir} )
 set( CMAKE_SYSROOT /opt/raspi/arm-linux-gnueabihf-rootfs )
 
 # search for programs in the build host directories
