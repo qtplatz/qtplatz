@@ -25,6 +25,7 @@
 
 #include "msfractuation.hpp"
 #include "lockmass.hpp"
+#include "unique_ptr.hpp"
 #include <adportable/float.hpp>
 #include <type_traits>
 #include <map>

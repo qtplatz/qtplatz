@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "msproperty.hpp"
+#include "unique_ptr.hpp"
 #include "metric/prefix.hpp"
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"

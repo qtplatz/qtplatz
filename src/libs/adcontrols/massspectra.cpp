@@ -28,6 +28,7 @@
 #include "chromatogram.hpp"
 #include "description.hpp"
 #include "descriptions.hpp"
+#include "unique_ptr.hpp"
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/serialization/shared_ptr.hpp>

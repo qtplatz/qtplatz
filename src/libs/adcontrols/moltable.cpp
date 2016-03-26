@@ -144,7 +144,7 @@ moltable::operator += ( const moltable& t )
 {
     std::move( t.impl_->data_.begin(), t.impl_->data_.end(), std::back_inserter( impl_->data_ ) );
 
-    std::sort( impl_->data_.begin(), impl_->data_.end(), []( value_type& a, value_type& b ){ return a.mass() < b.mass(); } );
+    std::sort( impl_->data_.begin(), impl_->data_.end(), []( const value_type& a, const value_type& b ){ return a.mass() < b.mass(); } );
 
     auto it = std::unique( impl_->data_.begin(), impl_->data_.end()
                          , []( value_type& a, value_type& b ){ return adportable::compare<double>::essentiallyEqual(a.mass(), b.mass()); } );
