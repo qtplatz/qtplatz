@@ -26,8 +26,8 @@
 #include "mslockmethod.hpp"
 #include "msfinder.hpp"
 #include "moltable.hpp"
-#include "unique_ptr.hpp"
 #include <adportable/is_equal.hpp>
+#include <adportable/unique_ptr.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>

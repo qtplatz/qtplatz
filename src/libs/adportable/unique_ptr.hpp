@@ -25,7 +25,7 @@
 
 #pragma once
 
-#if __cplusplus < 201402L
+#if __cplusplus <= 201103L
 
 #include <cstddef>
 #include <memory>

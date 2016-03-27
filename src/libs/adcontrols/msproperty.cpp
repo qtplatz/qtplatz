@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "msproperty.hpp"
-#include "unique_ptr.hpp"
 #include "metric/prefix.hpp"
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
@@ -32,6 +31,7 @@
 #include <adportable/base64.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/unique_ptr.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -275,17 +275,17 @@ MSProperty::setSamplingDelay( uint32_t v )
     samplingData_->setNSamplingDelay( v );
 }
 
-void
-MSProperty::setSamplingInterval( uint32_t v ) // ps
-{
-    samplingData_->fSampInterval( v * 1.0e-12 );
-}
+// void
+// MSProperty::setSamplingInterval( uint32_t v ) // ps
+// {
+//     samplingData_->fSampInterval( v * 1.0e-12 );
+// }
 
-void
-MSProperty::setSamplingInterval( double v ) // seconds
-{
-	samplingData_->fSampInterval( v );
-}
+// void
+// MSProperty::setSamplingInterval( double v ) // seconds
+// {
+// 	samplingData_->fSampInterval( v );
+// }
 
 double
 MSProperty::timeSinceInjection() const

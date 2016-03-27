@@ -41,11 +41,11 @@
 #include "mslockmethod.hpp"
 #include "msproperty.hpp"
 #include "processmethod.hpp"
-#include "unique_ptr.hpp"
 #include "waveform_filter.hpp"
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/unique_ptr.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <boost/format.hpp>
 #include <numeric>

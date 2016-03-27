@@ -791,12 +791,12 @@ namespace adcontrols {
 // so the MassSpectrum[0] is identical to MassSpectrum if there is subsequent fragment.
 
 
-size_t
-MassSpectrum::addSegment( const MassSpectrum& sub )
-{
-    pImpl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
-    return pImpl_->vec_.size();
-}
+// size_t
+// MassSpectrum::addSegment( const MassSpectrum& sub )
+// {
+//     pImpl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
+//     return pImpl_->vec_.size();
+// }
 
 MassSpectrum&
 MassSpectrum::getSegment( size_t fcn )
