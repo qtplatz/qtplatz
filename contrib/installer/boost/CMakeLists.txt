@@ -11,6 +11,7 @@ elseif( APPLE )
   file( GLOB _libs "${Boost_LIBRARY_DIRS}/libboost_*.dylib" )  
 else()
   file( GLOB _libs RELATIVE "${Boost_LIBRARY_DIRS}" "${Boost_LIBRARY_DIRS}/libboost_*.so*" )
+  file( GLOB _a RELATIVE "${Boost_LIBRARY_DIRS}" "${Boost_LIBRARY_DIRS}/libboost_*.a" )
 endif()
 
 if ( CMAKE_SYSTEM_NAME MATCHES Linux )
@@ -45,7 +46,7 @@ message( "##### boost runtime_directory: " ${TARGET_LIBRARY_DIRECTORY} )
 message( "##### boost source directory: " ${Boost_LIBRARY_DIRS} )
 message( "##### boost version: " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 
-set( CPACK_PACKAGE_NAME "libboost-dev" )
+set( CPACK_PACKAGE_NAME "libboost" )
 set( CPACK_PACKAGE_VENDOR "ms-cheminfo.com" )
 set( CPACK_PACKAGE_VERSION ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 set( CPACK_PACKAGE_VERSION_MAJOR ${Boost_MAJOR_VERSION} )
@@ -53,15 +54,21 @@ set( CPACK_PACKAGE_VERSION_MINOR ${Boost_MINOR_VERSION} )
 set( CPACK_PACKAGE_VERSION_PATCH ${Boost_SUBMINOR_VERSION} )
 
 include( CPackComponent )
-cpack_add_component( runtime_libraries DISPLAY_NAME "Runtime libraries" DESCRIPTION "libraries" GROUP Runtime )
-cpack_add_component( libraries         DISPLAY_NAME "Development libraries" DESCRIPTION "static and import libs" GROUP Development )
-cpack_add_component( headers           DISPLAY_NAME "C++ Headers" DESCRIPTION "C++ header files" GROUP Development )
+cpack_add_component( runtime_libraries DISPLAY_NAME "Runtime libraries" DESCRIPTION "libraries" GROUP runtime )
+cpack_add_component( libraries         DISPLAY_NAME "Development libraries" DESCRIPTION "static and import libs" GROUP dev )
+cpack_add_component( headers           DISPLAY_NAME "C++ Headers" DESCRIPTION "C++ header files" GROUP dev )
+
+set( CPACK_DEB_COMPONENT_INSTALL 1 )
 
 # Currently, runtime libraries only include into package
 foreach( lib ${_libs} )
   install( FILES ${Boost_LIBRARY_DIRS}/${lib} DESTINATION lib COMPONENT runtime_libraries )
 endforeach()
 
-install( DIRECTORY ${Boost_INCLUDES_DIRS} DESTINATION . COMPONENT headers )
+foreach( lib ${_a} )
+  install( FILES ${Boost_LIBRARY_DIRS}/${lib} DESTINATION lib COMPONENT libraries )
+endforeach()
+
+install( DIRECTORY ${Boost_INCLUDE_DIRS} DESTINATION . COMPONENT headers )
 
 include( CPack )
