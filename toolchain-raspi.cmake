@@ -1,10 +1,10 @@
 SET(CMAKE_SYSTEM_NAME Linux)
 SET(CMAKE_SYSTEM_VERSION 1)
 
-#SET(CMAKE_C_COMPILER   /opt/raspi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-gcc)
-#SET(CMAKE_CXX_COMPILER /opt/raspi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++)
-SET(CMAKE_C_COMPILER   arm-linux-gnueabihf-gcc)
-SET(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
+SET(CMAKE_C_COMPILER   /opt/raspi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-gcc)
+SET(CMAKE_CXX_COMPILER /opt/raspi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++)
+#SET(CMAKE_C_COMPILER   arm-linux-gnueabihf-gcc)
+#SET(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
 SET(CMAKE_C_FLAGS "-march=armv6" CACHE STRING "Raspbery Pi")
 SET(CMAKE_CXX_FLAGS "-march=armv6" CACHE STRING "Raspbery Pi")
 
