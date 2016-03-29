@@ -38,7 +38,7 @@ namespace adportable {
 
             bool read_json( std::istream& );
 
-            bool write_json( std::ostream& );
+            bool write_json( std::ostream& ) const;
             
             double interval() const;
 

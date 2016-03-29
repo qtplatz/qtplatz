@@ -138,7 +138,7 @@ protocols::read_json( std::istream& json )
 }
 
 bool
-protocols::write_json( std::ostream& o )
+protocols::write_json( std::ostream& o ) const
 {
     boost::property_tree::ptree pt;
     

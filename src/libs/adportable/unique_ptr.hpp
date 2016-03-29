@@ -25,12 +25,12 @@
 
 #pragma once
 
-#define HAS_MAKE_UNIQUE 0
-
 #if defined _MSC_VER && _MSC_VER >= 1900
-#define HAS_MAKE_UNIQUE 1
-#else if   __cplusplus >= 201103L 
-#define HAS_MAKE_UNIQUE 1
+# define HAS_MAKE_UNIQUE 1
+#elif   __cplusplus >= 201103L 
+# define HAS_MAKE_UNIQUE 1
+#else
+# define HAS_MAKE_UNIQUE 0
 #endif
 
 #if ! HAS_MAKE_UNIQUE 
