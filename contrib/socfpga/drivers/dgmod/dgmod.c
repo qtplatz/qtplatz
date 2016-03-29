@@ -32,23 +32,24 @@
 #include <linux/string.h>
 #include <linux/cdev.h>
 #include <linux/interrupt.h>
+#include "dgmod.h"
 
-static char *devname = "dgmod";
+static char *devname = MODNAME;
 
-#define DGMOD_VERSION  "1.0"
-#define MODNAME        "dgmod"
-
-#define DGMOD_MAJOR    MISC_MAJOR
-#define DGMOD_MINOR    152
-
-#define IRQ_NUM        72
-
+MODULE_AUTHOR( "Toshinobu Hondo, Matsuoka" );
+MODULE_DESCRIPTION( "Device Driver for MULTUM-II Control Delay Pulse Generator" );
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("dgmod");
-module_param( devname, charp, S_IRUGO );
 MODULE_PARM_DESC(devname, "dgmod param");
+module_param( devname, charp, S_IRUGO );
 
 #define countof(x) (sizeof(x)/sizeof((x)[0]))
+
+static struct resource * __resource;
+
+enum {
+    map_base_addr = 0xff200000
+    , map_size = 0x20000
+};
 
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
@@ -89,11 +90,15 @@ dgmod_module_init( void )
     int ret;
     proc_create( "dgmod", 0, NULL, &proc_file_fops );
     
-    printk(KERN_INFO "" MODNAME " driver v%s loaded\n", DGMOD_VERSION);
+    printk( KERN_INFO "" MODNAME " driver v%s loaded\n", MOD_VERSION );
     
     ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL);
     if (ret < 0)
         return ret;
+
+    __resource = request_mem_region( map_base_addr, map_size, "dgmod" );
+    if ( __resource )
+        printk(KERN_INFO "" MODNAME " requested memory resource: %x, %x, %s\n", __resource->start, __resource->end, __resource->name );
 
     printk(KERN_ALERT "dgmod registed\n");
   
@@ -109,7 +114,7 @@ dgmod_module_exit( void )
     
     remove_proc_entry( "dgmod", NULL );
     
-    printk(KERN_INFO "" MODNAME " driver v%s unloaded\n", DGMOD_VERSION);
+    printk( KERN_INFO "" MODNAME " driver v%s unloaded\n", MOD_VERSION );
 }
 
 module_init( dgmod_module_init );
