@@ -33,20 +33,20 @@
 #include <linux/cdev.h>
 #include <linux/interrupt.h>
 
-static char *devname = "dgirq";
+static char *devname = "dgmod";
 
-#define DGIRQ_VERSION  "1.0"
-#define MODNAME        "dgirq"
+#define DGMOD_VERSION  "1.0"
+#define MODNAME        "dgmod"
 
-#define DGIRQ_MAJOR    MISC_MAJOR
-#define DGIRQ_MINOR    152
+#define DGMOD_MAJOR    MISC_MAJOR
+#define DGMOD_MINOR    152
 
 #define IRQ_NUM        72
 
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("dgirq");
+MODULE_DESCRIPTION("dgmod");
 module_param( devname, charp, S_IRUGO );
-MODULE_PARM_DESC(devname, "dgirq param");
+MODULE_PARM_DESC(devname, "dgmod param");
 
 #define countof(x) (sizeof(x)/sizeof((x)[0]))
 
@@ -62,55 +62,55 @@ handle_interrupt(int irq, void *dev_id)
 }
 
 static int
-dgirq_proc_read( struct seq_file * m, void * v )
+dgmod_proc_read( struct seq_file * m, void * v )
 {
-    seq_printf( m, "Hello this is DGIRQ.  I have no mapped memory in my resouce.\n" );
+    seq_printf( m, "Hello this is DGMOD.  I have no mapped memory in my resouce.\n" );
     return 0;
 }
 
 static int
-dgirq_proc_open( struct inode * inode, struct file * file )
+dgmod_proc_open( struct inode * inode, struct file * file )
 {
-    return single_open( file, dgirq_proc_read, NULL );
+    return single_open( file, dgmod_proc_read, NULL );
 }
 
 
 static const struct file_operations proc_file_fops = {
      .owner = THIS_MODULE,
-     .open = dgirq_proc_open,
+     .open = dgmod_proc_open,
      .read = seq_read,
      .llseek = seq_lseek,
      .release = single_release,
 };
 
 static int __init
-dgirq_module_init( void )
+dgmod_module_init( void )
 {
     int ret;
-    proc_create( "dgirq", 0, NULL, &proc_file_fops );
+    proc_create( "dgmod", 0, NULL, &proc_file_fops );
     
-    printk(KERN_INFO "" MODNAME " driver v%s loaded\n", DGIRQ_VERSION);
+    printk(KERN_INFO "" MODNAME " driver v%s loaded\n", DGMOD_VERSION);
     
-    ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgirq", NULL);
+    ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL);
     if (ret < 0)
         return ret;
 
-    printk(KERN_ALERT "dgirq registed\n");
+    printk(KERN_ALERT "dgmod registed\n");
   
     return 0;
 }
 
 static void
-dgirq_module_exit( void )
+dgmod_module_exit( void )
 {
     free_irq( IRQ_NUM, NULL);
 
-    printk(KERN_ALERT "exit from dgirq\n");    
+    printk(KERN_ALERT "exit from dgmod\n");    
     
-    remove_proc_entry( "dgirq", NULL );
+    remove_proc_entry( "dgmod", NULL );
     
-    printk(KERN_INFO "" MODNAME " driver v%s unloaded\n", DGIRQ_VERSION);
+    printk(KERN_INFO "" MODNAME " driver v%s unloaded\n", DGMOD_VERSION);
 }
 
-module_init( dgirq_module_init );
-module_exit( dgirq_module_exit );
+module_init( dgmod_module_init );
+module_exit( dgmod_module_exit );
