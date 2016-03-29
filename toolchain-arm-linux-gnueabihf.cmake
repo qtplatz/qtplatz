@@ -7,9 +7,8 @@ SET(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
 
 # where is the target environment
 get_filename_component (_srcdir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-get_filename_component (_parent "${_dir}" PATH)
 get_filename_component (_bindir "${CMAKE_BINARY_DIR}" PATH )
-set ( CMAKE_FIND_ROOT_PATH  /usr/local/arm-linux-gnueabihf ${_bindir} ${_srcdir} ${_parent} )
+set ( CMAKE_FIND_ROOT_PATH  /usr/local/arm-linux-gnueabihf ${_bindir} ${_srcdir} )
 
 # search for programs in the build host directories
 set ( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
