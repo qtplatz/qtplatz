@@ -27,6 +27,8 @@
 
 #if defined _MSC_VER && _MSC_VER >= 1900
 # define HAS_MAKE_UNIQUE 1
+#elif __GNUC__ <= 4 && __GNUC_MINOR__ <= 8
+# define HAS_MAKE_UNIQUE 0
 #elif   __cplusplus >= 201103L 
 # define HAS_MAKE_UNIQUE 1
 #else
