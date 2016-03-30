@@ -12,7 +12,6 @@ clean:
 	make -C ${KERNEL_SRC} m=${PWD} clean
 
 install:
-	-make stop
 	sudo cp -p dgmod.ko /lib/modules/${REVISION}/extra
 
 start:

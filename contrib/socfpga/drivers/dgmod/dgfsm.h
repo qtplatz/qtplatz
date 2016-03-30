@@ -22,29 +22,16 @@
 **
 **************************************************************************/
 
-#ifndef SOCFPGA_DRIVERS_DGMOD_DELAY_PULSE_H
-#define SOCFPGA_DRIVERS_DGMOD_DELAY_PULSE_H
+#ifndef SOCFPGA_DRIVERS_DGFSM_H
+#define SOCFPGA_DRIVERS_DGFSM_H
 
-#if defined __cplusplus
-# include <cstdint>
-#endif
+#include <linux/cdev.h>
 
-struct dgmod_delay_pulse {
-    uint32_t delay_;
-    uint32_t width_;
-};
-
-enum { number_of_channels = 6 };
-
-struct dgmod_protocol {
-    uint32_t replicates_;
-    struct dgmod_delay_pulse delay_pulses_[ number_of_channels ];
-};
-
-struct dgmod_protocol_sequence {
-    uint32_t interval_; // a.k.a. 'To'
-    uint32_t size_;
-    struct dgmod_protocol protocols_[ 4 ];
+struct dgfsm {
+    uint32_t state;
+    uint32_t next_protocol;
+    uint32_t number_of_protocols;
+    uint32_t replicates_remain;
 };
 
 #endif

@@ -24,12 +24,14 @@
 
 #include "dgmod.h"
 #include "dgmod_delay_pulse.h"
+#include "dgfsm.h"
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
+#include <linux/ioctl.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/proc_fs.h> // create_proc_entry
@@ -52,24 +54,6 @@ module_param( devname, charp, S_IRUGO );
 static struct resource * __resource;
 static uint32_t * __mapped_ptr;
 
-enum {
-    map_base_addr = 0xff200000
-    , map_size = 0x20000
-    , pio_base = 0x10040
-    , addr_machine_state = 0x10100 / sizeof(uint32_t)
-    , addr_submit = 0x10120 / sizeof(uint32_t)
-    , addr_interval = 0x10180 / sizeof(uint32_t)
-    , addr_revision = 0x101a0 / sizeof(uint32_t)
-};
-
-enum fsm_state {
-    fsm_stop = 0x0000
-    , fsm_start = 0x0001
-    , fsm_update = 0x0001
-};
-
-struct pulse_addr {  uint32_t delay; uint32_t width; };
-
 static struct pulse_addr pulse_register [] = {
     {   (0x10200u / sizeof( uint32_t )), (0x10220u / sizeof( uint32_t )) }
     , { (0x10240u / sizeof( uint32_t )), (0x10260u / sizeof( uint32_t )) }
@@ -80,10 +64,19 @@ static struct pulse_addr pulse_register [] = {
 };
 
 static struct dgmod_protocol_sequence __protocol_sequence = {
+    .interval_ = 100000, // 1ms @ 10ns resolution
     .size_ = 1,
     .protocols_[ 0 ].replicates_ = (-1),
     .protocols_[ 0 ].delay_pulses_ = { { 0, 1 }, { 0, 1 }, { 0, 1 }, { 0, 1 }, { 0, 1 }, { 0, 1 } },
 };
+
+static struct dgfsm __dgfsm = {
+    .state = fsm_stop,
+    .next_protocol = 0,
+    .replicates_remain = (-1)
+};
+
+static int dgfsm_handle_irq( const struct dgmod_protocol_sequence * sequence );
 
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
@@ -91,9 +84,67 @@ handle_interrupt(int irq, void *dev_id)
     if ( irq != IRQ_NUM )
         return IRQ_NONE;
     
-    printk(KERN_ALERT "Interrupt %d occured\n",IRQ_NUM);  
-
+    // printk(KERN_ALERT "Interrupt %d occured\n",IRQ_NUM);  
+    dgfsm_handle_irq( &__protocol_sequence ); // start trigger
+    
     return IRQ_HANDLED;
+}
+
+static void dgfsm_start( void )
+{
+    __mapped_ptr[ addr_machine_state ] = fsm_start;
+}
+
+static void dgfsm_stop( void )
+{
+    __mapped_ptr[ addr_machine_state ] = fsm_stop;
+}
+
+static void dgfsm_commit( const struct dgmod_protocol * proto )
+{
+    if ( __mapped_ptr ) {
+
+        for ( size_t ch = 0; ch < number_of_channels; ++ch ) {
+            __mapped_ptr[ pulse_register[ ch ].delay ] = proto->delay_pulses_[ ch ].delay_;
+            __mapped_ptr[ pulse_register[ ch ].width ] = proto->delay_pulses_[ ch ].width_;
+        }
+
+        __mapped_ptr[ addr_submit ] = 0;
+        __mapped_ptr[ addr_submit ] = 0; // nop
+        __mapped_ptr[ addr_submit ] = 1;
+        
+    }
+}
+
+static int dgfsm_init( const struct dgmod_protocol_sequence * sequence )
+{
+    if ( sequence ) {
+
+        __dgfsm.next_protocol = 0;
+        __dgfsm.number_of_protocols = sequence->size_ & 0x03; // make sure < 4
+        __dgfsm.replicates_remain = sequence->protocols_[ 0 ].replicates_;
+
+    }
+    return 0;
+}
+
+static int dgfsm_handle_irq( const struct dgmod_protocol_sequence * sequence )
+{
+    if ( __dgfsm.replicates_remain && ( --__dgfsm.replicates_remain == 0 ) ) {
+
+        if ( ++__dgfsm.next_protocol > __dgfsm.number_of_protocols )
+            __dgfsm.next_protocol = 0;
+
+        do {
+            const struct dgmod_protocol * proto = &sequence->protocols_[ __dgfsm.next_protocol ];
+            __dgfsm.replicates_remain = proto->replicates_;
+
+            dgfsm_commit( proto );
+            
+        } while ( 0 );
+            
+    }
+    return 0;
 }
 
 static int
@@ -117,7 +168,8 @@ dgmod_proc_read( struct seq_file * m, void * v )
     }
     
     if ( __protocol_sequence.size_ > 0 ) {
-        seq_printf( m, "Has %d protocol sequence\n", __protocol_sequence.size_ );
+        seq_printf( m, "Has %d protocol sequence, To = %d\n"
+                    , __protocol_sequence.size_, __protocol_sequence.interval_ );
         
         for ( size_t i = 0; i < __protocol_sequence.size_; ++i ) {
             seq_printf( m, "[%d] Replicates: %d\n", i, __protocol_sequence.protocols_[ i ].replicates_ );
@@ -134,6 +186,22 @@ dgmod_proc_read( struct seq_file * m, void * v )
     return 0;
 }
 
+static ssize_t
+dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off ) //unsigned long size, void * data )
+{
+    static char readbuf[256];
+    if ( size > sizeof( readbuf ) )
+        return -ENOSPC;
+
+    if ( copy_from_user( readbuf, user, size ) )
+        return -EFAULT;
+    readbuf[ size ] = '\0';
+
+    printk( KERN_INFO "dgmod: receive %d octets data from user: %s", size, readbuf );
+
+    return 0;
+}
+
 static int
 dgmod_proc_open( struct inode * inode, struct file * file )
 {
@@ -144,6 +212,7 @@ static const struct file_operations proc_file_fops = {
     .owner   = THIS_MODULE,
     .open    = dgmod_proc_open,
     .read    = seq_read,
+    .write   = dgmod_proc_write,
     .llseek  = seq_lseek,
     .release = single_release,
 };
@@ -159,6 +228,14 @@ static int dgmod_cdev_release(struct inode *inode, struct file *file)
     printk(KERN_INFO "release dgmod char device\n");
     return 0;
 }
+
+#if 0
+static long dgmod_cdev_ioctl( struct file* filp, unsigned int code, unsigned long args)
+{
+    printk( KERN_INFO "dgmod_cdev_ioctl, code=%x, args=%lx\n", code, args );
+    return 0;
+}
+#endif
 
 static ssize_t dgmod_cdev_read(struct file *file, char __user *data, size_t size, loff_t *f_pos )
 {
@@ -177,6 +254,11 @@ static ssize_t dgmod_cdev_read(struct file *file, char __user *data, size_t size
     }
 
     *f_pos += count;
+
+    // following code will cause an infinite loop for 'cat' command
+    // if ( *f_pos >= sizeof( __protocol_sequence ) )
+    //     *f_pos = 0; // recycle
+        
     // todo: up(&dev-dem);
     return count;
 }
@@ -188,16 +270,42 @@ static ssize_t dgmod_cdev_write(struct file *file, const char __user *data, size
     
     printk(KERN_INFO "dgmod_cdev_write size=%d\n", size );
     
-    if ( *f_pos >= sizeof( protocol_sequence ) )
+    if ( *f_pos >= sizeof( protocol_sequence ) ) {
+        printk(KERN_INFO "dgmod_cdev_write size overrun size=%d, offset=%lld\n", size, *f_pos );
         return 0;
+    }
 
     if ( copy_from_user( (char *)(&protocol_sequence) + *f_pos, data, count ) )
         return -EFAULT;
 
     *f_pos += count;
 
-    if ( *f_pos >= sizeof( protocol_sequence ) )
+    if ( *f_pos >= sizeof( protocol_sequence ) ) {
+#if 0
+        // fix if data has an error
+        if ( protocol_sequence.size_ > 4 )
+            protocol_sequence.size_ = 4;
+        
+        if ( protocol_sequence.protocols_[ 0 ].replicates_ == 0 ) { // proto[0] can't be zero
+
+            protocol_sequence.protocols_[ 0 ].replicates_ = ( -1 );
+            protocol_sequence.size_ = 1;
+
+        } else {
+
+            for ( int i = 1; i < protocol_sequence.size_; ++i ) {
+                if ( protocol_sequence.protocols_[ i ].replicates_ == 0 ) {
+                    protocol_sequence.size_ = i;
+                    break;
+                }
+            }
+            
+        }
+#endif
         __protocol_sequence = protocol_sequence;
+
+        dgfsm_init( &__protocol_sequence ); // it will be loaded at next irq
+    }
     
     return count;
 }
@@ -206,6 +314,7 @@ static struct file_operations dgmod_cdev_fops = {
     .owner   = THIS_MODULE,
     .open    = dgmod_cdev_open,
     .release = dgmod_cdev_release,
+    // .unlocked_ioctl = dgmod_cdev_ioctl,
     .read    = dgmod_cdev_read,
     .write   = dgmod_cdev_write,
 };
@@ -287,7 +396,11 @@ dgmod_module_init( void )
         
         __mapped_ptr = (uint32_t *)( ioremap( __resource->start, map_size ) );
         printk(KERN_INFO "" MODNAME " __mapped_ptr: %x\n", (unsigned int)(__mapped_ptr) );
-        
+
+        dgfsm_init( &__protocol_sequence );
+
+        //dgfsm_handle_irq( &__protocol_sequence ); // start trigger
+        //dgfsm_start();
     }
 
     printk(KERN_ALERT "dgmod registed\n");
@@ -298,6 +411,8 @@ dgmod_module_init( void )
 static void
 dgmod_module_exit( void )
 {
+    dgfsm_stop();
+    
     free_irq( IRQ_NUM, NULL);
 
     if ( __mapped_ptr )

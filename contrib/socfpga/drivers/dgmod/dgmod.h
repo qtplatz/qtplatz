@@ -32,20 +32,25 @@
 #define CDEV_NAME   MODNAME
 #define MOD_VERSION "1.0"
 
-#define DGMOD_MAJOR    MISC_MAJOR
-#define DGMOD_MINOR    153
+//#define IRQ_NUM      104
+#define IRQ_NUM      72
 
-#define IRQ_NUM        72
-
-struct dgmod_device {
-    int dev_num;
-    dev_t dev;
+enum {
+    map_base_addr = 0xff200000
+    , map_size = 0x20000
+    , pio_base = 0x10040
+    , addr_machine_state = 0x10100 / sizeof(uint32_t)
+    , addr_submit        = 0x10120 / sizeof(uint32_t)
+    , addr_interval      = 0x10180 / sizeof(uint32_t)
+    , addr_revision      = 0x101a0 / sizeof(uint32_t)
 };
 
-struct dgmod_driver {
-    struct dgmod_device **devices;
-    dev_t dev;
-    struct cdev cdev;
+enum fsm_state {
+    fsm_stop     = 0x0000
+    , fsm_start  = 0x0001
+    , fsm_update = 0x0001
 };
+
+struct pulse_addr {  uint32_t delay; uint32_t width; };
 
 #endif
