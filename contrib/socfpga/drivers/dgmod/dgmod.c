@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "dgmod.h"
-#include "dgmod_delay_pulse.h"
 #include "dgfsm.h"
+#include "dgmod_delay_pulse.h"
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
@@ -93,10 +93,12 @@ handle_interrupt(int irq, void *dev_id)
 static void dgfsm_start( void )
 {
     __mapped_ptr[ addr_machine_state ] = fsm_start;
+    __dgfsm.state = 1;
 }
 
 static void dgfsm_stop( void )
 {
+    __dgfsm.state = 0;    
     __mapped_ptr[ addr_machine_state ] = fsm_stop;
 }
 
@@ -190,16 +192,21 @@ static ssize_t
 dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off ) //unsigned long size, void * data )
 {
     static char readbuf[256];
-    if ( size > sizeof( readbuf ) )
-        return -ENOSPC;
+
+    if ( size >= sizeof( readbuf ) )
+        size = sizeof( readbuf ) - 1;
 
     if ( copy_from_user( readbuf, user, size ) )
         return -EFAULT;
+
     readbuf[ size ] = '\0';
 
     printk( KERN_INFO "dgmod: receive %d octets data from user: %s", size, readbuf );
 
-    return 0;
+    if ( size >= 5 && strcasecmp( readbuf, "start" ) == 0 )
+        dgfsm_start();
+
+    return size;
 }
 
 static int
@@ -305,6 +312,10 @@ static ssize_t dgmod_cdev_write(struct file *file, const char __user *data, size
         __protocol_sequence = protocol_sequence;
 
         dgfsm_init( &__protocol_sequence ); // it will be loaded at next irq
+
+        if ( __dgfsm.state == 0 )
+            dgfsm_start();
+            
     }
     
     return count;
@@ -381,7 +392,7 @@ dgmod_module_init( void )
     }
 
     // /proc create
-    proc_create( "dgmod", 0, NULL, &proc_file_fops );
+    proc_create( "dgmod", 0644, NULL, &proc_file_fops );
     
     // IRQ
     if ( ( ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
