@@ -9,7 +9,7 @@ all:
 
 clean:
 	-rm -f *.o *.mod.* *~
-	make -C ${KERNEL_SRC} m=${PWD} clean
+#	make -C ${KERNEL_SRC} m=${PWD} clean
 
 install:
 	sudo cp -p dgmod.ko /lib/modules/${REVISION}/extra

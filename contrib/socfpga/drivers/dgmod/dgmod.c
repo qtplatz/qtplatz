@@ -77,6 +77,7 @@ static struct dgfsm __dgfsm = {
 };
 
 static int dgfsm_handle_irq( const struct dgmod_protocol_sequence * sequence );
+static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
@@ -92,7 +93,11 @@ handle_interrupt(int irq, void *dev_id)
 
 static void dgfsm_start( void )
 {
+    dgfsm_init( &__protocol_sequence );
+    dgfsm_handle_irq( &__protocol_sequence ); // commit trigger
+    
     __mapped_ptr[ addr_machine_state ] = fsm_start;
+    
     __dgfsm.state = 1;
 }
 
@@ -201,10 +206,15 @@ dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * 
 
     readbuf[ size ] = '\0';
 
-    printk( KERN_INFO "dgmod: receive %d octets data from user: %s", size, readbuf );
-
-    if ( size >= 5 && strcasecmp( readbuf, "start" ) == 0 )
+    if ( size >= 5 && strcasecmp( readbuf, "start" ) == 0 ) {
         dgfsm_start();
+        printk( KERN_INFO "" MODNAME " fsm started.\n" );
+    } else if ( size >= 4 && strcasecmp( readbuf, "stop" ) == 0 ) {
+        dgfsm_stop();
+        printk( KERN_INFO "" MODNAME " fsm stopped.\n" );
+    } else {
+        printk( KERN_INFO "" MODNAME " proc write received unknown command: %s.\n", readbuf );
+    }
 
     return size;
 }
@@ -288,33 +298,15 @@ static ssize_t dgmod_cdev_write(struct file *file, const char __user *data, size
     *f_pos += count;
 
     if ( *f_pos >= sizeof( protocol_sequence ) ) {
-#if 0
-        // fix if data has an error
-        if ( protocol_sequence.size_ > 4 )
-            protocol_sequence.size_ = 4;
-        
-        if ( protocol_sequence.protocols_[ 0 ].replicates_ == 0 ) { // proto[0] can't be zero
 
-            protocol_sequence.protocols_[ 0 ].replicates_ = ( -1 );
-            protocol_sequence.size_ = 1;
-
-        } else {
-
-            for ( int i = 1; i < protocol_sequence.size_; ++i ) {
-                if ( protocol_sequence.protocols_[ i ].replicates_ == 0 ) {
-                    protocol_sequence.size_ = i;
-                    break;
-                }
-            }
-            
-        }
-#endif
         __protocol_sequence = protocol_sequence;
 
         dgfsm_init( &__protocol_sequence ); // it will be loaded at next irq
 
-        if ( __dgfsm.state == 0 )
+        if ( __dgfsm.state == 0 ) { // fsm 'stopped'
+            dgfsm_handle_irq( &__protocol_sequence ); // force commit
             dgfsm_start();
+        }
             
     }
     
@@ -409,9 +401,6 @@ dgmod_module_init( void )
         printk(KERN_INFO "" MODNAME " __mapped_ptr: %x\n", (unsigned int)(__mapped_ptr) );
 
         dgfsm_init( &__protocol_sequence );
-
-        //dgfsm_handle_irq( &__protocol_sequence ); // start trigger
-        //dgfsm_start();
     }
 
     printk(KERN_ALERT "dgmod registed\n");
