@@ -22,30 +22,28 @@
 **
 **************************************************************************/
 
-#ifndef SOCFPGA_DRIVERS_DGMOD_H
-#define SOCFPGA_DRIVERS_DGMOD_H
+#ifndef SOCFPGA_DRIVERS_DGMOD_DELAY_PULSE_H
+#define SOCFPGA_DRIVERS_DGMOD_DELAY_PULSE_H
 
-#include <linux/version.h>
-#include <linux/cdev.h>
+#if defined __cplusplus
+# include <cstdint>
+#endif
 
-#define MODNAME     "dgmod"
-#define CDEV_NAME   MODNAME
-#define MOD_VERSION "1.0"
-
-#define DGMOD_MAJOR    MISC_MAJOR
-#define DGMOD_MINOR    153
-
-#define IRQ_NUM        72
-
-struct dgmod_device {
-    int dev_num;
-    dev_t dev;
+struct dgmod_delay_pulse {
+    uint32_t delay_;
+    uint32_t width_;
 };
 
-struct dgmod_driver {
-    struct dgmod_device **devices;
-    dev_t dev;
-    struct cdev cdev;
+enum { number_of_channels = 6 };
+
+struct dgmod_protocol {
+    uint32_t replicates_;
+    struct dgmod_delay_pulse delay_pulses_[ number_of_channels ];
+};
+
+struct dgmod_protocol_sequence {
+    uint32_t size_;
+    struct dgmod_protocol protocols_[ 4 ];
 };
 
 #endif

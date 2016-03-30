@@ -1,6 +1,6 @@
 KBUILD_CFLAGS += -std=gnu99
-#KERNEL_SRC = /home/toshi/src/armhf/linux-4.0.5
-KERNEL_SRC = /home/toshi/src/linux-4.4.6
+REVISION = `uname -r`
+KERNEL_SRC = ~/src/linux-${REVISION}
 
 obj-m += dgmod.o
 
@@ -10,3 +10,14 @@ all:
 clean:
 	-rm -f *.o *.mod.* *~
 	make -C ${KERNEL_SRC} m=${PWD} clean
+
+install:
+	-make stop
+	sudo cp -p dgmod.ko /lib/modules/${REVISION}/extra
+
+start:
+	sudo insmod dgmod.ko
+
+stop:
+	sudo rmmod dgmod
+
