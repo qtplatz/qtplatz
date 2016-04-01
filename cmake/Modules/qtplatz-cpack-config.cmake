@@ -14,6 +14,7 @@ cpack_add_component( applications      DISPLAY_NAME "Applications" GROUP Runtime
 cpack_add_component( translations      DIAPLAY_NAME "Translation files" GROUP Runtime )
 cpack_add_component( runtime_libraries DISPLAY_NAME "Runtime libraries" DESCRIPTION "libraries" GROUP Runtime )
 cpack_add_component( plugins           DISPLAY_NAME "Plugins" GROUP Runtime )
+cpack_add_component( modules           DISPLAY_NAME "Modules" GROUP Runtime )
 cpack_add_component( libraries         DISPLAY_NAME "Development libraries"
   DESCRIPTION "Static and import libraries" GROUP Development )
 if ( NOT APPLE )
