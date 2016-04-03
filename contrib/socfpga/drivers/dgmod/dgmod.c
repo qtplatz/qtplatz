@@ -82,6 +82,9 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
 {
+    if ( irq == 74 )
+        return IRQ_NONE;
+
     printk( KERN_ALERT "Interrupt %d occured\n", irq );  
 
     if ( irq != IRQ_NUM )
@@ -195,7 +198,7 @@ dgmod_proc_read( struct seq_file * m, void * v )
 }
 
 static ssize_t
-dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off ) //unsigned long size, void * data )
+dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off )
 {
     static char readbuf[256];
 
@@ -213,6 +216,10 @@ dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * 
     } else if ( size >= 4 && strcasecmp( readbuf, "stop" ) == 0 ) {
         dgfsm_stop();
         printk( KERN_INFO "" MODNAME " fsm stopped.\n" );
+    } else if ( strncmp( readbuf, "on", 2 ) == 0 ) {
+        __mapped_ptr[ pio_led_base ] = 1;
+    } else if ( strncmp( readbuf, "off", 3 ) == 0 ) {
+        __mapped_ptr[ pio_led_base ] = 0;
     } else {
         printk( KERN_INFO "" MODNAME " proc write received unknown command: %s.\n", readbuf );
     }
@@ -385,16 +392,16 @@ dgmod_module_init( void )
     }
 
     // /proc create
-    proc_create( "dgmod", 0644, NULL, &proc_file_fops );
+    proc_create( "dgmod", 0666, NULL, &proc_file_fops );
     
     // IRQ
-    if ( ( ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
+    if ( ( ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
+    }
 
-    if ( ( ret = request_irq( IRQ_NUM + 1, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
+    if ( ( ret = request_irq( IRQ_NUM + 1, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
-    if ( ( ret = request_irq( IRQ_NUM + 2, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
-        return dgmod_dtor( ret );
+    }
 
     // IOMAP
     __resource = request_mem_region( map_base_addr, map_size, "dgmod" );
@@ -404,6 +411,14 @@ dgmod_module_init( void )
                , __resource->start, __resource->end, __resource->name );
         
         __mapped_ptr = (uint32_t *)( ioremap( __resource->start, map_size ) );
+
+        if ( __mapped_ptr ) {
+            __mapped_ptr[ pio_button_base + 2 ] = 0x00ff;  // PIO IRQ MASK CLEAR
+
+            // LED on
+            __mapped_ptr[ pio_led_base ] = 0x02;
+        }
+
         printk(KERN_INFO "" MODNAME " __mapped_ptr: %x\n", (unsigned int)(__mapped_ptr) );
 
         dgfsm_init( &__protocol_sequence );
@@ -418,11 +433,14 @@ static void
 dgmod_module_exit( void )
 {
     dgfsm_stop();
-    
-    free_irq( IRQ_NUM, NULL);
 
-    if ( __mapped_ptr )
+    free_irq( IRQ_NUM, NULL );
+    free_irq( IRQ_NUM + 1, NULL );
+
+    if ( __mapped_ptr ) {
+        __mapped_ptr[ pio_led_base ] = 0;
         iounmap( __mapped_ptr );
+    }
 
     if ( __resource )
         release_mem_region( map_base_addr, map_size );
@@ -431,9 +449,9 @@ dgmod_module_exit( void )
 
     remove_proc_entry( "dgmod", NULL );
     
-    device_destroy( __dgmod_class, dgmod_dev_t );
+    // device_destroy( __dgmod_class, dgmod_dev_t );
     dgmod_dtor( 0 );
-    
+
     printk( KERN_INFO "" MODNAME " driver v%s unloaded\n", MOD_VERSION );
 }
 

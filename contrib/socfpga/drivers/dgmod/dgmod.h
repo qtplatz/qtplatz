@@ -35,14 +35,21 @@
 //#define IRQ_NUM      104
 #define IRQ_NUM      72
 
+// C:/altera/15.1/embedded/ip/altera/hps/altera_hps/hwlib/include/soc_cv_av/socal/hps.h
+// ALT_STM_OFST        0xfc000000
+// ALT_LWFPGASLVS_OFST 0xff200000
+
 enum {
-    map_base_addr = 0xff200000
+    map_base_addr = 0xff200000  // a.k.a. HW_REGS_BASE ( ALT_STM_OFST )
     , map_size = 0x20000
     , pio_base = 0x10040
-    , addr_machine_state = 0x10100 / sizeof(uint32_t)
-    , addr_submit        = 0x10120 / sizeof(uint32_t)
-    , addr_interval      = 0x10180 / sizeof(uint32_t)
-    , addr_revision      = 0x101a0 / sizeof(uint32_t)
+    , pio_led_base       = 0x10040 / sizeof( uint32_t )
+    , pio_dipsw_base     = 0x10080 / sizeof( uint32_t )
+    , pio_button_base    = 0x100c0 / sizeof( uint32_t )
+    , addr_machine_state = 0x10100 / sizeof( uint32_t )
+    , addr_submit        = 0x10120 / sizeof( uint32_t )
+    , addr_interval      = 0x10180 / sizeof( uint32_t )
+    , addr_revision      = 0x101a0 / sizeof( uint32_t )
 };
 
 enum fsm_state {
