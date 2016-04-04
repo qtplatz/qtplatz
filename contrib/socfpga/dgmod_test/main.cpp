@@ -41,6 +41,7 @@ main( int argc, char* argv[] )
     
     if ( argc && std::strcmp( argv[ 0 ], "-w" ) == 0 ) {
         dgmod_protocol_sequence s;
+        s.interval_ = 1000;
         s.size_ = 4;
         int pidx(0);
         for ( auto& proto: s.protocols_ ) {
