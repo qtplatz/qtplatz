@@ -25,9 +25,11 @@
 #include "dgmod.h"
 #include "dgfsm.h"
 #include "dgmod_delay_pulse.h"
+#include "hps.h"
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
+#include <linux/gpio.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
@@ -53,6 +55,7 @@ module_param( devname, charp, S_IRUGO );
 
 static struct resource * __resource;
 static uint32_t * __mapped_ptr;
+static int __irqNumber;
 
 static struct pulse_addr pulse_register [] = {
     {   (0x10200u / sizeof( uint32_t )), (0x10220u / sizeof( uint32_t )) }
@@ -408,10 +411,6 @@ dgmod_module_init( void )
     proc_create( "dgmod", 0666, NULL, &proc_file_fops );
     
     // IRQ
-    if ( ( ret = request_irq( 40, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
-        return dgmod_dtor( ret );
-    }    
-
     if ( ( ret = request_irq( 72, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
     }
@@ -446,6 +445,30 @@ dgmod_module_init( void )
         dgfsm_init( &__protocol_sequence );
     }
 
+    // GPIO
+    if ( gpio_is_valid( gpio_user_key ) ) {
+
+        gpio_request( gpio_user_key, "sysfs" );
+        gpio_direction_input( gpio_user_key ); 
+        gpio_set_debounce( gpio_user_key, 200 ); // debounce the button with a delay of 200ms
+        gpio_export( gpio_user_key, false );     // export /sys/class, false prevents direction change
+
+        __irqNumber = gpio_to_irq( gpio_user_key );
+
+        printk( KERN_INFO "" MODNAME " GPIO User Key mapped to IRQ: %d\n", __irqNumber );
+
+        // irq
+        if ( request_irq( __irqNumber, handle_interrupt, 0, "dgmod", NULL) < 0 ) {
+            printk( KERN_INFO "" MODNAME " GPIO IRQ: %d request failed\n", __irqNumber );
+            __irqNumber = 0;
+       }
+
+    } else {
+        printk(KERN_INFO "" MODNAME " gpio %d not valid\n", gpio_user_key );
+    }
+    
+    //
+
     printk(KERN_ALERT "dgmod registed\n");
   
     return 0;
@@ -456,9 +479,9 @@ dgmod_module_exit( void )
 {
     dgfsm_stop();
 
-    free_irq( 40, NULL );
     free_irq( 72, NULL );
     free_irq( 73, NULL );    
+    free_irq( __irqNumber, NULL );
 
     if ( __mapped_ptr && __resource ) {
 
