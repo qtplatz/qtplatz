@@ -82,12 +82,11 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
 {
-    if ( irq == 74 )
-        return IRQ_NONE;
-
     printk( KERN_ALERT "Interrupt %d occured\n", irq );  
 
-    if ( irq != IRQ_NUM )
+    return IRQ_HANDLED;
+
+    if ( irq == IRQ_NUM )
         return IRQ_NONE;
 
     dgfsm_handle_irq( &__protocol_sequence ); // start trigger
@@ -161,7 +160,7 @@ static int dgfsm_handle_irq( const struct dgmod_protocol_sequence * sequence )
 static int
 dgmod_proc_read( struct seq_file * m, void * v )
 {
-    seq_printf( m, "Hello, Welcome to DGMOD.\n" );
+    seq_printf( m, "Hello, Welcome to DGMOD --debugging--.\n" );
 
     if ( __mapped_ptr ) {
 
@@ -193,6 +192,20 @@ dgmod_proc_read( struct seq_file * m, void * v )
         }
 
     }
+
+    seq_printf( m, " dipsw[%x]=\t0x%x\tdir:0x%x\tmask:0x%x\tedge:0x%x\n"
+                , (pio_dipsw_base) * 4
+                , __mapped_ptr[ pio_dipsw_base ] // value
+                , __mapped_ptr[ pio_dipsw_base + 1 ] 
+                , __mapped_ptr[ pio_dipsw_base + 2 ] // mask
+                , __mapped_ptr[ pio_dipsw_base + 3 ] );
+
+    seq_printf( m, "button[%x]=\t0x%x\tdir:0x%x\tmask:0x%x\tedge:0x%x\n"
+                , (pio_button_base) * 4
+                , __mapped_ptr[ pio_button_base ] // value
+                , __mapped_ptr[ pio_button_base + 1 ] 
+                , __mapped_ptr[ pio_button_base + 2 ] // mask
+                , __mapped_ptr[ pio_button_base + 3 ] );    
     
     return 0;
 }
@@ -395,11 +408,14 @@ dgmod_module_init( void )
     proc_create( "dgmod", 0666, NULL, &proc_file_fops );
     
     // IRQ
-    if ( ( ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
+    if ( ( ret = request_irq( 40, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
+        return dgmod_dtor( ret );
+    }    
+
+    if ( ( ret = request_irq( 72, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
     }
-
-    if ( ( ret = request_irq( IRQ_NUM + 1, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
+    if ( ( ret = request_irq( 73, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
     }
 
@@ -413,7 +429,13 @@ dgmod_module_init( void )
         __mapped_ptr = (uint32_t *)( ioremap( __resource->start, map_size ) );
 
         if ( __mapped_ptr ) {
-            __mapped_ptr[ pio_button_base + 2 ] = 0x00ff;  // PIO IRQ MASK CLEAR
+
+            // BUTTON_PIO_
+            __mapped_ptr[ pio_button_base + 2 ] = 0x01;  // PIO IRQ MASK CLEAR
+            __mapped_ptr[ pio_dipsw_base + 2 ] = 0x0f;  // PIO IRQ MASK CLEAR
+
+            for ( int i = 0; i < 4; ++i )
+                printk(KERN_INFO "" MODNAME " button[%d]=0x%08x\n", i, __mapped_ptr[ pio_button_base + i ] );
 
             // LED on
             __mapped_ptr[ pio_led_base ] = 0x02;
@@ -434,23 +456,28 @@ dgmod_module_exit( void )
 {
     dgfsm_stop();
 
-    free_irq( IRQ_NUM, NULL );
-    free_irq( IRQ_NUM + 1, NULL );
+    free_irq( 40, NULL );
+    free_irq( 72, NULL );
+    free_irq( 73, NULL );    
 
-    if ( __mapped_ptr ) {
+    if ( __mapped_ptr && __resource ) {
+
         __mapped_ptr[ pio_led_base ] = 0;
+
         iounmap( __mapped_ptr );
+        release_mem_region( map_base_addr, map_size );        
     }
 
-    if ( __resource )
-        release_mem_region( map_base_addr, map_size );
+    remove_proc_entry( "dgmod", NULL ); // proc_create
 
-    printk( KERN_ALERT "exit from dgmod\n" );
+    device_destroy( __dgmod_class, dgmod_dev_t ); // device_creeate
 
-    remove_proc_entry( "dgmod", NULL );
-    
-    // device_destroy( __dgmod_class, dgmod_dev_t );
-    dgmod_dtor( 0 );
+    class_destroy( __dgmod_class ); // class_create
+
+    cdev_del( __dgmod_cdev ); // cdev_alloc, cdev_init
+
+    unregister_chrdev_region( dgmod_dev_t, 1 ); // alloc_chrdev_region
+    //
 
     printk( KERN_INFO "" MODNAME " driver v%s unloaded\n", MOD_VERSION );
 }
