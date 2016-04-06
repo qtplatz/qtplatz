@@ -22,42 +22,20 @@
 **
 **************************************************************************/
 
-#ifndef SOCFPGA_DRIVERS_DGMOD_H
-#define SOCFPGA_DRIVERS_DGMOD_H
+#ifndef SOCFPGA_DRIVERS_HPS_H
+#define SOCFPGA_DRIVERS_HPS_H
 
-#include <linux/version.h>
-#include <linux/cdev.h>
+// see: altera/15.1/embedded/ip/altera/hps/altera_hps/hwlib/include/soc_cv_av/socal/hps.h
 
-#define MODNAME     "dgmod"
-#define CDEV_NAME   MODNAME
-#define MOD_VERSION "1.0"
-
-//#define IRQ_NUM      104
-#define IRQ_NUM      72
-
-// C:/altera/15.1/embedded/ip/altera/hps/altera_hps/hwlib/include/soc_cv_av/socal/hps.h
-// ALT_STM_OFST        0xfc000000
-// ALT_LWFPGASLVS_OFST 0xff200000
-
-enum {
-    map_base_addr = 0xff200000  // a.k.a. HW_REGS_BASE ( ALT_STM_OFST )
-    , map_size = 0x20000
-    , pio_base = 0x10040
-    , pio_led_base       = 0x10040 / sizeof( uint32_t )
-    , pio_dipsw_base     = 0x10080 / sizeof( uint32_t )
-    , pio_button_base    = 0x100c0 / sizeof( uint32_t )
-    , addr_machine_state = 0x10100 / sizeof( uint32_t )
-    , addr_submit        = 0x10120 / sizeof( uint32_t )
-    , addr_interval      = 0x10180 / sizeof( uint32_t )
-    , addr_revision      = 0x101a0 / sizeof( uint32_t )
+enum hps_offsets {
+    gpio0_addr         = 0xff708000
+    , gpio1_addr       = 0xff709000
+    , gpio2_addr       = 0xff70a000
+    , gpio_swporta_dr  = 0x0   // write output data to output I/O pin
+    , gpio_swporta_ddr = 0x04  // configure the direction of I/O pin
+    , gpio_ext_porta   = 0x50  // read input data of I/O input pin
+    , gpio_user_led    = 478   // gpio1[24]
+    , gpio_user_key    = 479   // gpio1[25] --> /sys/class/gpio/gpiochip454; 454 + 25
 };
-
-enum fsm_state {
-    fsm_stop     = 0x0000
-    , fsm_start  = 0x0001
-    , fsm_update = 0x0001
-};
-
-struct pulse_addr {  uint32_t delay; uint32_t width; };
 
 #endif

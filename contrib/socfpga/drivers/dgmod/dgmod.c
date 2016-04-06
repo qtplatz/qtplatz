@@ -25,13 +25,16 @@
 #include "dgmod.h"
 #include "dgfsm.h"
 #include "dgmod_delay_pulse.h"
+#include "hps.h"
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/fs.h>
+#include <linux/gpio.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
 #include <linux/ioctl.h>
+#include <linux/irq.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/proc_fs.h> // create_proc_entry
@@ -49,10 +52,10 @@ module_param( devname, charp, S_IRUGO );
 
 #define countof(x) (sizeof(x)/sizeof((x)[0]))
 
-//static struct dgmod_device __device;
-
 static struct resource * __resource;
 static uint32_t * __mapped_ptr;
+static int __irqNumber;
+static int __debug_level__ = 5;
 
 static struct pulse_addr pulse_register [] = {
     {   (0x10200u / sizeof( uint32_t )), (0x10220u / sizeof( uint32_t )) }
@@ -82,14 +85,23 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
 {
-    printk( KERN_ALERT "Interrupt %d occured\n", irq );  
+    if ( irq == __irqNumber ) {
 
-    if ( irq != IRQ_NUM )
-        return IRQ_NONE;
+        int key = gpio_get_value( gpio_user_key );
+        gpio_set_value( gpio_user_led, key );
 
-    dgfsm_handle_irq( &__protocol_sequence ); // start trigger
-    
-    return IRQ_HANDLED;
+        if ( key == 0 ) // key pressed
+            dgfsm_handle_irq( &__protocol_sequence ); // start trigger
+
+        // printk( KERN_INFO "IRQ %d handled; key=%d\n", irq, key );        
+
+        return IRQ_HANDLED;
+    }
+
+    if ( __debug_level__ > 0 )
+        printk( KERN_ALERT "Unhandled interrupt %d occured\n", irq );
+
+    return IRQ_NONE;
 }
 
 static void dgfsm_start( void )
@@ -120,7 +132,7 @@ static void dgfsm_commit( const struct dgmod_protocol * proto )
         __mapped_ptr[ addr_submit ] = 0;
         __mapped_ptr[ addr_submit ] = 0; // nop
         __mapped_ptr[ addr_submit ] = 1;
-        
+
     }
 }
 
@@ -128,8 +140,14 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence )
 {
     if ( sequence ) {
 
+        if ( __debug_level__ > 3 )
+            printk( KERN_INFO "dgfsm_init: size= %d", sequence->size_ );
+
         __dgfsm.next_protocol = 0;
-        __dgfsm.number_of_protocols = sequence->size_ & 0x03; // make sure < 4
+        __dgfsm.number_of_protocols =
+            sequence->size_ <= countof( sequence->protocols_ ) ?
+            sequence->size_ : countof( sequence->protocols_ );
+        
         __dgfsm.replicates_remain = sequence->protocols_[ 0 ].replicates_;
 
     }
@@ -138,27 +156,39 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence )
 
 static int dgfsm_handle_irq( const struct dgmod_protocol_sequence * sequence )
 {
+    if ( __debug_level__ > 3 ) {
+        printk( KERN_INFO "dgfsm_handle_irq: trig left:%u proto# %u/%u\n"
+                , __dgfsm.replicates_remain
+                , __dgfsm.next_protocol
+                , __dgfsm.number_of_protocols );
+    }
+    
     if ( __dgfsm.replicates_remain && ( --__dgfsm.replicates_remain == 0 ) ) {
 
         if ( ++__dgfsm.next_protocol > __dgfsm.number_of_protocols )
             __dgfsm.next_protocol = 0;
 
         do {
+
             const struct dgmod_protocol * proto = &sequence->protocols_[ __dgfsm.next_protocol ];
             __dgfsm.replicates_remain = proto->replicates_;
 
             dgfsm_commit( proto );
+
+            if ( __debug_level__ > 3 )
+                printk( KERN_INFO "dgfsm_commit: #%d\n", __dgfsm.next_protocol );
             
         } while ( 0 );
             
     }
+
     return 0;
 }
 
 static int
 dgmod_proc_read( struct seq_file * m, void * v )
 {
-    seq_printf( m, "Hello, Welcome to DGMOD.\n" );
+    seq_printf( m, "Hello, Welcome to DGMOD --debugging--.\n" );
 
     if ( __mapped_ptr ) {
 
@@ -190,12 +220,26 @@ dgmod_proc_read( struct seq_file * m, void * v )
         }
 
     }
+
+    seq_printf( m, " dipsw[%x]=\t0x%x\tdir:0x%x\tmask:0x%x\tedge:0x%x\n"
+                , (pio_dipsw_base) * 4
+                , __mapped_ptr[ pio_dipsw_base ] // value
+                , __mapped_ptr[ pio_dipsw_base + 1 ] 
+                , __mapped_ptr[ pio_dipsw_base + 2 ] // mask
+                , __mapped_ptr[ pio_dipsw_base + 3 ] );
+
+    seq_printf( m, "button[%x]=\t0x%x\tdir:0x%x\tmask:0x%x\tedge:0x%x\n"
+                , (pio_button_base) * 4
+                , __mapped_ptr[ pio_button_base ] // value
+                , __mapped_ptr[ pio_button_base + 1 ] 
+                , __mapped_ptr[ pio_button_base + 2 ] // mask
+                , __mapped_ptr[ pio_button_base + 3 ] );    
     
     return 0;
 }
 
 static ssize_t
-dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off ) //unsigned long size, void * data )
+dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off )
 {
     static char readbuf[256];
 
@@ -209,12 +253,19 @@ dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * 
 
     if ( size >= 5 && strcasecmp( readbuf, "start" ) == 0 ) {
         dgfsm_start();
-        printk( KERN_INFO "" MODNAME " fsm started.\n" );
+        if ( __debug_level__ > 1 )
+            printk( KERN_INFO "" MODNAME " fsm started.\n" );
     } else if ( size >= 4 && strcasecmp( readbuf, "stop" ) == 0 ) {
         dgfsm_stop();
-        printk( KERN_INFO "" MODNAME " fsm stopped.\n" );
+        if ( __debug_level__ > 1 )
+            printk( KERN_INFO "" MODNAME " fsm stopped.\n" );
+    } else if ( strncmp( readbuf, "on", 2 ) == 0 ) {
+        __mapped_ptr[ pio_led_base ] = 1;
+    } else if ( strncmp( readbuf, "off", 3 ) == 0 ) {
+        __mapped_ptr[ pio_led_base ] = 0;
     } else {
-        printk( KERN_INFO "" MODNAME " proc write received unknown command: %s.\n", readbuf );
+        if ( __debug_level__ > 0 )
+            printk( KERN_INFO "" MODNAME " proc write received unknown command: %s.\n", readbuf );
     }
 
     return size;
@@ -237,13 +288,15 @@ static const struct file_operations proc_file_fops = {
 
 static int dgmod_cdev_open(struct inode *inode, struct file *file)
 {
-    printk(KERN_INFO "open dgmod char device\n");
+    if ( __debug_level__ )
+        printk(KERN_INFO "open dgmod char device\n");
     return 0;
 }
 
 static int dgmod_cdev_release(struct inode *inode, struct file *file)
 {
-    printk(KERN_INFO "release dgmod char device\n");
+    if ( __debug_level__ )    
+        printk(KERN_INFO "release dgmod char device\n");
     return 0;
 }
 
@@ -259,7 +312,9 @@ static ssize_t dgmod_cdev_read(struct file *file, char __user *data, size_t size
 {
     size_t count;
 
-    printk(KERN_INFO "dgmod_cdev_read size=%d, offset=%lld\n", size, *f_pos );
+    if ( __debug_level__ > 1 )        
+        printk(KERN_INFO "dgmod_cdev_read size=%d, offset=%lld\n", size, *f_pos );
+
     // todo: down_interruptible( &dev->sem )
 
     if ( *f_pos >= sizeof( __protocol_sequence ) )
@@ -273,10 +328,6 @@ static ssize_t dgmod_cdev_read(struct file *file, char __user *data, size_t size
 
     *f_pos += count;
 
-    // following code will cause an infinite loop for 'cat' command
-    // if ( *f_pos >= sizeof( __protocol_sequence ) )
-    //     *f_pos = 0; // recycle
-        
     // todo: up(&dev-dem);
     return count;
 }
@@ -285,8 +336,9 @@ static ssize_t dgmod_cdev_write(struct file *file, const char __user *data, size
 {
     static struct dgmod_protocol_sequence protocol_sequence;
     size_t count = sizeof( protocol_sequence ) - ( *f_pos );
-    
-    printk(KERN_INFO "dgmod_cdev_write size=%d\n", size );
+
+    if ( __debug_level__ > 1 )
+        printk(KERN_INFO "dgmod_cdev_write size=%d\n", size );
     
     if ( *f_pos >= sizeof( protocol_sequence ) ) {
         printk(KERN_INFO "dgmod_cdev_write size overrun size=%d, offset=%lld\n", size, *f_pos );
@@ -385,16 +437,15 @@ dgmod_module_init( void )
     }
 
     // /proc create
-    proc_create( "dgmod", 0644, NULL, &proc_file_fops );
+    proc_create( "dgmod", 0666, NULL, &proc_file_fops );
     
     // IRQ
-    if ( ( ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
+    if ( ( ret = request_irq( 72, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
-
-    if ( ( ret = request_irq( IRQ_NUM + 1, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
+    }
+    if ( ( ret = request_irq( 73, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
-    if ( ( ret = request_irq( IRQ_NUM + 2, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
-        return dgmod_dtor( ret );
+    }
 
     // IOMAP
     __resource = request_mem_region( map_base_addr, map_size, "dgmod" );
@@ -404,10 +455,58 @@ dgmod_module_init( void )
                , __resource->start, __resource->end, __resource->name );
         
         __mapped_ptr = (uint32_t *)( ioremap( __resource->start, map_size ) );
+
+        if ( __mapped_ptr ) {
+
+            // BUTTON_PIO_
+            __mapped_ptr[ pio_button_base + 2 ] = 0x01;  // PIO IRQ MASK CLEAR
+            __mapped_ptr[ pio_dipsw_base + 2 ] = 0x0f;  // PIO IRQ MASK CLEAR
+
+            for ( int i = 0; i < 4; ++i )
+                printk(KERN_INFO "" MODNAME " button[%d]=0x%08x\n", i, __mapped_ptr[ pio_button_base + i ] );
+
+            // LED on
+            __mapped_ptr[ pio_led_base ] = 0x02;
+        }
+
         printk(KERN_INFO "" MODNAME " __mapped_ptr: %x\n", (unsigned int)(__mapped_ptr) );
 
         dgfsm_init( &__protocol_sequence );
     }
+
+    // GPIO
+    if ( gpio_is_valid( gpio_user_key ) ) {
+
+        gpio_request( gpio_user_key, "dgmod-key" );
+        gpio_direction_input( gpio_user_key ); 
+
+        gpio_set_debounce( gpio_user_key, 50 );  // debounce the button with a delay of 50ms
+        gpio_export( gpio_user_key, false );     // export /sys/class, false prevents direction change
+
+        __irqNumber = gpio_to_irq( gpio_user_key );
+
+        printk( KERN_INFO "" MODNAME " GPIO User Key mapped to IRQ: %d\n", __irqNumber );
+
+        // irq
+        if ( request_irq( __irqNumber, handle_interrupt, 0, "dgmod", NULL) < 0 ) {
+            printk( KERN_INFO "" MODNAME " GPIO IRQ: %d request failed\n", __irqNumber );
+            __irqNumber = 0;
+       }
+
+        //irq_set_irq_type( __irqNumber, IRQ_TYPE_EDGE_RISING );   // see linux/irq.h
+        irq_set_irq_type( __irqNumber, IRQ_TYPE_EDGE_BOTH );   // see linux/irq.h
+
+        if ( gpio_is_valid( gpio_user_led ) ) {
+            gpio_request( gpio_user_led, "dgmod-led" );
+            gpio_direction_output( gpio_user_led, 1 );
+            gpio_export( gpio_user_led, true );
+        }
+
+    } else {
+        printk(KERN_INFO "" MODNAME " gpio %d not valid\n", gpio_user_key );
+    }
+    
+    //
 
     printk(KERN_ALERT "dgmod registed\n");
   
@@ -418,22 +517,34 @@ static void
 dgmod_module_exit( void )
 {
     dgfsm_stop();
+    gpio_set_value( gpio_user_led, 0 );
     
-    free_irq( IRQ_NUM, NULL);
+    free_irq( 72, NULL );
+    free_irq( 73, NULL );    
+    free_irq( __irqNumber, NULL );
 
-    if ( __mapped_ptr )
+    gpio_free( gpio_user_led );
+    gpio_free( gpio_user_key );
+
+    if ( __mapped_ptr && __resource ) {
+
+        __mapped_ptr[ pio_led_base ] = 0;
+
         iounmap( __mapped_ptr );
+        release_mem_region( map_base_addr, map_size );        
+    }
 
-    if ( __resource )
-        release_mem_region( map_base_addr, map_size );
+    remove_proc_entry( "dgmod", NULL ); // proc_create
 
-    printk( KERN_ALERT "exit from dgmod\n" );
+    device_destroy( __dgmod_class, dgmod_dev_t ); // device_creeate
 
-    remove_proc_entry( "dgmod", NULL );
-    
-    device_destroy( __dgmod_class, dgmod_dev_t );
-    dgmod_dtor( 0 );
-    
+    class_destroy( __dgmod_class ); // class_create
+
+    cdev_del( __dgmod_cdev ); // cdev_alloc, cdev_init
+
+    unregister_chrdev_region( dgmod_dev_t, 1 ); // alloc_chrdev_region
+    //
+
     printk( KERN_INFO "" MODNAME " driver v%s unloaded\n", MOD_VERSION );
 }
 
