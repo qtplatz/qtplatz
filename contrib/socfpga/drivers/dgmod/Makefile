@@ -12,7 +12,12 @@ clean:
 #	make -C ${KERNEL_SRC} m=${PWD} clean
 
 install:
-	sudo cp -p dgmod.ko /lib/modules/${REVISION}/extra
+	cp -p dgmod.ko /lib/modules/${REVISION}/extra
+#	$(MAKE) -C $(KDIR) SUBDIRS=$(MDIR) modules_install
+
+install-init.d:
+	install -m 755 init.d-dgmod.sh /etc/init.d/dgmod
+	if test -e /usr/sbin/update-rc.d ; then update-rc.d dgmod defaults 98 02 ; fi
 
 start:
 	sudo insmod dgmod.ko

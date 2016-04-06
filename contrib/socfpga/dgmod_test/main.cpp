@@ -39,25 +39,7 @@ main( int argc, char* argv[] )
     --argc;
     ++argv;
     
-    if ( argc && std::strcmp( argv[ 0 ], "-w" ) == 0 ) {
-        dgmod_protocol_sequence s;
-        s.size_ = 4;
-        int pidx(0);
-        for ( auto& proto: s.protocols_ ) {
-            proto.replicates_ = ++pidx;
-            int ch( 1 );
-            for ( auto& pulse: proto.delay_pulses_ ) {
-                pulse.delay_ = pidx * 100 + ch * 10;
-                pulse.width_ = ch * 10;
-                ++ch;
-            }
-        }
-        int fd = open( "/dev/dgmod0", O_WRONLY );
-        if ( fd > 0 ) {
-            std::cout << "Wrote " << write( fd, &s, sizeof( s ) ) << " octets" << std::endl;
-        }
-    } else {
-    
+    if ( argc == 0 ) {
         int fd = open( "/dev/dgmod0", O_RDONLY );
         if ( fd > 0 ) {
             std::cout << read( fd, &__protocols__, sizeof( __protocols__ ) ) << std::endl;
@@ -75,6 +57,29 @@ main( int argc, char* argv[] )
             
         } else {
             std::perror( "open failed" );
+        }
+
+    } else {
+
+        while ( argc-- ) {
+            if ( std::strcmp( argv[ 0 ], "-w" ) == 0 ) {
+                dgmod_protocol_sequence s;
+                s.size_ = 4;
+                int pidx(0);
+                for ( auto& proto: s.protocols_ ) {
+                    proto.replicates_ = ++pidx;
+                    int ch( 1 );
+                    for ( auto& pulse: proto.delay_pulses_ ) {
+                        pulse.delay_ = pidx * 100 + ch * 10;
+                        pulse.width_ = ch * 10;
+                        ++ch;
+                    }
+                }
+                int fd = open( "/dev/dgmod0", O_WRONLY );
+                if ( fd > 0 ) {
+                    std::cout << "Wrote " << write( fd, &s, sizeof( s ) ) << " octets" << std::endl;
+                }
+            }
         }
     }
 }
