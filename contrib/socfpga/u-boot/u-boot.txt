@@ -1,0 +1,3 @@
+fatload mmc 0:1 $fpgadata de0_nano_soc.rbf;
+fpga load 0 $fpgadata $filesize;
+run bridge_enable_handoff;
