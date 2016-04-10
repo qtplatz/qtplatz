@@ -14,7 +14,7 @@ if ( WIN32 )
 elseif( APPLE )
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
-  set( CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )  
+  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )  
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
