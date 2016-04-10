@@ -54,7 +54,27 @@ module_param( devname, charp, S_IRUGO );
 
 static struct resource * __resource;
 static uint32_t * __mapped_ptr;
-static int __irqNumber;
+
+struct irq_allocated {
+    size_t size;
+    int irqNumber[ 128 ];
+};
+
+struct gpio_allocated {
+    size_t size;
+    int gpioNumber[ 128 ];
+};
+
+static struct irq_allocated __irq = {
+    .size = 0
+    , .irqNumber = { 0 }
+};
+
+static struct gpio_allocated __gpio = {
+    .size = 0
+    , .gpioNumber = { 0 }
+};
+
 static int __debug_level__ = 5;
 
 static struct pulse_addr pulse_register [] = {
@@ -85,7 +105,7 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
 {
-    if ( irq == __irqNumber ) {
+    if ( irq == __irq.irqNumber[ 0 ] ) {
 
         int key = gpio_get_value( gpio_user_key );
         gpio_set_value( gpio_user_led, key );
@@ -93,15 +113,15 @@ handle_interrupt(int irq, void *dev_id)
         if ( key == 0 ) // key pressed
             dgfsm_handle_irq( &__protocol_sequence ); // start trigger
 
-        // printk( KERN_INFO "IRQ %d handled; key=%d\n", irq, key );        
-
+        printk( KERN_INFO "IRQ %d handled; key=%d\n", irq, key );        
+        
         return IRQ_HANDLED;
     }
 
     if ( __debug_level__ > 0 )
-        printk( KERN_ALERT "Unhandled interrupt %d occured\n", irq );
+        printk( KERN_ALERT "Interrupt %d occured\n", irq );
 
-    return IRQ_NONE;
+    return IRQ_HANDLED;    
 }
 
 static void dgfsm_start( void )
@@ -366,6 +386,59 @@ static ssize_t dgmod_cdev_write(struct file *file, const char __user *data, size
     return count;
 }
 
+static int dgmod_gpio_output_init( int gpio, const char * name )
+{
+    if ( gpio_is_valid( gpio ) ) {
+
+        __gpio.gpioNumber[ __gpio.size++ ] = gpio;
+        
+        gpio_request( gpio, name );
+        gpio_direction_output( gpio, 1 );
+        gpio_export( gpio, true );
+
+        return 1;
+    }
+    return 0;
+}
+
+static int dgmod_gpio_input_init( int gpio, const char * name, int debounce )
+{
+    int irqNumber = 0;
+    
+    if ( gpio_is_valid( gpio ) ) {
+
+        __gpio.gpioNumber[ __gpio.size++ ] = gpio;
+        
+        gpio_request( gpio, name );
+        gpio_direction_input( gpio );
+        
+        if ( debounce )
+            gpio_set_debounce( gpio, 50 );  // debounce the button with a delay of 50ms
+        
+        gpio_export( gpio, false );     // export /sys/class, false prevents direction change
+
+        irqNumber = gpio_to_irq( gpio );
+        
+        printk( KERN_INFO "" MODNAME " GPIO [%d] (%s) mapped to IRQ: %d\n", gpio, name, irqNumber );
+        
+        // irq
+        if ( request_irq( irqNumber, handle_interrupt, 0, "dgmod", NULL) < 0 ) {
+            printk( KERN_INFO "" MODNAME " GPIO IRQ: %d request failed\n", irqNumber );
+            return 0;
+        }
+        
+        // irq_set_irq_type( __irqNumber, IRQ_TYPE_EDGE_RISING );   // see linux/irq.h
+        irq_set_irq_type( irqNumber, IRQ_TYPE_EDGE_BOTH );   // see linux/irq.h
+        
+        return irqNumber;
+        
+    } else {
+        printk(KERN_INFO "" MODNAME " gpio %d not valid\n", gpio );
+    }
+    return 0;
+}
+
+
 static struct file_operations dgmod_cdev_fops = {
     .owner   = THIS_MODULE,
     .open    = dgmod_cdev_open,
@@ -440,12 +513,10 @@ dgmod_module_init( void )
     proc_create( "dgmod", 0666, NULL, &proc_file_fops );
     
     // IRQ
-    if ( ( ret = request_irq( 72, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
+    if ( ( ret = request_irq( 74, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
         return dgmod_dtor( ret );
     }
-    if ( ( ret = request_irq( 73, handle_interrupt, 0, "dgmod", NULL) ) < 0 ) {
-        return dgmod_dtor( ret );
-    }
+    __irq.irqNumber[ __irq.size++ ] = 74;
 
     // IOMAP
     __resource = request_mem_region( map_base_addr, map_size, "dgmod" );
@@ -459,11 +530,11 @@ dgmod_module_init( void )
         if ( __mapped_ptr ) {
 
             // BUTTON_PIO_
-            __mapped_ptr[ pio_button_base + 2 ] = 0x01;  // PIO IRQ MASK CLEAR
+            __mapped_ptr[ pio_button_base + 2 ] = 0x0f;  // PIO IRQ MASK CLEAR
             __mapped_ptr[ pio_dipsw_base + 2 ] = 0x0f;  // PIO IRQ MASK CLEAR
 
-            for ( int i = 0; i < 4; ++i )
-                printk(KERN_INFO "" MODNAME " button[%d]=0x%08x\n", i, __mapped_ptr[ pio_button_base + i ] );
+            /* for ( int i = 0; i < 4; ++i ) */
+            /*     printk(KERN_INFO "" MODNAME " button[%d]=0x%08x\n", i, __mapped_ptr[ pio_button_base + i ] ); */
 
             // LED on
             __mapped_ptr[ pio_led_base ] = 0x02;
@@ -475,36 +546,30 @@ dgmod_module_init( void )
     }
 
     // GPIO
-    if ( gpio_is_valid( gpio_user_key ) ) {
-
-        gpio_request( gpio_user_key, "dgmod-key" );
-        gpio_direction_input( gpio_user_key ); 
-
-        gpio_set_debounce( gpio_user_key, 50 );  // debounce the button with a delay of 50ms
-        gpio_export( gpio_user_key, false );     // export /sys/class, false prevents direction change
-
-        __irqNumber = gpio_to_irq( gpio_user_key );
-
-        printk( KERN_INFO "" MODNAME " GPIO User Key mapped to IRQ: %d\n", __irqNumber );
-
-        // irq
-        if ( request_irq( __irqNumber, handle_interrupt, 0, "dgmod", NULL) < 0 ) {
-            printk( KERN_INFO "" MODNAME " GPIO IRQ: %d request failed\n", __irqNumber );
-            __irqNumber = 0;
-       }
-
-        //irq_set_irq_type( __irqNumber, IRQ_TYPE_EDGE_RISING );   // see linux/irq.h
-        irq_set_irq_type( __irqNumber, IRQ_TYPE_EDGE_BOTH );   // see linux/irq.h
-
-        if ( gpio_is_valid( gpio_user_led ) ) {
-            gpio_request( gpio_user_led, "dgmod-led" );
-            gpio_direction_output( gpio_user_led, 1 );
-            gpio_export( gpio_user_led, true );
+    do {
+        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_user_key, "dgmod-key", 50 ) ) ) {
+            ++__irq.size;
         }
 
-    } else {
-        printk(KERN_INFO "" MODNAME " gpio %d not valid\n", gpio_user_key );
-    }
+        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_button_pio, "dgmod-button", 0 ) ) ) {
+            ++__irq.size;
+        }
+
+        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_button_pio + 1, "dgmod-button", 0 ) ) ) {
+            ++__irq.size;
+        }
+
+        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_dipsw_pio, "dgmod-dipsw", 0 ) ) ) {
+            ++__irq.size;
+        }
+
+        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_dipsw_pio + 1, "dgmod-dipsw", 0 ) ) ) {
+            ++__irq.size;
+        }
+
+        dgmod_gpio_output_init( gpio_user_led, "dgmod-led0" );
+
+    } while ( 0 );
     
     //
 
@@ -518,14 +583,17 @@ dgmod_module_exit( void )
 {
     dgfsm_stop();
     gpio_set_value( gpio_user_led, 0 );
+
+    for ( int i = 0; i < __irq.size; ++i ) {
+        free_irq( __irq.irqNumber[ i ], NULL );
+        printk( KERN_INFO "free_irq( %d )\n", __irq.irqNumber[ i ] );        
+    }
+
+    for ( int i = 0; i < __gpio.size; ++i ) {
+        gpio_free( __gpio.gpioNumber[ i ] );
+        printk( KERN_INFO "gpio_free( %d )\n", __gpio.gpioNumber[ i ] );                
+    }
     
-    free_irq( 72, NULL );
-    free_irq( 73, NULL );    
-    free_irq( __irqNumber, NULL );
-
-    gpio_free( gpio_user_led );
-    gpio_free( gpio_user_key );
-
     if ( __mapped_ptr && __resource ) {
 
         __mapped_ptr[ pio_led_base ] = 0;

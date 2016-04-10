@@ -34,8 +34,10 @@ enum hps_offsets {
     , gpio_swporta_dr  = 0x0   // write output data to output I/O pin
     , gpio_swporta_ddr = 0x04  // configure the direction of I/O pin
     , gpio_ext_porta   = 0x50  // read input data of I/O input pin
-    , gpio_user_led    = 478   // gpio1[24]
-    , gpio_user_key    = 479   // gpio1[25] --> /sys/class/gpio/gpiochip454; 454 + 25
+    , gpio_user_led    = 358 + 24   // gpio1[24]
+    , gpio_user_key    = 358 + 25   // gpio1[25] --> /sys/class/gpio/gpiochip358; 358 + 25
+    , gpio_button_pio  = 416   // 0xff210080
+    , gpio_dipsw_pio   = 448   // 0xff210080
 };
 
 #endif
