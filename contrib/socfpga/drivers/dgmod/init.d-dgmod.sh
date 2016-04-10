@@ -12,7 +12,7 @@
 
 case "$1" in
     start)
-        /sbin/insmod dgmod.ko
+        /sbin/modprobe dgmod.ko
         exit 0
     ;;
 
@@ -23,7 +23,7 @@ case "$1" in
 
     restart)
         /sbin/rmmod dgmod
-        /sbin/insmod dgmod.ko
+        /sbin/modprobe dgmod.ko
         exit 0
     ;;
 
