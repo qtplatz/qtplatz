@@ -54,6 +54,7 @@ module_param( devname, charp, S_IRUGO );
 
 static struct resource * __resource;
 static uint32_t * __mapped_ptr;
+static int __irqNumber; // irq for led handler
 
 struct irq_allocated {
     size_t size;
@@ -105,7 +106,7 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
 {
-    if ( irq == __irq.irqNumber[ 0 ] ) {
+    if ( irq == __irqNumber ) {
 
         int key = gpio_get_value( gpio_user_key );
         gpio_set_value( gpio_user_led, key );
@@ -113,7 +114,7 @@ handle_interrupt(int irq, void *dev_id)
         if ( key == 0 ) // key pressed
             dgfsm_handle_irq( &__protocol_sequence ); // start trigger
 
-        printk( KERN_INFO "IRQ %d handled; key=%d\n", irq, key );        
+        // printk( KERN_INFO "IRQ %d handled; key=%d\n", irq, key );        
         
         return IRQ_HANDLED;
     }
@@ -548,6 +549,7 @@ dgmod_module_init( void )
     // GPIO
     do {
         if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_user_key, "dgmod-key", 50 ) ) ) {
+            __irqNumber = __irq.irqNumber[ __irq.size ];
             ++__irq.size;
         }
 
@@ -559,12 +561,9 @@ dgmod_module_init( void )
             ++__irq.size;
         }
 
-        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_dipsw_pio, "dgmod-dipsw", 0 ) ) ) {
-            ++__irq.size;
-        }
-
-        if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_dipsw_pio + 1, "dgmod-dipsw", 0 ) ) ) {
-            ++__irq.size;
+        for ( int i = 0; i < 4; ++i ) {
+            if ( ( __irq.irqNumber[ __irq.size ] = dgmod_gpio_input_init( gpio_dipsw_pio + i, "dgmod-dipsw", 0 ) ) )
+                ++__irq.size;
         }
 
         dgmod_gpio_output_init( gpio_user_led, "dgmod-led0" );
