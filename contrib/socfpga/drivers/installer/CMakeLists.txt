@@ -27,7 +27,7 @@ include( CPackComponent )
 find_file( init_d "init.d-dgmod.sh" PATHS "${CMAKE_SOURCE_DIR}/../dgmod" )
 find_file( kmodule "dgmod.ko" PATHS "${CMAKE_SOURCE_DIR}/../dgmod" )
 
-configure_file ( "${init_d}"  "${PROJECT_BINARY_DIR}/etc/dgmod" )
+configure_file ( "${init_d}"  "${PROJECT_BINARY_DIR}/etc/init.d/dgmod" )
 
 cpack_add_component( linux-modules     DISPLAY_NAME "linux-modules" GROUP linux-modules )
 cpack_add_component( dgmod-module      DISPLAY_NAME "dgmod-module" GROUP dgmod )
@@ -48,7 +48,7 @@ set( CPACK_GENERATOR "DEB" )
 set( CPACK_PACKAGE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
 set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
 set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
-  "${CMAKE_CURRENT_SOURCE_DIR}/prerm;${CMAKE_CURRENT_SOURCE_DIR}/postinst" )
+  "${PROJECT_BINARY_DIR}/prerm;${PROJECT_BINARY_DIR}/postinst" )
 
 if ( RTC_ARCH_ARM )
   set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )

@@ -1,5 +1,5 @@
 KBUILD_CFLAGS += -std=gnu99
-REVISION = `uname -r`
+REVISION = $(uname -r)
 KERNEL_SRC = ~/src/linux-${REVISION}
 
 obj-m += dgmod.o
@@ -13,6 +13,7 @@ clean:
 
 install:
 	cp -p dgmod.ko /lib/modules/${REVISION}/extra
+	/sbin/depmod -a
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(MDIR) modules_install
 
 install-init.d:

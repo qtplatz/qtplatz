@@ -12,7 +12,7 @@
 
 case "$1" in
     start)
-        /sbin/modprobe dgmod.ko
+        /sbin/modprobe dgmod
         exit 0
     ;;
 

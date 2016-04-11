@@ -3,6 +3,7 @@
 echo "httpd post installation...."
 
 if [ "$1" = "configure" ]; then
+    /sbin/depmod -a
     chmod 755 /etc/init.d/@PROJECT_NAME@
     update-rc.d @PROJECT_NAME@ defaults 81
     /etc/init.d/@PROJECT_NAME@ start
