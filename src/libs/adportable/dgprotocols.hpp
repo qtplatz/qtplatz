@@ -31,32 +31,54 @@
 namespace adportable {
     namespace dg {
 
+        template< typename protocol_type = protocol< delay_pulse_count > >
         class protocols {
         public:
-            protocols();
-            protocols( const protocols& t );
-
-            bool read_json( std::istream& );
-
-            bool write_json( std::ostream& ) const;
+            protocols() : interval_( 1.0e-3 )
+                        , protocols_( 1 ) {
+            }
             
-            double interval() const;
+            protocols( const protocols& t ) : interval_( t.interval_ )
+                                            , protocols_( t.protocols_ ) {
+            }
 
-            void setInterval( double interval );
+            static bool read_json( std::istream&, protocols< protocol< delay_pulse_count > >& );
 
-            const protocol& operator [] ( int idx ) const;
-            protocol& operator [] ( int idx );
+            static bool write_json( std::ostream&, const protocols< protocol< delay_pulse_count > >& );
+            
+            double interval() const {
+                return interval_;
+            }
 
-            const size_t size() const;
+            void setInterval( double interval ) {
+                interval_ = interval;
+            }
 
-            void resize( size_t );
+            const protocol_type& operator [] ( int idx ) const {
+                return protocols_[ idx ];
+            }
+            // protocol& operator [] ( int idx );
 
-            std::vector< protocol >::const_iterator begin() const { return protocols_.begin(); }
-            std::vector< protocol >::const_iterator end() const { return protocols_.end(); }
+            const size_t size() const {
+                return protocols_.size();
+            }
+
+            void resize( size_t sz ) {
+                protocols_.resize( sz );
+            }
+
+            typedef typename std::vector< protocol_type >::const_iterator const_iterator;
+            typedef typename std::vector< protocol_type >::iterator iterator;
+
+            const_iterator begin() const { return protocols_.begin(); }
+            const_iterator end() const { return protocols_.end(); }
+
+            iterator begin() { return protocols_.begin(); }
+            iterator end() { return protocols_.end(); }
 
         private:
             double interval_;
-            std::vector< protocol > protocols_;
+            std::vector< protocol_type > protocols_;
         };
     }
 }

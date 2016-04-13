@@ -33,6 +33,13 @@
 
 // delay pulse generator protocols
 
+namespace adportable {
+    namespace dg {
+        typedef protocol< delay_pulse_count > protocol_t;
+        typedef protocols< protocol_t > protocols_t;
+    }
+}
+
 static void
 print( const boost::property_tree::ptree& pt )
 {
@@ -48,65 +55,21 @@ print( const boost::property_tree::ptree& pt )
 
 using namespace adportable::dg;
 
-protocols::protocols() : interval_( 1.0e-3 ) // 1ms
-{
-}
-
-protocols::protocols( const protocols& t ) : interval_( t.interval_ )
-                                           , protocols_( t.protocols_ )
-{
-}
-
-double
-protocols::interval() const
-{
-    return interval_;
-}
-        
-void
-protocols::setInterval( double interval )
-{
-    interval_ = interval;
-}
-
-const protocol&
-protocols::operator [] ( int idx ) const
-{
-    return protocols_[ idx ];
-}
-
-protocol&
-protocols::operator [] ( int idx )
-{
-    return protocols_[ idx ];
-}
-
-void
-protocols::resize( size_t size )
-{
-    protocols_.resize( size );
-}
-
-const size_t
-protocols::size() const
-{
-    return protocols_.size();
-}
-
 bool
-protocols::read_json( std::istream& json )
+protocols_t::read_json( std::istream& json, protocols_t& protocols )
 {
-    protocols_.clear();
-    
+    protocols.protocols_.clear();
+
     boost::property_tree::ptree pt;
+
     try {
         boost::property_tree::read_json( json, pt );
 
-        interval_ = std::stod( pt.get_child( "protocols.interval" ).data() ) * 1.0e-6; // us -> seconds
+        protocols.interval_ = std::stod( pt.get_child( "protocols.interval" ).data() ) * 1.0e-6; // us -> seconds
 
         for ( const auto& v : pt.get_child( "protocols.protocol" ) ) {
 
-            protocol data;
+            protocol<delay_pulse_count> data;
 
             int index = std::stoi( v.second.get_child( "index" ).data() );
             int replicates = std::stoi( v.second.get_child( "replicates" ).data() );
@@ -116,15 +79,15 @@ protocols::read_json( std::istream& json )
             size_t ch(0);
             for ( const auto& pulse: v.second.get_child( "pulses" ) ) {
                 double delay, width;
-                if ( ch < protocol::size ) {
+                if ( ch < protocol_t::size ) {
                     delay = std::stod( pulse.second.get_child( "delay" ).data() );
                     width = std::stod( pulse.second.get_child( "width" ).data() );
-                    data[ ch ] = std::make_pair( delay * 1.0e-6, width * 1.0e-6 );
+                    data[ int(ch) ] = std::make_pair( delay * 1.0e-6, width * 1.0e-6 );
                 }
                 ++ch;
                 // std::cout << "----- ch : " << ch << " delay: " << delay << " width: " << width << std::endl;
             }
-            protocols_.emplace_back( data );
+            protocols.protocols_.emplace_back( data );
             // std::cout << "----- protocol : " << protocols_.size() << std::endl;
         }
 
@@ -138,17 +101,17 @@ protocols::read_json( std::istream& json )
 }
 
 bool
-protocols::write_json( std::ostream& o ) const
+protocols_t::write_json( std::ostream& o, const protocols_t& protocols )
 {
     boost::property_tree::ptree pt;
     
-    pt.put( "protocols.interval", interval_ * 1.0e6 ); // seconds --> us
+    pt.put( "protocols.interval", protocols.interval_ * 1.0e6 ); // seconds --> us
     
     boost::property_tree::ptree pv;
     
     int protocolIndex( 0 );
     
-    for ( const auto& protocol: protocols_ ) {
+    for ( const auto& protocol: protocols.protocols_ ) {
         
         boost::property_tree::ptree xproto;
         
