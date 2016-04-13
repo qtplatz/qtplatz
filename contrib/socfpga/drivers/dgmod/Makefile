@@ -1,5 +1,5 @@
 KBUILD_CFLAGS += -std=gnu99
-REVISION = $(uname -r)
+REVISION = $(shell uname -r)
 KERNEL_SRC = ~/src/linux-${REVISION}
 
 obj-m += dgmod.o

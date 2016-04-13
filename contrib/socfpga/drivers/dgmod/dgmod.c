@@ -27,6 +27,7 @@
 #include "dgmod_delay_pulse.h"
 #include "hps.h"
 #include <linux/cdev.h>
+#include <linux/ctype.h>
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/gpio.h>
@@ -272,21 +273,37 @@ dgmod_proc_write( struct file * filep, const char * user, size_t size, loff_t * 
 
     readbuf[ size ] = '\0';
 
-    if ( size >= 5 && strcasecmp( readbuf, "start" ) == 0 ) {
+    if ( strncmp( readbuf, "start", 5 ) == 0 ) {
         dgfsm_start();
         if ( __debug_level__ > 1 )
             printk( KERN_INFO "" MODNAME " fsm started.\n" );
-    } else if ( size >= 4 && strcasecmp( readbuf, "stop" ) == 0 ) {
+
+    } else if ( strncmp( readbuf, "stop", 4 ) == 0 ) {
         dgfsm_stop();
         if ( __debug_level__ > 1 )
             printk( KERN_INFO "" MODNAME " fsm stopped.\n" );
+
     } else if ( strncmp( readbuf, "on", 2 ) == 0 ) {
         __mapped_ptr[ pio_led_base ] = 1;
+
     } else if ( strncmp( readbuf, "off", 3 ) == 0 ) {
         __mapped_ptr[ pio_led_base ] = 0;
+
+    } else if ( strncmp( readbuf, "debug", 5 ) == 0 ) {
+
+        unsigned long value = 0;
+        const char * rp = &readbuf[5];
+        while ( *rp && !isdigit( *rp ) )
+            ++rp;
+        if ( kstrtoul( rp, 10, &value ) == 0 )
+            __debug_level__ = value;
+
+        printk( KERN_INFO "" MODNAME " debug level is %d\n", __debug_level__ );
+
     } else {
+
         if ( __debug_level__ > 0 )
-            printk( KERN_INFO "" MODNAME " proc write received unknown command: %s.\n", readbuf );
+            printk( KERN_INFO "" MODNAME " proc write received unknown command[%d]: %s.\n", size, readbuf );
     }
 
     return size;
