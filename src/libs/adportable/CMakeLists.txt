@@ -14,7 +14,6 @@ add_library( adportable
   debug_core.cpp
   dgprotocols.cpp
   dgprotocols.hpp
-  dgprotocol.cpp
   dgprotocol.hpp
   fft.cpp
   http_client.cpp
