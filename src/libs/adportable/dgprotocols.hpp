@@ -42,9 +42,8 @@ namespace adportable {
                                             , protocols_( t.protocols_ ) {
             }
 
-            static bool read_json( std::istream&, protocols< protocol< delay_pulse_count > >& );
-
-            static bool write_json( std::ostream&, const protocols< protocol< delay_pulse_count > >& );
+            static bool read_json( std::istream&, protocols<protocol<> >& );
+            static bool write_json( std::ostream&, const protocols<protocol<> >& );
             
             double interval() const {
                 return interval_;
@@ -80,5 +79,9 @@ namespace adportable {
             double interval_;
             std::vector< protocol_type > protocols_;
         };
+
+        // bool protocols::read_json( std::istream&, protocols< protocol<> >& );
+        // bool write_json( std::ostream&, const protocols< protocol<> >& );
+        
     }
 }

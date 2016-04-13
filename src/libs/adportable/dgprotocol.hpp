@@ -35,10 +35,10 @@ namespace adportable {
 
         // CH0 (push), CH1(INJ), CH2(EXIT), CH3(GATE 0), CH4(GATE 1), CH5(ADC delay)
         
-        template< size_t size = delay_pulse_count >
+        template< size_t _size = delay_pulse_count >
         class protocol {
         public:
-            static size_t constexpr size = delay_pulse_count;
+            static size_t constexpr size = _size;
 
             protocol() : replicates_( -1 ) {}
             
@@ -68,7 +68,7 @@ namespace adportable {
             
         private:
             size_t replicates_;
-            std::array< std::pair< double, double >, size > pulses_;
+            std::array< std::pair< double, double >, _size > pulses_;
         };
     }
 }
