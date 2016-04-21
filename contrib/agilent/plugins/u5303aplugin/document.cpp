@@ -963,6 +963,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
     emit dataChanged( objid, idx );
     
     if ( objid == u5303a_observer ) {
+
         if ( auto hgrm = tdc()->longTermHistogram() ) {
 
             double resolution = 0;
@@ -971,6 +972,8 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
 
             if ( resolution > hgrm->xIncrement() ) {
                 std::vector< std::pair<double, uint32_t > > time_merged;
+
+                std::lock_guard< std::mutex > lock( impl_->mutex_ );            
                 adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
                 hgrm = hgrm->clone( time_merged );
             }
