@@ -1,8 +1,0 @@
-Package: ace+tao-6.0.2-devel
-Version: 6.0.2
-Section: base
-Priority: optional
-Architecture: armel
-Depends: bash (>= 2.05a-11)
-Maintainer: Toshi Hondo <toshi.hondo@scienceliaison.com>
-Description: ACE+TAO
