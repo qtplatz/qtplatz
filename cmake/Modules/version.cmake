@@ -1,8 +1,7 @@
 #
 cmake_minimum_required(VERSION 2.8.11)
 
-set( VERSION_MICRO 0 )
-set( VERSION_PATCH 0 )
+set( VERSION_TWEAK 0 )
 
 execute_process( COMMAND git describe
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
