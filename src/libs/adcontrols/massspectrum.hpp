@@ -72,6 +72,7 @@ namespace adcontrols {
         class MassSpectrumImpl;
     }
     
+    class annotation;
     class description;
     class descriptions;
     class MSCalibration;
@@ -105,8 +106,8 @@ namespace adcontrols {
         const double * getTimeArray() const;
         const unsigned char * getColorArray() const;
 
-        double compute_mass( double time ) const;
-        size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
+        //double compute_mass( double time ) const;
+        //size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
 
         void setMass( size_t idx, double mass );
@@ -154,22 +155,27 @@ namespace adcontrols {
         double getMass( size_t idx ) const;
         double getIntensity( size_t idx ) const;
         double getTime( size_t idx ) const;
-        double getNormalizedTime( size_t idx ) const;
+        //double getNormalizedTime( size_t idx ) const;
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 
 		int getColor( size_t idx ) const;
     
         void addDescription( const description& );
+        void addDescription( description&& );
         const descriptions& getDescriptions() const;
 
         void set_annotations( const annotations& );
         const annotations& get_annotations() const;
 		annotations& get_annotations();
+        void addAnnotation( annotation&& a, bool uniq = true );
 
         int32_t protocolId() const;
         int32_t nProtocols() const;
         void protocolId( int32_t );
         void nProtocols( int32_t );
+
+        int64_t rowid() const;
+        void setRowid( int64_t );
 
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
@@ -178,8 +184,7 @@ namespace adcontrols {
         static bool archive( std::ostream&, const MassSpectrum& );
         static bool restore( std::istream&, MassSpectrum& );
 
-        // on trial
-        [[deprecated("Use operator << std::move( ptr )")]] size_t addSegment( const MassSpectrum& );
+        // [[deprecated("Use operator << std::move( ptr )")]] size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* o..n */ );
 
         const MassSpectrum& getSegment( size_t fcn /* 0..n */ ) const;

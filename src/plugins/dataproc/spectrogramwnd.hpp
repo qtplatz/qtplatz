@@ -30,7 +30,7 @@
 
 namespace adplot { class SpectrogramWidget; class SpectrumWidget; class ChromatogramWidget; }
 namespace portfolio { class Folium; }
-namespace adcontrols { class ProcessMethod; class MassSpectra; }
+namespace adcontrols { class ProcessMethod; class MassSpectrum;  class MassSpectra; }
 
 namespace dataproc {
 
@@ -40,6 +40,10 @@ namespace dataproc {
         Q_OBJECT
     public:
         explicit SpectrogramWnd(QWidget *parent = 0);
+
+    private:
+        bool mslock( std::shared_ptr< adcontrols::MassSpectrum >, const QVector< QPair<int, int> >& );
+        bool mslock();
 
     signals:
 

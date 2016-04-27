@@ -239,7 +239,6 @@ waveform&
 waveform::operator += ( const waveform& t )
 {
     if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement ) &&
-         //adportable::compare<double>::essentiallyEqual( meta_.initialXOffset, t.meta_.initialXOffset ) &&
          ( meta_.dataType == t.meta_.dataType ) && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
 
         meta_.actualAverages += t.meta_.actualAverages;
@@ -588,7 +587,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
-
+    
     if ( this_protocol )
         prop.setTofProtocol( *this_protocol );
     const device_data data( *waveform.ident_, waveform.meta_ );
@@ -599,6 +598,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
     sp.resize( waveform.size() );
+    sp.protocolId( waveform.method_.protocolIndex() );
 
 	if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
 
@@ -749,6 +749,16 @@ waveform::end() const
     throw std::bad_cast();
 }
 
+template<> const int16_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 1 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();
+}
+
 template<> int16_t *
 waveform::data()
 {
@@ -757,6 +767,16 @@ waveform::data()
         return mblk->data() + firstValidPoint_;
     }
     throw std::bad_cast();    
+}
+
+template<> const int32_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 0 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();        
 }
 
 template<> int32_t *
@@ -768,5 +788,4 @@ waveform::data()
     }
     throw std::bad_cast();        
 }
-
 

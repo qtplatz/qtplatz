@@ -1,4 +1,4 @@
-set ( QTPLATZ_CONFIG_Acquire 1 )
+set ( QTPLATZ_CONFIG_Acquire ${QTPLATZ_SUPPORT_CORBA} )
 set ( QTPLATZ_CONFIG_Dataproc 1 )
 set ( QTPLATZ_CONFIG_Quan 1 )
 set ( QTPLATZ_CONFIG_Sequence 0 )

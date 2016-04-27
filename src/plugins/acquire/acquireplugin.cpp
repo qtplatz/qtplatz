@@ -64,7 +64,6 @@ AcquirePlugin::~AcquirePlugin()
     orb_i_->shutdown();
     delete orb_i_;
 #endif
-    ADTRACE() << "====== AcquirePlugin dtor complete ===============";
 }
 
 #if HAVE_CORBA
@@ -147,17 +146,12 @@ AcquirePlugin::handle_broker_initialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 AcquirePlugin::aboutToShutdown()
 {
-    ADTRACE() << "====== AcquirePlugin shutting down...  ===============";
-
     document::instance()->actionDisconnect();
 
     if ( auto iAcquire = document::instance()->iAcquire() )
         removeObject( iAcquire );
 
 #if HAVE_CORBA
-
-//    if ( orb_i_ )
-//        orb_i_->shutdown();
 
     auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
     removeObject( iBroker );
@@ -170,8 +164,6 @@ AcquirePlugin::aboutToShutdown()
         mainWindow->OnFinalClose();
     }
 
-    ADTRACE() << "====== AcquirePlugin shutdown complete ===============";
-    
 	return SynchronousShutdown;
 }
 

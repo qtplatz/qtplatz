@@ -362,55 +362,6 @@ QuanSampleProcessor::generate_spectrum( const adcontrols::LCMSDataset * raw
     return true;
 }
 
-// bool
-// QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
-//                                 , const std::string& formula
-//                                 , double mass
-//                                 , std::shared_ptr< adcontrols::Chromatogram > chro
-//                                 , std::shared_ptr< adcontrols::PeakResult > pkResult
-//                                 , const std::wstring& dataGuid )
-// {
-//     // auto normalized_formula = cformula_->standardFormula( formula );
-//     if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
-        
-//         auto itCompound = std::find_if( pCompounds->begin(), pCompounds->end(), [formula] ( const adcontrols::QuanCompound& c ) {
-//                 return c.formula() == formula;
-//             } );
-
-//         // Identify chromatographic peak
-
-//         auto& pks = pkResult->peaks();        
-//         if ( itCompound != pCompounds->end() && pks.size() > 0 ) {
-
-//             auto pk = std::max_element( pks.begin(), pks.end()
-//                                         , [] ( const adcontrols::Peak& a, const adcontrols::Peak& b ) { return a.peakHeight() < b.peakHeight(); } );
-            
-//             // assign peak name
-//             pk->name( adportable::utf::to_wstring( formula ) );
-            
-//             adcontrols::QuanResponse resp;
-
-//             resp.formula( formula.c_str() );
-//             resp.uuid_cmpd( itCompound->uuid() );
-//             resp.uuid_cmpd_table( pCompounds->uuid() );
-//             resp.formula( itCompound->formula() );
-//             resp.idx_ = pk->peakId();
-//             resp.fcn_ = chro->fcn();
-//             resp.mass_ = mass;
-//             resp.intensity_ = pk->peakArea();
-//             resp.amounts_ = 0;
-//             resp.tR_ = double( adcontrols::timeutil::toMinutes( pk->peakTime() ) );
-//             resp.dataGuid_ = dataGuid;
-
-//             sample << resp;
-
-//             return true;
-//         }
-//     }
-
-//     return false;
-// }
-
 adfs::file
 QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                                 , adcontrols::MassSpectrum& profile
@@ -545,7 +496,7 @@ QuanSampleProcessor::doMSLock( adcontrols::MSPeakInfo& pkInfo // will override
                                , const adcontrols::QuanCompounds& compounds )
 {
     // find reference peak by mass window
-    adcontrols::lockmass mslock;
+    adcontrols::lockmass::mslock mslock;
 
     // TODO: consider how to handle segmented spectrum -- current impl is always process first 
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );

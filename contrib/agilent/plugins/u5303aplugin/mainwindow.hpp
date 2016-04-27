@@ -35,7 +35,7 @@ class QWidget;
 class QToolButton;
 class QAction;
 
-namespace adcontrols { class MassSpectrum; class Trace; namespace ControlMethod { class Method; } }
+namespace adcontrols { class MassSpectrum; class Trace; class SampleRun; namespace ControlMethod { class Method; } }
 namespace acqrscontrols { class method; }
 namespace adextension { class iController; class iSequenceImpl; }
 
@@ -77,6 +77,9 @@ namespace u5303a {
         
         void editor_commit();
 
+        //std::shared_ptr< adcontrols::SampleRun > getSampleRun() const;
+        void setSampleRun( const adcontrols::SampleRun& );
+
     private:
         std::vector< QWidget* > widgets_;
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
@@ -93,6 +96,10 @@ namespace u5303a {
     private slots:
         void handle_reply( const QString&, const QString& );
         void handleInstState( int status );
+        void handleDataSaveIn();
+        void handleRunName();
+        void handleControlMethodOpen();
+        void handleControlMethodSaveAs();
 
 	private:
         QAction * actionConnect_;

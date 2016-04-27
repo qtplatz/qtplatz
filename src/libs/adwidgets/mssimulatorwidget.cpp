@@ -82,7 +82,7 @@ MSSimulatorWidget::OnInitialUpdate()
 }
 
 void
-MSSimulatorWidget::onUpdate( boost::any& )
+MSSimulatorWidget::onUpdate( boost::any&& )
 {
 }
 

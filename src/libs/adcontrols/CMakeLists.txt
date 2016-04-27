@@ -118,7 +118,9 @@ add_library( adcontrols SHARED
   mscalibrateresult.cpp
   mscalibrateresult.hpp 
   mscalibration.cpp
-  mscalibration.hpp 
+  mscalibration.hpp
+  msfractuation.cpp
+  msfractuation.hpp
   mswatchions.cpp
   mswatchions.hpp 
   mslockmethod.cpp
@@ -147,8 +149,13 @@ add_library( adcontrols SHARED
   msqpeak.hpp 
   msqpeaks.cpp
   msqpeaks.hpp
-  mschromatogramextractor.cpp
-  mschromatogramextractor.hpp     
+  mschromatogramextractor.hpp
+  mschromatogramextractor_accumulate.hpp
+  mschromatogramextractor_xchromatogram.hpp
+  mschromatogramextractor_v2.cpp
+  mschromatogramextractor_v2.hpp
+  mschromatogramextractor_v3.cpp
+  mschromatogramextractor_v3.hpp       
   mschromatogrammethod.cpp
   mschromatogrammethod.hpp
   mssimulatormethod.cpp
@@ -243,7 +250,7 @@ target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES

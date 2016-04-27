@@ -70,7 +70,7 @@ MSCalibrateWidget::OnInitialUpdate()
 }
 
 void
-MSCalibrateWidget::onUpdate( boost::any& )
+MSCalibrateWidget::onUpdate( boost::any&& )
 {
 }
 

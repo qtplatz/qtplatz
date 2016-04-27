@@ -37,8 +37,6 @@ namespace adcontrols { class MassSpectrometer; }
 
 namespace acqrsinterpreter {
 
-    class DataReader_index;
-
     class DataReader : public adcontrols::DataReader {
 
     public:
@@ -60,7 +58,7 @@ namespace acqrsinterpreter {
         size_t fcnCount() const override;
         std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const override;
 
-        const_iterator begin() const override;
+        const_iterator begin( int fcn ) const override;
         const_iterator end() const override;
         const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override;
         
@@ -68,6 +66,7 @@ namespace acqrsinterpreter {
 
         // =============================> Iterator reference methods
         int64_t next( int64_t rowid ) const override;
+        int64_t next( int64_t rowid, int fcn ) const override;
         int64_t pos( int64_t rowid ) const override;
         int64_t elapsed_time( int64_t rowid ) const override;
         double time_since_inject( int64_t rowid ) const override;
@@ -75,11 +74,11 @@ namespace acqrsinterpreter {
         // <============================
         
         std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
-        std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override;
+        std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override; // only by time range
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const override;
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
         
     private:
-        friend class DataReader_index;
         void loadTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;

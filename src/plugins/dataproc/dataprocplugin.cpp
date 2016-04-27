@@ -271,13 +271,10 @@ DataprocPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 DataprocPlugin::aboutToShutdown()
 {
-    ADTRACE() << "====== DataprocPlugin shutting down...  ===============";
-
     dataproc_document::instance()->finalClose();
 
     mainWindow_->OnFinalClose();
 
-    ADTRACE() << "====== DataprocPlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }
 

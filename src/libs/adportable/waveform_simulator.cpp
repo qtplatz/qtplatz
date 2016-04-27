@@ -36,7 +36,7 @@ namespace adportable {
                , xIncrement_( 1.0e-9 )
                , actualPoints_( 1000 * 10 ) // 10us
                , sign_( -1 )
-               , dist_( -5, 5 )
+               , dist_( -50, 50 )
                , pseudo_peaks_( { { 1.5e-6, 100 }, { 2.0e-6, 200 }, { 2.5e-6, 80 } } ) {
 
             //const double sigma_( 1.0e-9 );

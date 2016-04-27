@@ -52,7 +52,7 @@ namespace u5303a {
         using boost::msm::front::Row;
         using boost::msm::front::none;
 
-        enum idState { idStopped, idReadyToInitiate, idRunning, idTSRRunning };
+        enum idState { idStopped, idReadyToInitiate, idRunning, idTSRRunning, idHalt };
 
         // events
         struct Stop        {};
@@ -60,6 +60,7 @@ namespace u5303a {
         struct Initiate    {};
         struct TSRInitiate {};
         struct Continue    {};
+        struct Error       {};
         struct error_clear {};
 
         struct error_detected {
@@ -73,9 +74,6 @@ namespace u5303a {
         struct controller_ : public msm::front::state_machine_def< controller_ > {
 
             controller_( handler * p ) : handler_( p ) {}
-
-            struct Error_tag {};
-            typedef msm::front::euml::func_state< Error_tag > Error;
 
             //-----------------------------
             struct Stopped_Entry { 
@@ -92,19 +90,6 @@ namespace u5303a {
             typedef msm::front::euml::func_state< Stopped_tag, Stopped_Entry, Stopped_Exit> Stopped;
 
             //-----------------------------
-            // struct Preparing_Entry { 
-            //     template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& state ) {
-            //         fsm.handler_->fsm_state( true, idPreparing );
-            //     }
-            // };
-            // struct Preparing_Exit { 
-            //     template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& state ) {
-            //         fsm.handler_->fsm_state( false, idPreparing );
-            //     }
-            // };
-            // struct Preparing_tag {};
-            // typedef msm::front::euml::func_state< Preparing_tag, Preparing_Entry, Preparing_Exit> Preparing;
-            
             struct ReadyToInitiate_Entry { 
                 template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
                     fsm.handler_->fsm_state( true, idReadyToInitiate );
@@ -149,7 +134,23 @@ namespace u5303a {
             typedef msm::front::euml::func_state< TSRRunning_tag, TSRRunning_Entry, TSRRunning_Exit> TSRRunning;
 
             //-----------------------------
-            typedef Stopped initial_state;
+            struct Halt_Entry {
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( true, idHalt );
+                }
+            };
+            struct Halt_Exit {
+                template <class Event, class FSM, class STATE> void operator()( Event const& evt, FSM& fsm, STATE& ) {
+                    fsm.handler_->fsm_state( false, idHalt );
+                }
+            };
+            struct Halt_tag {};
+            typedef msm::front::euml::func_state< Halt_tag, Halt_Entry, Halt_Exit> Halt;
+
+
+            //-----------------------------
+            //typedef Stopped initial_state;
+            typedef Halt initial_state;
 
             //-----------------------------
             struct actPrepare {
@@ -200,7 +201,14 @@ namespace u5303a {
                     fsm.handler_->fsm_action_TSR_continue();
                 }
             };
-            
+
+            struct actHalt {
+                template <class EVT, class FSM, class SourceState, class TargetState >
+                void operator()( EVT const& evt, FSM& fsm, SourceState& prev, TargetState& ) {
+                    fsm.handler_->fsm_action_halt();
+                }
+            };
+
             // guard conditions
             struct DummyGuard {
                 template <class EVT,class FSM,class SourceState,class TargetState>
@@ -227,7 +235,8 @@ namespace u5303a {
             struct transition_table : mpl::vector<
                 //    Start                Event             Next               Action				 Guard
                 //  +-------------------+------------------+------------------+---------------------+----------------------+
-                Row   < Stopped,         Stop,              Stopped,            none,             none >
+                Row   < Stopped,         Error,             Halt,               actHalt,          always_true >
+                , Row < Stopped,         Stop,              Stopped,            none,             none >
                 , Row < Stopped,         Prepare,           ReadyToInitiate,    actPrepare,       none >
                 , Row < ReadyToInitiate, Stop,              Stopped,            none,             none >
                 , Row < ReadyToInitiate, Initiate,          Running,            actInitiate,      none >
@@ -238,11 +247,13 @@ namespace u5303a {
                 , Row < TSRRunning,      Stop,              Stopped,            actTSRStop,       none >
                 , Row < TSRRunning,      Continue,          TSRRunning,         actTSRContinue,   none >
                 , Row < TSRRunning,      Prepare,           ReadyToInitiate,    actPrepare,       none >
+                , Row < Halt,            Error,             Halt,               none,             none >
+                , Row < Halt,            Stop,              Stopped,            none,             none >
                 > {};
 
             // Replaces the default no-transition response.
             template <class FSM,class Event> void no_transition(Event const& e, FSM& fsm, int state)  {
-                ADDEBUG() << "no transition from state " << state;
+                ADDEBUG() << "no transition from state " << state << " Event '" << typeid(e).name() << "'";
             }
 
             template <class FSM,class Event> void exception_caught(Event const& ev, FSM& fsm, std::exception& ex) {
@@ -261,6 +272,7 @@ namespace u5303a {
             virtual void fsm_action_TSR_initiate() = 0;
             virtual void fsm_action_continue() = 0;
             virtual void fsm_action_TSR_continue() = 0;
+            virtual void fsm_action_halt() = 0;
             virtual void fsm_state( bool, idState ) = 0;
         };
 

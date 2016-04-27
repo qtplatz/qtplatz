@@ -118,21 +118,15 @@ file::write( std::size_t size, const char_t * p )
 std::size_t
 file::read( std::size_t size, char_t * p )
 {
-    if ( fileid_ > 0 ) {
-        if ( internal::fs::read( *db_, fileid_, size, p ) )
-            return size;
-    } else { 
-        if ( internal::fs::read( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ), size, p ) )
-            return size;
-    }
+    int64_t fid = fileid_ > 0 ? fileid_ : internal::fs::rowid_from_fileid( *db_, rowid_ );
+    if ( internal::fs::read( *db_, fid, size, p ) )
+        return size;
     return 0;
 }
 
 std::size_t
 file::size() const
 {
-    if ( fileid_ > 0 )
-        return internal::fs::size( *db_, fileid_ );
-    else
-        return internal::fs::size( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ) );
+    int64_t fid = fileid_ > 0 ? fileid_ : internal::fs::rowid_from_fileid( *db_, rowid_ );
+    return internal::fs::size( *db_, fid );
 }

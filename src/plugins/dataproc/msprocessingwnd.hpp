@@ -114,14 +114,13 @@ namespace dataproc {
         void draw1();
         double compute_rms( double, double );
         std::pair<double, double> compute_minmax( double, double );
-        bool power_spectrum( const adcontrols::MassSpectrum&, std::vector<double>& x, std::vector<double>& y
-                             , const std::pair<size_t, size_t>&, double& dc, double& nyquist );
+        bool power_spectrum( const adcontrols::MassSpectrum&, const std::pair<size_t, size_t>& );
+        void power_spectrum( const adcontrols::Chromatogram& );
 
         // from menu
         void frequency_analysis();
         void save_image_file();
         void make_chromatogram( const adcontrols::DataReader *, adcontrols::hor_axis, double, double );
-        void make_chromatograms( const adcontrols::DataReader *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );

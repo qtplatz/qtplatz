@@ -43,27 +43,6 @@ DataInterpreter::translate( adcontrols::MassSpectrum&
                             , size_t idData
                             , const wchar_t * traceId ) const
 {
-    (void)meta;
-    (void)msize;
-
-    if ( dsize > 0 ) {
- #if 0       
-        std::unique_ptr< infitofinterface::AveragerData > avgr( new infitofinterface::AveragerData );
-        
-        if ( infitofinterface::serializer::deserialize( *avgr, data, dsize ) ) {
-
-            if ( avgr->avgrType == infitofinterface::Averager_AP240 ) {
-
-                return ap240translator::translate( ms, *avgr, idData, spectrometer );
-
-            } else if ( avgr->avgrType == infitofinterface::Averager_ARP ) {
-
-                return arptranslator::translate( ms, *avgr, idData, spectrometer );
-            }
-
-        }
-#endif
-    }
     return adcontrols::translate_error;
 }
 
@@ -72,20 +51,6 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
            , const char * data, size_t dsize
            , const char * meta, size_t msize, unsigned long events ) const
 {
-    (void)meta;
-    (void)msize;
-
-	if ( dsize > 0 ) {
-#if 0
-		std::vector< infitofinterface::SpectrumProcessedData > vec;
-		infitofinterface::serializer::deserialize( vec, data, dsize );
-		for ( const infitofinterface::SpectrumProcessedData& d: vec ) {
-			adcontrols::seconds_t sec( double( d.uptime ) * 1.0e-6 );
-			accessor.push_back( d.fcn, d.npos, sec, d.tic, events );
-		}
-        return adcontrols::translate_complete;
-#endif
-	}
     return adcontrols::translate_error;
 }
 

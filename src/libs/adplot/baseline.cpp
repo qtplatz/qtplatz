@@ -46,9 +46,9 @@ Baseline::Baseline( plot& plot, const adcontrols::Baseline& bs ) : plot_( &plot 
     curve_->attach( plot_ );
 
     double x[2], y[2];
-    x[0] = adcontrols::timeutil::toMinutes( bs.startTime() );
-    x[1] = adcontrols::timeutil::toMinutes( bs.stopTime() );
-    y[0] = bs.startHeight();
-    y[1] = bs.stopHeight();
+    x [ 0 ] = bs.startTime(); // adcontrols::timeutil::toMinutes( bs.startTime() );
+    x [ 1 ] = bs.stopTime(); // adcontrols::timeutil::toMinutes( bs.stopTime() );
+    y [ 0 ] = bs.startHeight();
+    y [ 1 ] = bs.stopHeight();
     curve_->setSamples(  x, y, 2 );
 }

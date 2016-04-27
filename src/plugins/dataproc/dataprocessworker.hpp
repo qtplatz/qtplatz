@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,12 +30,22 @@
 #include <mutex>
 #include <memory>
 #include <thread>
-#include <tuple>
 #include <vector>
 
-namespace adcontrols { class MassSpectrum; class ProcessMethod; class MSChromatogramMethod; enum hor_axis: unsigned int; }
+namespace adcontrols {
+    enum hor_axis: unsigned int;
+    class MassSpectra;
+    class MassSpectrum;
+    class ProcessMethod;
+    class MSChromatogramMethod;
+    class DataReader;
+    class MSPeakInfoItem;
+    class MSLockMethod;
+}
+
 namespace adprot { class digestedPeptides; }
 namespace adwidgets { class Progress;  }
+namespace boost { namespace uuids { struct uuid; } }
 
 class QString;
 
@@ -45,8 +55,7 @@ namespace dataproc {
 
     class DataprocessWorker {
         DataprocessWorker();
-        static DataprocessWorker * instance_;
-        static std::mutex mutex_;
+        std::mutex mutex_;
         std::vector< adportable::asio::thread > threads_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
@@ -54,32 +63,62 @@ namespace dataproc {
         ~DataprocessWorker();
 
         static DataprocessWorker * instance();
-        static void dispose();
-        
+
+        // this will shows up Reader Choice Dialog
         void createChromatograms( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
-        void createChromatograms( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::tuple< int, double, double > >& );
-        void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
+
+        void createChromatograms( Dataprocessor * processor
+                                  , adcontrols::hor_axis axis
+                                  , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
+                                  , const boost::uuids::uuid& dataReaderUuid );
+        
+        void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& );
+
+        void createChromatogramsV3( Dataprocessor *
+                                    , adcontrols::hor_axis
+                                    , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges                                    
+                                    , const adcontrols::DataReader * reader );
+
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
         void findPeptide( Dataprocessor *, const adprot::digestedPeptides& );
+        void mslock( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectra >, const adcontrols::MSLockMethod& );
+        void exportMatchedMasses( Dataprocessor *, std::shared_ptr< const adcontrols::MassSpectra >, const std::wstring& foliumId );
 
     private:
-        void terminate();
 
         /* Generage chromatogram by MSChromatoramMethod::targets vector */
-        void handleCreateChromatograms( Dataprocessor *
-                                        , const adcontrols::MSChromatogramMethod&
-                                        , std::shared_ptr< const adcontrols::ProcessMethod >
-                                        , std::shared_ptr<adwidgets::Progress> );
+        // for v2 data format        
+        void handleCreateChromatogramsV2( Dataprocessor *
+                                          , const adcontrols::MSChromatogramMethod&
+                                          , std::shared_ptr< const adcontrols::ProcessMethod >
+                                          , std::shared_ptr<adwidgets::Progress> );
 
-        void handleCreateChromatograms( Dataprocessor *
-                                        , const std::shared_ptr< adcontrols::ProcessMethod >
-                                        , adcontrols::hor_axis
-                                        , const std::vector< std::tuple< int, double, double > >&
-                                        , std::shared_ptr<adwidgets::Progress> );
+        // for v2 data format
+        void handleCreateChromatogramsV2( Dataprocessor *
+                                          , const std::shared_ptr< adcontrols::ProcessMethod >
+                                          , adcontrols::hor_axis
+                                          , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
+                                          , std::shared_ptr<adwidgets::Progress> );
+        
+        // for v3 data format
+        void handleCreateChromatogramsV3( Dataprocessor *
+                                          , const adcontrols::MSChromatogramMethod&
+                                          , std::shared_ptr< const adcontrols::ProcessMethod >
+                                          , std::shared_ptr< const adcontrols::DataReader >
+                                          , int fcn                                        
+                                          , std::shared_ptr<adwidgets::Progress> );
 
+        // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >
+                                      , std::shared_ptr<adwidgets::Progress> );
+
+        // for v3 data format
+        void handleCreateSpectrogram( Dataprocessor *
+                                      , std::shared_ptr< const adcontrols::ProcessMethod >
+                                      , const adcontrols::DataReader *
+                                      , int fcn
                                       , std::shared_ptr<adwidgets::Progress> );
         
         void handleClusterSpectrogram( Dataprocessor *
@@ -89,6 +128,16 @@ namespace dataproc {
         void handleFindPeptide( Dataprocessor *
                                 , const std::shared_ptr< adcontrols::ProcessMethod >
                                 , std::shared_ptr<adwidgets::Progress> );
+        
+        void handleMSLock( Dataprocessor *
+                           , std::shared_ptr< adcontrols::MassSpectra >
+                           , const adcontrols::MSLockMethod&
+                           , std::shared_ptr<adwidgets::Progress> );
+
+        void handleExportMatchedMasses( Dataprocessor *
+                                        , std::shared_ptr< const adcontrols::MassSpectra >
+                                        , const adcontrols::MSLockMethod&
+                                        , std::shared_ptr<adwidgets::Progress> );
 
         void join( const adportable::asio::thread::id& );
     };

@@ -37,6 +37,8 @@ namespace adcontrols {
 
     class MassSpectrum;
     class Chromatogram;
+    class description;
+    class descriptions;
 
     class ADCONTROLSSHARED_EXPORT MassSpectra {
     public:
@@ -48,7 +50,7 @@ namespace adcontrols {
         typedef std::vector< value_type >::iterator iterator;
         typedef std::vector< value_type >::const_iterator const_iterator;
 
-        MassSpectra& operator << ( value_type ); // shared object
+        MassSpectra& operator << ( value_type&& ); // shared object
         MassSpectra& operator << ( const MassSpectrum& ); // create new copy
 
         size_t size() const;
@@ -74,15 +76,23 @@ namespace adcontrols {
         double z_max() const;
         const value_type find( double t, bool closest = true ) const;
 
+        void addDescription( const description& );
+        const descriptions& getDescriptions() const;
+        void setMSLocked( bool );
+        bool mslocked() const;
+
 		static const wchar_t * dataClass() { return L"adcontrols::MassSpectra"; }
         static bool archive( std::ostream&, const MassSpectra& );
         static bool restore( std::istream&, MassSpectra& );
     private:
         std::vector< value_type > vec_;
         std::vector< double > x_;
+
         double lower_mass_;
         double upper_mass_;
         double z_max_;
+        std::unique_ptr< descriptions > descriptions_;
+        bool mslocked_;
 
 	    friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int);
@@ -90,6 +100,7 @@ namespace adcontrols {
     typedef std::shared_ptr<MassSpectra> MassSpectraPtr;
 }
 
-BOOST_CLASS_VERSION( adcontrols::MassSpectra, 1 )
+BOOST_CLASS_VERSION( adcontrols::MassSpectra, 3 )
 
-
+// V2 add descriptions
+// V3 add mslocked flag

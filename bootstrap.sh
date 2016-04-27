@@ -77,7 +77,7 @@ case $cross_target in
 	;;
     darwin)
 	if [ $build_debug = true ]; then
-	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
+	    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
 	else
 	    echo `pwd`
 	    cmake -DCMAKE_BUILD_TYPE=Release $source_dir

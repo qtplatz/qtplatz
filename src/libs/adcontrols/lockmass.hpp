@@ -23,9 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef LOCKMASS_H
-#define LOCKMASS_H
-
+#pragma once
 #include "adcontrols_global.h"
 #include <string>
 #include <vector>
@@ -39,12 +37,8 @@ namespace adcontrols {
     class MassSpectrum;
     class MSPeakInfo;
 
-    class ADCONTROLSSHARED_EXPORT lockmass {
-    public:
-        lockmass();
-        lockmass( const lockmass& );
-        operator bool () const; // true if at least one reference
-
+    namespace lockmass {
+        
         class ADCONTROLSSHARED_EXPORT reference {
         public:
             reference();
@@ -72,12 +66,20 @@ namespace adcontrols {
             }
         };
 
-        struct ADCONTROLSSHARED_EXPORT fitter {
-            std::vector< double > coeffs_;
+        class ADCONTROLSSHARED_EXPORT fitter {
+        public:
+            fitter();
+            fitter( const fitter& );
+            fitter( std::vector< double >&& );
+            fitter& operator = ( std::vector< double >&& );
             bool operator()( MassSpectrum& ) const; // correct mass array
             bool operator()( MSPeakInfo& ) const;
             void clear();
+            const std::vector< double >& coeffs() const;
+            std::vector< double >& coeffs();
         private:
+            std::vector< double > coeffs_;
+            
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -87,35 +89,44 @@ namespace adcontrols {
             }
         };
 
-        lockmass& operator << ( const reference& );
-        void clear();
-        size_t size() const;
-        bool empty() const;
-
-        static bool findReferences( lockmass&,  const adcontrols::MassSpectrum& );
-        static bool findReferences( lockmass&,  const adcontrols::MassSpectrum&, int idx, int fcn );
-        bool fit();
-        bool operator()( MassSpectrum&, bool applyToAll = true ) const; // correct mass array
-        bool operator()( MSPeakInfo&, bool applyToAll = true ) const;
-        
-    private:
-        std::vector< reference > references_;
-        fitter fitter_;
-
-        friend class boost::serialization::access;
-        template<class Archive>
-            void serialize(Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(references_)
-                & BOOST_SERIALIZATION_NVP(fitter_)
-                ;
-        }
-
-    };
+        class ADCONTROLSSHARED_EXPORT mslock {
+        public:
+            mslock();
+            mslock( const mslock& );
+            operator bool () const; // true if at least one reference
+            mslock& operator << ( const reference& );
+            void clear();
+            size_t size() const;
+            bool empty() const;
+            
+            static bool findReferences( mslock&,  const adcontrols::MassSpectrum& );
+            static bool findReferences( mslock&,  const adcontrols::MassSpectrum&, int idx, int fcn );
+            bool fit();
+            bool operator()( MassSpectrum&, bool applyToAll = true ) const; // correct mass array
+            bool operator()( MSPeakInfo&, bool applyToAll = true ) const;
+            typedef std::vector< reference >::const_iterator const_iterator;
+            const_iterator begin() const;
+            const_iterator end() const;
+            const std::vector< double >& coeffs() const;
+            const lockmass::fitter& fitter() const;
+            
+        private:
+            std::vector< reference > references_;
+            lockmass::fitter fitter_;
+            
+            friend class boost::serialization::access;
+            template<class Archive>
+                void serialize(Archive& ar, const unsigned int ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP(references_)
+                    & BOOST_SERIALIZATION_NVP(fitter_)
+                    ;
+            }
+        };
 
 #if defined _MSC_VER
-    template class ADCONTROLSSHARED_EXPORT std::vector < lockmass::reference > ;
+        template class ADCONTROLSSHARED_EXPORT std::vector < reference > ;
 #endif
+    }
 }
 
-#endif // LOCKMASS_H

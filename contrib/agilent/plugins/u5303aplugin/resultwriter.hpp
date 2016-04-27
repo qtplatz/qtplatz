@@ -32,6 +32,8 @@
 #include <string>
 #include <vector>
 
+namespace boost { namespace filesystem { class path; } }
+
 namespace acqrscontrols { namespace u5303a { class threshold_result; } };
 namespace adcontrols { class MassSpectrum; }
 
@@ -48,6 +50,8 @@ namespace u5303a {
         void writeHistogram( size_t, const std::pair< uint64_t, uint64_t>&, std::shared_ptr< adcontrols::MassSpectrum > );
 
         void dump_waveform();
+
+        void setRunName( const boost::filesystem::path& directory, const boost::filesystem::path& stem );
         
     private:
         std::mutex mutex_;

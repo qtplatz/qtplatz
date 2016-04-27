@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -40,16 +40,18 @@ namespace boost { namespace uuids { struct uuid; } }
 
 namespace adcontrols {
 
+    namespace lockmass { class mslock; }
+
     class Chromatogram;
     class MassSpectrum;
 	class MSCalibrateResult;
-    class lockmass;
+    class MSFractuation;
 
     // v3 dataformat only
     class DataReader;
     //
 
-    class LCMSDataset : public AcquiredDataset {
+    class ADCONTROLSSHARED_EXPORT LCMSDataset : public AcquiredDataset {
     public:
         // LCMSDataset();
         virtual size_t getFunctionCount() const = 0;
@@ -72,14 +74,15 @@ namespace adcontrols {
         virtual uint32_t findObjId( const std::wstring& /* traceId */) const { return 0; }
         virtual bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
                              , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const { return 0; }
-        virtual adfs::sqlite * db() { return 0; }
-        virtual bool mslocker( lockmass&, uint32_t = 0 ) const { return 0; }
+        virtual adfs::sqlite * db() const { return 0; }
+        virtual bool mslocker( lockmass::mslock&, uint32_t = 0 ) const { return 0; }
 
         // v3 data support
         virtual size_t dataReaderCount() const { return 0; }
         virtual const adcontrols::DataReader * dataReader( size_t idx ) const { return nullptr; }
         virtual const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const { return nullptr; }
-        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible = false ) const { return std::vector < std::shared_ptr< const adcontrols::DataReader > >(); }
+        virtual std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible = false ) const;
+        virtual adcontrols::MSFractuation * msFractuation() const;
 	};
 
 }

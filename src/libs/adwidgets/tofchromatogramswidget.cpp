@@ -194,7 +194,7 @@ TofChromatogramsWidget::OnInitialUpdate()
 }
 
 void
-TofChromatogramsWidget::onUpdate( boost::any& )
+TofChromatogramsWidget::onUpdate( boost::any&& )
 {
 }
 

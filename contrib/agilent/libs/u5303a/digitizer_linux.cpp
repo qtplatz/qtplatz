@@ -108,6 +108,7 @@ namespace u5303a {
             void fsm_action_TSR_initiate() override;
             void fsm_action_continue() override;
             void fsm_action_TSR_continue() override;
+            void fsm_action_halt() override;
             void fsm_state( bool, fsm::idState ) override;
             
         private:
@@ -390,8 +391,7 @@ task::run()
 bool
 task::stop()
 {
-    fsm_.process_event( fsm::Stop() );
-    return true;
+    return fsm_.process_event( fsm::Stop() ) == boost::msm::back::HANDLED_TRUE;
 }
 
 bool
@@ -404,9 +404,6 @@ task::trigger_inject_out()
 void
 task::terminate()
 {
-    // if ( spDriver_ ) 
-    //     spDriver_->Abort();
-
     io_service_.stop();
     
     for ( std::thread& t: threads_ )
@@ -429,6 +426,11 @@ task::fsm_state( bool enter, fsm::idState state )
         for ( auto& reply: reply_handlers_ )
             reply( "StateChanged", "Running" );
     }
+}
+
+void
+task::fsm_action_halt()
+{
 }
 
 void
@@ -552,13 +554,15 @@ task::handle_initial_setup()
         for ( auto& reply : reply_handlers_ ) reply( "Options", ident_->Options() );
 
         device::initial_setup( *this, method_, ident().Options() );
+
+        spDriver_->Abort();
+        fsm_.process_event( fsm::Stop() );
+    } else {
+        fsm_.process_event( fsm::Error() );
     }
 
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
-
-    spDriver_->Abort();
-    fsm_.process_event( fsm::Stop() );
 
 	return success;
 }
@@ -572,7 +576,8 @@ task::handle_terminating()
 bool
 task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 {
-    fsm_.process_event( fsm::Prepare() );
+    if ( fsm_.process_event( fsm::Prepare() ) == boost::msm::back::HANDLED_FALSE )
+        return false;
 
     c_acquisition_status_ = false;
     c_injection_requested_ = false;
@@ -589,12 +594,11 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     method_ = m;
     
     if ( m._device_method().TSR_enabled ) {
-        fsm_.process_event( fsm::TSRInitiate() );
+        return fsm_.process_event( fsm::TSRInitiate() ) == boost::msm::back::HANDLED_TRUE;
     } else {
-        fsm_.process_event( fsm::Initiate() );
+        return fsm_.process_event( fsm::Initiate() ) == boost::msm::back::HANDLED_TRUE;
     }
 
-    return true;
 }
 
 bool
@@ -692,7 +696,13 @@ task::handle_acquire()
                 }
             }
             return true;
+        } else {
+            ADDEBUG() << "Acquisition timed out";
         }
+    } else {
+        std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+        if ( ! spDriver_->isIdle() )
+            spDriver_->Abort();
     }
     return false;
 }

@@ -141,6 +141,7 @@ namespace adcontrols {
            int32_t protocolId_;
            int32_t nProtocols_;
            boost::uuids::uuid dataReaderUuid_;
+           int64_t rowid_; // SQLite's rowid for raw data record reference
 
            // exclude from archive
            std::string uuid_; // for instance equality check; out of serialization scope
@@ -180,8 +181,8 @@ namespace adcontrols {
                }
                if ( version >= 4 ) {
                    ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+                   ar & BOOST_SERIALIZATION_NVP( rowid_ );
                }
-
 
                // exclude
                scanLaw_.reset();
@@ -202,6 +203,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( protocolId_ );
             ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
             ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+            ar & BOOST_SERIALIZATION_NVP( rowid_ );
 
             std::vector< datum > data;
             for ( size_t i = 0; i < massArray_.size(); ++i )
@@ -336,8 +338,13 @@ MassSpectrum::mode() const
 const ScanLaw*
 MassSpectrum::scanLaw() const
 {
-    if ( ! pImpl_->scanLaw_ )
-        pImpl_->scanLaw_ = pImpl_->getMSProperty().scanLaw(); // cache
+    // deprecated
+    if ( !pImpl_->scanLaw_ ) {
+        if ( auto spectrometer = adcontrols::MassSpectrometer::create( getMSProperty().dataInterpreterClsid() ) ) {
+            spectrometer->setAcceleratorVoltage( getMSProperty().acceleratorVoltage(), 0 );
+            return spectrometer->scanLaw();
+        }
+    }
     return pImpl_->scanLaw_.get();
 }
 
@@ -429,6 +436,7 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
     return idx; // will return size() when 'seconds' does not exist
 }
 
+#if 0
 double
 MassSpectrum::getNormalizedTime( size_t idx ) const
 {
@@ -438,6 +446,7 @@ MassSpectrum::getNormalizedTime( size_t idx ) const
     else
         return time;
 }
+#endif
 
 void
 MassSpectrum::setIntensity( size_t idx, double intensity )
@@ -459,35 +468,6 @@ const double *
 MassSpectrum::getTimeArray() const
 {
     return pImpl_->getTimeArray();
-}
-
-double
-MassSpectrum::compute_mass( double time ) const
-{
-    if ( !pImpl_->calibration_.coeffs().empty() ) {
-        double mq = MSCalibration::compute( pImpl_->calibration_.coeffs(), time );
-        return mq * mq;
-    } else {
-        const auto& prop = pImpl_->getMSProperty();
-        if ( auto scanlaw = prop.scanLaw() ) {
-            return scanlaw->getMass( time, prop.mode() );
-        }
-    }
-    return 0;
-}
-
-size_t
-MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefix pfx ) const
-{
-    if ( pImpl_->getTimeArray() ) {
-        size_t i;
-        for ( i = 0; i < size && i < pImpl_->size(); ++i ) {
-			double d = getTimeArray()[i];
-            *p++ = metric::scale_to<double>( pfx, d );
-		}
-        return i;
-    }
-    return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().samplingInfo(), pfx );
 }
 
 void
@@ -546,6 +526,12 @@ MassSpectrum::getColor( size_t idx ) const
 
 void
 MassSpectrum::addDescription( const description& t )
+{
+  pImpl_->addDescription( t );
+}
+
+void
+MassSpectrum::addDescription( description&& t )
 {
   pImpl_->addDescription( t );
 }
@@ -610,6 +596,19 @@ annotations&
 MassSpectrum::get_annotations()
 {
     return pImpl_->get_annotations();
+}
+
+void
+MassSpectrum::addAnnotation( annotation&& a, bool uniq )
+{
+    if ( uniq && a.index() >= 0 ) {
+        auto it = std::find_if( pImpl_->annotations_.begin(), pImpl_->annotations_.end()
+                                , [&]( const annotation& x ){ return x.index() == a.index() && x.dataFormat() == a.dataFormat(); } );
+        if ( it != pImpl_->annotations_.end() )
+             pImpl_->annotations_.erase( it );
+    }
+        
+    pImpl_->annotations_ << std::move( a );
 }
 
 void
@@ -705,6 +704,18 @@ MassSpectrum::dataReaderUuid() const
     return pImpl_->dataReaderUuid_;
 }
 
+void
+MassSpectrum::setRowid( int64_t rowid )
+{
+    pImpl_->rowid_ = rowid;
+}
+
+int64_t
+MassSpectrum::rowid() const
+{
+    return pImpl_->rowid_;
+}
+
 std::wstring
 MassSpectrum::saveXml() const
 {
@@ -780,12 +791,12 @@ namespace adcontrols {
 // so the MassSpectrum[0] is identical to MassSpectrum if there is subsequent fragment.
 
 
-size_t
-MassSpectrum::addSegment( const MassSpectrum& sub )
-{
-    pImpl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
-    return pImpl_->vec_.size();
-}
+// size_t
+// MassSpectrum::addSegment( const MassSpectrum& sub )
+// {
+//     pImpl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
+//     return pImpl_->vec_.size();
+// }
 
 MassSpectrum&
 MassSpectrum::getSegment( size_t fcn )
@@ -900,6 +911,7 @@ MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
                                      , protocolId_(0)
                                      , nProtocols_(0)
                                      , dataReaderUuid_( { {0} } )
+                                     , rowid_(0)
                                      , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
 {
 }
@@ -921,6 +933,7 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
     protocolId_ = t.protocolId_;
     nProtocols_ = t.nProtocols_;
     dataReaderUuid_ = t.dataReaderUuid_;
+    rowid_ = t.rowid_;
 
 	if ( deep ) {
 		tofArray_ = t.tofArray_;

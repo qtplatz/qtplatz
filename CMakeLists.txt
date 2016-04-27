@@ -14,7 +14,7 @@ if ( WIN32 )
 elseif( APPLE )
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
-  set( CMAKE_INSTALL_PREFIX "/usr/local/qtplatz" )  
+  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )  
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
@@ -204,6 +204,8 @@ elseif( APPLE )
   endif()
   
 elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+
+  set( CPACK_DEB_COMPONENT_INSTALL 1 )
 
   set( CPACK_GENERATOR "DEB" )
   set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )

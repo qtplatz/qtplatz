@@ -2,7 +2,7 @@
 cmake_minimum_required (VERSION 2.8.9)
 
 project ( diag )
-set( BOOST_VERSION boost-1_58 )
+set( BOOST_VERSION boost-1_59 )
 set( Boost_INCLUDE_DIR "/usr/local/${BOOST_VERSION}/include")
 set( Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")
 

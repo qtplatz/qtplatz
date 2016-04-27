@@ -27,7 +27,6 @@
 #include "mainwindow.hpp"
 #include "resultwriter.hpp"
 #include "task.hpp"
-#include "u5303a_constants.hpp"
 #include "icontrollerimpl.hpp"
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -47,6 +46,7 @@
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adicontroller/masterobserver.hpp>
+#include <adicontroller/task.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/binary_serializer.hpp>
@@ -64,6 +64,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/at.hpp>
 #include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -87,8 +90,71 @@ namespace u5303a {
         }
     };
 
+    template< typename T > struct xmlWriter {
+        void operator()( const adcontrols::ControlMethod::MethodItem& mi, const boost::filesystem::path& dir ) const {
+            T x;
+            if ( mi.get<>( mi, x ) ) {
+                boost::filesystem::path fname( dir / mi.modelname() );
+                fname.replace_extension( ".cmth.xml" );
+                std::wofstream outf( fname.string() );
+                T::xml_archive( outf, x );
+            }
+        }
+    };
+
     namespace so = adicontroller::SignalObserver;
 
+    struct exec_fsm_stop {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            task::instance()->sample_stopped();
+            for ( auto& iController : iControllers ) {
+                if ( auto session = iController->getInstrumentSession() )
+                    session->stop_run();
+            }
+        }
+    };
+
+    struct exec_fsm_start {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            for ( auto inst : iControllers ) {
+                if ( auto session = inst->getInstrumentSession() )
+                    session->start_run();
+            }
+            
+            document::instance()->prepare_for_run();
+            task::instance()->sample_started(); // workaround::method start
+            // increment sample number
+            if ( auto run = document::instance()->sampleRun() )
+                ++( *run );
+        }
+    };
+
+    struct exec_fsm_ready {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            // // make immediate inject 
+            // adicontroller::task::instance()->fsmInject();
+        }
+    };
+
+    struct exec_fsm_inject {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            task::instance()->sample_injected();
+            for ( auto& iController : iControllers ) {
+                if ( auto session = iController->getInstrumentSession() )
+                    session->event_out( adicontroller::Instrument::instEventInjectOut ); // loopback to peripherals
+            }
+        }
+    };
+
+    struct exec_fsm_complete {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            adicontroller::task::instance()->fsmStart();
+            adicontroller::task::instance()->fsmReady();
+        }
+    };
+
+    template<typename T> struct wrap {};
+    
     //..........................................
     class document::impl {
     public:
@@ -148,6 +214,34 @@ namespace u5303a {
         void loadControllerState();
         void takeSnapshot();
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double resolution ) const;
+
+        void handle_fsm_state_changed( bool enter, int id_state, adicontroller::Instrument::eInstStatus st ) {
+            if ( enter )
+                emit document::instance()->instStateChanged( st );
+        }
+        
+        void handle_fsm_action( adicontroller::Instrument::idFSMAction a ) {
+
+            typedef boost::mpl::vector< exec_fsm_stop, exec_fsm_start, exec_fsm_ready, exec_fsm_inject, exec_fsm_complete > actions;
+            
+            switch( a ) {
+            case adicontroller::Instrument::fsmStop:
+                boost::mpl::at_c<actions, adicontroller::Instrument::fsmStop>::type()( iControllers_ );
+                break;
+            case adicontroller::Instrument::fsmStart:
+                boost::mpl::at_c<actions, adicontroller::Instrument::fsmStart>::type()( iControllers_ );
+                break;                
+            case adicontroller::Instrument::fsmReady:
+                boost::mpl::at_c<actions, adicontroller::Instrument::fsmReady>::type()( iControllers_ );
+                break;                                
+            case adicontroller::Instrument::fsmInject:
+                boost::mpl::at_c<actions, adicontroller::Instrument::fsmInject>::type()( iControllers_ );
+                break;                                                
+            case adicontroller::Instrument::fsmComplete:
+                boost::mpl::at_c<actions, adicontroller::Instrument::fsmComplete>::type()( iControllers_ );
+                break;                                                                
+            }
+        }
     };
 
     std::mutex document::impl::mutex_;
@@ -211,6 +305,7 @@ document::actionConnect()
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );
         tdc()->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
+        tdc()->set_threshold_action( impl_->tdm_->action() );
 
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
@@ -230,9 +325,24 @@ document::actionConnect()
                     impl_->masterObserver_->addSibling( observer );
             }
         }
+
+        // FSM Action
+        adicontroller::task::instance()->connect_fsm_action( std::bind( &impl::handle_fsm_action, impl_, std::placeholders::_1 ) );
+
+        // FSM State
+        adicontroller::task::instance()->connect_fsm_state(
+            std::bind( &impl::handle_fsm_state_changed, impl_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
         
-        task::instance()->prepare_next_sample( impl_->masterObserver_.get(), impl_->nextSampleRun_, *cm );
+        adicontroller::task::instance()->fsmStart();
+        adicontroller::task::instance()->fsmReady();
     }
+}
+
+void
+document::actionInject()
+{
+    ADDEBUG() << "\t#### Action INJECT IN ####";
+    adicontroller::task::instance()->fsmInject();
 }
 
 void
@@ -253,17 +363,18 @@ document::actionSyncTrig()
 }
 
 void
-document::actionRun( bool run )
+document::actionRun()
 {
-    ADDEBUG() << "### actionRun " << run << " ###";
-    for ( auto inst : impl_->iControllers_ ) {
-        if ( auto session = inst->getInstrumentSession() ) {
-            if ( run )
-                session->start_run();
-            else
-                session->stop_run();
-        }
-    }
+    auto cm = MainWindow::instance()->getControlMethod();
+    setControlMethod( cm, QString() );
+    
+    adicontroller::task::instance()->fsmStart();
+}
+
+void
+document::actionStop()
+{
+    adicontroller::task::instance()->fsmStop();
 }
 
 void
@@ -311,6 +422,26 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
 }
 
 void
+document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm )
+{
+    // make empty que
+    while( auto sample = adicontroller::task::instance()->deque() )
+        ;
+
+    // push new sample
+    adicontroller::task::instance()->prepare_next_sample( run, cm );
+
+    // set INJECTION WAITING
+    adicontroller::task::instance()->fsmReady();
+
+    boost::filesystem::path dir( run->dataDirectory() );
+    boost::filesystem::path stem( run->filePrefix() );
+    impl_->resultWriter_->setRunName( dir.string(), stem.string() );
+
+    emit sampleRunChanged();
+}
+
+void
 document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
@@ -319,6 +450,8 @@ document::prepare_for_run()
     setControlMethod( *cm, QString() );
     impl_->isMethodDirty_ = false;
 
+    prepare_next_sample( impl_->nextSampleRun_, *impl_->cm_ );
+    
     ADDEBUG() << "### prepare_for_run ###";
     
     std::vector< std::future< bool > > futures;
@@ -417,31 +550,51 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
 
-    do {
-        boost::filesystem::path mfile( dir / "u5303a.cmth.xml" );
-        acqrscontrols::u5303a::method m;
-        if ( load( QString::fromStdWString( mfile.wstring() ), m ) )
-            *impl_->method_ = m;
-
-        if ( impl_->cm_ ) {
-            impl_->cm_->append<>( m );
+    if ( auto ptr = std::make_shared< adcontrols::ControlMethod::Method >() ) {
+        // always load 'latest', which may not be same with methodName if user did not save with the name
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        if ( load( QString::fromStdWString( fname.wstring() ), *ptr ) ) {
+            setControlMethod( ptr );
+            impl_->tdcdoc_->set_threshold_method( 0, impl_->tdm_->threshold( 0 ) );
+            impl_->tdcdoc_->set_threshold_action( impl_->tdm_->action() );
         }
+    }
 
-    } while ( 0 );
+    if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
+        boost::filesystem::path fname( dir / "samplerun.xml" );
+        if ( boost::filesystem::exists( fname ) ) {
+            std::wifstream inf( fname.string() );
+            try { 
+                adcontrols::SampleRun::xml_restore( inf, *run );
+                MainWindow::instance()->setSampleRun( *run );
+                document::setSampleRun( run );
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << ex.what();
+            }
+        }
+    }
 
-    impl_->loadControllerState();
 
+#if 0
+    if ( auto pm = std::make_shared< adcontrols::ProcessMethod >() ) {
+        boost::filesystem::path fname( dir / Constants::LAST_PROC_METHOD );
+        if ( load( QString::fromStdWString( fname.wstring() ), *pm ) )
+            impl_->pm_ = pm;
+    }
+#endif
 }
 
 void
 document::finalClose()
 {
-    ADTRACE() << "=====> document::finalClose()";
+    for ( auto iController : impl_->iControllers_ )
+        iController->disconnect( true );
+
+    // make empty que
+    while( auto sample = adicontroller::task::instance()->deque() )
+        ;
 
     task::instance()->finalize();
-
-    if ( auto session = impl_->iControllerImpl_->getInstrumentSession() )
-        session->shutdown();
 
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
@@ -453,18 +606,32 @@ document::finalClose()
     }
 
     auto cm = MainWindow::instance()->getControlMethod();
-    auto it = cm->find( cm->begin(), cm->end(), acqrscontrols::u5303a::method::clsid() );
-    if ( it != cm->end() ) {
-        acqrscontrols::u5303a::method x;
-        if ( it->get<>( *it, x ) ) {
-            boost::filesystem::path fname( dir / "u5303a.cmth.xml" );
-            save( QString::fromStdWString( fname.wstring() ), x );
+    if ( cm ) {
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        save( QString::fromStdWString( fname.wstring() ), *cm );        
+    }
+
+    if ( auto run = sampleRun() ) {
+        boost::filesystem::path fname( dir / "samplerun.xml" );
+        std::wofstream outf( fname.string() );
+        adcontrols::SampleRun::xml_archive( outf, *run );
+    }
+
+    // for debugging convension
+    for ( auto& mi : *cm ) {
+        if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
+            xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
+        } else if ( mi.clsid() == adcontrols::TimeDigitalMethod::clsid() ) {
+            xmlWriter< adcontrols::TimeDigitalMethod >()( mi, dir );            
+        } else if ( mi.clsid() == adcontrols::threshold_method::clsid() ) {
+            xmlWriter< adcontrols::threshold_method >()( mi, dir );            
+        } else if ( mi.clsid() == adcontrols::threshold_action::clsid() ) {
+            xmlWriter< adcontrols::threshold_action >()( mi, dir );
         }
-        impl_->cm_ = cm;
     }
 
     if ( auto settings = impl_->settings_ ) {
-        settings->beginGroup( "u5303a" );
+        settings->beginGroup( Constants::THIS_GROUP );
         
         settings->beginWriteArray( "ControlModule" );
 
@@ -477,8 +644,9 @@ document::finalClose()
 
         settings->endArray();
         settings->endGroup();
+
+        settings->sync();
     }
-    ADTRACE() << "=====> document finalClose completed.";
 }
 
 void
@@ -554,8 +722,7 @@ document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
                 auto file = files.back();
                 try {
                     file.fetch( m );
-                }
-                catch ( std::exception& ex ) {
+                } catch ( std::exception& ex ) {
                     QMessageBox::information( 0, "acquire -- Open default process method"
                                               , (boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
                                                  % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
@@ -608,7 +775,7 @@ document::save( const QString& filename, const adcontrols::ControlMethod::Method
     return true;
 }
 
-std::shared_ptr< adcontrols::ControlMethod::Method >
+std::shared_ptr< const adcontrols::ControlMethod::Method >
 document::controlMethod() const
 {
     return impl_->cm_;
@@ -633,7 +800,7 @@ document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method >
         if ( it != ptr->end() ) {
             adcontrols::TimeDigitalMethod tdm;
             if ( it->get( *it, tdm ) )
-                *impl_->tdm_;
+                *impl_->tdm_ = tdm;
         }
     } while ( 0 );
 
@@ -713,6 +880,12 @@ document::sampleRun() const
     return impl_->nextSampleRun_.get();
 }
 
+adcontrols::SampleRun *
+document::sampleRun()
+{
+    return impl_->nextSampleRun_.get();
+}
+
 void
 document::setSampleRun( std::shared_ptr< adcontrols::SampleRun > sr )
 {
@@ -737,7 +910,7 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
 {
     if ( code == adicontroller::Receiver::CLIENT_ATTACHED ) {
 
-        emit document::instance()->instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
+        // emit document::instance()->instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
 
     } else if ( code == adicontroller::Receiver::STATE_CHANGED ) {
 
@@ -746,12 +919,14 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
                                   , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
         } else {
 
-            emit document::instance()->instStateChanged( value );
+            //emit document::instance()->instStateChanged( value );
             
+#if 0
             if ( value == adicontroller::Instrument::eStandBy && impl_->cm_ && ic ) {
                 if ( auto session = ic->getInstrumentSession() )
                     session->prepare_for_run( impl_->cm_ );
             }
+#endif
         }
     }
 }
@@ -788,6 +963,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
     emit dataChanged( objid, idx );
     
     if ( objid == u5303a_observer ) {
+
         if ( auto hgrm = tdc()->longTermHistogram() ) {
 
             double resolution = 0;
@@ -796,6 +972,8 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
 
             if ( resolution > hgrm->xIncrement() ) {
                 std::vector< std::pair<double, uint32_t > > time_merged;
+
+                std::lock_guard< std::mutex > lock( impl_->mutex_ );            
                 adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
                 hgrm = hgrm->clone( time_merged );
             }
@@ -972,64 +1150,19 @@ document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_resu
     *( impl_->resultWriter_ ) << ch1;
 }
 
+#if 0
 void
 document::setControllerState( const QString& module, bool enable )
 {
     impl_->setControllerState( module, enable );
 }
+#endif
 
 bool
 document::isControllerEnabled( const QString& module ) const
 {
-    auto it = impl_->moduleStates_.find( module );
-
-    if ( it != impl_->moduleStates_.end() )
-        return it->second;
-
+    if ( impl_->iControllerImpl_->module_name() == module )
+        return true;
     return false;
 }
 
-void
-document::impl::setControllerState( const QString& module, bool enable )
-{
-    moduleStates_[ module ] = enable;
-
-    // update settings
-    settings_->beginGroup( "u5303a" );
-        
-    settings_->beginWriteArray( "Controllers" );
-
-    int i = 0;
-    for ( auto& state : moduleStates_ ) {
-        settings_->setArrayIndex( i++ );
-        settings_->setValue( "module_name", state.first );
-        settings_->setValue( "enable", state.second );
-    }
-
-    settings_->endArray();
-    settings_->endGroup();
-}
-
-void
-document::impl::loadControllerState()
-{
-    settings_->beginGroup( "u5303a" );
-        
-    int size = settings_->beginReadArray( "Controllers" );
-    
-    for ( int i = 0; i < size; ++i ) {
-        settings_->setArrayIndex( i );
-        QString module_name = settings_->value("module_name").toString();
-        bool enable = settings_->value( "enable" ).toBool();
-        moduleStates_[ module_name ] = enable;
-    }
-    
-    settings_->endArray();
-    settings_->endGroup();
-
-    auto it = this->moduleStates_.find( "Acquire" );
-    if ( it == moduleStates_.end() )
-        moduleStates_[ "Acquire" ] = true;
-
-    setControllerState( "u5303a", true );
-}

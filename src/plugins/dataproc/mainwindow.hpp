@@ -27,8 +27,10 @@
 
 #include <utils/fancymainwindow.h>
 #include "constants.hpp"
-#include <memory>
 #include <array>
+#include <functional>
+#include <memory>
+#include <adwidgets/mspeaktable.hpp> // callback type
 
 namespace adportable { class Configuration; }
 namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; class MassSpectrum; }
@@ -71,7 +73,7 @@ namespace dataproc {
         void setSimpleDockWidgetArrangement();
         
         static QToolButton * toolButton( const char * );
-        static QToolButton * toolButton( QAction * );
+        static QToolButton * toolButton( QAction *, const QString& objectName = QString() );
         
         void getProcessMethod( adcontrols::ProcessMethod& );
 		void setProcessMethod( const adcontrols::ProcessMethod& );
@@ -112,6 +114,8 @@ namespace dataproc {
 		// bool editor_factories( iSequenceImpl& );
         void getEditorFactories( adextension::iSequenceImpl& );
 
+        void selectionChanged( std::shared_ptr< adcontrols::MassSpectrum >, std::function<adwidgets::MSPeakTable::callback_t> );
+
     private:
         void handleProcessed( Dataprocessor *, portfolio::Folium& );
 
@@ -144,7 +148,6 @@ namespace dataproc {
         QAction * actionSearch_;
         QAction * actionApply_;
 
-        std::array< QAction *, idNum > selPages_;
         QStackedWidget * stack_;
         AboutDlg * aboutDlg_;
 

@@ -55,6 +55,15 @@ ResultWriter::operator << ( std::shared_ptr< const acqrscontrols::u5303a::thresh
 }
 
 void
+ResultWriter::setRunName( const boost::filesystem::path& directory, const boost::filesystem::path& stem )
+{
+    commitData();
+
+    time_datafile_ = ( directory / stem ).string() + "_time_data.txt";
+    hist_datafile_ = ( directory / stem ).string() + "_hist_data.txt";
+}
+
+void
 ResultWriter::commitData() 
 {
     std::vector< std::shared_ptr< const acqrscontrols::u5303a::threshold_result > > list;

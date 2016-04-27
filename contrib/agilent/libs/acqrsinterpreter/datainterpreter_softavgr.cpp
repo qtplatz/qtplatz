@@ -72,20 +72,6 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
            , const char * data, size_t dsize
            , const char * meta, size_t msize, unsigned long events ) const
 {
-    (void)meta;
-    (void)msize;
-
-	if ( dsize > 0 ) {
-#if 0
-		std::vector< infitofinterface::SpectrumProcessedData > vec;
-		infitofinterface::serializer::deserialize( vec, data, dsize );
-		for ( const infitofinterface::SpectrumProcessedData& d: vec ) {
-			adcontrols::seconds_t sec( double( d.uptime ) * 1.0e-6 );
-			accessor.push_back( d.fcn, d.npos, sec, d.tic, events );
-		}
-        return adcontrols::translate_complete;
-#endif
-	}
     return adcontrols::translate_error;
 }
 

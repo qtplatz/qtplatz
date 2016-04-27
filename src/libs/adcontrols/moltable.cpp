@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,6 +24,7 @@
 
 #include "moltable.hpp"
 #include "serializer.hpp"
+#include <adportable/float.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
@@ -135,6 +136,21 @@ moltable&
 moltable::operator = ( const moltable& t )
 {
     impl_->data_ = t.impl_->data_;
+    return *this;
+}
+
+moltable&
+moltable::operator += ( const moltable& t )
+{
+    std::move( t.impl_->data_.begin(), t.impl_->data_.end(), std::back_inserter( impl_->data_ ) );
+
+    std::sort( impl_->data_.begin(), impl_->data_.end(), []( const value_type& a, const value_type& b ){ return a.mass() < b.mass(); } );
+
+    auto it = std::unique( impl_->data_.begin(), impl_->data_.end()
+                         , []( value_type& a, value_type& b ){ return adportable::compare<double>::essentiallyEqual(a.mass(), b.mass()); } );
+
+    impl_->data_.erase( it, impl_->data_.end() );
+
     return *this;
 }
 

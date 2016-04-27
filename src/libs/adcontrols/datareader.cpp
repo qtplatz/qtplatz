@@ -56,7 +56,7 @@ namespace adcontrols {
         const std::string& objtext() const override { return objtext_; }
         int64_t objrowid() const override { return 0; }
         const std::string& display_name() const override { return objtext_; }
-        const_iterator begin() const override { return end(); }
+        const_iterator begin( int fcn ) const override { return end(); }
         const_iterator end() const override { return const_iterator(this, -1); }
         const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override { return end(); }
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override { return end(); }
@@ -71,36 +71,29 @@ namespace adcontrols {
 
 using namespace adcontrols;
 
-DataReader_value_type::DataReader_value_type( DataReader_iterator * it ) : iterator_( it )
-                                                                         , rowid_( it->rowid() )
+DataReader_value_type::DataReader_value_type( DataReader_iterator * it, int64_t rowid ) : iterator_( it )
+                                                                                        , rowid_( rowid )
 {
 }
-
-#if 0
-DataReader_value_type::DataReader_value_type( const DataReader_value_type& t ) : iterator_( t.iterator_ )
-                                                                               , rowid_( t.rowid() )
-{
-}
-#endif
 
 /////////////
 
 DataReader_iterator::DataReader_iterator() : reader_( &NullDataReader::instance() )
-                                           , rowid_( -1 )
                                            , value_( this )
 {
 }
 
 DataReader_iterator::DataReader_iterator( const DataReader* reader
-                                         , int64_t rowid ) : reader_( reader )
-                                                           , rowid_( rowid )
-                                                           , value_( this )
+                                         , int64_t rowid
+                                         , int fcn ) : reader_( reader )
+                                                     , value_( this, rowid )
+                                                     , fcn_( fcn )
 {
 }
 
 DataReader_iterator::DataReader_iterator( const DataReader_iterator& t ) : reader_( t.reader_ )
-                                                                         , rowid_( t.rowid_ )
-                                                                         , value_( this )
+                                                                         , value_( this, t.value_.rowid_ )
+                                                                         , fcn_( t.fcn_ )
 {
 }
 
@@ -108,15 +101,15 @@ DataReader_iterator&
 DataReader_iterator::operator = ( const DataReader_iterator& t ) 
 {
     reader_ = t.reader_;
-    rowid_ = t.rowid_;
     value_ = t.value_;
+    fcn_ = t.fcn_;
     return *this;
 }
 
 const DataReader_iterator&
 DataReader_iterator::operator ++ ()
 {
-    rowid_ = rowid_ = reader_->next( rowid_ );
+    value_.rowid_ = reader_->next( value_.rowid_, fcn_ );
     return *this;
 }
 
@@ -124,10 +117,11 @@ const DataReader_iterator
 DataReader_iterator::operator ++ ( int )
 {
     DataReader_iterator temp( *this );
-    rowid_ = rowid_ = reader_->next( rowid_ );
+    value_.rowid_ = reader_->next( value_.rowid_, fcn_ );
     return temp;
 }
 
+///////////////////////////////////////////////////////
 int64_t
 DataReader_value_type::rowid() const
 {

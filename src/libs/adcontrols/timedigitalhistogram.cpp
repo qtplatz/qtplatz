@@ -394,7 +394,9 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
         
     sp.setMSProperty( prop );
 
-    sp.resize( hgrm.size() );
+    size_t size = hgrm.size();
+
+    sp.resize( size );
     size_t idx = 0;
     for ( auto it = hgrm.begin(); it != hgrm.end(); ++it, ++idx ) {
         sp.setTime( idx, it->first );
@@ -513,25 +515,42 @@ TimeDigitalHistogram::average_time( const std::vector< std::pair< double, uint32
                                     , double resolution
                                     , std::vector< std::pair< double, uint32_t > >& merged )
 {
+    auto size = hist.size();
+
+    merged.clear();
+
+    for ( auto& pk: hist )
+        merged.emplace_back( pk.first, pk.second );
+
+    return true;
+
     auto it = hist.begin();
     
     while ( it != hist.end() ) {
         
         auto tail = it + 1;
-        
-        while ( tail != hist.end() && std::abs( tail->first - it->first ) < resolution )
-            ++tail;
-        
+/*        
+        while ( ( tail != hist.end() ) ) {
+
+            double t1 = tail->first;
+            
+            if ( std::abs( t1 - it->first ) > resolution )
+                break;
+
+            std::advance( tail, 1 );
+        }
+
         std::pair< double, double > sum
             = std::accumulate( it, tail, std::make_pair( 0.0, 0.0 )
                                , []( const std::pair<double, double>& a, const std::pair<double, uint32_t>& b ) {
                                    return std::make_pair( a.first + (b.first * b.second), double(a.second + b.second) );
                                });
-        
         merged.emplace_back( ( sum.first / sum.second ), sum.second );
-
+*/
+        merged.emplace_back( it->first, it->second );
+        
         it = tail;
     }
-    
+
     return true;
 }

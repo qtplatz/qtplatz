@@ -56,10 +56,6 @@ namespace adcontrols {
         // analyzer mode, ex. Linear/Refrectron for MALDI, number of turns for Multi-turn instrument
         int mode() const;
 
-        // helper method for quick access to spectrometer class
-        [[deprecated]] const MassSpectrometer& spectrometer() const;
-        [[deprecated]] std::shared_ptr< ScanLaw > scanLaw() const;
-
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
         double timeSinceInjection() const;
@@ -93,8 +89,8 @@ namespace adcontrols {
         uint32_t numAverage() const;
         void setNumAverage( uint32_t );
         void setSamplingDelay( uint32_t );
-        [[deprecated("use SampleInfo api")]] void setSamplingInterval( uint32_t ); // ps
-        [[deprecated("use SampleInfo api")]] void setSamplingInterval( double );   // seconds
+        //[[deprecated("use SampleInfo api")]] void setSamplingInterval( uint32_t ); // ps
+        //[[deprecated("use SampleInfo api")]] void setSamplingInterval( double );   // seconds
 
         void setTofProtocol( const TofProtocol& );
         std::shared_ptr< const TofProtocol > tofProtocol();

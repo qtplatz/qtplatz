@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -93,10 +93,22 @@ AgMD2::GetAttributeViString ( ViStatus& rcode, ViConstString RepCapIdentifier, V
     ViChar str[128];
 
     result.clear();
-    if ( (rcode = AgMD2_GetAttributeViString ( session_, RepCapIdentifier, AttributeID, sizeof(str), str )) == VI_SUCCESS )
+    if ( ( rcode = AgMD2_GetAttributeViString( session_, RepCapIdentifier, AttributeID, sizeof( str ), str ) ) == VI_SUCCESS ) {
         result = str;
-    log( rcode, __FILE__, __LINE__ );
+        return true;
+    }
 
+    log( rcode, __FILE__, __LINE__ );
+    return rcode == VI_SUCCESS;
+}
+
+bool
+AgMD2::GetAttributeViInt32 ( ViStatus& rcode, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result )
+{
+    if ( ( rcode = AgMD2_GetAttributeViInt32( session_, RepCapIdentifier, AttributeID, reinterpret_cast<ViInt32 *>( &result ) ) ) == VI_SUCCESS )
+         return true;
+
+    log( rcode, __FILE__, __LINE__ );
     return rcode == VI_SUCCESS;
 }
 

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,46 +24,5 @@
 
 #pragma once
 
-#include "adcontrols_global.h"
-#include <compiler/disable_dll_interface.h>
-#include <adcontrols/constants.hpp>
-#include <string>
-#include <vector>
-#include <map>
-#include <memory>
-#include <functional>
-
-
-namespace adcontrols {
-
-    class datafile;
-    class Chromatogram;
-    class LCMSDataset;
-    class MassSpectrum;
-    class MSChromatogramMethod;
-    class ProcessMethod;
-
-    class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
-
-        MSChromatogramExtractor( const MSChromatogramExtractor& ) = delete;
-        MSChromatogramExtractor& operator = ( const MSChromatogramExtractor& ) = delete;
-
-    public:
-        ~MSChromatogramExtractor();
-        MSChromatogramExtractor( const adcontrols::LCMSDataset * );
-
-        bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                         , const ProcessMethod&
-                         , std::function<bool( size_t, size_t )> progress );
-
-        bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                         , adcontrols::hor_axis
-                         , const std::vector< std::tuple< int, double, double > >& ranges
-                         , std::function<bool( size_t, size_t )> progress );
-        
-    private:
-        class impl;
-        impl * impl_;
-    };
-}
-
+#include "mschromatogramextractor_v2.hpp"
+#include "mschromatogramextractor_v3.hpp"

@@ -575,7 +575,7 @@ TimedEventsWidget::OnInitialUpdate()
 }
 
 void
-TimedEventsWidget::onUpdate( boost::any& )
+TimedEventsWidget::onUpdate( boost::any&& )
 {
 }
 

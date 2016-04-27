@@ -28,7 +28,6 @@
 #include "document.hpp"
 #include "isequenceimpl.hpp"
 #include "icontrollerimpl.hpp"
-#include "u5303a_constants.hpp"
 #include <u5303a/digitizer.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrswidgets/thresholdwidget.hpp>
@@ -60,7 +59,6 @@
 #include <coreplugin/rightpane.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
-#include <coreplugin/navigationwidget.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <extensionsystem/pluginmanager.h>
@@ -73,9 +71,12 @@
 #include <boost/uuid/uuid.hpp>
 #include <QApplication>
 #include <QDockWidget>
+#include <QFileDialog>
+#include <QLineEdit>
 #include <QMenu>
+#include <QMessageBox>
+#include <QStackedWidget>
 #include <QResizeEvent>
-#include <qstackedwidget.h>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QToolButton>
@@ -138,18 +139,6 @@ MainWindow::createDockWidgets()
             });
 
     }
-
-#if 0
-    if ( auto widget = new adwidgets::CherryPicker ) {
-
-        widget->setObjectName( "ModulePicker" );
-        createDockWidget( widget, "Modules", "CherryPicker" );
-
-        connect( widget, &adwidgets::CherryPicker::stateChanged, [this]( const QString& key, bool enable ){
-                document::instance()->setControllerState( key, enable );
-            });
-    }
-#endif
 }
 
 size_t
@@ -170,15 +159,30 @@ MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
 
-    //boost::any a( document::instance()->controlMethod() );
+    connect( document::instance(), &document::sampleRunChanged, this, [this] {
+            if ( auto edit = findChild< QLineEdit *>( "dataSaveIn" ) )
+                edit->setText( QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() ) );
+            if ( auto edit = findChild< QLineEdit *>( "runName" ) )
+                edit->setText( QString::fromStdWString( document::instance()->sampleRun()->filePrefix() ) );
+        });
+
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
             widget->OnInitialUpdate();
+            // setup control method on ui
             widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
     }
+    // Set control method name on MidToolBar
+    if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
+        QString methodName = document::instance()->recentFile( Constants::GRP_METHOD_FILES, false );
+        if ( ! methodName.isEmpty() )
+            edit->setText( methodName );
+    }
 
     setSimpleDockWidgetArrangement();
+    QVariant state = document::instance()->settings()->value( "DOCK_LOCATIONS" );
+    restoreState( state.toByteArray() );
 
     connect( document::instance(), &document::on_reply, this, &MainWindow::handle_reply );
 
@@ -194,15 +198,6 @@ MainWindow::OnInitialUpdate()
         document::instance()->addInstController( iController );
     }
 
-#if 0
-    if ( auto picker = findChild< adwidgets::CherryPicker * >( "ModulePicker" ) ) {
-        for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
-            bool enable = document::instance()->isControllerEnabled( iController->module_name() );
-            picker->addItem( iController->module_name(), iController->module_name(), enable, false );
-        }
-    }
-#endif
-    
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
@@ -213,6 +208,8 @@ MainWindow::OnInitialUpdate()
 void
 MainWindow::OnFinalClose()
 {
+    document::instance()->settings()->setValue( "DOCK_LOCATIONS", saveState() );
+    
     for ( auto dock: dockWidgets() ) {
         adplugin::LifeCycleAccessor accessor( dock->widget() );
         if ( auto editor = accessor.get() ) {
@@ -236,6 +233,15 @@ MainWindow::createContents( Core::IMode * mode )
     QBoxLayout * editorHolderLayout = new QVBoxLayout;
 	editorHolderLayout->setMargin( 0 );
 	editorHolderLayout->setSpacing( 0 );
+
+    // handle ControlMethod (load/save)
+    connect( document::instance(), &document::onControlMethodChanged, this, [this]( const QString& name ) {
+            this->setControlMethod( document::instance()->controlMethod() );
+            if ( !name.isEmpty() ) {
+                if ( auto edit = findChild< QLineEdit * >( "methodName" ) )
+                    edit->setText( name );
+            }
+        } );
 	    
     if ( QWidget * editorWidget = new QWidget ) {
 
@@ -247,10 +253,9 @@ MainWindow::createContents( Core::IMode * mode )
             connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
             connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );
             bool res = connect( document::instance(), &document::dataChanged, wnd, &WaveformWnd::dataChanged );
-//#if defined _DEBUG
+            // validation for uuid class registoration -- will be compile error if not registered
             QVariant v;
             v.setValue( boost::uuids::uuid() );
-//#endif
         }
         
         //---------- central widget ------------
@@ -288,10 +293,10 @@ MainWindow::createContents( Core::IMode * mode )
         // Split Navigation and Application window
         Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
         if ( splitter ) {
-            splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
+            //splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
             splitter->addWidget( mainWindowSplitter );                            // *this + ontput
-            splitter->setStretchFactor( 0, 0 );
-            splitter->setStretchFactor( 1, 1 );
+            //splitter->setStretchFactor( 0, 0 );
+            //splitter->setStretchFactor( 1, 1 );
             splitter->setOrientation( Qt::Horizontal );
             splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
         }
@@ -374,6 +379,13 @@ MainWindow::createTopStyledToolbar()
         if ( auto am = Core::ActionManager::instance() ) {
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //---
+            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_INJECT)->action()));
+            //-- separator --
+            toolBarLayout->addWidget( new Utils::StyledSeparator );            
+            
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
 
             toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_REC)->action()));
@@ -409,8 +421,53 @@ MainWindow::createMidStyledToolbar()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
+            auto sampleRun = document::instance()->sampleRun()->shared_from_this();
+            if ( auto label = new QLabel ) {
+                label->setText( tr("Data save in:" ) );
+                toolBarLayout->addWidget( label );
+            }
+            if ( auto edit = new QLineEdit ) {
+                edit->setObjectName( "dataSaveIn" );
+                edit->setReadOnly( true );
+                toolBarLayout->addWidget( edit );
+                edit->setText( QString::fromStdWString( sampleRun->dataDirectory() ) );
+                //edit->setClearButtonEnabled( true );
+                auto icon = QIcon( Constants::ICON_FOLDER_OPEN );
+                if ( auto action = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition ) )
+                    connect( action, &QAction::triggered, this, &MainWindow::handleDataSaveIn );
+            }
+            
+            if ( auto edit = new QLineEdit ) {
+                edit->setObjectName( "runName" );
+                edit->setReadOnly( true );
+                edit->setText( QString::fromStdWString( sampleRun->filePrefix() ) );
+                edit->setFixedWidth( 120 );
+                toolBarLayout->addWidget( edit );
+                auto icon = QIcon( Constants::ICON_FILE_OPEN );
+                if ( auto action = edit->addAction( icon, QLineEdit::ActionPosition::TrailingPosition ) )
+                    connect( action, &QAction::triggered, this, &MainWindow::handleRunName );
+            }
 
-            toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+            toolBarLayout->addItem( new QSpacerItem(32, 20, QSizePolicy::Minimum, QSizePolicy::Minimum) );
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            if ( auto label = new QLabel ) {
+                label->setText( tr("Control Method:" ) );
+                toolBarLayout->addWidget( label );
+            }
+            if ( auto edit = new QLineEdit ) {
+                edit->setObjectName( "methodName" );
+                edit->setText( "" );
+                auto openIcon = QIcon( Constants::ICON_FILE_OPEN );
+                if ( auto action = edit->addAction( openIcon, QLineEdit::ActionPosition::TrailingPosition ) )
+                    connect( action, &QAction::triggered, this, &MainWindow::handleControlMethodOpen );
+                auto saveIcon = QIcon( Constants::ICON_FILE_SAVE );
+                if ( auto action = edit->addAction( saveIcon, QLineEdit::ActionPosition::TrailingPosition ) )
+                    connect( action, &QAction::triggered, this, &MainWindow::handleControlMethodSaveAs );
+
+                toolBarLayout->addWidget( edit );
+            }
+
+            toolBarLayout->addItem( new QSpacerItem(16, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
             
@@ -432,6 +489,7 @@ MainWindow::createActions()
     
     menu->menu()->setTitle( "U5303A" );
 
+
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
         action->setEnabled( false );
@@ -445,14 +503,21 @@ MainWindow::createActions()
     }
 
     if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
-        connect( action, &QAction::triggered, [] () { document::instance()->start_run(); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->actionRun(); } );
         action->setEnabled( false );        
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, context );
         menu->addAction( cmd );        
     }
 
+    if ( auto action = createAction( Constants::ICON_INJECT, tr( "Inject" ), this ) ) {
+        connect( action, &QAction::triggered, [] () { document::instance()->actionInject(); } );
+        action->setEnabled( false );        
+        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_INJECT, context );
+        menu->addAction( cmd );        
+    }
+    
     if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
-        connect( action, &QAction::triggered, [] () { document::instance()->stop(); } );
+        connect( action, &QAction::triggered, [] () { document::instance()->actionStop(); } );
         action->setEnabled( false );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, context );
         menu->addAction( cmd );        
@@ -508,7 +573,6 @@ MainWindow::createActions()
 
     handleInstState( 0 );
     Core::ActionManager::instance()->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
-
 }
 
 QAction *
@@ -539,6 +603,80 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 void
 MainWindow::handleInstState( int status )
 {
+    if ( status <= adicontroller::Instrument::eNotConnected ) {
+
+        if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
+            action->setEnabled( true  );
+
+        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+            if ( auto action = Core::ActionManager::command( id )->action() )
+                action->setEnabled( false );
+        }
+
+    } else if ( status == adicontroller::Instrument::eStandBy ) {
+
+        if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
+            action->setEnabled( false );
+        
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+
+    } else if ( status == adicontroller::Instrument::ePreparingForRun ||
+                status == adicontroller::Instrument::eReadyForRun ) {
+
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+
+    } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
+
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, true )  // <== true
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+
+    } else if ( status == adicontroller::Instrument::eRunning ) {
+
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
+                    , std::make_pair( Constants::ACTION_STOP, true )
+                    , std::make_pair( Constants::ACTION_REC, true )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+        
+    } else if ( status == adicontroller::Instrument::eStop ) {
+        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
+                    , std::make_pair( Constants::ACTION_STOP, false )
+                    , std::make_pair( Constants::ACTION_REC, false )
+                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
+                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
+                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+            if ( auto action = Core::ActionManager::command( pair.first )->action() )
+                action->setEnabled( pair.second );
+        }        
+    }
+#if 0
     if ( status <= adicontroller::Instrument::eNotConnected ) {
 
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
@@ -587,7 +725,7 @@ MainWindow::handleInstState( int status )
     }
 
     ADDEBUG() << "handleInstState(" << status << ")";
-
+#endif
 }
 
 void
@@ -703,3 +841,141 @@ MainWindow::hideDock( bool hide )
             w->show();
     }
 }
+
+void
+MainWindow::handleDataSaveIn()
+{
+    QString dstfile;
+
+    if ( auto edit = findChild< QLineEdit * >( "dataSaveIn" ) ) {
+        dstfile = edit->text();
+        if ( dstfile.isEmpty() )
+            dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
+        try {
+            QString dir = QFileDialog::getExistingDirectory( this, tr( "Data save in" )
+                                                             , dstfile, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+            if ( !dir.isEmpty() ) {
+                edit->setText( dir );
+                auto sampleRun = std::make_shared< adcontrols::SampleRun >( *document::instance()->sampleRun() );
+                sampleRun->setDataDirectory( dir.toStdWString() );
+                document::instance()->setSampleRun( sampleRun );
+            }
+        } catch ( ... ) {
+            ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
+            QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+        }
+    }
+}
+
+void
+MainWindow::handleRunName()
+{
+    QString dstfile;
+
+    if ( auto folder = findChild< QLineEdit * >( "dataSaveIn" ) ) {
+        dstfile = folder->text();
+        
+        if ( dstfile.isEmpty() )
+            dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
+
+        boost::filesystem::path path( dstfile.toStdWString() );
+        
+        if ( auto rname = findChild< QLineEdit * >( "runName" ) ) {
+
+            QString name = rname->text();
+            QString file;
+            try {
+                file = QFileDialog::getSaveFileName( this
+                                                     , tr( "Run Name" )
+                                                     , dstfile + "/" + name
+                                                     , tr( "DATA(*.txt *.adfs)" ) );
+            } catch ( ... ) {
+                ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
+                QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+            }
+
+            if ( !file.isEmpty() ) {
+
+                boost::filesystem::path fname( file.toStdString() );
+
+                auto dir = fname.parent_path();
+                auto stem = fname.stem();
+
+                folder->setText( QString::fromStdWString( dir.wstring() ) );
+                rname->setText( QString::fromStdWString( stem.wstring() ) );
+
+                auto sampleRun = std::make_shared< adcontrols::SampleRun >( *document::instance()->sampleRun() );
+                sampleRun->setDataDirectory( dir.wstring() );
+                sampleRun->setFilePrefix( stem.wstring() );
+                document::instance()->setSampleRun( sampleRun );
+            }
+        }
+    }
+}
+
+void
+MainWindow::handleControlMethodOpen()
+{
+    QString dstfile;
+
+    if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
+        dstfile = edit->text();
+        if ( dstfile.isEmpty() )
+            dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
+        try {
+            QString name = QFileDialog::getOpenFileName( this, tr( "Open Control Method" )
+                                                        , dstfile
+                                                        , tr( "Control Method Files(*.ctrl)" ) );
+            auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
+            if ( document::load( name, *cm ) ) {
+                edit->setText( name );
+                this->setControlMethod( cm );
+                document::instance()->setControlMethod( cm, name );
+            }
+        } catch ( ... ) {
+            ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
+            QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+        }
+    }
+}
+
+void
+MainWindow::handleControlMethodSaveAs()
+{
+    QString dstfile;
+
+    if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
+        dstfile = edit->text();
+        if ( dstfile.isEmpty() )
+            dstfile = QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() );
+        try {
+            QString name = QFileDialog::getSaveFileName( this, tr( "Save Control Method" )
+                                                        , dstfile
+                                                        , tr( "Control Method Files(*.ctrl)" ) );
+            if ( !name.isEmpty() ) {
+
+                // save method on UI
+                if ( auto cm = getControlMethod() ) {
+                    if ( document::save( name, *cm ) )
+                        edit->setText( name );
+                }
+            }
+        } catch ( ... ) {
+            ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
+            QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
+        }
+    }
+}
+
+void
+MainWindow::setSampleRun( const adcontrols::SampleRun& m )
+{
+    if ( auto edit = findChild< QLineEdit * >( "dataSaveIn" ) ) {
+        edit->setText( QString::fromStdWString( std::wstring( m.dataDirectory() ) ) );
+    }
+
+    if ( auto edit = findChild< QLineEdit * >( "runName" ) ) {
+        edit->setText( QString::fromStdWString( std::wstring( m.filePrefix() ) ) );
+    }
+}
+

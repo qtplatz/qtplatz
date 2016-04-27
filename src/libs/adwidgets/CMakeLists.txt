@@ -45,12 +45,14 @@ set( ${PROJECT_NAME}_SOURCES
   controlmethodwidget.cpp
   consolewidget.cpp
   cherrypicker.cpp
+  datareaderchoicedialog.cpp
   delegatehelper.cpp
   doublespinbox.cpp
   dualspinslider.cpp
   filedialog.cpp
   findslopeform.cpp
   insttreeview.cpp
+  mslockdialog.cpp
   moldraw.hpp
   moldraw.cpp
   moltable.cpp
@@ -102,6 +104,7 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethodwidget.hpp
   centroidform.hpp
   cherrypicker.hpp
+  datareaderchoicedialog.hpp
   delegatehelper.hpp
   doublespinbox.hpp
   dualspinslider.hpp
@@ -110,6 +113,7 @@ set( ${PROJECT_NAME}_HEADERS
   insttreeview.hpp
   peptidewidget.hpp
   peptidetable.hpp
+  mslockdialog.hpp
   moltable.hpp
   mspeaktable.hpp
   msquantable.hpp

@@ -34,6 +34,7 @@
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adlog/logger.hpp>
@@ -146,9 +147,8 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
         return;
 
     adwidgets::ScanLawDialog dlg;
-    const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.toStdWString().c_str() );
-    dlg.setScanLaw( model.getScanLaw() );
-    do {
+    if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( model_name.toStdString().c_str() ) ) {
+        dlg.setScanLaw( *spectrometer->scanLaw() );
         double fLength, accVoltage, tDelay, mass;
         QString formula;
         if ( dataproc_document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
@@ -157,7 +157,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
             if ( !formula.isEmpty() )
                 dlg.setFormula( formula );
         }
-    } while(0);
+    }
 
     dlg.setData( time_mass_array );
 

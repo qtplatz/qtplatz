@@ -335,13 +335,13 @@ MappedSpectrum::transform( adcontrols::MassSpectrum& ms )
 
     ms.resize( data_.size() );
     ms.setCentroid( adcontrols::CentroidNative );
-    auto scanlaw = prop.scanLaw();
+    //auto scanlaw = prop.scanLaw();
     
     for ( size_t idx = 0; idx < data_.size(); ++idx ) {
         double tof = this->time( idx );
         ms.setTime( idx, tof );
-        if ( scanlaw )
-            ms.setMass( idx, ms.compute_mass( data_[ idx ].first ) ); 
+        //if ( scanlaw )
+        //    ms.setMass( idx, ms.compute_mass( data_[ idx ].first ) ); 
         ms.setIntensity( idx, data_[ idx ].second );
     }
     return true;

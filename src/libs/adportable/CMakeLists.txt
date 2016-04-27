@@ -12,6 +12,9 @@ add_library( adportable
   date_string.cpp
   debug.cpp
   debug_core.cpp
+  dgprotocols.cpp
+  dgprotocols.hpp
+  dgprotocol.hpp
   fft.cpp
   http_client.cpp
   lifecycleframe.cpp

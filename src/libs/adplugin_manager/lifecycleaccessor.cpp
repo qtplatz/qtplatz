@@ -48,12 +48,6 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) : pObject_( target )
                             // dynamic_cast may not work for dynamically loaded objects on Linux and Mac 
                             // but on Windows with RTTI enabled.
         }
-
-        if ( p_ == nullptr ) {
-            conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
-            emit trigger( p_ );
-            disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
-        }
     }
 }
 

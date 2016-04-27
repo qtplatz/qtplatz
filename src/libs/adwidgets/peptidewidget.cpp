@@ -92,7 +92,7 @@ PeptideWidget::OnInitialUpdate()
 }
 
 void
-PeptideWidget::onUpdate( boost::any& )
+PeptideWidget::onUpdate( boost::any&& )
 {
 }
 

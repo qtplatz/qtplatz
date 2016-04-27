@@ -28,6 +28,7 @@
 
 namespace adcontrols {
     class ProcessMethod; class MSFinder;
+    namespace lockmass { class mslock; }
 }
 namespace adwidgets { class Progress; }
 
@@ -78,7 +79,7 @@ namespace quan {
         
         std::map< size_t, QuanChromatograms::spectra_type > spectra_;
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
-        std::shared_ptr< adcontrols::lockmass > mslock_;
+        std::shared_ptr< adcontrols::lockmass::mslock > mslock_;
         std::vector< double > references_;
         std::vector< std::shared_ptr< QuanTarget > > targets_;
 	};

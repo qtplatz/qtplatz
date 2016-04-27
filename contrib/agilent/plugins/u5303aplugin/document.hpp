@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -68,9 +68,11 @@ namespace u5303a {
 
         bool isRecording() const;
         void actionSyncTrig();
-        void actionRun( bool );
+        void actionRun();
+        void actionStop();
         void actionRec( bool );
         void actionConnect();
+        void actionInject();
 
         void prepare_for_run();
         void start_run();
@@ -83,14 +85,14 @@ namespace u5303a {
         
         void addToRecentFiles( const QString& );
         QString recentFile( const char * group = 0, bool dir_on_fail = false );
-        std::shared_ptr< adcontrols::ControlMethod::Method > controlMethod() const;
+        std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod() const;
 
         void setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename );
         void setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method > m, const QString& filename = QString() );
 
         void addInstController( adextension::iController * p );
 
-        void setControllerState( const QString& module, bool );
+        //void setControllerState( const QString& module, bool );
         bool isControllerEnabled( const QString& module ) const;
 
         std::shared_ptr< const acqrscontrols::u5303a::method > method() const;
@@ -106,6 +108,7 @@ namespace u5303a {
         u5303a::iControllerImpl * iController();
 
         const adcontrols::SampleRun * sampleRun() const;
+        adcontrols::SampleRun * sampleRun();
         void setSampleRun( std::shared_ptr< adcontrols::SampleRun > );
 
         void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );
@@ -126,6 +129,9 @@ namespace u5303a {
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
         static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
         static bool save( const QString& filename, const acqrscontrols::u5303a::method& );
+
+    private:
+        void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
 
     private slots:
         void handleMessage( adextension::iController *, uint32_t code, uint32_t value );

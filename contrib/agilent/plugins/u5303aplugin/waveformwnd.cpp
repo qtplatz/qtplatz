@@ -136,6 +136,9 @@ WaveformWnd::onInitialUpdate()
 {
     spw_->setKeepZoomed( false );
     hpw_->setKeepZoomed( false );
+
+    handle_method( QString() );
+    handle_threshold_method( 0 );
 }
 
 void
@@ -146,7 +149,7 @@ WaveformWnd::handle_threshold_method( int ch )
         bool replot( false );
         double level_mV = th->threshold_level * 1.0e3;
 
-        ADDEBUG() << "threhsold_level = " << level_mV << "mV";
+        // ADDEBUG() << "threhsold_level = " << level_mV << "mV";
 
         if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), level_mV ) ) {
             threshold_markers_[ ch ]->setYValue( level_mV );

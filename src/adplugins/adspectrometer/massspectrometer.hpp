@@ -57,7 +57,8 @@ namespace adspectrometer {
         // end dataSubscriber
 
         const wchar_t * name() const override;
-        const adcontrols::ScanLaw& getScanLaw() const override;
+        //const adcontrols::ScanLaw& getScanLaw() const override;
+        // v2 interface
 		std::shared_ptr<adcontrols::ScanLaw> scanLaw( const adcontrols::MSProperty& ) const override;
 		void setCalibration( int mode, const adcontrols::MSCalibrateResult& ) override;
         const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const override;
@@ -67,11 +68,13 @@ namespace adspectrometer {
         const import_continuum_massarray& continuum_massarray() const;
         void continuum_massarray( const import_continuum_massarray& );
 
+        // v3 interface
         static constexpr const char * clsid_text = "{E45D27E0-8478-414C-B33D-246F76CF62AD}";
         static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext;
 
         const char * objtext() const override { return class_name; }
         const boost::uuids::uuid& objclsid() const override;
+        const adcontrols::ScanLaw * scanLaw() const override;
 
     private:
         std::shared_ptr< import_continuum_massarray > continuum_massarray_;

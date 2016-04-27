@@ -703,15 +703,12 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             if ( data.canConvert< portfolio::Folder >() ) {
 
                 if ( auto folder = data.value< portfolio::Folder >() ) {
-                    menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                     menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
+                    menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                 }
 
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
-                //menu.add( tr( "Check all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
-                //menu.add( tr( "Uncheck all under '%1'" ), CheckState( true, *pModel_, index.parent() ) );
-            
                 portfolio::Folium folium = data.value< portfolio::Folium >();
             
                 if ( (folium.getParentFolder().name() == L"Spectra") ||
@@ -758,6 +755,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                     menu.add( tr("Save Chromatogram as..."), SaveChromatogramAs( folium ), true );
                 }
+                if ( folium.getParentFolder().name() == L"Spectrograms" ) {
+                    menu.add( tr("Apply lock mass"), [&]( Dataprocessor * processor ){
+                            if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
+                                processor->applyLockMass( v );
+                        } );
+                    menu.add( tr("Export matched masses..."), [&]( Dataprocessor * processor ){
+                            if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
+                                processor->exportMatchedMasses( v, folium.id() );
+                        } );
+                }
             }
 
             menu.add( tr( "Export data tree to XML" ), [] ( Dataprocessor * processor ) { processor->exportXML(); } );
@@ -768,8 +775,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         } // if dataprocessor
     } // if index.isValid
 }
-
-
 
 void
 NavigationWidget::handleAllCheckState( bool checked, const QString& node )

@@ -66,16 +66,16 @@ MassSpectrometer::name() const
     return L"adspectrometer::import";
 }
 
-const adcontrols::ScanLaw&
-MassSpectrometer::getScanLaw() const 
+const adcontrols::ScanLaw *
+MassSpectrometer::scanLaw() const 
 {
-    BOOST_THROW_EXCEPTION( std::bad_cast() );
+    return nullptr;
 }
 
 std::shared_ptr<adcontrols::ScanLaw>
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& ) const
 {
-    return 0;
+    return nullptr;
 }
 
 void

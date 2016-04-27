@@ -34,6 +34,8 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
@@ -216,7 +218,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             }
 
             // todo: find spectrometer iid, assing acclVoltage to massspectrometer class
-            if ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) )
+            if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) ) 
                 spectrometer_->setAcceleratorVoltage( acclVoltage, tDelay );
 
         }
@@ -281,15 +283,17 @@ DataReader::fcnCount() const
 }
 
 adcontrols::DataReader::const_iterator
-DataReader::begin() const
+DataReader::begin( int fcn ) const
 {
-    return adcontrols::DataReader_iterator( this, indecies_.empty() ? (-1) : indecies_.front().rowid );
+    if ( indecies_.empty() )
+        return end();
+    return adcontrols::DataReader_iterator( this, next( 0, fcn ), fcn );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::end() const
 {
-    return adcontrols::DataReader_iterator( this, indecies_.empty() ? (-1) : indecies_.front().rowid );
+    return adcontrols::DataReader_iterator( this, (-1) );
 }
 
 adcontrols::DataReader::const_iterator
@@ -303,7 +307,7 @@ DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
         int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
 
         if ( indecies_.front().elapsed_time > elapsed_time )
-            return begin();
+            return begin( (-1) );
 
         if ( indecies_.back().elapsed_time < elapsed_time )
             return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
@@ -375,7 +379,7 @@ DataReader::loadTICs()
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                indecies_.push_back( index( row, pos, elapsed_time, fcn ) );
+                indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
 
                 if ( tics.find( fcn ) == tics.end() ) {
                     tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
@@ -411,6 +415,21 @@ DataReader::next( int64_t rowid ) const
     if ( it != indecies_.end() && ++it != indecies_.end() )
         return it->rowid;
     return -1;
+}
+
+int64_t
+DataReader::next( int64_t rowid, int fcn ) const
+{
+    if ( fcn == ( -1 ) )
+        return next( rowid );
+
+    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indecies_.end() ) {
+        while ( ++it != indecies_.end() )
+            if ( it->fcn == fcn )
+                return it->rowid;
+    }
+    return (-1);
 }
 
 int64_t
@@ -472,10 +491,16 @@ DataReader::getSpectrum( int64_t rowid ) const
                                               , reinterpret_cast< const char *>(xmeta.data()), xmeta.size()
                                               , *spectrometer_
                                               , size_t(0), L"" ) == adcontrols::translate_complete ) {
-                    if ( spectrometer_ )
+                    if ( spectrometer_ ) {
                         spectrometer_->assignMasses( *ptr );
+                        const auto& info = ptr->getMSProperty().samplingInfo();
+                        double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                        double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                        ptr->setAcquisitionMassRange( lMass, uMass );
+                    }
                     
                     ptr->setDataReaderUuid( objid_ );
+                    ptr->setRowid( rowid );
 
                     return ptr;
                 }
@@ -584,7 +609,10 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
         }
     }
     return nullptr;    
-    
-    
-    return nullptr;
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+DataReader::massSpectrometer() const
+{
+    return spectrometer_;
 }

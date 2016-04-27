@@ -366,7 +366,11 @@ Chromatogram::getEvent( size_t idx ) const
 Chromatogram::seconds_t
 Chromatogram::sampInterval() const
 {
-    return pImpl_->samplingInterval();
+    auto value = pImpl_->samplingInterval();
+    if ( adportable::compare<double>::essentiallyEqual( value, 0 ) ) {
+        return ( pImpl_->timeRange_.second - pImpl_->timeRange_.first ) / ( size() - 1 );
+    }
+    return value;
 }
 
 void
@@ -722,3 +726,65 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     
     return true;
 }
+
+Chromatogram::iterator
+Chromatogram::begin()
+{
+    return Chromatogram_iterator( this, 0 );
+}
+
+Chromatogram::iterator
+Chromatogram::end()
+{
+    return Chromatogram_iterator( this, size() );
+}
+
+Chromatogram::const_iterator
+Chromatogram::begin() const
+{
+    return Chromatogram_iterator( this, 0 );    
+}
+
+Chromatogram::const_iterator
+Chromatogram::end() const
+{
+    return Chromatogram_iterator( this, size() );    
+}
+
+/////////
+Chromatogram_iterator::Chromatogram_iterator() : chromatogram_( 0 )
+                                               , idx_( -1 )
+{
+}
+
+Chromatogram_iterator::Chromatogram_iterator( const Chromatogram * p, size_t idx ) : chromatogram_( p )
+                                                                                   , idx_( idx )
+{
+}
+
+Chromatogram_iterator::Chromatogram_iterator( const Chromatogram_iterator& t ) : chromatogram_( t.chromatogram_ )
+                                                                               , idx_( t.idx_ )
+{
+}
+
+Chromatogram_iterator& 
+Chromatogram_iterator::operator = ( const Chromatogram_iterator& t )
+{
+    chromatogram_ = t.chromatogram_;
+    idx_ = t.idx_;
+    return *this;
+}
+
+const Chromatogram_iterator&
+Chromatogram_iterator::operator ++ ()
+{
+    ++idx_;
+    return *this;
+}
+
+const Chromatogram_iterator
+Chromatogram_iterator::operator ++ ( int )
+{
+    return Chromatogram_iterator( chromatogram_, idx_++ );
+}
+

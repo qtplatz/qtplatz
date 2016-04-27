@@ -42,6 +42,7 @@ namespace adcontrols {
     class DataReader;
     class DataReader_iterator;
     class MassSpectrum;
+    class MassSpectrometer;
 
     class ADCONTROLSSHARED_EXPORT DataReader_value_type {
         DataReader_iterator * iterator_;
@@ -49,22 +50,21 @@ namespace adcontrols {
         DataReader_value_type( const DataReader_value_type& t ) = delete;
         friend class DataReader_iterator;
     public:
-        DataReader_value_type( DataReader_iterator * it );
+        DataReader_value_type( DataReader_iterator * it, int64_t rowid = (-1) );
         int64_t rowid() const;
         int64_t pos() const;
         int64_t elapsed_time() const;
         double time_since_inject() const;
         int fcn() const;
     };
-
+    
     class ADCONTROLSSHARED_EXPORT DataReader_iterator : public std::iterator< std::forward_iterator_tag, DataReader_iterator > {
         const DataReader * reader_;
-        int64_t rowid_;
         DataReader_value_type value_;
-        //friend class DataReader_value_type;
+        int fcn_;
     public:
         DataReader_iterator();
-        DataReader_iterator( const DataReader* reader, int64_t rowid );
+        DataReader_iterator( const DataReader* reader, int64_t rowid, int fcn = (-1) );
         DataReader_iterator( const DataReader_iterator& );
         DataReader_iterator& operator = ( const DataReader_iterator& );
 
@@ -76,9 +76,9 @@ namespace adcontrols {
         bool operator == ( const DataReader_iterator& rhs ) const { return value_.rowid() == rhs.value_.rowid(); }
         bool operator != ( const DataReader_iterator& rhs ) const { return value_.rowid() != rhs.value_.rowid(); }
 
-        operator bool() const { return rowid_ != (-1); }
+        operator bool() const { return value_.rowid_ != (-1); }
         const DataReader * dataReader() const { return reader_; }
-        inline int64_t rowid() const { return rowid_; }
+        inline int64_t rowid() const { return value_.rowid_; }
     };
 
 	class ADCONTROLSSHARED_EXPORT DataReader : public std::enable_shared_from_this< DataReader > {
@@ -106,7 +106,7 @@ namespace adcontrols {
 
         virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; }
         
-        virtual const_iterator begin() const = 0;
+        virtual const_iterator begin( int fcn = (-1) ) const = 0;
         virtual const_iterator end() const = 0;
         
         /* findPos returns trigger number on the data stream across all protocol functions */
@@ -120,16 +120,16 @@ namespace adcontrols {
 
         // Iterator reference methods
         virtual int64_t next( int64_t rowid ) const { return -1; }
+        virtual int64_t next( int64_t rowid, int fcn ) const { return -1; }
         virtual int64_t pos( int64_t rowid ) const { return -1; }
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
         
         virtual std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
-        
         virtual std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const { return nullptr; }
-
         virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces

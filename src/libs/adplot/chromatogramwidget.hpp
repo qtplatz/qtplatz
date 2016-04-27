@@ -64,6 +64,9 @@ namespace adplot {
         void setZoomed( const QRectF&, bool keepY = true );
         QColor color( int idx ) const;
 
+        enum HorizontalAxis { HorizontalAxisSeconds, HorizontalAxisMinutes };
+        void setAxis( HorizontalAxis, bool replot = false );
+
 	private:
         void setBaseline( const adcontrols::Baseline& );
         void setPeak( const adcontrols::Peak&, adcontrols::annotations& );

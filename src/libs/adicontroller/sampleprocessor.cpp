@@ -57,14 +57,13 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     try {
-        ADDEBUG() << "##### SampleProcessor dtor: " << storage_name_.string();
         if ( auto observer = masterObserver_.lock() ) {
             observer->closingStorage( *this );
             observer.reset();
         }
         
         fs_->close();
-        boost::filesystem::path progress_name( storage_name_ );
+        boost::filesystem::path progress_name = storage_name_;
         storage_name_.replace_extension( ".adfs" );
 
         boost::system::error_code ec;

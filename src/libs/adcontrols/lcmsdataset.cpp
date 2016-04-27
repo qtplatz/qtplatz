@@ -24,6 +24,23 @@
 **************************************************************************/
 
 #include "lcmsdataset.hpp"
+#include <adcontrols/datareader.hpp>
+#include <adcontrols/massspectrometer.hpp>
 
 using namespace adcontrols;
+
+std::vector < std::shared_ptr< const adcontrols::DataReader > >
+LCMSDataset::dataReaders( bool allPossible ) const
+{
+    return std::vector < std::shared_ptr< const adcontrols::DataReader > >();
+}
+
+adcontrols::MSFractuation *
+LCMSDataset::msFractuation() const
+{
+    if ( auto reader = dataReaders().front() )
+        if ( auto spectrometer = reader->massSpectrometer() )
+            return spectrometer->msFractuation();
+    return nullptr;
+}
 

@@ -111,6 +111,7 @@
 #include <QDockWidget>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPixmap>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
 #include <QVBoxLayout>
@@ -222,7 +223,6 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , aboutDlg_(0)
                                           , currentFeature_( CentroidProcess )
 {
-    std::fill( selPages_.begin(), selPages_.end(), static_cast<QAction *>(0) );
 }
 
 MainWindow *
@@ -244,55 +244,56 @@ MainWindow::createStyledBarTop()
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
+        toolBarLayout->setSpacing( 2 );
         Core::ActionManager * am = Core::ActionManager::instance();
         if ( am ) {
-            //Core::Context globalcontext( ( Core::Id( Core::Constants::C_GLOBAL ) ) );
             Core::Context context( ( Core::Id( "dataproc.MainView" ) ) );
 
-            if ( auto p = selPages_[ idSelMSProcess ] = new QAction( tr("MS Process"), this ) ) {
+            if ( auto p = new QAction( tr("MS Process"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSProcess ); } );
                 am->registerAction( p, "dataproc.selMSProcess", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSProcess ) ) );
             }
-            if ( auto p = selPages_[ idSelSpectra ] = new QAction( tr("Spectra"), this ) ) {
+            if ( auto p = new QAction( tr("Spectra"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectra ); } );
                 am->registerAction( p, "dataproc.selSpectra", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelSpectra ) ) );
             }
-            if ( auto p = selPages_[ idSelElementalComp] = new QAction( tr("Simulation"), this ) ) {
+            if ( auto p = new QAction( tr("Simulation"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelElementalComp ); } );
                 am->registerAction( p, "dataproc.selElementalComp", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelElementalComp ) ) );
             }
-            if ( auto p = selPages_[ idSelMSCalibration ] = new QAction( tr("MS Calibration"), this ) ) {
+            if ( auto p = new QAction( tr("MS Calibration"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibration ); } );
                 am->registerAction( p, "dataproc.selMSCalibration", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSCalibration ) ) );
             }
-            if ( auto p = selPages_[ idSelMSCalibSpectra ] = new QAction( tr("MS Calib. Spectra"), this ) ) {
+            if ( auto p = new QAction( tr("MS Calib. Spectra"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
                 am->registerAction( p, "dataproc.selMSCalibSpectra", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSCalibSpectra ) ) );
             }
-            if ( auto p = selPages_[ idSelChromatogram ] = new QAction( tr("Chromatogram"), this ) ) {
+            if ( auto p = new QAction( tr("Chromatogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
                 am->registerAction( p, "dataproc.selChromatogram", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelChromatogram ) ) );
             }
-            if ( auto p = selPages_[ idSelMSPeaks ] = new QAction( tr("TOF Plots"), this ) ) {
+            if ( auto p = new QAction( tr("TOF Plots"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSPeaks ); } );
                 am->registerAction( p, "dataproc.selTOFPlots", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSPeaks ) ) );
             }
 
-            if ( auto p = selPages_[ idSelSpectrogram ] = new QAction( tr("Spectrogram"), this ) ) {
+            if ( auto p = new QAction( tr("Spectrogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
                 am->registerAction( p, "dataproc.selSpectrogram", context );
-                toolBarLayout->addWidget( toolButton( p ) );
+                toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelSpectrogram ) ) );
             }
 
         }
+
+
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         
@@ -331,10 +332,17 @@ void
 MainWindow::currentPageChanged( int idx )
 {
     if ( idx == idSelSpectra ) {
-        if ( auto p = dynamic_cast<MSSpectraWnd *>(stack_->widget( idx )) ) {
+        if ( auto p = dynamic_cast<MSSpectraWnd *>(stack_->widget( idx )) ) 
             p->onPageSelected();
-        }
     }
+
+    QRegExp reg( "wnd\\.[0-9]+" );
+    auto list = findChildren<QToolButton *>( reg );
+    for ( auto btn : list )
+        btn->setStyleSheet( QString( "color: lightGray; border: 2px; border-color: gray; border-style: groove" ) );
+
+    if ( auto sel = findChild<QToolButton *>( QString( "wnd.%1" ).arg( QString::number( idx ) ) ) )
+        sel->setStyleSheet( QString( "color: ivory; border: 2px; border-color: darkGray; border-style: inset;" ) );
 }
 
 Utils::StyledBar *
@@ -445,6 +453,7 @@ MainWindow::createContents( Core::IMode * mode )
         wnd.push_back( new MSSpectraWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectra") ), wnd.back() ) );
     }
+    
     if ( auto pSrc = stack_->widget( idSelMSProcess ) ) {
         if ( auto pDst = stack_->widget( idSelSpectra ) )
             connect( dynamic_cast<MSProcessingWnd *>(pSrc), &MSProcessingWnd::dataChanged, dynamic_cast<MSSpectraWnd *>(pDst), &MSSpectraWnd::onDataChanged );
@@ -648,12 +657,17 @@ MainWindow::createToolbar()
 
 // static
 QToolButton * 
-MainWindow::toolButton( QAction * action )
+MainWindow::toolButton( QAction * action, const QString& objectName )
 {
-    QToolButton * button = new QToolButton;
-    if ( button )
+    if ( auto button = new QToolButton ) {
         button->setDefaultAction( action );
-    return button;
+        if ( !objectName.isEmpty() ) {
+            button->setObjectName( objectName );
+            button->setCheckable( true );
+        }
+        return button;
+    }
+    return 0;
 }
 
 // static
@@ -741,14 +755,22 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         
         // set data property to MSPropertyForm
         for ( auto widget: dockWidgets() ) {
-            adplugin::LifeCycleAccessor accessor( widget->widget() );
-            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
+            if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
                 pLifeCycle->setContents( boost::any( folium ) );
                 pLifeCycle->setContents( boost::any( centroid ) );
                 if ( targeting )
                     pLifeCycle->setContents( boost::any( targeting ) );
             }
         }
+    }
+}
+
+void
+MainWindow::selectionChanged( std::shared_ptr< adcontrols::MassSpectrum > centroid, std::function<adwidgets::MSPeakTable::callback_t> f )
+{
+    // this is for Spectrogram; selected centroid data review on MSPeakTable
+    if ( auto pktable = findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
+        pktable->setContents( centroid, f );
     }
 }
 
@@ -793,28 +815,20 @@ MainWindow::handleProcess( const QString& origin )
 void
 MainWindow::lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& ptr )
 {
-    for ( auto& dock : dockWidgets() ) {
-        if ( dock->objectName() == "MSPeakTable" ) {
-            adplugin::LifeCycleAccessor accessor( dock->widget() );
-            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-                boost::any any( ptr );
-                pLifeCycle->onUpdate( any );
-            }
-        }
+    if ( auto pktable = findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
+
+        pktable->onUpdate( boost::any( ptr ) );
+
     }
 }
 
 void
 MainWindow::dataMayChanged()
 {
-    for ( auto& dock : dockWidgets() ) {
-        if ( dock->objectName() == "MSPeakTable" ) {
-            adplugin::LifeCycleAccessor accessor( dock->widget() );
-            if ( adplugin::LifeCycle * pLifeCycle = accessor.get() ) {
-                boost::any any( int( 0 ) );
-                pLifeCycle->onUpdate( any );
-            }
-        }
+    if ( auto pktable = findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
+
+        pktable->dataMayChanged();
+
     }
     emit onDataMayCanged();
 }
@@ -859,10 +873,14 @@ MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
 
 	boost::any any( static_cast< adcontrols::ProcessMethod *>( &pm ) );
     for ( auto widget: dockWidgets() ) {
+        if ( auto lifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) )
+            lifeCycle->getContents( any );
+#if 0
 		adplugin::LifeCycleAccessor accessor( widget->widget() );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
         if ( pLifeCycle )
-			pLifeCycle->getContents( any );
+			pLifeCycle->
+#endif
     }
 }
 
@@ -870,10 +888,14 @@ void
 MainWindow::setProcessMethod( const adcontrols::ProcessMethod& pm )
 {
 	for ( auto widget: dockWidgets() ) {
+        if ( auto lifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) )
+            lifeCycle->setContents( boost::any( pm ) );
+#if 0
 		adplugin::LifeCycleAccessor accessor( widget->widget() );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle )
 			pLifeCycle->setContents( boost::any( pm ) );
+#endif
 	}
 }
 
@@ -905,6 +927,8 @@ MainWindow::OnInitialUpdate()
     connect( dataproc_document::instance(), &dataproc_document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
 
     setSimpleDockWidgetArrangement();
+
+    currentPageChanged( 0 );
 }
 
 void
@@ -924,12 +948,6 @@ MainWindow::OnFinalClose()
         }
     }
 }
-
-// void
-// MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
-// {
-//     DataprocPlugin::instance()->applyMethod( pm );
-// }
 
 void
 MainWindow::handleProcessChecked()
@@ -985,6 +1003,7 @@ MainWindow::handleExportPeakList()
                     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
                             return f.name() == Constants::F_CENTROID_SPECTRUM;
                         });
+
                     if ( itCentroid != atts.end() ) {
 
                         // output spectrum(centroid) name
@@ -1055,7 +1074,6 @@ MainWindow::handleImportChecked()
 void
 MainWindow::actionApply()
 {
-    ADTRACE() << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
     qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod pm;

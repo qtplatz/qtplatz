@@ -80,7 +80,7 @@ SeriesData::setData( const adcontrols::Chromatogram& c )
 {
     values_.reserve( c.size() );
 
-    range_x_ = adcontrols::Chromatogram::toMinutes( c.timeRange() );
+    range_x_ = c.timeRange(); // adcontrols::Chromatogram::toMinutes( c.timeRange() );
     range_y_ = std::pair<double, double>( c.getMinIntensity(), c.getMaxIntensity() );
 
     const double *x = c.getTimeArray();
@@ -89,10 +89,12 @@ SeriesData::setData( const adcontrols::Chromatogram& c )
 
     if ( x ) {
         for ( size_t i = 0; i < size; ++i )
-            values_.emplace_back( adcontrols::Chromatogram::toMinutes( x[i] ), y[i] );
+            values_.emplace_back( x[i], y[i] );
+            //values_.emplace_back( adcontrols::Chromatogram::toMinutes( x[i] ), y[i] );
     } else {
         for ( size_t i = 0; i < size; ++i )
-            values_.emplace_back( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), y[i] );
+            values_.emplace_back( c.timeFromDataIndex( i ), y[i] );
+            //values_.emplace_back( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), y[i] );
     }
 
 }

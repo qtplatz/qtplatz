@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -93,7 +93,7 @@ MSChromatogramWidget::OnInitialUpdate()
 }
 
 void
-MSChromatogramWidget::onUpdate( boost::any& )
+MSChromatogramWidget::onUpdate( boost::any&& )
 {
 }
 
@@ -131,7 +131,7 @@ MSChromatogramWidget::setContents( boost::any&& a )
         form->setContents( std::move(a) );
 
     if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
-
+        
         const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( a );
         
         if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
@@ -142,6 +142,25 @@ MSChromatogramWidget::setContents( boost::any&& a )
         }
     }
     return false;
+}
+
+void
+MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& cm )
+{
+    if ( auto form = findChild< MSChromatogramForm * >() )
+        form->setContents( cm );
+    if ( auto table = findChild< MolTable *>() )
+        table->setContents( cm.molecules() );
+}
+
+bool
+MSChromatogramWidget::getContents( adcontrols::MSChromatogramMethod& cm ) const
+{
+    if ( auto form = findChild< MSChromatogramForm * >() )
+        form->getContents( cm );
+    if ( auto table = findChild< MolTable *>() ) 
+        table->getContents( cm.molecules() );
+    return true;
 }
 
 void

@@ -43,7 +43,6 @@ namespace adcontrols {
     class MSCalibrateResult;
     class ProcessedDataset;
 	class TraceAccessor;
-    class lockmass;
     class DataReader;
 }
 
@@ -90,14 +89,15 @@ namespace addatafile {
 
             bool loadAcquiredConf();
             void loadCalibrations();
+            void loadMSFractuation();
 
             bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
 
             const std::vector< std::wstring > undefined_spectrometers() const { return undefined_spectrometers_; }
 
-            adfs::sqlite* db() override;
+            adfs::sqlite* db() const override;
         
-            bool mslocker( adcontrols::lockmass&, uint32_t objid ) const override;
+            bool mslocker( adcontrols::lockmass::mslock&, uint32_t objid ) const override;
 
             // v3 specific
             size_t dataReaderCount() const override;

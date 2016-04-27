@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,6 +48,7 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/msfractuation.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -768,7 +769,7 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
 void
 Dataprocessor::lockMassHandled( const std::wstring& foliumId
                                 , const adcontrols::MassSpectrumPtr& ms
-                                , const adcontrols::lockmass& lockmass )
+                                , const adcontrols::lockmass::mslock& lockmass )
 {
 	if ( portfolio::Folium folium = this->portfolio().findFolium( foliumId ) ) {
         
@@ -796,7 +797,8 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                         lockmass( *ptr );
                 }
 
-                lockmass( *ptr ); // update profile spectrum
+                if ( lockmass( *ptr ) ) // update profile spectrum
+                    ptr->addDescription( adcontrols::description( L"Process", L"Mass locked" ) );
                 setModified( true );
             }
         }
@@ -882,7 +884,12 @@ portfolio::Folium
 Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spectra )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
-    portfolio::Folium folium = folder.addFolium( L"Spectrogram" );  // "Spectrograms/Spectrogram"
+
+    const auto& desc = spectra->getDescriptions();
+    std::wstring name = 
+        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Spectrogram " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text(); } );
+
+    portfolio::Folium folium = folder.addFolium( name );  // "Spectrograms/Spectrogram"
 	folium.assign( spectra, spectra->dataClass() );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
@@ -1111,9 +1118,10 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     using namespace portfolio;
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
-	if ( ! adcontrols::MassSpectrometer::find( pProfile->getMSProperty().dataInterpreterClsid() ) ) {
+
+    auto spectrometer = adcontrols::MassSpectrometer::create( pProfile->getMSProperty().dataInterpreterClsid() );
+    if ( !spectrometer )
         fixupDataInterpreterClsid( folium );
-	}
 
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
@@ -1376,4 +1384,38 @@ Dataprocessor::exportXML() const
     boost::filesystem::path path( filename() );
     path += ".xml";
     portfolio_->save( path.wstring() );
+}
+
+void
+Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra )
+{
+    if ( spectra->size() == 0 )
+        return;
+
+    if ( auto rawfile = getLCMSDataset() ) {
+        auto msfractuation = rawfile->msFractuation();
+
+        bool interporate( false );
+
+        if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
+
+            int result = QMessageBox::question( MainWindow::instance()
+                                                , QObject::tr("Lock mass")
+                                                , QObject::tr( "Blacketing ?" )
+                                                , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+            if ( result == QMessageBox::Yes ) 
+                interporate = true;
+        }
+
+        for ( auto& ms : *spectra ) {
+            auto fitter = msfractuation->find( ms->rowid(), interporate );
+            fitter( *ms );
+        }
+    }
+}
+
+void
+Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > spectra, const std::wstring& foliumId )
+{
+    DataprocessWorker::instance()->exportMatchedMasses( this, spectra, foliumId );
 }

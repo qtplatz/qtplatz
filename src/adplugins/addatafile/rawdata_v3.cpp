@@ -25,15 +25,17 @@
 
 #include "rawdata_v3.hpp"
 #include <adicontroller/signalobserver.hpp>
-#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
-#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/msfractuation.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
@@ -73,7 +75,7 @@ rawdata::rawdata( adfs::filesystem& dbf
 }
 
 adfs::sqlite *
-rawdata::db()
+rawdata::db() const
 {
     return &dbf_.db();
 }
@@ -89,9 +91,8 @@ rawdata::loadAcquiredConf()
         for ( const auto& conf: conf_ ) {
             ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) {
+                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) 
                     readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
-                }
             } else {
                 ADERROR() << "No data reader found for '" << conf.trace_id << "'";
             }
@@ -103,6 +104,44 @@ rawdata::loadAcquiredConf()
     }
     
     return false;
+}
+
+void
+rawdata::loadMSFractuation()
+{
+    using adcontrols::lockmass::mslock;
+    using adcontrols::lockmass::reference;
+
+    auto fractuation = adcontrols::MSFractuation::create();
+
+    adfs::stmt sql( dbf_.db() );
+    sql.prepare( "SELECT DISTINCT rowid FROM MSLock ORDER BY rowid" );
+
+    while ( sql.step() == adfs::sqlite_row ) {
+
+        int64_t rowid = sql.get_column_value< int64_t >(0);
+        
+        adfs::stmt sql2( dbf_.db() );
+        sql2.prepare( "SELECT exactMass,matchedMass FROM MSLock where rowid = ?" );
+        sql2.bind( 1 ) = rowid;
+
+        mslock mslock;
+
+        while ( sql2.step() == adfs::sqlite_row ) {
+            auto exactMass = sql2.get_column_value< double >( 0 );
+            auto matchedMass = sql2.get_column_value< double >( 1 );
+            mslock << reference( "", exactMass, matchedMass, 0 );
+        }
+
+        if ( mslock.fit() )
+            fractuation->insert( rowid, mslock );
+    }
+
+    for ( auto reader : readers_ ) {
+        if ( auto spectrometer = reader.first->massSpectrometer() )
+            spectrometer->setMSFractuation( fractuation.get() );
+    }
+
 }
 
 
@@ -513,7 +552,7 @@ rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char
 }
 
 bool
-rawdata::mslocker( adcontrols::lockmass& mslk, uint32_t objid ) const
+rawdata::mslocker( adcontrols::lockmass::mslock &mslk, uint32_t objid ) const
 {
     // this method no longer supported for v3
     assert( 0 );

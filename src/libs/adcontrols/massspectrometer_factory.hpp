@@ -47,8 +47,8 @@ namespace adcontrols {
         virtual const boost::uuids::uuid& objclsid() const = 0;  // object clsid (uuid) that will be created by this factory
         virtual const char * objtext() const = 0;                // object text (human readable id) that will be created by this factory
 
-        [[deprecated]] virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
-        virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
+        //[[deprecated]] virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
+        virtual std::shared_ptr< MassSpectrometer > create() const = 0;
         virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
     };
 
@@ -97,9 +97,9 @@ namespace adcontrols {
         //--------
         const wchar_t * name() const override { return L""; }
 
-        [[deprecated]] MassSpectrometer * get( const wchar_t * modelname ) override { return 0; } // depricated 
+        //[[deprecated]] MassSpectrometer * get( const wchar_t * modelname ) override { return 0; } // depricated 
 
-        std::shared_ptr< MassSpectrometer > create( const wchar_t * /* modelname */, adcontrols::datafile * ) const override {
+        std::shared_ptr< MassSpectrometer > create() const override {
             return creator( args_ );
         }
 

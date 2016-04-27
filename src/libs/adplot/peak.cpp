@@ -45,9 +45,9 @@ Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
     QRectF rc = plot.zoomRect();
 
     double x[2], y[2];
-    x[ 0 ] = adcontrols::timeutil::toMinutes( peak.startTime() );
-    x[ 1 ] = adcontrols::timeutil::toMinutes( peak.endTime() );
-    y[ 0 ] = y[ 1 ] = std::min( peak.startHeight(), peak.endHeight() ) - (rc.height() / 20);
+    x [ 0 ] = peak.startTime(); // adcontrols::timeutil::toMinutes( peak.startTime() );
+    x [ 1 ] = peak.endTime(); // adcontrols::timeutil::toMinutes( peak.endTime() );
+    y [ 0 ] = y [ 1 ] = std::min( peak.startHeight(), peak.endHeight() ) - ( rc.height() / 20 );
     
     curve_->setSamples(  x, y, 2 );
 }
