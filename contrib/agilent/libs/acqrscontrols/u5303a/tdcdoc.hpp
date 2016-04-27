@@ -85,14 +85,15 @@ namespace acqrscontrols {
             
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
-            std::shared_ptr< const adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
-            std::shared_ptr< const adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
+            std::shared_ptr< adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
+            std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
             double triggers_per_second() const;
 
             // return as protocol sequence
-            std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > longTermHistograms() const;
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > longTermHistograms() const;
+
             // protocol sequence but no order garanteed
-            std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > recentHistograms() const;
+            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > recentHistograms() const;
 
             enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
 
