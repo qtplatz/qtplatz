@@ -374,18 +374,18 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
         a.reserve( a.size() + impl_->accumulated_waveforms_.size() );
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
-
+        
         std::sort( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), []( const waveform_ptr& a, const waveform_ptr& b ){
                 return a->serialnumber_ < b->serialnumber_;
             });
-
+        
         std::move( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), std::back_inserter( a ) );
-
+        
         impl_->accumulated_waveforms_.clear();
-
+        
         return a.size();
     }
-
+    
     return 0;
 }
 
@@ -408,29 +408,48 @@ tdcdoc::readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrol
     return 0;
 }
 
-std::shared_ptr< const adcontrols::TimeDigitalHistogram >
+std::shared_ptr< adcontrols::TimeDigitalHistogram >
 tdcdoc::longTermHistogram( int protocolIndex ) const
 {
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    
     if ( impl_->recent_longterm_histogram_.empty() )
         return nullptr;
-    return impl_->recent_longterm_histogram_[ protocolIndex ];
+
+    // deep copy
+    auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >( *impl_->recent_longterm_histogram_[ protocolIndex ] );
+
+    return hgrm;
 }
 
-std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >
+std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > >
 tdcdoc::longTermHistograms() const
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > d( impl_->recent_longterm_histogram_.size() );
-    std::copy( impl_->recent_longterm_histogram_.begin(), impl_->recent_longterm_histogram_.end(), d.begin() );
+
+    std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->recent_longterm_histogram_.size() );
+
+    // deep copy
+    std::transform( impl_->recent_longterm_histogram_.begin(), impl_->recent_longterm_histogram_.end(), d.begin()
+                    , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
+                        return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
+                    });
     return d;
 }
 
-std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >
+std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > >
 tdcdoc::recentHistograms() const
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > > d( impl_->recent_periodic_histograms_.size() );
-    std::copy( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.end(), d.begin() );
+
+    std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->recent_periodic_histograms_.size() );
+
+    // deep copy
+    std::transform( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.end(), d.begin()
+                    , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
+                        return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
+                    });
+
     return d;
 }
 

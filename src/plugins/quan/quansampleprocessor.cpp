@@ -528,11 +528,11 @@ QuanSampleProcessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     
     if ( profile.numSegments() > 0 ) {
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
-            adcontrols::MassSpectrum centroid;
+            auto centroid = std::make_shared< adcontrols::MassSpectrum >();
             result |= peak_detector( profile.getSegment( fcn ) );
             pkInfo.addSegment( peak_detector.getPeakInfo() );
-            peak_detector.getCentroidSpectrum( centroid );
-            res.addSegment( centroid );
+            peak_detector.getCentroidSpectrum( *centroid );
+            res << std::move( centroid ); 
         }
     }
     return result;
