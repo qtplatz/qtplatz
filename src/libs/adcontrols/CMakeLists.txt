@@ -251,7 +251,7 @@ target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
   acceptor.hpp 

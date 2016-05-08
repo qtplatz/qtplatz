@@ -18,7 +18,7 @@ cpack_add_component( modules           DISPLAY_NAME "Modules" GROUP Runtime )
 cpack_add_component( libraries         DISPLAY_NAME "Development libraries"
   DESCRIPTION "Static and import libraries" GROUP Development )
 if ( NOT APPLE )
-  cpack_add_component( headers           DISPLAY_NAME "C++ Headers"
+  cpack_add_component( headers         DISPLAY_NAME "C++ Headers"
     DESCRIPTION "C++ header files for use with QtPlatz Toolkit" GROUP Development )
 endif()
 

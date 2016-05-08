@@ -1,3 +1,25 @@
 This directory contains modified acqiris Linux driver that port to Linux 3.16 version.
 acqiris-kernel26module.patch is the diff with original kernel26module provided from Acqiris CD-Rom42c distribution.
 
+=======================
+ INSTALL kernel driver
+=======================
+
+sudo apt-get install build-essential
+apt-get install linux-headers-$(uname -r|sed 's,[^-]*-[^-]*-,,')
+make
+make install
+
+==================
+ Firmware install
+==================
+
+AcqirisSoftware=<CD-Rom42c unzip location>
+sudo cp AqDrv4.ini /etc
+sudo mkdir /usr/lib/firmware/acqrs
+sudo cp -p $AcqirisSoftare/*.bit /usr/lib/firmware/acqrs
+
+========================
+ Edit /etc/environment
+========================
+sudo sh -c "echo 'export AcqirisDxDir=/etc' >> /etc/environment"
