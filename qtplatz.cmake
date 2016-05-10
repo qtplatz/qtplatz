@@ -113,6 +113,11 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   endif()
 
+  if ( ${CMAKE_BUILD_TYPE} MATCHES DEBUG )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")    
+  endif()
+
   if ( APPLE )
     add_definitions( "-Wno-unused-local-typedefs" )
   endif()

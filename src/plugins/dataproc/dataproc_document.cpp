@@ -95,20 +95,8 @@ dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
 dataproc_document * 
 dataproc_document::instance()
 {
-    typedef dataproc_document T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static dataproc_document __instance;
+    return &__instance;
 }
 
 std::shared_ptr< adcontrols::ProcessMethod >

@@ -10,11 +10,12 @@ if [ "$1" = "configure" ]; then
     ldconfig
     cat << EOF > /usr/share/applications/qtplatz.desktop
 [Desktop Entry]
-Version=1.0
+Type=Application
+Encoding=UTF-8
 Name=QtPlatz
 Exec=@CPACK_INSTALL_PREFIX@/bin/qtplatz
-Icon=
-Categories=Development;
+Icon=QtPlatz
+Categories=GNOME;GTK;Development;
 EOF
 fi
 

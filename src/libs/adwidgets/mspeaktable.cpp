@@ -247,6 +247,10 @@ MSPeakTable::MSPeakTable(QWidget *parent) : TableView(parent)
     QFont font;
 	this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
 
+	QFont hfont;
+	qtwrapper::font::setFont( hfont, qtwrapper::fontSizeSmall, qtwrapper::fontTableHeader);
+	this->horizontalHeader()->setFont( hfont );
+
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
     connect( impl_->delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }
@@ -377,6 +381,7 @@ MSPeakTable::onInitialUpdate()
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
+    horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
     //horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 }
 

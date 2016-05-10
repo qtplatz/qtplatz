@@ -41,7 +41,13 @@ namespace adwidgets {
         HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {
             setSectionsClickable( true );
         }
-            
+
+        QSize sizeHint() const override {
+        	auto size = QHeaderView::sizeHint();
+        	size.setHeight( 25 );
+        	return size;
+        }
+
         void paintSection( QPainter * painter, const QRect& rect, int logicalIndex ) const override {
             
             if ( rect.isValid() ) {

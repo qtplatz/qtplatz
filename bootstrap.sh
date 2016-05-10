@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 arch=`arch`
+cwd=`pwd`
+config=release
 source_dir=`pwd`
 host_system=`uname`
 build_debug=false
@@ -10,22 +12,16 @@ build_root=..
 
 echo "platform=" $host_system
 
-if [ -z $cross_target ]; then
-    if [ "$host_system" = 'Linux' ]; then
-	cross_target=$arch
-    elif [ "$host_system" = 'Darwin' ]; then
-	cross_target='darwin'
-    fi
-fi
-
 while [ $# -gt 0 ]; do
     case "$1" in
 	debug|eclipse)
 	    build_debug=true
+	    config=debug
 	    shift
 	    ;;
 	clean)
 	    build_clean=true
+	    config=release
 	    shift
 	    ;;
 	*)
@@ -34,56 +30,88 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-if [ $build_debug = true ]; then
-    build_dir=$build_root/build-$cross_target/qtplatz.debug
+source_dirs=("$cwd" "$cwd/contrib/installer/boost")
+
+if [ -z $cross_target ]; then
+    build_dirs=("$build_root/build-$arch/qtplatz.$config" \
+		    "$build_root/build-$arch/boost" )
 else
-    build_dir=$build_root/build-$cross_target/qtplatz.release
+    build_dirs=("$build_root/build-$cross_target/qtplatz.$config" \
+		    "$build_root/build-$cross_target/boost")
 fi
 
+## Clean destinatiuon 
 if [ $build_clean = true ]; then
-    echo "rm -rf $build_dir"; rm -rf $build_dir
+    for build_dir in ${build_dirs[@]}; do
+	rm -rf $build_dir
+    done
     exit
 fi
 
-mkdir -p $build_dir
-cd $build_dir
+echo "build_dirs: ${build_dirs[*]}"
 
-echo "#############"
-echo "# creating build environment for qtplatz for target: $cross_target"
-echo "# build_dir: `pwd`"
+index=0
+for build_dir in ${build_dirs[@]}; do
 
-case $cross_target in
-    helio|de0-nano-soc|arm-linux-gnueabihf)
-	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-arm-linux-gnueabihf.cmake \
-	      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
-	;;
-    raspi)
-	cmake -DCMAKE_TOOLCHAIN_FILE=$source_dir/toolchain-raspi.cmake \
-	      -DCMAKE_PREFIX_PATH=/opt/qt5pi $source_dir
-	;;
-    armv7l)
-	cmake -DCMAKE_PREFIX_PATH=/usr/local/qt5 -DQTPLATZ_CORELIB_ONLY=1 $source_dir
-	;;
-    i686)
-	cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.4/gcc $source_dir
-	;;	
-    x86_64)
-	if [ $build_debug = true ]; then
-	    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
-	else
-	    echo `pwd`
-	    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
-	fi
-	;;
-    darwin)
-	if [ $build_debug = true ]; then
-	    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
-	else
-	    echo `pwd`
-	    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
-	fi
-	;;
-    *)
-	echo "Unknown cross_target: $cross_target"
-	;;
-esac
+    source_dir=${source_dirs[$index]}
+
+    echo "------------------------"
+    echo "build for '$source_dir' --> '$build_dir'"
+    echo "------------------------"    
+    
+    echo "#" mkdir -p $build_dir
+    echo "#" cd $build_dir
+    mkdir -p $build_dir
+    cd $build_dir
+    echo "#" pwd `pwd`
+
+    if [ -z $cross_target ]; then
+	echo "## Native build for $arch"
+	case $arch in
+	    Darwin)	    
+		if [ $build_debug = true ]; then
+		    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
+		else
+		    echo `pwd`
+		    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
+		fi
+		;;
+	    *)
+		if [ $build_debug = true ]; then
+		    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
+		else
+		    echo `pwd`
+		    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
+		    fi
+		;;
+	esac
+    else
+	echo "## Cross build for $arch"
+	case $cross_target in
+	    helio|armv7l|de0-nano-soc|arm-linux-gnueabihf)
+		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
+		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
+		      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
+		cp $toolchain_file $build_dir/toolchain.cmake
+		;;
+	    raspi)
+		toolchain_file=$cwd/toolchain-raspi.cmake
+		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file -DCMAKE_PREFIX_PATH=/opt/qt5pi $source_dir
+		cp $toolchain_file $build_dir/toolchain.cmake
+		;;
+	    *)
+		echo "Unknown cross_target: $cross_target"
+		;;
+	esac    
+    fi
+    cd $cwd
+    index=$((index+1))
+done
+
+cat > ${build_dirs[0]}/../qtplatz-build.sh <<EOF
+#!/bin/bash
+for i in ${build_dirs[*]}; do (cd \$i; make -j4 package); done
+for i in ${build_dirs[*]}; do (cd \$i; mv *.deb ..); done
+EOF
+
+chmod +x ${build_dirs[0]}/../qtplatz-build.sh
