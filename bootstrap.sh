@@ -78,7 +78,9 @@ for build_dir in ${build_dirs[@]}; do
 		;;
 	    *)
 		if [ $build_debug = true ]; then
-		    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug $source_dir
+		    cmake -G "Eclipse CDT4 - Unix Makefiles" \
+			  -DCMAKE_ECLIPSE_VERSION=4.5 \
+			  -DCMAKE_BUILD_TYPE=Debug $source_dir
 		else
 		    echo `pwd`
 		    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
