@@ -5,23 +5,18 @@ cwd=`pwd`
 config=release
 source_dir=`pwd`
 host_system=`uname`
-build_debug=false
 build_clean=false
 build_package=false
 build_root=..
 
-echo "platform=" $host_system
-
 while [ $# -gt 0 ]; do
     case "$1" in
 	debug|eclipse)
-	    build_debug=true
 	    config=debug
 	    shift
 	    ;;
 	clean)
 	    build_clean=true
-	    config=release
 	    shift
 	    ;;
 	*)
@@ -29,6 +24,9 @@ while [ $# -gt 0 ]; do
 	    ;;
     esac
 done
+
+echo "platform=" $host_system
+echo "config=" $config
 
 source_dirs=("$cwd" "$cwd/contrib/installer/boost")
 
@@ -43,7 +41,7 @@ fi
 ## Clean destinatiuon 
 if [ $build_clean = true ]; then
     for build_dir in ${build_dirs[@]}; do
-	rm -rf $build_dir
+	echo rm -rf $build_dir; rm -rf $build_dir
     done
     exit
 fi
@@ -69,7 +67,7 @@ for build_dir in ${build_dirs[@]}; do
 	echo "## Native build for $arch"
 	case $arch in
 	    Darwin)	    
-		if [ $build_debug = true ]; then
+		if [ $config=debug ]; then
 		    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
 		else
 		    echo `pwd`
@@ -77,7 +75,7 @@ for build_dir in ${build_dirs[@]}; do
 		fi
 		;;
 	    *)
-		if [ $build_debug = true ]; then
+		if [ $config=debug ]; then
 		    cmake -G "Eclipse CDT4 - Unix Makefiles" \
 			  -DCMAKE_ECLIPSE_VERSION=4.5 \
 			  -DCMAKE_BUILD_TYPE=Debug $source_dir
