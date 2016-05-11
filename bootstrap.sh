@@ -28,14 +28,15 @@ done
 echo "platform=" $host_system
 echo "config=" $config
 
-source_dirs=("$cwd" "$cwd/contrib/installer/boost")
+source_dirs=("$cwd/contrib/installer/boost" "$cwd")
 
 if [ -z $cross_target ]; then
-    build_dirs=("$build_root/build-$arch/qtplatz.$config" \
-		    "$build_root/build-$arch/boost" )
+    build_dirs=("$build_root/build-$arch/boost" \
+		"$build_root/build-$arch/qtplatz.$config" )
 else
-    build_dirs=("$build_root/build-$cross_target/qtplatz.$config" \
-		    "$build_root/build-$cross_target/boost")
+    build_dirs=("$build_root/build-$cross_target/boost" \
+		"$build_root/build-$cross_target/qtplatz.$config" )
+		    
 fi
 
 ## Clean destinatiuon 
