@@ -32,14 +32,23 @@ class QModelIndex;
 #include <QHeaderView>
 #include <QPainter>
 #include <QTextDocument>
+#include <QStylePainter>
 #include "adwidgets_global.hpp"
 
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT HtmlHeaderView : public QHeaderView {
+        QString styleSheet_;
     public:
-        HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {
+        HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0)
+            : QHeaderView( orientation, parent )
+            , styleSheet_( "body { font-size: 10pt }" ) {
+            
             setSectionsClickable( true );
+        }
+
+        void setDefaultStyleSheet( const QString& css ) {
+            styleSheet_ = css;
         }
 
         QSize sizeHint() const override {
@@ -51,12 +60,10 @@ namespace adwidgets {
         void paintSection( QPainter * painter, const QRect& rect, int logicalIndex ) const override {
             
             if ( rect.isValid() ) {
-                if ( logicalIndex > 0 ) {
+                if ( logicalIndex >= 0 ) {
                     QStyleOptionHeader op;
                     initStyleOption(&op);
-                    op.text = "";
                     op.rect = rect;
-                    op.textAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
                     // draw the section
                     style()->drawControl( QStyle::CE_Header, &op, painter, this );
                     // html painting
@@ -64,10 +71,10 @@ namespace adwidgets {
                     QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
                     painter->translate( textRect.topLeft() );
                     QTextDocument doc;
+                    doc.setDefaultStyleSheet( styleSheet_ );
                     doc.setTextWidth( textRect.width() );
-                    doc.setDefaultTextOption( QTextOption( Qt::AlignHCenter ) );
                     doc.setDocumentMargin(0);
-                    doc.setHtml( model()->headerData( logicalIndex, Qt::Horizontal ).toString() );
+                    doc.setHtml( QString("<body>%1</body>").arg( model()->headerData( logicalIndex, Qt::Horizontal ).toString() ) );
                     doc.drawContents( painter, QRect( QPoint( 0, 0 ), textRect.size() ) );
                     painter->restore();
                 } else {
