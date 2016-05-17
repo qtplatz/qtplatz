@@ -30,6 +30,7 @@ class QStyleOptionViewItem;
 class QString;
 class QModelIndex;
 #include <QSize>
+#include <QString>
 #include "adwidgets_global.hpp"
 
 namespace adwidgets {
@@ -38,7 +39,8 @@ namespace adwidgets {
     public:
         DelegateHelper();
         static void render_html2( QPainter * painter, const QStyleOptionViewItem& option, const QString& text );
-        static void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text );
+        static void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text
+                                 , const QString& css = QString() );
         static QSize html_size_hint( const QStyleOptionViewItem& option, const QModelIndex& index );
     };
 

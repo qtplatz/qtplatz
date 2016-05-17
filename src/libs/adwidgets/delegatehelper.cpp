@@ -64,16 +64,20 @@ DelegateHelper::render_html2( QPainter * painter, const QStyleOptionViewItem& op
 }
 
 void
-DelegateHelper::render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text )
+DelegateHelper::render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text, const QString& css )
 {
     painter->save();
 
     QStyleOptionViewItemV4 op = option;
     QTextDocument document;
 
-    document.setDefaultTextOption( QTextOption( op.displayAlignment ) ); // QTBUG 13467 -- valign is not taking in account
-    document.setDefaultFont( op.font );
-    document.setHtml( text );
+    if ( !css.isEmpty() ) {
+        document.setDefaultStyleSheet( css );
+    } else {
+        document.setDefaultTextOption( QTextOption( op.displayAlignment ) ); // QTBUG 13467 -- valign is not taking in account
+        document.setDefaultFont( op.font );
+    }
+    document.setHtml( QString("<body>%1</body>").arg( text ) );
 
     op.displayAlignment |= Qt::AlignVCenter;
     op.text = "";
