@@ -78,7 +78,7 @@ namespace u5303a {
         bool peripheral_stop();
         bool peripheral_trigger_inject();
         bool peripheral_terminate();
-        bool peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols );
+        [[deprecated("replace with dgmod,hardwired")]] bool peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols );
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef void (command_handler_type)( const std::string, const std::string );

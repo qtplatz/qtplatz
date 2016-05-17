@@ -33,6 +33,7 @@
 namespace boost { namespace asio { class io_service; } }
 namespace adicontroller { class waveform_simulator;  }
 namespace acqrscontrols { namespace u5303a { class waveform; class method; } }
+namespace dgpio { class pio; }
 
 namespace u5303a {
     
@@ -51,7 +52,7 @@ namespace u5303a {
         bool waitForEndOfAcquisition();
         bool readData( acqrscontrols::u5303a::waveform& );
         void setup( const acqrscontrols::u5303a::method& );
-        void touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
+        void touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >&, const acqrscontrols::u5303a::method& );
 
         void protocol_handler( double, double );
 
@@ -64,6 +65,7 @@ namespace u5303a {
         std::atomic<bool> hasWaveform_;
         std::atomic_flag acqTriggered_;
         std::vector< std::shared_ptr< adicontroller::waveform_simulator > > waveforms_;
+        std::unique_ptr< dgpio::pio > pio_;
         double sampInterval_;
         double startDelay_;
         uint32_t nbrSamples_;
@@ -71,7 +73,11 @@ namespace u5303a {
         double exitDelay_;
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
 
+        int32_t protocolIndex_;
+        int32_t protocolReplicates_;
+
 		void post( std::shared_ptr< adicontroller::waveform_simulator >& );
+        void next_protocol();
     };
 
 }

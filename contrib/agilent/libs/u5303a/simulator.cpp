@@ -24,6 +24,7 @@
 
 #include "simulator.hpp"
 #include "digitizer.hpp"
+#include <libdgpio/pio.hpp>
 #include <adicontroller/waveform_simulator_manager.hpp>
 #include <adicontroller/waveform_simulator.hpp>
 #include <adportable/debug.hpp>
@@ -107,8 +108,13 @@ simulator::simulator() : hasWaveform_( false )
                        , nbrWaveforms_( 496 )
                        , exitDelay_( 0.0 )
                        , method_( std::make_shared< acqrscontrols::u5303a::method >() )
+                       , pio_( std::make_unique< dgpio::pio >() )
+                       , protocolIndex_( 0 )
+                       , protocolReplicates_( 1 )
 {
     acqTriggered_.clear();
+
+    pio_->open();
 
     if ( ! adicontroller::waveform_simulator_manager::instance().waveform_simulator( 0, 0, 0, 0 ) ) {
 
@@ -157,7 +163,7 @@ simulator::acquire()
 			generator->addIons( ions_ );
 			generator->onTriggered();
 			post( generator );
-			
+            
 			hasWaveform_ = true;
 			std::unique_lock< std::mutex > lock( queue_ );
 			cond_.notify_one();
@@ -183,6 +189,8 @@ simulator::waitForEndOfAcquisition()
 bool
 simulator::readData( acqrscontrols::u5303a::waveform& data )
 {
+    // readData simulation for average mode (md2 driver is capable for digitizer mode)
+    
     std::shared_ptr< adicontroller::waveform_simulator > ptr;
 
     do {
@@ -228,34 +236,66 @@ simulator::post( std::shared_ptr< adicontroller::waveform_simulator >& generator
 void
 simulator::setup( const acqrscontrols::u5303a::method& m )
 {
-    *method_ = m;
-    sampInterval_ = 1.0 / m._device_method().samp_rate;
-    startDelay_ = m._device_method().digitizer_delay_to_first_sample;
-    nbrSamples_ = m._device_method().digitizer_nbr_of_s_to_acquire;
-    nbrWaveforms_ = m._device_method().nbr_of_averages;
+    method_ = std::make_shared< acqrscontrols::u5303a::method>( m );
+
+    sampInterval_  = 1.0 / method_->_device_method().samp_rate;
+    startDelay_    = method_->_device_method().digitizer_delay_to_first_sample;
+    nbrSamples_    = method_->_device_method().digitizer_nbr_of_s_to_acquire;
+    nbrWaveforms_  = method_->_device_method().nbr_of_averages;
+
+    protocolIndex_ = 0;
+    protocolReplicates_ = method_->protocols()[ protocolIndex_ ].number_of_triggers();
+
+    if ( protocolReplicates_ <= 0 )
+        protocolReplicates_ = 1;
 }
 
 void
-simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec )
+simulator::next_protocol()
+{
+    auto m( method_ );
+    
+    if ( --protocolReplicates_ <= 0 ) {
+
+        if ( ++protocolIndex_ >= m->protocols().size() )
+            protocolIndex_ = 0;
+
+        pio_->set_protocol_number( protocolIndex_ );
+        protocolReplicates_ = m->protocols()[ protocolIndex_ ].number_of_triggers();
+
+        if ( protocolReplicates_ <= 0 )
+            protocolReplicates_ = 1;
+
+    }
+    // ADDEBUG() << "set_protocol_number( " << protocolIndex_ << ")\tReplicates: " << protocolReplicates_;
+}
+
+void
+simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& vec, const acqrscontrols::u5303a::method& m )
 {
     static size_t counter;
+
+    next_protocol(); // write protocolIndex to dgpio driver
     
     if ( ! vec.empty() )  {
 
         auto& w = *vec[ 0 ];
                 
         if ( w.meta_.dataType == 2 ) {
+            // int16_t
 
-            std::shared_ptr< adportable::mblock< int16_t > > mblock;
+            std::shared_ptr< adportable::mblock< int16_t > > mblock; // = std::make_shared< adportable::mblock< int16_t > >( w.meta_.actualPoints );
+
+            // emulate 'mblock'
             adportable::waveform_simulator( w.meta_.initialXOffset, w.meta_.actualPoints, w.meta_.xIncrement )( mblock, int( vec.size() ) );
             w.firstValidPoint_ = 0;
-            
+
             for ( auto& w: vec ) {
-                w->setData( mblock, w->firstValidPoint_ );
-                w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
+                 w->setData( mblock, w->firstValidPoint_ );
+                 w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
             }
 
-        } else {
+        } else { // int32_t
 
             std::shared_ptr< adportable::mblock< int32_t > > mblock;
             adportable::waveform_simulator()( mblock, int( vec.size() ) );

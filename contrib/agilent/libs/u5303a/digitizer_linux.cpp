@@ -38,6 +38,7 @@
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <libdgpio/pio.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
@@ -97,7 +98,7 @@ namespace u5303a {
             
             void error_reply( const std::string& emsg, const std::string& );
 
-            bool next_protocol( uint32_t protoIdx, uint32_t nProtocols );
+            [[deprecated("replace with dgmod 2.0.4 hardwired")]] bool next_protocol( uint32_t protoIdx, uint32_t nProtocols );
 
         private:
             // fsm::handler
@@ -125,6 +126,7 @@ namespace u5303a {
             boost::asio::io_service::work work_;
             boost::asio::io_service::strand strand_;
             bool simulated_;
+            std::unique_ptr< dgpio::pio > pio_;
             acqrscontrols::u5303a::method method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
             
@@ -244,6 +246,7 @@ digitizer::peripheral_trigger_inject()
     return task::instance()->trigger_inject_out();
 }
 
+// deprecated -- use dgmod's hard wired protocol handling
 bool
 digitizer::peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
@@ -283,6 +286,7 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , simulated_( false )
+             , pio_( std::make_unique< dgpio::pio >() )
              , exptr_( nullptr )
              , digitizerNumRecords_( 1 )
              , fsm_( this )
@@ -291,6 +295,8 @@ task::task() : work_( io_service_ )
              , u5303_inject_timepoint_( 0 )
 {
     acquire_posted_.clear();
+
+    pio_->open();
     
     fsm_.start(); // Stopped state
 
@@ -663,12 +669,18 @@ task::handle_acquire()
         using acqrscontrols::u5303a::method;
         if ( waitForEndOfAcquisition( 3000 ) ) {
             if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
+                
+                int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
+                if ( protocolIndex >= 0 ) {
+                    // if setProtocolIndex() return true (must set true for 2nd arg), u5303 hardware parameter should be changed.
+                    method_.setProtocolIndex( protocolIndex, false );
+                }
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
                 digitizer::readData( *spDriver(), method_, vec );
 
                 if ( simulated_ )
-                    simulator::instance()->touchup( vec );
+                    simulator::instance()->touchup( vec, method_ );
 
                 for ( auto& waveform: vec ) {
                     // ==> set elapsed time for debugging 

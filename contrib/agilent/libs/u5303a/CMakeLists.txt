@@ -59,6 +59,7 @@ add_library( u5303a SHARED
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  ${CMAKE_SOURCE_DIR}/contrib/linux
   ${IVIROOTDIR}/Include
   ${IVIROOTDIR}/Bin
   ${VXIPNPPATH}/WinNT/include
@@ -73,6 +74,7 @@ target_link_libraries( u5303a PUBLIC
   adportable
   adcontrols
   acqrscontrols
+  dgpio
   ${AgMD2_LIBRARY}
   ${Boost_LIBRARIES}
   )
