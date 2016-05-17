@@ -82,9 +82,13 @@ namespace u5303a {
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef void (command_handler_type)( const std::string, const std::string );
+
         typedef std::function< command_handler_type > command_reply_type;
 
-        typedef bool (waveform_handler_type)( const acqrscontrols::u5303a::waveform *, const acqrscontrols::u5303a::waveform *, acqrscontrols::u5303a::method& );
+        typedef bool (waveform_handler_type)( const acqrscontrols::u5303a::waveform *
+                                              , const acqrscontrols::u5303a::waveform *
+                                              , acqrscontrols::u5303a::method& );
+
         typedef std::function< waveform_handler_type > waveform_reply_type;
 
         void connect_reply( command_reply_type ); // method,reply
@@ -93,14 +97,11 @@ namespace u5303a {
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
 
-        static bool readData( AgMD2&, const acqrscontrols::u5303a::method&, std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
+        static bool readData( AgMD2&, const acqrscontrols::u5303a::method&
+                              , std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
         static bool readData16( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );
         static bool readData32( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );            
     };
 }
-
-//BOOST_CLASS_VERSION( u5303a::method, 3 )
-//BOOST_CLASS_VERSION( u5303a::metadata, 1 )
-//BOOST_CLASS_VERSION( u5303a::identify, 1 )
 
 #endif

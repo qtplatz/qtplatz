@@ -62,7 +62,7 @@ static struct pci_device_id __ids[] = {
 
 MODULE_DEVICE_TABLE(pci, __ids);
 
-static int __debug_level__ = 5;
+static int __debug_level__ = 0;
 static int __iobase = 0x1008;
 static struct resource * __resource;
 static int __simulated = 0;
@@ -158,7 +158,32 @@ dgpio_proc_read( struct seq_file * m, void * v )
 static ssize_t
 dgpio_proc_write( struct file * filep, const char * user, size_t size, loff_t * f_off )
 {
-    return 0;
+    static char readbuf[256];
+    
+    if ( size >= sizeof( readbuf ) )
+        size = sizeof( readbuf ) - 1;
+    
+    if ( copy_from_user( readbuf, user, size ) )
+        return -EFAULT;
+    
+    readbuf[ size ] = '\0';
+
+    if ( strncmp( readbuf, "debug", 5 ) == 0 ) {
+        
+        unsigned long value = 0;
+        const char * rp = &readbuf[5];
+        while ( *rp && !isdigit( *rp ) )
+            ++rp;
+        if ( kstrtoul( rp, 10, &value ) == 0 )
+            __debug_level__ = value;
+        
+        printk( KERN_INFO "" MODNAME " debug level is %d\n", __debug_level__ );
+        
+    } else {
+        if ( __debug_level__ > 0 )
+            printk( KERN_INFO "" MODNAME " proc write received unknown command[%ld]: %s.\n", size, readbuf );
+    }
+    return size;
 }
 
 static int
@@ -209,10 +234,14 @@ static long dgpio_cdev_ioctl( struct file* file, unsigned int code, unsigned lon
                 return -EFAULT;
         break;
     case DGPIO_SET_DATA:
-        if ( copy_from_user( (char *)(&__last_data), (const void *)(args), sizeof( __last_data ) ) )
-            return -EFAULT;
-        if ( !__simulated )
-            outb( __last_data, __iobase );
+        do {
+            if ( copy_from_user( (char *)(&__last_data), (const void *)(args), sizeof( __last_data ) ) )
+                return -EFAULT;
+            if ( __debug_level__ >= 5 )
+                printk( KERN_INFO "" MODNAME " ioctl_set_data %x\n", __last_data );
+            if ( !__simulated )
+                outb( __last_data, __iobase );
+        } while ( 0 );
         break;                
     }
     return 0;
@@ -221,12 +250,22 @@ static long dgpio_cdev_ioctl( struct file* file, unsigned int code, unsigned lon
 static ssize_t
 dgpio_cdev_read(struct file * file, char __user * data, size_t size, loff_t * f_pos )
 {
-    if ( __resource && ( *f_pos == 0 ) ) {
+    if ( __resource ) { // && ( *f_pos == 0 ) ) {
+
         uint8_t b = inb( __iobase );
+
+        if ( __simulated && __debug_level__ )
+            b = __last_data;
+
+        if ( __debug_level__ >= 6 )
+            printk( KERN_INFO "" MODNAME " cdev_read %x, %x\n", b, __simulated );
+
         if ( copy_to_user( data, ( const void * )(&b), 1 ) )
             return -EFAULT;
+
         (*f_pos)++;
-        return 1;
+
+        return sizeof(b);
     }
     return 0;
 }
@@ -327,7 +366,9 @@ dgpio_module_init( void )
     } while ( 0 );
 
     if ( __resource == 0 ) { // dummy ioport for debugging
-        printk( KERN_INFO "no pci device found -- installing dummy\n" );
+
+        printk( KERN_INFO "no pci device found -- installing simulator.\n" );
+        __simulated = 1;
         __resource = request_region( __iobase, 4, "dgpio" );
         if ( __resource ) {
             printk(KERN_INFO "" MODNAME " requested memory resource: %llx, %llx, %s\n"
@@ -360,7 +401,7 @@ dgpio_module_exit( void )
 
     unregister_chrdev_region( dgpio_dev_t, 1 ); // alloc_chrdev_region
     //
-    printk( KERN_INFO "" MODNAME " driver v%s unloaded\n", MOD_VERSION );
+    printk( KERN_INFO "" MODNAME " driver %s unloaded\n", MOD_VERSION );
 }
 
 module_init( dgpio_module_init );
