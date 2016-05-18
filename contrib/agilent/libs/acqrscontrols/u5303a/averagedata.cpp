@@ -52,6 +52,12 @@ AverageData::AverageData( const AverageData& t ) : protocolIndex_( t.protocolInd
 {
 }
 
+void
+AverageData::reset()
+{
+    waveform_register_.reset();
+}
+
 size_t
 AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
 {
@@ -64,6 +70,8 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
         protocolIndex_ = waveform.method_.protocolIndex();
         protocolCount_ = waveform.method_.protocols().size();
         if ( protocolIndex_ >= protocolCount_ ) {
+            ADDEBUG() << "\taverage_waveform return 0 -- invalid protocol index/count "
+                      << protocolIndex_ << "/" << protocolCount_;
             return 0;
         }
         
@@ -84,6 +92,9 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
 
         if ( ( protocolIndex_ != waveform.method_.protocolIndex() ) ||
              ( protocolCount_ != waveform.method_.protocols().size() ) ) {
+
+            waveform_register_.reset(); // clear intermediate data; startover.
+            
             return 0;
         }
              

@@ -46,25 +46,6 @@ namespace acqrscontrols {
         typedef adportable::waveform_averager< int32_t > averager_type;
         typedef waveform waveform_type;
 
-        struct AverageResult {
-            
-            // periodic histograms (primary que) [time array] := (t0, t1, t2...)
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histogram_que_;
-
-            // long term averaged histograms
-            std::shared_ptr< adcontrols::TimeDigitalHistogram > recent_longterm_histogram_;
-            
-            // recent protocol sequence histograms (periodic)
-            std::shared_ptr< adcontrols::TimeDigitalHistogram > recent_periodic_histograms_;
-            
-            // recent protocol sequence waveforms (averaged)
-            std::shared_ptr< const acqrscontrols::u5303a::waveform > recent_waveforms_;
-
-            // recent protocol sequence waveforms (raw)
-            std::shared_ptr< const acqrscontrols::u5303a::waveform > recent_raw_waveforms_;
-        };
-        
-
         class AverageData {
         public:
             
@@ -72,6 +53,7 @@ namespace acqrscontrols {
             AverageData( const AverageData& t );
 
             size_t average_waveform( const acqrscontrols::u5303a::waveform& );
+            void reset();
 
             uint32_t protocolIndex_; // := this->method_.protocolIndex()
             uint32_t protocolCount_; // := this->method_.protocols().size()

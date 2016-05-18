@@ -237,7 +237,12 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    impl_->protocolCount_ = count;
+    if ( impl_->protocolCount_ != count ) {
+        impl_->protocolCount_ = count;
+        std::for_each( impl_->accumulator_.begin(), impl_->accumulator_.end(), []( AverageData& d ){
+                d.reset();
+            });
+    }
     
     auto& datum = impl_->accumulator_[ proto ];
     
@@ -247,8 +252,6 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
 
     if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
-
-        ADDEBUG() << "push recent_waveforms [" << datum.protocolIndex_ << "/" << datum.protocolCount_ << "]";
 
         impl_->push_averaged_waveform( datum );
 
