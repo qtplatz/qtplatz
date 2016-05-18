@@ -262,7 +262,7 @@ simulator::next_protocol()
 
         pio_->set_protocol_number( protocolIndex_ );
 
-        ADDEBUG() << "set_protocol_number: " << protocolIndex_;
+        // ADDEBUG() << "set_protocol_number: " << protocolIndex_;
 
         protocolReplicates_ = m->protocols()[ protocolIndex_ ].number_of_triggers();
 
@@ -278,7 +278,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
     next_protocol(); // write protocolIndex to dgpio driver
 
-    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+    // std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
     
     if ( ! vec.empty() )  {
 

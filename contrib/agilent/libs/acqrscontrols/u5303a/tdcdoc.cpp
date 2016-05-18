@@ -130,8 +130,6 @@ namespace acqrscontrols {
                 // display data
                 recent_waveforms_[ d.protocolIndex_ ] = w;
 
-                ADDEBUG() << "push recent_waveforms [" << d.protocolIndex_ << "/" << d.protocolCount_ << "]";
-
                 return true;
             }
 
@@ -249,7 +247,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
 
     if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
-            
+
+        ADDEBUG() << "push recent_waveforms [" << datum.protocolIndex_ << "/" << datum.protocolCount_ << "]";
+
         impl_->push_averaged_waveform( datum );
 
     }
