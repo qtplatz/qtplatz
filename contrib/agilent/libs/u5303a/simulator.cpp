@@ -290,7 +290,9 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             std::shared_ptr< adportable::mblock< int16_t > > mblock;
 
             // emulate 'mblock'
-            adportable::waveform_simulator( w.meta_.initialXOffset, w.meta_.actualPoints, w.meta_.xIncrement )( mblock, int( vec.size() ) );
+            adportable::waveform_simulator( w.meta_.initialXOffset
+                                            , w.meta_.actualPoints
+                                            , w.meta_.xIncrement )( mblock, int( vec.size() ), protocolIndex_ );
             w.firstValidPoint_ = 0;
 
             for ( auto& w: vec ) {
