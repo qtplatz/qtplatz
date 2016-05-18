@@ -218,7 +218,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
         dataproc_document::instance()->setDataprocessorFactory( std::make_unique< DataprocessorFactory >( this, mTypes ) );
         
-        addAutoReleasedObject( dataproc_document::instance()->dataprocessorFactory() );
+        addObject( dataproc_document::instance()->dataprocessorFactory() );
         
     } while ( 0 );
 

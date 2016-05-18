@@ -254,20 +254,21 @@ void
 simulator::next_protocol()
 {
     auto m( method_ );
-    
+        
     if ( --protocolReplicates_ <= 0 ) {
 
         if ( ++protocolIndex_ >= m->protocols().size() )
             protocolIndex_ = 0;
 
         pio_->set_protocol_number( protocolIndex_ );
+
+        ADDEBUG() << "set_protocol_number: " << protocolIndex_;
+
         protocolReplicates_ = m->protocols()[ protocolIndex_ ].number_of_triggers();
 
         if ( protocolReplicates_ <= 0 )
             protocolReplicates_ = 1;
-
     }
-    // ADDEBUG() << "set_protocol_number( " << protocolIndex_ << ")\tReplicates: " << protocolReplicates_;
 }
 
 void
@@ -276,6 +277,8 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
     static size_t counter;
 
     next_protocol(); // write protocolIndex to dgpio driver
+
+    std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
     
     if ( ! vec.empty() )  {
 
@@ -284,7 +287,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
         if ( w.meta_.dataType == 2 ) {
             // int16_t
 
-            std::shared_ptr< adportable::mblock< int16_t > > mblock; // = std::make_shared< adportable::mblock< int16_t > >( w.meta_.actualPoints );
+            std::shared_ptr< adportable::mblock< int16_t > > mblock;
 
             // emulate 'mblock'
             adportable::waveform_simulator( w.meta_.initialXOffset, w.meta_.actualPoints, w.meta_.xIncrement )( mblock, int( vec.size() ) );

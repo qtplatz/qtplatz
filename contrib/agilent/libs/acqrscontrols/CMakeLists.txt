@@ -17,6 +17,8 @@ include_directories(
 
 add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
+  u5303a/averagedata.hpp
+  u5303a/averagedata.cpp
   u5303a/device_method.hpp
   u5303a/device_method.cpp
   u5303a/identify.hpp

@@ -625,10 +625,20 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 {
     using namespace adcontrols::metric;
 
+    if ( result.data() == nullptr )
+    	return false;
+
     sp.setCentroid( adcontrols::CentroidNone );
     const waveform& waveform = *result.data();
 
-    const adcontrols::TofProtocol& this_protocol = waveform.method_.protocols().at( waveform.method_.protocolIndex() );
+    auto nproto = waveform.method_.protocols().size();
+    auto index = waveform.method_.protocolIndex();
+    if ( index >= nproto ) {
+    	ADDEBUG() << "Error: protocol number missmatch";
+        return false;
+    }
+
+    const adcontrols::TofProtocol& this_protocol = waveform.method_.protocols().at( index );
     double ext_adc_delay = this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
     
     adcontrols::MSProperty prop = sp.getMSProperty();

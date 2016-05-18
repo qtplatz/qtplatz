@@ -58,6 +58,8 @@ namespace acqrscontrols {
             ~tdcdoc();
             tdcdoc();
 
+            static constexpr size_t max_protocol = 4;
+
             typedef acqrscontrols::u5303a::waveform waveform_type;
             typedef const acqrscontrols::u5303a::waveform const_waveform_type;
 
