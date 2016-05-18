@@ -373,8 +373,8 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
         
-        std::sort( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), []( const waveform_ptr& a, const waveform_ptr& b ){
-                return a->serialnumber_ < b->serialnumber_;
+        std::sort( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), []( const waveform_ptr& x, const waveform_ptr& y ){
+                return x->serialnumber_ < y->serialnumber_;
             });
         
         std::move( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), std::back_inserter( a ) );
@@ -440,10 +440,10 @@ tdcdoc::recentHistograms() const
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->recent_periodic_histograms_.size() );
+    std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->protocolCount_ );
 
     // deep copy
-    std::transform( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.end(), d.begin()
+    std::transform( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.begin() + impl_->protocolCount_, d.begin()
                     , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
                         return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
                     });
