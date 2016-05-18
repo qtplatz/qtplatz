@@ -56,6 +56,7 @@ void
 AverageData::reset()
 {
     waveform_register_.reset();
+    histogram_register_.reset();
 }
 
 size_t
@@ -79,7 +80,7 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
             waveform_register_ = std::make_shared< averager_type >( u16wrap( waveform ) );
         else
             waveform_register_ = std::make_shared< averager_type >( u32wrap( waveform ) );
-
+        
         meta_ = waveform.meta_;
         method_ = waveform.method_;
         wellKnownEvents_ = waveform.wellKnownEvents_;

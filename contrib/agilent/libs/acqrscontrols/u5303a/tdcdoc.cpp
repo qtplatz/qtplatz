@@ -59,15 +59,12 @@ namespace acqrscontrols {
                    , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
                    , protocolCount_( 1 ) {
 
-                recent_longterm_histogram_.resize( max_protocol );
-                recent_periodic_histograms_.resize( max_protocol );
-                recent_raw_waveforms_.resize( max_protocol );
-                recent_waveforms_.resize( max_protocol );
-
+                for ( auto& p: recent_longterm_histogram_ )
+                    p = std::make_shared< adcontrols::TimeDigitalHistogram >();                
             }
 
             bool recentProfile( adcontrols::MassSpectrum& ms
-                                , const std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > >& v
+                                , const std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, max_protocol >& v
                                 , tdcdoc::mass_assignee_t assignee ) const {
 
                 if ( !v.empty() && v[ 0 ] ) {
@@ -86,7 +83,7 @@ namespace acqrscontrols {
             }
             
             bool recentHistogram( adcontrols::MassSpectrum& ms
-                                  , const std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > >& v
+                                  , const std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol >& v
                                   , tdcdoc::mass_assignee_t assignee ) const {
 
                 if ( !v.empty() && v[ 0 ] ) {
@@ -104,6 +101,19 @@ namespace acqrscontrols {
                     }
                 }
                 return true;
+            }
+
+            void reset_accumulators( size_t count ) {
+
+                protocolCount_ = count;
+
+                std::for_each( accumulator_.begin(), accumulator_.end(), []( AverageData& d ){
+                        d.reset();
+                    });
+
+                for ( auto& p: recent_longterm_histogram_ )
+                    p = std::make_shared< adcontrols::TimeDigitalHistogram >();
+
             }
             
             size_t average_waveform( const acqrscontrols::u5303a::waveform& waveform );
@@ -144,16 +154,16 @@ namespace acqrscontrols {
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histogram_que_;
 
             // long term averaged histograms
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > recent_longterm_histogram_;
+            std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol > recent_longterm_histogram_;
             
             // recent protocol sequence histograms (periodic); (proto 0, proto 1, ...)
-            std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > recent_periodic_histograms_;
+            std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol > recent_periodic_histograms_;
             
             // recent protocol sequence waveforms (averaged)
-            std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_waveforms_;
+            std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, max_protocol > recent_waveforms_;
 
             // recent protocol sequence waveforms (raw)
-            std::vector< std::shared_ptr< const acqrscontrols::u5303a::waveform > > recent_raw_waveforms_;
+            std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, max_protocol > recent_raw_waveforms_;
             
             std::array< AverageData,   max_protocol > accumulator_;
 
@@ -186,13 +196,19 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
     auto proto = timecounts->data()->method_.protocolIndex();
     auto count = timecounts->data()->method_.protocols().size();
 
+    if ( count > max_protocol )
+        return false;
+
+    do {
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
+        if ( impl_->protocolCount_ != count )
+            impl_->reset_accumulators( count );
+    } while ( 0 );    
+    
     auto& d = impl_->accumulator_[ proto ];
     
-    if ( ! d.histogram_register_ ) {
-
+    if ( ! d.histogram_register_ )
         d.histogram_register_ = std::make_shared< histogram_type >();
-
-    }
     
     if ( d.histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
 
@@ -207,15 +223,6 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         // dispatch histograms
         uint32_t index = hgrm->protocolIndex();
         
-        if ( impl_->recent_longterm_histogram_.size() != hgrm->nProtocols() ) {
-            
-            impl_->recent_periodic_histograms_.resize( hgrm->nProtocols() );  // recent periodic protocol sequence
-            impl_->recent_longterm_histogram_.resize( hgrm->nProtocols() );   // long term protocol sequence
-
-            for ( auto& p: impl_->recent_longterm_histogram_ )
-                p = std::make_shared< adcontrols::TimeDigitalHistogram >();
-        }
-
         // copy recent periodic histogram
         impl_->recent_periodic_histograms_[ index ] = hgrm;
 
@@ -232,23 +239,17 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     auto proto = waveform->method_.protocolIndex();
     auto count = waveform->method_.protocols().size();
 
-    if ( ( count > max_protocol ) || ( proto >= count ) )
+    if ( ( count > max_protocol ) || ( proto >= count ) || count >= max_protocol )
         return false;
 
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-
-    if ( impl_->protocolCount_ != count ) {
-        impl_->protocolCount_ = count;
-        std::for_each( impl_->accumulator_.begin(), impl_->accumulator_.end(), []( AverageData& d ){
-                d.reset();
-            });
-    }
+    do {
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
+        if ( impl_->protocolCount_ != count )
+            impl_->reset_accumulators( count );
+    } while ( 0 );
     
     auto& datum = impl_->accumulator_[ proto ];
     
-    if ( impl_->recent_raw_waveforms_.size() <= count )
-    	impl_->recent_raw_waveforms_.resize( count );
-
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
 
     if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
@@ -366,7 +367,7 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 {
     typedef std::shared_ptr< const waveform_type > waveform_ptr;
     
-    if ( ! impl_->accumulated_waveforms_.empty() ) {
+    if ( impl_->accumulated_waveforms_.size() > 1 ) {
 
         a.reserve( a.size() + impl_->accumulated_waveforms_.size() );
 
@@ -595,7 +596,9 @@ void
 tdcdoc::clear_histogram()
 {
     impl_->threshold_action_counts_ = { { { 0, 0 } } };
-    impl_->recent_longterm_histogram_.clear();
+
+    for ( auto& p: impl_->recent_longterm_histogram_ )
+        p = std::make_shared< adcontrols::TimeDigitalHistogram >();
 }
 
 std::pair< uint32_t, uint32_t >
