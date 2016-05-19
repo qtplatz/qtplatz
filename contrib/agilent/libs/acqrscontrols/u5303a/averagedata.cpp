@@ -108,6 +108,7 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
                 ( *waveform_register_ ) += u32wrap( waveform );
                         
         } catch ( std::out_of_range& ) {
+            reset();
         }
     }
 

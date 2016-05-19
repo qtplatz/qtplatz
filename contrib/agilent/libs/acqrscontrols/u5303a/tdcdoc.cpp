@@ -248,6 +248,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
 
+    size_t nacc = datum.average_waveform( *waveform );
+    size_t avrg = impl_->tofChromatogramsMethod_->numberOfTriggers();
+
     if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
 
         impl_->push_averaged_waveform( datum );

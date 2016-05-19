@@ -128,7 +128,7 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     x.serialnumber()        = std::make_pair( serialnumber_0_, serialnumber_ );
     x.timeSinceEpoch()      = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
     x.wellKnownEvents()     = wellKnownEvents_;
-    assert( method_.protocolIndex() < method_.protocols().size() );
+    // assert( method_.protocolIndex() < method_.protocols().size() );
     x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
     x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
 
