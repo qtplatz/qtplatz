@@ -199,11 +199,9 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
     if ( count > max_protocol )
         return false;
 
-    do {
-        std::lock_guard< std::mutex > lock( impl_->mutex_ );
-        if ( impl_->protocolCount_ != count )
-            impl_->reset_accumulators( count );
-    } while ( 0 );    
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    if ( impl_->protocolCount_ != count )
+        impl_->reset_accumulators( count );
     
     auto& d = impl_->accumulator_[ proto ];
     
@@ -242,11 +240,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     if ( ( count > max_protocol ) || ( proto >= count ) || count >= max_protocol )
         return false;
 
-    do {
-        std::lock_guard< std::mutex > lock( impl_->mutex_ );
-        if ( impl_->protocolCount_ != count )
-            impl_->reset_accumulators( count );
-    } while ( 0 );
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    if ( impl_->protocolCount_ != count )
+        impl_->reset_accumulators( count );
     
     auto& datum = impl_->accumulator_[ proto ];
     
