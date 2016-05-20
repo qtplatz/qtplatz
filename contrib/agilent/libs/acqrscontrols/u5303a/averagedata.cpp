@@ -109,6 +109,7 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
                         
         } catch ( std::out_of_range& ) {
             reset();
+            return average_waveform( waveform );
         }
     }
 

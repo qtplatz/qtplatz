@@ -10,12 +10,22 @@ endif
 
 ifeq ($(KERNELRELEASE),)
 
+REVISION = $(shell uname -r)
+
 # normal Makefile
 
 KDIR := /lib/modules/`uname -r`/build
 
 all:
 	$(MAKE) -C $(KDIR) M=`pwd` CONFIG_DGPIO=m VERSION=\"${VERSION}\" modules
+
+install:
+	cp -p dgpio.ko /lib/modules/${REVISION}/extra
+	/sbin/depmod -a
+
+install-init.d:
+	install -m 755 init.d-dgpio.sh /etc/init.d/dgpio
+	if test -e /usr/sbin/update-rc.d ; then update-rc.d dgpio defaults 98 02 ; fi
 
 modules_install:
 	$(MAKE) -C $(KERNELDIR) M=`pwd` modules_install
