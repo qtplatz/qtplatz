@@ -546,6 +546,7 @@ document::initialSetup()
         }
     }
 
+#if 0 // conflict with dataprocessor plugin
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
         path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
@@ -555,7 +556,7 @@ document::initialSetup()
     // fake project directory for help initial openfiledialog location
     Core::DocumentManager::setProjectsDirectory( path );
     Core::DocumentManager::setUseProjectsDirectory( true );
-
+#endif
     boost::filesystem::path mfile( dir / "ap240.xml" );
     acqrscontrols::ap240::method m;
     if ( load( QString::fromStdWString( mfile.wstring() ), m ) )

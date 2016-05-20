@@ -57,7 +57,7 @@ namespace adspectrometer {
         // end dataSubscriber
 
         const wchar_t * name() const override;
-        //const adcontrols::ScanLaw& getScanLaw() const override;
+
         // v2 interface
 		std::shared_ptr<adcontrols::ScanLaw> scanLaw( const adcontrols::MSProperty& ) const override;
 		void setCalibration( int mode, const adcontrols::MSCalibrateResult& ) override;
@@ -79,6 +79,7 @@ namespace adspectrometer {
     private:
         std::shared_ptr< import_continuum_massarray > continuum_massarray_;
         const adcontrols::LCMSDataset* accessor_;
+        std::unique_ptr< adcontrols::ScanLaw > scanlaw_;
         bool load_continuum_massarray();
     };
 

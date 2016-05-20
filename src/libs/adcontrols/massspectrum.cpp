@@ -436,18 +436,6 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
     return idx; // will return size() when 'seconds' does not exist
 }
 
-#if 0
-double
-MassSpectrum::getNormalizedTime( size_t idx ) const
-{
-    double time = getTime( idx );
-    if ( auto law = scanLaw() )
-        return time / law->fLength( mode() );
-    else
-        return time;
-}
-#endif
-
 void
 MassSpectrum::setIntensity( size_t idx, double intensity )
 {

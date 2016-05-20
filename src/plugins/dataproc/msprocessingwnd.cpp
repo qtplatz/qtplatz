@@ -1097,6 +1097,11 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
  
     try {
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( iid_spectrometer.first ) ) {
+        	if ( auto ms = pProfileSpectrum_.second.lock() ) {
+        		auto& prop = ms->getMSProperty();
+        		spectrometer->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
+        	}
+
             dlg.setScanLaw( *spectrometer->scanLaw() );
 
             do {

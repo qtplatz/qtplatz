@@ -145,7 +145,7 @@ namespace adcontrols {
 
         void normalizeIntensities( uint32_t nImaginalAverage );
 
-        const ScanLaw* scanLaw() const;
+        [[deprecated("use MSProperty,acceleratorVoltage&tDelay")]] const ScanLaw* scanLaw() const;
         
         template<class T> void set( const T& t );
         template<class T> const T& get();
@@ -155,7 +155,7 @@ namespace adcontrols {
         double getMass( size_t idx ) const;
         double getIntensity( size_t idx ) const;
         double getTime( size_t idx ) const;
-        //double getNormalizedTime( size_t idx ) const;
+
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 
 		int getColor( size_t idx ) const;

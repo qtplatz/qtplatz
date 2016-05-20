@@ -293,6 +293,7 @@ stmt::step()
     case SQLITE_ROW:   return sqlite_row;
     case SQLITE_DONE:  return sqlite_done;
     case SQLITE_CONSTRAINT: return sqlite_constraint;
+    case SQLITE_LOCKED: return sqlite_locked;
     default: break;
     }
     detail::error_log::log( "", sqlite3_errmsg( sqlite_ ), __FILE__, __LINE__ );

@@ -27,11 +27,14 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
 #include <adlog/logger.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <memory>
 
 namespace adspectrometer {
     class MassSpectrometerException : public boost::exception, public std::exception {};
@@ -42,6 +45,32 @@ namespace adspectrometer {
 #endif
 }
 
+namespace adspectrometer {
+
+    class ScanLaw : public adcontrols::ScanLaw {
+        adportable::TimeSquaredScanLaw t_;
+    public:
+        ScanLaw( double kAcceleratorVoltage, double tDelay, double fLength )
+            : t_( kAcceleratorVoltage, tDelay, fLength ) {
+        }
+        double getMass( double secs, int mode ) const override {
+            return t_.getMass( secs, mode );
+        }
+        double getTime( double mass, int mode ) const override {
+            return t_.getTime( mass, mode );
+        }
+        double getMass( double secs, double fLength ) const override {
+            return t_.getMass( secs, fLength );
+        }
+        double getTime( double mass, double fLength ) const override {
+            return t_.getTime( mass, fLength );
+        }
+        double fLength( int mode ) const override {
+            return t_.fLength( mode );
+        }
+    };
+}
+
 using namespace adspectrometer;
 
 MassSpectrometer::~MassSpectrometer(void)
@@ -49,7 +78,8 @@ MassSpectrometer::~MassSpectrometer(void)
 }
 
 MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : adcontrols::MassSpectrometer( datafile )
-                                                                      , accessor_(0)
+                                                                      , accessor_( 0 )
+                                                                      , scanlaw_( std::make_unique< ScanLaw >( 5000, 0, 1.0 ) )
 {
 }
 
@@ -69,13 +99,13 @@ MassSpectrometer::name() const
 const adcontrols::ScanLaw *
 MassSpectrometer::scanLaw() const 
 {
-    return nullptr;
+    return scanlaw_.get();
 }
 
 std::shared_ptr<adcontrols::ScanLaw>
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& ) const
 {
-    return nullptr;
+    return std::make_shared< adspectrometer::ScanLaw >( 5000.0, 0.0, 1.0 );
 }
 
 void
