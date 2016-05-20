@@ -59,7 +59,7 @@ namespace acqrscontrols {
                    , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
                    , protocolCount_( 1 ) {
 
-                for ( auto& p: recent_longterm_histogram_ )
+                for ( auto& p: recent_longterm_histograms_ )
                     p = std::make_shared< adcontrols::TimeDigitalHistogram >();                
             }
 
@@ -111,7 +111,7 @@ namespace acqrscontrols {
                         d.reset();
                     });
 
-                for ( auto& p: recent_longterm_histogram_ )
+                for ( auto& p: recent_longterm_histograms_ )
                     p = std::make_shared< adcontrols::TimeDigitalHistogram >();
 
             }
@@ -154,7 +154,7 @@ namespace acqrscontrols {
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histogram_que_;
 
             // long term averaged histograms
-            std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol > recent_longterm_histogram_;
+            std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol > recent_longterm_histograms_;
             
             // recent protocol sequence histograms (periodic); (proto 0, proto 1, ...)
             std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol > recent_periodic_histograms_;
@@ -225,7 +225,7 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         impl_->recent_periodic_histograms_[ index ] = hgrm;
 
         // accumulate into long term histogram
-        (*impl_->recent_longterm_histogram_[ index ] ) += *hgrm;
+        (*impl_->recent_longterm_histograms_[ index ] ) += *hgrm;
     }
     
     return !impl_->periodic_histogram_que_.empty();
@@ -410,11 +410,11 @@ tdcdoc::longTermHistogram( int protocolIndex ) const
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
     
-    if ( impl_->recent_longterm_histogram_.empty() )
+    if ( impl_->recent_longterm_histograms_.empty() )
         return nullptr;
 
     // deep copy
-    auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >( *impl_->recent_longterm_histogram_[ protocolIndex ] );
+    auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >( *impl_->recent_longterm_histograms_[ protocolIndex ] );
 
     return hgrm;
 }
@@ -424,10 +424,10 @@ tdcdoc::longTermHistograms() const
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
-    std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->recent_longterm_histogram_.size() );
+    std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->recent_longterm_histograms_.size() );
 
     // deep copy
-    std::transform( impl_->recent_longterm_histogram_.begin(), impl_->recent_longterm_histogram_.end(), d.begin()
+    std::transform( impl_->recent_longterm_histograms_.begin(), impl_->recent_longterm_histograms_.end(), d.begin()
                     , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
                         return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
                     });
@@ -441,12 +441,10 @@ tdcdoc::recentHistograms() const
 
     std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->protocolCount_ );
 
-    // deep copy
     std::transform( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.begin() + impl_->protocolCount_, d.begin()
                     , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
                         return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
                     });
-
     return d;
 }
 
@@ -596,7 +594,7 @@ tdcdoc::clear_histogram()
 {
     impl_->threshold_action_counts_ = { { { 0, 0 } } };
 
-    for ( auto& p: impl_->recent_longterm_histogram_ )
+    for ( auto& p: impl_->recent_longterm_histograms_ )
         p = std::make_shared< adcontrols::TimeDigitalHistogram >();
 }
 
@@ -623,7 +621,7 @@ tdcdoc::recentSpectrum( SpectrumType choice, mass_assignee_t assignee, int proto
         if ( impl_->recentHistogram( *ms, impl_->recent_periodic_histograms_, assignee ) )
             return ms;
     } else if ( choice == LongTermHistogram ) {
-        if ( impl_->recentHistogram( *ms, impl_->recent_longterm_histogram_, assignee ) )
+        if ( impl_->recentHistogram( *ms, impl_->recent_longterm_histograms_, assignee ) )
             return ms;
     }
     return nullptr;
