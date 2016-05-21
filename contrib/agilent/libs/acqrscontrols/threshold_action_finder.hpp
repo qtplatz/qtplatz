@@ -37,11 +37,13 @@ namespace acqrscontrols {
             if ( !result->indecies().empty() && action->enable ) {
 
                 const auto& meta = result->data()->meta_;
+                const auto& proto = result->data()->method_.protocols()[ result->data()->method_.protocolIndex() ];
+                const auto adc_delay = proto.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
 
                 if ( action->enableTimeRange ) {
-            
-                    uint32_t beg = uint32_t( ( action->delay - meta.initialXOffset ) / meta.xIncrement );
-                    uint32_t end = uint32_t( ( action->delay + action->width - meta.initialXOffset ) / meta.xIncrement );
+                    
+                    uint32_t beg = uint32_t( ( action->delay - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
+                    uint32_t end = uint32_t( ( action->delay + action->width - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
 
                     auto it = std::lower_bound( result->indecies().begin(), result->indecies().end(), beg );
                     if ( it != result->indecies().end() ) {

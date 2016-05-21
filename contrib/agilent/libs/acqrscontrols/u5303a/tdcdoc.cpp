@@ -464,14 +464,17 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
             auto& counts = impl_->threshold_action_counts_[ i ];
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
-            counts.second++;
 
+            const auto idx = waveforms[ i ]->method_.protocolIndex();
+            if ( idx == 0 )
+                counts.second++;
+            
             if ( methods[ i ] && methods[ i ]->enable ) {
 
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
-
+                
                 if ( result )
                     counts.first++;
             }
