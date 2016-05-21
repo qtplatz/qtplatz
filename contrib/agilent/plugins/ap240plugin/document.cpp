@@ -467,7 +467,7 @@ document::toMassSpectrum( adcontrols::MassSpectrum& sp, const acqrscontrols::ap2
                                    , waveform.method_.hor_.nbrAvgWaveforms
                                    , 0 );
     //info.fSampInterval( waveform.meta_.xIncrement );
-    prop.acceleratorVoltage( 3000 );
+    prop.setAcceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
@@ -721,7 +721,7 @@ document::getHistogram( int channel, double resolution ) const
                                        , uint32_t( trigCount )
                                        , 0 );
         //info.fSampInterval( meta.xIncrement );
-        prop.acceleratorVoltage( 3000 );
+        prop.setAcceleratorVoltage( 3000 );
         prop.setSamplingInfo( info );
         
         prop.setTimeSinceInjection( meta.initialXTimeSeconds );

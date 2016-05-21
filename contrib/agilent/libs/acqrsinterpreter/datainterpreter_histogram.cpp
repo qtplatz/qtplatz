@@ -23,8 +23,9 @@
 **************************************************************************/
 
 #include "datainterpreter_histogram.hpp"
-#include <adcontrols/waveform.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
+#include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
@@ -43,21 +44,22 @@ adcontrols::translate_state
 DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , const char * data, size_t dsize
                             , const char * meta, size_t msize
-                            , const adcontrols::MassSpectrometer&
+                            , const adcontrols::MassSpectrometer& spectrometer
                             , size_t idData
                             , const wchar_t * traceId ) const
 {
     if ( dsize > 0 ) {
 
         adcontrols::TimeDigitalHistogram histogram;
+        
 
         boost::iostreams::basic_array_source< char > source( data, dsize );
         boost::iostreams::stream< boost::iostreams::basic_array_source< char > > is( source );
 
         if ( adcontrols::TimeDigitalHistogram::restore( is, histogram ) ) {
 
-            if ( adcontrols::TimeDigitalHistogram::translate( ms, histogram ) ) {
-                
+            if ( adcontrols::TimeDigitalHistogram::translate( ms, histogram, [=](double t, int m){ return 0; } ) ) {
+                spectrometer.assignMasses( ms );
                 return adcontrols::translate_complete;
 
             }

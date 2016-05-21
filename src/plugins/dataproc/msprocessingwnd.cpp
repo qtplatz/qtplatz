@@ -1097,14 +1097,15 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
  
     try {
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( iid_spectrometer.first ) ) {
+
         	if ( auto ms = pProfileSpectrum_.second.lock() ) {
         		auto& prop = ms->getMSProperty();
         		spectrometer->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
-        	}
+                
+                dlg.setScanLaw( *spectrometer->scanLaw() );
 
-            dlg.setScanLaw( *spectrometer->scanLaw() );
+        	} else {
 
-            do {
                 double fLength, accVoltage, tDelay, mass;
                 QString formula;
                 if ( dataproc_document::instance()->findScanLaw( name, fLength, accVoltage, tDelay, mass, formula ) ) {
@@ -1113,7 +1114,8 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
                     if ( !formula.isEmpty() )
                         dlg.setFormula( formula );
                 }
-            } while ( 0 );
+                
+            }
 
             if ( dlg.exec() != QDialog::Accepted )
                 return false;
@@ -1178,8 +1180,8 @@ MSProcessingWnd::assign_masses_to_profile()
         x->setAcquisitionMassRange( mass_range.first, mass_range.second );
 
         adcontrols::MSProperty prop( x->getMSProperty() );
-		prop.acceleratorVoltage( law.kAcceleratorVoltage() );
-		prop.tDelay( law.tDelay() );
+		prop.setAcceleratorVoltage( law.kAcceleratorVoltage() );
+		prop.setTDelay( law.tDelay() );
 		x->setMSProperty( prop );
 
         return true;

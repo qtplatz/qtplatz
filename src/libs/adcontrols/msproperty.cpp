@@ -217,7 +217,7 @@ MSProperty::acceleratorVoltage() const
 }
 
 void
-MSProperty::acceleratorVoltage( double value )
+MSProperty::setAcceleratorVoltage( double value )
 {
     instAccelVoltage_ = value;
 }
@@ -229,7 +229,7 @@ MSProperty::tDelay() const
 }
 
 void
-MSProperty::tDelay( double t )
+MSProperty::setTDelay( double t )
 {
 	instTDelay_ = t;
 }

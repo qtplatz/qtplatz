@@ -75,7 +75,7 @@ namespace acqrscontrols {
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();                    
                         if ( auto& w = v[ proto ] )
                             waveform::translate( *sp, w, assignee );
-                        ms << std::move(sp); // append even if empty
+                        ms << std::move(sp);
                     }
                     return true;
                 }
@@ -85,18 +85,15 @@ namespace acqrscontrols {
             bool recentHistogram( adcontrols::MassSpectrum& ms
                                   , const std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol >& v
                                   , tdcdoc::mass_assignee_t assignee ) const {
-
+                
                 if ( !v.empty() && v[ 0 ] ) {
-
-                    adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ] );
-                    ms.assign_masses( assignee );
+                    
+                    adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ], assignee );
 
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();
-                        if ( auto& hgrm = v[ proto ] ) {
-                            adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm );
-                            sp->assign_masses( assignee );
-                        }
+                        if ( auto& hgrm = v[ proto ] )
+                            adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
                         ms << std::move(sp);
                     }
                 }
@@ -372,9 +369,10 @@ tdcdoc::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type
 
         std::lock_guard< std::mutex > lock( impl_->mutex_ );
         
-        std::sort( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), []( const waveform_ptr& x, const waveform_ptr& y ){
-                return x->serialnumber_ < y->serialnumber_;
-            });
+        std::sort( impl_->accumulated_waveforms_.begin()
+                   , impl_->accumulated_waveforms_.end(), []( const waveform_ptr& x, const waveform_ptr& y ){
+                       return x->serialnumber_ < y->serialnumber_;
+                   });
         
         std::move( impl_->accumulated_waveforms_.begin(), impl_->accumulated_waveforms_.end(), std::back_inserter( a ) );
         
@@ -427,7 +425,8 @@ tdcdoc::longTermHistograms() const
     std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->recent_longterm_histograms_.size() );
 
     // deep copy
-    std::transform( impl_->recent_longterm_histograms_.begin(), impl_->recent_longterm_histograms_.end(), d.begin()
+    std::transform( impl_->recent_longterm_histograms_.begin()
+                    , impl_->recent_longterm_histograms_.begin() + impl_->protocolCount_, d.begin()
                     , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
                         return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
                     });
@@ -441,7 +440,8 @@ tdcdoc::recentHistograms() const
 
     std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->protocolCount_ );
 
-    std::transform( impl_->recent_periodic_histograms_.begin(), impl_->recent_periodic_histograms_.begin() + impl_->protocolCount_, d.begin()
+    std::transform( impl_->recent_periodic_histograms_.begin()
+                    , impl_->recent_periodic_histograms_.begin() + impl_->protocolCount_, d.begin()
                     , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
                         return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
                     });

@@ -97,7 +97,11 @@ namespace adcontrols {
 
         static bool average_time( const std::vector< std::pair< double, uint32_t > >&, double resolution, std::vector< std::pair< double, uint32_t > >&);
 
+        typedef double( mass_assign_t )( double time, int mode );
+        typedef std::function< mass_assign_t > mass_assignor_t;
+
         static bool translate( adcontrols::MassSpectrum&, const TimeDigitalHistogram& );
+        static bool translate( adcontrols::MassSpectrum&, const TimeDigitalHistogram&, mass_assignor_t );
 
         static bool archive( std::ostream&, const TimeDigitalHistogram& );
         static bool restore( std::istream&, TimeDigitalHistogram& );

@@ -49,9 +49,9 @@ namespace adcontrols {
         MSProperty& operator = ( const MSProperty& );
 
         double acceleratorVoltage() const;
-        void acceleratorVoltage( double );
+        void setAcceleratorVoltage( double );
         double tDelay() const;
-        void tDelay( double );
+        void setTDelay( double );
 
         // analyzer mode, ex. Linear/Refrectron for MALDI, number of turns for Multi-turn instrument
         int mode() const;

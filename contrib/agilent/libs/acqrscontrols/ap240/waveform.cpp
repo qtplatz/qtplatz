@@ -392,7 +392,7 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
                                    , waveform.meta_.actualAverages
                                    , 0 /* mode */ );
     //info.fSampInterval( waveform.meta_.xIncrement );
-    prop.acceleratorVoltage( 3000 );
+    prop.setAcceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );

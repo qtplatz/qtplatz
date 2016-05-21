@@ -264,7 +264,7 @@ WaveformWnd::handle_waveform()
             info.horPos( waveform->meta_.horPos );
             
             prop.setSamplingInfo( info );
-            prop.acceleratorVoltage( 3000 );
+            prop.setAcceleratorVoltage( 3000 );
 
             using namespace adcontrols::metric;
             prop.setTimeSinceInjection( timestamp * 1.0e6 ); // microseconds

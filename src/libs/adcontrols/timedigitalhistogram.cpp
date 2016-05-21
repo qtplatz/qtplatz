@@ -360,7 +360,8 @@ TimeDigitalHistogram::accumulate( double tof, double window ) const
 
 
 bool
-TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigitalHistogram& hgrm )
+TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
+                                 , const TimeDigitalHistogram& hgrm )
 {
     sp.setCentroid( adcontrols::CentroidNative );
 
@@ -377,7 +378,8 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
                                    , uint32_t( hgrm.trigger_count() )
                                    , hgrm.this_protocol_.mode() /* mode */);
     
-    prop.acceleratorVoltage( 3000 ); // nominal
+    prop.setAcceleratorVoltage( 0 ); // empty
+
     prop.setSamplingInfo( info );
         
     prop.setTimeSinceInjection( hgrm.initialXTimeSeconds() );
@@ -406,12 +408,25 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp, const TimeDigital
     return true;
 }
 
+bool
+TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
+                                 , const TimeDigitalHistogram& hgrm
+                                 , mass_assignor_t mass_assignee )
+{
+    if ( translate( sp, hgrm ) ) {
+        sp.assign_masses( mass_assignee );
+        return true;
+    }
+    return false;
+}
+
 TimeDigitalHistogram&
 TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
 {
     if ( trigger_count_ == 0 ||
-         !adportable::compare<double>::essentiallyEqual( this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first
-                                                        , t.this_protocol().delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first ) ) {
+         !adportable::compare<double>::essentiallyEqual(
+             this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first
+             , t.this_protocol().delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first ) ) {
         *this = t;
         return *this;
     }
