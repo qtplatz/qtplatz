@@ -11,7 +11,7 @@ build_root=..
 
 while [ $# -gt 0 ]; do
     case "$1" in
-	debug|eclipse)
+	debug)
 	    config=debug
 	    shift
 	    ;;
@@ -28,12 +28,21 @@ done
 echo "platform=" $host_system
 echo "config=" $config
 
-source_dirs=("$cwd/contrib/installer/boost" "$cwd")
 
 if [ -z $cross_target ]; then
-    build_dirs=("$build_root/build-$arch/boost" \
-		"$build_root/build-$arch/qtplatz.$config" )
+    case $arch in
+	Darwin-*)
+	    source_dirs=("$cwd")
+	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
+	    ;;
+	*)
+	    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
+	    build_dirs=("$build_root/build-$arch/boost" \
+			"$build_root/build-$arch/qtplatz.$config" )
+	    ;;
+    esac
 else
+    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
     build_dirs=("$build_root/build-$cross_target/boost" \
 		"$build_root/build-$cross_target/qtplatz.$config" )
 		    
@@ -68,10 +77,11 @@ for build_dir in ${build_dirs[@]}; do
 	echo "## Native build for $arch"
 	case $arch in
 	    Darwin-*)	    
-		if [ $config=debug ]; then
+		if [ $config = debug ]; then
+		    echo cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
 		    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
 		else
-		    echo `pwd`
+		    echo cmake -DCMAKE_BUILD_TYPE=Release $source_dir
 		    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
 		fi
 		;;
