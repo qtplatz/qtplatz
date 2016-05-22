@@ -126,7 +126,7 @@ namespace quan {
                 painter->restore();                
             }
             
-            void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const {
+            void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
                 if ( index.column() == c_sample_type ) {
                     if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
                         int idx = combo->currentIndex();

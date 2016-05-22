@@ -41,6 +41,7 @@
 #include <QMimeData>
 #include <QSignalBlocker>
 #include <cmath>
+#include <sstream>
 
 namespace adwidgets {
 

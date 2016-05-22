@@ -26,6 +26,8 @@
 #pragma once
 
 #include "waveform_wrapper.hpp"
+#include <functional>
+#include <stdexcept>
 
 namespace adportable {
 
