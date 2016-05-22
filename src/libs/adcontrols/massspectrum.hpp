@@ -206,6 +206,7 @@ namespace adcontrols {
         iterator end();
         const_iterator begin() const;
         const_iterator end() const;
+        iterator erase( const_iterator first, const_iterator last );
         
     private:
         friend class boost::serialization::access;

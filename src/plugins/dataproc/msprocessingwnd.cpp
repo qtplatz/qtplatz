@@ -870,6 +870,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             
             const auto f_rms = ( axis_ == adcontrols::hor_axis_time ) ? tr("RMS in range %1 -- %2(us)") : tr("RMS in m/z range %1 -- %2");
             const auto f_maxval = ( axis_ == adcontrols::hor_axis_time ) ? tr("Max value in range %1 -- %2(us)") : tr("Max value in m/z range %1 -- %2");
+            const auto f_count = ( axis_ == adcontrols::hor_axis_time ) ? tr("Count/Area in range %1 -- %2(us)") : tr("Count/Area in m/z range %1 -- %2");
             
             actions.push_back( 
                 std::make_pair( menu.addAction( QString( f_rms ).arg( left, right ) ), [=](){
@@ -879,14 +880,19 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             
             actions.push_back( 
                 std::make_pair( menu.addAction( QString( f_maxval ).arg( left, right ) ), [=](){
-                        compute_minmax( scale_to_base( rect.left(), micro), scale_to_base( rect.right(), micro ) );
+                        compute_minmax( rect.left(), rect.right() );
                         draw1();                        
                     }) );
+
+            actions.push_back(
+                std::make_pair( menu.addAction( QString( f_count ).arg( left, right ) ), [&](){
+                        compute_count( rect.left(), rect.right() );
+                        draw1();
+                    }) );
+            
             
             actions.push_back( 
                 std::make_pair( menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ) ), [&](){
-                        //std::vector< double > freq, power;
-                        //double y_dc(0), y_nyquist(0);
                         power_spectrum( *ms, range );
                     }) );
             
@@ -1102,14 +1108,14 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
         		auto& prop = ms->getMSProperty();
         		spectrometer->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
                 
-                dlg.setScanLaw( *spectrometer->scanLaw() );
+                dlg.setScanLaw( spectrometer, prop.mode() );
 
         	} else {
 
                 double fLength, accVoltage, tDelay, mass;
                 QString formula;
                 if ( dataproc_document::instance()->findScanLaw( name, fLength, accVoltage, tDelay, mass, formula ) ) {
-                    dlg.setValues( fLength, accVoltage, tDelay );
+                    dlg.setValues( fLength, accVoltage, tDelay, 0 );
                     dlg.setMass( mass );
                     if ( !formula.isEmpty() )
                         dlg.setFormula( formula );
@@ -1132,19 +1138,17 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
 
             if ( auto x = this->pProfileSpectrum_.second.lock() ) {
 
+                spectrometer->setAcceleratorVoltage( dlg.acceleratorVoltage(), dlg.tDelay() );
+                const adcontrols::ScanLaw * scanlaw = spectrometer->scanLaw();
+
                 adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
 
                 for ( auto& ms : segments ) {
-                    for ( size_t idx = 0; idx < ms.size(); ++idx ) {
-                        double m = law.getMass( ms.getTime( idx ), 0 );
-                        ms.setMass( idx, m );
-                        if ( idx == 0 )
-                            mass_range.first = std::min( mass_range.first, m );
-                        if ( idx == ms.size() - 1 )
-                            mass_range.second = std::max( mass_range.second, m );
-                    }
+                    ms.getMSProperty().setAcceleratorVoltage( dlg.acceleratorVoltage() );
+                    ms.getMSProperty().setTDelay( dlg.tDelay() );
+                    ms.assign_masses( [&](double time, int mode){ return scanlaw->getMass( time, mode ); } );
                 }
-                x->setAcquisitionMassRange( mass_range.first, mass_range.second );
+                //x->setAcquisitionMassRange( mass_range.first, mass_range.second );
             }
 
             return true;
@@ -1152,6 +1156,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
     } catch ( boost::exception& ex ) {
         ADERROR() << boost::diagnostic_information( ex );
         return assign_masses_to_profile();
+        
     }
     return false;
 }
@@ -1286,8 +1291,8 @@ MSProcessingWnd::compute_minmax( double s, double e )
 
             std::pair< size_t, size_t > range;
             if ( pImpl_->is_time_axis_ ) {
-                range.first = ms.getIndexFromTime( s, false );
-                range.second = ms.getIndexFromTime( e, true );
+                range.first = ms.getIndexFromTime( scale_to_base( s, micro ), false );
+                range.second = ms.getIndexFromTime( scale_to_base( e, micro), true );
             } else {
                 const double * masses = ms.getMassArray();
                 range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
@@ -1325,6 +1330,82 @@ MSProcessingWnd::compute_minmax( double s, double e )
 
     }
 	return std::make_pair(0,0);
+}
+
+double
+MSProcessingWnd::compute_count( double s, double e )
+{
+	if ( auto ptr = pProfileSpectrum_.second.lock() ) {
+        
+        using namespace adcontrols::metric;
+
+        QString clipboard;
+
+		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
+
+        int idx = 0;
+        
+        for ( auto& ms: segments ) {
+
+            const auto& prop = ms.getMSProperty();
+
+            bool found( false );
+            std::pair< size_t, size_t > range = { 0, 0 };
+
+            if ( pImpl_->is_time_axis_ ) {
+                s = scale_to_base( s, micro );
+                e = scale_to_base( e, micro );
+
+                ADDEBUG() << "time range: " << prop.samplingInfo().delayTime() << ", " 
+                          << ( prop.samplingInfo().nSamples() * prop.samplingInfo().fSampInterval() );
+                
+                if ( prop.samplingInfo().delayTime() <= s &&
+                     e <= prop.samplingInfo().delayTime() + ( prop.samplingInfo().nSamples() * prop.samplingInfo().fSampInterval() ) ) {
+                    if ( const double * times = ms.getTimeArray() ) {
+                        range.first = std::distance( times, std::lower_bound( times, times + ms.size(), s ) );
+                        range.second = std::distance( times, std::lower_bound( times, times + ms.size(), e ) );
+                        found = true;
+                    }
+                }
+            } else {
+
+                ADDEBUG() << "mass range: " << ms.getMass( 0 ) << ", " << ms.getMass( ms.size() - 1 );
+
+                if ( ms.getMass( 0 ) <= s && e <= ms.getMass( ms.size() - 1 ) ) {
+                    if ( const double * masses = ms.getMassArray() ) {
+                        range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
+                        range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
+                        found = true;
+                    }
+                }
+            }
+            
+            if ( found ) {
+
+                ADDEBUG() << "data range: " << range.first << ", " << range.second;
+                
+                const double * data = ms.getIntensityArray();
+                double count = std::accumulate( data + range.first, data + range.second + 1, 0.0 );
+                
+                auto it = std::max( data + range.first, data + range.second + 1 );
+                double apex = ( pImpl_->is_time_axis_ ) ? ms.getTime( std::distance( data, it ) ) : ms.getMass( std::distance( data, it ) );
+                char fmt = ( pImpl_->is_time_axis_ ) ? 'e' : 'f';
+                
+                clipboard.append(
+                    QString("#%1\tCount[start,apex,end,N]\t%2\t%3\t%4\t%5\t%6\n").arg(
+                        QString::number( idx )
+                        , QString::number( count )
+                        , QString::number( apex, fmt, 7 )
+                        , QString::number( s, fmt, 7 )
+                        , QString::number( e, fmt, 7 )
+                        , QString::number( range.second - range.first + 1 ) )
+                    );
+            }
+            ++idx;
+        }
+        QApplication::clipboard()->setText( clipboard );
+    }
+	return 0;
 }
 
 bool

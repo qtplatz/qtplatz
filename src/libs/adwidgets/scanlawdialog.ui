@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>344</height>
+    <height>362</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,13 +29,16 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="1" column="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
           <property name="decimals">
-           <number>2</number>
+           <number>7</number>
           </property>
           <property name="maximum">
            <double>200000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.000010000000000</double>
           </property>
          </widget>
         </item>
@@ -46,16 +49,16 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="0" column="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox">
           <property name="decimals">
-           <number>5</number>
+           <number>7</number>
           </property>
           <property name="maximum">
            <double>100.000000000000000</double>
           </property>
           <property name="singleStep">
-           <double>0.100000000000000</double>
+           <double>0.000010000000000</double>
           </property>
          </widget>
         </item>
@@ -66,10 +69,10 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="2" column="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
           <property name="decimals">
-           <number>5</number>
+           <number>7</number>
           </property>
           <property name="minimum">
            <double>-100.000000000000000</double>
@@ -78,7 +81,17 @@
            <double>1000.000000000000000</double>
           </property>
           <property name="singleStep">
-           <double>0.100000000000000</double>
+           <double>0.000010000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QSpinBox" name="spinBox">
+          <property name="maximumSize">
+           <size>
+            <width>60</width>
+            <height>16777215</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -108,7 +121,7 @@
            <bool>true</bool>
           </property>
           <property name="decimals">
-           <number>5</number>
+           <number>7</number>
           </property>
           <property name="maximum">
            <double>100000.000000000000000</double>
@@ -131,7 +144,7 @@
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
           <property name="decimals">
-           <number>4</number>
+           <number>7</number>
           </property>
           <property name="maximum">
            <double>1000.000000000000000</double>
@@ -144,12 +157,15 @@
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_4">
           <property name="decimals">
-           <number>5</number>
+           <number>7</number>
           </property>
           <property name="maximum">
            <double>100000.000000000000000</double>
           </property>
          </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit"/>
         </item>
         <item row="3" column="0">
          <widget class="QCheckBox" name="checkBox">
@@ -164,9 +180,6 @@
            <string>Formula</string>
           </property>
          </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit"/>
         </item>
        </layout>
       </item>

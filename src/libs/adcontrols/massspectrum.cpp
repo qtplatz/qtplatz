@@ -1288,3 +1288,9 @@ MassSpectrum::end() const
 {
     return pImpl_->vec_.end();
 }
+
+MassSpectrum::iterator
+MassSpectrum::erase( const_iterator first, const_iterator last )
+{
+    return pImpl_->vec_.erase( first, last );
+}

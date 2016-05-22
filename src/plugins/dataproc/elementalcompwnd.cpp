@@ -151,8 +151,9 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
         dlg.setScanLaw( *spectrometer->scanLaw() );
         double fLength, accVoltage, tDelay, mass;
         QString formula;
+        
         if ( dataproc_document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
-            dlg.setValues( fLength, accVoltage, tDelay );
+            dlg.setValues( fLength, accVoltage, tDelay, 0 );
             dlg.setMass( mass );
             if ( !formula.isEmpty() )
                 dlg.setFormula( formula );

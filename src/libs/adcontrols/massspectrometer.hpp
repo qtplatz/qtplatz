@@ -74,7 +74,7 @@ namespace adcontrols {
         virtual void setDataReader( adcontrols::DataReader * );
         virtual void setMSFractuation( adcontrols::MSFractuation * );
         virtual adcontrols::MSFractuation * msFractuation() const;
-
+        
         virtual const char * objtext() const = 0;
         virtual const boost::uuids::uuid& objclsid() const = 0;
         virtual const ScanLaw * scanLaw() const = 0; 

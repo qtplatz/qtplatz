@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,8 +27,12 @@
 
 #include "adwidgets_global.hpp"
 #include <QDialog>
+#include <memory>
 
-namespace adcontrols { class ScanLaw; }
+class QKeyEvent;
+class QContextMenuEvent;
+
+namespace adcontrols { class ScanLaw; class MassSpectrometer; }
 
 namespace adwidgets {
 
@@ -45,12 +49,13 @@ namespace adwidgets {
         ~ScanLawDialog();
 
         void setScanLaw( const adcontrols::ScanLaw& );
+        void setScanLaw( std::shared_ptr< const adcontrols::MassSpectrometer >, int mode );
         const adcontrols::ScanLaw& scanLaw() const;
         
         double tDelay() const;
         double acceleratorVoltage() const;
         double fLength() const;
-        void setValues( double fLength, double accVoltage, double tDelay );
+        void setValues( double fLength, double accVoltage, double tDelay, int mode );
         QString formula() const;
         void setFormula( const QString& );
         void setMass( double );
@@ -64,6 +69,11 @@ namespace adwidgets {
         impl * impl_;
         void setCalculator();
         void estimate();
+        void keyPressEvent( QKeyEvent * ) override;
+
+    public slots:
+        void handleCopyToClipboard();
+        void handlePaste();
     };
 
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,6 +29,16 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <workaround/boost/archive/xml_woarchive.hpp>
+#include <workaround/boost/archive/xml_wiarchive.hpp>
+#include <QApplication>
+#include <QClipboard>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QMimeData>
 #include <QSignalBlocker>
 #include <cmath>
 
@@ -36,8 +46,11 @@ namespace adwidgets {
 
     class ScanLawDialog::impl : public adcontrols::ScanLaw {
     public:
-        std::unique_ptr< adportable::TimeSquaredScanLaw > law_;
-        impl() : law_( new adportable::TimeSquaredScanLaw() ) {
+
+        std::unique_ptr< adportable::TimeSquaredScanLaw > tof_;
+        std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
+
+        impl() {
         }
         
         ~impl() {
@@ -52,26 +65,48 @@ namespace adwidgets {
         
         // adcontrols::ScanLaw
         double getMass( double secs, int mode ) const override {
-            return law_->getMass( secs, mode );
+            return tof_->getMass( secs, mode );
         }
+        
         double getTime( double mass, int mode ) const override {
-            return law_->getTime( mass, mode );
+            return tof_->getTime( mass, mode );
         }
+        
         double getMass( double secs, double fLength ) const override {
-            return law_->getMass( secs, fLength );
+            return tof_->getMass( secs, fLength );
         }
+        
         double getTime( double mass, double fLength ) const override {
-            return law_->getTime( mass, fLength );
+            return tof_->getTime( mass, fLength );
         }
+        
         double fLength( int mode ) const override {
-            return law_->fLength( mode );
+            return tof_->fLength( mode );
         }
 
         std::vector< std::pair< double, double > > time_mass_array_;
+
     };
+
+    class ScanLaw_archive {
+    public:
+        double acceleratorVoltage;
+        double tDelay;
+
+        ScanLaw_archive() : acceleratorVoltage( 0 ), tDelay( 0 ) {}
+        ScanLaw_archive( double a, double t ) : acceleratorVoltage( a ), tDelay( t ) {}
+
+        template< class Archive >
+        void serialize( Archive& ar, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( acceleratorVoltage );
+            ar & BOOST_SERIALIZATION_NVP( tDelay );
+        }
+    };
+    
 }
 
 using namespace adwidgets;
+using namespace adcontrols::metric;
 
 ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
                                               , ui( new Ui::ScanLawDialog )
@@ -80,23 +115,47 @@ ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
     ui->setupUi(this);
     ui->doubleSpinBox_4->setValue( 609.2 );
 
+    setContextMenuPolicy( Qt::CustomContextMenu );
+
+    connect( this, &QDialog::customContextMenuRequested, [this]( const QPoint& pt ){
+            QMenu menu;
+            menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
+            menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
+            menu.exec( mapToGlobal( pt ) );
+        });
+
     // flength
     connect( ui->doubleSpinBox, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
              , [this] ( double flength ) {
                  setCalculator();
                  estimate();
              });
+
     // vacc
     connect( ui->doubleSpinBox_2, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
              , [this] ( double vacc ) {
                  setCalculator();                 
-             });    
+             });
+    
     // tDelay
     connect( ui->doubleSpinBox_3, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
              , [this] ( double tDelay ) {
                  setCalculator();                 
              });    
 
+    // mode
+    connect( ui->spinBox, static_cast< void(QSpinBox::*)(int) >(&QSpinBox::valueChanged)
+             , [this] ( int mode ) {
+                 if ( auto sp = impl_->spectrometer_.lock() ) {
+                     if ( auto scanlaw = sp->scanLaw() ) {
+                         double L = scanlaw->fLength( mode );
+                         ui->doubleSpinBox->setValue( L );
+                     }
+                 }
+             });
+
+    ui->spinBox->setEnabled( false ); // mode is disabled until MassSpectrometer to be specified
+    
     // ---------- calculator -----------
     // m/z
     connect( ui->doubleSpinBox_4, static_cast< void(QDoubleSpinBox::*)(double) >(&QDoubleSpinBox::valueChanged)
@@ -142,6 +201,19 @@ ScanLawDialog::~ScanLawDialog()
 }
 
 void
+ScanLawDialog::keyPressEvent( QKeyEvent * event )
+{
+	if ( event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return )
+		return;
+	if ( event->matches( QKeySequence::Copy ) ) {
+	    handleCopyToClipboard();
+	} else if ( event->matches( QKeySequence::Paste ) ) {
+		handlePaste();
+	}
+	QDialog::keyPressEvent( event );
+}
+
+void
 ScanLawDialog::setScanLaw( const adcontrols::ScanLaw& law )
 {
     double tDelay = law.getTime( 0, 0 );
@@ -149,7 +221,24 @@ ScanLawDialog::setScanLaw( const adcontrols::ScanLaw& law )
     double m = law.getMass( t, 0 );
     double a = adportable::TimeSquaredScanLaw::acceleratorVoltage( m, t, law.fLength( 0 ), tDelay );
 
-    setValues( law.fLength( 0 ), a, tDelay );
+    setValues( law.fLength( 0 ), a, tDelay, 0 );
+}
+
+void
+ScanLawDialog::setScanLaw( std::shared_ptr< const adcontrols::MassSpectrometer > sp, int mode )
+{
+    impl_->spectrometer_ = sp;
+
+    if ( auto scanlaw = sp->scanLaw() ) {
+    
+        double tDelay = scanlaw->getTime( 0, mode );
+        double t = scanlaw->getTime( 100, mode );
+        double m = scanlaw->getMass( t, mode );
+        double a = adportable::TimeSquaredScanLaw::acceleratorVoltage( m, t, scanlaw->fLength( mode ), tDelay );
+        
+        setValues( scanlaw->fLength( mode ), a, tDelay, mode );
+        ui->spinBox->setEnabled( true );
+    }
 }
 
 const adcontrols::ScanLaw&
@@ -158,7 +247,7 @@ ScanLawDialog::scanLaw() const
     double length = ui->doubleSpinBox->value();
     double vacc  = ui->doubleSpinBox_2->value();
     double tDelay = ui->doubleSpinBox_3->value() / 1.0e6;
-    impl_->law_.reset( new adportable::TimeSquaredScanLaw( vacc, tDelay, length ) );
+    impl_->tof_.reset( new adportable::TimeSquaredScanLaw( vacc, tDelay, length ) );
     return *impl_;
 }
 
@@ -168,11 +257,12 @@ ScanLawDialog::setCalculator()
     auto law = impl_->scanLaw( ui );
     // if compute time
     double mass = ui->doubleSpinBox_4->value();
+    int mode = ui->spinBox->value();
 
     QSignalBlocker block5( ui->doubleSpinBox_5 );
     QSignalBlocker block6( ui->doubleSpinBox_6 );
-    ui->doubleSpinBox_5->setValue( law.getTime( mass, 0 ) * 1.0e6 ); // -> us
-    ui->doubleSpinBox_6->setValue( law.acceleratorVoltage( mass, law.getTime( mass, 0 ), law.fLength( 0 ), law.tDelay() ) );
+    ui->doubleSpinBox_5->setValue( scale_to_micro( law.getTime( mass, mode ) ) ); // -> us
+    ui->doubleSpinBox_6->setValue( law.acceleratorVoltage( mass, law.getTime( mass, mode ), law.fLength( mode ), law.tDelay() ) );
 }
 
 double
@@ -194,18 +284,20 @@ ScanLawDialog::tDelay() const
 }
 
 void
-ScanLawDialog::setValues( double fLength, double accVoltage, double tDelay )
+ScanLawDialog::setValues( double fLength, double accVoltage, double tDelay, int mode )
 {
     QSignalBlocker blocks[] = { QSignalBlocker(ui->doubleSpinBox), QSignalBlocker(ui->doubleSpinBox_2)
-                                , QSignalBlocker( ui->doubleSpinBox_3 ), QSignalBlocker( ui->doubleSpinBox_6 ) };
+                                , QSignalBlocker( ui->doubleSpinBox_3 ), QSignalBlocker( ui->doubleSpinBox_6 )
+                                , QSignalBlocker( ui->spinBox ) };
     (void)blocks;
 
     ui->doubleSpinBox->setValue( fLength );
     ui->doubleSpinBox_2->setValue( accVoltage );
     ui->doubleSpinBox_3->setValue( tDelay * 1.0e6 );
     ui->doubleSpinBox_6->setValue( accVoltage );
+    ui->spinBox->setValue( mode );
 
-    impl_->law_.reset( new adportable::TimeSquaredScanLaw( accVoltage, tDelay, fLength ) );
+    impl_->tof_.reset( new adportable::TimeSquaredScanLaw( accVoltage, tDelay, fLength ) );
 
     setCalculator();
 }
@@ -252,11 +344,18 @@ ScanLawDialog::estimate()
 
     } else if ( impl_->time_mass_array_.size() == 1 ) {
 
-        double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( impl_->time_mass_array_[ 0 ].second, impl_->time_mass_array_[ 0 ].first, impl_->fLength( 0 ), 0 );
-        ui->doubleSpinBox_2->setValue( va );    
-        ui->doubleSpinBox_3->setValue( 0 );
+        int mode = ui->spinBox->value();
+        double tDelay = scale_to_base( ui->doubleSpinBox_3->value(), micro );
+
+        double va = adportable::TimeSquaredScanLaw::acceleratorVoltage( impl_->time_mass_array_[ 0 ].second  // mass
+                                                                        , impl_->time_mass_array_[ 0 ].first // time
+                                                                        , impl_->fLength( mode ) // flength
+                                                                        , tDelay ); // tDelay
+        ui->doubleSpinBox_2->setValue( va );
+        // ui->doubleSpinBox_3->setValue( 0 );
 
     } else {
+
         std::vector<double> x, y, coeffs;
         for ( auto& xy : impl_->time_mass_array_ ) {
             double mass = xy.second;
@@ -264,6 +363,7 @@ ScanLawDialog::estimate()
             x.push_back( std::sqrt( mass ) * impl_->fLength( 0 ) );
             y.push_back( time );
         }
+
         if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
             double t0 = coeffs[ 0 ];
             double t1 = adportable::polfit::estimate_y( coeffs, 1.0 );
@@ -274,4 +374,54 @@ ScanLawDialog::estimate()
         }
     }
 }
-        
+
+void
+ScanLawDialog::handleCopyToClipboard()
+{
+	QString selected_text;
+
+    ScanLaw_archive x( acceleratorVoltage(), tDelay() );
+    
+	selected_text.append( QString::number( acceleratorVoltage(), 'e', 14 ) );
+	selected_text.append( '\t' );
+	selected_text.append( QString::number( tDelay(), 'e', 14 ) );
+
+	QMimeData * md = new QMimeData();
+	md->setText( selected_text );
+    
+    std::wostringstream os;
+    try {
+        boost::archive::xml_woarchive ar ( os );
+        ar & boost::serialization::make_nvp( "scanlaw", x );
+        QString xml( QString::fromStdWString( os.str() ) );
+        md->setData( QLatin1String( "application/scanlaw-xml" ), xml.toUtf8() );
+    } catch ( std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( ex );
+    }
+
+	QApplication::clipboard()->setMimeData( md );
+}
+
+void
+ScanLawDialog::handlePaste()
+{
+    auto md = QApplication::clipboard()->mimeData();
+    auto data = md->data( "application/scanlaw-xml" );
+    if ( !data.isEmpty() ) {
+        QString utf8( QString::fromUtf8( data ) );
+        std::wistringstream is( utf8.toStdWString() );
+        boost::archive::xml_wiarchive ar( is );
+        try {
+            ScanLaw_archive x;
+            ar & boost::serialization::make_nvp( "scanlaw", x );
+            int mode = ui->spinBox->value();
+            if ( auto sp = impl_->spectrometer_.lock() )
+                setValues( sp->scanLaw()->fLength( mode ), x.acceleratorVoltage, x.tDelay, mode );
+            else
+                setValues( impl_->tof_->fLength( mode ), x.acceleratorVoltage, x.tDelay, mode );
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( ex );
+        }
+    }
+}
+
