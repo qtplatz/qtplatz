@@ -1,6 +1,6 @@
 #!/bin/bash
 
-arch=`arch`
+arch=`uname`-`arch`
 cwd=`pwd`
 config=release
 source_dir=`pwd`
@@ -67,7 +67,7 @@ for build_dir in ${build_dirs[@]}; do
     if [ -z $cross_target ]; then
 	echo "## Native build for $arch"
 	case $arch in
-	    Darwin)	    
+	    Darwin-*)	    
 		if [ $config=debug ]; then
 		    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
 		else
