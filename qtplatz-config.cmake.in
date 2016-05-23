@@ -52,6 +52,7 @@ set ( Boost_INCLUDE_DIR     "@Boost_INCLUDE_DIR@" )
 set ( Boost_LIBRARY_DIR     "@Boost_LIBRARY_DIR@")
 set ( Boost_USE_STATIC_LIBS "@Boost_USE_STATIC_LIBS@" )
 set ( RDBASE                "@RDBASE@" )
+set ( CMAKE_DEBUG_POSTFIX   "@CMAKE_DEBUG_POSTFIX@" )
 
 add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )

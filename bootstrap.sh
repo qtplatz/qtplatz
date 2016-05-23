@@ -8,7 +8,7 @@ host_system=`uname`
 build_clean=false
 build_package=false
 build_root=..
-generator="-DCMAKE_BUILD_TYPE=Release"
+cmake_args=('-DCMAKE_BUILD_TYPE=Release')
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -35,8 +35,7 @@ if [ -z $cross_target ]; then
 	    source_dirs=("$cwd")
 	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
 	    if [ $config = debug ]; then
-		generator="-G Xcode -DCMAKE_BUILD_TYPE=Debug"
-		#generator="-DCMAKE_BUILD_TYPE=Debug"
+		cmake_args=('-G' 'Xcode' '-DCMAKE_BUILD_TYPE=Debug')
 	    fi
 	    ;;
 	*)
@@ -44,7 +43,7 @@ if [ -z $cross_target ]; then
 	    build_dirs=("$build_root/build-$arch/boost" \
 			    "$build_root/build-$arch/qtplatz.$config" )
 	    if [ $config = debug ]; then
-		generator="-G \"Eclipse CDT4 - Unix Makefiles\" -DCMAKE_ECLIPSE_VERSION=4.5 -DCMAKE_BUILD_TYPE=Debug"
+		cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
 	    fi
 	    ;;
     esac
@@ -82,9 +81,8 @@ for build_dir in ${build_dirs[@]}; do
 
     if [ -z $cross_target ]; then
 
-	echo "## Native build for $arch"
-	echo cmake $generator $source_dir
-	cmake $generator $source_dir
+	echo cmake "${cmake_args[@]}" $source_dir
+	cmake "${cmake_args[@]}" $source_dir
 
     else
 
@@ -94,7 +92,7 @@ for build_dir in ${build_dirs[@]}; do
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
 		      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
-		cp $toolchain_file $build_dir/toolchain.cmake
+		cp $toolchain_file $build_dir/toolchain.cmake 
 		;;
 	    raspi)
 		toolchain_file=$cwd/toolchain-raspi.cmake
