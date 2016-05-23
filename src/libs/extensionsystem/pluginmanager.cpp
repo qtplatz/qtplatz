@@ -34,7 +34,6 @@
 #include "optionsparser.h"
 #include "iplugin.h"
 #include "plugincollection.h"
-
 #include <QCoreApplication>
 #include <QEventLoop>
 #include <QDateTime>

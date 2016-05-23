@@ -1364,18 +1364,23 @@ MSProcessingWnd::compute_count( double s, double e )
                     if ( const double * times = ms.getTimeArray() ) {
                         range.first = std::distance( times, std::lower_bound( times, times + ms.size(), s ) );
                         range.second = std::distance( times, std::lower_bound( times, times + ms.size(), e ) );
+                        while ( ms.getTime( range.second ) > e )
+                        	range.second--;
                         found = true;
                     }
                 }
             } else {
 
-                ADDEBUG() << "mass range: " << ms.getMass( 0 ) << ", " << ms.getMass( ms.size() - 1 );
-
                 if ( ms.getMass( 0 ) <= s && e <= ms.getMass( ms.size() - 1 ) ) {
+
                     if ( const double * masses = ms.getMassArray() ) {
                         range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
                         range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
+                        while ( ms.getMass( range.second ) > e )
+                        	range.second--;
                         found = true;
+                        ADDEBUG() << "mass range  : " << s << ", " << e;
+                        ADDEBUG() << "found masses: " << ms.getMass( range.first ) << ", " << ms.getMass( range.second );
                     }
                 }
             }
@@ -1387,17 +1392,19 @@ MSProcessingWnd::compute_count( double s, double e )
                 const double * data = ms.getIntensityArray();
                 double count = std::accumulate( data + range.first, data + range.second + 1, 0.0 );
                 
-                auto it = std::max( data + range.first, data + range.second + 1 );
-                double apex = ( pImpl_->is_time_axis_ ) ? ms.getTime( std::distance( data, it ) ) : ms.getMass( std::distance( data, it ) );
+                auto maxIdx = std::distance( data, std::max_element( data + range.first, data + range.second + 1 ) );
+
+                double apex = ( pImpl_->is_time_axis_ ) ? ms.getTime( maxIdx ) : ms.getMass( maxIdx );
+                double height = ms.getIntensity( maxIdx );
+
                 char fmt = ( pImpl_->is_time_axis_ ) ? 'e' : 'f';
                 
                 clipboard.append(
-                    QString("#%1\tCount[start,apex,end,N]\t%2\t%3\t%4\t%5\t%6\n").arg(
+                    QString("#%1\tCount[start,m/z|time,height,N]\t%2\t%3\t%4\t%5\n").arg(
                         QString::number( idx )
-                        , QString::number( count )
+                	    , QString::number( count )
+                        , QString::number( height )
                         , QString::number( apex, fmt, 7 )
-                        , QString::number( s, fmt, 7 )
-                        , QString::number( e, fmt, 7 )
                         , QString::number( range.second - range.first + 1 ) )
                     );
             }
