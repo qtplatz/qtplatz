@@ -76,8 +76,8 @@ namespace dataproc {
         void saveScanLaw( const QString& model_name, double flength, double accv, double tdelay, double mass, const QString& );
         bool findScanLaw( const QString& model_name, double& flength, double& accv, double& tdelay, double& mass, QString& );
 
-        void setDataprocessorFactory( std::unique_ptr< DataprocessorFactory >&& );
-        DataprocessorFactory * dataprocessorFactory();
+        // void setDataprocessorFactory( DataprocessorFactory * );
+        // DataprocessorFactory * dataprocessorFactory();
 
         static bool load( const QString& filename, adcontrols::ProcessMethod& );
         static bool save( const QString& filename, const adcontrols::ProcessMethod& );

@@ -585,14 +585,14 @@ dataproc_document::handle_portfolio_created( const QString& filename )
     }
 }
 
-void
-dataproc_document::setDataprocessorFactory( std::unique_ptr< DataprocessorFactory >&& ptr )
-{
-    dataprocFactory_ = std::move(ptr);
-}
+// void
+// dataproc_document::setDataprocessorFactory( std::unique_ptr< DataprocessorFactory >&& ptr )
+// {
+//     dataprocFactory_ = std::move(ptr);
+// }
 
-DataprocessorFactory *
-dataproc_document::dataprocessorFactory()
-{
-    return dataprocFactory_.get();
-}
+// DataprocessorFactory *
+// dataproc_document::dataprocessorFactory()
+// {
+//     return dataprocFactory_.get();
+// }

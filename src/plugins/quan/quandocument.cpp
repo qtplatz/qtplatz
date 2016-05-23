@@ -695,14 +695,16 @@ QuanDocument::load( const boost::filesystem::path& path, adcontrols::ProcessMeth
 {
     if ( path.extension() == ".xml" ) {
 
-        try {
-            boost::filesystem::wifstream is( path );
-            return adcontrols::ProcessMethod::xml_restore( is, pm );
-        } catch ( std::exception& ex ) {
-            ADWARN() << boost::diagnostic_information( ex );
-        }
-
-        return false;
+    	boost::system::error_code ec;
+    	if ( boost::filesystem::exists( path, ec ) ) {
+    		try {
+    			boost::filesystem::wifstream is( path );
+    			return adcontrols::ProcessMethod::xml_restore( is, pm );
+    		} catch ( std::exception& ex ) {
+    			ADWARN() << boost::diagnostic_information( ex );
+    		}
+    	}
+    	return false;
 
     } else  {
 
@@ -730,6 +732,12 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::Proce
 {
     if ( path.extension() == ".xml" ) {
 
+    	boost::system::error_code ec;
+    	if ( boost::filesystem::exists( path, ec ) ) {
+    		boost::filesystem::path backup(path);
+    		backup.replace_extension( ".old.xml" );
+    		boost::filesystem::rename( path, backup, ec );
+    	}
         try {
             boost::filesystem::wofstream os( path );
             return adcontrols::ProcessMethod::xml_archive( os, pm );

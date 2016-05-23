@@ -216,9 +216,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
             ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
-        dataproc_document::instance()->setDataprocessorFactory( std::make_unique< DataprocessorFactory >( this, mTypes ) );
-        
-        addObject( dataproc_document::instance()->dataprocessorFactory() );
+        addAutoReleasedObject( new DataprocessorFactory( this, mTypes ) );
         
     } while ( 0 );
 

@@ -390,6 +390,9 @@ MolTable::handleValueChanged( const QModelIndex& index )
         }
         model_->setData( index, formula.isEmpty() ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole );
         model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts, stdFormula ) );
+
+        if ( model_->index( index.row(), c_abundance ).data( Qt::EditRole ).isNull() )
+            model_->setData( model_->index( index.row(), c_abundance ), 100.0 );
     }
 
     if ( index.column() == c_adducts ) {

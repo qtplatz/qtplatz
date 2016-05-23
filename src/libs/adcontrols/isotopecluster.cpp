@@ -151,10 +151,13 @@ isotopeCluster::operator()( std::vector< isopeak >& mi
     auto maxIt = std::max_element( mol.cluster.begin(), mol.cluster.end()
                                    , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
     double pmax = maxIt->abundance;
-    auto tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
-                                , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 0.001; } );
 
-    std::for_each( mol.cluster.begin(), tail, [&]( const mol::isotope& i ){
+#if 0
+    auto tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
+                                , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-9; } );
+#endif
+
+    std::for_each( mol.cluster.begin(), mol.cluster.end(), [&]( const mol::isotope& i ){
         auto it = std::lower_bound( mi.begin(), mi.end(), i.mass, [idx] ( const isopeak& a, double m ) { return a.mass < m; } );
             mi.insert( it, isopeak( i.mass, i.abundance, idx ) );
         });

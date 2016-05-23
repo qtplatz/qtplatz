@@ -122,7 +122,7 @@ MSSimulatorWidget::setContents( boost::any&& a )
 
         const adcontrols::ProcessMethod& pm = boost::any_cast<adcontrols::ProcessMethod&>( a );
         if ( auto cm = pm.find< adcontrols::MSSimulatorMethod >() ) {
-
+            
             if ( auto form = findChild< MSSimulatorForm * >() ) {
                 form->setContents( *cm );
 
