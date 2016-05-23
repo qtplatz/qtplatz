@@ -74,6 +74,14 @@ else() # Linux
   set( CPACK_SET_DESTDIR ON )
 endif()
 
+if ( WIN32 )
+  set(CMAKE_DEBUG_POSTFIX "d")
+endif()
+
+if ( APPLE )
+  set(CMAKE_DEBUG_POSTFIX "_debug")
+endif()
+
 message( STATUS "---------------------------------" )
 
 if ( WIN32 )
@@ -139,10 +147,6 @@ install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONEN
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_definitions(-DUNICODE -D_UNICODE)
-
-if ( WIN32 )
-  set(CMAKE_DEBUG_POSTFIX "d")
-endif()
 
 message( STATUS "------------ src ----------------" )
 add_subdirectory (src)

@@ -8,6 +8,7 @@ host_system=`uname`
 build_clean=false
 build_package=false
 build_root=..
+generator="-DCMAKE_BUILD_TYPE=Release"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -28,17 +29,23 @@ done
 echo "platform=" $host_system
 echo "config=" $config
 
-
 if [ -z $cross_target ]; then
     case $arch in
 	Darwin-*)
 	    source_dirs=("$cwd")
-	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
+	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
+	    if [ $config = debug ]; then
+		generator="-G Xcode -DCMAKE_BUILD_TYPE=Debug"
+		#generator="-DCMAKE_BUILD_TYPE=Debug"
+	    fi
 	    ;;
 	*)
 	    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
 	    build_dirs=("$build_root/build-$arch/boost" \
-			"$build_root/build-$arch/qtplatz.$config" )
+			    "$build_root/build-$arch/qtplatz.$config" )
+	    if [ $config = debug ]; then
+		generator="-G \"Eclipse CDT4 - Unix Makefiles\" -DCMAKE_ECLIPSE_VERSION=4.5 -DCMAKE_BUILD_TYPE=Debug"
+	    fi
 	    ;;
     esac
 else
@@ -74,29 +81,13 @@ for build_dir in ${build_dirs[@]}; do
     echo "#" pwd `pwd`
 
     if [ -z $cross_target ]; then
+
 	echo "## Native build for $arch"
-	case $arch in
-	    Darwin-*)	    
-		if [ $config = debug ]; then
-		    echo cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
-		    cmake -G Xcode -DCMAKE_BUILD_TYPE=Debug $source_dir
-		else
-		    echo cmake -DCMAKE_BUILD_TYPE=Release $source_dir
-		    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
-		fi
-		;;
-	    *)
-		if [ $config=debug ]; then
-		    cmake -G "Eclipse CDT4 - Unix Makefiles" \
-			  -DCMAKE_ECLIPSE_VERSION=4.5 \
-			  -DCMAKE_BUILD_TYPE=Debug $source_dir
-		else
-		    echo `pwd`
-		    cmake -DCMAKE_BUILD_TYPE=Release $source_dir
-		    fi
-		;;
-	esac
+	echo cmake $generator $source_dir
+	cmake $generator $source_dir
+
     else
+
 	echo "## Cross build for $arch"
 	case $cross_target in
 	    helio|armv7l|de0-nano-soc|arm-linux-gnueabihf)
