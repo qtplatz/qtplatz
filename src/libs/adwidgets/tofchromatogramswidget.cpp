@@ -81,9 +81,11 @@ namespace adwidgets {
         }
 
         ~impl() {
-            auto db = QSqlDatabase::database( connString_ );
+        	model_.reset();
+            auto db = QSqlDatabase::database( connString_, false );
             if ( db.isValid() ) {
                 db.close();
+                db = QSqlDatabase(); // reset db reference
                 QSqlDatabase::removeDatabase( connString_ );
             }
         }
