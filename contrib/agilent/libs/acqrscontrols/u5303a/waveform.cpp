@@ -536,8 +536,15 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mas
 {
     if ( translate( sp, waveform, scale ) ) {
 
-        return sp.assign_masses( assign );
+        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        const auto& sinfo = prop.samplingInfo();
 
+        double lMass = assign( sinfo.fSampDelay(), prop.mode() );
+        double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+
+        sp.setAcquisitionMassRange( lMass, hMass );
+        
+        return sp.assign_masses( assign );
     }
 
     return false;
@@ -547,6 +554,14 @@ bool
 waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, mass_assignor_t assign, int scale )
 {
     if ( translate( sp, result, scale ) ) {
+
+        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        const auto& sinfo = prop.samplingInfo();
+        
+        double lMass = assign( sinfo.fSampDelay(), prop.mode() );
+        double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+        
+        sp.setAcquisitionMassRange( lMass, hMass );
 
         return sp.assign_masses( assign );
 

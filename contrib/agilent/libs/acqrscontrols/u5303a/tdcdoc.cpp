@@ -87,13 +87,16 @@ namespace acqrscontrols {
                                   , tdcdoc::mass_assignee_t assignee ) const {
                 
                 if ( !v.empty() && v[ 0 ] ) {
-                    
+
                     adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ], assignee );
 
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
+
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();
+
                         if ( auto& hgrm = v[ proto ] )
                             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
+
                         ms << std::move(sp);
                     }
                 }
@@ -470,7 +473,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
                 counts.second++;
             
             if ( methods[ i ] && methods[ i ]->enable ) {
-
+                
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );

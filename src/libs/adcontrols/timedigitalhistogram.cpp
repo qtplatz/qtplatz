@@ -414,8 +414,15 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
                                  , mass_assignor_t mass_assignee )
 {
     if ( translate( sp, hgrm ) ) {
-        sp.assign_masses( mass_assignee );
-        return true;
+        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        const auto& sinfo = prop.samplingInfo();
+        
+        double lMass = mass_assignee( sinfo.fSampDelay(), prop.mode() );
+        double hMass = mass_assignee( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+        
+        sp.setAcquisitionMassRange( lMass, hMass );
+
+        return sp.assign_masses( mass_assignee );
     }
     return false;
 }

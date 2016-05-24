@@ -1258,10 +1258,12 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
 MassSpectrum&
 MassSpectrum::operator << ( std::shared_ptr< MassSpectrum >&& ms )
 {
-    // auto it = std::lower_bound( pImpl_->vec_.begin(), pImpl_->vec_.end(), ms->protocolId()
-    //                             , [] ( const std::shared_ptr< MassSpectrum >& a, int32_t b ) { return a->protocolId() < b; } );
-    //pImpl_->vec_.emplace( it, ms );
+    auto range = ms->getAcquisitionMassRange();
     pImpl_->vec_.emplace_back( ms );
+
+    pImpl_->acqRange_.first = std::min( range.first, pImpl_->acqRange_.first );
+    pImpl_->acqRange_.second = std::max( range.second, pImpl_->acqRange_.second );
+    
     return *this;
 }
 
