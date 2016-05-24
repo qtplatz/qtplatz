@@ -17,6 +17,8 @@ add_library( adportable
   dgprotocol.hpp
   fft.cpp
   http_client.cpp
+  histogram_processor.cpp
+  histogram_processor.hpp
   lifecycleframe.cpp
   mblock.hpp
   mslockref.cpp  

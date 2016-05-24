@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
@@ -35,6 +35,7 @@
 #include "mspeakinfo.hpp"
 #include "samplinginfo.hpp"
 #include "waveform_filter.hpp"
+#include <adportable/histogram_processor.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/moment.hpp>
@@ -69,6 +70,7 @@ namespace adcontrols {
             const CentroidMethod& method() const { return method_; }
             void findpeaks( const MassSpectrum& profile );
             void findpeaks_by_time( const MassSpectrum& profile );
+            void findCluster( const MassSpectrum& );
 
             friend class CentroidProcess;
             MSPeakInfo info_;
@@ -121,12 +123,22 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 {
     pImpl_->clear();
 	pImpl_->setup( profile );
+
     if ( profile.size() == 0 )
         return false;
-    if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.getMass( 0 ) - profile.getMass( profile.size() - 1 ) ) < 0.001 ) {
-        pImpl_->findpeaks_by_time( profile );
+
+    if ( profile.isCentroid() ) {
+        // assume this is a histogram by counting (discreate time,mass,count array)
+        pImpl_->findCluster( profile );
+        
     } else {
-        pImpl_->findpeaks( profile );
+    
+        if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.getMass( 0 ) - profile.getMass( profile.size() - 1 ) ) < 0.001 ) {
+            pImpl_->findpeaks_by_time( profile );
+        } else {
+            pImpl_->findpeaks( profile );
+        }
+
     }
     return true;
 }
@@ -408,5 +420,79 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
         toferror /= toferror_weight;    
         if ( toferror >= 20.0e-12 ) // warning if error was 20ps or larger
             adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
+    }
+}
+
+void
+CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
+{
+    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval() );
+
+    const double * pCounts = histogram.getIntensityArray();
+    const double * pTimes = histogram.getTimeArray();
+    const double * pMasses = histogram.getMassArray();
+
+    if ( finder( histogram.size(), pTimes, pCounts ) ) {
+        
+        info_.mode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+        info_.protocol( histogram.protocolId(), histogram.nProtocols() );
+        
+        for ( adportable::peakinfo& pk: finder.results_ ) {
+            
+            MSPeakInfoItem item;
+            
+            auto it = std::max_element( pCounts + pk.first, pCounts + pk.second );
+            
+            item.height_ = *it;
+            size_t idx = std::distance( pCounts, it );
+            double threshold = item.height_ * method_.peakCentroidFraction();
+            
+            struct xfunctor {
+                const double * pData_;
+                xfunctor( const double * pData ) : pData_( pData ) {}
+                double operator () ( int pos ) { return pData_[ pos ]; }
+            };
+            
+            // centroid by mass
+            if ( pMasses && pMasses[ 0 ] > 1.0 ) {
+                xfunctor functor( pMasses );
+                adportable::Moment< xfunctor > moment( functor );
+                item.mass_ = moment.centreX( pCounts, threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
+                item.peak_start_index_ = pk.first;
+                item.peak_end_index_ = pk.second;
+                item.base_height_ = 0;
+                item.centroid_left_mass_ = moment.xLeft();
+                item.centroid_right_mass_ = moment.xRight();
+                item.centroid_threshold_ = threshold;
+                item.HH_left_mass_ = moment.xLeft();
+                item.HH_right_mass_ = moment.xRight();
+            }
+
+            // centroid by time
+            if ( pTimes && ( ( pTimes[ 1 ] - pTimes[ 0 ] ) > 10.0e-12 /* 10ps */ ) ) {
+                xfunctor functor( pTimes );
+                adportable::Moment< xfunctor > moment( functor );
+                double time = moment.centreX( pCounts, threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
+                item.time_from_time_ = time;
+                item.time_from_mass_ = time; // workaround since no way to compute time from mass, which is descreate
+                item.centroid_left_time_  = moment.xLeft();
+                item.centroid_right_time_ = moment.xRight();
+                item.centroid_threshold_  = threshold;
+                item.HH_left_time_        = moment.xLeft();
+                item.HH_right_time_       = moment.xRight();
+            }
+            
+            double counts(0);
+            for ( auto i = pk.first; i < pk.second; ++i ) {
+                if ( pTimes[ i ] >= item.centroid_left_time_ && pTimes[ i ] <= item.centroid_right_time_ )
+                    counts += pCounts[ i ];
+            }
+            item.area_ = counts;
+            
+            item.set_peak_start_index( uint32_t(pk.first) );
+            item.set_peak_end_index( uint32_t(pk.second) );
+            info_ << item;
+
+        } // for
     }
 }
