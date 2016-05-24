@@ -128,7 +128,7 @@ namespace adwidgets {
             break;
         case c_mspeaktable_relative_intensity:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_relative_intensity ), Qt::EditRole ).toString().isEmpty() )
-                drawDisplay( painter, op, option.rect, (boost::format( "%.2lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
+                drawDisplay( painter, op, option.rect, (boost::format( "%.4lf" ) % (index.data( Qt::EditRole ).toDouble())).str().c_str() );
             break;
         case c_mspeaktable_formula:
             do { 
@@ -430,7 +430,16 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
     model.setRowCount( static_cast< int >( info.total_size() ) );
 
+    typedef adcontrols::MSPeakInfoItem MSPeakInfoItem;
+
     adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > segs( info ); // adcontrols::MSPeakInfo
+
+    double iSum(0), iSumAssigned( 0 );
+    for ( auto& pkinfo: segs ) {
+        iSum += std::accumulate( pkinfo.begin(), pkinfo.end(), 0.0, []( double b, const MSPeakInfoItem& a ){ return b + a.area(); } );
+        iSumAssigned += std::accumulate( pkinfo.begin(), pkinfo.end(), 0.0, []( double b, const MSPeakInfoItem& a ){
+                return a.formula().empty() ? b : b + a.area(); });
+    }        
 	
     int row = 0;
     int fcn = 0;
@@ -478,7 +487,12 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
         total_size += t.size();
 
     model.setRowCount( static_cast< int >( total_size ) );
-	
+
+    double maxIntensity = 0;
+    for ( auto& ms: segs )
+        maxIntensity = std::max( ms.getMaxIntensity(), maxIntensity );
+
+    bool hasFormula( false );
     int row = 0;
     int fcn = 0;
     for ( auto& fms: segs ) {
@@ -506,7 +520,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_mass ), mass );
             model.setData( model.index( row, c_mspeaktable_intensity ), fms.getIntensity( idx ) );
 
-            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (fms.getIntensity( idx ) * 100 ) / fms.getMaxIntensity() );
+            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (fms.getIntensity( idx ) * 100 ) / maxIntensity );
 
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
@@ -519,6 +533,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
                 } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                     model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
                     model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
+                    hasFormula = true;
                 } else if ( it->dataFormat() == adcontrols::annotation::dataSmiles ) {
                     // todo, smiles, MOL, SVG
                 }
@@ -528,6 +543,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
         }
         ++fcn;
     }
+    
+    if ( hasFormula )
+        hideRows();
 
     resizeColumnsToContents();
     resizeRowsToContents();
@@ -640,6 +658,7 @@ MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
                 for ( int row = 0; row < model.rowCount(); ++row )
                     model.setData( model.index( row, c_mspeaktable_relative_intensity )
                                      , model.index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
+
                 resizeColumnsToContents();
                 resizeRowsToContents();
                 setUpdatesEnabled( true );
