@@ -26,6 +26,7 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 
 namespace adportable {
 
@@ -50,20 +51,20 @@ namespace adportable {
     /////////////////////////////////////////////////////
 
     template<class Fx> class Moment {
-        Fx& fx_;
+        std::function< double( int pos ) > fx_;
         double Xl;
         double Xr;
     public:
-        Moment( Fx& f ) : fx_(f) {}
-
+        Moment( std::function< double( int pos ) > fx ) : fx_( fx ) {}
+        
         inline double xLeft() const { return Xl; }
         inline double xRight() const { return Xr; }
 
         double width( const double * py, double threshold, uint32_t spos, uint32_t tpos, size_t epos ) {
             int xL = left_bound<double>( py, threshold, tpos, spos );
             int xR = right_bound<double>( py, threshold, tpos, epos );
-            Xl = left_intersection( py, xL, threshold );
-            Xr = right_intersection( py, xR, threshold );
+            Xl = left_intersection( py, xL, spos, threshold );
+            Xr = right_intersection( py, xR, epos, threshold );
             return Xr - Xl;
         }
 
@@ -71,8 +72,8 @@ namespace adportable {
 
             int xL = left_bound<double>( py, threshold, tpos, spos );
             int xR = right_bound<double>( py, threshold, tpos, epos );
-            Xl = left_intersection( py, xL, threshold );
-            Xr = right_intersection( py, xR, threshold );
+            Xl = left_intersection( py, xL, spos, threshold );
+            Xr = right_intersection( py, xR, epos, threshold );
 
             double x0 = fx_( xL - 1 );
             double ma = 0;
@@ -131,22 +132,18 @@ namespace adportable {
         };
 
     private:
-        double left_intersection( const double * py, unsigned int x, double threshold ) const {
-            if ( py[x - 1] >= threshold ) {
-                return fx_( x - 1 );
-            } else if ( py[x] < threshold ) {  // should not be here, it's a bug
-                return fx_( x );
-            }
-            return fx_( x - 1 ) + ( fx_( x ) - fx_( x - 1 ) ) * (threshold - py[x - 1]) / (py[ x ] - py[ x - 1 ]);
+        double left_intersection( const double * py, uint32_t x, uint32_t llimit, double threshold ) const {
+            if ( x <= llimit )
+                return fx_( x ); // no more data on left
+            // interporation between x and x - 1
+            return fx_( x - 1 ) + ( fx_( x ) - fx_( x - 1 ) ) * ( threshold - py[x - 1] ) / ( py[ x ] - py[ x - 1 ] );
         };
 
-        double right_intersection( const double * py, unsigned int x, double threshold ) const {
-            if ( py[x + 1] >= threshold ) {
-                return fx_( x + 1 );
-            } else if ( py[x] < threshold ) {  // should not be here, it's a bug
+        double right_intersection( const double * py, uint32_t x, uint32_t rlimit, double threshold ) const {
+            if ( x >= rlimit )  // no more data on right
                 return fx_( x );
-            }
-            return fx_( x ) + (double)( fx_(x + 1) - fx_(x)) * (py[x] - threshold) / (double)(py[x] - py[x + 1]);
+            // interporation between x and x + 1
+            return fx_( x ) + ( fx_( x + 1 ) - fx_( x ) ) * ( py[ x ] - threshold ) / ( py[ x ] - py[ x + 1 ] );
         };
 
         template<typename T> static int left_bound( const T* py, const T threshold, size_t tpos, size_t spos ) {

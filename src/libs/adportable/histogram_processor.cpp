@@ -93,7 +93,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
             while ( ( distance( idx, idx + 1 ) == 1 ) && ( idx < nbrSamples - 1 ) )
                 ++idx;
 
-            auto last = idx - 1;
+            auto last = idx;
 
             if ( ( last - first + 1 ) >= 3 )
                 clusters.emplace_back( first, idx );

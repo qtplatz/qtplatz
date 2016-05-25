@@ -483,7 +483,7 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
             }
             
             double counts(0);
-            for ( auto i = pk.first; i < pk.second; ++i ) {
+            for ( auto i = pk.first; i <= pk.second; ++i ) {
                 if ( pTimes[ i ] >= item.centroid_left_time_ && pTimes[ i ] <= item.centroid_right_time_ )
                     counts += pCounts[ i ];
             }
