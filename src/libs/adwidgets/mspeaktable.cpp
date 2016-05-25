@@ -394,6 +394,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
     if ( candidates.empty() )
         return;
 
+    size_t matchCount(0);
+
     for ( int row = 0; row < model.rowCount(); ++row ) {
         int idx = model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt();
         int fcn = model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt();
@@ -407,6 +409,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             model.setData( model.index( row, c_mspeaktable_description ), tr( "Target candidate" ) );
 
             setRowHidden( row, false );
+            matchCount++;
         }
     }
     if ( impl_->data_source_.which() == 1 ) {
@@ -419,6 +422,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
         }
     }
 
+    if ( matchCount )
+        hideRows();
 }
 
 void
