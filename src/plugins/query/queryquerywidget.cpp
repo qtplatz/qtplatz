@@ -107,11 +107,14 @@ QueryQueryWidget::handleConnectionChanged()
             auto query = conn->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
             while ( query.next() )
                 tables.push_back( query.value( 1 ).toString() );
+            tables.push_back( "sqlite_master" );
+
             form->setTableList( tables );
 
             query = conn->sqlQuery( "SELECT * FROM AcquiredConf" );
             while ( query.next() )
                 sublist.push_back( query.value( 0 ).toString() );
+
             form->setSubList( sublist );
         }
     }

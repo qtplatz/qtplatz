@@ -217,8 +217,25 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 }
             }
 
-            // todo: find spectrometer iid, assing acclVoltage to massspectrometer class
-            if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) ) 
+            // workaround for Sep. to Dec., 2015 data file
+            // find if protocol override exist
+            {
+                std::vector< std::pair< int, double > > protocols;
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT  mode, ext_adc_delay from PROTOCOL_OVERRIDE ORDER BY id" );
+                while ( sql.step() == adfs::sqlite_row ) {
+                    int mode = int( sql.get_column_value< uint64_t >( 0 ) );
+                    double delay = sql.get_column_value< double >( 1 );
+                    protocols.emplace_back( mode, delay );
+                }
+                if ( ! protocols.empty() ) {
+                    if ( auto ip = dynamic_cast< acqrsinterpreter::DataInterpreter * >( interpreter_.get() ) )
+                        ip->setWorkaroundProtocols( protocols );
+                }
+            }
+            // end workaround
+
+            if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
                 spectrometer_->setAcceleratorVoltage( acclVoltage, tDelay );
 
         }

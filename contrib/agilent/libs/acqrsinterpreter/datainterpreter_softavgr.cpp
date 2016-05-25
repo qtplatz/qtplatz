@@ -57,6 +57,16 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
 
         if ( waveform.deserialize_xmeta( meta, msize ) && waveform.deserialize_xdata( data, dsize ) ) {
 
+            // workaround
+            if ( ! op_.empty() ) {
+            	if ( waveform.method_.protocols().empty() )
+            		waveform.method_.protocols().resize( 1 );
+            	auto& this_protocol = waveform.method_.protocols()[0];
+            	this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first = op_[0].second;
+            	this_protocol.setMode( op_[0].first );
+            }
+            // <- end workaround
+
             if ( acqrscontrols::u5303a::waveform::translate( ms, waveform, 1000 ) ) {
 
                 return adcontrols::translate_complete;

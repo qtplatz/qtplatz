@@ -68,6 +68,12 @@ namespace acqrsinterpreter {
         virtual adcontrols::translate_state
         translate( waveform_types&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
 
+        // workaround
+        virtual void setWorkaroundProtocols( const std::vector< std::pair< int, double > >& p ) { op_ = p; }
+
+    protected:
+        std::vector< std::pair< int, double > > op_;
+        
     private:
         void * _narrow_workaround( const char * typname ) override {
             if ( std::strcmp( typname, typeid( *this ).name() ) == 0 )
