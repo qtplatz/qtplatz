@@ -1353,36 +1353,25 @@ MSProcessingWnd::compute_count( double s, double e )
             std::pair< size_t, size_t > range = { 0, 0 };
 
             if ( pImpl_->is_time_axis_ ) {
+
                 s = scale_to_base( s, micro );
                 e = scale_to_base( e, micro );
-
-                ADDEBUG() << "time range: " << prop.samplingInfo().delayTime() << ", " 
-                          << ( prop.samplingInfo().nSamples() * prop.samplingInfo().fSampInterval() );
-                
-                if ( prop.samplingInfo().delayTime() <= s &&
-                     e <= prop.samplingInfo().delayTime() + ( prop.samplingInfo().nSamples() * prop.samplingInfo().fSampInterval() ) ) {
-                    if ( const double * times = ms.getTimeArray() ) {
-                        range.first = std::distance( times, std::lower_bound( times, times + ms.size(), s ) );
-                        range.second = std::distance( times, std::lower_bound( times, times + ms.size(), e ) );
-                        while ( ms.getTime( range.second ) > e )
-                        	range.second--;
-                        found = true;
-                    }
+                if ( ms.getTime( 0 ) <= e && ms.getTime( ms.size() - 1 ) >= s ) {
+                	if ( const double * times = ms.getTimeArray() ) {
+                		range.first = std::distance( times, std::lower_bound( times, times + ms.size(), s));
+                		range.second = std::distance( times, std::lower_bound( times, times + ms.size(), e));
+                		found = true;
+                	}
                 }
+
             } else {
-
-                if ( ms.getMass( 0 ) <= s && e <= ms.getMass( ms.size() - 1 ) ) {
-
-                    if ( const double * masses = ms.getMassArray() ) {
-                        range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
-                        range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
-                        while ( ms.getMass( range.second ) > e )
-                        	range.second--;
-                        found = true;
-                        ADDEBUG() << "mass range  : " << s << ", " << e;
-                        ADDEBUG() << "found masses: " << ms.getMass( range.first ) << ", " << ms.getMass( range.second );
-                    }
-                }
+            	if ( ms.getMass( 0 ) <= e && ms.getMass( ms.size() - 1 ) >= s ) {
+            		if ( const double * masses = ms.getMassArray() ) {
+            			range.first = std::distance( masses, std::lower_bound( masses, masses + ms.size(), s ) );
+            			range.second = std::distance( masses, std::lower_bound( masses, masses + ms.size(), e ) );
+            			found = true;
+            		}
+            	}
             }
             
             if ( found ) {
@@ -1390,9 +1379,9 @@ MSProcessingWnd::compute_count( double s, double e )
                 ADDEBUG() << "data range: " << range.first << ", " << range.second;
                 
                 const double * data = ms.getIntensityArray();
-                double count = std::accumulate( data + range.first, data + range.second + 1, 0.0 );
+                double count = std::accumulate( data + range.first, data + range.second, 0.0 );
                 
-                auto maxIdx = std::distance( data, std::max_element( data + range.first, data + range.second + 1 ) );
+                auto maxIdx = std::distance( data, std::max_element( data + range.first, data + range.second ) );
 
                 double apex = ( pImpl_->is_time_axis_ ) ? ms.getTime( maxIdx ) : ms.getMass( maxIdx );
                 double height = ms.getIntensity( maxIdx );
@@ -1400,12 +1389,12 @@ MSProcessingWnd::compute_count( double s, double e )
                 char fmt = ( pImpl_->is_time_axis_ ) ? 'e' : 'f';
                 
                 clipboard.append(
-                    QString("#%1\tCount[start,m/z|time,height,N]\t%2\t%3\t%4\t%5\n").arg(
+                    QString("#%1\tCount,height,apex(m/z|time),N\t%2\t%3\t%4\t%5\n").arg(
                         QString::number( idx )
                 	    , QString::number( count )
                         , QString::number( height )
                         , QString::number( apex, fmt, 7 )
-                        , QString::number( range.second - range.first + 1 ) )
+                        , QString::number( range.second - range.first ) )
                     );
             }
             ++idx;
