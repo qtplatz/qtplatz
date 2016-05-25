@@ -114,7 +114,7 @@ ScanLawDialog::ScanLawDialog(QWidget *parent) : QDialog(parent)
                                               , impl_( new impl() )
 {
     ui->setupUi(this);
-    ui->doubleSpinBox_4->setValue( 609.2 );
+    //ui->doubleSpinBox_4->setValue( 609.2 );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
 

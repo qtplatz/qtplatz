@@ -24,6 +24,7 @@
 
 #include "datainterpreter_histogram.hpp"
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
@@ -51,15 +52,15 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
     if ( dsize > 0 ) {
 
         adcontrols::TimeDigitalHistogram histogram;
-        
 
         boost::iostreams::basic_array_source< char > source( data, dsize );
         boost::iostreams::stream< boost::iostreams::basic_array_source< char > > is( source );
 
+        const adcontrols::ScanLaw * scanlaw = spectrometer.scanLaw();
+
         if ( adcontrols::TimeDigitalHistogram::restore( is, histogram ) ) {
 
-            if ( adcontrols::TimeDigitalHistogram::translate( ms, histogram, [=](double t, int m){ return 0; } ) ) {
-                spectrometer.assignMasses( ms );
+            if ( adcontrols::TimeDigitalHistogram::translate( ms, histogram, [&](double t, int m){ return scanlaw->getMass(t,m); } ) ) {
                 return adcontrols::translate_complete;
 
             }

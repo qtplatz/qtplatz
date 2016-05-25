@@ -514,6 +514,8 @@ Integrator::impl::pkfind( long pos, double df1, double )
 void
 Integrator::impl::assign_vallay( size_t pos, size_t ld )
 {
+	if ( ld > pos || rdata_.v_.size() <= pos || rdata_.v_.size() <= ld )
+		return;
     auto it = std::min_element( rdata_.v_.begin() + ld, rdata_.v_.begin() + pos );
     auto vallay = std::distance( rdata_.v_.begin(), it );
     stack_.push( PEAKSTACK( PKVAL, long( vallay ), *it ) );
@@ -523,6 +525,8 @@ Integrator::impl::assign_vallay( size_t pos, size_t ld )
 void
 Integrator::impl::assign_pktop( size_t pos, size_t uppos )
 {
+	if ( uppos > pos || rdata_.v_.size() <= pos || rdata_.v_.size() <= uppos )
+		return;
     auto it = std::max_element( rdata_.v_.begin() + uppos, rdata_.v_.begin() + pos );
     auto apex = std::distance( rdata_.v_.begin(), it );
     stack_.push( PEAKSTACK( PKTOP, long( apex ), *it ) );
