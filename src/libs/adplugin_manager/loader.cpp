@@ -84,6 +84,12 @@ loader::populate( const wchar_t * topdir )
                             if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
                                 break;
                             } else {
+#if defined __APPLE__
+                                // somewhat 'DEBUG' can't define on apple with Xcode
+                                QLibrary lib( libname + "_debug" );
+                                if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
+                                    break;
+#endif
                                 ADDEBUG() << "## failed to load: " << libname.toStdString()
                                           << "\n\t" << lib.errorString().toStdString();
                             }
