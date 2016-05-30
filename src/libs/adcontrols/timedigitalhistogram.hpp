@@ -31,6 +31,7 @@
 #include <cstdint>
 #include <iostream>
 #include <compiler/pragma_warning.hpp>
+#include <functional>
 
 namespace boost {
     namespace serialization { class access; }
