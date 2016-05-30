@@ -27,14 +27,11 @@
 
 #if __APPLE__
 # define HAS_MAKE_UNIQUE 1
-#endif
-#if defined _MSC_VER && _MSC_VER >= 1900
+#elif defined _MSC_VER && _MSC_VER >= 1900
 #  define HAS_MAKE_UNIQUE 1
-#endif
-#if __GNUC__ <= 4 && __GNUC_MINOR__ <= 8
+#elif __GNUC__ <= 4 && __GNUC_MINOR__ <= 8
 #  define HAS_MAKE_UNIQUE 0
-#endif
-#if   __cplusplus >= 201103L 
+#elif  __cplusplus >= 201103L 
 #  define HAS_MAKE_UNIQUE 1
 #endif
 
