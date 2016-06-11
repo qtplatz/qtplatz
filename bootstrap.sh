@@ -91,7 +91,7 @@ for build_dir in ${build_dirs[@]}; do
 	    helio|armv7l|de0-nano-soc|arm-linux-gnueabihf)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
-		      -DQTPLATZ_CORELIB_ONLY=1 $source_dir
+		      -DQTPLATZ_CORELIB_ONLY=ON $source_dir
 		cp $toolchain_file $build_dir/toolchain.cmake 
 		;;
 	    raspi)
