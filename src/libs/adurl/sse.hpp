@@ -41,7 +41,7 @@ namespace adurl {
         ~sse();
         sse( const char * server = "dg-httpd", const char * path = "/dg/ctl?events" );
         
-        void run( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
+        void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
         void stop();
 
     private:

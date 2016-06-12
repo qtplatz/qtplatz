@@ -139,7 +139,7 @@ main( int argc, char* argv[] )
 
             adurl::sse sse( host.c_str(), "/dg/ctl?events" );
 
-            sse.run( [] ( const char * event, const char * data ) {
+            sse.exec( [] ( const char * event, const char * data ) {
                     std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
                 });
 

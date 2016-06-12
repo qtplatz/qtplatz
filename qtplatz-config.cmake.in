@@ -66,10 +66,11 @@ add_library( adlog SHARED IMPORTED )
 add_library( adplugin SHARED IMPORTED )
 add_library( adplugin_manager SHARED IMPORTED )
 add_library( adorbmgr SHARED IMPORTED )
-add_library( adsequence SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
 add_library( adprot SHARED IMPORTED )
+add_library( adurl  SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
+add_library( adsequence SHARED IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( u5303a SHARED IMPORTED )
@@ -136,14 +137,6 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adorbmgr.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adorbmgrd.lib )
 
-  set_target_properties( adsequence PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
-
-  set_target_properties( adsequence PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
-
   set_target_properties( adplot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplot.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplotd.lib )
@@ -151,6 +144,14 @@ if (WIN32)
   set_target_properties( adprot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adprot.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adprotd.lib )
+
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adsequence.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adsequenced.lib )
+
+  set_target_properties( adurl PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adurl.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adurl.lib )  
   
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
@@ -219,18 +220,18 @@ elseif ( APPLE )
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.dylib )
 
-  set_target_properties( adsequence PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.dylib )
-
-  set_target_properties( adsequence PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.dylib )
-
   set_target_properties( adplot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.dylib )
 
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.dylib )
 
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.dylib )
+
+  set_target_properties( adurl PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl.dylib )
+  
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.dylib )
 
@@ -285,18 +286,18 @@ else()  #Linux
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.so )
 
-  set_target_properties( adsequence PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.so )
-
-  set_target_properties( adsequence PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.so )
-
   set_target_properties( adplot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.so )
 
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.so )
 
+  set_target_properties( adsequence PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadsequence.so )
+
+  set_target_properties( adurl PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl.so )
+  
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.so )
 

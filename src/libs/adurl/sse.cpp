@@ -112,7 +112,7 @@ sse::sse( const char * server, const char * path ) // : impl_( new impl( server,
 }
 
 void
-sse::run( std::function< void( const char *, const char * ) > callback )
+sse::exec( std::function< void( const char *, const char * ) > callback )
 {
     impl_->callback_ = callback;
     impl_->threads_.emplace_back( [&](){ impl_->io_service_.run(); } );
