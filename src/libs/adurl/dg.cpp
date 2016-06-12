@@ -113,6 +113,8 @@ dg::fetch( adportable::dg::protocols<adportable::dg::protocol<> >& p )
         return p.read_json( is, p );
 
     }
+
+    return false;
 }
 
 bool
@@ -124,13 +126,14 @@ dg::fetch( std::string& json )
 
     io_service.run();
 
+    if ( adurl::client::debug_mode ) {
+        std::cerr << "-----------------------------------" << std::endl;
+        std::cerr << &c.response_header();
+        std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
+        std::cerr << "-----------------------------------" << std::endl;
+    }
+
     if ( c.error() == adurl::client::NoError ) {
-        if ( adurl::client::debug_mode ) {
-            std::cerr << "-----------------------------------" << std::endl;
-            std::cerr << &c.response_header();
-            std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
-            std::cerr << "-----------------------------------" << std::endl;
-        }
         auto bufs = c.response().data();
         json = std::string( boost::asio::buffers_begin( bufs ), boost::asio::buffers_begin( bufs ) + c.response().size() );
     }
