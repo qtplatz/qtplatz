@@ -79,11 +79,15 @@ client::client(boost::asio::io_service& io_service
     request_stream << "Connection: close\r\n\r\n";
 
     tcp::resolver::query query = make_query( server );
-
+#if 0
+    // due to this makes annoy 'new thread' message on debugger
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
                                  handle_resolve( err, endpoint_iterator );
                              });
+#else
+    handle_resolve( boost::system::error_code(), resolver_.resolve( query ) );
+#endif
 }
 
 client::client(boost::asio::io_service& io_service
