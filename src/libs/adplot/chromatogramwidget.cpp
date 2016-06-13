@@ -49,6 +49,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/variant.hpp>
@@ -102,7 +103,6 @@ namespace adplot {
                         const double * times = ptr->getTimeArray();
                         const double * intens = ptr->getIntensityArray();
                         return QPointF( times[ idx ], intens[ idx ] );
-                        //return QPointF( Chromatogram::toMinutes( times[ idx ] ), intens[ idx ] );
                     }
                 }
                 return QPointF();
@@ -128,7 +128,6 @@ namespace adplot {
 
             QPointF sample( size_t idx ) const override { 
                 return QPointF( t_.x(idx), t_.y(idx) );
-                //return QPointF( adcontrols::Chromatogram::toMinutes( t_.x(idx) ), t_.y(idx) );
             }
             
             virtual QRectF boundingRect() const override { return rect_; }
@@ -387,12 +386,15 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
         auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
 
         auto rc = std::accumulate( impl_->traces_.begin(), impl_->traces_.end(), QRectF {}, [&] ( const QRectF& a, const trace_variant& b ) {
-            QRectF rect( boost::apply_visitor( boundingRect_visitor(), b ) );
-            if ( boost::apply_visitor( yAxis_visitor(), b ) == yAxis ) {
-                return a | rect; // this flips y-coodinate upside down when negative height
-            } else 
-                return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
-        } );
+                QRectF rect( boost::apply_visitor( boundingRect_visitor(), b ) );
+                if ( boost::apply_visitor( yAxis_visitor(), b ) == yAxis ) {
+                    return a | rect; // this flips y-coodinate upside down when negative height
+                } else 
+                    return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
+            } );
+
+        if ( adportable::compare<double>::essentiallyEqual( rc.height(), 0.0 ) )
+            rc.setHeight( 1.0 );
 
         setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
         setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale 
