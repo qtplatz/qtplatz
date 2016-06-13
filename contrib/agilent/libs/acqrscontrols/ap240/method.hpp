@@ -27,6 +27,7 @@
 #include "../acqrscontrols_global.hpp"
 #include <adcontrols/threshold_action.hpp>
 #include <adcontrols/threshold_method.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
@@ -40,7 +41,7 @@ namespace boost { namespace uuids { struct uuid; } }
 namespace acqrscontrols {
     namespace ap240 {
 
-        namespace ap240x = acqrscontrols::ap240;
+        template< typename T >  class method_archive;
 
         struct ACQRSCONTROLSSHARED_EXPORT trigger_method {
             uint32_t trigClass;
@@ -123,12 +124,25 @@ namespace acqrscontrols {
             adcontrols::threshold_method slope2_;
             adcontrols::threshold_action action_;
 
+            uint32_t protocolIndex() const;
+            bool setProtocolIndex( uint32_t, bool modifyDeviceMethod );
+
+            std::vector< adcontrols::TofProtocol >& protocols();
+            const std::vector< adcontrols::TofProtocol >& protocols() const;
+
             static bool archive( std::ostream&, const method& );
             static bool restore( std::istream&, method& );
             static bool xml_archive( std::wostream&, const method& );
             static bool xml_restore( std::wistream&, method& );
 
         private:
+            // 2016-JUN-13 added for u5303a compatibility
+            uint32_t protocolIndex_;
+            std::vector< adcontrols::TofProtocol > protocols_;
+
+            friend class method_archive< method >;
+            friend class method_archive< const method >;
+
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
@@ -136,4 +150,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::ap240::method, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::ap240::method, 2 )

@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adcontrols/threshold_action.hpp>
+#include <adcontrols/tofprotocol.hpp>
 
 namespace acqrscontrols {
 

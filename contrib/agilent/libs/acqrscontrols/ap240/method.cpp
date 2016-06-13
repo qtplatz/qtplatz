@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -43,6 +43,8 @@ method::clsid()
 }
 
 method::method() : channels_( 0x01 )
+                 , protocolIndex_( 0 )
+                 , protocols_( 1 ) // at least one protocol data should be exist
 {
 }
 
@@ -55,9 +57,34 @@ method::method( const method& t ) : channels_( t.channels_ )
                                   , slope1_( t.slope1_ )
                                   , slope2_( t.slope2_ )
                                   , action_( t.action_ )
+                                  , protocolIndex_( t.protocolIndex_ )
+                                  , protocols_( t.protocols_ ) 
 {
 }
 
+uint32_t
+method::protocolIndex() const
+{
+    return protocolIndex_;
+}
+
+bool
+method::setProtocolIndex( uint32_t value, bool modifyDeviceMethod )
+{
+    protocolIndex_ = value;
+}
+
+std::vector< adcontrols::TofProtocol >&
+method::protocols()
+{
+    return protocols_;
+}
+
+const std::vector< adcontrols::TofProtocol >&
+method::protocols() const
+{
+    return protocols_;
+}
 
 namespace acqrscontrols {
     namespace ap240 {
@@ -169,7 +196,6 @@ namespace acqrscontrols {
         }
 
 
-
         ///////////////////////////////////////
 
         template<typename T = method>
@@ -188,6 +214,10 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.slope2_ );
                 if ( version >= 1 )
                     ar & BOOST_SERIALIZATION_NVP( _.action_ );
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
+                }
             }
 
         };
