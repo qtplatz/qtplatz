@@ -199,7 +199,7 @@ void
 CentroidProcessImpl::setup( const MassSpectrum& profile )
 {
     clone_.clone( profile, false ); // keep meta data
-    info_.protocol( profile.protocolId(), profile.nProtocols() );
+    info_.setProtocol( profile.protocolId(), profile.nProtocols() );
 }
 
 void
@@ -236,8 +236,8 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     double toferror = 0;
     double toferror_weight = 0;
 
-	info_.mode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
-    info_.protocol( profile.protocolId(), profile.nProtocols() );
+	info_.setMode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+    info_.setProtocol( profile.protocolId(), profile.nProtocols() );
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
 
@@ -356,8 +356,8 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     double toferror = 0;
     double toferror_weight = 0;
 
-	info_.mode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
-    info_.protocol( profile.protocolId(), profile.nProtocols() );
+	info_.setMode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+    info_.setProtocol( profile.protocolId(), profile.nProtocols() );
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
 
@@ -434,8 +434,8 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
     if ( finder( histogram.size(), pTimes, pCounts ) ) {
         
-        info_.mode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
-        info_.protocol( histogram.protocolId(), histogram.nProtocols() );
+        info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
+        info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );
         
         for ( adportable::peakinfo& pk: finder.results_ ) {
             

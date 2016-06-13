@@ -43,7 +43,8 @@
 
 using namespace adportable;
 
-namespace adportable { namespace peakfind {
+namespace adportable {
+    namespace waveform_peakfinder {
 
         const size_t stack_size = 64;
 
@@ -133,101 +134,102 @@ namespace adportable { namespace peakfind {
                     return shift_reduce( t );
             }
         };
-
-    }
-
-    struct waveform_peakfinder_i {
-
-        std::function< double( size_t idx, int& iw )>& fpeakw_;
-        const double rms_;
-        const double dbase_;
-
-        inline void internal_update( size_t idx, double& peakw, int& iw, int& m, int& NH, double& slope ) const {
-            peakw = fpeakw_( idx, iw );
-            m = ( iw < 5 ) ? 5 : iw | 0x01;    // n-order for SGFilter
-            NH = m / 2;
-            slope = rms_ / double( iw * 16 );
-        }
-
-        waveform_peakfinder_i( std::function< double( size_t idx, int& n )>& fpeakw, double dbase, double rms )
-            : fpeakw_( fpeakw )
-            , rms_( rms )
-            , dbase_( dbase ) {
-        }
         
-        template< typename _fx, typename Ty >
-        size_t find ( _fx fx, const Ty * pY, size_t beg, size_t end
-                      , std::vector< adportable::waveform_peakfinder::peakinfo >& results  ) const {
+        struct waveform_peakfinder_i {
             
-            if ( pY == 0 || ( end - beg ) < 7 )
-                return 0;
-
-            int iw = 5;
-            int m = iw;
-            int NH = m / 2;
-            double peakw = fpeakw_( beg, iw );
-            double slope = double( rms_ ) / double( iw * 16 );
-            internal_update( beg, peakw, iw, m, NH, slope );
+            std::function< double( size_t idx, int& iw )>& fpeakw_;
+            const double rms_;
+            const double dbase_;
             
-            SGFilter diff( m, SGFilter::Derivative1, SGFilter::Cubic );
+            inline void internal_update( size_t idx, double& peakw, int& iw, int& m, int& NH, double& slope ) const {
+                peakw = fpeakw_( idx, iw );
+                m = ( iw < 5 ) ? 5 : iw | 0x01;    // n-order for SGFilter
+                NH = m / 2;
+                slope = rms_ / double( iw * 16 );
+            }
 
-            peakfind::slope_state<peakfind::counter> state( iw / 2 );
+            waveform_peakfinder_i( std::function< double( size_t idx, int& n )>& fpeakw, double dbase, double rms )
+                : fpeakw_( fpeakw )
+                , rms_( rms )
+                , dbase_( dbase ) {
+            }
+        
+            template< typename _fx, typename Ty >
+            size_t find ( _fx fx, const Ty * pY, size_t beg, size_t end
+                          , std::vector< adportable::waveform_peakfinder::peakinfo >& results  ) const {
+            
+                if ( pY == 0 || ( end - beg ) < 7 )
+                    return 0;
+
+                int iw = 5;
+                int m = iw;
+                int NH = m / 2;
+                double peakw = fpeakw_( beg, iw );
+                double slope = double( rms_ ) / double( iw * 16 );
+                internal_update( beg, peakw, iw, m, NH, slope );
+            
+                SGFilter diff( m, SGFilter::Derivative1, SGFilter::Cubic );
+
+                slope_state<counter> state( iw / 2 );
     
-            size_t base_pos = 0, base_c = 0;
+                size_t base_pos = 0, base_c = 0;
 
-            for ( size_t x = beg + NH; x < end - NH; ++x ) {
+                for ( size_t x = beg + NH; x < end - NH; ++x ) {
 
-                double d1 = diff( &pY[x] );
+                    double d1 = diff( &pY[x] );
 
-                bool reduce = false;
-                if ( d1 >= slope ) {
-                    base_c = 0;
-                    reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
-                } else if ( d1 <= (-slope ) ) {
-                    base_c = 0;
-                    reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
-                } else {
-                    if ( state.stack_.size() < 2 ) {
-                        ++base_c;
-                        base_pos = x;
-                    }
-                }
-
-                if ( reduce ) {
-                    std::pair< peakfind::counter, peakfind::counter > peak;
-                    while ( state.reduce( peak ) ) {
-                        if ( fx( peak.second.tpos_ ) - fx( peak.first.bpos_ ) >= peakw ) {
-                            results.push_back( waveform_peakfinder::peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                    bool reduce = false;
+                    if ( d1 >= slope ) {
+                        base_c = 0;
+                        reduce = state.process_slope( counter( x, Up ) );
+                    } else if ( d1 <= (-slope ) ) {
+                        base_c = 0;
+                        reduce = state.process_slope( counter( x, Down ) );
+                    } else {
+                        if ( state.stack_.size() < 2 ) {
+                            ++base_c;
+                            base_pos = x;
                         }
                     }
-                    internal_update( x, peakw, iw, m, NH, slope );
-                } 
-            }
 
-            if ( ! state.stack_.empty() ) {
+                    if ( reduce ) {
+                        std::pair< counter, counter > peak;
+                        while ( state.reduce( peak ) ) {
+                            if ( fx( peak.second.tpos_ ) - fx( peak.first.bpos_ ) >= peakw ) {
+                                results.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                            }
+                        }
+                        internal_update( x, peakw, iw, m, NH, slope );
+                    } 
+                }
 
-                if ( state.stack_.top().type() == peakfind::Down )
-                    state.stack_.push( peakfind::counter( end - 1, peakfind::None ) ); // dummy
+                if ( ! state.stack_.empty() ) {
 
-                std::pair< peakfind::counter, peakfind::counter > peak;
+                    if ( state.stack_.top().type() == Down )
+                        state.stack_.push( counter( end - 1, None ) ); // dummy
 
-                while ( state.reduce( peak ) ) {
-                    if ( fx( peak.second.tpos_ ) - fx( peak.first.bpos_ ) >= peakw ) {
-                        results.push_back( waveform_peakfinder::peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                    std::pair< counter, counter > peak;
+
+                    while ( state.reduce( peak ) ) {
+                        if ( fx( peak.second.tpos_ ) - fx( peak.first.bpos_ ) >= peakw ) {
+                            results.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                        }
                     }
                 }
-            }
             
-            return results.size();
-        }
-    };
-}
+                return results.size();
+            }
+        };
+    } // namespace waveform_peakfinder
+} // namespace adportable
 
 ///////////////
-waveform_peakfinder::waveform_peakfinder( std::function< double( size_t idx, int& n )> fpeakw )
-    : fpeakw_( fpeakw )
-    , dbase_( 0 )
-    , rms_( 0 )
+
+using namespace waveform_peakfinder;
+
+peakfinder::peakfinder( std::function< double( size_t idx, int& n )> fpeakw ) : fpeakw_( fpeakw )
+                                                                              , dbase_( 0 )
+                                                                              , rms_( 0 )
 {
 }
 
@@ -238,10 +240,10 @@ waveform_peakfinder::waveform_peakfinder( std::function< double( size_t idx, int
  * dbase is used for peak height determination, and rms is used for slope determination.
  */
 template<> size_t
-waveform_peakfinder::operator()( std::function< double ( size_t ) > fx
+peakfinder::operator()( std::function< double ( size_t ) > fx
                                  , const double * pY
                                  , size_t beg, size_t end
-                                 , std::vector< waveform_peakfinder::peakinfo >& results )
+                                 , std::vector< peakinfo >& results )
 {
     // compute baseline level and rms
     spectrum_processor::tic( end - beg, &pY[beg], dbase_, rms_ );
@@ -266,12 +268,12 @@ waveform_peakfinder::operator()( std::function< double ( size_t ) > fx
 }
 
 bool
-waveform_peakfinder::fit( std::function< double ( size_t ) > fx
+peakfinder::fit( std::function< double ( size_t ) > fx
                          , const double * pY
                          , size_t spos
                          , size_t tpos
                          , size_t epos
-                         , waveform_peakfinder::parabola& pk )
+                         , parabola& pk )
 {
     pk.spos = spos;
     pk.tpos = tpos;
@@ -295,13 +297,13 @@ waveform_peakfinder::fit( std::function< double ( size_t ) > fx
 }
 
 double
-waveform_peakfinder::dbase() const
+peakfinder::dbase() const
 {
     return dbase_;
 }
 
 double
-waveform_peakfinder::rms() const
+peakfinder::rms() const
 {
     return rms_;
 }

@@ -85,6 +85,12 @@ MSPeakInfo::nProtocols() const
 void
 MSPeakInfo::protocol( int32_t id, int32_t n )
 {
+    setProtocol( id, n );
+}
+
+void
+MSPeakInfo::setProtocol( int32_t id, int32_t n )
+{
     protocolId_ = id;
     nProtocols_ = n;
 }
@@ -132,8 +138,15 @@ MSPeakInfo::mode() const
     return mode_;
 }
 
+// deprecated
 void
 MSPeakInfo::mode( int v )
+{
+    mode_ = v;
+}
+
+void
+MSPeakInfo::setMode( int v )
 {
     mode_ = v;
 }
@@ -141,7 +154,14 @@ MSPeakInfo::mode( int v )
 MSPeakInfo&
 MSPeakInfo::operator << ( const MSPeakInfoItem& item )
 {
-    vec_.push_back( item );
+    vec_.emplace_back( item );
+    return *this;
+}
+
+MSPeakInfo&
+MSPeakInfo::operator << ( MSPeakInfoItem&& item )
+{
+    vec_.emplace_back( item );
     return *this;
 }
 
@@ -209,3 +229,34 @@ MSPeakInfo::back() const
     return vec_.back();
 }
 
+//static
+std::pair< MSPeakInfo::const_iterator, MSPeakInfo::const_iterator >
+MSPeakInfo::find_range( const MSPeakInfo& pki, double left, double right, bool isTime )
+{
+    if ( isTime ) {
+        if ( pki.front().time() < right && left < pki.back().time() ) {
+            auto first = std::lower_bound( pki.begin(), pki.end(), left, [] ( const MSPeakInfoItem& a, double t ) { return a.time() < t; } );
+            auto last = std::lower_bound( pki.begin(), pki.end(), right, [] ( const MSPeakInfoItem& a, double t ) { return a.time() < t; } );
+            return std::make_pair( first, last );
+        }        
+    } else {
+        if ( pki.front().mass() < right && left < pki.back().mass() ) {
+            auto first = std::lower_bound( pki.begin(), pki.end(), left, [] ( const MSPeakInfoItem& a, double m ) { return a.mass() < m; } );
+            auto last = std::lower_bound( pki.begin(), pki.end(), right, [] ( const MSPeakInfoItem& a, double m ) { return a.mass() < m; } );
+            return std::make_pair( first, last );
+        }
+    }
+    return std::make_pair( pki.end(), pki.end() );
+}
+
+//static
+MSPeakInfo::const_iterator
+MSPeakInfo::max_element( const MSPeakInfo& pki, double left, double right, bool isTime )
+{
+    auto pair = find_range( pki, left, right, isTime );
+
+    if ( pair.first != pki.end() )
+        return std::max_element( pair.first, pair.second, []( const MSPeakInfoItem& a, const MSPeakInfoItem& b ){ return a.height() < b.height(); } );
+
+    return pki.end();
+}

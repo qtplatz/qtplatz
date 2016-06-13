@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,6 +25,7 @@
 
 #include "mspeakinfoitem.hpp"
 #include "serializer.hpp"
+#include <adportable/waveform_peakfinder.hpp>
 #include <cstring>
 
 using namespace adcontrols;
@@ -81,6 +82,48 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t )
     , formula_( t.formula_ )      
     , annotation_( t.annotation_ )
 {
+}
+
+MSPeakInfoItem::MSPeakInfoItem( const adportable::waveform_peakfinder::peakinfo& pk
+                                , size_t idx
+                                , double dbase
+                                , bool isTime
+                                , std::function<double(double)> mass_assignee )
+    : peak_index_( idx )
+    , peak_start_index_( pk.spos )
+    , peak_end_index_( pk.epos )
+    , base_height_( dbase )
+    , mass_(0)
+    , area_(0)
+    , height_( pk.height )
+    , time_from_mass_(0)
+    , time_from_time_(0)
+    , HH_left_mass_(0)
+    , HH_right_mass_(0)
+    , HH_left_time_(0)
+    , HH_right_time_(0)
+    , centroid_left_mass_(0)
+    , centroid_right_mass_(0)
+    , centroid_left_time_(0)
+    , centroid_right_time_(0)
+    , centroid_threshold_(0)
+    , is_visible_( true )
+    , is_reference_( false )
+{
+    set_centroid_threshold( pk.height / 2 + dbase );
+    
+    if  ( isTime ) {
+        set_time( pk.centreX, pk.xleft, pk.xright, true );  // time compute from time
+        set_time( pk.centreX, pk.xleft, pk.xright, false ); // workaround, copy same value
+
+        if ( mass_assignee ) 
+            set_mass( mass_assignee( pk.centreX ), mass_assignee( pk.xleft ), mass_assignee( pk.xright ) );
+
+        set_width_hh_lr( centroid_left(), centroid_right(), false ); // m/z
+        set_width_hh_lr( pk.xleft, pk.xright, true ); // time
+        set_centroid_left( pk.xleft, true );
+        set_centroid_right( pk.xright, true );
+    }
 }
 
 unsigned int

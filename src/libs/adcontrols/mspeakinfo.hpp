@@ -33,7 +33,6 @@
 #include <boost/serialization/vector.hpp>
 #include <memory>
 #include <vector>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -66,14 +65,17 @@ namespace adcontrols {
         const MSPeakInfoItem& back() const;        
 
         MSPeakInfo& operator << ( const MSPeakInfoItem& );
+        MSPeakInfo& operator << ( MSPeakInfoItem&& );
 
         void addSegment( const MSPeakInfo& );
         MSPeakInfo& getSegment( size_t fcn );
         const MSPeakInfo& getSegment( size_t fcn ) const;
         size_t numSegments() const;
         int mode() const;
-        void mode( int );
-        void protocol( int32_t protId, int32_t nProtocols );
+        [[deprecated("use setMode")]] void mode( int );
+        void setMode( int );
+        [[deprecated("use setProtocol")]] void protocol( int32_t protId, int32_t nProtocols );
+        void setProtocol( int32_t protId, int32_t nProtocols );
         int32_t protocolId() const;
         int32_t nProtocols() const;
         MSPeakInfo * findProtocol( int32_t );
@@ -84,6 +86,9 @@ namespace adcontrols {
 
         static bool archive( std::ostream&, const MSPeakInfo& );
         static bool restore( std::istream&, MSPeakInfo& );
+
+        static std::pair< const_iterator, const_iterator > find_range( const MSPeakInfo&, double left, double right, bool isTime );
+        static const_iterator max_element( const MSPeakInfo&, double left, double right, bool isTime );
 
     private:
         std::vector< MSPeakInfoItem > vec_;
@@ -98,9 +103,8 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( mode_ );
             if ( version >= 3 )
                 ar & BOOST_SERIALIZATION_NVP( protocolId_ ) & BOOST_SERIALIZATION_NVP( nProtocols_ );
-            ar  & BOOST_SERIALIZATION_NVP( vec_ )
-                & BOOST_SERIALIZATION_NVP( siblings_ )
-                ;
+            ar & BOOST_SERIALIZATION_NVP( vec_ );
+            ar & BOOST_SERIALIZATION_NVP( siblings_ );
         }
 
     };

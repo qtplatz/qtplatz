@@ -37,9 +37,8 @@ namespace adportable {
      * waveform_peakfinder ctor take a functor as an argument, which return peak width and 
      * number of samples equivalent to peak width for SG filter.
      */
-    class waveform_peakfinder {
-    public:
-        
+    namespace waveform_peakfinder {
+
         struct peakinfo {
             size_t spos;
             size_t epos;
@@ -52,7 +51,7 @@ namespace adportable {
                 : spos( x1 ), epos( x2 ), tpos( tp ), height(h), centreX(c), xleft(0), xright(0)
                 {}
         };
-
+        
         struct parabola {
             size_t spos;
             size_t epos;
@@ -68,44 +67,41 @@ namespace adportable {
         // fpeakw function: idx := bin number (index) on the waveform
         //                  npeakw := interger (count) value corresponding peak width equivalent
         //                  return := double value of peak width
-        
-        waveform_peakfinder( std::function< double( size_t idx, int& npeakw )> fpeakw );
 
-        /** \brief find peaks from waveform, intended input is the time-of-flight mass spectrum
-         * 
-         * Internally, it compute rms and baseline level by using TIC calculation algorithm.
-         * Computed baseline level can be returned by dbase() method, and rms() method for RMS.
-         * dbase is used for peak height determination, and rms is used for slope determination.
-         */
-        template< typename value_type = double >
-        size_t operator()( std::function< double( size_t ) > fx
-                           , const value_type * pY
-                           , size_t beg, size_t end
-                           , std::vector< waveform_peakfinder::peakinfo >& results );
+        class peakfinder {
+        public:
+            peakfinder( std::function< double( size_t idx, int& npeakw )> fpeakw );
 
-        bool fit( std::function< double( size_t ) > fx
-                  , const double * pY
-                  , size_t spos
-                  , size_t tpos
-                  , size_t epos
-                  , waveform_peakfinder::parabola& result );
-        
-        double dbase() const;
-        double rms() const;        
-    private:
-        std::function< double( size_t idx, int& )> fpeakw_;
-        double dbase_;
-        double rms_;
-    };
+            /** \brief find peaks from waveform, intended input is the time-of-flight mass spectrum
+             * 
+             * Internally, it compute rms and baseline level by using TIC calculation algorithm.
+             * Computed baseline level can be returned by dbase() method, and rms() method for RMS.
+             * dbase is used for peak height determination, and rms is used for slope determination.
+             */
+            template< typename value_type = double >
+            size_t operator()( std::function< double( size_t ) > fx
+                               , const value_type * pY
+                               , size_t beg, size_t end
+                               , std::vector< waveform_peakfinder::peakinfo >& results );
+            
+            bool fit( std::function< double( size_t ) > fx
+                      , const double * pY
+                      , size_t spos
+                      , size_t tpos
+                      , size_t epos
+                      , waveform_peakfinder::parabola& result );
+            
+            double dbase() const;
+            double rms() const;        
+        private:
+            std::function< double( size_t idx, int& )> fpeakw_;
+            double dbase_;
+            double rms_;
+        };
 
-    // due to Moment class is depend on 'double' y-array, cannot suppor other value_type for now.  to be fixed.
-    template<> size_t waveform_peakfinder::operator()( std::function< double( size_t ) > fx, const double * pY
-                                                       , size_t beg, size_t end, std::vector< waveform_peakfinder::peakinfo >& results );
-    
-    // template<> size_t waveform_peakfinder::operator()( std::function< double( size_t ) > fx, const int32_t * pY
-    //                                                    , size_t beg, size_t end, std::vector< waveform_peakfinder::peakinfo >& results );
-
-    // template<> size_t waveform_peakfinder::operator()( std::function< double( size_t ) > fx, const int16_t * pY
-    //                                                    , size_t beg, size_t end, std::vector< waveform_peakfinder::peakinfo >& results );
+        // due to Moment class is depend on 'double' y-array, cannot suppor other value_type for now.  to be fixed.
+        template<> size_t peakfinder::operator()( std::function< double( size_t ) > fx, const double * pY
+                                                  , size_t beg, size_t end, std::vector< waveform_peakfinder::peakinfo >& results );
+    }
 }
 

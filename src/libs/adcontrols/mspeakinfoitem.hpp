@@ -26,12 +26,15 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <string>
-#include <cstdint>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
 #include <compiler/disable_dll_interface.h>
+#include <cstdint>
+#include <functional>
+#include <string>
+
+namespace adportable { namespace waveform_peakfinder { struct peakinfo; } }
 
 namespace adcontrols {
 
@@ -43,13 +46,19 @@ namespace adcontrols {
         MSPeakInfoItem(void);
         MSPeakInfoItem( const MSPeakInfoItem& );
 
-        double mass() const;
+        MSPeakInfoItem( const adportable::waveform_peakfinder::peakinfo&, size_t idx, double dbase
+                        , bool isTime = true
+                        , std::function<double( double )> mass_assignee = std::function<double( double )>() );
 
-        void assign_mass( double );     // his will change centroid left/right values (for lock mass)
+        double mass() const;
+        
+        void assign_mass( double );     // this will change centroid left/right values (for lock mass)
         void set_mass( double mass, double left, double right );
 
         double area() const;
-        void set_area( double );
+        [[deprecated]] void set_area( double );
+        void setArea( double );
+        
         double height() const;
         void set_height( double );
         double time( bool from_time = false ) const;
