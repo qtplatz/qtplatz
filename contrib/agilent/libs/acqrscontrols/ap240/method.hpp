@@ -69,7 +69,7 @@ namespace acqrscontrols {
             uint32_t mode;  // configMode, 0: normal, 2: averaging
             uint32_t flags; // configMode, if mode == 0, 0: normal, 1: start on trigger
             uint32_t nbrAvgWaveforms;
-            uint32_t nStartDelay;
+            int32_t  nStartDelay; // digitizer mode can be negative
             uint32_t nbrSamples;
             horizontal_method() : sampInterval( 0.5e-9 )
                 , delay( 0.0e-6 )

@@ -800,22 +800,8 @@ TraceData::y_range( double left, double right ) const
             size_t idleft( 0 ), idright( 0 );
 
             if ( isTimeAxis_ && !isCentroid ) {
-                struct index {
-                    const adcontrols::SamplingInfo& info_;
-                    index( const adcontrols::SamplingInfo& info ) : info_( info ) {}
-                    uint32_t operator ()( double t ) const {
-                        uint32_t idx = uint32_t( t / info_.fSampInterval() + 0.5 );
-                        if ( idx < info_.nSamplingDelay() )
-                            return 0;
-                        idx -= info_.nSamplingDelay();
-                        if ( idx >= info_.nSamples() )
-                            return info_.nSamples() - 1;
-                        return idx;
-                    }
-                };
-                //const adcontrols::SamplingInfo& info = seg.getMSProperty().samplingInfo();
-                idleft = index( seg.getMSProperty().samplingInfo() )( xleft );
-                idright = index( seg.getMSProperty().samplingInfo() )( xright );
+                idleft  = adcontrols::MSProperty::toIndex( xleft, seg.getMSProperty().samplingInfo() );
+                idright = adcontrols::MSProperty::toIndex( xright, seg.getMSProperty().samplingInfo() );
             } else {
                 if ( const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray() ) {
                     idleft = std::distance( x, std::lower_bound( x, x + seg.size(), xleft ) );

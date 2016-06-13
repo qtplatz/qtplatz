@@ -243,7 +243,8 @@ MSProperty::mode() const
 double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
 {
-	return double( samplingData_->nSamplingDelay() + pos ) * samplingData_->fSampInterval() + samplingData_->horPos(); // seconds
+    return samplingData_->delayTime() + pos * samplingData_->fSampInterval() + samplingData_->horPos(); // seconds
+	//return double( samplingData_->nSamplingDelay() + pos ) * samplingData_->fSampInterval() + samplingData_->horPos(); // seconds
 }
 
 std::pair<double, double>
@@ -251,8 +252,8 @@ MSProperty::instTimeRange() const
 {
 	const SamplingInfo& x = *samplingData_;
 
-    double t0 = metric::scale_to_base( double(x.nSamplingDelay() * x.fSampInterval()), metric::base );
-    double t1 = metric::scale_to_base( double((x.nSamplingDelay() + x.nSamples()) * x.fSampInterval()), metric::base );
+    double t0 = metric::scale_to_base( x.delayTime(), metric::base );
+    double t1 = metric::scale_to_base( x.delayTime() + ( x.nSamples() * x.fSampInterval() ), metric::base );
 
     return std::make_pair( t0, t1 );
 }
@@ -268,24 +269,6 @@ MSProperty::setNumAverage(uint32_t v)
 {
     samplingData_->setNumberOfTriggers( v );
 }
-
-void
-MSProperty::setSamplingDelay( uint32_t v )
-{
-    samplingData_->setNSamplingDelay( v );
-}
-
-// void
-// MSProperty::setSamplingInterval( uint32_t v ) // ps
-// {
-//     samplingData_->fSampInterval( v * 1.0e-12 );
-// }
-
-// void
-// MSProperty::setSamplingInterval( double v ) // seconds
-// {
-// 	samplingData_->fSampInterval( v );
-// }
 
 double
 MSProperty::timeSinceInjection() const
@@ -367,13 +350,17 @@ MSProperty::setSamplingInfo( const SamplingInfo& v )
 double
 MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 {
-    return ( info.nSamplingDelay() + idx ) * info.fSampInterval() + info.horPos();
+	return info.delayTime() + info.horPos() + ( idx * info.fSampInterval() );
 }
 
 size_t
 MSProperty::toIndex( double seconds, const SamplingInfo& info )
 {
-    return size_t( ( ( seconds - info.horPos() ) / info.fSampInterval() ) + 0.5 ) - info.nSamplingDelay();
+    double dx = ( seconds - info.horPos() - info.delayTime() ) / info.fSampInterval();
+    if ( dx < 0 )
+        return 0;
+    size_t idx = size_t( dx + 0.5 );
+    return idx < info.nSamples() ? idx : info.nSamples() - 1;
 }
 
 size_t
@@ -381,28 +368,11 @@ MSProperty::compute_profile_time_array( double * p, std::size_t size, const Samp
 {
     size_t n = 0;
     for ( n = 0; n < size; ++n ) {
-        double d = double( ( info.nSamplingDelay() + n ) * info.fSampInterval() );
+        double d = info.delayTime() + n * info.fSampInterval();
         p [ n ] = metric::scale_to<double>( pfx, d, metric::base );
     }
     return n;
 }
-
-//const adcontrols::MassSpectrometer&
-//MSProperty::spectrometer() const
-//{
-//	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() );
-//}
-
-#if 0
-std::shared_ptr< ScanLaw >
-MSProperty::scanLaw() const
-{
-    if ( auto spectrometer = adcontrols::MassSpectrometer::find( dataInterpreterClsid_.c_str() ) )
-        return spectrometer->scanLaw( *this );
-    else
-        return 0;
-}
-#endif
 
 void
 MSProperty::setTofProtocol( const TofProtocol& proto )

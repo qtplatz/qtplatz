@@ -386,8 +386,10 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     sp.setCentroid( adcontrols::CentroidNone );
     
     adcontrols::MSProperty prop = sp.getMSProperty();
+    double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
     adcontrols::SamplingInfo info( waveform.meta_.xIncrement
-                                   , uint32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + 0.5 )
+                                   , waveform.meta_.initialXOffset
+                                   , int32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + zhalf )
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
                                    , 0 /* mode */ );

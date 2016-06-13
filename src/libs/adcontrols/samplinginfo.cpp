@@ -45,6 +45,7 @@ namespace adcontrols {
     public:
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
+
             if ( version >= 6 ) {
                 ar & BOOST_SERIALIZATION_NVP( _.nSamplingDelay_ );
                 ar & BOOST_SERIALIZATION_NVP( _.nSamples_ );
@@ -53,6 +54,10 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.fsampInterval_ );
                 ar & BOOST_SERIALIZATION_NVP( _.horPos_ );
                 ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
+
+                if ( version == 6 )
+                    _.delayTime_ = ( _.nSamplingDelay_ * _.fsampInterval_ );
+                
             } else {
                 uint32_t sampInterval;
                 ar & BOOST_SERIALIZATION_NVP( sampInterval );
@@ -103,7 +108,8 @@ namespace adcontrols {
 using namespace adcontrols;
 
 SamplingInfo::SamplingInfo( double interval
-                            , uint32_t ndelay
+                            , double delayTime
+                            , int32_t ndelay
                             , uint32_t nsamples
                             , uint32_t navgr
                             , uint32_t _mode )   : nSamplingDelay_( ndelay )
@@ -112,9 +118,9 @@ SamplingInfo::SamplingInfo( double interval
                                                  , mode_( _mode )
                                                  , fsampInterval_( interval )
                                                  , horPos_( 0.0 )
-                                                 , delayTime_( 0.0 )
+                                                 , delayTime_( delayTime )
 {
-    assert( interval < 1.0e-6 );  // 1us limit, for security due to originally this was 'ps' in integer.
+    assert( interval < 1.0e-6 );  // must be smaller than 1us, for security due to it was 'ps' in integer in the old implementation.
 }
 
 SamplingInfo::SamplingInfo() : nSamplingDelay_( 0 )
@@ -201,12 +207,12 @@ SamplingInfo::nSamples() const
 }
 
 void
-SamplingInfo::setNSamplingDelay( uint32_t value )
+SamplingInfo::setNSamplingDelay( int32_t value )
 {
     nSamplingDelay_ = value;
 }
 
-uint32_t
+int32_t
 SamplingInfo::nSamplingDelay() const
 {
     return nSamplingDelay_;

@@ -157,9 +157,11 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                 ptr->setMassArray( cols[1].data() );
 
             double interval = ( tArray.back() - tArray.front() ) / ( tArray.size() - 1 );
-            uint32_t nDelay = uint32_t( tArray [ 0 ] / interval + 0.5 );
+            double delay = tArray[ 0 ];
+            double zhalf = delay < 0 ? (-0.5) : 0.5;
+            int32_t nDelay = uint32_t( tArray [ 0 ] / interval + zhalf );
 
-            adcontrols::SamplingInfo info( interval, nDelay, uint32_t( nSamples ), /* number of average */ 1, /*mode*/ 0 );
+            adcontrols::SamplingInfo info( interval, delay, nDelay, uint32_t( nSamples ), /* number of average */ 1, /*mode*/ 0 );
             info.setDelayTime( tArray[0] );  
             prop.setSamplingInfo( info );
 
@@ -206,9 +208,10 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::SamplingInfo>& segments
 	else if ( sampInterval < 1005 )
 		sampInterval = 1000;
 
-	const unsigned long startDelay = static_cast<unsigned long>(  ( timeArray.front() * 1e12 /*s*/) / sampInterval + 0.5 );
+    double startDelay = timeArray.front();
+	// const unsigned long startDelay = static_cast<unsigned long>(  ( timeArray.front() * 1e12 /*s*/) / sampInterval + 0.5 );
 
-    unsigned long nDelay = startDelay;
+    unsigned long nDelay = ( startDelay / sampInterval + ( startDelay < 0 ? (-0.5) : 0.5 ) );
     uint32_t nCount = 0;
 
     uint32_t idx = 0;
@@ -220,7 +223,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::SamplingInfo>& segments
         if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
 
 			int mode = find_mode( segments.size() );
-            segments.push_back( adcontrols::SamplingInfo( sampInterval * 1.0e-12, nDelay, nCount, 1, mode ) );
+            segments.push_back( adcontrols::SamplingInfo( sampInterval * 1.0e-12, startDelay, nDelay, nCount, 1, mode ) );
 
             if ( it + 1 != timeArray.end() ) {
                 sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
@@ -237,7 +240,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::SamplingInfo>& segments
         }
     }
 	int mode = find_mode( segments.size() );
-    segments.push_back( adcontrols::SamplingInfo(sampInterval * 1.0e-12, nDelay, nCount + 1, 1, mode ) );
+    segments.push_back( adcontrols::SamplingInfo(sampInterval * 1.0e-12, startDelay, nDelay, nCount + 1, 1, mode ) );
     return true;
 }
 

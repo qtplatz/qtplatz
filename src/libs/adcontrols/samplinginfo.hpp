@@ -42,11 +42,11 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT SamplingInfo {
     public:
         SamplingInfo();
-        SamplingInfo( const uint32_t sampInterval, uint32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode ) = delete; // obsolete
-        SamplingInfo( const double fSampInterval, uint32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode );
 
-        uint32_t nSamplingDelay() const;
-        void setNSamplingDelay( uint32_t );
+        SamplingInfo( double fSampInterval, double delayTime, int32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode );
+
+        [[deprecated("use delayTime")]] int32_t nSamplingDelay() const;    // check delayTime_, either can be negative
+        [[deprecated("use setDelayTime")]] void setNSamplingDelay( int32_t );
 
         uint32_t nSamples() const;
         uint32_t mode() const;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
@@ -63,7 +63,7 @@ namespace adcontrols {
         void setNumberOfTriggers( size_t );
         
     private:
-        uint32_t nSamplingDelay_;
+        int32_t nSamplingDelay_; // [[deprecated("use delayTime_")]]see delayTime_, which might be negative
         uint32_t nSamples_;
         uint32_t nAverage_;
         uint32_t mode_;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
@@ -80,5 +80,5 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::SamplingInfo, 6 )
+BOOST_CLASS_VERSION( adcontrols::SamplingInfo, 7 )
 

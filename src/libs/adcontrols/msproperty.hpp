@@ -88,7 +88,6 @@ namespace adcontrols {
 
         uint32_t numAverage() const;
         void setNumAverage( uint32_t );
-        void setSamplingDelay( uint32_t );
 
         void setTofProtocol( const TofProtocol& );
         std::shared_ptr< const TofProtocol > tofProtocol();

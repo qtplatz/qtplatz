@@ -644,13 +644,14 @@ device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
 
     if ( m.hor_.mode == 0 ) {
         m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 );
-        m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval ); // nominal -- not in use
+        m.hor_.nStartDelay = int32_t( m.hor_.delay / m.hor_.sampInterval ); // nominal -- not in use (digitizer mode can be negative delay)
     } else {
         m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero
+        uint32_t delay = m.hor_.delay >= 0 ? m.hor_.delay : 0; // averager mode can't be negative
         if ( m.hor_.mode == 0 )
-            m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) & ~0x1f; // fold of 32, can be zero
+            m.hor_.nStartDelay = int32_t( delay / m.hor_.sampInterval + 0.5 ) & ~0x1f;      // fold of 32, can be zero
         else 
-            m.hor_.nStartDelay = uint32_t( m.hor_.delay / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, cannt be zero for average mode
+            m.hor_.nStartDelay = int32_t( delay / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero for average mode
     }
 
     // trigger setup
@@ -908,7 +909,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
             data.meta_.actualAverages = 0;
             data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
-            data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
+            data.meta_.initialXOffset = data.method_.hor_.delay;
             double acquire_time = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;  // time since 'acquire' issued
             data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
             

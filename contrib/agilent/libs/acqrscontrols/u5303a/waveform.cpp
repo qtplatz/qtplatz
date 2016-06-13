@@ -589,9 +589,11 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     
     adcontrols::MSProperty prop = sp.getMSProperty();
     int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
+    double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
 
     adcontrols::SamplingInfo info( waveform.meta_.xIncrement
-                                   , uint32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + 0.5 )
+                                   , waveform.meta_.initialXOffset
+                                   , int32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement + zhalf )
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
                                    , mode );
@@ -657,8 +659,10 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     double ext_adc_delay = this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
     
     adcontrols::MSProperty prop = sp.getMSProperty();
+    double zHalf = ( waveform.meta_.initialXOffset + ext_adc_delay ) < 0 ? -0.5 : 0.5;
     adcontrols::SamplingInfo info( waveform.meta_.xIncrement
-                                   , uint32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + 0.5 )
+                                   , waveform.meta_.initialXOffset + ext_adc_delay
+                                   , int32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + zHalf )
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
                                    , this_protocol.mode() );
