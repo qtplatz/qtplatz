@@ -157,8 +157,12 @@ MappedImage::operator ()( size_t i, size_t j ) const
 bool
 MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsigned low, unsigned high )
 {
-    if ( frame.size1() != impl_->data_.size1() || frame.size2() != impl_->data_.size2() )
-        return false; // dimension mismatch
+    if ( frame.size1() != impl_->data_.size1() || frame.size2() != impl_->data_.size2() ) {
+        // dimension mismatch
+        impl_->data_.resize( frame.size1(), frame.size2() );
+        impl_->data_.clear();
+        impl_->mergeCount_ = 0;
+    }
 
     for ( size_t i = 0; i < frame.size1(); ++i ) {
         for ( size_t j = 0; j < frame.size2(); ++j ) {
