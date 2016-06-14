@@ -252,9 +252,17 @@ SampleRunWidget::getContents( boost::any& a ) const
 bool
 SampleRunWidget::setContents( boost::any&& a )
 {
-    if ( adportable::a_type< adcontrols::SampleRun >::is_pointer( a ) ) {
+    const char * t = a.type().name();
 
-        auto p = boost::any_cast<const adcontrols::SampleRun * >( a );   
+    if ( adportable::a_type< adcontrols::SampleRun >::is_const_pointer( a ) ) {
+
+        auto p = boost::any_cast< const adcontrols::SampleRun * >( a );   
+        setSampleRun( *p );
+        return true;
+        
+    } else if ( adportable::a_type< adcontrols::SampleRun >::is_pointer( a ) ) {
+
+        auto p = boost::any_cast< adcontrols::SampleRun * >( a );   
         setSampleRun( *p );
         return true;
 

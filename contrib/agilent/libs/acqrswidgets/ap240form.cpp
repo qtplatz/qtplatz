@@ -76,11 +76,11 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 
     // Vertical configuration
     if ( auto layout = new QVBoxLayout( ui->groupBox_3 ) ) {
-        // ui->horizontalLayout_2->insertLayout( 2, layout );
+
         if ( auto tab = new QTabWidget() ) {
             layout->addWidget( tab );
             for ( auto& channel :
-                { std::make_pair( 1, tr( "CH-1" ) ), std::make_pair( 2, tr( "CH-2" ) ), std::make_pair( -1, tr( "Ext") ) } )
+                { std::make_pair( 1, tr( "CH-1" ) ), std::make_pair( 2, tr( "CH-2" ) ), std::make_pair( -1, tr( "Ext") ) } ) {
                 if ( auto gbox = new QGroupBox( channel.second, this ) ) {
                     gbox->setObjectName( channel.second );
                     gbox->setCheckable( true );
@@ -89,27 +89,26 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                     auto layout = new QVBoxLayout( gbox );
                     layout->setMargin( 0 );
                     layout->setSpacing( 0 );
-
+                    
                     auto w = new ap240VerticalForm();
                     w->setChannel( channel.first );
                     layout->addWidget( w );
                     tab->addTab( gbox, channel.second );
-
+                    
                     connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& ) {
                             emit valueChanged( idVertical, channel ); } );
                     connect( gbox, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
                 }
+            }
+            {
+                // Trigger configuration
+                auto w = new ap240TriggerForm();
+                tab->addTab( w, tr("Trigger") );
+                connect( w, &ap240TriggerForm::valueChanged, [this] ( ap240TriggerForm::idItem id, const QVariant& d ) {
+                        emit valueChanged( idTrigger, -1 );
+                    } );
+            }
         }
-    }
-    
-    if ( auto layout = new QVBoxLayout( ui->groupBox ) ) {
-        layout->setMargin( 0 );
-        layout->setSpacing( 0 );
-        auto w = new ap240TriggerForm();
-        layout->addWidget( w );
-        connect( w, &ap240TriggerForm::valueChanged, [this] ( ap240TriggerForm::idItem id, const QVariant& d ) {
-                emit valueChanged( idTrigger, -1 );
-            } );
     }
 
     if ( auto layout = new QVBoxLayout( ui->groupBox_4 ) ) {

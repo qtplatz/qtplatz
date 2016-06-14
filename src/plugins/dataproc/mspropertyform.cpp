@@ -195,8 +195,8 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
         const adcontrols::SamplingInfo& info = prop.samplingInfo();
-        double start_delay = info.fSampInterval() * info.nSamplingDelay();
-        double time_end = info.fSampInterval() * ( info.nSamplingDelay() + info.nSamples() );
+        double start_delay = info.delayTime();
+        double time_end = info.delayTime() + info.fSampInterval() * info.nSamples();
         o << "<tr>"
           << boost::format( "<td rowspan=\"%1%\">" ) % nrowspan << n++ << "</td>"
           << "<td>" << boost::format( "%.1lfns" ) % scale_to_nano( info.fSampInterval() ) << "</td>"

@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,9 +48,13 @@ namespace adportable {
             return a.type() == typeid( T );
 #endif
         }
-
+        
         static bool is_pointer( boost::any& a ) {
             return a_type< T* >::is_a( a );
+        }
+        
+        static bool is_const_pointer( boost::any& a ) {
+            return a_type< const T* >::is_a( a );
         }
     };
 

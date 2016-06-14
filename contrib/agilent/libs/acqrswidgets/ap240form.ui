@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>440</width>
+    <width>266</width>
     <height>141</height>
    </rect>
   </property>
@@ -47,13 +47,6 @@
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
       <string>Verticals</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Trigger</string>
      </property>
     </widget>
    </item>
