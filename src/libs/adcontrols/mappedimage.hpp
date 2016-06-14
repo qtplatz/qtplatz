@@ -70,6 +70,7 @@ namespace adcontrols {
 
         operator const boost::numeric::ublas::matrix< double >& () const;
         double max_z() const;
+        size_t mergeCount() const;
 
     private:
         class impl;

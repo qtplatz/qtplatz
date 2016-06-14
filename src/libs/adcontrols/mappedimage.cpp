@@ -41,12 +41,14 @@ namespace adcontrols {
         ~impl() {}
         impl( size_t i, size_t j ) : data_( i, j )
                                    , tof_range_( std::make_pair( 0, 0 ) )
-                                   , z_( std::numeric_limits<double>::min() ) {
+                                   , z_( std::numeric_limits<double>::min() )
+                                   , mergeCount_( 0 ) {
             data_.clear();
         }
         impl( impl& t ) : data_( t.data_ )
                         , tof_range_( std::make_pair( 0, 0 ) )
-                        , z_( t.z_ ) {
+                        , z_( t.z_ )
+                        , mergeCount_( t.mergeCount_ ) {
         }            
 
         adcontrols::idAudit ident_;
@@ -54,6 +56,7 @@ namespace adcontrols {
         boost::uuids::uuid data_origin_uuid_;
         std::pair< uint32_t, uint32_t > tof_range_;
         double z_;
+        size_t mergeCount_;
 
     private:
             
@@ -169,6 +172,7 @@ MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsign
             
         }
     }
+    impl_->mergeCount_++;
     return true;
 }
 
@@ -181,4 +185,10 @@ double
 MappedImage::max_z() const
 {
     return impl_->z_;
+}
+
+size_t
+MappedImage::mergeCount() const
+{
+    return impl_->mergeCount_;
 }
