@@ -577,13 +577,15 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
         finder( processed.begin(), processed.end(), elements, level );        
         
     } else {
-
+        
         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
         double level = level_per_trigger;
         if ( data.meta_.actualAverages )
             level = level_per_trigger * data.meta_.actualAverages;
 
-        if ( data.meta_.dataType == 2 )
+        if ( data.meta_.dataType == 1 )
+            finder( data.begin<int8_t>(), data.end<int8_t>(), elements, level );
+        else if ( data.meta_.dataType == 2 )
             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
         else if ( data.meta_.dataType == 4 )
             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );

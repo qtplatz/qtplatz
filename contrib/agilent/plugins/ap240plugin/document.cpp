@@ -149,8 +149,10 @@ namespace ap240 {
                                     , ap240x::metadata& meta
                                     , std::pair<uint32_t, uint32_t>& serialnumber
                                     , std::pair<uint64_t, uint64_t>& timeSinceEpoch ) {
-            if ( channel < histograms_.size() )
-                return histograms_[ channel ]->getHistogram( data, meta, serialnumber, timeSinceEpoch );
+            if ( channel < histograms_.size() ) {
+                acqrscontrols::ap240::method m;
+                return histograms_[ channel ]->getHistogram( data, meta, m, serialnumber, timeSinceEpoch );
+            }
             return 0;
         }
 
