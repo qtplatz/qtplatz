@@ -35,16 +35,22 @@ add_library( ${PROJECT_NAME} SHARED
   u5303a/histogram.cpp
   u5303a/waveform.hpp
   u5303a/waveform.cpp
+  ap240/averagedata.hpp
+  ap240/averagedata.cpp
   ap240/datainterpreter.cpp
   ap240/datainterpreter.hpp
   ap240/histogram.cpp
   ap240/histogram.hpp
+  ap240/metadata.cpp
+  ap240/metadata.hpp
   ap240/method.cpp
   ap240/method.hpp
+  ap240/tdcdoc.cpp
+  ap240/tdcdoc.hpp  
   ap240/threshold_result.cpp
   ap240/threshold_result.hpp
   ap240/waveform.cpp
-  ap240/waveform.hpp  
+  ap240/waveform.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

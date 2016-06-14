@@ -114,6 +114,8 @@ namespace acqrscontrols {
             static const char * itemLabel() { return "ap240"; };
             static const boost::uuids::uuid& clsid();
 
+            enum class DigiMode : uint32_t { Digitizer = 0, Averager = 2 };
+
             uint32_t channels_;
             horizontal_method hor_;
             trigger_method trig_;
@@ -123,6 +125,8 @@ namespace acqrscontrols {
             adcontrols::threshold_method slope1_;
             adcontrols::threshold_method slope2_;
             adcontrols::threshold_action action_;
+
+            DigiMode mode() const;
 
             uint32_t protocolIndex() const;
             bool setProtocolIndex( uint32_t, bool modifyDeviceMethod );

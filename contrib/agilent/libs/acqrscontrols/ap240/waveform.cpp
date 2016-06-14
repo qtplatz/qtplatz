@@ -29,9 +29,11 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/mblock.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
@@ -58,14 +60,55 @@ identify::identify( const identify& t ) : bus_number_( t.bus_number_ )
 {
 }
 
-waveform::waveform( const identify& id, uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : ident_( id )
-                                                                                                    , serialnumber_( pos )
-                                                                                                    , serialnumber_origin_( pos0 )
-                                                                                                    , wellKnownEvents_( events )
-                                                                                                    , timeSinceEpoch_( tp )
+waveform::waveform( const identify& id
+                    , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : ident_( id )
+                                                                                  , serialnumber_( pos )
+                                                                                  , serialnumber_origin_( pos0 )
+                                                                                  , wellKnownEvents_( events )
+                                                                                  , firstValidPoint_( 0 )
+                                                                                  , timeSinceEpoch_( tp )
 {
 }
 
+waveform::waveform( std::shared_ptr< const identify > id
+                    , uint32_t pos, uint32_t events, uint64_t tp ) : ident_( *id )
+                                                                   , serialnumber_( pos )
+                                                                   , wellKnownEvents_( events )
+                                                                   , firstValidPoint_( 0 )
+                                                                   , timeSinceEpoch_( tp )
+                                                                   , timeSinceInject_( 0.0 )
+{
+}
+
+waveform::waveform( const method& method
+                    , const metadata& meta
+                    , uint32_t serialnumber
+                    , uint32_t wellKnownEvents
+                    , uint64_t timeSinceEpoch
+                    , uint64_t firstValidPoint
+                    , double timeSinceInject
+                    , const std::shared_ptr< const identify >& id
+                    , std::unique_ptr< int32_t [] >& data
+                    , size_t size
+                    , bool invert ) : method_( method )
+                                    , meta_( meta )
+                                    , serialnumber_( serialnumber )
+                                    , wellKnownEvents_( wellKnownEvents )
+                                    , timeSinceEpoch_( timeSinceEpoch )
+                                    , firstValidPoint_( firstValidPoint )                                      
+                                    , timeSinceInject_( timeSinceInject )
+                                    , ident_( *id )
+                                    , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
+{
+    typedef int32_t value_type;
+
+    meta_.dataType = sizeof( value_type );
+
+    if ( invert ) {
+        auto p = this->template data< value_type >();
+        std::transform( p, p + size, p, std::negate<value_type>() );
+    }
+}
 
 size_t
 waveform::size() const
@@ -119,16 +162,90 @@ waveform::end() const
     return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
 }
 
+template<> const int8_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 2 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();
+}
+
+template<> int8_t *
+waveform::data()
+{
+    if ( mblock_.which() == 2 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();    
+}
+
+template<> const int16_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 1 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();
+}
+
+template<> int16_t *
+waveform::data()
+{
+    if ( mblock_.which() == 1 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();    
+}
+
+template<> const int32_t *
+waveform::data() const
+{
+    if ( mblock_.which() == 0 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();        
+}
+
+template<> int32_t *
+waveform::data()
+{
+    if ( mblock_.which() == 0 ) {
+        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
+        return mblk->data() + firstValidPoint_;
+    }
+    throw std::bad_cast();        
+}
+
+int
+waveform::dataType() const
+{
+    return meta_.dataType;
+}
+
 std::pair<double, int>
 waveform::operator [] ( size_t idx ) const
 {
-    double time = idx * meta_.xIncrement + meta_.horPos;
+    double time = idx * meta_.xIncrement + meta_.horPos + meta_.initialXOffset;    
 
-    if ( method_.hor_.mode == 0 )
-        time += method_.hor_.delay;
-    else
-        time += method_.hor_.nStartDelay * meta_.xIncrement;
-    
+    switch( meta_.dataType ) {
+    case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
+    case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
+    case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
+    }
+    throw std::exception();
+}
+
+std::pair<double, int>
+waveform::xy( size_t idx ) const
+{
+    double time = idx * meta_.xIncrement + meta_.horPos + meta_.initialXOffset;
+
     switch( meta_.dataType ) {
     case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
     case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
@@ -185,47 +302,6 @@ namespace acqrscontrols {
         }
 
         ///////////////////////
-
-        template<typename T = metadata>
-        class metadata_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.actualPoints );
-                ar & BOOST_SERIALIZATION_NVP( _.flags );
-                ar & BOOST_SERIALIZATION_NVP( _.actualAverages );
-                ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );
-                ar & BOOST_SERIALIZATION_NVP( _.channel );
-                ar & BOOST_SERIALIZATION_NVP( _.dataType );
-                ar & BOOST_SERIALIZATION_NVP( _.initialXTimeSeconds );
-                ar & BOOST_SERIALIZATION_NVP( _.initialXOffset );
-                ar & BOOST_SERIALIZATION_NVP( _.xIncrement );
-                ar & BOOST_SERIALIZATION_NVP( _.scaleFactor );
-                ar & BOOST_SERIALIZATION_NVP( _.scaleOffset );
-                ar & BOOST_SERIALIZATION_NVP( _.horPos );
-            }
-        };
-
-        template<> ACQRSCONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_woarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> ACQRSCONTROLSSHARED_EXPORT void metadata::serialize( boost::archive::xml_wiarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> ACQRSCONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_oarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> ACQRSCONTROLSSHARED_EXPORT void metadata::serialize( portable_binary_iarchive& ar, unsigned int version )
-        {
-            metadata_archive<>().serialize( ar, *this, version );
-        }
 
         ////////////////////
         template<typename T = device_data>
@@ -411,6 +487,46 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     return true;
 }
 
+bool
+waveform::transform( std::vector< double >& v, const waveform& w, int scale )
+{
+    v.resize( w.size() );
+
+    if ( w.meta_.dataType == 1 ) {
+        std::transform( w.begin<int8_t>(), w.end<int8_t>(), v.begin(), [&]( int8_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+    } else if ( w.meta_.dataType == 2 ) {
+        std::transform( w.begin<int16_t>(), w.end<int16_t>(), v.begin(), [&]( int16_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+    } else {
+        std::transform( w.begin<int32_t>(), w.end<int32_t>(), v.begin(), [&]( int32_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+    }
+    return true;
+}
+
+
+bool
+waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontrols::threshold_method& m )
+{
+    if ( m.filter ) {
+
+        transform( v, w, 1 );
+
+        if ( m.filter == adcontrols::threshold_method::SG_Filter ) {
+            
+            adcontrols::waveform_filter::sg::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.sgwidth );
+            
+        } else if ( m.filter == adcontrols::threshold_method::DFT_Filter ) {
+
+            if ( m.complex_ )
+                adcontrols::waveform_filter::fft4c::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+            else
+                adcontrols::waveform_filter::fft4g::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+        }
+        
+        return true;
+    }
+
+    return false;
+}
 
 //static
 bool
@@ -490,3 +606,22 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 	return true;
 }
 
+bool
+waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, mass_assignor_t assign, int scale )
+{
+    if ( translate( sp, result, scale ) ) {
+
+        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        const auto& sinfo = prop.samplingInfo();
+        
+        double lMass = assign( sinfo.fSampDelay(), prop.mode() );
+        double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+        
+        sp.setAcquisitionMassRange( lMass, hMass );
+
+        return sp.assign_masses( assign );
+
+    }
+
+    return false;
+}

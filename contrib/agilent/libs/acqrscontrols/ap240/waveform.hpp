@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,7 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include "metadata.hpp"
 #include "method.hpp"
 #include <boost/serialization/version.hpp>
 #include <array>
@@ -38,11 +39,10 @@ namespace adcontrols { class MassSpectrum; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
 namespace acqrscontrols { namespace ap240 { class method; class threshold_result; } }
+namespace adportable { template<typename T> class mblock; }
 
 namespace acqrscontrols {
     namespace ap240 {
-
-        namespace ap240x = acqrscontrols::ap240;
 
         class ACQRSCONTROLSSHARED_EXPORT identify {
         public:
@@ -55,38 +55,6 @@ namespace acqrscontrols {
         private:
             friend class boost::serialization::access;
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
-        };
-
-        class ACQRSCONTROLSSHARED_EXPORT metadata {
-        public:
-            metadata() : actualPoints( 0 )
-                , flags( 0 )
-                , actualAverages( 0 )
-                , indexFirstPoint( 0 )
-                , channel( 1 )
-                , dataType( 1 )
-                , initialXTimeSeconds( 0 )
-                , initialXOffset( 0 )
-                , scaleFactor( 0 )
-                , xIncrement( 0 )
-                , scaleOffset( 0 )
-                , horPos( 0 )
-            { }
-            int64_t actualPoints;
-            int32_t flags;           // IO pin states
-            int32_t actualAverages;  // 0 = digitizer data, 1..n averaged data
-            int32_t indexFirstPoint; // firstValidPoint in U5303A
-            int16_t channel;         // 1|2
-            int16_t dataType;        // 1, 2, 4 := int8_t, int16_t, int32_t
-            double initialXTimeSeconds;
-            double initialXOffset;
-            double xIncrement;
-            double scaleFactor;
-            double scaleOffset;
-            double horPos;
-        private:
-            friend class boost::serialization::access;
-            template<class Archive>  void serialize( Archive& ar, const unsigned int version );
         };
 
         class ACQRSCONTROLSSHARED_EXPORT device_data {
@@ -108,19 +76,37 @@ namespace acqrscontrols {
         //////////////////
         
         class ACQRSCONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
+
             waveform( const waveform& ) = delete;
             void operator = ( const waveform& ) = delete;
+
         public:
             waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0, uint32_t posorg = 0 );
 
-            template<typename T> const T* begin() const;
-            template<typename T> const T* end() const;
+            waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events, uint64_t tp );
+
+            waveform( const method&
+                      , const metadata&
+                      , uint32_t serialnumber
+                      , uint32_t wellKnownEvents
+                      , uint64_t timeSinceEpoch
+                      , uint64_t firstValidPoint
+                      , double timeSinceInject
+                      , const std::shared_ptr< const identify >& id
+                      , std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
+
+            template< typename value_type > const value_type* begin() const;
+            template< typename value_type > const value_type* end() const;
+            template< typename value_type > const value_type* data() const;
+			template< typename value_type > value_type* data();
 
             template<typename T> void advance( const T*& it, size_t distance ) const {
                 it = ( distance && distance < size_t( std::distance( it, end<T>() ) ) ? it + distance : end<T>() );
             }
 
             std::pair<double, int> operator [] ( size_t ) const;
+            std::pair<double, int> xy( size_t idx ) const;
+            
             double toVolts( int ) const;
             double toVolts( double ) const;
 
@@ -129,10 +115,18 @@ namespace acqrscontrols {
             uint32_t serialnumber_origin_;
             uint32_t serialnumber_;
             uint32_t wellKnownEvents_;
+            uint32_t firstValidPoint_;
             uint64_t timeSinceEpoch_;
+            double timeSinceInject_;
             identify ident_;
 
+            boost::variant < std::shared_ptr< adportable::mblock<int32_t> >
+                             , std::shared_ptr< adportable::mblock<int16_t> >
+                             , std::shared_ptr< adportable::mblock<int8_t> > > mblock_;
+
             size_t size() const; // number of samples (octet size is depend on meta_.dataType)
+
+            int dataType() const; // 2 = int16_t, 4 = int32_t
 
             typedef int32_t value_type; // referenced from archiver in WaveformObserver
 
@@ -141,27 +135,30 @@ namespace acqrscontrols {
             const value_type * data() const { return d_.data(); }
             size_t data_size() const { return d_.size(); }  // internal data count
 
+            static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
+            
             static std::array< std::shared_ptr< const waveform >, 2 >
                 deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
 
             static bool
                 serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
+            static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+
+            typedef double( mass_assign_t )( double time, int mode );
+            typedef std::function< mass_assign_t > mass_assignor_t;
+
+            static bool translate( adcontrols::MassSpectrum&, const waveform&, mass_assignor_t, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
 
         private:
             static bool translate_property( adcontrols::MassSpectrum&, const waveform& );
 
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
             std::vector< value_type > d_;
 
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif
             friend struct ::ap240::detail::device_ap240;
         };
 
@@ -172,6 +169,12 @@ namespace acqrscontrols {
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
 
+		template<> ACQRSCONTROLSSHARED_EXPORT int8_t * waveform::data();
+		template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::data() const;        
+		template<> ACQRSCONTROLSSHARED_EXPORT int16_t * waveform::data();
+		template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::data() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT int32_t * waveform::data();
+        template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::data() const;
 
     }
 }

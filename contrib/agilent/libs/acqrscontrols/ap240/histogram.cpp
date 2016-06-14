@@ -24,6 +24,7 @@
 
 #include "histogram.hpp"
 #include "threshold_result.hpp"
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <algorithm>
@@ -36,6 +37,7 @@ histogram::histogram() : serialnumber_( 0 )
                        , timeSinceEpoch_( 0 )
                        , trigger_count_( 0 )
                        , reset_requested_( true )
+                       , wellKnownEvents_( 0 )
 {
 }
 
@@ -51,7 +53,7 @@ histogram::reset()
     reset_requested_ = true;
 }
 
-void
+size_t
 histogram::append( const ap240x::threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -61,7 +63,8 @@ histogram::append( const ap240x::threshold_result& result )
          !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data()->meta_.initialXOffset ) ||
          !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
         
-        meta_ = result.data()->meta_;        
+        meta_ = result.data()->meta_;
+        method_ = result.data()->method_; // delay pulse + protocols
         
         assert ( meta_.actualPoints );
 
@@ -74,6 +77,7 @@ histogram::append( const ap240x::threshold_result& result )
 
         serialnumber_0_ = result.data()->serialnumber_;
         timeSinceEpoch_0_ = result.data()->timeSinceEpoch_;
+        wellKnownEvents_ = 0;
     }
 
     assert( data_.size() );
@@ -84,7 +88,7 @@ histogram::append( const ap240x::threshold_result& result )
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
 
-    ++trigger_count_;
+    return ++trigger_count_;
 }
 
 size_t
@@ -102,6 +106,7 @@ histogram::triggers_per_sec() const
 size_t
 histogram::getHistogram( std::vector< std::pair<double, uint32_t> >& hist
                          , acqrscontrols::ap240::metadata& meta
+                         , acqrscontrols::ap240::method& method
                          , std::pair<uint32_t, uint32_t>& serialnumber
                          , std::pair<uint64_t, uint64_t>& timeSinceEpoch )
 {
@@ -182,4 +187,33 @@ histogram::average( const std::vector< std::pair< double, uint32_t > >& in, doub
     }
     
     return true;
+}
+
+void
+histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    x.histogram().clear();
+    
+    x.initialXTimeSeconds() = meta_.initialXTimeSeconds;
+    x.initialXOffset()      = meta_.initialXOffset;
+    x.xIncrement()          = meta_.xIncrement;
+    x.actualPoints()        = meta_.actualPoints;
+    x.trigger_count()       = trigger_count_;
+    x.serialnumber()        = std::make_pair( serialnumber_0_, serialnumber_ );
+    x.timeSinceEpoch()      = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
+    x.wellKnownEvents()     = wellKnownEvents_;
+    x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
+    x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
+
+    double ext_trig_delay = x.this_protocol().delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+    
+    for ( auto it = data_.begin(); it < data_.end(); ++it ) {
+        if ( *it ) {
+            double t = meta_.initialXOffset + std::distance( data_.begin(), it ) * meta_.xIncrement;
+            x.histogram().emplace_back( t + ext_trig_delay, *it );
+        }
+    }
+    reset_requested_ = reset;
 }

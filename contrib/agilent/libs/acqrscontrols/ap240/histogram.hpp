@@ -31,15 +31,16 @@
 #include <vector>
 #include <mutex>
 
+namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
     namespace ap240 {
 
-        namespace ap240x = acqrscontrols::ap240;
-
         class threshold_result;
+        class method;
 
         class ACQRSCONTROLSSHARED_EXPORT histogram {
+
             histogram( const histogram & ) = delete;
             histogram& operator = ( const histogram& ) = delete;
 
@@ -48,7 +49,7 @@ namespace acqrscontrols {
 
             void clear();
             void reset();
-            void append( const acqrscontrols::ap240::threshold_result& result );
+            size_t append( const acqrscontrols::ap240::threshold_result& result );
             size_t trigger_count() const;
             double triggers_per_sec() const;
 
@@ -56,7 +57,8 @@ namespace acqrscontrols {
             uint64_t timeSinceEpoch( bool first = false ) const { return first ? timeSinceEpoch_0_ : timeSinceEpoch_; }
 
             size_t getHistogram( std::vector< std::pair<double, uint32_t> >& histogram
-                                 , ap240x::metadata& meta
+                                 , acqrscontrols::ap240::metadata& meta
+                                 , acqrscontrols::ap240::method& method
                                  , std::pair<uint32_t, uint32_t>& serialnumber
                                  , std::pair<uint64_t, uint64_t>& timeSinceEpoch );
 
@@ -65,26 +67,24 @@ namespace acqrscontrols {
 
             static bool average( const std::vector< std::pair< double, uint32_t > >&, double resolution, std::vector < std::pair< double, uint32_t > >& output );
 
+            void move( adcontrols::TimeDigitalHistogram&, bool reset = true );
+            const acqrscontrols::ap240::method& method() const { return method_; }
+
         private:
             // metadata for initial trigger in this histogram
-            ap240x::metadata meta_;
+            acqrscontrols::ap240::metadata meta_;
+            acqrscontrols::ap240::method   method_;
             uint32_t serialnumber_0_;             // first waveform trigger#
             uint32_t serialnumber_;               // last waveform trigger#
             uint64_t timeSinceEpoch_0_;           // first waveform acquired time
             uint64_t timeSinceEpoch_;             // last waveform acquired time
+            uint32_t wellKnownEvents_;
 
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
             std::mutex mutex_;
             std::atomic< size_t > trigger_count_; // number of triggers
             std::vector< uint32_t > data_;
             std::atomic< bool > reset_requested_;
 
-#if defined _MSC_VER
-# pragma warning( pop )
-#endif
         };
 
     }

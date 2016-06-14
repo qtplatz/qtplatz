@@ -62,6 +62,12 @@ method::method( const method& t ) : channels_( t.channels_ )
 {
 }
 
+method::DigiMode
+method::mode() const
+{
+    return DigiMode( hor_.mode );
+}
+
 uint32_t
 method::protocolIndex() const
 {

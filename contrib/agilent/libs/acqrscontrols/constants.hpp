@@ -41,8 +41,17 @@ namespace acqrscontrols {
     }
 
     namespace ap240 {
-        const char * const waveform_observer_name   = "1.ap240.ms-cheminfo.com";
-        const char * const histogram_observer_name  = "histogram.1.ap240.ms-cheminfo.com";
+        const char * const waveform_observer_name        = "1.ap240.ms-cheminfo.com";
+        const char * const timecount_observer_name       = "timecount.1.ap240.ms-cheminfo.com";
+        const char * const histogram_observer_name       = "histogram.timecount.1.ap240.ms-cheminfo.com";
+        const char * const softavgr_observer_name        = "tdcdoc.waveform.1.ap240.ms-cheminfo.com";
+        const char * const tdcdoc_traces_observer_name   = "tdcdoc.traces.1.ap240.ms-cheminfo.com";
+
+        const char * const timecount_datainterpreter     = "timecount.ap240.ms-cheminfo.com";
+        const char * const histogram_datainterpreter     = "histogram.timecount.ap240.ms-cheminfo.com";
+        const char * const softavgr_datainterpreter      = "tdcdoc.waveform.ap240.ms-cheminfo.com";
+        const char * const tdcdoc_traces_datainterpreter = "tdcdoc.traces.ap240.ms-cheminfo.com";        
+        
         enum { nchannels = 2 };        
     }
     
