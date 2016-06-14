@@ -595,6 +595,8 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
 void
 tdcdoc::clear_histogram()
 {
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    
     impl_->threshold_action_counts_ = { { { 0, 0 } } };
 
     for ( auto& p: impl_->recent_longterm_histograms_ )
@@ -604,6 +606,8 @@ tdcdoc::clear_histogram()
 std::pair< uint32_t, uint32_t >
 tdcdoc::threshold_action_counts( int channel ) const
 {
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    
     return impl_->threshold_action_counts_[ channel ];
 }
 

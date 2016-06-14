@@ -694,6 +694,9 @@ TraceData::setData( plot& plot
 	
 	top = top + ( top - bottom ) * 0.12; // add 12% margine for annotation
 
+    if ( adportable::compare< double >::essentiallyEqual( top, bottom ) )
+        top = 1.0;
+
     if ( isTimeAxis_ ) {
 
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
