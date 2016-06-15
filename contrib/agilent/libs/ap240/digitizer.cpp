@@ -104,12 +104,10 @@ namespace ap240 {
             }
 
             static bool checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg = 0 ) {
-                if ( st == VI_SUCCESS )
-                    return false;
-                std::cerr << error_msg( st, text, instId );
-                if ( arg )
-                    std::cerr << " #" << arg;
-                std::cerr << std::endl;
+
+                if ( st != VI_SUCCESS )
+                    ADINFO() << error_msg( st, text, instId ) << " #" << arg;
+
                 return false;
             }
 
@@ -872,8 +870,15 @@ bool
 device_ap240::acquire( task& task )
 {
     auto rcode = AcqrsD1_acquire( task.inst() );
-    if ( rcode != VI_SUCCESS )
+
+    if ( rcode != VI_SUCCESS ) {
         task::checkError( task.inst(), rcode, "device_ap240::acquire", __LINE__ );
+
+        if ( rcode == ACQIRIS_ERROR_INSTRUMENT_RUNNING )
+            AcqrsD1_stopAcquisition( task.inst() );
+
+        std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+    }
     return rcode == VI_SUCCESS;
 }
 
