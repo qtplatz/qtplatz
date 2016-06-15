@@ -50,6 +50,8 @@ add_library( ${PROJECT_NAME} SHARED
   waveform_simulator.cpp
   waveform_simulator_manager.hpp
   waveform_simulator_manager.cpp
+  writeaccess.hpp
+  writeaccess.cpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC acewrapper adplugin adfs adcontrols adutils ${Boost_LIBRARIES} )

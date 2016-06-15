@@ -534,6 +534,11 @@ int main(int argc, char **argv)
     // shutdown plugin manager on the exit
     QObject::connect(&app, SIGNAL(aboutToQuit()), &pluginManager, SLOT(shutdown()));
 
+    std::set_terminate([](){
+            qDebug() << "Unhandled exception\n";
+            std::abort();
+        });
+    
     const int r = app.exec();
     cleanupCrashHandler();
     return r;
