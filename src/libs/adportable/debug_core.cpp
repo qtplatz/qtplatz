@@ -44,20 +44,8 @@ debug_core::debug_core() : logfname_( profile::user_data_dir<char>() + "/debug.l
 debug_core *
 debug_core::instance()
 {
-    typedef debug_core T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+	static debug_core __instance;
+	return &__instance;
 }
 
 const std::string&
