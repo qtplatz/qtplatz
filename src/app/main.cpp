@@ -536,7 +536,7 @@ int main(int argc, char **argv)
 
     std::set_terminate([](){
             qDebug() << "Unhandled exception\n";
-            std::abort();
+            abort();
         });
     
     const int r = app.exec();

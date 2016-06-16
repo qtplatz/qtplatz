@@ -29,6 +29,7 @@
 #include <adportable/dgprotocols.hpp>
 #include <array>
 #include <memory>
+#include <string>
 
 //namespace adportable { namespace dg { class protocols; } }
 
