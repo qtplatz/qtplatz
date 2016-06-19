@@ -58,21 +58,23 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT QTPLATZ_CORELIB_ONLY )
       set( Qt5_DIR $ENV{QTDIR}/lib/cmake/Qt5 )
       find_package( Qt5 5.5 OPTIONAL_COMPONENTS Core QUIET )
     endif()
+  else()
+    find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  
+  endif()
 
-    if ( Qt5_FOUND )
-      get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
-
-      find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" "C:/Qt/Qt5.6.0/5.6/msvc2015_64/bin" )
-      message( STATUS "### QMAKE = " ${QMAKE} )
-      if ( NOT QMAKE )
-	message( FATAL_ERROR "qmake command not found" )
-      endif()
-
-      find_program( XMLPATTERNS NAMES xmlpatterns "${QTDIR}/bin" )
-      message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
-      if ( NOT XMLPATTERNS )
-	message( FATAL_ERROR "xmlpatterns command not found" )
-      endif()
+  if ( Qt5_FOUND )
+    get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
+    
+    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" "C:/Qt/Qt5.6.0/5.6/msvc2015_64/bin" )
+    message( STATUS "### QMAKE = " ${QMAKE} )
+    if ( NOT QMAKE )
+      message( FATAL_ERROR "qmake command not found" )
+    endif()
+    
+    find_program( XMLPATTERNS NAMES xmlpatterns "${QTDIR}/bin" )
+    message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
+    if ( NOT XMLPATTERNS )
+      message( FATAL_ERROR "xmlpatterns command not found" )
     endif()
   endif()
 
@@ -85,8 +87,6 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT QTPLATZ_CORELIB_ONLY )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
       OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
   endif()
-
-  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  
 
 endif()
 
