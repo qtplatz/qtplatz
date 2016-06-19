@@ -33,10 +33,8 @@ if %VisualStudioVersion% EQU 12.0 (
    set tools=vc12
    if %address_model% EQU 32 (
       set GENERATOR="Visual Studio 12 2013"
-      set QTDIR=C:\Qt\5.6.0\5.6\msvc2013
    ) else (
       set GENERATORr="Visual Studio 12 2013 Win64"
-      set QTDIR=C:\Qt\5.6.0\5.6\msvc2013_64
    )
 )
 
@@ -44,10 +42,8 @@ if %VisualStudioVersion% EQU 14.0 (
    set tools=vc14
    if %address_model% EQU 32 (
       set GENERATOR="Visual Studio 14 2015"
-      set QTDIR=C:\Qt\5.6\msvc2015
    ) else (
       set GENERATOR="Visual Studio 14 2015 Win64"
-      set QTDIR=C:\Qt\5.6\msvc2015_64
    )
 )
 
