@@ -21,7 +21,7 @@ if ( WIN32 )
     "${_rdkit}/lib"
     )
   set( _rdkit_incdirs "${_rdkit}/include/rdkit" )
-  find_package( rdkit CONFIG REQUIRED HINTS ${_rdkit_libdirs} ) # find ex. C:/RDKit/lib_vc140_boost-1_59/rdkit-config.cmake
+  find_package( rdkit CONFIG HINTS ${_rdkit_libdirs} ) # find ex. C:/RDKit/lib_vc140_boost-1_59/rdkit-config.cmake
   set ( RDKit_LIBRARY_DIRS ${_dir} )  
   
 else()

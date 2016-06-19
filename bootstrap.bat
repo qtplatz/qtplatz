@@ -4,11 +4,11 @@
 setlocal enabledelayedexpansion
 
 set source_dir=%cd%
-set build_root=..\build-x86_64
+set build_root=..
+set build_arch=x86_64
 set build_type=release
 set build_tests=false
 set build_clean=false
-set build_x86=false
 set address_model=64
 set GENERATOR="Visual Studio 14 2015 Win64"
 
@@ -24,7 +24,7 @@ for %%i in (%*) do (
     ) else if %%i==clean (
        set build_clean=true
     ) else if %%i==x86 (
-      set build_root=..\build-x86
+      set build_arch=x86
       set address_model=32
     )
 )
@@ -52,12 +52,13 @@ if %VisualStudioVersion% EQU 14.0 (
 )
 
 echo -------------- address_model: !address_model!
+echo -------------- arch:          !build_arch!
 echo -------------- tools:         !tools!
 echo -------------- GENERATOR:     !GENERATOR!
 
 echo "############ bootstrap building qtplatz using "!tools!" #############"
 
-set build_dir=!build_root!\qtplatz.!build_type!_!tools!
+set build_dir=!build_root!\build-!tools!-!build_arch!\qtplatz.!build_type!
 
 if %build_clean%==true (
   echo rmdir !build_dir! /s /q

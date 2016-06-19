@@ -48,32 +48,42 @@ endif()
 # Qt5 setup
 #
 
-if ( NOT CMAKE_CROSSCOMPILING )
+if ( NOT CMAKE_CROSSCOMPILING AND NOT QTPLATZ_CORELIB_ONLY )
 
   if ( WIN32 )
     if((MSVC_VERSION GREATER 1900) OR (MSVC_VERSION EQUAL 1900))
-      find_program( QMAKE NAMES qmake HINTS $ENV{QTDIR} "C:/Qt/Qt5.6.0/5.6/msvc2015_64/bin" )      
+      set( CMAKE_PREFIX_PATH "C:/Qt/5.7/msvc2015_64" "C:/Qt/5.6/msvc2015_64" )
+      find_package( Qt5 5.6 OPTIONAL_COMPONENTS Core QUIET )
     else()
-      find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR} "C:/Qt/5.5/msvc2013_64/bin" "C:/Qt/5.4/msvc2013_64/bin" )
+      set( Qt5_DIR $ENV{QTDIR}/lib/cmake/Qt5 )
+      find_package( Qt5 5.5 OPTIONAL_COMPONENTS Core QUIET )
     endif()
-  else()
-    find_program( QMAKE NAMES qmake PATHS $ENV{QTDIR} "/opt/Qt/5.5/gcc_64/bin" )
+
+    if ( Qt5_FOUND )
+      get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
+
+      find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" "C:/Qt/Qt5.6.0/5.6/msvc2015_64/bin" )
+      message( STATUS "### QMAKE = " ${QMAKE} )
+      if ( NOT QMAKE )
+	message( FATAL_ERROR "qmake command not found" )
+      endif()
+
+      find_program( XMLPATTERNS NAMES xmlpatterns "${QTDIR}/bin" )
+      message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
+      if ( NOT XMLPATTERNS )
+	message( FATAL_ERROR "xmlpatterns command not found" )
+      endif()
+    endif()
   endif()
 
   if ( QMAKE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
       OUTPUT_VARIABLE QTDIR ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
 
-    message( STATUS "### QTDIR: " ${QTDIR} )
-    
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PLUGINS
       OUTPUT_VARIABLE QT_INSTALL_PLUGINS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_LIBEXECS
       OUTPUT_VARIABLE QT_INSTALL_LIBEXECS ERROR_VARIABLE qterr OUTPUT_STRIP_TRAILING_WHITESPACE )
-    #find_program( XMLPATTERNS NAMES xmlpatterns HINTS ${QT_INSTALL_PREFIX}/bin ${QT_INSTALL_LIBEXECS} )
-    #find_program( XMLPATTERNS NAMES xmlpatterns PATHS "${QTDIR}/bin" )
-    set( XMLPATTERNS "${QTDIR}/bin/xmlpatterns" )
-    message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )    
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  
