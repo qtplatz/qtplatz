@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "receiverimpl.hpp"
 #include <adextension/icontroller.hpp>
 #include <adicontroller/instrument.hpp>
 #include <adicontroller/receiver.hpp>
@@ -38,30 +39,6 @@ class QString;
 
 namespace adextension {
 
-    /*
-     *  Receiver -- implementation helper
-     */
-    class ReceiverImpl : public adicontroller::Receiver {
-        std::weak_ptr< iController > controller_;
-    public:
-        ~ReceiverImpl() {}
-        ReceiverImpl( iController * p ) : controller_( p->pThis() ) {}
-            
-        void message( eINSTEVENT msg, uint32_t value ) override {
-            if ( auto p = controller_.lock() )
-                emit p->message( p.get(), unsigned( msg ), unsigned( value ) );
-        }
-            
-        void log( const adicontroller::EventLog::LogMessage& log ) override {
-        }
-            
-        void shutdown() override {
-        }
-            
-        void debug_print( uint32_t priority, uint32_t category, const std::string& text ) override {
-        }
-    };
-    
     /*
      *  ObserverEvents -- implementation helper
      */

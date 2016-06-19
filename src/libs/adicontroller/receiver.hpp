@@ -27,6 +27,7 @@
 #include "adicontroller_global.hpp"
 #include "eventlog.hpp"
 #include <memory>
+#include <boost/system/error_code.hpp>
 
 namespace adicontroller {
 
@@ -73,6 +74,8 @@ namespace adicontroller {
         virtual void log( const EventLog::LogMessage& log );
         virtual void shutdown();
         virtual void debug_print( uint32_t priority, uint32_t category, const std::string& text );
+        virtual void notify_error( const boost::system::error_code& ec, const std::string& file, int line );
+        virtual void notify_error( const std::string& what, const std::string& file, int line );
     };
 
 }

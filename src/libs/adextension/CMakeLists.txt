@@ -8,6 +8,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 add_definitions( -DADEXTENSION_LIBRARY )
+find_package( Boost 1.57 REQUIRED COMPONENTS system )
 
 set( adextension_SOURCES
   adextension.cpp
@@ -39,6 +40,8 @@ set( adextension_SOURCES
   isequenceimpl.hpp
   iwidgetfactory.cpp
   iwidgetfactory.hpp
+  receiverimpl.hpp
+  receiverimpl.cpp
   adextension_global.hpp
   isnapshothandler.hpp
 )
@@ -47,6 +50,8 @@ add_library( adextension SHARED ${adextension_SOURCES} )
 
 target_link_libraries( adextension LINK_PUBLIC 
   Qt5::Core
+  adicontroller
+  ${Boost_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}

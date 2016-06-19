@@ -87,6 +87,7 @@ namespace adextension {
         void log( iController * self, const QString& );
         void dataChanged( adicontroller::SignalObserver::Observer *, unsigned int pos );
         void dataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
+        void notifyError( iController * self, const QString& what, const QString& file, int line );
     };
 
 }

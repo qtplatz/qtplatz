@@ -49,3 +49,14 @@ Receiver::debug_print( uint32_t priority, uint32_t category, const std::string& 
 {
 }
 
+void
+Receiver::notify_error( const boost::system::error_code& ec,  const std::string& file, int line )
+{
+}
+
+void
+Receiver::notify_error( const std::string& what,  const std::string& file, int line )
+{
+}
+
+
