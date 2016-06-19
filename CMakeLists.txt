@@ -85,7 +85,7 @@ endif()
 message( STATUS "---------------------------------" )
 
 if ( WIN32 )
-  add_definitions( -wd4251 -wd4244 -wd4005 )
+  add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 )
 endif()
 
 find_package( Boost REQUIRED )

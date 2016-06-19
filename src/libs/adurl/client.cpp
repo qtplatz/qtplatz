@@ -29,7 +29,6 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-
 #include "client.hpp"
 #include <adportable/debug.hpp>
 #include <istream>
@@ -56,7 +55,7 @@ namespace adurl {
 using boost::asio::ip::tcp;
 using namespace adurl;
 
-bool client::debug_mode = false;
+bool client::debug_mode_ = false;
 
 client::client(boost::asio::io_service& io_service
                , const std::string& server
@@ -104,6 +103,18 @@ client::client(boost::asio::io_service& io_service
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
                                  handle_resolve( err, endpoint_iterator );
                              });                             
+}
+
+void
+client::setDebug_mode( bool mode )
+{
+    client::debug_mode_ = mode;
+}
+
+bool
+client::debug_mode()
+{
+    return client::debug_mode_;
 }
 
 boost::asio::streambuf&
@@ -158,7 +169,7 @@ client::handle_resolve(const boost::system::error_code& err,
     } else {
 
         error_ = Error;
-        if ( debug_mode )
+        if ( debug_mode_ )
             ADDEBUG() << "Error: " << err.message();
 
     }
@@ -191,7 +202,7 @@ client::handle_connect(const boost::system::error_code& err,
     } else {
 
         error_ = Error;
-        if ( debug_mode )
+        if ( debug_mode_ )
             ADDEBUG() << "Error: " << err.message();
     }
 }
@@ -211,7 +222,7 @@ client::handle_write_request(const boost::system::error_code& err)
     } else {
 
         error_ = Error;
-        if ( debug_mode )
+        if ( debug_mode_ )
             ADDEBUG() << "Error: " << err.message();
     }
 }
@@ -249,7 +260,7 @@ client::handle_read_status_line( const boost::system::error_code& err )
     } else  {
 
         error_ = Error;
-        if ( debug_mode )        
+        if ( debug_mode_ )        
             ADDEBUG() << "Error: " << err;
     }
 }
@@ -270,7 +281,7 @@ client::handle_read_headers(const boost::system::error_code& err)
                  header.find( "text/event-stream" ) != std::string::npos ) {
                 event_stream_ = true;
             }
-            if ( debug_mode )
+            if ( debug_mode_ )
                 ADDEBUG() << header;
         }
 
@@ -291,7 +302,7 @@ client::handle_read_headers(const boost::system::error_code& err)
     } else {
 
         error_ = Error;
-        if ( debug_mode )                
+        if ( debug_mode_ )                
             ADDEBUG() << "Error: " << err;
     }
 }
@@ -311,7 +322,7 @@ client::handle_read_content(const boost::system::error_code& err)
     } else if (err != boost::asio::error::eof) {
 
         error_ = Error;
-        if ( debug_mode )                
+        if ( debug_mode_ )                
             ADDEBUG() << "Error: " << err;
     }
 }
@@ -342,7 +353,7 @@ client::handle_read_stream( const boost::system::error_code& ec )
     } else if ( ec != boost::asio::error::eof ) {
 
         error_ = Error;
-        if ( debug_mode )                
+        if ( debug_mode_ )                
             ADDEBUG() << "Error: " << ec;
     }
 }

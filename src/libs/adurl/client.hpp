@@ -31,6 +31,7 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include "adurl_global.h"
 #include <boost/asio.hpp>
 #include <memory>
 
@@ -40,7 +41,7 @@ namespace adurl {
 
     class request;
 
-    class client {
+    class ADURLSHARED_EXPORT client {
     public:
         client( boost::asio::io_service& io_service, const std::string& server, const std::string& path);
 
@@ -57,7 +58,8 @@ namespace adurl {
         enum ReplyStatus { NoError, Error };
         ReplyStatus error() const;
 
-        static bool debug_mode;
+        static void setDebug_mode( bool mode );
+        static bool debug_mode();
 
     private:
         void handle_resolve( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator );
@@ -67,6 +69,8 @@ namespace adurl {
         void handle_read_headers( const boost::system::error_code& err );
         void handle_read_content( const boost::system::error_code& err );
         void handle_read_stream( const boost::system::error_code& err );
+
+        static bool debug_mode_;
 
         tcp::resolver resolver_;
         tcp::socket socket_;

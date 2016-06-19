@@ -79,7 +79,7 @@ main( int argc, char* argv[] )
     po::store( po::command_line_parser( argc, argv ).options( description ).positional(p).run(), vm );
     po::notify(vm);
 
-    adurl::client::debug_mode = true;
+    adurl::client::setDebug_mode( true );
 
     if ( vm.count( "help" ) || ( vm.count( "args" ) == 0 ) ) {
         std::cout << "Usage: " << argv[ 0 ] << "\n\thost[:port] [options]" << std::endl;        

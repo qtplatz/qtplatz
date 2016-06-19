@@ -78,6 +78,7 @@ bool
 method::setProtocolIndex( uint32_t value, bool modifyDeviceMethod )
 {
     protocolIndex_ = value;
+    return true;
 }
 
 std::vector< adcontrols::TofProtocol >&

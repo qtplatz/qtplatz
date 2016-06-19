@@ -241,9 +241,9 @@ peakfinder::peakfinder( std::function< double( size_t idx, int& n )> fpeakw ) : 
  */
 template<> size_t
 peakfinder::operator()( std::function< double ( size_t ) > fx
-                                 , const double * pY
-                                 , size_t beg, size_t end
-                                 , std::vector< peakinfo >& results )
+                        , const double * pY
+                        , size_t beg, size_t end
+                        , std::vector< waveform_peakfinder::peakinfo >& results )
 {
     // compute baseline level and rms
     spectrum_processor::tic( end - beg, &pY[beg], dbase_, rms_ );
