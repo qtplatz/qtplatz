@@ -392,7 +392,7 @@ elseif( APPLE )
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libqtwrapper_debug.a )
 
   set_target_properties( xmlparser PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/libxmlparser.a
+    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser.a
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libxmlparser_debug.a )
 
 else()
