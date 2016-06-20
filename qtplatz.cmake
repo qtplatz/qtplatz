@@ -59,13 +59,14 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT QTPLATZ_CORELIB_ONLY )
       find_package( Qt5 5.5 OPTIONAL_COMPONENTS Core QUIET )
     endif()
   else()
-    find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET PATHS ${QTDIR} )  
+    # Qt5 location will be determined by PATH (qmake) on Linux & Apple are 
+    find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET ) #PATHS "/opt/Qt5.7.0" /opt/Qt/5.7 )
   endif()
 
   if ( Qt5_FOUND )
     get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
     
-    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" "C:/Qt/Qt5.6.0/5.6/msvc2015_64/bin" )
+    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
     message( STATUS "### QMAKE = " ${QMAKE} )
     if ( NOT QMAKE )
       message( FATAL_ERROR "qmake command not found" )
