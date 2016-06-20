@@ -52,7 +52,7 @@
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
-#include <compiler/make_unique.hpp>
+#include <adportable/unique_ptr.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
