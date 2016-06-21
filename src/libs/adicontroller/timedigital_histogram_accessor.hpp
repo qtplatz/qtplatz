@@ -24,13 +24,14 @@
 
 #pragma once
 
+#include "adicontroller_global.hpp"
 #include "datawriter.hpp"
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <vector>
 
 namespace adicontroller {
 
-    class timedigital_histogram_accessor : public SignalObserver::DataAccess {
+    class ADICONTROLLERSHARED_EXPORT timedigital_histogram_accessor : public SignalObserver::DataAccess {
 
         std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >::iterator it_;
         timedigital_histogram_accessor( const timedigital_histogram_accessor& ) = delete;

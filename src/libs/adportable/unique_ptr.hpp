@@ -25,9 +25,9 @@
 
 #pragma once
 
-#if ! __APPLE__
+#if (! __APPLE__ ) && ( defined _MSC_VER && _MSC_VER < 1900 )
 
-# if ( defined _MSC_VER && _MSC_VER < 1900 ) || ( __GNUC__ <= 4 && __GNUC_MINOR__ <= 8 ) || ( __cplusplus < 201103L )
+# if ( _MSC_VER < 1900 ) || ( __GNUC__ <= 4 && __GNUC_MINOR__ <= 8 ) || ( __cplusplus < 201103L )
 
 #  include <compiler/make_unique.hpp>
 
