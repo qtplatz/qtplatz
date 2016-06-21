@@ -46,7 +46,7 @@ namespace acqrscontrols {
         const char * const histogram_observer_name       = "histogram.timecount.1.ap240.ms-cheminfo.com";
         const char * const softavgr_observer_name        = "tdcdoc.waveform.1.ap240.ms-cheminfo.com";
         const char * const tdcdoc_traces_observer_name   = "tdcdoc.traces.1.ap240.ms-cheminfo.com";
-
+        
         const char * const timecount_datainterpreter     = "timecount.ap240.ms-cheminfo.com";
         const char * const histogram_datainterpreter     = "histogram.timecount.ap240.ms-cheminfo.com";
         const char * const softavgr_datainterpreter      = "tdcdoc.waveform.ap240.ms-cheminfo.com";

@@ -24,6 +24,7 @@
 
 #include "threshold_result_accessor.hpp"
 #include <acqrscontrols/ap240/waveform.hpp>
+#include <adportable/bzip2.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
@@ -92,13 +93,13 @@ threshold_result_accessor::events() const
 size_t
 threshold_result_accessor::xdata( std::string& ar ) const
 {
-    boost::iostreams::back_insert_device< std::string > inserter( ar );
-    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-
+    std::ostringstream o;
+    
     auto& indecies = ( *it_ )->indecies();
     try {
-        portable_binary_oarchive a( device );
+        portable_binary_oarchive a( o );
         a << indecies;
+        adportable::bzip2::compress( ar, o.str().data(), o.str().size() );
     } catch ( std::exception& ex ) {
         ADDEBUG() << "exception : " << ex.what();
     }

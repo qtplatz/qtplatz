@@ -36,7 +36,7 @@ namespace acqrscontrols {
     template< typename result_type, typename access_type >
     class ResultWriter {
     public:
-        ResultWriter()
+        ResultWriter( const boost::uuids::uuid& uuid ) : uuid_( uuid )
             {}
 
         ~ResultWriter()

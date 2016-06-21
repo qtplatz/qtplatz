@@ -240,16 +240,19 @@ SampleProcessor::write( const boost::uuids::uuid& objId
     writer.rewind();
     do {
 
-        if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
-            ADDEBUG() << boost::format( "SampleProcessor INJECT TRIGGERD by DATA 0x%x %s" ) % writer.events() % boost::lexical_cast<std::string>( objId );
-            if ( !c_acquisition_active_ ) { // protect from chattering
-                ts_inject_trigger_ = writer.epoch_time(); // uptime;
-                c_acquisition_active_ = true;
+        if ( ! c_acquisition_active_ ) {
+
+            if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
+                ADDEBUG() << boost::format( "SampleProcessor INJECT TRIGGERD by DATA 0x%x %s" ) % writer.events() % boost::lexical_cast<std::string>( objId );
+                if ( !c_acquisition_active_ ) { // protect from chattering
+                    ts_inject_trigger_ = writer.epoch_time(); // uptime;
+                    c_acquisition_active_ = true;
+                }
             }
         }
 
         if ( c_acquisition_active_ ) {
-        
+
             std::string xdata, xmeta;
             writer.xdata( xdata );
             writer.xmeta( xmeta );
