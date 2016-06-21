@@ -43,7 +43,8 @@ if [ -z $cross_target ]; then
 	    build_dirs=("$build_root/build-$arch/boost" \
 			    "$build_root/build-$arch/qtplatz.$config" )
 	    if [ $config = debug ]; then
-		cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
+		#cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
+		cmake_args=('-G' 'CodeBlocks - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
 	    fi
 	    ;;
     esac
