@@ -37,6 +37,7 @@
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adicontroller/signalobserver.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -147,6 +148,9 @@ namespace ap240 {
             bool simulated_;
             acqrscontrols::ap240::method method_;
             std::atomic_flag acquire_posted_;
+
+            bool c_injection_requested_;
+            bool c_acquisition_status_; // true := acq. is active, 
             
             std::chrono::steady_clock::time_point uptime_;
             uint64_t inject_timepoint_;
@@ -341,15 +345,12 @@ task::task() : work_( io_service_ )
              , numInstruments_( 0 )
              , uptime_( std::chrono::steady_clock::now() )
              , ident_( std::make_shared< acqrscontrols::ap240::identify >() )
+             , c_injection_requested_( false )
+             , c_acquisition_status_( false )
+               
 {
     acquire_posted_.clear();
-    
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
-
-#if defined WIN32
-    for ( auto& t: threads_ )
-        SetThreadPriority( t.native_handle(), THREAD_PRIORITY_BELOW_NORMAL );
-#endif
 }
 
 task::~task()
@@ -411,6 +412,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
+    c_injection_requested_ = true;
     return true;
 }
 
@@ -546,6 +548,17 @@ task::handle_acquire()
                 ch2->serialnumber_ = serialnumber;
                 readData( *ch2, 2 );
                 ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
+            }
+
+            if ( c_injection_requested_ ) {
+                c_injection_requested_ = false;
+                c_acquisition_status_ = true;
+                for ( auto& w: { ch1, ch2 } ) {
+                    if ( w ) {
+                        inject_timepoint_ = w->meta_.initialXTimeSeconds;
+                        w->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+                    }
+                }
             }
             
             for ( auto& reply: waveform_handlers_ ) {

@@ -346,8 +346,8 @@ task::impl::fsm_action_inject()
 
     signalFSMAction_( Instrument::fsmInject );
     
-    for ( auto& sampleprocessor : *sequence_ )
-        sampleprocessor->set_inject_triggered( true );
+    // for ( auto& sampleprocessor : *sequence_ )
+    //     sampleprocessor->set_inject_triggered( true );
 }
 
 void

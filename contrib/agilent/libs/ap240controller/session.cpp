@@ -246,13 +246,15 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
 bool
 Session::event_out( uint32_t event )
 {
-    return true;
+    if ( event == adicontroller::Instrument::instEventInjectOut )
+        return impl_->digitizer_->peripheral_trigger_inject();
+    return false;
 }
 
 bool
 Session::start_run()
 {
-    return true;
+    return impl_->digitizer_->peripheral_run();
 }
 
 bool
@@ -270,7 +272,7 @@ Session::resume_run()
 bool
 Session::stop_run()
 {
-    return true; // No action for 'stop' by means of terminate current sample run.
+    return impl_->digitizer_->peripheral_stop();
 }
 
 bool
