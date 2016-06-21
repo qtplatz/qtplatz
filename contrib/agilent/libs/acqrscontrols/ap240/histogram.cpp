@@ -54,7 +54,7 @@ histogram::reset()
 }
 
 size_t
-histogram::append( const ap240x::threshold_result& result )
+histogram::append( const acqrscontrols::ap240::threshold_result& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 

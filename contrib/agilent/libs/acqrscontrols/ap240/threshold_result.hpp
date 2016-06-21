@@ -35,26 +35,17 @@ namespace acqrscontrols {
 
         class waveform;
 
-        namespace ap240x = acqrscontrols::ap240;
-
         class ACQRSCONTROLSSHARED_EXPORT threshold_result {
 
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
-            std::shared_ptr< const ap240x::waveform > data_;
+            std::shared_ptr< const acqrscontrols::ap240::waveform > data_;
             std::vector< uint32_t > indecies_;
             std::vector< double > processed_;
             uint32_t foundIndex_;
             std::pair< uint32_t, uint32_t > findRange_;
 
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
         public:
-            std::shared_ptr< const ap240x::waveform >& data();
-            std::shared_ptr< const ap240x::waveform > data() const;
+            std::shared_ptr< const acqrscontrols::ap240::waveform >& data();
+            std::shared_ptr< const acqrscontrols::ap240::waveform > data() const;
 
             std::vector< uint32_t >& indecies();
             std::vector< double >& processed();
@@ -63,15 +54,13 @@ namespace acqrscontrols {
             const std::pair<uint32_t, uint32_t >& findRange() const;
             uint32_t foundIndex() const;
             void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
-#if defined _MSC_VER
-            static const uint32_t npos = (-1);
-#else
+
             static constexpr uint32_t npos = (-1);
-#endif
+
             bool hasFoundIndex() const { return foundIndex_ != npos; }
 
             threshold_result();
-            threshold_result( std::shared_ptr< const ap240x::waveform > d );
+            threshold_result( std::shared_ptr< const acqrscontrols::ap240::waveform > d );
             threshold_result( const threshold_result& t );
         };
 

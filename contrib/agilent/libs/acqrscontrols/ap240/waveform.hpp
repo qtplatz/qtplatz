@@ -135,6 +135,10 @@ namespace acqrscontrols {
             const value_type * data() const { return d_.data(); }
             size_t data_size() const { return d_.size(); }  // internal data count
 
+            // reused in threshold_result archive
+            size_t serialize_xmeta( std::string& ) const;
+            bool deserialize_xmeta( const char *, size_t );
+
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
             
             static std::array< std::shared_ptr< const waveform >, 2 >

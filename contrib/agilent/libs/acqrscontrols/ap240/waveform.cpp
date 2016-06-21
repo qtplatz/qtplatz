@@ -37,14 +37,17 @@
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
+#include <adportable/waveform_wrapper.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/bind.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/format.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
-#include <boost/bind.hpp>
-#include <boost/format.hpp>
+
 
 using namespace acqrscontrols::ap240;
 
@@ -336,6 +339,22 @@ namespace acqrscontrols {
         }
 
         ////////////////////
+        template<typename T = waveform >
+        class waveform_xmeta_archive_t {
+            T& _;
+        public:
+            waveform_xmeta_archive_t( T& t ) : _( t ) {}
+            template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( _.ident_ );
+                ar & BOOST_SERIALIZATION_NVP( _.meta_ );
+                ar & BOOST_SERIALIZATION_NVP( _.method_ );                
+                ar & BOOST_SERIALIZATION_NVP( _.timeSinceInject_ );
+                ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
+            }
+        };
+        
 
         class waveform_xmeta_archive {
             waveform_xmeta_archive( const waveform_xmeta_archive& ) = delete;
@@ -625,3 +644,37 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 
     return false;
 }
+
+size_t
+waveform::serialize_xmeta( std::string& os ) const
+{
+    boost::iostreams::back_insert_device< std::string > inserter( os );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+    portable_binary_oarchive ar( device );
+
+    waveform_xmeta_archive_t< const waveform > x( *this );
+    ar & x;
+
+    return os.size();
+}
+
+bool
+waveform::deserialize_xmeta( const char * data, size_t size )
+{
+    boost::iostreams::basic_array_source< char > device( data, size );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+
+    portable_binary_iarchive ar( st );
+
+    try {
+        waveform_xmeta_archive_t< waveform > x( *this );
+        ar & x;
+        return true;
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+    }
+
+    return false;
+}
+

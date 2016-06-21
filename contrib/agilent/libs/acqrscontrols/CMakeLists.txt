@@ -17,6 +17,7 @@ include_directories(
 
 add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
+  resultwriter.hpp
   u5303a/averagedata.hpp
   u5303a/averagedata.cpp
   u5303a/device_method.hpp
@@ -49,6 +50,8 @@ add_library( ${PROJECT_NAME} SHARED
   ap240/tdcdoc.hpp  
   ap240/threshold_result.cpp
   ap240/threshold_result.hpp
+  ap240/threshold_result_accessor.cpp
+  ap240/threshold_result_accessor.hpp
   ap240/waveform.cpp
   ap240/waveform.hpp
   )
