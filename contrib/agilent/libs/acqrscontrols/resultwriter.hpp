@@ -36,8 +36,11 @@ namespace acqrscontrols {
     template< typename result_type, typename access_type >
     class ResultWriter {
     public:
-        ResultWriter();
-        ~ResultWriter();
+        ResultWriter()
+            {}
+
+        ~ResultWriter()
+            {}
 
         ResultWriter& operator << ( const result_type result ) {
             std::lock_guard< std::mutex > lock( mutex_ );
