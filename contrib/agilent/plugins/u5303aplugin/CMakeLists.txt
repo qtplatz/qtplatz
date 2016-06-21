@@ -75,8 +75,6 @@ add_library(
   waveformwnd.hpp
   isequenceimpl.cpp
   isequenceimpl.hpp
-  timedigital_histogram_accessor.cpp
-  timedigital_histogram_accessor.hpp
   ${u5303a_Resources}
   )
 

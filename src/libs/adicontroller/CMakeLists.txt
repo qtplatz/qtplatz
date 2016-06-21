@@ -46,6 +46,8 @@ add_library( ${PROJECT_NAME} SHARED
   simpleobserver.cpp
   task.hpp
   task.cpp
+  timedigital_histogram_accessor.hpp
+  timedigital_histogram_accessor.cpp
   waveform_simulator.hpp
   waveform_simulator.cpp
   waveform_simulator_manager.hpp
