@@ -119,10 +119,10 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++1y support. Please use a different C++ compiler.")
   endif()
 
-  if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-  endif()
+#  if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+#    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+#  endif()
 
   if ( ${CMAKE_BUILD_TYPE} MATCHES DEBUG )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -DDEBUG")
@@ -132,8 +132,6 @@ else()
   if ( APPLE )
     add_definitions( "-Wno-unused-local-typedefs" )
   endif()
-
-  add_definitions( "-Wno-deprecated-register" )
 
 endif()
 
