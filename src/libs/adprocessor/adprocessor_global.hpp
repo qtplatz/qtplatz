@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef ADWIDGETS_GLOBAL_HPP
-#define ADWIDGETS_GLOBAL_HPP
+#pragma once
 
 #include <QtCore/qglobal.h>
 
@@ -33,4 +32,3 @@
 #  define ADPROCESSORSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // ADWIDGETS_GLOBAL_HPP

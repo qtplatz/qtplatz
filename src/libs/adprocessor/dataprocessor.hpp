@@ -52,7 +52,7 @@ namespace adcontrols {
 namespace adprocessor {
 
     class ADPROCESSORSHARED_EXPORT dataprocessor : public QObject
-                                               , public adcontrols::dataSubscriber {
+                                                 , public adcontrols::dataSubscriber {
         
         Q_OBJECT
         
