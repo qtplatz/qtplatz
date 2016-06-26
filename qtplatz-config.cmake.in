@@ -63,6 +63,7 @@ add_library( adicontroller SHARED IMPORTED )
 add_library( adlog SHARED IMPORTED )
 add_library( adplugin SHARED IMPORTED )
 add_library( adplugin_manager SHARED IMPORTED )
+add_library( adprocessor SHARED IMPORTED )
 add_library( adorbmgr SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
 add_library( adprot SHARED IMPORTED )
@@ -131,6 +132,10 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplugin_manager.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplugin_managerd.lib )
 
+  set_target_properties( adprocessorr PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adprocessor.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adprocessord.lib )
+  
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adorbmgr.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adorbmgrd.lib )
@@ -227,6 +232,10 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager_debug.dylib )
 
+  set_target_properties( adprocessor PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor_debug.dylib )
+  
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr_debug.dylib )
@@ -301,7 +310,10 @@ else()  #Linux
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin.so )
 
   set_target_properties( adplugin_manager PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager.so )  
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager.so )
+
+  set_target_properties( adprocessor PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor.so )    
 
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.so )

@@ -65,7 +65,6 @@ namespace adcontrols {
         virtual bool applyCalibration( const std::wstring&, const MSCalibrateResult& ) { return false; }
         virtual bool readCalibration( size_t idx, MSCalibrateResult& ) const { (void)idx; return false; }
 
-
         static bool access( const std::wstring& filename );
         static datafile * create( const std::wstring& filename );
         static datafile * open( const std::wstring& filename, bool readonly = false );
