@@ -85,6 +85,7 @@ namespace adprocessor {
         void onNotify( const QString& );
 
     private:
+        QString filename_;
         std::unique_ptr< adfs::filesystem > fs_;
         std::unique_ptr< adcontrols::datafile > file_;
         const adcontrols::LCMSDataset * rawdata_;

@@ -66,8 +66,11 @@ bool
 dataprocessor::open( const QString& filename, QString& error_message )
 {
     if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename.toStdWString(), false ) ) ) {
+
         file_ = std::move( file );
         file_->accept( *this );
+
+        filename_ = filename;
 
         boost::filesystem::path path( filename.toStdWString() );
         
@@ -85,6 +88,12 @@ dataprocessor::open( const QString& filename, QString& error_message )
         return true;
     }
     return false;
+}
+
+const QString&
+dataprocessor::filename() const
+{
+    return filename_;
 }
 
 adcontrols::datafile *
