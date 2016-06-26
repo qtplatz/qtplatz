@@ -87,6 +87,18 @@ dataprocessor::open( const QString& filename, QString& error_message )
     return false;
 }
 
+adcontrols::datafile *
+dataprocessor::file()
+{
+    return file_.get();
+}
+
+const adcontrols::LCMSDataset *
+dataprocessor::rawdata()
+{
+    return rawdata_;
+}
+
 std::shared_ptr< adfs::sqlite >
 dataprocessor::db() const
 {

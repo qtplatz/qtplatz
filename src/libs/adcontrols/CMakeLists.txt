@@ -3,7 +3,6 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adcontrols )
 
-
 find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
 
 add_definitions(-DADCONTROLS_LIBRARY)

@@ -51,7 +51,7 @@ namespace adcontrols {
 
 namespace adprocessor {
 
-    class ADWIDGETSSHARED_EXPORT dataprocessor : public QObject
+    class ADPROCESSORSHARED_EXPORT dataprocessor : public QObject
                                                , public adcontrols::dataSubscriber {
         
         Q_OBJECT
@@ -67,8 +67,8 @@ namespace adprocessor {
         
 		const QString& filename() const;
 
-        virtual adcontrols::datafile& file();
-
+        virtual adcontrols::datafile * file();
+        
         virtual const adcontrols::LCMSDataset * rawdata();
 
         std::shared_ptr< adfs::sqlite > db() const;

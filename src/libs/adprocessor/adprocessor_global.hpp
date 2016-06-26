@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,10 +27,10 @@
 
 #include <QtCore/qglobal.h>
 
-#if defined(ADWIDGETS_LIBRARY)
-#  define ADWIDGETSSHARED_EXPORT Q_DECL_EXPORT
+#if defined(ADPROCESSOR_LIBRARY)
+#  define ADPROCESSORSHARED_EXPORT Q_DECL_EXPORT
 #else
-#  define ADWIDGETSSHARED_EXPORT Q_DECL_IMPORT
+#  define ADPROCESSORSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif // ADWIDGETS_GLOBAL_HPP

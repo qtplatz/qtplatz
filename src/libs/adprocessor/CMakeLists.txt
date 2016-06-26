@@ -11,6 +11,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql Widgets PrintSupport )
+find_package(Boost 1.57 REQUIRED COMPONENTS filesystem wserialization serialization )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
@@ -44,6 +45,8 @@ add_library( ${PROJECT_NAME} SHARED
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC
+  adcontrols
+  adfs
   ${QWT_LIBRARIES}
   Qt5::Core
   Qt5::Widgets
