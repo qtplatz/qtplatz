@@ -318,10 +318,12 @@ DataReader::fcnCount() const
         ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
         return 0;
     }
+#if 0
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >() ) {
         ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
         return 0;
     }    
+#endif
 
     if ( auto db = db_.lock() ) {
 
