@@ -24,6 +24,7 @@
 
 #include "datainterpreter_timecount.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
+#include <acqrscontrols/ap240/threshold_result.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
@@ -32,89 +33,59 @@
 
 using namespace acqrsinterpreter::timecount;
 
-DataInterpreter::~DataInterpreter()
-{
-}
+namespace acqrsinterpreter {
 
-DataInterpreter::DataInterpreter()
-{
-}
+    namespace timecount {
 
-adcontrols::translate_state
-DataInterpreter::translate( adcontrols::MassSpectrum&
-                            , const char * data, size_t dsize
-                            , const char * meta, size_t msize
-                            , const adcontrols::MassSpectrometer&
-                            , size_t idData
-                            , const wchar_t * traceId ) const
-{
-    (void)meta;
-    (void)msize;
-
-    if ( dsize > 0 ) {
- #if 0       
-        std::unique_ptr< infitofinterface::AveragerData > avgr( new infitofinterface::AveragerData );
-        
-        if ( infitofinterface::serializer::deserialize( *avgr, data, dsize ) ) {
-
-            if ( avgr->avgrType == infitofinterface::Averager_AP240 ) {
-
-                return ap240translator::translate( ms, *avgr, idData, spectrometer );
-
-            } else if ( avgr->avgrType == infitofinterface::Averager_ARP ) {
-
-                return arptranslator::translate( ms, *avgr, idData, spectrometer );
+        // U5303A interface
+        template<> adcontrols::translate_state
+        DataInterpreter<acqrscontrols::u5303a::threshold_result>::translate( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& native
+                                                                             , const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+        {
+            if ( data && dsize ) {
+                
+                if ( adportable::bzip2::is_a( reinterpret_cast<const char *>( data ), dsize ) ) {
+                    
+                    std::string ar;            
+                    adportable::bzip2::decompress( ar, reinterpret_cast<const char *>( data ), dsize );
+                    native->deserialize( reinterpret_cast< const int8_t *>(ar.data()), ar.size(), meta, msize );
+                    
+                } else {
+                    
+                    native->deserialize( data, dsize, meta, msize );
+                    
+                }
+                return adcontrols::translate_complete;
             }
-
+            
+            return adcontrols::translate_error;
         }
-#endif
-    }
-    return adcontrols::translate_error;
-}
 
-adcontrols::translate_state
-DataInterpreter::translate( adcontrols::TraceAccessor&
-           , const char * data, size_t dsize
-           , const char * meta, size_t msize, unsigned long events ) const
-{
-    (void)meta;
-    (void)msize;
-
-	if ( dsize > 0 ) {
-#if 0
-		std::vector< infitofinterface::SpectrumProcessedData > vec;
-		infitofinterface::serializer::deserialize( vec, data, dsize );
-		for ( const infitofinterface::SpectrumProcessedData& d: vec ) {
-			adcontrols::seconds_t sec( double( d.uptime ) * 1.0e-6 );
-			accessor.push_back( d.fcn, d.npos, sec, d.tic, events );
-		}
-        return adcontrols::translate_complete;
-#endif
-	}
-    return adcontrols::translate_error;
-}
-
-adcontrols::translate_state
-DataInterpreter::translate( acqrsinterpreter::waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
-{
-    auto native = std::make_shared< acqrscontrols::u5303a::threshold_result >();
-    waveform = native;
-
-    if ( data && dsize ) {
-
-        if ( adportable::bzip2::is_a( reinterpret_cast<const char *>( data ), dsize ) ) {
-
-            std::string ar;            
-            adportable::bzip2::decompress( ar, reinterpret_cast<const char *>( data ), dsize );
-            native->deserialize( reinterpret_cast< const int8_t *>(ar.data()), ar.size(), meta, msize );
-
-        } else {
-
-            native->deserialize( data, dsize, meta, msize );
-
+        // AP240 interface
+        template<> adcontrols::translate_state
+        DataInterpreter<acqrscontrols::ap240::threshold_result>::translate( std::shared_ptr< acqrscontrols::ap240::threshold_result >& native
+                                                                             , const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+        {
+            if ( data && dsize ) {
+                
+                if ( adportable::bzip2::is_a( reinterpret_cast<const char *>( data ), dsize ) ) {
+                    
+                    std::string ar;            
+                    adportable::bzip2::decompress( ar, reinterpret_cast<const char *>( data ), dsize );
+                    native->deserialize( reinterpret_cast< const int8_t *>(ar.data()), ar.size(), meta, msize );
+                    
+                } else {
+                    
+                    native->deserialize( data, dsize, meta, msize );
+                    
+                }
+                return adcontrols::translate_complete;
+            }
+            
+            return adcontrols::translate_error;
         }
-        return adcontrols::translate_complete;
-    }
 
-    return adcontrols::translate_error;
+
+        
+    }
 }

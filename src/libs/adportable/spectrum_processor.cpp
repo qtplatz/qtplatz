@@ -204,6 +204,12 @@ namespace adportable {
 }
 
 double
+spectrum_processor::tic( size_t nbrSamples, const int8_t * praw, double& dbase, double& rms, size_t N )
+{
+    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+}
+
+double
 spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, double& dbase, double& rms, size_t N )
 {
     return tic_calculator()( nbrSamples, praw, dbase, rms, N );

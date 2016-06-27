@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,16 @@
 #include "threshold_result.hpp"
 #include "waveform.hpp"
 #include <boost/format.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+// #include <boost/archive/xml_woarchive.hpp>
+// #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 
 using namespace acqrscontrols::ap240;
 
@@ -100,6 +110,30 @@ threshold_result::setFoundAction( uint32_t index, const std::pair< uint32_t, uin
 {
     foundIndex_ = index;
     findRange_ = range;
+}
+
+bool
+threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t * xmeta, size_t msize )
+{
+    //auto data = std::make_shared< acqrscontrols::ap240::waveform >();
+    auto data = std::make_shared< waveform >();
+
+    data->deserialize_xmeta( reinterpret_cast<const char *>( xmeta ), msize );
+
+    data_ = data;
+
+    // restore indecies
+    boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char *>(xdata), dsize );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+
+    try {
+        portable_binary_iarchive ar( st );
+        ar >> indecies_;
+    } catch ( std::exception& ) {
+        return false;
+    }
+
+    return true;
 }
 
 namespace acqrscontrols {

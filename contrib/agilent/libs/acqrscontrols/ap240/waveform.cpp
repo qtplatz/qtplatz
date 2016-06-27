@@ -33,6 +33,7 @@
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
@@ -70,6 +71,14 @@ waveform::waveform( const identify& id
                                                                                   , wellKnownEvents_( events )
                                                                                   , firstValidPoint_( 0 )
                                                                                   , timeSinceEpoch_( tp )
+{
+}
+
+waveform::waveform() : serialnumber_( 0 )
+                     , wellKnownEvents_( 0 )
+                     , firstValidPoint_( 0 )
+                     , timeSinceEpoch_( 0 )
+                     , timeSinceInject_( 0.0 )
 {
 }
 
@@ -678,3 +687,94 @@ waveform::deserialize_xmeta( const char * data, size_t size )
     return false;
 }
 
+waveform&
+waveform::operator += ( const waveform& t )
+{
+    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement ) &&
+         ( meta_.dataType == t.meta_.dataType ) && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
+
+        meta_.actualAverages += t.meta_.actualAverages;
+        wellKnownEvents_ |= t.wellKnownEvents_;
+
+        if ( t.meta_.dataType == 1 ) {
+            switch ( meta_.dataType ) {
+            case 1:
+                std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
+                break;
+            case 2:
+                std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
+                break;
+            case 3:
+                std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+                break;
+            }
+        } else if ( t.meta_.dataType == 2 ) {
+            switch ( meta_.dataType ) {
+            case 1:
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
+                break;
+            case 2:
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
+                break;
+            case 3:
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+                break;
+            }            
+        } else {
+            switch ( meta_.dataType ) {
+            case 1:
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
+                break;
+            case 2:
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
+                break;
+            case 3:
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+                break;
+            }                        
+        }
+    }
+    return *this;
+}
+
+double
+waveform::accumulate( double tof, double window ) const
+{
+    double tic(0), dbase(0), rms(0);
+
+    if ( meta_.dataType == 1 ) {
+        // tic = adportable::spectrum_processor::tic( size(), begin<int8_t>(), dbase, rms, 5 );    
+    } else if ( meta_.dataType == 2 ) {
+        tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
+    } else if ( meta_.dataType == 4 ) {
+        tic = adportable::spectrum_processor::tic( size(), begin<int32_t>(), dbase, rms, 5 );
+    }
+    
+    if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
+
+        return tic;
+
+    } else {
+
+        const adcontrols::TofProtocol& this_protocol = method_.protocols() [ method_.protocolIndex() ];
+        double ext_adc_delay = this_protocol.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+
+        auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
+        auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
+        adportable::spectrum_processor::areaFraction frac;
+        x1 = std::max( 0.0, x1 );
+        x2 = std::max( 0.0, x2 );
+        frac.lPos = size_t( std::ceil( x1 ) );
+        frac.uPos = size_t( std::floor( x2 ) );
+        if ( frac.lPos > 0 )
+            frac.lFrac = x1 - double( frac.lPos - 1 );
+        frac.uFrac = x2 - double( frac.uPos );
+
+        if ( meta_.dataType == 2 ) {
+            return adportable::spectrum_processor::area( frac, dbase, begin<int16_t>(), size() );
+        } else if ( meta_.dataType == 4 ) {
+            return adportable::spectrum_processor::area( frac, dbase, begin<int32_t>(), size() );
+        }
+    }
+    return 0;
+}

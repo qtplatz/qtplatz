@@ -110,18 +110,18 @@ MainWindow::createDockWidgets()
     createDockWidget( widget, "AP240", "AP240" );
     
     connect( widget, &acqrswidgets::ap240form::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
-        if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
-            if ( cat == acqrswidgets::idSlopeTimeConverter ) {
-                adcontrols::threshold_method tm;
-                form->get( ch, tm );
-                document::instance()->set_threshold_method( ch, tm );
-            } else {
-                acqrscontrols::ap240::method m;
-                form->get( m );
-                document::instance()->setControlMethod( m, QString() );
+            if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
+                if ( cat == acqrswidgets::idSlopeTimeConverter ) {
+                    adcontrols::threshold_method tm;
+                    form->get( ch, tm );
+                    document::instance()->set_threshold_method( ch, tm );
+                } else {
+                    acqrscontrols::ap240::method m;
+                    form->get( m );
+                    document::instance()->setControlMethod( m, QString() );
+                }
             }
-        }
-    } );
+        } );
     
 }
 

@@ -93,7 +93,7 @@ datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
         ptr->accept( visitor, adplugin );
     }
 
-    if ( auto ptr = factory_plugin< timecount::DataInterpreter, IID_DataInterpreter >::make_this() ) {
+    if ( auto ptr = factory_plugin< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result >, IID_DataInterpreter >::make_this() ) {
         ptr->accept( visitor, adplugin );
     }
 

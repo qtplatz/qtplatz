@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <acqrscontrols/u5303a/waveform.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <boost/variant.hpp>
@@ -40,13 +41,17 @@ namespace acqrsinterpreter {
 
     typedef boost::variant< std::shared_ptr< acqrscontrols::u5303a::threshold_result >
                             , std::shared_ptr< adcontrols::TimeDigitalHistogram >
-                            , std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_types;
+                            , std::shared_ptr< acqrscontrols::u5303a::waveform >
+                            , std::shared_ptr< acqrscontrols::ap240::waveform >
+                            , std::shared_ptr< acqrscontrols::ap240::threshold_result >
+                            > waveform_types;
 
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:
         virtual ~DataInterpreter();
         DataInterpreter();
 
+        // deprecated 
         adcontrols::translate_state
         translate( adcontrols::MassSpectrum&
                    , const char * data, size_t dsize

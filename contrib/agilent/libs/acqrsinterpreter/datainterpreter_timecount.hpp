@@ -36,32 +36,47 @@ namespace adcontrols {
 namespace acqrsinterpreter {
 
     namespace timecount {
-    
+
+        template< typename result_type > // acqrscontrols::u5303a::threshold_result | acqrscontrols::ap240::threshold_result
         class DataInterpreter : public acqrsinterpreter::DataInterpreter {
         public:
-            virtual ~DataInterpreter();
-            DataInterpreter();
+            virtual ~DataInterpreter()
+                {}
+            DataInterpreter()
+                {}
 
             adcontrols::translate_state
             translate( adcontrols::MassSpectrum&
-                       , const char * data, size_t dsize
-                       , const char * meta, size_t msize
-                       , const adcontrols::MassSpectrometer&
-                       , size_t idData
-                       , const wchar_t * traceId ) const override;
+                       , const char * data, size_t dsize, const char * meta, size_t msize
+                       , const adcontrols::MassSpectrometer&, size_t idData, const wchar_t * traceId ) const override {
+                return adcontrols::translate_error;
+            }
         
             adcontrols::translate_state
             translate( adcontrols::TraceAccessor&
-                       , const char * data, size_t dsize
-                       , const char * meta, size_t msize, unsigned long events ) const override;
+                       , const char * data, size_t dsize, const char * meta, size_t msize, unsigned long events ) const override {
+                return adcontrols::translate_error;
+            }
 
-            bool compile_header( adcontrols::MassSpectrum&, std::ifstream& ) const override { return false; }
+            bool compile_header( adcontrols::MassSpectrum&, std::ifstream& ) const override {
+                return false;
+            }
 
             bool make_device_text( std::vector< std::pair< std::string, std::string > >&
-                                   , const adcontrols::MSProperty& ) const override { return false; }
+                                   , const adcontrols::MSProperty& ) const override {
+                return false;
+            }
 
             adcontrols::translate_state
-            translate( waveform_types&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize ) override;            
+            translate( waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize ) override {
+                auto native = std::make_shared< result_type >(); // acqrscontrols::u5303a::threshold_result >();
+                waveform = native;
+                return translate( native, data, dsize, meta, msize );
+            }
+
+        private:
+            adcontrols::translate_state
+            translate( std::shared_ptr< result_type >&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
         };
     }
 }

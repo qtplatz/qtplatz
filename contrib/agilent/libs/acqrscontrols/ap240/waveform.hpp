@@ -81,6 +81,8 @@ namespace acqrscontrols {
             void operator = ( const waveform& ) = delete;
 
         public:
+            waveform();
+                
             waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0, uint32_t posorg = 0 );
 
             waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events, uint64_t tp );
@@ -103,6 +105,8 @@ namespace acqrscontrols {
             template<typename T> void advance( const T*& it, size_t distance ) const {
                 it = ( distance && distance < size_t( std::distance( it, end<T>() ) ) ? it + distance : end<T>() );
             }
+
+            waveform& operator += ( const waveform& );
 
             std::pair<double, int> operator [] ( size_t ) const;
             std::pair<double, int> xy( size_t idx ) const;
@@ -138,6 +142,8 @@ namespace acqrscontrols {
             // reused in threshold_result archive
             size_t serialize_xmeta( std::string& ) const;
             bool deserialize_xmeta( const char *, size_t );
+
+            double accumulate( double tof, double window ) const;
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
             

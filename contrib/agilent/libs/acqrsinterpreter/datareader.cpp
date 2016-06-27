@@ -29,6 +29,7 @@
 #include "datainterpreter_timecount.hpp"
 #include "datainterpreter_softavgr.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
+#include <acqrscontrols/ap240/threshold_result.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -61,18 +62,23 @@ namespace acqrsinterpreter {
     };
 
     template<> const std::string TID<u5303a::DataInterpreter >::value = "1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID<timecount::DataInterpreter >::value = "timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::value = "timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID<histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID<softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
 
     template<> const std::string TID<u5303a::DataInterpreter >::display_name = "1.u5303a";
-    template<> const std::string TID<timecount::DataInterpreter >::display_name = "timecount";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount";
     template<> const std::string TID<histogram::DataInterpreter >::display_name = "histogram";
     template<> const std::string TID<softavgr::DataInterpreter>::display_name = "waveform";
 
+    // ap240
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount";
+
     typedef boost::mpl::vector<
         TID<u5303a::DataInterpreter >
-        , TID<timecount::DataInterpreter>
+        , TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >
+        , TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >
         , TID<histogram::DataInterpreter>
         , TID<softavgr::DataInterpreter> > interpreter_types;
 
@@ -105,8 +111,8 @@ namespace acqrsinterpreter {
     struct total_ion_count : public boost::static_visitor< double > {
         double tof, width;
         total_ion_count( double _tof = 0.0, double _width = 0.0 ) : tof( _tof ), width( _width ) {}
-        template< typename T >
-        double operator()( T& ptr ) const { return ptr->accumulate( tof, width ); }
+        
+        template< typename T > double operator()( T& ptr ) const { return ptr->accumulate( tof, width ); }
     };
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& ptr ) const
@@ -114,7 +120,15 @@ namespace acqrsinterpreter {
         return ptr->indecies().size();
     }
 
+    template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result >& ptr ) const
+    {
+        return ptr->indecies().size();
+    }
+
+
+    //------------------ coadd_spectrum visitor ----------------
     struct coadd_spectrum : public boost::static_visitor< void > {
+
         waveform_types& waveform;
         coadd_spectrum( waveform_types& _1 ) : waveform( _1 ) {}
         
@@ -129,6 +143,13 @@ namespace acqrsinterpreter {
         // TBA
     }
 
+    template<> void coadd_spectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    {
+        // TBA
+    }
+    //------------------ coadd_spectrum visitor ----------------
+    
+    //------------------ make_massspactrum visitor ----------------
     struct make_massspectrum : public boost::static_visitor< void > {
         adcontrols::MassSpectrum& ms;
 
@@ -144,6 +165,13 @@ namespace acqrsinterpreter {
         // TBA
     }
 
+    template<> void make_massspectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    {
+        // TBA
+    }
+    //------------------ make_massspactrum visitor ----------------
+
+    //------------------ make_title visitor ----------------
     struct make_title : public boost::static_visitor < std::wstring > {
         std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
             return ( boost::wformat( L"TDC" ) ).str();
@@ -154,7 +182,14 @@ namespace acqrsinterpreter {
         std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::waveform >& ) const {
             return ( boost::wformat( L"Averaged" ) ).str();
         }
+        std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::waveform >& ) const {
+            return ( boost::wformat( L"Averaged" ) ).str();
+        }
+        std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result> & ) const {
+            return ( boost::wformat( L"TDC" ) ).str();
+        }        
     };
+    //------------------ make_title visitor ----------------
 
 }
 
@@ -279,10 +314,14 @@ size_t
 DataReader::fcnCount() const
 {
     // skip timecount data -- too large to handle in the dataproc
-    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter >() ) {
+    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
         ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
         return 0;
     }
+    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >() ) {
+        ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
+        return 0;
+    }    
 
     if ( auto db = db_.lock() ) {
 
