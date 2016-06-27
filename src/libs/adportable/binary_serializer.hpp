@@ -141,26 +141,5 @@ namespace adportable {
     } // namespace binary
 
     //----------------------------------------
-#if 0
-    template<class T> class serializer {
-    public:
-        static bool serialize( const T& data, std::string& ar ) {
-            boost::iostreams::back_insert_device< std::string > inserter( ar );
-            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-            portable_binary_oarchive oa( device );
-            oa << data;
-            device.flush();
-            return true;
-        }
-
-        static bool deserialize( T& data, const char * s, std::size_t size ) {
-            boost::iostreams::basic_array_source< char > device( s, size );
-            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
-            portable_binary_iarchive ia( st );
-            ia >> data;
-            return true;
-        }
-    };
-#endif
 }
 
