@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -36,7 +36,7 @@ namespace adcontrols {
 namespace acqrsinterpreter {
 
     namespace timecount {
-
+        
         template< typename result_type > // acqrscontrols::u5303a::threshold_result | acqrscontrols::ap240::threshold_result
         class DataInterpreter : public acqrsinterpreter::DataInterpreter {
         public:
@@ -48,15 +48,8 @@ namespace acqrsinterpreter {
             adcontrols::translate_state
             translate( adcontrols::MassSpectrum&
                        , const char * data, size_t dsize, const char * meta, size_t msize
-                       , const adcontrols::MassSpectrometer&, size_t idData, const wchar_t * traceId ) const override {
-                return adcontrols::translate_error;
-            }
+                       , const adcontrols::MassSpectrometer&, size_t idData, const wchar_t * traceId ) const override;
         
-            adcontrols::translate_state
-            translate( adcontrols::TraceAccessor&
-                       , const char * data, size_t dsize, const char * meta, size_t msize, unsigned long events ) const override {
-                return adcontrols::translate_error;
-            }
 
             bool compile_header( adcontrols::MassSpectrum&, std::ifstream& ) const override {
                 return false;
@@ -71,12 +64,12 @@ namespace acqrsinterpreter {
             translate( waveform_types& waveform, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize ) override {
                 auto native = std::make_shared< result_type >(); // acqrscontrols::u5303a::threshold_result >();
                 waveform = native;
-                return translate( native, data, dsize, meta, msize );
+                return translate( *native, data, dsize, meta, msize );
             }
 
         private:
-            adcontrols::translate_state
-            translate( std::shared_ptr< result_type >&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
+            static adcontrols::translate_state
+            translate( result_type&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
         };
     }
 }

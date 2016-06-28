@@ -67,13 +67,13 @@ namespace acqrsinterpreter {
     template<> const std::string TID<softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
 
     template<> const std::string TID<u5303a::DataInterpreter >::display_name = "1.u5303a";
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount[u5303a]";
     template<> const std::string TID<histogram::DataInterpreter >::display_name = "histogram";
     template<> const std::string TID<softavgr::DataInterpreter>::display_name = "waveform";
 
     // ap240
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
 
     typedef boost::mpl::vector<
         TID<u5303a::DataInterpreter >
@@ -174,19 +174,19 @@ namespace acqrsinterpreter {
     //------------------ make_title visitor ----------------
     struct make_title : public boost::static_visitor < std::wstring > {
         std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result> & ) const {
-            return ( boost::wformat( L"TDC" ) ).str();
+            return ( boost::wformat( L"U5303A-T" ) ).str();
         }
         std::wstring operator()( std::shared_ptr< adcontrols::TimeDigitalHistogram> & ) const {
             return ( boost::wformat( L"Histogram" ) ).str();
         }
         std::wstring operator()( std::shared_ptr< acqrscontrols::u5303a::waveform >& ) const {
-            return ( boost::wformat( L"Averaged" ) ).str();
+            return ( boost::wformat( L"U5303A-A" ) ).str();
         }
         std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::waveform >& ) const {
-            return ( boost::wformat( L"Averaged" ) ).str();
+            return ( boost::wformat( L"AP240-A" ) ).str();
         }
         std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result> & ) const {
-            return ( boost::wformat( L"TDC" ) ).str();
+            return ( boost::wformat( L"AP240-T" ) ).str();
         }        
     };
     //------------------ make_title visitor ----------------
