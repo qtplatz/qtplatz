@@ -56,6 +56,12 @@ SessionManager * SessionManager::instance()
     return instance_;
 }
 
+adextension::iSessionManager *
+SessionManager::getISessionManager()
+{
+    return iSessionManager_.get();
+}
+
 void
 SessionManager::removeEditor( Core::IEditor * editor )
 {
