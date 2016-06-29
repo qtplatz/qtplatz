@@ -145,6 +145,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adprot
   adextension
   adportable
+  adprocessor
   xmlparser
   Core
   extensionsystem
