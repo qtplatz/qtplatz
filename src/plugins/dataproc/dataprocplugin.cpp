@@ -52,6 +52,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adextension/isnapshothandler.hpp>
+#include <adextension/isessionmanager.hpp>
 
 #include <adplugin/plugin.hpp>
 #include <adplugin/constants.hpp>
@@ -242,6 +243,9 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     iPeptideHandler_.reset( new iPeptideHandlerImpl );
 	if ( iPeptideHandler_ )
         addObject( iPeptideHandler_.get() );
+
+    if ( auto iSessionManager = SessionManager::instance()->getISessionManager() )
+        addAutoReleasedObject( iSessionManager );
 
     addObject( mode_.get() );
     addAutoReleasedObject( new NavigationWidgetFactory );

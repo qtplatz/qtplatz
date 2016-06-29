@@ -38,6 +38,8 @@ set( adextension_SOURCES
   isequence.cpp
   isequence.hpp
   isequenceimpl.hpp
+  isessionmanager.hpp
+  isessionmanager.cpp
   iwidgetfactory.cpp
   iwidgetfactory.hpp
   receiverimpl.hpp

@@ -34,6 +34,10 @@ namespace Core { class IEditor; }
 
 namespace portfolio { class Folium; }
 
+namespace adprocessor { class dataprocessor; }
+
+namespace adextension { class iSessionManager; }
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -54,13 +58,18 @@ namespace dataproc {
     };
 
     class SessionManager : public QObject {
+
         Q_OBJECT
+
         explicit SessionManager(QObject *parent = 0);
         friend class DataprocPlugin;
+
     public:
         ~SessionManager();
 
         static SessionManager * instance();
+
+        adextension::iSessionManager * getISessionManager();
 
         Dataprocessor * getActiveDataprocessor();
         void addDataprocessor( std::shared_ptr<Dataprocessor>&, Core::IEditor * );
@@ -94,6 +103,7 @@ namespace dataproc {
         std::vector< Session > sessions_;
         Dataprocessor * activeDataprocessor_;
         bool loadInprogress_;
+        std::unique_ptr< adextension::iSessionManager > iSessionManager_;
     };
 
 }

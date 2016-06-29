@@ -875,12 +875,6 @@ MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
     for ( auto widget: dockWidgets() ) {
         if ( auto lifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) )
             lifeCycle->getContents( any );
-#if 0
-		adplugin::LifeCycleAccessor accessor( widget->widget() );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-        if ( pLifeCycle )
-			pLifeCycle->
-#endif
     }
 }
 
@@ -890,12 +884,6 @@ MainWindow::setProcessMethod( const adcontrols::ProcessMethod& pm )
 	for ( auto widget: dockWidgets() ) {
         if ( auto lifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) )
             lifeCycle->setContents( boost::any( pm ) );
-#if 0
-		adplugin::LifeCycleAccessor accessor( widget->widget() );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle )
-			pLifeCycle->setContents( boost::any( pm ) );
-#endif
 	}
 }
 

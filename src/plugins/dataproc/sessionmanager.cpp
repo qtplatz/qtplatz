@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,11 +27,12 @@
 #include "dataprocessor.hpp"
 #include <qtwrapper/qstring.hpp>
 #include <adcontrols/datafile.hpp>
-
-#include <adlog/logger.hpp>
-#include <boost/any.hpp>
+#include <adextension/isessionmanager.hpp>
 #include <adportfolio/folium.hpp>
 #include <coreplugin/editormanager/editormanager.h>
+#include <adlog/logger.hpp>
+#include <boost/any.hpp>
+
 
 using namespace dataproc;
 
@@ -40,6 +41,7 @@ SessionManager * SessionManager::instance_ = 0;
 SessionManager::SessionManager(QObject *parent) : QObject(parent)
                                                 , activeDataprocessor_(0)
                                                 , loadInprogress_( false )
+                                                , iSessionManager_( std::make_unique< adextension::iSessionManager >() )
 {
     instance_ = this;
 }
@@ -76,6 +78,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
 	activeDataprocessor_ = proc.get();
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
+    emit iSessionManager_->addProcessor( QString::fromStdWString( proc->filename() ) );
     loadInprogress_ = false;
 }
 
