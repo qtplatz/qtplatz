@@ -64,8 +64,7 @@ namespace dataproc {
     class IFileImpl;
 
     class Dataprocessor : public Core::IDocument
-                        , public adprocessor::dataprocessor
-                          //, public adcontrols::dataSubscriber
+                        , public adprocessor::dataprocessor 
                         , public std::enable_shared_from_this< Dataprocessor > {
         Q_OBJECT
     public:
@@ -92,10 +91,6 @@ namespace dataproc {
 
         void exportXML() const;
         
-		// const std::wstring& filename() const;
-        // adcontrols::datafile& file();
-        
-        // const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         bool load( const std::wstring& path, const std::wstring& id );
 		bool fetch( portfolio::Folium& );
@@ -138,9 +133,9 @@ namespace dataproc {
         static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
-        // bool subscribe( const adcontrols::LCMSDataset& ) override;
         bool subscribe( const adcontrols::ProcessedDataset& ) override;
         void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
+
         //
 		bool onFileAdded( const std::wstring& path, adfs::file& ) override;
         // <------------------------
@@ -156,10 +151,8 @@ namespace dataproc {
         void onNotify( const QString& );
 
     private:
-        // std::shared_ptr< adcontrols::datafile > file_;
         std::unique_ptr< portfolio::Portfolio > portfolio_;
         std::wstring idActiveFolium_;
-        // const adcontrols::LCMSDataset * rawDataset_;
         bool modified_;
 
         void setDisplayName( const QString& );

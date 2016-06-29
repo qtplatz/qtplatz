@@ -103,7 +103,6 @@ namespace dataproc {
         std::vector< Session > sessions_;
         Dataprocessor * activeDataprocessor_;
         bool loadInprogress_;
-        //std::unique_ptr< adextension::iSessionManager > iSessionManager_;
         adextension::iSessionManager * iSessionManager_; // autoRelease
     };
 

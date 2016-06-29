@@ -35,6 +35,8 @@ namespace adextension {
         Q_OBJECT
     public:
         explicit iSessionManager(QObject *parent = 0);
+
+        
         
     signals:
         void addProcessor( const QString& );            // file open
