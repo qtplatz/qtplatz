@@ -38,13 +38,15 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/waveform.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/utf.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
+#include <adutils/acquiredconf_v3.hpp>
 #include <boost/format.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <atomic>
 #include <map>
 #include <memory>
@@ -239,17 +241,15 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                     objrowid_ = sql.get_column_value< int64_t >( 0 );
             }
 
-            double acclVoltage( 0 ), tDelay( 0 );
+            // find ScanLaw
+            double acclVoltage( 0 ), tDelay( 0 ), fLength;
             boost::uuids::uuid clsid { 0 };
-            {
-                adfs::stmt sql( *db );
-                sql.prepare( "SELECT acclVoltage, tDelay, clsidSpectrometer from ScanLaw WHERE objuuid = ?" );
-                sql.bind( 1 ) = objid_;
-                if ( sql.step() == adfs::sqlite_row ) {
-                    acclVoltage = sql.get_column_value< double >( 0 );
-                    tDelay = sql.get_column_value< double >( 1 );
-                    clsid = sql.get_column_value< boost::uuids::uuid >( 2 );
-                }
+            if ( adutils::v3::AcquiredConf::findScanLaw( *db, objid_, clsid, acclVoltage, tDelay, fLength ) ) {
+                // src/adplugins/adspectrometer/massspectrometer.hpp; "adspectrometer"
+                // clsid = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
+                // acclVoltage = 5000.0;
+                if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
+                    spectrometer_->setScanLaw( acclVoltage, tDelay, fLength );
             }
 
             // workaround for Sep. to Dec., 2015 data file
@@ -269,10 +269,6 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 }
             }
             // end workaround
-
-            if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
-                spectrometer_->setAcceleratorVoltage( acclVoltage, tDelay );
-
         }
         return true;
     }

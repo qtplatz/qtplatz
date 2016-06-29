@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -65,35 +65,47 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
     adfs::stmt sql( db );
 
     sql.exec(
-        "CREATE TABLE \
-ScanLaw (                 \
- objuuid UUID PRIMARY KEY \
-,objtext        TEXT      \
-,acclVoltage    REAL      \
-,tDelay         REAL      \
-,spectrometer   TEXT      \
-,clsidSpectrometer UUID \
+        "CREATE TABLE ScanLaw (\
+ objuuid UUID PRIMARY KEY      \
+,objtext        TEXT           \
+,acclVoltage    REAL           \
+,tDelay         REAL           \
+,spectrometer   TEXT           \
+,clsidSpectrometer UUID        \
 )"
         );
 
-    return
-        sql.exec(
-            "CREATE TABLE \
-AcquiredConf (                 \
- objuuid              UUID     \
-,objtext              TEXT     \
-,pobjuuid             UUID     \
-,dataInterpreterClsid TEXT     \
-,trace_method         INTEGER  \
-,spectrometer         INTEGER  \
-,trace_id             TEXT     \
-,trace_display_name   TEXT     \
-,axis_x_label         TEXT     \
-,axis_y_label         TEXT     \
-,axis_x_decimals      INTEGER  \
-,axis_y_decimals      INTEGER  \
+    // Spectrometer.id --> ScanLaw.spectrometer
+    // scanType = { 0 := TOf (Time Squard Scanlaw), ... TBD }
+    sql.exec(
+        "CREATE TABLE Spectrometer (\
+ id           TEXT PRIMARY KEY \
+,scanType     INTEGER \
+,description  TEXT \
+,fLength      REAL \
+)"
+        );
+
+
+    sql.exec(
+        "CREATE TABLE \
+AcquiredConf (                \
+ objuuid              UUID    \
+,objtext              TEXT    \
+,pobjuuid             UUID    \
+,dataInterpreterClsid TEXT    \
+,trace_method         INTEGER \
+,spectrometer         INTEGER \
+,trace_id             TEXT    \
+,trace_display_name   TEXT    \
+,axis_x_label         TEXT    \
+,axis_y_label         TEXT    \
+,axis_x_decimals      INTEGER \
+,axis_y_decimals      INTEGER \
 )"
             );
+
+    return true;
 }
 
 // static
@@ -242,3 +254,39 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
     return false;
 }
 
+bool
+AcquiredConf::findScanLaw( adfs::sqlite& db, const boost::uuids::uuid& objid
+                           , boost::uuids::uuid& clsidSpectrometer
+                           , double& acceleratorVoltage
+                           , double& tDelay
+                           , double& fLength )
+{
+    adfs::stmt sql( db );
+
+    sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer,fLength \
+ FROM ScanLaw,Spectrometer WHERE objuuid = ? AND Spectrometer.id = ScanLaw.spectrometer" );
+
+    sql.bind( 1 ) = objid;
+    if ( sql.step() == adfs::sqlite_row ) {
+        acceleratorVoltage = sql.get_column_value< double >( 0 );
+        tDelay             = sql.get_column_value< double >( 1 );
+        clsidSpectrometer  = sql.get_column_value< boost::uuids::uuid >( 2 ); // ScanLaw.clsidSpectrometer
+        fLength            = sql.get_column_value< double >( 3 ); // Spectrometer.fLength
+        
+        return true;
+    }
+    
+    // missing 'Spectrometer' ?
+    sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid = ?" );
+    sql.bind( 1 ) = objid;
+    if ( sql.step() == adfs::sqlite_row ) {
+        acceleratorVoltage = sql.get_column_value< double >( 0 );
+        tDelay             = sql.get_column_value< double >( 1 );
+        clsidSpectrometer  = sql.get_column_value< boost::uuids::uuid >( 2 ); // ScanLaw.clsidSpectrometer
+        fLength = 1.0; // assume 1.0m flight length
+        return true;
+    }
+
+    sql.reset();
+    return false;
+}

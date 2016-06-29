@@ -68,17 +68,21 @@ namespace adspectrometer {
         const import_continuum_massarray& continuum_massarray() const;
         void continuum_massarray( const import_continuum_massarray& );
 
+        //-----------------------------------------
         // v3 interface
         static constexpr const char * clsid_text = "{E45D27E0-8478-414C-B33D-246F76CF62AD}";
         static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext;
 
+        void setAcceleratorVoltage( double acclVolts, double tDelay ) override;
+        void setScanLaw( double acclVolts, double tDelay, double fLength ) override;
+        
         const char * objtext() const override { return class_name; }
         const boost::uuids::uuid& objclsid() const override;
         const adcontrols::ScanLaw * scanLaw() const override;
 
     private:
-        std::shared_ptr< import_continuum_massarray > continuum_massarray_;
         const adcontrols::LCMSDataset* accessor_;
+        std::shared_ptr< import_continuum_massarray > continuum_massarray_;
         std::unique_ptr< adcontrols::ScanLaw > scanlaw_;
         bool load_continuum_massarray();
     };

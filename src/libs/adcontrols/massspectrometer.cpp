@@ -101,6 +101,39 @@ MassSpectrometer::~MassSpectrometer()
 {
 }
 
+void
+MassSpectrometer::setAcceleratorVoltage( double acclVolts, double tDelay )
+{
+    acceleratorVoltage_ = acclVolts;
+    tDelay_ = tDelay;
+}
+
+void
+MassSpectrometer::setScanLaw( double acclVolts, double tDelay, double fLength )
+{
+    acceleratorVoltage_ = acclVolts;
+    tDelay_  = tDelay;
+    fLength_ = fLength;
+}
+
+double
+MassSpectrometer::acceleratorVoltage() const
+{
+    return acceleratorVoltage_;
+}
+
+double
+MassSpectrometer::fLength() const
+{
+    return fLength_;
+}
+
+double
+MassSpectrometer::tDelay() const
+{
+    return tDelay_;
+}
+
 const wchar_t *
 MassSpectrometer::name() const
 {

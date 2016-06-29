@@ -69,7 +69,11 @@ namespace adcontrols {
         // end v2 specific
 
         // data format v3 interface
-        virtual void setAcceleratorVoltage( double acclVolts, double tDelay ) { return; }
+        virtual void setAcceleratorVoltage( double acclVolts, double tDelay );
+        virtual void setScanLaw( double acclVolts, double tDelay, double fLength );
+        virtual double fLength() const;
+        virtual double tDelay() const;
+        virtual double acceleratorVoltage() const;
         virtual bool assignMasses( adcontrols::MassSpectrum& ) const;
         virtual void setDataReader( adcontrols::DataReader * );
         virtual void setMSFractuation( adcontrols::MSFractuation * );
@@ -93,6 +97,9 @@ namespace adcontrols {
         // v3
         std::weak_ptr< adcontrols::DataReader > reader_;
         std::shared_ptr< adcontrols::MSFractuation > msfractuation_;
+        double acceleratorVoltage_;
+        double tDelay_;
+        double fLength_;
     };
 
 }

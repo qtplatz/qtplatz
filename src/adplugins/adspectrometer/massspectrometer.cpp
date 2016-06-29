@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
@@ -77,10 +77,28 @@ MassSpectrometer::~MassSpectrometer(void)
 {
 }
 
-MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : adcontrols::MassSpectrometer( datafile )
-                                                                      , accessor_( 0 )
-                                                                      , scanlaw_( std::make_unique< ScanLaw >( 5000, 0, 1.0 ) )
+MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile )
+    : adcontrols::MassSpectrometer( datafile )
+    , accessor_( 0 )
+    , scanlaw_( std::make_unique< ScanLaw >( acceleratorVoltage_, tDelay_, fLength_ ) )
 {
+}
+
+void
+MassSpectrometer::setAcceleratorVoltage( double acclVolts, double tDelay )
+{
+    acceleratorVoltage_ = acclVolts;
+    tDelay_ = tDelay;
+    scanlaw_ = std::make_unique< ScanLaw >( acceleratorVoltage_, tDelay_, fLength_ );
+}
+
+void
+MassSpectrometer::setScanLaw( double acclVolts, double tDelay, double fLength )
+{
+    acceleratorVoltage_ = acclVolts;
+    tDelay_ = tDelay;
+    fLength_ = fLength;
+    scanlaw_ = std::make_unique< ScanLaw >( acceleratorVoltage_, tDelay_, fLength_ );
 }
 
 bool

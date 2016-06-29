@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -79,6 +79,10 @@ namespace adutils {
             static bool fetch( adfs::sqlite& dbf, std::vector< data >& );
 
             static bool create_table_v3( adfs::sqlite& db );
+
+            static bool findScanLaw( adfs::sqlite& db, const boost::uuids::uuid& objid
+                                     , boost::uuids::uuid& clsidSpectrometer, double& acceleratorVoltage
+                                     , double& tDelay, double& fLength );
         };
 
     }
