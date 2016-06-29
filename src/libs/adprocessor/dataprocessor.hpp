@@ -51,10 +51,7 @@ namespace adcontrols {
 
 namespace adprocessor {
 
-    class ADPROCESSORSHARED_EXPORT dataprocessor : public QObject
-                                                 , public adcontrols::dataSubscriber {
-        
-        Q_OBJECT
+    class ADPROCESSORSHARED_EXPORT dataprocessor : public adcontrols::dataSubscriber {
         
     public:
         virtual ~dataprocessor();
@@ -65,9 +62,11 @@ namespace adprocessor {
 
         virtual bool open( const QString&, QString& errmsg );
         
-		const QString& filename() const;
+		virtual const QString& filename() const;
 
+        virtual void setFile( std::unique_ptr< adcontrols::datafile >&& );
         virtual adcontrols::datafile * file();
+        virtual const adcontrols::datafile * file() const;
         
         virtual const adcontrols::LCMSDataset * rawdata();
 
@@ -76,13 +75,6 @@ namespace adprocessor {
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
-
-    private:
-
-    private slots:
-
-    signals :
-        void onNotify( const QString& );
 
     private:
         QString filename_;

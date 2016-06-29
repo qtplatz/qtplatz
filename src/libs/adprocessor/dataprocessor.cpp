@@ -96,8 +96,26 @@ dataprocessor::filename() const
     return filename_;
 }
 
+void
+dataprocessor::setFile( std::unique_ptr< adcontrols::datafile >&& file )
+{
+    file_ = std::move( file );
+
+    if ( file_ ) {
+        file_->accept( *this );
+        filename_ = QString::fromStdWString( file_->filename() );
+    }
+    
+}
+
 adcontrols::datafile *
 dataprocessor::file()
+{
+    return file_.get();
+}
+
+const adcontrols::datafile *
+dataprocessor::file() const
 {
     return file_.get();
 }

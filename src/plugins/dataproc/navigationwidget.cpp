@@ -367,7 +367,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-    QString filename( QString::fromStdWString( processor->file().filename() ) );
+    QString filename( processor->filename() );
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
@@ -408,7 +408,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    QString filename = QString::fromStdWString( processor->file().filename() );
+    QString filename = processor->filename();
 
     QStandardItemModel& model = *pModel_;
 
@@ -452,8 +452,8 @@ NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
-    adcontrols::datafile& file = processor->file();
-    QString filename = QString::fromStdWString( file.filename() );
+    adcontrols::datafile * file = processor->file();
+    QString filename = processor->filename();
 
     QStandardItemModel& model = *pModel_;
 
@@ -577,7 +577,7 @@ namespace dataproc {
 
         void operator()( Dataprocessor * processor ) {
 
-            boost::filesystem::path path( processor->file().filename() );
+            boost::filesystem::path path( processor->file()->filename() );
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
             while ( !boost::filesystem::is_directory( path ) )
                 path = path.branch_path();
@@ -588,10 +588,10 @@ namespace dataproc {
                                                                         , QString::fromStdWString( folium.name() ) 
                                                                         , QObject::tr( "qtplatz (*.adfs);;Text files (*.txt)" ) );
             
-            boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
+            boost::filesystem::path dstfile( filename.toStdWString() );
             
             if ( dstfile.extension() == ".adfs" ) {
-                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
+                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
             } else {
                 boost::filesystem::ofstream of( dstfile );
                 auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
@@ -606,7 +606,7 @@ namespace dataproc {
             {}
         void operator()( Dataprocessor * processor ) {
             
-            boost::filesystem::path path( processor->file().filename() );
+            boost::filesystem::path path( processor->file()->filename() );
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
             while ( !boost::filesystem::is_directory( path ) )
                 path = path.branch_path();
@@ -620,7 +620,7 @@ namespace dataproc {
             boost::filesystem::path dstfile( filename.toStdWString() );
             
             if ( dstfile.extension() == ".adfs" ) {
-                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
+                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
             } else {
                 boost::filesystem::ofstream of( dstfile );
                 if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )

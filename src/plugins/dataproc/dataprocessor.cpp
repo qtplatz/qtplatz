@@ -129,7 +129,7 @@ Dataprocessor::~Dataprocessor()
 }
 
 Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
-                               , rawDataset_( 0 )
+                                 //, rawDataset_( 0 )
                                , modified_( false )
 {
     connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
@@ -172,11 +172,11 @@ Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
 bool
 Dataprocessor::save( QString * errorString, const QString& filename, bool /* autoSave */)
 {
-	boost::filesystem::path path( file_->filename() ); // original name
+	boost::filesystem::path path( file()->filename() ); // original name
 
     if ( filename.isEmpty() && path.extension() == ".adfs" ) {
         // Save
-        if ( file_->saveContents( L"/Processed", *portfolio_ ) ) {
+        if ( file()->saveContents( L"/Processed", *portfolio_ ) ) {
             setModified( false );
             return true;
         }
@@ -202,11 +202,11 @@ Dataprocessor::save( QString * errorString, const QString& filename, bool /* aut
     }
 
     // save as 'filename
-    std::shared_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
+    std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
 
-    if ( (file && file->saveContents( L"/Processed", *portfolio_, *file_ )) ) {
+    if ( (file && file->saveContents( L"/Processed", *portfolio_, *this->file() )) ) {
 
-        file_ = file;
+        setFile( std::move( file ) );
         setModified( false );
 
         // for debugging convension
@@ -236,7 +236,7 @@ Dataprocessor::defaultPath() const
 QString
 Dataprocessor::suggestedFileName() const
 {
-	boost::filesystem::path path( file_->filename() );
+	boost::filesystem::path path( this->file()->filename() );
 	path.replace_extension( L".adfs" );
     return QString::fromStdWString( path.normalize().wstring() );
 }
@@ -252,13 +252,15 @@ Dataprocessor::create(const QString& filename )
 {
     boost::filesystem::path path( qtwrapper::wstring::copy( filename ) );
     path.replace_extension( L".adfs" );
+    
     portfolio_->create_with_fullpath( path.wstring() );
 
-    auto file = adcontrols::datafile::create( path.wstring() );
+    std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
     if ( file ) {
-        file_.reset( file );
-        file_->open( filename.toStdWString() );
-        file->accept( *this );
+        setFile( std::move( file ) );
+        // file_.reset( file );
+        // file_->open( filename.toStdWString() );
+        this->file()->accept( *this );
         setDisplayName( filename );
         return true;
     }
@@ -269,7 +271,9 @@ bool
 Dataprocessor::open(const QString &filename, QString& emsg )
 {
     emsg.clear();
+    return adprocessor::dataprocessor::open( filename, emsg );
 
+#if 0
     try {
         if ( adcontrols::datafile * file = adcontrols::datafile::open( filename.toStdWString(), false ) ) {
             file_.reset( file );
@@ -297,32 +301,33 @@ Dataprocessor::open(const QString &filename, QString& emsg )
         ADERROR() << "got an exception '...'";
     }
     return false;
+#endif
 }
 
-adcontrols::datafile&
-Dataprocessor::file()
-{
-    return *file_;// ifileimpl_->file();
-}
+// adcontrols::datafile&
+// Dataprocessor::file()
+// {
+//     return *file_;// ifileimpl_->file();
+// }
 
-const std::wstring&
-Dataprocessor::filename() const
-{
-    return file_->filename();
-}
+// const std::wstring&
+// Dataprocessor::filename() const
+// {
+//     return file_->filename();
+// }
 
 bool
 Dataprocessor::load( const std::wstring& path, const std::wstring& id )
 {
     // this is used for reload 'acquire' when shanpshot spectrum was added.
-    return file_->loadContents( path, id, *this );
+    return this->file()->loadContents( path, id, *this );
 }
 
-const adcontrols::LCMSDataset *
-Dataprocessor::getLCMSDataset()
-{
-    return rawDataset_;
-}
+// const adcontrols::LCMSDataset *
+// Dataprocessor::getLCMSDataset()
+// {
+//     return this->rawdata(); //rawDataset_;
+// }
 
 portfolio::Portfolio
 Dataprocessor::getPortfolio()
@@ -355,7 +360,7 @@ Dataprocessor::fetch( portfolio::Folium& folium )
 {
 	if ( folium.empty() ) {
 		try {
-			folium = file().fetch( folium.id(), folium.dataClass() );
+			folium = file()->fetch( folium.id(), folium.dataClass() );
 			portfolio::Folio attachs = folium.attachments();
 			for ( auto att: attachs ) {
 				if ( att.empty() )
@@ -762,7 +767,7 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
             }
         }
     }
-	file().applyCalibration( dataInterpreterClsid, calibration );
+	file()->applyCalibration( dataInterpreterClsid, calibration );
     setModified( true );
 }
 
@@ -955,12 +960,12 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
 }
 
 ///////////////////////////
-bool
-Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
-{
-    rawDataset_ = &data;
-	return true;
-}
+// bool
+// Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
+// {
+//     rawDataset_ = &data;
+// 	return true;
+// }
 
 bool
 Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
@@ -1381,7 +1386,7 @@ Dataprocessor::loadMSCalibration( const std::wstring& filename, adcontrols::MSCa
 void
 Dataprocessor::exportXML() const
 {
-    boost::filesystem::path path( filename() );
+    boost::filesystem::path path( this->file()->filename() );
     path += ".xml";
     portfolio_->save( path.wstring() );
 }
@@ -1392,7 +1397,7 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
     if ( spectra->size() == 0 )
         return;
 
-    if ( auto rawfile = getLCMSDataset() ) {
+    if ( auto rawfile = rawdata() ) {
         auto msfractuation = rawfile->msFractuation();
 
         bool interporate( false );

@@ -41,7 +41,7 @@ SessionManager * SessionManager::instance_ = 0;
 SessionManager::SessionManager(QObject *parent) : QObject(parent)
                                                 , activeDataprocessor_(0)
                                                 , loadInprogress_( false )
-                                                , iSessionManager_( std::make_unique< adextension::iSessionManager >() )
+                                                , iSessionManager_( new adextension::iSessionManager() )
 {
     instance_ = this;
 }
@@ -59,7 +59,7 @@ SessionManager * SessionManager::instance()
 adextension::iSessionManager *
 SessionManager::getISessionManager()
 {
-    return iSessionManager_.get();
+    return iSessionManager_; //.get();
 }
 
 void
@@ -84,7 +84,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
 	activeDataprocessor_ = proc.get();
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
-    emit iSessionManager_->addProcessor( QString::fromStdWString( proc->filename() ) );
+    emit iSessionManager_->addProcessor( proc->filename() );
     loadInprogress_ = false;
 }
 
@@ -125,7 +125,7 @@ SessionManager::find( const std::wstring& token )
 {
     for ( SessionManager::vector_type::iterator it = sessions_.begin(); it != sessions_.end(); ++it ) {
         Dataprocessor& proc = it->getDataprocessor();
-        if ( proc.file().filename() == token )
+        if ( proc.file()->filename() == token )
             return it;
     }
     return sessions_.end();

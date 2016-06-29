@@ -229,7 +229,7 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
                 
                 if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-                    std::wstring display_name = processor->file().filename() + L"::" + folium.name();
+                    std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
 
                     auto it = impl_->dataIds_.find( folium.id() );
                     if ( it == impl_->dataIds_.end() ) {
@@ -261,9 +261,9 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
         return;
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-            std::wstring display_name = processor->file().filename() + L"::" + folium.name();
-            impl_->profile_ = std::make_pair( folium.id(), datafolder( 0, display_name, folium ) );
-            draw( 1 );
+        std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
+        impl_->profile_ = std::make_pair( folium.id(), datafolder( 0, display_name, folium ) );
+        draw( 1 );
     } else {
         return;
     }
@@ -285,7 +285,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
         if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-            std::wstring display_name = processor->file().filename() + L"::" + folium.name();
+            std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
             
             auto it = impl_->dataIds_.find( folium.id() );
             if ( it == impl_->dataIds_.end() ) {

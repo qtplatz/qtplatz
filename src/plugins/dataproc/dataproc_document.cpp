@@ -385,7 +385,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 
-		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
+		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
             
             auto cptr = dataproc_document::findTIC( dp, 0 );
             if ( !cptr )
@@ -524,7 +524,7 @@ dataproc_document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn 
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
-		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
+		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
 			adcontrols::MassSpectrum ms;
             try {
                 std::wostringstream text;

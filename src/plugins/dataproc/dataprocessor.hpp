@@ -28,6 +28,7 @@
 
 #include <coreplugin/idocument.h>
 #include <adcontrols/datasubscriber.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include "constants.hpp"
 #include <memory>
 #include <vector>
@@ -63,7 +64,8 @@ namespace dataproc {
     class IFileImpl;
 
     class Dataprocessor : public Core::IDocument
-                        , public adcontrols::dataSubscriber
+                        , public adprocessor::dataprocessor
+                          //, public adcontrols::dataSubscriber
                         , public std::enable_shared_from_this< Dataprocessor > {
         Q_OBJECT
     public:
@@ -86,14 +88,14 @@ namespace dataproc {
         // Dataprocessor
         void setModified( bool );
         bool create( const QString& token );
-        bool open( const QString&, QString& errmsg );
-        // Core::IDocument * ifile();
+        bool open( const QString&, QString& errmsg ) override;
 
         void exportXML() const;
         
-		const std::wstring& filename() const;
-        adcontrols::datafile& file();
-        const adcontrols::LCMSDataset* getLCMSDataset();
+		// const std::wstring& filename() const;
+        // adcontrols::datafile& file();
+        
+        // const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         bool load( const std::wstring& path, const std::wstring& id );
 		bool fetch( portfolio::Folium& );
@@ -136,7 +138,7 @@ namespace dataproc {
         static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
-        bool subscribe( const adcontrols::LCMSDataset& ) override;
+        // bool subscribe( const adcontrols::LCMSDataset& ) override;
         bool subscribe( const adcontrols::ProcessedDataset& ) override;
         void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
         //
@@ -154,10 +156,10 @@ namespace dataproc {
         void onNotify( const QString& );
 
     private:
-        std::shared_ptr< adcontrols::datafile > file_;
+        // std::shared_ptr< adcontrols::datafile > file_;
         std::unique_ptr< portfolio::Portfolio > portfolio_;
         std::wstring idActiveFolium_;
-        const adcontrols::LCMSDataset * rawDataset_;
+        // const adcontrols::LCMSDataset * rawDataset_;
         bool modified_;
 
         void setDisplayName( const QString& );

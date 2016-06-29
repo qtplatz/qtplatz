@@ -96,7 +96,7 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor
                                         , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
                                         , const boost::uuids::uuid& dataReaderUuid )
 {
-    if ( auto rawfile = processor->getLCMSDataset() ) {
+    if ( auto rawfile = processor->rawdata() ) {
         if ( rawfile->dataformat_version() >= 3 ) {
             if ( auto reader = rawfile->dataReader( dataReaderUuid ) )
                 createChromatogramsV3( processor, axis, ranges, reader );
@@ -161,7 +161,7 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor,  std::shared_p
             threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
     } while( 0 );
 
-    if ( auto rawfile = processor->getLCMSDataset() ) {
+    if ( auto rawfile = processor->rawdata() ) {
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
                 adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
@@ -208,7 +208,7 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
     adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
     MainWindow::instance()->getProcessMethod( *pm );
     
-    if ( auto rawfile = processor->getLCMSDataset() ) {
+    if ( auto rawfile = processor->rawdata() ) {
         if ( rawfile->dataformat_version() >= 3 ) {
             adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
             if ( dlg.exec() == QDialog::Accepted ) {
@@ -320,7 +320,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
-    if ( auto dset = processor->getLCMSDataset() ) {
+    if ( auto dset = processor->rawdata() ) {
         adcontrols::v2::MSChromatogramExtractor extract( dset );
 
         extract( vec, *pm, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
@@ -346,7 +346,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
-    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
+    if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
 
         adcontrols::v2::MSChromatogramExtractor extract( dset );
         extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
@@ -372,7 +372,7 @@ DataprocessWorker::handleCreateChromatogramsV3( Dataprocessor * processor
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
-    if ( auto dset = processor->getLCMSDataset() ) {
+    if ( auto dset = processor->rawdata() ) {
         adcontrols::v3::MSChromatogramExtractor extract( dset );
 
         extract( vec, *pm, reader, fcn
@@ -408,7 +408,7 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
     const auto& objid = ( *spectra->begin() )->dataReaderUuid();
 
     adfs::sqlite * db(0);
-    if ( auto rawfile = processor->getLCMSDataset() ) {
+    if ( auto rawfile = processor->rawdata() ) {
         if ( rawfile->dataformat_version() >= 3 ) {
             if ( ( db = rawfile->db() ) ) {
                 adutils::AcquiredConf::create_mslock( *db );
@@ -467,8 +467,11 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
     m << lockm;
     
     adcontrols::MSFinder finder( lockm.tolerance( lockm.toleranceMethod() ), lockm.algorithm(), lockm.toleranceMethod() );
+    
 
-    boost::filesystem::path base = boost::filesystem::path( processor->filename() ).parent_path() / boost::filesystem::path( processor->filename() ).stem();
+    boost::filesystem::path base =
+        boost::filesystem::path( processor->filename().toStdWString() ).parent_path()
+        / boost::filesystem::path( processor->filename().toStdWString() ).stem();
 
     int nprog( 0 );
     for ( auto& mol : lockm.molecules().data() ) {
@@ -513,7 +516,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                                             , const std::shared_ptr< adcontrols::ProcessMethod > pm
                                             , std::shared_ptr<adwidgets::Progress> progress )
 {
-    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
+    if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
 
         bool hasCentroid = dset->hasProcessedSpectrum( 0, 0 );
         const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();

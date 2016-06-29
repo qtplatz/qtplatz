@@ -200,7 +200,7 @@ namespace dataproc {
 
         bool ticTracker( const QPointF& pos, QwtText& text ) {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                if ( auto rawfile = dp->getLCMSDataset() ) {
+                if ( auto rawfile = dp->rawdata() ) {
                     
                     size_t npos(0);
                     int fcn(0), rep(0), index(0);
@@ -414,7 +414,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
     portfolio::Portfolio portfolio = processor->getPortfolio();
 
-    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
+    if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
 
         portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
         if ( folder.nil() )
@@ -737,7 +737,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 	if ( int( std::abs( x1 - x0 ) ) <= 2 ) {
         
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-            if ( auto rawfile = dp->getLCMSDataset() ) {
+            if ( auto rawfile = dp->rawdata() ) {
                 //--- v3 support -->
                 if ( rawfile->dataformat_version() >= 3 ) {
                     // v3 data
@@ -838,7 +838,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             if ( ms->dataReaderUuid() != boost::uuids::uuid( {0} ) ) {
                 // v3 data
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                    if ( auto rd = dp->getLCMSDataset() ) {
+                    if ( auto rd = dp->rawdata() ) {
                         if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
                             auto display_name = QString::fromStdString( reader->display_name() );
                             

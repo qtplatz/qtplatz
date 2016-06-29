@@ -985,7 +985,7 @@ MainWindow::handleExportPeakList()
                         processor->fetch( folium );
 
                     // output filename
-                    outf << adportable::utf::to_utf8( processor->filename() ) << std::endl;
+                    outf << adportable::utf::to_utf8( processor->filename().toStdWString() ) << std::endl;
 
                     portfolio::Folio atts = folium.attachments();
                     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
@@ -1046,7 +1046,7 @@ MainWindow::handleImportChecked()
                     for ( auto& folder : processor->portfolio().folders() ) {
                         for ( auto& folium : folder.folio() ) {
                             if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                                adfile.append( folium, processor->file() );
+                                adfile.append( folium, *processor->file() );
                             }
                         }
                     }
