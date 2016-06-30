@@ -21,6 +21,7 @@ if ( WIN32 )
   set( adfs_SOURCE apiwin32.cpp apiwin32.hpp )
 else()
   set( adfs_SOURCE apiposix.cpp apiposix.hpp )
+  set( oslibs dl )
 endif()
   
 add_library( ${PROJECT_NAME} SHARED
@@ -45,7 +46,10 @@ add_library( ${PROJECT_NAME} SHARED
   )
 
 if ( SHARED_ADFS_LIBRARY )
-  target_link_libraries( adfs LINK_PUBLIC ${Boost_LIBRARIES} adportable )
+  target_link_libraries( adfs LINK_PUBLIC ${Boost_LIBRARIES}
+    adportable
+    ${oslibs}
+    )
 endif()
 
 install( TARGETS ${PROJECT_NAME}

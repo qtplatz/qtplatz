@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.8.9)
 
 project ( test_u5303a )
 
-find_package( Boost REQUIRED COMPONENTS system )
+find_package( Boost REQUIRED COMPONENTS system iostreams bzip2 )
 
 if ( WIN32 )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS )

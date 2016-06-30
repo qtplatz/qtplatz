@@ -7,7 +7,7 @@ set( PROVIDER MS-Cheminformatics )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem iostreams bzip2 )
+find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"
@@ -27,19 +27,23 @@ if (WIN32)
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
-add_library( ${PROJECT_NAME}
-  MODULE
+add_library( ${PROJECT_NAME} MODULE
   adspectrometer.cpp
   constants.cpp
   constants.hpp
   importdata.hpp
   massspectrometer.cpp
   massspectrometer.hpp
-)
+  )
+
+#foreach( lib ${Boost_LIBRARIES} )
+#  message( STATUS "adspectrometer boost lib: " ${lib} )
+#endforeach()
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  adplugin
   adcontrols
+  adplugin
+  adportable
   ${Boost_LIBRARIES}
 )
 
