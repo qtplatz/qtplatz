@@ -54,6 +54,8 @@ add_library( ${PROJECT_NAME} SHARED
   ap240/threshold_result_accessor.hpp
   ap240/waveform.cpp
   ap240/waveform.hpp
+  ap240/waveform_accessor.cpp
+  ap240/waveform_accessor.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

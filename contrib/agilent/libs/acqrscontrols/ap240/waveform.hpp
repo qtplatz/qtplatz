@@ -143,6 +143,10 @@ namespace acqrscontrols {
             size_t serialize_xmeta( std::string& ) const;
             bool deserialize_xmeta( const char *, size_t );
 
+            // data serialization for waveform_accessor
+            size_t serialize_xdata( std::vector< int8_t >& ) const;
+            bool deserialize_xdata( const int8_t *, size_t );
+
             double accumulate( double tof, double window ) const;
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );

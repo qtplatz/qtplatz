@@ -687,6 +687,48 @@ waveform::deserialize_xmeta( const char * data, size_t size )
     return false;
 }
 
+size_t
+waveform::serialize_xdata( std::vector< int8_t >& os ) const
+{
+    size_t dword_count(0);
+    if ( meta_.dataType == 1 ) 
+        dword_count = data_size() / 4 + 1;
+    else if ( meta_.dataType == 2 )
+        dword_count = data_size() / 2 + 1;
+    else
+        dword_count = data_size();
+    
+    os.resize( ( dword_count + 2 ) * sizeof( uint32_t ) );
+    int32_t * dest_p = reinterpret_cast<int32_t *>( os.data() );
+    
+    *dest_p++ = 0x7ffe0000 | meta_.dataType; // separater & endian marker & dataType
+    *dest_p++ = data_size();
+    if ( data_size() ) {
+        std::copy( d_.begin(), d_.end(), dest_p );
+        dest_p += d_.size();
+    }
+    return os.size();
+}
+
+bool
+waveform::deserialize_xdata( const int8_t * data, size_t size )
+{
+    const uint32_t * pdata = reinterpret_cast<const uint32_t *>( data );
+
+    if ( ( *pdata & 0xffff0000 ) == 0x7ffe0000 ) {
+        int dataType = *pdata & 0x0f;
+        ++pdata;
+        uint32_t data_size = *pdata++;
+        if ( size >= 2 ) {
+            size -= 2;
+            d_.resize( size );
+            std::copy( pdata, pdata + size, d_.begin() );
+        }
+        return true;
+    }
+    return false;
+}
+
 waveform&
 waveform::operator += ( const waveform& t )
 {
