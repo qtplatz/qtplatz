@@ -118,7 +118,8 @@ namespace acqrsinterpreter {
                 if ( auto scanlaw = spectrometer.scanLaw() )
                     acqrscontrols::ap240::waveform::translate( ms, *wform, [&]( double t, int m ){ return scanlaw->getMass( t, m ); } );
                 else
-                    acqrscontrols::ap240::waveform::translate( ms, *wform );                
+                    acqrscontrols::ap240::waveform::translate( ms, *wform );
+                return adcontrols::translate_complete;
             }
             return adcontrols::translate_error;            
         }

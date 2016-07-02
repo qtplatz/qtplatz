@@ -142,6 +142,7 @@ namespace acqrscontrols {
             size_t serialize_xdata( std::string& ) const;
             bool deserialize_xmeta( const char *, size_t );
             bool deserialize_xdata( const char *, size_t );
+            bool deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize );
 
             double accumulate( double tof, double window ) const;
 

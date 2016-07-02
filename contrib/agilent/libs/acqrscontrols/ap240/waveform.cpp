@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -747,7 +747,7 @@ waveform::serialize_xdata( std::string& os ) const
     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
 
     portable_binary_oarchive ar( device );
-    waveform_xmeta_archive_t< const waveform > x( *this );
+    waveform_xdata_archive_t< const waveform > x( *this );
     
     try {
         ar & x;
@@ -774,6 +774,12 @@ waveform::deserialize_xdata( const char * data, size_t size )
     }
 
     return false;
+}
+
+bool
+waveform::deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize )
+{
+    return deserialize_xdata( xdata, dsize ) && deserialize_xmeta( xmeta, msize );
 }
 
 waveform&
@@ -832,7 +838,7 @@ waveform::accumulate( double tof, double window ) const
     double tic(0), dbase(0), rms(0);
 
     if ( meta_.dataType == 1 ) {
-        // tic = adportable::spectrum_processor::tic( size(), begin<int8_t>(), dbase, rms, 5 );    
+        tic = adportable::spectrum_processor::tic( size(), begin<int8_t>(), dbase, rms, 5 );    
     } else if ( meta_.dataType == 2 ) {
         tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
     } else if ( meta_.dataType == 4 ) {

@@ -148,6 +148,7 @@ namespace acqrscontrols {
             // data serialization for waveform_accessor
             bool serialize_xdata( std::string& ) const;
             bool deserialize_xdata( const char *, size_t );
+            bool deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize );
 
             double accumulate( double tof, double window ) const;
 
@@ -177,7 +178,7 @@ namespace acqrscontrols {
 
             friend struct ::ap240::detail::device_ap240;
             friend class waveform_xdata_archive_t< waveform >;
-            // friend class waveform_xdata_archive_t< const waveform >;
+            friend class waveform_xdata_archive_t< const waveform >;
         };
 
         template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;

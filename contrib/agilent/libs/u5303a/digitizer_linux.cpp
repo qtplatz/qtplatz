@@ -250,7 +250,7 @@ digitizer::peripheral_trigger_inject()
 bool
 digitizer::peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
-    return task::instance()->next_protocol( protoIdx, nProtocols );
+    return false; //task::instance()->next_protocol( protoIdx, nProtocols );
 }
 
 void
