@@ -56,8 +56,8 @@ namespace adcontrols {
         void set_mass( double mass, double left, double right );
 
         double area() const;
-        [[deprecated]] void set_area( double );
-        void setArea( double );
+        void set_area( double );
+        //void setArea( double );
         
         double height() const;
         void set_height( double );

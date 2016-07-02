@@ -82,11 +82,11 @@ MSPeakInfo::nProtocols() const
     return nProtocols_;
 }
 
-void
-MSPeakInfo::protocol( int32_t id, int32_t n )
-{
-    setProtocol( id, n );
-}
+// void
+// MSPeakInfo::protocol( int32_t id, int32_t n )
+// {
+//     setProtocol( id, n );
+// }
 
 void
 MSPeakInfo::setProtocol( int32_t id, int32_t n )
@@ -139,11 +139,11 @@ MSPeakInfo::mode() const
 }
 
 // deprecated
-void
-MSPeakInfo::mode( int v )
-{
-    mode_ = v;
-}
+// void
+// MSPeakInfo::mode( int v )
+// {
+//     mode_ = v;
+// }
 
 void
 MSPeakInfo::setMode( int v )

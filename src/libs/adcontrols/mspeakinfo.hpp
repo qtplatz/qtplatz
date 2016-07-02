@@ -72,9 +72,9 @@ namespace adcontrols {
         const MSPeakInfo& getSegment( size_t fcn ) const;
         size_t numSegments() const;
         int mode() const;
-        [[deprecated("use setMode")]] void mode( int );
+        //[[deprecated("use setMode")]] void mode( int );
         void setMode( int );
-        [[deprecated("use setProtocol")]] void protocol( int32_t protId, int32_t nProtocols );
+        //[[deprecated("use setProtocol")]] void protocol( int32_t protId, int32_t nProtocols );
         void setProtocol( int32_t protId, int32_t nProtocols );
         int32_t protocolId() const;
         int32_t nProtocols() const;
