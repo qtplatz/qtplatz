@@ -623,6 +623,27 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
 //static
 bool
+waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mass_assignor_t assign, int scale )
+{
+    if ( translate( sp, waveform, scale ) ) {
+
+        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        const auto& sinfo = prop.samplingInfo();
+
+        double lMass = assign( sinfo.fSampDelay(), prop.mode() );
+        double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+
+        sp.setAcquisitionMassRange( lMass, hMass );
+        
+        return sp.assign_masses( assign );
+    }
+
+    return false;
+}
+
+
+//static
+bool
 waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, int scale )
 {
     using namespace adcontrols::metric;
