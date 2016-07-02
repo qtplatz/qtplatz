@@ -27,7 +27,7 @@
 #include "factory_plugin.hpp"
 #include "datainterpreter_histogram.hpp"
 #include "datainterpreter_timecount.hpp"
-#include "datainterpreter_u5303a.hpp"
+#include "datainterpreter_waveform.hpp"
 #include "datainterpreter_softavgr.hpp"
 #include <adcontrols/datareader.hpp>
 #include <adplugin/visitor.hpp>
@@ -101,9 +101,13 @@ datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
         ptr->accept( visitor, adplugin );
     }
 
-    if ( auto ptr = factory_plugin< u5303a::DataInterpreter, IID_DataInterpreter >::make_this() ) {
+    if ( auto ptr = factory_plugin< waveform::DataInterpreter< acqrscontrols::u5303a::waveform >, IID_DataInterpreter >::make_this() ) {
         ptr->accept( visitor, adplugin );
     }
+
+    if ( auto ptr = factory_plugin< waveform::DataInterpreter< acqrscontrols::ap240::waveform >, IID_DataInterpreter >::make_this() ) {
+        ptr->accept( visitor, adplugin );
+    }    
 
 }
 

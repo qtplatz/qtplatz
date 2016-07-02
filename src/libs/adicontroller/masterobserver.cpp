@@ -141,17 +141,34 @@ MasterObserver::dataChanged( adicontroller::SignalObserver::Observer * so, uint3
 bool
 MasterObserver::prepareStorage( SampleProcessor& sp ) const
 {
-    for ( auto observer : siblings() ) {
+    if ( preparing_ )
+        preparing_( sp );
+
+    for ( auto observer : siblings() )
         observer->prepareStorage( sp );
-    }
+
     return true;
 }
 
 bool 
 MasterObserver::closingStorage( SampleProcessor& sp ) const
 {
-    for ( auto observer : siblings() ) {
+    for ( auto observer : siblings() )
         observer->closingStorage( sp );
-    }
+
+    if ( closing_ )
+        closing_( sp );
     return true;
+}
+
+void
+MasterObserver::setPrepareStorage( std::function< bool( SampleProcessor& ) > f )
+{
+    preparing_ = f;
+}
+
+void
+MasterObserver::setClosingStorage( std::function< bool( SampleProcessor& ) > f )
+{
+    closing_ = f;
 }

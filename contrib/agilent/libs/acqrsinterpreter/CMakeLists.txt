@@ -34,8 +34,8 @@ add_library( ${PROJECT_NAME}
   datainterpreter_timecount.hpp
   datainterpreter_softavgr.cpp
   datainterpreter_softavgr.hpp
-  datainterpreter_u5303a.cpp
-  datainterpreter_u5303a.hpp
+  datainterpreter_waveform.cpp
+  datainterpreter_waveform.hpp  
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

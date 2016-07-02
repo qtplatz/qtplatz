@@ -147,7 +147,7 @@ namespace acqrscontrols {
 
             // data serialization for waveform_accessor
             bool serialize_xdata( std::string& ) const;
-            bool deserialize_xdata( const int8_t *, size_t );
+            bool deserialize_xdata( const char *, size_t );
 
             double accumulate( double tof, double window ) const;
 

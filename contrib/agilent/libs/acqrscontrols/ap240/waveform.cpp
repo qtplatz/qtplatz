@@ -737,9 +737,9 @@ waveform::serialize_xdata( std::string& os ) const
 }
 
 bool
-waveform::deserialize_xdata( const int8_t * data, size_t size )
+waveform::deserialize_xdata( const char * data, size_t size )
 {
-    boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >( data ), size );
+    boost::iostreams::basic_array_source< char > device( data, size );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
 
     portable_binary_iarchive ar( st );

@@ -24,10 +24,10 @@
 
 #include "datareader.hpp"
 #include "datainterpreter.hpp"
-#include "datainterpreter_u5303a.hpp"
 #include "datainterpreter_histogram.hpp"
 #include "datainterpreter_timecount.hpp"
 #include "datainterpreter_softavgr.hpp"
+#include "datainterpreter_waveform.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -63,28 +63,31 @@ namespace acqrsinterpreter {
         typedef Interpreter type;
     };
 
-    template<> const std::string TID<u5303a::DataInterpreter >::value = "1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::value = "timecount.1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID<histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID<softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
+    // u5303a
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::value = "1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::display_name = "1.u5303a";
 
-    template<> const std::string TID<u5303a::DataInterpreter >::display_name = "1.u5303a";
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount[u5303a]";
-    template<> const std::string TID<histogram::DataInterpreter >::display_name = "histogram";
-    template<> const std::string TID<softavgr::DataInterpreter>::display_name = "waveform";
+    template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result> >::value = "timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount[u5303a]";
+    
+    template<> const std::string TID< histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< histogram::DataInterpreter >::display_name = "histogram";
+    
+    template<> const std::string TID< softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< softavgr::DataInterpreter>::display_name = "waveform";
 
     // ap240
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
 
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "waveform[ap240]";
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "waveform[ap240]";
 
     typedef boost::mpl::vector<
-        TID<u5303a::DataInterpreter >
+        TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform> >
         , TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result > >
         , TID< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result > >
-        , TID< timecount::DataInterpreter<acqrscontrols::ap240::waveform > >
+        , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform > >
         , TID< histogram::DataInterpreter >
         , TID< softavgr::DataInterpreter >
         > interpreter_types;
