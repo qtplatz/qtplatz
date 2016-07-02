@@ -92,13 +92,9 @@ waveform_accessor::events() const
 size_t
 waveform_accessor::xdata( std::string& ar ) const
 {
-    std::vector< int8_t > o;
-    try {
-        (*it_)->serialize_xdata( o );
-        adportable::bzip2::compress( ar, reinterpret_cast< const char * >(o.data()), o.size() );
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << "exception : " << ex.what();
-    }
+    std::string o;
+    if ( (*it_)->serialize_xdata( o ) )
+        adportable::bzip2::compress( ar, o.data(), o.size() );
 	return ar.size();
 }
         

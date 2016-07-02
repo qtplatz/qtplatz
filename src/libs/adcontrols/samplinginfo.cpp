@@ -47,7 +47,7 @@ namespace adcontrols {
         void serialize( Archive& ar, T& _, const unsigned int version ) {
 
             if ( version >= 6 ) {
-                ar & BOOST_SERIALIZATION_NVP( _.nSamplingDelay_ );
+                ar & BOOST_SERIALIZATION_NVP( _.nSamplingDelay_ ); // deprecated --- not in use after v7 (use 'delayTime_')
                 ar & BOOST_SERIALIZATION_NVP( _.nSamples_ );
                 ar & BOOST_SERIALIZATION_NVP( _.nAverage_ );
                 ar & BOOST_SERIALIZATION_NVP( _.mode_ );
@@ -206,14 +206,14 @@ SamplingInfo::nSamples() const
     return nSamples_;
 }
 
-void
-SamplingInfo::setNSamplingDelay( int32_t value )
-{
-    nSamplingDelay_ = value;
-}
+// void
+// SamplingInfo::setNSamplingDelay( int32_t value )
+// {
+//     nSamplingDelay_ = value;
+// }
 
-int32_t
-SamplingInfo::nSamplingDelay() const
-{
-    return nSamplingDelay_;
-}
+// int32_t
+// SamplingInfo::nSamplingDelay() const
+// {
+//     return nSamplingDelay_;
+// }

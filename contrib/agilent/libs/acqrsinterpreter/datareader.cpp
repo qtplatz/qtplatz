@@ -77,12 +77,17 @@ namespace acqrsinterpreter {
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
 
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "waveform[ap240]";
+
     typedef boost::mpl::vector<
         TID<u5303a::DataInterpreter >
-        , TID<timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >
-        , TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >
-        , TID<histogram::DataInterpreter>
-        , TID<softavgr::DataInterpreter> > interpreter_types;
+        , TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result > >
+        , TID< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result > >
+        , TID< timecount::DataInterpreter<acqrscontrols::ap240::waveform > >
+        , TID< histogram::DataInterpreter >
+        , TID< softavgr::DataInterpreter >
+        > interpreter_types;
 
     //-------------------
 

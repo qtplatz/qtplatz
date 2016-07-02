@@ -361,6 +361,27 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.method_ );                
                 ar & BOOST_SERIALIZATION_NVP( _.timeSinceInject_ );
                 ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
+                if ( version >= 1 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.serialnumber_origin_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.firstValidPoint_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
+                }
+            }
+        };
+
+                    
+        ////////////////////
+        // serializer for stream (for file io)
+        template<typename T = waveform >
+        class waveform_xdata_archive_t {
+            T& _;
+        public:
+            waveform_xdata_archive_t( T& t ) : _( t ) {}
+            template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( _.d_ );
             }
         };
         
@@ -388,6 +409,14 @@ namespace acqrscontrols {
         };
 
     } // namespace
+}
+
+// **** BOOST_CLASS_VERSION( T, N ) *****
+namespace boost { namespace serialization {
+        using namespace acqrscontrols::ap240;
+        template< typename T > struct version< waveform_xmeta_archive_t< T > > { BOOST_STATIC_CONSTANT( int, value = 1 ); };
+        template< typename T > struct version< waveform_xdata_archive_t< T > > { BOOST_STATIC_CONSTANT( int, value = 1 ); };
+    }
 }
 
 //static
@@ -654,18 +683,21 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     return false;
 }
 
-size_t
+bool
 waveform::serialize_xmeta( std::string& os ) const
 {
     boost::iostreams::back_insert_device< std::string > inserter( os );
     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
 
     portable_binary_oarchive ar( device );
-
     waveform_xmeta_archive_t< const waveform > x( *this );
-    ar & x;
-
-    return os.size();
+    
+    try {
+        ar & x;
+    } catch ( std::exception& ) {
+        return false;
+    }
+    return true;
 }
 
 bool
@@ -687,45 +719,39 @@ waveform::deserialize_xmeta( const char * data, size_t size )
     return false;
 }
 
-size_t
-waveform::serialize_xdata( std::vector< int8_t >& os ) const
+bool
+waveform::serialize_xdata( std::string& os ) const
 {
-    size_t dword_count(0);
-    if ( meta_.dataType == 1 ) 
-        dword_count = data_size() / 4 + 1;
-    else if ( meta_.dataType == 2 )
-        dword_count = data_size() / 2 + 1;
-    else
-        dword_count = data_size();
+    boost::iostreams::back_insert_device< std::string > inserter( os );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+    portable_binary_oarchive ar( device );
+    waveform_xmeta_archive_t< const waveform > x( *this );
     
-    os.resize( ( dword_count + 2 ) * sizeof( uint32_t ) );
-    int32_t * dest_p = reinterpret_cast<int32_t *>( os.data() );
-    
-    *dest_p++ = 0x7ffe0000 | meta_.dataType; // separater & endian marker & dataType
-    *dest_p++ = data_size();
-    if ( data_size() ) {
-        std::copy( d_.begin(), d_.end(), dest_p );
-        dest_p += d_.size();
+    try {
+        ar & x;
+    } catch ( std::exception& ) {
+        return false;
     }
-    return os.size();
+    return true;
 }
 
 bool
 waveform::deserialize_xdata( const int8_t * data, size_t size )
 {
-    const uint32_t * pdata = reinterpret_cast<const uint32_t *>( data );
+    boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >( data ), size );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
 
-    if ( ( *pdata & 0xffff0000 ) == 0x7ffe0000 ) {
-        int dataType = *pdata & 0x0f;
-        ++pdata;
-        uint32_t data_size = *pdata++;
-        if ( size >= 2 ) {
-            size -= 2;
-            d_.resize( size );
-            std::copy( pdata, pdata + size, d_.begin() );
-        }
+    portable_binary_iarchive ar( st );
+
+    try {
+        waveform_xdata_archive_t< waveform > x( *this );
+        ar & x;
         return true;
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
     }
+
     return false;
 }
 
