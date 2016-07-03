@@ -205,7 +205,7 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
-                                               , objid_( {0} )
+                                               , objid_( {{0}} )
                                                , objrowid_(-1)
 {
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
@@ -311,6 +311,7 @@ DataReader::fcnCount() const
 {
     // skip timecount data -- too large to handle in the dataproc
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
+        (void)i;
         ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
         return 0;
     }

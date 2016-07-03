@@ -473,7 +473,7 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
         boost::filesystem::path( processor->filename().toStdWString() ).parent_path()
         / boost::filesystem::path( processor->filename().toStdWString() ).stem();
 
-    int nprog( 0 );
+    //int nprog( 0 );
     for ( auto& mol : lockm.molecules().data() ) {
 
         double t0 = (*spectra->begin())->getMSProperty().timeSinceInjection();

@@ -187,7 +187,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
                             mime.push_back( factory->mimeTypes() );
                     }
                 } );
-                long x = 0;
+                //long x = 0;
             }
         } while ( 0 );
         

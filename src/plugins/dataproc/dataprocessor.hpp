@@ -85,7 +85,7 @@ namespace dataproc {
         IDocument::ReloadBehavior reloadBehavior( ChangeTrigger state, ChangeType type ) const override;
 
         // Dataprocessor
-        void setModified( bool );
+        void setModified( bool ) override;
         bool create( const QString& token );
         bool open( const QString&, QString& errmsg ) override;
 
