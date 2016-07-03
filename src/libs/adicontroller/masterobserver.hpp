@@ -57,8 +57,15 @@ namespace adicontroller {
         bool prepareStorage( SampleProcessor& ) const override;
         bool closingStorage( SampleProcessor& ) const override;
 
+        //
+        void setPrepareStorage( std::function< bool( SampleProcessor& ) > );
+        void setClosingStorage( std::function< bool( SampleProcessor& ) > );
+
         virtual void dataChanged( SignalObserver::Observer * so, uint32_t pos );
-        
+
+    private:
+        std::function< bool( SampleProcessor& ) > preparing_;
+        std::function< bool( SampleProcessor& ) > closing_;
     };
 
 }

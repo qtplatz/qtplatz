@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -361,6 +361,27 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.method_ );                
                 ar & BOOST_SERIALIZATION_NVP( _.timeSinceInject_ );
                 ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
+                if ( version >= 1 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.serialnumber_origin_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.firstValidPoint_ );
+                    ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
+                }
+            }
+        };
+
+                    
+        ////////////////////
+        // serializer for stream (for file io)
+        template<typename T = waveform >
+        class waveform_xdata_archive_t {
+            T& _;
+        public:
+            waveform_xdata_archive_t( T& t ) : _( t ) {}
+            template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+                using namespace boost::serialization;
+                ar & BOOST_SERIALIZATION_NVP( _.d_ );
             }
         };
         
@@ -388,6 +409,14 @@ namespace acqrscontrols {
         };
 
     } // namespace
+}
+
+// **** BOOST_CLASS_VERSION( T, N ) *****
+namespace boost { namespace serialization {
+        using namespace acqrscontrols::ap240;
+        template< typename T > struct version< waveform_xmeta_archive_t< T > > { BOOST_STATIC_CONSTANT( int, value = 1 ); };
+        template< typename T > struct version< waveform_xdata_archive_t< T > > { BOOST_STATIC_CONSTANT( int, value = 1 ); };
+    }
 }
 
 //static
@@ -594,6 +623,27 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
 //static
 bool
+waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mass_assignor_t assign, int scale )
+{
+    if ( translate( sp, waveform, scale ) ) {
+
+        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        const auto& sinfo = prop.samplingInfo();
+
+        double lMass = assign( sinfo.fSampDelay(), prop.mode() );
+        double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+
+        sp.setAcquisitionMassRange( lMass, hMass );
+        
+        return sp.assign_masses( assign );
+    }
+
+    return false;
+}
+
+
+//static
+bool
 waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, int scale )
 {
     using namespace adcontrols::metric;
@@ -654,18 +704,21 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     return false;
 }
 
-size_t
+bool
 waveform::serialize_xmeta( std::string& os ) const
 {
     boost::iostreams::back_insert_device< std::string > inserter( os );
     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
 
     portable_binary_oarchive ar( device );
-
     waveform_xmeta_archive_t< const waveform > x( *this );
-    ar & x;
-
-    return os.size();
+    
+    try {
+        ar & x;
+    } catch ( std::exception& ) {
+        return false;
+    }
+    return true;
 }
 
 bool
@@ -685,6 +738,48 @@ waveform::deserialize_xmeta( const char * data, size_t size )
     }
 
     return false;
+}
+
+bool
+waveform::serialize_xdata( std::string& os ) const
+{
+    boost::iostreams::back_insert_device< std::string > inserter( os );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+    portable_binary_oarchive ar( device );
+    waveform_xdata_archive_t< const waveform > x( *this );
+    
+    try {
+        ar & x;
+    } catch ( std::exception& ) {
+        return false;
+    }
+    return true;
+}
+
+bool
+waveform::deserialize_xdata( const char * data, size_t size )
+{
+    boost::iostreams::basic_array_source< char > device( data, size );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+
+    portable_binary_iarchive ar( st );
+
+    try {
+        waveform_xdata_archive_t< waveform > x( *this );
+        ar & x;
+        return true;
+    } catch ( ... ) {
+        ADDEBUG() << boost::current_exception_diagnostic_information();
+    }
+
+    return false;
+}
+
+bool
+waveform::deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize )
+{
+    return deserialize_xdata( xdata, dsize ) && deserialize_xmeta( xmeta, msize );
 }
 
 waveform&
@@ -743,7 +838,7 @@ waveform::accumulate( double tof, double window ) const
     double tic(0), dbase(0), rms(0);
 
     if ( meta_.dataType == 1 ) {
-        // tic = adportable::spectrum_processor::tic( size(), begin<int8_t>(), dbase, rms, 5 );    
+        tic = adportable::spectrum_processor::tic( size(), begin<int8_t>(), dbase, rms, 5 );    
     } else if ( meta_.dataType == 2 ) {
         tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
     } else if ( meta_.dataType == 4 ) {

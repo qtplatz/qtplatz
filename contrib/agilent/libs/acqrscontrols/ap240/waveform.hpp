@@ -73,6 +73,8 @@ namespace acqrscontrols {
         ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
 #endif
 
+        template< typename T > class waveform_xdata_archive_t;
+
         //////////////////
         
         class ACQRSCONTROLSSHARED_EXPORT waveform : public std::enable_shared_from_this < waveform > {
@@ -140,8 +142,13 @@ namespace acqrscontrols {
             size_t data_size() const { return d_.size(); }  // internal data count
 
             // reused in threshold_result archive
-            size_t serialize_xmeta( std::string& ) const;
+            bool serialize_xmeta( std::string& ) const;
             bool deserialize_xmeta( const char *, size_t );
+
+            // data serialization for waveform_accessor
+            bool serialize_xdata( std::string& ) const;
+            bool deserialize_xdata( const char *, size_t );
+            bool deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize );
 
             double accumulate( double tof, double window ) const;
 
@@ -151,17 +158,17 @@ namespace acqrscontrols {
                 deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
 
             static bool
-                serialize( adicontroller::SignalObserver::DataReadBuffer&, std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
-
-            static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-
-            static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+                serialize( adicontroller::SignalObserver::DataReadBuffer&
+                           , std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
             typedef double( mass_assign_t )( double time, int mode );
             typedef std::function< mass_assign_t > mass_assignor_t;
 
+            static bool transform( std::vector<double>&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            
+            static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
             static bool translate( adcontrols::MassSpectrum&, const waveform&, mass_assignor_t, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
 
         private:
@@ -170,6 +177,8 @@ namespace acqrscontrols {
             std::vector< value_type > d_;
 
             friend struct ::ap240::detail::device_ap240;
+            friend class waveform_xdata_archive_t< waveform >;
+            friend class waveform_xdata_archive_t< const waveform >;
         };
 
         template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;

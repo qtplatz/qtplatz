@@ -469,18 +469,12 @@ waveform::deserialize_xdata( const char * data, size_t size )
 
     if ( meta_.dataType == 2 ) {
 
-        // auto xcount = ( size - sizeof( int32_t ) * 2 ) / sizeof( int16_t );
-        // assert( xcount == count );
-
         auto mblk = std::make_shared< adportable::mblock< int16_t > >( count );
         mblock_ = mblk;
         std::copy( reinterpret_cast< const int16_t * >(src_p), reinterpret_cast< const int16_t * >(src_p) + count, mblk->data() );
         
     } else if ( meta_.dataType == 4 ) {
 
-        // auto xcount = ( size - sizeof( int32_t ) * 2 ) / sizeof( int32_t );
-        // assert( xcount == count );
-        
         auto mblk = std::make_shared< adportable::mblock< int32_t > >( count );
         mblock_ = mblk;
         std::copy( reinterpret_cast< const int32_t * >(src_p), reinterpret_cast< const int32_t * >(src_p) + count, mblk->data() );
@@ -490,6 +484,11 @@ waveform::deserialize_xdata( const char * data, size_t size )
     return true;
 }
 
+bool
+waveform::deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize )
+{
+    return deserialize_xdata( xdata, dsize ) && deserialize_xmeta( xmeta, msize );
+}
 
 bool
 waveform::transform( std::vector< double >& v, const waveform& w, int scale )

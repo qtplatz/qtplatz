@@ -72,6 +72,8 @@ elseif ( APPLE )
 else() # Linux
   set( CPACK_INSTALL_PREFIX "/opt/qtplatz" )
   set( CPACK_SET_DESTDIR ON )
+  set( CMAKE_CXX_STANDARD 14 )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
 
 if ( WIN32 )

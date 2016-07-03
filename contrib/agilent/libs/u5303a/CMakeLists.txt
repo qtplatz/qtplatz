@@ -51,6 +51,10 @@ set( u5303a_HEADERS
   ppio.hpp
   )
 
+if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
+  set( _libs rt )
+endif()
+
 add_library( u5303a SHARED
   ${u5303a_SOURCES}
   ${u5303a_HEADERS}
@@ -77,6 +81,7 @@ target_link_libraries( u5303a PUBLIC
   dgpio
   ${AgMD2_LIBRARY}
   ${Boost_LIBRARIES}
+  ${_libs}
   )
 
 install( TARGETS ${PROJECT_NAME}

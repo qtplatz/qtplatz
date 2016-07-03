@@ -83,7 +83,7 @@ namespace peptide {
                 } else if ( index.column() == 1 ) {
                     render_formula( painter, option, index.data().toString() );
 				} else if ( index.column() >= 2 ) {
-                    QStyleOptionViewItemV2 op = option;
+                    auto op = option;
 					op.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
                     drawDisplay( painter, op, op.rect, (boost::format("%.7lf") % index.data().toDouble()).str().c_str() );
                 } else {
@@ -103,7 +103,7 @@ namespace peptide {
         private:
             void render_html( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
                 painter->save();
-                QStyleOptionViewItemV4 op = option;
+                auto op = option;
                 QTextDocument document;
                 document.setDefaultTextOption( QTextOption( op.displayAlignment ) );
 				document.setDefaultFont( op.font );

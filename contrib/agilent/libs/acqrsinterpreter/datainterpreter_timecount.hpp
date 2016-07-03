@@ -36,8 +36,10 @@ namespace adcontrols {
 namespace acqrsinterpreter {
 
     namespace timecount {
-        
-        template< typename result_type > // acqrscontrols::u5303a::threshold_result | acqrscontrols::ap240::threshold_result
+
+        // result_type := acqrscontrols::u5303a::threshold_result | acqrscontrols::ap240::threshold_result
+
+        template< typename result_type >
         class DataInterpreter : public acqrsinterpreter::DataInterpreter {
         public:
             virtual ~DataInterpreter()

@@ -296,5 +296,8 @@ Session::stop_run()
 bool
 Session::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
-    return impl_->digitizer_->peripheral_protocol( protoIdx, nProtocols );
+    // replaced with hardwired protocol identification using dgmod module
+    assert( 0 );
+    return true;
+    //return impl_->digitizer_->peripheral_protocol( protoIdx, nProtocols );
 }

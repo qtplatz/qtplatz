@@ -45,8 +45,8 @@ namespace adcontrols {
 
         SamplingInfo( double fSampInterval, double delayTime, int32_t nDelay, uint32_t nSamples, uint32_t nAvg, uint32_t mode );
 
-        [[deprecated("use delayTime")]] int32_t nSamplingDelay() const;    // check delayTime_, either can be negative
-        [[deprecated("use setDelayTime")]] void setNSamplingDelay( int32_t );
+        // [[deprecated("use delayTime")]] int32_t nSamplingDelay() const;    // check delayTime_, either can be negative
+        // [[deprecated("use setDelayTime")]] void setNSamplingDelay( int32_t );
 
         uint32_t nSamples() const;
         uint32_t mode() const;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc

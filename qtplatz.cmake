@@ -119,6 +119,10 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++1y support. Please use a different C++ compiler.")
   endif()
 
+  if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-z,defs")
+  endif()
+
 #  if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 #    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")

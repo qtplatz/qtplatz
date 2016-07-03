@@ -8,6 +8,7 @@ set( SHARED_ADFS_LIBRARY ON )
 
 if ( SHARED_ADFS_LIBRARY )
   find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
+  find_package(Threads REQUIRED)
   add_definitions( -DADFS_SHARED_LIBRARY -DADFS_LIBRARY )
 endif()
 
@@ -21,7 +22,7 @@ if ( WIN32 )
   set( adfs_SOURCE apiwin32.cpp apiwin32.hpp )
 else()
   set( adfs_SOURCE apiposix.cpp apiposix.hpp )
-  set( oslibs dl )
+  set( oslibs dl Threads::Threads )
 endif()
   
 add_library( ${PROJECT_NAME} SHARED
@@ -46,9 +47,10 @@ add_library( ${PROJECT_NAME} SHARED
   )
 
 if ( SHARED_ADFS_LIBRARY )
-  target_link_libraries( adfs LINK_PUBLIC ${Boost_LIBRARIES}
+  target_link_libraries( adfs LINK_PUBLIC
     adportable
     ${oslibs}
+    ${Boost_LIBRARIES}
     )
 endif()
 

@@ -263,28 +263,40 @@ AcquiredConf::findScanLaw( adfs::sqlite& db, const boost::uuids::uuid& objid
 {
     adfs::stmt sql( db );
 
-    sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer,fLength \
- FROM ScanLaw,Spectrometer WHERE objuuid = ? AND Spectrometer.id = ScanLaw.spectrometer" );
+    sql.prepare( "SELECT objuuid,acclVoltage,tDelay,clsidSpectrometer,fLength \
+ FROM ScanLaw,Spectrometer WHERE ( objuuid = ? OR objuuid = ? ) AND Spectrometer.id = ScanLaw.spectrometer \
+ ORDER BY objuuid DESC" );
 
     sql.bind( 1 ) = objid;
-    if ( sql.step() == adfs::sqlite_row ) {
-        acceleratorVoltage = sql.get_column_value< double >( 0 );
-        tDelay             = sql.get_column_value< double >( 1 );
-        clsidSpectrometer  = sql.get_column_value< boost::uuids::uuid >( 2 ); // ScanLaw.clsidSpectrometer
-        fLength            = sql.get_column_value< double >( 3 ); // Spectrometer.fLength
-        
-        return true;
+    sql.bind( 2 ) = boost::uuids::uuid{ 0 }; // master observer
+
+    boost::uuids::uuid objuuid = { uint8_t(-1) };
+    
+    while ( sql.step() == adfs::sqlite_row ) {
+        objuuid            = sql.get_column_value< boost::uuids::uuid >( 0 );
+        acceleratorVoltage = sql.get_column_value< double >( 1 );
+        tDelay             = sql.get_column_value< double >( 2 );
+        clsidSpectrometer  = sql.get_column_value< boost::uuids::uuid >( 3 ); // ScanLaw.clsidSpectrometer
+        fLength            = sql.get_column_value< double >( 4 ); // Spectrometer.fLength
+
+        if ( objuuid == objid || objuuid == boost::uuids::uuid{ 0 } )
+            return true;
     }
     
     // missing 'Spectrometer' ?
-    sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid = ?" );
+    sql.prepare( "SELECT objuuid,acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid = ? OR objuuid = ? ORDER BY objuuid DESC" );
     sql.bind( 1 ) = objid;
-    if ( sql.step() == adfs::sqlite_row ) {
-        acceleratorVoltage = sql.get_column_value< double >( 0 );
-        tDelay             = sql.get_column_value< double >( 1 );
-        clsidSpectrometer  = sql.get_column_value< boost::uuids::uuid >( 2 ); // ScanLaw.clsidSpectrometer
+    sql.bind( 2 ) = boost::uuids::uuid{ 0 }; // master observer
+
+    while ( sql.step() == adfs::sqlite_row ) {
+        objuuid            = sql.get_column_value< boost::uuids::uuid >( 0 );        
+        acceleratorVoltage = sql.get_column_value< double >( 1 );
+        tDelay             = sql.get_column_value< double >( 2 );
+        clsidSpectrometer  = sql.get_column_value< boost::uuids::uuid >( 3 ); // ScanLaw.clsidSpectrometer
         fLength = 1.0; // assume 1.0m flight length
-        return true;
+
+        if ( objuuid == objid || objuuid == boost::uuids::uuid{ 0 } )
+            return true;        
     }
 
     sql.reset();
