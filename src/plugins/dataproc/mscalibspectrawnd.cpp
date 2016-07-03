@@ -367,18 +367,26 @@ MSCalibSpectraWnd::flight_length_regression()
 	typedef std::tuple< adcontrols::MSAssignedMass, double, double, double, double > calibrant_t;
     std::map< int, std::vector< calibrant_t > > time_corrected_calibrants;
 
-    for ( auto& pk: masses ) {
+    if ( auto spectrometer = adcontrols::MassSpectrometer::create( segments[0].getMSProperty().dataInterpreterClsid() ) ) {
 
-		auto& ms = segments[ pk.idMassSpectrum() ];
+        spectrometer->setAcceleratorVoltage( segments[0].getMSProperty().acceleratorVoltage(), segments[0].getMSProperty().tDelay() );
 
-		if ( pk.enable() )
-            time_corrected_calibrants[ pk.mode() ].push_back( std::make_tuple( pk
-                                                                               , std::sqrt( pk.exactMass() )
-                                                                               , adcontrols::metric::scale_to_micro( pk.time() )
-																			   , ms.scanLaw()->fLength( pk.mode() )
-																			   , adcontrols::metric::scale_to_micro( pk.time() ) ) );
-	}
-    
+        if ( auto scanLaw = spectrometer->scanLaw() ) {
+
+            for ( auto& pk: masses ) {
+
+                auto& ms = segments[ pk.idMassSpectrum() ];
+
+                if ( pk.enable() )
+                    time_corrected_calibrants[ pk.mode() ].push_back( std::make_tuple( pk
+                                                                                       , std::sqrt( pk.exactMass() )
+                                                                                       , adcontrols::metric::scale_to_micro( pk.time() )
+                                                                                       , scanLaw->fLength( pk.mode() )
+                                                                                       , adcontrols::metric::scale_to_micro( pk.time() ) ) );
+            }
+        }
+    }
+
     int id = 0;
     std::map< int, Fitter<CurveLinear> > time_correctors;
 
@@ -666,15 +674,27 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
         const adcontrols::MSCalibration& calib = margedCalibResult_->calibration();
         adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
 
-		adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *margedSpectrum_->scanLaw(), calib );
-        for ( auto& a: assigned ) {
-			double mass = mass_calculator( a.time(), a.mode() );
-			a.mass( mass );
-               segments[ a.idMassSpectrum() ].setMass( a.idPeak(), mass );
+        const auto& prop = margedSpectrum_->getMSProperty();
+
+        if ( auto spectrometer = adcontrols::MassSpectrometer::create( prop.dataInterpreterClsid() ) ) {
+            spectrometer->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
+            
+            if ( auto scanLaw = spectrometer->scanLaw() ) {
+
+                adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, calib );
+                for ( auto& a: assigned ) {
+                    double mass = mass_calculator( a.time(), a.mode() );
+                    a.mass( mass );
+                    segments[ a.idMassSpectrum() ].setMass( a.idPeak(), mass );
+                }
+                DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, assigned );
+                margedCalibResult_->assignedMasses( assigned );
+
+                emit onSetData( *margedCalibResult_, *margedSpectrum_ );
+            }
+            
         }
-		DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, assigned );
-		margedCalibResult_->assignedMasses( assigned );
-        emit onSetData( *margedCalibResult_, *margedSpectrum_ );
+
     }
     
 }

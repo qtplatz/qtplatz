@@ -257,8 +257,8 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
         if ( result && centroid ) {
             QVector< QPointF > errors;
-            if ( auto scanLaw = centroid->scanLaw() ) {
-                adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *centroid->scanLaw(), result->calibration() );
+            if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( centroid->getMSProperty() ) ) {
+                adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, result->calibration() );
 
                 for ( auto a : result->assignedMasses() ) {
                     double mass = mass_calculator( a.time(), a.mode() );
@@ -395,8 +395,6 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 	std::shared_ptr< adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibCentroid_.lock();
 	if ( ! calibSpectrum )
 		return;
-
-	// const adcontrols::massspectrometer::ScanLaw& scanLaw = calibSpectrum->scanLaw();
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {

@@ -145,8 +145,8 @@ namespace adcontrols {
 
         void normalizeIntensities( uint32_t nImaginalAverage );
 
-        [[deprecated("use MSProperty,acceleratorVoltage&tDelay")]]
-            const ScanLaw* scanLaw() const;
+        // [[deprecated("use MSProperty,acceleratorVoltage&tDelay")]]
+        //     const ScanLaw* scanLaw() const;
         
         template<class T> void set( const T& t );
         template<class T> const T& get();

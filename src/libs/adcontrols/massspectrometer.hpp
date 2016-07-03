@@ -90,6 +90,8 @@ namespace adcontrols {
 
         static void register_default_spectrometers();
 
+        static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
+
     protected:
         // v2
         adcontrols::datafile * datafile_;

@@ -145,7 +145,7 @@ namespace adcontrols {
 
            // exclude from archive
            std::string uuid_; // for instance equality check; out of serialization scope
-           std::shared_ptr< ScanLaw > scanLaw_;
+           // std::shared_ptr< ScanLaw > scanLaw_;
            std::tuple< bool, double, double > minmax_;
 	    
            friend class MassSpectrum;
@@ -185,7 +185,7 @@ namespace adcontrols {
                }
 
                // exclude
-               scanLaw_.reset();
+               // scanLaw_.reset();
                minmax_ = std::make_tuple( false, 0.0, 0.0 );
            }
        };
@@ -212,7 +212,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( data );
 
             // exclude
-            scanLaw_.reset();
+            // scanLaw_.reset();
             minmax_ = std::make_tuple( false, 0.0, 0.0 );
         }
 
@@ -335,18 +335,18 @@ MassSpectrum::mode() const
     return pImpl_->getMSProperty().mode();
 }
 
-const ScanLaw*
-MassSpectrum::scanLaw() const
-{
-    // deprecated
-    if ( !pImpl_->scanLaw_ ) {
-        if ( auto spectrometer = adcontrols::MassSpectrometer::create( getMSProperty().dataInterpreterClsid() ) ) {
-            spectrometer->setAcceleratorVoltage( getMSProperty().acceleratorVoltage(), 0 );
-            return spectrometer->scanLaw();
-        }
-    }
-    return pImpl_->scanLaw_.get();
-}
+// const ScanLaw*
+// MassSpectrum::scanLaw() const
+// {
+//     // deprecated
+//     if ( !pImpl_->scanLaw_ ) {
+//         if ( auto spectrometer = adcontrols::MassSpectrometer::create( getMSProperty().dataInterpreterClsid() ) ) {
+//             spectrometer->setAcceleratorVoltage( getMSProperty().acceleratorVoltage(), 0 );
+//             return spectrometer->scanLaw();
+//         }
+//     }
+//     return pImpl_->scanLaw_.get();
+// }
 
 const double *
 MassSpectrum::getMassArray() const

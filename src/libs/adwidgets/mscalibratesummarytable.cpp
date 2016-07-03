@@ -202,7 +202,9 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
         
         QString formula = model.data( model.index( row, c_formula ) ).toString();
         std::wstring wformula = qtwrapper::wstring( formula );
+
         if ( ! formula.isEmpty()  ) {
+
             bool enable = model.index( row, c_is_enable ).data( Qt::EditRole ).toBool();
             double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
 
@@ -244,29 +246,32 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
         return false;
 	
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+    double mass = 0;        
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
-    double mass( 0 );
-    if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() ) {
+
+    if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) ) {
         adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, calib );
         mass = mass_calculator( it->time(), it->mode() );
-    }
-    else {
+    } else {
         mass = adcontrols::detail::compute_mass< adcontrols::MSCalibration::TIMESQUARED >::compute( it->time(), calib );
     }
 
-	if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
-		double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
-        if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() ) {
+    if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+        double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
+
+        if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) ) {
             double L = scanLaw->fLength( it->mode() );
             normalized_time = ( it->time() - t0 ) / L;
         }
-	} else {
-        if ( auto scanLaw = pCalibrantSpectrum_->scanLaw() )
-            normalized_time = (it->time()) / scanLaw->fLength( it->mode() );
-        else
-            normalized_time = it->time();
-	}
+
+    } else {
+
+        if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) )
+             normalized_time = (it->time()) / scanLaw->fLength( it->mode() );
+         else
+             normalized_time = it->time();
+	 }
 
     //model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
@@ -615,28 +620,28 @@ MSCalibrateSummaryTable::addSelectionToPeakTable()
     for ( auto index: list )
         rows.insert( index.row() );
 
-    QStandardItemModel& model = *pModel_;
-    adcontrols::MSPeaks peaks;
-    for ( int row: rows ) {
-        double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
-        double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
-        std::string formula = model.index( row, c_formula ).data().toString().toStdString();
-        if ( !formula.empty() )
-            mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
-        int mode = model.index( row, c_mode ).data().toInt();
+    if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) ) {
 
-        const adcontrols::ScanLaw* law = pCalibrantSpectrum_->scanLaw();
-        adcontrols::MSPeak peak( time, mass, mode, law->fLength( mode ) );
-        peak.formula( formula );
-
-        //peak.spectrumId( pCalibrantSpectrum_->uuid() );
-        peaks << peak;
+        QStandardItemModel& model = *pModel_;
+        adcontrols::MSPeaks peaks;
+        for ( int row: rows ) {
+            double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
+            double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+            std::string formula = model.index( row, c_formula ).data().toString().toStdString();
+            if ( !formula.empty() )
+                mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
+            int mode = model.index( row, c_mode ).data().toInt();
+                
+            // const adcontrols::ScanLaw* law = pCalibrantSpectrum_->scanLaw();
+            adcontrols::MSPeak peak( time, mass, mode, scanLaw->fLength( mode ) );
+            peak.formula( formula );
+                
+            //peak.spectrumId( pCalibrantSpectrum_->uuid() );
+            peaks << peak;
+                
+            emit on_add_selection_to_peak_table( peaks );
+        }
     }
-    // std::string device;
-    // adportable::serializer< adcontrols::MSPeaks >::serialize( peaks, device );
-    // QByteArray d( device.data(), device.size() );
-	// emit on_add_selection_to_peak_table( QString::fromStdWString(adcontrols::MSPeaks::dataClass()), d );
-    emit on_add_selection_to_peak_table( peaks );
 }
 
 void

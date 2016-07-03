@@ -26,6 +26,7 @@
 
 #include <QObject>
 #include "adextension_global.hpp"
+#include <memory>
 
 namespace adprocessor { class dataprocessor; }
     
@@ -36,7 +37,7 @@ namespace adextension {
     public:
         explicit iSessionManager(QObject *parent = 0);
 
-        
+        // std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) = 0;
         
     signals:
         void addProcessor( const QString& );            // file open

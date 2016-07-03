@@ -33,6 +33,7 @@
 #include "mscalibrateresult.hpp"
 #include "mscalibration.hpp"
 #include "msfractuation.hpp"
+#include "msproperty.hpp"
 #include "scanlaw.hpp"
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/utf.hpp>
@@ -217,6 +218,18 @@ std::shared_ptr< adcontrols::MassSpectrometer >
 MassSpectrometer::create( const char * dataInterpreterClsid )
 {
     return MassSpectrometerBroker::make_massspectrometer( dataInterpreterClsid );
+}
+
+//static
+std::shared_ptr< ScanLaw >
+MassSpectrometer::make_scanlaw( const adcontrols::MSProperty& prop )
+{
+    if ( auto spectrometer = create( prop.dataInterpreterClsid() ) ) {
+
+        return spectrometer->scanLaw( prop );
+        
+    }
+    return nullptr;
 }
 
 std::vector< std::wstring > 
