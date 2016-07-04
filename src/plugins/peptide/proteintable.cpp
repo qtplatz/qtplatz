@@ -74,7 +74,7 @@ namespace peptide {
         private:
             void render_sequence( QPainter * painter, const QStyleOptionViewItem& option, const QString& text ) const {
                 painter->save();
-                QStyleOptionViewItemV4 op = option;
+                auto op = option;
                 QTextDocument document;
                 QTextOption to;
                 to.setWrapMode( QTextOption::WrapAtWordBoundaryOrAnywhere );
