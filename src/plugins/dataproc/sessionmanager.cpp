@@ -32,16 +32,15 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <adlog/logger.hpp>
 #include <boost/any.hpp>
-
+#include <QSignalBlocker>
 
 using namespace dataproc;
 
 SessionManager * SessionManager::instance_ = 0;
 
-SessionManager::SessionManager(QObject *parent) : QObject(parent)
-                                                , activeDataprocessor_(0)
+SessionManager::SessionManager(QObject *parent) : iSessionManager( parent )
+                                                , activeDataprocessor_( 0 )
                                                 , loadInprogress_( false )
-                                                , iSessionManager_( new adextension::iSessionManager() )
 {
     instance_ = this;
 }
@@ -59,7 +58,7 @@ SessionManager * SessionManager::instance()
 adextension::iSessionManager *
 SessionManager::getISessionManager()
 {
-    return iSessionManager_; //.get();
+    return this; //iSessionManager_; //.get();
 }
 
 void
@@ -79,12 +78,17 @@ SessionManager::removeEditor( Core::IEditor * editor )
 void
 SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
 {
-    loadInprogress_ = true;
+    loadInprogress_ = true; // block check state events
+    
     sessions_.push_back( Session( proc, editor ) );
 	activeDataprocessor_ = proc.get();
+
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
-    emit iSessionManager_->addProcessor( iSessionManager_, proc->filename() );
+
+    // iSessionManager
+    emit addProcessor( this, proc->filename() );
+
     loadInprogress_ = false;
 }
 
@@ -93,19 +97,23 @@ SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Fo
 {
     activeDataprocessor_ = dataprocessor;
     emit onSessionUpdated( dataprocessor, QString::fromStdWString( folium.id() ) );
+    emit onDataChanged( this, dataprocessor->filename(), folium );
 }
 
 void
 SessionManager::folderChanged( Dataprocessor* dataprocessor, const std::wstring& folder )
 {
 	emit onFolderChanged( dataprocessor, QString::fromStdWString( folder ) );
+    emit folderSelectionChanged( this, dataprocessor->filename(), QString::fromStdWString( folder ) );
 }
 
 void
 SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Folium& folium, bool isChecked )
 {
-    if ( ! loadInprogress_ )
+    if ( ! loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
+        emit onCheckStateChanged( this, dataprocessor->filename(), folium, isChecked );
+    }
 }
 
 SessionManager::vector_type::iterator
@@ -155,6 +163,17 @@ Dataprocessor *
 SessionManager::getActiveDataprocessor()
 {
     return activeDataprocessor_;
+}
+
+// iSessionManager implementation
+std::shared_ptr< adprocessor::dataprocessor >
+SessionManager::getDataprocessor( const QString& name )
+{
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filename() == name; } );
+    if ( it != end() )
+        return it->processor()->shared_from_this();
+
+    return nullptr;
 }
 
 //////////// Session //////////////////

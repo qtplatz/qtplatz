@@ -29,6 +29,7 @@
 #include <QObject>
 #include <vector>
 #include <memory>
+#include <adextension/isessionmanager.hpp>
 
 namespace Core { class IEditor; }
 
@@ -50,14 +51,14 @@ namespace dataproc {
         Session( const Session& );
         Session( std::shared_ptr<Dataprocessor>&, Core::IEditor* );
         Dataprocessor& getDataprocessor();
-		inline Dataprocessor * processor() { return processor_.get(); }
+		inline Dataprocessor * processor() const { return processor_.get(); }
 		inline Core::IEditor * editor() { return editor_; }
     private:
         std::shared_ptr< Dataprocessor > processor_;  // holds a file
         Core::IEditor * editor_;
     };
 
-    class SessionManager : public QObject {
+    class SessionManager : public adextension::iSessionManager { // public QObject {
 
         Q_OBJECT
 
@@ -78,7 +79,7 @@ namespace dataproc {
         void checkStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
         void removeEditor( Core::IEditor * );
         void processed( Dataprocessor *, portfolio::Folium& );
-
+        
         typedef std::vector< Session > vector_type;
 
         vector_type::iterator begin();
@@ -99,11 +100,14 @@ namespace dataproc {
         void selectionChanged( Dataprocessor *, portfolio::Folium& );
 
     private:
+        // iSessionManager
+        std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) override;
+
+    private:
         static SessionManager * instance_;
         std::vector< Session > sessions_;
         Dataprocessor * activeDataprocessor_;
         bool loadInprogress_;
-        adextension::iSessionManager * iSessionManager_; // autoRelease
     };
 
 }
