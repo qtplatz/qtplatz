@@ -64,12 +64,21 @@ namespace dataproc {
     class IFileImpl;
 
     class Dataprocessor : public Core::IDocument
-                        , public adprocessor::dataprocessor 
-                        , public std::enable_shared_from_this< Dataprocessor > {
+                        , public adprocessor::dataprocessor {
+
         Q_OBJECT
+
+        Dataprocessor();
+        Dataprocessor( const Dataprocessor& ) = delete;
+        Dataprocessor& operator = ( const Dataprocessor& ) = delete;
+        
     public:
         ~Dataprocessor();
-        Dataprocessor();
+
+        static std::shared_ptr< Dataprocessor > make_dataprocessor() {
+            struct make_shared_enabler : public Dataprocessor {};
+            return std::make_shared< make_shared_enabler >();
+        }
 
         inline Core::IDocument * document() { return this; };
         
@@ -125,7 +134,7 @@ namespace dataproc {
 
         void subtract( portfolio::Folium& base, portfolio::Folium& target );
 
-        portfolio::Portfolio& portfolio() { return *portfolio_; }
+        // portfolio::Portfolio& portfolio() { return *portfolio_; }
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool saveMSCalibration( portfolio::Folium& );
@@ -133,7 +142,6 @@ namespace dataproc {
         static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
-        bool subscribe( const adcontrols::ProcessedDataset& ) override;
         void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
 
         //
@@ -151,7 +159,7 @@ namespace dataproc {
         void onNotify( const QString& );
 
     private:
-        std::unique_ptr< portfolio::Portfolio > portfolio_;
+        // std::unique_ptr< portfolio::Portfolio > portfolio_;
         std::wstring idActiveFolium_;
         bool modified_;
 

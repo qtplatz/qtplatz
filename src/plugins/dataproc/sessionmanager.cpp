@@ -84,7 +84,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
 	activeDataprocessor_ = proc.get();
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
-    emit iSessionManager_->addProcessor( proc->filename() );
+    emit iSessionManager_->addProcessor( iSessionManager_, proc->filename() );
     loadInprogress_ = false;
 }
 

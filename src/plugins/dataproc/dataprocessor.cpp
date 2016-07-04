@@ -128,9 +128,9 @@ Dataprocessor::~Dataprocessor()
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
-Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
+Dataprocessor::Dataprocessor() : modified_( false )
+                                 //, portfolio_( new portfolio::Portfolio() )
                                  //, rawDataset_( 0 )
-                               , modified_( false )
 {
     connect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
@@ -271,50 +271,12 @@ bool
 Dataprocessor::open(const QString &filename, QString& emsg )
 {
     emsg.clear();
-    return adprocessor::dataprocessor::open( filename, emsg );
-
-#if 0
-    try {
-        if ( adcontrols::datafile * file = adcontrols::datafile::open( filename.toStdWString(), false ) ) {
-            file_.reset( file );
-            try {
-                file->accept( *this );
-                setDisplayName( filename );
-                setFilePath( filename );
-                return true;
-            } catch ( boost::exception& ex ) {
-                emsg = QString::fromStdString( boost::diagnostic_information( ex ) );
-                ADERROR() << boost::diagnostic_information( ex );
-            } catch ( std::exception& ex ) {
-                emsg = QString::fromStdString( ex.what() );
-                ADERROR() << ex.what();
-            } catch ( ... ) {
-                emsg = QString::fromStdString( "Unidentified exception" );
-                ADERROR() << "Unidentified exception received.";
-            }
-        }
-    } catch ( boost::exception& ex ) {
-        emsg = QString::fromStdString( boost::diagnostic_information( ex ) );
-        ADERROR() << boost::diagnostic_information( ex );
-    } catch ( ... ) {
-        emsg = QString::fromStdString( boost::current_exception_diagnostic_information() );
-        ADERROR() << "got an exception '...'";
+    if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
+        Core::IDocument::setFilePath( filename );
+        return true;
     }
     return false;
-#endif
 }
-
-// adcontrols::datafile&
-// Dataprocessor::file()
-// {
-//     return *file_;// ifileimpl_->file();
-// }
-
-// const std::wstring&
-// Dataprocessor::filename() const
-// {
-//     return file_->filename();
-// }
 
 bool
 Dataprocessor::load( const std::wstring& path, const std::wstring& id )
@@ -322,12 +284,6 @@ Dataprocessor::load( const std::wstring& path, const std::wstring& id )
     // this is used for reload 'acquire' when shanpshot spectrum was added.
     return this->file()->loadContents( path, id, *this );
 }
-
-// const adcontrols::LCMSDataset *
-// Dataprocessor::getLCMSDataset()
-// {
-//     return this->rawdata(); //rawDataset_;
-// }
 
 portfolio::Portfolio
 Dataprocessor::getPortfolio()
@@ -959,21 +915,8 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
     }
 }
 
-///////////////////////////
-// bool
-// Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
-// {
-//     rawDataset_ = &data;
-// 	return true;
-// }
-
-bool
-Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
-{
-    std::string xml = processed.xml();
-    portfolio_.reset( new portfolio::Portfolio( xml ) );
-    return true;
-}
+////////////////////////////////////
+// dataSubscriber implementation
 
 void
 Dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * text )
@@ -981,6 +924,8 @@ Dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * text
     QString msg( tr( "Instrument module(s) \"%1\" not installed." ).arg( QString::fromStdWString( text ) ) );
     emit onNotify( msg );
 }
+
+//
 
 bool
 Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )

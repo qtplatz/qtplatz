@@ -61,7 +61,7 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner,
 Core::IEditor *
 DataprocessorFactory::createEditor()
 {
-    auto doc = std::make_shared< Dataprocessor >();
+    auto doc = Dataprocessor::make_dataprocessor(); // std::make_shared< Dataprocessor >();
     doc->setId( Constants::C_DATAPROCESSOR );
     auto editor = new DataprocEditor( this );
     editor->setDataprocessor( doc.get() );

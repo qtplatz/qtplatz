@@ -39,7 +39,7 @@ namespace adextension {
     public:
         explicit iSessionManager(QObject *parent = 0);
 
-        virtual std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) = 0;
+        virtual std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) { return nullptr; }
         
     signals:
         void addProcessor( iSessionManager *, const QString& );                                       // file open
