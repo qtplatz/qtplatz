@@ -34,6 +34,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/uuid/uuid.hpp>
 
 namespace adcontrols {
 
@@ -42,14 +43,20 @@ namespace adcontrols {
         ~impl() {
         }
         
-        impl( size_t i, size_t j ) : data_( i, j ) {
+        impl( size_t i, size_t j ) : data_( i, j )
+                                   , dataReaderUuid_( { 0 } )
+                                   , rowid_( 0 ) {
         }
         
-        impl( impl& t ) : data_( t.data_ ) {
+        impl( impl& t ) : data_( t.data_ )
+                        , dataReaderUuid_( t.dataReaderUuid_ )
+                        , rowid_( t.rowid_ ) {
         }
         
         boost::numeric::ublas::matrix< MappedSpectrum > data_; // co-added spectral matrix
-        idAudit ident_;            
+        idAudit ident_;
+        boost::uuids::uuid dataReaderUuid_;
+        uint64_t rowid_;
 
     private:
         friend class boost::serialization::access;
@@ -161,4 +168,29 @@ MappedSpectra::average( const boost::numeric::ublas::matrix< uint16_t >& frame, 
     }
     
     return *this;
+}
+
+// for v3 format datafile support
+void
+MappedSpectra::setDataReaderUuid( const boost::uuids::uuid& uuid )
+{
+    impl_->dataReaderUuid_ = uuid;
+}
+
+const boost::uuids::uuid&
+MappedSpectra::dataReaderUuid() const
+{
+    return impl_->dataReaderUuid_;
+}
+
+void
+MappedSpectra::setRowid( int64_t rowid )
+{
+    impl_->rowid_ = rowid;
+}
+
+int64_t
+MappedSpectra::rowid() const
+{
+    return impl_->rowid_;
 }

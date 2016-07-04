@@ -29,7 +29,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace boost { namespace serialization { class access; } }
+namespace boost { namespace serialization { class access; } namespace uuids { struct uuid; } }
 namespace adcontrols { class idAudit; }
 
 namespace adcontrols {
@@ -61,6 +61,12 @@ namespace adcontrols {
         const MappedSpectrum& operator ()( size_t i, size_t j ) const;
 
         MappedSpectra& average( const boost::numeric::ublas::matrix< uint16_t >& frame, std::function<double( uint16_t )> binary_to_time );
+
+        // ---
+        void setDataReaderUuid( const boost::uuids::uuid& );
+        const boost::uuids::uuid& dataReaderUuid() const;
+        int64_t rowid() const;
+        void setRowid( int64_t );
 
     private:
         class impl;

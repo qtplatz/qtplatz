@@ -158,9 +158,9 @@ DataReader::DataReader( const char * traceid )
 {
 }
 
-DataReader::~DataReader()
-{
-}
+// DataReader::~DataReader()
+// {
+// }
 
 //static
 std::shared_ptr< DataReader >

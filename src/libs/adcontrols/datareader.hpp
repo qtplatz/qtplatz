@@ -43,6 +43,7 @@ namespace adcontrols {
     class DataReader_iterator;
     class MassSpectrum;
     class MassSpectrometer;
+    class MappedSpectra;
 
     class ADCONTROLSSHARED_EXPORT DataReader_value_type {
         DataReader_iterator * iterator_;
@@ -83,7 +84,7 @@ namespace adcontrols {
 
 	class ADCONTROLSSHARED_EXPORT DataReader : public std::enable_shared_from_this< DataReader > {
     public:
-        virtual ~DataReader(void);
+        virtual ~DataReader(void) {}
 
         DataReader( const char * traceid = nullptr );
 
@@ -125,11 +126,18 @@ namespace adcontrols {
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
+
+        virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }
         
-        virtual std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const { return nullptr; }
-        virtual std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
+
+        virtual const void * _narrow_workaround( const char * /* typename */ ) const { return nullptr; }
+        template< typename T > T * _narrow() const {
+            return reinterpret_cast< T * >( _narrow_workaround( typeid( T ).name() ) );
+        }
 
         //////////////////////////////////////////////////////////////
         // singleton interfaces
