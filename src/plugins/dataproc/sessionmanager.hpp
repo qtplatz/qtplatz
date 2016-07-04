@@ -70,8 +70,6 @@ namespace dataproc {
 
         static SessionManager * instance();
 
-        adextension::iSessionManager * getISessionManager();
-
         Dataprocessor * getActiveDataprocessor();
         void addDataprocessor( std::shared_ptr<Dataprocessor>&, Core::IEditor * );
         void updateDataprocessor( Dataprocessor *, portfolio::Folium& );

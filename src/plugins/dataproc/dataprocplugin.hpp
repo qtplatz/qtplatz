@@ -93,8 +93,8 @@ namespace dataproc {
     private:
         dataproc::MainWindow * mainWindow_;
         std::unique_ptr< dataproc::Mode > mode_;
-        //std::unique_ptr< adportable::Configuration > pConfig_;
-        std::unique_ptr< SessionManager > pSessionManager_;
+
+        // std::unique_ptr< SessionManager > pSessionManager_;
         std::unique_ptr< ActionManager > pActionManager_;
         
         std::unique_ptr< adextension::iSequenceImpl > iSequence_;

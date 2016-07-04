@@ -33,32 +33,33 @@
 #include <adlog/logger.hpp>
 #include <boost/any.hpp>
 #include <QSignalBlocker>
+#include <mutex>
+#include <thread>
 
 using namespace dataproc;
 
 SessionManager * SessionManager::instance_ = 0;
 
-SessionManager::SessionManager(QObject *parent) : iSessionManager( parent )
-                                                , activeDataprocessor_( 0 )
-                                                , loadInprogress_( false )
+SessionManager::SessionManager( QObject *parent ) : iSessionManager( parent )
+                                                  , activeDataprocessor_( 0 )
+                                                  , loadInprogress_( false )
 {
-    instance_ = this;
 }
 
 SessionManager::~SessionManager()
 {
-    instance_ = 0;
 }
 
-SessionManager * SessionManager::instance()
+SessionManager *
+SessionManager::instance()
 {
+    static std::once_flag flag;
+
+    std::call_once( flag, [&](){
+            instance_ = new SessionManager();
+        });
+
     return instance_;
-}
-
-adextension::iSessionManager *
-SessionManager::getISessionManager()
-{
-    return this; //iSessionManager_; //.get();
 }
 
 void
@@ -67,6 +68,7 @@ SessionManager::removeEditor( Core::IEditor * editor )
     auto it = std::find_if( sessions_.begin(), sessions_.end(), [=]( Session& s ){
             return s.editor() == editor;
         });
+
     if ( it != sessions_.end() ) {
         if ( activeDataprocessor_ == it->processor() )
             activeDataprocessor_ = 0;
@@ -96,15 +98,14 @@ void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
     activeDataprocessor_ = dataprocessor;
+
     emit onSessionUpdated( dataprocessor, QString::fromStdWString( folium.id() ) );
-    emit onDataChanged( this, dataprocessor->filename(), folium );
 }
 
 void
 SessionManager::folderChanged( Dataprocessor* dataprocessor, const std::wstring& folder )
 {
 	emit onFolderChanged( dataprocessor, QString::fromStdWString( folder ) );
-    emit folderSelectionChanged( this, dataprocessor->filename(), QString::fromStdWString( folder ) );
 }
 
 void
@@ -143,6 +144,9 @@ void
 SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
     emit onProcessed( dataprocessor, folium );
+
+    // iSessionManager
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filename(), folium );
 }
 
 void
@@ -157,6 +161,9 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
 			Core::EditorManager::instance()->activateEditor( it->editor() );
 	}
     emit signalSelectionChanged( dataprocessor, folium );
+
+    // iSessionManager
+    emit onSelectionChanged( this, dataprocessor->filename(), folium );
 }
 
 Dataprocessor *

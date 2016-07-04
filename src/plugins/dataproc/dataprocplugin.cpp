@@ -141,8 +141,7 @@ DataprocPlugin::~DataprocPlugin()
 }
 
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
-                                 , pSessionManager_( new SessionManager() )
-                                 , pActionManager_( new ActionManager( this ) ) 
+                                 , pActionManager_( std::make_unique< ActionManager >( this ) ) 
 {
     instance_ = this;
 }
@@ -244,8 +243,8 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 	if ( iPeptideHandler_ )
         addObject( iPeptideHandler_.get() );
 
-    if ( auto iSessionManager = SessionManager::instance()->getISessionManager() )
-        addAutoReleasedObject( iSessionManager );
+    if ( adextension::iSessionManager * mgr = SessionManager::instance() )
+        addObject( mgr );
 
     addObject( mode_.get() );
     addAutoReleasedObject( new NavigationWidgetFactory );

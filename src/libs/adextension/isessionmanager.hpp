@@ -42,10 +42,9 @@ namespace adextension {
         virtual std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) { return nullptr; }
         
     signals:
-        void addProcessor( iSessionManager *, const QString& );                                       // file open
-        void processorSelectionChanged( iSessionManager *, const QString& file );                     // change file focus
-        void folderSelectionChanged( iSessionManager *, const QString& file, const QString& folder ); // change focused folder
-        void onDataChanged( iSessionManager *, const QString& file, const portfolio::Folium& );       // data contents changed
+        void addProcessor( iSessionManager *, const QString& );                                        // file open
+        void onSelectionChanged( iSessionManager *, const QString& file, const portfolio::Folium& );   // change focused folium (node)
+        void onProcessed( iSessionManager *, const QString& file, const portfolio::Folium& );        // onProcessed (data contents changed)
         void onCheckStateChanged( iSessionManager *, const QString& file, portfolio::Folium&, bool );
 
     public slots:
