@@ -60,7 +60,7 @@ DataprocEditor::~DataprocEditor()
 void
 DataprocEditor::setDataprocessor( Dataprocessor * processor )
 {
-    processor_ = processor->shared_from_this();
+    processor_ = std::static_pointer_cast< Dataprocessor >( processor->shared_from_this() );
 }
 
 bool
