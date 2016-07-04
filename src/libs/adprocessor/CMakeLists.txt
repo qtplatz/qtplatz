@@ -47,14 +47,9 @@ add_library( ${PROJECT_NAME} SHARED
 target_link_libraries( adprocessor LINK_PUBLIC
   adcontrols
   adfs
-  ${QWT_LIBRARIES}
+  portfolio
   Qt5::Core
-  Qt5::Widgets
-  Qt5::Svg
-  Qt5::Sql
-  Qt5::PrintSupport
   ${Boost_LIBRARIES}
-  ${RDKit_LIBRARIES}
   )
 
 set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14 )

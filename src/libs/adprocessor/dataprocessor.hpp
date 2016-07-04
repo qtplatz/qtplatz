@@ -37,21 +37,15 @@ namespace adfs { class filesystem; class sqlite; }
 namespace adcontrols {
     class datafile;
     class LCMSDataset;
-    class ProcessMethod;
-    class MassSpectrum;
-    class MassSpectra;
-    class Chromatogram;
-    class MSAssignedMasses;
-    class MSCalibrateMethod;
-	class MSCalibrateResult;
-    class CentroidMethod;
-    class SpectrogramClusters;
-    namespace lockmass { class mslock; }
+    class ProcessedDataset;
 }
+
+namespace portfolio { class Portfolio; class Folder; class Folium; }
 
 namespace adprocessor {
 
-    class ADPROCESSORSHARED_EXPORT dataprocessor : public adcontrols::dataSubscriber {
+    class ADPROCESSORSHARED_EXPORT dataprocessor : public std::enable_shared_from_this< dataprocessor >
+                                                 , public adcontrols::dataSubscriber {
         
     public:
         virtual ~dataprocessor();
@@ -72,8 +66,12 @@ namespace adprocessor {
 
         std::shared_ptr< adfs::sqlite > db() const;
 
+        virtual const portfolio::Portfolio& portfolio() const;
+        virtual portfolio::Portfolio& portfolio();
+
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
+        virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
 
     private:
@@ -82,6 +80,8 @@ namespace adprocessor {
         std::unique_ptr< adcontrols::datafile > file_;
         const adcontrols::LCMSDataset * rawdata_;
         bool modified_;
+    protected:
+        std::unique_ptr< portfolio::Portfolio > portfolio_;
     };
 
 } // mpxcontrols

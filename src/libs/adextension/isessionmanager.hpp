@@ -29,19 +29,24 @@
 #include <memory>
 
 namespace adprocessor { class dataprocessor; }
+namespace portfolio { class Folium; class Folder; }
     
 namespace adextension {
 
     class ADEXTENSIONSHARED_EXPORT iSessionManager : public QObject {
         Q_OBJECT
+
     public:
         explicit iSessionManager(QObject *parent = 0);
 
-        // std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) = 0;
+        virtual std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) = 0;
         
     signals:
-        void addProcessor( const QString& );            // file open
-        void currentProcessorChanged( const QString& ); // change file focus
+        void addProcessor( iSessionManager *, const QString& );                                       // file open
+        void processorSelectionChanged( iSessionManager *, const QString& file );                     // change file focus
+        void folderSelectionChanged( iSessionManager *, const QString& file, const QString& folder ); // change focused folder
+        void onDataChanged( iSessionManager *, const QString& file, const portfolio::Folium& );       // data contents changed
+        void onCheckStateChanged( iSessionManager *, const QString& file, portfolio::Folium&, bool );
 
     public slots:
 

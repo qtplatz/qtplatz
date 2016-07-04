@@ -32,9 +32,11 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/processeddataset.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adlog/logger.hpp>
+#include <adportfolio/portfolio.hpp>
 
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
@@ -53,6 +55,7 @@ dataprocessor::~dataprocessor()
 
 dataprocessor::dataprocessor() : modified_( false )
                                , rawdata_( 0 )
+                               , portfolio_( std::make_unique< portfolio::Portfolio >() )
 {
 }
 
@@ -135,6 +138,17 @@ dataprocessor::db() const
         return nullptr;
 }
 
+const portfolio::Portfolio&
+dataprocessor::portfolio() const
+{
+    return *portfolio_;
+}
+
+portfolio::Portfolio&
+dataprocessor::portfolio()
+{
+    return *portfolio_;
+}
 
 ///////////////////////////
 bool
@@ -142,6 +156,15 @@ dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
     rawdata_ = &data;
 	return true;
+}
+
+bool
+dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
+{
+    std::string xml = processed.xml();
+    portfolio_ = std::make_unique< portfolio::Portfolio >( xml );
+
+    return true;
 }
 
 void
