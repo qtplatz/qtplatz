@@ -116,16 +116,7 @@ loader::library_filename( const char * library )
     return dname;
 }
 
-void
-loader::load( const wchar_t * /* library_filename */)
-{
-}
-
-void
-loader::unload( const wchar_t * /* library_filename */)
-{
-}
-
+#if 0
 plugin_ptr
 loader::select_iid( const char * iid )
 {
@@ -137,18 +128,7 @@ loader::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
     return manager::instance()->select_iids( regex, vec );
 }
-
-plugin_ptr
-loader::select_clsid( const char * clsid )
-{
-    return manager::instance()->select_clsid( clsid );
-}
-
-size_t
-loader::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
-{
-    return manager::instance()->select_clsids( regex, vec );
-}
+#endif
 
 // static
 std::wstring

@@ -123,12 +123,9 @@ namespace adplugin {
         void populated();
 
         plugin_ptr select_iid( const char * regex );
-
-        plugin_ptr select_clsid( const char * regex );
-
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
 
-        size_t select_clsids( const char * regex, std::vector< plugin_ptr >& );
+        size_t select_plugins( const char * regex, std::vector< plugin_ptr >& ); // added 2016-07-05, for mpxdatainterpreter 
 
         bool isLoaded( const std::string& adpluginspec ) const;
         
@@ -192,11 +189,11 @@ manager::select_iid( const char * regex )
     return d_->select_iid( regex );
 }
 
-plugin_ptr
-manager::select_clsid( const char * regex )
-{
-    return d_->select_clsid( regex );
-}
+// plugin_ptr
+// manager::select_clsid( const char * regex )
+// {
+//     return d_->select_clsid( regex );
+// }
 
 size_t
 manager::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
@@ -204,11 +201,22 @@ manager::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
     return d_->select_iids( regex, vec );
 }
 
-size_t
-manager::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
+// size_t
+// manager::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
+// {
+//     return d_->select_clsids( regex, vec );
+// }
+
+std::vector< plugin_ptr >
+manager::select_plugins( const char * regex )
 {
-    return d_->select_clsids( regex, vec );
+    std::vector< plugin_ptr > v;
+
+    d_->select_plugins( regex, v );
+
+    return v;
 }
+
 
 //////////////////
 
@@ -254,14 +262,15 @@ manager::data::install( QLibrary& lib, const std::string& adpluginspec, const st
     typedef adplugin::plugin * ( *factory_type )();
 
     boost::filesystem::path path( lib.fileName().toStdString() );
-
+    
     if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
 
         if ( adplugin::plugin * pptr = factory() ) {
             
-            pptr->setConfig( adpluginspec, specxml );
+            pptr->setConfig( adpluginspec, specxml, path.string() );
             plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
             pptr->accept( *this, adpluginspec.c_str() );
+            
             return true;
         }
 
@@ -290,12 +299,6 @@ manager::data::select_iid( const char * regex )
     return 0;
 }
 
-plugin_ptr
-manager::data::select_clsid( const char * regex )
-{
-    return 0;
-}
-
 size_t
 manager::data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
@@ -317,9 +320,23 @@ manager::data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 }
 
 size_t
-manager::data::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
+manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& vec )
 {
-    return 0;
+#ifdef BOOST_REGEX
+	boost::regex re( regex );
+	boost::cmatch matches;
+    using namespace boost;
+#else
+	std::regex re( regex );
+	std::cmatch matches;
+    using namespace std;
+#endif
+
+	std::for_each( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
+            if ( regex_match( m.first.c_str(), matches, re ) )
+                vec.push_back( m.second.plugin() );
+		} );
+    return vec.size();
 }
 
 

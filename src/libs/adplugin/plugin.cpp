@@ -40,10 +40,12 @@ plugin::plugin()
 }
 
 void
-plugin::setConfig( const std::string& adpluginspec, const std::string& xml )
+plugin::setConfig( const std::string& adpluginspec, const std::string& xml, const std::string& path )
 {
-    clsid_ = adpluginspec; // full path name to <>.adplugin file
-    spec_ = xml; // contents of .adplugin file
+    pluginspec_ = adpluginspec; // full path name to <>.adplugin file
+    spec_ = xml;                // contents of .adplugin file
+    path_ = path;               // full path to .so|.dylib|.dll file
+
     // this data will be noticed via visitor pattern @ adplugin_manager::manager::data::install
 }
 
@@ -54,7 +56,7 @@ plugin::pThis()
         return shared_from_this();
     } catch ( std::bad_weak_ptr& ) {
         // workaround
-        ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << clsid_;
+        ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << pluginspec_;
         return std::shared_ptr< plugin >( this );
     }
 }
@@ -66,7 +68,7 @@ plugin::pThis() const
         return shared_from_this();
     } catch ( std::bad_weak_ptr& ) {
         // workaround
-        ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << clsid_;
+        ADDEBUG() << "adplugin::plugin bad weak_ptr found for: " << pluginspec_;
         return 0;
         // return std::shared_ptr< const plugin >( this );
     }

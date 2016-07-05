@@ -40,18 +40,11 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT loader {
 
-        static void load( const wchar_t * library_filename );
-        static void unload( const wchar_t * library_filename );
-
     public:
         static void populate( const wchar_t * pluginpath );
 
         static std::string library_filename( const char * library );
-        static plugin_ptr select_iid( const char * iid );
-        static plugin_ptr select_clsid( const char * clsid ); // return first match only
-        static size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
-        static size_t select_clsids( const char * clsid, std::vector< plugin_ptr >& );
-        // 
+
         static bool load_config( const wchar_t * directory, const wchar_t * config_filename );
 
         static std::wstring config_fullpath( const std::wstring& apppath, const std::wstring& config_filename );

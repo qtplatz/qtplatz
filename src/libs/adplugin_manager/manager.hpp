@@ -67,12 +67,9 @@ namespace adplugin {
 		void populated();
 
         plugin_ptr select_iid( const char * regex );
-
-        plugin_ptr select_clsid( const char * regex );
-
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& vec );
 
-        size_t select_clsids( const char * regex, std::vector< plugin_ptr >& vec );
+        std::vector< plugin_ptr > select_plugins( const char * regex );
 
     private:
         friend std::unique_ptr< manager >::deleter_type;

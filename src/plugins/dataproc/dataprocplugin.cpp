@@ -175,7 +175,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         std::vector< std::string > mime;
         do {
             std::vector< adplugin::plugin_ptr > dataproviders;
-            if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
+            if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
 
                 std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
                     adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
