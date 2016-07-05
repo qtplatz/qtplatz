@@ -27,10 +27,9 @@
 
 #include "adprocessor_global.hpp"
 #include <adcontrols/datasubscriber.hpp>
-#include <QObject>
-#include <QString>
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace adfs { class filesystem; class sqlite; }
 
@@ -54,9 +53,9 @@ namespace adprocessor {
         // dataprocessor
         virtual void setModified( bool );
 
-        virtual bool open( const QString&, QString& errmsg );
+        virtual bool open( const std::wstring&, std::wstring& errmsg );
         
-		virtual const QString& filename() const;
+		virtual const std::wstring& filename() const;
 
         virtual void setFile( std::unique_ptr< adcontrols::datafile >&& );
         virtual adcontrols::datafile * file();
@@ -75,7 +74,6 @@ namespace adprocessor {
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
 
     private:
-        QString filename_;
         std::unique_ptr< adfs::filesystem > fs_;
         std::unique_ptr< adcontrols::datafile > file_;
         const adcontrols::LCMSDataset * rawdata_;

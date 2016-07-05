@@ -24,11 +24,12 @@
 
 #pragma once
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
+#include <compiler/pragma_warning.hpp>
 
 #if defined(ADPROCESSOR_LIBRARY)
-#  define ADPROCESSORSHARED_EXPORT Q_DECL_EXPORT
+#  define ADPROCESSORSHARED_EXPORT DECL_EXPORT
 #else
-#  define ADPROCESSORSHARED_EXPORT Q_DECL_IMPORT
+#  define ADPROCESSORSHARED_EXPORT DECL_IMPORT
 #endif
 

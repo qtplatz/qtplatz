@@ -43,9 +43,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
-#include <QMessageBox>
-#include <QFontMetrics>
-#include <QApplication>
 
 using namespace adprocessor;
 
@@ -66,16 +63,14 @@ dataprocessor::setModified( bool modified )
 }
 
 bool
-dataprocessor::open( const QString& filename, QString& error_message )
+dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
 {
-    if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename.toStdWString(), false ) ) ) {
+    if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename, false ) ) ) {
 
         file_ = std::move( file );
         file_->accept( *this );
 
-        filename_ = filename;
-
-        boost::filesystem::path path( filename.toStdWString() );
+        boost::filesystem::path path( filename );
         
         auto fs = std::make_unique< adfs::filesystem >();
         if ( fs->mount( path ) ) {
@@ -93,10 +88,10 @@ dataprocessor::open( const QString& filename, QString& error_message )
     return false;
 }
 
-const QString&
+const std::wstring&
 dataprocessor::filename() const
 {
-    return filename_;
+    return file_->filename();
 }
 
 void
@@ -106,7 +101,6 @@ dataprocessor::setFile( std::unique_ptr< adcontrols::datafile >&& file )
 
     if ( file_ ) {
         file_->accept( *this );
-        filename_ = QString::fromStdWString( file_->filename() );
     }
     
 }

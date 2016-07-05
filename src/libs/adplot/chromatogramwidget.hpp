@@ -55,7 +55,8 @@ namespace adplot {
 		~ChromatogramWidget();
 
         void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
-        void setData( const std::shared_ptr< adcontrols::Chromatogram >&, int idx = 0, bool axisRight = false );
+        void setData( std::shared_ptr< const adcontrols::Chromatogram >&, int idx = 0, bool axisRight = false );
+        void setData( std::shared_ptr< const adcontrols::Chromatogram >&&, int idx = 0, bool axisRight = false );
 		void setData( const adcontrols::PeakResult& );
         void clear();
         void removeData( int idx, bool report = true );

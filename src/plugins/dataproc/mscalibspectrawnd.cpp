@@ -281,7 +281,7 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 
     if ( portfolio::Folder fCalib = portfolio.findFolder( L"MSCalibration" ) ) {
 
-		fullpath_ = processor->filename();
+		fullpath_ = processor->qfilename();
 
         if ( portfolio::Folium fSummary = fCalib.findFoliumByName( L"Summary Spectrum" ) ) {
 
@@ -514,7 +514,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
-    fullpath_ = processor->filename();
+    fullpath_ = processor->qfilename();
     portfolio::Folio attachments = folium.attachments();
 
     portfolio::Folio::iterator it = std::find_if( attachments.begin(), attachments.end(), []( const portfolio::Folium& a ) {

@@ -10,7 +10,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql Widgets PrintSupport )
 find_package(Boost 1.57 REQUIRED COMPONENTS filesystem wserialization serialization )
 
 include_directories(
@@ -21,22 +20,10 @@ include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
-if ( rdkit_FOUND )
-  include_directories( ${RDKit_INCLUDE_DIRS} )
-endif()
-
 add_definitions(-DADPROCESSOR_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
-endif()
-
-file(GLOB UIs *.ui)
-file(GLOB Resources *.qrc)
-
-set( _sources "" )
-if ( qwt_FOUND )
-  set ( _sources pressuregauge.cpp )
 endif()
 
 add_library( ${PROJECT_NAME} SHARED
@@ -48,7 +35,6 @@ target_link_libraries( adprocessor LINK_PUBLIC
   adcontrols
   adfs
   portfolio
-  Qt5::Core
   ${Boost_LIBRARIES}
   )
 

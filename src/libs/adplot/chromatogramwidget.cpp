@@ -81,11 +81,11 @@ namespace adplot {
         class xSeriesData : public QwtSeriesData< QPointF > {
             xSeriesData( const xSeriesData& ) = delete;
             xSeriesData& operator = ( const xSeriesData ) = delete;
-            std::weak_ptr< adcontrols::Chromatogram > cptr_;
+            std::weak_ptr< const adcontrols::Chromatogram > cptr_;
             QRectF rect_;
         public:
             virtual ~xSeriesData() {}
-            xSeriesData( const std::shared_ptr< adcontrols::Chromatogram >& chro, const QRectF& rc )
+            xSeriesData( std::shared_ptr< const adcontrols::Chromatogram >& chro, const QRectF& rc )
                 : cptr_( chro )
                 , rect_( rc ) {
             }
@@ -174,7 +174,7 @@ namespace adplot {
 
             inline bool y2() const { return y2_; }
 
-            void setData( const std::shared_ptr< adcontrols::Chromatogram>& cp, bool y2 ) {
+            void setData( std::shared_ptr< const adcontrols::Chromatogram>& cp, bool y2 ) {
                 grab_ = cp;
                 auto range_x = cp->timeRange(); // adcontrols::Chromatogram::toMinutes( cp->timeRange() );
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
@@ -196,9 +196,10 @@ namespace adplot {
             void drawMarkers( QwtPlot * plot, const std::pair< double, double >& range ) {
                 if ( grab_ ) {
                     const double * times = grab_->getTimeArray();
-                    auto beg = std::lower_bound( times, times + grab_->size() - 1, adcontrols::Chromatogram::toSeconds( range.first ) );
-                    auto end = std::lower_bound( beg, times + grab_->size() - 1, adcontrols::Chromatogram::toSeconds( range.second ) );
-                    if ( std::distance( beg, end ) < 80 ) {
+                    auto beg = std::lower_bound( times, times + grab_->size(), range.first );
+                    auto end = std::lower_bound( beg, times + grab_->size(), range.second );
+                    size_t d = std::distance( beg, end );
+                    if ( d < 80 ) {
                         QPen pen( Qt::red );
                         curve_.p()->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::XCross ), Qt::NoBrush, pen, QSize( 5, 5 ) ) );
                         plot->replot();
@@ -212,7 +213,7 @@ namespace adplot {
         private:
             PlotCurve curve_;
             QRectF rect_;
-            std::shared_ptr< adcontrols::Chromatogram > grab_;
+            std::shared_ptr< const adcontrols::Chromatogram > grab_;
             bool y2_;
         };
         
@@ -404,7 +405,14 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
 }
 
 void
-ChromatogramWidget::setData( const std::shared_ptr< adcontrols::Chromatogram >& cp, int idx, bool yRight )
+ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >&& cp, int idx, bool yRight )
+{
+    std::shared_ptr< const adcontrols::Chromatogram > xcp = std::move( cp );
+    setData( xcp, idx, yRight );
+}
+
+void
+ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& cp, int idx, bool yRight )
 {
     if ( cp->size() < 2 )
         return;

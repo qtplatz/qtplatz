@@ -985,7 +985,7 @@ MainWindow::handleExportPeakList()
                         processor->fetch( folium );
 
                     // output filename
-                    outf << adportable::utf::to_utf8( processor->filename().toStdWString() ) << std::endl;
+                    outf << adportable::utf::to_utf8( processor->filename() ) << std::endl;
 
                     portfolio::Folio atts = folium.attachments();
                     auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {

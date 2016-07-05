@@ -96,7 +96,8 @@ namespace dataproc {
         // Dataprocessor
         void setModified( bool ) override;
         bool create( const QString& token );
-        bool open( const QString&, QString& errmsg ) override;
+        bool open( const QString&, QString& errmsg );
+        QString qfilename() const;
 
         void exportXML() const;
         

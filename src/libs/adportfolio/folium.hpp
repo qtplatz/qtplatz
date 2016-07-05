@@ -46,6 +46,15 @@ namespace portfolio {
 #endif            
     }
 
+    template<class T> inline bool is_type( const boost::any& a ) {
+        // see issue on boost, https://svn.boost.org/trac/boost/ticket/754
+#if defined __GNUC__
+        return std::string( a.type().name() ) == typeid( T ).name();
+#else
+        return a.type() == typeid( T );
+#endif            
+    }
+
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
     public:
         ~Folium();
@@ -95,6 +104,10 @@ namespace portfolio {
     typedef std::vector< Folium > Folio;
 
     template<class T> T get( Folium& folium ) {
+        return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
+    }
+
+    template<class T> T get( const Folium& folium ) {
         return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
     }
 

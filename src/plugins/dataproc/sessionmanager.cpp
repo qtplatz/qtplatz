@@ -89,7 +89,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IE
     emit signalSessionAdded( proc.get() );
 
     // iSessionManager
-    emit addProcessor( this, proc->filename() );
+    emit addProcessor( this, proc->qfilename() );
 
     loadInprogress_ = false;
 }
@@ -113,7 +113,7 @@ SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Fol
 {
     if ( ! loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
-        emit onCheckStateChanged( this, dataprocessor->filename(), folium, isChecked );
+        emit onCheckStateChanged( this, dataprocessor->qfilename(), folium, isChecked );
     }
 }
 
@@ -146,7 +146,7 @@ SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& foli
     emit onProcessed( dataprocessor, folium );
 
     // iSessionManager
-    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filename(), folium );
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->qfilename(), folium );
 }
 
 void
@@ -163,7 +163,7 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
     emit signalSelectionChanged( dataprocessor, folium );
 
     // iSessionManager
-    emit onSelectionChanged( this, dataprocessor->filename(), folium );
+    emit onSelectionChanged( this, dataprocessor->qfilename(), folium );
 }
 
 Dataprocessor *
@@ -176,7 +176,7 @@ SessionManager::getActiveDataprocessor()
 std::shared_ptr< adprocessor::dataprocessor >
 SessionManager::getDataprocessor( const QString& name )
 {
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filename() == name; } );
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->qfilename() == name; } );
     if ( it != end() )
         return it->processor()->shared_from_this();
 

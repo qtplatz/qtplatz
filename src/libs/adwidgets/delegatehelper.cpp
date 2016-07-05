@@ -38,7 +38,7 @@ DelegateHelper::DelegateHelper()
 void
 DelegateHelper::render_html2( QPainter * painter, const QStyleOptionViewItem& option, const QString& text )
 {
-    QStyleOptionViewItemV4 op = option;
+    auto op = option;
     
     painter->save();
 
@@ -68,7 +68,7 @@ DelegateHelper::render_html( QPainter * painter, const QStyleOptionViewItem& opt
 {
     painter->save();
 
-    QStyleOptionViewItemV4 op = option;
+    auto op = option;
     QTextDocument document;
 
     if ( !css.isEmpty() ) {

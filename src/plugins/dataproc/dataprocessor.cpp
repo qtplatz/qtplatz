@@ -271,11 +271,19 @@ bool
 Dataprocessor::open(const QString &filename, QString& emsg )
 {
     emsg.clear();
-    if ( adprocessor::dataprocessor::open( filename, emsg ) ) {
+    std::wstring msg;
+    if ( adprocessor::dataprocessor::open( filename.toStdWString(), msg ) ) {
         Core::IDocument::setFilePath( filename );
         return true;
     }
+    emsg = QString::fromStdWString( msg );
     return false;
+}
+
+QString
+Dataprocessor::qfilename() const
+{
+    return QString::fromStdWString( adprocessor::dataprocessor::filename() );
 }
 
 bool

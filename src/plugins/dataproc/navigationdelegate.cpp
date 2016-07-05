@@ -79,7 +79,7 @@ NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& optio
     if ( data.canConvert< Dataprocessor * >() ) {
 
         if ( Dataprocessor * processor = data.value< Dataprocessor * >() ) {
-            drawDisplay( painter, option, option.rect, processor->filename() );
+            drawDisplay( painter, option, option.rect, processor->qfilename() );
         }
 
     } else if ( data.canConvert< portfolio::Folder >() ) {

@@ -367,7 +367,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 void
 NavigationWidget::invalidateSession( Dataprocessor * processor )
 {
-    QString filename( processor->filename() );
+    QString filename( processor->qfilename() );
     QStandardItemModel& model = *pModel_;
 
     if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
@@ -408,7 +408,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString
 void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    QString filename = processor->filename();
+    QString filename = processor->qfilename();
 
     QStandardItemModel& model = *pModel_;
 
@@ -453,7 +453,7 @@ void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     adcontrols::datafile * file = processor->file();
-    QString filename = processor->filename();
+    QString filename = processor->qfilename();
 
     QStandardItemModel& model = *pModel_;
 
