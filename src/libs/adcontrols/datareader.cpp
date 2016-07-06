@@ -131,6 +131,7 @@ DataReader_value_type::rowid() const
 int64_t
 DataReader_value_type::pos() const
 {
+    auto x = iterator_->dataReader()->elapsed_time( rowid_ );
     return iterator_->dataReader()->pos( rowid_ );
 }
 
