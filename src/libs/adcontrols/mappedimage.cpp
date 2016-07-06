@@ -34,6 +34,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <numeric>
 
 namespace adcontrols {
 

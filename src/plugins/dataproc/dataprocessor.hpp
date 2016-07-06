@@ -68,10 +68,12 @@ namespace dataproc {
 
         Q_OBJECT
 
-        Dataprocessor();
         Dataprocessor( const Dataprocessor& ) = delete;
         Dataprocessor& operator = ( const Dataprocessor& ) = delete;
-        
+#if _MSC_VER
+	protected:
+#endif
+        Dataprocessor();
     public:
         ~Dataprocessor();
 
