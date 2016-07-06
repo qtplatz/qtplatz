@@ -15,8 +15,8 @@ add_library( adlog SHARED
 target_include_directories( adlog PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 
 target_link_libraries( adlog LINK_PUBLIC
-		       ${Boost_LIBRARIES}
 		       adportable
+		       ${Boost_LIBRARIES}
 		       )
 
 #set_target_properties( adlog

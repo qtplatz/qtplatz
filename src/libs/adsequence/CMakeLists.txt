@@ -30,7 +30,8 @@ add_library( adsequence SHARED
   )
 
 target_link_libraries( adsequence LINK_PUBLIC
-  ${Boost_LIBRARIES} adportable
+  adportable
+  ${Boost_LIBRARIES}
   )
 
 #set_target_properties( adsequence

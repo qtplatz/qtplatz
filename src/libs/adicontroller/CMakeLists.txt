@@ -9,7 +9,7 @@ cmake_policy(SET CMP0020 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS wserialization serialization iostreams bzip2 )
+find_package(Boost 1.57 REQUIRED COMPONENTS wserialization serialization bzip2 iostreams )
 
 add_definitions(-DADICONTROLLER_LIBRARY)
 if (WIN32)
@@ -56,7 +56,13 @@ add_library( ${PROJECT_NAME} SHARED
   writeaccess.cpp
   )
 
-target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC acewrapper adplugin adfs adcontrols adutils ${Boost_LIBRARIES} )
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  acewrapper
+  adplugin
+  adfs
+  adcontrols
+  adutils
+  ${Boost_LIBRARIES} )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

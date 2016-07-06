@@ -22,9 +22,10 @@ add_library( portfolio SHARED
 )
 
 target_link_libraries( portfolio LINK_PUBLIC
-  ${Boost_LIBRARIES}
+  xmlparser
   adportable  
-  xmlparser )
+  ${Boost_LIBRARIES}
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

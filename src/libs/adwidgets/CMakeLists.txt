@@ -161,17 +161,17 @@ target_link_libraries( adwidgets LINK_PUBLIC
   adplugin_manager
   adlog
   adcontrols
-  adportable	
   adprot
   qtwrapper
+  adportable	
   ${QWT_LIBRARIES}
-  Qt5::Core
-  Qt5::Widgets
+  Qt5::PrintSupport
   Qt5::Svg
   Qt5::Sql
-  Qt5::PrintSupport
-  ${Boost_LIBRARIES}
+  Qt5::Widgets
+  Qt5::Core
   ${RDKit_LIBRARIES}
+  ${Boost_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}

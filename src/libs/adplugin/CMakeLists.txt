@@ -32,10 +32,11 @@ add_library( adplugin SHARED
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  ${Boost_LIBRARIES}
-  adportable
   xmlparser
-  adlog )
+  adlog
+  adportable
+  ${Boost_LIBRARIES}
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

@@ -245,7 +245,7 @@ add_library( adcontrols SHARED
 set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14 )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
-target_link_libraries( adcontrols LINK_PUBLIC ${Boost_LIBRARIES} adportable )
+target_link_libraries( adcontrols LINK_PUBLIC adportable ${Boost_LIBRARIES} )
 
 #set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
 
