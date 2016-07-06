@@ -60,13 +60,22 @@ namespace adcontrols {
         MappedSpectrum& operator ()( size_t i, size_t j );
         const MappedSpectrum& operator ()( size_t i, size_t j ) const;
 
-        MappedSpectra& average( const boost::numeric::ublas::matrix< uint16_t >& frame, std::function<double( uint16_t )> binary_to_time );
+        MappedSpectra& average( const boost::numeric::ublas::matrix< uint16_t >& frame
+                                , std::function<double( uint16_t )> binary_to_time );
+
+        bool sum_in_range( MappedSpectrum&, size_t x /* column */, size_t y /* row */, size_t w, size_t h );
 
         // ---
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
-        int64_t rowid() const;
-        void setRowid( int64_t );
+
+        std::pair< int64_t, int64_t > rowId() const;
+        void setRowId( int64_t, bool first = true );
+
+        std::pair< uint32_t, uint32_t > trigId() const;
+        void setTrigId( uint32_t, bool first = true );        
+
+        uint32_t averageCount() const;
 
     private:
         class impl;

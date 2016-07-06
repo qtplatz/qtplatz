@@ -24,8 +24,9 @@
 
 #include "mappedimage.hpp"
 #include <adcontrols/idaudit.hpp>
+#include <adcontrols/mappedspectra.hpp>
+#include <adcontrols/mappedspectrum.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -153,7 +154,24 @@ MappedImage::operator ()( size_t i, size_t j ) const
 {
     return (impl_->data_)( i, j );
 }
-            
+
+MappedImage::operator const boost::numeric::ublas::matrix< double >& () const
+{
+    return impl_->data_;
+}
+
+double
+MappedImage::max_z() const
+{
+    return impl_->z_;
+}
+
+size_t
+MappedImage::mergeCount() const
+{
+    return impl_->mergeCount_;
+}
+
 bool
 MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsigned low, unsigned high )
 {
@@ -180,19 +198,61 @@ MappedImage::merge( const boost::numeric::ublas::matrix<uint16_t>& frame, unsign
     return true;
 }
 
-MappedImage::operator const boost::numeric::ublas::matrix< double >& () const
+bool
+MappedImage::merge( const MappedSpectra& map, double tof, double width )
 {
-    return impl_->data_;
+    if ( map.size1() != impl_->data_.size1() || map.size2() != impl_->data_.size2() ) {
+        // dimension mismatch
+        impl_->data_.resize( map.size1(), map.size2() );
+        impl_->data_.clear();
+        impl_->mergeCount_ = 0;
+    }
+
+    for ( size_t i = 0; i < map.size1(); ++i ) {
+        for ( size_t j = 0; j < map.size2(); ++j ) {
+            
+            auto& sp = map( i, j );
+            
+            if ( sp.size() > 0 ) {
+                auto beg = std::lower_bound( sp.begin(), sp.end(), tof - width / 2, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
+                if ( beg != sp.end() ) {
+                    auto end = std::lower_bound( sp.begin(), sp.end(), tof + width / 2, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
+                    size_t d = std::accumulate( beg, end, size_t(0), []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
+                    impl_->data_( i, j ) += d;
+                    impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
+                }
+            }
+        }
+    }
+    
+    impl_->mergeCount_++;
+    return true;
 }
 
-double
-MappedImage::max_z() const
+bool
+MappedImage::merge( const MappedSpectra& map )
 {
-    return impl_->z_;
+    if ( map.size1() != impl_->data_.size1() || map.size2() != impl_->data_.size2() ) {
+        // dimension mismatch
+        impl_->data_.resize( map.size1(), map.size2() );
+        impl_->data_.clear();
+        impl_->mergeCount_ = 0;
+    }
+
+    for ( size_t i = 0; i < map.size1(); ++i ) {
+        for ( size_t j = 0; j < map.size2(); ++j ) {
+            
+            auto& sp = map( i, j );
+            
+            if ( sp.size() > 0 ) {
+                size_t d = std::accumulate( sp.begin(), sp.end(), size_t(0), []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
+                impl_->data_( i, j ) += d;
+                impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
+            }
+        }
+    }
+    
+    impl_->mergeCount_++;
+    return true;
 }
 
-size_t
-MappedImage::mergeCount() const
-{
-    return impl_->mergeCount_;
-}

@@ -36,6 +36,8 @@ namespace adcontrols { class idAudit; }
 
 namespace adcontrols {
 
+    class MappedSpectra;
+
     template<typename> class imageFrame;
     
     /** \class MappedImage
@@ -68,6 +70,10 @@ namespace adcontrols {
                     , unsigned int low = 0
                     , unsigned int high = std::numeric_limits<unsigned int>::max() );
 
+        bool merge( const MappedSpectra&, double tof, double width );
+
+        bool merge( const MappedSpectra& );
+        
         operator const boost::numeric::ublas::matrix< double >& () const;
         double max_z() const;
         size_t mergeCount() const;

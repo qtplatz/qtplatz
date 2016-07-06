@@ -44,26 +44,38 @@ namespace adcontrols {
         }
         
         impl( size_t i, size_t j ) : data_( i, j )
+                                   , averageCount_( 0 )
                                    , dataReaderUuid_( { 0 } )
-                                   , rowid_( 0 ) {
+                                   , rowIds_( { 0, 0 } )
+                                   , trigIds_( { 0, 0 } ) {
         }
         
         impl( impl& t ) : data_( t.data_ )
+                        , averageCount_( t.averageCount_ )
                         , dataReaderUuid_( t.dataReaderUuid_ )
-                        , rowid_( t.rowid_ ) {
+                        , rowIds_( t.rowIds_ )
+                        , trigIds_( t.trigIds_ ) {
         }
         
         boost::numeric::ublas::matrix< MappedSpectrum > data_; // co-added spectral matrix
         idAudit ident_;
+        uint32_t averageCount_;
         boost::uuids::uuid dataReaderUuid_;
-        uint64_t rowid_;
+        std::pair<int64_t, int64_t > rowIds_;
+        std::pair<uint32_t, uint32_t > trigIds_;
 
     private:
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( ident_ );
             ar & BOOST_SERIALIZATION_NVP( data_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( averageCount_ );
+                ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+                ar & BOOST_SERIALIZATION_NVP( rowIds_ );
+                ar & BOOST_SERIALIZATION_NVP( trigIds_ );
+            }
         }
     };
 
@@ -75,7 +87,7 @@ namespace adcontrols {
     }
 
     template<> void
-    MappedSpectra::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    MappedSpectra::serialize( portable_binary_iarchive& ar, const unsigned int )
     {
         ar & *impl_;
     }
@@ -88,13 +100,13 @@ namespace adcontrols {
     }
 
     template<> void
-    MappedSpectra::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    MappedSpectra::serialize( boost::archive::xml_wiarchive& ar, const unsigned int )
     {
         ar & BOOST_SERIALIZATION_NVP(*impl_);            
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::MappedSpectra::impl, 1 )
+BOOST_CLASS_VERSION( adcontrols::MappedSpectra::impl, 2 )
 
 using namespace adcontrols;
 
@@ -166,8 +178,21 @@ MappedSpectra::average( const boost::numeric::ublas::matrix< uint16_t >& frame, 
             }
         }
     }
-    
+    impl_->averageCount_++;
     return *this;
+}
+
+bool
+MappedSpectra::sum_in_range( MappedSpectrum& sp, size_t x /* column */, size_t y /* row */, size_t w, size_t h )
+{
+    for ( size_t i = y; i < impl_->data_.size1() && i < ( y + h ); ++i ) {
+        for ( size_t j = x; j < impl_->data_.size2() && j < ( x + w ); ++j ) {
+            
+            sp += (impl_->data_)( i, j );
+            
+        }
+    }
+    return true;
 }
 
 // for v3 format datafile support
@@ -183,14 +208,41 @@ MappedSpectra::dataReaderUuid() const
     return impl_->dataReaderUuid_;
 }
 
-void
-MappedSpectra::setRowid( int64_t rowid )
+uint32_t
+MappedSpectra::averageCount() const
 {
-    impl_->rowid_ = rowid;
+    return impl_->averageCount_;
 }
 
-int64_t
-MappedSpectra::rowid() const
+std::pair< int64_t, int64_t >
+MappedSpectra::rowId() const
 {
-    return impl_->rowid_;
+    return impl_->rowIds_;
 }
+
+void
+MappedSpectra::setRowId( int64_t rowid, bool first )
+{
+    if ( first )
+        impl_->rowIds_.first = rowid;
+    else
+        impl_->rowIds_.second = rowid;
+}
+
+
+std::pair< uint32_t, uint32_t >
+MappedSpectra::trigId() const
+{
+    return impl_->trigIds_;
+}
+
+void
+MappedSpectra::setTrigId( uint32_t trigid, bool first )
+{
+    if ( first )
+        impl_->trigIds_.first = trigid;
+    else
+        impl_->trigIds_.second = trigid;
+}
+
+////
