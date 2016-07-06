@@ -69,13 +69,18 @@ namespace adcontrols {
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
 
-        std::pair< int64_t, int64_t > rowId() const;
-        void setRowId( int64_t, bool first = true );
-
-        std::pair< uint32_t, uint32_t > trigId() const;
-        void setTrigId( uint32_t, bool first = true );        
-
         uint32_t averageCount() const;
+        
+        void setSamplingInfo( double samplingInterval, double delay, uint32_t nSamples );
+
+        void setTimeSinceEpoch( uint64_t, bool first );
+        const std::pair<uint64_t, uint64_t>& timeSinceEpoch() const;
+
+        void setRowIds( int64_t, bool first );
+        const std::pair< int64_t, int64_t >& rowIds() const;
+
+        void setTrigIds( uint32_t, bool first );
+        const std::pair< uint32_t, uint32_t >& trigIds() const;
 
     private:
         class impl;

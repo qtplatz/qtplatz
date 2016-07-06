@@ -235,12 +235,40 @@ MappedSpectrum::timeSinceEpoch() const
     return timeSinceEpoch_;
 }
 
+// MappedSpectrum&
+// MappedSpectrum::operator << ( const datum_type& t )
+// {
+//     if ( data_.empty() ) {
+
+//         data_.push_back( t );
+
+//     } else {
+
+//         auto it = std::lower_bound( data_.begin(), data_.end(), t.first
+//                                     , [] ( const datum_type& a, const double& b ) { return a.first < b; } );
+
+//         if ( it != data_.end() ) {
+
+//             if ( adportable::compare< decltype( datum_type::first ) >::approximatelyEqual( it->first, t.first ) )
+//                 it->second += t.second;
+//             else
+//                 data_.insert( it, t );
+
+//         } else {
+
+//             data_.push_back( t );                
+
+//         }
+//     }
+//     return *this;
+// }
+
 MappedSpectrum&
-MappedSpectrum::operator << ( const datum_type& t )
+MappedSpectrum::operator << ( datum_type&& t )
 {
     if ( data_.empty() ) {
 
-        data_.push_back( t );
+        data_.emplace_back( t );
 
     } else {
 

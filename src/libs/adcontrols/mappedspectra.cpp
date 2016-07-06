@@ -47,14 +47,22 @@ namespace adcontrols {
                                    , averageCount_( 0 )
                                    , dataReaderUuid_( { 0 } )
                                    , rowIds_( { 0, 0 } )
-                                   , trigIds_( { 0, 0 } ) {
+                                   , trigIds_( { 0, 0 } )
+                                   , timeSinceEpoch_( { 0, 0 } )
+                                   , delay_( 0 )
+                                   , nSamples_( 4096 )
+                                   , sampInterval_( 20.0e-9 / 16 ) {
         }
         
         impl( impl& t ) : data_( t.data_ )
                         , averageCount_( t.averageCount_ )
                         , dataReaderUuid_( t.dataReaderUuid_ )
                         , rowIds_( t.rowIds_ )
-                        , trigIds_( t.trigIds_ ) {
+                        , trigIds_( t.trigIds_ )
+                        , timeSinceEpoch_( t.timeSinceEpoch_ )
+                        , delay_( t.delay_ )
+                        , nSamples_( t.nSamples_ )
+                        , sampInterval_( t.sampInterval_ ) {
         }
         
         boost::numeric::ublas::matrix< MappedSpectrum > data_; // co-added spectral matrix
@@ -63,6 +71,10 @@ namespace adcontrols {
         boost::uuids::uuid dataReaderUuid_;
         std::pair<int64_t, int64_t > rowIds_;
         std::pair<uint32_t, uint32_t > trigIds_;
+        std::pair<uint64_t, uint64_t> timeSinceEpoch_;
+        double delay_;
+        size_t nSamples_;
+        double sampInterval_;
 
     private:
         friend class boost::serialization::access;
@@ -75,6 +87,10 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
                 ar & BOOST_SERIALIZATION_NVP( rowIds_ );
                 ar & BOOST_SERIALIZATION_NVP( trigIds_ );
+                ar & BOOST_SERIALIZATION_NVP( timeSinceEpoch_ );
+                ar & BOOST_SERIALIZATION_NVP( sampInterval_ );
+                ar & BOOST_SERIALIZATION_NVP( delay_ );
+                ar & BOOST_SERIALIZATION_NVP( nSamples_ );
             }
         }
     };
@@ -168,17 +184,31 @@ MappedSpectra::operator ()( size_t i, size_t j ) const
 MappedSpectra&
 MappedSpectra::average( const boost::numeric::ublas::matrix< uint16_t >& frame, std::function<double( uint16_t )> binary_to_time )
 {
-    if ( impl_->data_.size1() <= frame.size1() && impl_->data_.size2() <= frame.size2() ) {
+    if ( impl_->data_.size1() != frame.size1() || impl_->data_.size2() != frame.size2() ) {
 
+        impl_->data_.resize( frame.size1(), frame.size2() );
+        impl_->data_.clear();
+
+        impl_->averageCount_ = 0;
+    }
+
+    if ( impl_->averageCount_++ == 0 ) {
         for ( size_t i = 0; i < impl_->data_.size1(); ++i ) {
             for ( size_t j = 0; j < impl_->data_.size2(); ++j ) {
-                if ( auto raw = frame(i, j) ) {
-                    ( impl_->data_ )( i, j ) << std::make_pair( binary_to_time( raw ), 1 );
-                }
+                (impl_->data_)( i, j ).setSamplingInfo( impl_->sampInterval_, impl_->delay_, impl_->nSamples_ );
+                (impl_->data_)( i, j ).timeSinceEpoch() = impl_->timeSinceEpoch_;
             }
         }
     }
-    impl_->averageCount_++;
+
+    for ( size_t i = 0; i < impl_->data_.size1(); ++i ) {
+        for ( size_t j = 0; j < impl_->data_.size2(); ++j ) {
+            if ( auto raw = frame( i, j ) ) {
+                ( impl_->data_ )( i, j ) << std::make_pair( binary_to_time( raw ), 1 );
+            }
+        }
+    }
+
     return *this;
 }
 
@@ -187,7 +217,7 @@ MappedSpectra::sum_in_range( MappedSpectrum& sp, size_t x /* column */, size_t y
 {
     for ( size_t i = y; i < impl_->data_.size1() && i < ( y + h ); ++i ) {
         for ( size_t j = x; j < impl_->data_.size2() && j < ( x + w ); ++j ) {
-            
+
             sp += (impl_->data_)( i, j );
             
         }
@@ -214,14 +244,43 @@ MappedSpectra::averageCount() const
     return impl_->averageCount_;
 }
 
-std::pair< int64_t, int64_t >
-MappedSpectra::rowId() const
+void
+MappedSpectra::setSamplingInfo( double sampInterval, double delay, uint32_t nSamples )
 {
-    return impl_->rowIds_;
+    impl_->sampInterval_ = sampInterval;
+    impl_->delay_ = delay;
+    impl_->nSamples_ = nSamples;
+
+    if ( impl_->averageCount_ ) {
+        for ( size_t i = 0; i < size1(); ++i )
+            for ( size_t j = 0; j < size2(); ++j )
+                (impl_->data_)( i, j ).setSamplingInfo( impl_->sampInterval_, impl_->delay_, impl_->nSamples_ );
+    }
 }
 
 void
-MappedSpectra::setRowId( int64_t rowid, bool first )
+MappedSpectra::setTimeSinceEpoch( uint64_t value, bool first )
+{
+    if ( first )
+        impl_->timeSinceEpoch_.first = value;
+    else
+        impl_->timeSinceEpoch_.second = value;
+
+    if ( impl_->averageCount_ ) {
+        for ( size_t i = 0; i < size1(); ++i )
+            for ( size_t j = 0; j < size2(); ++j )
+                (impl_->data_)( i, j ).timeSinceEpoch() = impl_->timeSinceEpoch_;
+    }
+}
+
+const std::pair<uint64_t, uint64_t>&
+MappedSpectra::timeSinceEpoch() const
+{
+    return impl_->timeSinceEpoch_;
+}
+
+void
+MappedSpectra::setRowIds( int64_t rowid, bool first )
 {
     if ( first )
         impl_->rowIds_.first = rowid;
@@ -229,20 +288,31 @@ MappedSpectra::setRowId( int64_t rowid, bool first )
         impl_->rowIds_.second = rowid;
 }
 
-
-std::pair< uint32_t, uint32_t >
-MappedSpectra::trigId() const
+const std::pair< int64_t, int64_t >&
+MappedSpectra::rowIds() const
 {
-    return impl_->trigIds_;
+    return impl_->rowIds_;
 }
 
 void
-MappedSpectra::setTrigId( uint32_t trigid, bool first )
+MappedSpectra::setTrigIds( uint32_t value, bool first )
 {
     if ( first )
-        impl_->trigIds_.first = trigid;
+        impl_->trigIds_.first = value;
     else
-        impl_->trigIds_.second = trigid;
+        impl_->trigIds_.second = value;
+
+    if ( impl_->averageCount_ ) {
+        for ( size_t i = 0; i < size1(); ++i )
+            for ( size_t j = 0; j < size2(); ++j )
+                (impl_->data_)( i, j ).setTrigNumber( impl_->trigIds_.second, impl_->trigIds_.first );
+    }
+}
+
+const std::pair< uint32_t, uint32_t >&
+MappedSpectra::trigIds() const
+{
+    return impl_->trigIds_;
 }
 
 ////

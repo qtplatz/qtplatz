@@ -49,7 +49,8 @@ namespace adcontrols {
 
         size_t size() const;
         const datum_type& operator []( size_t idx ) const;
-        MappedSpectrum& operator << ( const datum_type& );
+        // MappedSpectrum& operator << ( const datum_type& );
+        MappedSpectrum& operator << ( datum_type&& );
         MappedSpectrum& operator += ( const MappedSpectrum& );
 
         inline double time( size_t idx ) const { return data_[ idx ].first; }
