@@ -55,10 +55,11 @@ target_link_libraries( adplot LINK_PUBLIC
   adcontrols
   adportable
   qtwrapper
-  Qt5::Widgets
+  ${QWT_LIBRARIES}
   Qt5::Svg
   Qt5::PrintSupport
-  ${QWT_LIBRARIES}
+  Qt5::Widgets
+  Qt5::Core
   )
 
 if( APPLE )

@@ -9,7 +9,7 @@ cmake_policy(SET CMP0020 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS wserialization serialization bzip2 iostreams )
+find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
 
 add_definitions(-DADICONTROLLER_LIBRARY)
 if (WIN32)
@@ -62,7 +62,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adfs
   adcontrols
   adutils
-  ${Boost_LIBRARIES} )
+  adportable
+  ${Boost_LIBRARIES}
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

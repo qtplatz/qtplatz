@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 
 project( ap240 )
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization program_options)
+find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization program_options bzip2 iostreams )
 
 add_definitions(-DAP240_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 
