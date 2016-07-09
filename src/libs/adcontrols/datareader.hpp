@@ -60,7 +60,7 @@ namespace adcontrols {
     };
     
     class ADCONTROLSSHARED_EXPORT DataReader_iterator : public std::iterator< std::forward_iterator_tag, DataReader_iterator > {
-        const DataReader * reader_;
+        std::weak_ptr< const DataReader > reader_;
         DataReader_value_type value_;
         int fcn_;
     public:
@@ -78,7 +78,11 @@ namespace adcontrols {
         bool operator != ( const DataReader_iterator& rhs ) const { return value_.rowid() != rhs.value_.rowid(); }
 
         operator bool() const { return value_.rowid_ != (-1); }
-        const DataReader * dataReader() const { return reader_; }
+
+        std::shared_ptr< const DataReader > dataReader() const {
+            return reader_.lock();
+        }
+
         inline int64_t rowid() const { return value_.rowid_; }
     };
 
@@ -122,6 +126,8 @@ namespace adcontrols {
         // Iterator reference methods
         virtual int64_t next( int64_t rowid ) const { return -1; }
         virtual int64_t next( int64_t rowid, int fcn ) const { return -1; }
+        virtual int64_t prev( int64_t rowid ) const { return -1; }
+        virtual int64_t prev( int64_t rowid, int fcn ) const { return -1; }
         virtual int64_t pos( int64_t rowid ) const { return -1; }
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }

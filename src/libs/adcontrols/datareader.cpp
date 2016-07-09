@@ -30,6 +30,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 namespace adcontrols {
 
@@ -60,9 +62,14 @@ namespace adcontrols {
         const_iterator end() const override { return const_iterator(this, -1); }
         const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override { return end(); }
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override { return end(); }
+        
+        static std::shared_ptr< DataReader > instance() {
 
-        static DataReader& instance() {
-            static NullDataReader __instance;
+            static std::shared_ptr< NullDataReader >  __instance;
+
+            static std::once_flag flag;
+            std::call_once( flag, [&](){ __instance = std::make_shared< NullDataReader >(); } );
+                            
             return __instance;
         }
     };
@@ -78,16 +85,16 @@ DataReader_value_type::DataReader_value_type( DataReader_iterator * it, int64_t 
 
 /////////////
 
-DataReader_iterator::DataReader_iterator() : reader_( &NullDataReader::instance() )
+DataReader_iterator::DataReader_iterator() : reader_( NullDataReader::instance() )
                                            , value_( this )
 {
 }
 
 DataReader_iterator::DataReader_iterator( const DataReader* reader
-                                         , int64_t rowid
-                                         , int fcn ) : reader_( reader )
-                                                     , value_( this, rowid )
-                                                     , fcn_( fcn )
+                                          , int64_t rowid
+                                          , int fcn ) : reader_( reader->shared_from_this() )
+                                                      , value_( this, rowid )
+                                                      , fcn_( fcn )
 {
 }
 
@@ -109,15 +116,20 @@ DataReader_iterator::operator = ( const DataReader_iterator& t )
 const DataReader_iterator&
 DataReader_iterator::operator ++ ()
 {
-    value_.rowid_ = reader_->next( value_.rowid_, fcn_ );
-    return *this;
+    if ( auto reader = reader_.lock() ) {
+        value_.rowid_ = reader->next( value_.rowid_, fcn_ );
+        return *this;
+    }
 }
 
 const DataReader_iterator
 DataReader_iterator::operator ++ ( int )
 {
     DataReader_iterator temp( *this );
-    value_.rowid_ = reader_->next( value_.rowid_, fcn_ );
+
+    if ( auto reader = reader_.lock() )
+        value_.rowid_ = reader->next( value_.rowid_, fcn_ );
+
     return temp;
 }
 

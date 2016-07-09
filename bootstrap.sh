@@ -16,6 +16,11 @@ while [ $# -gt 0 ]; do
 	    config=debug
 	    shift
 	    ;;
+	eclipse)
+	    config=debug
+	    ide=eclipse
+	    shift
+	    ;;	    
 	clean)
 	    build_clean=true
 	    shift
@@ -43,8 +48,11 @@ if [ -z $cross_target ]; then
 	    build_dirs=("$build_root/build-$arch/boost" \
 			    "$build_root/build-$arch/qtplatz.$config" )
 	    if [ $config = debug ]; then
-		#cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
-		cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
+		if [ $ide = eclipse ]; then
+		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
+		else
+		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
+		fi
 	    fi
 	    ;;
     esac
