@@ -46,12 +46,14 @@ namespace adcontrols {
     class MappedSpectra;
 
     class ADCONTROLSSHARED_EXPORT DataReader_value_type {
-        DataReader_iterator * iterator_;
+        std::weak_ptr< const DataReader > reader_;
         int64_t rowid_;
-        DataReader_value_type( const DataReader_value_type& t ) = delete;
         friend class DataReader_iterator;
     public:
+        DataReader_value_type( const DataReader_value_type& t );
         DataReader_value_type( DataReader_iterator * it, int64_t rowid = (-1) );
+        DataReader_value_type& operator = ( const DataReader_value_type& t );
+        
         int64_t rowid() const;
         int64_t pos() const;
         int64_t elapsed_time() const;
@@ -74,6 +76,8 @@ namespace adcontrols {
 
         const DataReader_iterator& operator ++ ();
         const DataReader_iterator operator ++ ( int );
+        const DataReader_iterator& operator -- ();
+        const DataReader_iterator operator -- ( int );
         bool operator == ( const DataReader_iterator& rhs ) const { return value_.rowid() == rhs.value_.rowid(); }
         bool operator != ( const DataReader_iterator& rhs ) const { return value_.rowid() != rhs.value_.rowid(); }
 

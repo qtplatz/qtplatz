@@ -78,9 +78,21 @@ namespace adcontrols {
 
 using namespace adcontrols;
 
-DataReader_value_type::DataReader_value_type( DataReader_iterator * it, int64_t rowid ) : iterator_( it )
+DataReader_value_type::DataReader_value_type( const DataReader_value_type& t ) : reader_( t.reader_ )
+                                                                               , rowid_( t.rowid_ )
+{
+}
+
+DataReader_value_type::DataReader_value_type( DataReader_iterator * it, int64_t rowid ) : reader_( it->dataReader() )
                                                                                         , rowid_( rowid )
 {
+}
+
+DataReader_value_type&
+DataReader_value_type::operator = ( const DataReader_value_type& t )
+{
+    reader_ = t.reader_;
+    rowid_ = t.rowid_;
 }
 
 /////////////
@@ -133,6 +145,26 @@ DataReader_iterator::operator ++ ( int )
     return temp;
 }
 
+const DataReader_iterator&
+DataReader_iterator::operator -- ()
+{
+    if ( auto reader = reader_.lock() ) {
+        value_.rowid_ = reader->prev( value_.rowid_, fcn_ );
+        return *this;
+    }
+}
+
+const DataReader_iterator
+DataReader_iterator::operator -- ( int )
+{
+    DataReader_iterator temp( *this );
+
+    if ( auto reader = reader_.lock() )
+        value_.rowid_ = reader->prev( value_.rowid_, fcn_ );
+
+    return temp;
+}
+
 ///////////////////////////////////////////////////////
 int64_t
 DataReader_value_type::rowid() const
@@ -143,25 +175,33 @@ DataReader_value_type::rowid() const
 int64_t
 DataReader_value_type::pos() const
 {
-    return iterator_->dataReader()->pos( rowid_ );
+    if ( auto reader = reader_.lock() )
+        return reader->pos( rowid_ );
+    return (-1);
 }
 
 int64_t
 DataReader_value_type::elapsed_time() const
 {
-    return iterator_->dataReader()->elapsed_time( rowid_ );
+    if ( auto reader = reader_.lock() )
+        return reader->elapsed_time( rowid_ );
+    return (-1);    
 }
 
 double
 DataReader_value_type::time_since_inject() const
 {
-    return iterator_->dataReader()->time_since_inject( rowid_ );
+    if ( auto reader = reader_.lock() )
+        return reader->time_since_inject( rowid_ );
+    return (-1);
 }
 
 int
 DataReader_value_type::fcn() const
 {
-    return iterator_->dataReader()->fcn( rowid_ );
+    if ( auto reader = reader_.lock() )
+        return reader->fcn( rowid_ );
+    return (-1);
 }
 
 /////////////////////
