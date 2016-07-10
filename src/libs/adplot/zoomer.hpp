@@ -56,6 +56,7 @@ namespace adplot {
         std::function<void( QRectF& )> autoYScaleHock_;
         std::function<QwtText( const QPointF& )> tracker1_;
         std::function<QwtText( const QPointF&, const QPointF& )> tracker2_;
+
     protected:
         void widgetMousePressEvent( QMouseEvent* ) override;
         void widgetMouseDoubleClickEvent( QMouseEvent * ) override;

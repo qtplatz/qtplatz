@@ -660,7 +660,7 @@ ChromatogramWidget::impl::tracker2( const QPointF& p1, const QPointF& pos )
     double dx = ( pos.x() - p1.x() );
     double dy = ( pos.y() - p1.y() );
 
-    text = QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>s</i>,%.3f),%.3f") % pos.x() % dx % dy % pos.y() ).str().c_str(), QwtText::RichText );
+    text = QwtText( (boost::format("%.3fs(&delta;=%.3f<i>s</i>,%.3f),%.3f") % pos.x() % dx % dy % pos.y() ).str().c_str(), QwtText::RichText );
 
     if ( tracker_hook_ && tracker_hook_( pos, text ) )
         return text;

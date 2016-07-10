@@ -27,8 +27,9 @@
 #include <QMouseEvent>
 #include <qwt_painter.h>
 #include <qwt_picker_machine.h>
-#include <QList>
 #include <QDebug>
+#include <QList>
+#include <QTimer>
 #include <QWidget>
 #include <boost/format.hpp>
 
@@ -43,8 +44,6 @@ Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis,
     // Ctrl+LeftButton: zoom out by 1
     setMousePattern( QwtEventPattern::MouseSelect3, Qt::LeftButton, Qt::ControlModifier );
     // in addition to this, double click for zoom out by 1 via override widgetMouseDoubleClickEvent
-
-    // setStateMachine( new zoomer::PickerMachine );
 
     QPen pen( QColor( 0xff, 0, 0, 0x40 ) ); // transparent darkRed
     setRubberBandPen( pen );
@@ -95,6 +94,7 @@ Zoomer::widgetMouseDoubleClickEvent( QMouseEvent * event )
 {
 	if ( mouseMatch( MouseSelect1, event ) )
 		QwtPlotZoomer::zoom( -1 );
+
     QwtPlotPicker::widgetMouseDoubleClickEvent( event );
 }
 
@@ -108,8 +108,10 @@ Zoomer::accept( QPolygon &pa ) const
     QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] );
     rect = rect.normalized();
   
-    if ( rect.width() < 2 && rect.height() < 2 )
+    if ( rect.width() < 2 && rect.height() < 2 ) {
         return false;
+    }
+
     pa.resize( 2 );
 
     const QRectF& rc = pickArea().boundingRect(); // view rect
