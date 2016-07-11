@@ -93,6 +93,7 @@ DataReader_value_type::operator = ( const DataReader_value_type& t )
 {
     reader_ = t.reader_;
     rowid_ = t.rowid_;
+    return *this;
 }
 
 /////////////
@@ -130,8 +131,8 @@ DataReader_iterator::operator ++ ()
 {
     if ( auto reader = reader_.lock() ) {
         value_.rowid_ = reader->next( value_.rowid_, fcn_ );
-        return *this;
     }
+    return *this;
 }
 
 const DataReader_iterator
@@ -150,8 +151,8 @@ DataReader_iterator::operator -- ()
 {
     if ( auto reader = reader_.lock() ) {
         value_.rowid_ = reader->prev( value_.rowid_, fcn_ );
-        return *this;
     }
+    return *this;
 }
 
 const DataReader_iterator

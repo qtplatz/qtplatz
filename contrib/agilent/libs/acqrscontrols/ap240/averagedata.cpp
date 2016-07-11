@@ -69,7 +69,7 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
     if ( ! waveform_register_ ) {
 
         protocolIndex_ = waveform.method_.protocolIndex();
-        protocolCount_ = waveform.method_.protocols().size();
+        protocolCount_ = static_cast<uint32_t>(waveform.method_.protocols().size());
         if ( protocolIndex_ >= protocolCount_ ) {
             ADDEBUG() << "\taverage_waveform return 0 -- invalid protocol index/count "
                       << protocolIndex_ << "/" << protocolCount_;

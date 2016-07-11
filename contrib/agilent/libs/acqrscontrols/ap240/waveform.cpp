@@ -790,8 +790,8 @@ waveform::operator += ( const waveform& t )
 
         meta_.actualAverages += t.meta_.actualAverages;
         wellKnownEvents_ |= t.wellKnownEvents_;
-
-        if ( t.meta_.dataType == 1 ) {
+        
+        if ( t.meta_.dataType == 1 ) { // 8bit 
             switch ( meta_.dataType ) {
             case 1:
                 std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
@@ -799,7 +799,7 @@ waveform::operator += ( const waveform& t )
             case 2:
                 std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
                 break;
-            case 3:
+            case 4:
                 std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
                 break;
             }
@@ -811,7 +811,7 @@ waveform::operator += ( const waveform& t )
             case 2:
                 std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
                 break;
-            case 3:
+            case 4:
                 std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
                 break;
             }            
@@ -823,7 +823,7 @@ waveform::operator += ( const waveform& t )
             case 2:
                 std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
                 break;
-            case 3:
+            case 4:
                 std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
                 break;
             }                        
