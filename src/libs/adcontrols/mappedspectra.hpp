@@ -63,7 +63,7 @@ namespace adcontrols {
         MappedSpectra& average( const boost::numeric::ublas::matrix< uint16_t >& frame
                                 , std::function<double( uint16_t )> binary_to_time );
 
-        bool sum_in_range( MappedSpectrum&, size_t x /* column */, size_t y /* row */, size_t w, size_t h );
+        bool sum_in_range( MappedSpectrum&, size_t x /* column */, size_t y /* row */, size_t w, size_t h ) const;
 
         // ---
         void setDataReaderUuid( const boost::uuids::uuid& );

@@ -375,3 +375,27 @@ MappedSpectrum::transform( adcontrols::MassSpectrum& ms )
     return true;
 }
 
+
+double
+MappedSpectrum::acqDelay() const
+{
+    return delay_;
+}
+
+double
+MappedSpectrum::samplingInterval() const
+{
+    return sampInterval_;
+}
+
+uint32_t
+MappedSpectrum::acqSamples() const
+{
+    return nSamples_;
+}
+
+std::pair< double, double >
+MappedSpectrum::acqTimeRange() const
+{
+    return { delay_, ( delay_ + sampInterval_ * nSamples_ ) };
+}

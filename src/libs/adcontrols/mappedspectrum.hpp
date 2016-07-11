@@ -73,6 +73,11 @@ namespace adcontrols {
         void setSamplingInfo( double samplingInterval, double delay, uint32_t nSamples );
 
         bool transform( adcontrols::MassSpectrum& );
+
+        double acqDelay() const;
+        double samplingInterval() const;
+        uint32_t acqSamples() const;
+        std::pair< double, double > acqTimeRange() const;
             
     private:
 

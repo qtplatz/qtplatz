@@ -213,7 +213,7 @@ MappedSpectra::average( const boost::numeric::ublas::matrix< uint16_t >& frame, 
 }
 
 bool
-MappedSpectra::sum_in_range( MappedSpectrum& sp, size_t x /* column */, size_t y /* row */, size_t w, size_t h )
+MappedSpectra::sum_in_range( MappedSpectrum& sp, size_t x /* column */, size_t y /* row */, size_t w, size_t h ) const
 {
     for ( size_t i = y; i < impl_->data_.size1() && i < ( y + h ); ++i ) {
         for ( size_t j = x; j < impl_->data_.size2() && j < ( x + w ); ++j ) {
