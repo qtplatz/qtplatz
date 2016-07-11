@@ -27,9 +27,10 @@
 
 #include <QObject>
 #include <atomic>
+#include <map>
 #include <memory>
-#include <set>
 #include <mutex>
+#include <set>
 
 class QSettings;
 
@@ -40,6 +41,7 @@ namespace adcontrols {
     class LCMSDataset;
     class DataReader;
     class DataReader_iterator;
+    namespace axis { enum AxisH : int32_t; }
 }
 
 namespace dataproc {
@@ -76,8 +78,10 @@ namespace dataproc {
         void saveScanLaw( const QString& model_name, double flength, double accv, double tdelay, double mass, const QString& );
         bool findScanLaw( const QString& model_name, double& flength, double& accv, double& tdelay, double& mass, QString& );
 
-        // void setDataprocessorFactory( DataprocessorFactory * );
-        // DataprocessorFactory * dataprocessorFactory();
+        enum Plot { PlotChromatogram, PlotSpectrum };
+
+        adcontrols::axis::AxisH horAxis( Plot ) const;
+        void setHorAxis( Plot, adcontrols::axis::AxisH );
 
         static bool load( const QString& filename, adcontrols::ProcessMethod& );
         static bool save( const QString& filename, const adcontrols::ProcessMethod& );
@@ -99,6 +103,7 @@ namespace dataproc {
         std::shared_ptr< adcontrols::ProcessMethod > pm_;
         QString procmethod_filename_;
         std::unique_ptr< DataprocessorFactory > dataprocFactory_;
+        std::map< Plot, adcontrols::axis::AxisH > horAxis_;
         
         void handleSelectTimeRangeOnChromatogram_v2( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );
         void handleSelectTimeRangeOnChromatogram_v3( Dataprocessor *, const adcontrols::LCMSDataset *, double x1, double x2 );

@@ -28,6 +28,7 @@
 #include "mainwindow.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
+#include <adcontrols/axis.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
@@ -88,7 +89,8 @@ dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
                                     , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                                 , QLatin1String( "dataproc" ) ) )
-
+                                    , horAxis_{ { PlotChromatogram, adcontrols::axis::Seconds }
+                                               ,{ PlotSpectrum, adcontrols::axis::MassToCharge } }
 {
 }
 
@@ -474,8 +476,8 @@ dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, c
 void
 dataproc_document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
-    double t1 = adcontrols::Chromatogram::toSeconds( x1 );
-    double t2 = adcontrols::Chromatogram::toSeconds( x2 );
+    double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
+    double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
     for ( auto reader: dset->dataReaders() ) {
         
@@ -596,3 +598,20 @@ dataproc_document::handle_portfolio_created( const QString& filename )
 // {
 //     return dataprocFactory_.get();
 // }
+
+adcontrols::axis::AxisH
+dataproc_document::horAxis( Plot id ) const
+{
+    auto it = horAxis_.find( id );
+    if ( it != horAxis_.end() )
+        return it->second;
+
+    return adcontrols::axis::Seconds;
+}
+
+void 
+dataproc_document::setHorAxis( Plot id, adcontrols::axis::AxisH value )
+{
+    horAxis_[ id ] = value;
+}
+

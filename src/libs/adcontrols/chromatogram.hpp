@@ -59,6 +59,8 @@ namespace adcontrols {
     class PeakResult;
     class Chromatogram_iterator;
 
+    enum Chromaogram_HAxis : uint32_t { Minutes, Seconds, Hours, Litter };
+    enum Chromaogram_VAxis : uint32_t { Arbitrary, Counts, Volts, AU, RIU };
 
     class ADCONTROLSSHARED_EXPORT Chromatogram {
     public:

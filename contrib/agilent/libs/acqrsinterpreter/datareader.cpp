@@ -155,14 +155,29 @@ namespace acqrsinterpreter {
 
     template<> void coadd_spectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
     {
-        if ( waveform.which() == 0 )
-            waveform = std::make_shared< adcontrols::TimeDigitalHistogram >();
-
         if ( auto hgrm = boost::get< std::shared_ptr< adcontrols::TimeDigitalHistogram > >( waveform ) )
             *rhs >> *hgrm;
     }
     //------------------ coadd_spectrum visitor ----------------
+    
+    //------------------ coadd_initialize visitor ----------------
+    struct coadd_initialize : public boost::static_visitor< void > {
+        waveform_types& waveform;
 
+        coadd_initialize( waveform_types& _1 ) : waveform( _1 ) {}
+
+        template< typename T > void operator()( const T& rhs ) const {
+            waveform = rhs;
+        }
+    };
+
+    template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    {
+        waveform = std::make_shared< adcontrols::TimeDigitalHistogram >();
+        coadd_spectrum visit( waveform );
+        visit( rhs );
+    }
+    
     //------------------ make_massspactrum visitor ----------------
     struct make_massspectrum : public boost::static_visitor< void > {
         adcontrols::MassSpectrum& ms;
@@ -647,6 +662,8 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
             sql.bind( 2 ) = begin->fcn();
             sql.bind( 3 ) = begin->pos();
             sql.bind( 4 ) = end->pos();
+            
+            ADDEBUG() << "npos = {" << begin->pos() << ", " << end->pos() << "}";
 
             waveform_types coadded;
 
@@ -657,14 +674,15 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
-
+                
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
                     if ( n++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                        coadded = waveform;
+                        boost::apply_visitor( coadd_initialize( coadded ), waveform );
+                        // coadded = waveform;
                     } else {
                         boost::apply_visitor( coadd_spectrum( coadded ), waveform );
                     }

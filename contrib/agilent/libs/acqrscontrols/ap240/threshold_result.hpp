@@ -64,7 +64,7 @@ namespace acqrscontrols {
             threshold_result();
             threshold_result( std::shared_ptr< const acqrscontrols::ap240::waveform > d );
             threshold_result( const threshold_result& t );
-
+            
             bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
 
             bool operator >> ( adcontrols::TimeDigitalHistogram& x ) const;

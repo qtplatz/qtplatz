@@ -21,7 +21,8 @@ add_library( adcontrols SHARED
   annotation.cpp
   annotation.hpp 
   annotations.cpp
-  annotations.hpp 
+  annotations.hpp
+  axis.hpp
   baseline.cpp
   baseline.hpp 
   baselines.cpp

@@ -25,6 +25,7 @@
 #include "threshold_result.hpp"
 #include "waveform.hpp"
 #include <adcontrols/timedigitalhistogram.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/format.hpp>
@@ -135,10 +136,76 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t 
     return true;
 }
 
+namespace acqrscontrols {
+
+    struct index_to_time {
+        double xIncrement, initialXOffset;
+        index_to_time( const waveform& t ) : xIncrement( t.meta_.xIncrement ), initialXOffset( t.meta_.initialXOffset ) {
+        }
+        inline double operator ()( uint32_t idx ) {
+            return initialXOffset + ( idx * xIncrement );
+        }
+        inline int32_t bin( double t ) {
+            if ( t >= 0 )
+                return int32_t ( t / xIncrement + 0.5 );
+            else
+                return int32_t ( t / xIncrement - 0.5 );
+        }
+    };
+}    
+        
+
 bool
 threshold_result::operator >> ( adcontrols::TimeDigitalHistogram& x ) const
 {
-    return false;
+    index_to_time to_time( *data() );
+
+    std::vector< std::pair< double, uint32_t > >& hgrm = x.histogram();
+    
+    if ( x.trigger_count() == 0 ) {
+        
+        x.initialXTimeSeconds() = this->data()->meta_.initialXTimeSeconds;
+        x.initialXOffset()      = this->data()->meta_.initialXOffset;
+        x.xIncrement()          = this->data()->meta_.xIncrement;
+        x.actualPoints()        = this->data()->meta_.actualPoints;
+        x.serialnumber()        = std::make_pair( this->data()->serialnumber_, this->data()->serialnumber_ );
+        x.timeSinceEpoch()      = std::make_pair( this->data()->timeSinceEpoch_, this->data()->timeSinceEpoch_ );
+        x.wellKnownEvents()     = this->data()->wellKnownEvents_;
+        x.this_protocol()       = this->data()->method_.protocols() [ this->data()->method_.protocolIndex() ];
+        x.setProtocolIndex( this->data()->method_.protocolIndex()
+                            , uint32_t( this->data()->method_.protocols().size() ) );
+    }
+
+    x.trigger_count()++;
+    
+    ADDEBUG() << "index size: " << indecies_.size() << " time: this =" << data()->meta_.initialXTimeSeconds;
+   
+    if ( indecies_.empty() )
+        return true;
+    
+    if ( hgrm.empty() ) {
+
+        std::for_each( indecies().begin(), indecies().end(), [&] ( uint32_t idx ) {
+                x.histogram().emplace_back( to_time( idx ), 1 );
+            } );
+        return true;        
+
+    } else {
+
+        for ( const auto& index: indecies_ ) {
+            
+            double t = to_time( index );
+            auto it = std::lower_bound( hgrm.begin(), hgrm.end(), t, [&]( std::pair< double, uint32_t >& a, const double& b ) {
+                    return to_time.bin( a.first ) < to_time.bin( b );
+                });
+            if ( to_time.bin( it->first ) == to_time.bin( t ) )
+                it->second++;
+            else
+                hgrm.emplace( it, t, 1 );
+        }
+    }
+    
+    return true;
 }
 
 namespace acqrscontrols {
