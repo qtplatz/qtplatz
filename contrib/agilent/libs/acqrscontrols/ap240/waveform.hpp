@@ -99,10 +99,12 @@ namespace acqrscontrols {
                       , const std::shared_ptr< const identify >& id
                       , std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
 
-            template< typename value_type > const value_type* begin() const;
-            template< typename value_type > const value_type* end() const;
-            template< typename value_type > const value_type* data() const;
-			template< typename value_type > value_type* data();
+            typedef int32_t value_type; // (internal data holder type) referenced from archiver in WaveformObserver
+            
+            template< typename value_t > const value_t* begin() const;
+            template< typename value_t > const value_t* end() const;
+            template< typename value_t > const value_t* data() const;
+			template< typename value_t > value_t* data();
 
             template<typename T> void advance( const T*& it, size_t distance ) const {
                 it = ( distance && distance < size_t( std::distance( it, end<T>() ) ) ? it + distance : end<T>() );
@@ -126,19 +128,13 @@ namespace acqrscontrols {
             double timeSinceInject_;
             identify ident_;
 
-            boost::variant < std::shared_ptr< adportable::mblock<int32_t> >
-                             , std::shared_ptr< adportable::mblock<int16_t> >
-                             , std::shared_ptr< adportable::mblock<int8_t> > > mblock_;
-
             size_t size() const; // number of samples (octet size is depend on meta_.dataType)
 
             int dataType() const; // 1 - int8_t, 2 = int16_t, 4 = int32_t
 
-            typedef int32_t value_type; // referenced from archiver in WaveformObserver
-
-            value_type * data( size_t size ) { d_.resize( size ); return d_.data(); }
-            const value_type * data() const { return d_.data(); }
-            size_t data_size() const { return d_.size(); }  // internal data count
+            value_type * data( size_t size );
+            const value_type * data() const;
+            size_t data_size() const;
 
             // reused in threshold_result archive
             bool serialize_xmeta( std::string& ) const;
@@ -172,9 +168,10 @@ namespace acqrscontrols {
 
         private:
             static bool translate_property( adcontrols::MassSpectrum&, const waveform& );
+            void lvalue_cast();
 
             std::vector< value_type > d_;
-
+            
             friend struct ::ap240::detail::device_ap240;
             friend class waveform_xdata_archive_t< waveform >;
             friend class waveform_xdata_archive_t< const waveform >;

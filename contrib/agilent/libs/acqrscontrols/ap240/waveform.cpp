@@ -110,7 +110,7 @@ waveform::waveform( const method& method
                                     , firstValidPoint_( firstValidPoint )                                      
                                     , timeSinceInject_( timeSinceInject )
                                     , ident_( *id )
-                                    , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
+                                      // , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
 {
     typedef int32_t value_type;
 
@@ -174,64 +174,101 @@ waveform::end() const
     return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint + method_.hor_.nbrSamples;
 }
 
+waveform::value_type *
+waveform::data( size_t size )
+{
+    d_.resize( size );
+    return d_.data();
+}
+
+const waveform::value_type *
+waveform::data() const
+{
+    return d_.data();
+}
+
+size_t
+waveform::data_size() const
+{
+    return d_.size();
+}
+
 template<> const int8_t *
 waveform::data() const
 {
-    if ( mblock_.which() == 2 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
-        return mblk->data() + firstValidPoint_;
-    }
-    throw std::bad_cast();
+    if ( meta_.dataType != sizeof(int8_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint;
+    // if ( mblock_.which() == 2 ) {
+    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
+    //     return mblk->data() + firstValidPoint_;
+    // }
+    // throw std::bad_cast();
 }
 
 template<> int8_t *
 waveform::data()
 {
-    if ( mblock_.which() == 2 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
-        return mblk->data() + firstValidPoint_;
-    }
+    if ( meta_.dataType != sizeof(int8_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< int8_t* >( d_.data() ) + meta_.indexFirstPoint;
+    // if ( mblock_.which() == 2 ) {
+    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
+    //     return mblk->data() + firstValidPoint_;
+    // }
     throw std::bad_cast();    
 }
 
 template<> const int16_t *
 waveform::data() const
 {
-    if ( mblock_.which() == 1 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-        return mblk->data() + firstValidPoint_;
-    }
-    throw std::bad_cast();
+    if ( meta_.dataType != sizeof(int16_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint;
+    // if ( mblock_.which() == 1 ) {
+    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
+    //     return mblk->data() + firstValidPoint_;
+    // }
+    // throw std::bad_cast();
 }
 
 template<> int16_t *
 waveform::data()
 {
-    if ( mblock_.which() == 1 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-        return mblk->data() + firstValidPoint_;
-    }
+    if ( meta_.dataType != sizeof(int16_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< int16_t* >( d_.data() ) + meta_.indexFirstPoint;
+    // if ( mblock_.which() == 1 ) {
+    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
+    //     return mblk->data() + firstValidPoint_;
+    // }
     throw std::bad_cast();    
 }
 
 template<> const int32_t *
 waveform::data() const
 {
-    if ( mblock_.which() == 0 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-        return mblk->data() + firstValidPoint_;
-    }
-    throw std::bad_cast();        
+    if ( meta_.dataType != sizeof(int32_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint;
+    // if ( mblock_.which() == 0 ) {
+    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
+    //     return mblk->data() + firstValidPoint_;
+    // }
+    // throw std::bad_cast();        
 }
 
 template<> int32_t *
 waveform::data()
 {
-    if ( mblock_.which() == 0 ) {
-        auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-        return mblk->data() + firstValidPoint_;
-    }
-    throw std::bad_cast();        
+    if ( meta_.dataType != sizeof(int32_t) )
+        throw std::bad_cast();        
+    return reinterpret_cast< int32_t* >( d_.data() ) + meta_.indexFirstPoint;
+    // if ( mblock_.which() == 0 ) {
+    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
+    //     return mblk->data() + firstValidPoint_;
+    // }
+    //throw std::bad_cast();        
 }
 
 int
@@ -477,7 +514,7 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
 
         waveform_xmeta_archive x;
 
-        const size_t data_count = ( ch1 ? ch1->d_.size() : 0 ) + ( ch2 ? ch2->d_.size() : 0 );
+        const size_t data_count = ( ch1 ? ch1->data_size() : 0 ) + ( ch2 ? ch2->data_size() : 0 );
         if ( ch1 )
             x.meta_.push_back( ch1->meta_ );
         if ( ch2 )
@@ -499,11 +536,11 @@ waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
         
         for ( auto& ptr : { ch1, ch2 } ) {
             *dest_p++ = 0x7ffe0001; // separater & endian marker
-            *dest_p++ = ptr ? int32_t( ptr->d_.size() ) : 0;
+            *dest_p++ = ptr ? int32_t( ptr->data_size() ) : 0;
             if ( ptr ) {
                 rb.ndata()++;
                 std::copy( ptr->d_.begin(), ptr->d_.end(), dest_p );
-                dest_p += ptr->d_.size();
+                dest_p += ptr->data_size();
             }
         }
         return true;
@@ -602,11 +639,25 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
                 sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );
         else
             for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
-                sp.setIntensity( idx++, *y );                
+                sp.setIntensity( idx++, *y );
+
+    } else if ( waveform.meta_.dataType == 2 ) {
+
+        double dbase, rms;
+        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int16_t>(), dbase, rms );
+
+        if ( scale )
+            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
+                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale );
+        else
+            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
+                sp.setIntensity( idx++, *y - dbase );
+
     } else {
+
         double dbase, rms;
         double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-
+        
         if ( scale )
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
                 sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale );
@@ -782,51 +833,48 @@ waveform::deserialize( const char * xdata, size_t dsize, const char * xmeta, siz
     return deserialize_xdata( xdata, dsize ) && deserialize_xmeta( xmeta, msize );
 }
 
+void
+waveform::lvalue_cast()
+{
+    std::vector< value_type > d( size() );
+    
+    switch( meta_.dataType ) {
+    case 1:
+        std::copy( begin< int8_t >(), begin< int8_t >() + size(), d.data() ); break;
+    case 2:
+        std::copy( begin< int16_t >(), begin< int16_t >() + size(), d.data() ); break;
+    case 4:
+        std::copy( begin< int32_t >(), begin< int32_t >() + size(), d.data() ); break;            
+    }
+
+    d_ = std::move( d );
+
+    meta_.dataType = 4;
+    meta_.indexFirstPoint = 0;
+    
+    if ( meta_.actualAverages == 0 )
+        meta_.actualAverages = 1;
+}
+
 waveform&
 waveform::operator += ( const waveform& t )
 {
-    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement ) &&
-         ( meta_.dataType == t.meta_.dataType ) && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
-
-        meta_.actualAverages += t.meta_.actualAverages;
+    if ( meta_.actualAverages < 2 )
+        lvalue_cast();
+    
+    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement )
+         && adportable::compare<double>::essentiallyEqual( meta_.initialXOffset, t.meta_.initialXOffset )
+         && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
+        
+        meta_.actualAverages += ( t.meta_.actualAverages ? t.meta_.actualAverages : 1 );
         wellKnownEvents_ |= t.wellKnownEvents_;
         
         if ( t.meta_.dataType == 1 ) { // 8bit 
-            switch ( meta_.dataType ) {
-            case 1:
-                std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
-                break;
-            case 2:
-                std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
-                break;
-            case 4:
-                std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
-                break;
-            }
+            std::transform( t.begin<int8_t>(), t.begin<int8_t>() + size(), d_.begin(), d_.begin(), std::plus<int32_t>() );
         } else if ( t.meta_.dataType == 2 ) {
-            switch ( meta_.dataType ) {
-            case 1:
-                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
-                break;
-            case 2:
-                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
-                break;
-            case 4:
-                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
-                break;
-            }            
+            std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), d_.begin(), d_.begin(), std::plus<int32_t>() );
         } else {
-            switch ( meta_.dataType ) {
-            case 1:
-                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int8_t>(), data<int8_t>(), std::plus<int8_t>() );
-                break;
-            case 2:
-                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
-                break;
-            case 4:
-                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
-                break;
-            }                        
+            std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), d_.begin(), d_.begin(), std::plus<int32_t>() );
         }
     }
     return *this;
@@ -865,7 +913,9 @@ waveform::accumulate( double tof, double window ) const
             frac.lFrac = x1 - double( frac.lPos - 1 );
         frac.uFrac = x2 - double( frac.uPos );
 
-        if ( meta_.dataType == 2 ) {
+        if ( meta_.dataType == 1 ) {
+            return adportable::spectrum_processor::area( frac, dbase, begin<int8_t>(), size() );            
+        } else if ( meta_.dataType == 2 ) {
             return adportable::spectrum_processor::area( frac, dbase, begin<int16_t>(), size() );
         } else if ( meta_.dataType == 4 ) {
             return adportable::spectrum_processor::area( frac, dbase, begin<int32_t>(), size() );

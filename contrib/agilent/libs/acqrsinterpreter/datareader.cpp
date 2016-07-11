@@ -157,20 +157,19 @@ namespace acqrsinterpreter {
     {
         // TBA
     }
-
     //------------------ coadd_spectrum visitor ----------------
-    struct make_lvalue : public boost::static_visitor< void > {
-        waveform_types& lvalue;
-        make_lvalue( waveform_types& _1 ) : lvalue( _1 ) {}
-        template< typename T > void operator()( T const& rhs ) const {
-            lvalue = rhs;
-        }
-    };
-    template<> void make_lvalue::operator()( std::shared_ptr< acqrscontrols::ap240::waveform > const& rhs ) const
-    {
-        lvalue = std::make_shared< acqrscontrols::ap240::waveform >();
-    }
-    
+
+    //------------------ make_lvalue visitor ----------------
+    // struct make_lvalue : public boost::static_visitor< void > {
+    //     waveform_types& w_;
+    //     make_lvalue( waveform_types& _1 ) : w_( _1 ) {}
+    //     template< typename T > void operator()( T const& rhs ) const {
+    //         auto ptr = std::make_shared< decltype( *rhs ) >();
+    //         *ptr += *rhs;
+    //         w_ = ptr;
+    //     }
+    // };
+    //------------------ make_lvelue visitor ----------------
     
     //------------------ make_massspactrum visitor ----------------
     struct make_massspectrum : public boost::static_visitor< void > {
@@ -673,8 +672,7 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
 
                     if ( n++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                        // coadded = waveform;
-                        boost::apply_visitor( make_lvalue( coadded ), waveform );                        
+                        coadded = waveform;
                     } else {
                         boost::apply_visitor( coadd_spectrum( coadded ), waveform );
                     }

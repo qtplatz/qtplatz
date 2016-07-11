@@ -100,8 +100,6 @@ namespace acqrscontrols {
 
             waveform& operator += ( const waveform& );
 
-            //const int32_t * trim( metadata&, uint32_t& ) const;
-
             method method_;
             metadata meta_;
             uint32_t serialnumber_;
