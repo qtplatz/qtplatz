@@ -24,11 +24,10 @@
 
 #include "threshold_result.hpp"
 #include "waveform.hpp"
-#include <boost/format.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
-// #include <boost/archive/xml_woarchive.hpp>
-// #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/format.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -134,6 +133,12 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t 
     }
 
     return true;
+}
+
+bool
+threshold_result::operator >> ( adcontrols::TimeDigitalHistogram& x ) const
+{
+    return false;
 }
 
 namespace acqrscontrols {

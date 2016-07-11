@@ -217,3 +217,4 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
     }
     reset_requested_ = reset;
 }
+

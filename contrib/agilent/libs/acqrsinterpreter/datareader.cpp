@@ -155,22 +155,14 @@ namespace acqrsinterpreter {
 
     template<> void coadd_spectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
     {
-        // TBA
+        if ( waveform.which() == 0 )
+            waveform = std::make_shared< adcontrols::TimeDigitalHistogram >();
+
+        if ( auto hgrm = boost::get< std::shared_ptr< adcontrols::TimeDigitalHistogram > >( waveform ) )
+            *rhs >> *hgrm;
     }
     //------------------ coadd_spectrum visitor ----------------
 
-    //------------------ make_lvalue visitor ----------------
-    // struct make_lvalue : public boost::static_visitor< void > {
-    //     waveform_types& w_;
-    //     make_lvalue( waveform_types& _1 ) : w_( _1 ) {}
-    //     template< typename T > void operator()( T const& rhs ) const {
-    //         auto ptr = std::make_shared< decltype( *rhs ) >();
-    //         *ptr += *rhs;
-    //         w_ = ptr;
-    //     }
-    // };
-    //------------------ make_lvelue visitor ----------------
-    
     //------------------ make_massspactrum visitor ----------------
     struct make_massspectrum : public boost::static_visitor< void > {
         adcontrols::MassSpectrum& ms;

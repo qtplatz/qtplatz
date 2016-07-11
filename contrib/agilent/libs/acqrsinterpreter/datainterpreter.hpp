@@ -30,6 +30,7 @@
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <boost/variant.hpp>
+#include <boost/blank.hpp>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -40,10 +41,10 @@ namespace adcontrols {
 namespace acqrsinterpreter {
 
     typedef boost::variant< std::shared_ptr< acqrscontrols::u5303a::threshold_result >
-                            , std::shared_ptr< adcontrols::TimeDigitalHistogram >
+                            , std::shared_ptr< acqrscontrols::ap240::threshold_result >
                             , std::shared_ptr< acqrscontrols::u5303a::waveform >
                             , std::shared_ptr< acqrscontrols::ap240::waveform >
-                            , std::shared_ptr< acqrscontrols::ap240::threshold_result >
+                            , std::shared_ptr< adcontrols::TimeDigitalHistogram > // don't move this to first item in this variant (see coadd_spectrum)
                             > waveform_types;
 
     class DataInterpreter : public adcontrols::DataInterpreter {

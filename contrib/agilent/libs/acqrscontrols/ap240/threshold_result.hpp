@@ -30,6 +30,8 @@
 #include <cstdint>
 #include <ostream>
 
+namespace adcontrols { class TimeDigitalHistogram; }
+
 namespace acqrscontrols {
     namespace ap240 {
 
@@ -64,6 +66,9 @@ namespace acqrscontrols {
             threshold_result( const threshold_result& t );
 
             bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
+
+            bool operator >> ( adcontrols::TimeDigitalHistogram& x ) const;
+
         };
 
         ACQRSCONTROLSSHARED_EXPORT std::ostream& operator << ( std::ostream&, const threshold_result& );
