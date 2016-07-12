@@ -49,7 +49,7 @@ namespace adcontrols {
 
         size_t size() const;
         const datum_type& operator []( size_t idx ) const;
-        // MappedSpectrum& operator << ( const datum_type& );
+
         MappedSpectrum& operator << ( datum_type&& );
         MappedSpectrum& operator += ( const MappedSpectrum& );
 
@@ -63,6 +63,7 @@ namespace adcontrols {
         iterator erase( iterator first, iterator last );
 
         double tic() const;
+        double accumulate( double tof, double window ) const; // tic for given range
         uint32_t numAverage() const;
         void setNumAverage( uint32_t );
         void setTrigNumber( uint32_t, uint32_t origin = 0 );
@@ -72,7 +73,7 @@ namespace adcontrols {
         const std::pair<uint64_t, uint64_t>& timeSinceEpoch() const;
         void setSamplingInfo( double samplingInterval, double delay, uint32_t nSamples );
 
-        bool transform( adcontrols::MassSpectrum& );
+        bool transform( adcontrols::MassSpectrum& ) const;
 
         double acqDelay() const;
         double samplingInterval() const;

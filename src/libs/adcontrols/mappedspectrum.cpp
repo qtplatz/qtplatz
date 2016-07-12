@@ -192,6 +192,27 @@ MappedSpectrum::tic() const
     return sum;
 }
 
+double
+MappedSpectrum::accumulate( double tof, double window ) const
+{
+    if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
+
+        return tic();
+
+    } else {
+        double lBound = tof - window / 2;
+        double uBound = tof + window / 2;
+        
+        auto it1 = std::lower_bound( data_.begin(), data_.end(), lBound, [&]( const datum_type& a, const double& b ){ return a.first < b; } );
+        if ( it1 != data_.end() ) {
+            auto it2 = std::lower_bound( data_.begin(), data_.end(), uBound, [&]( const datum_type& a, const double& b ){ return a.first < b; } );
+
+            return std::accumulate( it1, it2, 0.0, []( double a, const datum_type& b ){ return a + b.second; } );
+        }
+    }
+    return 0;
+}
+
 void
 MappedSpectrum::setNumAverage( uint32_t value )
 {
@@ -349,7 +370,7 @@ MappedSpectrum::setSamplingInfo( double sampInterval, double delay, uint32_t nSa
 }
 
 bool
-MappedSpectrum::transform( adcontrols::MassSpectrum& ms )
+MappedSpectrum::transform( adcontrols::MassSpectrum& ms ) const
 {
     auto& prop = ms.getMSProperty();
 
