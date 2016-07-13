@@ -167,4 +167,41 @@ ScanLawDialog2::commit()
 {
 }
 
+#if 0
+bool
+MSPeakWidget::estimateScanLaw( const adcontrols::MSPeaks& peaks, double& va, double& t0 )
+{
+    using namespace adcontrols::metric;
+    
+    infitof::ScanLaw law;
+
+    if ( peaks.size() == 1 ) {
+
+        const adcontrols::MSPeak& pk = peaks[ 0 ];
+        va = law.acceleratorVoltage( pk.exact_mass(), pk.time(), pk.mode(), 0.0 );
+        t0 = 0.0;
+        return true;
+
+    } else if ( peaks.size() >= 2 ) {
+        
+        std::vector<double> x, y, coeffs;
+
+        for ( auto& pk : peaks ) {
+            x.push_back( std::sqrt( pk.exact_mass() ) * law.fLength( pk.mode() ) );
+            y.push_back( pk.time() );
+        }
+
+        if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
+
+            t0 = coeffs[ 0 ];
+            double t1 = adportable::polfit::estimate_y( coeffs, 1.0 ); // estimate tof for m/z = 1.0, 1mL
+            va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
+
+            return true;
+        }
+    }
+    return false;
+}
+#endif
+
 //////////////
