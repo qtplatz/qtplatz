@@ -514,7 +514,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     auto rectIndex = zoomer()->zoomRectIndex();
     //QRectF z = zoomer()->zoomRect();
 
-    if ( rectIndex == 0 || !impl_->keepZoomed_ ) {
+    if ( !yRight && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
 
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
         
