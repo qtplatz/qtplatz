@@ -620,6 +620,7 @@ MainWindow::createDockWidgets()
                     connect( pWidget, SIGNAL( currentChanged( int, int ) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
                     connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
                     connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
+                    connect( pWidget, SIGNAL( estimateScanLaw( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleScanLawEst( const QVector<QPair<int, int>>& ) ) );
                 }
                 connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
 

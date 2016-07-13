@@ -719,6 +719,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
 	if ( index.isValid() ) {
         QAction * action_lock_mass(0);
         QAction * action_copy_assigned(0);
+        QAction * action_scanlaw(0);
         QMenu menu;
 
         menu.addAction( "Hide", this, SLOT( hideRows() ) );
@@ -732,6 +733,8 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         for ( auto index: list )
             rows.insert( index.row() ); // make unique row list
 
+        action_scanlaw = menu.addAction( "Estimate scan law..." );
+        
         std::ostringstream o;
         o << "Lock mass with ";
 
@@ -755,7 +758,9 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         }
 
         action_lock_mass = menu.addAction( o.str().c_str() );
+
         action_copy_assigned = menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );
+
         addActionsToMenu( menu, pt );
 
         if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
@@ -764,6 +769,8 @@ MSPeakTable::showContextMenu( const QPoint& pt )
                     impl_->callback_( lockmass_triggered, refs );
                 else
                     emit triggerLockMass( refs );
+            } else if ( selected == action_scanlaw ) {
+                emit estimateScanLaw( refs );
             }
         }
     }

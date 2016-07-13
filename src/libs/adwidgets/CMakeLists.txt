@@ -80,6 +80,8 @@ set( ${PROJECT_NAME}_SOURCES
   moltableview.cpp
   samplerunwidget.cpp
   scanlawdialog.cpp
+  scanlawdialog2.cpp
+  scanlawform.cpp
   spinbox.cpp
   spinslider.cpp
   targetingform.cpp
@@ -137,6 +139,8 @@ set( ${PROJECT_NAME}_HEADERS
   pressuregauge.hpp
   moltableview.hpp
   scanlawdialog.hpp
+  scanlawdialog2.hpp
+  scanlawform.hpp
   spin_t.hpp
   spinbox.hpp
   spinslider.hpp

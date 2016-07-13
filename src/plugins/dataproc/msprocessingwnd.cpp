@@ -29,6 +29,8 @@
 #include "dataprocessworker.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datareader.hpp>
@@ -66,6 +68,7 @@
 #include <adutils/processeddata.hpp>
 #include <adwidgets/filedialog.hpp>
 #include <adwidgets/scanlawdialog.hpp>
+#include <adwidgets/scanlawdialog2.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
@@ -648,6 +651,31 @@ MSProcessingWnd::handleFormulaChanged( int idx, int fcn )
         dp->formulaChanged(); // this makes processor dirty (setModified())
 
     emit dataChanged( QString::fromStdWString( pProfileSpectrum_.first ), QString::fromStdWString( pProcessedSpectrum_.first ), idx, fcn );
+}
+
+void
+MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
+{
+    adwidgets::ScanLawDialog2 dlg;
+
+    if ( auto ms = pProcessedSpectrum_.second.lock() ) {
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
+        for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
+            //for ( auto& fms: segs ) {
+            for ( const auto& a: fms.get_annotations() ) {
+                if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
+                    dlg.addPeak( a.index(), QString::fromStdString( a.text() )
+                                 , fms.getTime( a.index() )    // observed time-of-flight
+                                 , fms.getMass( a.index() ) ); // matched mass
+                }
+            }
+        }
+    }
+
+    dlg.commit();
+    
+    if ( dlg.exec() != QDialog::Accepted )
+        return;
 }
 
 void
