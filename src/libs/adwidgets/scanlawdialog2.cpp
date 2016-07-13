@@ -165,6 +165,7 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
 bool
 ScanLawDialog2::commit()
 {
+	return false;
 }
 
 #if 0
