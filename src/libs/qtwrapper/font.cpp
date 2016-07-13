@@ -90,3 +90,9 @@ font::setFont( QFont& font, fontSize size, fontFamily family )
 {
     return setFamily( setSize( font, size ), family );
 }
+
+QFont&
+font::operator () ( QFont&& font, fontSize size, fontFamily family )
+{
+    return setFamily( setSize( font, size ), family );
+}
