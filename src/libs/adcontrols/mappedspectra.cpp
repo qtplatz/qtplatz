@@ -315,4 +315,26 @@ MappedSpectra::trigIds() const
     return impl_->trigIds_;
 }
 
-////
+double
+MappedSpectra::acqDelay() const
+{
+    return impl_->delay_;
+}
+
+double
+MappedSpectra::samplingInterval() const
+{
+    return impl_->sampInterval_;
+}
+
+uint32_t
+MappedSpectra::acqSamples() const
+{
+    return impl_->nSamples_;
+}
+
+std::pair< double, double >
+MappedSpectra::acqTimeRange() const
+{
+    return { impl_->delay_, ( impl_->delay_ + impl_->sampInterval_ * impl_->nSamples_ ) };
+}
