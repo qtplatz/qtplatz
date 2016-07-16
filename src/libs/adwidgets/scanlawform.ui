@@ -46,7 +46,7 @@
         <double>100.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.000010000000000</double>
+        <double>0.001000000000000</double>
        </property>
       </widget>
      </item>
@@ -88,7 +88,7 @@
         <double>200000.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.000010000000000</double>
+        <double>1.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -136,7 +136,7 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel</set>
      </property>
     </widget>
    </item>

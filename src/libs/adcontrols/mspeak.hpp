@@ -40,7 +40,13 @@ namespace adcontrols {
         MSPeak();
         MSPeak( const MSPeak& );
         MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
-        MSPeak( const std::string& formula, double mass );
+        MSPeak( const std::string& formula
+                , double mass
+                , double time = 0.0
+                , int32_t mode = 0
+                , int32_t spectrumIndex = (-1)
+                , double exact_mass = 0.0 );
+
         static const wchar_t * dataClass() { return L"adcontrols::MSPeak"; }
 
         enum Flags {

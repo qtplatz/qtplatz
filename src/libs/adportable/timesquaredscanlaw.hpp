@@ -35,6 +35,7 @@ namespace adportable {
     public:
         TimeSquaredScanLaw( const TimeSquaredScanLaw& t );
         TimeSquaredScanLaw( double kAcceleratorVoltage = 3000, double tDelay = 0, double fLength = 1.0 );
+
         
         virtual double getMass( double secs, int mode ) const;
         virtual double getTime( double mass, int mode ) const;

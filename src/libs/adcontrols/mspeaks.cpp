@@ -122,7 +122,14 @@ MSPeaks::erase( iterator_type first, iterator_type last )
 MSPeaks&
 MSPeaks::operator << ( const MSPeak& t )
 {
-    vec_.push_back( t );
+    vec_.emplace_back( t );
+	return *this;
+}
+
+MSPeaks&
+MSPeaks::operator << ( MSPeak&& t )
+{
+    vec_.emplace_back( t );
 	return *this;
 }
 

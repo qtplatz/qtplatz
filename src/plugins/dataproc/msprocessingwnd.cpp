@@ -52,6 +52,7 @@
 #include <adcontrols/waveform_filter.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adlog/logger.hpp>
+#include <adfs/sqlite.hpp>
 #include <adplot/picker.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adplot/chromatogramwidget.hpp>
@@ -659,9 +660,8 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
     adwidgets::ScanLawDialog2 dlg;
 
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
+
         for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-            //for ( auto& fms: segs ) {
             for ( const auto& a: fms.get_annotations() ) {
                 if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
                     dlg.addPeak( a.index(), QString::fromStdString( a.text() )
@@ -670,12 +670,19 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
                 }
             }
         }
+
+        dlg.commit();
+    
+        if ( dlg.exec() != QDialog::Accepted )
+            return;
     }
 
-    dlg.commit();
-    
-    if ( dlg.exec() != QDialog::Accepted )
-        return;
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto db = dp->db() ) { // sqlite shared_ptr
+            adfs::stmt sql( *db );
+            sql.prepare( "SELECT objtext,acclVoltage,tDeay FROM ScanLaw" );
+        }
+    }        
 }
 
 void

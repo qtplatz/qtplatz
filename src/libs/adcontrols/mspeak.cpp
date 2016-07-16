@@ -75,18 +75,23 @@ MSPeak::MSPeak( double time, double mass, int32_t mode, double flength ) : time_
 {
 }
 
-MSPeak::MSPeak( const std::string& formula, double mass ) : time_( 0 )
-                                                          , mass_( mass )
-                                                          , mode_( 0 )
-                                                          , fcn_( 0 )
-                                                          , flength_( 0 )
-                                                          , formula_( formula )
-                                                          , spectrumIndex_( 0 )
-                                                          , time_width_( 0 )
-                                                          , mass_width_( 0 )
-                                                          , exit_delay_( 0 )
-                                                          , exact_mass_( 0 )
-                                                          , flags_(0)
+MSPeak::MSPeak( const std::string& formula
+                , double mass
+                , double time
+                , int32_t mode
+                , int32_t spectrumIndex
+                , double exact_mass ) : time_( time )
+                                      , mass_( mass )
+                                      , mode_( mode )
+                                      , fcn_( 0 )
+                                      , flength_( 0 )
+                                      , formula_( formula )
+                                      , spectrumIndex_( spectrumIndex )
+                                      , time_width_( 0 )
+                                      , mass_width_( 0 )
+                                      , exit_delay_( 0 )
+                                      , exact_mass_( exact_mass )
+                                      , flags_(0)
 {
 }
 

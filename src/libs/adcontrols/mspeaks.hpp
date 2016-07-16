@@ -54,6 +54,7 @@ namespace adcontrols {
         iterator_type erase( iterator_type );
         iterator_type erase( iterator_type first, iterator_type last );
         MSPeaks& operator << ( const MSPeak& );
+        MSPeaks& operator << ( MSPeak&& );        
         const MSPeak& operator [] ( size_t idx ) const;
         
         const std::vector<double>& x() const;

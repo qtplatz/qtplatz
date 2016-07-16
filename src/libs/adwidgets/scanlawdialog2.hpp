@@ -31,6 +31,8 @@
 
 class QMenu;
 
+namespace adcontrols { class MSPeaks; }
+
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT ScanLawDialog2 : public QDialog {
@@ -53,6 +55,14 @@ namespace adwidgets {
         bool commit();
 
     private:
+        void handleLengthChanged();
+        void handleAcceleratorVoltageChanged();
+        void handleTDelayChanged();
+        bool read( adcontrols::MSPeaks& ) const;
+        bool estimateAcceleratorVoltage( double& t0, double& v, const adcontrols::MSPeaks& ) const;
+        bool estimateLength( double& t0, double& L, const adcontrols::MSPeaks& ) const;
+        void updateMassError();
+        
         class impl;
         std::unique_ptr< impl > impl_;
     };

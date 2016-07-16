@@ -17,13 +17,17 @@ namespace adwidgets {
         explicit ScanLawForm(QWidget *parent = 0);
         ~ScanLawForm();
 
-        void setLength( double, bool variable = false );
-        void setAcceleratorVoltage( double, bool variable = true );
-        void setTDelay( double, bool variable = true );
+        void setLength( double );
+        void setAcceleratorVoltage( double );
+        void setTDelay( double );
+        void setLengthPrecision( int );
         
         double length() const;
         double acceleratorVoltage() const;
         double tDelay() const;
+
+    signals:
+        void valueChanged( int id ); // 0 = length, 1 = accl.(v), 2 = tDelay
 
     private:
         Ui::ScanLawForm *ui;
