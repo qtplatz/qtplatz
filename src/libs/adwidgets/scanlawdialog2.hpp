@@ -32,6 +32,7 @@
 class QMenu;
 
 namespace adcontrols { class MSPeaks; }
+namespace boost { namespace uuids { struct uuid; } }
 
 namespace adwidgets {
 
@@ -54,8 +55,9 @@ namespace adwidgets {
         void addPeak( uint32_t id, const QString& formula, double time, double matchedMass );
         bool commit();
 
-        void addObserver( const QString& objtext, double va, double t0 );
-
+        void addObserver( const boost::uuids::uuid&, const QString& objtext, double va, double t0 );
+        QVector< QString > checkedObservers() const;
+        
     private:
         void handleLengthChanged();
         void handleAcceleratorVoltageChanged();
@@ -64,6 +66,7 @@ namespace adwidgets {
         bool estimateAcceleratorVoltage( double& t0, double& v, const adcontrols::MSPeaks& ) const;
         bool estimateLength( double& t0, double& L, const adcontrols::MSPeaks& ) const;
         void updateMassError();
+        void updateObservers( double t0, double acclVolts );
         
         class impl;
         std::unique_ptr< impl > impl_;

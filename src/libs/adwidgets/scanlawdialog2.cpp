@@ -36,7 +36,11 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QStandardItemModel>
+#include <QMetaType>
+#include <boost/uuid/uuid.hpp>
 #include <ratio>
+
+Q_DECLARE_METATYPE( boost::uuids::uuid )
 
 namespace adwidgets {
 
@@ -58,6 +62,7 @@ namespace adwidgets {
             model2_->setHeaderData( 0,      Qt::Horizontal, QObject::tr( "name" ) );
             model2_->setHeaderData( 1,      Qt::Horizontal, QObject::tr( "Accl.(V)" ) );
             model2_->setHeaderData( 2,      Qt::Horizontal, QObject::tr( "T<sub>0</sub>(&mu;s)" ) );
+
         }
 
         std::unique_ptr< QStandardItemModel > model_;
@@ -72,6 +77,17 @@ using namespace adwidgets;
 ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
                                                 , impl_( std::make_unique< impl >() )
 {
+    connect( impl_->model_.get(), &QStandardItemModel::dataChanged, this
+             , [this](const QModelIndex& _1, const QModelIndex& _2, const QVector<int>& _3 ) {
+                 commit();
+             } );
+
+    connect( impl_->model2_.get(), &QStandardItemModel::dataChanged, this
+             , [this](const QModelIndex& _1, const QModelIndex& _2, const QVector<int>& _3 ) {
+                 if ( auto form = findChild< ScanLawForm * >() )
+                     updateObservers( form->tDelay(), form->acceleratorVoltage() );
+             } );
+    
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
         layout->setMargin(4);
@@ -136,6 +152,7 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
         }
 
     }
+
     resize( 600, 300 );
 }
 
@@ -196,6 +213,8 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
 {
     auto row = impl_->model_->rowCount();
     auto& model = *impl_->model_;
+    
+    QSignalBlocker block( impl_->model_.get() );
 
     model.setRowCount( row + 1 );
     model.setData( model.index( row, impl::c_id ), id, Qt::EditRole );
@@ -204,11 +223,11 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
     model.setData( model.index( row, impl::c_mass), exact_mass, Qt::EditRole );
     model.setData( model.index( row, impl::c_time), time * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, impl::c_error), ( exact_mass - matchedMass ) * std::milli::den, Qt::EditRole );
-    
+
     if ( auto item = model.item( row, impl::c_formula ) ) {
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-        item->setEditable( true );
         model.setData( model.index( row, impl::c_formula ), Qt::Checked, Qt::CheckStateRole );
+        item->setEditable( true );
     }
 }
 
@@ -230,9 +249,30 @@ ScanLawDialog2::updateMassError()
     }
 }
 
+void
+ScanLawDialog2::updateObservers( double t0, double acclVolts )
+{
+    auto& model = *impl_->model2_;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        if ( model.index( row, 0 ).data( Qt::CheckStateRole ).toBool() ) {
+            model.setData( model.index( row, 1 ), acclVolts, Qt::EditRole );
+            model.setData( model.index( row, 2 ), t0, Qt::EditRole );
+        } else {
+            double va = model.index( row, 1 ).data( Qt::UserRole + 1 ).toDouble();
+            double t0 = model.index( row, 2 ).data( Qt::UserRole + 1 ).toDouble(); // (microseconds)
+            model.setData( model.index( row, 1 ),  va, Qt::EditRole ); // copy from backup
+            model.setData( model.index( row, 2 ),  t0, Qt::EditRole ); // copy from backup (microseconds)
+        }
+    }
+}
+
 bool
 ScanLawDialog2::commit()
 {
+    if ( auto moltable = findChild< MolTableView * >( "peakTable" ) )
+        moltable->resizeColumnsToContents();
+
     adcontrols::MSPeaks peaks;
 
     if ( read( peaks ) ) {
@@ -246,6 +286,7 @@ ScanLawDialog2::commit()
                 form->setTDelay( t0 * std::micro::den );
                 
                 updateMassError();
+
                 return true;
             }
         }
@@ -268,7 +309,8 @@ ScanLawDialog2::handleLengthChanged()
                 form->setAcceleratorVoltage( acclVolts );
                 form->setTDelay( t0 * std::micro::den );
                 
-                updateMassError();                
+                updateMassError();
+                updateObservers( t0, acclVolts );
             }
         }
     }
@@ -286,10 +328,13 @@ ScanLawDialog2::handleAcceleratorVoltageChanged()
             double t0, L;
             
             if ( estimateLength( t0, L, peaks ) ) {
+
                 form->setLength( L );
                 form->setTDelay( t0 * std::micro::den );
                 form->setLengthPrecision( 6 );
+
                 updateMassError();
+                updateObservers( t0, form->acceleratorVoltage() );
             }
         }
     }
@@ -309,35 +354,59 @@ ScanLawDialog2::read( adcontrols::MSPeaks& peaks ) const
     peaks.clear();
     
     for ( int row = 0; row < impl_->model_->rowCount(); ++row ) {
-        
+
         auto formula = m.index( row, impl::c_formula ).data( Qt::EditRole ).toString();
         double exact_mass = m.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble();
+
+        if ( m.index( row, impl::c_formula ).data( Qt::CheckStateRole ).toBool() ) {
         
-        if ( ! formula.isEmpty() && exact_mass > 0.5 ) {
-            
-            peaks << adcontrols::MSPeak( formula.toStdString()
-                                         , 0.0 // mass (observed)
-                                         , m.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den // time
-                                         , 0   // mode
-                                         , m.index( row, impl::c_id ).data( Qt::EditRole ).toInt() // spectrum index
-                                         , m.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble() );
+            if ( ! formula.isEmpty() && exact_mass > 0.5 ) {
+                
+                peaks << adcontrols::MSPeak( formula.toStdString()
+                                             , 0.0 // mass (observed)
+                                             , m.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den // time
+                                             , 0   // mode
+                                             , m.index( row, impl::c_id ).data( Qt::EditRole ).toInt() // spectrum index
+                                             , m.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble() );
+            }
         }
-        
     }
 
     return peaks.size();
 }
 
 void
-ScanLawDialog2::addObserver( const QString& objtext, double va, double t0 )
+ScanLawDialog2::addObserver( const boost::uuids::uuid& uuid, const QString& objtext, double va, double t0 )
 {
     auto& model = *impl_->model2_;
     int row = model.rowCount();
 
     model.setRowCount( row + 1 );
     model.setData( model.index( row, 0 ), objtext, Qt::EditRole );
+    model.setData( model.index( row, 0 ), QVariant::fromValue( uuid ), Qt::UserRole + 1 );
     model.setData( model.index( row, 1 ), va, Qt::EditRole );
-    model.setData( model.index( row, 2 ), t0, Qt::EditRole );    
+    model.setData( model.index( row, 1 ), va, Qt::UserRole + 1 ); // save original value
+    model.setData( model.index( row, 2 ), t0 * std::micro::den, Qt::EditRole );
+    model.setData( model.index( row, 2 ), t0 * std::micro::den, Qt::UserRole + 1 ); // save original value
+
+    if ( auto item = model.item( row, 0 ) ) {
+        item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+        model.setData( model.index( row, 0 ), Qt::Checked, Qt::CheckStateRole );
+    }
+}
+
+QVector< QString >
+ScanLawDialog2::checkedObservers() const
+{
+    QVector< QString > list;
+    
+    auto& model = *impl_->model2_;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        if ( model.index( row, 0 ).data( Qt::CheckStateRole ).toBool() )
+            list << model.index( row, 0 ).data( Qt::EditRole ).toString();
+    }
+    return list;
 }
 
 //////////////
