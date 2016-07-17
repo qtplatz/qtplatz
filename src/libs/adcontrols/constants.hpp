@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #pragma once
+#include "adcontrols_global.h"
 
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -41,6 +42,8 @@ namespace adcontrols {
     namespace iids {
 
         extern const boost::uuids::uuid massspectrometer_uuid;
+
+        ADCONTROLSSHARED_EXPORT
         extern const boost::uuids::uuid adspectrometer_uuid;
     }
 

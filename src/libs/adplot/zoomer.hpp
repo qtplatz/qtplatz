@@ -26,6 +26,7 @@
 #ifndef ZOOMER_H
 #define ZOOMER_H
 
+#include "adplot_global.hpp"
 #include <qwt_plot_zoomer.h>
 #include <functional>
 
@@ -33,7 +34,7 @@ class QwtPlotCanvas;
 
 namespace adplot {
 
-    class Zoomer : public QwtPlotZoomer {
+    class ADPLOTSHARED_EXPORT Zoomer : public QwtPlotZoomer {
         Q_OBJECT
     public:
         ~Zoomer();
