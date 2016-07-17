@@ -57,6 +57,10 @@ namespace adwidgets {
 
         void addObserver( const boost::uuids::uuid&, const QString& objtext, double va, double t0 );
         QVector< QString > checkedObservers() const;
+
+    public slots:
+        void handleCopyToClipboard();
+        void handlePaste();
         
     private:
         void handleLengthChanged();
@@ -70,6 +74,7 @@ namespace adwidgets {
         
         class impl;
         std::unique_ptr< impl > impl_;
+        friend class ScanLawDialog2_archive;
     };
 
 }

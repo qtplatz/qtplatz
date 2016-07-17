@@ -77,7 +77,7 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             (void)(version);
-                ar & vec_;
+            ar & BOOST_SERIALIZATION_NVP( vec_ );
         }
         
     };

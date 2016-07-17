@@ -32,6 +32,7 @@
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
@@ -672,44 +673,57 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
         }
 
         dlg.commit();
+    }
 
-        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-            if ( auto db = dp->db() ) { // sqlite shared_ptr
-                adfs::stmt sql( *db );
-                sql.prepare( "SELECT objuuid,objtext,acclVoltage,tDelay FROM ScanLaw" );
-                while( sql.step() == adfs::sqlite_row ) {
-                    dlg.addObserver( sql.get_column_value< boost::uuids::uuid >( 0 )
-                                     , QString::fromStdString( sql.get_column_value< std::string >(1) )
-                                     , sql.get_column_value< double >( 2 )
-                                     , sql.get_column_value< double >( 3 ) );
-                }
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto db = dp->db() ) { // sqlite shared_ptr
+            adfs::stmt sql( *db );
+            sql.prepare( "SELECT objuuid,objtext,acclVoltage,tDelay FROM ScanLaw" );
+            while( sql.step() == adfs::sqlite_row ) {
+                dlg.addObserver( sql.get_column_value< boost::uuids::uuid >( 0 )
+                                 , QString::fromStdString( sql.get_column_value< std::string >(1) )
+                                 , sql.get_column_value< double >( 2 )
+                                 , sql.get_column_value< double >( 3 ) );
             }
-    
-            if ( dlg.exec() != QDialog::Accepted )
-                return;
+        }
+        
+        if ( dlg.exec() != QDialog::Accepted )
+            return;
+        
+        double t0 = dlg.tDelay() / std::micro::den;
+        double acclV = dlg.acceleratorVoltage();
+        adportable::TimeSquaredScanLaw law( acclV, t0, 0.5 ); // <- todo: get 'L' from Spectrometer on db
 
-            double t0 = dlg.tDelay() / std::micro::den;
-            double acclV = dlg.acceleratorVoltage();
-            adportable::TimeSquaredScanLaw law( acclV, t0, 0.5 ); // <- todo: get 'L' from Spectrometer on db
+        // update database
+        auto list = dlg.checkedObservers();
+        for ( auto& obj: list ) {
+            adfs::stmt sql( *(dp->db()) );
+            sql.prepare( "UPDATE ScanLaw SET acclVoltage=?,tDelay=? WHERE objtext=?" );
+            sql.bind( 1 ) = acclV;
+            sql.bind( 2 ) = t0;
+            sql.bind( 3 ) = obj.toStdString();
+            while ( sql.step() == adfs::sqlite_row )
+                ;
+        }        
 
+        // assign masses for processed peak
+        if ( auto ms = pProcessedSpectrum_.second.lock() ) {
             for ( auto& fms: adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms ) ) {
                 fms.getMSProperty().setAcceleratorVoltage( acclV );
                 fms.getMSProperty().setTDelay( t0 );
                 fms.assign_masses( [&]( double time, int mode ){ return law.getMass( time, mode ); } );
             }
-            
-            auto list = dlg.checkedObservers();
-            for ( auto& obj: list ) {
-                adfs::stmt sql( *(dp->db()) );
-                sql.prepare( "UPDATE ScanLaw SET acclVoltage=?,tDelay=? WHERE objtext=?" );
-                sql.bind( 1 ) = acclV;
-                sql.bind( 2 ) = t0;
-                sql.bind( 3 ) = obj.toStdString();
-                while ( sql.step() == adfs::sqlite_row )
-                    ;
-            }
-            handleDataMayChanged();            
         }
+        
+        // assign masses for profile spectrum
+        if ( auto ms = pProfileSpectrum_.second.lock() ) {
+            for ( auto& fms: adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms ) ) {
+                fms.getMSProperty().setAcceleratorVoltage( acclV );
+                fms.getMSProperty().setTDelay( t0 );
+                fms.assign_masses( [&]( double time, int mode ){ return law.getMass( time, mode ); } );
+            }
+        }
+        handleDataMayChanged();   
     }
 }
 
@@ -1162,6 +1176,11 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 bool
 MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, std::string >& iid_spectrometer )
 {
+    if ( iid_spectrometer.first == adcontrols::iids::adspectrometer_uuid ) {
+        handleScanLawEst( QVector< QPair<int, int> >() );
+        return true;
+    }
+    
     adwidgets::ScanLawDialog dlg;
     QString name = QString::fromStdString( iid_spectrometer.second );
  

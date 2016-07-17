@@ -101,24 +101,24 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
-            ar & time_
-                & mass_
-                & mode_
-                & flength_
-                & formula_
-                & description_
-                & spectrumId_
-                & spectrumIndex_
-                & time_width_
-                & mass_width_
+            ar & BOOST_SERIALIZATION_NVP( time_ )
+                & BOOST_SERIALIZATION_NVP( mass_ )
+                & BOOST_SERIALIZATION_NVP( mode_ )
+                & BOOST_SERIALIZATION_NVP( flength_ )
+                & BOOST_SERIALIZATION_NVP( formula_ )
+                & BOOST_SERIALIZATION_NVP( description_ )
+                & BOOST_SERIALIZATION_NVP( spectrumId_ )
+                & BOOST_SERIALIZATION_NVP( spectrumIndex_ )
+                & BOOST_SERIALIZATION_NVP( time_width_ )
+                & BOOST_SERIALIZATION_NVP( mass_width_ )
                 ;
             if ( version >= 1 ) {
-                ar & fcn_;
-                ar & exit_delay_;
-                ar & exact_mass_;
+                ar & BOOST_SERIALIZATION_NVP( fcn_ );
+                ar & BOOST_SERIALIZATION_NVP( exit_delay_ );
+                ar & BOOST_SERIALIZATION_NVP( exact_mass_ );
             }
             if ( version >= 2 )
-                ar & flags_;
+                ar & BOOST_SERIALIZATION_NVP( flags_ );
         }
     };
 

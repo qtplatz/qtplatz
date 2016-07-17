@@ -41,6 +41,7 @@ namespace adcontrols {
     namespace iids {
 
         extern const boost::uuids::uuid massspectrometer_uuid;
+        extern const boost::uuids::uuid adspectrometer_uuid;
     }
 
     enum hor_axis: unsigned int { hor_axis_mass, hor_axis_time };

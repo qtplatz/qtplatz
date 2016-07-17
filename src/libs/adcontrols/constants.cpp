@@ -32,5 +32,7 @@ namespace adcontrols {
 
         const boost::uuids::uuid massspectrometer_uuid = boost::uuids::string_generator()( "{85897CCB-8025-41AB-B01E-3147C44A8955}" );
 
+        // adspectrometer clsid (clsidSpectrometer column in ScanLaw table on the SQLite database)
+        const boost::uuids::uuid adspectrometer_uuid = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
     }
 }
