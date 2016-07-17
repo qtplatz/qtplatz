@@ -54,6 +54,8 @@ namespace adwidgets {
         void addPeak( uint32_t id, const QString& formula, double time, double matchedMass );
         bool commit();
 
+        void addObserver( const QString& objtext, double va, double t0 );
+
     private:
         void handleLengthChanged();
         void handleAcceleratorVoltageChanged();

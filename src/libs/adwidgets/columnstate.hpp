@@ -55,7 +55,9 @@ namespace adwidgets {
         
         ColumnState( fields f = f_any
                      , bool editable = true
-                     , bool checkable = false ) : field( f ), isEditable( editable ), isCheckable( checkable )
+                     , bool checkable = false ) : field( f )
+                                                , isEditable( editable )
+                                                , isCheckable( checkable )
                                                 , precision( 0 ) {
         }
 

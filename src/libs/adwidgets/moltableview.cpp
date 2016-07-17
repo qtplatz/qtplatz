@@ -46,13 +46,13 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QMenu>
 #include <QMimeData>
 #include <QPainter>
 #include <QSignalBlocker>
 #include <QStyledItemDelegate>
 #include <QSvgRenderer>
 #include <QUrl>
+#include <QDebug>
 #include <sstream>
 
 #if defined HAVE_RDKit && HAVE_RDKit
@@ -113,6 +113,14 @@ namespace adwidgets {
         }
 
         QAbstractItemModel * model() { return this_->model(); }
+
+        void onValueChanged( const QModelIndex& index ) {
+            if ( this_->signalsBlocked() )
+                return;
+            if ( state( index.column() ).isCheckable && !( index.flags() & Qt::ItemIsUserCheckable ) ) {
+                qDebug() << "flag mismatch " << index;
+            }
+        }
     };
 
     //-------------------------- delegate ---------------
@@ -148,7 +156,7 @@ namespace adwidgets {
                         expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
 
                     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
-                    if ( exactMass > 0.7 ) {  // Any 'chemical formula' string will be > 1.0 (Hydrogen)
+                    if ( exactMass > 0.7 ) {  // Any 'chemical formula' mass should be > 1.0 (Hydrogen := 1.007825)
                         double mass = index.data( Qt::EditRole ).toDouble();
                         if ( !( adportable::compare<double>::approximatelyEqual( mass, 0 ) ||
                                 adportable::compare<double>::approximatelyEqual( exactMass, mass ) ) )
@@ -163,8 +171,9 @@ namespace adwidgets {
         ///////////////////////
         struct paint_f_formula {
             void operator()( const ColumnState& state, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
-                auto formula = QString::fromStdString( ac::ChemicalFormula::formatFormulae( index.data().toString().toStdString() ) );
-                DelegateHelper::render_html2( painter, option, ( formula.isEmpty() ? index.data().toString() : formula ) );
+
+                std::string formula = ac::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
+                DelegateHelper::render_html2( painter, option, QString::fromStdString( formula ) );
             }
         };
 
@@ -217,7 +226,7 @@ namespace adwidgets {
 
             } else if ( field == ColumnState::f_formula ) {
                 
-                paint_f_formula()( state, painter, option, index );
+                paint_f_formula()( state, painter, opt, index );
                 
             } else if ( field == ColumnState::f_abundance ) {
 
@@ -226,15 +235,15 @@ namespace adwidgets {
             } else if ( field == ColumnState::f_mass ) {
 
                 paint_f_mass( impl_->findColumn( ColumnState::f_formula )
-                              , impl_->findColumn( ColumnState::f_adducts ) )( state, painter, option, index );
+                              , impl_->findColumn( ColumnState::f_adducts ) )( state, painter, opt, index );
 
-            } else if ( index.column() == ColumnState::f_svg ) {
+            } else if ( field == ColumnState::f_svg ) {
 
-                paint_f_svg()( state, painter, option, index );
+                paint_f_svg()( state, painter, opt, index );
 
             } else if ( impl_->state( index.column() ).precision && index.data( Qt::EditRole ).canConvert<double>() ) {
 
-                paint_f_precision()( state, painter, option, index );
+                paint_f_precision()( state, painter, opt, index );
 
             } else {
                 QStyledItemDelegate::paint( painter, opt, index );
@@ -242,7 +251,9 @@ namespace adwidgets {
         }
 
         void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
+
 			auto& state = impl_->state( index.column() );
+
 			if ( state.isChoice() ) {
 				if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
 					int idx = combo->currentIndex();
@@ -251,10 +262,14 @@ namespace adwidgets {
 				}
             } else 
                 QStyledItemDelegate::setModelData( editor, model, index );
+
+            impl_->onValueChanged( index );
         }
 
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
+
             auto& state = impl_->state( index.column() );
+
             if ( state.isChoice() ) {
                 auto combo = new QComboBox( parent );
                 for ( auto& x : state.choice )
@@ -272,7 +287,9 @@ namespace adwidgets {
         }
 
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+
             auto field = impl_->field( index.column() );
+
             if ( field == ColumnState::f_svg && !index.data( Qt::EditRole ).toByteArray().isEmpty() ) {
                 return QSize( 80, 80 );
             } else if ( field == ColumnState::f_formula ) {
@@ -283,9 +300,11 @@ namespace adwidgets {
         }
         
     };
-    
 }
 
+
+
+////////////////////////////////////////
 MolTableView::MolTableView(QWidget *parent) : TableView(parent)
                                             , impl_( new impl( this ) )
 {
@@ -333,10 +352,31 @@ MolTableView::setColumnEditable( int column, bool hide )
 {
 }
 
+const ColumnState&
+MolTableView::columnState( int column ) const
+{
+    auto it = impl_->columnStates_.find( column );
+    if ( it != impl_->columnStates_.end() )
+        return it->second;
+    throw std::out_of_range( "MolTableView::columnState subscript out of range" );
+}
+
 bool
 MolTableView::isColumnEditable( int column ) const
 {
-    return false;
+    auto it = impl_->columnStates_.find( column );
+    if ( it != impl_->columnStates_.end() )
+        return it->second.isEditable;
+    throw std::out_of_range( "MolTableView::isColumnEditable subscript out of range" );
+}
+
+bool
+MolTableView::isColumnCheckable( int column ) const
+{
+    auto it = impl_->columnStates_.find( column );
+    if ( it != impl_->columnStates_.end() )
+        return it->second.isCheckable;
+    throw std::out_of_range( "MolTableView::isColumnCheckable subscript out of range" );
 }
 
 void

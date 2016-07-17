@@ -45,7 +45,6 @@ class QProgressBar;
 
 namespace chemistry { 
 
-    class MolTableView;
     class MolTableDelegate;
 
 	class MainWindow : public Utils::FancyMainWindow {
@@ -77,7 +76,6 @@ namespace chemistry {
         void handleConnectionChanged();
 
 	private:
-        std::unique_ptr< MolTableView > tableView_;
 		static MainWindow * instance_;
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;

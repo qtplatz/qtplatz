@@ -44,16 +44,24 @@ namespace adwidgets {
     public:
         enum columns { c_id, c_formula, c_mass, c_time, c_error };
         
-        impl() : model_( std::make_unique< QStandardItemModel >() )  {
+        impl() : model_( std::make_unique< QStandardItemModel >() )
+               , model2_( std::make_unique< QStandardItemModel >() )  {
+
             model_->setColumnCount( 5 );
             model_->setHeaderData( c_id,      Qt::Horizontal, QObject::tr( "id" ) );
             model_->setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "Formula" ) );
             model_->setHeaderData( c_mass,    Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
             model_->setHeaderData( c_time,    Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
             model_->setHeaderData( c_error,   Qt::Horizontal, QObject::tr( "Error (mDa)" ) );
+
+            model2_->setColumnCount( 3 );
+            model2_->setHeaderData( 0,      Qt::Horizontal, QObject::tr( "name" ) );
+            model2_->setHeaderData( 1,      Qt::Horizontal, QObject::tr( "Accl.(V)" ) );
+            model2_->setHeaderData( 2,      Qt::Horizontal, QObject::tr( "T<sub>0</sub>(&mu;s)" ) );
         }
 
         std::unique_ptr< QStandardItemModel > model_;
+        std::unique_ptr< QStandardItemModel > model2_;
     };
     
 };
@@ -68,17 +76,30 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
 
         layout->setMargin(4);
         layout->setSpacing(2);
-        
-        if ( QSplitter * splitter = new QSplitter ) {
-            splitter->addWidget( ( new ScanLawForm ) ); 
-            splitter->addWidget( ( new MolTableView ) );
-            splitter->setStretchFactor( 0, 0 );
-            splitter->setStretchFactor( 1, 1 );
-            splitter->setOrientation ( Qt::Horizontal );
-            layout->addWidget( splitter );
-        }
 
-        if ( auto table = findChild< MolTableView * >() ) {
+        if ( QSplitter * splitter1 = new QSplitter ) {
+
+            auto moltable = new MolTableView();
+            moltable->setObjectName( "peakTable" );
+            splitter1->addWidget( moltable );
+            auto objtable = new MolTableView();
+            objtable->setObjectName( "objText" );
+            splitter1->addWidget( objtable );
+            splitter1->setOrientation ( Qt::Vertical );
+            splitter1->setStretchFactor( 0, 2 );
+            splitter1->setStretchFactor( 0, 0 );
+        
+            if ( QSplitter * splitter = new QSplitter ) {
+                splitter->addWidget( ( new ScanLawForm ) ); 
+                splitter->addWidget( splitter1 );
+                splitter->setStretchFactor( 0, 0 );
+                splitter->setStretchFactor( 1, 1 );
+                splitter->setOrientation ( Qt::Horizontal );
+                layout->addWidget( splitter );
+            }
+        }
+            
+        if ( auto table = findChild< MolTableView * >("peakTable" ) ) {
             
             table->setModel( impl_->model_.get() );
             table->setColumnHidden( impl::c_id, true );
@@ -88,6 +109,10 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
             table->setPrecision( impl::c_time, 4 );
 
             table->onInitialUpdate();
+        }
+        
+        if ( auto table = findChild< MolTableView * >( "objText" ) ) {
+            table->setModel( impl_->model2_.get() );            
         }
 
         if ( auto buttons = findChild< QDialogButtonBox * >() ) {
@@ -303,6 +328,19 @@ ScanLawDialog2::read( adcontrols::MSPeaks& peaks ) const
     return peaks.size();
 }
 
+void
+ScanLawDialog2::addObserver( const QString& objtext, double va, double t0 )
+{
+    auto& model = *impl_->model2_;
+    int row = model.rowCount();
+
+    model.setRowCount( row + 1 );
+    model.setData( model.index( row, 0 ), objtext, Qt::EditRole );
+    model.setData( model.index( row, 1 ), va, Qt::EditRole );
+    model.setData( model.index( row, 2 ), t0, Qt::EditRole );    
+}
+
+//////////////
 bool
 ScanLawDialog2::estimateAcceleratorVoltage( double& t0, double& v, const adcontrols::MSPeaks& peaks ) const
 {

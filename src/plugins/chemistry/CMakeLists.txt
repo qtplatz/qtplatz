@@ -56,14 +56,13 @@ set( chemistry_SOURCES
   chemconnection.cpp
   chemquery.cpp
   chemschema.cpp
-  moltabledelegate.cpp
   chemfile.cpp
   chemdocument.cpp
   mainwindow.cpp
   massdefectform.cpp
   massdefectdelegate.cpp
   massdefectmethod.cpp
-  moltableview.cpp
+  moltablewnd.cpp
   )
 
 set( chemistry_HEADERS
@@ -72,7 +71,6 @@ set( chemistry_HEADERS
   chemconnection.hpp
   chemquery.hpp
   chemschema.hpp
-  moltabledelegate.hpp
   chemistryconstants.hpp
   chemistrymode.hpp
   chemfile.hpp
@@ -81,7 +79,7 @@ set( chemistry_HEADERS
   massdefectform.hpp
   massdefectdelegate.hpp
   massdefectmethod.hpp
-  moltableview.hpp
+  moltablewnd.hpp
   )
 
 add_library( ${PROJECT_NAME} MODULE

@@ -37,15 +37,18 @@ namespace adwidgets {
 
     class MolTableView : public TableView  {
         Q_OBJECT
+
     public:
-        explicit MolTableView( QWidget *parent = 0);
+        explicit MolTableView( QWidget *parent = 0 );
         ~MolTableView();
 
         void onInitialUpdate();
 
         void setColumnField( int column, ColumnState::fields f, bool editable = true, bool checkable = false );
+        const ColumnState& columnState( int column ) const;
         void setColumnEditable( int column, bool );
         bool isColumnEditable( int column ) const;
+        bool isColumnCheckable( int column ) const;
         void setContextMenuHandler( std::function<void(const QPoint& )> );
         void setChoice( int column, const std::vector< std::pair< QString, QVariant > >& );
         void setPrecision( int column, int prec );

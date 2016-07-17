@@ -28,8 +28,7 @@
 #include "chemistryconstants.hpp"
 #include "chemquery.hpp"
 #include "massdefectform.hpp"
-#include "moltabledelegate.hpp"
-#include "moltableview.hpp"
+#include "moltablewnd.hpp"
 #include <adportable/profile.hpp>
 #include <adchem/sdfile.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -78,13 +77,13 @@ MainWindow::~MainWindow()
 }
 
 MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
-                                           , tableView_( new MolTableView( this ) )
                                            , toolBar_( 0 )
                                            , toolBarLayout_( 0 )
                                            , actionSearch_( 0 )
                                            , topLineEdit_( 0 )
                                            , progressBar_( 0 )
 {
+    
 	instance_ = this;
 }
 
@@ -127,17 +126,18 @@ MainWindow::createContents( Core::IMode * mode )
 	editorHolderLayout->setMargin( 0 );
 	editorHolderLayout->setSpacing( 0 );
 
-    if ( tableView_ ) {
-		tableView_->setContextMenuPolicy( Qt::CustomContextMenu );
-        connect( tableView_.get(), SIGNAL( dropped( const QList<QUrl>& ) ), this, SLOT( handleDropped( const QList<QUrl>& ) ) );
+    if ( auto wnd = findChild< MolTableWnd * >() ) {
+		wnd->setContextMenuPolicy( Qt::CustomContextMenu );
+        connect( wnd, SIGNAL( dropped( const QList<QUrl>& ) ), this, SLOT( handleDropped( const QList<QUrl>& ) ) );
     }
 
     QWidget * editorAndFindWidget = new QWidget;
     if ( editorAndFindWidget ) {
+        
         editorAndFindWidget->setLayout( editorHolderLayout );
         editorAndFindWidget->setLayout( editorHolderLayout );
 
-        editorHolderLayout->addWidget( tableView_.get() );
+        editorHolderLayout->addWidget( new MolTableWnd() );
     }
 
     Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
@@ -280,11 +280,13 @@ MainWindow::instance()
 void
 MainWindow::handleDropped( const QList< QUrl >& urls )
 {
-    for ( auto& url: urls ) {
-        boost::filesystem::path path( url.toLocalFile().toStdWString() );
-        topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
-        adchem::SDFile file( path.string() );
-        tableView_->setMol( file, *progressBar_ );
+    if ( auto wnd = findChild< MolTableWnd * >() ) {
+        for ( auto& url: urls ) {
+            boost::filesystem::path path( url.toLocalFile().toStdWString() );
+            topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
+            adchem::SDFile file( path.string() );
+            wnd->setMol( file, *progressBar_ );
+        }
     }
 }
 
@@ -342,24 +344,25 @@ MainWindow::actSDFileOpen()
                                         , tr("Structure Data files(*.sdf);;MDL MOL files(*.mol);;QtPlatz Chem DB(*.adfs)") );
     if ( ! name.isEmpty() ) {
 
-        qtwrapper::waitCursor wait;
-        QFileInfo finfo( name );
-
-        if ( finfo.suffix() == "sdf" || finfo.suffix() == "mol" ) {
-
-            topLineEdit_->setText( name );
-            adchem::SDFile file( name.toStdString() );
-            tableView_->setMol( file, *progressBar_ );
-
-        } else if ( finfo.suffix() == "adfs" ) {
-
-            if ( auto connection = std::make_shared< ChemConnection >() ) {
-                
-                if ( connection->connect( name.toStdWString() ) )
-                    ChemDocument::instance()->setConnection( connection.get() );
-
-            }
+        if ( auto wnd = findChild< MolTableWnd * >() ) {
+            qtwrapper::waitCursor wait;
+            QFileInfo finfo( name );
             
+            if ( finfo.suffix() == "sdf" || finfo.suffix() == "mol" ) {
+                
+                topLineEdit_->setText( name );
+                adchem::SDFile file( name.toStdString() );
+                wnd->setMol( file, *progressBar_ );
+                
+            } else if ( finfo.suffix() == "adfs" ) {
+                
+                if ( auto connection = std::make_shared< ChemConnection >() ) {
+                    
+                    if ( connection->connect( name.toStdWString() ) )
+                        ChemDocument::instance()->setConnection( connection.get() );
+                    
+                }
+            }
         }
 	}
 }
@@ -373,7 +376,7 @@ MainWindow::handleConnectionChanged()
     query->prepare( "SELECT * FROM mols" );
     ChemDocument::instance()->setQuery( query.get() );
     
-    if ( auto table = findChild< MolTableView * >() ) {
+    if ( auto table = findChild< MolTableWnd * >() ) {
         table->prepare( *query );
         while ( query->step() == adfs::sqlite_row ) {
             table->addRecord( *query );

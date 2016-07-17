@@ -672,17 +672,24 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
         }
 
         dlg.commit();
+
+        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            if ( auto db = dp->db() ) { // sqlite shared_ptr
+                adfs::stmt sql( *db );
+                //sql.prepare( "SELECT objtext,acclVoltage,tDeay FROM ScanLaw" );
+                sql.prepare( "SELECT objtext,acclVoltage,tDelay FROM ScanLaw" );
+                while( sql.step() == adfs::sqlite_row ) {
+                    dlg.addObserver( QString::fromStdString( sql.get_column_value< std::string >(0) )
+                                     , sql.get_column_value< double >( 1 )
+                                     , sql.get_column_value< double >( 2 ) );
+                }
+            }
+        }        
     
         if ( dlg.exec() != QDialog::Accepted )
             return;
     }
 
-    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        if ( auto db = dp->db() ) { // sqlite shared_ptr
-            adfs::stmt sql( *db );
-            sql.prepare( "SELECT objtext,acclVoltage,tDeay FROM ScanLaw" );
-        }
-    }        
 }
 
 void
@@ -780,7 +787,8 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     for ( auto& reader : readers ) {
                         if ( auto it = reader->findPos( rect.left() ) )
                             actions.push_back(
-                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str().c_str() )
+                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfs" )
+                                                                 % reader->display_name() % rect.left() ).str().c_str() )
                                                 , [=] () {
                                                     dataproc_document::instance()->onSelectSpectrum_v3( rect.left(), it );
                                                 } )
