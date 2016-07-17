@@ -690,6 +690,14 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
             }
 
             boost::apply_visitor( make_massspectrum( *ptr ), coadded );
+            if ( spectrometer_ ) {
+                spectrometer_->assignMasses( *ptr );
+                const auto& info = ptr->getMSProperty().samplingInfo();
+                double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                ptr->setAcquisitionMassRange( lMass, uMass );
+            }
+            ptr->setDataReaderUuid( objid_ );
 
             return ptr;
         }

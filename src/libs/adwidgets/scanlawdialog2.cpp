@@ -48,7 +48,8 @@ namespace adwidgets {
     public:
         enum columns { c_id, c_formula, c_mass, c_time, c_error };
         
-        impl() : model_( std::make_unique< QStandardItemModel >() )
+        impl() : model1busy_( false )
+               , model_( std::make_unique< QStandardItemModel >() )
                , model2_( std::make_unique< QStandardItemModel >() )  {
 
             model_->setColumnCount( 5 );
@@ -64,6 +65,7 @@ namespace adwidgets {
             model2_->setHeaderData( 2,      Qt::Horizontal, QObject::tr( "T<sub>0</sub>(&mu;s)" ) );
 
         }
+        bool model1busy_;
 
         std::unique_ptr< QStandardItemModel > model_;
         std::unique_ptr< QStandardItemModel > model2_;
@@ -79,7 +81,8 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
 {
     connect( impl_->model_.get(), &QStandardItemModel::dataChanged, this
              , [this](const QModelIndex& _1, const QModelIndex& _2, const QVector<int>& _3 ) {
-                 commit();
+                 if ( !impl_->model1busy_ )
+                     commit();
              } );
 
     connect( impl_->model2_.get(), &QStandardItemModel::dataChanged, this
@@ -214,7 +217,7 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
     auto row = impl_->model_->rowCount();
     auto& model = *impl_->model_;
     
-    QSignalBlocker block( impl_->model_.get() );
+    impl_->model1busy_ = true;
 
     model.setRowCount( row + 1 );
     model.setData( model.index( row, impl::c_id ), id, Qt::EditRole );
@@ -229,6 +232,8 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
         model.setData( model.index( row, impl::c_formula ), Qt::Checked, Qt::CheckStateRole );
         item->setEditable( true );
     }
+
+    impl_->model1busy_ = false;
 }
 
 void
