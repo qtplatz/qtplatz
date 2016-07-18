@@ -44,24 +44,26 @@ namespace adwidgets {
         explicit ScanLawDialog2(QWidget *parent = 0);
         ~ScanLawDialog2();
 
-        void setLength( double, bool variable = false );
-        void setAcceleratorVoltage( double, bool variable = true );
-        void setTDelay( double, bool variable = true );
+        void setSpectrometerData( const boost::uuids::uuid&, const QString& desc, double length );
+        void setLength( double );
+        void setAcceleratorVoltage( double );
+        void setTDelay( double );
 
         double length() const;
         double acceleratorVoltage() const;
         double tDelay() const;
         
-        void addPeak( uint32_t id, const QString& formula, double time, double matchedMass );
+        void addPeak( uint32_t id, const QString& formula, double time, double matchedMass, int mode );
         bool commit();
+        size_t peakCount() const;
 
-        void addObserver( const boost::uuids::uuid&, const QString& objtext, double va, double t0 );
+        void addObserver( const boost::uuids::uuid&, const QString& objtext, double va, double t0, bool checked = true );
         QVector< QString > checkedObservers() const;
 
     public slots:
         void handleCopyToClipboard();
         void handlePaste();
-        
+        void handleAddPeak();
     private:
         void handleLengthChanged();
         void handleAcceleratorVoltageChanged();
@@ -71,6 +73,7 @@ namespace adwidgets {
         bool estimateLength( double& t0, double& L, const adcontrols::MSPeaks& ) const;
         void updateMassError();
         void updateObservers( double t0, double acclVolts );
+        void handlePeakTableMenu( const QPoint& );
         
         class impl;
         std::unique_ptr< impl > impl_;

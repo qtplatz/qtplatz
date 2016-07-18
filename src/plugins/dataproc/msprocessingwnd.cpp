@@ -658,16 +658,25 @@ MSProcessingWnd::handleFormulaChanged( int idx, int fcn )
 void
 MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
 {
+    estimateScanLaw( adcontrols::iids::adspectrometer_uuid );
+}
+
+void
+MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
+{
     adwidgets::ScanLawDialog2 dlg;
-
+        
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
-
+        
         for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
+            int mode = fms.getMSProperty().mode();
             for ( const auto& a: fms.get_annotations() ) {
                 if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 ) {
-                    dlg.addPeak( a.index(), QString::fromStdString( a.text() )
+                    dlg.addPeak( a.index()
+                                 , QString::fromStdString( a.text() )
                                  , fms.getTime( a.index() )    // observed time-of-flight
-                                 , fms.getMass( a.index() ) ); // matched mass
+                                 , fms.getMass( a.index() )    // matched mass
+                                 , mode );
                 }
             }
         }
@@ -676,14 +685,30 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
     }
 
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        
         if ( auto db = dp->db() ) { // sqlite shared_ptr
-            adfs::stmt sql( *db );
-            sql.prepare( "SELECT objuuid,objtext,acclVoltage,tDelay FROM ScanLaw" );
-            while( sql.step() == adfs::sqlite_row ) {
-                dlg.addObserver( sql.get_column_value< boost::uuids::uuid >( 0 )
-                                 , QString::fromStdString( sql.get_column_value< std::string >(1) )
-                                 , sql.get_column_value< double >( 2 )
-                                 , sql.get_column_value< double >( 3 ) );
+            {
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT id,description,fLength FROM Spectrometer" );
+                bool found(false);
+                if ( sql.step() == adfs::sqlite_row ) {
+                    dlg.setSpectrometerData( sql.get_column_value< boost::uuids::uuid >( 0 )
+                                             , QString::fromStdWString( sql.get_column_value< std::wstring >( 1 ) )
+                                             , sql.get_column_value< double >( 2 ) ); // fLength
+                } else {
+                    dlg.setSpectrometerData( iid_spectrometer, "", 0 );
+                }
+            }
+            {
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT objuuid,objtext,acclVoltage,tDelay FROM ScanLaw" );
+                while( sql.step() == adfs::sqlite_row ) {
+                    dlg.addObserver( sql.get_column_value< boost::uuids::uuid >( 0 )
+                                     , QString::fromStdString( sql.get_column_value< std::string >(1) )
+                                     , sql.get_column_value< double >( 2 )
+                                     , sql.get_column_value< double >( 3 )
+                                     , dlg.peakCount() > 0 ? true : false );
+                }
             }
         }
         
@@ -692,7 +717,7 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
         
         double t0 = dlg.tDelay() / std::micro::den;
         double acclV = dlg.acceleratorVoltage();
-        adportable::TimeSquaredScanLaw law( acclV, t0, 0.5 ); // <- todo: get 'L' from Spectrometer on db
+        adportable::TimeSquaredScanLaw law( acclV, t0, dlg.length() ); // <- todo: get 'L' from Spectrometer on db
 
         // update database
         auto list = dlg.checkedObservers();
@@ -975,7 +1000,10 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                     }) );
             
             if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
-                auto it = std::find_if( actions.begin(), actions.end(), [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) { return item.first == selectedItem; } );
+                auto it = std::find_if( actions.begin(), actions.end()
+                                        , [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) {
+                                            return item.first == selectedItem;
+                                        } );
                 if ( it != actions.end() ) {
                     ( it->second )( );
                 }
@@ -995,17 +1023,19 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
         auto iid_spectrometers = adcontrols::MassSpectrometerBroker::installed_uuids();
 
-        // std::vector< QAction * > actions; // additional 
         for ( auto model : iid_spectrometers ) {
             auto action = menu.addAction( QString( tr( "Re-assign masses using %1 scan law" ) ).arg( QString::fromStdString( model.second ) ) );
             actions.push_back( std::make_pair( action, [=] () {
-                assign_masses_to_profile( model );
+                        assign_masses_to_profile( model );
                 pImpl_->profileSpectrum_->replot();
             } ) );
         }
 
         if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
-            auto it = std::find_if( actions.begin(), actions.end(), [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) { return item.first == selectedItem; } );
+            auto it = std::find_if( actions.begin(), actions.end()
+                                    , [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) {
+                                        return item.first == selectedItem;
+                                    } );
             if ( it != actions.end() ) {
                 (it->second)();
             }
@@ -1048,8 +1078,6 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
             if ( !ptr->isCentroid() )
                 return;
-
-            //ADDEBUG() << boost::lexical_cast< std::string > ( ptr->dataReaderUuid() );                    
 
             auto pkinfo = pkinfo_.second.lock();
             adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > vinfo( *pkinfo );
@@ -1177,10 +1205,16 @@ bool
 MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, std::string >& iid_spectrometer )
 {
     if ( iid_spectrometer.first == adcontrols::iids::adspectrometer_uuid ) {
-        handleScanLawEst( QVector< QPair<int, int> >() );
+        estimateScanLaw( iid_spectrometer.first );
         return true;
+    } else {
+        estimateScanLaw( iid_spectrometer.first );
+        return true;        
+        // if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( iid_spectrometer.first ) ) {
+        // }
     }
     
+#if 0
     adwidgets::ScanLawDialog dlg;
     QString name = QString::fromStdString( iid_spectrometer.second );
  
@@ -1241,6 +1275,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
         return assign_masses_to_profile();
         
     }
+#endif
     return false;
 }
 
