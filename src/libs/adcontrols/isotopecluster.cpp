@@ -38,8 +38,8 @@
 
 using namespace adcontrols;
 
-isotopeCluster::isotopeCluster() : threshold_daltons_( 1.0e-7 )
-                                 , threshold_abundance_( 1.0e-15 ) 
+isotopeCluster::isotopeCluster() : threshold_daltons_( 1.0e-8 )
+                                 , threshold_abundance_( 1.0e-10 ) 
 {
 }
 
@@ -79,6 +79,15 @@ isotopeCluster::operator()( mol::molecule& mol ) const
                                                     return mi.mass < mass;
                                                 });
 
+                    // if ( it == cluster.end() ) {
+                    //     cluster.insert( it, mi );
+                    // } else {
+                    //     bool success = merge( *it, mi );
+                    //     if ( !success && ( it + 1 ) != cluster.end() )
+                    //         success = merge( *( it + 1 ), mi );
+                    //     if ( !success )
+                    //         cluster.insert( it, mi );
+                    // }
                     if ( it == cluster.end() || !merge( *it, mi ) )
                         cluster.insert( it, mi );
                 }
@@ -101,6 +110,7 @@ isotopeCluster::merge( mol::isotope& it, const mol::isotope& mi ) const
 
         // weighting average for mass -- this may affected when other independent molecule is co-exist
         double m = ( it.mass * it.abundance + mi.mass * mi.abundance ) / ( it.abundance + mi.abundance );
+        // assert( std::abs( it.mass - m ) < ( 2.0e-7 );
         it.mass = m;
         return true;
     }
@@ -111,25 +121,30 @@ void
 isotopeCluster::merge_peaks( std::vector< isopeak >& peaks, double resolving_power )
 {
     std::vector< isopeak > merged;
-    
-    auto it = peaks.begin();
 
-    while ( it != peaks.end() ) {
-
-        auto tail = it + 1;
-        double width = it->mass / resolving_power;
-
-        while ( tail != peaks.end() && std::abs( tail->mass - it->mass ) < width )
-            ++tail;
-
-        isopeak pk = std::accumulate( it, tail, isopeak(), []( const isopeak& a, const isopeak& b ){
-                return isopeak( a.mass + ( b.mass * b.abundance ), a.abundance + b.abundance ); });
-
-        pk.mass /= pk.abundance;
+    while ( !peaks.empty() ) {
         
-        merged.push_back( pk );
-        
-        it = tail;
+        auto bp = std::max_element( peaks.begin(), peaks.end()
+                                    , []( const isopeak& a, const isopeak& b ){ return a.abundance < b.abundance; } );
+        const double width = bp->mass / resolving_power;
+
+        auto lIt = std::lower_bound( peaks.begin(), peaks.end(), bp->mass - width / 2
+                                    , []( const isopeak& a, double m ){ return a.mass < m; } );
+        if ( lIt != peaks.end() ) {
+            auto uIt = std::lower_bound( peaks.begin(), peaks.end(), bp->mass + width / 2
+                                         , []( const isopeak& a, double m ){ return a.mass < m; } );
+
+            isopeak pk = std::accumulate( lIt, uIt, isopeak(), []( const isopeak& a, const isopeak& b ){
+                    return isopeak( a.mass + ( b.mass * b.abundance ), a.abundance + b.abundance );
+                });
+            pk.mass /= pk.abundance;
+
+            auto it = std::lower_bound( merged.begin(), merged.end(), pk.mass
+                                        , []( const isopeak& a, double m ){ return a.mass < m; } );
+            merged.emplace( it, pk );
+
+            peaks.erase( lIt, uIt );
+        }
     }
 
     peaks = merged;
@@ -171,19 +186,11 @@ bool
 isotopeCluster::operator()( MassSpectrum& ms, const std::string& formula
                             , double relative_abundance, double resolving_power ) const
 {
-    std::vector< isopeak > peaks;
+    std::vector< std::pair< std::string, double > > f;
 
-    if ( ( *this )( peaks, formula, relative_abundance ) ) {
-
-        merge_peaks( peaks, resolving_power );
-        ms.resize( peaks.size() );
-
-        for ( auto& i: peaks )
-            ms << std::make_pair( i.mass, i.abundance * 100.0 );
-
-        return true;
-    }
-    return false;
+    f.emplace_back( formula, relative_abundance );
+    
+    return ( *this )( ms, f, resolving_power );
 }
 
 bool
@@ -192,16 +199,22 @@ isotopeCluster::operator()( MassSpectrum& ms
                             , double resolving_power ) const
 {
     std::vector< isopeak > peaks;
-
+    
     for ( auto& formula_abundance: formula_abundances )
         ( *this )( peaks, formula_abundance.first, formula_abundance.second );
 
     if ( ! peaks.empty() ) {
 
         merge_peaks( peaks, resolving_power );
+        ms.resize( peaks.size() );
+        
+        size_t idx(0);
 
-        for ( auto& i: peaks )
-            ms << std::make_pair( i.mass, i.abundance  * 100.0 );
+        for ( auto& i: peaks ) {
+            ms.setMass( idx, i.mass );
+            ms.setIntensity( idx, i.abundance * 100 );
+            ++idx;
+        }
 
         return true;
     }

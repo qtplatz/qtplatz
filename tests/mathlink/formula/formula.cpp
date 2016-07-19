@@ -33,17 +33,36 @@
 #include <chrono>
 #include <cstring>
 #include <numeric>
+#include <fstream>
+
+#if defined HAVE_RDKit
+# if defined _MSC_VER
+#  pragma warning( disable: 4267 4018 )
+# endif
+#include <RDGeneral/Invariant.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+#include <GraphMol/Descriptors/MolDescriptors.h>
+#include <GraphMol/RDKitBase.h>
+#include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/SmilesParse/SmilesWrite.h>
+#include <GraphMol/Substruct/SubstructMatch.h>
+#include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
+#include <RDGeneral/RDLog.h>
+#endif
 
 extern "C" {
     double monoIsotopicMass( const char * );
     void standardFormula( const char * );
     void isotopeCluster( const char *, double resolution );
+    void formulaFromSMILES( const char * smiles );
 }
 
 double
 monoIsotopicMass( const char * formula )
 {
-    return adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( formula ) );
+    return exactMass;
 }
 
 void
@@ -54,21 +73,34 @@ standardFormula( const char * formula )
 }
 
 void
-isotopeCluster( const char * formula, double rp )
+formulaFromSMILES( const char * smiles )
 {
-    adcontrols::isotopeCluster cluster;
-    cluster.threshold_daltons( 1.0 / rp );
+    std::ofstream of( "output.txt" );
+    of << "formulaFromSMILES(" << smiles << ")" << std::endl;
+    
+    if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles, 0, false ) ) ) {
+        mol->updatePropertyCache( false );
+        auto formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
 
-    std::vector< adcontrols::isotopeCluster::isopeak > peaks;
-    cluster( peaks, formula );
+        of << "formula: " << formula << std::endl;
+        WSPutString( stdlink, formula.c_str() );        
+    }
+}
 
-    long dimensions[ 2 ] = { long(peaks.size()), 2 };
+void
+isotopeCluster( const char * formula, double resolving_power )
+{
+    adcontrols::MassSpectrum ms;
+
+    adcontrols::isotopeCluster()( ms, formula, 1.0, resolving_power );
+
+    long dimensions[ 2 ] = { long(ms.size()), 2 };
     const char * heads[ 2 ] = { "List", "List" };
-    std::unique_ptr< double[] > a( std::make_unique< double[] >( peaks.size() * 2 ) );
+    std::unique_ptr< double[] > a( std::make_unique< double[] >( ms.size() * 2 ) );
 
-    for ( size_t i = 0; i < peaks.size(); ++i ) {
-        a[ i * 2 + 0 ] = peaks[i].mass;
-        a[ i * 2 + 1 ] = peaks[i].abundance;
+    for ( size_t i = 0; i < ms.size(); ++i ) {
+        a[ i * 2 + 0 ] = ms.getMass( i );
+        a[ i * 2 + 1 ] = ms.getIntensity( i );
     }
 
     WSPutDoubleArray( stdlink, a.get(), dimensions, heads, 2 );

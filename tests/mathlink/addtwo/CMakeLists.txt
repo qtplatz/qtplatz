@@ -1,7 +1,7 @@
 
 MathLink_ADD_TM(addtwo.tm .c)
 
-include_directories( ${MathLink_INCLUDE_DIR} )
+include_directories( ${MathLink_INCLUDE_DIRS} )
 
 link_directories( ${MathLink_LIBRARY_DIRS} ) # /usr/local/Wolfram/Mathematica/10.4/SystemFiles/Libraries/Linux-x86-64 )
 

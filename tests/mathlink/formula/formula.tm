@@ -29,4 +29,16 @@ double monoIsotopicMass P(( const char * ));
 :ReturnType:     Manual
 :End:
 
-:Evaluate: StandardFormula::usage = "StandardFormula[x] gives the normalized chemical formula for given formula x."
+:Evaluate: StandardFormula::usage = "StandardFormula[x] gives the normalized chemical formula for given formula x and resolving power y."
+
+
+:Begin:
+:Function:       formulaFromSMILES
+:Pattern:        FormulaFromSMILES[i_String]
+:Arguments:      { i }
+:ArgumentTypes:  { String }
+:ReturnType:     Manual
+:End:
+
+:Evaluate: formulaFromSMILES::usage = "FormulaFormSMILES[x] convert smiles to chemical formula."
+				    

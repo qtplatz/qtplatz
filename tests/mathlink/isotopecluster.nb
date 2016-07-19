@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     15427,        367]
-NotebookOptionsPosition[     14855,        343]
-NotebookOutlinePosition[     15191,        358]
-CellTagsIndexPosition[     15148,        355]
+NotebookDataLength[     22797,        531]
+NotebookOptionsPosition[     22037,        499]
+NotebookOutlinePosition[     22374,        514]
+CellTagsIndexPosition[     22331,        511]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -23,7 +23,7 @@ Cell[CellGroupData[{
 Cell[BoxData[
  RowBox[{"link", "=", 
   RowBox[{"Install", "[", "\"\<bin/formula\>\"", "]"}]}]], "Input",
- CellChangeTimes->{{3.6778912296695004`*^9, 3.677891240639738*^9}}],
+ CellChangeTimes->{{3.677915663518136*^9, 3.677915672700437*^9}}],
 
 Cell[BoxData[
  InterpretationBox[
@@ -288,61 +288,217 @@ formula'\"\>",
      BaselinePosition->Baseline],
     DynamicModuleValues:>{}], "]"}],
   LinkObject[
-  "'/home/toshi/src/qtplatz/tests/mathlink/build/bin/formula'", 3851, 10],
+  "'/home/toshi/src/qtplatz/tests/mathlink/build/bin/formula'", 162, 5],
   Editable->False,
   SelectWithContents->True,
   Selectable->False]], "Output",
- CellChangeTimes->{3.677891241845264*^9, 3.677891573216708*^9, 
-  3.677891752335984*^9, 3.6778919511575003`*^9, 3.6778920914499807`*^9, 
-  3.677892211906543*^9}]
+ CellChangeTimes->{3.6779156735483513`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ChemicalData", "[", "\"\<Tacrine\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.6779156779662323`*^9, 3.677915683788577*^9}}],
+
+Cell[BoxData[
+ GraphicsBox[{{
+    {RGBColor[0.291989, 0.437977, 0.888609], AbsoluteThickness[0.55], InsetBox[
+      StyleBox["\<\"N\"\>",
+       StripOnInput->False,
+       ScriptSizeMultipliers->0.8,
+       ScriptMinSize->8,
+       FontSize->Scaled[0.05484485028461978],
+       FontWeight->Plain], {466.6, -163.76999999999998`}], 
+     LineBox[{{{446.3472797296099, -157.85016150670316`}, {420.8, -143.1}}, {{
+      451.3472797296099, -149.19016150670313`}, {
+      425.8, -134.43999999999997`}}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{{420.8, -143.1}, {377.5, -118.1}}, {{
+       425.8, -134.43999999999997`}, {382.5, -109.44}}}]}}, 
+    {RGBColor[0.291989, 0.437977, 0.888609], AbsoluteThickness[0.55], InsetBox[
+      StyleBox["\<\"N\"\>",
+       StripOnInput->False,
+       ScriptSizeMultipliers->0.8,
+       ScriptMinSize->8,
+       FontSize->Scaled[0.05484485028461978],
+       FontWeight->Plain], {466.6, -163.76999999999998`}], 
+     LineBox[{{484.3532327182939, -153.52104911771508`}, {
+      509.90500000000003`, -138.76999999999998`}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{509.90500000000003`, -138.76999999999998`}, {
+       553.21, -113.77}}]}}, 
+    {RGBColor[0.291989, 0.437977, 0.888609], AbsoluteThickness[0.55], InsetBox[
+      StyleBox["\<\"N\"\>",
+       StripOnInput->False,
+       ScriptSizeMultipliers->0.8,
+       ScriptMinSize->8,
+       FontSize->Scaled[0.05484485028461978],
+       FontWeight->Plain], {466.6, 136.23000000000002`}], 
+     LineBox[{{466.6, 115.7307740112611}, {466.6, 86.23000000000002}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{466.6, 86.23000000000002}, {466.6, 36.230000000000004`}}]}}, 
+    {RGBColor[0.291989, 0.437977, 0.888609], AbsoluteThickness[0.55], InsetBox[
+      StyleBox["\<\"N\"\>",
+       StripOnInput->False,
+       ScriptSizeMultipliers->0.8,
+       ScriptMinSize->8,
+       FontSize->Scaled[0.05484485028461978],
+       FontWeight->Plain], {466.6, 136.23000000000002`}], 
+     LineBox[{{484.35338146855685`, 146.47869321276093`}, {
+      493.45000000000005`, 151.73000000000002`}}], 
+     {RGBColor[0.43333333333333335`, 0.4666666666666667, 0.4666666666666667], 
+      InsetBox[
+       StyleBox["\<\"H\"\>",
+        StripOnInput->False,
+        ScriptSizeMultipliers->0.8,
+        ScriptMinSize->8,
+        FontSize->Scaled[0.05484485028461978],
+        FontWeight->Plain], {520.3000000000001, 167.23}], 
+      LineBox[{{493.45000000000005`, 151.73000000000002`}, {
+       502.54661853144324`, 156.98130678723908`}}]}}, 
+    {RGBColor[0.291989, 0.437977, 0.888609], AbsoluteThickness[0.55], InsetBox[
+      StyleBox["\<\"N\"\>",
+       StripOnInput->False,
+       ScriptSizeMultipliers->0.8,
+       ScriptMinSize->8,
+       FontSize->Scaled[0.05484485028461978],
+       FontWeight->Plain], {466.6, 136.23000000000002`}], 
+     LineBox[{{448.8474450637883, 146.48012484676036`}, {439.755, 
+      151.73000000000002`}}], 
+     {RGBColor[0.43333333333333335`, 0.4666666666666667, 0.4666666666666667], 
+      InsetBox[
+       StyleBox["\<\"H\"\>",
+        StripOnInput->False,
+        ScriptSizeMultipliers->0.8,
+        ScriptMinSize->8,
+        FontSize->Scaled[0.05484485028461978],
+        FontWeight->Plain], {412.91, 167.23}], 
+      LineBox[{{439.755, 151.73000000000002`}, {430.66255493621173`, 
+       156.97987515323965`}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{200., -11.690000000000001`}, {245.305, 14.005}}], 
+     {RGBColor[0.4, 0.4, 0.4], LineBox[{{245.305, 14.005}, {290.61, 39.7}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{200., -11.690000000000001`}, {200., -63.77}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{200., -63.77}, {200., -115.85000000000001`}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{290.61, 39.7}, {335.305, 12.965000000000002`}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{335.305, 12.965000000000002`}, {380., -13.77}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{200., -115.85000000000001`}, {245.305, -141.54}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{245.305, -141.54}, {290.61, -167.23}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{380., -13.77}, {380., -63.769999999999996`}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{380., -63.769999999999996`}, {380., -113.77}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{{377.5, -9.439999999999998}, {420.8, 15.560000000000002`}}, {{
+      382.5, -18.1}, {425.8, 6.900000000000001}}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{{420.8, 15.560000000000002`}, {464.1, 40.56}}, {{425.8, 
+       6.900000000000001}, {469.1, 31.900000000000002`}}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{290.61, -167.23}, {335.305, -140.5}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{335.305, -140.5}, {380., -113.77}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{466.6, 36.230000000000004`}, {509.90500000000003`, 
+      11.230000000000002`}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{509.90500000000003`, 11.230000000000002`}, {
+       553.21, -13.77}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{553.21, -13.77}, {553.21, -63.769999999999996`}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{553.21, -63.769999999999996`}, {553.21, -113.77}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{{550.5365, -9.3005}, {595.2315, 17.4345}}, {{
+      555.8835, -18.2395}, {600.5785, 8.495500000000003}}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{{595.2315, 17.4345}, {639.9265, 44.1695}}, {{600.5785, 
+       8.495500000000003}, {645.2735, 35.230500000000006`}}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{{555.883, -109.3005}, {600.578, -136.0305}}, {{
+      550.537, -118.23949999999999`}, {595.232, -144.9695}}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{{600.578, -136.0305}, {645.273, -162.76049999999998`}}, {{
+       595.232, -144.9695}, {639.927, -171.6995}}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{642.6, 39.7}, {687.905, 14.005}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{687.905, 14.005}, {
+       733.2099999999999, -11.690000000000001`}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{642.6, -167.23}, {687.905, -141.54}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{687.905, -141.54}, {
+       733.2099999999999, -115.85000000000001`}}]}}, 
+    {RGBColor[0.4, 0.4, 0.4], AbsoluteThickness[0.55], 
+     LineBox[{{{738.4179999999999, -11.690000000000001`}, {
+      738.4179999999999, -63.77}}, {{728.002, -11.690000000000001`}, {
+      728.002, -63.77}}}], 
+     {RGBColor[0.4, 0.4, 0.4], 
+      LineBox[{{{738.4179999999999, -63.77}, {
+       738.4179999999999, -115.85000000000001`}}, {{728.002, -63.77}, {
+       728.002, -115.85000000000001`}}}]}}}, {}, {}},
+  ImageSize->{{0., 182.332524350136}, {0., 124.27952571324866`}},
+  PlotRange->{{184.0037, 749.2062999999999}, {-194.7684519774778, 
+   190.47883898310837`}}]], "Output",
+ CellChangeTimes->{3.677915692208725*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ChemicalData", "[", 
+  RowBox[{"\"\<Tacrine\>\"", ",", " ", "\"\<SMILES\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.677915699389996*^9, 3.677915710596171*^9}}],
+
+Cell[BoxData["\<\"C1CCC2=NC3=CC=CC=C3C(=C2C1)N\"\>"], "Output",
+ CellChangeTimes->{3.6779157118233852`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"FormulaFromSMILS", "[", "\"\<c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3\>\"", 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.677915716860009*^9, 3.677915741179236*^9}}],
+
+Cell[BoxData[
+ RowBox[{"FormulaFromSMILS", "[", "\<\"c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3\"\>", 
+  "]"}]], "Output",
+ CellChangeTimes->{3.677915741866352*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
  RowBox[{"IsotopeCluster", "[", 
-  RowBox[{"\"\<Cl\>\"", ",", "10.0"}], "]"}]], "Input",
- CellChangeTimes->{{3.677891248547718*^9, 3.677891295496163*^9}, {
-   3.677891605221673*^9, 3.677891607020146*^9}, 3.677891644181364*^9, {
-   3.6778916781085663`*^9, 3.67789169907697*^9}, 3.677891741845142*^9, {
-   3.6778919804830112`*^9, 3.677892004593667*^9}, {3.6778921447782393`*^9, 
-   3.67789214884965*^9}}],
+  RowBox[{"\"\<C13H14N2\>\"", ",", " ", "10000.0"}], "]"}]], "Input",
+ CellChangeTimes->{{3.6779157689828987`*^9, 3.677915794794662*^9}}],
 
 Cell[BoxData[
  RowBox[{"{", 
   RowBox[{
    RowBox[{"{", 
-    RowBox[{"34.96885268`", ",", "0.7578`"}], "}"}], ",", 
+    RowBox[{"198.11569845858`", ",", "86.17128324887317`"}], "}"}], ",", 
    RowBox[{"{", 
-    RowBox[{"36.96590259`", ",", "0.2422`"}], "}"}]}], "}"}]], "Output",
- CellChangeTimes->{{3.677891260266205*^9, 3.677891296217465*^9}, 
-   3.677891573617813*^9, 3.677891609124474*^9, 3.677891645834456*^9, {
-   3.677891680066245*^9, 3.677891699711297*^9}, {3.677891743094699*^9, 
-   3.677891752722185*^9}, 3.6778919515397177`*^9, {3.677891987215455*^9, 
-   3.677892005275591*^9}, 3.677892091862903*^9, 3.677892149733388*^9, {
-   3.677892212324729*^9, 3.67789222546414*^9}}]
-}, Open  ]],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{3.6778921978894577`*^9},
- NumberMarks->False],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.677892016282688*^9, 3.677892019642065*^9}, 
-   3.677892207665616*^9},
- NumberMarks->False],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{3.677892079714408*^9},
- NumberMarks->False],
-
-Cell[BoxData[""], "Input",
- CellChangeTimes->{{3.677891333151279*^9, 3.677891335502615*^9}, 
-   3.677892085682616*^9},
- NumberMarks->False]
+    RowBox[{"199.11877267292468`", ",", "12.89138234108291`"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"200.12183998157226`", ",", "0.8952773009069862`"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"201.12576297197998`", ",", "0.03118142074251771`"}], "}"}]}], 
+  "}"}]], "Output",
+ CellChangeTimes->{3.677915797129546*^9}]
+}, Open  ]]
 },
 WindowSize->{808, 911},
-WindowMargins->{{Automatic, 848}, {Automatic, 11}},
+WindowMargins->{{Automatic, 1101}, {Automatic, 12}},
 FrontEndVersion->"10.4 for Linux x86 (64-bit) (April 11, 2016)",
 StyleDefinitions->"Default.nb"
 ]
@@ -358,18 +514,28 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[580, 22, 172, 3, 32, "Input"],
-Cell[755, 27, 12550, 269, 65, "Output"]
+Cell[580, 22, 170, 3, 32, "Input"],
+Cell[753, 27, 12430, 267, 65, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[13342, 301, 416, 7, 32, "Input"],
-Cell[13761, 310, 608, 12, 32, "Output"]
+Cell[13220, 299, 147, 2, 32, "Input"],
+Cell[13370, 303, 7251, 147, 139, "Output"]
 }, Open  ]],
-Cell[14384, 325, 91, 2, 32, "Input"],
-Cell[14478, 329, 139, 3, 32, "Input"],
-Cell[14620, 334, 89, 2, 32, "Input"],
-Cell[14712, 338, 139, 3, 32, "Input"]
+Cell[CellGroupData[{
+Cell[20658, 455, 186, 3, 32, "Input"],
+Cell[20847, 460, 107, 1, 32, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[20991, 466, 176, 3, 32, "Input"],
+Cell[21170, 471, 153, 3, 32, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[21360, 479, 184, 3, 32, "Input"],
+Cell[21547, 484, 474, 12, 112, "Output"]
+}, Open  ]]
 }
 ]
 *)
+
+(* End of internal cache information *)
 

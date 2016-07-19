@@ -598,7 +598,7 @@ MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adduct
         expr += " " + adducts;
 
     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
-
+    
     return exactMass;
 }
 

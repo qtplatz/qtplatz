@@ -10,6 +10,7 @@ set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../.. )
 include( ${QTPLATZ_SOURCE_DIR}/../build-Linux-x86_64/qtplatz.debug/qtplatz-config.cmake )
 
 find_package( Boost REQUIRED COMPONENTS system )
+find_package( rdkit )
 
 include_directories( ${WSTP_INCLUDE_DIRS} )
 link_directories( ${WSTP_LIBRARY_DIRS} )
@@ -19,6 +20,12 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
+
+if ( rdkit_FOUND )
+  add_definitions( -DHAVE_RDKit=1 )
+  include_directories( ${RDKit_INCLUDE_DIRS} )
+  message( STATUS "RDkit defined" )
+endif()
 
 add_definitions(-DADCONTROLS_LIBRARY) # fake for direct linking adcontrols.dll soruce code
 
@@ -37,5 +44,6 @@ target_link_libraries(
   adcontrols
   ${WSTP_LIBRARIES}
   ${WSTP_SYSTEM_LIBRARIES}
+  ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   )
