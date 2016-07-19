@@ -96,12 +96,11 @@ isotopeCluster::merge( mol::isotope& it, const mol::isotope& mi ) const
     if ( mi.abundance <= threshold_abundance_ )
         return true; // throw it away
 
-    if ( ( it.mass - mi.mass ) < threshold_daltons_ ) {
+    if ( std::abs( it.mass - mi.mass ) < threshold_daltons_ ) {
         it.abundance += mi.abundance;
 
         // weighting average for mass -- this may affected when other independent molecule is co-exist
         double m = ( it.mass * it.abundance + mi.mass * mi.abundance ) / ( it.abundance + mi.abundance );
-        assert( std::abs( it.mass - m ) < 2.0e-7 );
         it.mass = m;
         return true;
     }

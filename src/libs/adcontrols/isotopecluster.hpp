@@ -53,7 +53,7 @@ namespace adcontrols {
                          , double resolving_power = 1000000.0 ) const;
 
         bool operator()( std::vector< isopeak >&, const std::string& formula, double relative_abundance = 1.0, int index = ( -1 ) ) const;
-
+        
         bool operator()( mol::molecule& ) const;
 
         double threshold_daltons() const;
