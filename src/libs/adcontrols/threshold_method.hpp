@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/serialization/version.hpp>
 #include <fstream>
 
 namespace boost {
@@ -52,7 +53,8 @@ namespace adcontrols {
         bool use_filter;
         FilterAlgo filter;
         double sgwidth;           // SG-smooth width
-        double cutoffHz;          // DFT
+        double hCutoffHz;         // DFT (low pass := upper limit)
+        double lCutoffHz;         //     (high pass := lower limit)
         bool complex_;
 
         threshold_method();
@@ -71,3 +73,4 @@ namespace adcontrols {
     };
 }
 
+BOOST_CLASS_VERSION( adcontrols::threshold_method, 1 )

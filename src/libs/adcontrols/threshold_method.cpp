@@ -43,7 +43,8 @@ threshold_method::threshold_method() : enable( false )
                                      , use_filter( false )
                                      , filter( SG_Filter )
                                      , sgwidth( 5.0e-9 )         // 5ns
-                                     , cutoffHz( 200e6 )         // 200MHz
+                                     , hCutoffHz( 200e6 )        // 200MHz
+                                     , lCutoffHz( 0 )            // high-pass = off
                                      , complex_( true )
 {
 }
@@ -65,8 +66,10 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.use_filter );
             ar & BOOST_SERIALIZATION_NVP( _.filter );
             ar & BOOST_SERIALIZATION_NVP( _.sgwidth );
-            ar & BOOST_SERIALIZATION_NVP( _.cutoffHz );
+            ar & BOOST_SERIALIZATION_NVP( _.hCutoffHz );
             ar & BOOST_SERIALIZATION_NVP( _.complex_ );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( _.lCutoffHz );
         }
     };
 
@@ -153,7 +156,8 @@ threshold_method::operator != ( const threshold_method& m ) const
              ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
                ( !ap::compare<double>::approximatelyEqual( sgwidth, m.sgwidth ) ) ) ||
              ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
-               ( ( !ap::compare<double>::approximatelyEqual( cutoffHz, m.cutoffHz ) ) ||
+               ( ( !ap::compare<double>::approximatelyEqual( hCutoffHz, m.hCutoffHz ) ) ||
+                 ( !ap::compare<double>::approximatelyEqual( lCutoffHz, m.lCutoffHz ) ) ||
                  ( m.complex_ != complex_ ) ) ) ) {
             return true;
         }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -70,8 +70,16 @@ namespace adcontrols {
 
                 // high-pass
                 if ( cutoff.first ) {
-                    std::fill( a.begin() + 1,                       a.begin() + 1 + cutoff.first,    0 );
-                    std::fill( a.begin() + a.size() - 1 - cutoff.first, a.end() - 1,                 0 );
+                    // triangle
+                    auto llimit = cutoff.first / 2;
+                    for ( size_t i = 0; i < llimit; ++i ) {
+                        double factor = double(i) / llimit;
+                        a[ i + 1 ] *= factor; // Save DC component 
+                        a[ a.size() - i - 1 ] *= double( i / llimit );
+                    }
+                    // square 
+                    //std::fill( a.begin() + 1,                      a.begin() + 1 + llimit,    0 ); // keep DC component
+                    //std::fill( a.begin() + ( a.size() - llimit ),  a.end(),        0 );
                 }
 
                 // low-pass

@@ -518,9 +518,9 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
         } else if ( m.filter == adcontrols::threshold_method::DFT_Filter ) {
 
             if ( m.complex_ )
-                adcontrols::waveform_filter::fft4c::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+                adcontrols::waveform_filter::fft4c::bandpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
             else
-                adcontrols::waveform_filter::fft4g::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.cutoffHz );
+                adcontrols::waveform_filter::fft4g::bandpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
         }
         
         return true;

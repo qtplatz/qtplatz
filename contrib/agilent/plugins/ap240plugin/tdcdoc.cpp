@@ -112,7 +112,8 @@ tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m
                      ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
                        ( !ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth ) ) ) ||
                      ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
-                       ( ( !ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz ) ) ||
+                       ( ( !ap::compare<double>::approximatelyEqual( prev->hCutoffHz, m.hCutoffHz ) ) ||
+                         ( !ap::compare<double>::approximatelyEqual( prev->lCutoffHz, m.lCutoffHz ) ) ||
                          ( m.complex_ != prev->complex_ ) ) ) ) {
 
                     // clear histogram except for time_resolution change, which is for histogram calculation resolution
@@ -167,9 +168,9 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
 
         } else if ( method.filter == adcontrols::threshold_method::DFT_Filter ) {
             if ( method.complex_ )
-                adcontrols::waveform_filter::fft4c::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
+                adcontrols::waveform_filter::fft4c::bandpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.hCutoffHz, method.lCutoffHz );
             else
-                adcontrols::waveform_filter::fft4g::lowpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.cutoffHz );
+                adcontrols::waveform_filter::fft4g::bandpass_filter( processed.size(), processed.data(), data.meta_.xIncrement, method.hCutoffHz, method.lCutoffHz );
         }
 
         double level = method.threshold_level;

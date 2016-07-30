@@ -543,17 +543,12 @@ TimeDigitalHistogram::average_time( const std::vector< std::pair< double, uint32
 
     merged.clear();
 
-    for ( auto& pk: hist )
-        merged.emplace_back( pk.first, pk.second );
-
-    return true;
-
     auto it = hist.begin();
     
     while ( it != hist.end() ) {
         
         auto tail = it + 1;
-/*        
+
         while ( ( tail != hist.end() ) ) {
 
             double t1 = tail->first;
@@ -570,9 +565,7 @@ TimeDigitalHistogram::average_time( const std::vector< std::pair< double, uint32
                                    return std::make_pair( a.first + (b.first * b.second), double(a.second + b.second) );
                                });
         merged.emplace_back( ( sum.first / sum.second ), sum.second );
-*/
-        merged.emplace_back( it->first, it->second );
-        
+
         it = tail;
     }
 

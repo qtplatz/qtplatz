@@ -72,8 +72,11 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { 
             emit valueChanged( channel_ ); } ); // SG
 
-    connect( ui->spinBox_dft, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) {
-            emit valueChanged( channel_ ); } ); // DFT
+    connect( ui->spinBox_dft_high, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) {
+            emit valueChanged( channel_ ); } ); // DFT (low pass)
+
+    connect( ui->spinBox_dft_low, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) {
+            emit valueChanged( channel_ ); } ); // DFT (high pass)
 
     // complex or real
     connect( ui->checkBox, &QCheckBox::toggled, [this] ( bool ) {
@@ -113,7 +116,7 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
     const QSignalBlocker bloks [] = {
         QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->groupBox_filter )
         , QSignalBlocker( ui->doubleSpinBox ), QSignalBlocker( ui->doubleSpinBox_resolution ), QSignalBlocker( ui->doubleSpinBox_resp )
-        , QSignalBlocker( ui->spinBox_sg ), QSignalBlocker( ui->spinBox_dft )
+        , QSignalBlocker( ui->spinBox_sg ), QSignalBlocker( ui->spinBox_dft_high ), QSignalBlocker( ui->spinBox_dft_low )
         , QSignalBlocker( ui->radioButton_pos ), QSignalBlocker( ui->radioButton_neg ), QSignalBlocker( ui->radioButton_sg ), QSignalBlocker( ui->radioButton_dft )
     };
     (void)bloks;
@@ -136,7 +139,8 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
     case adcontrols::threshold_method::SG_Filter:    ui->radioButton_sg->setChecked( true );   break;
     }
     ui->spinBox_sg->setValue( m.sgwidth * 1.0e9 );    // s --> ns
-    ui->spinBox_dft->setValue( m.cutoffHz * 1.0e-6 ); // Hz --> MHz
+    ui->spinBox_dft_high->setValue( m.hCutoffHz * 1.0e-6 ); // Hz --> MHz
+    ui->spinBox_dft_low->setValue( m.lCutoffHz * 1.0e-6 ); // Hz --> MHz
     ui->checkBox->setChecked( m.complex_ );
 }
 
@@ -154,7 +158,8 @@ findSlopeForm::get( adcontrols::threshold_method& m ) const
     else 
         m.filter = adcontrols::threshold_method::DFT_Filter;
     m.sgwidth = ui->spinBox_sg->value() * 1.0e-9;           // ns -> s
-    m.cutoffHz = ui->spinBox_dft->value() * 1.0e6;          // MHz -> Hz
+    m.hCutoffHz = ui->spinBox_dft_high->value() * 1.0e6;    // MHz -> Hz
+    m.lCutoffHz = ui->spinBox_dft_low->value() * 1.0e6;     // MHz -> Hz
     m.complex_ = ui->checkBox->isChecked();
 }
 

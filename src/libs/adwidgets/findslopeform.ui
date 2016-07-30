@@ -224,12 +224,12 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QSpinBox" name="spinBox_dft">
+              <widget class="QSpinBox" name="spinBox_dft_high">
                <property name="minimum">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="maximum">
-                <number>1000</number>
+                <number>2000</number>
                </property>
                <property name="value">
                 <number>200</number>
@@ -258,7 +258,7 @@
                 <enum>Qt::RightToLeft</enum>
                </property>
                <property name="text">
-                <string>DFT (MHz)</string>
+                <string>DFT Hight limit (MHz)</string>
                </property>
               </widget>
              </item>
@@ -269,6 +269,23 @@
                </property>
                <property name="checked">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Low limit (MHz)</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="spinBox_dft_low">
+               <property name="maximum">
+                <number>1000</number>
                </property>
               </widget>
              </item>

@@ -203,7 +203,8 @@ namespace ap240 {
                              ( ( m.filter == adcontrols::threshold_method::SG_Filter ) && 
                                ( !ap::compare<double>::approximatelyEqual( prev->sgwidth, m.sgwidth ) ) ) ||
                              ( ( m.filter == adcontrols::threshold_method::DFT_Filter ) && 
-                               ( ( !ap::compare<double>::approximatelyEqual( prev->cutoffHz, m.cutoffHz ) ) ||
+                               ( ( !ap::compare<double>::approximatelyEqual( prev->hCutoffHz, m.hCutoffHz ) ) ||
+                                 ( !ap::compare<double>::approximatelyEqual( prev->lCutoffHz, m.lCutoffHz ) ) ||
                                  ( m.complex_ != prev->complex_ ) ) ) ) {
                             // clear histogram except for time_resolution change, which is for histogram calculation resolution
                             histograms_[ ch ]->clear();                                 

@@ -971,7 +971,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
                 resolution = tm->time_resolution;
 
             if ( resolution > hgrm->xIncrement() ) {
-                std::vector< std::pair<double, uint32_t > > time_merged;
+                std::vector< std::pair< double, uint32_t > > time_merged;
 
                 std::lock_guard< std::mutex > lock( impl_->mutex_ );            
                 adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
@@ -1037,9 +1037,7 @@ document::settings()
 void
 document::takeSnapshot()
 {
-    std::vector< std::future<bool> > futures;
-    futures.push_back( std::async( std::launch::async, [this](){ impl_->takeSnapshot(); return true; } ) );
-    task::instance()->post( futures );
+    impl_->takeSnapshot();
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
