@@ -57,33 +57,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
 
-namespace adtextfile {
-    
-    struct text_parser {
-
-        static bool find_spectrum( const std::wstring& filename, TXTSpectrum& txt, const Dialog& dlg ) {
-            boost::filesystem::path path( filename );
-            boost::filesystem::ifstream in( path );
-            if ( in.fail() ) {
-                QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
-                return false;
-            }
-            
-            auto ms = std::make_shared< adcontrols::MassSpectrum >();
-            for ( auto& model: adcontrols::MassSpectrometer::get_model_names() ) {
-                if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8(model )) ) {
-                //if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
-                    if ( interpreter->compile_header( *ms, in ) ) {
-                        return txt.load( filename, dlg );
-                    }
-                }
-            }
-            return false;
-        }
-    };
-
-}
-
 using namespace adtextfile;
 
 datafile::~datafile()
@@ -125,11 +98,12 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
         return false;
     }
+    
     typedef boost::char_separator<char> separator;
     typedef boost::tokenizer< separator > tokenizer;
     separator sep( ", \t", "", boost::drop_empty_tokens );
     std::string line;
-    size_t nlines = 3;
+    size_t nlines = 50;
     while ( nlines-- && adportable::textfile::getline( in, line ) ) {
         tokenizer tokens( line, sep );
         QStringList list;

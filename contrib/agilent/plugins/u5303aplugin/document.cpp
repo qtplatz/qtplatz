@@ -45,6 +45,7 @@
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/timedigitalmethod.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
+#include <adcontrols/trace.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
@@ -216,7 +217,7 @@ namespace u5303a {
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
         std::shared_ptr< adcontrols::TimeDigitalMethod > tdm_;
         std::shared_ptr< ResultWriter > resultWriter_;
-
+        std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
 
         int32_t device_status_;
         // double triggers_per_second_;
@@ -227,6 +228,7 @@ namespace u5303a {
         std::map< QString, bool > moduleStates_;
 
         // display data
+        std::vector< std::shared_ptr< adcontrols::Trace > > traces_;
         std::map< boost::uuids::uuid
                   , std::array< std::shared_ptr< adcontrols::MassSpectrum >
                                 , acqrscontrols::u5303a::nchannels > > spectra_;
@@ -862,6 +864,16 @@ document::setControlMethod( std::shared_ptr< adcontrols::ControlMethod::Method >
         }
     } while ( 0 );
 
+    do {
+        auto it = ptr->find( ptr->begin(), ptr->end(), adcontrols::TofChromatogramsMethod::clsid() );
+        if ( it != ptr->end() ) {
+            adcontrols::TofChromatogramsMethod tdcm;
+            it->get( *it, tdcm );
+            // task::instance()->set_softaverage_count( uint32_t ( tdcm.numberOfTriggers() ) );
+            setMethod( tdcm );  // set method to tdc, create traces
+        }
+    } while ( 0 );
+
     if ( ! filename.isEmpty() ) {
         impl_->ctrlmethod_filename_ = filename;
         qtwrapper::settings( *impl_->settings_ ).addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, filename );
@@ -1232,4 +1244,40 @@ bool
 document::impl::closingStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& ) const
 {
     return true;
+}
+
+void
+document::applyTriggered()
+{
+    auto ptr = MainWindow::instance()->getControlMethod();
+    setControlMethod( ptr );
+    prepare_for_run();
+}
+
+void
+document::setMethod( const adcontrols::TofChromatogramsMethod& m )
+{
+    tdc()->setTofChromatogramsMethod( m );
+
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+
+    auto prev = impl_->tofChromatogramsMethod_;
+
+    if ( ( impl_->tofChromatogramsMethod_ = tdc()->tofChromatogramsMethod() ) ) {
+
+        task::instance()->setTofChromatogramsMethod( *impl_->tofChromatogramsMethod_ );
+
+        if ( impl_->traces_.size() > impl_->tofChromatogramsMethod_->size() ) 
+            impl_->traces_.resize( impl_->tofChromatogramsMethod_->size() );
+
+        while ( impl_->traces_.size() < impl_->tofChromatogramsMethod_->size() )
+            impl_->traces_.push_back( std::make_shared< adcontrols::Trace >( uint32_t( impl_->traces_.size() ), 8192 - 512, 8192 ) );
+
+        size_t idx( 0 );
+        std::for_each( impl_->traces_.begin(), impl_->traces_.end(), [&] ( std::shared_ptr< adcontrols::Trace >& trace ) {
+            const auto method = impl_->tofChromatogramsMethod_->begin() + idx++;
+            trace->setIsCountingTrace( method->intensityAlgorithm() == method->eCounting );
+        } );
+    }
+
 }

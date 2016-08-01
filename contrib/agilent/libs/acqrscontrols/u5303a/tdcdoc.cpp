@@ -57,7 +57,8 @@ namespace acqrscontrols {
             
             impl() : threshold_action_( std::make_shared< adcontrols::threshold_action >() )
                    , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
-                   , protocolCount_( 1 ) {
+                   , protocolCount_( 1 )
+                   , trig_per_seconds_( 0 ) {
 
                 for ( auto& p: recent_longterm_histograms_ )
                     p = std::make_shared< adcontrols::TimeDigitalHistogram >();                
@@ -210,7 +211,7 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         d.histogram_register_ = std::make_shared< histogram_type >();
     
     if ( d.histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
-
+        
         // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
 

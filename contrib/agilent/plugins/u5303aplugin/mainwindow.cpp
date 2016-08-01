@@ -35,6 +35,7 @@
 #include <qtwrapper/trackingenabled.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adextension/icontroller.hpp>
@@ -42,6 +43,7 @@
 #include <adextension/ireceiver.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
+#include <adwidgets/tofchromatogramswidget.hpp>
 #include <adicontroller/constants.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
@@ -143,6 +145,22 @@ MainWindow::createDockWidgets()
     if ( auto widget = new adwidgets::SampleRunWidget ) {
         createDockWidget( widget, "Sample Run", "SampleRunWidget" );
     }
+
+    if ( auto widget = new adwidgets::TofChromatogramsWidget ) {
+
+        createDockWidget( widget, tr( "Chromatograms" ), "Chromatograms" );
+        connect( widget, &adwidgets::TofChromatogramsWidget::applyTriggered, [] () { document::instance()->applyTriggered(); } );
+
+        if ( auto wnd = centralWidget()->findChild<WaveformWnd *>() ) {
+            connect( widget, &adwidgets::TofChromatogramsWidget::valueChanged, [=] () {
+                    adcontrols::TofChromatogramsMethod m;
+                    widget->getContents( m );
+                    wnd->setMethod( m ); // draw markers
+                    document::instance()->setMethod( m );
+                } );
+        }
+        
+    }    
 }
 
 size_t
@@ -174,6 +192,7 @@ MainWindow::OnInitialUpdate()
             widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
     }
+    
     // Set control method name on MidToolBar
     if ( auto edit = findChild< QLineEdit * >( "methodName" ) ) {
         QString methodName = document::instance()->recentFile( Constants::GRP_METHOD_FILES, false );

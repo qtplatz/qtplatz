@@ -71,7 +71,9 @@ namespace adtextfile {
 
         bool isMassIntensity() const;
         bool isTimeIntensity() const;
+        bool isTimeMassIntensity() const;
         size_t columnCount() const;
+        size_t skipLines() const;
 
     private:
         Ui::Dialog *ui;

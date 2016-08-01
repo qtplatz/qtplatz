@@ -76,8 +76,6 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     if ( dlg.hasDataInterpreter() ) {
         auto model = dlg.dataInterpreterClsid().toStdString();
         if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( model ) ) {
-        //if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
-            //const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
             if ( interpreter->compile_header( *ms, in ) ) {
                 compiled_ = ms;

@@ -34,7 +34,12 @@ namespace adicontroller {
     namespace Instrument { class Session; }
 }
 
-namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
+namespace adcontrols {
+    namespace ControlMethod { class Method; }
+    class SampleRun;
+    class TofChromatogramsMethod;
+}
+
 
 namespace u5303a {
 
@@ -51,7 +56,6 @@ namespace u5303a {
         void onDataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );
         void instInitialize( adicontroller::Instrument::Session * session );
         void post( std::vector< std::future<bool> >& futures );
-        //void prepare_next_sample( adicontroller::SignalObserver::Observer *, std::shared_ptr< adcontrols::SampleRun >, const adcontrols::ControlMethod::Method& );
 
         void clear_histogram();
         void setCellSelectionEnabled( bool );
@@ -63,6 +67,8 @@ namespace u5303a {
         void setHistogramClearCycle( uint32_t );
         void setRecording( bool );
         bool isRecording() const;
+
+        void setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
 
         void sample_started();  // autosampler start
         void sample_injected(); // data acquisition start, being time zero

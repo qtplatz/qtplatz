@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,12 +29,16 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <u5303a/digitizer.hpp>
-#include <adplot/spectrumwidget.hpp>
-#include <adplot/chromatogramwidget.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/trace.hpp>
+#include <adplot/chromatogramwidget.hpp>
+#include <adplot/peakmarker.hpp>
+#include <adplot/spectrumwidget.hpp>
+#include <adplot/spanmarker.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
@@ -60,6 +64,9 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
     for ( auto& tp: tp_ )
         tp = std::make_shared< adcontrols::Trace >();
 
+    // for ( auto& marker : peak_marker_ )
+    //     marker = std::make_unique< adplot::PeakMarker >();
+
     init();
 }
 
@@ -67,6 +74,7 @@ WaveformWnd::~WaveformWnd()
 {
     fini();
     delete tpw_;
+    delete hpw_;
     delete spw_;
 }
 
@@ -125,6 +133,21 @@ WaveformWnd::init()
         threshold_markers_[ i ]->attach( spw_ );
     }
 
+#if 0
+    // Histogram window marker
+    int viewId = 0;
+    for ( auto& histogram_window_marker : histogram_window_markers_ ) {
+        int idx = 0;
+        for ( auto& marker: histogram_window_marker ) {
+            QColor color( tpw_->color( idx++ ) );
+            color.setAlpha( 0x20 );
+            marker = std::make_unique< adplot::SpanMarker >( color, QwtPlotMarker::VLine, 2.0 );
+            marker->visible( false );
+            marker->attach( viewId == 0 ? spw_ : hpw_ );
+        }
+        ++viewId;
+    }
+#endif
 }
 
 void
@@ -149,8 +172,6 @@ WaveformWnd::handle_threshold_method( int ch )
 
         bool replot( false );
         double level_mV = th->threshold_level * 1.0e3;
-
-        // ADDEBUG() << "threhsold_level = " << level_mV << "mV";
 
         if ( !adportable::compare<double>::approximatelyEqual( threshold_markers_[ ch ]->yValue(), level_mV ) ) {
             threshold_markers_[ ch ]->setYValue( level_mV );
@@ -244,125 +265,38 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 }
 
 void
-WaveformWnd::handle_waveform()
+WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-    assert( 0 );
 #if 0
-    auto pair = document::instance()->findWaveform();
+    int idx = 0;
+    for ( auto& item : m ) { // = m.begin(); item != m.end(); ++item, ++idx ) {
 
-    double resolution = 0.0;
-    if ( auto m = document::instance()->method() ) {
-        resolution = m->threshold_.time_resolution;
+        if ( idx < histogram_window_markers_[0].size() ) {
 
-    if ( auto ms = document::instance()->getHistogram( resolution ) ) {
+            if ( item.formula().empty() || item.formula() == "TIC" ||
+                 ( item.time() < 1.0e-9 ) || ( item.timeWindow() < 1.0e-11 ) ) {
 
-        if ( ms->size() > 0 )
-            hpw_->setData( ms, 0 );
-
-        const auto& info = ms->getMSProperty().samplingInfo();
-        hpw_->setTitle( ( boost::format( "triggers: %1%;&nbsp;&nbsp;%2% triggers in que; &nbsp; rate = %3% trig/s" )
-                          % info.numberOfTriggers()
-                          % document::instance()->unprocessed_trigger_counts()
-                          % document::instance()->triggers_per_second()).str() );
-        if ( ( tickCount_++ % 5 ) == 0 )
-            document::instance()->save_histogram( tickCount_, *ms );
-    }
-
-#if defined DEBUG || defined _DEBUG && 0
-    if ( auto ms = document::instance()->getHistogram( 0.0 ) ) {
-        hpw_->setData( ms, 1 );
-        hpw_->setAlpha( 1, 0x20 );
-    }
-#endif
-
-    std::ostringstream o;
-    auto method = document::instance()->method();
-
-    double levels_mV[] = { method->threshold_.threshold_level * 1000.0
-                         , method->threshold_.threshold_level * 1000.0 };
-#if 0
-    for ( auto result: { pair.first, pair.second } ) {
-        
-        if ( result ) {
-            auto waveform = result->data();
-            
-            double timestamp = waveform->meta_.initialXTimeSeconds;
-            int channel = waveform->meta_.channel - 1;
-            if ( channel > 2 )
-                continue; // this should not be happend.
-            
-            sp_[ channel ] = std::make_shared< adcontrols::MassSpectrum >();
-            auto sp = sp_[ channel ];
-            auto tp = tp_[ channel ];
-
-            sp->setCentroid( adcontrols::CentroidNone );
-            sp->resize( waveform->size() );
-
-            if ( result->processed().size() == waveform->size() ) {
-                size_t idx = 0;
-                for ( auto it = result->processed().begin(); it != result->processed().end(); ++it )
-                    sp->setIntensity( idx++, *it * 1000 ); // V
-            } else  if ( waveform->meta_.dataType == 1 ) {
-                size_t idx = 0;
-                for ( auto it = waveform->begin<int8_t>(); it != waveform->end<int8_t>(); ++it )
-                    sp->setIntensity( idx++, waveform->toVolts( *it ) * 1000.0 ); // mV
-            } else if ( waveform->meta_.dataType == 2 ) {
-                size_t idx = 0;                
-                for ( auto it = waveform->begin<int16_t>(); it != waveform->end<int16_t>(); ++it )
-                    sp->setIntensity( idx++, *it );
-            } else if ( waveform->meta_.dataType == 4 ) {
-                double dbase, rms;
-                double tic = adportable::spectrum_processor::tic( waveform->size(), waveform->begin<int32_t>(), dbase, rms );
+                for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
+                    auto& marker = histogram_window_markers_[ i ][ idx ];
+                    marker->visible( false );
+                }
                 
-                size_t idx = 0;                
-                for ( auto it = waveform->begin<int32_t>(); it != waveform->end<int32_t>(); ++it ) {
-                    sp->setIntensity( idx++, waveform->toVolts( *it - dbase ) * 1000 );
+            } else {
+                using adcontrols::metric::scale_to_micro;
+                
+                double lower = item.time() - item.timeWindow() / 2;
+                double upper = item.time() + item.timeWindow() / 2;
+
+                for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
+                    auto& marker = histogram_window_markers_[ i ][ idx ];
+                    marker->setValue( scale_to_micro( lower ), scale_to_micro( upper ) );
+                    marker->visible( true );
                 }
             }
-            
-            adcontrols::MSProperty prop = sp->getMSProperty();
-            adcontrols::MSProperty::SamplingInfo info( 0
-                                                       , uint32_t( waveform->meta_.initialXOffset / waveform->meta_.xIncrement + 0.5 )
-                                                       , uint32_t( waveform->size() )
-                                                       , waveform->meta_.actualAverages
-                                                       , 0 );
-            
-            info.fSampInterval( waveform->meta_.xIncrement );
-            info.horPos( waveform->meta_.horPos );
-            
-            prop.setSamplingInfo( info );
-            prop.acceleratorVoltage( 3000 );
-
-            using namespace adcontrols::metric;
-            prop.setTimeSinceInjection( timestamp * 1.0e6 ); // microseconds
-            prop.setTimeSinceEpoch( waveform->timeSinceEpoch_ );
-            prop.setDataInterpreterClsid( "u5303a" );
-            sp->setMSProperty( prop );
-
-            if ( o.str().empty() )
-                o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
-
-            if ( !result->indecies().empty() ) {
-                o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels_mV[ channel ];
-                for ( int i = 0; i < 5 && i < result->indecies().size(); ++i ) {
-                    double t0 = sp->getTime( result->indecies()[i] ) * 1.0e6;
-                    o << boost::format( "(%.4lf)" )  % t0;
-                }
-            }
-
-            double dbase(0), rms(0), tic(0);            
-            tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
-            tp->push_back( waveform->serialnumber_, timestamp, tic );
-            tpw_->setData( *tp, channel, channel );
-            
-            // prop.setDeviceData(); TBA
-            spw_->setData( sp, channel, channel );
-            spw_->setKeepZoomed( true );
         }
-
-        spw_->setTitle( o.str() );
-#endif
+        ++idx;
     }
-    //document::instance()->waveform_drawn();
+    spw_->replot();
+    hpw_->replot();
 #endif
 }

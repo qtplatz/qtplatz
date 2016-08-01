@@ -140,7 +140,8 @@ namespace u5303a {
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
 
-        std::vector< std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > > que_;
+        std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > que_;
+        //std::vector< std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > > que_;
 
         // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > acquireingSamples_;
         // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > processingSamples_;
@@ -301,8 +302,8 @@ task::impl::worker_thread()
             int channel = 0;
             std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
             do {
-                std::lock_guard< std::mutex > lock( mutex_ );
-                threshold_results = que_.back();
+                // std::lock_guard< std::mutex > lock( mutex_ );
+                threshold_results = que_; //.back();
             } while ( 0 );
 
             for ( auto result: threshold_results ) {
@@ -359,7 +360,8 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 void
 task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
 {
-    typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >, std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
+    typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >
+                       , std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
 
     std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms( {0, 0} );
     
@@ -378,8 +380,11 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
         auto threshold_results = document::instance()->tdc()->processThreshold( waveforms );
         
         if ( threshold_results[0] || threshold_results[1] ) {
-            
-            document::instance()->tdc()->accumulate_histogram( threshold_results [ 0 ] ); // > appendHistogram( threshold_results );
+
+            if ( threshold_results[0] ) 
+                io_service_.post( [=]() { document::instance()->result_to_file( threshold_results[0] ); } );
+
+            document::instance()->tdc()->accumulate_histogram( threshold_results [ 0 ] );
             handle_u5303a_average( status, threshold_results ); // draw spectrogram and TIC
   
         }
@@ -390,12 +395,11 @@ void
 task::impl::handle_u5303a_average( const data_status status, std::array< threshold_result_ptr, 2 > threshold_results )
 {
     do {
-        document::instance()->result_to_file( threshold_results[0] );
-
-        std::lock_guard< std::mutex > lock( mutex_ );
-        que_.push_back( threshold_results );
-        if ( que_.size() >= 10 )
-            que_.erase( que_.begin(), que_.begin() + 5 );
+        // document::instance()->result_to_file( threshold_results[0] );
+        // std::lock_guard< std::mutex > lock( mutex_ );
+        // que_.push_back( threshold_results );
+        // if ( que_.size() >= 10 )
+        //     que_.erase( que_.begin(), que_.begin() + 5 );
         
     } while( 0 ) ;
 
@@ -404,6 +408,8 @@ task::impl::handle_u5303a_average( const data_status status, std::array< thresho
     if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
 
         data_status_[ u5303a_observer ].plot_ready_ = true;
+        // std::lock_guard< std::mutex > lock( mutex_ );
+        que_ = threshold_results;
         sema_.signal();
 
     }
@@ -480,4 +486,10 @@ bool
 task::isRecording() const
 {
     return impl_->isRecording_;
+}
+
+void
+task::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
+{
+    // nothing to do
 }

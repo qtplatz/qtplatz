@@ -42,7 +42,8 @@ namespace adcontrols {
     class TraceAccessor;
     class Trace;
     class SampleRun;
-    class threshold_method; 
+    class threshold_method;
+    class TofChromatogramsMethod;
 }
 
 namespace acqrscontrols { namespace u5303a { class method; class waveform; class threshold_result; class tdcdoc; } }
@@ -117,6 +118,10 @@ namespace u5303a {
         std::shared_ptr< adcontrols::MassSpectrum > recentSpectrum( const boost::uuids::uuid& uuid, int idx );
 
         void takeSnapshot();
+        void applyTriggered();
+        void setMethod( const adcontrols::TofChromatogramsMethod& );
+        void getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& );
+        void progress( double elapsed_time, std::shared_ptr< const adcontrols::SampleRun >&& );
 
         acqrscontrols::u5303a::tdcdoc * tdc();
         QSettings * settings();
@@ -129,6 +134,7 @@ namespace u5303a {
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );
         static bool save( const QString& filename, const adcontrols::ControlMethod::Method& );
         static bool save( const QString& filename, const acqrscontrols::u5303a::method& );
+
 
     private:
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );

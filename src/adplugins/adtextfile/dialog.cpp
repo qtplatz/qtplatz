@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,7 @@
 #include "dialog.hpp"
 #include "ui_dialog.h"
 #include <QStandardItemModel>
+#include <adportable/debug.hpp>
 
 using namespace adtextfile;
 
@@ -129,19 +130,34 @@ Dialog::dataPrefix() const
 void
 Dialog::appendLine( const QStringList& list )
 {
+    size_t number_counts(0);
+    int row;
+    
     if ( auto model = static_cast<QStandardItemModel *>( ui->tableView->model() ) ) {
         model->setColumnCount( list.size() );
-        int row = model->rowCount();
+        row = model->rowCount();
         model->insertRow( row );
         int col = 0;
-        for ( auto& data : list )
+        for ( auto& data : list ) {
             model->setData( model->index( row, col++ ), data );
+            bool ok( false );
+            data.toDouble( &ok );
+            if ( ok )
+                number_counts++;
+        }
         ui->tableView->resizeRowsToContents();
         ui->tableView->resizeColumnsToContents();
     }
-    if ( list.size() >= 3 ) {
+
+    if ( number_counts != list.size() ) {
+        ui->spinBox->setValue( row + 1 );
+    }
+    
+    if ( number_counts >= 3 ) {
+        // data has triplets (time, mass, intensity)
         ui->radioButton_3->setEnabled( false );
         ui->radioButton_4->setEnabled( false );
+        ui->radioButton_5->setChecked( true );
         // 
         ui->doubleSpinBox->setEnabled( false );   // flight length
         ui->doubleSpinBox_2->setEnabled( false ); // accelerator voltage
@@ -167,6 +183,12 @@ Dialog::isMassIntensity() const
 }
 
 bool
+Dialog::isTimeMassIntensity() const
+{
+    return ui->radioButton_5->isChecked();
+}
+
+bool
 Dialog::isTimeIntensity() const
 {
     return ui->radioButton_3->isChecked();    
@@ -178,4 +200,10 @@ Dialog::columnCount() const
     if ( auto model = static_cast<QStandardItemModel *>( ui->tableView->model() ) )
         return model->columnCount();
     return 3;
+}
+
+size_t
+Dialog::skipLines() const
+{
+    return ui->spinBox->value();
 }
