@@ -49,7 +49,7 @@
 #include <adportable/split_filename.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
-#include <adwidgets/cherrypicker.hpp>
+#include <adwidgets/samplerunwidget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -84,6 +84,7 @@
 #include <QLabel>
 #include <QIcon>
 #include <qdebug.h>
+#include <csignal>
 
 using namespace u5303a;
 
@@ -137,7 +138,10 @@ MainWindow::createDockWidgets()
                 if ( widget->get( m ) )
                     document::instance()->set_method( m );
             });
+    }
 
+    if ( auto widget = new adwidgets::SampleRunWidget ) {
+        createDockWidget( widget, "Sample Run", "SampleRunWidget" );
     }
 }
 
@@ -160,10 +164,7 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
 
     connect( document::instance(), &document::sampleRunChanged, this, [this] {
-            if ( auto edit = findChild< QLineEdit *>( "dataSaveIn" ) )
-                edit->setText( QString::fromStdWString( document::instance()->sampleRun()->dataDirectory() ) );
-            if ( auto edit = findChild< QLineEdit *>( "runName" ) )
-                edit->setText( QString::fromStdWString( document::instance()->sampleRun()->filePrefix() ) );
+            setSampleRun( *document::instance()->sampleRun() );
         });
 
     for ( auto dock: dockWidgets() ) {
@@ -226,7 +227,7 @@ MainWindow::activateLayout()
 QWidget *
 MainWindow::createContents( Core::IMode * mode )
 {
-    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::West );
+    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
     setDocumentMode( true );
     setDockNestingEnabled( true );
 
@@ -313,21 +314,32 @@ MainWindow::setSimpleDockWidgetArrangement()
 {
     qtwrapper::TrackingEnabled< Utils::FancyMainWindow > x( *this );
 
-    QList< QDockWidget *> widgets = dockWidgets();
+    const std::string left = "ThresholdMethod"; // ;SampleRunWidget";
 
-    for ( auto widget: widgets ) {
+    for ( auto widget : dockWidgets() ) {
         widget->setFloating( false );
         removeDockWidget( widget );
     }
-  
-    size_t npos = 0;
-    for ( auto widget: widgets ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-        if ( npos && npos++ < widgets.size() - 1 ) // last item is not on the tab
-            tabifyDockWidget( widgets[0], widget );
+
+    QList< QDockWidget * > left_widgets, right_widgets;
+
+    for ( auto widget : dockWidgets() ) {
+        auto objname = widget->objectName().toStdString();
+        if ( left.find( objname ) != std::string::npos )
+            left_widgets.push_back( widget );
+        else
+            right_widgets.push_back( widget );
     }
-    // update();
+
+    for ( auto& list : { left_widgets, right_widgets } ) {
+        int idx( 0 );
+        for ( auto& widget : list ) {
+            addDockWidget( Qt::BottomDockWidgetArea, widget );
+            if ( idx++ )
+                tabifyDockWidget( list.at( 0 ), widget );
+            widget->show();
+        }
+    }
 }
 
 QDockWidget *
@@ -496,6 +508,7 @@ MainWindow::createActions()
         Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SNAPSHOT, context );
         menu->addAction( cmd );
     }
+
     if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
         auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, context );
@@ -856,10 +869,12 @@ MainWindow::handleDataSaveIn()
                                                              , dstfile, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
             if ( !dir.isEmpty() ) {
                 edit->setText( dir );
-                auto sampleRun = std::make_shared< adcontrols::SampleRun >( *document::instance()->sampleRun() );
-                sampleRun->setDataDirectory( dir.toStdWString() );
-                document::instance()->setSampleRun( sampleRun );
+                auto next = std::make_shared< adcontrols::SampleRun >( *document::instance()->sampleRun() );
+                next->setDataDirectory( dir.toStdWString() );
+                document::instance()->setSampleRun( next );
+                this->setSampleRun( *next );
             }
+            
         } catch ( ... ) {
             ADTRACE() << "Hit QTBUG-33119 that has no workaround right now.  Please be patient and try it again.";
             QMessageBox::information( this, "InfiTOF2 MainWindow", "Hit QTBUG-33119 - no workaround. Please be patient and try it again." );
@@ -977,5 +992,19 @@ MainWindow::setSampleRun( const adcontrols::SampleRun& m )
     if ( auto edit = findChild< QLineEdit * >( "runName" ) ) {
         edit->setText( QString::fromStdWString( std::wstring( m.filePrefix() ) ) );
     }
+
+    if ( auto widget = findChild< adwidgets::SampleRunWidget * >() ) {
+        widget->setSampleRun( m );
+    }
+}
+
+std::shared_ptr< adcontrols::SampleRun >
+MainWindow::getSampleRun() const
+{
+    auto sr = std::make_shared< adcontrols::SampleRun >();
+    if ( auto widget = findChild< adwidgets::SampleRunWidget * >() ) {
+        widget->getSampleRun( *sr );
+    }
+    return sr;
 }
 

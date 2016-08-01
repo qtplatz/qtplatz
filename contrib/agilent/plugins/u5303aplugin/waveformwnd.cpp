@@ -44,6 +44,7 @@
 #include <QSplitter>
 #include <QBoxLayout>
 #include <boost/format.hpp>
+#include <boost/locale.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <chrono>
 #include <sstream>
@@ -187,7 +188,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
     if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
 
         if ( uuid == u5303a_observer ) {
-
+            // waveform (analog)
             double seconds = sp->getMSProperty().timeSinceInjection();
             QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
                                                                                  , QString::number( sp->getMSProperty().trigNumber() ) );
@@ -197,12 +198,15 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             spw_->setKeepZoomed( true );
 
         } else if ( uuid == histogram_observer ) {
+            // histogram
 
             double rate = document::instance()->triggers_per_second();
+            
+            QString title = QString( "U5303A: %1 samples since trig# %2, at rate %3/s" ).arg(
+                QString::number( sp->getMSProperty().numAverage() )
+                , QString::number( sp->getMSProperty().trigNumber() )
+                , QString::number( rate, 'f', 2 ) );
 
-            QString title = QString( "U5303A: %1 samples / Trig# %2 (%3/s)" ).arg( QString::number( sp->getMSProperty().numAverage() )
-                                                                                   , QString::number( sp->getMSProperty().trigNumber() )
-                                                                                   , QString::number( rate, 'f', 2 ) );
             hpw_->setTitle( title );
             hpw_->setData( sp, idx, bool( idx ) );
             hpw_->setKeepZoomed( true );

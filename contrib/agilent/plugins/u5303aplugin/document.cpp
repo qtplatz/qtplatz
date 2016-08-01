@@ -37,6 +37,8 @@
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
@@ -217,7 +219,7 @@ namespace u5303a {
 
 
         int32_t device_status_;
-        double triggers_per_second_;
+        // double triggers_per_second_;
         
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
@@ -241,9 +243,12 @@ namespace u5303a {
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "u5303a" ) ) )
-               , triggers_per_second_(0)
+                 //, triggers_per_second_(0)
                , resultWriter_( std::make_shared< ResultWriter >() )  {
-            
+
+            adcontrols::TofChromatogramsMethod tofm;
+            tofm.setNumberOfTriggers( 1000 );
+            tdcdoc_->setTofChromatogramsMethod( tofm );
         }
 
         void addInstController( std::shared_ptr< adextension::iController > p );
@@ -875,7 +880,7 @@ document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QS
 double
 document::triggers_per_second() const
 {
-    return impl_->triggers_per_second_;
+    return impl_->tdcdoc_->triggers_per_second();
 }
 
 size_t
@@ -963,23 +968,13 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
 {
     if ( code == adicontroller::Receiver::CLIENT_ATTACHED ) {
 
-        // emit document::instance()->instStateChanged( int( adicontroller::Instrument::eStandBy ) ); // --> enable FSM UI
-
+        // do nothing
+        
     } else if ( code == adicontroller::Receiver::STATE_CHANGED ) {
 
         if ( value & adicontroller::Instrument::eErrorFlag ) {
             QMessageBox::warning( MainWindow::instance(), "U5303A Error"
                                   , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
-        } else {
-
-            //emit document::instance()->instStateChanged( value );
-            
-#if 0
-            if ( value == adicontroller::Instrument::eStandBy && impl_->cm_ && ic ) {
-                if ( auto session = ic->getInstrumentSession() )
-                    session->prepare_for_run( impl_->cm_ );
-            }
-#endif
         }
     }
 }
@@ -993,8 +988,6 @@ void
 document::impl::handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos )
 {
 }
-
-
 
 acqrscontrols::u5303a::tdcdoc *
 document::tdc()
@@ -1027,17 +1020,13 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
 
             if ( resolution > hgrm->xIncrement() ) {
                 std::vector< std::pair< double, uint32_t > > time_merged;
-
-                // std::lock_guard< std::mutex > lock( impl_->mutex_ );            
                 adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
                 hgrm = hgrm->clone( time_merged );
             }
 
             auto ms = std::make_shared< adcontrols::MassSpectrum >();
             adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
-
-            impl_->triggers_per_second_ = hgrm->triggers_per_second();
-
+            
             do {
                 std::lock_guard< std::mutex > lock( impl_->mutex_ );                    
                 impl_->spectra_ [ histogram_observer ] [ idx ] = ms; // histogram
@@ -1054,23 +1043,6 @@ document::commitData()
 {
     // save time data
     impl_->resultWriter_->commitData();
-
-#if 0
-    // save histogram
-    double resolution = 0;
-    const int channel = 0;
-    if ( auto tm = tdc()->threshold_method( channel ) ) // CH-1 
-        resolution = tm->time_resolution;
-
-    size_t trigCount(0);
-    std::pair< uint64_t, uint64_t > timeSinceEpoch( 0,0 );
-    
-    if ( auto histogram = tdc()->getHistogram( resolution, channel, trigCount, timeSinceEpoch ) ) {
-
-        impl_->resultWriter_->writeHistogram( trigCount, timeSinceEpoch, histogram );
-    
-    }
-#endif
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
@@ -1146,15 +1118,12 @@ document::impl::takeSnapshot()
     if ( auto tm = tdcdoc_->threshold_method( idx ) )
         resolution = tm->time_resolution;
 
-    //size_t trigCount;
-    //std::pair< uint64_t, uint64_t > timeSinceEpoch;
-    auto histogram = getHistogram( resolution ); // , , trigCount, timeSinceEpoch );
+    auto histogram = getHistogram( resolution );
 
     std::chrono::system_clock::time_point tp = std::chrono::system_clock::now(); 
     std::string date = adportable::date_string::logformat( tp );
 
     uint32_t serialnumber(0);
-    
 
     // get waveform(s)
     auto spectra = spectra_[ u5303a_observer ];
@@ -1205,14 +1174,6 @@ document::result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_resu
 {
     *( impl_->resultWriter_ ) << ch1;
 }
-
-#if 0
-void
-document::setControllerState( const QString& module, bool enable )
-{
-    impl_->setControllerState( module, enable );
-}
-#endif
 
 bool
 document::isControllerEnabled( const QString& module ) const

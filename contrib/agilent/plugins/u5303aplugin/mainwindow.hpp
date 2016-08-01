@@ -77,8 +77,8 @@ namespace u5303a {
         
         void editor_commit();
 
-        //std::shared_ptr< adcontrols::SampleRun > getSampleRun() const;
         void setSampleRun( const adcontrols::SampleRun& );
+        std::shared_ptr< adcontrols::SampleRun > getSampleRun() const;
 
     private:
         std::vector< QWidget* > widgets_;

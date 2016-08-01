@@ -200,6 +200,7 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         return false;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    
     if ( impl_->protocolCount_ != count )
         impl_->reset_accumulators( count );
     
@@ -241,6 +242,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
         return false;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
     if ( impl_->protocolCount_ != count )
         impl_->reset_accumulators( count );
     
@@ -598,6 +600,8 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 void
 tdcdoc::clear_histogram()
 {
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    
     impl_->threshold_action_counts_ = { { { 0, 0 } } };
 
     for ( auto& p: impl_->recent_longterm_histograms_ )

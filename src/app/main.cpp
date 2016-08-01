@@ -42,6 +42,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QLibraryInfo>
+#include <QPushButton>
 #include <QSettings>
 #include <QTextStream>
 #include <QThreadPool>
@@ -55,6 +56,7 @@
 #include <QApplication>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <csignal>
 
 #ifdef ENABLE_QT_BREAKPAD
 #include <qtsystemexceptionhandler.h>
@@ -309,7 +311,7 @@ int main(int argc, char **argv)
     const int threadCount = QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(qMax(4, 2 * threadCount));
 
-    setupCrashHandler(); // Display a backtrace once a serious signal is delivered.
+    // setupCrashHandler(); // Display a backtrace once a serious signal is delivered.
 
 #ifdef ENABLE_QT_BREAKPAD
     QtSystemExceptionHandler systemExceptionHandler;
@@ -535,11 +537,22 @@ int main(int argc, char **argv)
     QObject::connect(&app, SIGNAL(aboutToQuit()), &pluginManager, SLOT(shutdown()));
 
     std::set_terminate([](){
-            qDebug() << "Unhandled exception\n";
-            abort();
+            QMessageBox mbx( QMessageBox::Critical
+                             , QObject::tr( "QtPlatz" )
+                             , QObject::tr( "Abort has been called." ) );
+
+            auto ignoreButton = mbx.addButton( QObject::tr("Ignore"), QMessageBox::ActionRole );
+            auto abortButton = mbx.addButton( QMessageBox::Abort );
+
+            mbx.exec();
+
+            if ( mbx.clickedButton() == abortButton )
+                abort();
+            else if ( mbx.clickedButton() == ignoreButton )
+                return;
         });
     
     const int r = app.exec();
-    cleanupCrashHandler();
+
     return r;
 }
