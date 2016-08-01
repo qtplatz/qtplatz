@@ -28,6 +28,7 @@
 #include "resultwriter.hpp"
 #include "task.hpp"
 #include "icontrollerimpl.hpp"
+#include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/metadata.hpp>
@@ -45,6 +46,7 @@
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
+#include <adicontroller/sampleprocessor.hpp>
 #include <adicontroller/masterobserver.hpp>
 #include <adicontroller/task.hpp>
 #include <adfs/adfs.hpp>
@@ -67,6 +69,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -103,6 +106,40 @@ namespace u5303a {
     };
 
     namespace so = adicontroller::SignalObserver;
+
+    struct ObserverData {
+        const char * objtext;
+        const char * dataInterpreterClsid;
+        const so::Description desc;
+    };
+
+    static ObserverData observers [] = {
+        { acqrscontrols::u5303a::timecount_observer_name  // objtext; must contains unitid
+          , acqrscontrols::u5303a::timecount_datainterpreter // dataInterpreter; doesn't need unitid
+          , { acqrscontrols::u5303a::timecount_observer_name // desc.traceId := data name on adfs file
+              , so::eTRACE_SPECTRA
+              , so::eMassSpectrometer
+              , L"Time", L"Count", 3, 0
+            }
+        }
+        , { acqrscontrols::u5303a::histogram_observer_name  // objtext; must contains unitid
+            , acqrscontrols::u5303a::histogram_datainterpreter // dataInterpreter; doesn't need unitid
+            , { acqrscontrols::u5303a::histogram_observer_name // desc.traceId := data name on adfs file
+                , so::eTRACE_SPECTRA
+                , so::eMassSpectrometer
+                , L"Time", L"Count", 3, 0
+            }
+        }        
+        , { acqrscontrols::u5303a::softavgr_observer_name
+            , acqrscontrols::u5303a::softavgr_datainterpreter
+            , { acqrscontrols::u5303a::softavgr_observer_name
+                , so::eTRACE_SPECTRA
+                , so::eMassSpectrometer
+                , L"Time", L"mV", 3, 0
+            }
+        }        
+    };
+    
 
     struct exec_fsm_stop {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
@@ -153,7 +190,7 @@ namespace u5303a {
         }
     };
 
-    template<typename T> struct wrap {};
+    // template<typename T> struct wrap {};
     
     //..........................................
     class document::impl {
@@ -169,7 +206,7 @@ namespace u5303a {
         std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
-        std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
+        std::map< boost::uuids::uuid, std::shared_ptr< adicontroller::SignalObserver::Observer > > observers_;
         bool isMethodDirty_;
 
         std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
@@ -177,6 +214,7 @@ namespace u5303a {
         std::shared_ptr< acqrscontrols::u5303a::method > method_;
         std::shared_ptr< adcontrols::TimeDigitalMethod > tdm_;
         std::shared_ptr< ResultWriter > resultWriter_;
+
 
         int32_t device_status_;
         double triggers_per_second_;
@@ -187,7 +225,9 @@ namespace u5303a {
         std::map< QString, bool > moduleStates_;
 
         // display data
-        std::map< boost::uuids::uuid, std::array< std::shared_ptr< adcontrols::MassSpectrum >, acqrscontrols::u5303a::nchannels > > spectra_;
+        std::map< boost::uuids::uuid
+                  , std::array< std::shared_ptr< adcontrols::MassSpectrum >
+                                , acqrscontrols::u5303a::nchannels > > spectra_;
 
         impl() : tdcdoc_( std::make_shared< acqrscontrols::u5303a::tdcdoc >() )
                , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
@@ -214,6 +254,9 @@ namespace u5303a {
         void loadControllerState();
         void takeSnapshot();
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double resolution ) const;
+
+        bool prepareStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& sp ) const;
+        bool closingStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& sp ) const;
 
         void handle_fsm_state_changed( bool enter, int id_state, adicontroller::Instrument::eInstStatus st ) {
             if ( enter )
@@ -247,7 +290,8 @@ namespace u5303a {
     std::mutex document::impl::mutex_;
     document * document::impl::instance_( 0 );
     const std::chrono::steady_clock::time_point document::impl::uptime_ = std::chrono::steady_clock::now();
-    const uint64_t document::impl::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
+    const uint64_t document::impl::tp0_ =
+        std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
 }
     
 document::document() : impl_( new impl() )
@@ -315,14 +359,22 @@ document::actionConnect()
             }
         }
 
-        // task::instance()->post( futures );
-
         // setup observer hiralchey
-        impl_->masterObserver_ = std::make_shared< adicontroller::MasterObserver >();
-        for ( auto& iController : impl_->iControllers_ ) {
-            if ( auto session = iController->getInstrumentSession() ) {
-                if ( auto observer = session->getObserver() )
-                    impl_->masterObserver_->addSibling( observer );
+        if ( auto masterObserver = adicontroller::task::instance()->masterObserver() ) {
+
+            masterObserver->setPrepareStorage( [&]( adicontroller::SampleProcessor& sp ) {
+                    return impl_->prepareStorage( boost::uuids::uuid{ 0 }, sp );
+                } );
+            
+            masterObserver->setClosingStorage( [&]( adicontroller::SampleProcessor& sp ) {
+                    return impl_->closingStorage( boost::uuids::uuid{ 0 }, sp );
+                } );
+            
+            for ( auto& iController : impl_->iControllers_ ) {
+                if ( auto session = iController->getInstrumentSession() ) {
+                    if ( auto observer = session->getObserver() )
+                        masterObserver->addSibling( observer );
+                }
             }
         }
 
@@ -441,6 +493,8 @@ document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, con
     emit sampleRunChanged();
 }
 
+
+
 void
 document::prepare_for_run()
 {
@@ -545,7 +599,8 @@ document::initialSetup()
 
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
-        path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+        path = QString::fromStdWString(
+            ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
         path = QFileInfo( path ).path();
     }
@@ -561,27 +616,25 @@ document::initialSetup()
     }
 
     if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
+
         boost::filesystem::path fname( dir / "samplerun.xml" );
         if ( boost::filesystem::exists( fname ) ) {
             std::wifstream inf( fname.string() );
             try { 
                 adcontrols::SampleRun::xml_restore( inf, *run );
+
+                // replace directory name to 'today'
+                run->setDataDirectory( impl_->nextSampleRun_->dataDirectory() ); // reset data directory to ctor default
+                adicontroller::SampleProcessor::prepare_sample_run( *run, false );
+
                 MainWindow::instance()->setSampleRun( *run );
                 document::setSampleRun( run );
+
             } catch ( std::exception& ex ) {
                 ADDEBUG() << ex.what();
             }
         }
     }
-
-
-#if 0
-    if ( auto pm = std::make_shared< adcontrols::ProcessMethod >() ) {
-        boost::filesystem::path fname( dir / Constants::LAST_PROC_METHOD );
-        if ( load( QString::fromStdWString( fname.wstring() ), *pm ) )
-            impl_->pm_ = pm;
-    }
-#endif
 }
 
 void
@@ -941,6 +994,8 @@ document::impl::handleDataEvent( adicontroller::SignalObserver::Observer *, unsi
 {
 }
 
+
+
 acqrscontrols::u5303a::tdcdoc *
 document::tdc()
 {
@@ -973,7 +1028,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
             if ( resolution > hgrm->xIncrement() ) {
                 std::vector< std::pair< double, uint32_t > > time_merged;
 
-                std::lock_guard< std::mutex > lock( impl_->mutex_ );            
+                // std::lock_guard< std::mutex > lock( impl_->mutex_ );            
                 adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
                 hgrm = hgrm->clone( time_merged );
             }
@@ -982,8 +1037,11 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
             adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
 
             impl_->triggers_per_second_ = hgrm->triggers_per_second();
-            
-            impl_->spectra_ [ histogram_observer ] [ idx ] = ms; // histogram
+
+            do {
+                std::lock_guard< std::mutex > lock( impl_->mutex_ );                    
+                impl_->spectra_ [ histogram_observer ] [ idx ] = ms; // histogram
+            } while ( 0 );
             
             emit dataChanged( histogram_observer, idx );
         }
@@ -1164,3 +1222,53 @@ document::isControllerEnabled( const QString& module ) const
     return false;
 }
 
+bool
+document::impl::prepareStorage( const boost::uuids::uuid& uuid, adicontroller::SampleProcessor& sp ) const
+{
+#if 0
+    // todo
+    std::string objtext;
+
+    auto it = observers_.find( uuid );
+    if ( it != observers_.end() )
+        objtext = it->second->objtext();
+    else if ( uuid == boost::uuids::uuid{ 0 } )
+        objtext = "master.observer";
+    else
+        return false;
+
+    // "{E45D27E0-8478-414C-B33D-246F76CF62AD}"
+    static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text ); 
+
+    // if ( auto scanLaw = document::instance()->scanLaw() ) {
+    static std::string this_spectrometer = "d8472724-40dd-4859-a1de-064b4a5e8320"; // "malpix large multum chamber"
+        
+    adfs::stmt sql( sp.filesystem().db() );
+    sql.prepare( "\
+INSERT OR REPLACE INTO ScanLaw ( objuuid, objtext, acclVoltage, tDelay, spectrometer, clsidSpectrometer) VALUES ( ?,?,?,?,?,? )" );
+    sql.bind( 1 ) = uuid;
+    sql.bind( 2 ) = objtext;
+    sql.bind( 3 ) = 4000.0; // scanLaw->kAcceleratorVoltage();
+    sql.bind( 4 ) = 0.0;    // scanLaw->tDelay();
+    sql.bind( 5 ) = this_spectrometer;
+    sql.bind( 6 ) = uuid_massspectrometer;
+    
+    if ( sql.step() != adfs::sqlite_done )
+        ADDEBUG() << "sqlite error";
+
+    sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
+    sql.bind( 1 ) = this_spectrometer;
+    sql.bind( 2 ) = 0;
+    sql.bind( 3 ) = std::string( "MULTUM CHAMBER" );
+    sql.bind( 4 ) = 0.5; // 0.5m fLength
+    if ( sql.step() != adfs::sqlite_done )
+        ADDEBUG() << "sqlite error";
+#endif
+    return true;
+}
+
+bool
+document::impl::closingStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& ) const
+{
+    return true;
+}
