@@ -40,6 +40,7 @@
 #include "sessionmanager.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/modemanager.h>
 #include <acewrapper/constants.hpp>
 #include <adcontrols/datafilebroker.hpp>
 #include <adcontrols/datafile_factory.hpp>
@@ -266,6 +267,7 @@ DataprocPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
     dataproc_document::instance()->initialSetup();
+    Core::ModeManager::activateMode( mode_->id() );
 }
 
 
