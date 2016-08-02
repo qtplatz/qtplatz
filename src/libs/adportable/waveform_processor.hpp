@@ -35,7 +35,7 @@ namespace adportable {
     class waveform_processor {
     public:
         template<class Iterator, class T>
-        Iterator find_threshold_element( Iterator beg, Iterator end, T level, bool& flag ) {
+        inline Iterator find_threshold_element( Iterator beg, Iterator end, T level, bool& flag ) {
             if ( beg != end ) {
                 flag = *beg < level; // positive-peak-front if true
                 while ( ++beg != end ) {
@@ -45,6 +45,7 @@ namespace adportable {
             }
             return end;
         }
+
     };
 
 }

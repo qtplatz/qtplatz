@@ -26,30 +26,54 @@
 
 #include "waveform_processor.hpp"
 #include "advance.hpp"
+#include <iterator>
 
 namespace adportable {
 
     struct threshold_finder {
     
         const bool findUp;
-        const unsigned int nfilter;
+        const unsigned int nskip;
     
-        threshold_finder( bool _findUp, unsigned int _nfilter ) : findUp( _findUp )
-                                                                , nfilter( _nfilter ) {
+        threshold_finder( bool _findUp, unsigned int _nskip )
+            : findUp( _findUp ), nskip( _nskip ) {
         }
 
+        // find either raising index or falling index per peak
         template< typename const_iterator >
-        void operator()( const_iterator&& begin, const_iterator&& end, std::vector< uint32_t >& indecies, double level ) {
+        void operator()( const_iterator&& begin, const_iterator&& end
+                         , std::vector< uint32_t >& indecies
+                         , typename std::iterator_traits< const_iterator >::value_type level ) {
             bool flag;
             auto it = begin;
             while ( it != end ) {
                 if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                     if ( flag == findUp )                        
-                        indecies.push_back( uint32_t( std::distance( begin, it ) ) );
-                    adportable::advance( it, nfilter, end );
+                        indecies.emplace_back( uint32_t( std::distance( begin, it ) ) );
+                    adportable::advance( it, nskip, end );
                 }
             }
         }
+
+        // find both raising,falling indecies
+        template< typename const_iterator >
+        void operator()( const_iterator&& begin, const_iterator&& end
+                         , std::vector< std::pair< uint32_t, uint32_t > >& indecies
+                         , typename std::iterator_traits< const_iterator >::value_type level ) {
+            bool flag;
+            auto it = begin;
+            while ( it != end ) {
+                if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
+                    if ( flag == findUp ) {
+                        indecies.emplace_back( uint32_t( std::distance( begin, it ) ), 0 ); // index, offset for up/down conter part
+                    } else {
+                        if ( !indecies.empty() )
+                            indecies.back().second = uint32_t( std::distance( begin, it ) );
+                    }
+                }
+            }
+        }
+        
     };
 
 }
