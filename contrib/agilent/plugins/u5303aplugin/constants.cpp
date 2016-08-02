@@ -34,11 +34,13 @@ Q_DECLARE_METATYPE( boost::uuids::uuid );
 namespace so = adicontroller::SignalObserver;
 
 namespace u5303a {
+    using boost::uuids::name_generator;
 
-    const boost::uuids::uuid u5303a_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name );
+    const boost::uuids::uuid u5303a_observer = name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name );
 
-    const boost::uuids::uuid histogram_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name );
+    const boost::uuids::uuid histogram_observer = name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name );
 
-    const boost::uuids::uuid ap240_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::ap240::waveform_observer_name );
-    
+    const boost::uuids::uuid ap240_observer = name_generator( so::Observer::base_uuid() )( acqrscontrols::ap240::waveform_observer_name );
+
+    const boost::uuids::uuid trace_observer = name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_traces_observer_name );
 }

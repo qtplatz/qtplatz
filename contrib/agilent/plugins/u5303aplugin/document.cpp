@@ -1021,35 +1021,6 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
     } while( 0 );
 
     emit dataChanged( objid, idx );
-
-#if 0
-    // all handled in 'task'
-    if ( objid == u5303a_observer ) {
-
-        if ( auto hgrm = tdc()->longTermHistogram() ) {
-
-            double resolution = 0;
-            if ( auto tm = tdc()->threshold_method( idx ) )
-                resolution = tm->time_resolution;
-
-            if ( resolution > hgrm->xIncrement() ) {
-                std::vector< std::pair< double, uint32_t > > time_merged;
-                adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
-                hgrm = hgrm->clone( time_merged );
-            }
-
-            auto ms = std::make_shared< adcontrols::MassSpectrum >();
-            adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
-            
-            do {
-                std::lock_guard< std::mutex > lock( impl_->mutex_ );                    
-                impl_->spectra_ [ histogram_observer ] [ idx ] = ms; // histogram
-            } while ( 0 );
-            
-            emit dataChanged( histogram_observer, idx );
-        }
-    }
-#endif
 }
 
 
@@ -1283,4 +1254,38 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
         } );
     }
 
+}
+
+void
+document::addCountingChromatogramsPoint( uint64_t timeSinceEpoch
+                                         , uint32_t serialnumber
+                                         , const std::vector<uint32_t>& values )
+{
+    auto injectTime = task::instance()->injectTimeSinceEpoch();
+
+    double seconds = ( timeSinceEpoch - task::instance()->upTimeSinceEpoch() ) * 1.0e-9;
+    
+    if ( auto method = impl_->tofChromatogramsMethod_ ) {
+        
+        auto size = std::min( std::min( values.size(), method->size() ), impl_->traces_.size() );
+        
+        for ( uint32_t fcn = 0; fcn < uint32_t( size ); ++fcn ) {
+            auto item = method->begin() + fcn;
+            //if ( item->intensityAlgorithm() == item->eCounting ) {
+            // ignore trace mode --> all treat as counting
+                impl_->traces_ [ fcn ]->push_back( serialnumber, seconds, values [ fcn ] );
+                impl_->traces_ [ fcn ]->setIsCountingTrace( true );
+            //}
+        }
+    }
+    
+    if ( impl_->traces_[ 0 ]->size() >= 2 )
+        emit dataChanged( trace_observer, 1 ); // on right axis
+}
+
+void
+document::getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& traces )
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+	traces = impl_->traces_;
 }

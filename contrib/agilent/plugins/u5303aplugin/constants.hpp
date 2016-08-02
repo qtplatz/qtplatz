@@ -31,7 +31,8 @@ namespace u5303a {
     extern const boost::uuids::uuid ap240_observer;
     extern const boost::uuids::uuid u5303a_observer;
     extern const boost::uuids::uuid histogram_observer;
-
+    extern const boost::uuids::uuid trace_observer;
+    
     namespace Constants {
 
         const char ACTION_ID[] = "u5303a.Action";

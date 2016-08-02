@@ -68,12 +68,14 @@ namespace u5303a {
         void setRecording( bool );
         bool isRecording() const;
 
-        void setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
-
         void sample_started();  // autosampler start
         void sample_injected(); // data acquisition start, being time zero
         void sample_stopped();  // data close, if ( injected ) { post process start } else { delete data }
 
+        void setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
+        uint64_t injectTimeSinceEpoch() const;
+        uint64_t upTimeSinceEpoch() const;
+        
     private:
         class impl;
         impl * impl_;

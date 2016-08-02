@@ -31,6 +31,7 @@
 #include <u5303a/digitizer.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -133,7 +134,6 @@ WaveformWnd::init()
         threshold_markers_[ i ]->attach( spw_ );
     }
 
-#if 0
     // Histogram window marker
     int viewId = 0;
     for ( auto& histogram_window_marker : histogram_window_markers_ ) {
@@ -147,12 +147,15 @@ WaveformWnd::init()
         }
         ++viewId;
     }
-#endif
 }
 
 void
 WaveformWnd::fini()
 {
+    for ( auto& histogram_window_marker : histogram_window_markers_ ) {
+        for ( auto& marker: histogram_window_marker )
+            marker->detach();
+    }
 }
 
 void
@@ -206,76 +209,118 @@ WaveformWnd::handle_method( const QString& )
 void
 WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 {
-    if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
+    if ( uuid == trace_observer ) {
+        auto method = document::instance()->tdc()->tofChromatogramsMethod();
 
-        if ( uuid == u5303a_observer ) {
-            // waveform (analog)
-            double seconds = sp->getMSProperty().timeSinceInjection();
-            QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
-                                                                                 , QString::number( sp->getMSProperty().trigNumber() ) );
+        std::vector< std::shared_ptr< adcontrols::Trace > > traces;
+
+        document::instance()->getTraces( traces );
+        
+        QString footer = QString( "#Method: %1, #Traces: %2" ).arg( QString::number( method->size() ), QString::number( traces.size() ) );
+        auto item = method->begin();
+        QVector< QwtText > titles;
+        for ( uint32_t fcn = 0; fcn < traces.size() && fcn < method->size(); ++fcn, ++item ) {
+
+            auto& trace = traces[ fcn ];
+            if ( fcn == 0 && trace->size() > 0 ) {
+                double seconds = trace->x( trace->size() - 1 );
+                footer += QString( "  Time: %1  " ).arg( QString::number( seconds / 60, 'f', 3 ) );
+                tpw_->setFooter( footer );
+            }
+
+            bool yRight = trace->isCountingTrace();
+            tpw_->setData( *trace, fcn, yRight );
+
+            // title for legends
+            char c = item->intensityAlgorithm() == item->eCounting ? 'C' : item->intensityAlgorithm() == item->ePeakAreaOnProfile ? 'A' : 'H';
+            auto formula = adcontrols::ChemicalFormula::formatFormula( item->formula() );
+            if ( formula.empty() )
+                titles << QwtText( QString( "%1: %2[%3]" ).arg( QString::number( ++idx )
+                                                                , QString::fromStdString( item->formula() ), QString( c ) ) );
+            else
+                titles << QwtText( QString( "%1: %2[%3]" ).arg( QString::number( ++idx )
+                                                                , QString::fromStdString( formula ), QString( c ) ), QwtText::RichText );
+        }
+
+        int idx( 0 );
+        for ( auto curve : tpw_->itemList( QwtPlotItem::Rtti_PlotCurve ) ) {
+            if ( titles.size() > idx )
+                curve->setTitle( titles [ idx++ ] );
+            else
+                curve->setTitle( QwtText() );
+        }
+        
+    } else {    
+        if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
+
+            if ( uuid == u5303a_observer ) {
+                // waveform (analog)
+                double seconds = sp->getMSProperty().timeSinceInjection();
+                QString title = QString( "U5303A: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
+                                                                                      , QString::number( sp->getMSProperty().trigNumber() ) );
             
-            spw_->setTitle( title );
-            spw_->setData( sp, idx, bool( idx ) );
-            spw_->setKeepZoomed( true );
+                spw_->setTitle( title );
+                spw_->setData( sp, idx, bool( idx ) );
+                spw_->setKeepZoomed( true );
 
-        } else if ( uuid == histogram_observer ) {
-            // histogram
+            } else if ( uuid == histogram_observer ) {
+                // histogram
 
-            double rate = document::instance()->triggers_per_second();
+                double rate = document::instance()->triggers_per_second();
             
-            QString title = QString( "U5303A: %1 samples since trig# %2, at rate %3/s" ).arg(
-                QString::number( sp->getMSProperty().numAverage() )
-                , QString::number( sp->getMSProperty().trigNumber() )
-                , QString::number( rate, 'f', 2 ) );
+                QString title = QString( "U5303A: %1 samples since trig# %2, at rate %3/s" ).arg(
+                    QString::number( sp->getMSProperty().numAverage() )
+                    , QString::number( sp->getMSProperty().trigNumber() )
+                    , QString::number( rate, 'f', 2 ) );
 
-            hpw_->setTitle( title );
-            hpw_->setData( sp, idx, bool( idx ) );
-            hpw_->setKeepZoomed( true );
+                hpw_->setTitle( title );
+                hpw_->setData( sp, idx, bool( idx ) );
+                hpw_->setKeepZoomed( true );
 
-        } else if ( uuid == ap240_observer ) {
+            } else if ( uuid == ap240_observer ) {
 
-            double seconds = sp->getMSProperty().timeSinceInjection();
-            QString title = QString( "AP240: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
-                                                                                 , QString::number( sp->getMSProperty().trigNumber() ) );
+                double seconds = sp->getMSProperty().timeSinceInjection();
+                QString title = QString( "AP240: Elapsed time: %1s, Trig# %2" ).arg( QString::number( seconds, 'f', 4 )
+                                                                                     , QString::number( sp->getMSProperty().trigNumber() ) );
             
-            spw_->setTitle( title );
-            spw_->setData( sp, idx, bool( idx ) );
+                spw_->setTitle( title );
+                spw_->setData( sp, idx, bool( idx ) );
 
+            } else {
+                ADDEBUG() << "Unhandled observer";
+            }
+        
         } else {
-            ADDEBUG() << "Unhandled observer";
-        }
-        
-    } else {
 
-        // clear spectrum
-        static auto empty = std::make_shared< adcontrols::MassSpectrum >();
+            // clear spectrum
+            static auto empty = std::make_shared< adcontrols::MassSpectrum >();
         
-        if ( uuid == u5303a_observer ) {
+            if ( uuid == u5303a_observer ) {
             
-            spw_->setData( empty, idx, bool( idx ) );
+                spw_->setData( empty, idx, bool( idx ) );
 
-        } else if ( uuid == histogram_observer ) {
+            } else if ( uuid == histogram_observer ) {
 
-            hpw_->setData( empty, idx, bool( idx ) );
+                hpw_->setData( empty, idx, bool( idx ) );
                                                                       
+            }
+
         }
-
     }
-
 }
 
 void
 WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-#if 0
+    ADDEBUG() << "setMethod .....";
+    
     int idx = 0;
-    for ( auto& item : m ) { // = m.begin(); item != m.end(); ++item, ++idx ) {
+    for ( auto& item : m ) {
 
         if ( idx < histogram_window_markers_[0].size() ) {
 
-            if ( item.formula().empty() || item.formula() == "TIC" ||
-                 ( item.time() < 1.0e-9 ) || ( item.timeWindow() < 1.0e-11 ) ) {
-
+            if ( item.formula() == "TIC" || ( item.time() < 1.0e-9 ) ) {
+                
                 for ( size_t i = 0; i < histogram_window_markers_.size(); ++i ) {
                     auto& marker = histogram_window_markers_[ i ][ idx ];
                     marker->visible( false );
@@ -298,5 +343,4 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
     }
     spw_->replot();
     hpw_->replot();
-#endif
 }

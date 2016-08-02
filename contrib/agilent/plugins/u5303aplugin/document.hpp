@@ -126,6 +126,9 @@ namespace u5303a {
         acqrscontrols::u5303a::tdcdoc * tdc();
         QSettings * settings();
 
+        void addCountingChromatogramsPoint( uint64_t timeSinceEpoch, uint32_t serialnumber, const std::vector<uint32_t>& );
+        // std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
+        
         // tentative solution -- will be removed
         void result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_result > ch1 );
         // <---

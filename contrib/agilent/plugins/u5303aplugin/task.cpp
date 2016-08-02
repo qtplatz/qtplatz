@@ -539,7 +539,7 @@ task::impl::handle_histograms()
         for ( auto& ptr: accessor->vec ) {
             std::vector< uint32_t > results; // counts
             document::instance()->tdc()->makeCountingChromatogramPoints( *ptr, results );
-            // document::instance()->addCountingChromatogramsPoint( ptr->timeSinceEpoch().first, ptr->serialnumber().first, results );
+            document::instance()->addCountingChromatogramsPoint( ptr->timeSinceEpoch().first, ptr->serialnumber().first, results );
         }
 
         if ( auto hgrm = accessor->vec.back() ) {
@@ -547,4 +547,16 @@ task::impl::handle_histograms()
             sema_.signal();
         }
     }
+}
+
+uint64_t
+task::injectTimeSinceEpoch() const
+{
+    return std::chrono::duration_cast< std::chrono::nanoseconds >( adicontroller::task::instance()->tp_inject().time_since_epoch() ).count();
+}
+
+uint64_t
+task::upTimeSinceEpoch() const
+{
+    return std::chrono::duration_cast< std::chrono::nanoseconds >( impl_->tp_uptime_.time_since_epoch() ).count();
 }
