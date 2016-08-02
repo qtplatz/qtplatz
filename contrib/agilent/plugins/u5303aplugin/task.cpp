@@ -31,6 +31,8 @@
 #include <acqrscontrols/u5303a/method.hpp>
 #include <u5303a/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/mappedimage.hpp>
 #include <adcontrols/mappedspectra.hpp>
 #include <adcontrols/mappedspectrum.hpp>
@@ -48,6 +50,7 @@
 #include <adicontroller/signalobserver.hpp>
 #include <adicontroller/sampleprocessor.hpp>
 #include <adicontroller/task.hpp>
+#include <adicontroller/timedigital_histogram_accessor.hpp>
 #include <adlog/logger.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -103,8 +106,10 @@ namespace u5303a {
 
     class task::impl {
     public:
-        impl() : worker_stopping_( false )
+        impl() : tp_uptime_( std::chrono::steady_clock::now() )
                , work_( io_service_ )
+               , strand_( io_service_ )
+               , worker_stopping_( false )
                , traceAccessor_( std::make_shared< adcontrols::TraceAccessor >() )
                , software_inject_triggered_( false )
                , cell_selection_enabled_( false )
@@ -112,20 +117,22 @@ namespace u5303a {
                , histogram_clear_cycle_enabled_( false )
                , histogram_clear_cycle_( 100 )
                , device_delay_count_( 0 )
-               , isRecording_( true ) {
+               , isRecording_( true )
+               , refreshHistogram_( false ) {
             
         }
 
         static std::atomic< task * > instance_;
         static std::mutex mutex_;
 
+        const std::chrono::steady_clock::time_point tp_uptime_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
+        boost::asio::io_service::strand strand_;
 
         std::vector< std::thread > threads_;
         adportable::semaphore sema_;
         std::atomic< bool > worker_stopping_;
-        std::chrono::steady_clock::time_point tp_uptime_;
         std::chrono::steady_clock::time_point tp_inject_;
 
         std::map< boost::uuids::uuid, data_status > data_status_;
@@ -136,15 +143,12 @@ namespace u5303a {
         std::atomic< bool > cell_selection_enabled_;
         std::atomic< bool > histogram_clear_cycle_enabled_;
         std::atomic< bool > isRecording_;
+        std::atomic< bool > refreshHistogram_;
 
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
 
         std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > que_;
-        //std::vector< std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > > que_;
-
-        // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > acquireingSamples_;
-        // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > processingSamples_;
         acqrscontrols::u5303a::metadata metadata_;
         uint32_t device_delay_count_;
 
@@ -156,6 +160,7 @@ namespace u5303a {
         void handle_u5303a_average( const data_status, std::array< threshold_result_ptr, 2 > );
         void handle_ap240_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
         void handle_ap240_average( const data_status, std::array< threshold_result_ptr, 2 > );
+        void handle_histograms();
 
         void resetDeviceData() {
             traceAccessor_->clear();
@@ -286,26 +291,26 @@ task::post( std::vector< std::future<bool> >& futures )
 void
 task::impl::worker_thread()
 {
+    using acqrscontrols::u5303a::tdcdoc;
+
     do {
         sema_.wait();
 
         if ( worker_stopping_ )
             return;
 
-        auto& status = data_status_[ u5303a_observer ];
+        // per trigger waveform
+        if ( data_status_[ u5303a_observer ].plot_ready_ ) {
 
-        if ( status.plot_ready_ ) {
-
+            auto& status = data_status_[ u5303a_observer ];
+            
             status.plot_ready_ = false;
             status.tp_plot_handled_ = std::chrono::steady_clock::now();
 
             int channel = 0;
-            std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
-            do {
-                // std::lock_guard< std::mutex > lock( mutex_ );
-                threshold_results = que_; //.back();
-            } while ( 0 );
-
+            // std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
+            auto threshold_results = que_;
+            
             for ( auto result: threshold_results ) {
                 if ( result ) {
                     auto ms = std::make_shared< adcontrols::MassSpectrum >();
@@ -319,13 +324,37 @@ task::impl::worker_thread()
                 }
                 ++channel;
             }
-            
         }
 
-        if ( status.data_ready_ ) {
-            status.data_ready_ = false;
-            status.tp_data_handled_ = std::chrono::steady_clock::now();
-            document::instance()->commitData();
+        if ( data_status_[ u5303a_observer ].data_ready_ ) {        
+            data_status_[ u5303a_observer ].data_ready_ = false;
+            data_status_[ u5303a_observer ].tp_data_handled_ = std::chrono::steady_clock::now();
+            io_service_.post( strand_.wrap( [&]() { document::instance()->commitData(); } ) );
+        }
+
+        // Histogram
+        if ( data_status_[ histogram_observer ].plot_ready_ ) { 
+            auto& status = data_status_[ histogram_observer ];
+            status.plot_ready_ = false;
+
+            //if ( auto ms = document::instance()->tdc()->recentSpectrum( choice, mass_assignee ) ) {...
+            auto tdc = document::instance()->tdc();
+            if ( auto hgrm = tdc->longTermHistogram() ) {
+                double resolution = 0;
+                if ( auto tm = tdc->threshold_method( /* ch(0|1) */ 0 ) )
+                    resolution = tm->time_resolution;
+                
+                if ( resolution > hgrm->xIncrement() ) {
+                    std::vector< std::pair< double, uint32_t > > time_merged;
+                    adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
+                    hgrm = hgrm->clone( time_merged );
+                }
+                
+                auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
+                document::instance()->setData( histogram_observer, ms, 0 );
+            }
+            status.tp_plot_handled_ = std::chrono::steady_clock::now();
         }
 
     } while ( true );
@@ -344,9 +373,7 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
         
         if ( so->objid() == u5303a_observer ) {
 
-            std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
-
-            if ( ( rb = so->readData( pos ) ) )
+            if ( auto rb = so->readData( pos ) )
                 handle_u5303a_data( status, rb );
 
         } else {
@@ -375,50 +402,46 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
         }
     }
 
+    using namespace std::chrono_literals;
+
     if ( waveforms[0] || waveforms[1] ) {
 
         auto threshold_results = document::instance()->tdc()->processThreshold( waveforms );
+
+        const auto tp = std::chrono::steady_clock::now();
         
         if ( threshold_results[0] || threshold_results[1] ) {
 
-            if ( threshold_results[0] ) 
-                io_service_.post( [=]() { document::instance()->result_to_file( threshold_results[0] ); } );
+            if ( threshold_results[0] )  {
 
-            document::instance()->tdc()->accumulate_histogram( threshold_results [ 0 ] );
-            handle_u5303a_average( status, threshold_results ); // draw spectrogram and TIC
-  
+                io_service_.post( [=]() { document::instance()->result_to_file( threshold_results.at(0) ); } );
+
+                // make histogram (long-term & periodical)
+                if ( document::instance()->tdc()->accumulate_histogram( threshold_results [ 0 ] ) &&
+                     ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) > 250ms ) ) {
+                    
+                    data_status_[ histogram_observer ].tp_plot_handled_ = tp;
+                    io_service_.post( [this](){ handle_histograms(); } );
+                }
+
+                // single trigger waveform
+                if ( ( tp - data_status_[ u5303a_observer ].tp_plot_handled_ ) >= 250ms ) {
+                    que_ = threshold_results;                    
+                    status.plot_ready_ = true; // u5303a
+                    sema_.signal();
+
+                }
+
+                // data
+                if ( ( tp - status.tp_data_handled_ ) >= 1000ms ) {
+        
+                    status.data_ready_ = true;  // u5303a
+                    sema_.signal();
+
+                }
+                
+            }
         }
-    }
-}
-
-void
-task::impl::handle_u5303a_average( const data_status status, std::array< threshold_result_ptr, 2 > threshold_results )
-{
-    do {
-        // document::instance()->result_to_file( threshold_results[0] );
-        // std::lock_guard< std::mutex > lock( mutex_ );
-        // que_.push_back( threshold_results );
-        // if ( que_.size() >= 10 )
-        //     que_.erase( que_.begin(), que_.begin() + 5 );
-        
-    } while( 0 ) ;
-
-    auto tp = std::chrono::steady_clock::now();
-
-    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
-
-        data_status_[ u5303a_observer ].plot_ready_ = true;
-        // std::lock_guard< std::mutex > lock( mutex_ );
-        que_ = threshold_results;
-        sema_.signal();
-
-    }
-    
-    if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_data_handled_ ).count() >= 1000 ) {
-        
-        data_status_[ u5303a_observer ].data_ready_ = true;
-        sema_.signal();
-
     }
 }
 
@@ -491,5 +514,37 @@ task::isRecording() const
 void
 task::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-    // nothing to do
+    impl_->refreshHistogram_ = m.refreshHistogram();
+}
+
+void
+task::impl::handle_histograms()
+{
+    auto accessor = std::make_shared< adicontroller::timedigital_histogram_accessor >();
+
+    size_t ndata(0);
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        ndata = document::instance()->tdc()->readTimeDigitalHistograms( accessor->vec );
+    } while ( 0 );
+
+    if ( ndata ) {
+        // ============= write Time digital countgram to .adfs file ====================
+        // do {
+        //     auto tmp = std::make_shared< adicontroller::SignalObserver::DataWriter >( accessor );
+        //     io_service_.post( [=](){ adicontroller::task::instance()->handle_write( histogram_observer, tmp ); } );
+        // } while (0 );
+        // <============================================================================
+
+        for ( auto& ptr: accessor->vec ) {
+            std::vector< uint32_t > results; // counts
+            document::instance()->tdc()->makeCountingChromatogramPoints( *ptr, results );
+            // document::instance()->addCountingChromatogramsPoint( ptr->timeSinceEpoch().first, ptr->serialnumber().first, results );
+        }
+
+        if ( auto hgrm = accessor->vec.back() ) {
+            data_status_[ histogram_observer ].plot_ready_ = true;
+            sema_.signal();
+        }
+    }
 }

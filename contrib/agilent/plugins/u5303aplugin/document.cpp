@@ -1021,7 +1021,9 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
     } while( 0 );
 
     emit dataChanged( objid, idx );
-    
+
+#if 0
+    // all handled in 'task'
     if ( objid == u5303a_observer ) {
 
         if ( auto hgrm = tdc()->longTermHistogram() ) {
@@ -1047,6 +1049,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
             emit dataChanged( histogram_observer, idx );
         }
     }
+#endif
 }
 
 
