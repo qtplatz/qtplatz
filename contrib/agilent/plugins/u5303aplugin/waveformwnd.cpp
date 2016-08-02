@@ -69,6 +69,7 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
     //     marker = std::make_unique< adplot::PeakMarker >();
 
     init();
+    connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
 }
 
 WaveformWnd::~WaveformWnd()

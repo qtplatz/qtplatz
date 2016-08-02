@@ -57,6 +57,7 @@ namespace u5303a {
     public slots:
         void handle_threshold_method( int ch );
         void handle_method( const QString& );
+    private slots:
         void dataChanged( const boost::uuids::uuid&, int idx );
 
     private:

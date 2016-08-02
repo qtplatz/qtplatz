@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2014-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2014-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -406,7 +406,7 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroll
 
     if ( waveforms[0] || waveforms[1] ) {
 
-        auto threshold_results = document::instance()->tdc()->processThreshold( waveforms );
+        auto threshold_results = document::instance()->tdc()->processThreshold2( waveforms );
 
         const auto tp = std::chrono::steady_clock::now();
         
@@ -552,7 +552,9 @@ task::impl::handle_histograms()
 uint64_t
 task::injectTimeSinceEpoch() const
 {
-    return std::chrono::duration_cast< std::chrono::nanoseconds >( adicontroller::task::instance()->tp_inject().time_since_epoch() ).count();
+    using std::chrono::nanoseconds;
+    using adicontroller::task;
+    return std::chrono::duration_cast< nanoseconds >( task::instance()->tp_inject().time_since_epoch() ).count();
 }
 
 uint64_t

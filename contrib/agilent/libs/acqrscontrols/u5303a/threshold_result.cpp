@@ -40,20 +40,24 @@ using namespace acqrscontrols::u5303a;
 
 threshold_result::threshold_result() : foundIndex_( npos )
                                      , findRange_( 0, 0 )
+                                     , findUp_( false )
 {
 }
 
 threshold_result::threshold_result( std::shared_ptr< const waveform > d ) : data_( d )
                                                                           , foundIndex_( npos )
                                                                           , findRange_( 0, 0 )
+                                                                          , findUp_( false )
 {
 }
 
-threshold_result::threshold_result( const threshold_result& t ) : indecies_( t.indecies_ )
-                                                                , data_( t.data_ )
+threshold_result::threshold_result( const threshold_result& t ) : data_( t.data_ )
+                                                                , indecies_( t.indecies_ )
+                                                                , indecies2_( t.indecies2_ )
                                                                 , processed_( t.processed_ )
                                                                 , foundIndex_( t.foundIndex_ )
                                                                 , findRange_( t.findRange_ )
+                                                                , findUp_( t.findUp_ )
 {
 }
 
@@ -69,8 +73,32 @@ threshold_result::indecies()
     return indecies_;
 }
 
+const std::vector< uint32_t >&
+threshold_result::indecies() const
+{
+    return indecies_;
+}
+
+std::vector< std::pair< uint32_t, uint32_t > >&
+threshold_result::indecies2()
+{
+    return indecies2_;
+}
+
+const std::vector< std::pair< uint32_t, uint32_t > >&
+threshold_result::indecies2() const
+{
+    return indecies2_;
+}
+
 std::vector< double >&
 threshold_result::processed()
+{
+    return processed_;
+}
+
+const std::vector< double >&
+threshold_result::processed() const
 {
     return processed_;
 }
@@ -79,18 +107,6 @@ std::shared_ptr< const waveform >
 threshold_result::data() const
 {
     return data_;
-}
-
-const std::vector< uint32_t >&
-threshold_result::indecies() const
-{
-    return indecies_;
-}
-
-const std::vector< double >&
-threshold_result::processed() const
-{
-    return processed_;
 }
 
 const std::pair<uint32_t, uint32_t >&
@@ -138,6 +154,18 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t 
     return true;
 }
 
+void
+threshold_result::setFindUp( bool f )
+{
+    findUp_ = f;
+}
+
+bool
+threshold_result::findUp() const
+{
+    return findUp_;
+}
+
 namespace acqrscontrols {
     namespace u5303a {
 
@@ -150,12 +178,21 @@ namespace acqrscontrols {
                     << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
                     << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
 
-                for ( auto& idx : t.indecies() ) {
-                    auto v = data->xy( idx );
-                    os << boost::format( ", %.14le, %d" ) % v.first % v.second;
+                if ( ! t.indecies2().empty() ) {
+                    for ( auto& idx : t.indecies2() ) {
+                        auto v = data->xy( idx.first );
+                        //os << boost::format( ", %.14le, %d" ) % v.first % v.second;
+                        os << boost::format( ", %.14le, %d, %d" ) % v.first % idx.first % idx.second;
+                    }
+                } else {
+                    for ( auto& idx : t.indecies() ) {
+                        auto v = data->xy( idx );
+                        os << boost::format( ", %.14le, %d" ) % v.first % v.second;
+                    }
                 }
             }
             return os;
         }
     }
 }
+

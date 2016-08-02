@@ -272,7 +272,6 @@ MainWindow::createContents( Core::IMode * mode )
             editorHolderLayout->addWidget( wnd );
             connect( document::instance(), &document::on_threshold_method_changed, wnd, &WaveformWnd::handle_threshold_method );
             connect( document::instance(), &document::onControlMethodChanged, wnd, &WaveformWnd::handle_method );
-            bool res = connect( document::instance(), &document::dataChanged, wnd, &WaveformWnd::dataChanged );
             // validation for uuid class registoration -- will be compile error if not registered
             QVariant v;
             v.setValue( boost::uuids::uuid() );

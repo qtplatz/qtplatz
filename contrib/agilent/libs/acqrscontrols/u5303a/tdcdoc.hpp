@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -77,6 +77,10 @@ namespace acqrscontrols {
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
                 processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
 
+            // find pair of raising,falling
+            std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
+                processThreshold2( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+
             bool accumulate_waveform( std::shared_ptr< const waveform_type > );
 
             bool accumulate_histogram( const_threshold_result_ptr );
@@ -100,8 +104,10 @@ namespace acqrscontrols {
             enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
 
             typedef std::function< double( double, int ) > mass_assignee_t;
-            std::shared_ptr< adcontrols::MassSpectrum > recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;
 
+            std::shared_ptr< adcontrols::MassSpectrum >
+                recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;
+            
             bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
 
             bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
@@ -113,6 +119,11 @@ namespace acqrscontrols {
             static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                                    , const adcontrols::threshold_method& method
                                                    , std::vector< uint32_t >& elements
+                                                   , std::vector<double>& processed );
+
+            static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
+                                                   , const adcontrols::threshold_method& method
+                                                   , std::vector< std::pair< uint32_t, uint32_t > >& elements
                                                    , std::vector<double>& processed );
 
         private:

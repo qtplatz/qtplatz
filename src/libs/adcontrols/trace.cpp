@@ -137,19 +137,25 @@ Trace::resize( size_t size )
 double
 Trace::x( size_t idx ) const
 {
-    return std::get< x_value >( values_.at( idx ) );
+    if ( values_.size() > idx )
+        return std::get< x_value >( values_.at( idx ) );
+    return 0;
 }
 
 double
 Trace::y( size_t idx ) const
 {
-    return std::get< y_value >( values_.at( idx ) );
+    if ( values_.size() > idx )    
+        return std::get< y_value >( values_.at( idx ) );
+    return 0;
 }
 
 std::pair< double, double >
 Trace::xy( size_t idx ) const
 {
-    return std::make_pair( std::get< x_value >( values_.at( idx ) ), std::get< y_value >( values_.at( idx ) ) );
+    if ( values_.size() > idx )        
+        return std::make_pair( std::get< x_value >( values_.at( idx ) ), std::get< y_value >( values_.at( idx ) ) );
+    return { 0, 0 };
 }
 
 std::pair<double, double>

@@ -39,20 +39,19 @@ namespace acqrscontrols {
         class waveform;
 
         class ACQRSCONTROLSSHARED_EXPORT threshold_result {
-            pragma_msvc_warning_push_disable_4251
-            std::shared_ptr< const waveform > data_;
-            std::vector< uint32_t > indecies_;
-            std::vector< double > processed_;
-            uint32_t foundIndex_;
-            std::pair< uint32_t, uint32_t > findRange_;
-            pragma_msvc_warning_pop
         public:
             std::shared_ptr< const waveform >& data();
+
             std::vector< uint32_t >& indecies();
-            std::vector< double >& processed();
-            std::shared_ptr< const waveform > data() const;
             const std::vector< uint32_t >& indecies() const;
+
+            std::vector< std::pair< uint32_t, uint32_t > >& indecies2();
+            const std::vector< std::pair< uint32_t, uint32_t > >& indecies2() const;
+
+            std::vector< double >& processed();
             const std::vector< double >& processed() const;
+
+            std::shared_ptr< const waveform > data() const;
             
             const std::pair<uint32_t, uint32_t >& findRange() const;
             uint32_t foundIndex() const;
@@ -66,8 +65,17 @@ namespace acqrscontrols {
             threshold_result();
             threshold_result( std::shared_ptr< const waveform > d );
             threshold_result( const threshold_result& t );
-
             bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
+            void setFindUp( bool );
+            bool findUp() const;
+        private:
+            std::shared_ptr< const waveform > data_;
+            std::vector< uint32_t > indecies_;
+            std::vector< std::pair< uint32_t, uint32_t > > indecies2_;
+            std::vector< double > processed_;
+            std::pair< uint32_t, uint32_t > findRange_;
+            uint32_t foundIndex_;
+            bool findUp_;
         };
 
         // text output

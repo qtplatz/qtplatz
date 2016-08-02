@@ -1,26 +1,26 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
-*
-** Contact: toshi.hondo@qtplatz.com
-**
-** Commercial Usage
-**
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics LLC.
-**
-** GNU Lesser General Public License Usage
-**
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.TXT included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-**************************************************************************/
+ ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ *
+ ** Contact: toshi.hondo@qtplatz.com
+ **
+ ** Commercial Usage
+ **
+ ** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+ ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+ ** Software or, alternatively, in accordance with the terms contained in
+ ** a written agreement between you and MS-Cheminformatics LLC.
+ **
+ ** GNU Lesser General Public License Usage
+ **
+ ** Alternatively, this file may be used under the terms of the GNU Lesser
+ ** General Public License version 2.1 as published by the Free Software
+ ** Foundation and appearing in the file LICENSE.TXT included in the
+ ** packaging of this file.  Please review the following information to
+ ** ensure the GNU Lesser General Public License version 2.1 requirements
+ ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+ **
+ **************************************************************************/
 
 #include "tdcdoc.hpp"
 #include "averagedata.hpp"
@@ -190,7 +190,7 @@ tdcdoc::~tdcdoc()
 
 /*
   Master entry point from 'task' module
- */
+*/
 bool
 tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 {
@@ -476,8 +476,52 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
                 counts.second++;
             
             if ( methods[ i ] && methods[ i ]->enable ) {
-                
+
+                results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
+
+                bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
+                
+                if ( result )
+                    counts.first++;
+            }
+        }
+    }
+
+    return results;
+}
+
+// this is called from u5303aplugin, trial for raising,falling pair lookup
+std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
+tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
+{
+    if ( !waveforms[0] && !waveforms[1] ) // empty
+        return std::array< threshold_result_ptr, 2 >();
+
+    std::array< threshold_result_ptr, 2 > results;
+    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
+
+    for ( size_t i = 0; i < waveforms.size(); ++i ) {
+
+        if ( waveforms[ i ] ) {
+
+            auto& counts = impl_->threshold_action_counts_[ i ];
+            
+            results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
+
+            const auto idx = waveforms[ i ]->method_.protocolIndex();
+            if ( idx == 0 )
+                counts.second++;
+            
+            if ( methods[ i ] && methods[ i ]->enable ) {
+
+                results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );                
+                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies2(), results[ i ]->processed() );
+
+                results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
+
+                std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().begin()
+                                , results[ i ]->indecies().begin(), []( const std::pair<uint32_t, uint32_t>& a ){ return a.first; } );
 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 
@@ -577,6 +621,39 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
     //     return;
     // <<-- workaround
 
+    if ( method.use_filter ) {
+
+        waveform_type::apply_filter( processed, data, method );
+
+        double level = method.threshold_level;
+        finder( processed.begin(), processed.end(), elements, level );        
+        
+    } else {
+
+        double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+        double level = level_per_trigger;
+        if ( data.meta_.actualAverages )
+            level = level_per_trigger * data.meta_.actualAverages;
+
+        if ( data.meta_.dataType == 2 )
+            finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
+        else if ( data.meta_.dataType == 4 )
+            finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
+    }
+}
+
+// static
+void
+tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
+                                   , const adcontrols::threshold_method& method
+                                   , std::vector< std::pair< uint32_t, uint32_t > >& elements
+                                   , std::vector<double>& processed )
+{
+    const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
+    const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
+
+    adportable::threshold_finder finder( findUp, nfilter );
+    
     if ( method.use_filter ) {
 
         waveform_type::apply_filter( processed, data, method );
