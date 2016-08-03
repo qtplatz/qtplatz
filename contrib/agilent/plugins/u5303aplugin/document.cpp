@@ -1268,19 +1268,19 @@ document::addCountingChromatogramsPoint( uint64_t timeSinceEpoch
     if ( auto method = impl_->tofChromatogramsMethod_ ) {
         
         auto size = std::min( std::min( values.size(), method->size() ), impl_->traces_.size() );
-        
-        for ( uint32_t fcn = 0; fcn < uint32_t( size ); ++fcn ) {
-            auto item = method->begin() + fcn;
+        if ( size ) {
+        	for ( uint32_t fcn = 0; fcn < uint32_t( size ); ++fcn ) {
+        		auto item = method->begin() + fcn;
             //if ( item->intensityAlgorithm() == item->eCounting ) {
             // ignore trace mode --> all treat as counting
                 impl_->traces_ [ fcn ]->push_back( serialnumber, seconds, values [ fcn ] );
                 impl_->traces_ [ fcn ]->setIsCountingTrace( true );
             //}
+        	}
+            if ( impl_->traces_[ 0 ]->size() >= 2 )
+                emit dataChanged( trace_observer, 1 ); // on right axis
         }
     }
-    
-    if ( impl_->traces_[ 0 ]->size() >= 2 )
-        emit dataChanged( trace_observer, 1 ); // on right axis
 }
 
 void
