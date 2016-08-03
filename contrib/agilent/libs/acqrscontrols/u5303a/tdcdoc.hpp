@@ -33,6 +33,8 @@
 #include <vector>
 #include <functional>
 
+namespace adportable { struct threshold_index; }
+
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
 
 namespace adcontrols { class threshold_action; class threshold_method;
@@ -123,7 +125,7 @@ namespace acqrscontrols {
 
             static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                                    , const adcontrols::threshold_method& method
-                                                   , std::vector< std::pair< uint32_t, uint32_t > >& elements
+                                                   , std::vector< adportable::threshold_index >& elements
                                                    , std::vector<double>& processed );
 
         private:

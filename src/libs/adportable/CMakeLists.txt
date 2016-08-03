@@ -37,6 +37,7 @@ add_library( adportable
   string.cpp
   textfile.cpp
   threshold_finder.hpp
+  threshold_index.hpp
   timer.cpp
   timesquaredscanlaw.cpp
   utf.cpp

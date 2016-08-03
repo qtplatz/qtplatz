@@ -470,6 +470,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
             auto& counts = impl_->threshold_action_counts_[ i ];
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
+            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
 
             const auto idx = waveforms[ i ]->method_.protocolIndex();
             if ( idx == 0 )
@@ -477,7 +478,6 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
             
             if ( methods[ i ] && methods[ i ]->enable ) {
 
-                results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
@@ -508,6 +508,7 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
             auto& counts = impl_->threshold_action_counts_[ i ];
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
+            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );                
 
             const auto idx = waveforms[ i ]->method_.protocolIndex();
             if ( idx == 0 )
@@ -515,14 +516,15 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
             
             if ( methods[ i ] && methods[ i ]->enable ) {
 
-                results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );                
+                // find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
                 find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies2(), results[ i ]->processed() );
 
                 results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
 
-                std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().begin()
-                                , results[ i ]->indecies().begin(), []( const std::pair<uint32_t, uint32_t>& a ){ return a.first; } );
-
+                // vector< std::pair<uint32_t, uint32_t> > ==> vector< uint32_t >
+                std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().end()
+                                , results[ i ]->indecies().begin(), []( const adportable::threshold_index& a ){ return a.first; } );
+                
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 
                 if ( result )
@@ -646,7 +648,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 void
 tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
                                    , const adcontrols::threshold_method& method
-                                   , std::vector< std::pair< uint32_t, uint32_t > >& elements
+                                   , std::vector< adportable::threshold_index >& elements
                                    , std::vector<double>& processed )
 {
     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;

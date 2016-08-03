@@ -27,6 +27,7 @@
 #include <boost/format.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/threshold_finder.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -79,13 +80,13 @@ threshold_result::indecies() const
     return indecies_;
 }
 
-std::vector< std::pair< uint32_t, uint32_t > >&
+std::vector< adportable::threshold_index >&
 threshold_result::indecies2()
 {
     return indecies2_;
 }
 
-const std::vector< std::pair< uint32_t, uint32_t > >&
+const std::vector< adportable::threshold_index >&
 threshold_result::indecies2() const
 {
     return indecies2_;
@@ -171,19 +172,26 @@ namespace acqrscontrols {
 
         std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
 
-            if ( auto data = t.data() ) {
-                os << boost::format( "\n%d, %.8lf, %.8lf, " ) % data->serialnumber_ % data->meta_.initialXTimeSeconds % t.data()->timeSinceInject_
-                    << t.data()->timeSinceEpoch_
-                    << boost::format( ", 0x%08x" ) % t.data()->wellKnownEvents_
-                    << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
-                    << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
+            if ( os.tellp() == 0 )
+                os << "## trig#, time-stamp(s), time(s), epoch time(ns), events, scale factor, scale offset, delay time(s),"
+                    "[time(s), idx0, idx1, idx2, value]";
 
+            if ( auto data = t.data() ) {
+
+                os << boost::format( "\n%d, %.8lf, %.8lf, " )
+                    % data->serialnumber_ % data->meta_.initialXTimeSeconds % t.data()->timeSinceInject_
+                   << t.data()->timeSinceEpoch_
+                   << boost::format( ", 0x%08x" ) % t.data()->wellKnownEvents_
+                   << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
+                   << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
+                
                 if ( ! t.indecies2().empty() ) {
                     for ( auto& idx : t.indecies2() ) {
                         auto v = data->xy( idx.first );
-                        //os << boost::format( ", %.14le, %d" ) % v.first % v.second;
-                        os << boost::format( ", %.14le, %d, %d" ) % v.first % idx.first % idx.second;
+                        os << boost::format( ",\t%.14le, %d, %d, %d, %.5f" )
+                            % v.first % idx.first % idx.second % idx.apex % t.data()->toVolts( idx.value );
                     }
+                    
                 } else {
                     for ( auto& idx : t.indecies() ) {
                         auto v = data->xy( idx );

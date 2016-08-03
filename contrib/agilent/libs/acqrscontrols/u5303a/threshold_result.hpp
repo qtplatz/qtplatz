@@ -25,6 +25,7 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include <adportable/threshold_index.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/access.hpp>
 #include <memory>
@@ -33,6 +34,7 @@
 #include <ostream>
 #include <compiler/pragma_warning.hpp>
 
+
 namespace acqrscontrols {
     namespace u5303a {
 
@@ -40,13 +42,17 @@ namespace acqrscontrols {
 
         class ACQRSCONTROLSSHARED_EXPORT threshold_result {
         public:
+            threshold_result();
+            threshold_result( std::shared_ptr< const waveform > d );
+            threshold_result( const threshold_result& t );
+
             std::shared_ptr< const waveform >& data();
 
             std::vector< uint32_t >& indecies();
             const std::vector< uint32_t >& indecies() const;
 
-            std::vector< std::pair< uint32_t, uint32_t > >& indecies2();
-            const std::vector< std::pair< uint32_t, uint32_t > >& indecies2() const;
+            std::vector< adportable::threshold_index >& indecies2();
+            const std::vector< adportable::threshold_index >& indecies2() const;
 
             std::vector< double >& processed();
             const std::vector< double >& processed() const;
@@ -62,16 +68,13 @@ namespace acqrscontrols {
 # else
             static constexpr uint32_t npos = ( -1 );
 # endif
-            threshold_result();
-            threshold_result( std::shared_ptr< const waveform > d );
-            threshold_result( const threshold_result& t );
             bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
             void setFindUp( bool );
             bool findUp() const;
         private:
             std::shared_ptr< const waveform > data_;
             std::vector< uint32_t > indecies_;
-            std::vector< std::pair< uint32_t, uint32_t > > indecies2_;
+            std::vector< adportable::threshold_index > indecies2_;
             std::vector< double > processed_;
             std::pair< uint32_t, uint32_t > findRange_;
             uint32_t foundIndex_;

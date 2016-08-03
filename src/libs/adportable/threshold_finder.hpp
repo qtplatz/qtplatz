@@ -28,15 +28,19 @@
 #include "advance.hpp"
 #include <iterator>
 
+//
+#include <iostream>
+
 namespace adportable {
 
     struct threshold_finder {
     
         const bool findUp;
         const unsigned int nskip;
+        const size_t count_limit;
     
-        threshold_finder( bool _findUp, unsigned int _nskip )
-            : findUp( _findUp ), nskip( _nskip ) {
+        threshold_finder( bool _findUp, unsigned int _nskip, size_t _count_limit = 32000 )
+            : findUp( _findUp ), nskip( _nskip ), count_limit( _count_limit ) {
         }
 
         // find either raising index or falling index per peak
@@ -56,20 +60,29 @@ namespace adportable {
         }
 
         // find both raising,falling indecies
-        template< typename const_iterator >
+        template< typename const_iterator, typename index_type >
         void operator()( const_iterator&& begin, const_iterator&& end
-                         , std::vector< std::pair< uint32_t, uint32_t > >& indecies
+                         , std::vector< index_type >& indecies
                          , typename std::iterator_traits< const_iterator >::value_type level ) {
+            size_t count = 0;
             bool flag;
             auto it = begin;
             while ( it != end ) {
                 if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                     if ( flag == findUp ) {
-                        indecies.emplace_back( uint32_t( std::distance( begin, it ) ), 0 ); // index, offset for up/down conter part
+                        indecies.emplace_back( uint32_t( std::distance( begin, it ) ), uint32_t(0), 0 ); // index, offset for up/down conter part
+                        if ( count_limit < count++ )
+                            return;
                     } else {
-                        if ( !indecies.empty() )
+                        if ( !indecies.empty() ) {
+                            auto bIt = begin + indecies.back().first;
+                            auto aIt = findUp ? std::max_element( bIt, it + 1 ) : std::min_element( bIt, it + 1 );
                             indecies.back().second = uint32_t( std::distance( begin, it ) );
+                            indecies.back().apex   = uint32_t( std::distance( begin, aIt ) );
+                            indecies.back().value  = *aIt;
+                        }
                     }
+                    // adportable::advance( it, nskip, end );                    
                 }
             }
         }
