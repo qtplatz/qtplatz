@@ -262,7 +262,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
         if ( auto db = db_.lock() ) {
             {
                 adfs::stmt sql( *db );
-                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ?" );
+                sql.prepare( "SELECT rowid FROM AcquiredConf WHERE objuuid = ?" );
                 sql.bind( 1 ) = objid_;
                 if ( sql.step() == adfs::sqlite_row )
                     objrowid_ = sql.get_column_value< int64_t >( 0 );

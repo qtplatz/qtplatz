@@ -283,7 +283,7 @@ AcquiredConf::findScanLaw( adfs::sqlite& db, const boost::uuids::uuid& objid
             return true;
     }
     
-    // missing 'Spectrometer' ?
+    // InfiTOF has no fLengt colum
     sql.prepare( "SELECT objuuid,acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid = ? OR objuuid = ? ORDER BY objuuid DESC" );
     sql.bind( 1 ) = objid;
     sql.bind( 2 ) = boost::uuids::uuid{ 0 }; // master observer
