@@ -226,7 +226,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             if ( fcn == 0 && trace->size() > 0 ) {
                 double seconds = trace->x( trace->size() - 1 );
                 footer += QString( "  Time: %1  " ).arg( QString::number( seconds / 60, 'f', 3 ) );
-                tpw_->setFooter( footer );
+                tpw_->setTitle( footer );
             }
 
             bool yRight = trace->isCountingTrace();
