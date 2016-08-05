@@ -47,7 +47,8 @@ namespace u5303a {
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
     static std::chrono::high_resolution_clock::time_point __last__;
     static uint32_t __serialNumber__;
-    static const std::vector< std::pair<double, double> > peak_list = { { 4.0e-6, 0.1 }, { 5.0e-6, 0.05 }, { 6.0e-6, 0.030 } };
+    static const std::vector< std::pair<double, double> >
+    peak_list = { { 4.0e-6, 0.1 }, { 5.0e-6, 0.05 }, { 6.0e-6, 0.030 } };
 
     class waveform_simulator : public adicontroller::waveform_simulator {
     public:
@@ -149,6 +150,12 @@ simulator::protocol_handler( double delay, double width )
 {
     exitDelay_ = delay;
     (void)width;
+}
+
+int
+simulator::protocol_number() const
+{
+    return protocolIndex_;
 }
 
 bool
