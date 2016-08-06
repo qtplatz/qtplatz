@@ -675,7 +675,6 @@ task::handle_acquire()
                 if ( protocolIndex < 0 && simulated_ )
                 	protocolIndex = simulator::instance()->protocol_number();
 
-
                 if ( protocolIndex >= 0 ) {
                     method_.setProtocolIndex( protocolIndex, false );
                 }

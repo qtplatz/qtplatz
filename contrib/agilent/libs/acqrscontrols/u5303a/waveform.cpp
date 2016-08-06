@@ -590,16 +590,18 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
     //double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
 
+    double delayTime = waveform.meta_.initialXOffset + ext_trig_delay;
+
     adcontrols::SamplingInfo info( waveform.meta_.xIncrement
-                                   , waveform.meta_.initialXOffset
-                                   , int32_t( ( waveform.meta_.initialXOffset + ext_trig_delay ) / waveform.meta_.xIncrement )
+                                   , delayTime
+                                   , int32_t( delayTime / waveform.meta_.xIncrement )
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
                                    , mode );
-    //info.fSampInterval( waveform.meta_.xIncrement );
+
     prop.setAcceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
-    prop.setTDelay(ext_trig_delay + wavefrom.meta_.initialXOffset);
+    prop.setTDelay(ext_trig_delay + waveform.meta_.initialXOffset);
     
     prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
