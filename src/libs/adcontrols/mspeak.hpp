@@ -40,6 +40,7 @@ namespace adcontrols {
         MSPeak();
         MSPeak( const MSPeak& );
         MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
+
         MSPeak( const std::string& formula
                 , double mass
                 , double time = 0.0
