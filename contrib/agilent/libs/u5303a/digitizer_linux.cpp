@@ -671,8 +671,12 @@ task::handle_acquire()
             if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
                 
                 int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
+
+                if ( protocolIndex < 0 && simulated_ )
+                	protocolIndex = simulator::instance()->protocol_number();
+
+
                 if ( protocolIndex >= 0 ) {
-                    // if setProtocolIndex() return true (must set true for 2nd arg), u5303 hardware parameter should be changed.
                     method_.setProtocolIndex( protocolIndex, false );
                 }
 
