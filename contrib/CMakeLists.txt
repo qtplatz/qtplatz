@@ -10,6 +10,11 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( agilent )
 endif()
 
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+  message( STATUS "------------ contrib/multum ----------------" )
+  add_subdirectory( multum )
+endif()
+
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   add_subdirectory( linux )
 elseif( WIN32 )

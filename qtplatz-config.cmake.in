@@ -76,6 +76,7 @@ add_library( u5303a SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
 add_library( acqrswidgets SHARED IMPORTED )
 add_library( acqrscontrols SHARED IMPORTED )
+add_library( multumcontrols SHARED IMPORTED )
 
 add_library( acewrapper STATIC IMPORTED )
 #add_library( adfs STATIC IMPORTED ) #change 16-DEC-2015
@@ -183,6 +184,11 @@ if (WIN32)
   set_target_properties( acqrscontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acqrscontrols.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrscontrolsd.lib )  
+
+  # multum | infitof 
+  set_target_properties( multumcontrols PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/multumcontrols.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/multumcontrolsd.lib )  
   
 elseif ( APPLE )
 
@@ -275,6 +281,10 @@ elseif ( APPLE )
   set_target_properties( acqrscontrols PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols_debug.dylib )
+
+  set_target_properties( multumcontrols PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols_debug.dylib )
   
 else()  #Linux
 
@@ -347,6 +357,9 @@ else()  #Linux
 
   set_target_properties( acqrscontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols.so )  
+
+  set_target_properties( multumcontrols PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.so )  
 
 endif()
 
