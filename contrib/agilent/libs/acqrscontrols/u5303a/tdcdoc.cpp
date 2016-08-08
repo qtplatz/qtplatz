@@ -106,7 +106,7 @@ namespace acqrscontrols {
 
             void reset_accumulators( size_t count ) {
 
-                protocolCount_ = count;
+                protocolCount_ = uint32_t( count );
 
                 std::for_each( accumulator_.begin(), accumulator_.end(), []( AverageData& d ){
                         d.reset();

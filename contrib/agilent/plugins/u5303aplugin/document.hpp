@@ -26,9 +26,10 @@
 #define DOCUMENT_HPP
 
 #include <QObject>
+#include <deque>
 #include <mutex>
 #include <memory>
-#include <deque>
+#include <vector>
 
 class QSettings;
 

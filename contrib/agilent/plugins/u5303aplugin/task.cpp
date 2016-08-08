@@ -345,9 +345,10 @@ task::impl::worker_thread()
                     resolution = tm->time_resolution;
                 
                 if ( resolution > hgrm->xIncrement() ) {
-                    std::vector< std::pair< double, uint32_t > > time_merged;
-                    adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
-                    hgrm = hgrm->clone( time_merged );
+                    adcontrols::TimeDigitalHistogram::vector_type time_merged;
+                    //std::vector< std::pair< double, uint32_t > > time_merged;
+                    //adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
+                    hgrm = hgrm->merge_peaks( resolution );
                 }
                 
                 auto ms = std::make_shared< adcontrols::MassSpectrum >();

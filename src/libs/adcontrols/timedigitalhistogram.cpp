@@ -154,6 +154,27 @@ TimeDigitalHistogram::clone( const std::vector< std::pair<double, uint32_t > >& 
     return t;
 }
 
+std::shared_ptr< TimeDigitalHistogram >
+TimeDigitalHistogram::merge_peaks( double resolution ) const
+{
+    auto t = std::make_shared< TimeDigitalHistogram >();
+    t->initialXTimeSeconds_ = initialXTimeSeconds_;
+    t->initialXOffset_ = initialXOffset_;
+    t->xIncrement_ = xIncrement_;
+    t->actualPoints_ = actualPoints_;
+    t->serialnumber_ = serialnumber_;
+    t->timeSinceEpoch_ = timeSinceEpoch_;
+    t->trigger_count_ = trigger_count_;
+    t->wellKnownEvents_ = wellKnownEvents_;
+    t->this_protocol_ = this_protocol_;
+    t->protocolIndex_ = protocolIndex_;
+    t->nProtocols_ = nProtocols_;
+
+    average_time( this->histogram(), resolution, t->histogram() );
+
+    return t;
+}
+
 double&
 TimeDigitalHistogram::initialXTimeSeconds()
 {

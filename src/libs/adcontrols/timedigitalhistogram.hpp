@@ -47,6 +47,7 @@ namespace adcontrols {
 	class ADCONTROLSSHARED_EXPORT TimeDigitalHistogram {
 	public:
         typedef std::pair< double, uint32_t > value_type; // time(s), intensity
+        typedef std::vector< value_type > vector_type;
         typedef std::vector< value_type >::iterator iterator;
         typedef std::vector< value_type >::const_iterator const_iterator;
 
@@ -80,8 +81,8 @@ namespace adcontrols {
 
         const std::pair< uint64_t, uint64_t >& serialnumber() const;
         const std::pair< uint64_t, uint64_t >& timeSinceEpoch() const;
-        std::vector< std::pair< double, uint32_t > >& histogram();
-        const std::vector< std::pair< double, uint32_t > >& histogram() const;
+        vector_type& histogram();
+        const vector_type& histogram() const;
 
         TofProtocol& this_protocol();
         const TofProtocol& this_protocol() const;
@@ -96,8 +97,12 @@ namespace adcontrols {
 
         std::shared_ptr< TimeDigitalHistogram > clone( const std::vector< std::pair<double, uint32_t > >& ) const;
 
-        static bool average_time( const std::vector< std::pair< double, uint32_t > >&, double resolution, std::vector< std::pair< double, uint32_t > >&);
+        std::shared_ptr< TimeDigitalHistogram > merge_peaks( double resolution ) const;
 
+        // this interface causes 'duplicate symbols for std::vector< std::pair< double, uint32_t > > on MSVC
+        static bool average_time( const vector_type&, double resolution, vector_type&);
+
+    public:
         typedef double( mass_assign_t )( double time, int mode );
         typedef std::function< mass_assign_t > mass_assignor_t;
 
@@ -134,6 +139,10 @@ namespace adcontrols {
 
         class device_data;
 	};
+
+#if defined _MSC_VER
+    //ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::vector< double, uint32_t >;
+#endif
 
 }
 
