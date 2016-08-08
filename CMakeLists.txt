@@ -92,7 +92,7 @@ if ( WIN32 )
   add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 )
 endif()
 
-find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization )
+find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization locale regex )
 
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 

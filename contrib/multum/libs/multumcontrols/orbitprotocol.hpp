@@ -108,8 +108,8 @@ namespace multumcontrols {
     };
 
 #if defined _MSC_VER
-    MULTUM_CONTROLSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< DelayMethod >;
-    MULTUM_CONTROLSHARED_TEMPLATE_EXPORT template class MULTUM_CONTROLSHARED_EXPORT std::vector< OrbitProtocol >;
+    MULTUMCONTROLSSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< DelayMethod >;
+    MULTUMCONTROLSSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< OrbitProtocol >;
 #endif
 
 }

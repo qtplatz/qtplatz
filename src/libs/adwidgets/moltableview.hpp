@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "adwidgets_global.hpp"
 #include "tableview.hpp"
 #include "columnstate.hpp"
 #include <functional>
@@ -35,7 +36,8 @@ namespace adcontrols { class moltable; }
 
 namespace adwidgets {
 
-    class MolTableView : public TableView  {
+    class ADWIDGETSSHARED_EXPORT MolTableView : public TableView  {
+
         Q_OBJECT
 
     public:

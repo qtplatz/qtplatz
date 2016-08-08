@@ -172,7 +172,7 @@ namespace acqrscontrols {
 
         std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
 
-            if ( os.tellp() == 0 )
+            if ( os.tellp() == std::streamoff(0) )
                 os << "## trig#, time-stamp(s), time(s), epoch time(ns), events, scale factor, scale offset, delay time(s),"
                     "[time(s), idx0, idx1, idx2, value]";
 

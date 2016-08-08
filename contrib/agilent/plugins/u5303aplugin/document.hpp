@@ -56,6 +56,7 @@ namespace u5303a {
     namespace detail { struct remover; }
 
     class document : public QObject {
+
         Q_OBJECT
         document();
 
