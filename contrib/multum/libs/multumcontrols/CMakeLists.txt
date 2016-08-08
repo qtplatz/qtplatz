@@ -19,9 +19,12 @@ endif()
 add_library( ${PROJECT_NAME} SHARED
   orbitprotocol.cpp
   orbitprotocol.hpp
+  scanlaw.cpp
+  scanlaw.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adcontrols
   adportable
   ${Boost_LIBRARIES}
   )

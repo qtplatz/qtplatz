@@ -22,10 +22,7 @@
 **
 **************************************************************************/
 
-//#include "method.hpp"
-//#include <infitofdefns/scanlaw.hpp>
 #include "orbitprotocol.hpp"
-#include <adcontrols/metric/prefix.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/variant.hpp>
@@ -126,10 +123,12 @@ namespace multumcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.inner_voltage );
         }
     };
+    
     template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         ElectricSectorMethod_archive<>().serialize( ar, *this, version );
     }
+    
     template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         ElectricSectorMethod_archive<>().serialize( ar, *this, version );
@@ -156,10 +155,12 @@ namespace multumcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.delay ) & BOOST_SERIALIZATION_NVP( _.width );
         }
     };
+
     template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
+
     template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
@@ -180,9 +181,29 @@ namespace multumcontrols {
 
 using namespace multumcontrols;
 
-OrbitProtocol::OrbitProtocol() : lower_mass( 0 ), upper_mass( 0 )
-                               , avgr_delay( 0 ), avgr_duration( 0 )
-                               , nlaps_( 0 ), reference_( 0 ), gate( 2 )
+//////////////////////
+
+ElectricSectorMethod::ElectricSectorMethod() : outer_voltage(0), inner_voltage(0)
+{
+}
+
+DelayMethod::DelayMethod( double _d, double _w ) : delay( _d ), width( _w )
+{
+}
+
+DelayMethod::DelayMethod( const DelayMethod& t ) : delay( t.delay ), width( t.width )
+{
+}
+
+////////////////////////////
+
+OrbitProtocol::OrbitProtocol() : lower_mass( 0 )
+                               , upper_mass( 0 )
+                               , avgr_delay( 0 )
+                               , avgr_duration( 0 )
+                               , nlaps_( 0 )
+                               , reference_( 0 )
+                               , gate( 2 )
 {
 }
 

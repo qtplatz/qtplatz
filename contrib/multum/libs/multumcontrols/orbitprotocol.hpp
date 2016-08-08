@@ -39,9 +39,7 @@ namespace multumcontrols {
     public:
         double outer_voltage;
         double inner_voltage;
-        ElectricSectorMethod()
-            : outer_voltage(0), inner_voltage(0)
-        {}
+        ElectricSectorMethod();
     private:
         friend class boost::serialization::access;
         template< class Archive >  
@@ -52,10 +50,9 @@ namespace multumcontrols {
     public:
         double delay; // seconds
         double width; // seconds
-        DelayMethod( double _d = 0, double _w = 0 ) : delay( _d ), width( _w ) {
-        }
-        DelayMethod( const DelayMethod& t ) : delay( t.delay ), width( t.width ) {
-        }
+        DelayMethod( double _d = 0, double _w = 0 );
+        DelayMethod( const DelayMethod& t );
+
     private:
         friend class boost::serialization::access;
         template< class Archive >  
@@ -63,10 +60,6 @@ namespace multumcontrols {
     };
 
 
-#if defined _MSC_VER
-    MULTUM_CONTROLSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< DelayMethod >;
-#endif
-    
     template<typename T> class OrbitProtocol_archive;
     
     //--
@@ -113,8 +106,9 @@ namespace multumcontrols {
         friend class OrbitProtocol_archive < OrbitProtocol > ;
         friend class OrbitProtocol_archive < const OrbitProtocol > ;
     };
-        
+
 #if defined _MSC_VER
+    MULTUM_CONTROLSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< DelayMethod >;
     MULTUM_CONTROLSHARED_TEMPLATE_EXPORT template class MULTUM_CONTROLSHARED_EXPORT std::vector< OrbitProtocol >;
 #endif
 
