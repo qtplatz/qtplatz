@@ -47,7 +47,7 @@ namespace multumcontrols {
     };
 
 #if defined _MSC_VER
-    MULTUMCONTROLSSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< ElectricSectorMethod >;
+//    MULTUMCONTROLSSHARED_TEMPLATE_EXPORT template class MULTUMCONTROLSSHARED_EXPORT std::vector< ElectricSectorMethod >;
 #endif
 
 }

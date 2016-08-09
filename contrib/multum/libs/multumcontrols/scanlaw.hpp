@@ -40,10 +40,10 @@ namespace multumcontrols {
         const double FLIGHT_LENGTH_LT      = 0.66273; // length of figure-eight orbit
         const double FLIGHT_LENGTH_EXIT    = 0.06626;
     }
-    
+
     //////////////    
-    class ScanLaw : public adcontrols::ScanLaw
-                  , public adportable::TimeSquaredScanLaw {
+    class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public adcontrols::ScanLaw {
+        std::unique_ptr< adportable::TimeSquaredScanLaw > tof_;
         double gateOffset_;
         std::array< double, 7 > dimension_;
     public:
@@ -54,6 +54,12 @@ namespace multumcontrols {
 
         ScanLaw( const ScanLaw& t );
         ScanLaw& operator = ( const ScanLaw& );
+        
+        // TimeSquaredScanLaw
+        double tDelay() const;
+        double kAcceleratorVoltage() const;
+        double acceleratorVoltage( double mass, double time, int mode, double tDelay );
+        double acceleratorVoltage( double mass, double time, double flength, double tDelay );
 
         // adcontrols::ScanLaw
         double getMass( double t, int mode ) const override;

@@ -58,7 +58,7 @@ dg::start_triggers()
 
     io_service.run();
 
-    if ( adurl::client::debug_mode && c.status_code() != 200 ) {        
+    if ( adurl::client::debug_mode() && c.status_code() != 200 ) {        
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
     }
@@ -84,7 +84,7 @@ dg::stop_triggers()
 
     io_service.run();
 
-    if ( adurl::client::debug_mode && c.status_code() != 200 ) {
+    if ( adurl::client::debug_mode() && c.status_code() != 200 ) {
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
     }
@@ -126,7 +126,7 @@ dg::fetch( std::string& json )
 
     io_service.run();
 
-    if ( adurl::client::debug_mode && c.status_code() != 200 ) {
+    if ( adurl::client::debug_mode() && c.status_code() != 200 ) {
         std::cerr << "-----------------------------------" << std::endl;
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
@@ -164,7 +164,7 @@ dg::commit( const adportable::dg::protocols<adportable::dg::protocol<> > & p )
     io_service.run();
 
     //if ( adurl::client::debug_mode && c.status_code() != 200 ) {
-    if ( adurl::client::debug_mode ) {
+    if ( adurl::client::debug_mode() ) {
         std::cerr << "-----------------------------------" << std::endl;
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
