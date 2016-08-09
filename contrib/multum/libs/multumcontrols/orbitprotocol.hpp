@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
@@ -35,22 +35,13 @@ namespace adcontrols { class TofProtocol; }
 
 namespace multumcontrols {
     
-    class MULTUMCONTROLSSHARED_EXPORT ElectricSectorMethod {
-    public:
-        double outer_voltage;
-        double inner_voltage;
-        ElectricSectorMethod();
-    private:
-        friend class boost::serialization::access;
-        template< class Archive >  
-            void serialize( Archive& ar, const unsigned int );
-    };
-
     class MULTUMCONTROLSSHARED_EXPORT DelayMethod {
     public:
         double delay; // seconds
         double width; // seconds
-        DelayMethod( double _d = 0, double _w = 0 );
+        bool enable;
+
+        DelayMethod( double _d = 0, double _w = 0, bool enable = true );
         DelayMethod( const DelayMethod& t );
 
     private:
@@ -115,4 +106,4 @@ namespace multumcontrols {
 }
 
 BOOST_CLASS_VERSION( multumcontrols::OrbitProtocol, 7 )
-
+BOOST_CLASS_VERSION( multumcontrols::DelayMethod, 1 )

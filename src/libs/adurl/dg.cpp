@@ -58,12 +58,12 @@ dg::start_triggers()
 
     io_service.run();
 
-    if ( adurl::client::debug_mode ) {
+    if ( adurl::client::debug_mode && c.status_code() != 200 ) {        
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
     }
 
-    return c.error() == adurl::client::NoError;
+    return c.error() == adurl::client::NoError && c.status_code() == 200;
 }
 
 bool
@@ -84,12 +84,12 @@ dg::stop_triggers()
 
     io_service.run();
 
-    if ( adurl::client::debug_mode ) {
+    if ( adurl::client::debug_mode && c.status_code() != 200 ) {
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
     }
 
-    return c.error() == adurl::client::NoError;
+    return c.error() == adurl::client::NoError && c.status_code() == 200;    
 }
 
 void
@@ -126,7 +126,7 @@ dg::fetch( std::string& json )
 
     io_service.run();
 
-    if ( adurl::client::debug_mode ) {
+    if ( adurl::client::debug_mode && c.status_code() != 200 ) {
         std::cerr << "-----------------------------------" << std::endl;
         std::cerr << &c.response_header();
         std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
@@ -138,7 +138,7 @@ dg::fetch( std::string& json )
         json = std::string( boost::asio::buffers_begin( bufs ), boost::asio::buffers_begin( bufs ) + c.response().size() );
     }
 
-    return c.error() == adurl::client::NoError;
+    return c.error() == adurl::client::NoError && c.status_code() == 200;
 }
 
 bool
@@ -163,15 +163,14 @@ dg::commit( const adportable::dg::protocols<adportable::dg::protocol<> > & p )
     
     io_service.run();
 
-    if ( c.error() == adurl::client::NoError ) {
-        if ( adurl::client::debug_mode ) {
-            std::cerr << "-----------------------------------" << std::endl;
-            std::cerr << &c.response_header();
-            std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
-            std::cerr << "-----------------------------------" << std::endl;
-        }
+    //if ( adurl::client::debug_mode && c.status_code() != 200 ) {
+    if ( adurl::client::debug_mode ) {
+        std::cerr << "-----------------------------------" << std::endl;
+        std::cerr << &c.response_header();
+        std::cerr << "status_code: " << c.status_code() << ", " << c.status_message() << std::endl;
+        std::cerr << "-----------------------------------" << std::endl;
     }
 
-    return c.error() == adurl::client::NoError;
+    return c.error() == adurl::client::NoError && c.status_code() == 200;
 }
         

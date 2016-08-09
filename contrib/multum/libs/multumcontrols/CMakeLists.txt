@@ -17,6 +17,8 @@ if ( MSVC )
 endif()
 
 add_library( ${PROJECT_NAME} SHARED
+  electricsectormethod.cpp
+  electricsectormethod.hpp
   orbitprotocol.cpp
   orbitprotocol.hpp
   scanlaw.cpp

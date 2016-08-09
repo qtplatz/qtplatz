@@ -112,47 +112,17 @@ namespace multumcontrols {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
 
-    ///////////////////////////////////////////
-    template<typename T = ElectricSectorMethod >
-    class ElectricSectorMethod_archive {
-    public:
-        template<class Archive>
-        void serialize( Archive& ar, T& _, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( _.outer_voltage );
-            ar & BOOST_SERIALIZATION_NVP( _.inner_voltage );
-        }
-    };
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-    {
-        ElectricSectorMethod_archive<>().serialize( ar, *this, version );
-    }
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-    {
-        ElectricSectorMethod_archive<>().serialize( ar, *this, version );
-    }
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        ElectricSectorMethod_archive<>().serialize( ar, *this, version );
-    }
-    
-    template<> MULTUMCONTROLSSHARED_EXPORT void ElectricSectorMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        ElectricSectorMethod_archive<>().serialize( ar, *this, version );
-    }
-
     ///////////////////////////////////////////////////    
 
     template<typename T = DelayMethod >
     class DelayMethod_archive {
     public:
         template<class Archive>
-        void serialize( Archive& ar, T& _, const unsigned int ) {
+        void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.delay ) & BOOST_SERIALIZATION_NVP( _.width );
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( _.enable );
         }
     };
 
@@ -183,15 +153,11 @@ using namespace multumcontrols;
 
 //////////////////////
 
-ElectricSectorMethod::ElectricSectorMethod() : outer_voltage(0), inner_voltage(0)
+DelayMethod::DelayMethod( double _d, double _w, bool _e ) : delay( _d ), width( _w ), enable( _e )
 {
 }
 
-DelayMethod::DelayMethod( double _d, double _w ) : delay( _d ), width( _w )
-{
-}
-
-DelayMethod::DelayMethod( const DelayMethod& t ) : delay( t.delay ), width( t.width )
+DelayMethod::DelayMethod( const DelayMethod& t ) : delay( t.delay ), width( t.width ), enable( t.enable )
 {
 }
 

@@ -221,5 +221,8 @@ u5303AForm::setEnabled( const QString& name, bool enable )
         ui->doubleSpinBox_1->setEnabled( enable );
 
     if ( name == "Width" )
-        ui->doubleSpinBox_2->setEnabled( enable );    
+        ui->doubleSpinBox_2->setEnabled( enable );
+
+    if ( name == "ExtTrigDelay" )
+        ui->doubleSpinBox->setEnabled( enable );
 }
