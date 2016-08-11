@@ -50,6 +50,9 @@ release_build
 #qmake cache file
 .qmake.cache
 
+#netbeans
+nbproject
+
 # Visual Studio generated files
 *.ib_pdb_index
 *.idb
