@@ -120,7 +120,8 @@ namespace multumcontrols {
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( _.delay ) & BOOST_SERIALIZATION_NVP( _.width );
+            ar & BOOST_SERIALIZATION_NVP( _.delay );
+            ar & BOOST_SERIALIZATION_NVP( _.width );
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( _.enable );
         }

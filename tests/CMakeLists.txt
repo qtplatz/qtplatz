@@ -4,18 +4,19 @@ cmake_policy( SET CMP0042 NEW )
 
 project( tests )
 
-set( QTPLATZ_SORUCE_DIR ${CMAKE_SOURCE_DIR}/.. )
-set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR}/.. )
+set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
 
-find_path( qtplatz_config_DIR NAMES "qtplatz-config.cmake"  HINTS ${QTPLATZ_BINARY_DIR} )
+find_path( qtplatz_config_DIR NAMES "qtplatz-config.cmake" PATHS
+  "${QTPLATZ_BUILD_DIR}"
+  "${CMAKE_SOURCE_DIR}/../../build-Linux-x86_64/qtplatz.debug" )
 
 if ( NOT qtplatz_config_DIR )
   message( FATAL_ERROR "qtplatz-config.cmake not find." )
 endif()
 include ( ${qtplatz_config_DIR}/qtplatz-config.cmake )
 
-add_subdirectory( filename_splitter )
+#add_subdirectory( filename_splitter )
 add_subdirectory( formula_parser )
-add_subdirectory( isotope )
-add_subdirectory( test_adfs )
-add_subdirectory( test_u5303a )
+#add_subdirectory( isotope )
+#add_subdirectory( test_adfs )
+#add_subdirectory( test_u5303a )

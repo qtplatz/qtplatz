@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 
 namespace adportable {
 
@@ -59,9 +60,10 @@ namespace adportable {
             // Actinoids
             "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No"
         };
-    
-        typedef std::pair< int, const char * > atom_type;
-        typedef std::map< atom_type, int > comp_type;
+
+        typedef std::pair< int, const char * > atom_type; // [isotope#]symbol; e.g. 13C
+        typedef std::map< atom_type, int > comp_type;     // number of atoms; e.g. C6
+        typedef int charge_type; // [+|-]
 
         struct formulaComposition {
             static void formula_add( comp_type& m, const std::pair<const atom_type, int>& p ) {
@@ -75,6 +77,10 @@ namespace adportable {
             static void formula_repeat( comp_type& m, int n ) {
                 std::for_each( m.begin(), m.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
             }
+
+            static void charge_state( comp_type& m, std::pair< int, charge_type >& c ) {
+                std::cout << "Charge state: [" << static_cast<char>(c.second) << "]" << int(c.first) << "\n";
+            }
         };
 
         template<typename Iterator, typename handler = formulaComposition, typename startType = comp_type>
@@ -85,6 +91,8 @@ namespace adportable {
                     + (
                         atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
                         | repeated_group [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ]
+                        | '[' >> molecule [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ] >> ']'
+                              >> -(charge_state [ boost::phoenix::bind(&handler::charge_state, _val, qi::_1 ) ])                        
                         | space
                         )
                     ;
@@ -94,16 +102,20 @@ namespace adportable {
                 atom =
                     ( qi::uint_ | qi::attr(0u) ) >> element
                     ;
+                charge_state =
+                    ( qi::uint_ | qi::attr(1u) ) >> ( qi::char_( '+' ) | qi::char_( '-' ) )
+                    ;
                 repeated_group %= // forces attr proparation
                     '(' >> molecule >> ')'
                         >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
-                    | '[' >> molecule >> ']'
-                        >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
+                    // | '[' >> molecule >> ']'
+                    //     >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
                     ;
             }
 
             qi::rule<Iterator, atom_type() > atom;
             qi::rule<Iterator, std::pair< atom_type, int >() > atoms;
+            qi::rule<Iterator, std::pair< charge_type, int >() > charge_state;
             qi::rule<Iterator, startType()> molecule, repeated_group;
             qi::symbols<char, const char *> element;
         };
