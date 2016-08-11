@@ -72,7 +72,7 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT QTPLATZ_CORELIB_ONLY )
       message( FATAL_ERROR "qmake command not found" )
     endif()
     
-    find_program( XMLPATTERNS NAMES xmlpatterns "${QTDIR}/bin" )
+    find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
     message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
     if ( NOT XMLPATTERNS )
       message( FATAL_ERROR "xmlpatterns command not found" )

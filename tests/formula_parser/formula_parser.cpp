@@ -15,13 +15,15 @@
 #include <map>
 
 
-template< typename char_type > static bool parse( const std::basic_string< char_type >& formula, adportable::chem::comp_type& comp ) {
+template< typename char_type >
+static bool parse( const std::basic_string< char_type >& formula, adportable::chem::icomp_type& comp ) {
     using adportable::chem::formulaComposition;
     using adportable::chem::comp_type;
+    using adportable::chem::icomp_type;
                 
     typedef typename std::basic_string< char_type >::const_iterator iterator_type;
                 
-    adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, comp_type > cf;
+    adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, icomp_type > cf;
     iterator_type it = formula.begin();
     iterator_type end = formula.end();
 
@@ -50,16 +52,17 @@ main(int argc, char * argv[])
             break;
 
         do {
-            adportable::chem::comp_type comp;
+            adportable::chem::icomp_type comp;
 
             if ( parse<char>( str, comp ) ) {
                 std::cout << "-------------------------\n";
                 std::cout << "Parsing succeeded\n";
                 std::cout << str << " Parses OK: " << std::endl;
-                std::cout << str << " map size: " << comp.size() << std::endl;
+                std::cout << str << " map size: " << comp.first.size() << std::endl;
                 
-                for ( auto e: comp )
+                for ( auto e: comp.first )
                     std::cout << e.first.first << " "  << e.first.second  << " " << e.second << std::endl;
+                std::cout << "Charge state: " << comp.second.first << comp.second.second << std::endl;
                 std::cout << "-------------------------\n";
             } else {
                 std::cout << "-------------------------\n";

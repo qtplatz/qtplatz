@@ -35,7 +35,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <iostream>
 
 namespace adportable {
 
@@ -63,30 +62,32 @@ namespace adportable {
 
         typedef std::pair< int, const char * > atom_type; // [isotope#]symbol; e.g. 13C
         typedef std::map< atom_type, int > comp_type;     // number of atoms; e.g. C6
-        typedef int charge_type; // [+|-]
+        typedef std::pair< int, char > charge_type;       // [1..9], [+|-]
+        typedef std::pair< comp_type, charge_type > icomp_type;
 
         struct formulaComposition {
-            static void formula_add( comp_type& m, const std::pair<const atom_type, int>& p ) {
-                m[ p.first ] += p.second;
+            static void formula_add( icomp_type& m, const std::pair<const atom_type, int>& p ) {
+                m.first[ p.first ] += p.second;
             }
         
-            static void formula_join( comp_type& m, comp_type& a ) {
-                std::for_each( a.begin(), a.end(), [&]( comp_type::value_type& p ){ m[ p.first ] += p.second; });
+            static void formula_join( icomp_type& m, icomp_type& a ) {
+                std::for_each( a.first.begin(), a.first.end(), [&]( comp_type::value_type& p ){ m.first[ p.first ] += p.second; });
             }
         
-            static void formula_repeat( comp_type& m, int n ) {
-                std::for_each( m.begin(), m.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
+            static void formula_repeat( icomp_type& m, int n ) {
+                std::for_each( m.first.begin(), m.first.end(), [=]( comp_type::value_type& p ){ p.second *= n; });
             }
 
-            static void charge_state( comp_type& m, std::pair< int, charge_type >& c ) {
-                std::cout << "Charge state: [" << static_cast<char>(c.second) << "]" << int(c.first) << "\n";
+            static void charge_state( icomp_type& m, charge_type& c ) {
+                m.second = c;
             }
         };
 
-        template<typename Iterator, typename handler = formulaComposition, typename startType = comp_type>
+        template< typename Iterator, typename handler = formulaComposition, typename startType = icomp_type >
         struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
 
-            chemical_formula_parser() : chemical_formula_parser::base_type( molecule ), element( element_table, element_table )  {
+            chemical_formula_parser() : chemical_formula_parser::base_type( molecule )
+                                      , element( element_table, element_table )  {
                 molecule =
                     + (
                         atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
@@ -108,15 +109,13 @@ namespace adportable {
                 repeated_group %= // forces attr proparation
                     '(' >> molecule >> ')'
                         >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
-                    // | '[' >> molecule >> ']'
-                    //     >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
                     ;
             }
 
             qi::rule<Iterator, atom_type() > atom;
             qi::rule<Iterator, std::pair< atom_type, int >() > atoms;
-            qi::rule<Iterator, std::pair< charge_type, int >() > charge_state;
-            qi::rule<Iterator, startType()> molecule, repeated_group;
+            qi::rule<Iterator, charge_type() > charge_state;
+            qi::rule<Iterator, startType() > molecule, repeated_group;
             qi::symbols<char, const char *> element;
         };
 
