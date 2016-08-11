@@ -14,11 +14,11 @@
 #include <vector>
 #include <map>
 
+#if 0
+template< typename char_type > bool
+parse( const std::basic_string< char_type >& formula, adportable::chem::icomp_type& comp ) {
 
-template< typename char_type >
-static bool parse( const std::basic_string< char_type >& formula, adportable::chem::icomp_type& comp ) {
     using adportable::chem::formulaComposition;
-    using adportable::chem::comp_type;
     using adportable::chem::icomp_type;
                 
     typedef typename std::basic_string< char_type >::const_iterator iterator_type;
@@ -27,7 +27,32 @@ static bool parse( const std::basic_string< char_type >& formula, adportable::ch
     iterator_type it = formula.begin();
     iterator_type end = formula.end();
 
-    return boost::spirit::qi::parse( it, end, cf, comp ) && it == end;
+    if ( boost::spirit::qi::parse( it, end, cf, comp ) ) {
+        //it == end;
+        std::cout << "------ parse it=" << *it << " end=" << ( it == end ) << std::endl;
+        return true;
+    }
+    return false;
+}
+#endif
+
+template< typename char_type > bool
+parse( typename std::basic_string< char_type >::const_iterator& it
+       , const typename std::basic_string< char_type >::const_iterator end
+       , adportable::chem::icomp_type& comp ) {
+
+    comp = adportable::chem::icomp_type();
+
+    typedef typename std::basic_string< char_type >::const_iterator iterator_type;    
+    
+    using adportable::chem::formulaComposition;
+    using adportable::chem::icomp_type;
+    adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, icomp_type > cf;
+    if ( boost::spirit::qi::parse( it, end, cf, comp ) ) {
+        return true;
+    }
+    return false;
+        
 }
 
 int
@@ -41,11 +66,6 @@ main(int argc, char * argv[])
     namespace chem = adportable::chem;
     namespace qi = boost::spirit::qi;
 
-    // typedef 
-    //     chem::chemical_formula_parser < std::string::const_iterator
-    //                                     , chem::formulaComposition
-    //                                     , chem::comp_type> composition_calculator_t;
-    
     while (std::getline(std::cin, str))  {
         
         if (str.empty() || str[0] == 'q' || str[0] == 'Q')
@@ -54,19 +74,27 @@ main(int argc, char * argv[])
         do {
             adportable::chem::icomp_type comp;
 
-            if ( parse<char>( str, comp ) ) {
-                std::cout << "-------------------------\n";
+            std::basic_string< char >::const_iterator it = str.begin();
+
+            size_t count(0);
+            
+            while ( parse<char>( it, str.end(), comp ) ) {
+                std::cout << "---------- " << count++ << " ---------------\n";
                 std::cout << "Parsing succeeded\n";
                 std::cout << str << " Parses OK: " << std::endl;
                 std::cout << str << " map size: " << comp.first.size() << std::endl;
                 
                 for ( auto e: comp.first )
-                    std::cout << e.first.first << " "  << e.first.second  << " " << e.second << std::endl;
-                std::cout << "Charge state: " << comp.second.first << comp.second.second << std::endl;
+                    std::cout << "\t" << e.first.first << " "  << e.first.second  << " " << e.second << std::endl;
+                std::cout << "\tCharge state: " << comp.second << std::endl;
                 std::cout << "-------------------------\n";
-            } else {
+                if ( it == str.end() )
+                    break;
+                std::cout << "---- separator: " << *it++ << std::endl;
+            }
+            if ( it != str.end() ) {
                 std::cout << "-------------------------\n";
-                std::cout << "Parsing failed\n";
+                std::cout << "Parsing failed at " << *it << std::endl;
                 std::cout << "-------------------------\n";
             }
         } while(0);
