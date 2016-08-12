@@ -46,8 +46,6 @@ namespace adcontrols {
 
         double getMonoIsotopicMass( const std::wstring& formula ) const;
 		double getMonoIsotopicMass( const std::string& formula ) const;
-        // double getMonoIsotopicMass( const std::wstring& formula, const std::pair< std::wstring, std::wstring >& ) const;
-        // double getMonoIsotopicMass( const std::string& formula, const std::pair< std::string, std::string >& ) const;
         double getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const;        
 
         double getChemicalMass( const std::wstring& formula ) const;

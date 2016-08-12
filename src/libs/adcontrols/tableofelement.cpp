@@ -575,3 +575,9 @@ TableOfElement::findElement( const std::string& symbol ) const
     return mol::element(0);
 }
 
+double
+TableOfElement::electronMass() const
+{
+    return 0.00054857990943;
+}
+

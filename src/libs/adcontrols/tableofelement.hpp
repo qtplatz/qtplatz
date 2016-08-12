@@ -44,6 +44,7 @@ namespace adcontrols {
         static TableOfElement * instance();
 
         mol::element findElement( const std::string& ) const;
+        double electronMass() const;
 
     private:
         static std::atomic< TableOfElement * > instance_;

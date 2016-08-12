@@ -55,162 +55,144 @@ using namespace adcontrols;
 
 namespace adcontrols {
 
-    namespace internal {
-
-        // for chemical formula formatter
+    namespace chem {
+        
         static const char * braces [] = { "(", ")" };
+        static const char * separators [] = { "+", "-" };
         using adportable::chem::atom_type;
         
         typedef std::vector< std::pair< atom_type, size_t > > format_type;
-        typedef std::pair< format_type, adportable::chem::charge_type > iformat_type;
+        typedef std::pair< format_type, int > iformat_type;
+
         struct formulaFormat {
             static void formula_add( iformat_type& m, const std::pair<const atom_type, std::size_t>& p ) {
                 m.first.emplace_back( p );
             }
             static void formula_join( iformat_type& m, iformat_type& a ) {
-                m.first.emplace_back( atom_type( 0, braces[0] ), 0 );
+                if ( a.second )
+                    m.second += a.second; // charge-group
+                else
+                    m.first.emplace_back( atom_type( 0, braces[0] ), 0 ); // repeat-group
                 for ( auto t: a.first )
                     m.first.emplace_back( t );
+                
             }
             static void formula_repeat( iformat_type& m, std::size_t n ) {
                 m.first.emplace_back( atom_type( 0, braces[1] ), n );
             }
             static void charge_state( iformat_type& m, adportable::chem::charge_type& c ) {
-                m.second = c;
+                m.second += ( c.second == '+' ? c.first : -c.first );
             }
         };
 
-        class ChemicalFormulaImpl {
-        public:
-            ChemicalFormulaImpl();
+        struct formatter {
 
-            template< typename char_type > static double getMonoIsotopicMass( const std::basic_string< char_type >& formula ) {
-                adportable::chem::icomp_type comp;
-                if ( parse( formula, comp ) ) {
-                    adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
-                    double mass =
-                        std::accumulate( comp.first.begin(), comp.first.end(), 0.0, [=]( double m, const adportable::chem::comp_type::value_type& pair ){
-                                if ( mol::element e = toe->findElement( pair.first.second ) )
-                                    return m + mol::element::monoIsotopicMass( e, pair.first.first /* isotope */ ) * pair.second;
-                                return m;
-                            });
-                    return mass;
-                }
-                return 0;
-            }
-
-            template< typename char_type > static double getChemicalMass( const std::basic_string< char_type >& formula ) {
-                adportable::chem::icomp_type comp;
-                if ( parse( formula, comp ) ) {
-                    adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
-                    double mass =
-                        std::accumulate( comp.first.begin(), comp.first.end(), 0.0, [=]( double m, const adportable::chem::comp_type::value_type& pair ){
-                                if ( mol::element e = toe->findElement( pair.first.second ) )
-                                    return m + mol::element::chemicalMass( e ) * pair.second;
-                                return m;
-                            });
-                    return mass;
-                }
-                return 0;
-            }
-
-            template< typename char_type > static bool parse( const std::basic_string< char_type >& formula, adportable::chem::icomp_type& comp ) {
-                using adportable::chem::formulaComposition;
-                using adportable::chem::icomp_type;
+            template< typename char_type > bool
+            parse( typename std::basic_string< char_type >::const_iterator& it
+                   , typename std::basic_string< char_type >::const_iterator end, iformat_type& fmt ) const {
                 
                 typedef typename std::basic_string< char_type >::const_iterator iterator_type;
                 
-                adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, icomp_type > cf;
-                iterator_type it = formula.begin();
-                iterator_type end = formula.end();
-
-                return boost::spirit::qi::parse( it, end, cf, comp ) && it == end;
-            }
-
-            template< typename char_type > static bool format( const std::basic_string< char_type >& formula, iformat_type& fmt ) {
-                //using adportable::chem::comp_type;
-                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+                using namespace adportable::chem;
+                adportable::chem::chemical_formula_parser< iterator_type, formulaFormat, iformat_type > format_parser;
                 
-                adportable::chem::chemical_formula_parser< iterator_type, formulaFormat, iformat_type > cf;
-                iterator_type it = formula.begin();
-                iterator_type end = formula.end();
-
-                return boost::spirit::qi::parse( it, end, cf, fmt ) && it == end;
+                return boost::spirit::qi::parse( it, end, format_parser, fmt );
             }
             
-            template< typename char_type > static std::basic_string<char_type> standardFormula( const std::basic_string<char_type>& formula ) {
-
-                adportable::chem::icomp_type map;
-                using adportable::chem::atom_type;
-
-                if ( parse( formula, map ) ) {
-                    std::vector< std::pair< atom_type, size_t > > orderd;
-                    for ( auto atom: map.first )
-                        orderd.push_back( std::make_pair( atom.first, atom.second ) );
-
-                    // reorder elements in alphabetical order
-                    std::sort( orderd.begin(), orderd.end()
-                    , []( const std::pair< atom_type, size_t >& lhs, const std::pair< atom_type, size_t >& rhs ){
-                        return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first;
-                    } );
-
-                    std::basic_ostringstream<char_type> o;
-
-                    for ( auto& p: orderd ) {
-						std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
-                        if ( p.first.first == 0 ) {
-                            o << atom;
-                            if ( p.second > 1 )  // omit '1' such as CH4, not C1H4
-                                o << p.second;
-                        } else {
-                            o << atom;
-                            if ( p.second > 1 ) 
-                                o << p.second;
-                            o << ' ';
-                        }
-                    }
-                    return o.str();
-                }
-                return std::basic_string<char_type>();
-            }
-        };
-
-        template<typename char_t> struct delimitors { const char_t * operator()() const; };
-        template<> struct delimitors < wchar_t > { const wchar_t * operator()() const { return L"+-"; } };
-        template<> struct delimitors < char > { const char * operator()() const { return "+-"; } };
-
-        template< typename char_type > struct splitter {
-
-            typename std::basic_string<char_type>::size_type operator()( const std::basic_string<char_type>& formula
-                                                                         , typename std::basic_string<char_type>::size_type pos = 0 ) {
-                return formula.find_first_of( delimitors<char_type>()( ), pos );
-            }
-
-            //<-------------------------------------------
-            static std::basic_string<char_type> split( std::vector< std::pair< std::basic_string< char_type >, char_type > >& adducts
-                                                       , const std::basic_string< char_type >& formula ) {
+            template<typename char_type> bool formulae( iformat_type& fmt, const std::basic_string<char_type>& formula ) const {
                 
-                splitter< char_type > splitter;
-                typename std::basic_string<char_type>::size_type pos;
-                
-                if ( (pos = splitter( formula )) != std::basic_string<char_type>::npos ) {
-                    auto molformula = formula.substr( 0, pos );
+                typename std::basic_string< char_type >::const_iterator it = formula.begin();
+
+                while( parse< char_type >( it, formula.end(), fmt ) ) {
+
+                    if ( it == formula.end() )
+                        break; // complete
                     
-                    while ( pos != std::basic_string<char_type>::npos ) {
-                        typename std::basic_string< char_type >::size_type next = splitter( formula, pos + 1 );
-                        if ( formula.at( pos ) == char_type( '+' ) )
-                            adducts.push_back( std::make_pair( formula.substr( pos + 1, next - pos - 1 ), char_type('+') ) );
-                        else if ( formula.at( pos ) == char_type( '-' ) )
-                            adducts.push_back( std::make_pair( formula.substr( pos + 1, next - pos - 1 ), char_type('-') ) );
-                        else
-                            throw std::logic_error( "bug" );
-                        pos = next;
+                    if ( *it == '+' ) {
+                        fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put [+|-] in the text
+                        ++it;
+                    } else if ( *it == '-' ) {
+                        fmt.first.emplace_back( adportable::chem::atom_type( 0, " -"), 0 ); // put [+|-] in the text
+                        ++it;                    
                     }
-                    return molformula;
-                } else {
-                    return formula; // no adduct/lose specified
                 }
             }
+
+            template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type&, bool );
+        };
+        template<> void formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText );
+        template<> void formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText );
+
+        /////////
+
+        inline double monoIsotopicMass( const adportable::chem::icomp_type& comp )
+        {
+            adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
+            double mass = 
+                std::accumulate( comp.first.begin(), comp.first.end(), 0.0, [=]( double m, const adportable::chem::comp_type::value_type& pair ){
+                        if ( mol::element e = toe->findElement( pair.first.second ) )
+                            return m + mol::element::monoIsotopicMass( e, pair.first.first /* isotope */ ) * pair.second;
+                        return m;
+                    });
+            if ( comp.second > 0 ) {
+                return ( mass - ( toe->electronMass() * comp.second ) ) / comp.second;
+            } else if ( comp.second < 0 ) {
+                return ( mass + ( toe->electronMass() * std::abs( comp.second ) ) ) / std::abs( comp.second );
+            }
+            return mass;
+        }
+
+        inline double chemicalMass( const adportable::chem::icomp_type& comp )
+        {
+            adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
+            return 
+                std::accumulate( comp.first.begin(), comp.first.end(), 0.0, [=]( double m, const adportable::chem::comp_type::value_type& pair ){
+                        if ( mol::element e = toe->findElement( pair.first.second ) )
+                            return m + mol::element::chemicalMass( e ) * pair.second;
+                        return m;
+                    });
+        }
+
+        template< typename char_type > std::basic_string<char_type>
+        standardFormula( const std::basic_string<char_type>& formula ) {
+
+            typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+            adportable::chem::chemical_formula_parser< iterator_type, adportable::chem::formulaComposition, adportable::chem::icomp_type > comp_parser;
+
+            typename std::basic_string<char_type>::const_iterator it = formula.begin();
+
+            adportable::chem::icomp_type comp;
+
+            if ( boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) ) {
+
+                std::vector< std::pair< adportable::chem::atom_type, size_t > > orderd;
+                for ( auto atom: comp.first )
+                    orderd.emplace_back( atom.first, atom.second );
+                
+                // reorder elements in alphabetical order
+                std::sort( orderd.begin(), orderd.end()
+                           , []( const std::pair< atom_type, size_t >& lhs, const std::pair< atom_type, size_t >& rhs ){
+                               return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first;
+                           } );
+                
+                std::basic_ostringstream<char_type> o;
+                
+                for ( auto& p: orderd ) {
+                    std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
+                    if ( p.first.first == 0 ) {
+                        o << atom;
+                        if ( p.second > 1 )  // omit '1' such as CH4, not C1H4
+                            o << p.second;
+                    } else {
+                        o << atom;
+                        if ( p.second > 1 ) 
+                            o << p.second;
+                        o << ' ';
+                    }
+                }
+                return o.str();
+            }
+            return std::basic_string<char_type>();
         };
 
         template<typename char_type> std::basic_string<char_type>
@@ -232,26 +214,14 @@ namespace adcontrols {
                                 , []( const std::basic_string< char_type >& a, const std::pair < std::basic_string<char_type>, char_type >& b ) {
                                       return b.second == char_type('\0') ? ( a + b.first ) : a;  });
         }
+
+        /////////////////
+#if 0        
+#endif
         
-        template<typename char_type> std::basic_string<char_type>
-        formatFormulae( const std::basic_string<char_type>& formula, bool richText ) {
+    } // namespace chem
+} // namespace adcontrols
 
-            std::vector< std::pair< std::basic_string<char_type>, char_type > > list;
-            auto molformula = internal::splitter<char_type>::split( list, formula );
-            
-            std::basic_ostringstream<char_type> o;
-            o << ChemicalFormula::formatFormula( molformula, richText );
-            for ( auto& a: list ) {
-                if ( !a.first.empty() && a.second ) {
-                    o << char_type( ' ' ) << a.second;  // +|-
-                    o << adcontrols::ChemicalFormula::formatFormula( a.first, richText );
-                }
-            }
-            return o.str();
-        }
-    }
-
-}
 
 ChemicalFormula::~ChemicalFormula(void)
 {
@@ -270,13 +240,34 @@ ChemicalFormula::getElectronMass() const
 double
 ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula ) const
 {
-    return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
+    using namespace adportable::chem;
+    chemical_formula_parser< std::wstring::const_iterator, formulaComposition, icomp_type > cf;
+
+    std::wstring::const_iterator it = formula.begin();
+    adportable::chem::icomp_type comp;    
+
+    if ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) ) {
+        return chem::monoIsotopicMass( comp );
+    }
+
+    return 0;
 }
 
 double
 ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 {
-    return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
+    using namespace adportable::chem;
+            
+    chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > cf;
+
+    std::string::const_iterator it = formula.begin();
+    adportable::chem::icomp_type comp;    
+
+    if ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) ) {
+        return chem::monoIsotopicMass( comp );
+    }
+
+    return 0;
 }
 
 double
@@ -285,9 +276,9 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
     double mass = 0;
     for ( auto& formula: formulae ) {
         if ( formula.second == '-' )
-            mass -= internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula.first );
+            mass -= getMonoIsotopicMass( formula.first );
         else
-            mass += internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula.first );
+            mass += getMonoIsotopicMass( formula.first );
     }
     return mass;
 }
@@ -295,92 +286,62 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
 double
 ChemicalFormula::getChemicalMass( const std::wstring& formula ) const
 {
-    return internal::ChemicalFormulaImpl::getChemicalMass( formula );
+    using namespace adportable::chem;
+    chemical_formula_parser< std::wstring::const_iterator, formulaComposition, icomp_type > cf;
+
+    std::wstring::const_iterator it = formula.begin();
+    adportable::chem::icomp_type comp;    
+
+    if ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) )
+        return chem::chemicalMass( comp );
+
+    return 0;
 }
 
 std::wstring
 ChemicalFormula::standardFormula( const std::wstring& formula )
 {
-    return internal::ChemicalFormulaImpl::standardFormula( formula );
+    return chem::standardFormula<wchar_t>( formula );
 }
 
 std::string
 ChemicalFormula::standardFormula( const std::string& formula )
 {
-    return internal::ChemicalFormulaImpl::standardFormula( formula );
+    return chem::standardFormula<char>( formula );
 }
 
 std::string
 ChemicalFormula::formatFormula( const std::string& formula, bool richText )
 {
-    std::wstring wformula = formatFormula( adportable::utf::to_wstring( formula ), richText );
-    return adportable::utf::to_utf8( wformula );
+    chem::formatter formatter;
+
+    chem::iformat_type fmt;
+    std::string::const_iterator it = formula.begin();
+
+    std::ostringstream o;
+    if ( formatter.parse<char>( it, formula.end(), fmt ) )
+        formatter.print_text( o, fmt, richText );
+
+    assert( it == formula.end() );
+
+    return o.str();
 }
 
 std::wstring
 ChemicalFormula::formatFormula( const std::wstring& formula, bool richText )
 {
-    using adcontrols::internal::ChemicalFormulaImpl;
-    internal::iformat_type fmt;
+    chem::formatter formatter;
 
-    if ( ChemicalFormulaImpl::format( formula, fmt ) ) {
+    chem::iformat_type fmt;
+    std::wstring::const_iterator it = formula.begin();
 
-        std::wostringstream o;
-        if ( richText ) {
-            if ( fmt.second.second ) // has charge
-                o << "[";
-            for ( auto e: fmt.first ) {
-                if ( std::strcmp( e.first.second, "(" ) == 0 ) {
-                    o << L"(";
-                } else if ( std::strcmp( e.first.second, ")" ) == 0 ) {
-                    o << boost::wformat( L")<sub>%1%</sub>" ) % e.second;
-                } else {
-                    if ( e.first.first )
-                        o << boost::wformat( L"<sup>%1%</sup>" ) % e.first.first;
-                    o << adportable::utf::to_wstring( e.first.second ); // element name
-                    if ( e.second > 1 )
-                        o << boost::wformat( L"<sub>%1%</sub>" ) % e.second;
-                }
-            }
-            if ( fmt.second.second ) {
-                o << "]<sup>";
-                if ( fmt.second.first > 1 )
-                    o << fmt.second.first;
-                o << fmt.second.second << "</sup>";
-            }
-        } else {
-            if ( fmt.second.second )
-                o << "[";
-            bool sol = true;
-            for ( auto e: fmt.first ) {
-                if ( std::strcmp( e.first.second, "(" ) == 0 ) {
-                    o << L"(";
-                    sol = true;
-                } else if ( std::strcmp( e.first.second, ")" ) == 0 ) {
-                    o << e.second;
-                } else {
-                    if ( e.first.first ) {
-                        if ( !sol )
-                            o << L" " << e.first.first;
-                        else
-                            o << e.first.first;
-                    }
-                    o << adportable::utf::to_wstring( e.first.second ); // element name
-                    if ( e.second > 1 )
-                        o << e.second;
-                    sol = false;
-                }
-            }
-            if ( fmt.second.second ) {
-                o << "]";
-                if ( fmt.second.first > 1 )
-                    o << fmt.second.first;
-                o << fmt.second.second;
-            }            
-        }
-        return o.str();
-    }
-    return L"";    
+    std::wostringstream o;
+    if ( formatter.parse<wchar_t>( it, formula.end(), fmt ) )
+        formatter.print_text( o, fmt, richText );
+
+    assert( it == formula.end() );
+
+    return o.str();    
 }
 
 
@@ -396,9 +357,14 @@ namespace adcontrols {
 bool
 ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::string& formula )
 {
-    adportable::chem::icomp_type comp;
+    using namespace adportable::chem;
+    chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_perser;
 
-	if ( internal::ChemicalFormulaImpl::parse( formula, comp ) ) {
+    std::string::const_iterator it = formula.begin();
+    adportable::chem::icomp_type comp;    
+
+    if ( boost::spirit::qi::parse( it, formula.end(), comp_perser, comp ) ) {
+
         for ( auto& c: comp.first ) {
             // ignore isotope
             auto it = std::find_if( el.begin(), el.end(), [=]( const mol::element& e ){ return c.first.second == e.symbol(); }); 
@@ -411,51 +377,77 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
                 }
             }
         }
-	}
-    return !el.empty();
+        
+    }
 }
 
 //static
 std::vector< std::pair<std::string, char > >
 ChemicalFormula::split( const std::string& formula )
 {
+    using namespace adportable::chem;
+    chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_parser;
+
     std::vector< std::pair< std::string, char > > list;
-    std::string molformula = internal::splitter<char>::split( list, formula );
-    list.insert( list.begin(), std::make_pair( molformula, '\0' ) );
+    
+    std::string::const_iterator it = formula.begin();
+    adportable::chem::icomp_type comp;
+
+    std::string::size_type pos = 0;
+    char separator = 0;
+
+    while ( boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) ) {
+
+        auto count = std::distance( formula.begin(), it ) - pos;
+
+        list.emplace_back( formula.substr( pos, count ), separator );
+
+        if ( it == formula.end() )
+            break;
+
+        if ( *it == '+' || *it == '-' )
+            separator = *it++;
+
+        pos = std::distance( formula.begin(), it );
+    }
+
     return list;
 }
 
 std::string
 ChemicalFormula::formatFormulae( const std::string& formula, bool richText )
 {
-    return internal::formatFormulae<char>( formula, richText );
+    chem::iformat_type fmt;
+    chem::formatter().formulae<char>( fmt, formula );
+
+    std::ostringstream o;
+    chem::formatter().print_text<char>( o, fmt, richText );
+    return o.str();
 }
 
 std::wstring
 ChemicalFormula::formatFormulae( const std::wstring& formula, bool richText )
 {
-    return internal::formatFormulae<wchar_t>( formula, richText );
+    chem::iformat_type fmt;
+    chem::formatter().formulae<wchar_t>( fmt, formula );
+
+    std::wostringstream o;
+    chem::formatter().print_text<wchar_t>( o, fmt, richText );
+    return o.str();    
 }
 
 std::string
 ChemicalFormula::make_adduct_string( const std::vector< std::pair< std::string, char > >& list )
 {
-    return internal::make_adduct_string( list );
+    return chem::make_adduct_string( list );
 }
 
 std::string
 ChemicalFormula::make_formula_string( const std::vector< std::pair< std::string, char > >& list )
 {
-    return internal::make_formula_string( list );
+    return chem::make_formula_string( list );
 }
 
-
-///////////////
-using namespace adcontrols::internal;
-
-ChemicalFormulaImpl::ChemicalFormulaImpl() 
-{
-}
 
 //static
 std::vector< std::pair<std::string, char > >
@@ -565,4 +557,62 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
 {
     std::vector< std::string > list;
     return standardFormulae( formula, adducts, list );
+}
+
+
+template<> void
+chem::formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText )
+{
+    if ( fmt.second ) // has charge
+        o << L"[";
+    for ( auto e: fmt.first ) {
+        if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
+            o << L"(";
+        } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
+            o << boost::wformat( L")<sub>%1%</sub>" ) % e.second;
+        } else {
+            if ( e.first.first )
+                o << boost::wformat( L"<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
+
+            o << boost::wformat( L"%s" ) % e.first.second; // element name
+
+            if ( e.second > 1 )
+                o << boost::wformat( L"<sub>%1%</sub>" ) % e.second;
+        }
+    }
+    if ( fmt.second ) {
+        if ( fmt.second > 1 )
+            o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
+        else
+            o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
+    }
+}
+
+template<> void
+chem::formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText )
+{
+    if ( fmt.second ) // has charge
+        o << "[";
+    for ( auto e: fmt.first ) {
+        if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
+            o << "(";
+        } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
+            o << boost::format( ")<sub>%1%</sub>" ) % e.second;
+        } else {
+            if ( e.first.first )
+                o << boost::format( "<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
+
+            o << boost::format( "%s" ) % e.first.second; // element name
+
+            if ( e.second > 1 )
+                o << boost::format( "<sub>%1%</sub>" ) % e.second;
+        }
+    }
+    
+    if ( fmt.second ) {
+        if ( fmt.second > 1 )
+            o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
+        else
+            o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
+    }
 }
