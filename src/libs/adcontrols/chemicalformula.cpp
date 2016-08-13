@@ -180,7 +180,8 @@ namespace adcontrols {
                            } );
                 
                 std::basic_ostringstream<char_type> o;
-                
+                if ( comp.second )
+                    o << "[";
                 for ( auto& p: orderd ) {
                     std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
                     if ( p.first.first == 0 ) {
@@ -193,6 +194,12 @@ namespace adcontrols {
                             o << p.second;
                         o << ' ';
                     }
+                }
+                if ( comp.second ) {
+                    o << "]";
+                    if ( std::abs( comp.second ) > 1 )
+                        o << std::abs( comp.second );
+                    o << ( comp.second < 0 ? '-' : '+' );
                 }
                 return o.str();
             }

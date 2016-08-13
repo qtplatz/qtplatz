@@ -78,16 +78,6 @@ isotopeCluster::operator()( mol::molecule& mol, int charge ) const
                                                 , []( const mol::isotope& mi, const double& mass ){
                                                     return mi.mass < mass;
                                                 });
-
-                    // if ( it == cluster.end() ) {
-                    //     cluster.insert( it, mi );
-                    // } else {
-                    //     bool success = merge( *it, mi );
-                    //     if ( !success && ( it + 1 ) != cluster.end() )
-                    //         success = merge( *( it + 1 ), mi );
-                    //     if ( !success )
-                    //         cluster.insert( it, mi );
-                    // }
                     if ( it == cluster.end() || !merge( *it, mi ) )
                         cluster.insert( it, mi );
                 }
@@ -95,6 +85,13 @@ isotopeCluster::operator()( mol::molecule& mol, int charge ) const
             
             mol.cluster = cluster;
         }
+    }
+    
+    if ( charge > 0 ) {
+        std::for_each( mol.cluster.begin(), mol.cluster.end()
+                       , [&]( mol::isotope& pk ){ pk.mass = ( pk.mass - TableOfElement::instance()->electronMass() * charge ) / charge;});
+    } else if ( charge < 0 ) {
+        std::for_each( mol.cluster.begin(), mol.cluster.end(), [&]( mol::isotope& pk ){ pk.mass /= std::abs( charge ); });
     }
     return true;
 }
