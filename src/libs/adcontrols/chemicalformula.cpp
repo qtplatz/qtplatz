@@ -545,38 +545,58 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
 std::vector< std::string >
 ChemicalFormula::standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist )
 {
-    auto vec = splitAdducts( adducts );
+    int charge(0);
     std::vector< std::string > formulae;
-    for ( auto& adduct : vec ) {
-        if ( adduct.second == '+' ) {
-            auto sformula = standardFormula( formula + adduct.first );
-            formulae.push_back( sformula );
-            adductlist.push_back( "+" + adduct.first );            
-        } else {
-            int charge;
-            std::vector< mol::element > mol, loses;
-            getComposition( mol, formula, charge );
-            if ( getComposition( loses, adduct.first, charge ) ) {
-                for ( auto& lose : loses ) {
-                    auto it = std::find_if( mol.begin(), mol.end(), [lose] ( const mol::element& a ) {
-                                                 return a.atomicNumber() == lose.atomicNumber();
-                                            } );
-                    if ( it != mol.end() )
-                        it->count( it->count() - lose.count() );
-                }
 
-                std::ostringstream o;
-                for ( auto& a : mol ) {
-                    if ( a.count() > 0 ) {
-                        o << a.symbol();
-                        if ( a.count() > 1 )
-                            o << a.count();
-                    }
-                }
-                formulae.push_back( o.str() );
-                adductlist.push_back( "-" + adduct.first );
-            }
+    std::vector< mol::element > mol;
+    getComposition( mol, formula, charge );
+    
+    auto vec = splitAdducts( adducts );
+
+    for ( auto& adduct : vec ) {
+
+        int acharge(0);
+        std::vector< mol::element > comp( mol );
+
+        if ( adduct.second == '-' ) {
+            std::vector< mol::element > lose;
+            getComposition( lose, adduct.first, acharge );
+            std::for_each( lose.begin(), lose.end(), [&]( mol::element& a ){
+                    auto it = std::find_if( comp.begin(), comp.end()
+                                            , [lose,a] ( const mol::element& m ) { return m.atomicNumber() == a.atomicNumber(); } );
+                    if ( it != comp.end() )
+                        it->count( it->count() - a.count() );
+                });
+        } else {
+            getComposition( comp, adduct.first, acharge );
         }
+
+        adductlist.emplace_back( std::string( adduct.second == '-' ? "-" : "+" ) + adduct.first );
+
+        int charge_total = acharge + charge;
+
+        // comp -> standard formula
+        std::ostringstream o;
+
+        if ( charge_total )
+            o << "[";
+
+        std::for_each( comp.begin(), comp.end(), [&]( const mol::element& a ){
+                if ( a.count() > 0 ) {
+                    o << a.symbol();
+                    if ( a.count() > 1 )
+                        o << a.count();
+                }
+            } );
+
+        if ( charge_total ) {
+            o << "]";
+            if ( std::abs(charge_total )> 1 )
+                o << std::abs( charge_total );
+            o << ( charge_total < 0 ? "-" : "+" );
+        }
+        
+        formulae.emplace_back( o.str() );
     }
 
     return formulae;
