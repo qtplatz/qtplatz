@@ -54,7 +54,7 @@ namespace adcontrols {
 
         bool operator()( std::vector< isopeak >&, const std::string& formula, double relative_abundance = 1.0, int index = ( -1 ) ) const;
         
-        bool operator()( mol::molecule& ) const;
+        bool operator()( mol::molecule&, int charge ) const;
 
         double threshold_daltons() const;
         void threshold_daltons( double d );

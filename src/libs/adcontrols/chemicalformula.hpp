@@ -55,7 +55,7 @@ namespace adcontrols {
 		static std::wstring standardFormula( const std::wstring& formula );
 		static std::string standardFormula( const std::string& formula );
 		static std::string standardFormula( const std::vector< std::pair< std::string, char > >& formulae );
-        static bool getComposition( std::vector< mol::element >&, const std::string& formula );
+        static bool getComposition( std::vector< mol::element >&, const std::string& formula, int& charge );
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );
         

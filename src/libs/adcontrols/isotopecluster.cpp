@@ -56,7 +56,7 @@ isotopeCluster::threshold_daltons( double d )
 }
 
 bool
-isotopeCluster::operator()( mol::molecule& mol ) const
+isotopeCluster::operator()( mol::molecule& mol, int charge ) const
 {
     mol.cluster.clear();
     mol << mol::isotope( 0.0, 1.0 ); // trigger calculation
@@ -156,11 +156,12 @@ isotopeCluster::operator()( std::vector< isopeak >& mi
 {
     if ( formula.empty() || relative_abundance <= 0.0 )
         return false;
-    
-    mol::molecule mol;
-    ChemicalFormula::getComposition( mol.elements, formula );
 
-    (*this)( mol );
+    int charge(0);
+    mol::molecule mol;
+    ChemicalFormula::getComposition( mol.elements, formula, charge );
+
+    (*this)( mol, charge );
 
     auto maxIt = std::max_element( mol.cluster.begin(), mol.cluster.end()
                                    , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
@@ -171,11 +172,11 @@ isotopeCluster::operator()( std::vector< isopeak >& mi
 
     if ( mol.elements.size() > 1 )   {
         tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
-                               , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-4; } );
+                               , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-8; } );
     }
 
     std::for_each( mol.cluster.begin(), tail, [&]( const mol::isotope& i ){
-        auto it = std::lower_bound( mi.begin(), mi.end(), i.mass, [idx] ( const isopeak& a, double m ) { return a.mass < m; } );
+            auto it = std::lower_bound( mi.begin(), mi.end(), i.mass, [idx] ( const isopeak& a, double m ) { return a.mass < m; } );
             mi.insert( it, isopeak( i.mass, i.abundance, idx ) );
         });
     

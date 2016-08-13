@@ -113,9 +113,10 @@ ProteinWnd::handleFormulaeSelected( const QVector< QString >& formulae )
     spectrum_->resize(0);
     
     for ( auto& formula: formulae ) {
+        int charge(0);
         adcontrols::mol::molecule mol;
-        if ( adcontrols::ChemicalFormula::getComposition( mol.elements, formula.toStdString() + "H" ) ) { // protenated
-            isocalc( mol );
+        if ( adcontrols::ChemicalFormula::getComposition( mol.elements, formula.toStdString() + "H", charge ) ) { // protenated
+            isocalc( mol, 0 );
             double pmax = std::max_element( mol.cluster.begin(), mol.cluster.end()
                                             , [](const adcontrols::mol::isotope& a, const adcontrols::mol::isotope& b){
                                                 return a.abundance < b.abundance;} )->abundance;

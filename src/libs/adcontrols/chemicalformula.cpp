@@ -125,7 +125,7 @@ namespace adcontrols {
 
         /////////
 
-        inline double monoIsotopicMass( const adportable::chem::icomp_type& comp )
+        inline double monoIsotopicMass( const adportable::chem::icomp_type& comp, bool handleCharge = true )
         {
             adcontrols::TableOfElement *toe = adcontrols::TableOfElement::instance();
             double mass = 
@@ -134,11 +134,15 @@ namespace adcontrols {
                             return m + mol::element::monoIsotopicMass( e, pair.first.first /* isotope */ ) * pair.second;
                         return m;
                     });
-            if ( comp.second > 0 ) {
-                return ( mass - ( toe->electronMass() * comp.second ) ) / comp.second;
-            } else if ( comp.second < 0 ) {
-                return ( mass + ( toe->electronMass() * std::abs( comp.second ) ) ) / std::abs( comp.second );
+
+            if ( handleCharge ) {
+                if ( comp.second > 0 ) {
+                    return ( mass - ( toe->electronMass() * comp.second ) ) / comp.second;
+                } else if ( comp.second < 0 ) {
+                    return mass / std::abs( comp.second );
+                }
             }
+
             return mass;
         }
 
@@ -214,12 +218,9 @@ namespace adcontrols {
                                 , []( const std::basic_string< char_type >& a, const std::pair < std::basic_string<char_type>, char_type >& b ) {
                                       return b.second == char_type('\0') ? ( a + b.first ) : a;  });
         }
-
         /////////////////
-#if 0        
-#endif
-        
     } // namespace chem
+
 } // namespace adcontrols
 
 
@@ -234,7 +235,7 @@ ChemicalFormula::ChemicalFormula()
 double
 ChemicalFormula::getElectronMass() const
 {
-    return 5.4857990943e-4;
+    return adcontrols::TableOfElement::instance()->electronMass();
 }
 
 double
@@ -261,7 +262,7 @@ ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
     chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > cf;
 
     std::string::const_iterator it = formula.begin();
-    adportable::chem::icomp_type comp;    
+    adportable::chem::icomp_type comp;
 
     if ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) ) {
         return chem::monoIsotopicMass( comp );
@@ -273,12 +274,30 @@ ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 double
 ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const
 {
-    double mass = 0;
+    using namespace adportable::chem;
+    chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_parser;
+
+    adportable::chem::icomp_type comp, lose;
+    
     for ( auto& formula: formulae ) {
-        if ( formula.second == '-' )
-            mass -= getMonoIsotopicMass( formula.first );
-        else
-            mass += getMonoIsotopicMass( formula.first );
+        if ( formula.second == '-' ) {
+            std::string::const_iterator it = formula.first.begin();
+            boost::spirit::qi::parse( it, formula.first.end(), comp_parser, lose );
+        } else {
+            std::string::const_iterator it = formula.first.begin();
+            boost::spirit::qi::parse( it, formula.first.end(), comp_parser, comp );
+        }
+    }
+
+    int charge = comp.second + lose.second;
+
+    double mass = chem::monoIsotopicMass( comp, false );
+    mass -= chem::monoIsotopicMass( lose, false );
+
+    if ( charge > 0 ) {
+        return ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * charge ) ) / charge;
+    } else if ( charge < 0 ) {
+        return mass / std::abs(charge);
     }
     return mass;
 }
@@ -355,11 +374,12 @@ namespace adcontrols {
 }
 
 bool
-ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::string& formula )
+ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::string& formula, int& charge )
 {
     using namespace adportable::chem;
     chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_perser;
 
+    charge = 0;
     std::string::const_iterator it = formula.begin();
     adportable::chem::icomp_type comp;    
 
@@ -377,7 +397,7 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
                 }
             }
         }
-        
+        charge = comp.second;
     }
 }
 
@@ -488,10 +508,12 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
         else
             mformula += formula.first;
     }
-    
+
+    int charge;
     std::vector< mol::element > mol, loses;
-    getComposition( mol, mformula );
-    if ( getComposition( loses, lformula ) ) {
+    getComposition( mol, mformula, charge );
+
+    if ( getComposition( loses, lformula, charge ) ) {
         for ( auto& lose : loses ) {
             auto it = std::find_if( mol.begin(), mol.end(), [lose] ( const mol::element& a ) {
                     return a.atomicNumber() == lose.atomicNumber();
@@ -524,9 +546,10 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
             formulae.push_back( sformula );
             adductlist.push_back( "+" + adduct.first );            
         } else {
+            int charge;
             std::vector< mol::element > mol, loses;
-            getComposition( mol, formula );
-            if ( getComposition( loses, adduct.first ) ) {
+            getComposition( mol, formula, charge );
+            if ( getComposition( loses, adduct.first, charge ) ) {
                 for ( auto& lose : loses ) {
                     auto it = std::find_if( mol.begin(), mol.end(), [lose] ( const mol::element& a ) {
                                                  return a.atomicNumber() == lose.atomicNumber();
