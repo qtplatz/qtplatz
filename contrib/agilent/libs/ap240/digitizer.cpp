@@ -137,6 +137,10 @@ namespace ap240 {
                 return simulated_;
             }
 
+            int temperature() const {
+                return temperature_;
+            }
+
         private:
             static task * instance_;
             static std::mutex mutex_;
@@ -165,6 +169,7 @@ namespace ap240 {
             ViInt32 nbrSamples_;
             ViInt32 nStartDelay_;
             ViInt32 nbrWaveforms_;
+            ViInt32 temperature_;
 
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
@@ -175,7 +180,8 @@ namespace ap240 {
             bool handle_terminating();
             bool handle_acquire();
             bool handle_prepare_for_run( const acqrscontrols::ap240::method );
-            bool handle_protocol( const acqrscontrols::ap240::method );            
+            bool handle_protocol( const acqrscontrols::ap240::method );
+            bool handle_temperature();
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::ap240::waveform&, int channel );
@@ -304,6 +310,12 @@ digitizer::peripheral_trigger_inject()
     return task::instance()->trigger_inject_out();
 }
 
+double
+digitizer::temperature() const
+{
+    return task::instance()->temperature();
+}
+
 void
 digitizer::connect_reply( command_reply_type f )
 {
@@ -347,6 +359,7 @@ task::task() : work_( io_service_ )
              , ident_( std::make_shared< acqrscontrols::ap240::identify >() )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
+             , temperature_( 0 )
                
 {
     acquire_posted_.clear();
@@ -372,7 +385,7 @@ bool
 task::initialize()
 {
     ADTRACE() << "ap240 digitizer initializing...";
-    //io_service_.post( strand_.wrap( [&] { handle_initial_setup(); } ) );
+
     strand_.post( [&] { handle_initial_setup(); } );
     return true;
 }
@@ -383,11 +396,9 @@ task::prepare_for_run( const acqrscontrols::ap240::method& m )
     if ( inst_ == ViSession( -1 ) )
         return false;
 
-    //io_service_.post( strand_.wrap( [this,m] { handle_prepare_for_run(m); } ) );
     strand_.post( [this,m] { handle_prepare_for_run(m); } );
 
     if ( ! std::atomic_flag_test_and_set( &acquire_posted_) ) {
-        //io_service_.post( strand_.wrap( [this] { handle_acquire(); } ) );
         strand_.post( [this] { handle_acquire(); } );
     }
     
@@ -484,6 +495,8 @@ task::handle_initial_setup()
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
 
+    strand_.post( [&] { handle_temperature(); } );
+    
 	return success;
 }
 
@@ -512,12 +525,23 @@ task::handle_protocol( const acqrscontrols::ap240::method m )
 }
 
 bool
+task::handle_temperature()
+{
+    AcqrsD1_getInstrumentInfo( inst_, "Temperature", &temperature_ );
+
+    std::ostringstream o;
+    o << temperature_;
+
+    for ( auto& reply: reply_handlers_ )
+        reply( "Temperature", o.str() );
+}
+
+bool
 task::handle_acquire()
 {
     const static auto epoch = std::chrono::system_clock::from_time_t( 0 );
 
     if ( std::atomic_flag_test_and_set( &acquire_posted_ ) ) {
-        //io_service_.post( strand_.wrap( [&] { handle_acquire(); } ) );    // scedule for next acquire
         strand_.post( [&] { handle_acquire(); } );    // scedule for next acquire
     } else {
         std::atomic_flag_clear( &acquire_posted_ ); // keep it false
@@ -791,8 +815,6 @@ device_ap240::averager_setup( task& task, acqrscontrols::ap240::method& m )
     // averager mode
     assert( m.hor_.mode == 2 );
 
-    // std::cout << "###### setup for averager #######" << std::endl;
-    
     auto inst = task.inst();
     ViStatus status;
 

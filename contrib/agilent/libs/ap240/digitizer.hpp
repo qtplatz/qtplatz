@@ -61,24 +61,7 @@ namespace ap240 {
             ar & BOOST_SERIALIZATION_NVP( meta );           
         }
     };
-#if 0
-	class AP240SHARED_EXPORT metadata_archive {
-    public:
-        metadata_archive( const ap240x::identify& id ) {
-        }
-        ap240x::identify ident_;
-        std::vector< ap240x::metadata > meta_;
-        std::shared_ptr< acqrscontrols::ap240::method > method_;
-    private:        
-        friend class boost::serialization::access;
-        template<class Archive>
-            void serialize( Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( ident_ );
-            ar & BOOST_SERIALIZATION_NVP( meta_ );           
-        }
-    };
-#endif
+
     class AP240SHARED_EXPORT digitizer {
     public:
         digitizer();
@@ -92,6 +75,8 @@ namespace ap240 {
         bool peripheral_trigger_inject();
         bool peripheral_terminate();
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
+
+        double temperature() const;
 
         typedef std::function< void( const std::string, const std::string ) > command_reply_type;
         typedef std::function< bool( const acqrscontrols::ap240::waveform *, const acqrscontrols::ap240::waveform *, acqrscontrols::ap240::method& ) > waveform_reply_type;
