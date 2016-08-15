@@ -557,7 +557,6 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
         }
     }
 
-    ADDEBUG() << "AP240 '" << method.toStdString() << "' " << reply.toStdString();
     if ( method == "Temperature") {
         ADDEBUG() << "AP240 Temperature: " << reply.toStdString();
         if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() )
