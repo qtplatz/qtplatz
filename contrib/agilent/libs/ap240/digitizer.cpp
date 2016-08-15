@@ -562,6 +562,7 @@ task::handle_temperature()
     
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
+    return true;
 }
 
 bool

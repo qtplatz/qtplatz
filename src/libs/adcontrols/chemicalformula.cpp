@@ -116,6 +116,7 @@ namespace adcontrols {
                         ++it;                    
                     }
                 }
+                return true;
             }
 
             template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type&, bool );
@@ -521,7 +522,9 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
             }
         }
         charge = comp.second;
+        return true;
     }
+    return false;
 }
 
 /*
