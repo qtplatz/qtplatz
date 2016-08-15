@@ -203,12 +203,15 @@ task::finalize()
 bool
 task::impl::finalize()
 {
-    worker_stopping_ = true;
-    sema_.signal();
+    if ( !worker_stopping_ ) {
+        
+        worker_stopping_ = true;
+        sema_.signal();
     
-    io_service_.stop();
-    for ( auto& t : threads_ )
-        t.join();
+        io_service_.stop();
+        for ( auto& t : threads_ )
+            t.join();
+    }
     
     return true;
 }

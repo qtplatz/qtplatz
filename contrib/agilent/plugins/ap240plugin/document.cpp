@@ -585,6 +585,8 @@ void
 document::finalClose()
 {
     ADDEBUG() << "########### document::finalClose ##############";
+    
+    digitizer_->peripheral_terminate();
     task::instance()->finalize();
     impl_->stop();
     

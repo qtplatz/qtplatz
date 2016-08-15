@@ -41,6 +41,9 @@
 #include <workaround/boost/asio.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/asio/basic_waitable_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/variant.hpp>
 #include <boost/bind.hpp>
@@ -149,6 +152,8 @@ namespace ap240 {
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
             boost::asio::io_service::strand strand_;
+            boost::asio::steady_timer timer_;
+            
             bool simulated_;
             acqrscontrols::ap240::method method_;
             std::atomic_flag acquire_posted_;
@@ -170,7 +175,7 @@ namespace ap240 {
             ViInt32 nStartDelay_;
             ViInt32 nbrWaveforms_;
             ViInt32 temperature_;
-
+            
             std::vector< digitizer::command_reply_type > reply_handlers_;
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< acqrscontrols::ap240::identify > ident_;
@@ -182,6 +187,7 @@ namespace ap240 {
             bool handle_prepare_for_run( const acqrscontrols::ap240::method );
             bool handle_protocol( const acqrscontrols::ap240::method );
             bool handle_temperature();
+            void handle_timer( const boost::system::error_code& );
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::ap240::waveform&, int channel );
@@ -350,6 +356,7 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
+             , timer_( io_service_ )
              , simulated_( false )
              , data_serialnumber_( 0 )
              , serial_number_( 0 )
@@ -430,6 +437,7 @@ task::trigger_inject_out()
 void
 task::terminate()
 {
+    timer_.cancel();
     io_service_.stop();
     for ( std::thread& t: threads_ )
         t.join();
@@ -495,7 +503,10 @@ task::handle_initial_setup()
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
 
-    strand_.post( [&] { handle_temperature(); } );
+    using namespace std::chrono_literals;
+
+    timer_.expires_from_now( 5s );
+    timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
     
 	return success;
 }
@@ -524,6 +535,23 @@ task::handle_protocol( const acqrscontrols::ap240::method m )
     return true;
 }
 
+void
+task::handle_timer( const boost::system::error_code& ec )
+{
+    using namespace std::chrono_literals;
+    
+    if ( ec != boost::asio::error::operation_aborted ) {
+
+        strand_.post( [&] { handle_temperature(); } );
+
+        boost::system::error_code erc;
+        timer_.expires_from_now( 5s, erc );
+        if ( !erc )
+            timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
+
+    }
+}
+
 bool
 task::handle_temperature()
 {
@@ -531,6 +559,8 @@ task::handle_temperature()
 
     std::ostringstream o;
     o << temperature_;
+    
+    ADDEBUG() << "Temperature: " << temperature_;
 
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
@@ -547,7 +577,7 @@ task::handle_acquire()
         std::atomic_flag_clear( &acquire_posted_ ); // keep it false
     }
 
-    static auto acquire_tp = std::chrono::system_clock::now();    
+    static auto acquire_tp = std::chrono::system_clock::now();
 
     if ( acquire() ) {
 

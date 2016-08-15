@@ -535,7 +535,7 @@ int main(int argc, char **argv)
     QObject::connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     // shutdown plugin manager on the exit
     QObject::connect(&app, SIGNAL(aboutToQuit()), &pluginManager, SLOT(shutdown()));
-
+#if 0
     std::set_terminate([](){
             QMessageBox mbx( QMessageBox::Critical
                              , QObject::tr( "QtPlatz" )
@@ -551,7 +551,7 @@ int main(int argc, char **argv)
             else if ( mbx.clickedButton() == ignoreButton )
                 return;
         });
-    
+#endif    
     const int r = app.exec();
 
     return r;
