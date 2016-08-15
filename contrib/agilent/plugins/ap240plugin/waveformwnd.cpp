@@ -51,6 +51,7 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
                                              , hpw_( new adplot::SpectrumWidget )
                                              , tpw_( new adplot::ChromatogramWidget )
                                              , tickCount_( 0 )
+                                             , temperature_( 0 )
 {
     for ( auto& tp: tp_ )
         tp = std::make_shared< adcontrols::Trace >();
@@ -275,7 +276,7 @@ WaveformWnd::handle_waveform()
             sp->setMSProperty( prop );
 
             if ( o.str().empty() )
-                o << boost::format( "Time: %.3lf" ) % waveform->meta_.initialXTimeSeconds;
+                o << boost::format( "%ddegC Time: %.3lf" ) % temperature_ % waveform->meta_.initialXTimeSeconds;
 
             if ( !result->indecies().empty() ) {
                 o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels_mV[ channel ];
@@ -298,4 +299,10 @@ WaveformWnd::handle_waveform()
         spw_->setTitle( o.str() );
     }
     document::instance()->waveform_drawn();
+}
+
+void
+WaveformWnd::setTemperature( int temp )
+{
+    temperature_ = temp;
 }

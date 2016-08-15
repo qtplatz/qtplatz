@@ -39,6 +39,7 @@
 #include <adinterface/controlserver.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
@@ -550,12 +551,18 @@ MainWindow::actFileOpen()
 void
 MainWindow::handle_reply( const QString& method, const QString& reply )
 {
-	auto docks = dockWidgets();
-    auto it = std::find_if( docks.begin(), docks.end(), []( const QDockWidget * w ){ return w->objectName() == "Log"; });
-    if ( it != docks.end() ) {
-		if ( auto edit = dynamic_cast< QTextEdit * >( (*it)->widget() ) )
-			edit->append( QString("%1: %2").arg( method, reply ) );
-	}
+    if ( auto w = findChild< QDockWidget * >( "Log" ) ) {
+        if ( auto edit = qobject_cast< QTextEdit *>( w->widget() ) ) {
+            edit->append( QString("%1: %2").arg( method, reply ) );
+        }
+    }
+
+    ADDEBUG() << "AP240 '" << method.toStdString() << "' " << reply.toStdString();
+    if ( method == "Temperature") {
+        ADDEBUG() << "AP240 Temperature: " << reply.toStdString();
+        if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() )
+            wnd->setTemperature( reply.toInt() );
+    }
 }
 
 void

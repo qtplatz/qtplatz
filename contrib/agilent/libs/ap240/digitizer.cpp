@@ -560,8 +560,6 @@ task::handle_temperature()
     std::ostringstream o;
     o << temperature_;
     
-    ADDEBUG() << "Temperature: " << temperature_;
-
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
 }

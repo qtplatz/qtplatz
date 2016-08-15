@@ -45,7 +45,8 @@ namespace ap240 {
         ~WaveformWnd();
         
         void onInitialUpdate();
-        void setData( const std::shared_ptr< const ap240::waveform >& );
+        // void setData( const std::shared_ptr< const ap240::waveform >& );
+        void setTemperature( int );
 
     public slots:
         void handle_waveform();
@@ -59,6 +60,7 @@ namespace ap240 {
         adplot::SpectrumWidget * spw_;
         adplot::SpectrumWidget * hpw_;
         size_t tickCount_;
+        int temperature_;
 
         std::array< std::shared_ptr< adcontrols::MassSpectrum >, 2 > sp_;
 

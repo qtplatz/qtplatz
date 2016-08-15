@@ -421,6 +421,7 @@ void
 document::reply_handler( const std::string& method, const std::string& reply )
 {
 	emit on_reply( QString::fromStdString( method ), QString::fromStdString( reply ) );
+
     if ( method == "InitialSetup" && reply == "success" ) {
         device_status_ = controlserver::eStandBy;
         emit on_status( device_status_ );
