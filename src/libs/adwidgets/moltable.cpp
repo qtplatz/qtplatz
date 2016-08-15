@@ -80,9 +80,41 @@ namespace adwidgets {
 
     namespace ac = adcontrols;
 
+    static double computeMass( const QString& formula, const QString& adducts, QString& stdFormula )
+    {
+        std::string stdformula = formula.toStdString();
+        std::string stdadducts = adducts.toStdString();
+        auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
+        if ( v.empty() )
+            return 0;
+
+        stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
+                return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
+            });
+
+        return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
+    }
+
+    static QVector<double> computeMasses( const QString& formula, const QString& adducts, QString& stdFormula )
+    {
+        QVector<double> masses;
+        std::string stdformula = formula.toStdString();
+        std::string stdadducts = adducts.toStdString();
+        auto v = adcontrols::ChemicalFormula::standardFormulae( stdformula, stdadducts );
+
+        std::for_each( v.begin(), v.end(), [&]( const std::string& f ){ masses << adcontrols::ChemicalFormula().getMonoIsotopicMass( f ); } );
+
+        stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
+                return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
+            });
+
+        return masses;
+    }
+
+    /////////////////
+
     class MolTable::delegate : public QStyledItemDelegate {
         
-
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 
             QStyleOptionViewItem opt(option);
@@ -107,19 +139,18 @@ namespace adwidgets {
             } else if ( index.column() == MolTable::c_mass ) {
                     
                 painter->save();
-
-                auto expr = 
+                QString stdFormulae;
+                double exactMass = computeMass(
                     index.model()->index( index.row(), MolTable::c_formula ).data( Qt::EditRole ).toString()
-                    + " " + index.model()->index( index.row(), MolTable::c_adducts ).data( Qt::EditRole ).toString();
-                
-                double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
+                    , index.model()->index( index.row(), MolTable::c_adducts ).data( Qt::EditRole ).toString(), stdFormulae );
+
                 double mass = index.data( Qt::EditRole ).toDouble();
-                if ( mass < 0.9 )
+                if ( adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
+                    painter->fillRect( option.rect, QColor( 0xf0, 0xf8, 0xff, 0x80 ) ); // AliceBlue                    
+                else if ( mass < 0.9 )
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
-                else if ( !adportable::compare<double>::approximatelyEqual( exactMass, mass ) )
-                    painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
                 else 
-                    painter->fillRect( option.rect, QColor( 0xf0, 0xf8, 0xff, 0x80 ) ); // AliceBlue
+                    painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
                 
                 QStyledItemDelegate::paint( painter, opt, index );
                 painter->restore();
@@ -190,13 +221,6 @@ namespace adwidgets {
 
         std::array< bool, nbrColums > editable_;
 
-        static double computeMass( const QString& formula, const QString& adducts, QString& stdFormula ) {
-            auto vformula = adcontrols::ChemicalFormula::split( (formula + " " + adducts).toStdString() );
-            stdFormula = QString::fromStdString( adcontrols::ChemicalFormula::standardFormula( vformula ) );
-            double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( vformula ); // mass from value
-            return mass;
-        }
-        
         void  setData( MolTable& table
                        , int row
                        , const QString& formula
@@ -224,7 +248,7 @@ namespace adwidgets {
 
             QString stdFormula;
             if ( mass < 0.9 && !formula.isEmpty() )
-                mass = impl::computeMass( formula, adducts, stdFormula );
+                mass = computeMass( formula, adducts, stdFormula );
             
             model.setData( model.index( row, c_smiles ), smiles );
             model.setData( model.index( row, c_formula ), formula );
@@ -233,6 +257,7 @@ namespace adwidgets {
             model.setData( model.index( row, c_abundance ), abundance );
             model.setData( model.index( row, c_mass ), mass );
             model.setData( model.index( row, c_msref ), msref );
+            model.setData( model.index( row, c_description ), description );
 
             if ( auto item = model.item( row, c_formula ) ) {
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
@@ -312,7 +337,7 @@ MolTable::onInitialUpdate()
     model.setHeaderData( c_abundance, Qt::Horizontal, QObject::tr( "R. A. " ) );
     model.setHeaderData( c_synonym, Qt::Horizontal, QObject::tr( "synonym" ) );
     model.setHeaderData( c_svg, Qt::Horizontal, QObject::tr( "structure" ) );
-    model.setHeaderData( c_smiles, Qt::Horizontal, QObject::tr( "similes" ) );    
+    model.setHeaderData( c_smiles, Qt::Horizontal, QObject::tr( "SMILES" ) );    
     model.setHeaderData( c_description, Qt::Horizontal, QObject::tr( "memo" ) );
     // setEditTriggers( QAbstractItemView::AllEditTriggers );
 
@@ -389,7 +414,7 @@ MolTable::handleValueChanged( const QModelIndex& index )
                 item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
         }
         model_->setData( index, formula.isEmpty() ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole );
-        model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts, stdFormula ) );
+        model_->setData( model_->index( index.row(), c_mass ), computeMass( formula, adducts, stdFormula ) );
 
         if ( model_->index( index.row(), c_abundance ).data( Qt::EditRole ).isNull() )
             model_->setData( model_->index( index.row(), c_abundance ), 100.0 );
@@ -398,7 +423,7 @@ MolTable::handleValueChanged( const QModelIndex& index )
     if ( index.column() == c_adducts ) {
         auto formula = model_->index( index.row(), c_formula ).data( Qt::EditRole ).toString();
         auto adducts = model_->index( index.row(), c_adducts ).data( Qt::EditRole ).toString();
-        model_->setData( model_->index( index.row(), c_mass ), impl::computeMass( formula, adducts, stdFormula ) );
+        model_->setData( model_->index( index.row(), c_mass ), computeMass( formula, adducts, stdFormula ) );
     }
     if ( !stdFormula.isEmpty() )
         model_->setData( model_->index( index.row(), c_description ), stdFormula );

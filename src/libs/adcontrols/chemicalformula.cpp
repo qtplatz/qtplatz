@@ -157,6 +157,32 @@ namespace adcontrols {
                     });
         }
 
+        template< typename char_type > std::basic_string<char_type> make_string( const adportable::chem::icomp_type& comp ) {
+
+            std::ostringstream o;
+
+            if ( comp.second ) // charge
+                o << "[";
+            
+            std::for_each( comp.first.begin(), comp.first.end(), [&]( const std::pair< adportable::chem::atom_type, int >& a ){
+                    // atom_type = std::pair< int, const char * >
+                    int nelements = a.second; // number of element
+                    if ( nelements > 0 ) { 
+                        o << a.first.second; // element name (omit atomic weight, e.g. 13C)
+                        if ( nelements  > 1 )
+                            o << a.second;
+                    }
+                } );
+            
+            if ( comp.second ) { // charge
+                o << "]";
+                if ( std::abs( comp.second ) > 1 )
+                    o << std::abs( comp.second );
+                o << ( comp.second < 0 ? "-" : "+" );
+            }
+            return o.str();
+        }
+
         template< typename char_type > std::basic_string<char_type>
         standardFormula( const std::basic_string<char_type>& formula ) {
 
@@ -169,20 +195,21 @@ namespace adcontrols {
 
             if ( boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) ) {
 
-                std::vector< std::pair< adportable::chem::atom_type, size_t > > orderd;
-                for ( auto atom: comp.first )
-                    orderd.emplace_back( atom.first, atom.second );
+                // std::vector< std::pair< adportable::chem::atom_type, size_t > > orderd;
+                // for ( auto atom: comp.first )
+                //     orderd.emplace_back( atom.first, atom.second );
                 
-                // reorder elements in alphabetical order
-                std::sort( orderd.begin(), orderd.end()
-                           , []( const std::pair< atom_type, size_t >& lhs, const std::pair< atom_type, size_t >& rhs ){
-                               return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first;
-                           } );
+                // // reorder elements in alphabetical order
+                // std::sort( orderd.begin(), orderd.end()
+                //            , []( const std::pair< atom_type, size_t >& lhs, const std::pair< atom_type, size_t >& rhs ){
+                //                return std::strcmp( lhs.first.second, rhs.first.second ) < 0 || lhs.first.first < rhs.first.first;
+                //            } );
                 
                 std::basic_ostringstream<char_type> o;
                 if ( comp.second )
                     o << "[";
-                for ( auto& p: orderd ) {
+
+                for ( auto& p: comp.first ) {
                     std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
                     if ( p.first.first == 0 ) {
                         o << atom;
@@ -195,6 +222,7 @@ namespace adcontrols {
                         o << ' ';
                     }
                 }
+
                 if ( comp.second ) {
                     o << "]";
                     if ( std::abs( comp.second ) > 1 )
@@ -226,8 +254,95 @@ namespace adcontrols {
                                       return b.second == char_type('\0') ? ( a + b.first ) : a;  });
         }
         /////////////////
-    } // namespace chem
 
+        struct adductlist_splitter {
+
+            // split by comman or semicolon
+            template< typename char_type >
+            size_t operator()( std::vector< std::basic_string< char_type > >& formulae, const std::basic_string< char_type >& formulaList ) const {
+
+                typedef boost::tokenizer< boost::char_separator< char_type >
+                                          , typename std::basic_string< char_type >::const_iterator
+                                          , typename std::basic_string< char_type > > tokenizer_t;
+            
+                boost::char_separator< char_type > separator( ",;", "", boost::drop_empty_tokens );
+                tokenizer_t tokens( formulaList, separator );
+                for ( auto& t: tokens )
+                    formulae.emplace_back( t );
+
+                return formulae.size();
+            }
+        };
+
+        struct addlose_splitter {
+            
+            template< typename char_type >
+            std::vector< std::pair< std::basic_string< char_type >, char_type > > operator()( const std::basic_string< char_type >& formula ) const {
+
+                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+                adportable::chem::chemical_formula_parser< iterator_type, adportable::chem::formulaComposition, adportable::chem::icomp_type > comp_parser;
+                
+                std::vector< std::pair<std::basic_string< char_type >, char_type> > list;
+                iterator_type it = formula.begin();
+                adportable::chem::icomp_type comp;
+                
+                std::string::size_type pos = 0;
+                char separator = 0;
+                
+                while ( boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) ) {
+                    
+                    auto count = std::distance( formula.begin(), it ) - pos;
+                    
+                    list.emplace_back( formula.substr( pos, count ), separator );
+                    
+                    while ( it != formula.end() && (*it == ',' || *it == ';') )
+                        ++it;
+                    if ( it == formula.end() )
+                        break;
+                    
+                    if ( *it == '+' || *it == '-' )
+                        separator = *it++;
+                    
+                    pos = std::distance( formula.begin(), it );
+                }
+                return list;
+            }
+        };
+
+        struct parser {
+
+            template< typename char_type >
+            bool operator()( adportable::chem::icomp_type& comp, const std::basic_string< char_type >& formula ) const {
+
+                using namespace adportable::chem;
+                
+                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+                adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, icomp_type > comp_parser;                
+
+                typename std::basic_string< char_type >::const_iterator it = formula.begin();
+
+                return
+                    boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) && it == formula.end();
+            }
+
+            template< typename char_type >
+            bool operator()( adportable::chem::icomp_type& comp
+                             , typename std::basic_string< char_type >::const_iterator& it
+                             , const std::basic_string< char_type >& formula ) const {
+
+                using namespace adportable::chem;
+                
+                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+                adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, icomp_type > comp_parser;
+                
+                return
+                    boost::spirit::qi::parse( it, formula.end(), comp_parser, comp );
+            }
+
+        };
+       
+
+    } // namespace chem
 } // namespace adcontrols
 
 
@@ -383,10 +498,11 @@ namespace adcontrols {
 bool
 ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::string& formula, int& charge )
 {
+    charge = 0;
+    
     using namespace adportable::chem;
     chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_perser;
 
-    charge = 0;
     std::string::const_iterator it = formula.begin();
     adportable::chem::icomp_type comp;    
 
@@ -408,10 +524,16 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
     }
 }
 
+/*
+ * split formula followed by a list of adducts/losses, 
+ * ex. 'CH3(C2H4)5OH +H +Na +NH3 -C2H4' will return pair(' ', "CH3(C2H4)50H"), pair('+' "Na"), pair('+' "NH3"), pair( '-' "C2H4")
+ */
 //static
 std::vector< std::pair<std::string, char > >
 ChemicalFormula::split( const std::string& formula )
 {
+    return chem::addlose_splitter()( formula );
+#if 0
     using namespace adportable::chem;
     chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_parser;
 
@@ -429,9 +551,11 @@ ChemicalFormula::split( const std::string& formula )
 
         list.emplace_back( formula.substr( pos, count ), separator );
 
+        while ( it != formula.end() && (*it == ',' || *it == ';') )
+            ++it;
         if ( it == formula.end() )
             break;
-
+        
         if ( *it == '+' || *it == '-' )
             separator = *it++;
 
@@ -439,6 +563,7 @@ ChemicalFormula::split( const std::string& formula )
     }
 
     return list;
+#endif
 }
 
 std::string
@@ -476,6 +601,7 @@ ChemicalFormula::make_formula_string( const std::vector< std::pair< std::string,
 }
 
 
+#if 0
 //static
 std::vector< std::pair<std::string, char > >
 ChemicalFormula::splitAdducts( const std::string& adducts )
@@ -485,7 +611,7 @@ ChemicalFormula::splitAdducts( const std::string& adducts )
                               , typename std::basic_string< char_type >::const_iterator
                               , typename std::basic_string< char_type > > tokenizer_t;
 
-    boost::char_separator< char_type > separator( ",; \t", "", boost::drop_empty_tokens );
+    boost::char_separator< char_type > separator( ",;", "", boost::drop_empty_tokens );
     tokenizer_t tokens( adducts, separator );
 
     std::vector< std::pair<std::string, char> > list;
@@ -503,6 +629,7 @@ ChemicalFormula::splitAdducts( const std::string& adducts )
     }
     return list;
 }
+#endif
 
 std::string
 ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, char > >& formulae )
@@ -545,58 +672,41 @@ ChemicalFormula::standardFormula( const std::vector< std::pair< std::string, cha
 std::vector< std::string >
 ChemicalFormula::standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist )
 {
-    int charge(0);
     std::vector< std::string > formulae;
 
-    std::vector< mol::element > mol;
-    getComposition( mol, formula, charge );
-    
-    auto vec = splitAdducts( adducts );
-
-    for ( auto& adduct : vec ) {
-
-        int acharge(0);
-        std::vector< mol::element > comp( mol );
-
-        if ( adduct.second == '-' ) {
-            std::vector< mol::element > lose;
-            getComposition( lose, adduct.first, acharge );
-            std::for_each( lose.begin(), lose.end(), [&]( mol::element& a ){
-                    auto it = std::find_if( comp.begin(), comp.end()
-                                            , [lose,a] ( const mol::element& m ) { return m.atomicNumber() == a.atomicNumber(); } );
-                    if ( it != comp.end() )
-                        it->count( it->count() - a.count() );
-                });
-        } else {
-            getComposition( comp, adduct.first, acharge );
-        }
-
-        adductlist.emplace_back( std::string( adduct.second == '-' ? "-" : "+" ) + adduct.first );
-
-        int charge_total = acharge + charge;
-
-        // comp -> standard formula
-        std::ostringstream o;
-
-        if ( charge_total )
-            o << "[";
-
-        std::for_each( comp.begin(), comp.end(), [&]( const mol::element& a ){
-                if ( a.count() > 0 ) {
-                    o << a.symbol();
-                    if ( a.count() > 1 )
-                        o << a.count();
-                }
-            } );
-
-        if ( charge_total ) {
-            o << "]";
-            if ( std::abs(charge_total )> 1 )
-                o << std::abs( charge_total );
-            o << ( charge_total < 0 ? "-" : "+" );
-        }
+    adportable::chem::icomp_type mol;
+    if ( chem::parser()( mol, formula ) ) {
         
-        formulae.emplace_back( o.str() );
+        chem::adductlist_splitter()( adductlist, adducts ); // split by comma; e.g. "+[H]+, +[Na]+" --> "+[H]+", "+[Na]+"
+
+        if ( adductlist.empty() )
+            formulae.emplace_back( chem::make_string< char >( mol ) );
+
+        for ( auto& addlose: adductlist ) { // number of adducts in the 'adducts' string ==> formulae.size
+
+            int separator = 0;
+            std::string::const_iterator it = addlose.begin();
+
+            adportable::chem::icomp_type comp( mol ), lose;
+            bool result( false );
+            do {
+                if ( *it == '+' || *it == '-' )
+                    separator = *it++;
+                result = chem::parser()( separator == '-' ? lose : comp, it, addlose );
+            } while ( result && it != addlose.end() );
+
+            // subtract 'lose' elements from 'comp'
+            using namespace adportable::chem;
+            std::for_each( lose.first.begin(), lose.first.end(), [&]( const std::pair< atom_type, int >& sub ){
+                    auto xit = comp.first.find( sub.first ); // find complete match including atomic weight (e.g. 13C != 12C)
+                    if ( xit != comp.first.end() )
+                        xit->second = xit->second - sub.second;
+                });
+
+            comp.second += lose.second; // update charge
+
+            formulae.emplace_back( chem::make_string< char >( comp ) );
+        }
     }
 
     return formulae;

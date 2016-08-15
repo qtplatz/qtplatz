@@ -86,7 +86,7 @@ namespace adcontrols {
          * makeFormulae synthesize standard formulae from formula and commna (or semicolon) separated list of adducts/lose
          * expecting addcuts ex: +H,+CH3CN,-COOH,...
          */
-        static std::vector< std::pair< std::string, char > > splitAdducts( const std::string& adducts );
+        // static std::vector< std::pair< std::string, char > > splitAdducts( const std::string& adducts );
         static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts );
         static std::vector< std::string > standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist );
 

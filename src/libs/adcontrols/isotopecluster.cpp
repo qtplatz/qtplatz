@@ -70,7 +70,7 @@ isotopeCluster::operator()( mol::molecule& mol, int charge ) const
             for ( auto& p: mol.cluster ) {
 
                 for ( auto& i: element.isotopes() ) {
-
+                    
                     mol::isotope mi( p.mass + i.mass, p.abundance * i.abundance );
 
                     // make an array of order of mass
