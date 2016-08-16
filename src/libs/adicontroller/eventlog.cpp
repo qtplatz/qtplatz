@@ -23,105 +23,195 @@
 **************************************************************************/
 
 #include "eventlog.hpp"
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/variant.hpp>
+#include <atomic>
+#include <chrono>
+
+namespace adicontroller {
+    namespace EventLog {
+        static std::atomic< uint32_t > __logid;
+
+        template< typename T = LogMessage >
+        class LogMessage_archive {
+        public:
+            template< class Archive >
+            void serialize( Archive& ar, T& _, const unsigned int version ) {
+                ar & BOOST_SERIALIZATION_NVP( _.logId_ );
+                ar & BOOST_SERIALIZATION_NVP( _.priority_ );
+                ar & BOOST_SERIALIZATION_NVP( _.epoch_time_ );
+                ar & BOOST_SERIALIZATION_NVP( _.msgId_ );
+                ar & BOOST_SERIALIZATION_NVP( _.srcId_ );
+                ar & BOOST_SERIALIZATION_NVP( _.format_ );
+                ar & BOOST_SERIALIZATION_NVP( _.args_ );
+            }
+        };
+
+        ///////// XML archive ////////
+        template<> void
+        LogMessage::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        {
+            LogMessage_archive<>().serialize( ar, *this, version );
+        }
+        
+        template<> void
+        LogMessage::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        {
+            LogMessage_archive<>().serialize( ar, *this, version );        
+        }
+        
+    }
+}
 
 using namespace adicontroller;
+using namespace adicontroller::EventLog;
 
-EventLog::EventLog()
+LogMessage::LogMessage() : logId_( __logid++ )
+                         , priority_( pri_DEBUG )
+                         , epoch_time_( 0 )
 {
 }
 
-EventLog::~EventLog()
+LogMessage::LogMessage( const LogMessage& t ) : logId_( t.logId_ )
+                                              , priority_( t.priority_ )
+                                              , epoch_time_( t.epoch_time_ )
+                                              , msgId_( t.msgId_ )
+                                              , srcId_( t.srcId_ )
+                                              , format_( t.format_ )
+                                              , args_( t.args_ )
 {
 }
 
-EventLog::LogMessage::LogMessage() : logId_( 0 )
-                                   , priority_( pri_DEBUG )
-                                   , tv_( 0 )
+LogMessage::LogMessage( const std::string& format
+                        , const std::string& msgId
+                        , const std::string& srcId
+                        , uint32_t pri
+                        , uint64_t epoch_time ) : format_( format )
+                                                , msgId_( msgId )
+                                                , srcId_( srcId )
+                                                , logId_( __logid++ )
+                                                , priority_( pri )
+                                                , epoch_time_( epoch_time )
 {
+    if ( epoch_time_ == 0 )
+        epoch_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 }
 
 uint32_t
-EventLog::LogMessage::logId() const
+LogMessage::logId() const
 {
     return logId_;
 }
 
 uint32_t
-EventLog::LogMessage::priority() const
+LogMessage::priority() const
 {
     return priority_;
 }
 
 uint64_t
-EventLog::LogMessage::timeSinceEpock() const
+LogMessage::timeSinceEpock() const
 {
-    return tv_;
+    return epoch_time_;
 }
 
-const char *
-EventLog::LogMessage::msgId() const
+const std::string&
+LogMessage::msgId() const
 {
-    return msgId_.c_str();
+    return msgId_;
 }
 
-const char *
-EventLog::LogMessage::srcId() const
+const std::string&
+LogMessage::srcId() const
 {
-    return srcId_.c_str();
+    return srcId_;
 }
 
-const char *
-EventLog::LogMessage::format() const
+const std::string&
+LogMessage::format() const
 {
-    return format_.c_str();
+    return format_;
 }
 
-const std::vector< std::string >&
-EventLog::LogMessage::args() const
+const std::vector< LogMessageArgType >&
+LogMessage::args() const
 {
     return args_;
 }
 
 void
-EventLog::LogMessage::setLogId( uint32_t v )
+LogMessage::setLogId( uint32_t v )
 {
     logId_ = v;
 }
 
 void
-EventLog::LogMessage::setPriority( uint32_t v )
+LogMessage::setPriority( uint32_t v )
 {
     priority_ = v;
 }
 
 void
-EventLog::LogMessage::setTimeSinceEpock( uint64_t v )
+LogMessage::setTimeSinceEpock( uint64_t v )
 {
-    tv_ = v;
+    epoch_time_ = v;
 }
 
 // nanoseconds
 void
-EventLog::LogMessage::setMsgId( const std::string& v )
+LogMessage::setMsgId( const std::string& v )
 {
     msgId_ = v;
 }
 
 void
-EventLog::LogMessage::setSrcId( const std::string& v )
+LogMessage::setSrcId( const std::string& v )
 {
     srcId_ = v;
 }
 
 void
-EventLog::LogMessage::setFormat( const std::string& v )
+LogMessage::setFormat( const std::string& v )
 {
     format_ = v;
 }
 
 void
-EventLog::LogMessage::setArgs( const std::vector< std::string >& v )
+LogMessage::operator << ( LogMessageArgType&& a )
 {
-    args_ = v;
+    args_.emplace_back( a );
+}
+
+bool
+LogMessage::xml_archive( std::wostream& os, const LogMessage& log )
+{
+    boost::archive::xml_woarchive ar( os );
+    try {
+        ar & boost::serialization::make_nvp( "LogMessage", log );
+        return true;
+    } catch ( ... ) {
+        return false;
+    }
+}
+
+bool
+LogMessage::xml_restore( LogMessage& log, std::wistream&& is )
+{
+    boost::archive::xml_wiarchive ar( is );
+    try {
+        ar & boost::serialization::make_nvp( "LogMessage", log );
+        return true;
+    } catch ( ... ) {
+    }
+    return false;
+}
+
+bool 
+LogMessage::xml_restore( std::wistream&& is )
+{
+    xml_restore( *this, std::move( is ) );
 }
 

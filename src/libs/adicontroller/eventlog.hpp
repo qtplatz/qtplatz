@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,22 +25,25 @@
 #pragma once
 
 #include "adicontroller_global.hpp"
+#include <boost/variant.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <string>
 #include <vector>
 
-// Logging mechanism for instrument control server.
-// This is not intend for Broker that is document server for data processing.
-// See broker.idl for details.  T.H.
+namespace boost {
+    namespace serialization { class access; }
+}
 
 namespace adicontroller {
+    
+    namespace EventLog {
 
-    class ADICONTROLLERSHARED_EXPORT EventLog {
-    public:
+        template< typename T > class LogMessage_archive;
+    
+        typedef boost::variant< int32_t, uint32_t, int64_t, uint64_t, double, std::string > LogMessageArgType;
 
-        virtual ~EventLog();
-        EventLog();
-        
         enum eMSGPRIORITY {
             pri_DEBUG
             , pri_INFO     // informational
@@ -50,15 +53,22 @@ namespace adicontroller {
             , pri_PANIC // non-recoverable exception
         };
   
-        struct LogMessage {
+        class ADICONTROLLERSHARED_EXPORT LogMessage {
+        public:
             LogMessage();
+            LogMessage( const LogMessage& );            
+            LogMessage( const std::string& format
+                        , const std::string& msgId
+                        , const std::string& srcId
+                        , uint32_t pri = pri_INFO, uint64_t epoch_time = 0 );
+
             uint32_t logId() const;
             uint32_t priority() const;
             uint64_t timeSinceEpock() const;
-            const char * msgId() const;
-            const char * srcId() const;
-            const char * format() const;
-            const std::vector< std::string >& args() const;
+            const std::string& msgId() const;
+            const std::string& srcId() const;
+            const std::string& format() const;
+            const std::vector< LogMessageArgType >& args() const;
             
             void setLogId( uint32_t );
             void setPriority( uint32_t );
@@ -66,25 +76,29 @@ namespace adicontroller {
             void setMsgId( const std::string& );
             void setSrcId( const std::string& );
             void setFormat( const std::string& );
-            void setArgs( const std::vector< std::string >& );
+            void operator << ( LogMessageArgType && );
+
+            bool xml_restore( std::wistream&& );
+            static bool xml_archive( std::wostream& os, const LogMessage& );
+            static bool xml_restore( LogMessage&, std::wistream&& );
 
         private:
-            uint32_t logId_;       // unique number for each log message, such as sequencial number
-            uint32_t priority_;
-            uint64_t  tv_;         // time since epoc, microseconds
-# if defined _MSC_VER
-#  pragma warning(push)
-#  pragma warning(disable:4251)
-# endif
-            std::string msgId_;    // such as 'error code' for end user
-            std::string srcId_;    // source device id
+            uint32_t  logId_;       // unique number for each log message, such as sequencial number
+            uint32_t  priority_;
+            uint64_t  epoch_time_;  // time since epoch, nanoseconds
+            std::string msgId_;     // message type id, e.g. 'error code'
+            std::string srcId_;     // source device id
             std::string format_;
-            std::vector< std::string > args_;
-# if defined _MSC_VER
-#  pragma warning(pop)
-# endif
+            std::vector< LogMessageArgType > args_;
+
+            friend class LogMessage_archive< LogMessage >;
+            friend class LogMessage_archive< const LogMessage >;
+
+            friend class boost::serialization::access;
+            template<class Archive> void serialize( Archive& ar, const unsigned int );
         };
-        
-    };
-    
+
+    } // namespace EventLog
 }
+
+BOOST_CLASS_VERSION( adicontroller::EventLog::LogMessage, 0 )

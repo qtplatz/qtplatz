@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "receiverimpl.hpp"
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 
 class QString;
 
@@ -35,7 +37,6 @@ ReceiverImpl::~ReceiverImpl()
 ReceiverImpl::ReceiverImpl( iController * p ) : controller_( p->pThis() )
 {
 }
-
             
 void
 ReceiverImpl::message( eINSTEVENT msg, uint32_t value )
@@ -47,6 +48,17 @@ ReceiverImpl::message( eINSTEVENT msg, uint32_t value )
 void
 ReceiverImpl::log( const adicontroller::EventLog::LogMessage& log )
 {
+    if ( auto p = controller_.lock() ) {
+        
+        std::wostringstream o;
+
+        if ( log.xml_archive( o, log ) ) {
+
+            QString xml( QString::fromStdWString( o.str() ) );
+
+            emit p->log( p.get(), xml );
+        }
+    }
 }
 
 void

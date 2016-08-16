@@ -44,7 +44,7 @@ namespace acqrscontrols {
 
         ResultWriter& operator << ( const result_type result ) {
             std::lock_guard< std::mutex > lock( mutex_ );
-            cache_.push_back( result );
+            cache_.emplace_back( result );
             return *this;
         }
 
@@ -53,9 +53,9 @@ namespace acqrscontrols {
             do {
                 std::lock_guard< std::mutex > lock( mutex_ );
                 if ( cache_.size() >= 3 ) {
-                    auto it = std::next( cache_.begin(), cache_.size() - 2 );
-                    std::move( cache_.begin(), it, std::back_inserter( accessor->list ) );
-                    cache_.erase( cache_.begin(), it );
+                    auto tail = std::next( cache_.begin(), cache_.size() - 2 );
+                    std::move( cache_.begin(), tail, std::back_inserter( accessor->list ) );
+                    cache_.erase( cache_.begin(), tail );
                 }
             } while ( 0 );
 

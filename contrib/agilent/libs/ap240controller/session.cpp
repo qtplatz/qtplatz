@@ -76,10 +76,15 @@ namespace ap240controller { namespace Instrument {
                     r.first->message( msg, value );
             }
 
-            void reply_handler( const std::string& method, const std::string& reply) {
-                if ( method == "InitialSetup" )
+            void reply_handler( const std::string& method, const std::string& reply ) {
+                if ( method == "InitialSetup" ) {
                     reply_message( adi::Receiver::STATE_CHANGED, ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eOff );
-                ADDEBUG() << "===== ap240 reply ===== " << method << " reply: " << reply;
+                } else {
+                    adicontroller::EventLog::LogMessage mlog( "%1%", method, "AP240" );
+                    mlog << reply;
+                    for ( auto& r: clients_ )
+                        r.first->log( mlog );
+                }
             }
             
             bool waveform_handler( const acqrscontrols::ap240::waveform * ch1, const acqrscontrols::ap240::waveform * ch2, acqrscontrols::ap240::method& next ) {
