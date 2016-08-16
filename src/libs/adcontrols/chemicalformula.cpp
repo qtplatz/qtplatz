@@ -464,7 +464,7 @@ ChemicalFormula::formatFormula( const std::string& formula, bool richText )
     if ( formatter.parse<char>( it, formula.end(), fmt ) )
         formatter.print_text( o, fmt, richText );
 
-    assert( it == formula.end() );
+    //assert( it == formula.end() );
 
     return o.str();
 }
