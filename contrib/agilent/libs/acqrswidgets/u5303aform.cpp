@@ -211,6 +211,11 @@ u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )
             ui->spinBox->setValue( value.toInt() );
         } while ( 0 );
         break;
+    case idThresholdAction:
+    case idNbrRecords:
+    case idTSREnable:
+    case idU5303AExtDelay:
+        break;
     }
 }
 

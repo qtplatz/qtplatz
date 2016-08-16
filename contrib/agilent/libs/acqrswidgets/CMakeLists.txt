@@ -60,6 +60,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
   )
 
+set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14 )
+
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules

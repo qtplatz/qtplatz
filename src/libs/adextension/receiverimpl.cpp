@@ -25,6 +25,7 @@
 #include "receiverimpl.hpp"
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <sstream>
 
 class QString;
 
