@@ -306,8 +306,8 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
         if ( auto clsid = observer->dataInterpreterClsid() ) {
             (void)clsid;
 
-            const auto& a = observer->objid();
-            const auto& b = observer->description().data().objid;
+            //const auto& a = observer->objid();
+            //const auto& b = observer->description().data().objid;
 
             if ( observer->objid() != observer->description().data().objid ) {
                 assert( observer->objid() == observer->description().data().objid );

@@ -169,8 +169,8 @@ OrbitProtocol::OrbitProtocol() : lower_mass( 0 )
                                , avgr_delay( 0 )
                                , avgr_duration( 0 )
                                , nlaps_( 0 )
-                               , reference_( 0 )
                                , gate( 2 )
+                               , reference_( 0 )
 {
 }
 
@@ -183,8 +183,8 @@ OrbitProtocol::OrbitProtocol( const OrbitProtocol& t ) : lower_mass(t.lower_mass
                                                        , exit( t.exit )
                                                        , gate( t.gate )
                                                        , external_adc_delay( t.external_adc_delay )
-                                                       , description_( t.description_ )
                                                        , additionals_( t.additionals_ )
+                                                       , description_( t.description_ )
                                                        , nlaps_( t.nlaps_ )
                                                        , reference_( t.reference_ )
                                                        , formulae_( t.formulae_ )

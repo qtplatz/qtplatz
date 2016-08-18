@@ -19,7 +19,11 @@ while [ $# -gt 0 ]; do
 	eclipse)
 	    ide=eclipse
 	    shift
-	    ;;	    
+	    ;;
+	xcode)
+	    ide=xcode
+	    shift
+	    ;;
 	clean)
 	    build_clean=true
 	    shift
@@ -38,8 +42,12 @@ if [ -z $cross_target ]; then
 	Darwin-*)
 	    source_dirs=("$cwd")
 	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
-	    if [ $config = debug ]; then
-		cmake_args=('-G' 'Xcode' '-DCMAKE_BUILD_TYPE=Debug')
+	    if [ "$config" = "debug" ]; then
+		if [ "$ide" = "xcode" ]; then
+		    cmake_args=('-G' 'Xcode' '-DCMAKE_BUILD_TYPE=Debug')
+		else
+		    cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
+		fi
 	    fi
 	    ;;
 	*)

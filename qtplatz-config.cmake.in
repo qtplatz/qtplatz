@@ -193,9 +193,8 @@ if (WIN32)
 elseif ( APPLE )
 
   set_target_properties( QTC::Core PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/QtProject/libCore.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/QtProject/libCore_debug.dylib )
-	 
+    IMPORTED_LOCATION       ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_PLUGIN_DIRECTORY}/QtProject/libCore_debug.dylib )
 
   set_target_properties( QTC::ExtensionSystem PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libextensionsystem.dylib

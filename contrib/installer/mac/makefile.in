@@ -8,28 +8,6 @@ TARGET = qtplatz-@QTPLATZ_VERSION@.dmg
 
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 
-#BOOST_LIBRARY_DIR = @Boost_LIBRARY_DIR@
-#BOOST_STAGE_DIR   = ${FRAMEWORKS}
-#BOOST_RPATH       = @executable_path/../Frameworks/boost
-
-#RDKit_VERSION     = @RDKit_PACKAGE_VERSION@
-#RDKIT_LIBRARIES   = @RDKIT_LIBRARIES@
-#RDKIT_STAGE_DIR   = ${FRAMEWORKS}
-#RDKIT_RPATH       = @executable_path/../Frameworks/rdkit
-
-ACE+TAO_LIBRARY_DIR = @ace+tao_DIR@
-ACE+TAO_STAGE_DIR = ${FRAMEWORKS}
-ACE+TAO_RPATH     = @executable_path/../Frameworks/
-
-TAO_LIBS = \
-	libACE \
-	libTAO \
-	libTAO_Utils \
-	libTAO_PI \
-	libTAO_PortableServer \
-	libTAO_AnyTypeCode \
-	libTAO_CodecFactory
-
 default:
 	@echo "################################################"
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
@@ -38,20 +16,17 @@ default:
 	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
 	@echo "make app"
-	@echo "make ace+tao"
 	@echo "make deployqt"
 	@echo "make dmg"
 	@echo
 
 world:
 	make app
-#	make ace+tao
 	make deployqt
 	make dmg
 
 stage:
 	make app
-	make ace+tao
 
 # all: qtplatz.app
 app:
@@ -59,19 +34,6 @@ app:
 
 clean:
 	rm -rf qtplatz.app ${TARGET}
-
-ace+tao_copy:
-	-mkdir -p ${ACE+TAO_STAGE_DIR}
-	for i in $(TAO_LIBS) ; do \
-	  cp -p $(ACE+TAO_LIBRARY_DIR)/lib/$$i.dylib $(ACE+TAO_STAGE_DIR) ; \
-	done
-
-ace+tao: ace+tao_copy
-	for i in $(TAO_LIBS); do \
-	  for j in $(TAO_LIBS); do \
-		install_name_tool -change $$j.dylib ${ACE+TAO_RPATH}/$$j.dylib $(ACE+TAO_STAGE_DIR)/$$i.dylib ; \
-	  done; \
-	done
 
 translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
@@ -98,11 +60,6 @@ otool:
 otool_rdkit:
 	for i in $(RDKit_LIBS); do \
 		otool -L $(RDKIT_STAGE_DIR)/$$i.dylib ;\
-	done
-
-otool_tao:
-	for i in $(TAO_LIBS); do \
-		otool -L $(ACE+TAO_STAGE_DIR)/$$i.dylib ;\
 	done
 
 otool_boost:
