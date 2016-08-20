@@ -31,6 +31,7 @@ stage:
 # all: qtplatz.app
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c . | tar xvf -
+	find @Boost_LIBRARY_DIR@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
 
 clean:
 	rm -rf qtplatz.app ${TARGET}
@@ -49,7 +50,7 @@ dmg: qtplatz.app translations
 otool:
 	otool -L qtplatz.app/Contents/MacOS/qtplatz
 	otool -L qtplatz.app/Contents/Plugins/QtProject/*.dylib
-	otool -L qtplatz.app/Contents/Plugins/*.dylib
+	otool -L qtplatz.app/Contents/Frameworks/*.dylib
 	otool -L qtplatz.app/Contents/Plugins/MS-Cheminformatics/*.dylib
 	for i in QtCore QtGui QtWidgets QtPrintSupport; do \
 		otool -L ${FRAMEWORKS}/$$i.framework/Versions/5/$$i; \
