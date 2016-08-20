@@ -212,6 +212,6 @@ LogMessage::xml_restore( LogMessage& log, std::wistream&& is )
 bool 
 LogMessage::xml_restore( std::wistream&& is )
 {
-    xml_restore( *this, std::move( is ) );
+    return xml_restore( *this, std::move( is ) );
 }
 
