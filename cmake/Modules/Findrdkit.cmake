@@ -15,6 +15,7 @@ if ( WIN32 )
     set( _vc "vc120" )
   endif()
   set( _rdkit_libdirs 
+    "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
     "${_rdkit}/lib${__arch}_${_vc}_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" #ex: C:/RDKit/lib_vc140_boost-1_59
     "${_rdkit}/lib${__arch}_${_vc}"
     "${_rdkit}/lib_${_vc}"
