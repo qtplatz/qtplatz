@@ -32,7 +32,7 @@ class QAction;
 
 namespace chemistry { 
 
-  class ChemistryMode;
+  class Mode;
   class MainWindow;
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
@@ -47,9 +47,8 @@ namespace chemistry {
       ShutdownFlag aboutToShutdown();
 
   private:
-	  std::shared_ptr< ChemistryMode > mode_;
+	  std::shared_ptr< Mode > mode_;
 	  std::shared_ptr< MainWindow > mainWindow_;
-      QAction * actSDFileOpen_;
       
       void initialize_actions();
 	  

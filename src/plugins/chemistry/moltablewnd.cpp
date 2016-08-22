@@ -24,7 +24,7 @@
 
 #include "moltablewnd.hpp"
 #include "chemquery.hpp"
-#include "chemdocument.hpp"
+#include "document.hpp"
 #include <adchem/sdfile.hpp>
 #include <adlog/logger.hpp>
 #include <qtwrapper/waitcursor.hpp>

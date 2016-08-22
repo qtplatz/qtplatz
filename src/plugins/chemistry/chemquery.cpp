@@ -27,6 +27,7 @@
 #include <adfs/sqlite3.h>
 #include <adportable/uuid.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>
 #include <QByteArray>
 #include <QObject>
@@ -129,10 +130,12 @@ ChemQuery::column_value( size_t idx ) const
 boost::uuids::uuid
 ChemQuery::insert_mol( const std::string& smiles, const std::string& svg, const std::string& formula, double mass, const std::string& synonym )
 {
-    if ( sql_.prepare( "INSERT INTO mols (uuid,smiles,svg,formula,mass,synonym) VALUES(?,?,?,?,?,?)" ) ) {
+    static boost::uuids::name_generator generator( boost::uuids::string_generator()("{1fb7af77-3220-48a6-97ac-b348ce6f364f}") );
+    
+    if ( sql_.prepare( "INSERT OR REPLACE INTO mols (uuid,smiles,svg,formula,mass,synonym) VALUES(?,?,?,?,?,?)" ) ) {
 
-        auto uuid = adportable::uuid()();
-
+        auto uuid = generator( smiles );
+        
         sql_.bind( 1 ) = uuid;
         sql_.bind( 2 ) = smiles;
         sql_.bind( 3 ) = adfs::blob( svg.size(), svg.data() );
@@ -146,15 +149,13 @@ ChemQuery::insert_mol( const std::string& smiles, const std::string& svg, const 
         }
         
     }
-    return boost::uuids::uuid();
+    return boost::uuids::uuid{ 0 };
 }
 
 bool
-ChemQuery::insert_synonym( const boost::uuids::uuid&, const std::string& synonym )
+ChemQuery::insert_synonym( const boost::uuids::uuid& uuid, const std::string& synonym )
 {
     if ( sql_.prepare( "INSERT INTO synonyms (uuid,synonym) VALUES(?,?)" ) ) {
-
-        auto uuid = adportable::uuid()();
 
         sql_.bind( 1 ) = uuid;
         sql_.bind( 2 ) = synonym;

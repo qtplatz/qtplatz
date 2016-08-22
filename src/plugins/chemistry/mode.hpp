@@ -29,11 +29,11 @@
 
 namespace chemistry {
 
-	class ChemistryMode : public Core::IMode {
+	class Mode : public Core::IMode {
 		Q_OBJECT
 	public:
-		explicit ChemistryMode( QObject * parent = 0 );
-		~ChemistryMode();
+		explicit Mode( QObject * parent = 0 );
+		~Mode();
 
 	private:
 

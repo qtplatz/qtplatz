@@ -60,7 +60,7 @@ namespace chemistry {
         void OnClose();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
-		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
+		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& objname = QString() );
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
 		static MainWindow * instance();
@@ -80,7 +80,7 @@ namespace chemistry {
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
 		QAction * actionSearch_;
-        QLineEdit * topLineEdit_;
+        //QLineEdit * topLineEdit_;
         QProgressBar * progressBar_;
 
 		void createDockWidgets();

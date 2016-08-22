@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "chemistrymode.hpp"
+#include "mode.hpp"
 #include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
@@ -32,7 +32,7 @@
 
 using namespace chemistry;
 
-ChemistryMode::ChemistryMode( QObject * /* parent */ )
+Mode::Mode( QObject * /* parent */ )
 {
 	setDisplayName( tr("Chemistry") );
 
@@ -43,7 +43,7 @@ ChemistryMode::ChemistryMode( QObject * /* parent */ )
     setContext( Core::Context( "Chemistry.MainView" ) );
 }
 
-ChemistryMode::~ChemistryMode()
+Mode::~Mode()
 {
 }
 

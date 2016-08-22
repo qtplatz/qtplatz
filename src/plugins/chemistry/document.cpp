@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "chemdocument.hpp"
+#include "document.hpp"
 #include "chemconnection.hpp"
 #include "chemquery.hpp"
 #include "chemschema.hpp"
@@ -82,7 +82,7 @@ namespace chemistry {
         , { "[Cl-].[S+]1C2C=C(C=CC=2N=C2C=CC(=CC=12)N(C)C)N(C)C",                                         "Methylene blue" }
         , { "CN(C)C1C=CC(=CC=1)C(C1C=CC(=CC=1)N(C)C)=C1C=CC(C=C1)=[N+](C)C.[Cl-]",                        "Methyl violet; Crystal violet" }
         , { "CCN(CC)c1ccc2c(c1)oc-3cc(=[N+](CC)CC)ccc3c2c4ccccc4C(=O)O.[Cl-]",                            "Rhodamine B" }
-        , { "C/C(=N\\c1ccc(cc1)O)/O",                                                                      "Paracetamol" }
+        , { "C/C(=N\\c1ccc(cc1)O)/O",                                                                     "Paracetamol" }
         , { "c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3",                                                            "Tacrine" }
         , { "CCCCCCCCCCCCCC(=O)O[C@H](CCCCCCCCCCC)CC(=O)O[C@@H]1[C@H]([C@@H](O[C@@H]([C@H]1OP(=O)(O)O)CO)OC[C@@H]2[C@H]([C@@H]([C@H]([C@H](O2)OP(=O)(O)O)NC(=O)C[C@@H](CCCCCCCCCCC)O)OC(=O)C[C@@H](CCCCCCCCCCC)O)O)NC(=O)C[C@@H](CCCCCCCCCCC)OC(=O)CCCCCCCCCCC", "Lipid A" }
     };

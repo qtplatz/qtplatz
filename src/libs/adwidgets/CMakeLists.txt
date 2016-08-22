@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
 
 include_directories(
   ${QWT_INCLUDE_DIR}
@@ -18,6 +18,7 @@ include_directories(
   ${Qt5Svg_INCLUDE_DIRS}
   ${Qt5Sql_INCLUDE_DIRS}  
   ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt5OpenGL_INCLUDE_DIRS}
   )
 
 if ( rdkit_FOUND )
@@ -56,6 +57,8 @@ set( ${PROJECT_NAME}_SOURCES
   moldraw.hpp
   moldraw.cpp
   moltable.cpp
+  molview.cpp
+  molview.hpp
   mspeaktable.cpp
   msquantable.cpp
   mscalibrateform.cpp

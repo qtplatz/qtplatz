@@ -24,13 +24,14 @@
 
 #include "mainwindow.hpp"
 #include "chemconnection.hpp"
-#include "chemdocument.hpp"
+#include "document.hpp"
 #include "chemistryconstants.hpp"
 #include "chemquery.hpp"
 #include "massdefectform.hpp"
 #include "moltablewnd.hpp"
 #include <adportable/profile.hpp>
 #include <adchem/sdfile.hpp>
+#include <adwidgets/molview.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 
@@ -80,7 +81,6 @@ MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
                                            , toolBar_( 0 )
                                            , toolBarLayout_( 0 )
                                            , actionSearch_( 0 )
-                                           , topLineEdit_( 0 )
                                            , progressBar_( 0 )
 {
     
@@ -209,13 +209,13 @@ MainWindow::setSimpleDockWidgetArrangement()
 
 
 QDockWidget *
-MainWindow::createDockWidget( QWidget * widget, const QString& title )
+MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& objname )
 {
     if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
         widget->setWindowTitle( title );
-    if ( widget->objectName().isEmpty() )
-        widget->setObjectName( title );
 
+    if ( widget->objectName().isEmpty() )
+        widget->setObjectName( objname );
 
 	QDockWidget * dockWidget = addDockForWidget( widget );
 	dockWidget->setObjectName( widget->objectName() );
@@ -232,10 +232,18 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 void
 MainWindow::createDockWidgets()
 {
-    MassDefectForm * form = new MassDefectForm;
-	form->setObjectName( "massdefect" );
-    form->OnInitialUpdate();
-	createDockWidget( form );
+    if ( auto w = new adwidgets::MolView( this ) ) {
+        createDockWidget( w, "MOL", "MolView" );
+    }
+
+    if ( auto w = new QTextEdit( this ) ) {
+        createDockWidget( w, "Edit", "Text" );
+    }
+
+    // MassDefectForm * form = new MassDefectForm;
+	// form->setObjectName( "massdefect" );
+    // form->OnInitialUpdate();
+	// createDockWidget( form );
 }
 
 void
@@ -283,7 +291,7 @@ MainWindow::handleDropped( const QList< QUrl >& urls )
     if ( auto wnd = findChild< MolTableWnd * >() ) {
         for ( auto& url: urls ) {
             boost::filesystem::path path( url.toLocalFile().toStdWString() );
-            topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
+            //topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
             adchem::SDFile file( path.string() );
             wnd->setMol( file, *progressBar_ );
         }
@@ -299,6 +307,17 @@ MainWindow::createMidStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
+
+        if ( auto am = Core::ActionManager::instance() ) {
+            toolBarLayout->addWidget(toolButton(am->command(Constants::SDFILE_OPEN)->action()));
+        }
+        
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        progressBar_ = new QProgressBar;
+		progressBar_->setVisible( false );
+        toolBarLayout->addWidget( progressBar_ );
+        progressBar_->setStyleSheet( QString("QProgressBar { color: lightgreen }") );
     }
     return toolBar;
 }
@@ -312,21 +331,6 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-
-        toolBarLayout->addWidget( new QLabel( tr(">> Drop SD File on table: " ) ) );
-        topLineEdit_ = new QLineEdit;
-        toolBarLayout->addWidget( topLineEdit_ );
-
-        if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget(toolButton(am->command(Constants::SDFILE_OPEN)->action()));
-        }
-        
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-        progressBar_ = new QProgressBar;
-		progressBar_->setVisible( false );
-        toolBarLayout->addWidget( progressBar_ );
-        progressBar_->setStyleSheet( QString("QProgressBar { color: lightgreen}") );
     }
     return toolBar;
 }
@@ -350,7 +354,7 @@ MainWindow::actSDFileOpen()
             
             if ( finfo.suffix() == "sdf" || finfo.suffix() == "mol" ) {
                 
-                topLineEdit_->setText( name );
+                //topLineEdit_->setText( name );
                 adchem::SDFile file( name.toStdString() );
                 wnd->setMol( file, *progressBar_ );
                 

@@ -50,41 +50,38 @@ link_directories(
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
-set( chemistry_SOURCES
-  chemistryplugin.cpp
-  chemistrymode.cpp
-  chemconnection.cpp
-  chemquery.cpp
-  chemschema.cpp
-  chemfile.cpp
-  chemdocument.cpp
-  mainwindow.cpp
-  massdefectform.cpp
-  massdefectdelegate.cpp
-  massdefectmethod.cpp
-  moltablewnd.cpp
-  )
-
 set( chemistry_HEADERS
-  chemistryplugin.hpp
-  chemistry_global.hpp
-  chemconnection.hpp
-  chemquery.hpp
-  chemschema.hpp
-  chemistryconstants.hpp
-  chemistrymode.hpp
-  chemfile.hpp
-  chemdocument.hpp
-  mainwindow.hpp
-  massdefectform.hpp
-  massdefectdelegate.hpp
-  massdefectmethod.hpp
-  moltablewnd.hpp
+  
+  
   )
 
 add_library( ${PROJECT_NAME} MODULE
-  ${chemistry_SOURCES}
-  ${chemistry_HEADERS}
+  chemistryconstants.hpp
+  chemistry_global.hpp
+  chemistryplugin.cpp
+  chemistryplugin.hpp
+  chemconnection.cpp
+  chemconnection.hpp
+  chemquery.cpp
+  chemquery.hpp
+  chemschema.cpp
+  chemschema.hpp
+  chemfile.cpp
+  chemfile.hpp
+  document.cpp
+  document.hpp
+  mainwindow.cpp
+  mainwindow.hpp
+  mode.cpp
+  mode.hpp
+  massdefectform.cpp
+  massdefectform.hpp
+  massdefectdelegate.cpp
+  massdefectdelegate.hpp
+  massdefectmethod.cpp
+  massdefectmethod.hpp
+  moltablewnd.cpp
+  moltablewnd.hpp
   ${Resources}
   )
 

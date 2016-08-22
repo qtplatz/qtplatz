@@ -24,7 +24,7 @@
 
 #include "chemistryplugin.hpp"
 #include "chemistryconstants.hpp"
-#include "chemistrymode.hpp"
+#include "mode.hpp"
 #include "mainwindow.hpp"
 #include "constants.hpp"
 #include <adlog/logger.hpp>
@@ -48,21 +48,16 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QtPlugin>
-#if QT_VERSION >= 0x050000
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QStackedWidget>
-#else
-#include <QtGui/QBoxLayout>
-#include <QtGui/QStackedWidget>
-#endif
 #include <QTextEdit>
 #include <QWidget>
+#include <memory>
 
 using namespace chemistry;
 
-ChemistryPlugin::ChemistryPlugin() : mode_( std::make_shared< ChemistryMode >( this ) )
+ChemistryPlugin::ChemistryPlugin() : mode_( std::make_shared< Mode >( this ) )
                                    , mainWindow_( std::make_shared< MainWindow >() )
-                                   , actSDFileOpen_(0)
 {
     // Create your members
 }
@@ -99,22 +94,26 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 void
 ChemistryPlugin::initialize_actions()
 {
-    QIcon iconOpen;
-    iconOpen.addFile( ":/dataproc/image/fileopen.png" );
-    actSDFileOpen_ = new QAction( iconOpen, tr("SDFile open..."), this );
-    connect( actSDFileOpen_, SIGNAL( triggered() ), mainWindow_.get(), SLOT( actSDFileOpen() ) );
-
     const Core::Context gc( (Core::Id( Core::Constants::C_GLOBAL )) );
-    if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
-        Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
-        menu->menu()->setTitle( tr("Chemistry") );
+    
+	if ( Core::ActionManager *am = Core::ActionManager::instance() ) {
 
-        Core::Command * cmd = 0;
+        // File->Processing
+        if ( Core::ActionContainer * menu = am->createMenu( "chemistry.menu" ) ) {
+            do {
+                QIcon iconOpen;
+                iconOpen.addFile( ":/dataproc/image/fileopen.png" );
+                if ( auto p = new QAction( iconOpen, tr("SDFile open..."), this ) ) {
+                    am->registerAction( p, Constants::SDFILE_OPEN, gc );
+                    connect( p, &QAction::triggered, mainWindow_.get(), &MainWindow::actSDFileOpen );
+                }
+            } while ( 0 );
 
-        cmd = am->registerAction( actSDFileOpen_, Constants::SDFILE_OPEN, gc );
-        menu->addAction( cmd );
-
-        am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+            menu->menu()->setTitle( tr("Chemistry") );
+            menu->addAction( am->command( Constants::SDFILE_OPEN ) );
+            am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+        }
+        
     }
 }
 
