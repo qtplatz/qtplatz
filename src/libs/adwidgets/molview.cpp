@@ -25,10 +25,8 @@
 #include "molview.hpp"
 #include <memory>
 
-using namespace adwidgets;
-
+#include <QDebug>
 #include <QSvgRenderer>
-
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QGraphicsRectItem>
@@ -39,6 +37,8 @@ using namespace adwidgets;
 #ifndef QT_NO_OPENGL
 #include <QGLWidget>
 #endif
+
+using namespace adwidgets;
 
 MolView::MolView(QWidget *parent) : QGraphicsView( parent )
                                   , svgItem_( nullptr )
@@ -61,7 +61,9 @@ MolView::MolView(QWidget *parent) : QGraphicsView( parent )
 
     setBackgroundBrush( tilePixmap );
 
+    // OpenGL
     setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers) ) );
+    setRenderHint( QPainter::HighQualityAntialiasing, true );
 }
 
 void
@@ -144,50 +146,6 @@ MolView::renderer() const
     return nullptr;
 }
 
-#if 0
-bool
-MolView::openFile( const QString &fileName )
-{
-    QGraphicsScene *s = scene();
-
-    const bool drawBackground = (backgroundItem ? backgroundItem->isVisible() : false);
-    const bool drawOutline = (outlineItem ? outlineItem->isVisible() : true);
-
-    QScopedPointer<QGraphicsSvgItem> svgItem(new QGraphicsSvgItem(fileName));
-    if (!svgItem->renderer()->isValid())
-        return false;
-
-    s->clear();
-    resetTransform();
-
-    svgItem = svgItem.take();
-    svgItem->setFlags(QGraphicsItem::ItemClipsToShape);
-    svgItem->setCacheMode(QGraphicsItem::NoCache);
-    svgItem->setZValue(0);
-
-    backgroundItem = new QGraphicsRectItem(svgItem->boundingRect());
-    backgroundItem->setBrush(Qt::white);
-    backgroundItem->setPen(Qt::NoPen);
-    backgroundItem->setVisible(drawBackground);
-    backgroundItem->setZValue(-1);
-
-    outlineItem = new QGraphicsRectItem(svgItem->boundingRect());
-    QPen outline(Qt::black, 2, Qt::DashLine);
-    outline.setCosmetic(true);
-    outlineItem->setPen(outline);
-    outlineItem->setBrush(Qt::NoBrush);
-    outlineItem->setVisible(drawOutline);
-    outlineItem->setZValue(1);
-
-    s->addItem(backgroundItem);
-    s->addItem(svgItem);
-    s->addItem(outlineItem);
-
-    s->setSceneRect(outlineItem->boundingRect().adjusted(-10, -10, 10, 10));
-    return true;
-}
-#endif
-
 bool
 MolView::setData( const QVariant& d )
 {
@@ -206,18 +164,25 @@ MolView::setData( const QVariant& d )
     s->clear();
     resetTransform();
 
+    // resize to fit viewport
+    auto rc = svgItem->boundingRect();
+    auto sz = viewport()->size();
+    double factor = std::min( sz.width() / rc.width(), sz.height() / rc.height() );
+    scale( factor, factor );
+    // end resize
+    
     svgItem_ = svgItem.take();
     renderer_ = std::move( renderer );
     
     svgItem_->setFlags( QGraphicsItem::ItemClipsToShape );
     svgItem_->setCacheMode( QGraphicsItem::NoCache );
-    svgItem_->setZValue(0);
+    svgItem_->setZValue( 0 );
 
     backgroundItem_ = new QGraphicsRectItem( svgItem_->boundingRect() );
-    backgroundItem_->setBrush(Qt::white);
-    backgroundItem_->setPen(Qt::NoPen);
-    backgroundItem_->setVisible(drawBackground);
-    backgroundItem_->setZValue(-1);
+    backgroundItem_->setBrush( Qt::white );
+    backgroundItem_->setPen( Qt::NoPen );
+    backgroundItem_->setVisible( drawBackground );
+    backgroundItem_->setZValue( -1 );
     
     outlineItem_ = new QGraphicsRectItem( svgItem_->boundingRect() );
 
@@ -226,19 +191,13 @@ MolView::setData( const QVariant& d )
     outlineItem_->setPen( outline );
     outlineItem_->setBrush( Qt::NoBrush );
     outlineItem_->setVisible( drawOutline );
-    outlineItem_->setZValue(1);
+    outlineItem_->setZValue( 1 );
 
     s->addItem( backgroundItem_ );
     s->addItem( svgItem_ );
     s->addItem( outlineItem_ );
 
-    s->setSceneRect(outlineItem_->boundingRect().adjusted(-10, -10, 10, 10));
+    s->setSceneRect( outlineItem_->boundingRect().adjusted( -5, -5, 5, 5 ) );
 
     return true;
-
-    // painter->translate( option.rect.x(), option.rect.y() );
-    // QRectF viewport = painter->viewport();
-    // painter->scale( 1.0, 1.0 );
-    // QRect target( 0, 0, option.rect.width(), option.rect.height() );
-    // renderer.render( painter, target );
 }
