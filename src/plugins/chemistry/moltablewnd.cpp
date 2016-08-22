@@ -95,21 +95,10 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     table_->verticalHeader()->setDefaultSectionSize( 80 );
     table_->horizontalHeader()->setDefaultSectionSize( 200 );
 
-#if 0
-    // this will override by prepare method
-    int col = 0;
-    model_->setHeaderData( col++, Qt::Horizontal, "SMILES" );
-    model_->setHeaderData( col++, Qt::Horizontal, "Structure" );
-    model_->setHeaderData( col++, Qt::Horizontal, "Formula" );
-    model_->setHeaderData( col++, Qt::Horizontal, "Mass" );
-    model_->setHeaderData( col++, Qt::Horizontal, "Name" );
-#endif
-    
     table_->setContextMenuHandler( [this]( const QPoint& pt ){ handleContextMenu( pt ); } );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QWidget::customContextMenuRequested, this, &MolTableWnd::handleContextMenu );
-    //connect( model_, &QStandardItemModel::dataChanged, this, &MolTableWnd::handleDataChaged );
 
     connect( table_, &QTableView::activated, [&]( const QModelIndex& current ){
             emit activated( current );
@@ -302,68 +291,9 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
 QVariant
 MolTableWnd::data( int row, const QString& column )
 {
-    if ( column == "svg" ) {
-    }
-}
-
-void
-MolTableWnd::prepare( const ChemQuery& q )
-{
-#if 0
-    auto model = qobject_cast< QStandardItemModel * >(model_);
-
-    model->clear();
-    model->setColumnCount( int( q.column_count() ) );
-
-    for ( int col = 0; col < int( q.column_count() ); ++col  ) {
-        
-        model_->setHeaderData( col, Qt::Horizontal, ChemQuery::column_name_tr( q.column_name( col ) ) );
-        std::string column = q.column_name( col ).toStdString();
-
-        if ( hideColumns_.find( column ) != hideColumns_.end() )
-            table_->setColumnHidden( col, true );
-        if ( column == "svg" )
-            table_->setColumnField( col, adwidgets::ColumnState::f_svg, false, false );
-        else if ( column == "mass" )
-            table_->setColumnField( col, adwidgets::ColumnState::f_mass, false, false );
-        else if ( column == "formula" )
-            table_->setColumnField( col, adwidgets::ColumnState::f_formula, false, true );
-        else
-            table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
-    }
-
-    for ( int col = 0; col < int( q.column_count() ); ++col ) {
-        QTextDocument document;
-        document.setHtml( ChemQuery::column_name_tr( q.column_name( col ) ) );
-        QSize size( document.size().width(), document.size().height() );
-        table_->horizontalHeader()->model()->setHeaderData( col, Qt::Horizontal, QVariant( size ), Qt::SizeHintRole );
-    }
-#endif
-    table_->verticalHeader()->setDefaultSectionSize( 80 );
-    table_->horizontalHeader()->setDefaultSectionSize( 200 );
-}
-
-void
-MolTableWnd::addRecord( const ChemQuery& q )
-{
-#if 0
-    auto model = qobject_cast< QStandardItemModel * >( model_ );
-    int row = model_->rowCount();
-
-    if ( model_->insertRow( row ) ) {
-        for ( int col = 0; col < int( q.column_count() ); ++col ) {
-            model_->setData( model->index( row, col ), q.column_value( col ) );
-
-            if ( auto item = model->item( row, col ) ) {
-                item->setEditable( table_->isColumnEditable( col ) );
-                if ( table_->isColumnCheckable( col ) ) {
-                    item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-                    model_->setData( model_->index( row, col ), Qt::Checked, Qt::CheckStateRole );
-                }
-            }
-        }
-    }
-#endif
+    auto rec = model_->record(row);
+    auto field = rec.field( column );
+    return field.value();
 }
 
 void

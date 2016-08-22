@@ -26,6 +26,7 @@
 
 #include "adwidgets_global.hpp"
 #include <QGraphicsView>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 class QGraphicsSvgItem;
@@ -41,23 +42,23 @@ namespace adwidgets {
         explicit MolView( QWidget * parent = nullptr );
 
     public slots:
-        void setHighQualityAntialiasing(bool highQualityAntialiasing);
-        void setViewBackground(bool enable);
-        void setViewOutline(bool enable);
-
-        void drawBackground(QPainter *p, const QRectF &rect) override;
+        void setHighQualityAntialiasing( bool highQualityAntialiasing );
+        void setViewBackground( bool enable );
+        void setViewOutline( bool enable );
+        void drawBackground( QPainter *p, const QRectF &rect ) override;
         QSize svgSize() const;
         QSvgRenderer *renderer() const;
+        bool setData( const QVariant& );
         
     protected:
         void wheelEvent(QWheelEvent *event) override;
         void paintEvent(QPaintEvent *event) override;
         
     private:
-        QGraphicsSvgItem *svgItem_;
-        QGraphicsRectItem *backgroundItem_;
-        QGraphicsRectItem *outlineItem_;
-        QImage image;        
+        std::unique_ptr< QSvgRenderer > renderer_;
+        QGraphicsSvgItem * svgItem_;
+        QGraphicsRectItem * backgroundItem_;
+        QGraphicsRectItem * outlineItem_;
     };
 }
 

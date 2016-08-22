@@ -177,6 +177,7 @@ target_link_libraries( adwidgets LINK_PUBLIC
   Qt5::Sql
   Qt5::Widgets
   Qt5::Core
+  Qt5::OpenGL
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   )

@@ -47,9 +47,6 @@ namespace chemistry {
         explicit MolTableWnd(QWidget *parent = 0);
         ~MolTableWnd();
         
-        void prepare( const ChemQuery& );
-        void addRecord( const ChemQuery& );
-
         void setQuery( const QString& sqlstmt );
         
         QAbstractItemModel * model();
