@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -22,32 +22,23 @@
 **
 **************************************************************************/
 
-#include "massspecform.hpp"
-#include "ui_massspecform.h"
-#include <QtNetwork/QtNetwork>
+#include "chemspider.hpp"
 #include <iostream>
 #include <istream>
 #include <ostream>
 #include <fstream>
 #include <string>
-#define _WIN32_WINNT 0x0700
 #include <boost/asio.hpp>
 
-MassSpecForm::MassSpecForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MassSpecForm)
+using namespace chemistry;
+
+ChemSpider::ChemSpider()
 {
-    ui->setupUi(this);
-	connect( ui->invoke_db, SIGNAL( clicked() ), this, SLOT( invoke_db_clicked() ) );
-	connect( ui->invoke_mm, SIGNAL( clicked() ), this, SLOT( invoke_mm_clicked() ) );
 }
 
-MassSpecForm::~MassSpecForm()
+ChemSpider::~ChemSpider()
 {
-    delete ui;
 }
-
-// ChemSpider security token: 9cb99bff-6565-4e8d-b403-56da3d0d378e
 
 static const char * getdatabase = 
 "<?xml version=\"1.0\" encoding=\"utf-8\"?> \
@@ -57,8 +48,8 @@ static const char * getdatabase =
   </soap:Body> \
 </soap:Envelope>";
 
-void
-MassSpecForm::invoke_db_clicked()
+bool
+ChemSpider::query()
 {
 	using boost::asio::ip::tcp;
 
@@ -108,13 +99,8 @@ MassSpecForm::invoke_db_clicked()
 	std::string html;
 	while ( response_stream ) {
 		if ( std::getline( response_stream, html ) ) {
-			ui->textBrowser->append( html.c_str() );
 			of << html.c_str();
 		}
 	} 
 }
 
-void
-MassSpecForm::invoke_mm_clicked()
-{
-}

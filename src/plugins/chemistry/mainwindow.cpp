@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,11 +24,13 @@
 
 #include "mainwindow.hpp"
 #include "chemconnection.hpp"
-#include "document.hpp"
 #include "chemistryconstants.hpp"
 #include "chemquery.hpp"
+#include "chemspider.hpp"
+#include "document.hpp"
 #include "massdefectform.hpp"
 #include "moltablewnd.hpp"
+#include "queryform.hpp"
 #include <adportable/profile.hpp>
 #include <adchem/sdfile.hpp>
 #include <adwidgets/molview.hpp>
@@ -249,10 +251,17 @@ MainWindow::createDockWidgets()
         createDockWidget( w, "Edit", "Text" );
     }
 
-    // MassDefectForm * form = new MassDefectForm;
-	// form->setObjectName( "massdefect" );
-    // form->OnInitialUpdate();
-	// createDockWidget( form );
+    if ( auto w = new QueryForm( this ) ) {
+
+        createDockWidget( w, "ChemSpider", "CSSearch" );
+
+        connect( w, &QueryForm::trigger, this, [&]( const QString& sql ){
+                qDebug() << sql;
+                ChemSpider cs;
+                cs.query();
+            });
+    }
+
 }
 
 void

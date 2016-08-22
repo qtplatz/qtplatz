@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -22,29 +22,16 @@
 **
 **************************************************************************/
 
-#ifndef MASSSPECFORM_HPP
-#define MASSSPECFORM_HPP
+#pragma once
 
-#include <QWidget>
+namespace chemistry {
 
-namespace Ui {
-class MassSpecForm;
+    class ChemSpider {
+    public:
+        ChemSpider();
+        ~ChemSpider();
+
+        bool query();
+    };
+    
 }
-
-class MassSpecForm : public QWidget
-{
-    Q_OBJECT
-    
-public:
-    explicit MassSpecForm(QWidget *parent = 0);
-    ~MassSpecForm();
-    
-private:
-    Ui::MassSpecForm *ui;
-
-public slots:
-	void invoke_mm_clicked();
-    void invoke_db_clicked();
-};
-
-#endif // MASSSPECFORM_HPP

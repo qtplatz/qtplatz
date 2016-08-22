@@ -16,10 +16,6 @@ if ( QTPLATZ_CONFIG_Dataproc )
   add_subdirectory( dataproc )
 endif()
 
-if ( QTPLATZ_CONFIG_ChemSpider )
-  add_subdirectory( chemspider )
-endif()
-
 if ( QTPLATZ_CONFIG_Chemistry AND rdkit_FOUND )
   add_subdirectory( chemistry )
 endif()

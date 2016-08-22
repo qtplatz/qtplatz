@@ -56,18 +56,18 @@ set( chemistry_HEADERS
   )
 
 add_library( ${PROJECT_NAME} MODULE
+  chemconnection.cpp
+  chemconnection.hpp
   chemistryconstants.hpp
   chemistry_global.hpp
   chemistryplugin.cpp
   chemistryplugin.hpp
-  chemconnection.cpp
-  chemconnection.hpp
   chemquery.cpp
   chemquery.hpp
   chemschema.cpp
   chemschema.hpp
-#  chemfile.cpp
-#  chemfile.hpp
+  chemspider.cpp
+  chemspider.hpp
   document.cpp
   document.hpp
   mainwindow.cpp
@@ -82,6 +82,8 @@ add_library( ${PROJECT_NAME} MODULE
   massdefectmethod.hpp
   moltablewnd.cpp
   moltablewnd.hpp
+  queryform.cpp
+  queryform.hpp
   ${Resources}
   )
 
