@@ -66,8 +66,8 @@ add_library( ${PROJECT_NAME} MODULE
   chemquery.hpp
   chemschema.cpp
   chemschema.hpp
-  chemfile.cpp
-  chemfile.hpp
+#  chemfile.cpp
+#  chemfile.hpp
   document.cpp
   document.hpp
   mainwindow.cpp

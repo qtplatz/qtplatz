@@ -56,7 +56,8 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QProgressBar>
-#include <QStandardItemModel>
+#include <QSqlQueryModel>
+#include <QSqlQuery>
 #include <QTextDocument>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -73,7 +74,7 @@ MolTableWnd::~MolTableWnd()
 }
 
 MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
-                                          , model_( new QStandardItemModel )
+                                          , model_( new QSqlQueryModel )
                                           , table_( new adwidgets::MolTableView )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
@@ -88,10 +89,11 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
 
     for ( auto& cname : { "id", "uuid" } )
         hideColumns_.insert( cname );
-
+    
     table_->verticalHeader()->setDefaultSectionSize( 80 );
     table_->horizontalHeader()->setDefaultSectionSize( 200 );
 
+#if 0
     // this will override by prepare method
     int col = 0;
     model_->setHeaderData( col++, Qt::Horizontal, "SMILES" );
@@ -99,18 +101,38 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     model_->setHeaderData( col++, Qt::Horizontal, "Formula" );
     model_->setHeaderData( col++, Qt::Horizontal, "Mass" );
     model_->setHeaderData( col++, Qt::Horizontal, "Name" );
-
+#endif
+    
     table_->setContextMenuHandler( [this]( const QPoint& pt ){ handleContextMenu( pt ); } );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QWidget::customContextMenuRequested, this, &MolTableWnd::handleContextMenu );
-    connect( model_, &QStandardItemModel::dataChanged, this, &MolTableWnd::handleDataChaged );
+    //connect( model_, &QStandardItemModel::dataChanged, this, &MolTableWnd::handleDataChaged );
+
+    connect( table_, &QTableView::activated, [&]( const QModelIndex& current ){
+            emit activated( current );
+        });
+                 
+}
+
+QAbstractItemModel *
+MolTableWnd::model()
+{
+    return model_;
 }
 
 void
+MolTableWnd::setQuery( const QString& sqlstmt )
+{
+    QSqlQuery query( sqlstmt, document::instance()->sqlDatabase() );
+    qDebug() << query.exec();
+    model_->setQuery( query );
+}
+
+#if 0
+void
 MolTableWnd::setMol( adchem::SDFile& file, QProgressBar& progressBar )
 {
-#if 0
     if ( file ) {
         adcontrols::ChemicalFormula cformula;
 
@@ -169,8 +191,8 @@ MolTableWnd::setMol( adchem::SDFile& file, QProgressBar& progressBar )
         }
         progressBar.setVisible( false );
     }
-#endif
 }
+#endif
 
 void
 MolTableWnd::dragEnterEvent( QDragEnterEvent * event )
@@ -216,6 +238,7 @@ MolTableWnd::dropEvent( QDropEvent * event )
 void
 MolTableWnd::handleCopyToClipboard()
 {
+#if 0
 	QModelIndexList indecies = table_->selectionModel()->selectedIndexes();
 
     qSort( indecies );
@@ -287,6 +310,7 @@ MolTableWnd::handleCopyToClipboard()
         }
     } catch ( ... ) {
     }
+#endif
 }
 
 void
@@ -314,20 +338,24 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
     }
 }
 
-void
-MolTableWnd::currentChanged( const QModelIndex& current, const QModelIndex& )
+QVariant
+MolTableWnd::data( int row, const QString& column )
 {
-    emit onCurrentChanged( current );
+    if ( column == "svg" ) {
+    }
 }
 
 void
 MolTableWnd::prepare( const ChemQuery& q )
 {
-    model_->clear();
-    model_->setColumnCount( int( q.column_count() ) );
+#if 0
+    auto model = qobject_cast< QStandardItemModel * >(model_);
+
+    model->clear();
+    model->setColumnCount( int( q.column_count() ) );
 
     for ( int col = 0; col < int( q.column_count() ); ++col  ) {
-
+        
         model_->setHeaderData( col, Qt::Horizontal, ChemQuery::column_name_tr( q.column_name( col ) ) );
         std::string column = q.column_name( col ).toStdString();
 
@@ -348,8 +376,8 @@ MolTableWnd::prepare( const ChemQuery& q )
         document.setHtml( ChemQuery::column_name_tr( q.column_name( col ) ) );
         QSize size( document.size().width(), document.size().height() );
         table_->horizontalHeader()->model()->setHeaderData( col, Qt::Horizontal, QVariant( size ), Qt::SizeHintRole );
-    }    
-
+    }
+#endif
     table_->verticalHeader()->setDefaultSectionSize( 80 );
     table_->horizontalHeader()->setDefaultSectionSize( 200 );
 }
@@ -357,13 +385,15 @@ MolTableWnd::prepare( const ChemQuery& q )
 void
 MolTableWnd::addRecord( const ChemQuery& q )
 {
+#if 0
+    auto model = qobject_cast< QStandardItemModel * >( model_ );
     int row = model_->rowCount();
 
     if ( model_->insertRow( row ) ) {
         for ( int col = 0; col < int( q.column_count() ); ++col ) {
-            model_->setData( model_->index( row, col ), q.column_value( col ) );
+            model_->setData( model->index( row, col ), q.column_value( col ) );
 
-            if ( auto item = model_->item( row, col ) ) {
+            if ( auto item = model->item( row, col ) ) {
                 item->setEditable( table_->isColumnEditable( col ) );
                 if ( table_->isColumnCheckable( col ) ) {
                     item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
@@ -372,6 +402,7 @@ MolTableWnd::addRecord( const ChemQuery& q )
             }
         }
     }
+#endif
 }
 
 void

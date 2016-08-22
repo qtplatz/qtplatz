@@ -91,16 +91,16 @@ MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
 void
 MainWindow::OnInitialUpdate()
 {
-    connect( ChemDocument::instance(), &ChemDocument::onConnectionChanged, [this]{ handleConnectionChanged(); } );
+    connect( document::instance(), &document::onConnectionChanged, [this]{ handleConnectionChanged(); } );
     
 	setSimpleDockWidgetArrangement();
-    ChemDocument::instance()->initialSetup();
+    document::instance()->initialSetup();
 }
 
 void
 MainWindow::OnClose()
 {
-    ChemDocument::instance()->finalClose();
+    document::instance()->finalClose();
 }
 
 void
@@ -181,6 +181,13 @@ MainWindow::createContents( Core::IMode * mode )
     splitter->setObjectName( QLatin1String( "ChemistryModeWidget" ) );
 
 	createDockWidgets();
+
+    if ( auto view = findChild< adwidgets::MolView * >() ) {
+        if ( auto wnd = findChild< MolTableWnd * >() ) {
+            connect( wnd, &MolTableWnd::activated, [=]( const QModelIndex& index ){
+                });
+        }
+    }
 
 	return splitter;
 }
@@ -293,7 +300,7 @@ MainWindow::handleDropped( const QList< QUrl >& urls )
             boost::filesystem::path path( url.toLocalFile().toStdWString() );
             //topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
             adchem::SDFile file( path.string() );
-            wnd->setMol( file, *progressBar_ );
+            // wnd->setMol( file, *progressBar_ );
         }
     }
 }
@@ -356,14 +363,14 @@ MainWindow::actSDFileOpen()
                 
                 //topLineEdit_->setText( name );
                 adchem::SDFile file( name.toStdString() );
-                wnd->setMol( file, *progressBar_ );
+                //wnd->setMol( file, *progressBar_ );
                 
             } else if ( finfo.suffix() == "adfs" ) {
                 
                 if ( auto connection = std::make_shared< ChemConnection >() ) {
                     
                     if ( connection->connect( name.toStdWString() ) )
-                        ChemDocument::instance()->setConnection( connection.get() );
+                        document::instance()->setConnection( connection.get() );
                     
                 }
             }
@@ -374,19 +381,14 @@ MainWindow::actSDFileOpen()
 void
 MainWindow::handleConnectionChanged()
 {
-    auto self( ChemDocument::instance()->connection()->shared_from_this() );
-    auto query = std::make_shared< ChemQuery >( self->db() );
+    // auto self( document::instance()->connection()->shared_from_this() );
+    // auto query = std::make_shared< ChemQuery >( self->db() );
 
-    query->prepare( "SELECT * FROM mols" );
-    ChemDocument::instance()->setQuery( query.get() );
-    
+    // query->prepare( "SELECT * FROM mols" );
+    // document::instance()->setQuery( query.get() );
+
     if ( auto table = findChild< MolTableWnd * >() ) {
-        table->prepare( *query );
-        while ( query->step() == adfs::sqlite_row ) {
-            table->addRecord( *query );
-        }
-
+        table->setQuery( "SELECT * FROM mols" );
     }
-
 }
 

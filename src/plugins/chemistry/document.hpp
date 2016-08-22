@@ -25,25 +25,28 @@
 #pragma once
 
 #include <QObject>
+#include <QSqlDatabase>
 #include <atomic>
 #include <memory>
 #include <mutex>
 
 class QSettings;
+class QSqlDatabase;
 
 namespace chemistry {
 
     class ChemConnection;
     class ChemQuery;
 
-    class ChemDocument : public QObject
+    class document : public QObject
     {
         Q_OBJECT
-        explicit ChemDocument(QObject *parent = 0);
-        static std::atomic< ChemDocument * > instance_;
+
+        explicit document(QObject *parent = 0);
+        static std::atomic< document * > instance_;
         static std::mutex mutex_;
     public:
-        static ChemDocument * instance();
+        static document * instance();
         
         void initialSetup();
         void finalClose();
@@ -54,11 +57,12 @@ namespace chemistry {
 
         void setQuery( ChemQuery * );
         ChemQuery * query();
+        //
 
+        QSqlDatabase sqlDatabase();
 
-    private:    
-        class impl;
-        impl * impl_;
+    private:
+        struct impl;
 
         void dbInit( ChemConnection * );
         void dbUpdate( ChemConnection * );

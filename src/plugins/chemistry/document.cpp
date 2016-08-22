@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -51,6 +51,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QSettings>
+#include <QSqlDatabase>
 #include <boost/filesystem.hpp>
 
 namespace chemistry {
@@ -62,20 +63,26 @@ namespace chemistry {
         }
     };
 
-    class ChemDocument::impl {
-    public:
-        impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
-                                                           , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                           , QLatin1String( "chemistry" ) ) ) {
-            
-        }
-        ~impl()
-            {}
+    struct document::impl {
 
-        std::shared_ptr< QSettings > settings_;  // user scope settings
-        std::shared_ptr< ChemConnection > connection_;
-        std::shared_ptr< ChemQuery > query_;
+        impl() : settings_( std::make_unique< QSettings >(
+                                QSettings::IniFormat, QSettings::UserScope
+                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                , QLatin1String( "chemistry" ) ) ) {
+        }
+        
+        std::unique_ptr< QSettings > settings_;
+        QSqlDatabase db_;
+
+        static QSettings * settings() { return impl::instance().settings_.get(); }
+        static QSqlDatabase sqlDatabase() { return impl::instance().db_; }
+
+        static impl& instance() {
+            static impl __impl;
+            return __impl;
+        }
     };
+
 
     static struct { std::string smiles; std::string synonym; } inidb[] = {
         { "C(C(C(F)(F)F)(F)F)(C(N(C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F", "PFTBA" }
@@ -86,50 +93,37 @@ namespace chemistry {
         , { "c1ccc2c(c1)c(=N)c3c([nH]2)CCCC3",                                                            "Tacrine" }
         , { "CCCCCCCCCCCCCC(=O)O[C@H](CCCCCCCCCCC)CC(=O)O[C@@H]1[C@H]([C@@H](O[C@@H]([C@H]1OP(=O)(O)O)CO)OC[C@@H]2[C@H]([C@@H]([C@H]([C@H](O2)OP(=O)(O)O)NC(=O)C[C@@H](CCCCCCCCCCC)O)OC(=O)C[C@@H](CCCCCCCCCCC)O)O)NC(=O)C[C@@H](CCCCCCCCCCC)OC(=O)CCCCCCCCCCC", "Lipid A" }
     };
+
 }
 
 using namespace chemistry;
 
-std::atomic<ChemDocument * > ChemDocument::instance_(0);
-std::mutex ChemDocument::mutex_;
+std::mutex document::mutex_;
 
-ChemDocument::ChemDocument(QObject *parent) : QObject(parent)
-                                    , impl_( new impl() )
+document::document(QObject *parent) : QObject(parent)
 {
 }
 
-ChemDocument * 
-ChemDocument::instance()
+document * 
+document::instance()
 {
-    typedef ChemDocument T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static document __instance;
+    return &__instance;
 }
 
 void
-ChemDocument::initialSetup()
+document::initialSetup()
 {
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    boost::filesystem::path dir = user_preference::path( impl::settings() );
 
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "chemistry::ChemDocument"
+            QMessageBox::information( 0, "chemistry::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
     }
 
-    boost::filesystem::path path = qtwrapper::settings( *impl_->settings_ ).recentFile( "ChemistryDB", "Files" ).toStdWString();
+    boost::filesystem::path path = qtwrapper::settings( *impl::settings() ).recentFile( "ChemistryDB", "Files" ).toStdWString();
     if ( path.empty() )
         path = dir / "molecules.adfs";
     
@@ -156,18 +150,32 @@ ChemDocument::initialSetup()
             this->setConnection( connection.get() );
 
         }
+    }
 
-    }    
+    QSqlDatabase db = QSqlDatabase::addDatabase( "QSQLITE", "ChemistryDB" );
+    db.setDatabaseName( QString::fromStdString( path.string() ) );
+
+    if ( db.open() ) {
+
+        impl::instance().db_ = db;
+
+        emit onConnectionChanged();
+
+    } else {
+        QMessageBox::critical(0, tr("Cannot open database"),
+                              tr("Unable to establish a database connection.\nClick Cancel to exit.")
+                              , QMessageBox::Cancel );
+    } 
     // impl_->dbpath_ = path;
 }
 
 void
-ChemDocument::finalClose()
+document::finalClose()
 {
-    boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
+    boost::filesystem::path dir = user_preference::path( impl::settings() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "chemistry::ChemDocument"
+            QMessageBox::information( 0, "chemistry::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
         }
@@ -175,48 +183,43 @@ ChemDocument::finalClose()
 }
 
 QSettings *
-ChemDocument::settings()
+document::settings()
 {
-    return impl_->settings_.get();
+    return impl::settings();
 }
 
 void
-ChemDocument::setConnection( ChemConnection * conn )
+document::setConnection( ChemConnection * conn )
 {
-    impl_->connection_ = conn->shared_from_this();
-    impl_->query_ = std::make_shared< ChemQuery >( impl_->connection_->db() );
-
-    qtwrapper::settings( *impl_->settings_ ).addRecentFiles( "ChemistryDB", "Files", QString::fromStdWString( conn->filepath().wstring() ) );
-
-    emit onConnectionChanged();
+    qtwrapper::settings( *impl::settings() ).addRecentFiles( "ChemistryDB", "Files", QString::fromStdWString( conn->filepath().wstring() ) );
 }
 
-ChemConnection *
-ChemDocument::connection()
-{
-    return impl_->connection_.get();
-}
+// ChemConnection *
+// document::connection()
+// {
+//     return impl_->connection_.get();
+// }
+
+// void
+// document::setQuery( ChemQuery * p )
+// {
+//     impl_->query_ = p->shared_from_this();
+// }
+
+// ChemQuery *
+// document::query()
+// {
+//     return impl_->query_.get();
+// }
 
 void
-ChemDocument::setQuery( ChemQuery * p )
-{
-    impl_->query_ = p->shared_from_this();
-}
-
-ChemQuery *
-ChemDocument::query()
-{
-    return impl_->query_.get();
-}
-
-void
-ChemDocument::dbUpdate( ChemConnection * connection )
+document::dbUpdate( ChemConnection * connection )
 {
     dbInit( connection );
 }
 
 void
-ChemDocument::dbInit( ChemConnection * connection )
+document::dbInit( ChemConnection * connection )
 {
     auto self( connection->shared_from_this() );
 
@@ -241,4 +244,10 @@ ChemDocument::dbInit( ChemConnection * connection )
         }
     }
     
+}
+
+QSqlDatabase
+document::sqlDatabase()
+{
+    return impl::sqlDatabase();
 }

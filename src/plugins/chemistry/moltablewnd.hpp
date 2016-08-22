@@ -31,7 +31,7 @@
 #include <memory>
 #include <set>
 
-class QStandardItemModel;
+class QSqlQueryModel;
 class QProgressBar;
 
 namespace adchem { class SDFile; }
@@ -42,7 +42,7 @@ namespace chemistry {
     class MolTableDelegate;
     class ChemQuery;
 
-    class MolTableWnd : public QWidget { //: public adwidgets::TableView {
+    class MolTableWnd : public QWidget {
         Q_OBJECT
     public:
         explicit MolTableWnd(QWidget *parent = 0);
@@ -51,13 +51,14 @@ namespace chemistry {
         void prepare( const ChemQuery& );
         void addRecord( const ChemQuery& );
 
-        void setMol( adchem::SDFile&, QProgressBar& );
+        void setQuery( const QString& sqlstmt );
         
-        QStandardItemModel& model() { return *model_; }
+        QAbstractItemModel * model();
+        QVariant data( int row, const QString& column );
 
     signals:
         void dropped( const QList< QUrl >& );
-        void onCurrentChanged( const QModelIndex& );
+        void activated( const QModelIndex& );
 
     public slots:
 
@@ -68,9 +69,8 @@ namespace chemistry {
         void dragMoveEvent( QDragMoveEvent * );   // override;
         void dragLeaveEvent( QDragLeaveEvent * ); // override;
         void dropEvent( QDropEvent * );           // override;
-        void currentChanged( const QModelIndex&, const QModelIndex& ); // override;
 
-        QStandardItemModel * model_;
+        QSqlQueryModel * model_;
         adwidgets::MolTableView * table_;
         std::set< std::string > hideColumns_;
 
