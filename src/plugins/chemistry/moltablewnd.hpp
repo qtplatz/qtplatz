@@ -26,8 +26,7 @@
 #define MOLTABLEVIEW_HPP
 
 #include <adwidgets/tableview.hpp>
-#include <QTableView>
-#include <QUrl>
+#include <QString>
 #include <memory>
 #include <set>
 
@@ -72,7 +71,7 @@ namespace chemistry {
 
         QSqlQueryModel * model_;
         adwidgets::MolTableView * table_;
-        std::set< std::string > hideColumns_;
+        std::set< QString > hideColumns_;
 
     private slots:
         void handleCopyToClipboard(); // override;

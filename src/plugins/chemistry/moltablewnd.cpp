@@ -56,8 +56,10 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QProgressBar>
+#include <QSqlField>
 #include <QSqlQueryModel>
 #include <QSqlQuery>
+#include <QSqlRecord>
 #include <QTextDocument>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -125,74 +127,33 @@ void
 MolTableWnd::setQuery( const QString& sqlstmt )
 {
     QSqlQuery query( sqlstmt, document::instance()->sqlDatabase() );
-    qDebug() << query.exec();
-    model_->setQuery( query );
-}
 
-#if 0
-void
-MolTableWnd::setMol( adchem::SDFile& file, QProgressBar& progressBar )
-{
-    if ( file ) {
-        adcontrols::ChemicalFormula cformula;
+    if ( query.exec() ) {
+        auto rec = query.record();
 
-        qtwrapper::waitCursor wait;
+        for ( int col = 0; col < rec.count(); ++col ) {
 
-        //RDKit::SDMolSupplier& supplier = file.molSupplier();
-		model_->setRowCount( static_cast<int>(file.size()) );
+            auto column = rec.fieldName(col);
 
-        progressBar.setRange( 0, static_cast<int>(file.size()) );
-        progressBar.setVisible( true );
-        progressBar.setTextVisible( true );
-
-		uint32_t idx = 0;
-		for ( auto mol: file ) {
-            progressBar.setValue( idx + 1 );
-            try {
-                int col = 0;
-                std::string smiles = RDKit::MolToSmiles( mol );
-                if ( ! smiles.empty() ) {
-                    model_->setData( model_->index( idx, col++ ), smiles.c_str() );
-                    
-                    // SVG
-                    std::string svg = adchem::drawing::toSVG( mol );
-                    model_->setData( model_->index( idx, col ), QByteArray( svg.data(), static_cast<int>(svg.size()) ) );
-                    model_->item( idx, col )->setEditable( false );
-                }
-                col = 2;
-                try {
-                    mol.updatePropertyCache( false );
-                    std::string formula = RDKit::Descriptors::calcMolFormula( mol, true, false );
-                    model_->setData( model_->index( idx, col++ ), QString::fromStdString( formula) );
-                    model_->setData( model_->index( idx, col++), cformula.getMonoIsotopicMass( formula ) );
-                } catch ( std::exception& ex ) {
-                    ADERROR() << ex.what();
-                }
-                col = 4;
-                // associated data
-                std::map< std::string, std::string > data;
-                adchem::SDFile::iterator it = file.begin() + idx;
-                if ( adchem::SDFile::parseItemText( it.itemText(), data ) ) {
-                    for ( auto tag: tags ) {
-                        auto it = data.find( tag );
-                        if ( it != data.end() )
-                            model_->setData( model_->index( idx, col ), it->second.c_str() );
-                        ++col;
-                    }
-				}
-				if ( idx == 10 )
-					this->update();
-            } catch ( std::exception& ex ) {
-                ADERROR() << boost::current_exception_diagnostic_information() << ex.what();
-            } catch ( ... ) {
-                ADERROR() << boost::current_exception_diagnostic_information();
-            }
-            ++idx;
+            if ( column == "svg" )
+                table_->setColumnField( col, adwidgets::ColumnState::f_svg, false, false );
+            else if ( column == "mass" )
+                table_->setColumnField( col, adwidgets::ColumnState::f_mass, false, false );
+            else if ( column == "formula" )
+                table_->setColumnField( col, adwidgets::ColumnState::f_formula, false, true );
+            else
+                table_->setColumnField( col, adwidgets::ColumnState::f_any, false, false );
         }
-        progressBar.setVisible( false );
+        
+        model_->setQuery( query );
+
+        for ( auto& hidden: hideColumns_ ) {
+            int col;
+            if ( ( col = rec.indexOf( hidden ) ) >= 0 )
+                table_->setColumnHidden( col, true );
+        }
     }
 }
-#endif
 
 void
 MolTableWnd::dragEnterEvent( QDragEnterEvent * event )

@@ -345,6 +345,7 @@ MainWindow::createTopStyledBar()
 void
 MainWindow::actSDFileOpen()
 {
+#if 0
     boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
     datapath /= "data";
 
@@ -376,6 +377,7 @@ MainWindow::actSDFileOpen()
             }
         }
 	}
+#endif
 }
 
 void

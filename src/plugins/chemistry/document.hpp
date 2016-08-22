@@ -52,8 +52,8 @@ namespace chemistry {
         void finalClose();
 
         QSettings * settings();
-        void setConnection( ChemConnection * );
-        ChemConnection * connection();
+        // void setConnection( ChemConnection * );
+        // ChemConnection * connection();
 
         void setQuery( ChemQuery * );
         ChemQuery * query();

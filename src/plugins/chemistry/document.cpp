@@ -147,8 +147,7 @@ document::initialSetup()
                 }
             }
 
-            this->setConnection( connection.get() );
-
+            qtwrapper::settings( *impl::settings() ).addRecentFiles( "ChemistryDB", "Files", QString::fromStdWString( path.wstring() ) );
         }
     }
 
@@ -162,11 +161,11 @@ document::initialSetup()
         emit onConnectionChanged();
 
     } else {
+
         QMessageBox::critical(0, tr("Cannot open database"),
                               tr("Unable to establish a database connection.\nClick Cancel to exit.")
                               , QMessageBox::Cancel );
     } 
-    // impl_->dbpath_ = path;
 }
 
 void
@@ -187,30 +186,6 @@ document::settings()
 {
     return impl::settings();
 }
-
-void
-document::setConnection( ChemConnection * conn )
-{
-    qtwrapper::settings( *impl::settings() ).addRecentFiles( "ChemistryDB", "Files", QString::fromStdWString( conn->filepath().wstring() ) );
-}
-
-// ChemConnection *
-// document::connection()
-// {
-//     return impl_->connection_.get();
-// }
-
-// void
-// document::setQuery( ChemQuery * p )
-// {
-//     impl_->query_ = p->shared_from_this();
-// }
-
-// ChemQuery *
-// document::query()
-// {
-//     return impl_->query_.get();
-// }
 
 void
 document::dbUpdate( ChemConnection * connection )
