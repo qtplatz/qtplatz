@@ -22,52 +22,64 @@
 **************************************************************************/
 
 #include "queryform.hpp"
-#include <QStringList>
-#include <QPlainTextEdit>
+#include "document.hpp"
 #include <QBoxLayout>
 #include <QComboBox>
+#include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
+#include <QPlainTextEdit>
+#include <QStringList>
 
 using namespace chemistry;
 
-QueryForm::QueryForm(QWidget *parent) :  QWidget(parent)
-                                      , semiColonCaptured_( false )
+QueryForm::QueryForm( QWidget *parent ) :  QWidget(parent)
+                                        , semiColonCaptured_( false )
 {
     resize( 200, 100 );
 
     auto vLayout = new QVBoxLayout( this );
     auto gridLayout = new QGridLayout();
+    gridLayout->setHorizontalSpacing( 0 );
 
-    if ( auto textEditor = new QPlainTextEdit() ) {
-        textEditor->installEventFilter( this );
-        textEditor->setMaximumHeight( 80 );
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(textEditor->sizePolicy().hasHeightForWidth());
-        textEditor->setSizePolicy(sizePolicy);
-        textEditor->setMaximumSize(QSize(16777215, 80));
-        gridLayout->addWidget( textEditor, 0, 0, /*row span= */ 1, /* column span = */ 4 );
+    //----------- row 0 ---------------------
+    int row = 0;
+    int col = 0;
+    if ( auto edit = new QPlainTextEdit() ) {
+        edit->setObjectName( "Query" );
+        edit->setMaximumHeight( 32 );
+        edit->installEventFilter( this );
+        gridLayout->addWidget( new QLabel( tr("Query: ") ), row, col++ );
+        gridLayout->addWidget( edit, row, col++, /*row span= */ 1, /* column span = */ 3 );
     }
 
-    if ( auto combo = new QComboBox() ) {
-        combo->setObjectName( "tableList" );
-        gridLayout->addWidget( combo, 1, 0, 1, 1 );
-
-        // connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this, &QueryForm::on_comboBox_currentIndexChanged );
+    //----------- row 1 ---------------------
+    ++row;
+    col = 0;
+    if ( auto edit = new QLineEdit( document::instance()->chemSpiderToken() ) ) {
+        edit->setObjectName( "Token" );
+        gridLayout->addWidget( new QLabel( tr("Token: ") ), row, col++ );
+        gridLayout->addWidget( edit, row, col++, /*row span= */ 1, /* column span = */ 2 );
+        connect( edit, &QLineEdit::editingFinished, [=](){ document::instance()->setChemSpiderToken( edit->text() ); } );
     }
-
-    if ( auto combo = new QComboBox() ) {
-        combo->setObjectName( "subList" );
-        gridLayout->addWidget( combo, 1, 1, 1, 1 );
-        // connect( combo, static_cast<void( QComboBox::* )( const QString& )>( &QComboBox::currentIndexChanged ), this, &QueryForm::on_subList_currentIndexChanged );
+    
+    if ( auto button = new QPushButton( "invoke" ) ) {
+        gridLayout->addWidget( button, row, gridLayout->columnCount() - 1 );
+        connect( button, &QPushButton::pressed, this, [&](){
+                if ( auto edit = findChild< QPlainTextEdit * >( "Query" ) )
+                    emit trigger( edit->toPlainText() );
+            });
     }
-
-    if ( auto button = new QPushButton( "execute query" ) ) {
-        gridLayout->addWidget( button, 1, 2, 1, 1 );
-        // connect( button, &QPushButton::pressed, this, &QueryForm::on_pushButton_pressed );
+    
+    //----------- row 2 ---------------------
+    ++row;
+    col = 1;
+    if ( auto edit = new QTextEdit() ) {
+        edit->setObjectName( "QueryResponse" );
+        gridLayout->addWidget( edit, row, col, /*row span */ 1, /* column span */ 3 );
     }
-
+    gridLayout->setColumnStretch( 1, 2 );
+    
     vLayout->addLayout( gridLayout );
 }
 

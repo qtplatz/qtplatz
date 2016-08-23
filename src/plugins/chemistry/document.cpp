@@ -26,13 +26,16 @@
 #include "chemconnection.hpp"
 #include "chemquery.hpp"
 #include "chemschema.hpp"
+#include "chemspider.hpp"
 #include <adchem/drawing.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 #include <adprot/aminoacid.hpp>
+#include <adportable/debug.hpp>
 #include <app/app_version.h>
 #include <qtwrapper/settings.hpp>
+#include <QTextEdit>
 
 #if defined _MSC_VER
 # pragma warning(disable:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
@@ -225,4 +228,31 @@ QSqlDatabase
 document::sqlDatabase()
 {
     return impl::sqlDatabase();
+}
+
+void
+document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
+{
+    auto stmt = sql.toStdString();
+    ADDEBUG() << stmt;
+    ChemSpider cs;
+    std::string html;
+    if ( cs.query( stmt, chemSpiderToken().toStdString() ) ) {
+
+        edit->setText( QString::fromStdString( cs.rid() + "\n" ) );
+        for ( auto& csid: cs.csids() )
+            edit->setHtml( QString("csid=%1\n").arg( csid ) );
+    }
+}
+
+void
+document::setChemSpiderToken( const QString& token )
+{
+    settings()->setValue( "ChemSpider/SecurityToken", token );
+}
+
+QString
+document::chemSpiderToken() const
+{
+    return impl::settings()->value( "ChemSpider/SecurityToken" ).toString();
 }

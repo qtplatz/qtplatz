@@ -17,6 +17,7 @@ include ( ${qtplatz_config_DIR}/qtplatz-config.cmake )
 
 #add_subdirectory( filename_splitter )
 add_subdirectory( formula_parser )
+add_subdirectory( test_ptree )
 #add_subdirectory( isotope )
 #add_subdirectory( test_adfs )
 #add_subdirectory( test_u5303a )

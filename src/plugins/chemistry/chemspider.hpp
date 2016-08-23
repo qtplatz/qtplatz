@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 namespace chemistry {
 
     class ChemSpider {
@@ -31,7 +34,14 @@ namespace chemistry {
         ChemSpider();
         ~ChemSpider();
 
-        bool query();
+        bool query( const std::string&, const std::string& token );
+        const std::string& rid() const;
+        const std::vector< int >& csids() const;
+        
+    private:
+        bool getAsyncSearchResult( const std::string& rid, const std::string& token );
+        std::vector< int > csids_;
+        std::string rid_;
     };
     
 }

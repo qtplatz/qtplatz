@@ -43,8 +43,7 @@ namespace adurl {
 
     class ADURLSHARED_EXPORT client {
     public:
-        client( boost::asio::io_service& io_service, const std::string& server, const std::string& path);
-
+        client( boost::asio::io_service& io_service, const std::string& server, const std::string& path );
         client( boost::asio::io_service& io_service, const std::string& server, std::unique_ptr< boost::asio::streambuf >&& request );
 
         boost::asio::streambuf& response();
@@ -84,6 +83,7 @@ namespace adurl {
         ReplyStatus error_;
         bool event_stream_;
         std::function< void( const boost::system::error_code&, boost::asio::streambuf& ) > event_stream_handler_;
+        std::string server_;
     };
     
 }

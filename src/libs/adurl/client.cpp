@@ -65,6 +65,7 @@ client::client(boost::asio::io_service& io_service
                                             , status_code_( 0 )
                                             , error_( NoError )
                                             , event_stream_( false )
+                                            , server_( server )
 {
     // Form the request. We specify the "Connection: close" header so that the
     // server will close the socket after transmitting the response. This will
@@ -96,6 +97,7 @@ client::client(boost::asio::io_service& io_service
                                                                         , request_( std::move( request ) )
                                                                         , status_code_( 0 )
                                                                         , error_( NoError )
+                                                                        , server_( server )
 {
     tcp::resolver::query query = make_query( server );
 
@@ -155,7 +157,7 @@ client::connect( std::function< void( const boost::system::error_code&, boost::a
 
 void
 client::handle_resolve(const boost::system::error_code& err,
-                      tcp::resolver::iterator endpoint_iterator)
+                       tcp::resolver::iterator endpoint_iterator)
 {
     if ( !err )  {
 
@@ -170,7 +172,7 @@ client::handle_resolve(const boost::system::error_code& err,
 
         error_ = Error;
         if ( debug_mode_ )
-            ADDEBUG() << "Error: " << err.message();
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
 
     }
 }
@@ -203,7 +205,7 @@ client::handle_connect(const boost::system::error_code& err,
 
         error_ = Error;
         if ( debug_mode_ )
-            ADDEBUG() << "Error: " << err.message();
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
@@ -223,7 +225,7 @@ client::handle_write_request(const boost::system::error_code& err)
 
         error_ = Error;
         if ( debug_mode_ )
-            ADDEBUG() << "Error: " << err.message();
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
@@ -248,7 +250,7 @@ client::handle_read_status_line( const boost::system::error_code& err )
 
         if ( status_code_ != 200 )  {
             error_ = Error;
-            ADDEBUG() << "Response returned with status code " << status_code_;
+            ADDEBUG() << "[" << server_ << "] Response returned with status code " << status_code_;
             return;
         }
         
@@ -260,8 +262,8 @@ client::handle_read_status_line( const boost::system::error_code& err )
     } else  {
 
         error_ = Error;
-        if ( debug_mode_ )        
-            ADDEBUG() << "Error: " << err;
+        if ( debug_mode_ )
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
@@ -282,7 +284,7 @@ client::handle_read_headers(const boost::system::error_code& err)
                 event_stream_ = true;
             }
             if ( debug_mode_ )
-                ADDEBUG() << header;
+                ADDEBUG() << "[" << server_ << "] " << header;
         }
 
         if ( event_stream_ ) {
@@ -302,8 +304,8 @@ client::handle_read_headers(const boost::system::error_code& err)
     } else {
 
         error_ = Error;
-        if ( debug_mode_ )                
-            ADDEBUG() << "Error: " << err;
+        if ( debug_mode_ )
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
@@ -322,8 +324,8 @@ client::handle_read_content(const boost::system::error_code& err)
     } else if (err != boost::asio::error::eof) {
 
         error_ = Error;
-        if ( debug_mode_ )                
-            ADDEBUG() << "Error: " << err;
+        if ( debug_mode_ )
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
@@ -340,7 +342,8 @@ client::handle_read_stream( const boost::system::error_code& ec )
             std::istream response_stream( &response_ );
             std::string data;
             while ( std::getline( response_stream, data ) && data != "\r" ) {
-                ADDEBUG() << data;  // just consume them
+                if ( debug_mode_ )
+                    ADDEBUG() << "[" << server_ << "] DATA: " << data; // consume them
             }
         }
 
@@ -353,7 +356,7 @@ client::handle_read_stream( const boost::system::error_code& ec )
     } else if ( ec != boost::asio::error::eof ) {
 
         error_ = Error;
-        if ( debug_mode_ )                
-            ADDEBUG() << "Error: " << ec;
+        if ( debug_mode_ )
+            ADDEBUG() << "[" << server_ << "] Error: " << ec;
     }
 }

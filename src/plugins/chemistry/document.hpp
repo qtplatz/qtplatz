@@ -32,6 +32,7 @@
 
 class QSettings;
 class QSqlDatabase;
+class QTextEdit;
 
 namespace chemistry {
 
@@ -52,14 +53,15 @@ namespace chemistry {
         void finalClose();
 
         QSettings * settings();
-        // void setConnection( ChemConnection * );
-        // ChemConnection * connection();
 
         void setQuery( ChemQuery * );
         ChemQuery * query();
         //
 
         QSqlDatabase sqlDatabase();
+
+        void setChemSpiderToken( const QString& );
+        QString chemSpiderToken() const;
 
     private:
         struct impl;
@@ -71,7 +73,7 @@ namespace chemistry {
         void onConnectionChanged();
                                   
     public slots:
-
+        void ChemSpiderSearch( const QString&, QTextEdit * );
     };
 
 }

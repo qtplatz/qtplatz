@@ -26,9 +26,7 @@
 #include "chemconnection.hpp"
 #include "chemistryconstants.hpp"
 #include "chemquery.hpp"
-#include "chemspider.hpp"
 #include "document.hpp"
-#include "massdefectform.hpp"
 #include "moltablewnd.hpp"
 #include "queryform.hpp"
 #include <adportable/profile.hpp>
@@ -253,12 +251,10 @@ MainWindow::createDockWidgets()
 
     if ( auto w = new QueryForm( this ) ) {
 
-        createDockWidget( w, "ChemSpider", "CSSearch" );
+        createDockWidget( w, "ChemSpider", "ChemSpiderSearch" );
 
-        connect( w, &QueryForm::trigger, this, [&]( const QString& sql ){
-                qDebug() << sql;
-                ChemSpider cs;
-                cs.query();
+        connect( w, &QueryForm::trigger, this, [=]( const QString& sql ){
+                document::instance()->ChemSpiderSearch( sql, w->findChild< QTextEdit *>( "QueryResponse" ) );
             });
     }
 

@@ -74,12 +74,6 @@ add_library( ${PROJECT_NAME} MODULE
   mainwindow.hpp
   mode.cpp
   mode.hpp
-  massdefectform.cpp
-  massdefectform.hpp
-  massdefectdelegate.cpp
-  massdefectdelegate.hpp
-  massdefectmethod.cpp
-  massdefectmethod.hpp
   moltablewnd.cpp
   moltablewnd.hpp
   queryform.cpp
@@ -89,6 +83,7 @@ add_library( ${PROJECT_NAME} MODULE
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adfs
+  adurl
   adutils
   adportable
   adlog
