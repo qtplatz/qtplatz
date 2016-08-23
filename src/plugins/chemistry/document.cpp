@@ -235,13 +235,20 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
 {
     auto stmt = sql.toStdString();
     ADDEBUG() << stmt;
-    ChemSpider cs;
-    std::string html;
-    if ( cs.query( stmt, chemSpiderToken().toStdString() ) ) {
+    ChemSpider cs( chemSpiderToken().toStdString() );
+    
+    if ( cs.AsyncSimpleSearch( stmt ) ) {
 
         edit->setText( QString::fromStdString( cs.rid() + "\n" ) );
-        for ( auto& csid: cs.csids() )
-            edit->setHtml( QString("csid=%1\n").arg( csid ) );
+
+        for ( auto& csid: cs.csids() ) {
+            edit->append( QString("csid=%1\n").arg( csid ) );
+            std::string smiles, InChI, InChIKey;
+
+            if ( cs.GetCompoundInfo( csid, smiles, InChI, InChIKey ) ) {
+                edit->append( QString("SMILES=%1\n").arg( QString::fromStdString( smiles ) ) );
+            }
+        }
     }
 }
 

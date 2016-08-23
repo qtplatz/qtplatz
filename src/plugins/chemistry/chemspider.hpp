@@ -31,17 +31,20 @@ namespace chemistry {
 
     class ChemSpider {
     public:
-        ChemSpider();
+        ChemSpider( const std::string& token );
         ~ChemSpider();
 
-        bool query( const std::string&, const std::string& token );
+        bool AsyncSimpleSearch( const std::string& stmt );
+        bool GetCompoundInfo( int, std::string& smiles, std::string& InChI, std::string& InChIKey );
+
         const std::string& rid() const;
         const std::vector< int >& csids() const;
         
     private:
-        bool getAsyncSearchResult( const std::string& rid, const std::string& token );
+        bool getAsyncSearchResult( const std::string& rid );
         std::vector< int > csids_;
         std::string rid_;
+        std::string token_;
     };
     
 }
