@@ -35,7 +35,11 @@ namespace chemistry {
         ~ChemSpider();
 
         bool AsyncSimpleSearch( const std::string& stmt );
+
+        bool GetAsyncSearchStatus( std::string& response );
+        bool GetAsyncSearchResult();
         bool GetCompoundInfo( int, std::string& smiles, std::string& InChI, std::string& InChIKey );
+        bool GetSynonyms( int, std::vector< std::string >& );
 
         const std::string& rid() const;
         const std::vector< int >& csids() const;

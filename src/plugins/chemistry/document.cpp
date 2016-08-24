@@ -36,6 +36,8 @@
 #include <app/app_version.h>
 #include <qtwrapper/settings.hpp>
 #include <QTextEdit>
+#include <QSqlError>
+#include <QSqlQuery>
 
 #if defined _MSC_VER
 # pragma warning(disable:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
@@ -47,6 +49,7 @@
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
+#include <INCHI-API/inchi.h>
 #if defined _MSC_VER
 # pragma warning(default:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
 #endif
@@ -127,8 +130,9 @@ document::initialSetup()
     }
 
     boost::filesystem::path path = qtwrapper::settings( *impl::settings() ).recentFile( "ChemistryDB", "Files" ).toStdWString();
-    if ( path.empty() )
-        path = dir / "molecules.adfs";
+    if ( path.empty() || path.filename() == "molecules.adfs" ) {
+        path = dir / "ChemistryDB.adfs";
+    }
     
     if ( !boost::filesystem::exists( path ) ) {
 
@@ -146,6 +150,20 @@ document::initialSetup()
                     if ( ChemSchema::createTables( sql ) )
                         dbInit( connection.get() );
                 } else {
+                    bool deprecated(false);
+                    sql.prepare( "PRAGMA TABLE_INFO(mols)" );
+
+                    while ( sql.step() == adfs::sqlite_row ) {
+                        if ( sql.get_column_value< std::string >( 1 ) == "uuid" )
+                            deprecated = true;
+                    }
+                    
+                    if ( deprecated ) {
+                        sql.exec( "DROP TABLE IF EXISTS synonyms" );
+                        sql.exec( "DROP TABLE IF EXISTS mols" );
+                        ChemSchema::createTables( sql );
+                    }
+
                     dbInit( connection.get() );
                 }
             }
@@ -205,20 +223,13 @@ document::dbInit( ChemConnection * connection )
 
     for ( const auto& rec : inidb ) {
         if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( rec.smiles ) ) ) {
-            std::string svg = adchem::drawing::toSVG( *mol );
-            std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
-            double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
-
-            query->insert_mol( rec.smiles, svg, formula, mass, rec.synonym );
+            query->insert( *mol, rec.smiles, rec.synonym );
         }
     }
 
     for ( auto it = adprot::AminoAcid::begin(); it != adprot::AminoAcid::end(); ++it ) {
         if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( it->smiles() ) ) ) {
-            std::string svg = adchem::drawing::toSVG( *mol );
-            std::string formula = adcontrols::ChemicalFormula::standardFormula( std::string( it->formula(false) ) + "H2O" );
-            double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( it->formula() );
-            query->insert_mol( it->smiles(), svg, formula, mass, it->symbol() );
+            query->insert( *mol, it->smiles(), it->symbol() );
         }
     }
     
@@ -239,16 +250,79 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
     
     if ( cs.AsyncSimpleSearch( stmt ) ) {
 
+        int retry( 10 );
+        std::string status;
+        while( !cs.GetAsyncSearchStatus( status ) && retry-- )
+            edit->append( QString::fromStdString( status ) );
+
+        if ( retry <= 0 )
+            return;
+
+        cs.GetAsyncSearchResult();
+
         edit->setText( QString::fromStdString( cs.rid() + "\n" ) );
 
         for ( auto& csid: cs.csids() ) {
+
             edit->append( QString("csid=%1\n").arg( csid ) );
             std::string smiles, InChI, InChIKey;
 
             if ( cs.GetCompoundInfo( csid, smiles, InChI, InChIKey ) ) {
-                edit->append( QString("SMILES=%1\n").arg( QString::fromStdString( smiles ) ) );
+
+                std::vector< std::string > synonyms;
+                cs.GetSynonyms( csid, synonyms );
+
+                edit->append( QString("%1").arg( QString::fromStdString( smiles ) ) );
+                edit->append( QString("%1").arg( QString::fromStdString( InChI ) ) );
+                edit->append( QString("%1").arg( QString::fromStdString( InChIKey ) ) );
+                
+                if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles ) ) ) {
+
+                    std::string svg = adchem::drawing::toSVG( *mol );
+                    std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+                    double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+
+                    impl::sqlDatabase().transaction();
+
+                    do {
+                        QSqlQuery sql( impl::sqlDatabase() );
+
+                        sql.prepare( "INSERT INTO mols (InChI) VALUES (?)" );
+                        sql.addBindValue( QString::fromStdString( InChI ) );
+                    
+                        if ( !sql.exec() ) {
+                            ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
+                                      << ", code = " << sql.lastError().number() << " while inserting " << InChI;
+                        }
+                    } while( 0 );
+                    
+                    do {
+                        QSqlQuery sql( impl::sqlDatabase() );
+                        
+                        sql.prepare(
+                            "UPDATE mols SET csid = ?, formula = ?, mass = ?, svg = ?, smiles = ?, InChIKey = ? "
+                            " WHERE InChI = ?" );
+
+                        sql.addBindValue( csid );
+                        sql.addBindValue( QString::fromStdString( formula ) );
+                        sql.addBindValue( mass );
+                        sql.addBindValue( QByteArray( svg.data(), svg.size() ) );
+                        sql.addBindValue( QString::fromStdString( smiles ) ); // utf8 on db
+                        sql.addBindValue( QString::fromStdString( InChIKey ) );
+                        sql.addBindValue( QString::fromStdString( InChI ) );
+
+                        if ( !sql.exec() ) {
+                            ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
+                                      << ", code = " << sql.lastError().number() << " while updating " << InChI;
+                        }
+                    } while( 0 );
+
+                    impl::sqlDatabase().commit();
+                }
+                
             }
         }
+        emit onConnectionChanged(); // this will re-run setQuery
     }
 }
 

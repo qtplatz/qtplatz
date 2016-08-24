@@ -30,6 +30,8 @@
 #include <QString>
 #include <QVariant>
 
+namespace RDKit { class ROMol; }
+
 namespace chemistry {
     
     class ChemQuery : public std::enable_shared_from_this< ChemQuery > {
@@ -49,8 +51,7 @@ namespace chemistry {
         static QString column_name_tr( const QString& );
         QVariant column_value( size_t idx ) const;
 
-        boost::uuids::uuid insert_mol( const std::string& smiles, const std::string& svg, const std::string& formula, double mass, const std::string& synonym );
-        bool insert_synonym( const boost::uuids::uuid&, const std::string& synonym );
+        bool insert( const RDKit::ROMol&, const std::string& smiles, const std::string& synonym, const std::string& inchi = std::string() );
 
     private:
         adfs::sqlite_state state_;

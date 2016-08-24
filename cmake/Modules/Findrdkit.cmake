@@ -27,7 +27,9 @@ if ( WIN32 )
   
 else()
   set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "/usr/local/lib" )
-  set( _rdkit_incdirs "${CMAKE_SOURCE_DIR}/../rdkit/Code" "${RDBASE}/Code" "/usr/local/include/rdkit" )
+  set( _rdkit_incdirs
+    "${CMAKE_SOURCE_DIR}/../rdkit/Code" "${RDBASE}/Code"
+    "${CMAKE_SOURCE_DIR}/../rdkit/External" "${RDBASE}/External" "/usr/local/include/rdkit" )
 endif()
 
 if ( NOT rdkit_FOUND )
@@ -44,6 +46,8 @@ if ( NOT rdkit_FOUND )
     return()
   endif()
 
+  find_path( _inchi_inc_dir INCHI-API/inchi.h HINTS ${_rdkit_incdirs} )
+  
   find_library( _fileparsers_lib NAMES FileParsers HINTS
     ${_include_dir}/../lib
     /usr/local/lib
@@ -61,6 +65,9 @@ if ( NOT rdkit_FOUND )
 
   set ( rdkit_FOUND TRUE )
   set ( RDKit_INCLUDE_DIRS ${_include_dir} )
+  if ( _inchi_inc_dir )
+    list( APPEND RDKit_INCLUDE_DIRS ${_inchi_inc_dir} )
+  endif()
   set ( RDKit_LIBRARY_DIRS ${_libdir} )
 
   ## MolDraw2DSVG.h might be located on /usr/local/include/rdkit/, or $RDBASE/Code/GraphMol/MolDraw2D/
@@ -84,6 +91,8 @@ if ( NOT rdkit_FOUND )
   find_library( SMILESPARSE_LIB    NAMES SmilesParse    HINTS ${_libdir} )
   find_library( SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir} )
   find_library( SUBGRAPHS_LIB      NAMES Subgraphs      HINTS ${_libdir} )
+  find_library( INCHI_LIB          NAMES Inchi          HINTS ${_libdir} )
+  find_library( RDINCHILIB_LIB     NAMES RDInchiLib     HINTS ${_libdir} )
 
   add_library( ChemReactions  SHARED IMPORTED )
   add_library( DataStructs    SHARED IMPORTED )
@@ -99,6 +108,8 @@ if ( NOT rdkit_FOUND )
   add_library( SmilesParse    SHARED IMPORTED )
   add_library( SubstructMatch SHARED IMPORTED )
   add_library( Subgraphs      SHARED IMPORTED )
+  add_library( Inchi          SHARED IMPORTED )
+  add_library( RDInchiLib     SHARED IMPORTED )  
 
   set_target_properties( ChemReactions  PROPERTIES IMPORTED_LOCATION ${CHEMREACTIONS_LIB} )
   set_target_properties( DataStructs    PROPERTIES IMPORTED_LOCATION ${DATASTRUCTS_LIB} )  
@@ -113,6 +124,8 @@ if ( NOT rdkit_FOUND )
   set_target_properties( SmilesParse    PROPERTIES IMPORTED_LOCATION ${SMILESPARSE_LIB} )
   set_target_properties( SubstructMatch PROPERTIES IMPORTED_LOCATION ${SUBSTRUCTMATCH_LIB} )
   set_target_properties( Subgraphs      PROPERTIES IMPORTED_LOCATION ${SUBGRAPHS_LIB} )
+  set_target_properties( Inchi          PROPERTIES IMPORTED_LOCATION ${INCHI_LIB} )
+  set_target_properties( RDInchiLib     PROPERTIES IMPORTED_LOCATION ${RDINCHILIB_LIB} )
 
   find_file( version_cmake NAMES rdkit-config-version.cmake PATHS ${RDKit_LIBRARY_DIRS} NO_DEFAULT_PATH )
   if ( version_cmake )
@@ -133,6 +146,8 @@ set (RDKit_LIBRARIES
   SubstructMatch
   MolDraw2D
   ChemReactions
+  Inchi
+  RDInchiLib
   )
 
 

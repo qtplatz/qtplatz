@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "chemschema.hpp"
-#include "chemquery.hpp"
+#include <adfs/sqlite.hpp>
 
 using namespace chemistry;
 
@@ -35,26 +35,21 @@ ChemSchema::createTables( adfs::stmt& sql )
     result &= sql.exec(
         "CREATE TABLE IF NOT EXISTS mols (\
 id INTEGER PRIMARY KEY \
-,uuid UUID    \
 ,formula TEXT \
 ,svg BLOB  \
-,synonym TEXT \
 ,SystematicName TEXT \
 ,smiles TEXT  \
-,InChi TEXT \
-,InChlKey TEXT \
+,InChI TEXT UNIQUE \
+,InChIKey TEXT \
 ,mass REAL \
-,casrn TEXT \
 ,csid NUMBER \
-,cite TEXT \
-,UNIQUE(uuid) )" );
+,cite TEXT )" );
     
     result &= sql.exec(
         "CREATE TABLE IF NOT EXISTS synonyms (\
 id INTEGER PRIMARY KEY \
-,uuid UUID   \
-,synonym TEXT \
-,FOREIGN KEY ( uuid ) REFERENCES mols ( uuid ) )" );
-    
+,synonym TEXT          \
+,FOREIGN KEY ( id ) REFERENCES mols ( id ) )" );
+
     return result;
 }

@@ -71,6 +71,7 @@ namespace chemistry {
 
     signals:
         void onConnectionChanged();
+        void databaseModified();
                                   
     public slots:
         void ChemSpiderSearch( const QString&, QTextEdit * );

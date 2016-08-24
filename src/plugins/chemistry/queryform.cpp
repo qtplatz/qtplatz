@@ -58,6 +58,7 @@ QueryForm::QueryForm( QWidget *parent ) :  QWidget(parent)
     col = 0;
     if ( auto edit = new QLineEdit( document::instance()->chemSpiderToken() ) ) {
         edit->setObjectName( "Token" );
+        edit->setEchoMode( QLineEdit::PasswordEchoOnEdit );
         gridLayout->addWidget( new QLabel( tr("Token: ") ), row, col++ );
         gridLayout->addWidget( edit, row, col++, /*row span= */ 1, /* column span = */ 2 );
         connect( edit, &QLineEdit::editingFinished, [=](){ document::instance()->setChemSpiderToken( edit->text() ); } );

@@ -27,6 +27,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
+#include <boost/exception/all.hpp>
 #include <iostream>
 
 static void
@@ -47,19 +48,24 @@ main()
     using namespace boost::property_tree;
 
     boost::property_tree::ptree pt;
-    xml_parser::read_xml( "csdebug.xml", pt );
+    //xml_parser::read_xml( "csdebug.xml", pt );
+    try {
+        xml_parser::read_xml( "chemical-structure.txt", pt );
+    } catch ( boost::exception& ex ) {
+        std::cout << boost::diagnostic_information(ex) << std::endl;
+    }
 
     // xml_parser::write_xml( std::cout, pt, boost::property_tree::xml_writer_make_settings<std::string>( ' ', 2 ) );
     std::cout << "==================" << std::endl;
     print( pt );
     std::cout << "==================" << std::endl;
-    std::cout << "------------------" << std::endl;
-    print( pt.get_child( "soap:Envelope.soap:Body.GetAsyncSearchResultResponse.GetAsyncSearchResultResult" ) );
-    std::cout << "------------------" << std::endl;
+    //std::cout << "------------------" << std::endl;
+    //print( pt.get_child( "soap:Envelope.soap:Body.GetAsyncSearchResultResponse.GetAsyncSearchResultResult" ) );
+    //std::cout << "------------------" << std::endl;
 
-    int i = 0;
-    for( auto& child : pt.get_child( "soap:Envelope.soap:Body.GetAsyncSearchResultResponse.GetAsyncSearchResultResult" ) ) {
-        std::cout << "[" << i++ << "] " << child.second.data() << std::endl;
-    }
+    // int i = 0;
+    // for( auto& child : pt.get_child( "soap:Envelope.soap:Body.GetAsyncSearchResultResponse.GetAsyncSearchResultResult" ) ) {
+    //     std::cout << "[" << i++ << "] " << child.second.data() << std::endl;
+    // }
 
 }

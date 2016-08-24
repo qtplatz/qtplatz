@@ -60,6 +60,7 @@
 #include <QSqlQueryModel>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QSqlTableModel>
 #include <QTextDocument>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -103,7 +104,8 @@ MolTableWnd::MolTableWnd(QWidget *parent) : QWidget(parent)
     connect( table_, &QTableView::activated, [&]( const QModelIndex& current ){
             emit activated( current );
         });
-                 
+
+    // connect( document::instance(), &document::updateQuery, this, [&](){ model_->select(); } );
 }
 
 QAbstractItemModel *
@@ -188,12 +190,13 @@ MolTableWnd::dropEvent( QDropEvent * event )
 void
 MolTableWnd::handleCopyToClipboard()
 {
-#if 0
-	QModelIndexList indecies = table_->selectionModel()->selectedIndexes();
+    QModelIndexList indecies = table_->selectionModel()->selectedIndexes();
 
     qSort( indecies );
     if ( indecies.size() < 1 )
         return;
+    
+    QSqlRecord rec = model_->query().record();
 
     adcontrols::moltable molecules;
     
@@ -204,7 +207,6 @@ MolTableWnd::handleCopyToClipboard()
     indecies.removeFirst();
 
     adcontrols::moltable::value_type mol;
-    auto query = ChemDocument::instance()->query();
 
     for( int i = 0; i < indecies.size(); ++i ) {
         
@@ -221,18 +223,17 @@ MolTableWnd::handleCopyToClipboard()
                 if ( index.row() == prev.row() )
                     selected_text.append( '\t' );
             }
-            if ( query ) {
-                int col = prev.column();
-                auto cname = query->column_name( col );
-                if ( cname == "formula" ) {
-                    mol.formula() = prev.data( Qt::EditRole ).toString().toStdString();
-                } else if ( cname == "synonym" ) {
-                    mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString();
-                } else if ( cname == "smiles" ) {
-                    mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString();
-                } else if ( cname == "mass" ) {
-                    mol.mass() = prev.data( Qt::EditRole ).toDouble();
-                }
+
+            int col = prev.column();
+            auto cname = rec.fieldName( col );
+            if ( cname == "formula" ) {
+                mol.formula() = prev.data( Qt::EditRole ).toString().toStdString();
+            } else if ( cname == "synonym" ) {
+                mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString();
+            } else if ( cname == "smiles" ) {
+                mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString();
+            } else if ( cname == "mass" ) {
+                mol.mass() = prev.data( Qt::EditRole ).toDouble();
             }
             
             if ( index.row() != prev.row() ) {
@@ -260,7 +261,7 @@ MolTableWnd::handleCopyToClipboard()
         }
     } catch ( ... ) {
     }
-#endif
+
 }
 
 void

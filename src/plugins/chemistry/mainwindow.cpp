@@ -390,14 +390,9 @@ MainWindow::actSDFileOpen()
 void
 MainWindow::handleConnectionChanged()
 {
-    // auto self( document::instance()->connection()->shared_from_this() );
-    // auto query = std::make_shared< ChemQuery >( self->db() );
-
-    // query->prepare( "SELECT * FROM mols" );
-    // document::instance()->setQuery( query.get() );
-
     if ( auto table = findChild< MolTableWnd * >() ) {
-        table->setQuery( "SELECT * FROM mols" );
+        table->setQuery(
+            "SELECT t1.id,svg,synonym,formula,mass,csid,smiles,InChI,InChiKey,SystematicName FROM mols t1 LEFT OUTER JOIN synonyms t2 on t1.id = t2.id" );
     }
 }
 

@@ -120,6 +120,21 @@ namespace chemistry {
             }
         };
 
+        struct GetAsyncSearchStatus {
+            static constexpr const char * key = "GetAsyncSearchStatus";
+            static constexpr const char * rkey = "GetAsyncSearchStatusResponse";
+            const boost::property_tree::ptree&
+            operator()( boost::property_tree::ptree& pt, const std::string& rid, const std::string& token ) const {
+                // SOAP 1.2
+                pt.add( ( boost::format( "soap12:Envelope.soap12:Body.%1%.rid" ) % key ).str(), rid );
+                pt.add( ( boost::format( "soap12:Envelope.soap12:Body.%1%.token" ) % key ).str(), token );
+                auto& envelope = pt.get_child( "soap12:Envelope" );
+                soap_envelope::set_xml_attrb( envelope );
+                soap_envelope::set_xml_xmlns( envelope, ( boost::format( "soap12:Body.%1%" ) % key ).str() );
+                return pt;
+            }
+        };
+        
         struct GetCompoundInfo {
             static constexpr const char * key = "GetCompoundInfo";
             static constexpr const char * rkey = "GetCompoundInfoResponse.GetCompoundInfoResult";
@@ -134,13 +149,36 @@ namespace chemistry {
                 return pt;
             }
         };
+
+        struct CSID2ExtRefs {
+            static constexpr const char * key = "CSID2ExtRefs";
+            static constexpr const char * rkey = "CSID2ExtRefsResponse";
+            const boost::property_tree::ptree&
+            operator()( boost::property_tree::ptree& pt, int csid, const std::vector< std::string >& datasources, const std::string& token ) const {
+                // SOAP 1.2
+                pt.add( ( boost::format( "soap12:Envelope.soap12:Body.%1%.CSID" ) % key ).str(), csid );
+
+                for ( auto& ds : datasources ) 
+                    pt.add( ( boost::format( "soap12:Envelope.soap12:Body.%1%.datasources.string" ) % key ).str(), ds );
+
+                pt.add( ( boost::format( "soap12:Envelope.soap12:Body.%1%.token" ) % key ).str(), token );
+                auto& envelope = pt.get_child( "soap12:Envelope" );
+                soap_envelope::set_xml_attrb( envelope );
+                soap_envelope::set_xml_xmlns( envelope, ( boost::format( "soap12:Body.%1%" ) % key ).str() );
+                return pt;
+            }
+        };
         
         constexpr const char * AsyncSimpleSearch::key;
         constexpr const char * AsyncSimpleSearch::rkey;
+        constexpr const char * GetAsyncSearchStatus::key;
+        constexpr const char * GetAsyncSearchStatus::rkey;        
         constexpr const char * GetAsyncSearchResult::key;
         constexpr const char * GetAsyncSearchResult::rkey;
         constexpr const char * GetCompoundInfo::key;
         constexpr const char * GetCompoundInfo::rkey;
+        constexpr const char * CSID2ExtRefs::key;
+        constexpr const char * CSID2ExtRefs::rkey;
         
     } // namespace chemspider
     
@@ -199,19 +237,68 @@ ChemSpider::AsyncSimpleSearch( const std::string& stmt )
         ADDEBUG() << "status_code: " << cs.status_code() << ", " << cs.status_message();
 
     } else {
-
         boost::property_tree::ptree pt;
         if ( chemspider::soap_response()( cs, pt ) ) {
             // ChemSpider always return SOAP 1.1 format
             if ( auto resp = pt.get_child_optional( "soap:Envelope.soap:Body.AsyncSimpleSearchResponse.AsyncSimpleSearchResult" ) ) {
                 rid_ = resp.get().data();
-                return getAsyncSearchResult( rid_ );
+                return true;
+                // return getAsyncSearchResult( rid_ );
             } else {
                 ADDEBUG() << "AsyncSimpleSearchResult node not found";
             }
         }
     }
     return false;
+}
+
+bool
+ChemSpider::GetAsyncSearchStatus( std::string& response )
+{
+    auto request = std::make_unique< boost::asio::streambuf >();
+    std::ostream request_stream ( request.get() );
+
+    response = std::string();
+
+    do {
+        boost::property_tree::ptree pt;
+        chemspider::GetAsyncSearchStatus()( pt, rid_, token_ );
+        chemspider::soap_request< chemspider::soap_envelope >()( request_stream, pt );
+    } while ( 0 );
+
+    boost::asio::io_service io_service;
+
+    adurl::client cs( io_service, "www.chemspider.com", std::move( request ) );
+
+    io_service.run();
+
+    if ( cs.status_code() != 200 ) {
+
+        ADDEBUG() << &cs.response_header();
+        ADDEBUG() << "status_code: " << cs.status_code() << ", " << cs.status_message();
+
+    } else {
+
+        boost::property_tree::ptree pt;
+        if ( chemspider::soap_response()( cs, pt ) ) {
+
+            debug_response( pt );
+
+            if ( auto resp = chemspider::soap_response_data< chemspider::GetAsyncSearchStatus >()( pt ) ) {
+                if ( auto _status = resp.get().get_optional< std::string >( "GetAsyncSearchStatusResult" ) ) {
+                    response = _status.get();
+                    return response == "ResultReady";
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool
+ChemSpider::GetAsyncSearchResult()
+{
+    return getAsyncSearchResult( rid_ );
 }
 
 bool
@@ -251,17 +338,6 @@ ChemSpider::getAsyncSearchResult( const std::string& rid )
                     }
                 }
             }
-#if 0
-            for( auto& child : pt.get_child( "soap:Envelope.soap:Body.GetAsyncSearchResultResponse.GetAsyncSearchResultResult" ) ) {
-                try {
-                    int csid = boost::lexical_cast< int >( child.second.data() );
-                    if ( std::find( csids_.begin(), csids_.end(), csid ) == csids_.end() )
-                        csids_.emplace_back( csid );
-                } catch ( boost::bad_lexical_cast& ex ) {
-                    ADDEBUG() << ex.what();
-                }
-            }
-#endif
         }
         return true;
     }
@@ -292,7 +368,7 @@ ChemSpider::GetCompoundInfo( int csid, std::string& smiles, std::string& InChI, 
         if ( chemspider::soap_response()( cs, pt ) ) {
 
             debug_response( pt );
-
+            
             if ( auto resp = chemspider::soap_response_data< chemspider::GetCompoundInfo >()( pt ) ) {
 
                 std::ofstream of( "compoundinfo.txt", std::ios_base::out );
@@ -327,3 +403,36 @@ ChemSpider::csids() const
     return csids_;
 }
     
+bool
+ChemSpider::GetSynonyms( int csid, std::vector< std::string >& synonyms )
+{
+    synonyms.clear();
+
+    // auto request = std::make_unique< boost::asio::streambuf >();
+    // std::ostream request_stream ( request.get() );
+
+    std::string request_stream = ( boost::format( "/Chemical-Structure.%d.html") % csid ).str();
+
+    boost::asio::io_service io_service;
+
+    adurl::client cs( io_service, "www.chemspider.com", request_stream );
+
+    io_service.run();
+
+    if ( cs.status_code() != 200 ) {
+
+        ADDEBUG() << &cs.response_header();
+        ADDEBUG() << "status_code: " << cs.status_code() << ", " << cs.status_message();
+        
+    } else {
+
+        std::istream response_stream( &cs.response() );
+        boost::property_tree::ptree pt;
+
+        // boost::property_tree::xml_parser::read_xml( response_stream, pt );
+        std::ofstream outf( "chemical-structure.xhtml" );
+        print( outf, pt );
+
+    }
+    return false;
+}

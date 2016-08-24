@@ -46,7 +46,7 @@ namespace chemistry {
         ~ChemConnection();
 
         bool connect( const boost::filesystem::path& database );
-        std::shared_ptr< ChemQuery > query();
+
         adfs::sqlite& db();
 
         const boost::filesystem::path& filepath() const { return filename_; }
