@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -50,6 +50,7 @@
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
+#include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDebug>
 #include <QHeaderView>
@@ -275,10 +276,23 @@ MolTableWnd::handleContextMenu( const QPoint& pt )
     QMenu menu;
 
     menu.addAction( tr("Copy"), this, SLOT( handleCopyToClipboard() ) );
-    menu.addAction( tr("Paste"), this, SLOT( handlePaste() ) );    
+    menu.addAction( tr("Paste"), this, SLOT( handlePaste() ) );
     
     typedef std::pair< QAction *, std::function< void() > > action_type;
     std::vector< action_type > actions;
+
+    QModelIndex index = table_->currentIndex();
+    auto rec = model_->query().record();
+    auto vCSID = model_->data( model_->index( index.row(), rec.indexOf( "csid" ) ) );
+
+    if ( ! vCSID.isNull() ) {
+        QString url = QString( tr( "http://www.chemspider.com/Chemical-Structure.%1.html" ) ).arg( vCSID.toInt() );
+        actions.emplace_back( menu.addAction( url ), [=](){ QDesktopServices::openUrl( QUrl( url ) ); } );
+    } else {
+        auto vInChI = model_->data( model_->index( index.row(), rec.indexOf( "InChI" ) ) );
+        if ( !vInChI.isNull() )
+            actions.emplace_back( menu.addAction( tr("Get CSID") ), [=](){ document::instance()->findCSIDFromInChI( vInChI.toString() ); } );
+    }
 
     if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
         auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){

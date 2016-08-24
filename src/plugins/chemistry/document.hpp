@@ -74,7 +74,8 @@ namespace chemistry {
         void databaseModified();
                                   
     public slots:
-        void ChemSpiderSearch( const QString&, QTextEdit * );
+        void ChemSpiderSearch( const QString&, QTextEdit * ); // AsyncSimpleSearch
+        void findCSIDFromInChI( const QString& );
     };
 
 }

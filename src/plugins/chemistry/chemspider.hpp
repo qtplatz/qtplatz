@@ -26,6 +26,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace chemistry {
 
@@ -49,6 +50,8 @@ namespace chemistry {
         std::vector< int > csids_;
         std::string rid_;
         std::string token_;
+        std::map< int, std::string > smiles_;
+        std::map< int, std::string > inchis_;
     };
     
 }

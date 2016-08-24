@@ -269,8 +269,8 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
 
             if ( cs.GetCompoundInfo( csid, smiles, InChI, InChIKey ) ) {
 
-                std::vector< std::string > synonyms;
-                cs.GetSynonyms( csid, synonyms );
+                // std::vector< std::string > synonyms;
+                // cs.GetSynonyms( csid, synonyms );
 
                 edit->append( QString("%1").arg( QString::fromStdString( smiles ) ) );
                 edit->append( QString("%1").arg( QString::fromStdString( InChI ) ) );
@@ -287,7 +287,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
                     do {
                         QSqlQuery sql( impl::sqlDatabase() );
 
-                        sql.prepare( "INSERT INTO mols (InChI) VALUES (?)" );
+                        sql.prepare( "INSERT OR IGNORE INTO mols (InChI) VALUES (?)" );
                         sql.addBindValue( QString::fromStdString( InChI ) );
                     
                         if ( !sql.exec() ) {
@@ -336,4 +336,39 @@ QString
 document::chemSpiderToken() const
 {
     return impl::settings()->value( "ChemSpider/SecurityToken" ).toString();
+}
+
+void
+document::findCSIDFromInChI( const QString& InChI )
+{
+    ChemSpider cs( chemSpiderToken().toStdString() );
+    
+    if ( cs.AsyncSimpleSearch( InChI.toStdString() ) ) {
+
+        int retry( 10 );
+        std::string status;
+        while( !cs.GetAsyncSearchStatus( status ) && retry-- )
+            ;
+        
+        if ( retry <= 0 )
+            return;
+        
+        cs.GetAsyncSearchResult();
+
+        for ( auto& csid: cs.csids() ) {
+
+            QSqlQuery sql( impl::sqlDatabase() );
+
+            sql.prepare( "UPDATE mols SET csid = ? WHERE InChI = ?" );
+            
+            sql.addBindValue( csid );
+            sql.addBindValue( InChI );
+            
+            if ( !sql.exec() ) {
+                ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
+                          << ", code = " << sql.lastError().number() << " while updating " << InChI.toStdString();
+            }
+        }
+        emit onConnectionChanged(); // this will re-run setQuery
+    }
 }
