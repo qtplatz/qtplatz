@@ -261,7 +261,7 @@ SampleRun::findNextRunName() const
     std::wostringstream o;
     o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << ( runNumber );
 
-    ADDEBUG() << "\t# NextRunName : " << o.str() << "\tRun#=" << runNumber << "\trun length: " << impl_->methodTime_;
+    // ADDEBUG() << "\t# NextRunName : " << o.str() << "\tRun#=" << runNumber << "\trun length: " << impl_->methodTime_;
 
     return std::make_pair( o.str(), runNumber );
 }

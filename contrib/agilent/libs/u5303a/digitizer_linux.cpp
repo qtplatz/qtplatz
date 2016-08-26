@@ -214,9 +214,8 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 bool
 digitizer::peripheral_prepare_for_run( const acqrscontrols::u5303a::method& m )
 {
-
-    for ( auto& p: m.protocols() )
-        ADDEBUG() << "analyzer mode: " << p.mode();
+    // for ( auto& p: m.protocols() )
+    //     ADDEBUG() << "analyzer mode: " << p.mode();
 
     return task::instance()->prepare_for_run( m );
 }

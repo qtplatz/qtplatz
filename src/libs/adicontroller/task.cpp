@@ -246,8 +246,7 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 
         impl_->methodTime_ = run->methodTime();
     }
-
-    ADDEBUG() << "\t# prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << impl_->methodTime_;
+    // ADDEBUG() << "\t# prepare_next_sample: " << impl_->sequence_->size() << "; " << run->filePrefix() << " Length: " << impl_->methodTime_;
 }
 
 void
@@ -392,7 +391,7 @@ task::impl::fsm_no_transition( int state )
     else
         boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, state));
     
-    ADDEBUG() << "##### no transition from state (" << state << ") " << name;
+    // ADDEBUG() << "##### no transition from state (" << state << ") " << name;
 }
 
 void

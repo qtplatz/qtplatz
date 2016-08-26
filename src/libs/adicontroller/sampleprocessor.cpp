@@ -70,8 +70,6 @@ SampleProcessor::~SampleProcessor()
         boost::filesystem::rename( progress_name, storage_name_, ec );
         if ( ec ) 
             ADDEBUG() << boost::format( "Sample %1% close failed: %2%" ) % storage_name_.stem().string() % ec.message();
-        else 
-            ADTRACE() << boost::format( "Sample %1% closed." ) % storage_name_.stem().string();
     } catch ( std::exception& e ) {
         ADDEBUG() << boost::diagnostic_information( e );
     } catch ( ... ) {
