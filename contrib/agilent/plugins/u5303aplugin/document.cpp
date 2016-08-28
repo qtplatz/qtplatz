@@ -326,6 +326,8 @@ document::instance()
 void
 document::actionConnect()
 {
+    using namespace std::literals::chrono_literals;
+    
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
@@ -338,20 +340,25 @@ document::actionConnect()
 
                 ADDEBUG() << "u5303a actionConnect connecting to " << iController->module_name().toStdString();
 
-                activeControllers.push_back( iController );
+                activeControllers.emplace_back( iController );
                 
-                futures.push_back( std::async( [iController] () {
-                            return iController->connect() && iController->wait_for_connection_ready(); } ) );
+                futures.emplace_back( std::async( [iController] () { return iController->wait_for_connection_ready( 3s ); } ) );
 
+                iController->connect();
             }
         }
 
+        QStringList failed;
         size_t i = 0;
         for ( auto& future : futures ) {
             if ( future.get() )
                 impl_->activeControllers_.push_back( activeControllers[ i ] );
+            else
+                failed << activeControllers[ i ]->module_name();
             ++i;
         }
+
+        emit onModulesFailed( failed );
 
         auto cm = MainWindow::instance()->getControlMethod();
         setControlMethod( *cm, QString() );

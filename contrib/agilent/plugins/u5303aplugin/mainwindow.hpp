@@ -100,6 +100,7 @@ namespace u5303a {
         void handleRunName();
         void handleControlMethodOpen();
         void handleControlMethodSaveAs();
+        void handleModulesFailed( const QStringList& );
 
 	private:
         QAction * actionConnect_;

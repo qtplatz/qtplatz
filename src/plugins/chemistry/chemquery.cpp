@@ -139,7 +139,6 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
         sql_.bind( 1 ) = inchi;
         if ( sql_.step() == adfs::sqlite_row ) {
             if ( sql_.get_column_value< int64_t >( 0 ) > 0 ) {
-                ADDEBUG() << "mol '" << synonym << "' duplicate to insert -- ignored";
                 return false; // duplicate
             }
         }

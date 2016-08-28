@@ -181,6 +181,8 @@ MainWindow::OnInitialUpdate()
 {
     connect( document::instance(), &document::instStateChanged, this, &MainWindow::handleInstState );
 
+    connect( document::instance(), &document::onModulesFailed, this, &MainWindow::handleModulesFailed );
+
     connect( document::instance(), &document::sampleRunChanged, this, [this] {
             setSampleRun( *document::instance()->sampleRun() );
         });
@@ -630,6 +632,20 @@ MainWindow::handle_reply( const QString& method, const QString& reply )
 			edit->append( QString("%1: %2").arg( method, reply ) );
 	}
 }
+
+void
+MainWindow::handleModulesFailed( const QStringList& list )
+{
+    if ( list.isEmpty() )
+        return;
+    
+    QString msg( "Instrument connection failed with: " );
+    for ( auto& x: list )
+        msg += x;
+    
+    QMessageBox::warning( this, tr("QtPlatz/u5303aplugin"), msg );
+}
+
 
 void
 MainWindow::handleInstState( int status )

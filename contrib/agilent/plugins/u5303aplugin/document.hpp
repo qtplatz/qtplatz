@@ -160,6 +160,7 @@ namespace u5303a {
 
         void dataChanged( const boost::uuids::uuid&, int );
         void instStateChanged( int );
+        void onModulesFailed( const QStringList& );
     };
 
 }

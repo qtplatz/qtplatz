@@ -100,12 +100,6 @@ namespace adextension {
             }
         }
         
-        virtual void setInitialized( bool v ) {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            isInitialized_ = v;
-            cv_.notify_all();
-        }
-
         void disconnect( bool shutdown ) override {
 
             if ( session_ && isInitialized_ ) {
@@ -124,9 +118,15 @@ namespace adextension {
             }
         }
 
-        bool wait_for_connection_ready() override {
+        virtual void setInitialized( bool v ) {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            isInitialized_ = v;
+            cv_.notify_all();
+        }
+
+        bool wait_for_connection_ready( const std::chrono::duration<double>& timeout ) override {
             std::unique_lock< std::mutex > lock( mutex_ );
-            return cv_.wait_for( lock, std::chrono::seconds( 3 ), [this](){ return isInitialized_; }  );
+            return cv_.wait_for( lock, timeout, [this](){ return isInitialized_; }  );
         }
 
         adicontroller::Instrument::Session * getInstrumentSession() override {

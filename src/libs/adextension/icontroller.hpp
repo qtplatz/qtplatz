@@ -26,6 +26,7 @@
 
 #include <QObject>
 #include "adextension_global.hpp"
+#include <chrono>
 #include <functional>
 #include <memory>
 
@@ -39,6 +40,8 @@ namespace adicontroller {
 }
 
 namespace adextension {
+
+    using namespace std::literals::chrono_literals;
     
     class ADEXTENSIONSHARED_EXPORT iController : public QObject
                                                , public std::enable_shared_from_this< iController > {
@@ -52,7 +55,7 @@ namespace adextension {
 
         virtual void disconnect( bool shutdown = false ) = 0;
 
-        virtual bool wait_for_connection_ready() = 0;
+        virtual bool wait_for_connection_ready( const std::chrono::duration<double>& d = 30s ) = 0;
 
         // for backword compat; use getInstrumentSession() instead
         virtual bool preparing_for_run( adcontrols::ControlMethod::Method& ) { return false; }

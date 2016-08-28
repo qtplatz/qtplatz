@@ -45,6 +45,10 @@ namespace adwidgets {
         bool checked( const QString& key ) const;
         bool enabled( const QString& key ) const;
 
+        enum CommitState { CommitSuccess, CommitFailed };
+
+        void setCommitState( const QString& key, CommitState );
+
         size_t size() const;
         QString key( size_t idx ) const;
         QString displayValue( const QString& key ) const;

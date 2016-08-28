@@ -47,6 +47,8 @@ namespace adwidgets {
             }
             return res;
         }
+
+        
     };
 
 
@@ -61,7 +63,6 @@ namespace adwidgets {
         bool enabled( const QString& key ) const;
         QString displayValue( const QString& key) const;        
         QString key( size_t idx ) const;
-    private:
         int findRow( const QString& ) const;
     };
     
@@ -91,6 +92,7 @@ void
 CherryPicker::addItem( const QString& key, const QString& displayValue, bool checked, bool enable )
 {
     impl_->addItem( key, displayValue, checked, enable );
+    resizeColumnsToContents();
 }
 
 void
@@ -135,6 +137,20 @@ CherryPicker::displayValue( const QString& key ) const
     return impl_->displayValue( key );
 }
 
+void
+CherryPicker::setCommitState( const QString& key, CommitState state )
+{
+    int row = impl_->findRow( key );
+    if ( row >= 0 ) {
+        if ( state == CommitFailed ) {
+            auto color = QColor( 0xff, 0x66, 0x44 );
+            impl_->model.setData( impl_->model.index( row, c_display_value ), QBrush( color ), Qt::BackgroundRole );
+        } else {
+            auto color = QColor( "blue" );
+            impl_->model.setData( impl_->model.index( row, c_display_value ), QBrush( color ), Qt::ForegroundRole );
+        }
+    }
+}
 
 //signals:
 //        void stateChanged( const QString& key, bool isChecked );
