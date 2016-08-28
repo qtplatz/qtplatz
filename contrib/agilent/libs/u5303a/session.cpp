@@ -122,7 +122,6 @@ Session::instance()
 
 Session::Session() : impl_( new impl() )
 {
-    ADDEBUG() << "##### Session ctor #####";
 }
 
 Session::~Session()

@@ -338,8 +338,6 @@ task::instance()
 bool
 task::initialize()
 {
-    ADTRACE() << "u5303a digitizer initializing...";
-
 	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
