@@ -98,7 +98,6 @@ set( ${PROJECT_NAME}_SOURCES
   thresholdactionform.cpp
   controlmethod/timedeventswidget.cpp
   controlmethod/timedtableview.cpp
-  countingform.cpp
   countingwidget.cpp
   ${_sources}
 )
@@ -161,7 +160,6 @@ set( ${PROJECT_NAME}_HEADERS
   thresholdactionform.hpp
   controlmethod/timedeventswidget.hpp
   controlmethod/timedtableview.hpp
-  countingform.hpp
   countingwidget.hpp
 )
 
