@@ -1,16 +1,15 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,19 +22,35 @@
 **
 **************************************************************************/
 
-#include "adcontrols_global.h"
-#include "constants.hpp"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+#pragma once
+#include "adwidgets_global.hpp"
+#include <QWidget>
 
-namespace adcontrols {
-    namespace iids {
+namespace adcontrols { class TargetingMethod; }
 
-        const boost::uuids::uuid massspectrometer_uuid = boost::uuids::string_generator()( "{85897CCB-8025-41AB-B01E-3147C44A8955}" );
+namespace adwidgets {
 
-        // adspectrometer clsid (clsidSpectrometer column in ScanLaw table on the SQLite database)
-        const boost::uuids::uuid adspectrometer_uuid = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
-    }
+    // TargetingForm is re-used in Quan plugin for peak assign parameter setup
 
-    const boost::uuids::uuid adcontrols_uuid = boost::uuids::string_generator()( "{3D2F180E-18E9-43D3-9A37-9E981B509CAA}" );
+    class ADWIDGETSSHARED_EXPORT CountingForm : public QWidget
+    {
+        Q_OBJECT
+
+    public:
+        explicit CountingForm(QWidget *parent = 0);
+        ~CountingForm();
+
+        void setTitle( const QString&, bool enableCharge = false, bool enableLimits = false  ); 
+
+        void getContents( adcontrols::TargetingMethod& );
+        void setContents( const adcontrols::TargetingMethod& );
+
+    private:
+
+    signals:
+        void triggerProcess();
+    };
+
 }
+
+

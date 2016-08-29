@@ -43,6 +43,7 @@ namespace adwidgets {
             , f_svg
             , f_smiles
             , f_time
+            , f_protocol
         };
             
         fields field;

@@ -36,6 +36,7 @@
 #include <adlog/logger.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adextension/icontroller.hpp>
@@ -52,6 +53,7 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adwidgets/samplerunwidget.hpp>
+#include <adwidgets/countingwidget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -128,6 +130,18 @@ MainWindow::createDockWidgets()
                 
             });
 
+    }
+
+    if ( auto widget = new adwidgets::CountingWidget ) {
+        
+        widget->setObjectName( "CountingMethod" );
+        createDockWidget( widget, "Counting", "CountingMethod" );
+
+            widget->setSpectrometer( document::instance()->massSpectrometer() );
+
+        connect( widget, &adwidgets::CountingWidget::valueChanged, [this, widget]( int id, int row ) {
+                qDebug() << "valueChanged(" << id << ", " << row << ")";
+            });
     }
 
     if ( auto widget = new acqrswidgets::u5303AWidget ) {

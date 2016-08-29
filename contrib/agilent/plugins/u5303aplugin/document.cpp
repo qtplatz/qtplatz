@@ -36,10 +36,13 @@
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <adlog/logger.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/samplerun.hpp>
@@ -218,6 +221,7 @@ namespace u5303a {
         std::shared_ptr< adcontrols::TimeDigitalMethod > tdm_;
         std::shared_ptr< ResultWriter > resultWriter_;
         std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer_;
 
         int32_t device_status_;
         // double triggers_per_second_;
@@ -246,11 +250,12 @@ namespace u5303a {
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                            , QLatin1String( "u5303a" ) ) )
                  //, triggers_per_second_(0)
-               , resultWriter_( std::make_shared< ResultWriter >() )  {
+               , resultWriter_( std::make_shared< ResultWriter >() ) {
 
             adcontrols::TofChromatogramsMethod tofm;
             tofm.setNumberOfTriggers( 1000 );
             tdcdoc_->setTofChromatogramsMethod( tofm );
+            massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( adcontrols::iids::adspectrometer_uuid );
         }
 
         void addInstController( std::shared_ptr< adextension::iController > p );
@@ -1294,3 +1299,10 @@ document::getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& traces
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
 	traces = impl_->traces_;
 }
+
+std::shared_ptr< const adcontrols::MassSpectrometer >
+document::massSpectrometer() const
+{
+    return impl_->massSpectrometer_;
+}
+

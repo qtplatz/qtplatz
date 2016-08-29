@@ -88,8 +88,6 @@ namespace adcontrols {
         static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
 
-        static void register_default_spectrometers();
-
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
 
     protected:

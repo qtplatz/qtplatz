@@ -120,6 +120,11 @@ namespace adwidgets {
             if ( state( index.column() ).isCheckable && !( index.flags() & Qt::ItemIsUserCheckable ) ) {
                 qDebug() << "flag mismatch " << index;
             }
+            emit this_->valueChanged( index );
+        }
+
+        inline void handleEditorValueChanged( const QModelIndex& index, double value ) {
+            emit this_->valueChanged( index, value );
         }
     };
 
@@ -280,6 +285,8 @@ namespace adwidgets {
                 spin->setDecimals( state.precision );
                 spin->setMaximum( 100000 );
 				spin->setSingleStep( std::pow( 10, -state.precision ) );
+                connect( spin, static_cast< void( QDoubleSpinBox::* )(double) >(&QDoubleSpinBox::valueChanged)
+                         , [=]( double value ){ impl_->handleEditorValueChanged( index, value ); });
                 return spin;
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );

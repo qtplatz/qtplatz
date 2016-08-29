@@ -42,10 +42,10 @@ endif()
 set( ${PROJECT_NAME}_SOURCES
   adwidgets.cpp
   centroidform.cpp
+  cherrypicker.cpp
   controlmethodtable.cpp
   controlmethodwidget.cpp
   consolewidget.cpp
-  cherrypicker.cpp
   datareaderchoicedialog.cpp
   delegatehelper.cpp
   doublespinbox.cpp
@@ -98,17 +98,19 @@ set( ${PROJECT_NAME}_SOURCES
   thresholdactionform.cpp
   controlmethod/timedeventswidget.cpp
   controlmethod/timedtableview.cpp
+  countingform.cpp
+  countingwidget.cpp
   ${_sources}
 )
 
 set( ${PROJECT_NAME}_HEADERS
   adwidgets.hpp
   adwidgets_global.hpp
+  centroidform.hpp
+  cherrypicker.hpp
   consolewidget.hpp
   controlmethodtable.hpp
   controlmethodwidget.hpp
-  centroidform.hpp
-  cherrypicker.hpp
   datareaderchoicedialog.hpp
   delegatehelper.hpp
   doublespinbox.hpp
@@ -159,6 +161,8 @@ set( ${PROJECT_NAME}_HEADERS
   thresholdactionform.hpp
   controlmethod/timedeventswidget.hpp
   controlmethod/timedtableview.hpp
+  countingform.hpp
+  countingwidget.hpp
 )
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )

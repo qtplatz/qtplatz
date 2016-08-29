@@ -40,6 +40,7 @@ namespace adcontrols {
     struct seconds_t;
     class MappedImage;
     class MassSpectrum;
+    class MassSpectrometer;
     class TraceAccessor;
     class Trace;
     class SampleRun;
@@ -134,6 +135,8 @@ namespace u5303a {
         // tentative solution -- will be removed
         void result_to_file( std::shared_ptr< acqrscontrols::u5303a::threshold_result > ch1 );
         // <---
+
+        std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const;
 
         static bool load( const QString& filename, adcontrols::ControlMethod::Method& );
         static bool load( const QString& filename, acqrscontrols::u5303a::method& );

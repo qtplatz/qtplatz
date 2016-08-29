@@ -27,8 +27,9 @@
 
 #include "adcontrols_global.h"
 #include <adcontrols/centroidmethod.hpp>
-#include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/countingmethod.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
+#include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
@@ -69,12 +70,12 @@ namespace adcontrols {
                                 , QuanMethod                    // 8
                                 , TargetingMethod               // 9
                                 , MSSimulatorMethod             // 10
+                                , CountingMethod                // 11
                                 > value_type;
         
         typedef std::vector< value_type > vector_type;
         typedef vector_type::iterator iterator;
         typedef vector_type::const_iterator const_iterator;
-        
         
         template<class T> void appendMethod( const T& t ) { vec_.push_back( t ); }
         template<class T> ProcessMethod& operator << ( const T& t ) { vec_.push_back( t ); return *this; }

@@ -91,10 +91,16 @@ namespace adcontrols {
 
 ///////////////////////////////////////////////
 MassSpectrometer::MassSpectrometer() : datafile_(0)
+                                     , acceleratorVoltage_( 5000 )
+                                     , tDelay_( 0 )
+                                     , fLength_( 1.0 )
 {
 }
 
 MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : datafile_( datafile )
+                                                                      , acceleratorVoltage_( 5000 )
+                                                                      , tDelay_( 0 )
+                                                                      , fLength_( 1.0 )
 {
 }
 
@@ -237,15 +243,16 @@ MassSpectrometer::get_model_names()
 {
     std::vector< std::wstring > names;
     auto list = MassSpectrometerBroker::installed_uuids();
-    std::for_each( list.begin(), list.end(), [&] ( const std::pair< boost::uuids::uuid, std::string >& a ) { names.push_back( adportable::utf::to_wstring( a.second ) ); } );
+    std::for_each( list.begin(), list.end(), [&] ( const std::pair< boost::uuids::uuid, std::string >& a ) {
+            names.push_back( adportable::utf::to_wstring( a.second ) ); } );
     return names;
 }
 
-void
-MassSpectrometer::register_default_spectrometers()
-{
-   // static adcontrols::internal::GenericTofSpectrometer * tof = new adcontrols::internal::GenericTofSpectrometer();
-    //massSpectrometerBroker::register_factory( tof, tof->name() );
-}
+// void
+// MassSpectrometer::register_default_spectrometers()
+// {
+//    // static adcontrols::internal::GenericTofSpectrometer * tof = new adcontrols::internal::GenericTofSpectrometer();
+//     //massSpectrometerBroker::register_factory( tof, tof->name() );
+// }
 
 //////////////////////////////////////////////////////////////

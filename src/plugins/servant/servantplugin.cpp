@@ -132,7 +132,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 ServantPlugin::extensionsInitialized()
 {
-    adcontrols::MassSpectrometer::register_default_spectrometers();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

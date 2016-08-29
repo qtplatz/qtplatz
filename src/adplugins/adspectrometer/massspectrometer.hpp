@@ -46,7 +46,7 @@ namespace adspectrometer {
 
     class MassSpectrometer : public adcontrols::MassSpectrometer
 		                   , public adcontrols::dataSubscriber {
-
+        
         MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
     public:
         virtual ~MassSpectrometer();
