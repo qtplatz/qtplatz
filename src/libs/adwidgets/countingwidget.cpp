@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "countingwidget.hpp"
-#include "countingform.hpp"
 #include "moltableview.hpp"
 #include "targetingadducts.hpp"
 #include <adportable/is_type.hpp>
