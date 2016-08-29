@@ -28,6 +28,7 @@
 #include <adportable/is_type.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/element.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -113,7 +114,6 @@ CountingWidget::OnInitialUpdate()
 {
     if ( auto table = findChild< MolTableView *>() ) {
         table->onInitialUpdate();
-        // table->setContents( adcontrols::CountingMethod() );
     }
 }
 
@@ -130,32 +130,30 @@ CountingWidget::OnFinalClose()
 bool
 CountingWidget::getContents( boost::any& a ) const
 {
-    if ( adportable::a_type< adcontrols::ProcessMethod >::is_pointer( a ) ) {
+    if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
-        if ( adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( a ) ) {
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>( a );
 
-            adcontrols::CountingMethod m;
-            getContents( m );
-            pm->appendMethod( m );
+        adcontrols::CountingMethod m;
+        if ( getContents( m ) )
+            ptr->append( m );
 
-            return true;
-        }
+        return true;
     }
+
     return false;
 }
 
 bool
 CountingWidget::setContents( boost::any&& a )
 {
-    if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
+    if ( auto pi = adcontrols::ControlMethod::any_cast<>( )( a, adcontrols::CountingMethod::clsid() ) ) {
 
-        const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
-      
-        if ( const adcontrols::CountingMethod * t = pm.find< adcontrols::CountingMethod >() ) {
+        adcontrols::CountingMethod m;
 
-            return setContents( *t );
+        if ( pi->get<>( *pi, m ) )
+            return setContents( m );
 
-        }
     }
     return false;
 }
@@ -164,17 +162,21 @@ bool
 CountingWidget::getContents( adcontrols::CountingMethod& t ) const
 {
     t.clear();
+
     adcontrols::CountingMethod::value_type v;
     for ( int i = 0; i < model_->rowCount(); ++i ) {
         CountingHelper::readRow( i, v, *model_ );
         t << std::move( v );
     }
 
+    if ( auto gbox = findChild< QGroupBox * >() )
+        t.setEnable( gbox->isChecked() );
+
     return true;
 }
 
 bool
-CountingWidget::setContents( adcontrols::CountingMethod&& t )
+CountingWidget::setContents( const adcontrols::CountingMethod& t )
 {
     model_->setRowCount( t.size() );
 
@@ -182,6 +184,9 @@ CountingWidget::setContents( adcontrols::CountingMethod&& t )
 
     for ( const auto& value: t ) 
         CountingHelper::setRow( idx++, value, *model_ );
+
+    if ( auto gbox = findChild< QGroupBox * >() )
+        gbox->setChecked( t.enable() );
 
     return true;    
 }
@@ -291,10 +296,15 @@ CountingHelper::setRow( int row, const adcontrols::CountingMethod::value_type& v
 {
     using adcontrols::CountingMethod;
 
-    model.setData( model.index( row, 0 ), QString::fromStdString( std::get< CountingMethod::CountingFormula >( v ) ) );
+    auto formula = std::get< CountingMethod::CountingFormula >( v );
+    model.setData( model.index( row, 0 ), QString::fromStdString( formula ) );
     model.setData( model.index( row, 0 ), std::get< CountingMethod::CountingEnable >( v ) ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+
     if ( auto item = model.item( row, 0 ) )
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+
+    if ( ! formula.empty() )
+        model.setData( model.index( row, c_mass ), adcontrols::ChemicalFormula().getMonoIsotopicMass( formula ) );
      
     model.setData( model.index( row, 2 ), std::get< CountingMethod::CountingRange >( v ).first * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, 3 ), std::get< CountingMethod::CountingRange >( v ).second * std::micro::den, Qt::EditRole );

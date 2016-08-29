@@ -104,22 +104,7 @@ ThresholdWidget::getContents( boost::any& a ) const
     acqrscontrols::u5303a::method m;
 
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
-        // depricated -- for backward compatibility purpose
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
-#if 0
-        if ( modelClass_ == acqrscontrols::u5303a::method::modelClass() ) {
-            auto it = ptr->find( ptr->begin(), ptr->end(), acqrscontrols::u5303a::method::modelClass() );
-
-            if ( it != ptr->end() )
-                it->get<>( *it, m );
-
-            get( 0, m.threshold_ );
-            ptr->append( m );
-
-            return true;
-        }
-        // end deprecated
-#endif
         adcontrols::TimeDigitalMethod tdm;
         get( tdm );
         ptr->append( tdm );

@@ -43,7 +43,9 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT CountingMethod {
     public:
-        const boost::uuids::uuid& clsid();
+        static const boost::uuids::uuid& clsid();
+        static const char * modelClass();
+        static const char * itemLabel();
         
         CountingMethod();
         CountingMethod( const CountingMethod& );
@@ -79,6 +81,11 @@ namespace adcontrols {
         const_iterator end() const;
 
         CountingMethod& operator << ( value_type&& );
+
+        static bool archive( std::ostream&, const CountingMethod& );
+        static bool restore( std::istream&, CountingMethod& );
+        static bool xml_archive( std::wostream&, const CountingMethod& );
+        static bool xml_restore( std::wistream&, CountingMethod& );
 
     private:
         bool enable_;

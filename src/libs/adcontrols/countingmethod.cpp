@@ -165,6 +165,20 @@ CountingMethod::clsid()
     return myclsid;
 }
 
+// static
+const char *
+CountingMethod::modelClass()
+{
+    return "Counting";
+}
+
+// static
+const char *
+CountingMethod::itemLabel()
+{
+    return "Counting";
+}
+
 CountingMethod&
 CountingMethod::operator << ( value_type&& t )
 {
@@ -184,3 +198,55 @@ CountingMethod::setEnable( bool b )
     enable_ = b;
 }
 
+bool
+CountingMethod::archive( std::ostream& os, const CountingMethod& t )
+{
+    try {
+        portable_binary_oarchive ar( os );
+        ar & t;
+        return true;
+    } catch ( std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( ex );
+    }
+    return false;
+}
+    
+bool
+CountingMethod::restore( std::istream& is, CountingMethod& t )
+{
+    try {
+        portable_binary_iarchive ar( is );
+        ar & t;
+        return true;
+    } catch ( std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( ex );
+    }
+    return false;
+}
+    
+bool
+CountingMethod::xml_archive( std::wostream& os, const CountingMethod& t )
+{
+    try {
+        boost::archive::xml_woarchive ar( os );
+        ar & boost::serialization::make_nvp( "m", t );
+        return true;
+    } catch ( std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( ex );
+    }
+    return false;
+}
+    
+bool
+CountingMethod::xml_restore( std::wistream& is, CountingMethod& t )
+{
+    try {
+        boost::archive::xml_wiarchive ar( is );
+        ar & boost::serialization::make_nvp( "m", t );
+        return true;
+    } catch ( std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( ex );
+    }
+    return false;
+        
+}

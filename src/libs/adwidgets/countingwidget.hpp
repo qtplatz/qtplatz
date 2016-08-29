@@ -57,7 +57,7 @@ namespace adwidgets {
 
         void setSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
         bool getContents( adcontrols::CountingMethod& ) const;
-        bool setContents( adcontrols::CountingMethod&& );
+        bool setContents( const adcontrols::CountingMethod& );
 
         enum column_type { CountingEnable, CountingFormula, CountingRangeFirst, CountingRangeWidth, CountingProtocol };
         
