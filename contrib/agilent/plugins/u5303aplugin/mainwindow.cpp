@@ -137,7 +137,7 @@ MainWindow::createDockWidgets()
         widget->setObjectName( "CountingMethod" );
         createDockWidget( widget, "Counting", "CountingMethod" );
 
-            widget->setSpectrometer( document::instance()->massSpectrometer() );
+        widget->setMassSpectrometer( document::instance()->massSpectrometer() );
 
         connect( widget, &adwidgets::CountingWidget::valueChanged, [this, widget]( int id, int row ) {
                 qDebug() << "valueChanged(" << id << ", " << row << ")";

@@ -29,6 +29,7 @@
 #include <acqrscontrols/threshold_action_finder.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/countingmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
@@ -59,6 +60,10 @@ namespace acqrscontrols {
                    , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
                    , protocolCount_( 1 )
                    , trig_per_seconds_( 0 ) {
+
+                auto cm = std::make_shared< adcontrols::CountingMethod >();
+                cm->setEnable( false );
+                counting_method_ = cm;
 
                 for ( auto& p: recent_longterm_histograms_ )
                     p = std::make_shared< adcontrols::TimeDigitalHistogram >();                
@@ -150,6 +155,7 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
+            std::shared_ptr< const adcontrols::CountingMethod > counting_method_;
 
             // periodic histograms (primary que) [time array] := (proto 0, proto 1, ...), (proto 0, proto 1, ...),...
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histogram_que_;
@@ -577,6 +583,18 @@ tdcdoc::threshold_method( int channel ) const
     if ( channel < impl_->threshold_methods_.size() )
         return impl_->threshold_methods_[ channel ];
     return 0;
+}
+
+void
+tdcdoc::setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > m )
+{
+    impl_->counting_method_ = m;
+}
+
+std::shared_ptr< const adcontrols::CountingMethod >
+tdcdoc::countingMethod() const
+{
+    return impl_->counting_method_;
 }
 
 bool

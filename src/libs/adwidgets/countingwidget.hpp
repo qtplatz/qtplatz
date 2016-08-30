@@ -29,6 +29,7 @@
 #include <QWidget>
 #include <memory>
 
+class QStandardItem;
 class QStandardItemModel;
 
 namespace adcontrols { class MassSpectrometer; class CountingMethod; }
@@ -54,22 +55,28 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;   
         //
-
-        void setSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
+        enum column_type {
+            CountingEnable, CountingFormula
+            , CountingRangeFirst, CountingRangeWidth
+            , CountingProtocol, CountingLaps
+        };
+        
+        void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
         bool getContents( adcontrols::CountingMethod& ) const;
         bool setContents( const adcontrols::CountingMethod& );
+        void setValue( int row, column_type column, const QVariant& value );
+        QVariant value( int row, column_type column ) const;
 
-        enum column_type { CountingEnable, CountingFormula, CountingRangeFirst, CountingRangeWidth, CountingProtocol };
-        
     signals:
-        void valueChanged( int row, column_type column, const QVariant& value );
+        void editChanged( int row, column_type column, const QVariant& value );
+        void valueChanged( int row, column_type column, const QVariant& );
+        void rowsRemoved( int, int );
 
     public slots:
 
     private slots:
         void addRow();
-        void handleValueChanged( const QModelIndex&,  double ); // <- QDoubleSpinBox
-        void handleValueChanged( const QModelIndex& );          // <- QAbstractItemModel
+        void handleItemChanged( const QStandardItem * );
 
     private:
         void setup( MolTableView * );

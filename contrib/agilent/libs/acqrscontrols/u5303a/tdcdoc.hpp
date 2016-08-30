@@ -38,7 +38,9 @@ namespace adportable { struct threshold_index; }
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
 
 namespace adcontrols { class threshold_action; class threshold_method;
-    class MassSpectrum; class TofChromatogramsMethod; class TimeDigitalHistogram; }
+    class MassSpectrum; class TofChromatogramsMethod; class TimeDigitalHistogram;
+    class CountingMethod;
+}
 
 namespace acqrscontrols {
 
@@ -75,6 +77,9 @@ namespace acqrscontrols {
             std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
 
             void eraseTofChromatogramsMethod();
+
+            void setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > );
+            std::shared_ptr< const adcontrols::CountingMethod > countingMethod() const;
             
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
                 processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );

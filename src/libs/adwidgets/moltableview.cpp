@@ -114,14 +114,14 @@ namespace adwidgets {
 
         QAbstractItemModel * model() { return this_->model(); }
 
-        void onValueChanged( const QModelIndex& index ) {
-            if ( this_->signalsBlocked() )
-                return;
-            if ( state( index.column() ).isCheckable && !( index.flags() & Qt::ItemIsUserCheckable ) ) {
-                qDebug() << "flag mismatch " << index;
-            }
-            emit this_->valueChanged( index );
-        }
+        // void onValueChanged( const QModelIndex& index ) {
+        //     if ( this_->signalsBlocked() )
+        //         return;
+        //     if ( state( index.column() ).isCheckable && !( index.flags() & Qt::ItemIsUserCheckable ) ) {
+        //         qDebug() << "flag mismatch " << index;
+        //     }
+        //     emit this_->valueChanged( index );
+        // }
 
         inline void handleEditorValueChanged( const QModelIndex& index, double value ) {
             emit this_->valueChanged( index, value );
@@ -268,7 +268,7 @@ namespace adwidgets {
             } else 
                 QStyledItemDelegate::setModelData( editor, model, index );
 
-            impl_->onValueChanged( index );
+            // impl_->onValueChanged( index );
         }
 
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {

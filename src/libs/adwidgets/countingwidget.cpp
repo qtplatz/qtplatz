@@ -35,6 +35,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <QBoxLayout>
+#include <QDebug>
 #include <QMenu>
 #include <QStandardItemModel>
 #include <QSplitter>
@@ -57,6 +58,7 @@ namespace adwidgets {
         , c_time
         , c_width
         , c_protocol
+        , c_laps
     };
 
 }
@@ -84,16 +86,24 @@ CountingWidget::CountingWidget(QWidget *parent) : QWidget(parent)
             setup( moltable );
 
             // QDoubleSpinBox -->
-            connect( moltable
-                     , static_cast< void(MolTableView::*)( const QModelIndex&, double )>( &MolTableView::valueChanged )
-                     , this
-                     , static_cast< void(CountingWidget::*)( const QModelIndex&, double )>( &CountingWidget::handleValueChanged ) );
+            connect( moltable, &MolTableView::valueChanged, this, [&]( const QModelIndex& index, double value ){
+                    QPair< double, double > range;
+                    if ( index.column() == c_time ) {
+                        range.first = value / std::micro::den;
+                        range.second = model_->index( index.row(), c_width ).data( Qt::EditRole ).toDouble() / std::micro::den;
+                    } else if ( index.column() == c_width ) {
+                        range.first = model_->index( index.row(), c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
+                        range.second = value / std::micro::den;
+                    }
+                    emit editChanged( index.row(), column_type( index.column() ), QVariant::fromValue( range ) );
+                } );
 
-            // ModelData -->
-            connect( moltable
-                     , static_cast< void(MolTableView::*)( const QModelIndex& )>( &MolTableView::valueChanged )
-                     , this
-                     , static_cast< void(CountingWidget::*)( const QModelIndex& )>( &CountingWidget::handleValueChanged ) );
+            // rows removed
+            connect( model_.get(), &QStandardItemModel::rowsRemoved, [&]( const QModelIndex&, int start, int end ){
+                    emit rowsRemoved( start, end );
+                });
+
+            connect( model_.get(), &QStandardItemModel::itemChanged, this, &CountingWidget::handleItemChanged );
             
             vboxLayout->addWidget( moltable );
         }
@@ -195,23 +205,25 @@ void
 CountingWidget::setup( MolTableView * table )
 {
     model_ = std::make_unique< QStandardItemModel >();
-    model_->setColumnCount( 5 );
+    model_->setColumnCount( 6 );
 
     model_->setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "Formula" ) );
     model_->setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "<i>m/z<i>" ) );
     model_->setHeaderData( c_time, Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
     model_->setHeaderData( c_width, Qt::Horizontal, QObject::tr( "Width(&mu;s)" ) );
     model_->setHeaderData( c_protocol, Qt::Horizontal, QObject::tr( "Protocol" ) );
+    model_->setHeaderData( c_laps, Qt::Horizontal, QObject::tr( "#lap" ) );
 
     table->setModel( model_.get() );
     
     table->setColumnField( c_formula, ColumnState::f_formula, true, true ); // checkable
-    table->setColumnField( c_mass, ColumnState::f_mass );
+    table->setColumnField( c_mass, ColumnState::f_mass, false, false );     // not editable
     table->setColumnField( c_time, ColumnState::f_time );
     table->setPrecision( c_time, 3 );
     table->setColumnField( c_width, ColumnState::f_time );
     table->setPrecision( c_width, 3 );
     table->setColumnField( c_protocol, ColumnState::f_protocol );
+    table->setColumnField( c_laps, ColumnState::f_protocol, false, false );
 
     table->setContextMenuHandler( [&]( const QPoint& pt ){
             QMenu menu;
@@ -233,29 +245,54 @@ CountingWidget::addRow()
 }
 
 void
-CountingWidget::setSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
+CountingWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > p )
 {
     spectrometer_ = p;
 }
 
 void
-CountingWidget::handleValueChanged( const QModelIndex& index, double data )
+CountingWidget::setValue( int row, column_type column, const QVariant& value )
 {
-    if ( index.column() == c_time || index.column() == c_width )
-        data /= std::micro::den; // second from microsecond
+    if ( column == CountingWidget::CountingEnable ) {
+        model_->setData( model_->index( row, c_formula ), value, Qt::CheckStateRole );
+    } else if ( column == CountingWidget::CountingFormula ) {
+        model_->setData( model_->index( row, c_formula ), value, Qt::EditRole );
+    } else if ( column == CountingWidget::CountingRangeFirst ) {
+        model_->setData( model_->index( row, c_time ), value, Qt::EditRole );
+    } else if ( column == CountingWidget::CountingRangeWidth ) {
+        model_->setData( model_->index( row, c_width ), value, Qt::EditRole );        
+    } else {
+        model_->setData( model_->index( row, int(column) ), value, Qt::EditRole );
+    }
+}
 
-    emit valueChanged( index.row(), column_type( index.column() ), data );
+QVariant
+CountingWidget::value( int row, column_type column ) const
+{
+    if ( column == CountingWidget::CountingEnable )
+        return model_->index( row, c_formula ).data( Qt::CheckStateRole );
+    else if ( column == CountingWidget::CountingFormula )
+        return model_->index( row, c_formula ).data( Qt::EditRole );
+    else if ( column == CountingWidget::CountingRangeFirst || column == CountingWidget::CountingRangeWidth )
+        return model_->index( row, c_formula ).data( Qt::EditRole );
+    else
+        return model_->index( row, int( column ) ).data( Qt::EditRole );
 }
 
 void
-CountingWidget::handleValueChanged( const QModelIndex& index )
+CountingWidget::handleItemChanged( const QStandardItem * item )
 {
-    if ( index.column() == c_time || index.column() == c_width )
-        handleValueChanged( index, index.data( Qt::EditRole ).toDouble() );
+    auto index = item->index();
 
-    QSignalBlocker block( model_.get() );
-    
     if ( index.column() == c_formula ) {
+        bool checked = item->data( Qt::CheckStateRole ) == Qt::Checked;
+        emit valueChanged( index.row(), CountingWidget::CountingEnable, checked );
+    }
+
+    qDebug() << "handleItemChanged " << item->index() << item->data( Qt::EditRole );
+
+    if ( index.column() == c_formula ) {
+        QSignalBlocker block( model_.get() );
 
         std::vector< adcontrols::mol::element > elements;
         int charge;
@@ -263,18 +300,16 @@ CountingWidget::handleValueChanged( const QModelIndex& index )
             QString f = QString( "[%1]+" ).arg( index.data().toString() );
             model_->setData( index, f, Qt::EditRole );
         }
-
         double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( model_->data( index, Qt::EditRole ).toString().toStdString() );
         model_->setData( model_->index( index.row(), c_mass ), mass, Qt::EditRole );
 
         CountingHelper::setTime( index.row(), mass, spectrometer_.lock(), *model_ );
     }
 
-    if ( index.column() == c_mass || index.column() == c_protocol ) {
-        CountingHelper::setTime( index.row(), index.data().toDouble(), spectrometer_.lock(), *model_ );        
-    }
-
-    emit valueChanged( index.row(), column_type( index.column() ), index.data( Qt::EditRole ) );
+    if ( index.column() == c_time || index.column() == c_width )
+        emit valueChanged( index.row(), column_type( index.column() ), index.data( Qt::EditRole ).toDouble() / std::micro::den );
+    else
+        emit valueChanged( index.row(), column_type( index.column() ), index.data( Qt::EditRole ) );
 }
 
 bool
@@ -297,18 +332,23 @@ CountingHelper::setRow( int row, const adcontrols::CountingMethod::value_type& v
     using adcontrols::CountingMethod;
 
     auto formula = std::get< CountingMethod::CountingFormula >( v );
-    model.setData( model.index( row, 0 ), QString::fromStdString( formula ) );
-    model.setData( model.index( row, 0 ), std::get< CountingMethod::CountingEnable >( v ) ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    model.setData( model.index( row, c_formula ), QString::fromStdString( formula ) );
+    model.setData( model.index( row, c_formula ), std::get< CountingMethod::CountingEnable >( v ) ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
 
-    if ( auto item = model.item( row, 0 ) )
+    if ( auto item = model.item( row, c_formula ) )
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
 
-    if ( ! formula.empty() )
+    if ( ! formula.empty() ) {
         model.setData( model.index( row, c_mass ), adcontrols::ChemicalFormula().getMonoIsotopicMass( formula ) );
+        model.item( row, c_mass )->setFlags( Qt::NoItemFlags );
+    }
      
-    model.setData( model.index( row, 2 ), std::get< CountingMethod::CountingRange >( v ).first * std::micro::den, Qt::EditRole );
-    model.setData( model.index( row, 3 ), std::get< CountingMethod::CountingRange >( v ).second * std::micro::den, Qt::EditRole );
-    model.setData( model.index( row, 4 ), std::get< CountingMethod::CountingProtocol >( v ), Qt::EditRole );
+    model.setData( model.index( row, c_time ), std::get< CountingMethod::CountingRange >( v ).first * std::micro::den, Qt::EditRole );
+    model.setData( model.index( row, c_width ), std::get< CountingMethod::CountingRange >( v ).second * std::micro::den, Qt::EditRole );
+    model.setData( model.index( row, c_protocol ), std::get< CountingMethod::CountingProtocol >( v ), Qt::EditRole );
+
+    model.setData( model.index( row, c_laps ), 0, Qt::EditRole );
+    //model.item( row, c_laps )->setFlags( Qt::NoItemFlags );
 
     return true;
 }
@@ -318,7 +358,7 @@ CountingHelper::setTime( int row, double mass, std::shared_ptr< const adcontrols
 {
     if ( sp ) {
         if ( auto scanlaw = sp->scanLaw() ) {
-            double tof = scanlaw->getTime( mass, model.data( model.index( row, c_protocol ) ).toInt() );
+            double tof = scanlaw->getTime( mass, model.data( model.index( row, c_laps ) ).toInt() );
             model.setData( model.index( row, c_time ), tof * std::micro::den, Qt::EditRole );
         }
     }
