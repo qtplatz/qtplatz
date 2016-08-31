@@ -123,7 +123,12 @@ namespace acqrscontrols {
 
             bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
 
+            static bool computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
+                                          , const adcontrols::CountingMethod&
+                                          , std::vector< std::pair< size_t, size_t > >& );
+
             void clear_histogram();
+
 
             std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
 

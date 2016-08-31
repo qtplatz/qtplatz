@@ -371,6 +371,33 @@ tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& 
     return true;
 }
 
+bool
+tdcdoc::computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
+                          , const adcontrols::CountingMethod& cm
+                          , std::vector< std::pair< size_t, size_t > >& rates )
+{
+    if ( ! cm.enable() )
+        return false;
+
+    using adcontrols::CountingMethod;
+
+    if ( rates.size() != cm.size() )
+        rates.resize( cm.size() );
+
+    int idx(0);
+    for ( auto& v : cm ) {
+        if ( std::get< CountingMethod::CountingEnable >( v ) ) {
+
+            auto range = std::get< CountingMethod::CountingRange >( v );
+
+            rates[ idx ].first += histogram.accumulate( range.first, range.second );
+            rates[ idx ].second += histogram.trigger_count();
+        }
+        idx++;
+    }
+    return true;
+}
+
 
 std::shared_ptr< const waveform_type >
 tdcdoc::averagedWaveform( uint64_t trigNumber )
