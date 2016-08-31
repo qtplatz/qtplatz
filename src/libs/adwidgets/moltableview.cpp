@@ -37,6 +37,7 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
+#include <adportable/debug.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -52,7 +53,6 @@
 #include <QStyledItemDelegate>
 #include <QSvgRenderer>
 #include <QUrl>
-#include <QDebug>
 #include <sstream>
 
 #if defined HAVE_RDKit && HAVE_RDKit
@@ -94,6 +94,8 @@ namespace adwidgets {
         ~impl() {
         }
 
+        inline MolTableView * _this() { return this_; }
+
         std::function<void(const QPoint& )> handleContextMenu_;
 
         //-------------------------------------------------
@@ -114,18 +116,10 @@ namespace adwidgets {
 
         QAbstractItemModel * model() { return this_->model(); }
 
-        // void onValueChanged( const QModelIndex& index ) {
-        //     if ( this_->signalsBlocked() )
-        //         return;
-        //     if ( state( index.column() ).isCheckable && !( index.flags() & Qt::ItemIsUserCheckable ) ) {
-        //         qDebug() << "flag mismatch " << index;
-        //     }
-        //     emit this_->valueChanged( index );
-        // }
-
         inline void handleEditorValueChanged( const QModelIndex& index, double value ) {
             emit this_->valueChanged( index, value );
         }
+
     };
 
     //-------------------------- delegate ---------------
@@ -293,6 +287,25 @@ namespace adwidgets {
             }
         }
 
+        bool editorEvent( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem& option, const QModelIndex& index ) override {
+
+            if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
+
+                const Qt::CheckState prev = index.data( Qt::CheckStateRole ).value< Qt::CheckState >();
+
+                if ( QStyledItemDelegate::editorEvent( event, model, option, index ) ) {
+
+                    if ( index.data( Qt::CheckStateRole ).value< Qt::CheckState >() != prev ) {
+                        // check state has changed
+                        emit impl_->_this()->stateChanged( index, index.data( Qt::CheckStateRole ).value< Qt::CheckState >() );
+                    }
+                    return true;
+                }
+            } else {
+                return QStyledItemDelegate::editorEvent( event, model, option, index );
+            }
+        }
+        
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
 
             auto field = impl_->field( index.column() );
@@ -455,9 +468,6 @@ MolTableView::dropEvent( QDropEvent * event )
                         mol->updatePropertyCache( false );
                         auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
                         auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-                        //auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                        //auto svg = RDKit::Drawing::DrawingToSVG( drawing );
-                        //impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
                     }
                     ++row;
                 }

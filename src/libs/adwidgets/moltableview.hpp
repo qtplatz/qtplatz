@@ -73,6 +73,7 @@ namespace adwidgets {
     signals:
         void onContextMenu( QMenu&, const QPoint& );
         void valueChanged( const QModelIndex&, double ); // Editor 'QDoubleSpinBox' value changed
+        void stateChanged( const QModelIndex&, Qt::CheckState );
                                            
     private slots:
         void handleCopyToClipboard() override;

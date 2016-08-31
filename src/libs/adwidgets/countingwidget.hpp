@@ -76,6 +76,7 @@ namespace adwidgets {
 
     private slots:
         void addRow();
+        void handleComputeTof();
         void handleItemChanged( const QStandardItem * );
 
     private:

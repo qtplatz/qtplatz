@@ -24,6 +24,7 @@
 
 #include "tdcdoc.hpp"
 #include "averagedata.hpp"
+#include "find_threshold_timepoints.hpp"
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/threshold_action_finder.hpp>
@@ -74,7 +75,7 @@ namespace acqrscontrols {
                                 , tdcdoc::mass_assignee_t assignee ) const {
 
                 if ( !v.empty() && v[ 0 ] ) {
-
+                    
                     waveform::translate( ms, v[ 0 ], assignee );
                     
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
@@ -468,6 +469,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
 
     std::array< threshold_result_ptr, 2 > results;
     std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
+    auto range( countingMethod() );
 
     for ( size_t i = 0; i < waveforms.size(); ++i ) {
 
@@ -484,7 +486,9 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
             
             if ( methods[ i ] && methods[ i ]->enable ) {
 
-                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
+                acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
+
+                find_threshold( *waveforms[ i ], results[ i ]->indecies(), results[ i ]->processed() );
 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 
@@ -506,7 +510,8 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
 
     std::array< threshold_result_ptr, 2 > results;
     std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
-
+    auto range( countingMethod() );
+    
     for ( size_t i = 0; i < waveforms.size(); ++i ) {
 
         if ( waveforms[ i ] ) {
@@ -522,12 +527,13 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
             
             if ( methods[ i ] && methods[ i ]->enable ) {
 
-                // find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
-                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies2(), results[ i ]->processed() );
+                acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
+
+                find_threshold( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );
 
                 results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
 
-                // vector< std::pair<uint32_t, uint32_t> > ==> vector< uint32_t >
+                // copy from vector< adportable::threshold_index > ==> vector< uint32_t >
                 std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().end()
                                 , results[ i ]->indecies().begin(), []( const adportable::threshold_index& a ){ return a.first; } );
                 
@@ -624,6 +630,7 @@ tdcdoc::eraseTofChromatogramsMethod()
     impl_->tofChromatogramsMethod_.reset();
 }
 
+#if 0
 // static
 void
 tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
@@ -636,11 +643,6 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
 
     adportable::threshold_finder finder( findUp, nfilter );
     
-    // workaround
-    // if ( data.isDEAD() )
-    //     return;
-    // <<-- workaround
-
     if ( method.use_filter ) {
 
         waveform_type::apply_filter( processed, data, method );
@@ -694,6 +696,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
     }
 }
+#endif
 
 void
 tdcdoc::clear_histogram()

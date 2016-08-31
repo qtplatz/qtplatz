@@ -37,8 +37,12 @@ namespace adportable { struct threshold_index; }
 
 namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
 
-namespace adcontrols { class threshold_action; class threshold_method;
-    class MassSpectrum; class TofChromatogramsMethod; class TimeDigitalHistogram;
+namespace adcontrols {
+    class threshold_action;
+    class threshold_method;
+    class MassSpectrum;
+    class TofChromatogramsMethod;
+    class TimeDigitalHistogram;
     class CountingMethod;
 }
 
@@ -76,11 +80,11 @@ namespace acqrscontrols {
             bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
             std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
 
-            void eraseTofChromatogramsMethod();
-
             void setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > );
             std::shared_ptr< const adcontrols::CountingMethod > countingMethod() const;
             
+            void eraseTofChromatogramsMethod();
+
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
                 processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
 
@@ -123,15 +127,16 @@ namespace acqrscontrols {
 
             std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
 
-            static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-                                                   , const adcontrols::threshold_method& method
-                                                   , std::vector< uint32_t >& elements
-                                                   , std::vector<double>& processed );
+            // static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
+            //                                        , const adcontrols::threshold_method& method
+            //                                        , std::vector< uint32_t >& elements
+            //                                        , std::vector<double>& processed );
 
-            static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-                                                   , const adcontrols::threshold_method& method
-                                                   , std::vector< adportable::threshold_index >& elements
-                                                   , std::vector<double>& processed );
+            // // recording peak-apex
+            // static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
+            //                                        , const adcontrols::threshold_method& method
+            //                                        , std::vector< adportable::threshold_index >& elements
+            //                                        , std::vector<double>& processed );
 
         private:
             class impl;

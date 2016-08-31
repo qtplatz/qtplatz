@@ -131,7 +131,7 @@ MainWindow::createDockWidgets()
             });
 
     }
-
+#if 0
     if ( auto widget = new adwidgets::CountingWidget ) {
         
         widget->setObjectName( "CountingMethod" );
@@ -140,10 +140,10 @@ MainWindow::createDockWidgets()
         widget->setMassSpectrometer( document::instance()->massSpectrometer() );
 
         connect( widget, &adwidgets::CountingWidget::valueChanged, [this, widget]( int id, int row ) {
-                qDebug() << "valueChanged(" << id << ", " << row << ")";
+                // qDebug() << "valueChanged(" << id << ", " << row << ")";
             });
     }
-
+#endif
     if ( auto widget = new acqrswidgets::u5303AWidget ) {
 
         widget->setObjectName( "U5303A" );
@@ -236,9 +236,7 @@ MainWindow::OnInitialUpdate()
 
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
-        connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
     }
-
 }
 
 void
