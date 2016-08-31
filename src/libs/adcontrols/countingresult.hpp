@@ -32,6 +32,9 @@
 
 namespace adcontrols {
 
+    class TimeDigitalHistogram;
+    class CountingMethod;
+    
     class ADCONTROLSSHARED_EXPORT CountingResult {
     public:
         CountingResult();
@@ -64,6 +67,9 @@ namespace adcontrols {
         const_iterator end() const;
 
         CountingResult& operator << ( value_type&& );
+
+        bool compute( const adcontrols::TimeDigitalHistogram& histogram
+                      , const adcontrols::CountingMethod& cm );
 
     private:
         std::vector< value_type > values_;

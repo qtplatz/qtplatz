@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "countingresult.hpp"
+#include "countingmethod.hpp"
 #include "constants.hpp"
 
 using namespace adcontrols;
@@ -88,5 +89,33 @@ CountingResult::const_iterator
 CountingResult::end() const
 {
     return values_.end();
+}
+
+bool
+CountingResult::compute( const adcontrols::TimeDigitalHistogram& histogram
+                         , const adcontrols::CountingMethod& cm )
+{
+    if ( ! cm.enable() )
+        return false;
+    using adcontrols::CountingMethod;
+
+    if ( values_.size() != cm.size() )
+        values_.resize( cm.size() );
+    for ( int idx = 0; idx < cm.size(); ++idx ) {
+
+#if 0
+        const auto& v = cm[ idx ];
+        auto& t = values_[ idx ];
+
+        if ( std::get< CountingMethod::CountingEnable >( v ) ) {
+
+            auto range = std::get< CountingMethod::CountingRange >( v );
+
+            rates[ idx ].first += histogram.accumulate( range.first, range.second );
+            rates[ idx ].second += histogram.trigger_count();
+        }
+#endif
+    }
+    return true;
 }
 
