@@ -28,6 +28,7 @@
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adportable/threshold_finder.hpp>
+#include <adportable/waveform_processor.hpp>
 #include <adportable/debug.hpp>
 #include <cstdint>
 
@@ -52,8 +53,6 @@ namespace acqrscontrols {
 
             double delay = delay_time( method, meta );
 
-            ADDEBUG() << "protocol: " << method.protocolIndex() << "/" << method.protocols().size() << " delay: " << delay * std::micro::den;
-            
             double t0 = time.first - time.second / 2;
             double t1 = t0 + time.second;
             if ( t1 < delay ) {
@@ -113,12 +112,16 @@ namespace acqrscontrols {
                         auto offs = waveform_horizontal().range( data.method_, data.meta_, time_range );
                         if ( offs.second ) {
                             size_t eoffs = offs.first + offs.second;
+                            adportable::average averager;
                             if ( method.use_filter ) {
-                                finder( processed.begin(), processed.begin() + eoffs, elements, level, offs.first  );
+                                double base = averager( processed.begin() + offs.first, offs.second );
+                                finder( processed.begin(), processed.begin() + eoffs, elements, level + base, offs.first  );
                             } else if ( data.meta_.dataType == 2 ) {
-                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level, offs.first );
+                                double base = averager( data.template begin<int16_t>() + offs.first, offs.second );
+                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level + base, offs.first );
                             } else if ( data.meta_.dataType == 4 ) {
-                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level, offs.first );
+                                double base = averager( data.template begin<int32_t>() + offs.first, offs.second );
+                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level + base, offs.first );
                             }
                         }
                     }

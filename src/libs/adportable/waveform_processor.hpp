@@ -28,13 +28,13 @@
 #include <vector>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
+#include <numeric>
 
 namespace adportable {
 
     class waveform_processor {
     public:
-        template<class Iterator, class T>
+        template<typename Iterator, typename T>
         inline Iterator find_threshold_element( Iterator beg, Iterator end, T level, bool& flag ) {
             if ( beg != end ) {
                 flag = *beg < level; // positive-peak-front if true
@@ -48,5 +48,13 @@ namespace adportable {
 
     };
 
+    struct average {
+        template< typename Iterator >
+        inline double operator()( Iterator it, size_t count ) {
+            double sum = std::accumulate( it, it + count, 0 );
+            return sum / count;
+        }
+    };
+    
 }
 

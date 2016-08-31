@@ -103,6 +103,9 @@ namespace adportable {
             
             for ( int i = 0; i < numRecords; ++i ) {
                 auto * sp = mblk_[ proto ]->data();
+                // drift simulation -- use this two lines
+                // int idx(0);
+                // std::transform( sp, sp + actualPoints_, dp, [&] ( int y ) { return y + impl::instance().noise() - idx++ / 1024; } );
                 std::transform( sp, sp + actualPoints_, dp, [] ( int y ) { return y + impl::instance().noise(); } );
                 dp += impl::instance().actualPoints_;
             }
