@@ -95,14 +95,27 @@ namespace acqrscontrols {
                 
                 if ( !v.empty() && v[ 0 ] ) {
 
-                    adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ], assignee );
+                    double resolution( 0 );
+                    if ( auto tm = threshold_methods_.at( 0 ) )
+                        resolution = tm->time_resolution;
+
+                    std::shared_ptr< adcontrols::TimeDigitalHistogram > htop = v[ 0 ];
+                    if ( resolution > v[ 0 ]->xIncrement() )
+                        htop = v[ 0 ]->merge_peaks( resolution );
+
+                    adcontrols::TimeDigitalHistogram::translate( ms, *htop, assignee );
 
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
 
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();
 
-                        if ( auto& hgrm = v[ proto ] )
+                        if ( auto hgrm = v[ proto ] ) {
+
+                            if ( resolution > hgrm->xIncrement() )
+                                hgrm = hgrm->merge_peaks( resolution );
+
                             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
+                        }
 
                         ms << std::move(sp);
                     }
@@ -454,7 +467,8 @@ tdcdoc::recentHistograms() const
     std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > d( impl_->protocolCount_ );
 
     std::transform( impl_->recent_periodic_histograms_.begin()
-                    , impl_->recent_periodic_histograms_.begin() + impl_->protocolCount_, d.begin()
+                    , impl_->recent_periodic_histograms_.begin() + impl_->protocolCount_
+                    , d.begin()
                     , []( const std::shared_ptr< const adcontrols::TimeDigitalHistogram >& h ){
                         return std::make_shared< adcontrols::TimeDigitalHistogram >( *h );
                     });

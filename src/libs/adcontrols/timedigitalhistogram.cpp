@@ -391,9 +391,9 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     // ext_trig_delay should be managed before came here.  (ex. histogram::move())
 
     double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
-
+    
     adcontrols::MSProperty prop;
-    double zhalf = ( hgrm.initialXOffset() >= 0 ) ? 0.5 : -0.5;
+    double zhalf = ( ( hgrm.initialXOffset() + ext_trig_delay ) >= 0 ) ? 0.5 : -0.5;
     adcontrols::SamplingInfo info( hgrm.xIncrement()
                                    , hgrm.initialXOffset()
                                    , int32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + zhalf )  // delay
