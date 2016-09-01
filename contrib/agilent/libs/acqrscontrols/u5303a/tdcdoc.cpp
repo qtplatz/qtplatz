@@ -508,6 +508,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u530
     if ( !waveforms[0] && !waveforms[1] ) // empty
         return std::array< threshold_result_ptr, 2 >();
 
+    std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
     std::array< threshold_result_ptr, 2 > results;
     std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
     auto range( countingMethod() );
