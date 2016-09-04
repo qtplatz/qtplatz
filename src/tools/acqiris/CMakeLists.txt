@@ -32,8 +32,10 @@ include_directories(
   )
 
 if ( WIN32 )
-  message( FATAL_ERROR "Windows platform not supported." )
-  return()
+  set( ACQRSDIR "C:/Program Files (x86)/Agilent/Acqiris" )
+  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
+  include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
+  # include( ${CMAKE_SOURCE_DIR}/../../../qtplatz.cmake )
 endif()
 
 add_executable( ${PROJECT_NAME}

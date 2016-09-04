@@ -39,8 +39,11 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <RDGeneral/RDLog.h>
-//#include <GraphMol/MolDraw2D/MolDraw2DSVG.h> // <-- if RDKit installs in INTREE
+#if _MSC_VER
+#include <GraphMol/MolDraw2D/MolDraw2DSVG.h> // <-- if RDKit installs in INTREE
+#else
 #include <MolDraw2DSVG.h>
+#endif
 #endif
 
 using namespace adwidgets;

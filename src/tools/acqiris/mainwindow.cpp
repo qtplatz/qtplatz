@@ -260,6 +260,7 @@ MainWindow::about()
 void
 MainWindow::createDockWidgets()
 {
+#if 0
     static const struct { 
         const QString title;
         const char * wiid;
@@ -279,6 +280,7 @@ MainWindow::createDockWidgets()
 
     //     }
     // }
+#endif
 }
 
 QDockWidget *

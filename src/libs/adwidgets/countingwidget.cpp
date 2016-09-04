@@ -194,7 +194,7 @@ CountingWidget::getContents( adcontrols::CountingMethod& t ) const
 bool
 CountingWidget::setContents( const adcontrols::CountingMethod& t )
 {
-    model_->setRowCount( t.size() );
+    model_->setRowCount( int( t.size() ) );
 
     int idx(0);
 
@@ -401,5 +401,6 @@ CountingHelper::setTime( int row, double mass, std::shared_ptr< const adcontrols
             model.setData( model.index( row, c_time ), tof * std::micro::den, Qt::EditRole );
         }
     }
+    return true;
 }
     

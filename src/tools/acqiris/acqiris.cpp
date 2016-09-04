@@ -26,6 +26,7 @@
 #include <sstream>
 #include <iostream>
 #include <sys/stat.h>
+#include <array>
 
 acqiris::result_code
 acqiris::waitForEndOfAcquisition( size_t timeout )

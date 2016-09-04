@@ -62,6 +62,7 @@ document::initialSetup()
             task::instance()->strand().post( [&]{ task::instance()->acquire( digitizer() ); } );
         }
     }
+    return true;
 }
 
 bool
@@ -74,6 +75,7 @@ document::finalClose()
 QSettings *
 document::settings()
 {
+    return nullptr;
 }
 
 void
