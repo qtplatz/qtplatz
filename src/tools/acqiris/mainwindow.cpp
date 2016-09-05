@@ -23,7 +23,8 @@
 **************************************************************************/
 #include "mainwindow.hpp"
 #include "document.hpp"
-#include "waveformview.hpp"
+// #include "waveformview.hpp"
+#include "chartview.hpp"
 #include <boost/any.hpp>
 #include <QAbstractButton>
 #include <QAction>
@@ -78,9 +79,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         helpMenu->addAction(tr("About"), this, SLOT(about()));
         helpMenu->addAction(tr("About &Qt"), qApp, SLOT(aboutQt()));
     }
-
+#if 0
     auto widget = new WaveformView( this );
-    setCentralWidget( widget );
+#else
+    auto widget = new ChartView( this );
+#endif
+    setCentralWidget( widget );    
 
     grabGesture( Qt::PanGesture );
     grabGesture( Qt::PinchGesture );
@@ -356,7 +360,10 @@ void
 MainWindow::handleUpdateData()
 {
     if ( auto wform = document::instance()->recentWaveform() ) {
-        if ( auto view = findChild< WaveformView * >() )
+        // if ( auto view = findChild< WaveformView * >() )
+        //     view->setData( wform );
+        // else
+        if ( auto view = findChild< ChartView * >() )
             view->setData( wform );
     }
 }

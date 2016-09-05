@@ -22,7 +22,7 @@
 **************************************************************************/
 
 #include "task.hpp"
-#include "acqiris.hpp"
+#include "digitizer.hpp"
 #include "document.hpp"
 #include "waveform.hpp"
 #include <iostream>
@@ -92,20 +92,20 @@ task::worker_thread()
 }
 
 void
-task::acquire( acqiris * digitizer )
+task::acquire( digitizer * digitizer )
 {
     static int count = 0;
 
     using namespace std::chrono_literals;
 
     if ( digitizer->acquire() ) {
-        if ( digitizer->waitForEndOfAcquisition( 3000 ) == acqiris::success ) {
+        if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
             auto d = std::make_shared< waveform >();
             digitizer->readData( 1, d->dataDesc_, d->segDesc_, d->data_ );
             document::instance()->push( std::move( d ) );
 
             auto tp = std::chrono::system_clock::now();
-            if ( tp - tp_data_handled_ > 500ms ) {
+            if ( tp - tp_data_handled_ > 200ms ) {
                 emit document::instance()->updateData();
                 tp_data_handled_ = tp;
             }

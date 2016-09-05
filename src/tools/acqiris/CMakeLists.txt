@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.0 )
+cmake_minimum_required( VERSION 3.5 )
 project( acqiris )
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
@@ -14,33 +14,69 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 set ( CMAKE_CXX_STANDARD 14 )
-list( APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../../cmake/Modules" )
+
+set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
+
+if ( NOT ${CMAKE_BUILD_TYPE} STREQUAL "" )
+  string( TOLOWER ${CMAKE_BUILD_TYPE} build_type )
+else()
+  set( build_type "release" )
+endif()
 
 add_definitions( -D_LINUX -D_ACQIRIS )
 
-find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
-find_package( qwt )
-find_package( Boost COMPONENTS system )
+find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport Charts )
+find_package( Boost COMPONENTS system program_options serialization wserialization )
 find_package( Threads REQUIRED )
-if ( NOT QWT_LIBRARIES )
-  message( FATAL_ERROR "No QWT library found" )
+
+set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
+
+if ( NOT ${CMAKE_BUILD_TYPE} STREQUAL "" )
+  string( TOLOWER ${CMAKE_BUILD_TYPE} build_type )
+else()
+  set( build_type "release" )
 endif()
 
-include_directories(
-  ${CMAKE_SOURCE_DIR}/../../libs
-  ${QWT_INCLUDE_DIRS}
+find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
+  "${QTPLATZ_BUILD_DIR}"
+  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
+  "${CMAKE_BINARY_DIR}/../qtplatz.netbeans"
   )
+if ( NOT qtplatz_config )
+  message( FATAL_ERROR "qtplatz-config.cmake can not be found" )
+endif()
+
+include( ${qtplatz_config} )
+
+include_directories( ${QTPLATZ_INCLUDE_DIRS} )
+
+if ( USING_PROTOBUF )
+  find_package( Protobuf REQUIRED )
+  include_directories( ${PROTOBUF_INCLUDE_DIRS} )
+  protobuf_generate_cpp( proto_sources proto_headers acqiris.proto )  
+endif()
 
 if ( WIN32 )
   set( ACQRSDIR "C:/Program Files (x86)/Agilent/Acqiris" )
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
   include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
-  # include( ${CMAKE_SOURCE_DIR}/../../../qtplatz.cmake )
 endif()
 
+set( qwt_dependent_sources
+  waveformview.cpp
+  waveformview.hpp
+  xyseriesdata.cpp
+  xyseriesdata.hpp
+  )
+
+set( chart_dependent_sources
+  chartview.cpp
+  chartview.hpp
+  )
+
 add_executable( ${PROJECT_NAME}
-  acqiris.cpp
-  acqiris.hpp
+  digitizer.cpp
+  digitizer.hpp
   document.cpp
   document.hpp
   main.cpp
@@ -50,17 +86,20 @@ add_executable( ${PROJECT_NAME}
   task.hpp
   waveform.cpp
   waveform.hpp
-  waveformview.cpp
-  waveformview.hpp
-  xyseriesdata.cpp
-  xyseriesdata.hpp
+  acqiris_method.cpp
+  acqiris_method.hpp
+  ${chart_dependent_sources}
+#  ${proto_sources}
+#  ${proto_headers}
   ${Resources}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adportable
   AqDrv4
-  ${QWT_LIBRARIES}
+  ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
+  Qt5::Charts
   Qt5::Widgets
   Qt5::Svg
   Threads::Threads

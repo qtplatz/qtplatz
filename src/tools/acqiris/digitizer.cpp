@@ -21,15 +21,15 @@
 **
 **************************************************************************/
 
-#include "acqiris.hpp"
+#include "digitizer.hpp"
 #include <boost/format.hpp>
 #include <sstream>
 #include <iostream>
 #include <sys/stat.h>
 #include <array>
 
-acqiris::result_code
-acqiris::waitForEndOfAcquisition( size_t timeout )
+digitizer::result_code
+digitizer::waitForEndOfAcquisition( size_t timeout )
 {
     ViStatus st = AcqrsD1_waitForEndOfAcquisition( inst_, ViInt32( timeout ) );
     switch( st ) {
@@ -42,7 +42,7 @@ acqiris::waitForEndOfAcquisition( size_t timeout )
 }
     
 bool
-acqiris::getInstrumentData()
+digitizer::getInstrumentData()
 {
     ViChar buf[256];
     ViStatus st = Acqrs_getInstrumentData(inst_, buf, &serial_number_, &bus_number_, &slot_number_);
@@ -51,7 +51,7 @@ acqiris::getInstrumentData()
 
 //static
 std::string
-acqiris::error_msg( int status, const char * ident )
+digitizer::error_msg( int status, const char * ident )
 {
     std::ostringstream o;
     ViChar errorMessage[ 512 ];
@@ -66,7 +66,7 @@ acqiris::error_msg( int status, const char * ident )
 
 //static
 bool
-acqiris::checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg )
+digitizer::checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg )
 {
     if ( st == VI_SUCCESS )
         return false;
@@ -81,7 +81,7 @@ acqiris::checkError( ViSession instId, ViStatus st, const char * text, ViInt32 a
 }
 
 bool
-acqiris::initialize()
+digitizer::initialize()
 {
     if ( getenv("AcqirisDxDir") == 0 ) {
         std::cerr << L"AcqirisDxDir environment variable not set." << std::endl;
@@ -97,14 +97,14 @@ acqiris::initialize()
 }
 
 bool
-acqiris::findDevice()
+digitizer::findDevice()
 {
     ViStatus status;
     
     numInstruments_ = 0;
     
     if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
-        std::cerr << error_msg( status, "Acqiris::findDevice()" ) << std::endl;
+        std::cerr << error_msg( status, "digitizer::findDevice()" ) << std::endl;
     } else {
         std::cout << boost::format( "find %1% acqiris devices." ) % numInstruments_ << std::endl;
     }
@@ -112,7 +112,7 @@ acqiris::findDevice()
     if ( numInstruments_ == 0 ) {
         if ( auto p = getenv( "AcqirisOption" ) ) {
             if ( std::strcmp( p, "simulate" ) == 0 ) {
-        
+                
                 if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
                     if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC271")
                                                 , VI_FALSE, VI_FALSE, const_cast<char *>("simulate=TRUE"), &inst_ ) == VI_SUCCESS ) {
@@ -134,14 +134,14 @@ acqiris::findDevice()
             std::cerr << "\tfound device on: " << device_name_ << std::endl;
             return true;
         } else {
-            std::cerr << error_msg( status, "Acqiris::findDevice" ) << std::endl;
+            std::cerr << error_msg( status, "digitizer::findDevice" ) << std::endl;
         }
     }
     return false;
 }
 
 bool
-acqiris::averager_setup( int nDelay, int nSamples, int nAverage )
+digitizer::averager_setup( int nDelay, int nSamples, int nAverage )
 {
     ViStatus status;
     ViStatus * pStatus = &status;
@@ -294,7 +294,7 @@ acqiris::averager_setup( int nDelay, int nSamples, int nAverage )
 }
 
 bool
-acqiris::digitizer_setup( double delay, double width )
+digitizer::digitizer_setup( double delay, double width )
 {
     ViStatus status;
     ViStatus * pStatus = &status;
@@ -313,8 +313,8 @@ acqiris::digitizer_setup( double delay, double width )
     status = AcqrsD1_configChannelCombination( inst_, 2, 1 );
     checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
     
-    //status = AcqrsD1_configHorizontal( inst_, 0.5e-9, 0 );
-    status = AcqrsD1_configHorizontal( inst_, 1.0e-8, 0 );
+    status = AcqrsD1_configHorizontal( inst_, 0.5e-9, 0 );
+    //status = AcqrsD1_configHorizontal( inst_, 1.0e-9, 0 );
     checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
 
     status = AcqrsD1_configMemory(inst_, nbrSamples_, nbrSegments);
@@ -416,13 +416,13 @@ acqiris::digitizer_setup( double delay, double width )
 }
 
 bool
-acqiris::acquire()
+digitizer::acquire()
 {
     return AcqrsD1_acquire( inst_ ) == VI_SUCCESS;
 }
 
 bool
-acqiris::stop()
+digitizer::stop()
 {
     return AcqrsD1_stopAcquisition( inst_ ) == VI_SUCCESS;
 }

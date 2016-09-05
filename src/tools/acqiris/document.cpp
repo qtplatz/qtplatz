@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "document.hpp"
-#include "acqiris.hpp"
+#include "digitizer.hpp"
 #include "task.hpp"
 #include "waveform.hpp"
 #include <iostream>
@@ -35,10 +35,10 @@ document::instance()
     return &__instance;
 }
 
-acqiris *
+class digitizer *
 document::digitizer()
 {
-    static acqiris __acqiris;
+    static class digitizer __acqiris;
     return &__acqiris;
 }
 

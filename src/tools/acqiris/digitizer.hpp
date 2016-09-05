@@ -28,15 +28,15 @@
 #include <vector>
 #include <memory>
 
-class acqiris {
+class digitizer {
 public:
-    acqiris() : numInstruments_( 0 )
-              , inst_( -1 )
-              , initialized_( false )
-              , bSimulated_( false )
-              , bus_number_( 0 )
-              , slot_number_( 0 )
-              , serial_number_( 0 ) {
+    digitizer() : numInstruments_( 0 )
+                , inst_( -1 )
+                , initialized_( false )
+                , bSimulated_( false )
+                , bus_number_( 0 )
+                , slot_number_( 0 )
+                , serial_number_( 0 ) {
     }
     
     bool initialize();

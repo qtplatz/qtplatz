@@ -32,7 +32,7 @@
 WaveformView::WaveformView( QWidget * parent ) : QwtPlot( parent )
                                                , curve_( std::make_unique< QwtPlotCurve >() )
 {
-    setCanvasBackground( QColor( "#d0d0d0" ) );
+    // setCanvasBackground( QColor( "#d0d0d0" ) );
     curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( Qt::cyan );
     curve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );
@@ -68,8 +68,10 @@ WaveformView::setData( std::shared_ptr< const waveform > d )
     auto data = new XYSeriesData( d );
     curve_->setSamples( data );
 
-    // setAxisScale( QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
-    // setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
+    auto rect = data->boundingRect();
+
+    setAxisScale( QwtPlot::yLeft, rect.bottom(), rect.top() );
+    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     
     replot();
 }

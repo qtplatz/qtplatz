@@ -35,6 +35,21 @@ class waveform {
     waveform& operator = ( const waveform& ) = delete;
 public:
     waveform();
+    inline size_t size() const {
+        return dataDesc_.returnedSamplesPerSeg;
+    }
+    inline int16_t operator [] ( size_t idx ) const {
+        return data_[ idx + dataDesc_.indexFirstPoint ];
+    }
+    inline std::vector< int16_t >::const_iterator begin() const {
+        return data_.begin() + dataDesc_.indexFirstPoint;
+    }
+    inline std::vector< int16_t >::const_iterator end() const {
+        return data_.begin() + dataDesc_.indexFirstPoint + size();
+    }
+    inline double time( size_t idx ) const {
+        return delayTime_ + ( idx * dataDesc_.sampTime );
+    }
     double delayTime_;
     AqDataDescriptor dataDesc_;
     AqSegmentDescriptor segDesc_;

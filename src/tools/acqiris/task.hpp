@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <adportable/semaphore.hpp>
+#include "semaphore.hpp"
 #include <boost/asio.hpp>
 #include <chrono>
 #include <cstdint>
@@ -31,7 +31,7 @@
 #include <memory>
 #include <vector>
 
-class acqiris;
+class digitizer;
 
 class task {
     ~task();
@@ -43,7 +43,7 @@ public:
     bool initialize();
     bool finalize();
     inline boost::asio::io_service::strand& strand() { return strand_; }
-    void acquire( acqiris * );
+    void acquire( digitizer * );
 private:
     boost::asio::io_service io_service_;
     boost::asio::io_service::work work_;

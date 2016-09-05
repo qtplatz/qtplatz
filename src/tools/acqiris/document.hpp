@@ -35,7 +35,7 @@
 #include <thread>
 
 class QSettings;
-class acqiris;
+class digitizer;
 class waveform;
 
 class document : public QObject {
@@ -45,7 +45,7 @@ class document : public QObject {
     document( QObject * parent = 0 );
 public:
     static document * instance();
-    static acqiris * digitizer();
+    static class digitizer * digitizer();
 
     bool initialSetup();
     bool finalClose();

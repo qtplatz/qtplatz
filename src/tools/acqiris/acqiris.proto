@@ -1,0 +1,79 @@
+/**************************************************************************
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+*
+** Contact: toshi.hondo@qtplatz.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+** the Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+package acqiris;
+
+message trigger_method {
+    required uint32 trigClass = 1;    // [default = 0];            // edge trigger
+    required uint32 trigPattern = 2;  // [default = 0x80000000]; // EXT 1
+    required uint32 trigCoupling = 3; // [default = 0];         // DC
+    required uint32 trigSlope = 4;    // [default = 0];            // positive
+    optional double trigLevel1 = 5;   // [default = 1000.0];        // mV for Ext, %FS for CHn
+    optional double trigLevel2 = 6;   // [default = 0.0];           // only if window for trigSlope (3)
+}
+
+enum AcqMode { Digitizer = 0; Averager = 2; }
+
+message horizontal_method {
+    required double sampInterval = 1;    // [default = 0.5e-9];
+    required double delay = 2;           // [default = 0.0e-6 ];
+    required double width = 3;           // [default = 10.0e-6 ];
+    optional AcqMode mode = 4;            // [default = 0 ];  // configMode, 0: normal, 2: averaging
+    optional uint32 flags = 5;           // [default = 0 ]; // configMode, if mode == 0, 0: normal, 1: start on trigger
+    optional uint32 nbrAvgWaveforms = 6; // [default = 1];
+    required int32  nStartDelay = 7;     // [default = 0]; // digitizer mode can be negative
+    required uint32 nbrSamples  = 8;
+}
+    
+message vertical_method {
+    required double fullScale = 1; // [default = 5.0];
+    required double offset = 2;    // [default = 0.0];
+    required uint32 coupling = 3;  // [default = 3];
+    required uint32 bandwidth = 4; // [default = 2];
+    required bool invertData = 5;  // [default = false];
+    required bool autoScale = 6;   // [default = true];
+}
+
+message method {
+    required uint32 channels = 1; // [default = 0x01]; // CH1
+    optional horizontal_method hor = 2;
+    optional trigger_method trig = 3;
+    optional vertical_method ext = 4;
+    repeated vertical_method ver = 5;
+}
+
+message metadata {
+    required int64 actualPoints = 1;
+    required int32 flags = 2;           // IO pin states
+    required int32 actualAverages = 3;  // 0 = digitizer data, 1..n averaged data
+    required int32 indexFirstPoint = 4; // firstValidPoint in U5303A
+    required int32 channel = 5;         // 1|2
+    required int32 dataType = 6;        // 1, 2, 4 := int8_t, int16_t, int32_t
+    required double initialXTimeSeconds = 7;
+    required double initialXOffset = 8;
+    required double xIncrement = 9;
+    required double scaleFactor = 10;
+    required double scaleOffset = 11;
+    required double horPos = 12;
+}
