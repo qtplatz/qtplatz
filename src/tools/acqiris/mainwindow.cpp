@@ -22,9 +22,11 @@
 **
 **************************************************************************/
 #include "mainwindow.hpp"
-#include "document.hpp"
-// #include "waveformview.hpp"
+#include "acqiris_method.hpp"
+#include "acqiriswidget.hpp"
 #include "chartview.hpp"
+#include "document.hpp"
+#include "outputwidget.hpp"
 #include <boost/any.hpp>
 #include <QAbstractButton>
 #include <QAction>
@@ -57,7 +59,6 @@ const QString rsrcPath = ":/resources/images/win";
 #endif
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
-                                        , stacked_( 0 )
                                         , timer_(new QTimer(this))
 {
     setDockNestingEnabled( true );
@@ -92,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect( document::instance(), &document::updateData, this, &MainWindow::handleUpdateData );
 
     document::instance()->initialSetup();
+    createDockWidgets();
 }
 
 MainWindow::~MainWindow()
@@ -258,33 +260,20 @@ MainWindow::clipboardDataChanged()
 void
 MainWindow::about()
 {
-    QMessageBox::about(this, tr("About"), tr("This is the GUI version of MALPIX4 examination platrom.") );
+    QMessageBox::about(this, tr("About"), tr("Digital oscilloscope app based on Acqiris/Agilent/Keysight digitizer") );
 }
 
 void
 MainWindow::createDockWidgets()
 {
-#if 0
-    static const struct { 
-        const QString title;
-        const char * wiid;
-        const char * pageName;
-        std::function<QWidget *()> factory;
-    } widgets [] = { 
-        // { tr( "Console" ), "eventtool::ConsoleWidget", "ConsoleWidget", [this] () { return new adwidgets::ConsoleWidget( std::cout, this ); } }
-    };
-    
-    // for ( auto& widget: widgets ) {
-    //     if ( auto pWidget = widget.factory() ) {
-    //         createDockWidget( pWidget, widget.title, widget.pageName );
-
-    //         if ( auto lifecycle = dynamic_cast< adplugin::LifeCycle * >( pWidget ) ) {
-    //             lifecycle->OnInitialUpdate();
-    //         }
-
-    //     }
-    // }
-#endif
+    if ( auto widget = new AcqirisWidget() ) {
+        auto dock = createDockWidget( widget, "Digitizer Config", "AcqirisWidget" );
+        addDockWidget( Qt::RightDockWidgetArea, dock );
+    }
+    if ( auto widget = new OutputWidget( std::cout ) ) {
+        auto dock = createDockWidget( widget, "Console", "ConsoleWidget" );
+        addDockWidget( Qt::BottomDockWidgetArea, dock );
+    }    
 }
 
 QDockWidget *
@@ -292,6 +281,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 {
     if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
         widget->setWindowTitle( title );
+
     if ( widget->objectName().isEmpty() )
         widget->setObjectName( pageName );
 
@@ -303,48 +293,26 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
     else
         dockWidget->setWindowTitle( title );
 
-    addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-
     return dockWidget;
-}
-
-void
-MainWindow::handleInstState( int stat )
-{
-    // if ( auto form = findChild< malpix::mpxwidgets::Mpx4Form * >() ) {
-    //     form->setInstStatus( static_cast<adinterface::instrument::eInstStatus>(stat) );
-    // }
-}
-
-void
-MainWindow::handleFeatureSelected( int )
-{
-}
-
-void
-MainWindow::handleFeatureActivated( int )
-{
 }
 
 void
 MainWindow::onInitialUpdate()
 {
-    auto docks = findChildren< QDockWidget *>();
-    for ( auto& widget : docks ) {
-        widget->setFloating( false );
-        removeDockWidget( widget );
-    }
-    size_t npos = 0;
+    if ( auto widget = findChild< AcqirisWidget * >() ) {
 
-    for ( auto widget: docks ) {
-        addDockWidget( Qt::BottomDockWidgetArea, widget );
-        widget->show();
-        if ( npos++ >= 2 )
-            tabifyDockWidget( docks[ 1 ], widget );
-    }
+        connect( widget, &AcqirisWidget::dataChanged, this, []( const AcqirisWidget * w, int subType ){
+                auto m = std::make_shared< aqdrv4::acqiris_method >();
+                w->getContents( m );
+                document::instance()->handleValueChanged( m, aqdrv4::SubMethodType( subType ) );
+            });
 
+        auto m = std::make_shared< aqdrv4::acqiris_method >();
+
+        widget->getContents( m );
+        document::instance()->set_acqiris_method( m );
+    }
 }
-
 
 QDockWidget *
 MainWindow::addDockForWidget( QWidget * widget )

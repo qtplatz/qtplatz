@@ -38,6 +38,16 @@ class QSettings;
 class digitizer;
 class waveform;
 
+namespace aqdrv4 {
+    class acqiris_method;
+    enum SubMethodType : unsigned int;
+    namespace server {
+        class tcp_server;
+    }
+}
+
+class AcqirisWidget;
+
 class document : public QObject {
     Q_OBJECT
     ~document();
@@ -51,12 +61,28 @@ public:
     bool finalClose();
     QSettings * settings();
 
+    bool digitizer_initialize();
+
     void push( std::shared_ptr< waveform >&& );
     std::shared_ptr< waveform > recentWaveform();
+
+    std::shared_ptr< const aqdrv4::acqiris_method > acqiris_method();
+    void set_acqiris_method( std::shared_ptr< aqdrv4::acqiris_method > );
+
+    void set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& );
+
+    static bool save( const std::string& file, std::shared_ptr< const aqdrv4::acqiris_method > );
+    static std::shared_ptr< aqdrv4::acqiris_method > load( const std::string& file );
+
+    void handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
 
 signals:
     void updateData();
     
 private:
+    std::mutex mutex_;
     std::deque< std::shared_ptr< waveform > > que_;
+    std::shared_ptr< aqdrv4::acqiris_method > method_;
+    std::unique_ptr< aqdrv4::server::tcp_server > server_;
+    std::unique_ptr< QSettings > settings_;
 };

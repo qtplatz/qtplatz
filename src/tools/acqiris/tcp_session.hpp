@@ -1,5 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2014-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,42 +24,30 @@
 
 #pragma once
 
-#include "semaphore.hpp"
 #include <boost/asio.hpp>
+#include <boost/variant.hpp>
+#include <atomic>
 #include <chrono>
-#include <cstdint>
-#include <future>
 #include <memory>
-#include <vector>
 
-namespace aqdrv4 { class acqiris_method; }
-
-class digitizer;
-
-class task {
-    ~task();
-    task();
-    task( const task& ) = delete;
-    const task& operator = ( const task& ) = delete;
+class tcp_session : public std::enable_shared_from_this< tcp_session > {
 public:
-    static task * instance();
-    bool initialize();
-    bool finalize();
+    session( boost::asio::ip::tcp::socket socket );
+    ~session();
+    void start();
+    void write();
+    void acq_start( bool );
+    void set_delay_count( uint32_t delay_count );
+
+    static void initialize();
     
-    inline boost::asio::io_service::strand& strand() { return strand_; }
-
-    void prepare_for_run( digitizer *, std::shared_ptr< const aqdrv4::acqiris_method > );
-
 private:
-    boost::asio::io_service io_service_;
-    boost::asio::io_service::work work_;
-    boost::asio::io_service::strand strand_;
-    std::atomic< bool > worker_stopping_;
-    adportable::semaphore sema_;
-    std::vector< std::thread > threads_;
-    std::atomic_flag acquire_posted_;
-    std::chrono::time_point<std::chrono::system_clock> tp_data_handled_;
+    void do_read();
+    void do_write();
 
-    void acquire( digitizer * );
-    void worker_thread();
+    boost::asio::ip::tcp::socket socket_;
+    enum { max_length = 512 * 512 * sizeof(uint16_t) + 1024 };
+    std::array< char, max_length > rdata_;
+    std::atomic<bool> stop_requested_;
 };
+

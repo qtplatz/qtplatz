@@ -33,6 +33,16 @@ namespace boost { namespace serialization { class access; } }
 
 namespace aqdrv4 {
 
+    enum SubMethodType : unsigned int;
+
+    enum SubMethodType : unsigned int {
+        triggerMethod
+        , horizontalMethod
+        , ch1VerticalMethod
+        , ch2VerticalMethod
+        , extVerticalMethod
+    };
+
     struct trigger_method {
         uint32_t trigClass;
         uint32_t trigPattern;
@@ -54,17 +64,18 @@ namespace aqdrv4 {
     
     struct horizontal_method {
         double sampInterval;
+        double delayTime;    // digitizer mode can be negative
+        uint32_t nbrSamples;
         uint32_t mode;  // configMode, 0: normal, 2: averaging
         uint32_t flags; // configMode, if mode == 0, 0: normal, 1: start on trigger
         uint32_t nbrAvgWaveforms;
-        int32_t  nStartDelay; // digitizer mode can be negative
-        uint32_t nbrSamples;
+        
         horizontal_method() : sampInterval( 0.5e-9 )
+                            , delayTime( 0.0 )
+                            , nbrSamples( 10000 ) // filled when apply to device                              
                             , mode( 0 )
                             , flags( 0 )
                             , nbrAvgWaveforms( 1 )
-                            , nStartDelay( 0 )
-                            , nbrSamples( 0 ) // filled when apply to device
             {}
     private:
         friend class boost::serialization::access;
@@ -104,15 +115,22 @@ namespace aqdrv4 {
 
         std::shared_ptr< trigger_method > mutable_trig();
         std::shared_ptr< horizontal_method > mutable_hor();
+        std::shared_ptr< vertical_method > mutable_ext();
         std::shared_ptr< vertical_method > mutable_ch1();
         std::shared_ptr< vertical_method > mutable_ch2();
 
-        DigiMode mode;
+        std::shared_ptr< const trigger_method > trig() const;
+        std::shared_ptr< const horizontal_method > hor() const;
+        std::shared_ptr< const vertical_method > ext() const;
+        std::shared_ptr< const vertical_method > ch1() const;
+        std::shared_ptr< const vertical_method > ch2() const;
+        
         boost::uuids::uuid clsid_;
-        std::shared_ptr< trigger_method > trig;
-        std::shared_ptr< horizontal_method > hor;
-        std::shared_ptr< vertical_method > ch1;
-        std::shared_ptr< vertical_method > ch2;
+        std::shared_ptr< trigger_method > trig_;
+        std::shared_ptr< horizontal_method > hor_;
+        std::shared_ptr< vertical_method > ext_;
+        std::shared_ptr< vertical_method > ch1_;
+        std::shared_ptr< vertical_method > ch2_;
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );

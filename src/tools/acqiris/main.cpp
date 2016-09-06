@@ -24,15 +24,15 @@
 
 #include "mainwindow.hpp"
 #include "acqiris_method.hpp"
+#include "document.hpp"
+#include "tcp_server.hpp"
+#include "task.hpp"
 #include <QApplication>
 #if defined USING_PROTOBUF
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/util/json_util.h>
 #endif
-#include <boost/serialization/nvp.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
@@ -49,8 +49,10 @@ main(int argc, char *argv[])
     {
         description.add_options()
             ( "help,h",    "Display this help message" )
-            ( "delay",    po::value<double>()->default_value(  0.0 ), "Delay (us)" )
-            ( "width",    po::value<double>()->default_value( 10.0 ), "Waveform width (us)" )
+            ( "server",    "Run as server" )
+            ( "connect",  po::value< std::string >()->default_value( "localhost" ), "connect to server" )
+            ( "port",     po::value< std::string >()->default_value( "8000" ), "aqdrv4 port numer" )
+            ( "recv",     po::value< std::string >()->default_value( "0.0.0.0" ), "For IPv4 0.0.0.0, IPv6, try 0::0" )
             ( "save",     po::value< std::string >(), "save method to file" )
             ( "load",     po::value< std::string >(), "load method from file" )
             ;
@@ -62,22 +64,40 @@ main(int argc, char *argv[])
         return 0;
     }
 
-    aqdrv4::acqiris_method m;
-    auto trig = m.mutable_trig();
-    auto hor = m.mutable_hor();
-    auto ch1 = m.mutable_ch1();
-
-    if ( vm.count( "save" ) ) {
-        auto file = vm[ "save" ].as< std::string >();
-        std::wofstream of( file );
-        boost::archive::xml_woarchive ar( of );
-        ar & boost::serialization::make_nvp("aqdrv4", m );
-    }
+    auto m = std::make_shared< aqdrv4::acqiris_method >();
+    auto trig = m->mutable_trig();
+    auto hor = m->mutable_hor();
+    auto ch1 = m->mutable_ch1();
+    auto ext = m->mutable_ext();
     
+    if ( vm.count( "load" ) ) {
+        document::instance()->set_acqiris_method( document::load( vm[ "load" ].as< std::string >() ) );
+    }
+
+    if ( vm.count( "server" ) ) {
+        
+        document::instance()->set_server(
+            std::make_unique< aqdrv4::server::tcp_server >( vm["recv"].as< std::string >()
+                                                            , vm["port"].as< std::string >() ) );
+    } else if ( vm.count( "connect" ) ) {
+
+        // document::instance()->tcp_connect( vm["connect"].as< std::string >(), vm["port"].as< std::string >() );
+    }
+
+    document::instance()->set_acqiris_method( m );
+
     MainWindow w;
-    w.resize( 600, 400 );
+    w.resize( 800, 600 );
     w.onInitialUpdate();
+
+    document::instance()->digitizer_initialize();
+
     w.show();
 
-    return a.exec();
+    a.exec();
+
+    if ( vm.count( "save" ) ) {
+        document::save( vm[ "save" ].as< std::string >(), document::instance()->acqiris_method() );
+    }
+    
 }

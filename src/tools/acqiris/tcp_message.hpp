@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2014-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -21,44 +21,39 @@
 **
 **************************************************************************/
 
-#pragma once
-
-#include "semaphore.hpp"
-#include <boost/asio.hpp>
-#include <chrono>
-#include <cstdint>
-#include <future>
 #include <memory>
-#include <vector>
+#include <boost/asio.hpp>
 
-namespace aqdrv4 { class acqiris_method; }
-
-class digitizer;
-
-class task {
-    ~task();
-    task();
-    task( const task& ) = delete;
-    const task& operator = ( const task& ) = delete;
+class tcp_message {
 public:
-    static task * instance();
-    bool initialize();
-    bool finalize();
+    enum { header_length = 4 };
+    enum { max_payload_length = 1024 * 8 };
+
+    tcp_message() : payload_length_ ( 0 ) {
+    }
+
+    const char * data() const {
+        return data_;
+    }
+
+    tcp_server( boost::asio::io_service& io, short port )
+        : acceptor_( io, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), port ) )
+        , socket_( io ) {
+        do_accept();
+    }
+    inline const boost::asio::ip::tcp::acceptor& acceptor() const { return acceptor_; }
     
-    inline boost::asio::io_service::strand& strand() { return strand_; }
-
-    void prepare_for_run( digitizer *, std::shared_ptr< const aqdrv4::acqiris_method > );
-
 private:
-    boost::asio::io_service io_service_;
-    boost::asio::io_service::work work_;
-    boost::asio::io_service::strand strand_;
-    std::atomic< bool > worker_stopping_;
-    adportable::semaphore sema_;
-    std::vector< std::thread > threads_;
-    std::atomic_flag acquire_posted_;
-    std::chrono::time_point<std::chrono::system_clock> tp_data_handled_;
+    void do_accept() {
+        acceptor_.async_accept( socket_, [this](boost::system::error_code ec ) {
+                if ( !ec ) {
+                    std::make_shared< session >( std::move( socket_ ) )->start();
+                }
+                do_accept();
+            });
+    }
 
-    void acquire( digitizer * );
-    void worker_thread();
+    boost::asio::ip::tcp::acceptor acceptor_;
+    boost::asio::ip::tcp::socket socket_;
 };
+

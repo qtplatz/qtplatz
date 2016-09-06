@@ -22,6 +22,7 @@
 **************************************************************************/
 
 #include "digitizer.hpp"
+#include "acqiris_method.hpp"
 #include <boost/format.hpp>
 #include <sstream>
 #include <iostream>
@@ -73,10 +74,10 @@ digitizer::checkError( ViSession instId, ViStatus st, const char * text, ViInt32
     std::array< ViChar, 1024 > msg;
     std::fill( msg.begin(), msg.end(), 0 );
     AcqrsD1_errorMessageEx( instId, st, msg.data(), msg.size() );
-    std::cerr << boost::format( "%s (0x%x): %s" ) % text % int(st) % msg.data();
+    std::cout << boost::format( "%s (0x%x): %s" ) % text % int(st) % msg.data();
     if ( arg )
-        std::cerr << " #" << arg;
-    std::cerr << std::endl;
+        std::cout << " #" << arg;
+    std::cout << std::endl;
     return false;
 }
 
@@ -84,13 +85,13 @@ bool
 digitizer::initialize()
 {
     if ( getenv("AcqirisDxDir") == 0 ) {
-        std::cerr << L"AcqirisDxDir environment variable not set." << std::endl;
+        std::cout << L"AcqirisDxDir environment variable not set." << std::endl;
         return false;
     }
 
     struct stat st;
     if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
-        std::cerr << L"/dev/acqrsPID does not exists" << std::endl;
+        std::cout << L"/dev/acqrsPID does not exists" << std::endl;
         return false;
     }
     return true;
@@ -104,7 +105,7 @@ digitizer::findDevice()
     numInstruments_ = 0;
     
     if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
-        std::cerr << error_msg( status, "digitizer::findDevice()" ) << std::endl;
+        std::cout << error_msg( status, "digitizer::findDevice()" ) << std::endl;
     } else {
         std::cout << boost::format( "find %1% acqiris devices." ) % numInstruments_ << std::endl;
     }
@@ -131,10 +132,10 @@ digitizer::findDevice()
         inst_ = (-1);
         status = Acqrs_init( const_cast< char *>(device_name_.c_str()), VI_FALSE, VI_FALSE, &inst_);
         if ( inst_ != ViSession(-1) && getInstrumentData() ) {
-            std::cerr << "\tfound device on: " << device_name_ << std::endl;
+            std::cout << "\tfound device on: " << device_name_ << std::endl;
             return true;
         } else {
-            std::cerr << error_msg( status, "digitizer::findDevice" ) << std::endl;
+            std::cout << error_msg( status, "digitizer::findDevice" ) << std::endl;
         }
     }
     return false;
@@ -294,123 +295,137 @@ digitizer::averager_setup( int nDelay, int nSamples, int nAverage )
 }
 
 bool
-digitizer::digitizer_setup( double delay, double width )
-{
+digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
+{    
     ViStatus status;
     ViStatus * pStatus = &status;
 
     constexpr ViInt32 nbrSegments = 1;
 
-    nbrSamples_ = width / 0.5e-9 + 1;
-
-    // ViSession instrID(0);
-    // status = Acqrs_InitWithOptions("PCI::INSTR0", VI_FALSE, VI_FALSE, "", &instrID);
-    // checkError( inst_, status, "Acqrs_InitWithOptions", __LINE__  );
-
     status = AcqrsD1_configMultiInput( inst_, 1, 0 );
     checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
 
+    // if ap240
     status = AcqrsD1_configChannelCombination( inst_, 2, 1 );
     checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
     
-    status = AcqrsD1_configHorizontal( inst_, 0.5e-9, 0 );
-    //status = AcqrsD1_configHorizontal( inst_, 1.0e-9, 0 );
-    checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
-
-    status = AcqrsD1_configMemory(inst_, nbrSamples_, nbrSegments);
-    checkError( inst_, status, "configMemory", __LINE__ );
+    if ( auto hor = m->hor() ) {
+        nbrSamples_ = hor->nbrSamples;
+        nbrWaveforms_ = 1;
+        delayTime_ = hor->delayTime;
     
-    status = AcqrsD1_configMode( inst_, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
-    checkError( inst_, status, "AcqrsD1_configMode", __LINE__  );
+        status = AcqrsD1_configHorizontal( inst_, hor->sampInterval, hor->delayTime );
+        checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
 
-    status = AcqrsD1_configVertical( inst_, 1, 1.0, 0.0, 3, 2 );
-    checkError( inst_, status, "configVertical", __LINE__ );
+        status = AcqrsD1_configMemory(inst_, nbrSamples_, nbrSegments);
+        checkError( inst_, status, "configMemory", __LINE__ );
+    
+        status = AcqrsD1_configMode( inst_, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
+        checkError( inst_, status, "AcqrsD1_configMode", __LINE__  );
+        
+    }
 
-    // External trig. input
-    status = AcqrsD1_configVertical( inst_, -1, 5.0, 0.0, 3 /*DC 50ohm*/, 2 /* no bw */);
-    checkError( inst_, status, "configVertical (2)", __LINE__ );
+    if ( auto ext = m->ext() ) {
+        // External trig. input
+        status = AcqrsD1_configVertical( inst_, -1, ext->fullScale, ext->offset, ext->coupling /*DC 50ohm*/, ext->bandwidth /* no bw */);
+        checkError( inst_, status, "configVertical (Ext)", __LINE__ );
+    }
 
-    status = AcqrsD1_configTrigClass( inst_, 0, 0x80000000, 0, 0, 0, 0 );
-    checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
+    if ( auto ch = m->ch1() ) {
+        const int channel = 1;
+        status = AcqrsD1_configVertical( inst_, channel, ch->fullScale, ch->offset, ch->coupling, ch->bandwidth );
+        checkError( inst_, status, "configVertical (CH1)", __LINE__ );
+    }
+    if ( auto ch = m->ch2() ) {
+        const int channel = 2;
+        status = AcqrsD1_configVertical( inst_, channel, ch->fullScale, ch->offset, ch->coupling, ch->bandwidth );        
+        checkError( inst_, status, "configVertical (CH2)", __LINE__ );
+    }
+
+    if ( auto trig = m->trig() ) {
+        status = AcqrsD1_configTrigClass( inst_, 0, trig->trigPattern, 0, 0, 0, 0 );
+        checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
+        
+        status = AcqrsD1_configTrigSource( inst_, -1, 0, 0, 1000, 0 );
+        checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
+        
+        // config "IO B" for Acquisition is active (21)
+        status = AcqrsD1_configControlIO( inst_, 2, 21, 0, 0 );
+        checkError( inst_, status, "AcqrsD1_configControlIO(B)", __LINE__  );
+        
+        status = AcqrsD1_configControlIO( inst_, 9, 1610 / 2, 0, 0 );
+        checkError( inst_, status, "AcqrsD1_configControlIO (2)", __LINE__  );
+    }
+
+    if ( false ) {
+        // "P2Control" set to average(out) --> disable for debug
+        ViInt32 int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "P1Control", &int32Arg );
+        checkError( inst_, status, "AcqrsD1_configAvgConfig (P1Control)", __LINE__  );
+
+        // "P2Control" to disable
+        int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "P2Control", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (P2Control)", __LINE__  ) )
+            return false;
+
+        int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "DitherRange", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (DitherRange)", __LINE__  ) )
+            return false;
 	
-    status = AcqrsD1_configTrigSource( inst_, -1, 0, 0, 1000, 0 );
-    checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
-	
-    // config "IO B" for Acquisition is active (21)
-    status = AcqrsD1_configControlIO( inst_, 2, 21, 0, 0 );
-    checkError( inst_, status, "AcqrsD1_configControlIO(B)", __LINE__  );
-
-    status = AcqrsD1_configControlIO( inst_, 9, 1610 / 2, 0, 0 );
-    checkError( inst_, status, "AcqrsD1_configControlIO (2)", __LINE__  );
-
-    // "P2Control" set to average(out) --> disable for debug
-    ViInt32 int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "P1Control", &int32Arg );
-    checkError( inst_, status, "AcqrsD1_configAvgConfig (P1Control)", __LINE__  );
-
-    // "P2Control" to disable
-	int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "P2Control", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (P2Control)", __LINE__  ) )
-        return false;
-
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "DitherRange", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (DitherRange)", __LINE__  ) )
-        return false;
-	
-    int32Arg = 1;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "NbrSegments", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (NbrSegments)", __LINE__  ) )
-        return false;
-
-    int32Arg = 0;
-    *pStatus = AcqrsD1_configAvgConfig( inst_, 0, "StopDelay", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (StopDelay)", __LINE__  ) )
-        return false;
-
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "TrigAlways", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TrigAlways)", __LINE__  ) )
-        return false;
-
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "TrigResync", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TrigResync)", __LINE__  ) )
-        return false;
-
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "ThresholdEnable", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (ThresholdEnable)", __LINE__  ) )
-        return false;
-
-    int32Arg = 0;
-    status = AcqrsD1_configAvgConfig( inst_, 0, "TriggerTimeout", &int32Arg );
-    if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TriggerTimeut)", __LINE__  ) )
-        return false;
-
-    //-----------------------
-    do {
         int32Arg = 1;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "TimestampClock", &int32Arg);
-        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TimestampClock)", __LINE__  ) )
+        status = AcqrsD1_configAvgConfig( inst_, 0, "NbrSegments", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (NbrSegments)", __LINE__  ) )
             return false;
-    } while (0);
-	
-    do {
-        int32Arg = 1;  // Always on first trigger
-        status = AcqrsD1_configAvgConfig( inst_, 0, "MarkerLatchMode", &int32Arg); 
-        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (MarkerLatchMode)", __LINE__  ) )
-            return false;
-    } while (0);
 
-    do {
-        int32Arg = 1; // invert data for mass spectrum;
-        status = AcqrsD1_configAvgConfig( inst_, 0, "InvertData", &int32Arg); 
-        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (InvertData)", __LINE__  ) )
+        int32Arg = 0;
+        *pStatus = AcqrsD1_configAvgConfig( inst_, 0, "StopDelay", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (StopDelay)", __LINE__  ) )
             return false;
-    } while (0);
+
+        int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "TrigAlways", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TrigAlways)", __LINE__  ) )
+            return false;
+
+        int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "TrigResync", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TrigResync)", __LINE__  ) )
+            return false;
+
+        int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "ThresholdEnable", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (ThresholdEnable)", __LINE__  ) )
+            return false;
+
+        int32Arg = 0;
+        status = AcqrsD1_configAvgConfig( inst_, 0, "TriggerTimeout", &int32Arg );
+        if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TriggerTimeut)", __LINE__  ) )
+            return false;
+
+        //-----------------------
+        do {
+            int32Arg = 1;
+            status = AcqrsD1_configAvgConfig( inst_, 0, "TimestampClock", &int32Arg);
+            if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (TimestampClock)", __LINE__  ) )
+                return false;
+        } while (0);
 	
+        do {
+            int32Arg = 1;  // Always on first trigger
+            status = AcqrsD1_configAvgConfig( inst_, 0, "MarkerLatchMode", &int32Arg); 
+            if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (MarkerLatchMode)", __LINE__  ) )
+                return false;
+        } while (0);
+
+        do {
+            int32Arg = 1; // invert data for mass spectrum;
+            status = AcqrsD1_configAvgConfig( inst_, 0, "InvertData", &int32Arg); 
+            if ( checkError( inst_, status, "AcqrsD1_configAvgConfig (InvertData)", __LINE__  ) )
+                return false;
+        } while (0);
+    }
     return true;
 
 }
@@ -418,11 +433,19 @@ digitizer::digitizer_setup( double delay, double width )
 bool
 digitizer::acquire()
 {
-    return AcqrsD1_acquire( inst_ ) == VI_SUCCESS;
+    auto status = AcqrsD1_acquire( inst_ );
+    checkError( inst_, status, "AcqrsD1_acquie", __LINE__ );
+    return status == VI_SUCCESS;
 }
 
 bool
 digitizer::stop()
 {
     return AcqrsD1_stopAcquisition( inst_ ) == VI_SUCCESS;
+}
+
+double
+digitizer::delayTime() const
+{
+    return delayTime_;
 }

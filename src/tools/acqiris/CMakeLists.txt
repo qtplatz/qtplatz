@@ -84,10 +84,26 @@ add_executable( ${PROJECT_NAME}
   mainwindow.hpp
   task.cpp
   task.hpp
+  tcp_server.cpp
+  tcp_server.hpp
+  tcp_connection.cpp
+  tcp_connection.hpp  
+  tcp_connection_manager.cpp
+  tcp_connection_manager.hpp
+  request_handler.cpp
+  request_handler.hpp
+  request_parser.cpp
+  request_parser.hpp
+  reply.cpp
+  reply.hpp
   waveform.cpp
   waveform.hpp
   acqiris_method.cpp
   acqiris_method.hpp
+  acqiriswidget.cpp
+  acqiriswidget.hpp
+  outputwidget.cpp
+  outputwidget.hpp
   ${chart_dependent_sources}
 #  ${proto_sources}
 #  ${proto_headers}

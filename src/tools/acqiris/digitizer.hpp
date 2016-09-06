@@ -28,6 +28,8 @@
 #include <vector>
 #include <memory>
 
+namespace aqdrv4 { class acqiris_method; }
+
 class digitizer {
 public:
     digitizer() : numInstruments_( 0 )
@@ -42,7 +44,8 @@ public:
     bool initialize();
     bool findDevice();
     bool averager_setup( int nDelay, int nSamples, int nAverage );
-    bool digitizer_setup( double delay, double width );
+
+    bool digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > );    
 
     bool acquire();
     bool stop();
@@ -63,7 +66,7 @@ public:
         std::memset( &segDesc, sizeof(segDesc), 0 );        
 
         AqReadParameters readPar;
-
+        
         readPar.dataType = 0; //ViInt32( sizeof(T)/8 - 1 ); // ReadInt8 = 0, ReadInt16 = 1, ...
         readPar.readMode = ReadModeStdW; /* Single-segment read mode */
         readPar.firstSegment = 0;
@@ -86,6 +89,8 @@ public:
         return status == VI_SUCCESS;
     }
 
+    double delayTime() const;
+
 private:
     ViSession inst_;
     ViInt32 numInstruments_;
@@ -97,7 +102,8 @@ private:
     ViInt32 slot_number_;
     ViInt32 serial_number_;
     ViInt32 nbrSamples_;
-    ViInt32 nStartDelay_;
     ViInt32 nbrWaveforms_;
+    double delayTime_;
+    std::shared_ptr< const aqdrv4::acqiris_method > method_;
 };
 

@@ -92,29 +92,48 @@ task::worker_thread()
 }
 
 void
+task::prepare_for_run( digitizer * digitizer, std::shared_ptr< const aqdrv4::acqiris_method > m )
+{
+    strand_.post( [=] { digitizer->digitizer_setup( m ); } );
+    
+    if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
+        strand_.post( [=] { acquire( digitizer ); } );
+    
+}
+
+void
 task::acquire( digitizer * digitizer )
 {
     static int count = 0;
 
+    if ( std::atomic_flag_test_and_set( &acquire_posted_ ) )
+        strand_.post( [=] { acquire( digitizer ); } );    // scedule for next acquire
+    else
+        std::atomic_flag_clear( &acquire_posted_ ); // keep it false
+    
     using namespace std::chrono_literals;
 
     if ( digitizer->acquire() ) {
+        
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
+
             auto d = std::make_shared< waveform >();
             digitizer->readData( 1, d->dataDesc_, d->segDesc_, d->data_ );
+            d->delayTime_ = digitizer->delayTime();
+
             document::instance()->push( std::move( d ) );
 
             auto tp = std::chrono::system_clock::now();
-            if ( tp - tp_data_handled_ > 200ms ) {
+            if ( tp - tp_data_handled_ > 500ms ) {
                 emit document::instance()->updateData();
                 tp_data_handled_ = tp;
             }
-            // std::cout << "acquire " << count++ << std::endl;
         } else {
-            std::cout << "acquire timed out" << std::endl;
+            std::cout << "acquire timed out " << count++ << std::endl;
         }
     } else {
-        std::cout << "acquire failed." << std::endl;
+        digitizer->stop();
+        std::cout << "acquire failed. " << count++<< std::endl;
+        std::this_thread::sleep_for( 1s );
     }
-    strand_.post( [&] { acquire( digitizer ); } );    // scedule for next acquire
 }

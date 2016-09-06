@@ -75,11 +75,11 @@ namespace aqdrv4 {
         void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.clsid_ );
-            ar & BOOST_SERIALIZATION_NVP( _.mode );
-            ar & BOOST_SERIALIZATION_NVP( _.trig );
-            ar & BOOST_SERIALIZATION_NVP( _.hor );
-            ar & BOOST_SERIALIZATION_NVP( _.ch1 );
-            ar & BOOST_SERIALIZATION_NVP( _.ch2 );
+            ar & BOOST_SERIALIZATION_NVP( _.trig_ );
+            ar & BOOST_SERIALIZATION_NVP( _.hor_ );
+            ar & BOOST_SERIALIZATION_NVP( _.ext_ );            
+            ar & BOOST_SERIALIZATION_NVP( _.ch1_ );
+            ar & BOOST_SERIALIZATION_NVP( _.ch2_ );
         }
     };
 
@@ -106,11 +106,11 @@ namespace aqdrv4 {
         void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.sampInterval );
+            ar & BOOST_SERIALIZATION_NVP( _.delayTime );
+            ar & BOOST_SERIALIZATION_NVP( _.nbrSamples );
             ar & BOOST_SERIALIZATION_NVP( _.mode );
             ar & BOOST_SERIALIZATION_NVP( _.flags );
             ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWaveforms );
-            ar & BOOST_SERIALIZATION_NVP( _.nStartDelay );
-            ar & BOOST_SERIALIZATION_NVP( _.nbrSamples );
         }
     };
     template<> void horizontal_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -169,11 +169,10 @@ acqiris_method::acqiris_method()
 }
 
 acqiris_method::acqiris_method( const acqiris_method& t ) : clsid_( clsid() )
-                                                          , mode( t.mode )
-                                                          , trig( t.trig )
-                                                          , hor( t.hor )
-                                                          , ch1( t.ch1 )
-                                                          , ch2( t.ch2 )
+                                                          , trig_( t.trig_ )
+                                                          , hor_( t.hor_ )
+                                                          , ch1_( t.ch1_ )
+                                                          , ch2_( t.ch2_ )
 {
 }
 
@@ -187,33 +186,71 @@ acqiris_method::clsid()
 std::shared_ptr< trigger_method >
 acqiris_method::mutable_trig()
 {
-    if ( ! trig )
-        trig = std::make_shared< trigger_method >();
-    return trig;
+    if ( ! trig_ )
+        trig_ = std::make_shared< trigger_method >();
+    return trig_;
 }
 
 std::shared_ptr< horizontal_method >
 acqiris_method::mutable_hor()
 {
-    if ( ! hor )
-        hor = std::make_shared< horizontal_method >();
-    return hor;
+    if ( ! hor_ )
+        hor_ = std::make_shared< horizontal_method >();
+    return hor_;
+}
+
+std::shared_ptr< vertical_method >
+acqiris_method::mutable_ext()
+{
+    if ( ! ext_ )
+        ext_ = std::make_shared< vertical_method >();
+    return ch1_;
 }
 
 std::shared_ptr< vertical_method >
 acqiris_method::mutable_ch1()
 {
-    if ( ! ch1 )
-        ch1 = std::make_shared< vertical_method >();
-    return ch1;
+    if ( ! ch1_ )
+        ch1_ = std::make_shared< vertical_method >();
+    return ch1_;
 }
 
 std::shared_ptr< vertical_method >
 acqiris_method::mutable_ch2()
 {
-    if ( ! ch2 )
-        ch2 = std::make_shared< vertical_method >();
-    return ch2;    
+    if ( ! ch2_ )
+        ch2_ = std::make_shared< vertical_method >();
+    return ch2_;    
+}
+
+std::shared_ptr< const trigger_method >
+acqiris_method::trig() const
+{
+    return trig_;
+}
+
+std::shared_ptr< const horizontal_method >
+acqiris_method::hor() const
+{
+    return hor_;
+}
+
+std::shared_ptr< const vertical_method >
+acqiris_method::ext() const
+{
+    return ext_;
+}
+
+std::shared_ptr< const vertical_method >
+acqiris_method::ch1() const
+{
+    return ch1_;
+}
+
+std::shared_ptr< const vertical_method >
+acqiris_method::ch2() const
+{
+    return ch2_;    
 }
 
 

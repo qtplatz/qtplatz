@@ -66,7 +66,6 @@ private:
     void setupEditActions();
     void setupTextActions();
     bool load(const QString &f);
-    bool maybeSave();
     void setCurrentFileName(const QString &fileName);
     void createDockWidgets();
     QDockWidget * createDockWidget( QWidget *, const QString&, const QString& );
@@ -85,15 +84,11 @@ private slots:
     void about();
     void printPreview(QPrinter *);
 
-    void handleFeatureSelected( int );
-    void handleFeatureActivated( int );
-    void handleInstState( int );
     void handleUpdateData();
 
  private:
     QAction *actionSave;
     QToolBar *tb_;
-    QStackedWidget * stacked_;
     QTimer * timer_;
 };
 
