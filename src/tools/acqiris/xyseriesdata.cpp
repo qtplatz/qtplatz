@@ -26,6 +26,8 @@
 #include <AcqirisDataTypes.h>
 #include <ratio>
 
+#define VERTICAL_IN_VOLTS
+
 XYSeriesData::XYSeriesData( std::shared_ptr< const waveform > d ) : d_( d )
 {
     size_t size = d_->dataDesc_.returnedSamplesPerSeg;
@@ -33,8 +35,14 @@ XYSeriesData::XYSeriesData( std::shared_ptr< const waveform > d ) : d_( d )
         
     double xMin = ( d_->delayTime_ ) * std::micro::den;
     double xMax = ( d_->delayTime_ + size * d_->dataDesc_.sampTime ) * std::micro::den;
+
     auto pair = std::minmax_element( d_->data_.begin() + ini, d_->data_.begin() + ini + size );
-    boundingRect_.setCoords( xMin, *pair.second, xMax, *pair.first );
+
+#if defined VERTICAL_IN_VOLTS
+    boundingRect_.setCoords( xMin, d->toVolts( *pair.first ), xMax, d->toVolts( *pair.second ) );
+#else
+    boundingRect_.setCoords( xMin, *pair.first, xMax, *pair.second );
+#endif
 }
 
 size_t
@@ -49,11 +57,14 @@ XYSeriesData::sample( size_t idx ) const
     if ( d_ && ( idx < d_->dataDesc_.returnedSamplesPerSeg ) ) {
 
         idx += d_->dataDesc_.indexFirstPoint;
-        
-        return QPointF( ( d_->delayTime_ + idx * d_->dataDesc_.sampTime ) * std::micro::den
-                        , d_->toVolts( d_->data_[ idx ] ) );
-        
+
+#if defined VERTICAL_IN_VOLTS
+        return QPointF( ( d_->delayTime_ + idx * d_->dataDesc_.sampTime ) * std::micro::den, d_->toVolts( d_->data_[ idx ] ) );
+#else
+        return QPointF( ( d_->delayTime_ + idx * d_->dataDesc_.sampTime ) * std::micro::den, d_->data_[ idx ] );
+#endif
     }
+    return QPointF();
 }
 
 QRectF
@@ -61,3 +72,4 @@ XYSeriesData::boundingRect() const
 {
     return boundingRect_;
 }
+

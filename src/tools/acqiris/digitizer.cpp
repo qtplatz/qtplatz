@@ -182,11 +182,11 @@ digitizer::averager_setup( int nDelay, int nSamples, int nAverage )
     status = AcqrsD1_configMultiInput( inst_, 1, 0 );
     if ( checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  ) )
         return false;
-
+#if 0
     status = AcqrsD1_configChannelCombination( inst_, 2, 1 );
     if ( checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  ) )
         return false;
-
+#endif
 #if 0
     // config "IO A" -- it seems not working for input level
     status = AcqrsD1_configControlIO( inst_, 1, 1, 0, 0 );
@@ -317,8 +317,14 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
         status = AcqrsD1_configHorizontal( inst_, hor->sampInterval, hor->delayTime );
         checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
 
-        status = AcqrsD1_configMemory(inst_, nbrSamples_, nbrSegments);
-        checkError( inst_, status, "configMemory", __LINE__ );
+        if ( (status = AcqrsD1_configMemory( inst_, hor->nbrSamples, nbrSegments )) == ACQIRIS_WARN_SETUP_ADAPTED ) {
+            ViInt32 nbrSamples, nSegments;
+            if ( AcqrsD1_getMemory( inst_, &nbrSamples, &nSegments ) == VI_SUCCESS ) {
+                std::cout << "nbrSamples adapted from " << hor->nbrSamples << " to " << nbrSamples << std::endl;
+                //hor_->nbrSamples = nbrSamples;
+            }
+        } else 
+            checkError( inst_, status, "configMemory", __LINE__ );
     
         status = AcqrsD1_configMode( inst_, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
         checkError( inst_, status, "AcqrsD1_configMode", __LINE__  );

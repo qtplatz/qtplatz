@@ -24,7 +24,11 @@
 #include "mainwindow.hpp"
 #include "acqiris_method.hpp"
 #include "acqiriswidget.hpp"
-#include "chartview.hpp"
+#if defined USING_CHARTS
+# include "chartview.hpp"
+#else
+# include "waveformview.hpp"
+#endif
 #include "document.hpp"
 #include "outputwidget.hpp"
 #include <boost/any.hpp>
@@ -80,10 +84,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         helpMenu->addAction(tr("About"), this, SLOT(about()));
         helpMenu->addAction(tr("About &Qt"), qApp, SLOT(aboutQt()));
     }
-#if 0
-    auto widget = new WaveformView( this );
-#else
+#if defined USING_CHARTS
     auto widget = new ChartView( this );
+#else
+    auto widget = new WaveformView( this );
 #endif
     setCentralWidget( widget );    
 
@@ -328,10 +332,12 @@ void
 MainWindow::handleUpdateData()
 {
     if ( auto wform = document::instance()->recentWaveform() ) {
-        // if ( auto view = findChild< WaveformView * >() )
-        //     view->setData( wform );
-        // else
+#if defined USING_CHARTS
         if ( auto view = findChild< ChartView * >() )
             view->setData( wform );
+#else
+        if ( auto view = findChild< WaveformView * >() )
+            view->setData( wform );
+#endif
     }
 }

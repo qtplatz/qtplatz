@@ -33,6 +33,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/filesystem/path.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -67,6 +68,13 @@ document::~document()
 bool
 document::initialSetup()
 {
+    boost::filesystem::path path ( settings_->fileName().toStdString() );
+
+    auto name = path.parent_path() / "acqiris_method.xml";
+
+    if ( auto m = load( name.string() ) )
+         set_acqiris_method( m );
+    
     return true;
 }
 
@@ -74,6 +82,14 @@ bool
 document::finalClose()
 {
     task::instance()->finalize();
+
+    boost::filesystem::path path ( settings_->fileName().toStdString() );
+    auto name = path.parent_path() / "acqiris_method.xml";
+
+    settings_->setValue( "DefaultMethod", QString::fromStdString( name.string() ) );
+    
+    save( name.string(), method_ );
+    
     return true;
 }
 

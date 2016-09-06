@@ -452,15 +452,15 @@ AcqirisWidget::getContents( std::shared_ptr< aqdrv4::acqiris_method > m ) const
 
     // vertical (Channel 1, Ext. Trig)
     int nid(0);
-    for ( auto ver : { m->mutable_ch1(), m->mutable_ext() } ) {
+    for ( auto& ver : { m->mutable_ch1(), m->mutable_ext() } ) {
         if ( auto parent = model_->item( r_ver + nid++, 0 ) ) {
-
             int row(0);
-            ver->fullScale = model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble();
-            ver->offset = model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble();
-            ver->coupling = model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt();
-            ver->bandwidth = model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt();
-
+            ver->set_fullScale( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble() );
+            ver->set_offset( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble() );
+            ver->set_coupling( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
+            ver->set_bandwidth( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
         }
     }
+    auto& debug0 = *m->ch1();
+    auto& debug1 = *m->ext();    
 }

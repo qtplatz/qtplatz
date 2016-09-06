@@ -96,6 +96,11 @@ namespace aqdrv4 {
                           , invertData( false )
                           , autoScale( true )
             {}
+        void set_fullScale( double );
+        void set_offset( double );
+        void set_coupling( uint32_t );
+        void set_bandwidth( uint32_t );
+        void set_invertData( bool );
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );

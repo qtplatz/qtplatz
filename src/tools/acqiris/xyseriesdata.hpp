@@ -39,8 +39,10 @@ public:
     size_t size() const override;
     QPointF sample( size_t idx ) const override;
     QRectF boundingRect() const override;
+    void setRawVertical( bool );
     
 private:
+    bool rawVertical_;
     std::shared_ptr< const waveform > d_;
     QRectF boundingRect_;
 };

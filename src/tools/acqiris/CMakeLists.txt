@@ -14,8 +14,8 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 set ( CMAKE_CXX_STANDARD 14 )
-
 set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
+set ( USING_CHARTS OFF )
 
 if ( NOT ${CMAKE_BUILD_TYPE} STREQUAL "" )
   string( TOLOWER ${CMAKE_BUILD_TYPE} build_type )
@@ -24,10 +24,6 @@ else()
 endif()
 
 add_definitions( -D_LINUX -D_ACQIRIS )
-
-find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport Charts )
-find_package( Boost COMPONENTS system program_options serialization wserialization )
-find_package( Threads REQUIRED )
 
 set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
 
@@ -48,7 +44,12 @@ endif()
 
 include( ${qtplatz_config} )
 
-include_directories( ${QTPLATZ_INCLUDE_DIRS} )
+find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
+find_package( qwt )
+find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+find_package( Threads REQUIRED )
+
+include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} )
 
 if ( USING_PROTOBUF )
   find_package( Protobuf REQUIRED )
@@ -62,17 +63,22 @@ if ( WIN32 )
   include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
 endif()
 
-set( qwt_dependent_sources
-  waveformview.cpp
-  waveformview.hpp
-  xyseriesdata.cpp
-  xyseriesdata.hpp
-  )
-
-set( chart_dependent_sources
-  chartview.cpp
-  chartview.hpp
-  )
+if ( NOT USING_CHARTS )
+  set( qwt_dependent_sources
+    waveformview.cpp
+    waveformview.hpp
+    xyseriesdata.cpp
+    xyseriesdata.hpp
+    )
+else()
+  add_definitions( -DUSING_CHARTS )
+  find_package( Qt5 CONFIG REQUIRED Charts )
+  set( chart_dependent_sources
+    chartview.cpp
+    chartview.hpp
+    )
+  set( chart_libraries Qt5::Charts )
+endif()
 
 add_executable( ${PROJECT_NAME}
   digitizer.cpp
@@ -104,18 +110,20 @@ add_executable( ${PROJECT_NAME}
   acqiriswidget.hpp
   outputwidget.cpp
   outputwidget.hpp
-  ${chart_dependent_sources}
-#  ${proto_sources}
-#  ${proto_headers}
+  ${chart_dependent_sources} # disable
+  ${qwt_dependent_sources}
+  ${proto_sources}           # disable
+  ${proto_headers}           # disable
   ${Resources}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   AqDrv4
+  ${QWT_LIBRARIES}
   ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
-  Qt5::Charts
+  ${chart_libraries}
   Qt5::Widgets
   Qt5::Svg
   Threads::Threads

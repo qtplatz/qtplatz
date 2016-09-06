@@ -204,7 +204,7 @@ acqiris_method::mutable_ext()
 {
     if ( ! ext_ )
         ext_ = std::make_shared< vertical_method >();
-    return ch1_;
+    return ext_;
 }
 
 std::shared_ptr< vertical_method >
@@ -253,6 +253,36 @@ acqiris_method::ch2() const
     return ch2_;    
 }
 
+
+void
+vertical_method::set_fullScale( double d )
+{
+    fullScale = d;
+}
+
+void
+vertical_method::set_offset( double d )
+{
+    offset = d;
+}
+
+void
+vertical_method::set_coupling( uint32_t d )
+{
+    coupling = d;
+}
+
+void
+vertical_method::set_bandwidth( uint32_t d )
+{
+    bandwidth = d;
+}
+
+void
+vertical_method::set_invertData( bool d )
+{
+    invertData = d;
+}
 
 #if defined USING_PROTOBUF
 void
