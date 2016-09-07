@@ -37,6 +37,7 @@
 #include <QStyleOptionViewItem>
 #include <QVariant>
 #include <QTreeView>
+#include <algorithm>
 #include <iostream>
 #include <ratio>
 
@@ -53,7 +54,9 @@ namespace acqiriswidget {
         data_type type_;
         int precision_;
         size_t den_;
-        std::vector< std::pair< QString, uint32_t > > choice_;
+
+        typedef std::pair< QString, uint32_t > choice_value_type;
+        std::vector< choice_value_type > choice_;
 
         column_type( data_type t = enum_type ) : type_( t ), precision_( -1 ), den_( 1 )
             {}
@@ -75,6 +78,15 @@ namespace acqiriswidget {
         QVariant variant() const {
             return QVariant::fromValue( *this );
         }
+
+        std::vector< choice_value_type >::iterator find( const QVariant& v ) {
+            
+            auto value = den_ == 1 ? v.toUInt() : uint32_t( v.toDouble() * den_ + 0.5 );
+            return
+                std::find_if( choice_.begin(), choice_.end()
+                              , [&]( const std::pair< QString, uint32_t >& t ){ return t.second == value; } );
+        }
+        
     };
 }
 
@@ -87,6 +99,7 @@ class AcqirisWidget::delegate : public QStyledItemDelegate {
     AcqirisWidget * this_;
 
 public:
+
     delegate( AcqirisWidget * owner ) : this_( owner )
         {}
 
@@ -98,16 +111,12 @@ public:
         auto v = index.data( Qt::UserRole + 1 );
         
         if ( index.column() == 1 && !v.isNull() ) {
+            
             auto state = v.value< column_type >();
 
             if ( state.type_ == column_type::enum_type ) {
 
-                auto value = state.den_ == 1 ? index.data( Qt::EditRole ).toUInt()
-                    : uint32_t ( index.data( Qt::EditRole ).toDouble() * state.den_ );
-
-                auto it = std::find_if( state.choice_.begin(), state.choice_.end()
-                                        , [&]( const std::pair< QString, uint32_t >& t ){ return t.second == value; } );
-
+                auto it = state.find( index.data( Qt::EditRole ) );
                 if ( it != state.choice_.end() )
                     painter->drawText( opt.rect, opt.displayAlignment, it->first );
 
@@ -116,7 +125,8 @@ public:
                 if ( index.data( Qt::EditRole ).canConvert< double >() ) {
                     painter->drawText( option.rect
                                        , option.displayAlignment
-                                       , QString::number( index.data( Qt::EditRole ).toDouble() * state.den_, 'f', state.precision_ ) );
+                                       , QString::number( index.data( Qt::EditRole ).toDouble() * state.den_
+                                                          , 'f', state.precision_ ) );
                 }
 
             }
@@ -124,7 +134,7 @@ public:
             QStyledItemDelegate::paint( painter, opt, index );
         }
     }
-    
+
     QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
 
         if ( index.column() == 1 && !index.data( Qt::UserRole + 1 ).isNull() ) {
@@ -134,8 +144,16 @@ public:
             if ( state.type_ == column_type::enum_type ) {
 
                 auto combo = new QComboBox( parent );
+                combo->setGeometry( option.rect );
                 for ( auto& x : state.choice_ )
                     combo->addItem( x.first );
+
+                auto it = state.find( index.data( Qt::EditRole ) );
+                if ( it != state.choice_.end() ) {
+                    int idx = std::distance( state.choice_.begin(), it );
+                    combo->setCurrentIndex( idx );
+                }
+
                 return combo;
                 
             } else if ( state.type_ == column_type::numeric_type ) {
@@ -197,13 +215,20 @@ AcqirisWidget::AcqirisWidget( QWidget * parent ) : QWidget( parent )
     }
 
     connect( model_.get(), &QStandardItemModel::itemChanged, this, [this]( const QStandardItem * item ){
-            static aqdrv4::SubMethodType types [] = { aqdrv4::triggerMethod, aqdrv4::horizontalMethod, aqdrv4::ch1VerticalMethod, aqdrv4::extVerticalMethod };
+            static aqdrv4::SubMethodType types [] = { aqdrv4::triggerMethod, aqdrv4::horizontalMethod
+                                                      , aqdrv4::ch1VerticalMethod, aqdrv4::extVerticalMethod };
             if ( auto parent = item->parent() ) {
                 int row = parent->index().row();
                 if ( row < sizeof( types )/sizeof( types[0] ))
                     emit dataChanged( this, int( types[ row ] ) );
             }
         });
+
+    connect( document::instance(), &document::on_acqiris_method_adapted
+             , this, [this](){
+                 if ( auto adapted = document::instance()->adapted_acqiris_method() )
+                     setContents( adapted );
+             } );
 }
 
 AcqirisWidget::~AcqirisWidget()

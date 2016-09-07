@@ -143,6 +143,23 @@ document::set_acqiris_method( std::shared_ptr< aqdrv4::acqiris_method > p )
     method_ = p;
 }
 
+std::shared_ptr< const aqdrv4::acqiris_method >
+document::adapted_acqiris_method()
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    return adapted_method_;
+}
+
+void
+document::acqiris_method_adapted( std::shared_ptr< aqdrv4::acqiris_method > p )
+{
+    {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        adapted_method_ = p;
+    }
+    emit on_acqiris_method_adapted();
+}
+
 void
 document::set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& server )
 {

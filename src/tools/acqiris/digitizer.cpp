@@ -143,7 +143,7 @@ digitizer::findDevice()
     return false;
 }
 
-bool
+std::shared_ptr< aqdrv4::acqiris_method >
 digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
 {    
     ViStatus status;
@@ -154,12 +154,15 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
     status = AcqrsD1_configMultiInput( inst_, 1, 0 );
     checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
 
+    auto adapted = std::make_shared< aqdrv4::acqiris_method >( *m );
+
     // if ap240
     //status = AcqrsD1_configChannelCombination( inst_, 2, 1 );
     //checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
 
     // vertical setup
     // configVertical( channel = -1 must be done before configTrigSource, see Programmer's Guide p23 )
+
     const int chlist [] = { -1, 1, 2 };
     int idx = 0;
     for ( auto& ver: { m->ext(), m->ch1(), m->ch2() } ) {
@@ -171,15 +174,19 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
                                              , ver->offset     
                                              , ver->coupling   
                                              , ver->bandwidth );
-
+            
             if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
                 ViReal64 fullScale, offset; ViInt32 coupling, bandwidth;
                 if ( AcqrsD1_getVertical( inst_, channel, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
-                    std::cerr << boost::format( "\tfullscale,offset): (%g,%g) <- (%g,%g)" )
-                        % fullScale % offset % ver->fullScale % ver->offset << std::endl;
+                    auto ax = ( idx == 0 ) ? adapted->mutable_ext()
+                        : ( idx == 1 ) ? adapted->mutable_ch1() : adapted->mutable_ch2();
+                    ax->fullScale = fullScale;
+                    ax->offset = offset;
+                    ax->coupling = coupling;
+                    ax->bandwidth = bandwidth;
                 }
             } else if ( status != VI_SUCCESS )
-                checkError( inst_, status, "AcqrsD1_configVertical", __LINE__ );
+                checkError( inst_, status, ( boost::format( "AcqrsD1_configVertical (%d)" ) % channel ).str().c_str(), __LINE__ );
         }
     }
     
@@ -188,11 +195,15 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
         ViInt32 trigClass( trig->trigClass ), trigPattern( trig->trigPattern ), a(0), b(0);
         ViReal64 c(0), d(0);
 
-        if ( ( status = AcqrsD1_configTrigClass( inst_, trig->trigClass, trig->trigPattern, 0, 0, 0, 0 ) )
-             == ACQIRIS_WARN_SETUP_ADAPTED ) {
-            if ( AcqrsD1_getTrigClass( inst_, &trigClass, &trigPattern, &a, &b, &c, &d ) == VI_SUCCESS )
+        if ( ( status =
+               AcqrsD1_configTrigClass( inst_, trig->trigClass, trig->trigPattern, 0, 0, 0, 0 ) ) == ACQIRIS_WARN_SETUP_ADAPTED ) {
+            if ( AcqrsD1_getTrigClass( inst_, &trigClass, &trigPattern, &a, &b, &c, &d ) == VI_SUCCESS ) {
                 std::cout << boost::format( "\ttrigClass: %x <- %x, trigPattern: %x <- %x")
                     % trigClass % trig->trigClass % trigPattern % trig->trigPattern << std::endl;
+                auto ax = adapted->mutable_trig();
+                ax->trigClass = trigClass;
+                ax->trigPattern = trigPattern;
+            }
         }
         checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
 
@@ -222,6 +233,9 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
                         % ( sampInterval * std::nano::den )
                         % ( hor->sampInterval * std::nano::den )
                         % delayTime_ % hor->delayTime;
+                    auto ax = adapted->mutable_hor();
+                    ax->sampInterval = sampInterval;
+                    ax->delayTime = delayTime_;
                 }
             } else
                 checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
@@ -233,8 +247,10 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
                 if ( AcqrsD1_getMemory( inst_, &nbrSamples_, &nSegments ) == VI_SUCCESS )
 
                     if ( hor->nbrSamples != nbrSamples_ ) {
-                        checkError( inst_, status, "AcqrsD1_configMemory", __LINE__ );
                         std::cout << "\tnbrSamples adapted from " << hor->nbrSamples << " to " << nbrSamples_ << std::endl;
+                        checkError( inst_, status, "AcqrsD1_configMemory", __LINE__ );
+                        auto ax = adapted->mutable_hor();
+                        ax->nbrSamples = nbrSamples_;
                     }
             } else
                 checkError( inst_, status, "AcqrsD1_configMemory", __LINE__ );
@@ -244,7 +260,7 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
         checkError( inst_, status, "AcqrsD1_configMode", __LINE__  );
     }
 
-    return true;
+    return adapted;
 }
 
 bool

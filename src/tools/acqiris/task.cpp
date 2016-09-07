@@ -94,7 +94,10 @@ task::worker_thread()
 void
 task::prepare_for_run( digitizer * digitizer, std::shared_ptr< const aqdrv4::acqiris_method > m )
 {
-    strand_.post( [=] { digitizer->digitizer_setup( m ); } );
+    strand_.post( [=] {
+            auto adapted = digitizer->digitizer_setup( m );
+            document::instance()->acqiris_method_adapted( adapted );
+        } );
     
     if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
         strand_.post( [=] { acquire( digitizer ); } );

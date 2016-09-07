@@ -49,7 +49,7 @@ public:
     bool initialize();
     bool findDevice();
     
-    bool digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > );    
+    std::shared_ptr< aqdrv4::acqiris_method > digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > );    
     bool acquire();
     bool stop();
 

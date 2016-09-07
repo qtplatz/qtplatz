@@ -67,7 +67,9 @@ public:
     std::shared_ptr< waveform > recentWaveform();
 
     std::shared_ptr< const aqdrv4::acqiris_method > acqiris_method();
+    std::shared_ptr< const aqdrv4::acqiris_method > adapted_acqiris_method();
     void set_acqiris_method( std::shared_ptr< aqdrv4::acqiris_method > );
+    void acqiris_method_adapted( std::shared_ptr< aqdrv4::acqiris_method > );
 
     void set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& );
 
@@ -78,11 +80,13 @@ public:
 
 signals:
     void updateData();
+    void on_acqiris_method_adapted();
     
 private:
     std::mutex mutex_;
     std::deque< std::shared_ptr< waveform > > que_;
     std::shared_ptr< aqdrv4::acqiris_method > method_;
+    std::shared_ptr< aqdrv4::acqiris_method > adapted_method_;
     std::unique_ptr< aqdrv4::server::tcp_server > server_;
     std::unique_ptr< QSettings > settings_;
 };
