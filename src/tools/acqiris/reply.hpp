@@ -18,7 +18,7 @@
 namespace aqdrv4 {
     namespace server {
 
-/// A reply to be sent to a client.
+        /// A reply to be sent to a client.
         struct reply {
             /// The status of the reply.
             enum status_type

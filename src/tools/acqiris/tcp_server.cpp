@@ -11,6 +11,7 @@
 #include "tcp_server.hpp"
 #include <signal.h>
 #include <utility>
+#include <iostream>
 
 using namespace aqdrv4::server;
 
@@ -20,7 +21,7 @@ tcp_server::tcp_server(const std::string& address, const std::string& port )
       acceptor_(io_service_),
       connection_manager_(),
       socket_(io_service_),
-      request_handler_(".")
+      request_handler_()
 {
     // Register to handle the signals that indicate when the server should exit.
     // It is safe to register for the same signal multiple times in a program,
@@ -34,7 +35,7 @@ tcp_server::tcp_server(const std::string& address, const std::string& port )
     do_await_stop();
 
     // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
-    boost::asio::ip::tcp::resolver resolver(io_service_);
+    boost::asio::ip::tcp::resolver resolver( io_service_ );
     boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, port});
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -55,10 +56,16 @@ tcp_server::run()
 }
 
 void
+tcp_server::stop()
+{
+    io_service_.stop();
+}
+
+void
 tcp_server::do_accept()
 {
     acceptor_.async_accept(socket_,
-                           [this](boost::system::error_code ec) {
+                           [this]( boost::system::error_code ec ) {
                                // Check whether the server was stopped by a signal before this
                                // completion handler had a chance to run.
                                if ( !acceptor_.is_open() )  {

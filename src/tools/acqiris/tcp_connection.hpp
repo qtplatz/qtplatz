@@ -13,7 +13,7 @@
 #include <array>
 #include <memory>
 #include <boost/asio.hpp>
-#include "reply.hpp"
+//#include "reply.hpp"
 #include "request.hpp"
 #include "request_handler.hpp"
 #include "request_parser.hpp"
@@ -64,7 +64,10 @@ namespace aqdrv4 {
             request_parser request_parser_;
 
             /// The reply to be sent back to the client.
-            reply reply_;
+            // reply reply_;
+
+            boost::asio::streambuf ack_;
+            boost::asio::streambuf response_;
         };
 
         typedef std::shared_ptr<connection> connection_ptr;

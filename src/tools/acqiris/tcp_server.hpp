@@ -31,6 +31,7 @@ namespace aqdrv4 {
 
             /// Run the server's io_service loop.
             void run();
+            void stop();
 
         private:
             /// Perform an asynchronous accept operation.

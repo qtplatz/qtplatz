@@ -28,6 +28,7 @@
 #include "digitizer.hpp"
 #include "task.hpp"
 #include "tcp_server.hpp"
+#include "tcp_client.hpp"
 #include "waveform.hpp"
 #include <QSettings>
 #include <boost/serialization/nvp.hpp>
@@ -36,6 +37,8 @@
 #include <boost/filesystem/path.hpp>
 #include <fstream>
 #include <iostream>
+
+static std::once_flag flag;
 
 document *
 document::instance()
@@ -82,6 +85,13 @@ bool
 document::finalClose()
 {
     task::instance()->finalize();
+
+    if ( ! tcp_threads_.empty() ) {
+        if ( server_ )
+            server_->stop();
+        for ( auto& t: tcp_threads_ )
+            t.join();
+    }
 
     boost::filesystem::path path ( settings_->fileName().toStdString() );
     auto name = path.parent_path() / "acqiris_method.xml";
@@ -164,6 +174,18 @@ void
 document::set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& server )
 {
     server_ = std::move( server );
+    std::call_once( flag, [&](){
+            tcp_threads_.emplace_back( std::thread( [&]{ server_->run(); } ) );
+        });
+}
+
+void
+document::set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& client )
+{
+    client_ = std::move( client );
+    std::call_once( flag, [&](){
+            tcp_threads_.emplace_back( std::thread( [&]{ client_->run(); } ) );
+        });    
 }
 
 bool

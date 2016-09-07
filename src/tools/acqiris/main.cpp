@@ -26,6 +26,7 @@
 #include "acqiris_method.hpp"
 #include "document.hpp"
 #include "tcp_server.hpp"
+#include "tcp_client.hpp"
 #include "task.hpp"
 #include <QApplication>
 #if defined USING_PROTOBUF
@@ -50,11 +51,10 @@ main(int argc, char *argv[])
         description.add_options()
             ( "help,h",    "Display this help message" )
             ( "server",    "Run as server" )
-            ( "connect",  po::value< std::string >()->default_value( "localhost" ), "connect to server" )
-            ( "port",     po::value< std::string >()->default_value( "8000" ), "aqdrv4 port numer" )
-            ( "recv",     po::value< std::string >()->default_value( "0.0.0.0" ), "For IPv4 0.0.0.0, IPv6, try 0::0" )
-            ( "save",     po::value< std::string >(), "save method to file" )
-            ( "load",     po::value< std::string >(), "load method from file" )
+            ( "port",      po::value< std::string >()->default_value( "8010" ), "aqdrv4 port numer" )
+            ( "connect",   po::value< std::string >(), "connect to server" )
+            ( "recv",      po::value< std::string >()->default_value( "0.0.0.0" ), "For IPv4 0.0.0.0, IPv6, try 0::0" )
+            ( "load",      po::value< std::string >(), "load method from file" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -74,14 +74,21 @@ main(int argc, char *argv[])
         document::instance()->set_acqiris_method( document::load( vm[ "load" ].as< std::string >() ) );
     }
 
+    bool isClient( false );
+
     if ( vm.count( "server" ) ) {
         
         document::instance()->set_server(
-            std::make_unique< aqdrv4::server::tcp_server >( vm["recv"].as< std::string >()
-                                                            , vm["port"].as< std::string >() ) );
+            std::make_unique< aqdrv4::server::tcp_server >(
+                vm["recv"].as< std::string >(), vm["port"].as< std::string >() ) );
+
     } else if ( vm.count( "connect" ) ) {
 
-        // document::instance()->tcp_connect( vm["connect"].as< std::string >(), vm["port"].as< std::string >() );
+        isClient = true;
+        
+        document::instance()->set_client(
+            std::make_unique< aqdrv4::client::tcp_client >(
+                vm["connect"].as< std::string >(), vm["port"].as< std::string >() ) );
     }
 
     document::instance()->set_acqiris_method( m );
@@ -90,14 +97,10 @@ main(int argc, char *argv[])
     w.resize( 800, 600 );
     w.onInitialUpdate();
 
-    document::instance()->digitizer_initialize();
+    if ( !isClient )
+        document::instance()->digitizer_initialize();
 
     w.show();
 
     a.exec();
-
-    if ( vm.count( "save" ) ) {
-        document::save( vm[ "save" ].as< std::string >(), document::instance()->acqiris_method() );
-    }
-    
 }

@@ -44,7 +44,8 @@ public:
     static task * instance();
     bool initialize();
     bool finalize();
-    
+
+    inline boost::asio::io_service& io_service() { return io_service_; }    
     inline boost::asio::io_service::strand& strand() { return strand_; }
 
     void prepare_for_run( digitizer *, std::shared_ptr< const aqdrv4::acqiris_method > );

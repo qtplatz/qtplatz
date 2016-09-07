@@ -44,6 +44,9 @@ namespace aqdrv4 {
     namespace server {
         class tcp_server;
     }
+    namespace client {
+        class tcp_client;
+    }
 }
 
 class AcqirisWidget;
@@ -72,6 +75,7 @@ public:
     void acqiris_method_adapted( std::shared_ptr< aqdrv4::acqiris_method > );
 
     void set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& );
+    void set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& );
 
     static bool save( const std::string& file, std::shared_ptr< const aqdrv4::acqiris_method > );
     static std::shared_ptr< aqdrv4::acqiris_method > load( const std::string& file );
@@ -88,5 +92,7 @@ private:
     std::shared_ptr< aqdrv4::acqiris_method > method_;
     std::shared_ptr< aqdrv4::acqiris_method > adapted_method_;
     std::unique_ptr< aqdrv4::server::tcp_server > server_;
+    std::unique_ptr< aqdrv4::client::tcp_client > client_;
     std::unique_ptr< QSettings > settings_;
+    std::vector< std::thread > tcp_threads_;
 };

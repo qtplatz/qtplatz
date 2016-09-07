@@ -81,6 +81,12 @@ else()
 endif()
 
 add_executable( ${PROJECT_NAME}
+  acqiris_method.cpp
+  acqiris_method.hpp
+  acqiris_protocol.cpp
+  acqiris_protocol.hpp
+  acqiriswidget.cpp
+  acqiriswidget.hpp
   digitizer.cpp
   digitizer.hpp
   document.cpp
@@ -96,6 +102,8 @@ add_executable( ${PROJECT_NAME}
   tcp_connection.hpp  
   tcp_connection_manager.cpp
   tcp_connection_manager.hpp
+  tcp_client.cpp
+  tcp_client.hpp
   request_handler.cpp
   request_handler.hpp
   request_parser.cpp
@@ -104,10 +112,6 @@ add_executable( ${PROJECT_NAME}
   reply.hpp
   waveform.cpp
   waveform.hpp
-  acqiris_method.cpp
-  acqiris_method.hpp
-  acqiriswidget.cpp
-  acqiriswidget.hpp
   outputwidget.cpp
   outputwidget.hpp
   ${chart_dependent_sources} # disable
