@@ -461,6 +461,4 @@ AcqirisWidget::getContents( std::shared_ptr< aqdrv4::acqiris_method > m ) const
             ver->set_bandwidth( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
         }
     }
-    auto& debug0 = *m->ch1();
-    auto& debug1 = *m->ext();    
 }

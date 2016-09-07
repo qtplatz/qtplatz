@@ -30,6 +30,11 @@
 
 namespace aqdrv4 { class acqiris_method; }
 
+template< typename T = int8_t > struct readMode {  inline static int value(); };
+template<> inline int readMode<int8_t>::value() { return 0; };
+template<> inline int readMode<int16_t>::value() { return 1; };
+template<> inline int readMode<int32_t>::value() { return 2; };
+
 class digitizer {
 public:
     digitizer() : numInstruments_( 0 )
@@ -43,10 +48,8 @@ public:
     
     bool initialize();
     bool findDevice();
-    bool averager_setup( int nDelay, int nSamples, int nAverage );
-
+    
     bool digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > );    
-
     bool acquire();
     bool stop();
 
@@ -59,15 +62,15 @@ public:
     static std::string error_msg( int status, const char * ident );
     static bool checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg = 0 );
 
-    template<typename T >
-    bool readData( int channel, AqDataDescriptor& dataDesc, AqSegmentDescriptor& segDesc, std::vector<T>& data ) {
+    template<typename T>
+    bool readData( int channel, AqDataDescriptor& dataDesc, AqSegmentDescriptor& segDesc, std::vector<int32_t>& data ) {
         
         std::memset( &dataDesc, sizeof(dataDesc), 0 );
         std::memset( &segDesc, sizeof(segDesc), 0 );        
 
         AqReadParameters readPar;
-        
-        readPar.dataType = 0; //ViInt32( sizeof(T)/8 - 1 ); // ReadInt8 = 0, ReadInt16 = 1, ...
+
+        readPar.dataType = readMode<T>::value();
         readPar.readMode = ReadModeStdW; /* Single-segment read mode */
         readPar.firstSegment = 0;
         readPar.nbrSegments = 1;
@@ -76,13 +79,13 @@ public:
         readPar.segmentOffset = 0;
         readPar.dataArraySize = (nbrSamples_ + 32) * sizeof(T);
         readPar.segDescArraySize = sizeof(AqSegmentDescriptor);
-        data.resize( nbrSamples_ + 32 );
         readPar.flags = 0;
         readPar.reserved = 0;
         readPar.reserved2 = 0;
         readPar.reserved3 = 0;
 
-        //std::cout << "number-of-samples: " << nbrSamples_ << std::endl;
+        data.resize( ( ( ( nbrSamples_ + 32 ) * sizeof(T) ) + (sizeof(int32_t)-1) ) / sizeof( int32_t ) );
+
         auto status = AcqrsD1_readData( inst_, 1, &readPar, data.data(), &dataDesc, &segDesc );
         checkError( inst_, status, "AcqirisD1_readData", __LINE__  );
 
@@ -95,7 +98,6 @@ private:
     ViSession inst_;
     ViInt32 numInstruments_;
     std::string device_name_;
-    std::string model_name_;
     bool initialized_;
     bool bSimulated_;
     ViInt32 bus_number_;

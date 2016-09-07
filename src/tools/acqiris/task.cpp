@@ -117,9 +117,10 @@ task::acquire( digitizer * digitizer )
         
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
 
-            auto d = std::make_shared< waveform >();
-            digitizer->readData( 1, d->dataDesc_, d->segDesc_, d->data_ );
-            d->delayTime_ = digitizer->delayTime();
+            auto d = std::make_shared< waveform >( sizeof( int8_t ) );
+
+            digitizer->readData<int8_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
+            d->delayTime() = digitizer->delayTime();
 
             document::instance()->push( std::move( d ) );
 

@@ -30,13 +30,13 @@
 
 XYSeriesData::XYSeriesData( std::shared_ptr< const waveform > d ) : d_( d )
 {
-    size_t size = d_->dataDesc_.returnedSamplesPerSeg;
-    size_t ini = d_->dataDesc_.indexFirstPoint;
+    size_t size = d_->dataDesc().returnedSamplesPerSeg;
+    size_t ini = d_->dataDesc().indexFirstPoint;
         
-    double xMin = ( d_->delayTime_ ) * std::micro::den;
-    double xMax = ( d_->delayTime_ + size * d_->dataDesc_.sampTime ) * std::micro::den;
+    double xMin = ( d_->delayTime() ) * std::micro::den;
+    double xMax = ( d_->delayTime() + size * d_->dataDesc().sampTime ) * std::micro::den;
 
-    auto pair = std::minmax_element( d_->data_.begin() + ini, d_->data_.begin() + ini + size );
+    auto pair = std::minmax_element( d_->begin<int8_t>() + ini, d_->end< int8_t >() );
 
 #if defined VERTICAL_IN_VOLTS
     boundingRect_.setCoords( xMin, d->toVolts( *pair.first ), xMax, d->toVolts( *pair.second ) );
@@ -48,20 +48,18 @@ XYSeriesData::XYSeriesData( std::shared_ptr< const waveform > d ) : d_( d )
 size_t
 XYSeriesData::size() const
 {
-    return d_ ? d_->dataDesc_.returnedSamplesPerSeg : 0;
+    return d_ ? d_->dataDesc().returnedSamplesPerSeg : 0;
 }
 
 QPointF
 XYSeriesData::sample( size_t idx ) const
 {
-    if ( d_ && ( idx < d_->dataDesc_.returnedSamplesPerSeg ) ) {
-
-        idx += d_->dataDesc_.indexFirstPoint;
-
+    if ( d_ && ( idx < d_->size() ) ) {
+            
 #if defined VERTICAL_IN_VOLTS
-        return QPointF( ( d_->delayTime_ + idx * d_->dataDesc_.sampTime ) * std::micro::den, d_->toVolts( d_->data_[ idx ] ) );
+        return QPointF( d_->time( idx ) * std::micro::den, d_->toVolts( (*d_)[ idx ] ) ); // mV
 #else
-        return QPointF( ( d_->delayTime_ + idx * d_->dataDesc_.sampTime ) * std::micro::den, d_->data_[ idx ] );
+        return QPointF( d_->time( idx ) * std::micro::den, *d_[ idx ] );        
 #endif
     }
     return QPointF();

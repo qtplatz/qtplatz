@@ -25,34 +25,110 @@
 
 #include <AcqirisImport.h> 
 #include <AcqirisD1Import.h>
-#include <cstring>
-#include <string>
 #include <vector>
-#include <memory>
+#include <ratio>
 
 class waveform {
+
     waveform( const waveform& ) = delete;
-    waveform& operator = ( const waveform& ) = delete;
+    void operator = ( const waveform& ) = delete;
+
 public:
-    waveform();
-    inline size_t size() const {
-        return dataDesc_.returnedSamplesPerSeg;
+    waveform( int32_t dataType = sizeof( int8_t ) );
+
+    typedef int32_t value_type; // (internal data holder type) referenced from archiver in WaveformObserver
+            
+    template< typename value_t > const value_t* begin() const;
+    template< typename value_t > const value_t* end() const;
+    template< typename value_t > const value_t* data() const;
+    template< typename value_t > value_t* data();
+
+    template<typename T> void advance( const T*& it, size_t distance ) const {
+        it = ( distance && distance < size_t( std::distance( it, end<T>() ) ) ? it + distance : end<T>() );
     }
-    inline int16_t operator [] ( size_t idx ) const {
-        return data_[ idx + dataDesc_.indexFirstPoint ];
+
+    int operator [] ( size_t idx ) const;
+
+    double time( size_t idx ) const {
+        return idx * dataDesc_.sampTime + segDesc_.horPos + delayTime_;        
     }
-    inline std::vector< int16_t >::const_iterator begin() const {
-        return data_.begin() + dataDesc_.indexFirstPoint;
+
+    double toVolts( int d, int scale = std::milli::den ) const {
+        return ( dataDesc_.vGain * d - dataDesc_.vOffset ) * scale ;
     }
-    inline std::vector< int16_t >::const_iterator end() const {
-        return data_.begin() + dataDesc_.indexFirstPoint + size();
+
+    size_t size() const;
+
+    int dataType() const; // 1 - int8_t, 2 = int16_t, 4 = int32_t
+
+    value_type * data( size_t size );
+    const value_type * data() const;
+    size_t data_size() const;
+
+    inline const AqDataDescriptor& dataDesc() const {
+        return dataDesc_;
     }
-    inline double time( size_t idx ) const {
-        return delayTime_ + ( idx * dataDesc_.sampTime );
+
+    inline const AqSegmentDescriptor& segDesc() const {
+        return segDesc_;
     }
+
+    inline AqDataDescriptor& dataDesc() {
+        return dataDesc_;
+    }
+
+    inline AqSegmentDescriptor& segDesc() {
+        return segDesc_;
+    }
+
+    inline double delayTime() const {
+        return delayTime_;
+    }
+
+    inline double& delayTime() {
+        return delayTime_;
+    }
+
+    inline uint64_t timeStamp() const {
+        return uint64_t( segDesc_.timeStampHi ) << 32 | segDesc_.timeStampLo;        
+    }
+
+    inline double xIncrement() const {
+        return dataDesc_.sampTime;
+    }
+
+    inline double vOffset() const {
+        return dataDesc_.vOffset;
+    }
+
+    inline std::vector< value_type >& d() {
+        return d_;
+    }
+
+    inline int32_t& dataType() {
+        return dataType_;
+    }    
+private:
+    std::vector< value_type > d_;
+    uint64_t serialnumber_;
+    uint32_t wellKnownEvents_;
     double delayTime_;
     AqDataDescriptor dataDesc_;
     AqSegmentDescriptor segDesc_;
-    std::vector< int16_t > data_;
-    double toVolts( int16_t ) const;
+    int32_t dataType_; // actual data type (sizeof(int8_t), sizeof(int32_t) ...)
 };
+
+template<> const int8_t * waveform::begin() const;
+template<> const int8_t * waveform::end() const;
+template<> const int16_t * waveform::begin() const;
+template<> const int16_t * waveform::end() const;
+template<> const int32_t * waveform::begin() const;
+template<> const int32_t * waveform::end() const;
+
+template<> int8_t * waveform::data();
+template<> const int8_t * waveform::data() const;        
+template<> int16_t * waveform::data();
+template<> const int16_t * waveform::data() const;
+template<> int32_t * waveform::data();
+template<> const int32_t * waveform::data() const;
+

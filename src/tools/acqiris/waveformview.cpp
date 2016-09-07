@@ -140,14 +140,17 @@ WaveformView::setData( std::shared_ptr< const waveform > d )
 
     auto rect = data->boundingRect();
     
-    uint64_t ts = uint64_t( d->segDesc_.timeStampHi ) << 32 | d->segDesc_.timeStampLo;
+    uint64_t ts = d->timeStamp();
     if ( ts == 0 ) {
         static uint64_t counter = 0;
-        ts = ++counter;
+        ts = ++counter * std::pico::den;
     }
 
-    setFooter( QString::fromStdString( ( boost::format( "min/max=%g/%g gain=%g offs=%g" )
-                                         % rect.top() % rect.bottom() % d->dataDesc_.vGain % d->dataDesc_.vOffset ).str() ) );
+    setFooter( QString::fromStdString( ( boost::format( "min/max=%g/%g sampTime=%gns offs=%g" )
+                                         % rect.bottom()
+                                         % rect.top()
+                                         % ( d->xIncrement() * std::nano::den )
+                                         % d->vOffset() ).str() ) );
     
     setTitle( ( boost::format( "Time: %.4f" ) % (double(ts) / std::pico::den) ).str().c_str() );
 
