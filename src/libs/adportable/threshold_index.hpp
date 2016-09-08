@@ -33,13 +33,14 @@ namespace adportable {
         uint32_t second;
         uint32_t apex;
         int16_t value;
+        int16_t base;
 
         threshold_index( uint32_t _first = 0
                          , uint32_t _second = 0
                          , uint32_t _apex = 0
-                         , uint16_t _value = 0 )
-            : first(_first), second(_second), apex(_apex), value(_value) {
+                         , int16_t _value = 0
+                         , int16_t _base = 0 )
+            : first(_first), second(_second), apex(_apex), value(_value), base(_base) {
         }
     };
-
 }

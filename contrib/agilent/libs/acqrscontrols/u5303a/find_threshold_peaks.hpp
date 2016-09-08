@@ -31,6 +31,7 @@
 #include <adcontrols/countingmethod.hpp>
 #include <adportable/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
+#include <adportable/peak_finder.hpp>
 #include <adportable/debug.hpp>
 #include <cstdint>
 
@@ -38,32 +39,32 @@ namespace acqrscontrols {
 
     template< typename waveform_type = u5303a::waveform >
     class find_threshold_peaks {
+
         const adcontrols::threshold_method& method;
         const adcontrols::CountingMethod& ranges;
-    public:
-        find_threshold_peaks( const adcontrols::threshold_method& _method
-                              , const adcontrols::CountingMethod& _ranges ) : method( _method )
-                                                                            , ranges( _ranges )
-            {}
 
+    public:
+        find_threshold_peaks( const adcontrols::threshold_method& m
+                              , const adcontrols::CountingMethod& r ) : method( m )
+                                                                      , ranges( r )
+            {}
+        
         template< typename result_value_type >
         void operator () ( const waveform_type& data
                            , std::vector< result_value_type >& elements
                            , std::vector< double >& processed ) {
             
-            const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-            const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
+            // const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
+            assert ( method.algo_ == adcontrols::threshold_method::Deferential );
 
-            double level;
+            double level = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
             if ( method.use_filter ) {
                 waveform_type::apply_filter( processed, data, method );
                 level = method.threshold_level;
-            } else {
-                size_t nAverages = data.meta_.actualAverages ? data.meta_.actualAverages : 1;
-                level = ( ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor ) * nAverages;
             }
 
-            adportable::threshold_finder finder( findUp, nfilter );
+            // adportable::threshold_finder finder( findUp, nfilter );
+            adportable::peak_finder finder( method.slope == adcontrols::threshold_method::CrossUp ); // Pos | Neg
 
             if ( ranges.enable() ) {
 
@@ -77,14 +78,11 @@ namespace acqrscontrols {
                             size_t eoffs = offs.first + offs.second;
                             adportable::average averager;
                             if ( method.use_filter ) {
-                                double base = averager( processed.begin() + offs.first, offs.second );
-                                finder( processed.begin(), processed.begin() + eoffs, elements, level + base, offs.first  );
+                                finder( processed.begin(), processed.begin() + eoffs, elements, level, offs.first  );
                             } else if ( data.meta_.dataType == 2 ) {
-                                double base = averager( data.template begin<int16_t>() + offs.first, offs.second );
-                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level + base, offs.first );
+                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level, offs.first );
                             } else if ( data.meta_.dataType == 4 ) {
-                                double base = averager( data.template begin<int32_t>() + offs.first, offs.second );
-                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level + base, offs.first );
+                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level, offs.first );
                             }
                         }
                     }

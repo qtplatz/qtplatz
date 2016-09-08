@@ -92,6 +92,10 @@ namespace acqrscontrols {
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
                 processThreshold2( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
 
+            // peak detection (on trial)
+            std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
+                processThreshold3( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+            
             bool accumulate_waveform( std::shared_ptr< const waveform_type > );
 
             bool accumulate_histogram( const_threshold_result_ptr );
