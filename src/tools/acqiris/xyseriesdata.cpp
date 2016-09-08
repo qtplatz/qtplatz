@@ -36,13 +36,16 @@ XYSeriesData::XYSeriesData( std::shared_ptr< const waveform > d ) : d_( d )
     double xMin = ( d_->delayTime() ) * std::micro::den;
     double xMax = ( d_->delayTime() + size * d_->dataDesc().sampTime ) * std::micro::den;
 
-    auto pair = std::minmax_element( d_->begin<int8_t>() + ini, d_->end< int8_t >() );
-
-#if defined VERTICAL_IN_VOLTS
-    boundingRect_.setCoords( xMin, d->toVolts( *pair.first ), xMax, d->toVolts( *pair.second ) );
-#else
-    boundingRect_.setCoords( xMin, *pair.first, xMax, *pair.second );
-#endif
+    if ( d->dataType() == sizeof( int8_t ) ) {
+        auto pair = std::minmax_element( d_->begin<int8_t>() + ini, d_->end< int8_t >() );
+        boundingRect_.setCoords( xMin, d->toVolts( *pair.first ), xMax, d->toVolts( *pair.second ) );
+    } else if ( d->dataType() == sizeof( int16_t ) ) {
+        auto pair = std::minmax_element( d_->begin<int16_t>() + ini, d_->end< int16_t >() );
+        boundingRect_.setCoords( xMin, d->toVolts( *pair.first ), xMax, d->toVolts( *pair.second ) );        
+    } else if ( d->dataType() == sizeof( int32_t ) ) {
+        auto pair = std::minmax_element( d_->begin<int32_t>() + ini, d_->end< int32_t >() );
+        boundingRect_.setCoords( xMin, d->toVolts( *pair.first ), xMax, d->toVolts( *pair.second ) );        
+    }
 }
 
 size_t
