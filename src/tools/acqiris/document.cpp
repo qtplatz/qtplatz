@@ -126,20 +126,24 @@ document::digitizer_initialize()
 void
 document::push( std::shared_ptr< waveform >&& d )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
+
     if ( que_.size() >= 4096 ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
 
         double rate = ( que_.back()->timeStamp() - que_.front()->timeStamp() ) / que_.size();
-        std::cout << "avrage trig. interval: " << rate * std::milli::den << "ms" << std::endl;
+        std::cout << "avrage trig. interval: " << rate / std::nano::den << "s" << std::endl;
 
-        que_.erase( que_.begin(), que_.begin() + que_.size() / 2 );
+        que_.erase( que_.begin(), que_.begin() + ( que_.size() - 2048 ) );
     }
 }
 
 std::shared_ptr< waveform >
 document::recentWaveform()
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     if ( !que_.empty() )
         return que_.back();
     return nullptr;

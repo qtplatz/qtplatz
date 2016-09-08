@@ -120,10 +120,12 @@ task::acquire( digitizer * digitizer )
         
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
 
-            auto d = std::make_shared< waveform >( sizeof( int8_t ) );
+            typedef int8_t datum_type;
+
+            auto d = std::make_shared< waveform >( sizeof( datum_type ) );
             static uint64_t serialCounter_ = 0;
 
-            digitizer->readData<int8_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
+            digitizer->readData<datum_type>( 1, d->dataDesc(), d->segDesc(), d->d() );
             d->delayTime() = digitizer->delayTime();
             d->serialNumber() = serialCounter_++;
 
