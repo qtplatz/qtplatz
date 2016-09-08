@@ -6,11 +6,11 @@ set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
-if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
-  find_package( Qt5 CONFIG REQUIRED WebKitWidgets )  
-else()
-  find_package( Qt5 CONFIG REQUIRED WebEngineWidgets )
-endif()
+#if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
+#  find_package( Qt5 CONFIG REQUIRED WebKitWidgets )  
+#else()
+#  find_package( Qt5 CONFIG REQUIRED WebEngineWidgets )
+#endif()
 
 find_package( qwt )
 find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
