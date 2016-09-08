@@ -81,6 +81,14 @@ public:
         return segDesc_;
     }
 
+    inline uint64_t serialNumber() const {
+        return serialnumber_;
+    }
+
+    inline uint64_t& serialNumber() {
+        return serialnumber_;
+    }
+
     inline double delayTime() const {
         return delayTime_;
     }

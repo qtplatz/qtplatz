@@ -245,7 +245,7 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
             if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
                 ViInt32 nSegments;
                 if ( AcqrsD1_getMemory( inst_, &nbrSamples_, &nSegments ) == VI_SUCCESS )
-
+                    
                     if ( hor->nbrSamples != nbrSamples_ ) {
                         std::cout << "\tnbrSamples adapted from " << hor->nbrSamples << " to " << nbrSamples_ << std::endl;
                         checkError( inst_, status, "AcqrsD1_configMemory", __LINE__ );

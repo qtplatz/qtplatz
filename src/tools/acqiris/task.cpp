@@ -121,14 +121,16 @@ task::acquire( digitizer * digitizer )
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
 
             auto d = std::make_shared< waveform >( sizeof( int8_t ) );
+            static uint64_t serialCounter_ = 0;
 
             digitizer->readData<int8_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
             d->delayTime() = digitizer->delayTime();
+            d->serialNumber() = serialCounter_++;
 
             document::instance()->push( std::move( d ) );
 
             auto tp = std::chrono::system_clock::now();
-            if ( tp - tp_data_handled_ > 500ms ) {
+            if ( tp - tp_data_handled_ > 200ms ) {
                 emit document::instance()->updateData();
                 tp_data_handled_ = tp;
             }

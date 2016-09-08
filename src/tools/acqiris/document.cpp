@@ -126,9 +126,20 @@ document::digitizer_initialize()
 void
 document::push( std::shared_ptr< waveform >&& d )
 {
-    que_.emplace_back( d );
-    if ( que_.size() >= 4096 )
+    que_.emplace_back( d ); // push should be called in strand so that no race should be exist
+    if ( que_.size() >= 4096 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        uint32_t loseCount(0);
+        for ( auto it = que_.begin(); it != que_.begin() + 2048; ++it ) {
+            auto interval = (*it)->xIncrement();
+            auto duration = (*(it + 1))->timeStamp() - (*it)->timeStamp();
+            if ( std::abs( interval - duration ) > ( interval / 5 ) )
+                ++loseCount;
+        }
+        if ( loseCount )
+            std::cout << "trig. lost count: " << loseCount << std::endl;
         que_.erase( que_.begin(), que_.begin() + 2048  );
+    }
 }
 
 std::shared_ptr< waveform >
