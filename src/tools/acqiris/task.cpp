@@ -120,7 +120,7 @@ task::acquire( digitizer * digitizer )
         
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
 
-            typedef int8_t datum_type;
+            typedef int32_t datum_type;
 
             auto d = std::make_shared< waveform >( sizeof( datum_type ) );
             static uint64_t serialCounter_ = 0;
