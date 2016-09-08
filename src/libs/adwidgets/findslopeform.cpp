@@ -65,6 +65,12 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     connect( ui->radioButton_pos, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // POS
     connect( ui->radioButton_neg, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // NEG
 
+    // ThresholdAlgo
+    ui->radioButton->setChecked( true );
+    connect( ui->radioButton, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Absolute
+    connect( ui->radioButton_2, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Average
+    connect( ui->radioButton_3, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Deference
+
     // Filter enable|disable
     connect( ui->groupBox_filter, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } );
     connect( ui->radioButton_dft, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // DFT
@@ -132,6 +138,14 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
     ui->radioButton_neg->setChecked( m.slope == adcontrols::threshold_method::CrossDown ); // NEG
     ui->radioButton_pos->setChecked( m.slope == adcontrols::threshold_method::CrossUp );   // POS
 
+    // ThresholdAlgo
+    if ( m.algo_ == adcontrols::threshold_method::Absolute )
+        ui->radioButton->setChecked( true );
+    else if ( m.algo_ == adcontrols::threshold_method::AverageRelative )
+        ui->radioButton_2->setChecked( true );        
+    else if ( m.algo_ == adcontrols::threshold_method::Deferential )
+        ui->radioButton_3->setChecked( true );
+
     // Filter
     ui->groupBox_filter->setChecked( m.use_filter );
     switch( m.filter ) {
@@ -152,6 +166,14 @@ findSlopeForm::get( adcontrols::threshold_method& m ) const
     m.time_resolution = ui->doubleSpinBox_resolution->value() * 1.0e-9; // ns -> seconds
     m.response_time = ui->doubleSpinBox_resp->value() * 1.0e-9; // ns -> seconds
     m.slope = ui->radioButton_neg->isChecked() ? adcontrols::threshold_method::CrossDown : adcontrols::threshold_method::CrossUp;
+
+    if ( ui->radioButton->isChecked() )
+        m.algo_ = adcontrols::threshold_method::Absolute;
+    else if ( ui->radioButton_2->isChecked() )
+        m.algo_ = adcontrols::threshold_method::AverageRelative;
+    else if ( ui->radioButton_3->isChecked() )
+        m.algo_ = adcontrols::threshold_method::Deferential;
+    
     m.use_filter = ui->groupBox_filter->isChecked();
     if ( ui->radioButton_sg->isChecked() )
         m.filter = adcontrols::threshold_method::SG_Filter;

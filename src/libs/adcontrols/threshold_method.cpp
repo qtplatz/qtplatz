@@ -46,6 +46,7 @@ threshold_method::threshold_method() : enable( false )
                                      , hCutoffHz( 200e6 )        // 200MHz
                                      , lCutoffHz( 0 )            // high-pass = off
                                      , complex_( true )
+                                     , algo_( Absolute )
 {
 }
 
@@ -70,6 +71,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( _.complex_ );
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( _.lCutoffHz );
+            if ( version >= 2 )
+                ar & BOOST_SERIALIZATION_NVP( _.algo_ );                
         }
     };
 

@@ -41,6 +41,7 @@ namespace adcontrols {
     public:
         enum FilterAlgo { SG_Filter, DFT_Filter };
         enum Slope { CrossUp, CrossDown };
+        enum ThresholdAlgo { Absolute, AverageRelative, Deferential };
 
         static const char * modelClass() { return "threshold_method"; }
         static const boost::uuids::uuid& clsid();
@@ -56,6 +57,7 @@ namespace adcontrols {
         double hCutoffHz;         // DFT (low pass := upper limit)
         double lCutoffHz;         //     (high pass := lower limit)
         bool complex_;
+        ThresholdAlgo algo_;
 
         threshold_method();
 
@@ -73,4 +75,4 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::threshold_method, 1 )
+BOOST_CLASS_VERSION( adcontrols::threshold_method, 2 )

@@ -23,6 +23,8 @@ add_library( ${PROJECT_NAME} SHARED
   u5303a/device_method.hpp
   u5303a/device_method.cpp
   u5303a/find_threshold_timepoints.hpp
+  u5303a/find_threshold_peaks.hpp
+  u5303a/waveform_horizontal.hpp
   u5303a/identify.hpp
   u5303a/identify.cpp
   u5303a/metadata.hpp

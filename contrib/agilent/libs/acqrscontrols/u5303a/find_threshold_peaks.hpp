@@ -37,13 +37,13 @@
 namespace acqrscontrols {
 
     template< typename waveform_type = u5303a::waveform >
-    class find_threshold_timepoints {
+    class find_threshold_peaks {
         const adcontrols::threshold_method& method;
         const adcontrols::CountingMethod& ranges;
     public:
-        find_threshold_timepoints( const adcontrols::threshold_method& _method
-                                   , const adcontrols::CountingMethod& _ranges ) : method( _method )
-                                                                                , ranges( _ranges )
+        find_threshold_peaks( const adcontrols::threshold_method& _method
+                              , const adcontrols::CountingMethod& _ranges ) : method( _method )
+                                                                            , ranges( _ranges )
             {}
 
         template< typename result_value_type >
@@ -68,7 +68,7 @@ namespace acqrscontrols {
             if ( ranges.enable() ) {
 
                 using adcontrols::CountingMethod;
-
+                
                 for ( const auto& v: ranges ) {
                     if ( std::get< CountingMethod::CountingEnable >( v ) ) {
                         const auto& time_range = std::get< CountingMethod::CountingRange >( v ); // center, width
