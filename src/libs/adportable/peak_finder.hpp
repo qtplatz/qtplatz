@@ -50,7 +50,8 @@ namespace adportable {
 
             auto slope = std::abs( level );
             auto it = begin;
-            while ( ++it != ( end - 1 )) {
+            ++it;
+            while ( it < ( end - 1 )) {
                 auto d = ( -( it[ -1 ] ) + it[ 1 ] );                 
                 bool found = ( sign < 0 ) ? ( d < -slope ) : ( d > slope );
                 if ( found ) {
@@ -61,30 +62,31 @@ namespace adportable {
                     if ( sign < 0 ) {    // negative peak
 
                         while ( ++it < ( end - 1 ) ) {
-                            if ( *(it - 1) > *it && *it < *(it + 1) ) {
+                            if ( it[ -1 ] > it[ 0 ] && it[ 0 ] < it[ 1 ] ) {
                                 value = *it;
                                 apex = std::distance( begin, it );
                                 break;
                             }
                         }
-                        while ( ++it < ( end - 1 ) && *it < *(it + 1) )
-                            ;
+                        while ( it < ( end - 1 ) && *it < *(it + 1) )
+                            ++it;
 
                     } else {             // positive peak
                         
-                        while ( ++it < (end - 1) ) {
-                            if ( *(it - 1) < *it && *it > *(it + 1) ) {
+                        while ( ++it < ( end - 1 ) ) {
+                            if ( it[ -1 ] < it[ 0 ] && it[ 0 ] > it[ 1 ] ) {
                                 value = *it;
                                 apex = std::distance( begin, it );
                                 break;
                             }                            
                         }
-                        while ( ++it < ( end - 1 ) && *it < *(it + 1) )
-                            ;                        
+                        while ( it < ( end - 1 ) && *it < *(it + 1) )
+                            ++it;                        
                     }
                     if ( apex )
                         indecies.emplace_back( begIdx, std::distance(begin, it), apex, value, *it ); // first,second,apex,value,base
                 }
+                ++it;
             }
         }
         
