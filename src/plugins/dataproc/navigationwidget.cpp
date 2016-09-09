@@ -35,6 +35,7 @@
 #include <adutils/processeddata.hpp>
 #include <adutils/fsio2.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -594,6 +595,7 @@ namespace dataproc {
                 adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
             } else {
                 boost::filesystem::ofstream of( dstfile );
+
                 auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                 export_spectrum::write( of, *ms );
             }
@@ -734,7 +736,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
 
                         menu.add( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, centroid ), hasCentroid );
-                        portfolio::Folium filtered = itFiltered != atts.end() ? *itCentroid : portfolio::Folium();
+                        portfolio::Folium filtered = itFiltered != atts.end() ? *itFiltered : portfolio::Folium();
                         menu.add( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, filtered ), hasFilterd );
 
                         menu.add( tr("Send checked spectra to calibration folder"), CalibrationAction() );
