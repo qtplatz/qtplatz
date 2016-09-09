@@ -151,6 +151,7 @@ threshold_method::operator != ( const threshold_method& m ) const
          (!ap::compare<double>::approximatelyEqual( threshold_level, m.threshold_level )) ||
          (!ap::compare<double>::approximatelyEqual( response_time, m.response_time )) ||
          slope != m.slope ||
+         algo_ != m.algo_ ||
          use_filter != m.use_filter )
         return true;
 

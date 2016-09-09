@@ -623,7 +623,7 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
 
                 if ( methods[ i ]->algo_ == adcontrols::threshold_method::Deferential ) {
                     acqrscontrols::find_threshold_peaks< u5303a::waveform > find_peaks( *methods[ i ], *range );
-                    find_peaks( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );                    
+                    find_peaks( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );  
                 } else {
                     acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
                     find_threshold( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );

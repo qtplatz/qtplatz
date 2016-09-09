@@ -105,7 +105,6 @@ target_link_libraries(
   adplot
   adwidgets
   adportable
-  adpublisher
   chromatogr
   qtwrapper
   xmlparser

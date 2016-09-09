@@ -142,9 +142,9 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
     if ( m.algo_ == adcontrols::threshold_method::Absolute )
         ui->radioButton->setChecked( true );
     else if ( m.algo_ == adcontrols::threshold_method::AverageRelative )
-        ui->radioButton_2->setChecked( true );        
+        ui->radioButton_3->setChecked( true );        
     else if ( m.algo_ == adcontrols::threshold_method::Deferential )
-        ui->radioButton_3->setChecked( true );
+        ui->radioButton_2->setChecked( true );
 
     // Filter
     ui->groupBox_filter->setChecked( m.use_filter );
@@ -169,9 +169,9 @@ findSlopeForm::get( adcontrols::threshold_method& m ) const
 
     if ( ui->radioButton->isChecked() )
         m.algo_ = adcontrols::threshold_method::Absolute;
-    else if ( ui->radioButton_2->isChecked() )
-        m.algo_ = adcontrols::threshold_method::AverageRelative;
     else if ( ui->radioButton_3->isChecked() )
+        m.algo_ = adcontrols::threshold_method::AverageRelative;
+    else if ( ui->radioButton_2->isChecked() )
         m.algo_ = adcontrols::threshold_method::Deferential;
     
     m.use_filter = ui->groupBox_filter->isChecked();
