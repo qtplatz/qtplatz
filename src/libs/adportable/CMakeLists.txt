@@ -36,8 +36,8 @@ add_library( adportable
   spectrum_processor.cpp
   string.cpp
   textfile.cpp
-  threshold_finder.hpp
-  threshold_index.hpp
+  counting/threshold_finder.hpp
+  counting/threshold_index.hpp
   timer.cpp
   timesquaredscanlaw.cpp
   utf.cpp
