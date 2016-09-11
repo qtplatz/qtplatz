@@ -173,13 +173,14 @@ void
 threshold_result::write3( std::ostream& os, const threshold_result& t )
 {
     if ( os.tellp() == std::streamoff(0) )
-        os << "## trig#, time-stamp(s), epoch-time(ns), events, threshold(mV), algo(0=absolute,1=average,2=deferential)"
+        os << "## trig#, prot#, timestamp(s), epoch_time(ns), events, threshold(mV), algo(0=absolute,1=average,2=deferential)"
             "\t[time(s), peak-front(s), peak-front(mV), peak-end(s), peak-end(mV)]";
     
     if ( auto data = t.data() ) {
         
-        os << boost::format( "\n%d, %.8lf, %.8lf, 0x%08x, %.8lf, %d" )
+        os << boost::format( "\n%d, %d, %.8lf, %.8lf, 0x%08x, %.8lf, %d" )
             % data->serialnumber_
+            % data->method_.protocolIndex()
             % data->meta_.initialXTimeSeconds
             % t.data()->timeSinceEpoch_
             % t.data()->wellKnownEvents_

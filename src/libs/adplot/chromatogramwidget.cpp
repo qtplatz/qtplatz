@@ -111,27 +111,32 @@ namespace adplot {
             QRectF boundingRect() const override { return rect_; }
         };
 
-        template<class T> class series_data : public QwtSeriesData< QPointF > {
+        template< typename T >
+        class series_data : public QwtSeriesData< QPointF > {
 
             series_data( const series_data& ) = delete;
             series_data& operator = ( const series_data& ) = delete;
-            T t_;
+            std::shared_ptr<const T> t_;
 
         public:
             series_data() { }
-			series_data( const T& t ) : t_( t ) { }
+			series_data( std::shared_ptr< const T> t ) : t_( t ) { }
 			~series_data() { }
-			inline operator T& () {	return t_;	};
+			// inline operator T& () {	return *t_;	};
 
             // implements QwtSeriesData<>
-            size_t size() const override { return t_.size(); }
+            size_t size() const override { return t_->size(); }
 
             QPointF sample( size_t idx ) const override { 
-                return QPointF( t_.x(idx), t_.y(idx) );
+                return QPointF( t_->x(idx), t_->y(idx) );
             }
             
-            virtual QRectF boundingRect() const override { return rect_; }
-            void boundingRect( const QRectF& rc ) { rect_ = rc; }
+            virtual QRectF boundingRect() const override {
+                return rect_;
+            }
+            void setBoundingRect( const QRectF& rc ) {
+                rect_ = rc;
+            }
         private:
 			QRectF rect_;
         };
@@ -159,10 +164,12 @@ namespace adplot {
                 return;
 
             // TODO:  refactor code in order to avoid full data copy
-			series_data< adcontrols::Trace > * d_trace = new series_data< adcontrols::Trace >( trace );
+            auto p = std::make_shared< const adcontrols::Trace >( trace );
+			series_data< adcontrols::Trace > * d_trace = new series_data< adcontrols::Trace >( p );
             // make rect upside down due to QRectF 'or' operator flips y-coord for negative height
-            rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace.range_y().first ), QPointF(d_trace->sample( trace.size() - 1 ).x(), trace.range_y().second ));
-            d_trace->boundingRect( rect_ );
+            rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace.range_y().first )
+                            , QPointF(d_trace->sample( trace.size() - 1 ).x(), trace.range_y().second ));
+            d_trace->setBoundingRect( rect_ );
 			curve_.p()->setData( d_trace );
         }
 
