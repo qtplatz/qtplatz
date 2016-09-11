@@ -146,8 +146,7 @@ namespace adplot {
             ~TraceData() { }
 			TraceData( plot& plot ) : curve_( plot ) { }
 			TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) { }
-            void setData( const T& ) {  }
-            void setData( const std::shared_ptr<T>& ) {}
+            void setData( std::shared_ptr<const T> ) {}
 			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
 			const QwtPlotCurve& plot_curve() const { return *curve_.p(); }
@@ -158,19 +157,21 @@ namespace adplot {
 			QRectF rect_;
         };
 
-        template<> void TraceData<adcontrols::Trace>::setData( const adcontrols::Trace& trace )
+        template<> void TraceData<adcontrols::Trace>::setData( std::shared_ptr< const adcontrols::Trace > trace )
         {
-            if ( trace.size() <= 2 )
-                return;
+            if ( trace->size() > 2 ) {
 
-            // TODO:  refactor code in order to avoid full data copy
-            auto p = std::make_shared< const adcontrols::Trace >( trace );
-			series_data< adcontrols::Trace > * d_trace = new series_data< adcontrols::Trace >( p );
-            // make rect upside down due to QRectF 'or' operator flips y-coord for negative height
-            rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace.range_y().first )
-                            , QPointF(d_trace->sample( trace.size() - 1 ).x(), trace.range_y().second ));
-            d_trace->setBoundingRect( rect_ );
-			curve_.p()->setData( d_trace );
+                series_data< adcontrols::Trace > * d_trace = new series_data< adcontrols::Trace >( trace );
+                
+                // make rect upside down due to QRectF 'or' operator flips y-coord for negative height
+                rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace->range_y().first )
+                                , QPointF(d_trace->sample( trace->size() - 1 ).x(), trace->range_y().second ));
+                
+                // qDebug() << __FILE__ << ":" << __LINE__ << " " << rect_ << ", " << "x=" << trace->x(0);
+                
+                d_trace->setBoundingRect( rect_ );
+                curve_.p()->setData( d_trace );
+            }
         }
 
         class ChromatogramData {
@@ -370,9 +371,9 @@ ChromatogramWidget::setAxis( HorizontalAxis axis, bool replot )
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
+ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int idx, bool yRight )
 {
-    if ( c.size() < 2 )
+    if ( c->size() < 2 )
         return;
     
     while ( int( impl_->traces_.size() ) <= idx )
@@ -394,15 +395,20 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yRight )
         auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
 
         auto rc = std::accumulate( impl_->traces_.begin(), impl_->traces_.end(), QRectF {}, [&] ( const QRectF& a, const trace_variant& b ) {
+
                 QRectF rect( boost::apply_visitor( boundingRect_visitor(), b ) );
+
                 if ( boost::apply_visitor( yAxis_visitor(), b ) == yAxis ) {
-                    return a | rect; // this flips y-coodinate upside down when negative height
-                } else 
+                    return ( a == QRectF() ) ? ( a | rect ) : rect;
+                } else {
                     return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
+                }
             } );
 
         if ( adportable::compare<double>::essentiallyEqual( rc.height(), 0.0 ) )
             rc.setHeight( 1.0 );
+
+        qDebug() << __FILE__ << ", " << __LINE__ << " rc=" << rc;
 
         setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
         setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale 

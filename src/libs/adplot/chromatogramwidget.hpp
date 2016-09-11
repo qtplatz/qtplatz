@@ -54,7 +54,7 @@ namespace adplot {
         explicit ChromatogramWidget(QWidget *parent = 0);
 		~ChromatogramWidget();
 
-        void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
+        void setData( std::shared_ptr< const adcontrols::Trace>, int idx = 0, bool yaxis2 = false );
         void setData( std::shared_ptr< const adcontrols::Chromatogram >&, int idx = 0, bool axisRight = false );
         void setData( std::shared_ptr< const adcontrols::Chromatogram >&&, int idx = 0, bool axisRight = false );
 		void setData( const adcontrols::PeakResult& );

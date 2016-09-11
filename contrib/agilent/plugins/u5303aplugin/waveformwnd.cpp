@@ -230,7 +230,7 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
             }
 
             bool yRight = trace->isCountingTrace();
-            tpw_->setData( *trace, fcn, yRight );
+            tpw_->setData( trace, fcn, yRight );
 
             // title for legends
             char c = item->intensityAlgorithm() == item->eCounting ? 'C' : item->intensityAlgorithm() == item->ePeakAreaOnProfile ? 'A' : 'H';
