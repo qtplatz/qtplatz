@@ -27,17 +27,18 @@
 #include "waveform.hpp"
 #include "metadata.hpp"
 #include "method.hpp"
-#include <adcontrols/threshold_method.hpp>
 #include <adcontrols/countingmethod.hpp>
-#include <adportable/threshold_finder.hpp>
+#include <adportable/counting/threshold_finder.hpp>
+#include <adportable/counting/counting_result.hpp>
+#include <adportable/counting/peak_finder.hpp>
+#include <adcontrols/threshold_method.hpp>
 #include <adportable/waveform_processor.hpp>
-#include <adportable/peak_finder.hpp>
 #include <adportable/debug.hpp>
 #include <cstdint>
 
 namespace acqrscontrols {
 
-    template< typename waveform_type = u5303a::waveform >
+    template< bool findPositive, typename waveform_type = u5303a::waveform >
     class find_threshold_peaks {
 
         const adcontrols::threshold_method& method;
@@ -49,13 +50,12 @@ namespace acqrscontrols {
                                                                       , ranges( r )
             {}
         
-        template< typename result_value_type >
         void operator () ( const waveform_type& data
-                           , std::vector< result_value_type >& elements
+                           , adportable::counting::counting_result& result
                            , std::vector< double >& processed ) {
             
-            // const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
             assert ( method.algo_ == adcontrols::threshold_method::Deferential );
+            assert ( findPositive == ( method.slope == adcontrols::threshold_method::CrossUp ) );
 
             double level = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
             if ( method.use_filter ) {
@@ -63,8 +63,7 @@ namespace acqrscontrols {
                 level = method.threshold_level;
             }
 
-            // adportable::threshold_finder finder( findUp, nfilter );
-            adportable::peak_finder finder( method.slope == adcontrols::threshold_method::CrossUp ); // Pos | Neg
+            adportable::counting::peak_finder< findPositive > finder;
 
             if ( ranges.enable() ) {
 
@@ -76,13 +75,12 @@ namespace acqrscontrols {
                         auto offs = waveform_horizontal().range( data.method_, data.meta_, time_range );
                         if ( offs.second ) {
                             size_t eoffs = offs.first + offs.second;
-                            adportable::average averager;
                             if ( method.use_filter ) {
-                                finder( processed.begin(), processed.begin() + eoffs, elements, level, offs.first  );
+                                finder( processed.begin(), processed.begin() + eoffs, result.indecies2(), level, offs.first  );
                             } else if ( data.meta_.dataType == 2 ) {
-                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level, offs.first );
+                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, result.indecies2(), level, offs.first );
                             } else if ( data.meta_.dataType == 4 ) {
-                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level, offs.first );
+                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, result.indecies2(), level, offs.first );
                             }
                         }
                     }
@@ -90,11 +88,11 @@ namespace acqrscontrols {
 
             } else {
                 if ( method.use_filter ) 
-                    finder( processed.begin(), processed.end(), elements, level );        
+                    finder( processed.begin(), processed.end(), result.indecies2(), level );        
                 else if ( data.meta_.dataType == 2 )
-                    finder( data.template begin<int16_t>(), data.template end<int16_t>(), elements, level );
+                    finder( data.template begin<int16_t>(), data.template end<int16_t>(), result.indecies2(), level );
                 else if ( data.meta_.dataType == 4 )
-                    finder( data.template begin<int32_t>(), data.template end<int32_t>(), elements, level );
+                    finder( data.template begin<int32_t>(), data.template end<int32_t>(), result.indecies2(), level );
             }
         }
     };

@@ -29,7 +29,9 @@
 #include "method.hpp"
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/countingmethod.hpp>
-#include <adportable/threshold_finder.hpp>
+#include <adportable/average.hpp>
+#include <adportable/counting/counting_result.hpp>
+#include <adportable/counting/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/debug.hpp>
 #include <cstdint>
@@ -46,11 +48,10 @@ namespace acqrscontrols {
                                                                                 , ranges( _ranges )
             {}
 
-        template< typename result_value_type >
         void operator () ( const waveform_type& data
-                           , std::vector< result_value_type >& elements
+                           , adportable::counting::counting_result& result
                            , std::vector< double >& processed ) {
-            
+
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
             const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
@@ -63,40 +64,70 @@ namespace acqrscontrols {
                 level = ( ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor ) * nAverages;
             }
 
-            adportable::threshold_finder finder( findUp, nfilter );
+            auto& elements = result.indecies2();            
 
+            adportable::counting::threshold_finder finder( findUp, nfilter );
+
+            const bool average( method.algo_ == adcontrols::threshold_method::AverageRelative );
+            adportable::stddev stddev;
+            
             if ( ranges.enable() ) {
-
+                
                 using adcontrols::CountingMethod;
-
+                
                 for ( const auto& v: ranges ) {
                     if ( std::get< CountingMethod::CountingEnable >( v ) ) {
                         const auto& time_range = std::get< CountingMethod::CountingRange >( v ); // center, width
                         auto offs = waveform_horizontal().range( data.method_, data.meta_, time_range );
                         if ( offs.second ) {
                             size_t eoffs = offs.first + offs.second;
-                            adportable::average averager;
-                            if ( method.use_filter ) {
-                                double base = averager( processed.begin() + offs.first, offs.second );
-                                finder( processed.begin(), processed.begin() + eoffs, elements, level + base, offs.first  );
-                            } else if ( data.meta_.dataType == 2 ) {
-                                double base = averager( data.template begin<int16_t>() + offs.first, offs.second );
-                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level + base, offs.first );
-                            } else if ( data.meta_.dataType == 4 ) {
-                                double base = averager( data.template begin<int32_t>() + offs.first, offs.second );
-                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level + base, offs.first );
+
+                            if ( average ) {
+                                if ( method.use_filter ) {
+                                    auto sd = stddev( processed.begin() + offs.first, offs.second );
+                                    finder( processed.begin(), processed.begin() + eoffs, elements, level + sd.second, offs.first );
+                                } else if ( data.meta_.dataType == 2 ) {
+                                    auto sd = stddev( data.template begin<int16_t>() + offs.first, offs.second );
+                                    finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level + sd.second, offs.first );
+                                } else if ( data.meta_.dataType == 4 ) {
+                                    auto sd = stddev( data.template begin<int32_t>() + offs.first, offs.second );
+                                    finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level + sd.second, offs.first );
+                                }
+                            } else {
+                                if ( method.use_filter ) {
+                                    finder( processed.begin(), processed.begin() + eoffs, elements, level, offs.first );
+                                } else if ( data.meta_.dataType == 2 ) {
+                                    finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level, offs.first );
+                                } else if ( data.meta_.dataType == 4 ) {
+                                    finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, elements, level, offs.first );
+                                }
                             }
                         }
                     }
                 }
 
             } else {
-                if ( method.use_filter ) 
-                    finder( processed.begin(), processed.end(), elements, level );        
-                else if ( data.meta_.dataType == 2 )
-                    finder( data.template begin<int16_t>(), data.template end<int16_t>(), elements, level );
-                else if ( data.meta_.dataType == 4 )
-                    finder( data.template begin<int32_t>(), data.template end<int32_t>(), elements, level );
+                
+                if ( average ) {
+                    if ( method.use_filter ) {
+                        auto sd = stddev( processed.begin(), processed.size() );
+                        finder( processed.begin(), processed.end(), elements, level + sd.second, 0 );
+                    } else if ( data.meta_.dataType == 2 ) {
+                        auto sd = stddev( data.template begin< int16_t >(), data.size() );
+                        finder( data.template begin<int16_t>(), data.template end<int16_t>(), elements, level + sd.second );
+                    } else if ( data.meta_.dataType == 4 ) {
+                        auto sd = stddev( data.template begin< int32_t >(), data.size() );
+                        finder( data.template begin<int32_t>(), data.template end<int32_t>(), elements, level + sd.second );
+                    }
+                } else {
+                    if ( method.use_filter ) {
+                        finder( processed.begin(), processed.end(), elements, level, 0 );
+                    } else if ( data.meta_.dataType == 2 ) {
+                        finder( data.template begin<int16_t>(), data.template end<int16_t>(), elements, level );
+                    } else if ( data.meta_.dataType == 4 ) {
+                        finder( data.template begin<int32_t>(), data.template end<int32_t>(), elements, level );
+                    }
+                }
             }
         }
     };

@@ -29,7 +29,7 @@
 #include "method.hpp"
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/countingmethod.hpp>
-#include <adportable/threshold_finder.hpp>
+#include <adportable/counting/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/debug.hpp>
 #include <cstdint>

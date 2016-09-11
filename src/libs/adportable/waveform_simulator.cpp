@@ -32,16 +32,16 @@ namespace adportable {
 
     class waveform_simulator::impl {
     public:
-        impl() : sigma_( 1.0e-9 )
+        impl() : sigma_( 0.5e-9 )
                , delay_( 0.0 )
                , xIncrement_( 1.0e-9 )
                , actualPoints_( 1000 * 10 ) // 10us
                , sign_( -1 )
                , dist_( -50, 50 )
-               , pseudo_peaks0_( { { 1.0e-6, 300 }, { 1.6e-6, 200 }, { 2.0e-6, 80 } } )
-               , pseudo_peaks1_( { { 0.9e-6, 350 }, { 1.5e-6, 250 }, { 1.9e-6, 180 } } )
-               , pseudo_peaks2_( { { 0.8e-6, 400 }, { 1.4e-6, 300 }, { 1.8e-6, 280 } } )
-               , pseudo_peaks3_( { { 0.7e-6, 450 }, { 1.3e-6, 350 }, { 1.7e-6, 380 } } ) {
+               , pseudo_peaks0_( { { 1.0e-6, 600 }, { 1.6e-6, 1500 }, { 2.0e-6, 800 } } )
+               , pseudo_peaks1_( { { 0.9e-6, 1200 }, { 1.5e-6, 1500 }, { 1.9e-6, 900 } } )
+               , pseudo_peaks2_( { { 0.8e-6, 2400 }, { 1.4e-6, 3000 }, { 1.8e-6, 1800 } } )
+               , pseudo_peaks3_( { { 0.7e-6, 4800 }, { 1.3e-6, 3500 }, { 1.7e-6, 2800 } } ) {
             
         }
 
@@ -74,7 +74,7 @@ namespace adportable {
 
             const auto& pseudo_peaks =
                 proto == 1 ? pseudo_peaks1_ :
-                proto == 2 ? pseudo_peaks1_ :
+                proto == 2 ? pseudo_peaks2_ :
                 proto == 3 ? pseudo_peaks3_ : pseudo_peaks0_;
             
             mblk_[ proto ]  = std::make_shared< mblock< int16_t > >( actualPoints_ );

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,7 +25,8 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
-#include <adportable/threshold_index.hpp>
+#include <adportable/counting/threshold_index.hpp>
+#include <adportable/counting/counting_result.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/access.hpp>
 #include <memory>
@@ -40,7 +41,7 @@ namespace acqrscontrols {
 
         class waveform;
 
-        class ACQRSCONTROLSSHARED_EXPORT threshold_result {
+        class ACQRSCONTROLSSHARED_EXPORT threshold_result : public adportable::counting::counting_result {
         public:
             threshold_result();
             threshold_result( std::shared_ptr< const waveform > d );
@@ -51,8 +52,8 @@ namespace acqrscontrols {
             std::vector< uint32_t >& indecies();
             const std::vector< uint32_t >& indecies() const;
 
-            std::vector< adportable::threshold_index >& indecies2();
-            const std::vector< adportable::threshold_index >& indecies2() const;
+            // std::vector< adportable::counting::threshold_index >& indecies2();
+            // const std::vector< adportable::counting::threshold_index >& indecies2() const;
 
             std::vector< double >& processed();
             const std::vector< double >& processed() const;
@@ -71,10 +72,13 @@ namespace acqrscontrols {
             bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
             void setFindUp( bool );
             bool findUp() const;
+
+            static void write3( std::ostream&, const threshold_result& );
+
         private:
             std::shared_ptr< const waveform > data_;
             std::vector< uint32_t > indecies_;
-            std::vector< adportable::threshold_index > indecies2_;
+            // std::vector< adportable::counting::threshold_index > indecies2_;
             std::vector< double > processed_;
             std::pair< uint32_t, uint32_t > findRange_;
             uint32_t foundIndex_;

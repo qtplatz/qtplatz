@@ -38,10 +38,10 @@
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
+#include <adportable/counting/threshold_finder.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
-#include <adportable/threshold_finder.hpp>
 #include <adportable/waveform_averager.hpp>
 #include <adportable/waveform_peakfinder.hpp>
 #include <adportable/waveform_processor.hpp>
@@ -171,7 +171,7 @@ namespace acqrscontrols {
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
             std::shared_ptr< const adcontrols::CountingMethod > counting_method_;
-
+            
             // periodic histograms (primary que) [time array] := (proto 0, proto 1, ...), (proto 0, proto 1, ...),...
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histogram_que_;
 
@@ -503,47 +503,6 @@ tdcdoc::recentHistograms() const
     return d;
 }
 
-std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
-tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
-{
-    if ( !waveforms[0] && !waveforms[1] ) // empty
-        return std::array< threshold_result_ptr, 2 >();
-
-    std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
-    std::array< threshold_result_ptr, 2 > results;
-    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
-    auto range( countingMethod() );
-
-    for ( size_t i = 0; i < waveforms.size(); ++i ) {
-
-        if ( waveforms[ i ] ) {
-
-            auto& counts = impl_->threshold_action_counts_[ i ];
-            
-            results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
-            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
-
-            const auto idx = waveforms[ i ]->method_.protocolIndex();
-            if ( idx == 0 )
-                counts.second++;
-            
-            if ( methods[ i ] && methods[ i ]->enable ) {
-
-                acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
-
-                find_threshold( *waveforms[ i ], results[ i ]->indecies(), results[ i ]->processed() );
-
-                bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
-                
-                if ( result )
-                    counts.first++;
-            }
-        }
-    }
-
-    return results;
-}
-
 // this is called from u5303aplugin, trial for raising,falling pair lookup
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
 tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
@@ -574,13 +533,14 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
 
                 acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
 
-                find_threshold( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );
+                find_threshold( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
 
                 results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
 
                 // copy from vector< adportable::threshold_index > ==> vector< uint32_t >
                 std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().end()
-                                , results[ i ]->indecies().begin(), []( const adportable::threshold_index& a ){ return a.first; } );
+                                , results[ i ]->indecies().begin()
+                                , []( const adportable::counting::threshold_index& a ){ return a.first; } );
                 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 
@@ -613,8 +573,11 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
             auto& counts = impl_->threshold_action_counts_[ i ];
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
-            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );                
-
+            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
+            results[ i ]->threshold_level() = methods[ i ]->threshold_level;
+            results[ i ]->algo() = static_cast< enum adportable::counting::counting_result::algo >( methods[ i ]->algo_ );
+            //results[ i ]->time_resolution() = methods[ i ]->time_resolution;
+            
             const auto idx = waveforms[ i ]->method_.protocolIndex();
             if ( idx == 0 )
                 counts.second++;
@@ -622,17 +585,23 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
             if ( methods[ i ] && methods[ i ]->enable ) {
 
                 if ( methods[ i ]->algo_ == adcontrols::threshold_method::Deferential ) {
-                    acqrscontrols::find_threshold_peaks< u5303a::waveform > find_peaks( *methods[ i ], *range );
-                    find_peaks( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );  
+                    if  ( methods[ i ]->slope == adcontrols::threshold_method::CrossUp ) {
+                        acqrscontrols::find_threshold_peaks< true, u5303a::waveform > find_peaks( *methods[ i ], *range );
+                        find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
+                    } else {
+                        acqrscontrols::find_threshold_peaks< false, u5303a::waveform > find_peaks( *methods[ i ], *range );
+                        find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
+                    }
                 } else {
                     acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
-                    find_threshold( *waveforms[ i ], results[ i ]->indecies2(), results[ i ]->processed() );
+                    find_threshold( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
                 }
 
                 // copy from vector< adportable::threshold_index > ==> vector< uint32_t > for compatibility
                 results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
                 std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().end()
-                                , results[ i ]->indecies().begin(), []( const adportable::threshold_index& a ){ return a.apex; } ); // <-- apex
+                                    , results[ i ]->indecies().begin()
+                                    , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
                 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 

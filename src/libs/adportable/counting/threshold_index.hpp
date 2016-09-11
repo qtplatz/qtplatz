@@ -28,19 +28,25 @@
 
 namespace adportable {
 
-    struct threshold_index {
-        uint32_t first;
-        uint32_t second;
-        uint32_t apex;
-        int16_t value;
-        int16_t base;
+    namespace counting {
 
-        threshold_index( uint32_t _first = 0
-                         , uint32_t _second = 0
-                         , uint32_t _apex = 0
-                         , int16_t _value = 0
-                         , int16_t _base = 0 )
-            : first(_first), second(_second), apex(_apex), value(_value), base(_base) {
-        }
-    };
+        struct threshold_index {
+
+            uint32_t first;
+            uint32_t second;
+            uint32_t apex;   // index for max(min) element for threshold find; peak-apex element for deferential mode
+            int32_t value;   // intensity for apex
+            int32_t level;   // baseline intensity (binary value) for AverageRelative algorithm
+        
+            threshold_index( uint32_t _first = 0
+                             , uint32_t _second = 0
+                             , uint32_t _apex = 0
+                             , int16_t _value = 0
+                             , int32_t _level = 0 )
+                : first( _first ), second( _second ), apex( _apex )
+                , value( _value ), level( _level ) {
+            }
+        };
+
+    }
 }

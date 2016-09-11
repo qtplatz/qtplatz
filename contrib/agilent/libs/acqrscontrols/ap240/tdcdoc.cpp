@@ -38,7 +38,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
-#include <adportable/threshold_finder.hpp>
+#include <adportable/counting/threshold_finder.hpp>
 #include <adportable/waveform_averager.hpp>
 #include <adportable/waveform_peakfinder.hpp>
 #include <adportable/waveform_processor.hpp>
@@ -568,7 +568,7 @@ tdcdoc::find_threshold_timepoints( const acqrscontrols::ap240::waveform& data
     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
-    adportable::threshold_finder finder( findUp, nfilter );
+    adportable::counting::threshold_finder finder( findUp, nfilter );
     
     if ( method.use_filter ) {
 

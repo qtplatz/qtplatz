@@ -27,7 +27,7 @@
 #include <boost/format.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/threshold_finder.hpp>
+#include <adportable/counting/threshold_finder.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -36,6 +36,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
+#include <ratio>
 
 using namespace acqrscontrols::u5303a;
 
@@ -52,9 +53,9 @@ threshold_result::threshold_result( std::shared_ptr< const waveform > d ) : data
 {
 }
 
-threshold_result::threshold_result( const threshold_result& t ) : data_( t.data_ )
+threshold_result::threshold_result( const threshold_result& t ) : adportable::counting::counting_result( t )
+                                                                , data_( t.data_ )
                                                                 , indecies_( t.indecies_ )
-                                                                , indecies2_( t.indecies2_ )
                                                                 , processed_( t.processed_ )
                                                                 , foundIndex_( t.foundIndex_ )
                                                                 , findRange_( t.findRange_ )
@@ -80,17 +81,17 @@ threshold_result::indecies() const
     return indecies_;
 }
 
-std::vector< adportable::threshold_index >&
-threshold_result::indecies2()
-{
-    return indecies2_;
-}
+// std::vector< adportable::counting::threshold_index >&
+// threshold_result::indecies2()
+// {
+//     return indecies2_;
+// }
 
-const std::vector< adportable::threshold_index >&
-threshold_result::indecies2() const
-{
-    return indecies2_;
-}
+// const std::vector< adportable::counting::threshold_index >&
+// threshold_result::indecies2() const
+// {
+//     return indecies2_;
+// }
 
 std::vector< double >&
 threshold_result::processed()
@@ -167,15 +168,51 @@ threshold_result::findUp() const
     return findUp_;
 }
 
+// call from infitof2 - counting
+void
+threshold_result::write3( std::ostream& os, const threshold_result& t )
+{
+    if ( os.tellp() == std::streamoff(0) )
+        os << "## trig#, time-stamp(s), epoch-time(ns), events, threshold(mV), algo(0=absolute,1=average,2=deferential)"
+            "\t[time(s), peak-front(s), peak-front(mV), peak-end(s), peak-end(mV)]";
+    
+    if ( auto data = t.data() ) {
+        
+        os << boost::format( "\n%d, %.8lf, %.8lf, 0x%08x, %.8lf, %d" )
+            % data->serialnumber_
+            % data->meta_.initialXTimeSeconds
+            % t.data()->timeSinceEpoch_
+            % t.data()->wellKnownEvents_
+            % ( t.threshold_level() * std::milli::den )
+            % t.algo();
+        
+        if ( ! t.indecies2().empty() ) {
+            for ( auto& idx : t.indecies2() ) {
+                
+                auto apex  = data->xy( idx.apex );
+
+                os << boost::format( ",\t%.14le, %.6f, %d, %.6f, %d, %.6f" )
+                    % apex.first    // apex (time)
+                    % ( t.data()->toVolts( apex.second ) * std::milli::den )
+                    % ( int( idx.first ) - int( idx.apex ) )   // front-apex distance
+                    % ( t.data()->toVolts( (*data)[ idx.first ] ) * std::milli::den )     // front intensity
+                    % ( int( idx.second ) - int( idx.apex ) )
+                    % ( t.data()->toVolts( (*data)[ idx.second ] ) * std::milli::den );
+            }
+        }
+    }
+}
+
 namespace acqrscontrols {
     namespace u5303a {
 
+        // call from u5303aplugin
         std::ostream& operator << ( std::ostream& os, const threshold_result& t ) {
 
             if ( os.tellp() == std::streamoff(0) )
                 os << "## trig#, time-stamp(s), time(s), epoch time(ns), events, scale factor, scale offset, delay time(s),"
                     "[time(s), idx0, idx1, idx2, value]";
-
+            
             if ( auto data = t.data() ) {
 
                 os << boost::format( "\n%d, %.8lf, %.8lf, " )
@@ -188,8 +225,9 @@ namespace acqrscontrols {
                 if ( ! t.indecies2().empty() ) {
                     for ( auto& idx : t.indecies2() ) {
                         auto v = data->xy( idx.first );
-                        os << boost::format( ",\t%.14le, %d, %d, %d, %.5f" )
-                            % v.first % idx.first % idx.second % idx.apex % t.data()->toVolts( idx.value );
+                        os << boost::format( ",\t%.14le, %d, %d, %d, %.6f" )
+                            % v.first % idx.first % idx.second % idx.apex
+                            % t.data()->toVolts( idx.value );
                     }
                     
                 } else {

@@ -344,7 +344,7 @@ waveform::operator [] ( size_t idx ) const
 std::pair<double, int>
 waveform::xy( size_t idx ) const
 {
-    double time = idx * meta_.xIncrement + meta_.initialXOffset;
+    double time = this->time( idx ); //idx * meta_.xIncrement + meta_.initialXOffset;
 
     assert( meta_.dataType == 2 || meta_.dataType == 4 );
     
@@ -353,6 +353,19 @@ waveform::xy( size_t idx ) const
     case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
     }
 	throw std::bad_cast();
+}
+
+double
+waveform::time( size_t idx ) const
+{
+    double ext_trig_delay( 0 );
+
+    if ( method_.protocols().size() > method_.protocolIndex() ) {
+        const auto& this_protocol = method_.protocols()[ method_.protocolIndex() ];
+        ext_trig_delay = this_protocol.delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+    }
+
+    return idx * meta_.xIncrement + meta_.initialXOffset + ext_trig_delay;
 }
 
 double
