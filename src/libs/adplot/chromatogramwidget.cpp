@@ -408,7 +408,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
         if ( adportable::compare<double>::essentiallyEqual( rc.height(), 0.0 ) )
             rc.setHeight( 1.0 );
 
-        qDebug() << __FILE__ << ", " << __LINE__ << " rc=" << rc;
+        // qDebug() << __FILE__ << ", " << __LINE__ << " rc=" << rc;
 
         setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
         setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale 
