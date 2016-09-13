@@ -70,6 +70,7 @@ namespace aqdrv4 {
             void handle_read_headers( const boost::system::error_code& err );
             void handle_read_content( const boost::system::error_code& err );
             void handle_read_stream( const boost::system::error_code& err );
+            void do_read();
 
             static bool debug_mode_;
 

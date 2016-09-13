@@ -28,11 +28,11 @@ request_handler::handle_request( boost::asio::streambuf& response
 {
     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response.data() );
 
-    std::cout << std::hex << preamble->aug 
+    std::cout << "handle_request: " << std::hex << preamble->aug 
               << ", " << preamble->length
               << ", " << preamble->clsid << std::endl;
 
-    response.consume( sizeof( aqdrv4::preamble ) );
+    response.consume( sizeof( aqdrv4::preamble ) + preamble->length );
     
     std::cout << "consume " << std::dec << sizeof( aqdrv4::preamble )
               << ", remains: " << response.size() << std::endl;
@@ -42,5 +42,4 @@ request_handler::handle_request( boost::asio::streambuf& response
     std::ostream request_stream( &reply );
     
     request_stream.write( ack.data(), sizeof( aqdrv4::preamble ) );
-    // reply = reply::stock_reply(reply::bad_request);    
 }

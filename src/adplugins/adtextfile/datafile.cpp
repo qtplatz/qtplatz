@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -35,6 +35,7 @@
 #include "dialog.hpp"
 #include "txtspectrum.hpp"
 #include "txtchromatogram.hpp"
+#include "time_data_reader.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
@@ -86,13 +87,27 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio.create_with_fullpath( filename );
 
     Dialog dlg;
-    dlg.setDataType( Dialog::data_spectrum );
+
     QStringList models;
     for ( auto& model: adcontrols::MassSpectrometer::get_model_names() )
         models << QString::fromStdWString( model );
+
     dlg.setDataInterpreterClsids( models );    
     
     boost::filesystem::path path( filename );
+    std::string adfsname;
+    
+    if ( time_data_reader::is_time_data( path.string(), adfsname ) ) {
+        dlg.setDataType( Dialog::counting_time_data );
+        double acclVoltage(0), tDelay(0), fLength(0);
+        std::string spectrometer;
+        if ( time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) )
+            dlg.setScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer );
+
+    } else {
+        dlg.setDataType( Dialog::data_spectrum );
+    }
+    
     boost::filesystem::ifstream in( path );
     if ( in.fail() ) {
         QMessageBox::information(0, "Text file provider", QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
@@ -134,6 +149,11 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
                 return true;                
+            }
+        } else if ( dlg.dataType() == Dialog::counting_time_data ) {
+            time_data_reader reader;
+            if ( reader.load( path.string() ) ) {
+                processedDataset_.reset( new adcontrols::ProcessedDataset );
             }
         }
     }

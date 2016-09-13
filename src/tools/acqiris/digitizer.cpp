@@ -24,11 +24,15 @@
 #include "digitizer.hpp"
 #include "acqiris_method.hpp"
 #include <boost/format.hpp>
-#include <sstream>
-#include <iostream>
 #include <sys/stat.h>
 #include <array>
+#include <chrono>
+#include <iostream>
 #include <ratio>
+#include <sstream>
+#include <thread>
+
+static bool __isSimulated__ = false;
 
 digitizer::result_code
 digitizer::waitForEndOfAcquisition( size_t timeout )
@@ -40,6 +44,10 @@ digitizer::waitForEndOfAcquisition( size_t timeout )
     case ACQIRIS_ERROR_OVERLOAD: return error_overload; //  if a channel/trigger overload was detected.
     case ACQIRIS_ERROR_IO_READ: return error_io_read;   //  if a link error has been detected (e.g. PCI link lost).
     case ACQIRIS_ERROR_INSTRUMENT_STOPPED: return error_stopped; // if the acquisition was not started beforehand
+    }
+    if ( __isSimulated__ ) {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for( 10ms );
     }
 }
     
@@ -120,6 +128,7 @@ digitizer::findDevice()
                     if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC110")
                                                 , VI_FALSE, VI_FALSE, const_cast<char *>("simulate=TRUE"), &inst_ ) == VI_SUCCESS ) {
                         numInstruments_ = 1;
+                        __isSimulated__ = true;
                     }
                 }
             }
@@ -134,6 +143,12 @@ digitizer::findDevice()
         inst_ = (-1);
         status = Acqrs_init( const_cast< char *>(device_name_.c_str()), VI_FALSE, VI_FALSE, &inst_);
         if ( inst_ != ViSession(-1) && getInstrumentData() ) {
+
+            ViInt32 value;
+            if ( Acqrs_getInstrumentInfo( inst_, "NbrADCBits", &value ) == VI_SUCCESS )
+                nbrADCBits_ = value;
+
+            
             std::cout << "\tfound device on: " << device_name_ << std::endl;
             return true;
         } else {
@@ -283,3 +298,22 @@ digitizer::delayTime() const
     return delayTime_;
 }
 
+int
+digitizer::nbrADCBits() const
+{
+    return nbrADCBits_;
+}
+
+int
+digitizer::readTemperature()
+{
+    AcqrsD1_getInstrumentInfo( inst_, "Temperature", &temperature_ );
+    std::cout << "Temperature: " << temperature_ << std::endl;
+    return temperature_;
+}
+
+int
+digitizer::temperature() const
+{
+    return temperature_;
+}

@@ -34,6 +34,7 @@ task::~task()
 task::task() : worker_stopping_( false )
              , work_( io_service_ )
              , strand_( io_service_ )
+             , timer_( io_service_ )
              , tp_data_handled_( std::chrono::system_clock::now() )
 {
     acquire_posted_.clear();
@@ -49,6 +50,8 @@ task::instance()
 bool
 task::initialize()
 {
+    using namespace std::chrono_literals;
+
     static std::once_flag flag;
 
     std::call_once( flag, [&]() {
@@ -60,6 +63,9 @@ task::initialize()
             unsigned nCores = std::thread::hardware_concurrency();
             while( nCores-- )
                 threads_.emplace_back( std::thread( [&]{ io_service_.run(); } ) );
+
+            timer_.expires_from_now( 5s );
+            timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
         } );
 
     return true;
@@ -119,13 +125,18 @@ task::acquire( digitizer * digitizer )
     if ( digitizer->acquire() ) {
         
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
+            
+            static const int nbrADCBits = digitizer->nbrADCBits();
+            auto d = std::make_shared< waveform >( nbrADCBits ? sizeof( int8_t ) : sizeof( int16_t ) );
+            
+            if ( nbrADCBits <= 8 ) {
+                digitizer->readData<int8_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
+            } else {
+                digitizer->readData<int16_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
+            }
 
-            typedef int16_t datum_type;
-
-            auto d = std::make_shared< waveform >( sizeof( datum_type ) );
             static uint64_t serialCounter_ = 0;
-
-            digitizer->readData<datum_type>( 1, d->dataDesc(), d->segDesc(), d->d() );
+            
             d->delayTime() = digitizer->delayTime();
             d->serialNumber() = serialCounter_++;
 
@@ -143,5 +154,24 @@ task::acquire( digitizer * digitizer )
         digitizer->stop();
         std::cout << "acquire failed. " << count++<< std::endl;
         std::this_thread::sleep_for( 1s );
+    }
+}
+
+void
+task::handle_timer( const boost::system::error_code& ec )
+{
+    using namespace std::chrono_literals;
+    
+    if ( ec != boost::asio::error::operation_aborted ) {
+
+        strand_.post( [] {
+                document::digitizer()->readTemperature();
+            } );
+
+        boost::system::error_code erc;
+        timer_.expires_from_now( 15s, erc );
+        if ( !erc )
+            timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
+
     }
 }

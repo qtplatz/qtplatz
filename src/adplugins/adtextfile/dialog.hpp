@@ -42,7 +42,7 @@ namespace adtextfile {
     public:
         explicit Dialog(QWidget *parent = 0);
         ~Dialog();
-        enum data_type { data_chromatogram, data_spectrum };
+        enum data_type { data_chromatogram, data_spectrum, counting_time_data };
         enum scan_type { time_squared_scan_law, linear_scan_law };
         
         void setDataType( data_type t );
@@ -74,6 +74,10 @@ namespace adtextfile {
         bool isTimeMassIntensity() const;
         size_t columnCount() const;
         size_t skipLines() const;
+
+        void setScanLaw( const std::string& adfsname
+                         , double acclVoltae, double tDelay, double fLength
+                         , const std::string& spectrometer );
 
     private:
         Ui::Dialog *ui;

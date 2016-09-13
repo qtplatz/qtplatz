@@ -13,12 +13,15 @@
 #include <array>
 #include <memory>
 #include <boost/asio.hpp>
-//#include "reply.hpp"
 #include "request.hpp"
 #include "request_handler.hpp"
 #include "request_parser.hpp"
 
 namespace aqdrv4 {
+
+    class preamble;
+    class acqiris_protocol;
+    
     namespace server {
 
         class connection_manager;
@@ -31,12 +34,15 @@ namespace aqdrv4 {
             /// Construct a connection with the given socket.
             explicit connection(boost::asio::ip::tcp::socket socket,
                                 connection_manager& manager, request_handler& handler);
+            ~connection();
 
             /// Start the first asynchronous operation for the connection.
             void start();
 
             /// Stop all asynchronous operations associated with the connection.
             void stop();
+
+            void write( std::shared_ptr< acqiris_protocol > );
 
         private:
             /// Perform an asynchronous read operation.
@@ -63,11 +69,10 @@ namespace aqdrv4 {
             /// The parser for the incoming request.
             request_parser request_parser_;
 
-            /// The reply to be sent back to the client.
-            // reply reply_;
-
-            boost::asio::streambuf ack_;
+            boost::asio::streambuf reply_;
             boost::asio::streambuf response_;
+            bool connection_requested_;
+            bool connected_;
         };
 
         typedef std::shared_ptr<connection> connection_ptr;

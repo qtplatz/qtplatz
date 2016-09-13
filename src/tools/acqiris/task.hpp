@@ -25,6 +25,8 @@
 
 #include "semaphore.hpp"
 #include <boost/asio.hpp>
+//#include <boost/asio/basic_waitable_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <chrono>
 #include <cstdint>
 #include <future>
@@ -54,6 +56,7 @@ private:
     boost::asio::io_service io_service_;
     boost::asio::io_service::work work_;
     boost::asio::io_service::strand strand_;
+    boost::asio::steady_timer timer_;
     std::atomic< bool > worker_stopping_;
     adportable::semaphore sema_;
     std::vector< std::thread > threads_;
@@ -62,4 +65,5 @@ private:
 
     void acquire( digitizer * );
     void worker_thread();
+    void handle_timer( const boost::system::error_code& ec );
 };

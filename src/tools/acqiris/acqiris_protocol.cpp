@@ -24,8 +24,12 @@
 
 #include "acqiris_protocol.hpp"
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace aqdrv4 {
+
+    static uint32_t __aug__ = 0x20160907;
 
     boost::uuids::uuid clsid_connection_request =
         boost::uuids::string_generator()( "{8fcb150a-74e7-11e6-8f1d-bfbec26f05f1}" );
@@ -33,11 +37,48 @@ namespace aqdrv4 {
     boost::uuids::uuid clsid_acknowledge =
         boost::uuids::string_generator()( "{e6eaa666-74f1-11e6-815d-b31b513d9069}" );
 
-    preamble::preamble( const boost::uuids::uuid& uuid ) : clsid( uuid )
-                                                         , aug( 0x20160907 )
-                                                         , length( 0 )
-                                                         , request( 0 )
+    preamble::preamble( const boost::uuids::uuid& uuid, size_t size ) : clsid( uuid )
+                                                                      , aug( __aug__ )
+                                                                      , length( size )
+                                                                      , request( 0 )
     {
+    }
+
+    bool
+    preamble::isOk( const preamble * data )
+    {
+        return data->aug == __aug__;
+    }
+
+    std::ostream&
+    preamble::debug( std::ostream& of, const preamble * data )
+    {
+        if ( data->aug == __aug__ ) {
+            if ( data->clsid == clsid_connection_request )
+                of << "clsid_connection_request";
+            else if ( data->clsid == clsid_acknowledge )
+                of << "clsid_acknowledge";
+            else {
+                of << boost::lexical_cast< std::string >( data->clsid );
+                return of;
+            }
+        }
+        return of;
+    }
+
+    ////////////////
+    
+    acqiris_protocol::acqiris_protocol()
+    {
+    }
+
+    std::vector< boost::asio::const_buffer >
+    acqiris_protocol::to_buffers()
+    {
+        std::vector<boost::asio::const_buffer> buffers;
+        buffers.push_back( boost::asio::buffer( preamble_.data(), sizeof( class preamble ) ) );
+        buffers.push_back( boost::asio::buffer( payload_ ) );
+        return buffers;
     }
 
 }

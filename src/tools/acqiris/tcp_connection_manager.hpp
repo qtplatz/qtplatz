@@ -14,6 +14,10 @@
 #include "tcp_connection.hpp"
 
 namespace aqdrv4 {
+
+    class preamble;
+    class acqiris_protocol;
+    
     namespace server {
 
         /// Manages open connections so that they may be cleanly stopped when the server
@@ -35,6 +39,8 @@ namespace aqdrv4 {
 
             /// Stop all connections.
             void stop_all();
+
+            void write_all( std::shared_ptr< acqiris_protocol > );
 
         private:
             /// The managed connections.

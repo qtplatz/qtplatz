@@ -26,6 +26,7 @@
 #include "ui_dialog.h"
 #include <QStandardItemModel>
 #include <adportable/debug.hpp>
+#include <ratio>
 
 using namespace adtextfile;
 
@@ -34,6 +35,10 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 {
     ui->setupUi(this);
     ui->tableView->setModel( new QStandardItemModel );
+
+    connect( ui->radioButton_6, &QRadioButton::toggled, this, [&](bool f){
+            ui->groupBox_3->setEnabled( !f );
+        });
 }
 
 Dialog::~Dialog()
@@ -45,7 +50,8 @@ void
 Dialog::setDataType( data_type t )
 {
     ui->radioButton->setChecked( t == data_chromatogram );
-    ui->radioButton_2->setChecked( t == data_spectrum );    
+    ui->radioButton_2->setChecked( t == data_spectrum );
+    ui->radioButton_6->setChecked( t == counting_time_data );
 }
 
 Dialog::data_type
@@ -53,7 +59,26 @@ Dialog::dataType() const
 {
     if ( ui->radioButton->isChecked() )
         return data_chromatogram;
-    return data_spectrum;
+    else if ( ui->radioButton_2->isChecked() )
+        return data_spectrum;
+    else
+        return counting_time_data;
+}
+
+void
+Dialog::setScanLaw( const std::string& adfsname
+                    , double acclVoltage
+                    , double tDelay
+                    , double fLength
+                    , const std::string& spectrometer )
+{
+    ui->groupBox_2->setEnabled( true );
+    ui->groupBox_2->setChecked( true );
+    ui->groupBox_2->setTitle( QString( tr( "Scan Law (%1)" ).arg( QString::fromStdString( spectrometer ) ) ) );
+
+    ui->doubleSpinBox->setValue( fLength );
+    ui->doubleSpinBox_2->setValue( acclVoltage );
+    ui->doubleSpinBox_3->setValue( tDelay * std::micro::den );
 }
 
 void

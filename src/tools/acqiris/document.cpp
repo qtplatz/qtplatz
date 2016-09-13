@@ -35,6 +35,7 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/filesystem/path.hpp>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -106,7 +107,7 @@ document::finalClose()
 QSettings *
 document::settings()
 {
-    return nullptr;
+    return settings_.get();
 }
 
 bool
@@ -130,10 +131,18 @@ document::push( std::shared_ptr< waveform >&& d )
     
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
 
+    if ( server_ )
+        server_->post( d );
+
     if ( que_.size() >= 4096 ) {
 
-        double rate = ( que_.back()->timeStamp() - que_.front()->timeStamp() ) / que_.size();
-        std::cout << "avrage trig. interval: " << rate / std::nano::den << "s" << std::endl;
+        using namespace std::chrono_literals;
+        static auto tp = std::chrono::steady_clock::now();
+        if ( std::chrono::steady_clock::now() - tp > 10s ) {
+            tp = std::chrono::steady_clock::now();
+            double rate = ( que_.back()->timeStamp() - que_.front()->timeStamp() ) / ( que_.size() - 1 );
+            std::cout << "average trig. interval: " << rate / std::nano::den << "s" << std::endl;
+        }
 
         que_.erase( que_.begin(), que_.begin() + ( que_.size() - 2048 ) );
     }

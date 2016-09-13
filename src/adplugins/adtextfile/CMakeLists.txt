@@ -28,14 +28,16 @@ add_definitions(-DADTXTFACTORY_LIBRARY)
 
 add_library( adtextfile MODULE 
   adtextfile.cpp
-  datafile.cpp
-  datafile_factory.cpp
-  txtspectrum.cpp
-  txtchromatogram.cpp
   adtextfile.hpp
+  datafile.cpp
   datafile.hpp
+  datafile_factory.cpp
   datafile_factory.hpp
+  time_data_reader.cpp
+  time_data_reader.hpp
+  txtspectrum.cpp
   txtspectrum.hpp
+  txtchromatogram.cpp
   txtchromatogram.hpp
   dialog.cpp
   dialog.hpp
@@ -49,6 +51,7 @@ target_link_libraries( adtextfile LINK_PUBLIC
   xmlparser
   portfolio
   adplugin
+  adfs
   Qt5::Core
   Qt5::Widgets
   )

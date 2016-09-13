@@ -51,6 +51,8 @@ add_library( adcontrols SHARED
   controlmethod/tofchromatogrammethod.hpp
   controlmethod/tofchromatogramsmethod.cpp
   controlmethod/tofchromatogramsmethod.hpp
+  countingdata.cpp
+  countingdata.hpp
   countingmethod.cpp
   countingmethod.hpp
   countingresult.cpp

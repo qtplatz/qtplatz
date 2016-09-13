@@ -9,19 +9,29 @@
 //
 
 #include "tcp_server.hpp"
+#include "waveform.hpp"
+#include "acqiris_protocol.hpp"
 #include <signal.h>
 #include <utility>
 #include <iostream>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 using namespace aqdrv4::server;
 
 tcp_server::tcp_server(const std::string& address, const std::string& port )
-    : io_service_(),
-      signals_(io_service_),
-      acceptor_(io_service_),
-      connection_manager_(),
-      socket_(io_service_),
-      request_handler_()
+    : io_service_()
+    , strand_( io_service_ )
+    , signals_( io_service_ )
+    , acceptor_( io_service_ )
+    , connection_manager_()
+    , socket_( io_service_ )
+    , request_handler_()
+    , hasClient_( false )
 {
     // Register to handle the signals that indicate when the server should exit.
     // It is safe to register for the same signal multiple times in a program,
@@ -96,3 +106,31 @@ tcp_server::do_await_stop()
         });
 }
 
+void
+tcp_server::post( std::shared_ptr< const waveform > p )
+{
+    if ( hasClient_ ) {
+
+        strand_.post( [=] {
+
+                auto data( std::make_shared< acqiris_protocol >() );
+            
+                boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
+                boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+                portable_binary_oarchive ar( device );
+                ar & *p;
+
+                data->preamble().clsid = p->clsid();
+                data->preamble().length = data->payload().size();
+
+                connection_manager_.write_all( data );
+            });
+    }
+}
+
+void
+tcp_server::setConnected()
+{
+    hasClient_ = true;
+}

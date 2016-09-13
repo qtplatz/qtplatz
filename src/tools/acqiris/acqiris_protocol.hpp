@@ -25,6 +25,10 @@
 #pragma once
 
 #include <boost/uuid/uuid.hpp>
+#include <memory>
+#include <string>
+#include <vector>
+#include <boost/asio.hpp>
 
 namespace aqdrv4 {
 
@@ -37,13 +41,25 @@ namespace aqdrv4 {
         uint32_t request;
         boost::uuids::uuid clsid;
 
-        preamble( const boost::uuids::uuid& uuid = boost::uuids::uuid() );
+        preamble( const boost::uuids::uuid& uuid = boost::uuids::uuid(), size_t length = 0 );
         const char * data() const { return reinterpret_cast< const char * >( this ); }
+        static bool isOk( const preamble * );
+        static std::ostream& debug( std::ostream&, const preamble * );
     };
 
-    struct postamble {
-        uint32_t uag; // umber
-        postamble();
+    class acqiris_protocol : public std::enable_shared_from_this< acqiris_protocol > {
+    public:
+        acqiris_protocol();
+
+        inline class preamble& preamble()   { return preamble_; }
+        inline std::string& payload() { return payload_; }
+
+        std::vector< boost::asio::const_buffer > to_buffers();
+
+    private:
+        class preamble preamble_;
+        std::string payload_;
     };
+
 }
 

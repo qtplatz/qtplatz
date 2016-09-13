@@ -16,6 +16,8 @@
 #include "tcp_connection_manager.hpp"
 #include "request_handler.hpp"
 
+class waveform;
+
 namespace aqdrv4 {
     namespace server {
 
@@ -32,7 +34,9 @@ namespace aqdrv4 {
             /// Run the server's io_service loop.
             void run();
             void stop();
-
+            void post( std::shared_ptr< const waveform > );
+            void setConnected();
+            
         private:
             /// Perform an asynchronous accept operation.
             void do_accept();
@@ -40,8 +44,8 @@ namespace aqdrv4 {
             /// Wait for a request to stop the server.
             void do_await_stop();
             
-            /// The io_service used to perform asynchronous operations.
             boost::asio::io_service io_service_;
+            boost::asio::io_service::strand strand_;
 
             /// The signal_set is used to register for process termination notifications.
             boost::asio::signal_set signals_;
@@ -57,6 +61,8 @@ namespace aqdrv4 {
 
             /// The handler for all incoming requests.
             request_handler request_handler_;
+
+            bool hasClient_;
         };
 
     } // namespace server

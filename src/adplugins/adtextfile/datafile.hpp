@@ -44,6 +44,7 @@ namespace adtextfile {
 
     class TXTSpectrum;
     class TXTChromatogram;
+    class time_data_reader;
 
     class datafile : public adcontrols::datafile
                    , public adcontrols::LCMSDataset { 
@@ -79,6 +80,7 @@ namespace adtextfile {
         std::map< std::wstring, adcontrols::ChromatogramPtr > chro_;
         bool prepare_portfolio( const TXTSpectrum&, const std::wstring&, portfolio::Portfolio& );
         bool prepare_portfolio( const TXTChromatogram&, const std::wstring&, portfolio::Portfolio& );
+        bool prepare_portfolio( const time_data_reader&, const std::wstring&, portfolio::Portfolio& );
     };
 }
 

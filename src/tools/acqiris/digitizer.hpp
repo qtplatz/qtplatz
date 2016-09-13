@@ -43,7 +43,8 @@ public:
                 , bSimulated_( false )
                 , bus_number_( 0 )
                 , slot_number_( 0 )
-                , serial_number_( 0 ) {
+                , serial_number_( 0 )
+                , nbrADCBits_( 8 ) {
     }
     
     bool initialize();
@@ -93,6 +94,9 @@ public:
     }
 
     double delayTime() const;
+    int nbrADCBits() const;
+    int temperature() const;
+    int readTemperature();
 
 private:
     ViSession inst_;
@@ -107,5 +111,7 @@ private:
     ViInt32 nbrWaveforms_;
     double delayTime_;
     std::shared_ptr< const aqdrv4::acqiris_method > method_;
+    ViInt32 nbrADCBits_;
+    ViInt32 temperature_;
 };
 

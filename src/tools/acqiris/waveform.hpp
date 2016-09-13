@@ -27,6 +27,13 @@
 #include <AcqirisD1Import.h>
 #include <vector>
 #include <ratio>
+#include <boost/uuid/uuid_generators.hpp>
+
+namespace boost {
+    namespace serialization { class access; }
+}
+
+template< typename T > class waveform_archive;
 
 class waveform {
 
@@ -35,6 +42,8 @@ class waveform {
 
 public:
     waveform( int32_t dataType = sizeof( int8_t ) );
+
+    static const boost::uuids::uuid& clsid();
 
     typedef int32_t value_type; // (internal data holder type) referenced from archiver in WaveformObserver
             
@@ -117,13 +126,19 @@ public:
         return dataType_;
     }    
 private:
-    std::vector< value_type > d_;
     uint64_t serialnumber_;
     uint32_t wellKnownEvents_;
     double delayTime_;
     AqDataDescriptor dataDesc_;
     AqSegmentDescriptor segDesc_;
-    int32_t dataType_; // actual data type (sizeof(int8_t), sizeof(int32_t) ...)
+    int32_t dataType_;                // actual data type (sizeof(int8_t), sizeof(int32_t) ...)
+    std::vector< value_type > d_;
+
+    //////////////////////////////
+    friend class boost::serialization::access;
+    template<class Archive> void serialize( Archive& ar, const unsigned int version );
+    friend class waveform_archive<waveform>;
+    friend class waveform_archive<const waveform>;
 };
 
 template<> const int8_t * waveform::begin() const;

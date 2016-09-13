@@ -25,6 +25,86 @@
 #include <typeinfo>
 #include <cstring>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+
+namespace boost {
+    namespace serialization {
+
+        template<class Archive>
+        void serialize( Archive & ar, AqDataDescriptor& _, const unsigned int version )
+        {
+            ar & BOOST_SERIALIZATION_NVP( _.returnedSamplesPerSeg );
+            ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );    //!< 'data[desc.indexFirstPoint]' is the first valid point. 
+            ar & BOOST_SERIALIZATION_NVP( _.sampTime );
+            ar & BOOST_SERIALIZATION_NVP( _.vGain );
+            ar & BOOST_SERIALIZATION_NVP( _.vOffset );
+            ar & BOOST_SERIALIZATION_NVP( _.returnedSegments );   //!< When reading multiple segments in one waveform
+            ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWforms );        
+            ar & BOOST_SERIALIZATION_NVP( _.actualTriggersInAcqLo );
+            ar & BOOST_SERIALIZATION_NVP( _.actualTriggersInAcqHi );
+            ar & BOOST_SERIALIZATION_NVP( _.actualDataSize );
+            ar & BOOST_SERIALIZATION_NVP( _.reserved2 );    
+            ar & BOOST_SERIALIZATION_NVP( _.reserved3 );
+        }
+
+        template<class Archive>
+        void serialize( Archive & ar, AqSegmentDescriptor& _, const unsigned int version )
+        {
+            ar & BOOST_SERIALIZATION_NVP( _.horPos );
+            ar & BOOST_SERIALIZATION_NVP( _.timeStampLo );
+            ar & BOOST_SERIALIZATION_NVP( _.timeStampHi );
+        }
+        
+    }
+}
+        
+
+template< typename T = waveform >
+struct waveform_archive {
+    template<class Archive>
+    void serialize( Archive& ar, T& _, const unsigned int version ) {
+        using namespace boost::serialization;
+        
+        ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
+        ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
+        ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
+        ar & BOOST_SERIALIZATION_NVP( _.dataDesc_ );
+        ar & BOOST_SERIALIZATION_NVP( _.segDesc_ );
+        ar & BOOST_SERIALIZATION_NVP( _.dataType_ );
+        ar & BOOST_SERIALIZATION_NVP( _.d_ );
+    }
+};
+
+template<> void waveform::serialize( portable_binary_oarchive& ar, const unsigned int version )
+{
+    waveform_archive<>().serialize( ar, *this, version );
+}
+
+template<> void waveform::serialize( portable_binary_iarchive& ar, const unsigned int version )
+{
+    waveform_archive<>().serialize( ar, *this, version );
+}
+
+
+const boost::uuids::uuid&
+waveform::clsid()
+{
+    static auto __clsid = boost::uuids::string_generator()( "{33f5bfd8-793c-11e6-9bd0-1b94f4251234}" );
+    return __clsid;
+}
+
 waveform::waveform( int32_t dataType ) : serialnumber_( 0 )
                                        , wellKnownEvents_( 0 )
                                        , dataType_( dataType )

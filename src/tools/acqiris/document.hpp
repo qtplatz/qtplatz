@@ -77,6 +77,8 @@ public:
     void set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& );
     void set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& );
 
+    aqdrv4::server::tcp_server * server() { return server_.get(); }
+
     static bool save( const std::string& file, std::shared_ptr< const aqdrv4::acqiris_method > );
     static std::shared_ptr< aqdrv4::acqiris_method > load( const std::string& file );
 
