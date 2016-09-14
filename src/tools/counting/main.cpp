@@ -142,6 +142,7 @@ main(int argc, char *argv[])
                     if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
                         // assume --stat if no process specified
                         auto statfile = summary.make_outfname( file, "_stat" );
+                        
                         summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                         summary.print_statistics( statfile );
                     }
@@ -223,13 +224,15 @@ Summary::print_statistics( const std::string& file )
         of << boost::format( "%.9le,\t%d" )
             % pklist.first // tof
             % pklist.second.size(); // count
-        of << boost::format( "\tV: %9.5lf, %9.5lf" ) % apex.mean % apex.stddev;
-        of << boost::format( "\tH: %9.5lf, %9.5lf" ) % height.mean % height.stddev;
-        of << boost::format( "\tA: %9.5lf, %9.5lf" ) % area.mean % area.stddev;
-        of << boost::format( "\tF: %9.5lf, %9.5lf" ) % front.mean % front.stddev;
-        of << boost::format( "\tB: %9.5lf, %9.5lf" ) % back.mean % back.stddev;
+        of << boost::format( "\tV: %9.4lf, %9.3lf" ) % apex.mean % apex.stddev;
+        of << boost::format( "\tH: %9.4lf, %9.3lf" ) % height.mean % height.stddev;
+        of << boost::format( "\tA: %9.4lf, %9.3lf" ) % area.mean % area.stddev;
+        of << boost::format( "\tF: %9.4lf, %9.3lf" ) % front.mean % front.stddev;
+        of << boost::format( "\tB: %9.4lf, %9.3lf" ) % back.mean % back.stddev;
         of << std::endl;
     }
+
+    std::cout << "statistics reported on file: " << file << std::endl;
 
     // boost::filesystem::path plt( file );
     // plt.replace_extension( ".plt" );
@@ -266,10 +269,8 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
     } else {
         auto name = boost::filesystem::path( outdir_ ) / stem;
         std::string path = name.string() + ".log";
-        std::cout << "make_outfname: " << path << std::endl;
         while ( boost::filesystem::exists( path ) ) {
-            std::cout << "\tmake_outfname path exists: " << path << std::endl;
-            path = ( boost::format( "%s~%d.log" ) % name % id++ ).str();
+            path = ( boost::format( "%s~%d.log" ) % name.string() % id++ ).str();
         }
         return path;
     }
