@@ -24,6 +24,7 @@
 
 #include "document.hpp"
 #include "acqiris_method.hpp"
+#include "acqiris_protocol.hpp"
 #include "acqiriswidget.hpp"
 #include "digitizer.hpp"
 #include "task.hpp"
@@ -31,6 +32,13 @@
 #include "tcp_client.hpp"
 #include "waveform.hpp"
 #include <QSettings>
+#include <adportable/debug.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -131,14 +139,15 @@ document::push( std::shared_ptr< waveform >&& d )
     
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
 
-    if ( server_ )
-        server_->post( d );
+    // if ( server_ )
+    //     server_->post( d );
 
     if ( que_.size() >= 4096 ) {
 
         using namespace std::chrono_literals;
         static auto tp = std::chrono::steady_clock::now();
         if ( std::chrono::steady_clock::now() - tp > 10s ) {
+
             tp = std::chrono::steady_clock::now();
             double rate = ( que_.back()->timeStamp() - que_.front()->timeStamp() ) / ( que_.size() - 1 );
             std::cout << "average trig. interval: " << rate / std::nano::den << "s" << std::endl;
@@ -239,4 +248,31 @@ document::handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method > m, aqdrv
 {
     set_acqiris_method( m );
     task::instance()->prepare_for_run( digitizer(), document::instance()->acqiris_method() );
+}
+
+void
+document::replyTemperature( int temp )
+{
+    if ( server_ ) {
+        do {
+            auto data = std::make_shared< aqdrv4::acqiris_protocol >();
+            data->preamble().clsid = aqdrv4::clsid_temperature;
+            server_->post( data );
+        } while ( 0 );
+
+        if ( auto p = recentWaveform() ) {
+            auto data = std::make_shared< aqdrv4::acqiris_protocol >();
+
+            boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+
+            portable_binary_oarchive ar( device );
+            ar & *p;
+
+            data->preamble().clsid = p->clsid();
+            data->preamble().length = data->payload().size();
+            ADDEBUG() << "size = " << data->payload().size();
+            server_->post( data );
+        }
+    }
 }

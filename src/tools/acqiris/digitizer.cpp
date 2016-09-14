@@ -47,7 +47,7 @@ digitizer::waitForEndOfAcquisition( size_t timeout )
     }
     if ( __isSimulated__ ) {
         using namespace std::chrono_literals;
-        std::this_thread::sleep_for( 10ms );
+        std::this_thread::sleep_for( 500ms );
     }
 }
     

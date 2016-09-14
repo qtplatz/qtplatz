@@ -21,49 +21,51 @@
 **
 **************************************************************************/
 
-#include "task.hpp"
-#include "digitizer.hpp"
+#include "tcp_task.hpp"
+#include "tcp_client.hpp"
 #include "document.hpp"
 #include "waveform.hpp"
 #include <iostream>
 
-task::~task()
+using namespace aqdrv4::client;
+
+tcp_task::~tcp_task()
 {
 }
 
-task::task() : worker_stopping_( false )
-             , work_( io_service_ )
-             , strand_( io_service_ )
-             , timer_( io_service_ )
-             , tp_data_handled_( std::chrono::system_clock::now() )
+tcp_task::tcp_task() : worker_stopping_( false )
+                     , work_( io_service_ )
+                     , strand_( io_service_ )
+                     , timer_( io_service_ )
+                     , tp_data_handled_( std::chrono::system_clock::now() )
 {
     acquire_posted_.clear();
 }
 
-task *
-task::instance()
+tcp_task *
+tcp_task::instance()
 {
-    static task __instance;
+    static tcp_task __instance;
     return &__instance;
 }
 
 bool
-task::initialize()
+tcp_task::initialize()
 {
     using namespace std::chrono_literals;
-
+    
     static std::once_flag flag;
-
+    
     std::call_once( flag, [&]() {
-
+            
             acquire_posted_.clear();
-
+            
             threads_.emplace_back( std::thread( [&]{ worker_thread(); } ) );
-
+            
             unsigned nCores = std::thread::hardware_concurrency();
             while( nCores-- )
                 threads_.emplace_back( std::thread( [&]{ io_service_.run(); } ) );
-
+            
             timer_.expires_from_now( 5s );
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
         } );
@@ -72,14 +74,14 @@ task::initialize()
 }
 
 bool
-task::finalize()
+tcp_task::finalize()
 {
     worker_stopping_ = true;
-
+    
     sema_.signal();
-
+    
     io_service_.stop();
-
+    
     for ( auto& t: threads_ )
         t.join();
 
@@ -87,7 +89,7 @@ task::finalize()
 }
 
 void
-task::worker_thread()
+tcp_task::worker_thread()
 {
     do {
         sema_.wait();
@@ -98,20 +100,20 @@ task::worker_thread()
 }
 
 void
-task::prepare_for_run( digitizer * digitizer, std::shared_ptr< const aqdrv4::acqiris_method > m )
+tcp_task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m )
 {
-    strand_.post( [=] {
-            auto adapted = digitizer->digitizer_setup( m );
-            document::instance()->acqiris_method_adapted( adapted );
-        } );
+    // strand_.post( [=] {
+    //         auto adapted = digitizer->digitizer_setup( m );
+    //         document::instance()->acqiris_method_adapted( adapted );
+    //     } );
     
-    if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
-        strand_.post( [=] { acquire( digitizer ); } );
-    
+    // if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
+    //     strand_.post( [=] { acquire( digitizer ); } );
 }
 
+#if 0
 void
-task::acquire( digitizer * digitizer )
+tcp_task::acquire( digitizer * digitizer )
 {
     static int count = 0;
 
@@ -121,58 +123,25 @@ task::acquire( digitizer * digitizer )
         std::atomic_flag_clear( &acquire_posted_ ); // keep it false
     
     using namespace std::chrono_literals;
-
-    if ( digitizer->acquire() ) {
-        
-        if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
-            
-            static const int nbrADCBits = digitizer->nbrADCBits();
-            auto d = std::make_shared< waveform >( nbrADCBits ? sizeof( int8_t ) : sizeof( int16_t ) );
-            
-            if ( nbrADCBits <= 8 ) {
-                digitizer->readData<int8_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
-            } else {
-                digitizer->readData<int16_t>( 1, d->dataDesc(), d->segDesc(), d->d() );
-            }
-
-            static uint64_t serialCounter_ = 0;
-            
-            d->delayTime() = digitizer->delayTime();
-            d->serialNumber() = serialCounter_++;
-
-            document::instance()->push( std::move( d ) );
-
-            auto tp = std::chrono::system_clock::now();
-            if ( tp - tp_data_handled_ > 200ms ) {
-                emit document::instance()->updateData();
-                tp_data_handled_ = tp;
-            }
-        } else {
-            std::cout << "acquire timed out " << count++ << std::endl;
-        }
-    } else {
-        digitizer->stop();
-        std::cout << "acquire failed. " << count++<< std::endl;
-        std::this_thread::sleep_for( 1s );
-    }
 }
+#endif
 
 void
-task::handle_timer( const boost::system::error_code& ec )
+tcp_task::handle_timer( const boost::system::error_code& ec )
 {
     using namespace std::chrono_literals;
     
     if ( ec != boost::asio::error::operation_aborted ) {
-
+#if 0        
         strand_.post( [] {
-                int temp = document::digitizer()->readTemperature();
-                document::instance()->replyTemperature( temp );
+                std::cout << "readData" << std::endl;
+                if ( auto client = document::instance()->client() )
+                    client->readData();
             } );
-
+#endif
         boost::system::error_code erc;
-        timer_.expires_from_now( 5s, erc );
+        timer_.expires_from_now( 3s, erc );
         if ( !erc )
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
-
     }
 }

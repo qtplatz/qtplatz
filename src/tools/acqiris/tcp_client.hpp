@@ -48,6 +48,8 @@ namespace aqdrv4 {
             void run();
             void stop();
 
+            void readData();
+
             boost::asio::streambuf& response();
             boost::asio::streambuf& response_header();
             unsigned int status_code() const;

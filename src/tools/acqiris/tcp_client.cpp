@@ -30,7 +30,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 #include "tcp_client.hpp"
+#include "tcp_task.hpp"
 #include "acqiris_protocol.hpp"
+#include <adportable/debug.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -161,7 +163,9 @@ tcp_client::handle_connect( const boost::system::error_code& err,
     error_code_ = err;
 
     if (!err)  {
-        
+
+        ADDEBUG() << "connection successed: " << socket_.remote_endpoint() << " - " << socket_.local_endpoint();
+
         // The connection was successful. Send the request.
         boost::asio::async_write( socket_
                                   , *request_
@@ -169,10 +173,13 @@ tcp_client::handle_connect( const boost::system::error_code& err,
                                       handle_write_request( ec );
                                   } );
 
+        tcp_task::instance()->initialize();
+
     } else if ( endpoint_iterator != tcp::resolver::iterator() ) {
         
         // The connection failed. Try the next endpoint in the list.
         socket_.close();
+        
         tcp::endpoint endpoint = *endpoint_iterator;
         auto next = ++endpoint_iterator;
 
@@ -196,64 +203,86 @@ tcp_client::handle_write_request(const boost::system::error_code& err)
     if ( !err ) {
 
         // Read the response status line.
-        boost::asio::async_read( socket_
-                                 , response_
-                                 , boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
-                                 , [&]( const boost::system::error_code& ec, size_t ) {
-                                     
-                                     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
-                                     
-                                     if ( aqdrv4::preamble::isOk( preamble ) && 
-                                          preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
-                                         
-                                         std::cout << ">>> tcp_client: reply data\t";
-                                         aqdrv4::preamble::debug( std::cout,
-                                                                  boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() ));
+        boost::asio::async_read(
+            socket_
+            , response_
+            , boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
+            , [&]( const boost::system::error_code& ec, size_t ) {
+                
+                auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+                
+                if ( aqdrv4::preamble::isOk( preamble ) && 
+                     preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
+                    
+                    ADDEBUG() << ">>> tcp_client: reply data\t"
+                              << aqdrv4::preamble::debug( boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() ));
+                    
+                    if ( preamble->clsid == aqdrv4::clsid_acknowledge ) {
+                        
+                        response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
+                        do_read();
+                        
+                    } else {
+                        
+                        response_.consume( response_.size() );
+                        
+                    }
+                }
+            });
 
-                                         if ( preamble->clsid == aqdrv4::clsid_acknowledge ) {
-                                             response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
-                                             do_read();
-                                         } else {
-                                             response_.consume( response_.size() );
-                                         }
-                                     }
-                                 });
     } else {
         
         error_ = Error;
         if ( debug_mode_ )
-            std::cout << "[" << server_ << "] Error: " << err.message() << std::endl;
+            ADDEBUG() << "[" << server_ << "] Error: " << err.message();
     }
 }
 
 void
 tcp_client::do_read()
 {
-    boost::asio::async_read( socket_
-                             , response_
-                             , boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
-                             , [&]( const boost::system::error_code& ec, size_t ) {
+    boost::asio::async_read(
+        socket_
+        , response_
+        //, boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
+        , boost::asio::transfer_at_least( 1 )
+        , [&]( const boost::system::error_code& ec, size_t ) {
                                  
-                                 if ( !ec ) {
+            if ( !ec ) {
                                      
-                                     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+                auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+
+                ADDEBUG() << ">>> tcp_client:do_read\t" << aqdrv4::preamble::debug( preamble )
+                          << " received: " << response_.size();
                                      
-                                     if ( aqdrv4::preamble::isOk( preamble ) && 
-                                          preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
-                                         
-                                         std::cout << ">>> tcp_client:do_read\t";
-                                         aqdrv4::preamble::debug( std::cout, preamble );
-                                         
-                                         response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
+                if ( aqdrv4::preamble::isOk( preamble ) && 
+                     preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
 
-                                         do_read();                                         
-                                     }
-                                 }
+                    response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
+                }
+                do_read();                                         
 
-                                 if ( ec != boost::asio::error::operation_aborted ) {
-                                     std::cout << ">>> do_read: failed: " << ec.message() << std::endl;
-                                 }
+            } else {
+                //if ( ec != boost::asio::error::operation_aborted ) {
+                ADDEBUG() << __FILE__ << ":" << __LINE__ << ">>> do_read: failed: " << ec.message();
+            }
 
-                             });
+        });
 }
 
+void
+tcp_client::readData()
+{
+#if 0
+    aqdrv4::preamble preamble( aqdrv4::clsid_readData );
+    
+    std::ostream request_stream( request_.get() );
+    request_stream.write( preamble.data(), sizeof( preamble ) );
+
+    boost::asio::async_write( socket_
+                              , *request_
+                              , [&]( const boost::system::error_code& ec, size_t ) {
+                                  handle_write_request( ec );
+                              } );
+#endif
+}

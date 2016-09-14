@@ -78,11 +78,13 @@ public:
     void set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& );
 
     aqdrv4::server::tcp_server * server() { return server_.get(); }
+    aqdrv4::client::tcp_client * client() { return client_.get(); }
 
     static bool save( const std::string& file, std::shared_ptr< const aqdrv4::acqiris_method > );
     static std::shared_ptr< aqdrv4::acqiris_method > load( const std::string& file );
 
     void handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
+    void replyTemperature( int );
 
 signals:
     void updateData();

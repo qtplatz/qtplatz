@@ -34,6 +34,8 @@ namespace aqdrv4 {
 
     extern boost::uuids::uuid clsid_connection_request;
     extern boost::uuids::uuid clsid_acknowledge;
+    extern boost::uuids::uuid clsid_readData;
+    extern boost::uuids::uuid clsid_temperature;
 
     struct preamble {
         uint32_t aug; // methionine
@@ -44,7 +46,7 @@ namespace aqdrv4 {
         preamble( const boost::uuids::uuid& uuid = boost::uuids::uuid(), size_t length = 0 );
         const char * data() const { return reinterpret_cast< const char * >( this ); }
         static bool isOk( const preamble * );
-        static std::ostream& debug( std::ostream&, const preamble * );
+        static std::string debug( const preamble * );
     };
 
     class acqiris_protocol : public std::enable_shared_from_this< acqiris_protocol > {

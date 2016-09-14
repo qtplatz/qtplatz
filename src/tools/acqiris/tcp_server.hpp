@@ -34,8 +34,8 @@ namespace aqdrv4 {
             /// Run the server's io_service loop.
             void run();
             void stop();
-            void post( std::shared_ptr< const waveform > );
             void setConnected();
+            void post( std::shared_ptr< acqiris_protocol > );
             
         private:
             /// Perform an asynchronous accept operation.

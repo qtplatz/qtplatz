@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "acqiris_protocol.hpp"
+#include "waveform.hpp"
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
@@ -37,6 +38,12 @@ namespace aqdrv4 {
     boost::uuids::uuid clsid_acknowledge =
         boost::uuids::string_generator()( "{e6eaa666-74f1-11e6-815d-b31b513d9069}" );
 
+    boost::uuids::uuid clsid_readData =
+        boost::uuids::string_generator()( "{6fff8a7c-7a63-11e6-b666-5f9c53af3753}" );
+
+    boost::uuids::uuid clsid_temperature =
+        boost::uuids::string_generator()( "{162ceb80-7a71-11e6-aafc-637da0013f14}" );    
+    
     preamble::preamble( const boost::uuids::uuid& uuid, size_t size ) : clsid( uuid )
                                                                       , aug( __aug__ )
                                                                       , length( size )
@@ -50,20 +57,27 @@ namespace aqdrv4 {
         return data->aug == __aug__;
     }
 
-    std::ostream&
-    preamble::debug( std::ostream& of, const preamble * data )
+    std::string
+    preamble::debug( const preamble * data )
     {
+        std::ostringstream o;
         if ( data->aug == __aug__ ) {
             if ( data->clsid == clsid_connection_request )
-                of << "clsid_connection_request";
+                o << "clsid_connection_request";
             else if ( data->clsid == clsid_acknowledge )
-                of << "clsid_acknowledge";
+                o << "clsid_acknowledge";
+            else if ( data->clsid == clsid_readData )
+                o << "clsid_readData";
+            else if ( data->clsid == clsid_temperature )
+                o << "clsid_temperature";
+            else if ( data->clsid == waveform::clsid() )
+                o << "clsid_waveform";            
             else {
-                of << boost::lexical_cast< std::string >( data->clsid );
-                return of;
+                o << boost::lexical_cast< std::string >( data->clsid );
             }
+            o << " payload: " << data->length;
         }
-        return of;
+        return o.str();
     }
 
     ////////////////
@@ -77,7 +91,7 @@ namespace aqdrv4 {
     {
         std::vector<boost::asio::const_buffer> buffers;
         buffers.push_back( boost::asio::buffer( preamble_.data(), sizeof( class preamble ) ) );
-        buffers.push_back( boost::asio::buffer( payload_ ) );
+        buffers.push_back( boost::asio::buffer( payload_.data(), payload_.size() ) );
         return buffers;
     }
 

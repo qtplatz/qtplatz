@@ -35,8 +35,8 @@ endif()
 
 find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
   "${QTPLATZ_BUILD_DIR}"
-  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
   "${CMAKE_BINARY_DIR}/../qtplatz.netbeans"
+  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
   )
 if ( NOT qtplatz_config )
   message( FATAL_ERROR "qtplatz-config.cmake can not be found" )
@@ -96,14 +96,16 @@ add_executable( ${PROJECT_NAME}
   mainwindow.hpp
   task.cpp
   task.hpp
-  tcp_server.cpp
-  tcp_server.hpp
   tcp_connection.cpp
   tcp_connection.hpp  
   tcp_connection_manager.cpp
   tcp_connection_manager.hpp
   tcp_client.cpp
   tcp_client.hpp
+  tcp_server.cpp
+  tcp_server.hpp
+  tcp_task.cpp
+  tcp_task.hpp
   request_handler.cpp
   request_handler.hpp
   request_parser.cpp
