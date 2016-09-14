@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "countingdata.hpp"
+#include <cmath>
+#include <iostream>
 
 using namespace adcontrols;
 
@@ -38,7 +40,25 @@ CountingPeak::CountingPeak( const CountingPeak& t ) : apex( t.apex )
                                                     , back( t.back )
 {
 }
-    
+
+double
+CountingPeak::area() const
+{
+    return std::abs( height() ) * width();
+}
+
+double
+CountingPeak::width() const
+{
+    return back.first - front.first;
+}
+
+double
+CountingPeak::height() const
+{
+    return apex.second - ( front.second + back.second ) / 2.0;
+}
+
 CountingData::CountingData()
 {
 }

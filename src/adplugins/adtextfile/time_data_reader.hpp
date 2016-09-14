@@ -27,6 +27,7 @@
 
 #include <adcontrols/countingdata.hpp>
 #include <boost/filesystem/path.hpp>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -37,7 +38,8 @@ namespace adtextfile {
         time_data_reader();
 
     public:
-        bool load( const std::string& );
+        bool load( const std::string&
+                   , std::function<bool( size_t, size_t )> progress = std::function<bool( size_t, size_t )>() );
 
         static bool is_time_data( const std::string& path, std::string& adfsname );
 

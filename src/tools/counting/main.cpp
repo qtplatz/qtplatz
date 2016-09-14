@@ -35,7 +35,11 @@ namespace po = boost::program_options;
 struct peakstat {
     double mean, sd, min, max;
     size_t count;
+    peakstat( double _1 = 0, double _2 = 0, double _3 = 0, double _4 = 0, size_t _5 = 0 )
+        : mean( _1 ), sd( _2 ), min( _3 ), max( _4 ), count( _5 )
+        {}
 };
+
 
 class Summary {
     Summary() = delete;
@@ -53,10 +57,15 @@ public:
     void print_histogram( const std::string& file );
     void print_statistics( const std::string& file );
 
+    bool set_outdir( const std::string& dir );
+    std::string make_outfname( const std::string& infile, const std::string& suffix );
+
 private:
     std::unique_ptr< adtextfile::time_data_reader > reader_;
     std::vector< std::pair< double, size_t > > histogram_;
     std::vector< std::pair< double, std::vector< adcontrols::CountingPeak > > > pklists_;
+    std::string outdir_;
+    std::string infile_;
 };
 
 int
@@ -66,13 +75,13 @@ main(int argc, char *argv[])
     po::options_description description( "acqiris" );
     {
         description.add_options()
-            ( "help,h",     "Display this help message" )
-            ( "args",       po::value< std::vector< std::string > >(),  "input files" )
-            ( "histogram",  po::value< std::string >(),                 "histogram outfile" )
-            ( "stat,s",     po::value< std::string >(),                 "peak statistics outfile" )
-            ( "samp-rate",  po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
-            ( "resolution", po::value< double >()->default_value( 5 ),  "peak merge resolution (ns)" )
-            ( "tof",        po::value< double >(), "count peak for given tof(us) and resolution" )
+            ( "help,h",      "Display this help message" )
+            ( "args",        po::value< std::vector< std::string > >(),  "input files" )
+            ( "hist,h",      "histogram outfile" )
+            ( "stat,s",      "peak statistics outfile" )
+            ( "odir,C",      po::value< std::string >(), "result output directory" )
+            ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
+            // ( "resolution",  po::value< double >()->default_value( 5 ),  "peak merge resolution (ns)" )
             ;
 
         po::positional_options_description p;
@@ -92,6 +101,9 @@ main(int argc, char *argv[])
             
             std::string adfsname;
             if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
+
+                Summary summary( std::make_unique< adtextfile::time_data_reader >() );
+
                 if ( ! adfsname.empty() ) {            
 
                     double acclVoltage(0), tDelay(0), fLength(0);
@@ -107,30 +119,45 @@ main(int argc, char *argv[])
                         std::cout << "#\tSpectrometer: " << spectrometer << std::endl;
                     
                     }
+                }
 
-                    Summary summary( std::make_unique< adtextfile::time_data_reader >() );
-                    
-                    if ( summary.reader()->load( file ) ) {
-
-                        if ( vm.count( "histogram" ) ) {
-                            boost::filesystem::path outfile( file );
-                            outfile.replace_extension( "_hist.txt" );
-                            
-                            summary.compute_histogram( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                            summary.print_histogram( vm[ "histogram" ].as< std::string >() );
-                        }
-
-                        if ( vm.count( "stat" ) ) {
-                            boost::filesystem::path outfile( file );
-                            outfile.replace_extension( "_stat.txt" );
-                            
-                            summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                            summary.print_statistics( vm[ "stat" ].as< std::string >() );
-                        }
-                        
-                        summary.report( std::cout );
+                if ( vm.count( "odir" ) ) {
+                    if ( !summary.set_outdir( vm[ "odir" ].as< std::string >() ) ) {
+                        std::cerr << "Directory " << vm[ "odir" ].as< std::string >() << " can't be created." << std::endl;
+                        return 0;
                     }
                 }
+
+                if ( summary.reader()->load( file
+                                             , [&]( size_t numerator, size_t denominator ){
+                                                 std::cerr << "Processing: " << file
+                                                           << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                                                 return true;
+                                             }) ) {
+                    std::cerr << std::endl;
+                    
+                    if ( vm.count( "hist" ) ) {
+                        auto histfile = summary.make_outfname( file, "_hist" );
+                        summary.compute_histogram( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                        summary.print_histogram( histfile );
+                    }
+                    
+                    if ( vm.count( "stat" ) ) {
+                        auto statfile = summary.make_outfname( file, "_stat" );
+                        summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                        summary.print_statistics( statfile );
+                    }
+
+                    if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
+                        // assume --stat if no process specified
+                        auto statfile = summary.make_outfname( file, "_stat" );
+                        summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                        summary.print_statistics( statfile );
+                    }
+
+                    summary.report( std::cout );
+                }
+
             } else {
                 std::cout << "#file: " << file << " does not reconginsed as time_data file" << std::endl;
             }
@@ -242,10 +269,11 @@ Summary::print_statistics( const std::string& file )
     std::ofstream of( xfile );
     using namespace adcontrols;
 
-    peakstat apex, height, front, back;
+    peakstat apex, height, area, front, back;
 
     for ( auto& pklist: pklists_ ) {
         do {
+            // absolute height
             auto range = std::minmax_element(
                 pklist.second.begin(), pklist.second.end(), []( const CountingPeak& a, const CountingPeak& b ){
                     return a.apex.second < b.apex.second;
@@ -254,79 +282,85 @@ Summary::print_statistics( const std::string& file )
                 pklist.second.begin(), pklist.second.end(), 0.0, []( double b, const CountingPeak& a ){
                     return a.apex.second + b;
                 }) / pklist.second.size();
-            double sd = std::accumulate(
+            double sd2 = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
-                    return ( a.apex.second - mean ) * ( a.apex.second - mean );
+                    return b + ( ( a.apex.second - mean ) * ( a.apex.second - mean ) );
                 }) / ( pklist.second.size() - 1 );
-            apex.count = pklist.second.size();
-            apex.mean = mean;
-            apex.sd = sd;
-            apex.min = range.first->apex.second;
-            apex.min = range.second->apex.second;
+            apex = peakstat( mean, std::sqrt( sd2 ), range.first->apex.second, range.second->apex.second, pklist.second.size() );
         } while(0);
 
         do {
             // height
             auto range = std::minmax_element(
                 pklist.second.begin(), pklist.second.end()
-                , []( const CountingPeak& a, const CountingPeak& b ){
-                    double h = ( a.back.second + a.front.second ) / 2.0;
-                    return ( a.apex.second - h ) < ( b.apex.second - h );
-                });
+                , []( const CountingPeak& a, const CountingPeak& b ){ return a.height() < b.height(); });
             double mean = std::accumulate(
-                pklist.second.begin(), pklist.second.end(), 0.0, []( double b, const CountingPeak& a ){
-                    double h = ( a.back.second + a.front.second ) / 2.0;
-                    return ( a.apex.second - h ) + b;
-                }) / pklist.second.size();
-            double sd = std::accumulate(
+                pklist.second.begin(), pklist.second.end(), 0.0
+                , []( double b, const CountingPeak& a ){ return b + a.height(); } ) / pklist.second.size();
+            double sd2 = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
-                    double h = a.apex.second - ( a.back.second + a.front.second ) / 2.0;
-                    return ( h - mean ) * ( h - mean );
+                    return b + ( a.height() - mean ) * ( a.height() - mean );
                 }) / ( pklist.second.size() - 1 );
-            height.count = pklist.second.size();
-            height.mean = mean;
-            height.sd = sd;
-            height.min = range.first->apex.second - range.first->back.second;
-            height.min = range.second->apex.second - range.second->back.second;
+            height = peakstat( mean, std::sqrt( sd2 ), range.first->height(), range.second->height(), pklist.second.size() );
         } while( 0 );
+
+        do {
+            // area
+            auto range = std::minmax_element(
+                pklist.second.begin(), pklist.second.end()
+                , []( const CountingPeak& a, const CountingPeak& b ){ return a.area() < b.area(); });
+            double mean = std::accumulate(
+                pklist.second.begin(), pklist.second.end(), 0.0
+                , []( double b, const CountingPeak& a ){ return b + a.area(); } ) / pklist.second.size();
+            double sd2 = std::accumulate(
+                pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
+                    return b + ( a.area() - mean ) * ( a.area() - mean );
+                }) / ( pklist.second.size() - 1 );
+            area = peakstat( mean, std::sqrt( sd2 ), range.first->area(), range.second->area(), pklist.second.size() );
+            
+        } while( 0 );
+        
         //////
         do {
             // front
+            auto range = std::minmax_element(
+                pklist.second.begin(), pklist.second.end()
+                , []( const CountingPeak& a, const CountingPeak& b ){ return a.front.second < b.front.second;  });
             double mean = std::accumulate(
-                pklist.second.begin(), pklist.second.end(), 0.0, []( double b, const CountingPeak& a ){
-                    return a.front.second + b;
-                }) / pklist.second.size();
-            double sd = std::accumulate(
-                pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
-                    return ( a.front.second - mean ) * ( a.front.second - mean );
+                pklist.second.begin(), pklist.second.end(), 0.0
+                , []( double b, const CountingPeak& a ){ return a.front.second + b; }) / pklist.second.size();
+            double sd2 = std::accumulate(
+                pklist.second.begin(), pklist.second.end(), 0.0
+                , [&]( double b, const CountingPeak& a ){ return b + ( a.front.second - mean ) * ( a.front.second - mean );
                 }) / ( pklist.second.size() - 1 );
-            front.count = pklist.second.size();
-            front.mean = mean;
-            front.sd = sd;            
+            front = peakstat( mean, std::sqrt( sd2 ), range.first->front.second, range.second->front.second, pklist.second.size() );
         } while ( 0 );
+
         do {
             // back
+            auto range = std::minmax_element(
+                pklist.second.begin(), pklist.second.end()
+                , []( const CountingPeak& a, const CountingPeak& b ){ return a.back.second < b.back.second;  });            
             double mean = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, []( double b, const CountingPeak& a ){
                     return a.back.second + b;
                 }) / pklist.second.size();
-            double sd = std::accumulate(
+            double sd2 = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
-                    return ( a.back.second - mean ) * ( a.back.second - mean );
+                    return b + ( a.back.second - mean ) * ( a.back.second - mean );
                 }) / ( pklist.second.size() - 1 );
-            back.count = pklist.second.size();
-            back.mean = mean;
-            back.sd = sd;                        
+            back = peakstat( mean, std::sqrt( sd2 ), range.first->back.second, range.second->back.second, pklist.second.size() );
         } while (0);
         ////////
         
         of << boost::format( "%.9le,\t%d" )
             % pklist.first // tof
             % pklist.second.size(); // count
-        of << boost::format( "\t%9.5lf, %9.5lf" ) % apex.mean % apex.sd;
-        of << boost::format( "\t%9.5lf, %9.5lf" ) % height.mean % height.sd;
-        of << boost::format( "\t%9.5lf, %9.5lf" ) % front.mean % front.sd;
-        of << boost::format( "\t%9.5lf, %9.5lf" ) % back.mean % back.sd
+        of << boost::format( "\tV: %9.5lf, %9.5lf" ) % apex.mean % apex.sd;
+        of << boost::format( "\tH: %9.5lf, %9.5lf" ) % height.mean % height.sd;
+        of << boost::format( "\tA: %9.5lf, %9.5lf" ) % area.mean % area.sd;
+        of << boost::format( "\tF: %9.5lf, %9.5lf" ) % front.mean % front.sd;
+        of << boost::format( "\tB: %9.5lf, %9.5lf" ) % back.mean % back.sd
            << std::endl;
     }
 
@@ -335,4 +369,39 @@ Summary::print_statistics( const std::string& file )
     // std::ofstream pf( plt.string() );
     // pf << "set terminal x11" << std::endl;
     // pf << "plot \"" << file << "\" using 1:2" << std::endl;
+}
+
+bool
+Summary::set_outdir( const std::string& path )
+{
+    if ( !boost::filesystem::exists( path ) )
+        boost::filesystem::create_directories( path );
+
+    if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
+        outdir_ = path;
+        return true;
+    }
+    return false;
+}
+
+std::string
+Summary::make_outfname( const std::string& infile, const std::string& suffix )
+{
+    int id(1);
+    auto stem = boost::filesystem::path( infile ).stem();
+    stem += suffix;
+
+    if ( outdir_.empty() ) {
+        std::string path = stem.string() + ".log";
+        while ( boost::filesystem::exists( path ) )
+            path = ( boost::format( "%s~%d.log" ) % stem.string() % id++ ).str();
+        return path;
+    } else {
+        auto name = boost::filesystem::path( outdir_ ) / stem;
+        std::string path = name.string() + ".log";
+        while ( boost::filesystem::exists( path ) )
+            path = ( boost::format( "%s~%d.log" ) % name % id++ ).str();
+        return path;
+    }
+        
 }

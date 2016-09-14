@@ -28,6 +28,7 @@
 #include <adcontrols/countingdata.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 #include <algorithm>
@@ -41,7 +42,8 @@ time_data_reader::time_data_reader()
 }
 
 bool
-time_data_reader::load( const std::string& name )
+time_data_reader::load( const std::string& name
+                        , std::function<bool( size_t, size_t )> progress )
 {
 	boost::filesystem::path path( name );
 
@@ -49,13 +51,24 @@ time_data_reader::load( const std::string& name )
     if ( in.fail() ) 
         return false;
 
+    size_t fsize = boost::filesystem::file_size( path );
+    if ( progress )
+        progress( in.tellg(), fsize );
+
     typedef boost::char_separator<char> separator;
     typedef boost::tokenizer< separator > tokenizer;
+
+    size_t line_count(0);
 
     separator sep( ", \t", "", boost::drop_empty_tokens );
     do {
         std::string line;
         if ( std::getline( in, line ) ) {
+
+            ++line_count;
+            if ( ( ( line_count % 1000 ) == 0 ) && progress )
+                progress( in.tellg(), fsize );
+            
             if ( line.at( 0 ) == '#' )
                 continue;
 

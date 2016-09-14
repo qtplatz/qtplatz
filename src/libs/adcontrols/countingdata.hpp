@@ -38,6 +38,9 @@ namespace adcontrols {
         std::pair< double, double > back;
         CountingPeak();
         CountingPeak( const CountingPeak& t );
+        double area() const;
+        double height() const;
+        double width() const;
     };
     
     class ADCONTROLSSHARED_EXPORT CountingData {

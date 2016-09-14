@@ -12,7 +12,7 @@ set(CMAKE_AUTORCC ON)
 
 set ( CMAKE_CXX_STANDARD 14 )
 
-include( "standalone.cmake" )
+# include( "standalone.cmake" )
 
 find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
 
