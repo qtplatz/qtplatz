@@ -56,7 +56,9 @@ add_library( adcontrols SHARED
   countingmethod.cpp
   countingmethod.hpp
   countingresult.cpp
-  countingresult.hpp  
+  countingresult.hpp
+  countinghistogram.cpp
+  countinghistogram.hpp
   ctable.cpp
   ctable.hpp 
   ctfile.cpp

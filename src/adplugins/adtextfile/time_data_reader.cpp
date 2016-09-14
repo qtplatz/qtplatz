@@ -114,22 +114,22 @@ time_data_reader::load( const std::string& name
                     switch( pcol ) {
                     case 0:
                         peak = adcontrols::CountingPeak();
-                        peak.apex.first = std::strtod( it->c_str(), &end );
+                        peak.apex().first = std::strtod( it->c_str(), &end );
                         break;
                     case 1:
-                        peak.apex.second = std::strtod( it->c_str(), &end );
+                        peak.apex().second = std::strtod( it->c_str(), &end );
                         break;
                     case 2:
-                        peak.front.first = std::strtod( it->c_str(), &end );
+                        peak.front().first = std::strtod( it->c_str(), &end );
                         break;
                     case 3:
-                        peak.front.second = std::strtod( it->c_str(), &end );
+                        peak.front().second = std::strtod( it->c_str(), &end );
                         break;
                     case 4:
-                        peak.back.first = std::strtod( it->c_str(), &end );
+                        peak.back().first = std::strtod( it->c_str(), &end );
                         break;
                     case 5:
-                        peak.back.second = std::strtod( it->c_str(), &end );
+                        peak.back().second = std::strtod( it->c_str(), &end );
                         break;                                                                        
                     }
                     if ( pcol == 5 )

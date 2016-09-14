@@ -191,19 +191,19 @@ Summary::compute_histogram( double xIncrement )
         if ( trig.peaks().size() ) {
             for ( auto& pk: trig.peaks() ) {
 
-                if ( pk.apex.first < 1.0e-9 )
+                if ( pk.apex().first < 1.0e-9 )
                     std::cout << "too small tof detected" << std::endl;
                 
                 auto it = std::lower_bound( histogram_.begin(), histogram_.end(), pk
                                             , []( const std::pair< double, size_t >& a, const adcontrols::CountingPeak& b ){
-                                                return a.first < b.apex.first;
+                                                return a.first < b.apex().first;
                                             });
                 if ( it == histogram_.end() ) {
-                    histogram_.emplace_back( pk.apex.first, 1 );
-                } else if ( std::abs( it->first - pk.apex.first ) < xIncrement ) {
+                    histogram_.emplace_back( pk.apex().first, 1 );
+                } else if ( std::abs( it->first - pk.apex().first ) < xIncrement ) {
                     it->second++;
                 } else {
-                    histogram_.emplace( it, pk.apex.first, 1 );
+                    histogram_.emplace( it, pk.apex().first, 1 );
                 }
             }
         }
@@ -238,19 +238,19 @@ Summary::compute_statistics( double xIncrement )
                 auto it = std::lower_bound( pklists_.begin(), pklists_.end(), pk
                                             , []( const std::pair< double, std::vector< adcontrols::CountingPeak > >& a
                                                   , const adcontrols::CountingPeak& b ){
-                                                return a.first < b.apex.first;
+                                                return a.first < b.apex().first;
                                             });
                 if ( it == pklists_.end() ) {
                     
-                    pklists_.emplace_back( pk.apex.first, std::vector< adcontrols::CountingPeak >( { pk } ) );
+                    pklists_.emplace_back( pk.apex().first, std::vector< adcontrols::CountingPeak >( { pk } ) );
 
-                } else if ( std::abs( it->first - pk.apex.first ) < xIncrement ) {
+                } else if ( std::abs( it->first - pk.apex().first ) < xIncrement ) {
                     
                     it->second.emplace_back( pk );
 
                 } else {
 
-                    pklists_.emplace( it, std::make_pair( pk.apex.first, std::vector< adcontrols::CountingPeak >( { pk } ) ) );
+                    pklists_.emplace( it, std::make_pair( pk.apex().first, std::vector< adcontrols::CountingPeak >( { pk } ) ) );
 
                 }
             }
@@ -276,17 +276,17 @@ Summary::print_statistics( const std::string& file )
             // absolute height
             auto range = std::minmax_element(
                 pklist.second.begin(), pklist.second.end(), []( const CountingPeak& a, const CountingPeak& b ){
-                    return a.apex.second < b.apex.second;
+                    return a.apex().second < b.apex().second;
                 });
             double mean = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, []( double b, const CountingPeak& a ){
-                    return a.apex.second + b;
+                    return a.apex().second + b;
                 }) / pklist.second.size();
             double sd2 = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
-                    return b + ( ( a.apex.second - mean ) * ( a.apex.second - mean ) );
+                    return b + ( ( a.apex().second - mean ) * ( a.apex().second - mean ) );
                 }) / ( pklist.second.size() - 1 );
-            apex = peakstat( mean, std::sqrt( sd2 ), range.first->apex.second, range.second->apex.second, pklist.second.size() );
+            apex = peakstat( mean, std::sqrt( sd2 ), range.first->apex().second, range.second->apex().second, pklist.second.size() );
         } while(0);
 
         do {
@@ -325,31 +325,31 @@ Summary::print_statistics( const std::string& file )
             // front
             auto range = std::minmax_element(
                 pklist.second.begin(), pklist.second.end()
-                , []( const CountingPeak& a, const CountingPeak& b ){ return a.front.second < b.front.second;  });
+                , []( const CountingPeak& a, const CountingPeak& b ){ return a.front().second < b.front().second;  });
             double mean = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0
-                , []( double b, const CountingPeak& a ){ return a.front.second + b; }) / pklist.second.size();
+                , []( double b, const CountingPeak& a ){ return a.front().second + b; }) / pklist.second.size();
             double sd2 = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0
-                , [&]( double b, const CountingPeak& a ){ return b + ( a.front.second - mean ) * ( a.front.second - mean );
+                , [&]( double b, const CountingPeak& a ){ return b + ( a.front().second - mean ) * ( a.front().second - mean );
                 }) / ( pklist.second.size() - 1 );
-            front = peakstat( mean, std::sqrt( sd2 ), range.first->front.second, range.second->front.second, pklist.second.size() );
+            front = peakstat( mean, std::sqrt( sd2 ), range.first->front().second, range.second->front().second, pklist.second.size() );
         } while ( 0 );
 
         do {
             // back
             auto range = std::minmax_element(
                 pklist.second.begin(), pklist.second.end()
-                , []( const CountingPeak& a, const CountingPeak& b ){ return a.back.second < b.back.second;  });            
+                , []( const CountingPeak& a, const CountingPeak& b ){ return a.back().second < b.back().second;  });            
             double mean = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, []( double b, const CountingPeak& a ){
-                    return a.back.second + b;
+                    return a.back().second + b;
                 }) / pklist.second.size();
             double sd2 = std::accumulate(
                 pklist.second.begin(), pklist.second.end(), 0.0, [&]( double b, const CountingPeak& a ){
-                    return b + ( a.back.second - mean ) * ( a.back.second - mean );
+                    return b + ( a.back().second - mean ) * ( a.back().second - mean );
                 }) / ( pklist.second.size() - 1 );
-            back = peakstat( mean, std::sqrt( sd2 ), range.first->back.second, range.second->back.second, pklist.second.size() );
+            back = peakstat( mean, std::sqrt( sd2 ), range.first->back().second, range.second->back().second, pklist.second.size() );
         } while (0);
         ////////
         

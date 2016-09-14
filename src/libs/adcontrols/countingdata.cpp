@@ -29,34 +29,30 @@
 
 using namespace adcontrols;
 
-CountingPeak::CountingPeak() : apex(0,0)
-                             , front(0,0)
-                             , back( 0,0)
+CountingPeak::CountingPeak()
 {
 }
 
-CountingPeak::CountingPeak( const CountingPeak& t ) : apex( t.apex )
-                                                    , front( t.front )
-                                                    , back( t.back )
+CountingPeak::CountingPeak( const CountingPeak& t ) : d_( t.d_ )
 {
 }
 
 double
 CountingPeak::area() const
 {
-    return std::abs( height() ) * width();
+    return std::abs( height() ) * width() / 2.0;
 }
 
 double
 CountingPeak::width() const
 {
-    return back.first - front.first;
+    return std::get< pk_back >( d_ ).first - std::get< pk_front >( d_ ).first;
 }
 
 double
 CountingPeak::height() const
 {
-    return apex.second - ( front.second + back.second ) / 2.0;
+    return std::get< pk_apex >( d_ ).second - ( std::get< pk_front >( d_ ).second + std::get< pk_back >( d_ ).second ) / 2.0;
 }
 
 CountingData::CountingData()

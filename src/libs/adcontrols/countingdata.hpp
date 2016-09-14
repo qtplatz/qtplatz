@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <algorithm>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -33,16 +34,32 @@
 namespace adcontrols {
 
     struct ADCONTROLSSHARED_EXPORT CountingPeak {
-        std::pair< double, double > apex;
-        std::pair< double, double > front;
-        std::pair< double, double > back;
+
+        std::tuple<
+            std::pair< double, double >  // apex<time,intensity>
+            , std::pair< int, double >   // front <x offset samples from apex, intensity>
+            , std::pair< int, double >   // back  <x offset samples from apex, intensity>
+            >  d_;
+
+        enum pk_item { pk_apex, pk_front, pk_back, /**/ pk_area, pk_height };
+
         CountingPeak();
         CountingPeak( const CountingPeak& t );
+
+        std::pair< double, double > apex() const { return std::get< pk_apex >( d_ ); }
+        std::pair< double, double >& apex()      { return std::get< pk_apex >( d_ ); }
+        
+        std::pair< int, double > front() const   { return std::get< pk_front >( d_ ); }
+        std::pair< int, double >& front()        { return std::get< pk_front >( d_ ); }
+        
+        std::pair< int, double > back() const    { return std::get< pk_back >( d_ ); }
+        std::pair< int, double >& back()         { return std::get< pk_back >( d_ ); }
+
         double area() const;
         double height() const;
         double width() const;
     };
-    
+
     class ADCONTROLSSHARED_EXPORT CountingData {
     public:
         CountingData();
@@ -79,7 +96,79 @@ namespace adcontrols {
         std::vector< CountingPeak > peaks_;
     };
 
+    namespace counting {
+
+        struct ADCONTROLSSHARED_EXPORT Stat {
+            double mean;
+            double stddev;
+            double minValue;
+            double maxValue;
+            size_t count;
+            Stat( double _m = 0, double _sd = 0, double _min = 0, double _max = 0, size_t _count = 0 )
+                : mean( _m ), stddev( _sd ), minValue( _min ), maxValue( _max ), count( _count )
+            {}
+        };
+
+        template< CountingPeak::pk_item item >
+        struct ADCONTROLSSHARED_EXPORT statistics {
+
+            template< typename iterator > Stat operator()( iterator begin, iterator end ) {
+
+                size_t count = std::distance( begin, end );
+
+                auto range = std::minmax_element(
+                    begin, end, []( const CountingPeak& a, const CountingPeak& b ){
+                        return std::get< item >( a.d_ ).second < std::get< item >( b.d_ ).second;  });
+
+                double mean = std::accumulate( begin, end, 0.0
+                                               , []( double b, const CountingPeak& a ){
+                                                   return std::get< item >( a.d_ ).second + b; }) / count;
+
+                double sd2 = std::accumulate( begin, end, 0.0, [&]( double b, const CountingPeak& a ){
+                        double v = ( std::get< item >( a.d_ ).second - mean );
+                        return b + ( v * v ); })  / count;
+
+                return Stat( mean, std::sqrt( sd2 )
+                             , std::get< item >( range.first->d_ ).second
+                             , std::get< item >( range.second->d_ ).second, count );
+            }
+        };
+
+        template<> struct statistics< CountingPeak::pk_area > {
+            template< typename iterator > Stat operator()( iterator begin, iterator end ) {
+                size_t count = std::distance( begin, end );
+
+                auto range = std::minmax_element(
+                    begin, end, []( const CountingPeak& a, const CountingPeak& b ){ return a.area() < b.area();  });
+
+                double mean = std::accumulate( begin, end, 0.0
+                                               , []( double b, const CountingPeak& a ){ return a.area() + b; }) / count;
+
+                double sd2 = std::accumulate( begin, end, 0.0, [&]( double b, const CountingPeak& a ){
+                        return b + ( a.area() - mean ) * ( a.area() - mean ); }) / count;
+                
+                return Stat( mean, std::sqrt( sd2 ), range.first->area(), range.second->area(), count );
+            }
+        };
+
+        template<> struct statistics< CountingPeak::pk_height > {
+            template< typename iterator > Stat operator()( iterator begin, iterator end ) {
+                size_t count = std::distance( begin, end );
+
+                auto range = std::minmax_element(
+                    begin, end, []( const CountingPeak& a, const CountingPeak& b ){ return a.height() < b.height();  });
+
+                double mean = std::accumulate( begin, end, 0.0
+                                               , []( double b, const CountingPeak& a ){ return a.height() + b; }) / count;
+                
+                double sd2 = std::accumulate( begin, end, 0.0, [&]( double b, const CountingPeak& a ){
+                        return b + ( a.height() - mean ) * ( a.height() - mean ); }) / count;
+                
+                return Stat( mean, std::sqrt( sd2 ), range.first->height(), range.second->height(), count );
+            }
+        };
+
+    }
+    
 }
-
-
 
