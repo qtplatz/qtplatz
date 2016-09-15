@@ -32,6 +32,7 @@
 #include <adportable/counting/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/debug.hpp>
+#include <algorithm>
 #include <cstdint>
 
 namespace acqrscontrols {
@@ -46,10 +47,11 @@ namespace acqrscontrols {
             else
                 return meta.initialXOffset;
         }
-
+        
         template< typename method_type, typename metadata_type >
-        inline std::pair< size_t, size_t > range( const method_type& method, const metadata_type& meta
-                                           , const std::pair< double, double >& time ) const {
+        inline std::pair< size_t, size_t > range( const method_type& method
+                                                  , const metadata_type& meta
+                                                  , const std::pair< double, double >& time ) const {
 
             std::pair< size_t, size_t > xrange;
 
@@ -68,8 +70,8 @@ namespace acqrscontrols {
             }
             if ( xrange.first > meta.actualPoints )
                 return { 0, 0 };
-            
-            xrange.second = std::min( xrange.second, meta.actualPoints - xrange.first );
+            auto x = std::min( 0, 1 );
+            xrange.second = std::min( xrange.second, size_t( meta.actualPoints - xrange.first ) );
 
             return xrange;
         }

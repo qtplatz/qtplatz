@@ -26,6 +26,7 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <numeric>
@@ -47,7 +48,7 @@ namespace adportable {
             double ssum = std::accumulate( it, it + count, 0.0, [&]( const double& sum, const auto& d ){
                     return sum + ( d - mean ) * ( d - mean );
                 });
-            return std::make_pair(sqrt( ssum / count ), mean );
+            return std::make_pair( std::sqrt( ssum / count ), mean );
         }
     };
     

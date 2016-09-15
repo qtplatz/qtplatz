@@ -41,7 +41,7 @@ namespace adicontroller {
 
 namespace adextension {
 
-    using namespace std::literals::chrono_literals;
+    using namespace std::chrono_literals;
     
     class ADEXTENSIONSHARED_EXPORT iController : public QObject
                                                , public std::enable_shared_from_this< iController > {

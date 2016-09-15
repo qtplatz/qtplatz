@@ -81,6 +81,7 @@ CountingData::operator = ( const CountingData& t )
     threshold_ = t.threshold_;
     algo_ = t.algo_;
     peaks_ = t.peaks_;
+    return *this;
 }
 
 

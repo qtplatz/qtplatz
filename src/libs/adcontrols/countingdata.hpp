@@ -27,6 +27,8 @@
 
 #include "adcontrols_global.h"
 #include <algorithm>
+#include <cmath>
+#include <numeric>
 #include <string>
 #include <tuple>
 #include <vector>
