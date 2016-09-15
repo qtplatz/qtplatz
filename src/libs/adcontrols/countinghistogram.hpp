@@ -56,6 +56,7 @@ namespace adcontrols {
         iterator begin();
         iterator end();
         void clear();
+        size_t size() const;
 
     private:
         double xIncrement_; // sampling interval (seconds)

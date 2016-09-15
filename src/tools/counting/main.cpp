@@ -48,15 +48,16 @@ public:
     void report( std::ostream& );
     void print_histogram( const std::string& file );
     void print_statistics( const std::string& file );
-
-    bool set_outdir( const std::string& dir );
+    void findPeaks();
     std::string make_outfname( const std::string& infile, const std::string& suffix );
+    void set_resolution( double );
 
 private:
     std::string outdir_;
     std::string infile_;
     std::unique_ptr< adtextfile::time_data_reader > reader_;
     adcontrols::CountingHistogram hgrm_;
+    double resolution_;
 };
 
 int
@@ -71,8 +72,8 @@ main(int argc, char *argv[])
             ( "hist,h",      "histogram outfile" )
             ( "stat,s",      "peak statistics outfile" )
             ( "directory,C", po::value< std::string >(), "result output directory" )
+            ( "res",         po::value< double >(),  "peak merge resolution (ns)" )
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
-            // ( "resolution",  po::value< double >()->default_value( 5 ),  "peak merge resolution (ns)" )
             ;
 
         po::positional_options_description p;
@@ -130,6 +131,9 @@ main(int argc, char *argv[])
                     }
                 }
 
+                if ( vm.count( "res" ) )
+                    summary.set_resolution( vm[ "res" ].as< double >() * 1.0e-9 );
+
                 if ( summary.reader()->load(
                          file
                          , [&]( size_t numerator, size_t denominator ){
@@ -172,6 +176,7 @@ main(int argc, char *argv[])
 
 
 Summary::Summary( std::unique_ptr< adtextfile::time_data_reader >&& reader ) : reader_( std::move( reader ) )
+                                                                             , resolution_( 0 )
 {
 }
 
@@ -179,7 +184,8 @@ void
 Summary::report( std::ostream& out )
 {
     auto& data = reader_->data();
-    size_t total_peaks = std::accumulate( data.begin(), data.end(), size_t(0), []( size_t count, const adcontrols::CountingData& d ){
+    size_t total_peaks = std::accumulate( data.begin(), data.end(), size_t(0)
+                                          , []( size_t count, const adcontrols::CountingData& d ){
             return d.peaks().size() + count;
         });
     std::cout << "total triggers: " << data.size() << "\ttotal peaks\t" << total_peaks << std::endl;
@@ -253,10 +259,10 @@ Summary::print_statistics( const std::string& file )
     // pf << "plot \"" << file << "\" using 1:2" << std::endl;
 }
 
-bool
-Summary::set_outdir( const std::string& path )
+void
+Summary::set_resolution( double res )
 {
-    return false;
+    resolution_ = res;
 }
 
 std::string
@@ -280,4 +286,16 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
         return path;
     }
         
+}
+
+void
+Summary::findPeaks()
+{
+    if ( hgrm_.size() > 3 ) {
+        for ( auto it = hgrm_.begin() + 1; it != hgrm_.end() - 1; ++it ) {
+            // double x = it[ -1 ].first;
+            // double y = it[ -1 ].size();
+            // auto d = ( -it[ -1 ].apex().second + it[ 1 ].apex().second ) / ( -it[ 1 ].apex().first + it[ -1 ].apex().first )
+        }
+    }
 }
