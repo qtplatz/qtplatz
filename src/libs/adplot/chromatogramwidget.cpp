@@ -397,11 +397,14 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
         auto rc = std::accumulate( impl_->traces_.begin(), impl_->traces_.end(), QRectF {}, [&] ( const QRectF& a, const trace_variant& b ) {
 
                 QRectF rect( boost::apply_visitor( boundingRect_visitor(), b ) );
-
+                
                 if ( boost::apply_visitor( yAxis_visitor(), b ) == yAxis ) {
-                    return ( a == QRectF() ) ? ( a | rect ) : rect;
+                    return ( a == QRectF() ) ? rect : ( a | rect );
                 } else {
-                    return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
+                    if ( a == QRectF() )
+                        return rect;
+                    else
+                        return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
                 }
             } );
 
