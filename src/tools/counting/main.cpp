@@ -291,11 +291,33 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
 void
 Summary::findPeaks()
 {
+    enum slope_state { none, upslope, downslope };
+#if 0
+    slope_state state( none );
+    std::vector< std::pair< CountingHistogram::const_iterator, CountingHistogram::const_iterator > > peaks;
+
     if ( hgrm_.size() > 3 ) {
+        CountingHistogram::const_iterator pkfront( hgrm_.end() ), pkback( hgrm_.end() );
+        
         for ( auto it = hgrm_.begin() + 1; it != hgrm_.end() - 1; ++it ) {
-            // double x = it[ -1 ].first;
-            // double y = it[ -1 ].size();
-            // auto d = ( -it[ -1 ].apex().second + it[ 1 ].apex().second ) / ( -it[ 1 ].apex().first + it[ -1 ].apex().first )
+            double dx = ( ( it + 1 )->first - ( it - 1 )->first ) / 2 / xIncrement_ ;
+            double dy = ( it + 1 )->second->size() - ( it - 1 )->second->size();
+            int d = int( dx / dy / 2 );  // d := count-diffs / sampling interval
+            if ( d > 2 ) {
+                if ( state == none ) {
+                    state = upslope;
+                    pkfont = it;
+                }
+            } else if ( d < 0 ) {
+                if ( state == upslope || state == none )
+                    state = downslope;
+            } else if ( d == 0 ) {
+                if ( d < 0 ) {
+                    state = downslope;
+                }
+            } else if ( state == downslope ) {
+            }
         }
     }
+#endif
 }

@@ -74,7 +74,7 @@ namespace adcontrols {
         double elapsedTime() const;
         uint32_t events();
         double threshold();
-        uint32_t algo(); // 0:Absolute, 1:Average, 2:Deferential
+        uint32_t algo(); // 0:Absolute, 1:Average, 2:Differential
 
         void setTriggerNumber( uint32_t );
         void setProtocolIndex( uint32_t );

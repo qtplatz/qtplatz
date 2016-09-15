@@ -33,7 +33,7 @@ namespace adportable {
         class counting_result {
         public:
             static constexpr uint32_t npos = ( -1 );
-            enum algo { Absolute, AverageRelative, Deferential };
+            enum algo { Absolute, AverageRelative, Differential };
             
             counting_result() : algo_( Absolute )
                               , threshold_level_( 0 ) {

@@ -54,7 +54,7 @@ namespace acqrscontrols {
                            , adportable::counting::counting_result& result
                            , std::vector< double >& processed ) {
             
-            assert ( method.algo_ == adcontrols::threshold_method::Deferential );
+            assert ( method.algo_ == adcontrols::threshold_method::Differential );
             assert ( findPositive == ( method.slope == adcontrols::threshold_method::CrossUp ) );
 
             double level = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;

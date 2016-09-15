@@ -69,7 +69,7 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     ui->radioButton->setChecked( true );
     connect( ui->radioButton, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Absolute
     connect( ui->radioButton_2, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Average
-    connect( ui->radioButton_3, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Deference
+    connect( ui->radioButton_3, &QRadioButton::toggled, [this] ( bool ) { emit valueChanged( channel_ ); } ); // Differential
 
     // Filter enable|disable
     connect( ui->groupBox_filter, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } );
@@ -143,7 +143,7 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
         ui->radioButton->setChecked( true );
     else if ( m.algo_ == adcontrols::threshold_method::AverageRelative )
         ui->radioButton_3->setChecked( true );        
-    else if ( m.algo_ == adcontrols::threshold_method::Deferential )
+    else if ( m.algo_ == adcontrols::threshold_method::Differential )
         ui->radioButton_2->setChecked( true );
 
     // Filter
@@ -172,7 +172,7 @@ findSlopeForm::get( adcontrols::threshold_method& m ) const
     else if ( ui->radioButton_3->isChecked() )
         m.algo_ = adcontrols::threshold_method::AverageRelative;
     else if ( ui->radioButton_2->isChecked() )
-        m.algo_ = adcontrols::threshold_method::Deferential;
+        m.algo_ = adcontrols::threshold_method::Differential;
     
     m.use_filter = ui->groupBox_filter->isChecked();
     if ( ui->radioButton_sg->isChecked() )

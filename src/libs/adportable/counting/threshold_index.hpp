@@ -34,7 +34,7 @@ namespace adportable {
 
             uint32_t first;
             uint32_t second;
-            uint32_t apex;   // index for max(min) element for threshold find; peak-apex element for deferential mode
+            uint32_t apex;   // index for max(min) element for threshold find; peak-apex element for differential mode
             int32_t value;   // intensity for apex
             int32_t level;   // baseline intensity (binary value) for AverageRelative algorithm
         

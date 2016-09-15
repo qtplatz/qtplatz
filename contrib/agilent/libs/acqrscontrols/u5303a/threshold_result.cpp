@@ -173,7 +173,7 @@ void
 threshold_result::write3( std::ostream& os, const threshold_result& t )
 {
     if ( os.tellp() == std::streamoff(0) )
-        os << "## trig#, prot#, timestamp(s), epoch_time(ns), events, threshold(mV), algo(0=absolute,1=average,2=deferential)"
+        os << "## trig#, prot#, timestamp(s), epoch_time(ns), events, threshold(mV), algo(0=absolute,1=average,2=differential)"
             "\t[time(s), peak-front(s), peak-front(mV), peak-end(s), peak-end(mV)]";
     
     if ( auto data = t.data() ) {

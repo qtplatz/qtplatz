@@ -122,7 +122,7 @@ CountingData::threshold()
 }
 
 uint32_t
-CountingData::algo() // 0:Absolute, 1:Average, 2:Deferential
+CountingData::algo() // 0:Absolute, 1:Average, 2:Differential
 {
     return algo_;
 }
@@ -164,7 +164,7 @@ CountingData::setThreshold( double v )
 }
 
 void
-CountingData::setAlgo( uint32_t v ) // 0:Absolute, 1:Average, 2:Deferential
+CountingData::setAlgo( uint32_t v ) // 0:Absolute, 1:Average, 2:Differential
 {
     algo_ = v;
 }
