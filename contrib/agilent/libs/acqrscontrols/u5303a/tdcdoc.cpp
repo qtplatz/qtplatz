@@ -511,7 +511,7 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
         return std::array< threshold_result_ptr, 2 >();
 
     std::array< threshold_result_ptr, 2 > results;
-    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
+    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;
     auto range( countingMethod() );
 
     std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
@@ -561,7 +561,7 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
         return std::array< threshold_result_ptr, 2 >();
 
     std::array< threshold_result_ptr, 2 > results;
-    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;  // todo: duplicate for thread safety
+    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;
     auto range( countingMethod() );
 
     std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
@@ -599,9 +599,10 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
 
                 // copy from vector< adportable::threshold_index > ==> vector< uint32_t > for compatibility
                 results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
-                std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().end()
-                                    , results[ i ]->indecies().begin()
-                                    , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
+                std::transform( results[ i ]->indecies2().begin()
+                                , results[ i ]->indecies2().end()
+                                , results[ i ]->indecies().begin()
+                                , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
                 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 
@@ -698,70 +699,70 @@ tdcdoc::eraseTofChromatogramsMethod()
 
 #if 0
 // static
-void
-tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-                                   , const adcontrols::threshold_method& method
-                                   , std::vector< uint32_t >& elements
-                                   , std::vector<double>& processed )
-{
-    const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-    const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
+// void
+// tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
+//                                    , const adcontrols::threshold_method& method
+//                                    , std::vector< uint32_t >& elements
+//                                    , std::vector<double>& processed )
+// {
+//     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
+//     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
-    adportable::threshold_finder finder( findUp, nfilter );
+//     adportable::threshold_finder finder( findUp, nfilter );
     
-    if ( method.use_filter ) {
+//     if ( method.use_filter ) {
 
-        waveform_type::apply_filter( processed, data, method );
+//         waveform_type::apply_filter( processed, data, method );
 
-        double level = method.threshold_level;
-        finder( processed.begin(), processed.end(), elements, level );        
+//         double level = method.threshold_level;
+//         finder( processed.begin(), processed.end(), elements, level );        
         
-    } else {
+//     } else {
 
-        double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-        double level = level_per_trigger;
-        if ( data.meta_.actualAverages )
-            level = level_per_trigger * data.meta_.actualAverages;
+//         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+//         double level = level_per_trigger;
+//         if ( data.meta_.actualAverages )
+//             level = level_per_trigger * data.meta_.actualAverages;
 
-        if ( data.meta_.dataType == 2 )
-            finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
-        else if ( data.meta_.dataType == 4 )
-            finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
-    }
-}
+//         if ( data.meta_.dataType == 2 )
+//             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
+//         else if ( data.meta_.dataType == 4 )
+//             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
+//     }
+// }
 
-// static
-void
-tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-                                   , const adcontrols::threshold_method& method
-                                   , std::vector< adportable::threshold_index >& elements
-                                   , std::vector<double>& processed )
-{
-    const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-    const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
+// // static
+// void
+// tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
+//                                    , const adcontrols::threshold_method& method
+//                                    , std::vector< adportable::threshold_index >& elements
+//                                    , std::vector<double>& processed )
+// {
+//     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
+//     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
-    adportable::threshold_finder finder( findUp, nfilter );
+//     adportable::threshold_finder finder( findUp, nfilter );
     
-    if ( method.use_filter ) {
+//     if ( method.use_filter ) {
 
-        waveform_type::apply_filter( processed, data, method );
+//         waveform_type::apply_filter( processed, data, method );
 
-        double level = method.threshold_level;
-        finder( processed.begin(), processed.end(), elements, level );        
+//         double level = method.threshold_level;
+//         finder( processed.begin(), processed.end(), elements, level );        
         
-    } else {
+//     } else {
 
-        double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-        double level = level_per_trigger;
-        if ( data.meta_.actualAverages )
-            level = level_per_trigger * data.meta_.actualAverages;
+//         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+//         double level = level_per_trigger;
+//         if ( data.meta_.actualAverages )
+//             level = level_per_trigger * data.meta_.actualAverages;
 
-        if ( data.meta_.dataType == 2 )
-            finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
-        else if ( data.meta_.dataType == 4 )
-            finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
-    }
-}
+//         if ( data.meta_.dataType == 2 )
+//             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
+//         else if ( data.meta_.dataType == 4 )
+//             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
+//     }
+// }
 #endif
 
 void

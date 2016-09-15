@@ -179,7 +179,7 @@ Summary::print_histogram( const std::string& file )
     std::ofstream of( file );
 
     for ( auto& pk: hgrm_ )
-        of << boost::format( "%.9le, %d" ) % pk.first % pk.second.size() << std::endl;
+        of << boost::format( "%.9le\t%d" ) % pk.first % pk.second.size() << std::endl;
 
     boost::filesystem::path plt( file );
     plt.replace_extension( ".plt" );
@@ -221,14 +221,14 @@ Summary::print_statistics( const std::string& file )
         front  = counting::statistics< CountingPeak::pk_front >()( pklist.second.begin(), pklist.second.end() );
         back   = counting::statistics< CountingPeak::pk_back >()( pklist.second.begin(), pklist.second.end() );
 
-        of << boost::format( "%.9le,\t%d" )
+        of << boost::format( "%.9le\t%d" )
             % pklist.first // tof
             % pklist.second.size(); // count
-        of << boost::format( "\tV: %9.4lf, %9.3lf" ) % apex.mean % apex.stddev;
-        of << boost::format( "\tH: %9.4lf, %9.3lf" ) % height.mean % height.stddev;
-        of << boost::format( "\tA: %9.4lf, %9.3lf" ) % area.mean % area.stddev;
-        of << boost::format( "\tF: %9.4lf, %9.3lf" ) % front.mean % front.stddev;
-        of << boost::format( "\tB: %9.4lf, %9.3lf" ) % back.mean % back.stddev;
+        of << boost::format( "\tV:\t%9.4lf\t%9.3lf" ) % apex.mean % apex.stddev;
+        of << boost::format( "\tH:\t%9.4lf\t%9.3lf" ) % height.mean % height.stddev;
+        of << boost::format( "\tA:\t%9.4lf\t%9.3lf" ) % area.mean % area.stddev;
+        of << boost::format( "\tF:\t%9.4lf\t%9.3lf" ) % front.mean % front.stddev;
+        of << boost::format( "\tB:\t%9.4lf\t%9.3lf" ) % back.mean % back.stddev;
         of << std::endl;
     }
 

@@ -1507,12 +1507,14 @@ MSProcessingWnd::compute_count( double s, double e )
                 char fmt = ( pImpl_->is_time_axis_ ) ? 'e' : 'f';
                 
                 clipboard.append(
-                    QString("#%1\tCount,height,apex(m/z|time),N\t%2\t%3\t%4\t%5\n").arg(
+                    QString("#%1\tCount,height,apex(m/z|time),N,n-trig\t%2\t%3\t%4\t%5\t%6\n").arg(
                         QString::number( idx )
                 	    , QString::number( count )
                         , QString::number( height )
                         , QString::number( apex, fmt, 7 )
-                        , QString::number( range.second - range.first ) )
+                        , QString::number( range.second - range.first )
+                        , QString::number( ms.getMSProperty().numAverage() )
+                        )
                     );
             }
             ++idx;
