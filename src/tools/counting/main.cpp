@@ -70,7 +70,7 @@ main(int argc, char *argv[])
             ( "args",        po::value< std::vector< std::string > >(),  "input files" )
             ( "hist,h",      "histogram outfile" )
             ( "stat,s",      "peak statistics outfile" )
-            ( "odir,C",      po::value< std::string >(), "result output directory" )
+            ( "directory,C", po::value< std::string >(), "result output directory" )
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
             // ( "resolution",  po::value< double >()->default_value( 5 ),  "peak merge resolution (ns)" )
             ;
@@ -85,11 +85,29 @@ main(int argc, char *argv[])
         std::cout << description;
         return 0;
     }
+
+    bool f_directory( false );
+
+    auto cwd = boost::filesystem::current_path();
+
+    if ( vm.count( "directory" ) ) {
+        boost::filesystem::path cdir( vm[ "directory" ].as< std::string >() );
+        if ( !boost::filesystem::exists( cdir ) )
+            boost::filesystem::create_directories( cdir );
+        if ( boost::filesystem::exists( cdir ) && !boost::filesystem::is_directory( cdir ) ) {
+            std::cerr << "Directory " << cdir << " is not a directory." << std::endl;
+            return -1;
+        }
+        boost::filesystem::current_path( cdir );
+        f_directory = true;
+    }
     
     if ( vm.count("args") ) {
         
-        for ( auto& file: vm[ "args" ].as< std::vector< std::string > >() ) {
-            
+        for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
+
+            std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
+
             std::string adfsname;
             if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
 
@@ -112,19 +130,13 @@ main(int argc, char *argv[])
                     }
                 }
 
-                if ( vm.count( "odir" ) ) {
-                    if ( !summary.set_outdir( vm[ "odir" ].as< std::string >() ) ) {
-                        std::cerr << "Directory " << vm[ "odir" ].as< std::string >() << " can't be created." << std::endl;
-                        return 0;
-                    }
-                }
-
-                if ( summary.reader()->load( file
-                                             , [&]( size_t numerator, size_t denominator ){
-                                                 std::cerr << "Processing: " << file
-                                                           << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
-                                                 return true;
-                                             }) ) {
+                if ( summary.reader()->load(
+                         file
+                         , [&]( size_t numerator, size_t denominator ){
+                             std::cerr << "Processing: " << file
+                                       << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                             return true;
+                         }) ) {
                     std::cerr << std::endl;
                     
                     if ( vm.count( "hist" ) ) {
@@ -244,13 +256,6 @@ Summary::print_statistics( const std::string& file )
 bool
 Summary::set_outdir( const std::string& path )
 {
-    if ( !boost::filesystem::exists( path ) )
-        boost::filesystem::create_directories( path );
-
-    if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
-        outdir_ = path;
-        return true;
-    }
     return false;
 }
 
