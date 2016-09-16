@@ -56,15 +56,16 @@ CountingHistogram::operator << ( const CountingData& data )
         for ( auto& pk: data.peaks() ) {
             
             auto it = std::lower_bound( pklists_.begin(), pklists_.end(), pk
-                                        , []( const std::pair< double, std::vector< adcontrols::CountingPeak > >& a
+                                        , [&]( const std::pair< double, std::vector< adcontrols::CountingPeak > >& a
                                               , const adcontrols::CountingPeak& b ){
-                                            return a.first < b.apex().first;
+                                            return size_t( 0.5 + a.first / xIncrement_ ) < size_t( 0.5 + b.apex().first / xIncrement_ );
                                         });
 
             if ( it == pklists_.end() ) {
                 
-                pklists_.emplace_back( pk.apex().first, std::vector< adcontrols::CountingPeak >( { pk } ) );
-            
+                pklists_.emplace_back( size_t( 0.5 + pk.apex().first / xIncrement_ ) * xIncrement_
+                                       , std::vector< adcontrols::CountingPeak >( { pk } ) );
+                
             } else if ( size_t( 0.5 + it->first / xIncrement_ ) ==
                         size_t( 0.5 + std::get< CountingPeak::pk_apex >( pk.d_ ).first / xIncrement_ ) ) {
 
@@ -77,32 +78,6 @@ CountingHistogram::operator << ( const CountingData& data )
             }
         }
     }
-    return *this;
-}
-
-CountingHistogram&
-CountingHistogram::operator << ( const CountingPeak& pk )
-{
-    auto it = std::lower_bound( pklists_.begin(), pklists_.end(), pk
-                                , []( const std::pair< double, std::vector< CountingPeak > >& a, const CountingPeak& b ){
-                                    return a.first < std::get< CountingPeak::pk_apex >( b.d_ ).second;
-                                });
-
-    if ( it == pklists_.end() )
-
-        pklists_.emplace_back( std::get< CountingPeak::pk_apex >( pk.d_ ).first, std::vector< CountingPeak >( { pk } ) );
-
-    else if ( size_t( 0.5 + it->first / xIncrement_ ) ==
-              size_t( 0.5 + std::get< CountingPeak::pk_apex >( pk.d_ ).first / xIncrement_ ) )
-        
-        it->second.emplace_back( pk );
-    
-    else
-        
-        pklists_.emplace( it
-                          , std::get< CountingPeak::pk_apex >( pk.d_ ).first
-                          , std::vector< adcontrols::CountingPeak >( { pk } ) );
-
     return *this;
 }
 

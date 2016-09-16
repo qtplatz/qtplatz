@@ -72,8 +72,9 @@ main(int argc, char *argv[])
             ( "hist,h",      "histogram outfile" )
             ( "stat,s",      "peak statistics outfile" )
             ( "directory,C", po::value< std::string >(), "result output directory" )
-            ( "res",         po::value< double >(),  "peak merge resolution (ns)" )
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
+            ( "peak",        po::value< double >(),  "specify time-of-flight in microseconds" )
+            ( "resolution",  po::value< double >(),  "peak width (ns)" )
             ;
 
         po::positional_options_description p;
@@ -231,6 +232,7 @@ Summary::print_statistics( const std::string& file )
 
     counting::Stat apex, height, area, front, back;
 
+    double t = 0;
     for ( auto& pklist: hgrm_ /* pklists_ */ ) {
 
         apex   = counting::statistics< CountingPeak::pk_apex >()( pklist.second.begin(), pklist.second.end() );
@@ -242,6 +244,8 @@ Summary::print_statistics( const std::string& file )
         of << boost::format( "%.9le\t%d" )
             % pklist.first // tof
             % pklist.second.size(); // count
+        of << boost::format( "\tdt:\t%9.4lf" ) % (( pklist.first - t ) * 1.0e9);
+        t = pklist.first;
         of << boost::format( "\tV:\t%9.4lf\t%9.3lf" ) % apex.mean % apex.stddev;
         of << boost::format( "\tH:\t%9.4lf\t%9.3lf" ) % height.mean % height.stddev;
         of << boost::format( "\tA:\t%9.4lf\t%9.3lf" ) % area.mean % area.stddev;

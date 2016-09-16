@@ -43,7 +43,6 @@ namespace adcontrols {
         CountingHistogram& operator = ( const CountingHistogram& );
 
         CountingHistogram& operator << ( const CountingData& );        
-        CountingHistogram& operator << ( const CountingPeak& );
 
         void setXIncrement( double );
         double xIncrement() const;
