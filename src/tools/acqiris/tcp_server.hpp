@@ -36,6 +36,7 @@ namespace aqdrv4 {
             void stop();
             void setConnected();
             void post( std::shared_ptr< acqiris_protocol > );
+            void post( std::shared_ptr< const waveform > );
             
         private:
             /// Perform an asynchronous accept operation.

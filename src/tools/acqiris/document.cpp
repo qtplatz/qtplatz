@@ -139,9 +139,9 @@ document::push( std::shared_ptr< waveform >&& d )
     
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
 
-    // if ( server_ )
-    //     server_->post( d );
-
+    if ( server_ )
+        server_->post( d );
+    
     if ( que_.size() >= 4096 ) {
 
         using namespace std::chrono_literals;
@@ -260,19 +260,19 @@ document::replyTemperature( int temp )
             server_->post( data );
         } while ( 0 );
 
-        if ( auto p = recentWaveform() ) {
-            auto data = std::make_shared< aqdrv4::acqiris_protocol >();
+        // if ( auto p = recentWaveform() ) {
+        //     auto data = std::make_shared< aqdrv4::acqiris_protocol >();
 
-            boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
-            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+        //     boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
+        //     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
 
-            portable_binary_oarchive ar( device );
-            ar & *p;
+        //     portable_binary_oarchive ar( device );
+        //     ar & *p;
 
-            data->preamble().clsid = p->clsid();
-            data->preamble().length = data->payload().size();
-            ADDEBUG() << "size = " << data->payload().size();
-            server_->post( data );
-        }
+        //     data->preamble().clsid = p->clsid();
+        //     data->preamble().length = data->payload().size();
+        //     ADDEBUG() << "size = " << data->payload().size();
+        //     server_->post( data );
+        // }
     }
 }

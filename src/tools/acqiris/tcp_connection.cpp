@@ -140,12 +140,7 @@ connection::write( std::shared_ptr< acqiris_protocol > data )
             socket_
             , data->to_buffers()
             , [this, self, data]( boost::system::error_code ec, std::size_t ) {
-                if ( !ec ) {
-                    ADDEBUG() << "sent data out data= "
-                              << aqdrv4::preamble::debug( &data->preamble() )
-                              << " size=" << data->preamble().length;
-                    // do_read();
-                } else { // if ( ec != boost::asio::error::operation_aborted ) {
+                if ( ec ) {
                     ADDEBUG() << "*** do_write: abort connection *** " << ec.message();
                     connection_manager_.stop(shared_from_this());
                 }
