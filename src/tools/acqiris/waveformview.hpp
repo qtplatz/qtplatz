@@ -28,8 +28,9 @@
 #include <memory>
 
 class XYSeriesData;
-class waveform;
 class QwtPlotCurve;
+
+namespace aqdrv4 { class waveform; }
 
 class WaveformView : public QwtPlot {
 
@@ -42,7 +43,7 @@ public:
     void setTitle( const QString& );
     void setFooter( const QString& );
     
-    void setData( std::shared_ptr< const waveform > );
+    void setData( std::shared_ptr< const aqdrv4::waveform > );
 
 private:
     std::unique_ptr< QwtPlotCurve > curve_;

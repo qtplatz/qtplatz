@@ -36,6 +36,7 @@
 namespace aqdrv4 {
 
     class acqiris_method;
+    class waveform;
     
     namespace client {
 
@@ -55,8 +56,8 @@ namespace aqdrv4 {
             
             void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > );
 
-            void push( std::shared_ptr< waveform > );
-            void push( std::shared_ptr< acqiris_method > );
+            void push( std::shared_ptr< aqdrv4::waveform > );
+            void push( std::shared_ptr< aqdrv4::acqiris_method > );
             
         private:
             boost::asio::io_service io_service_;

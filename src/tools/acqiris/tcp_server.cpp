@@ -114,24 +114,17 @@ tcp_server::post( std::shared_ptr< acqiris_protocol > p )
 }
 
 void
-tcp_server::post( std::shared_ptr< const waveform > p )
+tcp_server::post( std::shared_ptr< const aqdrv4::waveform > p )
 {
     if ( hasClient_ ) {
 
         strand_.post( [=] {
                 
-                auto data( std::make_shared< acqiris_protocol >() );
-                
-                boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
-                boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-                
-                portable_binary_oarchive ar( device );
-                ar & *p;
-                
-                data->preamble().clsid = p->clsid();
-                data->preamble().length = data->payload().size();
-                
-                connection_manager_.write_all( data );
+                if ( auto data = aqdrv4::protocol_serializer::serialize( *p ) ) {
+                    
+                    connection_manager_.write_all( data );
+
+                }
             });
     }
 }

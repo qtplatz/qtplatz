@@ -25,7 +25,6 @@
 
 #include "semaphore.hpp"
 #include <boost/asio.hpp>
-//#include <boost/asio/basic_waitable_timer.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <chrono>
 #include <cstdint>
@@ -33,7 +32,7 @@
 #include <memory>
 #include <vector>
 
-namespace aqdrv4 { class acqiris_method; }
+namespace aqdrv4 { class acqiris_method; class waveform; }
 
 class digitizer;
 

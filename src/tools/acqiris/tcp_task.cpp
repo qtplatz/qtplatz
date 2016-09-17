@@ -25,6 +25,7 @@
 #include "tcp_client.hpp"
 #include "document.hpp"
 #include "waveform.hpp"
+#include <adportable/debug.hpp>
 #include <iostream>
 
 using namespace aqdrv4::client;
@@ -112,7 +113,23 @@ tcp_task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m )
 }
 
 void
-tcp_task::push( response_type v )
+tcp_task::push( std::shared_ptr< aqdrv4::waveform > d )
+{
+    using namespace std::chrono_literals;
+    
+    ADDEBUG() << d->serialNumber();
+
+    document::instance()->push( d );
+
+    auto tp = std::chrono::system_clock::now();
+    if ( tp - tp_data_handled_ > 200ms ) {
+        emit document::instance()->updateData();
+        tp_data_handled_ = tp;
+    }
+}
+
+void
+tcp_task::push( std::shared_ptr< aqdrv4::acqiris_method > )
 {
 }
 

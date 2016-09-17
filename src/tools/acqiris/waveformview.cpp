@@ -133,7 +133,7 @@ WaveformView::setFooter( const QString& text )
 }
 
 void
-WaveformView::setData( std::shared_ptr< const waveform > d )
+WaveformView::setData( std::shared_ptr< const aqdrv4::waveform > d )
 {
     auto data = new XYSeriesData( d );
     curve_->setSamples( data );

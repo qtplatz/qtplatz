@@ -28,8 +28,15 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <adportable/debug.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 #include <boost/asio.hpp>
-#include <boost/variant.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 class waveform;
 
@@ -41,9 +48,6 @@ namespace aqdrv4 {
     extern boost::uuids::uuid clsid_acknowledge;
     extern boost::uuids::uuid clsid_readData;
     extern boost::uuids::uuid clsid_temperature;
-
-    typedef boost::variant< std::shared_ptr< waveform >
-                            , std::shared_ptr< acqiris_method > > response_type;
 
     struct preamble {
         uint32_t aug; // methionine
@@ -66,14 +70,53 @@ namespace aqdrv4 {
 
         std::vector< boost::asio::const_buffer > to_buffers();
 
-        static bool deserialize( const struct preamble&, const char * data, response_type& );
-
     private:
         class preamble preamble_;
         std::string payload_;
     };
 
-    
+    struct protocol_serializer {
+        template< typename T >
+        static std::shared_ptr< acqiris_protocol > serialize( const T& d ) {
+
+            auto data = std::make_shared< acqiris_protocol >();
+            {
+                boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
+                boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+            
+                portable_binary_oarchive ar( device );
+                try {
+                    ar & d;
+                } catch ( ... ) {
+                    ADDEBUG() << boost::current_exception_diagnostic_information();
+                    return nullptr;
+                }
+            }
+            data->preamble().clsid = d.clsid();
+            data->preamble().length = data->payload().size();
+
+            return data;
+        }
+
+        template< typename T >
+        static std::shared_ptr< T > deserialize( const aqdrv4::preamble& pre, const char * data ) {
+            
+            auto s = std::string( data, pre.length );
+
+            auto p = std::make_shared< T >();
+            boost::iostreams::basic_array_source< char > device( data, pre.length );
+            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+            portable_binary_iarchive ar( st );
+            try {            
+                ar & *p;
+            } catch ( ... ) {
+                ADDEBUG() << boost::current_exception_diagnostic_information();
+                return nullptr;
+            }
+
+            return p;
+        }
+    };
 
 }
 

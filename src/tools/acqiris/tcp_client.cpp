@@ -21,17 +21,12 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-// async_client.cpp
-// ~~~~~~~~~~~~~~~~
-//
-// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
+
 #include "tcp_client.hpp"
 #include "tcp_task.hpp"
 #include "acqiris_protocol.hpp"
+#include "acqiris_method.hpp"
+#include "waveform.hpp"
 #include <adportable/debug.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/asio.hpp>
@@ -46,21 +41,6 @@
 #include <ostream>
 #include <string>
 #include <iostream>
-
-namespace aqdrv4 {
-    namespace client {
-
-        struct dispatch_response : public boost::static_visitor< void > {
-            template< typename T >
-            void operator()(T p) {
-                tcp_task::instance()->push( p );
-            }
-        };
-    }
-}
-        
-
-
 
 using namespace aqdrv4::client;
 
@@ -272,19 +252,25 @@ tcp_client::do_read()
                                      
                 auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
 
-                //ADDEBUG() << ">>> tcp_client:do_read\t" << aqdrv4::preamble::debug( preamble )
-                //          << " received: " << response_.size();
-                
                 if ( aqdrv4::preamble::isOk( preamble ) && 
                      preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
 
                     const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( aqdrv4::preamble );
-                    aqdrv4::response_type assembled;
-                    if ( aqdrv4::acqiris_protocol::deserialize( *preamble, data, assembled ) )
-                        boost::apply_visitor( dispatch_response(), assembled );
+                    
+                    if ( preamble->clsid == waveform::clsid() ) {
 
+                        if ( auto p = protocol_serializer::deserialize<waveform>( *preamble, data ) )
+                            tcp_task::instance()->push( p );
+
+                    } else if ( preamble->clsid == acqiris_method::clsid() ) {
+
+                        if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
+                            tcp_task::instance()->push( p );
+                    }
+                    
                     response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
                 }
+
                 do_read();                                         
 
             } else {

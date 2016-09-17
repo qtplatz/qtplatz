@@ -127,7 +127,7 @@ task::acquire( digitizer * digitizer )
         if ( digitizer->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
             
             static const int nbrADCBits = digitizer->nbrADCBits();
-            auto d = std::make_shared< waveform >( ( nbrADCBits > 8 ) ? sizeof( int16_t ) : sizeof( int8_t ) );
+            auto d = std::make_shared< aqdrv4::waveform >( ( nbrADCBits > 8 ) ? sizeof( int16_t ) : sizeof( int8_t ) );
             
             if ( nbrADCBits <= 8 ) {
                 digitizer->readData<int8_t>( 1, d->dataDesc(), d->segDesc(), d->d() );

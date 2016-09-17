@@ -26,7 +26,7 @@
 #include <QPointF>
 #include <memory>
 
-class waveform;
+namespace aqdrv4 { class waveform; }
 
 class XYSeriesData : public QwtSeriesData< QPointF > {
 
@@ -34,7 +34,7 @@ class XYSeriesData : public QwtSeriesData< QPointF > {
     XYSeriesData& operator = ( const XYSeriesData& ) = delete;
 
 public:
-    XYSeriesData( std::shared_ptr< const waveform > );
+    XYSeriesData( std::shared_ptr< const aqdrv4::waveform > );
 
     size_t size() const override;
     QPointF sample( size_t idx ) const override;
@@ -43,6 +43,6 @@ public:
     
 private:
     bool rawVertical_;
-    std::shared_ptr< const waveform > d_;
+    std::shared_ptr< const aqdrv4::waveform > d_;
     QRectF boundingRect_;
 };

@@ -134,7 +134,7 @@ document::digitizer_initialize()
 }
 
 void
-document::push( std::shared_ptr< waveform >&& d )
+document::push( std::shared_ptr< aqdrv4::waveform > d )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     
@@ -158,7 +158,7 @@ document::push( std::shared_ptr< waveform >&& d )
     }
 }
 
-std::shared_ptr< waveform >
+std::shared_ptr< aqdrv4::waveform >
 document::recentWaveform()
 {
     std::lock_guard< std::mutex > lock( mutex_ );

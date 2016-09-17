@@ -28,12 +28,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <boost/iostreams/device/array.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
 
 namespace aqdrv4 {
 
@@ -100,33 +94,6 @@ namespace aqdrv4 {
         buffers.push_back( boost::asio::buffer( preamble_.data(), sizeof( class preamble ) ) );
         buffers.push_back( boost::asio::buffer( payload_.data(), payload_.size() ) );
         return buffers;
-    }
-
-    struct serializer {
-        template< typename T >
-        static bool deserialize( const aqdrv4::preamble& pre, const char * data, response_type& v ) {
-
-            auto p = std::make_shared< T >();
-            boost::iostreams::basic_array_source< char > device( data, pre.length );
-            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
-
-            portable_binary_iarchive ar( st );
-            ar & *p;
-            v = p;
-
-            return true;            
-        }
-    };
-
-    bool
-    acqiris_protocol::deserialize( const aqdrv4::preamble& pre, const char * data, response_type& v )
-    {
-        if ( pre.clsid == waveform::clsid() ) {
-            return serializer::deserialize< waveform >( pre, data, v );
-        } else if ( pre.clsid == acqiris_method::clsid() ) {
-            return serializer::deserialize< acqiris_method >( pre, data, v );
-        }
-        return false;
     }
 
 }

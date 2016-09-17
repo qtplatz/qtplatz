@@ -16,9 +16,10 @@
 #include "tcp_connection_manager.hpp"
 #include "request_handler.hpp"
 
-class waveform;
-
 namespace aqdrv4 {
+
+    class waveform;
+    
     namespace server {
 
         /// The top-level class of the HTTP server.
@@ -36,7 +37,7 @@ namespace aqdrv4 {
             void stop();
             void setConnected();
             void post( std::shared_ptr< acqiris_protocol > );
-            void post( std::shared_ptr< const waveform > );
+            void post( std::shared_ptr< const aqdrv4::waveform > );
             
         private:
             /// Perform an asynchronous accept operation.

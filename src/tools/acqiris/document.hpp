@@ -36,10 +36,12 @@
 
 class QSettings;
 class digitizer;
-class waveform;
 
 namespace aqdrv4 {
+
     class acqiris_method;
+    class waveform;
+
     enum SubMethodType : unsigned int;
     namespace server {
         class tcp_server;
@@ -66,8 +68,8 @@ public:
 
     bool digitizer_initialize();
 
-    void push( std::shared_ptr< waveform >&& );
-    std::shared_ptr< waveform > recentWaveform();
+    void push( std::shared_ptr< aqdrv4::waveform > );
+    std::shared_ptr< aqdrv4::waveform > recentWaveform();
 
     std::shared_ptr< const aqdrv4::acqiris_method > acqiris_method();
     std::shared_ptr< const aqdrv4::acqiris_method > adapted_acqiris_method();
@@ -92,7 +94,7 @@ signals:
     
 private:
     std::mutex mutex_;
-    std::deque< std::shared_ptr< waveform > > que_;
+    std::deque< std::shared_ptr< aqdrv4::waveform > > que_;
     std::shared_ptr< aqdrv4::acqiris_method > method_;
     std::shared_ptr< aqdrv4::acqiris_method > adapted_method_;
     std::unique_ptr< aqdrv4::server::tcp_server > server_;
