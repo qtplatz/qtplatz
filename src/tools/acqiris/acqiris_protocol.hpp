@@ -29,13 +29,21 @@
 #include <string>
 #include <vector>
 #include <boost/asio.hpp>
+#include <boost/variant.hpp>
+
+class waveform;
 
 namespace aqdrv4 {
+
+    class acqiris_method;
 
     extern boost::uuids::uuid clsid_connection_request;
     extern boost::uuids::uuid clsid_acknowledge;
     extern boost::uuids::uuid clsid_readData;
     extern boost::uuids::uuid clsid_temperature;
+
+    typedef boost::variant< std::shared_ptr< waveform >
+                            , std::shared_ptr< acqiris_method > > response_type;
 
     struct preamble {
         uint32_t aug; // methionine
@@ -58,10 +66,14 @@ namespace aqdrv4 {
 
         std::vector< boost::asio::const_buffer > to_buffers();
 
+        static bool deserialize( const struct preamble&, const char * data, response_type& );
+
     private:
         class preamble preamble_;
         std::string payload_;
     };
+
+    
 
 }
 

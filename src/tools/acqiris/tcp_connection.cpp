@@ -119,8 +119,7 @@ connection::do_write()
                 
                 // Initiate graceful connection closure.
                 // boost::system::error_code ignored_ec;
-                // socket_.shutdown( boost::asio::ip::tcp::socket::shutdown_both,
-                //                  ignored_ec);
+                // socket_.shutdown( boost::asio::ip::tcp::socket::shutdown_both, ignored_ec);
 
             } else { // if ( ec != boost::asio::error::operation_aborted ) {
                 ADDEBUG() << "*** do_write: abort connection *** " << ec.message();

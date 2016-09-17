@@ -24,6 +24,7 @@
 #pragma once
 
 #include "semaphore.hpp"
+#include "acqiris_protocol.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <chrono>
@@ -53,6 +54,9 @@ namespace aqdrv4 {
             inline boost::asio::io_service::strand& strand() { return strand_; }
             
             void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > );
+
+            void push( std::shared_ptr< waveform > );
+            void push( std::shared_ptr< acqiris_method > );
             
         private:
             boost::asio::io_service io_service_;

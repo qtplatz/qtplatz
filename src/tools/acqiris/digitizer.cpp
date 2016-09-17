@@ -38,6 +38,12 @@ digitizer::result_code
 digitizer::waitForEndOfAcquisition( size_t timeout )
 {
     ViStatus st = AcqrsD1_waitForEndOfAcquisition( inst_, ViInt32( timeout ) );
+
+    if ( __isSimulated__ ) {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for( 500ms );
+    }
+
     switch( st ) {
     case VI_SUCCESS: return success;
     case ACQIRIS_ERROR_ACQ_TIMEOUT: return error_timeout;
@@ -45,10 +51,7 @@ digitizer::waitForEndOfAcquisition( size_t timeout )
     case ACQIRIS_ERROR_IO_READ: return error_io_read;   //  if a link error has been detected (e.g. PCI link lost).
     case ACQIRIS_ERROR_INSTRUMENT_STOPPED: return error_stopped; // if the acquisition was not started beforehand
     }
-    if ( __isSimulated__ ) {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for( 500ms );
-    }
+    return success;
 }
     
 bool

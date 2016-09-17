@@ -130,6 +130,7 @@ document::digitizer_initialize()
             task::instance()->prepare_for_run( aqrs, document::instance()->acqiris_method() );
         }
     }
+    return true;
 }
 
 void

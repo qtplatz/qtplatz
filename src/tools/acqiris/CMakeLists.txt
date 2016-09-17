@@ -51,6 +51,11 @@ find_package( Threads REQUIRED )
 
 include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} )
 
+if ( APPLE )
+  include_directories( ${CMAKE_SOURCE_DIR}/../../../../infitof/acqiris/include )
+endif()
+
+
 if ( USING_PROTOBUF )
   find_package( Protobuf REQUIRED )
   include_directories( ${PROTOBUF_INCLUDE_DIRS} )

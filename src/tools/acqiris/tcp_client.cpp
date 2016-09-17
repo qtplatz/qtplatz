@@ -36,10 +36,31 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 #include <istream>
 #include <ostream>
 #include <string>
 #include <iostream>
+
+namespace aqdrv4 {
+    namespace client {
+
+        struct dispatch_response : public boost::static_visitor< void > {
+            template< typename T >
+            void operator()(T p) {
+                tcp_task::instance()->push( p );
+            }
+        };
+    }
+}
+        
+
+
 
 using namespace aqdrv4::client;
 
@@ -244,19 +265,23 @@ tcp_client::do_read()
     boost::asio::async_read(
         socket_
         , response_
-        //, boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
-        , boost::asio::transfer_at_least( 1 )
+        , boost::asio::transfer_at_least( 1 ) // sizeof( aqdrv4::preamble ) )
         , [&]( const boost::system::error_code& ec, size_t ) {
                                  
             if ( !ec ) {
                                      
                 auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
 
-                ADDEBUG() << ">>> tcp_client:do_read\t" << aqdrv4::preamble::debug( preamble )
-                          << " received: " << response_.size();
-                                     
+                //ADDEBUG() << ">>> tcp_client:do_read\t" << aqdrv4::preamble::debug( preamble )
+                //          << " received: " << response_.size();
+                
                 if ( aqdrv4::preamble::isOk( preamble ) && 
                      preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
+
+                    const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( aqdrv4::preamble );
+                    aqdrv4::response_type assembled;
+                    if ( aqdrv4::acqiris_protocol::deserialize( *preamble, data, assembled ) )
+                        boost::apply_visitor( dispatch_response(), assembled );
 
                     response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
                 }
@@ -268,21 +293,4 @@ tcp_client::do_read()
             }
 
         });
-}
-
-void
-tcp_client::readData()
-{
-#if 0
-    aqdrv4::preamble preamble( aqdrv4::clsid_readData );
-    
-    std::ostream request_stream( request_.get() );
-    request_stream.write( preamble.data(), sizeof( preamble ) );
-
-    boost::asio::async_write( socket_
-                              , *request_
-                              , [&]( const boost::system::error_code& ec, size_t ) {
-                                  handle_write_request( ec );
-                              } );
-#endif
 }

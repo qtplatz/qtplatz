@@ -111,6 +111,11 @@ tcp_task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m )
     //     strand_.post( [=] { acquire( digitizer ); } );
 }
 
+void
+tcp_task::push( response_type v )
+{
+}
+
 #if 0
 void
 tcp_task::acquire( digitizer * digitizer )

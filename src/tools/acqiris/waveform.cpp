@@ -246,5 +246,6 @@ waveform::operator [] ( size_t idx ) const
     case 2: return *(begin<int16_t>() + idx);
     case 4: return *(begin<int32_t>() + idx);
     }
+    throw std::bad_cast();
 }
 
