@@ -17,15 +17,18 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
+set(COMPAT_VERSION 3.2.81)
+set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
 execute_process( COMMAND ${XMLPATTERNS} -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 add_definitions( -DDATAPROC_LIBRARY  )
@@ -48,11 +51,6 @@ include_directories(
 link_directories(
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
-  )
-
-set( chemistry_HEADERS
-  
-  
   )
 
 add_library( ${PROJECT_NAME} MODULE

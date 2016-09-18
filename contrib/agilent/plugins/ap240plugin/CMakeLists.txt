@@ -19,7 +19,8 @@ file(GLOB UIs *.ui)
 file(GLOB ap240_Resources *.qrc)
 
 set(COMPAT_VERSION 3.2.81)
-set(VERSION 3.1.4)
+
+set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"

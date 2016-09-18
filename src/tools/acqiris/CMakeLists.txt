@@ -161,8 +161,6 @@ set ( CPACK_INSTALL_PREFIX "/opt/acqiris" )  # override qtplatz-config.cmake
 include( qtplatz-cpack-config )
 include( qt5-cpack )
 
-#cpack_add_component( httpd DISPLAY_NAME "Delay pulse controller" DESCRIPTION "web server" GROUP httpd )
-
 set( CPACK_PACKAGE_NAME "acqiris" )
 set( CPACK_PACKAGE_VENDOR "MS-Cheminformatics LLC" )
 set( CPACK_PACKAGE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )

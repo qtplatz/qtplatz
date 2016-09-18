@@ -254,8 +254,6 @@ document::handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method > m, aqdrv
 void
 document::replyTemperature( int temp )
 {
-    ADDEBUG() << "Temperature: " << temp;
-    
     if ( server_ ) {
         do {
             auto data = std::make_shared< aqdrv4::acqiris_protocol >();
@@ -266,6 +264,12 @@ document::replyTemperature( int temp )
             server_->post( data );
             
         } while ( 0 );
+    } else {
+        ADDEBUG() << "Temperature: " << temp;
     }
+    
+    if ( temp >= 58 )
+        std::cout << "WARNING: Temperature " << temp << " too high" << std::endl;
+        
     temperature_ = temp;
 }

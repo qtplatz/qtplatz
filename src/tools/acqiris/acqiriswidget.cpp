@@ -43,9 +43,6 @@
 #include <ratio>
 
 enum { r_trig, r_hor, r_ver };
-// enum { r_trig_class, r_trig_source, r_trig_coupling, r_trig_level1, r_trig_level2 };
-// enum { r_hor_delay, r_hor_width, r_hor_rate, r_hor_mode };
-// enum { r_ver_fs, r_ver_offset, r_ver_coupling, r_ver_bandwidth };
 
 namespace acqiriswidget {
 

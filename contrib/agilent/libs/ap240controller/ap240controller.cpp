@@ -54,8 +54,6 @@ namespace ap240controller {
         // adicontroller::manager impl
         adicontroller::Instrument::Session * session( const char * token ) override {
             return ap240controller::Instrument::Session::instance();
-            // std::call_once( flag2, [this] () { session_ = std::make_shared< ap240controller::Instrument::Session >(); } );
-            // return session_.get();
         }
 
         // adplugin impl
