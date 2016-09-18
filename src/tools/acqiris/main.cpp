@@ -55,6 +55,7 @@ main(int argc, char *argv[])
             ( "connect",   po::value< std::string >(), "connect to server" )
             ( "recv",      po::value< std::string >()->default_value( "0.0.0.0" ), "For IPv4 0.0.0.0, IPv6, try 0::0" )
             ( "load",      po::value< std::string >(), "load method from file" )
+            ( "daemon",    "No gui" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -75,8 +76,11 @@ main(int argc, char *argv[])
     }
 
     bool isClient( false );
+    bool isServer( false );
 
     if ( vm.count( "server" ) ) {
+
+        isServer = true;
         
         document::instance()->set_server(
             std::make_unique< aqdrv4::server::tcp_server >(
@@ -93,14 +97,34 @@ main(int argc, char *argv[])
 
     document::instance()->set_acqiris_method( m );
 
-    MainWindow w;
-    w.resize( 800, 600 );
-    w.onInitialUpdate();
-
     if ( !isClient )
         task::instance()->digitizer_initialize();
 
-    w.show();
+    if ( vm.count( "daemon" ) ) {
 
-    a.exec();
+        int fd = open( PID_NAME, O_RDWR|O_CREAT, 0644 );
+        if ( fd < 0 ) {
+            std::cerr << "Can't open " PID_NAME << std::endl;
+            exit(1);
+        }
+        int lock = lockf( fd, F_TLOCK, 0 );
+        if ( lock < 0 ) {
+            std::cerr << "Process " << argv[0] << " already running" << std::endl;
+            exit(1);
+        }
+        std::ostringstream o;
+        o << getpid() << std::endl;
+        write( fd, o.str().c_str(), o.str().size() );
+        
+        return a.exec();
+
+    } else {
+
+        MainWindow w;
+        w.resize( 800, 600 );
+        w.onInitialUpdate();
+        w.show();
+        
+        a.exec();
+    }
 }

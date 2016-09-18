@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "acqiris post installation...."
+
+if [ "$1" = "configure" ]; then
+    mv /etc/init.d/acqiris.sh /etc/init.d/acqiris
+    chmod 755 /etc/init.d/acqiris
+    update-rc.d acqiris defaults 81
+    /etc/init.d/acqiris restart
+fi

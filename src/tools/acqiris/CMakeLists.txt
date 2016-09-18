@@ -55,6 +55,7 @@ if ( APPLE )
   include_directories( ${CMAKE_SOURCE_DIR}/../../../../infitof/acqiris/include )
 endif()
 
+add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )
 
 if ( USING_PROTOBUF )
   find_package( Protobuf REQUIRED )
@@ -115,8 +116,6 @@ add_executable( ${PROJECT_NAME}
   request_handler.hpp
   request_parser.cpp
   request_parser.hpp
-  reply.cpp
-  reply.hpp
   waveform.cpp
   waveform.hpp
   outputwidget.cpp
@@ -141,8 +140,35 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   dl
   )
 
-install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION bin COMPONENT applications
+install( TARGETS ${PROJECT_NAME} 
+  RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
+
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+
+  set( CPACK_GENERATOR DEB )
+  set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
+#  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "postinst;prerm" )  
+  set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${__arch} )
+
+endif()
+
+set ( CMAKE_INSTALL_PREFIX "/usr/local" )    # override qtplatz-config.cmake
+set ( CPACK_INSTALL_PREFIX "/opt/acqiris" )  # override qtplatz-config.cmake
+
+include( qtplatz-cpack-config )
+include( qt5-cpack )
+
+#cpack_add_component( httpd DISPLAY_NAME "Delay pulse controller" DESCRIPTION "web server" GROUP httpd )
+
+set( CPACK_PACKAGE_NAME "acqiris" )
+set( CPACK_PACKAGE_VENDOR "MS-Cheminformatics LLC" )
+set( CPACK_PACKAGE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
+set( CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR} )
+set( CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR} )
+set( CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH} )
+set( CPACK_RESOURCE_FILE_LICENSE ${QTPLATZ_SOURCE_DIR}/license.rtf )
+
+include ( CPack )
