@@ -98,7 +98,7 @@ main(int argc, char *argv[])
     w.onInitialUpdate();
 
     if ( !isClient )
-        document::instance()->digitizer_initialize();
+        task::instance()->digitizer_initialize();
 
     w.show();
 

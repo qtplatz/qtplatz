@@ -27,7 +27,6 @@
 #include "acqiris_protocol.hpp"
 #include "acqiriswidget.hpp"
 #include "digitizer.hpp"
-#include "task.hpp"
 #include "tcp_server.hpp"
 #include "tcp_client.hpp"
 #include "waveform.hpp"
@@ -56,13 +55,6 @@ document::instance()
     return &__instance;
 }
 
-class digitizer *
-document::digitizer()
-{
-    static class digitizer __acqiris;
-    return &__acqiris;
-}
-
 document::document( QObject * parent ) : QObject( parent )
                                        , method_( std::make_shared< aqdrv4::acqiris_method >() )
                                        , settings_( std::make_unique< QSettings >( QSettings::IniFormat
@@ -70,6 +62,7 @@ document::document( QObject * parent ) : QObject( parent )
                                                                                    , QLatin1String( "acqiris" )
                                                                                    , QLatin1String( "acqiris" )
                                                         ) )
+                                       , temperature_( 0 )
 {
 }
 
@@ -93,11 +86,13 @@ document::initialSetup()
 bool
 document::finalClose()
 {
-    task::instance()->finalize();
+    signal_final_close_();
 
     if ( ! tcp_threads_.empty() ) {
         if ( server_ )
             server_->stop();
+        if ( client_ )
+            client_->stop();
         for ( auto& t: tcp_threads_ )
             t.join();
     }
@@ -116,21 +111,6 @@ QSettings *
 document::settings()
 {
     return settings_.get();
-}
-
-bool
-document::digitizer_initialize()
-{
-    task::instance()->initialize();
-    
-    auto aqrs = digitizer();
-    
-    if ( aqrs->initialize() ) {
-        if ( aqrs->findDevice() ) {
-            task::instance()->prepare_for_run( aqrs, document::instance()->acqiris_method() );
-        }
-    }
-    return true;
 }
 
 void
@@ -209,6 +189,14 @@ document::set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& server )
 }
 
 void
+document::close_client()
+{
+    if ( client_ ) {
+        client_->stop();
+    }
+}
+
+void
 document::set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& client )
 {
     client_ = std::move( client );
@@ -244,36 +232,40 @@ document::load( const std::string& file )
     }
 }
 
+boost::signals2::connection
+document::connect_prepare( const prepare_for_run_t::slot_type & subscriber )
+{
+    return signal_prepare_for_run_.connect( subscriber );
+}
+
+boost::signals2::connection
+document::connect_finalize( const final_close_t::slot_type & subscriber )
+{
+    return signal_final_close_.connect( subscriber );
+}
+
 void
 document::handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method > m, aqdrv4::SubMethodType subType )
 {
     set_acqiris_method( m );
-    task::instance()->prepare_for_run( digitizer(), document::instance()->acqiris_method() );
+    signal_prepare_for_run_( m, subType );
 }
 
 void
 document::replyTemperature( int temp )
 {
+    ADDEBUG() << "Temperature: " << temp;
+    
     if ( server_ ) {
         do {
             auto data = std::make_shared< aqdrv4::acqiris_protocol >();
+
             data->preamble().clsid = aqdrv4::clsid_temperature;
+            *data << int32_t( temp );
+            
             server_->post( data );
+            
         } while ( 0 );
-
-        // if ( auto p = recentWaveform() ) {
-        //     auto data = std::make_shared< aqdrv4::acqiris_protocol >();
-
-        //     boost::iostreams::back_insert_device< std::string > inserter( data->payload() );
-        //     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-
-        //     portable_binary_oarchive ar( device );
-        //     ar & *p;
-
-        //     data->preamble().clsid = p->clsid();
-        //     data->preamble().length = data->payload().size();
-        //     ADDEBUG() << "size = " << data->payload().size();
-        //     server_->post( data );
-        // }
     }
+    temperature_ = temp;
 }

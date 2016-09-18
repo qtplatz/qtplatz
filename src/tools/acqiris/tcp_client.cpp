@@ -22,10 +22,11 @@
 **
 **************************************************************************/
 
-#include "tcp_client.hpp"
-#include "tcp_task.hpp"
 #include "acqiris_protocol.hpp"
 #include "acqiris_method.hpp"
+#include "document.hpp"
+#include "tcp_client.hpp"
+#include "tcp_task.hpp"
 #include "waveform.hpp"
 #include <adportable/debug.hpp>
 #include <boost/algorithm/string/find.hpp>
@@ -266,6 +267,10 @@ tcp_client::do_read()
 
                         if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
                             tcp_task::instance()->push( p );
+
+                    } else if ( preamble->clsid == clsid_temperature ) {
+                        pod_reader reader( data, preamble->length );
+                        document::instance()->replyTemperature( reader.get< int32_t >() );
                     }
                     
                     response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
@@ -276,7 +281,24 @@ tcp_client::do_read()
             } else {
                 //if ( ec != boost::asio::error::operation_aborted ) {
                 ADDEBUG() << __FILE__ << ":" << __LINE__ << ">>> do_read: failed: " << ec.message();
+                socket_.close();
+                document::instance()->close_client();
             }
 
+        });
+}
+
+void
+tcp_client::write( std::shared_ptr< acqiris_protocol > data )
+{
+    auto self( this );
+    
+    boost::asio::async_write(
+        socket_
+        , data->to_buffers()
+        , [this, self, data]( boost::system::error_code ec, std::size_t ) {
+            if ( ec ) {
+                ADDEBUG() << "*** error tcp_client::write: " << ec.message();
+            }
         });
 }

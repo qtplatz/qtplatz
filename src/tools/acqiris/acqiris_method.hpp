@@ -36,7 +36,8 @@ namespace aqdrv4 {
     enum SubMethodType : unsigned int;
 
     enum SubMethodType : unsigned int {
-        triggerMethod
+        allMethod
+        , triggerMethod
         , horizontalMethod
         , ch1VerticalMethod
         , ch2VerticalMethod

@@ -72,7 +72,9 @@ namespace aqdrv4 {
             else if ( data->clsid == clsid_temperature )
                 o << "clsid_temperature";
             else if ( data->clsid == waveform::clsid() )
-                o << "clsid_waveform";            
+                o << "clsid_waveform";
+            else if ( data->clsid == acqiris_method::clsid() )
+                o << "clsid_acqiris_method";
             else {
                 o << boost::lexical_cast< std::string >( data->clsid );
             }
@@ -91,8 +93,12 @@ namespace aqdrv4 {
     acqiris_protocol::to_buffers()
     {
         std::vector<boost::asio::const_buffer> buffers;
+
+        preamble_.length = payload_.size();
+
         buffers.push_back( boost::asio::buffer( preamble_.data(), sizeof( class preamble ) ) );
         buffers.push_back( boost::asio::buffer( payload_.data(), payload_.size() ) );
+
         return buffers;
     }
 

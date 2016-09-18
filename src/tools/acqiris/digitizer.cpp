@@ -311,7 +311,6 @@ int
 digitizer::readTemperature()
 {
     AcqrsD1_getInstrumentInfo( inst_, "Temperature", &temperature_ );
-    std::cout << "Temperature: " << temperature_ << std::endl;
     return temperature_;
 }
 
@@ -319,4 +318,10 @@ int
 digitizer::temperature() const
 {
     return temperature_;
+}
+
+bool
+digitizer::isSimulated() const
+{
+    return __isSimulated__;
 }

@@ -61,6 +61,8 @@ namespace aqdrv4 {
             enum ReplyStatus { NoError, Error };
             ReplyStatus error() const;
 
+            void write( std::shared_ptr< acqiris_protocol > );
+
             static void setDebug_mode( bool mode );
             static bool debug_mode();
 

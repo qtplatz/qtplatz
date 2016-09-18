@@ -61,12 +61,37 @@ namespace aqdrv4 {
         static std::string debug( const preamble * );
     };
 
+    class pod_reader {
+        boost::iostreams::basic_array_source< char > device_;
+        boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm_;
+    public:
+        pod_reader( const char * data, size_t length ) : device_( data, length )
+                                                       , strm_( device_ )
+            {}
+        template< typename T > pod_reader& operator >> ( T& t ) {
+            strm_ >> t;   return *this;
+        }
+        
+        template< typename T > const T get() {
+            T t;  strm_ >> t;
+            return t;
+        }        
+    };
+    
     class acqiris_protocol : public std::enable_shared_from_this< acqiris_protocol > {
     public:
         acqiris_protocol();
 
         inline class preamble& preamble()   { return preamble_; }
         inline std::string& payload() { return payload_; }
+
+        template< typename T >
+        acqiris_protocol& operator << ( const T& t ) {
+            boost::iostreams::back_insert_device< std::string > inserter( payload_ );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+            device << t;
+            return *this;
+        }
 
         std::vector< boost::asio::const_buffer > to_buffers();
 

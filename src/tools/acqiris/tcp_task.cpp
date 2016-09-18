@@ -21,6 +21,7 @@
 **
 **************************************************************************/
 
+#include "acqiris_method.hpp"
 #include "tcp_task.hpp"
 #include "tcp_client.hpp"
 #include "document.hpp"
@@ -69,6 +70,9 @@ tcp_task::initialize()
             
             timer_.expires_from_now( 5s );
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
+
+            document::instance()->connect_prepare( boost::bind( &tcp_task::prepare_for_run, this, _1, _2 ) );
+            document::instance()->connect_finalize( boost::bind( &tcp_task::finalize, this ) );
         } );
 
     return true;
@@ -101,15 +105,13 @@ tcp_task::worker_thread()
 }
 
 void
-tcp_task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m )
+tcp_task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m, aqdrv4::SubMethodType )
 {
-    // strand_.post( [=] {
-    //         auto adapted = digitizer->digitizer_setup( m );
-    //         document::instance()->acqiris_method_adapted( adapted );
-    //     } );
-    
-    // if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
-    //     strand_.post( [=] { acquire( digitizer ); } );
+    if ( auto client = document::instance()->client() ) {
+        if ( auto data = aqdrv4::protocol_serializer::serialize( *m ) ) {
+            client->write( data );
+        }
+    }
 }
 
 void
@@ -117,8 +119,6 @@ tcp_task::push( std::shared_ptr< aqdrv4::waveform > d )
 {
     using namespace std::chrono_literals;
     
-    ADDEBUG() << d->serialNumber();
-
     document::instance()->push( d );
 
     auto tp = std::chrono::system_clock::now();
@@ -129,24 +129,11 @@ tcp_task::push( std::shared_ptr< aqdrv4::waveform > d )
 }
 
 void
-tcp_task::push( std::shared_ptr< aqdrv4::acqiris_method > )
+tcp_task::push( std::shared_ptr< aqdrv4::acqiris_method > m )
 {
+    document::instance()->set_acqiris_method( m );
+    document::instance()->acqiris_method_adapted( m );
 }
-
-#if 0
-void
-tcp_task::acquire( digitizer * digitizer )
-{
-    static int count = 0;
-
-    if ( std::atomic_flag_test_and_set( &acquire_posted_ ) )
-        strand_.post( [=] { acquire( digitizer ); } );    // scedule for next acquire
-    else
-        std::atomic_flag_clear( &acquire_posted_ ); // keep it false
-    
-    using namespace std::chrono_literals;
-}
-#endif
 
 void
 tcp_task::handle_timer( const boost::system::error_code& ec )
@@ -154,13 +141,6 @@ tcp_task::handle_timer( const boost::system::error_code& ec )
     using namespace std::chrono_literals;
     
     if ( ec != boost::asio::error::operation_aborted ) {
-#if 0        
-        strand_.post( [] {
-                std::cout << "readData" << std::endl;
-                if ( auto client = document::instance()->client() )
-                    client->readData();
-            } );
-#endif
         boost::system::error_code erc;
         timer_.expires_from_now( 3s, erc );
         if ( !erc )

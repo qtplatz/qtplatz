@@ -27,6 +27,7 @@
 #include "acqiris_protocol.hpp"
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/bind.hpp>
 #include <chrono>
 #include <cstdint>
 #include <future>
@@ -37,6 +38,7 @@ namespace aqdrv4 {
 
     class acqiris_method;
     class waveform;
+    enum SubMethodType : unsigned int;
     
     namespace client {
 
@@ -54,7 +56,7 @@ namespace aqdrv4 {
             inline boost::asio::io_service& io_service() { return io_service_; }    
             inline boost::asio::io_service::strand& strand() { return strand_; }
             
-            void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > );
+            void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
 
             void push( std::shared_ptr< aqdrv4::waveform > );
             void push( std::shared_ptr< aqdrv4::acqiris_method > );

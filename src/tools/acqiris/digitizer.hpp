@@ -40,7 +40,6 @@ public:
     digitizer() : numInstruments_( 0 )
                 , inst_( -1 )
                 , initialized_( false )
-                , bSimulated_( false )
                 , bus_number_( 0 )
                 , slot_number_( 0 )
                 , serial_number_( 0 )
@@ -85,7 +84,7 @@ public:
         readPar.reserved2 = 0;
         readPar.reserved3 = 0;
 
-        data.resize( ( ( ( nbrSamples_ + 32 ) * sizeof(T) ) + (sizeof(int32_t)-1) ) / sizeof( int32_t ) );
+        data.resize( ( ( ( nbrSamples_ + 32 ) * sizeof(T) ) + ( sizeof(int32_t)-1) ) / sizeof( int32_t ) );
 
         auto status = AcqrsD1_readData( inst_, 1, &readPar, data.data(), &dataDesc, &segDesc );
         checkError( inst_, status, "AcqirisD1_readData", __LINE__  );
@@ -97,13 +96,13 @@ public:
     int nbrADCBits() const;
     int temperature() const;
     int readTemperature();
+    bool isSimulated() const;
 
 private:
     ViSession inst_;
     ViInt32 numInstruments_;
     std::string device_name_;
     bool initialized_;
-    bool bSimulated_;
     ViInt32 bus_number_;
     ViInt32 slot_number_;
     ViInt32 serial_number_;

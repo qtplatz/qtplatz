@@ -31,6 +31,7 @@
 #endif
 #include "document.hpp"
 #include "outputwidget.hpp"
+#include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <QAbstractButton>
 #include <QAction>
@@ -180,7 +181,11 @@ MainWindow::setupFileActions()
 
     a = new QAction(tr("&Quit"), this);
     a->setShortcut(Qt::CTRL + Qt::Key_Q);
-    connect(a, SIGNAL(triggered()), this, SLOT(close()));
+    //connect(a, SIGNAL(triggered()), this, SLOT(close()));
+    connect(a, &QAction::triggered, this, [&](){
+            ADDEBUG() << "close...";
+            close();
+        });
     menu->addAction(a);
 }
 
@@ -304,7 +309,7 @@ void
 MainWindow::onInitialUpdate()
 {
     if ( auto widget = findChild< AcqirisWidget * >() ) {
-
+        
         connect( widget, &AcqirisWidget::dataChanged, this, []( const AcqirisWidget * w, int subType ){
                 auto m = std::make_shared< aqdrv4::acqiris_method >();
                 w->getContents( m );

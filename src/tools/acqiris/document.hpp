@@ -27,7 +27,7 @@
 #include <QObject>
 #include <boost/numeric/ublas/fwd.hpp>
 #include <boost/msm/back/state_machine.hpp>
-
+#include <boost/signals2.hpp>
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -35,7 +35,6 @@
 #include <thread>
 
 class QSettings;
-class digitizer;
 
 namespace aqdrv4 {
 
@@ -60,13 +59,10 @@ class document : public QObject {
     document( QObject * parent = 0 );
 public:
     static document * instance();
-    static class digitizer * digitizer();
 
     bool initialSetup();
     bool finalClose();
     QSettings * settings();
-
-    bool digitizer_initialize();
 
     void push( std::shared_ptr< aqdrv4::waveform > );
     std::shared_ptr< aqdrv4::waveform > recentWaveform();
@@ -78,6 +74,7 @@ public:
 
     void set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& );
     void set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& );
+    void close_client();
 
     aqdrv4::server::tcp_server * server() { return server_.get(); }
     aqdrv4::client::tcp_client * client() { return client_.get(); }
@@ -88,10 +85,15 @@ public:
     void handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
     void replyTemperature( int );
 
+    typedef boost::signals2::signal< void( std::shared_ptr< aqdrv4::acqiris_method >, aqdrv4::SubMethodType ) > prepare_for_run_t;
+    typedef boost::signals2::signal< void() > final_close_t;
+    boost::signals2::connection connect_prepare( const prepare_for_run_t::slot_type & subscriber );
+    boost::signals2::connection connect_finalize( const final_close_t::slot_type & subscriber );
+    
 signals:
     void updateData();
     void on_acqiris_method_adapted();
-    
+
 private:
     std::mutex mutex_;
     std::deque< std::shared_ptr< aqdrv4::waveform > > que_;
@@ -101,4 +103,7 @@ private:
     std::unique_ptr< aqdrv4::client::tcp_client > client_;
     std::unique_ptr< QSettings > settings_;
     std::vector< std::thread > tcp_threads_;
+    int temperature_;
+    prepare_for_run_t signal_prepare_for_run_;
+    final_close_t signal_final_close_;
 };

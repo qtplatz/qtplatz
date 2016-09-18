@@ -32,7 +32,11 @@
 #include <memory>
 #include <vector>
 
-namespace aqdrv4 { class acqiris_method; class waveform; }
+namespace aqdrv4 {
+    class acqiris_method;
+    class waveform;
+    enum SubMethodType : unsigned int;
+}
 
 class digitizer;
 
@@ -42,14 +46,19 @@ class task {
     task( const task& ) = delete;
     const task& operator = ( const task& ) = delete;
 public:
+
     static task * instance();
+    static class digitizer * digitizer();
+    
     bool initialize();
     bool finalize();
 
     inline boost::asio::io_service& io_service() { return io_service_; }    
     inline boost::asio::io_service::strand& strand() { return strand_; }
 
-    void prepare_for_run( digitizer *, std::shared_ptr< const aqdrv4::acqiris_method > );
+    void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
+
+    bool digitizer_initialize();
 
 private:
     boost::asio::io_service io_service_;
@@ -61,8 +70,9 @@ private:
     std::vector< std::thread > threads_;
     std::atomic_flag acquire_posted_;
     std::chrono::time_point<std::chrono::system_clock> tp_data_handled_;
+    const std::chrono::time_point<std::chrono::system_clock> tp_uptime_;
 
-    void acquire( digitizer * );
+    void acquire();
     void worker_thread();
     void handle_timer( const boost::system::error_code& ec );
 };

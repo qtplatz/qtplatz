@@ -25,6 +25,7 @@
 #include "acqiriswidget.hpp"
 #include "acqiris_method.hpp"
 #include "document.hpp"
+#include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -443,6 +444,7 @@ AcqirisWidget::setContents( std::shared_ptr< const aqdrv4::acqiris_method > m )
             }
         }
     }
+    tree_->viewport()->update();
 }
 
 void

@@ -68,16 +68,15 @@ connection::do_read()
                 if ( response_.size() >= sizeof( aqdrv4::preamble ) ) {
 
                     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+
                     if ( aqdrv4::preamble::isOk( preamble ) && 
                          preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
-
+                        
                         if ( preamble->clsid == clsid_connection_request )
                             connection_requested_ = true;
 
-                        ADDEBUG() << "*** do_read: " << aqdrv4::preamble::debug( preamble );
-                                             
                         request_handler_.handle_request( response_, reply_ );
-
+                        
                         if ( reply_.size() )
                             do_write();
                     }
@@ -120,7 +119,7 @@ connection::do_write()
                 // Initiate graceful connection closure.
                 // boost::system::error_code ignored_ec;
                 // socket_.shutdown( boost::asio::ip::tcp::socket::shutdown_both, ignored_ec);
-
+                
             } else { // if ( ec != boost::asio::error::operation_aborted ) {
                 ADDEBUG() << "*** do_write: abort connection *** " << ec.message();
                 connection_manager_.stop(shared_from_this());
