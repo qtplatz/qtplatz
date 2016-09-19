@@ -60,7 +60,7 @@ tcp_client::tcp_client( const std::string& server
 {
     std::ostream request_stream( request_.get() );
 
-    aqdrv4::preamble preamble( aqdrv4::clsid_connection_request );    
+    acqrscontrols::aqdrv4::preamble preamble( acqrscontrols::aqdrv4::clsid_connection_request );    
     
     request_stream.write( preamble.data(), sizeof( preamble ) );
     
@@ -208,20 +208,21 @@ tcp_client::handle_write_request(const boost::system::error_code& err)
         boost::asio::async_read(
             socket_
             , response_
-            , boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
+            , boost::asio::transfer_at_least( sizeof( acqrscontrols::aqdrv4::preamble ) )
             , [&]( const boost::system::error_code& ec, size_t ) {
                 
-                auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+                auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
                 
-                if ( aqdrv4::preamble::isOk( preamble ) && 
-                     preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
+                if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
+                     preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
                     
                     ADDEBUG() << ">>> tcp_client: reply data\t"
-                              << aqdrv4::preamble::debug( boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() ));
+                              << acqrscontrols::aqdrv4::preamble::debug(
+                                  boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() ));
                     
-                    if ( preamble->clsid == aqdrv4::clsid_acknowledge ) {
+                    if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_acknowledge ) {
                         
-                        response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
+                        response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
                         do_read();
                         
                     } else {
@@ -243,6 +244,9 @@ tcp_client::handle_write_request(const boost::system::error_code& err)
 void
 tcp_client::do_read()
 {
+    using acqrscontrols::aqdrv4::protocol_serializer;
+    using acqrscontrols::aqdrv4::waveform;
+    
     boost::asio::async_read(
         socket_
         , response_
@@ -251,29 +255,29 @@ tcp_client::do_read()
                                  
             if ( !ec ) {
                                      
-                auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+                auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
 
-                if ( aqdrv4::preamble::isOk( preamble ) && 
-                     preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
+                if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
+                     preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
 
-                    const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( aqdrv4::preamble );
+                    const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( acqrscontrols::aqdrv4::preamble );
                     
                     if ( preamble->clsid == waveform::clsid() ) {
 
                         if ( auto p = protocol_serializer::deserialize<waveform>( *preamble, data ) )
                             tcp_task::instance()->push( p );
+                        
+                    } else if ( preamble->clsid == acqrscontrols::aqdrv4::acqiris_method::clsid() ) {
 
-                    } else if ( preamble->clsid == acqiris_method::clsid() ) {
-
-                        if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
+                        if ( auto p = protocol_serializer::deserialize< acqrscontrols::aqdrv4::acqiris_method >( *preamble, data ) )
                             tcp_task::instance()->push( p );
 
-                    } else if ( preamble->clsid == clsid_temperature ) {
-                        pod_reader reader( data, preamble->length );
+                    } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_temperature ) {
+                        acqrscontrols::aqdrv4::pod_reader reader( data, preamble->length );
                         document::instance()->replyTemperature( reader.get< int32_t >() );
                     }
                     
-                    response_.consume( sizeof( aqdrv4::preamble ) + preamble->length );
+                    response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
                 }
 
                 do_read();                                         
@@ -289,7 +293,7 @@ tcp_client::do_read()
 }
 
 void
-tcp_client::write( std::shared_ptr< acqiris_protocol > data )
+tcp_client::write( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > data )
 {
     auto self( this );
     

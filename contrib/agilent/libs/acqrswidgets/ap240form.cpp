@@ -23,10 +23,9 @@
 **************************************************************************/
 
 #include "ap240form.hpp"
-#include "ap240horizontalform.hpp"
-#include "ap240verticalform.hpp"
-#include "ap240triggerform.hpp"
+#include "acqiriswidget.hpp"
 #include "ui_ap240form.h"
+#include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/ap240/method.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/threshold_action.hpp>
@@ -34,7 +33,9 @@
 #include <adportable/serializer.hpp>
 #include <adwidgets/thresholdactionform.hpp>
 #include <adwidgets/findslopeform.hpp>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QLineEdit>
 #include <QSignalBlocker>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -61,9 +62,10 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                 ch->setTitle( idx++, title );
                 ch->setObjectName( title );
                 tab->addTab( ch, title );
+
                 // enable|disable
                 connect( ch, &adwidgets::findSlopeForm::valueChanged, [this] ( int ch ) {
-                    emit valueChanged( idSlopeTimeConverter, ch ); } );
+                        emit valueChanged( idSlopeTimeConverter, ch ); } );
             }
 
             ////////// Threshold Action ///////////
@@ -74,6 +76,31 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         }
     }
 
+    if ( auto layout = new QVBoxLayout( ui->groupBox_3 ) ) {
+        layout->setSpacing( 0 );
+        layout->setMargin( 0 );
+        if ( auto widget = new AcqirisWidget() ) {
+            layout->addWidget( widget );
+            widget->setStyleSheet( "QTreeView { background: #e8f4fc; }\n"
+                                   "QTreeView::item:open { background-color: #1d3dec; color: white; }" );
+            connect( widget, &AcqirisWidget::dataChanged, []( const AcqirisWidget * w, int ){
+                    auto m = std::make_shared< acqrscontrols::ap240::method >();
+                    w->getContents( m );
+                });
+            connect( widget, &AcqirisWidget::stateChanged, [widget]( const QModelIndex&, bool ){
+                    auto m = std::make_shared< acqrscontrols::ap240::method >();
+                    widget->getContents( m );                    
+                });            
+        }
+
+        if ( auto hLayout = new QHBoxLayout() ) {
+            layout->addLayout( hLayout );
+            hLayout->addWidget( new QCheckBox( tr("Remote access:") ) );
+            hLayout->addWidget( new QLineEdit() );
+        }
+    }
+    
+#if 0
     // Vertical configuration
     if ( auto layout = new QVBoxLayout( ui->groupBox_3 ) ) {
 
@@ -119,8 +146,8 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         connect( w, &ap240HorizontalForm::valueChanged, [this] ( ap240HorizontalForm::idItem id, const QVariant& d ) {
                 emit valueChanged( idHorizontal, -1 );
             } );
-
     }
+#endif
     set( acqrscontrols::ap240::method() );
 }
 
@@ -239,6 +266,7 @@ ap240form::onStatus( int )
 void
 ap240form::set( const acqrscontrols::ap240::method& m )
 {
+#if 0
     if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
         QSignalBlocker block( gbox );
         gbox->setChecked( m.channels_ & 0x01 );
@@ -269,11 +297,13 @@ ap240form::set( const acqrscontrols::ap240::method& m )
     set( 0, m.slope1_ );
     set( 1, m.slope2_ );
     set( m.action_ );
+#endif
 }
 
 void
 ap240form::get( acqrscontrols::ap240::method& m ) const
 {
+#if 0
     uint32_t channels( 0 );
     
     if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
@@ -297,7 +327,7 @@ ap240form::get( acqrscontrols::ap240::method& m ) const
     for ( auto form : findChildren< ap240VerticalForm * >() ) {
         form->get( m );        
     }
-
+#endif
     get( 0, m.slope1_ );
     get( 1, m.slope2_ );
     get( m.action_ );

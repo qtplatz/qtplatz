@@ -32,10 +32,12 @@
 #include <memory>
 #include <vector>
 
-namespace aqdrv4 {
-    class acqiris_method;
-    class waveform;
-    enum SubMethodType : unsigned int;
+namespace acqrscontrols {
+    namespace aqdrv4 {
+        class acqiris_method;
+        class waveform;
+        enum SubMethodType : unsigned int;
+    }
 }
 
 class digitizer;
@@ -56,7 +58,8 @@ public:
     inline boost::asio::io_service& io_service() { return io_service_; }    
     inline boost::asio::io_service::strand& strand() { return strand_; }
 
-    void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
+    void prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method >
+                          , acqrscontrols::aqdrv4::SubMethodType );
 
     bool digitizer_initialize();
 

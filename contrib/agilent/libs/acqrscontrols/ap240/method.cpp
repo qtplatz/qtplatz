@@ -96,40 +96,40 @@ method::protocols() const
 namespace acqrscontrols {
     namespace ap240 {
 
-        template<typename T = trigger_method>
-        class trigger_method_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.trigClass );
-                ar & BOOST_SERIALIZATION_NVP( _.trigPattern );
-                ar & BOOST_SERIALIZATION_NVP( _.trigCoupling );
-                ar & BOOST_SERIALIZATION_NVP( _.trigSlope );
-                ar & BOOST_SERIALIZATION_NVP( _.trigLevel1 );
-                ar & BOOST_SERIALIZATION_NVP( _.trigLevel2 );
-            }
-        };
+        // template<typename T = trigger_method>
+        // class trigger_method_archive {
+        // public:
+        //     template<class Archive>
+        //     void serialize( Archive& ar, T& _, const unsigned int version ) {
+        //         using namespace boost::serialization;
+        //         ar & BOOST_SERIALIZATION_NVP( _.trigClass );
+        //         ar & BOOST_SERIALIZATION_NVP( _.trigPattern );
+        //         ar & BOOST_SERIALIZATION_NVP( _.trigCoupling );
+        //         ar & BOOST_SERIALIZATION_NVP( _.trigSlope );
+        //         ar & BOOST_SERIALIZATION_NVP( _.trigLevel1 );
+        //         ar & BOOST_SERIALIZATION_NVP( _.trigLevel2 );
+        //     }
+        // };
 
-        template<> void trigger_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        {
-            trigger_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<> void trigger_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        // {
+        //     trigger_method_archive<>().serialize( ar, *this, version );
+        // }
 
-        template<> void trigger_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        {
-            trigger_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<> void trigger_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        // {
+        //     trigger_method_archive<>().serialize( ar, *this, version );
+        // }
 
-        template<> void trigger_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        {
-            trigger_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<> void trigger_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        // {
+        //     trigger_method_archive<>().serialize( ar, *this, version );
+        // }
 
-        template<> void trigger_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        {
-            trigger_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<> void trigger_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        // {
+        //     trigger_method_archive<>().serialize( ar, *this, version );
+        // }
 
         template<typename T = horizontal_method>
         class horizontal_method_archive {
@@ -168,40 +168,39 @@ namespace acqrscontrols {
         }
 
 
-        template<typename T = vertical_method>
-        class vertical_method_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.fullScale );
-                ar & BOOST_SERIALIZATION_NVP( _.offset );
-                ar & BOOST_SERIALIZATION_NVP( _.coupling );
-                ar & BOOST_SERIALIZATION_NVP( _.bandwidth );
-                ar & BOOST_SERIALIZATION_NVP( _.invertData );
-                ar & BOOST_SERIALIZATION_NVP( _.autoScale );
-            }
-        };
-        template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        {
-            vertical_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<typename T = vertical_method>
+        // class vertical_method_archive {
+        // public:
+        //     template<class Archive>
+        //     void serialize( Archive& ar, T& _, const unsigned int version ) {
+        //         using namespace boost::serialization;
+        //         ar & BOOST_SERIALIZATION_NVP( _.fullScale );
+        //         ar & BOOST_SERIALIZATION_NVP( _.offset );
+        //         ar & BOOST_SERIALIZATION_NVP( _.coupling );
+        //         ar & BOOST_SERIALIZATION_NVP( _.bandwidth );
+        //         ar & BOOST_SERIALIZATION_NVP( _.invertData );
+        //         ar & BOOST_SERIALIZATION_NVP( _.autoScale );
+        //     }
+        // };
+        // template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+        // {
+        //     vertical_method_archive<>().serialize( ar, *this, version );
+        // }
 
-        template<> void vertical_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        {
-            vertical_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<> void vertical_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+        // {
+        //     vertical_method_archive<>().serialize( ar, *this, version );
+        // }
 
-        template<> void vertical_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        {
-            vertical_method_archive<>().serialize( ar, *this, version );
-        }
+        // template<> void vertical_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+        // {
+        //     vertical_method_archive<>().serialize( ar, *this, version );
+        // }
 
-        template<> void vertical_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        {
-            vertical_method_archive<>().serialize( ar, *this, version );
-        }
-
+        // template<> void vertical_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+        // {
+        //     vertical_method_archive<>().serialize( ar, *this, version );
+        // }
 
         ///////////////////////////////////////
 

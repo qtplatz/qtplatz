@@ -65,7 +65,7 @@ main(int argc, char *argv[])
         return 0;
     }
 
-    auto m = std::make_shared< aqdrv4::acqiris_method >();
+    auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
     auto trig = m->mutable_trig();
     auto hor = m->mutable_hor();
     auto ch1 = m->mutable_ch1();

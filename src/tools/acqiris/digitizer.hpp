@@ -28,7 +28,9 @@
 #include <vector>
 #include <memory>
 
-namespace aqdrv4 { class acqiris_method; }
+namespace acqrscontrols {
+    namespace aqdrv4 { class acqiris_method; }
+}
 
 template< typename T = int8_t > struct readMode {  inline static int value(); };
 template<> inline int readMode<int8_t>::value() { return 0; };
@@ -49,7 +51,7 @@ public:
     bool initialize();
     bool findDevice();
     
-    std::shared_ptr< aqdrv4::acqiris_method > digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > );    
+    std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > );
     bool acquire();
     bool stop();
 
@@ -109,7 +111,7 @@ private:
     ViInt32 nbrSamples_;
     ViInt32 nbrWaveforms_;
     double delayTime_;
-    std::shared_ptr< const aqdrv4::acqiris_method > method_;
+    std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > method_;
     ViInt32 nbrADCBits_;
     ViInt32 temperature_;
 };

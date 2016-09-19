@@ -28,26 +28,29 @@ void
 request_handler::handle_request( boost::asio::streambuf& response
                                  , boost::asio::streambuf& reply )
 {
-    auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response.data() );
-    const char * data = boost::asio::buffer_cast<const char *>( response.data() ) + sizeof( aqdrv4::preamble );
+    auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response.data() );
+    const char * data = boost::asio::buffer_cast<const char *>( response.data() ) + sizeof( preamble );
 
-    ADDEBUG() << "*** request_handler: " << aqdrv4::preamble::debug( preamble );
+    ADDEBUG() << "*** request_handler: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
 
-    if ( preamble->clsid == aqdrv4::acqiris_method::clsid() ) {
-        if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) ) {
-            document::instance()->handleValueChanged( p, aqdrv4::allMethod );
+    if ( preamble->clsid == acqrscontrols::aqdrv4::acqiris_method::clsid() ) {
+
+        using acqrscontrols::aqdrv4::protocol_serializer;
+        
+        if ( auto p = protocol_serializer::deserialize< acqrscontrols::aqdrv4::acqiris_method >( *preamble, data ) ) {
+            document::instance()->handleValueChanged( p, acqrscontrols::aqdrv4::allMethod );
             document::instance()->acqiris_method_adapted( p );
         }
     }
 
-    response.consume( sizeof( aqdrv4::preamble ) + preamble->length );
+    response.consume( sizeof( preamble ) + preamble->length );
     
-    std::cout << "consume " << std::dec << sizeof( aqdrv4::preamble )
+    std::cout << "consume " << std::dec << sizeof( preamble )
               << ", remains: " << response.size() << std::endl;
 
-    aqdrv4::preamble ack( aqdrv4::clsid_acknowledge );
+    acqrscontrols::aqdrv4::preamble ack( acqrscontrols::aqdrv4::clsid_acknowledge );
 
     std::ostream request_stream( &reply );
     
-    request_stream.write( ack.data(), sizeof( aqdrv4::preamble ) );
+    request_stream.write( ack.data(), sizeof( preamble ) );
 }

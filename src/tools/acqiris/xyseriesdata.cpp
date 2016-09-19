@@ -28,7 +28,7 @@
 
 #define VERTICAL_IN_VOLTS
 
-XYSeriesData::XYSeriesData( std::shared_ptr< const aqdrv4::waveform > d ) : d_( d )
+XYSeriesData::XYSeriesData( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > d ) : d_( d )
 {
     size_t size = d_->dataDesc().returnedSamplesPerSeg;
     size_t ini = d_->dataDesc().indexFirstPoint;

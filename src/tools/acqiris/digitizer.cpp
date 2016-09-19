@@ -161,8 +161,8 @@ digitizer::findDevice()
     return false;
 }
 
-std::shared_ptr< aqdrv4::acqiris_method >
-digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
+std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >
+digitizer::digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m )
 {    
     ViStatus status;
     ViStatus * pStatus = &status;
@@ -172,7 +172,7 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
     status = AcqrsD1_configMultiInput( inst_, 1, 0 );
     checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
 
-    auto adapted = std::make_shared< aqdrv4::acqiris_method >( *m );
+    auto adapted = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >( *m );
 
     // if ap240
     //status = AcqrsD1_configChannelCombination( inst_, 2, 1 );

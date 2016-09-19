@@ -107,20 +107,20 @@ tcp_server::do_await_stop()
 }
 
 void
-tcp_server::post( std::shared_ptr< acqiris_protocol > p )
+tcp_server::post( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > p )
 {
     if ( hasClient_ )
         connection_manager_.write_all( p );
 }
 
 void
-tcp_server::post( std::shared_ptr< const aqdrv4::waveform > p )
+tcp_server::post( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > p )
 {
     if ( hasClient_ ) {
 
         strand_.post( [=] {
                 
-                if ( auto data = aqdrv4::protocol_serializer::serialize( *p ) ) {
+                if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *p ) ) {
                     
                     connection_manager_.write_all( data );
 

@@ -30,7 +30,10 @@
 class QStandardItemModel;
 class QTreeView;
 
-namespace aqdrv4 { class acqiris_method; }
+namespace acqrscontrols {
+    namespace ap240 { class method; }
+    namespace aqdrv4 { class acqiris_method; }
+}
 
 namespace acqrswidgets {
         
@@ -48,8 +51,11 @@ namespace acqrswidgets {
             , trigClass, trigSource, trigCoupling, trigLevel1, trigLevel2
         };
         
-        void setContents( std::shared_ptr< const aqdrv4::acqiris_method > );
-        void getContents( std::shared_ptr< aqdrv4::acqiris_method > ) const;
+        void setContents( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > );
+        void getContents( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > ) const;
+
+        void setContents( std::shared_ptr< const acqrscontrols::ap240::method > );
+        void getContents( std::shared_ptr< acqrscontrols::ap240::method > ) const;        
         
     private:
         class delegate;

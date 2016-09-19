@@ -105,17 +105,17 @@ tcp_task::worker_thread()
 }
 
 void
-tcp_task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m, aqdrv4::SubMethodType )
+tcp_task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType )
 {
     if ( auto client = document::instance()->client() ) {
-        if ( auto data = aqdrv4::protocol_serializer::serialize( *m ) ) {
+        if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *m ) ) {
             client->write( data );
         }
     }
 }
 
 void
-tcp_task::push( std::shared_ptr< aqdrv4::waveform > d )
+tcp_task::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 {
     using namespace std::chrono_literals;
     
@@ -129,7 +129,7 @@ tcp_task::push( std::shared_ptr< aqdrv4::waveform > d )
 }
 
 void
-tcp_task::push( std::shared_ptr< aqdrv4::acqiris_method > m )
+tcp_task::push( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m )
 {
     document::instance()->set_acqiris_method( m );
     document::instance()->acqiris_method_adapted( m );

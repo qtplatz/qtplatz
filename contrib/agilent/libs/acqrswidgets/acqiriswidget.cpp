@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "acqiriswidget.hpp"
-//#include "document.hpp"
 #include <acqrscontrols/acqiris_method.hpp>
 #include <adportable/debug.hpp>
 #include <QBoxLayout>
@@ -102,7 +101,7 @@ public:
         {}
 
     void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            
+        
         QStyleOptionViewItem opt(option);
         initStyleOption( &opt, index );
 
@@ -231,9 +230,11 @@ AcqirisWidget::AcqirisWidget( QWidget * parent ) : QWidget( parent )
         initialUpdate( *model_ );
     }
 
+    using namespace acqrscontrols::aqdrv4;
+    
     connect( model_.get(), &QStandardItemModel::itemChanged, this, [this]( const QStandardItem * item ){
-            static aqdrv4::SubMethodType types [] = { aqdrv4::triggerMethod, aqdrv4::horizontalMethod
-                                                      , aqdrv4::ch1VerticalMethod, aqdrv4::extVerticalMethod };
+            static acqrscontrols::aqdrv4::SubMethodType types [] = { triggerMethod, horizontalMethod
+                                                                     , ch1VerticalMethod, ch2VerticalMethod, extVerticalMethod };
             if ( auto parent = item->parent() ) {
                 int row = parent->index().row();
                 if ( row < sizeof( types )/sizeof( types[0] ))
@@ -267,7 +268,7 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
         }
     }
 
-    auto m = std::make_shared< aqdrv4::acqiris_method >(); // *document::instance()->acqiris_method() );
+    auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >(); // *document::instance()->acqiris_method() );
 
     // trigger
     if ( auto parent = model.item( r_trig, 0 ) ) {
@@ -421,7 +422,7 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
 }
 
 void
-AcqirisWidget::setContents( std::shared_ptr< const aqdrv4::acqiris_method > m )
+AcqirisWidget::setContents( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m )
 {
     QSignalBlocker block( model_.get() );
     
@@ -469,7 +470,7 @@ AcqirisWidget::setContents( std::shared_ptr< const aqdrv4::acqiris_method > m )
 }
 
 void
-AcqirisWidget::getContents( std::shared_ptr< aqdrv4::acqiris_method > m ) const
+AcqirisWidget::getContents( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m ) const
 {
     // trigger
     if ( auto parent = model_->item( r_trig, 0 ) ) {
@@ -513,3 +514,59 @@ AcqirisWidget::getContents( std::shared_ptr< aqdrv4::acqiris_method > m ) const
     m->mutable_ch2()->set_enable( model_->index( r_ch2, 0 ).data( Qt::CheckStateRole ).toBool() );
     m->mutable_ext()->set_enable( ( m->trig()->trigPattern & 0x80000000 ) ? true : false );
 }
+
+////////////////////////
+void
+AcqirisWidget::setContents( std::shared_ptr< const acqrscontrols::ap240::method > m )
+{
+    QSignalBlocker block( model_.get() );
+#if 0    
+    // trigger
+    if ( auto parent = model_->item( r_trig, 0 ) ) {
+
+        if ( auto trig = m->trig() ) {
+            int row(0);
+            model_->setData( model_->index( row++, 1, parent->index() ), trig->trigClass, Qt::EditRole );
+            model_->setData( model_->index( row++, 1, parent->index() ), trig->trigPattern, Qt::EditRole ); // source
+            model_->setData( model_->index( row++, 1, parent->index() ), trig->trigCoupling, Qt::EditRole );
+            model_->setData( model_->index( row++, 1, parent->index() ), trig->trigSlope, Qt::EditRole );
+            model_->setData( model_->index( row++, 1, parent->index() ), trig->trigLevel1, Qt::EditRole );
+            model_->setData( model_->index( row++, 1, parent->index() ), trig->trigLevel2, Qt::EditRole );
+        }
+    }
+
+    // horizontal
+    if ( auto parent = model_->item( r_hor, 0 ) ) {
+
+        if ( auto hor = m->hor() ) {
+            int row(0);
+            model_->setData( model_->index( row++, 1, parent->index() ), hor->delayTime * std::micro::den, Qt::EditRole );
+            model_->setData( model_->index( row++, 1, parent->index() ), ( hor->sampInterval * hor->nbrSamples ) * std::micro::den, Qt::EditRole );
+            model_->setData( model_->index( row++, 1, parent->index() ), hor->sampInterval, Qt::EditRole );
+        }
+        
+    }
+
+    // vertical (Channel 1, Ext. Trig)
+    int nid(0);
+    for ( auto ver : { m->ch1(), m->ch2(), m->ext() } ) {
+        if ( ver ) {
+            if ( auto parent = model_->item( r_ch1 + nid++, 0 ) ) {
+
+                int row(0);
+                model_->setData( model_->index( row++, 1, parent->index() ), ver->fullScale, Qt::EditRole );
+                model_->setData( model_->index( row++, 1, parent->index() ), ver->offset, Qt::EditRole );
+                model_->setData( model_->index( row++, 1, parent->index() ), ver->coupling, Qt::EditRole );
+                model_->setData( model_->index( row++, 1, parent->index() ), ver->bandwidth, Qt::EditRole );
+            }
+        }
+    }
+    tree_->viewport()->update();
+#endif
+}
+
+void
+AcqirisWidget::getContents( std::shared_ptr< acqrscontrols::ap240::method > m ) const
+{
+}
+

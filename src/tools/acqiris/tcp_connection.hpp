@@ -17,11 +17,14 @@
 #include "request_handler.hpp"
 #include "request_parser.hpp"
 
-namespace aqdrv4 {
-
+namespace acqrscontrols { namespace aqdrv4 {
     class preamble;
     class acqiris_protocol;
+}}
     
+
+namespace aqdrv4 {
+
     namespace server {
 
         class connection_manager;
@@ -42,7 +45,7 @@ namespace aqdrv4 {
             /// Stop all asynchronous operations associated with the connection.
             void stop();
 
-            void write( std::shared_ptr< acqiris_protocol > );
+            void write( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > );
 
         private:
             /// Perform an asynchronous read operation.

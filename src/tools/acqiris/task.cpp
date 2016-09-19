@@ -115,7 +115,7 @@ task::worker_thread()
 }
 
 void
-task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m, aqdrv4::SubMethodType )
+task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType )
 {
     strand_.post( [=] {
             auto adapted = task::digitizer()->digitizer_setup( m );
@@ -126,7 +126,7 @@ task::prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method > m, aqdrv4
         strand_.post( [=] { acquire(); } );
 
     if ( auto server = document::instance()->server() ) {
-        if ( auto data = aqdrv4::protocol_serializer::serialize( *m ) )
+        if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *m ) )
             server->post( data );
     }
 }
@@ -148,7 +148,7 @@ task::acquire()
         if ( digitizer()->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
             
             static const int nbrADCBits = digitizer()->nbrADCBits();
-            auto d = std::make_shared< aqdrv4::waveform >( ( nbrADCBits > 8 ) ? sizeof( int16_t ) : sizeof( int8_t ) );
+            auto d = std::make_shared< acqrscontrols::aqdrv4::waveform >( ( nbrADCBits > 8 ) ? sizeof( int16_t ) : sizeof( int8_t ) );
 
             bool success;
             if ( nbrADCBits <= 8 ) {
@@ -214,7 +214,7 @@ task::digitizer_initialize()
     
     if ( aqrs->initialize() ) {
         if ( aqrs->findDevice() ) {
-            task::instance()->prepare_for_run( document::instance()->acqiris_method(), aqdrv4::allMethod );
+            task::instance()->prepare_for_run( document::instance()->acqiris_method(), acqrscontrols::aqdrv4::allMethod );
         }
     }
     return true;

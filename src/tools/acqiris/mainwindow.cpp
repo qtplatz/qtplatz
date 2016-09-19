@@ -312,22 +312,25 @@ MainWindow::onInitialUpdate()
     if ( auto widget = findChild< acqrswidgets::AcqirisWidget * >() ) {
         
         connect( widget, &acqrswidgets::AcqirisWidget::dataChanged, this, []( const acqrswidgets::AcqirisWidget * w, int subType ){
-                auto m = std::make_shared< aqdrv4::acqiris_method >();
+                auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
                 w->getContents( m );
-                document::instance()->handleValueChanged( m, aqdrv4::SubMethodType( subType ) );
+                document::instance()->handleValueChanged( m, acqrscontrols::aqdrv4::SubMethodType( subType ) );
             });
 
         // checkState for ch1, ch2
         connect( widget, &acqrswidgets::AcqirisWidget::stateChanged, this, [widget]( const QModelIndex& index , bool checked ){
-                auto m = std::make_shared< aqdrv4::acqiris_method >();
+                auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
                 widget->getContents( m );
-                document::instance()->handleValueChanged( m, aqdrv4::SubMethodType( 0 ) );
+                document::instance()->handleValueChanged( m, acqrscontrols::aqdrv4::SubMethodType( 0 ) );
             });        
 
         connect( document::instance(), &document::on_acqiris_method_adapted, this, [this,widget](){
                 if ( auto adapted = document::instance()->adapted_acqiris_method() )
                     widget->setContents( adapted );
             });
+
+        widget->setStyleSheet( "QTreeView { alternate-background-color: #f6fafb; background: #e8f4fc; }\n"
+                               "QTreeView::item:open { background-color: #1d3dec; color: white; }" );
 
         auto m = document::instance()->acqiris_method();
         widget->setContents( m );

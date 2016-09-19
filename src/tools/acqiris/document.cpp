@@ -56,7 +56,7 @@ document::instance()
 }
 
 document::document( QObject * parent ) : QObject( parent )
-                                       , method_( std::make_shared< aqdrv4::acqiris_method >() )
+                                       , method_( std::make_shared< acqrscontrols::aqdrv4::acqiris_method >() )
                                        , settings_( std::make_unique< QSettings >( QSettings::IniFormat
                                                                                    , QSettings::UserScope
                                                                                    , QLatin1String( "acqiris" )
@@ -114,7 +114,7 @@ document::settings()
 }
 
 void
-document::push( std::shared_ptr< aqdrv4::waveform > d )
+document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     
@@ -138,7 +138,7 @@ document::push( std::shared_ptr< aqdrv4::waveform > d )
     }
 }
 
-std::shared_ptr< aqdrv4::waveform >
+std::shared_ptr< acqrscontrols::aqdrv4::waveform >
 document::recentWaveform()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -148,7 +148,7 @@ document::recentWaveform()
     return nullptr;
 }
 
-std::shared_ptr< const aqdrv4::acqiris_method >
+std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method >
 document::acqiris_method()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -156,13 +156,13 @@ document::acqiris_method()
 }
 
 void
-document::set_acqiris_method( std::shared_ptr< aqdrv4::acqiris_method > p )
+document::set_acqiris_method( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > p )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     method_ = p;
 }
 
-std::shared_ptr< const aqdrv4::acqiris_method >
+std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method >
 document::adapted_acqiris_method()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
@@ -170,7 +170,7 @@ document::adapted_acqiris_method()
 }
 
 void
-document::acqiris_method_adapted( std::shared_ptr< aqdrv4::acqiris_method > p )
+document::acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > p )
 {
     {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -206,7 +206,7 @@ document::set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& client )
 }
 
 bool
-document::save( const std::string& file, std::shared_ptr< const aqdrv4::acqiris_method > p )
+document::save( const std::string& file, std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > p )
 {
     std::wofstream of( file );
     try {
@@ -218,10 +218,10 @@ document::save( const std::string& file, std::shared_ptr< const aqdrv4::acqiris_
     return true;
 }
 
-std::shared_ptr< aqdrv4::acqiris_method >
+std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >
 document::load( const std::string& file )
 {
-    auto p = std::make_shared< aqdrv4::acqiris_method >();
+    auto p = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
     std::wifstream of( file );
     try {
         boost::archive::xml_wiarchive ar( of );
@@ -245,7 +245,7 @@ document::connect_finalize( const final_close_t::slot_type & subscriber )
 }
 
 void
-document::handleValueChanged( std::shared_ptr< aqdrv4::acqiris_method > m, aqdrv4::SubMethodType subType )
+document::handleValueChanged( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType subType )
 {
     set_acqiris_method( m );
     signal_prepare_for_run_( m, subType );
@@ -256,9 +256,9 @@ document::replyTemperature( int temp )
 {
     if ( server_ ) {
         do {
-            auto data = std::make_shared< aqdrv4::acqiris_protocol >();
+            auto data = std::make_shared< acqrscontrols::aqdrv4::acqiris_protocol >();
 
-            data->preamble().clsid = aqdrv4::clsid_temperature;
+            data->preamble().clsid = acqrscontrols::aqdrv4::clsid_temperature;
             *data << int32_t( temp );
             
             server_->post( data );

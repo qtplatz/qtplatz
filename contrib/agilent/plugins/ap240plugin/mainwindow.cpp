@@ -101,7 +101,7 @@ void
 MainWindow::createDockWidgets()
 {
     auto widget = new acqrswidgets::ap240form();
-    
+
     if ( auto tm = document::instance()->threshold_method( 0 ) )
         widget->set( 0, *tm );
     

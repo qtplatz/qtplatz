@@ -39,7 +39,7 @@ connection_manager::stop_all()
 }
 
 void
-connection_manager::write_all( std::shared_ptr< acqiris_protocol > data )
+connection_manager::write_all( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > data )
 {
     for (auto c: connections_)
         c->write( data );

@@ -59,20 +59,20 @@ connection::do_read()
     boost::asio::async_read(
         socket_
         , response_
-        , boost::asio::transfer_at_least( sizeof( aqdrv4::preamble ) )
+        , boost::asio::transfer_at_least( sizeof( acqrscontrols::aqdrv4::preamble ) )
         , [this,self]( const boost::system::error_code& ec
                        , std::size_t bytes_transferred ) {
                                  
             if ( !ec ) {
                                      
-                if ( response_.size() >= sizeof( aqdrv4::preamble ) ) {
+                if ( response_.size() >= sizeof( acqrscontrols::aqdrv4::preamble ) ) {
 
-                    auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+                    auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
 
-                    if ( aqdrv4::preamble::isOk( preamble ) && 
-                         preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
+                    if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
+                         preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
                         
-                        if ( preamble->clsid == clsid_connection_request )
+                        if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_connection_request )
                             connection_requested_ = true;
 
                         request_handler_.handle_request( response_, reply_ );
@@ -128,7 +128,7 @@ connection::do_write()
 }
 
 void
-connection::write( std::shared_ptr< acqiris_protocol > data )
+connection::write( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > data )
 {
     if ( connected_ ) {
 

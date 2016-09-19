@@ -37,6 +37,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
+namespace acqrscontrols {
 namespace aqdrv4 {
 
     template< typename T = trigger_method >
@@ -140,7 +141,6 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.coupling );
             ar & BOOST_SERIALIZATION_NVP( _.invertData );
             ar & BOOST_SERIALIZATION_NVP( _.autoScale );
-            ar & BOOST_SERIALIZATION_NVP( _.enable );
         }
     };
     template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -160,10 +160,10 @@ namespace aqdrv4 {
         vertical_method_archive<>().serialize( ar, *this, version );
     }
     
-    
+}    
 }
 
-using namespace aqdrv4;
+using namespace acqrscontrols::aqdrv4;
 
 acqiris_method::acqiris_method()
 {

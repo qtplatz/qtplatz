@@ -29,6 +29,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 
+namespace acqrscontrols {
 namespace aqdrv4 {
 
     static uint32_t __aug__ = 0x20160907;
@@ -103,4 +104,4 @@ namespace aqdrv4 {
     }
 
 }
-
+}

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include "../acqiris_method.hpp"
 #include <adcontrols/threshold_action.hpp>
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/tofprotocol.hpp>
@@ -43,23 +44,23 @@ namespace acqrscontrols {
 
         template< typename T >  class method_archive;
 
-        struct ACQRSCONTROLSSHARED_EXPORT trigger_method {
-            uint32_t trigClass;
-            uint32_t trigPattern;
-            uint32_t trigCoupling;
-            uint32_t trigSlope;
-            double trigLevel1;
-            double trigLevel2;
-            trigger_method() : trigClass( 0 ) // edge trigger
-                , trigPattern( 0x80000000 ) // Ext 1
-                , trigCoupling( 0 ) // DC
-                , trigSlope( 0 ) // positive
-                , trigLevel1( 1000.0 ) // mV for Ext, %FS for CHn
-                , trigLevel2( 0.0 )    // only if window for trigSlope (3)
-            {}
+        struct ACQRSCONTROLSSHARED_EXPORT trigger_method : public aqdrv4::trigger_method {
+            // uint32_t trigClass;
+            // uint32_t trigPattern;
+            // uint32_t trigCoupling;
+            // uint32_t trigSlope;
+            // double trigLevel1;
+            // double trigLevel2;
+            // trigger_method() : trigClass( 0 ) // edge trigger
+            //     , trigPattern( 0x80000000 ) // Ext 1
+            //     , trigCoupling( 0 ) // DC
+            //     , trigSlope( 0 ) // positive
+            //     , trigLevel1( 1000.0 ) // mV for Ext, %FS for CHn
+            //     , trigLevel2( 0.0 )    // only if window for trigSlope (3)
+            // {}
         private:
-            friend class boost::serialization::access;
-            template<class Archive> void serialize( Archive& ar, const unsigned int version );
+            // friend class boost::serialization::access;
+            // template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
         struct ACQRSCONTROLSSHARED_EXPORT horizontal_method {
@@ -85,23 +86,23 @@ namespace acqrscontrols {
             template<class Archive> void serialize( Archive& ar, const unsigned int version );
         };
 
-        struct ACQRSCONTROLSSHARED_EXPORT vertical_method {
-            double fullScale;
-            double offset;
-            uint32_t coupling;
-            uint32_t bandwidth;
-            bool invertData;
-            bool autoScale;
-            vertical_method() : fullScale( 5.0 )
-                , offset( 0.0 )
-                , coupling( 3 )
-                , bandwidth( 2 )
-                , invertData( false )
-                , autoScale( true )
-            {}
+        struct ACQRSCONTROLSSHARED_EXPORT vertical_method : public aqdrv4::vertical_method {
+            // double fullScale;
+            // double offset;
+            // uint32_t coupling;
+            // uint32_t bandwidth;
+            // bool invertData;
+            // bool autoScale;
+            // vertical_method() : fullScale( 5.0 )
+            //     , offset( 0.0 )
+            //     , coupling( 3 )
+            //     , bandwidth( 2 )
+            //     , invertData( false )
+            //     , autoScale( true )
+            // {}
         private:
-            friend class boost::serialization::access;
-            template<class Archive>  void serialize( Archive& ar, const unsigned int version );
+            // friend class boost::serialization::access;
+            // template<class Archive>  void serialize( Archive& ar, const unsigned int version );
         };
 
 

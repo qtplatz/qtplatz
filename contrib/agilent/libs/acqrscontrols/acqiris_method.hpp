@@ -31,6 +31,7 @@
 
 namespace boost { namespace serialization { class access; } }
 
+namespace acqrscontrols {
 namespace aqdrv4 {
 
     enum SubMethodType : unsigned int;
@@ -145,8 +146,9 @@ namespace aqdrv4 {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
 }
+}
 
-BOOST_CLASS_VERSION( aqdrv4::trigger_method, 1 )
-BOOST_CLASS_VERSION( aqdrv4::horizontal_method, 1 )
-BOOST_CLASS_VERSION( aqdrv4::vertical_method, 1 )
-BOOST_CLASS_VERSION( aqdrv4::acqiris_method, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::trigger_method, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::horizontal_method, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::vertical_method, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::acqiris_method, 1 )

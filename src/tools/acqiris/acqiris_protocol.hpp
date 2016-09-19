@@ -38,11 +38,12 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-class waveform;
 
+namespace acqrscontrols {
 namespace aqdrv4 {
 
     class acqiris_method;
+    class waveform;
 
     extern boost::uuids::uuid clsid_connection_request;
     extern boost::uuids::uuid clsid_acknowledge;
@@ -143,5 +144,6 @@ namespace aqdrv4 {
         }
     };
 
+}
 }
 

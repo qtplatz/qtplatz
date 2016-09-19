@@ -70,7 +70,7 @@ namespace boost {
     }
 }
         
-
+namespace acqrscontrols {
 namespace aqdrv4 {
     
     template< typename T = waveform >
@@ -251,4 +251,5 @@ namespace aqdrv4 {
         throw std::bad_cast();
     }
 
+}
 }

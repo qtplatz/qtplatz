@@ -34,11 +34,14 @@
 #include <memory>
 #include <vector>
 
-namespace aqdrv4 {
-
+namespace acqrscontrols {
     class acqiris_method;
     class waveform;
     enum SubMethodType : unsigned int;
+}
+
+namespace aqdrv4 {
+
     
     namespace client {
 
@@ -56,10 +59,10 @@ namespace aqdrv4 {
             inline boost::asio::io_service& io_service() { return io_service_; }    
             inline boost::asio::io_service::strand& strand() { return strand_; }
             
-            void prepare_for_run( std::shared_ptr< const aqdrv4::acqiris_method >, aqdrv4::SubMethodType );
+            void prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method >, acqrscontrols::aqdrv4::SubMethodType );
 
-            void push( std::shared_ptr< aqdrv4::waveform > );
-            void push( std::shared_ptr< aqdrv4::acqiris_method > );
+            void push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > );
+            void push( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > );
             
         private:
             boost::asio::io_service io_service_;

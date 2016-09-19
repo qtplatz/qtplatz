@@ -33,6 +33,7 @@ namespace boost {
     namespace serialization { class access; }
 }
 
+namespace acqrscontrols {
 namespace aqdrv4 {
 
     template< typename T > class waveform_archive;
@@ -158,3 +159,4 @@ namespace aqdrv4 {
     template<> const int32_t * waveform::data() const;
 
 } // namespace aqdrv4
+} // namespace acqriscontrols
