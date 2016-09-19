@@ -23,8 +23,8 @@
 **************************************************************************/
 
 #include "acqiriswidget.hpp"
-#include "acqiris_method.hpp"
-#include "document.hpp"
+//#include "document.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
@@ -42,9 +42,9 @@
 #include <iostream>
 #include <ratio>
 
-enum { r_trig, r_hor, r_ver };
+enum { r_trig, r_hor, r_ch1, r_ch2, r_ext };
 
-namespace acqiriswidget {
+namespace acqrswidgets {
 
     class column_type {
     public:
@@ -88,9 +88,9 @@ namespace acqiriswidget {
     };
 }
 
-Q_DECLARE_METATYPE( acqiriswidget::column_type );
+Q_DECLARE_METATYPE( acqrswidgets::column_type );
 
-using namespace acqiriswidget;
+using namespace acqrswidgets;
 
 class AcqirisWidget::delegate : public QStyledItemDelegate {
 
@@ -198,6 +198,25 @@ public:
         if ( !handled )
             QStyledItemDelegate::setModelData( editor, model, index );
     }
+
+    bool editorEvent( QEvent * event, QAbstractItemModel * model, const QStyleOptionViewItem& option, const QModelIndex& index ) override {
+        
+        if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
+            
+            const Qt::CheckState prev = index.data( Qt::CheckStateRole ).value< Qt::CheckState >();
+            
+            if ( QStyledItemDelegate::editorEvent( event, model, option, index ) ) {
+                
+                if ( index.data( Qt::CheckStateRole ).value< Qt::CheckState >() != prev ) {
+                    // check state has changed
+                    emit this_->stateChanged( index, index.data( Qt::CheckStateRole ).value< Qt::CheckState >() );
+                }
+                return true;
+            }
+        } else {
+            return QStyledItemDelegate::editorEvent( event, model, option, index );
+        }
+    }
     
 };
 
@@ -222,11 +241,6 @@ AcqirisWidget::AcqirisWidget( QWidget * parent ) : QWidget( parent )
             }
         });
 
-    connect( document::instance(), &document::on_acqiris_method_adapted
-             , this, [this](){
-                 if ( auto adapted = document::instance()->adapted_acqiris_method() )
-                     setContents( adapted );
-             } );
 }
 
 AcqirisWidget::~AcqirisWidget()
@@ -238,14 +252,22 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
 {
     QSignalBlocker block( &model );
     model.setColumnCount( 2 );
-    model.setRowCount( 4 );
+    model.setRowCount( 5 );
 
     model.setData( model.index( 0, 0 ), "Trigger Config", Qt::EditRole );
     model.setData( model.index( 1, 0 ), "Horizontal", Qt::EditRole );
     model.setData( model.index( 2, 0 ), "Channel 1", Qt::EditRole );
-    model.setData( model.index( 3, 0 ), "Ext. Trig", Qt::EditRole );
+    model.setData( model.index( 3, 0 ), "Channel 2", Qt::EditRole );
+    model.setData( model.index( 4, 0 ), "Ext. Trig", Qt::EditRole );
 
-    auto m = std::make_shared< aqdrv4::acqiris_method >( *document::instance()->acqiris_method() );
+    for ( int row: { r_ch1, r_ch2 } ) {
+        if ( auto item = model.item( row, 0 ) ) {
+            item->setCheckable( true );
+            item->setData( Qt::Checked, Qt::CheckStateRole );
+        }
+    }
+
+    auto m = std::make_shared< aqdrv4::acqiris_method >(); // *document::instance()->acqiris_method() );
 
     // trigger
     if ( auto parent = model.item( r_trig, 0 ) ) {
@@ -327,11 +349,11 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
         }
     }
 
-    // vertical (Channel 1, Ext. Trig)
+    // vertical (Channel 1, Channel 2, Ext. Trig)
     int nid(0);
-    for ( auto ver : { m->mutable_ch1(), m->mutable_ext() } ) {
+    for ( auto ver : { m->mutable_ch1(), m->mutable_ch2(), m->mutable_ext() } ) {
 
-        if ( auto parent = model.item( r_ver + nid++, 0 ) ) {
+        if ( auto parent = model.item( r_ch1 + nid++, 0 ) ) {
 
             for ( auto label: { "Full scale", "Offset", "Coupling", "Band width" } )
                 parent->appendRow( QList< QStandardItem * >() << new QStandardItem( label ) << new QStandardItem() );
@@ -389,11 +411,13 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
     }
     
     setContents( m );
-    
-    tree_->expandAll();    
     tree_->resizeColumnToContents( 0 );
     tree_->resizeColumnToContents( 1 );
     tree_->header()->hide();
+
+    tree_->collapseAll();
+    tree_->expand( model.index( r_hor, 0 ) );
+    tree_->expand( model.index( r_ch1, 0 ) );
 }
 
 void
@@ -429,9 +453,9 @@ AcqirisWidget::setContents( std::shared_ptr< const aqdrv4::acqiris_method > m )
 
     // vertical (Channel 1, Ext. Trig)
     int nid(0);
-    for ( auto ver : { m->ch1(), m->ext() } ) {
+    for ( auto ver : { m->ch1(), m->ch2(), m->ext() } ) {
         if ( ver ) {
-            if ( auto parent = model_->item( r_ver + nid++, 0 ) ) {
+            if ( auto parent = model_->item( r_ch1 + nid++, 0 ) ) {
 
                 int row(0);
                 model_->setData( model_->index( row++, 1, parent->index() ), ver->fullScale, Qt::EditRole );
@@ -476,8 +500,8 @@ AcqirisWidget::getContents( std::shared_ptr< aqdrv4::acqiris_method > m ) const
 
     // vertical (Channel 1, Ext. Trig)
     int nid(0);
-    for ( auto& ver : { m->mutable_ch1(), m->mutable_ext() } ) {
-        if ( auto parent = model_->item( r_ver + nid++, 0 ) ) {
+    for ( auto& ver : { m->mutable_ch1(), m->mutable_ch2(), m->mutable_ext() } ) {
+        if ( auto parent = model_->item( r_ch1 + nid++, 0 ) ) {
             int row(0);
             ver->set_fullScale( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble() );
             ver->set_offset( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble() );
@@ -485,4 +509,7 @@ AcqirisWidget::getContents( std::shared_ptr< aqdrv4::acqiris_method > m ) const
             ver->set_bandwidth( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
         }
     }
+    m->mutable_ch1()->set_enable( model_->index( r_ch1, 0 ).data( Qt::CheckStateRole ).toBool() );
+    m->mutable_ch2()->set_enable( model_->index( r_ch2, 0 ).data( Qt::CheckStateRole ).toBool() );
+    m->mutable_ext()->set_enable( ( m->trig()->trigPattern & 0x80000000 ) ? true : false );
 }

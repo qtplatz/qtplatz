@@ -23,11 +23,11 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-#include "acqiris_method.hpp"
 #include "document.hpp"
 #include "tcp_server.hpp"
 #include "tcp_client.hpp"
 #include "task.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include <QApplication>
 #if defined USING_PROTOBUF
 #include <google/protobuf/io/zero_copy_stream_impl.h>

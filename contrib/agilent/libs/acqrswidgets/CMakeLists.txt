@@ -33,6 +33,8 @@ set( ${PROJECT_NAME}_SOURCES
   ap240triggerform.hpp
   ap240verticalform.cpp
   ap240verticalform.hpp
+  acqiriswidget.cpp
+  acqiriswidget.hpp
   thresholdwidget.cpp
   thresholdwidget.hpp
   u5303aform.cpp

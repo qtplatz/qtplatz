@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "acqiris_protocol.hpp"
-#include "acqiris_method.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include "document.hpp"
 #include "tcp_client.hpp"
 #include "tcp_task.hpp"

@@ -140,6 +140,7 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.coupling );
             ar & BOOST_SERIALIZATION_NVP( _.invertData );
             ar & BOOST_SERIALIZATION_NVP( _.autoScale );
+            ar & BOOST_SERIALIZATION_NVP( _.enable );
         }
     };
     template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -284,6 +285,12 @@ vertical_method::set_invertData( bool d )
     invertData = d;
 }
 
+void
+vertical_method::set_enable( bool d )
+{
+    enable = d;
+}
+
 #if defined USING_PROTOBUF
 void
 acqiris_method::set_defaults( acqiris::method * method )
@@ -323,7 +330,7 @@ acqiris_method::set_defaults( acqiris::trigger_method * trig )
 {
     trig->set_trigclass( 1 );            // edge trigger
     trig->set_trigpattern( 0x80000000 ); // external
-    trig->set_trigcoupling( 0 );          // DC
+    trig->set_trigcoupling( 0 );         // DC
     trig->set_trigslope( 0 ); // positive
     trig->set_triglevel1( 1000.0 ); // mV for external, %fs for CHn
     trig->set_triglevel2( 0.0 );

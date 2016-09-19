@@ -90,18 +90,21 @@ namespace aqdrv4 {
         uint32_t bandwidth;
         bool invertData;
         bool autoScale;
+        bool enable;
         vertical_method() : fullScale( 5.0 )
                           , offset( 0.0 )
                           , coupling( 3 )
                           , bandwidth( 2 )
                           , invertData( false )
                           , autoScale( true )
+                          , enable( true )
             {}
         void set_fullScale( double );
         void set_offset( double );
         void set_coupling( uint32_t );
         void set_bandwidth( uint32_t );
         void set_invertData( bool );
+        void set_enable( bool );
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );

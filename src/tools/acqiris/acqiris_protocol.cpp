@@ -24,7 +24,7 @@
 
 #include "acqiris_protocol.hpp"
 #include "waveform.hpp"
-#include "acqiris_method.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>

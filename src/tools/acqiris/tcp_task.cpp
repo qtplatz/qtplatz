@@ -21,7 +21,7 @@
 **
 **************************************************************************/
 
-#include "acqiris_method.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include "tcp_task.hpp"
 #include "tcp_client.hpp"
 #include "document.hpp"

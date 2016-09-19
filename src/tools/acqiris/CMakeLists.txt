@@ -14,46 +14,20 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 set ( CMAKE_CXX_STANDARD 14 )
-set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
 set ( USING_CHARTS OFF )
 
-if ( NOT ${CMAKE_BUILD_TYPE} STREQUAL "" )
-  string( TOLOWER ${CMAKE_BUILD_TYPE} build_type )
-else()
-  set( build_type "release" )
+set ( STANDALONE OFF )
+
+if ( STANDALONE )
+  include( "standalone" )
 endif()
 
 add_definitions( -D_LINUX -D_ACQIRIS )
-
-set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
-
-if ( NOT ${CMAKE_BUILD_TYPE} STREQUAL "" )
-  string( TOLOWER ${CMAKE_BUILD_TYPE} build_type )
-else()
-  set( build_type "release" )
-endif()
-
-find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
-  "${QTPLATZ_BUILD_DIR}"
-  "${CMAKE_BINARY_DIR}/../qtplatz.netbeans"
-  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
-  )
-if ( NOT qtplatz_config )
-  message( FATAL_ERROR "qtplatz-config.cmake can not be found" )
-endif()
-
-include( ${qtplatz_config} )
 
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
 find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
 find_package( Threads REQUIRED )
-
-include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} )
-
-if ( APPLE )
-  include_directories( ${CMAKE_SOURCE_DIR}/../../../../infitof/acqiris/include )
-endif()
 
 add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )
 
@@ -68,6 +42,11 @@ if ( WIN32 )
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
   include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
 endif()
+
+include_directories(
+  ${QWT_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  )
 
 if ( NOT USING_CHARTS )
   set( qwt_dependent_sources
@@ -87,12 +66,8 @@ else()
 endif()
 
 add_executable( ${PROJECT_NAME}
-  acqiris_method.cpp
-  acqiris_method.hpp
   acqiris_protocol.cpp
   acqiris_protocol.hpp
-  acqiriswidget.cpp
-  acqiriswidget.hpp
   digitizer.cpp
   digitizer.hpp
   document.cpp
@@ -129,6 +104,7 @@ add_executable( ${PROJECT_NAME}
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
+  acqrswidgets
   AqDrv4
   ${QWT_LIBRARIES}
   ${PROTOBUF_LIBRARIES}
@@ -146,27 +122,3 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
-
-  set( CPACK_GENERATOR DEB )
-  set( CPACK_DEBIAN_PACKAGE_MAINTAINER "T. Hondo <toshi.hondo@qtplatz.com>" )
-#  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "postinst;prerm" )  
-  set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${__arch} )
-
-endif()
-
-set ( CMAKE_INSTALL_PREFIX "/usr/local" )    # override qtplatz-config.cmake
-set ( CPACK_INSTALL_PREFIX "/opt/acqiris" )  # override qtplatz-config.cmake
-
-include( qtplatz-cpack-config )
-include( qt5-cpack )
-
-set( CPACK_PACKAGE_NAME "acqiris" )
-set( CPACK_PACKAGE_VENDOR "MS-Cheminformatics LLC" )
-set( CPACK_PACKAGE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
-set( CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR} )
-set( CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR} )
-set( CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH} )
-set( CPACK_RESOURCE_FILE_LICENSE ${QTPLATZ_SOURCE_DIR}/license.rtf )
-
-include ( CPack )

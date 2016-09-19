@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 #include "mainwindow.hpp"
-#include "acqiris_method.hpp"
-#include "acqiriswidget.hpp"
 #if defined USING_CHARTS
 # include "chartview.hpp"
 #else
@@ -31,6 +29,8 @@
 #endif
 #include "document.hpp"
 #include "outputwidget.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
+#include <acqrswidgets/acqiriswidget.hpp>
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <QAbstractButton>
@@ -275,10 +275,11 @@ MainWindow::about()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto widget = new AcqirisWidget() ) {
+    if ( auto widget = new acqrswidgets::AcqirisWidget() ) {
         auto dock = createDockWidget( widget, "Digitizer Config", "AcqirisWidget" );
         addDockWidget( Qt::RightDockWidgetArea, dock );
     }
+    
     if ( auto widget = new OutputWidget( std::cout ) ) {
         auto dock = createDockWidget( widget, "Console", "ConsoleWidget" );
         addDockWidget( Qt::BottomDockWidgetArea, dock );
@@ -308,18 +309,28 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 void
 MainWindow::onInitialUpdate()
 {
-    if ( auto widget = findChild< AcqirisWidget * >() ) {
+    if ( auto widget = findChild< acqrswidgets::AcqirisWidget * >() ) {
         
-        connect( widget, &AcqirisWidget::dataChanged, this, []( const AcqirisWidget * w, int subType ){
+        connect( widget, &acqrswidgets::AcqirisWidget::dataChanged, this, []( const acqrswidgets::AcqirisWidget * w, int subType ){
                 auto m = std::make_shared< aqdrv4::acqiris_method >();
                 w->getContents( m );
                 document::instance()->handleValueChanged( m, aqdrv4::SubMethodType( subType ) );
             });
 
-        auto m = std::make_shared< aqdrv4::acqiris_method >();
+        // checkState for ch1, ch2
+        connect( widget, &acqrswidgets::AcqirisWidget::stateChanged, this, [widget]( const QModelIndex& index , bool checked ){
+                auto m = std::make_shared< aqdrv4::acqiris_method >();
+                widget->getContents( m );
+                document::instance()->handleValueChanged( m, aqdrv4::SubMethodType( 0 ) );
+            });        
 
-        widget->getContents( m );
-        document::instance()->set_acqiris_method( m );
+        connect( document::instance(), &document::on_acqiris_method_adapted, this, [this,widget](){
+                if ( auto adapted = document::instance()->adapted_acqiris_method() )
+                    widget->setContents( adapted );
+            });
+
+        auto m = document::instance()->acqiris_method();
+        widget->setContents( m );
     }
 }
 

@@ -22,7 +22,7 @@
 **************************************************************************/
 
 #include "digitizer.hpp"
-#include "acqiris_method.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include <boost/format.hpp>
 #include <sys/stat.h>
 #include <array>
@@ -185,7 +185,7 @@ digitizer::digitizer_setup( std::shared_ptr< const aqdrv4::acqiris_method > m )
     int idx = 0;
     for ( auto& ver: { m->ext(), m->ch1(), m->ch2() } ) {
         int channel = chlist[ idx++ ];
-        if ( ver ) {
+        if ( ver && ver->enable ) {
             status = AcqrsD1_configVertical( inst_
                                              , channel
                                              , ver->fullScale  

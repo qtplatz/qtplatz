@@ -23,9 +23,9 @@
 **************************************************************************/
 
 #include "document.hpp"
-#include "acqiris_method.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
 #include "acqiris_protocol.hpp"
-#include "acqiriswidget.hpp"
+#include <acqrswidgets/acqiriswidget.hpp>
 #include "digitizer.hpp"
 #include "tcp_server.hpp"
 #include "tcp_client.hpp"

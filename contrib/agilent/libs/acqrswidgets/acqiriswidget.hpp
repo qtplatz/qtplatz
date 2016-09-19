@@ -32,35 +32,38 @@ class QTreeView;
 
 namespace aqdrv4 { class acqiris_method; }
 
-class AcqirisWidget : public QWidget {
-    
-    Q_OBJECT
-    
-public:
-    explicit AcqirisWidget( QWidget *parent = 0 );
-    ~AcqirisWidget();
-
-    enum ConfigItem {
-        horStartDelay, horWidth, horSamplingRate, horMode
-        , verFullScale, verOffset, verCoupling, verBandWidth
-        , trigClass, trigSource, trigCoupling, trigLevel1, trigLevel2
+namespace acqrswidgets {
+        
+    class AcqirisWidget : public QWidget {
+        
+        Q_OBJECT
+        
+    public:
+        explicit AcqirisWidget( QWidget *parent = 0 );
+        ~AcqirisWidget();
+        
+        enum ConfigItem {
+            horStartDelay, horWidth, horSamplingRate, horMode
+            , verFullScale, verOffset, verCoupling, verBandWidth
+            , trigClass, trigSource, trigCoupling, trigLevel1, trigLevel2
+        };
+        
+        void setContents( std::shared_ptr< const aqdrv4::acqiris_method > );
+        void getContents( std::shared_ptr< aqdrv4::acqiris_method > ) const;
+        
+    private:
+        class delegate;
+        
+    signals:
+        void dataChanged( const AcqirisWidget *, int subType );
+        void stateChanged( const QModelIndex&, bool );
+                                                              
+    private slots:
+        
+    private:
+        std::unique_ptr< QStandardItemModel > model_;
+        QTreeView * tree_;
+        void initialUpdate( QStandardItemModel& );
     };
 
-    void setContents( std::shared_ptr< const aqdrv4::acqiris_method > );
-    void getContents( std::shared_ptr< aqdrv4::acqiris_method > ) const;
-    
-private:
-    class delegate;
-    
-signals:
-    void dataChanged( const AcqirisWidget *, int subType );
-                                                           
-private slots:
-
-private:
-    std::unique_ptr< QStandardItemModel > model_;
-    QTreeView * tree_;
-
-    void initialUpdate( QStandardItemModel& );
-};
-
+}
