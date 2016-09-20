@@ -63,10 +63,6 @@ connection::do_read()
         , [this,self]( const boost::system::error_code& ec
                        , std::size_t bytes_transferred ) {
 
-            ADDEBUG() << "reading : "
-                      << response_.size() << "\t"
-                      << aqdrv4::preamble::debug( boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() ) );
-            
             if ( !ec ) {
                 
                 if ( response_.size() >= sizeof( aqdrv4::preamble ) ) {

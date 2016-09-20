@@ -31,8 +31,6 @@ request_handler::handle_request( boost::asio::streambuf& response
     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response.data() );
     const char * data = boost::asio::buffer_cast<const char *>( response.data() ) + sizeof( aqdrv4::preamble );
 
-    ADDEBUG() << "*** request_handler got: " << aqdrv4::preamble::debug( preamble );
-
     if ( preamble->clsid == acqrscontrols::aqdrv4::acqiris_method::clsid() ) {
 
         using acqrscontrols::aqdrv4::protocol_serializer;
