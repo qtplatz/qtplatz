@@ -36,9 +36,11 @@
 
 using boost::asio::ip::tcp;
 
+namespace acqrscontrols { namespace aqdrv4 { class acqiris_protocol; } }
+
 class request;
 
-namespace aqdrv4 {
+namespace acqiris {
     namespace client {
 
         class tcp_client {

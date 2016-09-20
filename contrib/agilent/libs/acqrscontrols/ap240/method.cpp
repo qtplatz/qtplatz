@@ -32,6 +32,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
+
 using namespace acqrscontrols::ap240;
 
 const boost::uuids::uuid&
@@ -46,6 +47,8 @@ method::method() : channels_( 0x01 )
                  , protocolIndex_( 0 )
                  , protocols_( 1 ) // at least one protocol data should be exist
 {
+    ch1_.set_enable( bool( channels_ & 01 ) );
+    ch2_.set_enable( bool( channels_ & 02 ) );
 }
 
 method::method( const method& t ) : channels_( t.channels_ )
@@ -96,114 +99,7 @@ method::protocols() const
 namespace acqrscontrols {
     namespace ap240 {
 
-        // template<typename T = trigger_method>
-        // class trigger_method_archive {
-        // public:
-        //     template<class Archive>
-        //     void serialize( Archive& ar, T& _, const unsigned int version ) {
-        //         using namespace boost::serialization;
-        //         ar & BOOST_SERIALIZATION_NVP( _.trigClass );
-        //         ar & BOOST_SERIALIZATION_NVP( _.trigPattern );
-        //         ar & BOOST_SERIALIZATION_NVP( _.trigCoupling );
-        //         ar & BOOST_SERIALIZATION_NVP( _.trigSlope );
-        //         ar & BOOST_SERIALIZATION_NVP( _.trigLevel1 );
-        //         ar & BOOST_SERIALIZATION_NVP( _.trigLevel2 );
-        //     }
-        // };
-
-        // template<> void trigger_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        // {
-        //     trigger_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        // template<> void trigger_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        // {
-        //     trigger_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        // template<> void trigger_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        // {
-        //     trigger_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        // template<> void trigger_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        // {
-        //     trigger_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        template<typename T = horizontal_method>
-        class horizontal_method_archive {
-        public:
-            template<class Archive>
-            void serialize( Archive& ar, T& _, const unsigned int version ) {
-                using namespace boost::serialization;
-                ar & BOOST_SERIALIZATION_NVP( _.sampInterval );
-                ar & BOOST_SERIALIZATION_NVP( _.delay );
-                ar & BOOST_SERIALIZATION_NVP( _.width );
-                ar & BOOST_SERIALIZATION_NVP( _.mode );
-                ar & BOOST_SERIALIZATION_NVP( _.flags );
-                ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWaveforms );
-                ar & BOOST_SERIALIZATION_NVP( _.nStartDelay );
-                ar & BOOST_SERIALIZATION_NVP( _.nbrSamples );
-            }
-        };
-        template<> void horizontal_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        {
-            horizontal_method_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> void horizontal_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        {
-            horizontal_method_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> void horizontal_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        {
-            horizontal_method_archive<>().serialize( ar, *this, version );
-        }
-
-        template<> void horizontal_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        {
-            horizontal_method_archive<>().serialize( ar, *this, version );
-        }
-
-
-        // template<typename T = vertical_method>
-        // class vertical_method_archive {
-        // public:
-        //     template<class Archive>
-        //     void serialize( Archive& ar, T& _, const unsigned int version ) {
-        //         using namespace boost::serialization;
-        //         ar & BOOST_SERIALIZATION_NVP( _.fullScale );
-        //         ar & BOOST_SERIALIZATION_NVP( _.offset );
-        //         ar & BOOST_SERIALIZATION_NVP( _.coupling );
-        //         ar & BOOST_SERIALIZATION_NVP( _.bandwidth );
-        //         ar & BOOST_SERIALIZATION_NVP( _.invertData );
-        //         ar & BOOST_SERIALIZATION_NVP( _.autoScale );
-        //     }
-        // };
-        // template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-        // {
-        //     vertical_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        // template<> void vertical_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-        // {
-        //     vertical_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        // template<> void vertical_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
-        // {
-        //     vertical_method_archive<>().serialize( ar, *this, version );
-        // }
-
-        // template<> void vertical_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
-        // {
-        //     vertical_method_archive<>().serialize( ar, *this, version );
-        // }
-
         ///////////////////////////////////////
-
         template<typename T = method>
         class method_archive {
         public:
@@ -223,6 +119,10 @@ namespace acqrscontrols {
                 if ( version >= 2 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.protocolIndex_ );
                     ar & BOOST_SERIALIZATION_NVP( _.protocols_ );
+                }
+                if ( Archive::is_loading::value ) {
+                    _.ch1_.set_enable( bool( _.channels_ & 01 ) );
+                    _.ch2_.set_enable( bool( _.channels_ & 02 ) );                    
                 }
             }
 

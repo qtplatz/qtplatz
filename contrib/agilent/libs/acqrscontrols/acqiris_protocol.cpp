@@ -23,11 +23,13 @@
 **************************************************************************/
 
 #include "acqiris_protocol.hpp"
-#include "waveform.hpp"
+#include "acqiris_waveform.hpp"
 #include <acqrscontrols/acqiris_method.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
+#include <fstream>
 
 namespace acqrscontrols {
 namespace aqdrv4 {
@@ -65,22 +67,25 @@ namespace aqdrv4 {
         std::ostringstream o;
         if ( data->aug == __aug__ ) {
             if ( data->clsid == clsid_connection_request )
-                o << "clsid_connection_request";
+                o << "'clsid_connection_request'";
             else if ( data->clsid == clsid_acknowledge )
-                o << "clsid_acknowledge";
+                o << "'clsid_acknowledge'";
             else if ( data->clsid == clsid_readData )
-                o << "clsid_readData";
+                o << "'clsid_readData'";
             else if ( data->clsid == clsid_temperature )
-                o << "clsid_temperature";
+                o << "'clsid_temperature'";
             else if ( data->clsid == waveform::clsid() )
-                o << "clsid_waveform";
+                o << "'clsid_waveform'";
             else if ( data->clsid == acqiris_method::clsid() )
-                o << "clsid_acqiris_method";
+                o << "'clsid_acqiris_method'";
             else {
                 o << boost::lexical_cast< std::string >( data->clsid );
             }
-            o << " payload: " << data->length;
+        } else {
+            o << "aug: " << boost::format( "%x" ) % data->aug
+              << " clsid: " << boost::lexical_cast< std::string >( data->clsid );
         }
+        o << " payload-length: " << data->length;
         return o.str();
     }
 
@@ -94,14 +99,26 @@ namespace aqdrv4 {
     acqiris_protocol::to_buffers()
     {
         std::vector<boost::asio::const_buffer> buffers;
-
+        
         preamble_.length = payload_.size();
-
         buffers.push_back( boost::asio::buffer( preamble_.data(), sizeof( class preamble ) ) );
         buffers.push_back( boost::asio::buffer( payload_.data(), payload_.size() ) );
 
         return buffers;
     }
 
+
+    void preamble::dump( const preamble * p, size_t size )
+    {
+        std::ofstream of( "acqiris_protocol.log", std::ofstream::out | std::ofstream::app );
+
+        const unsigned char * dp = reinterpret_cast< const unsigned char * >( p );
+        for ( size_t i = 0; i < size; ++i ) {
+            if ( ( i % 32 ) == 0 )
+                of << std::endl;
+            of << boost::format( "%02x " ) % uint32_t( dp[ i ] );
+        }
+        of << std::endl;
+    }
 }
 }

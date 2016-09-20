@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "acqrscontrols_global.hpp"
 #include <boost/uuid/uuid.hpp>
 #include <memory>
 #include <string>
@@ -50,8 +51,8 @@ namespace aqdrv4 {
     extern boost::uuids::uuid clsid_readData;
     extern boost::uuids::uuid clsid_temperature;
 
-    struct preamble {
-        uint32_t aug; // methionine
+    struct ACQRSCONTROLSSHARED_EXPORT preamble {
+        uint32_t aug; // methionine '07 09 16 20
         uint32_t length;
         uint32_t request;
         boost::uuids::uuid clsid;
@@ -60,9 +61,10 @@ namespace aqdrv4 {
         const char * data() const { return reinterpret_cast< const char * >( this ); }
         static bool isOk( const preamble * );
         static std::string debug( const preamble * );
+        static void dump( const preamble *, size_t size );
     };
 
-    class pod_reader {
+    class ACQRSCONTROLSSHARED_EXPORT pod_reader {
         boost::iostreams::basic_array_source< char > device_;
         boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm_;
     public:
@@ -79,7 +81,7 @@ namespace aqdrv4 {
         }        
     };
     
-    class acqiris_protocol : public std::enable_shared_from_this< acqiris_protocol > {
+    class ACQRSCONTROLSSHARED_EXPORT acqiris_protocol : public std::enable_shared_from_this< acqiris_protocol > {
     public:
         acqiris_protocol();
 
@@ -101,7 +103,7 @@ namespace aqdrv4 {
         std::string payload_;
     };
 
-    struct protocol_serializer {
+    struct ACQRSCONTROLSSHARED_EXPORT protocol_serializer {
         template< typename T >
         static std::shared_ptr< acqiris_protocol > serialize( const T& d ) {
 

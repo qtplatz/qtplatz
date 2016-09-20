@@ -29,7 +29,7 @@
 #include <adportable/debug.hpp>
 #include <iostream>
 
-using namespace aqdrv4::client;
+using namespace acqiris::client;
 
 tcp_task::~tcp_task()
 {

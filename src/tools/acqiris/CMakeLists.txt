@@ -66,8 +66,6 @@ else()
 endif()
 
 add_executable( ${PROJECT_NAME}
-  acqiris_protocol.cpp
-  acqiris_protocol.hpp
   digitizer.cpp
   digitizer.hpp
   document.cpp
@@ -89,10 +87,6 @@ add_executable( ${PROJECT_NAME}
   tcp_task.hpp
   request_handler.cpp
   request_handler.hpp
-  request_parser.cpp
-  request_parser.hpp
-  waveform.cpp
-  waveform.hpp
   outputwidget.cpp
   outputwidget.hpp
   ${chart_dependent_sources} # disable

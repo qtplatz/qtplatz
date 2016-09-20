@@ -52,7 +52,7 @@ namespace aqdrv4 {
 }
 }
 
-namespace aqdrv4 {
+namespace acqiris {
     namespace server {
         class tcp_server;
     }
@@ -83,12 +83,12 @@ public:
     void set_acqiris_method( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > );
     void acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > );
 
-    void set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& );
-    void set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& );
+    void set_server( std::unique_ptr< acqiris::server::tcp_server >&& );
+    void set_client( std::unique_ptr< acqiris::client::tcp_client >&& );
     void close_client();
 
-    aqdrv4::server::tcp_server * server() { return server_.get(); }
-    aqdrv4::client::tcp_client * client() { return client_.get(); }
+    acqiris::server::tcp_server * server() { return server_.get(); }
+    acqiris::client::tcp_client * client() { return client_.get(); }
 
     static bool save( const std::string& file, std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > );
     static std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > load( const std::string& file );
@@ -111,8 +111,8 @@ private:
     std::deque< std::shared_ptr< acqrscontrols::aqdrv4::waveform > > que_;
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > method_;
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > adapted_method_;
-    std::unique_ptr< aqdrv4::server::tcp_server > server_;
-    std::unique_ptr< aqdrv4::client::tcp_client > client_;
+    std::unique_ptr< acqiris::server::tcp_server > server_;
+    std::unique_ptr< acqiris::client::tcp_client > client_;
     std::unique_ptr< QSettings > settings_;
     std::vector< std::thread > tcp_threads_;
     int temperature_;

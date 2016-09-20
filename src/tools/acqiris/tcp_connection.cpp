@@ -12,15 +12,14 @@
 #include "tcp_connection_manager.hpp"
 #include "tcp_server.hpp"
 #include "request_handler.hpp"
-#include "acqiris_protocol.hpp"
 #include "document.hpp"
+#include <acqrscontrols/acqiris_protocol.hpp>
 #include <adportable/debug.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <utility>
 #include <vector>
 #include <iostream>
 
-using namespace aqdrv4::server;
+using namespace acqiris::server;
 
 connection::connection( boost::asio::ip::tcp::socket socket
                         , connection_manager& manager
@@ -31,12 +30,11 @@ connection::connection( boost::asio::ip::tcp::socket socket
     , connected_( false )
     , connection_requested_( false )
 {
-    ADDEBUG() << "*** connection ctor";
 }
 
 connection::~connection()
 {
-    ADDEBUG() << "*** connection dtor";
+    ADDEBUG() << "*** connection closed.";
 }
 
 void
@@ -68,16 +66,17 @@ connection::do_read()
                 if ( response_.size() >= sizeof( acqrscontrols::aqdrv4::preamble ) ) {
 
                     auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
-
+                    
                     if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
                          preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
                         
-                        if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_connection_request )
+                        if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_connection_request ) {
                             connection_requested_ = true;
+                        }
 
                         request_handler_.handle_request( response_, reply_ );
-                        
-                        if ( reply_.size() )
+
+                        if ( reply_.size() >= sizeof( acqrscontrols::aqdrv4::preamble ) )
                             do_write();
                     }
                                          
@@ -133,6 +132,8 @@ connection::write( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > da
     if ( connected_ ) {
 
         auto self( this );
+        
+        // ADDEBUG() << "*** do_write. " << acqrscontrols::aqdrv4::preamble::debug( &data->preamble() );
 
         boost::asio::async_write(
             socket_

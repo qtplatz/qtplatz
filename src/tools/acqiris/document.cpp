@@ -23,13 +23,13 @@
 **************************************************************************/
 
 #include "document.hpp"
-#include <acqrscontrols/acqiris_method.hpp>
-#include "acqiris_protocol.hpp"
-#include <acqrswidgets/acqiriswidget.hpp>
 #include "digitizer.hpp"
 #include "tcp_server.hpp"
 #include "tcp_client.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/acqiris_waveform.hpp>
+#include <acqrscontrols/acqiris_method.hpp>
+#include <acqrscontrols/acqiris_protocol.hpp>
+#include <acqrswidgets/acqiriswidget.hpp>
 #include <QSettings>
 #include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -77,9 +77,21 @@ document::initialSetup()
 
     auto name = path.parent_path() / "acqiris_method.xml";
 
-    if ( auto m = load( name.string() ) )
-         set_acqiris_method( m );
-    
+    if ( auto m = load( name.string() ) ) {
+
+        set_acqiris_method( m );
+
+    } else {
+
+        m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
+
+        auto trig = m->mutable_trig();
+        auto hor = m->mutable_hor();
+        auto ch1 = m->mutable_ch1();
+        auto ext = m->mutable_ext();
+        set_acqiris_method( m );
+
+    }
     return true;
 }
 
@@ -124,14 +136,14 @@ document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
         server_->post( d );
     
     if ( que_.size() >= 4096 ) {
-
+        
         using namespace std::chrono_literals;
         static auto tp = std::chrono::steady_clock::now();
         if ( std::chrono::steady_clock::now() - tp > 10s ) {
 
             tp = std::chrono::steady_clock::now();
             double rate = ( que_.back()->timeStamp() - que_.front()->timeStamp() ) / ( que_.size() - 1 );
-            std::cout << "average trig. interval: " << rate / std::nano::den << "s" << std::endl;
+            ADDEBUG() << "average trig. interval: " << rate / std::nano::den << "s";
         }
 
         que_.erase( que_.begin(), que_.begin() + ( que_.size() - 2048 ) );
@@ -180,7 +192,7 @@ document::acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiri
 }
 
 void
-document::set_server( std::unique_ptr< aqdrv4::server::tcp_server >&& server )
+document::set_server( std::unique_ptr< acqiris::server::tcp_server >&& server )
 {
     server_ = std::move( server );
     std::call_once( flag, [&](){
@@ -197,7 +209,7 @@ document::close_client()
 }
 
 void
-document::set_client( std::unique_ptr< aqdrv4::client::tcp_client >&& client )
+document::set_client( std::unique_ptr< acqiris::client::tcp_client >&& client )
 {
     client_ = std::move( client );
     std::call_once( flag, [&](){
@@ -255,15 +267,14 @@ void
 document::replyTemperature( int temp )
 {
     if ( server_ ) {
-        do {
-            auto data = std::make_shared< acqrscontrols::aqdrv4::acqiris_protocol >();
 
-            data->preamble().clsid = acqrscontrols::aqdrv4::clsid_temperature;
-            *data << int32_t( temp );
-            
-            server_->post( data );
-            
-        } while ( 0 );
+        auto data = std::make_shared< acqrscontrols::aqdrv4::acqiris_protocol >();
+        
+        data->preamble().clsid = acqrscontrols::aqdrv4::clsid_temperature;
+        *data << int32_t( temp );
+        
+        // server_->post( data );
+        
     } else {
         ADDEBUG() << "Temperature: " << temp;
     }

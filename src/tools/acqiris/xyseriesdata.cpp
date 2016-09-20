@@ -22,7 +22,7 @@
 **************************************************************************/
 
 #include "xyseriesdata.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/acqiris_waveform.hpp>
 #include <AcqirisDataTypes.h>
 #include <ratio>
 

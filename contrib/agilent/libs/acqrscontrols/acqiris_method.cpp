@@ -47,6 +47,7 @@ namespace aqdrv4 {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( _.trigClass );
             ar & BOOST_SERIALIZATION_NVP( _.trigPattern );
+            ar & BOOST_SERIALIZATION_NVP( _.trigCoupling );
             ar & BOOST_SERIALIZATION_NVP( _.trigSlope );
             ar & BOOST_SERIALIZATION_NVP( _.trigLevel1 );
             ar & BOOST_SERIALIZATION_NVP( _.trigLevel2 );
@@ -106,12 +107,26 @@ namespace aqdrv4 {
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( _.sampInterval );
-            ar & BOOST_SERIALIZATION_NVP( _.delayTime );
-            ar & BOOST_SERIALIZATION_NVP( _.nbrSamples );
-            ar & BOOST_SERIALIZATION_NVP( _.mode );
-            ar & BOOST_SERIALIZATION_NVP( _.flags );
-            ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWaveforms );
+            if ( version == 0 ) {
+                double width;
+                int32_t nStartDelay;
+                uint32_t nbrSamples;
+                ar & BOOST_SERIALIZATION_NVP( _.sampInterval );
+                ar & BOOST_SERIALIZATION_NVP( _.delayTime );
+                ar & BOOST_SERIALIZATION_NVP( width );
+                ar & BOOST_SERIALIZATION_NVP( _.mode );
+                ar & BOOST_SERIALIZATION_NVP( _.flags );
+                ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWaveforms );
+                ar & BOOST_SERIALIZATION_NVP( nStartDelay );
+                ar & BOOST_SERIALIZATION_NVP( nbrSamples );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( _.sampInterval );
+                ar & BOOST_SERIALIZATION_NVP( _.delayTime );
+                ar & BOOST_SERIALIZATION_NVP( _.nbrSamples );
+                ar & BOOST_SERIALIZATION_NVP( _.mode );
+                ar & BOOST_SERIALIZATION_NVP( _.flags );
+                ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWaveforms );
+            }
         }
     };
     template<> void horizontal_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -141,6 +156,8 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.coupling );
             ar & BOOST_SERIALIZATION_NVP( _.invertData );
             ar & BOOST_SERIALIZATION_NVP( _.autoScale );
+            if ( version >= 2 )
+                ar & BOOST_SERIALIZATION_NVP( _.enable );
         }
     };
     template<> void vertical_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )

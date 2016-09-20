@@ -79,7 +79,7 @@ ap240VerticalForm::set( const acqrscontrols::ap240::method& m )
 {
     const QSignalBlocker blocker( this );
 
-    const acqrscontrols::ap240::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
+    const acqrscontrols::aqdrv4::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
     auto it = std::lower_bound( fullScaleList.begin(), fullScaleList.end(), t.fullScale, [] ( double a, double b ) { return a > b; } );
     if ( it != fullScaleList.end() ) {
@@ -95,7 +95,7 @@ ap240VerticalForm::set( const acqrscontrols::ap240::method& m )
 void
 ap240VerticalForm::get( acqrscontrols::ap240::method& m ) const
 {
-    acqrscontrols::ap240::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
+    acqrscontrols::aqdrv4::vertical_method& t = ( channel_ == ( -1 ) ) ? m.ext_ : ( channel_ == 1 ) ? m.ch1_ : m.ch2_;
 
     auto index = ui->comboBox_3->currentIndex();
     if ( index >= 0 && index < fullScaleList.size() )

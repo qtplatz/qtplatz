@@ -8,17 +8,15 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <acqrscontrols/acqiris_method.hpp>
-#include "acqiris_protocol.hpp"
 #include "document.hpp"
-#include "reply.hpp"
-#include "request.hpp"
 #include "request_handler.hpp"
+#include <acqrscontrols/acqiris_method.hpp>
+#include <acqrscontrols/acqiris_protocol.hpp>
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <iostream>
 
-using namespace aqdrv4::server;
+using namespace acqiris::server;
 
 request_handler::request_handler()
 {
@@ -31,7 +29,7 @@ request_handler::handle_request( boost::asio::streambuf& response
     auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response.data() );
     const char * data = boost::asio::buffer_cast<const char *>( response.data() ) + sizeof( preamble );
 
-    ADDEBUG() << "*** request_handler: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
+    ADDEBUG() << "*** request_handler got: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
 
     if ( preamble->clsid == acqrscontrols::aqdrv4::acqiris_method::clsid() ) {
 
@@ -48,9 +46,9 @@ request_handler::handle_request( boost::asio::streambuf& response
     std::cout << "consume " << std::dec << sizeof( preamble )
               << ", remains: " << response.size() << std::endl;
 
-    acqrscontrols::aqdrv4::preamble ack( acqrscontrols::aqdrv4::clsid_acknowledge );
-
-    std::ostream request_stream( &reply );
-    
-    request_stream.write( ack.data(), sizeof( preamble ) );
+    {
+        std::ostream request_stream( &reply );
+        acqrscontrols::aqdrv4::preamble ack( acqrscontrols::aqdrv4::clsid_acknowledge );
+        request_stream.write( ack.data(), sizeof( acqrscontrols::aqdrv4::preamble ) );
+    }
 }

@@ -5,7 +5,7 @@ project( acqrscontrols )
 set( PROVIDER MS-Cheminformatics )
 
 add_definitions(-DACQRSCONTROLS_LIBRARY)
-
+add_definitions( -D_LINUX -D_ACQIRIS )
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
@@ -41,6 +41,10 @@ add_library( ${PROJECT_NAME} SHARED
   u5303a/waveform.cpp
   acqiris_method.cpp
   acqiris_method.hpp
+  acqiris_protocol.cpp
+  acqiris_protocol.hpp
+  acqiris_waveform.cpp
+  acqiris_waveform.hpp
   ap240/averagedata.hpp
   ap240/averagedata.cpp
   ap240/datainterpreter.cpp

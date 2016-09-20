@@ -65,15 +65,10 @@ main(int argc, char *argv[])
         return 0;
     }
 
-    auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
-    auto trig = m->mutable_trig();
-    auto hor = m->mutable_hor();
-    auto ch1 = m->mutable_ch1();
-    auto ext = m->mutable_ext();
+    document::instance()->initialSetup();
     
-    if ( vm.count( "load" ) ) {
+    if ( vm.count( "load" ) )
         document::instance()->set_acqiris_method( document::load( vm[ "load" ].as< std::string >() ) );
-    }
 
     bool isClient( false );
     bool isServer( false );
@@ -83,7 +78,7 @@ main(int argc, char *argv[])
         isServer = true;
         
         document::instance()->set_server(
-            std::make_unique< aqdrv4::server::tcp_server >(
+            std::make_unique< acqiris::server::tcp_server >(
                 vm["recv"].as< std::string >(), vm["port"].as< std::string >() ) );
 
     } else if ( vm.count( "connect" ) ) {
@@ -91,11 +86,9 @@ main(int argc, char *argv[])
         isClient = true;
         
         document::instance()->set_client(
-            std::make_unique< aqdrv4::client::tcp_client >(
+            std::make_unique< acqiris::client::tcp_client >(
                 vm["connect"].as< std::string >(), vm["port"].as< std::string >() ) );
     }
-
-    document::instance()->set_acqiris_method( m );
 
     if ( !isClient )
         task::instance()->digitizer_initialize();

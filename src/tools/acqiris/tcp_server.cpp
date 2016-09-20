@@ -9,19 +9,19 @@
 //
 
 #include "tcp_server.hpp"
-#include "waveform.hpp"
-#include "acqiris_protocol.hpp"
-#include <signal.h>
-#include <utility>
-#include <iostream>
+#include <acqrscontrols/acqiris_waveform.hpp>
+#include <acqrscontrols/acqiris_protocol.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <signal.h>
+#include <utility>
+#include <iostream>
 
-using namespace aqdrv4::server;
+using namespace acqiris::server;
 
 tcp_server::tcp_server(const std::string& address, const std::string& port )
     : io_service_()

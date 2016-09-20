@@ -22,7 +22,7 @@ namespace acqrscontrols {
     }
 }
 
-namespace aqdrv4 {
+namespace acqiris {
 
     namespace server {
 

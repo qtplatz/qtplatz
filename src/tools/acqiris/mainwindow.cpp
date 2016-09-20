@@ -97,7 +97,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     connect( document::instance(), &document::updateData, this, &MainWindow::handleUpdateData );
 
-    document::instance()->initialSetup();
     createDockWidgets();
 }
 

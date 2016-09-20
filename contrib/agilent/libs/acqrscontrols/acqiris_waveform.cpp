@@ -21,7 +21,7 @@
 **
 **************************************************************************/
 
-#include "waveform.hpp"
+#include "acqiris_waveform.hpp"
 #include <typeinfo>
 #include <cstring>
 

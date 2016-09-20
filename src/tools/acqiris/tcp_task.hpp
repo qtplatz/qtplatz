@@ -24,7 +24,7 @@
 #pragma once
 
 #include "semaphore.hpp"
-#include "acqiris_protocol.hpp"
+#include <acqrscontrols/acqiris_protocol.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
@@ -40,9 +40,8 @@ namespace acqrscontrols {
     enum SubMethodType : unsigned int;
 }
 
-namespace aqdrv4 {
+namespace acqiris {
 
-    
     namespace client {
 
         class tcp_task {

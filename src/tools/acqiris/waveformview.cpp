@@ -24,7 +24,7 @@
 
 #include "waveformview.hpp"
 #include "xyseriesdata.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/acqiris_waveform.hpp>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_panner.h>

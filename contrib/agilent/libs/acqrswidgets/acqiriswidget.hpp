@@ -32,7 +32,12 @@ class QTreeView;
 
 namespace acqrscontrols {
     namespace ap240 { class method; }
-    namespace aqdrv4 { class acqiris_method; }
+    namespace aqdrv4 {
+        class acqiris_method;
+        class trigger_method;
+        class vertical_method;
+        class horizontal_method;
+    }
 }
 
 namespace acqrswidgets {
@@ -59,6 +64,12 @@ namespace acqrswidgets {
         
     private:
         class delegate;
+        void setContents( const acqrscontrols::aqdrv4::trigger_method& );
+        void setContents( const acqrscontrols::aqdrv4::horizontal_method& );
+        void setContents( const acqrscontrols::aqdrv4::vertical_method&, int row );
+        void getContents( acqrscontrols::aqdrv4::trigger_method& ) const;
+        void getContents( acqrscontrols::aqdrv4::horizontal_method& ) const;
+        void getContents( acqrscontrols::aqdrv4::vertical_method&, int row ) const;
         
     signals:
         void dataChanged( const AcqirisWidget *, int subType );

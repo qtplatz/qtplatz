@@ -12,7 +12,7 @@
 
 #include <boost/asio.hpp>
 
-namespace aqdrv4 {
+namespace acqiris {
     namespace server {
 
         struct reply;

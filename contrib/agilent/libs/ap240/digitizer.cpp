@@ -121,7 +121,7 @@ namespace ap240 {
                     % m.trig_.trigClass % m.trig_.trigPattern % m.trig_.trigCoupling % m.trig_.trigSlope
                     % m.trig_.trigLevel1 % m.trig_.trigLevel2 << std::endl;
                 o << boost::format( "\thoriz:\tsampInterval: %g,\tdelay: %g,\twidth: %g,\tmode: %x,\tflags: %x" )
-                    % m.hor_.sampInterval % m.hor_.delay % m.hor_.width % m.hor_.mode % m.hor_.flags << std::endl;
+                    % m.hor_.sampInterval % m.hor_.delayTime % m.hor_.width() % m.hor_.mode % m.hor_.flags << std::endl;
                 for ( auto& ch: { m.ext_, m.ch1_, m.ch2_ } ) {
                     o << boost::format( "\tvert: fullScale: %g,\toffset: %g,\tcoupling: %x\t bandwidth: %x" )
                         % ch.fullScale % ch.offset % ch.coupling % ch.bandwidth << std::endl;
@@ -706,16 +706,16 @@ device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
         m.hor_.sampInterval = 1.0e-9;
     }
 
-    if ( m.hor_.mode == 0 ) {
-        m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 );
-        m.hor_.nStartDelay = int32_t( m.hor_.delay / m.hor_.sampInterval ); // nominal -- not in use (digitizer mode can be negative delay)
-    } else {
-        m.hor_.nbrSamples = uint32_t( m.hor_.width / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero
-        uint32_t delay = m.hor_.delay >= 0 ? m.hor_.delay : 0; // averager mode can't be negative
+    int nAveragerDelay(0);
+
+    if ( m.hor_.mode == 2 ) {
+
+        m.hor_.nbrSamples = m.hor_.nbrSamples + 32 & ~0x1f; // fold of 32, can't be zero
+        double delay = m.hor_.delayTime >= 0 ? m.hor_.delayTime : 0; // averager mode can't be negative
         if ( m.hor_.mode == 0 )
-            m.hor_.nStartDelay = int32_t( delay / m.hor_.sampInterval + 0.5 ) & ~0x1f;      // fold of 32, can be zero
+            nAveragerDelay = int32_t( delay / m.hor_.sampInterval + 0.5 ) & ~0x1f;      // fold of 32, can be zero
         else 
-            m.hor_.nStartDelay = int32_t( delay / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero for average mode
+            nAveragerDelay = int32_t( delay / m.hor_.sampInterval + 0.5 ) + 32 & ~0x1f; // fold of 32, can't be zero
     }
 
     // trigger setup
@@ -815,12 +815,12 @@ device_ap240::digitizer_setup( task& task, acqrscontrols::ap240::method& m )
     auto inst = task.inst();
     ViStatus status;
 
-    if ( ( status = AcqrsD1_configHorizontal( inst, m.hor_.sampInterval, m.hor_.delay ) ) == ACQIRIS_WARN_SETUP_ADAPTED ) {
+    if ( ( status = AcqrsD1_configHorizontal( inst, m.hor_.sampInterval, m.hor_.delayTime ) ) == ACQIRIS_WARN_SETUP_ADAPTED ) {
         ViReal64 sampInterval, delay;
         if ( AcqrsD1_getHorizontal( inst, &sampInterval, &delay ) == VI_SUCCESS ) {
             std::cerr << boost::format( "sampInterval: %e <= %e, delay: %e <= %e\n" )
                 % sampInterval % m.hor_.sampInterval
-                % delay % m.hor_.delay;
+                % delay % m.hor_.delayTime;
         }
     }
     task::checkError( inst, status, "AcqrsD1_configHorizontal", __LINE__  );
@@ -854,7 +854,7 @@ device_ap240::averager_setup( task& task, acqrscontrols::ap240::method& m )
     status = AcqrsD1_configAvgConfig( inst, 0, "NbrSamples", &int32Arg );
     task::checkError( inst, status, "AcqirisD1_configAvgConfig, NbrSamples", __LINE__ );
 
-    int32Arg = ViInt32( m.hor_.nStartDelay );
+    int32Arg = ViInt32( ( int( m.hor_.delayTime / m.hor_.sampInterval + 0.5 ) + 32 ) & ~0x1f ); // fold of 32, can't be zero
     status = AcqrsD1_configAvgConfig( inst, 0, "StartDelay", &int32Arg );
     task::checkError( inst, status, "AcqrsD1_configAvgConfig StartDelay ", __LINE__ );
 
@@ -978,7 +978,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
             data.meta_.actualAverages = 0;
             data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
-            data.meta_.initialXOffset = data.method_.hor_.delay;
+            data.meta_.initialXOffset = data.method_.hor_.delayTime;
             double acquire_time = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;  // time since 'acquire' issued
             data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
             
@@ -998,7 +998,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
             data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
             data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = segDesc.flags; // markers
-            data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.nStartDelay;
+            data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.delayTime;
             uint64_t tstamp = uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo;
             data.meta_.initialXTimeSeconds = double( tstamp )* 1.0e-12;
             data.meta_.scaleFactor = dataDesc.vGain;
@@ -1013,7 +1013,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
                 data.meta_.actualAverages = m.hor_.nbrAvgWaveforms;
                 data.meta_.actualPoints = m.hor_.nbrSamples;
                 data.meta_.flags = 0;
-                data.meta_.initialXOffset = m.hor_.sampInterval * m.hor_.nStartDelay;
+                data.meta_.initialXOffset = m.hor_.delayTime;
                 data.meta_.initialXTimeSeconds = task::instance()->timestamp();
                 data.meta_.scaleFactor = 1.0;
                 data.meta_.scaleOffset = 0.0;

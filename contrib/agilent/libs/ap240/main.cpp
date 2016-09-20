@@ -62,8 +62,8 @@ main(int argc, char* argv[])
             return 0;
         }
         acqrscontrols::ap240::method m;
-        m.hor_.delay = vm["delay"].as<double>() * 1.0e-6;
-        m.hor_.width = vm["width"].as<double>() * 1.0e-6;
+        m.hor_.delayTime = vm["delay"].as<double>() * 1.0e-6;
+        m.hor_.nbrSamples = uint32_t( ( vm["width"].as<double>() * 1.0e-6 ) / m.hor_.sampInterval + 0.5 );
         m.hor_.mode = vm["mode"].as<int>();
         m.channels_ = vm["channels"].as<int>() & 03;
         m.ch1_.fullScale = vm[ "ch1.fs" ].as<double>();

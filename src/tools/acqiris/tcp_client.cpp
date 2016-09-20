@@ -22,12 +22,12 @@
 **
 **************************************************************************/
 
-#include "acqiris_protocol.hpp"
-#include <acqrscontrols/acqiris_method.hpp>
 #include "document.hpp"
 #include "tcp_client.hpp"
 #include "tcp_task.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/acqiris_waveform.hpp>
+#include <acqrscontrols/acqiris_protocol.hpp>
+#include <acqrscontrols/acqiris_method.hpp>
 #include <adportable/debug.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/asio.hpp>
@@ -38,12 +38,13 @@
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <istream>
 #include <ostream>
 #include <string>
 #include <iostream>
 
-using namespace aqdrv4::client;
+using namespace acqiris::client;
 
 bool tcp_client::debug_mode_ = true;
 
@@ -167,7 +168,7 @@ tcp_client::handle_connect( const boost::system::error_code& err,
     if (!err)  {
 
         ADDEBUG() << "connection successed: " << socket_.remote_endpoint() << " - " << socket_.local_endpoint();
-
+        
         // The connection was successful. Send the request.
         boost::asio::async_write( socket_
                                   , *request_
@@ -212,22 +213,21 @@ tcp_client::handle_write_request(const boost::system::error_code& err)
             , [&]( const boost::system::error_code& ec, size_t ) {
                 
                 auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
+
+                acqrscontrols::aqdrv4::preamble::dump( preamble, response_.size() );
                 
                 if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
                      preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
                     
-                    ADDEBUG() << ">>> tcp_client: reply data\t"
-                              << acqrscontrols::aqdrv4::preamble::debug(
-                                  boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() ));
-                    
                     if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_acknowledge ) {
-                        
+                        ADDEBUG() << ">>> tcp_client: got ACK\t" << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
                         do_read();
                         
                     } else {
-                        
+                        ADDEBUG() << ">>> tcp_client: got UNKNOWN\t" << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         response_.consume( response_.size() );
+                        do_read();
                         
                     }
                 }
@@ -250,18 +250,18 @@ tcp_client::do_read()
     boost::asio::async_read(
         socket_
         , response_
-        , boost::asio::transfer_at_least( 1 ) // sizeof( aqdrv4::preamble ) )
+        , boost::asio::transfer_at_least( 1 )
         , [&]( const boost::system::error_code& ec, size_t ) {
-                                 
+            
             if ( !ec ) {
-                                     
+                
                 auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
-
+                
                 if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
                      preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
-
-                    const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( acqrscontrols::aqdrv4::preamble );
                     
+                    const char * data = boost::asio::buffer_cast<const char *>( response_.data() ) + sizeof( acqrscontrols::aqdrv4::preamble );
+
                     if ( preamble->clsid == waveform::clsid() ) {
 
                         if ( auto p = protocol_serializer::deserialize<waveform>( *preamble, data ) )
@@ -271,20 +271,26 @@ tcp_client::do_read()
 
                         if ( auto p = protocol_serializer::deserialize< acqrscontrols::aqdrv4::acqiris_method >( *preamble, data ) )
                             tcp_task::instance()->push( p );
-
+                        
                     } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_temperature ) {
+
                         acqrscontrols::aqdrv4::pod_reader reader( data, preamble->length );
                         document::instance()->replyTemperature( reader.get< int32_t >() );
+                    } else {
+                        ADDEBUG() << "Error: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
                     }
-                    
+
                     response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
+                    
+                } else {
+                    // ADDEBUG() << "Reading " << preamble->length << "\t" << acqrscontrols::aqdrv4::preamble::debug( preamble );
                 }
 
                 do_read();                                         
 
             } else {
-                //if ( ec != boost::asio::error::operation_aborted ) {
                 ADDEBUG() << __FILE__ << ":" << __LINE__ << ">>> do_read: failed: " << ec.message();
+
                 socket_.close();
                 document::instance()->close_client();
             }
@@ -296,13 +302,16 @@ void
 tcp_client::write( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > data )
 {
     auto self( this );
-    
+
+    using namespace acqrscontrols;
+
     boost::asio::async_write(
         socket_
         , data->to_buffers()
         , [this, self, data]( boost::system::error_code ec, std::size_t ) {
             if ( ec ) {
                 ADDEBUG() << "*** error tcp_client::write: " << ec.message();
-            }
+            } else
+                ADDEBUG() << "data wrote: " << aqdrv4::preamble::debug( &data->preamble() );
         });
 }

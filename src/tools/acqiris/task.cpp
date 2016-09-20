@@ -21,13 +21,13 @@
 **
 **************************************************************************/
 
-#include <acqrscontrols/acqiris_method.hpp>
-#include "acqiris_protocol.hpp"
 #include "digitizer.hpp"
 #include "document.hpp"
 #include "task.hpp"
 #include "tcp_server.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/acqiris_waveform.hpp>
+#include <acqrscontrols/acqiris_method.hpp>
+#include <acqrscontrols/acqiris_protocol.hpp>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <iostream>

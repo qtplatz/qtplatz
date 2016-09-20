@@ -23,6 +23,7 @@
 
 #include "digitizer.hpp"
 #include <acqrscontrols/acqiris_method.hpp>
+#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 #include <sys/stat.h>
 #include <array>
@@ -127,8 +128,8 @@ digitizer::findDevice()
             if ( std::strcmp( p, "simulate" ) == 0 ) {
                 
                 if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS ) {
-                    //if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC271")
-                    if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC110")
+                    //if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC110")
+                    if ( Acqrs_InitWithOptions( const_cast<char*>("PCI::DC271")
                                                 , VI_FALSE, VI_FALSE, const_cast<char *>("simulate=TRUE"), &inst_ ) == VI_SUCCESS ) {
                         numInstruments_ = 1;
                         __isSimulated__ = true;
@@ -180,34 +181,33 @@ digitizer::digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiri
 
     // vertical setup
     // configVertical( channel = -1 must be done before configTrigSource, see Programmer's Guide p23 )
-
-    const int chlist [] = { -1, 1, 2 };
-    int idx = 0;
-    for ( auto& ver: { m->ext(), m->ch1(), m->ch2() } ) {
-        int channel = chlist[ idx++ ];
-        if ( ver && ver->enable ) {
+    if ( auto ext = m->ext() ) {
+        if ( ext->enable ) {
             status = AcqrsD1_configVertical( inst_
-                                             , channel
-                                             , ver->fullScale  
-                                             , ver->offset     
-                                             , ver->coupling   
-                                             , ver->bandwidth );
+                                             , -1
+                                             , ext->fullScale  
+                                             , ext->offset     
+                                             , ext->coupling   
+                                             , ext->bandwidth );
             
             if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
                 ViReal64 fullScale, offset; ViInt32 coupling, bandwidth;
-                if ( AcqrsD1_getVertical( inst_, channel, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
-                    auto ax = ( idx == 0 ) ? adapted->mutable_ext()
-                        : ( idx == 1 ) ? adapted->mutable_ch1() : adapted->mutable_ch2();
+                if ( AcqrsD1_getVertical( inst_, -1, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
+                    auto ax = adapted->mutable_ext();
                     ax->fullScale = fullScale;
                     ax->offset = offset;
                     ax->coupling = coupling;
                     ax->bandwidth = bandwidth;
                 }
-            } else if ( status != VI_SUCCESS )
-                checkError( inst_, status, ( boost::format( "AcqrsD1_configVertical (%d)" ) % channel ).str().c_str(), __LINE__ );
+            } else if ( status != VI_SUCCESS ) {
+                checkError( inst_, status, ( boost::format( "AcqrsD1_configVertical (%d)" ) % (-1) ).str().c_str(), __LINE__ );
+            }
         }
     }
     
+
+    ViInt32 trigChannel( -1 );
+
     if ( auto trig = m->trig() ) {
 
         ViInt32 trigClass( trig->trigClass ), trigPattern( trig->trigPattern ), a(0), b(0);
@@ -223,9 +223,9 @@ digitizer::digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiri
                 ax->trigPattern = trigPattern;
             }
         }
-        checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
+        checkError( inst_, status, ( boost::format( "AcqrsD1_configTrigClass(trig = %d)") % trigChannel ).str().c_str() , __LINE__  );
 
-        ViInt32 trigChannel = trigPattern & 0x80000000 ? (-1) : trigPattern & 0x03;
+        trigChannel = trigPattern & 0x80000000 ? (-1) : trigPattern & 0x03;
         
         status = AcqrsD1_configTrigSource( inst_
                                            , trigChannel
@@ -233,9 +233,45 @@ digitizer::digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiri
                                            , trig->trigSlope
                                            , trig->trigLevel1
                                            , trig->trigLevel2 );
-        checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
+        checkError( inst_, status, ( boost::format( "AcqrsD1_configTrigSource(trig = %d)") % trigChannel ).str().c_str() , __LINE__  );
+        ViInt32 xTrigCoupling, xTrigSlope;
+        ViReal64 xTrigLevel1, xTrigLevel2;
+        if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
+            AcqrsD1_getTrigSource( inst_, trigChannel, &xTrigCoupling, &xTrigSlope, &xTrigLevel1, &xTrigLevel2 );
+            ADDEBUG() << xTrigCoupling << ", " << xTrigSlope << ", " << xTrigLevel1 << ", " << xTrigLevel2;
+        }
     }
 
+    const int chlist [] = { 1, 2 };
+    int idx = 0;
+    for ( auto& ver: { m->ch1(), m->ch2() } ) {
+        int channel = chlist[ idx++ ];
+        if ( ver && ver->enable ) {
+            
+            status = AcqrsD1_configVertical( inst_
+                                             , channel
+                                             , ver->fullScale  
+                                             , ver->offset     
+                                             , ver->coupling   
+                                             , ver->bandwidth );
+            
+            if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
+                ViReal64 fullScale, offset; ViInt32 coupling, bandwidth;
+                if ( AcqrsD1_getVertical( inst_, channel, &fullScale, &offset, &coupling, &bandwidth ) == VI_SUCCESS ) {
+                    auto ax = ( idx == 1 ) ? adapted->mutable_ch1() : adapted->mutable_ch2();
+                    ax->fullScale = fullScale;
+                    ax->offset = offset;
+                    ax->coupling = coupling;
+                    ax->bandwidth = bandwidth;
+                }
+            } else if ( status != VI_SUCCESS ) {
+                ADDEBUG() << "AcqrsD1_configVertical(" << channel << ", "
+                          << ver->fullScale << ", " << ver->offset << ", " << ver->coupling << ", " << ver->bandwidth << ")";
+                checkError( inst_, status, ( boost::format( "AcqrsD1_configVertical (%d)" ) % channel ).str().c_str(), __LINE__ );
+            }
+        }
+    }
+    
     // horizontal setup
     if ( auto hor = m->hor() ) {
         nbrSamples_ = hor->nbrSamples;

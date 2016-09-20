@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "acqrscontrols_global.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cstdint>
@@ -45,7 +46,7 @@ namespace aqdrv4 {
         , extVerticalMethod
     };
 
-    struct trigger_method {
+    struct ACQRSCONTROLSSHARED_EXPORT trigger_method {
         uint32_t trigClass;
         uint32_t trigPattern;
         uint32_t trigCoupling;
@@ -64,13 +65,15 @@ namespace aqdrv4 {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
     
-    struct horizontal_method {
+    struct ACQRSCONTROLSSHARED_EXPORT horizontal_method {
         double sampInterval;
         double delayTime;    // digitizer mode can be negative
         uint32_t nbrSamples;
         uint32_t mode;  // configMode, 0: normal, 2: averaging
         uint32_t flags; // configMode, if mode == 0, 0: normal, 1: start on trigger
         uint32_t nbrAvgWaveforms;
+
+        double width() const { return sampInterval * nbrSamples; }
         
         horizontal_method() : sampInterval( 0.5e-9 )
                             , delayTime( 0.0 )
@@ -84,7 +87,7 @@ namespace aqdrv4 {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
 
-    struct vertical_method {
+    struct ACQRSCONTROLSSHARED_EXPORT vertical_method {
         double fullScale;
         double offset;
         uint32_t coupling;
@@ -112,7 +115,7 @@ namespace aqdrv4 {
     };
     
 
-    class acqiris_method {
+    class ACQRSCONTROLSSHARED_EXPORT acqiris_method {
     public:
         acqiris_method();
         acqiris_method( const acqiris_method& t );
@@ -150,5 +153,5 @@ namespace aqdrv4 {
 
 BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::trigger_method, 1 )
 BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::horizontal_method, 1 )
-BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::vertical_method, 1 )
+BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::vertical_method, 2 )
 BOOST_CLASS_VERSION( acqrscontrols::aqdrv4::acqiris_method, 1 )

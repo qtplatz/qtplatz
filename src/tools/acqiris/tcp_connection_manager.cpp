@@ -10,7 +10,7 @@
 
 #include "tcp_connection_manager.hpp"
 
-using namespace aqdrv4::server;
+using namespace acqiris::server;
 
 connection_manager::connection_manager()
 {
