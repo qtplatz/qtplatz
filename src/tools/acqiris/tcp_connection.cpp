@@ -52,39 +52,46 @@ connection::stop()
 void
 connection::do_read()
 {
+    using namespace acqrscontrols;
+
     auto self(shared_from_this());
 
     boost::asio::async_read(
         socket_
         , response_
-        , boost::asio::transfer_at_least( sizeof( acqrscontrols::aqdrv4::preamble ) )
+        , boost::asio::transfer_at_least( 1 ) // sizeof( acqrscontrols::aqdrv4::preamble ) )
         , [this,self]( const boost::system::error_code& ec
                        , std::size_t bytes_transferred ) {
-                                 
+
+            ADDEBUG() << "reading : "
+                      << response_.size() << "\t"
+                      << aqdrv4::preamble::debug( boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() ) );
+            
             if ( !ec ) {
-                                     
-                if ( response_.size() >= sizeof( acqrscontrols::aqdrv4::preamble ) ) {
-
-                    auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response_.data() );
+                
+                if ( response_.size() >= sizeof( aqdrv4::preamble ) ) {
                     
-                    if ( acqrscontrols::aqdrv4::preamble::isOk( preamble ) && 
-                         preamble->length <= response_.size() - sizeof( acqrscontrols::aqdrv4::preamble ) ) {
+                    auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
+
+                    if ( !aqdrv4::preamble::isOk( preamble ) ) {
+
+                        ADDEBUG() << "Error: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         
-                        if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_connection_request ) {
-                            connection_requested_ = true;
+                    } else {
+                        if ( preamble->length <= ( response_.size() - sizeof( aqdrv4::preamble ) ) ) {
+                        
+                            if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_connection_request )
+                                connection_requested_ = true;
+
+                            request_handler_.handle_request( response_, reply_ );
+
+                            if ( reply_.size() >= sizeof( acqrscontrols::aqdrv4::preamble ) )
+                                do_write();
                         }
-
-                        request_handler_.handle_request( response_, reply_ );
-
-                        if ( reply_.size() >= sizeof( acqrscontrols::aqdrv4::preamble ) )
-                            do_write();
                     }
-                                         
-                } else {
-                                         
-                    do_read();                                         
-
                 }
+                
+                do_read();                                         
 
             } else if ( ec != boost::asio::error::operation_aborted ) {
 

@@ -65,27 +65,28 @@ namespace aqdrv4 {
     preamble::debug( const preamble * data )
     {
         std::ostringstream o;
-        if ( data->aug == __aug__ ) {
-            if ( data->clsid == clsid_connection_request )
-                o << "'clsid_connection_request'";
-            else if ( data->clsid == clsid_acknowledge )
-                o << "'clsid_acknowledge'";
-            else if ( data->clsid == clsid_readData )
-                o << "'clsid_readData'";
-            else if ( data->clsid == clsid_temperature )
-                o << "'clsid_temperature'";
-            else if ( data->clsid == waveform::clsid() )
-                o << "'clsid_waveform'";
-            else if ( data->clsid == acqiris_method::clsid() )
-                o << "'clsid_acqiris_method'";
-            else {
-                o << boost::lexical_cast< std::string >( data->clsid );
-            }
-        } else {
-            o << "aug: " << boost::format( "%x" ) % data->aug
-              << " clsid: " << boost::lexical_cast< std::string >( data->clsid );
-        }
+        if ( data->aug == __aug__ )
+            o << "AUG OK\t";
+        else
+            o << "AUG [" << boost::format( "%x" ) % data->aug << "]\t";
+                
+        if ( data->clsid == clsid_connection_request )
+            o << "'clsid_connection_request'";
+        else if ( data->clsid == clsid_acknowledge )
+            o << "'clsid_acknowledge'";
+        else if ( data->clsid == clsid_readData )
+            o << "'clsid_readData'";
+        else if ( data->clsid == clsid_temperature )
+            o << "'clsid_temperature'";
+        else if ( data->clsid == waveform::clsid() )       // "{33f5bfd8-793c-11e6-9bd0-1b94f4251234}"
+            o << "'clsid_waveform'";
+        else if ( data->clsid == acqiris_method::clsid() ) // "{A69B313C-007E-49C4-9E55-1D279A382D2A}"
+            o << "'clsid_acqiris_method'";
+        else
+            o << boost::lexical_cast< std::string >( data->clsid );
+        
         o << " payload-length: " << data->length;
+
         return o.str();
     }
 
@@ -108,15 +109,12 @@ namespace aqdrv4 {
     }
 
 
-    void preamble::dump( const preamble * p, size_t size )
+    void preamble::dump( std::ostream& of, const unsigned char * p, size_t size )
     {
-        std::ofstream of( "acqiris_protocol.log", std::ofstream::out | std::ofstream::app );
-
-        const unsigned char * dp = reinterpret_cast< const unsigned char * >( p );
         for ( size_t i = 0; i < size; ++i ) {
             if ( ( i % 32 ) == 0 )
                 of << std::endl;
-            of << boost::format( "%02x " ) % uint32_t( dp[ i ] );
+            of << boost::format( "%02x " ) % uint32_t( p[ i ] );
         }
         of << std::endl;
     }

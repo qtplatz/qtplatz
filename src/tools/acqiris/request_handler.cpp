@@ -26,26 +26,28 @@ void
 request_handler::handle_request( boost::asio::streambuf& response
                                  , boost::asio::streambuf& reply )
 {
-    auto preamble = boost::asio::buffer_cast< const acqrscontrols::aqdrv4::preamble * >( response.data() );
-    const char * data = boost::asio::buffer_cast<const char *>( response.data() ) + sizeof( preamble );
+    using namespace acqrscontrols;
+    
+    auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response.data() );
+    const char * data = boost::asio::buffer_cast<const char *>( response.data() ) + sizeof( aqdrv4::preamble );
 
-    ADDEBUG() << "*** request_handler got: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
+    ADDEBUG() << "*** request_handler got: " << aqdrv4::preamble::debug( preamble );
 
     if ( preamble->clsid == acqrscontrols::aqdrv4::acqiris_method::clsid() ) {
 
         using acqrscontrols::aqdrv4::protocol_serializer;
-        
-        if ( auto p = protocol_serializer::deserialize< acqrscontrols::aqdrv4::acqiris_method >( *preamble, data ) ) {
-            document::instance()->handleValueChanged( p, acqrscontrols::aqdrv4::allMethod );
-            document::instance()->acqiris_method_adapted( p );
+        try {
+            if ( auto p = protocol_serializer::deserialize< acqrscontrols::aqdrv4::acqiris_method >( *preamble, data ) ) {
+                document::instance()->handleValueChanged( p, acqrscontrols::aqdrv4::allMethod );
+                document::instance()->acqiris_method_adapted( p );
+            }
+        } catch ( ... ) {
+            ADDEBUG() << boost::current_exception_diagnostic_information();
         }
     }
 
-    response.consume( sizeof( preamble ) + preamble->length );
+    response.consume( sizeof( aqdrv4::preamble ) + preamble->length );
     
-    std::cout << "consume " << std::dec << sizeof( preamble )
-              << ", remains: " << response.size() << std::endl;
-
     {
         std::ostream request_stream( &reply );
         acqrscontrols::aqdrv4::preamble ack( acqrscontrols::aqdrv4::clsid_acknowledge );

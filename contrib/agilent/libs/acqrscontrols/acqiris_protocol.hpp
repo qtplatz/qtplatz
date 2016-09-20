@@ -61,7 +61,7 @@ namespace aqdrv4 {
         const char * data() const { return reinterpret_cast< const char * >( this ); }
         static bool isOk( const preamble * );
         static std::string debug( const preamble * );
-        static void dump( const preamble *, size_t size );
+        static void dump( std::ostream&, const unsigned char *, size_t size );
     };
 
     class ACQRSCONTROLSSHARED_EXPORT pod_reader {

@@ -273,7 +273,7 @@ document::replyTemperature( int temp )
         data->preamble().clsid = acqrscontrols::aqdrv4::clsid_temperature;
         *data << int32_t( temp );
         
-        // server_->post( data );
+        server_->post( data );
         
     } else {
         ADDEBUG() << "Temperature: " << temp;

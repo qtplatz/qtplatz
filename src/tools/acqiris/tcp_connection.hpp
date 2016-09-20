@@ -54,12 +54,6 @@ namespace acqiris {
 
             std::array<char, 8192> buffer_;
 
-            /// The incoming request.
-            //request request_;
-
-            /// The parser for the incoming request.
-            // request_parser request_parser_;
-
             boost::asio::streambuf reply_;
             boost::asio::streambuf response_;
             bool connection_requested_;
