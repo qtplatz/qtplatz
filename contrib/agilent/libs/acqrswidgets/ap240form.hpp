@@ -68,7 +68,10 @@ namespace acqrswidgets {
         void get( int ch, adcontrols::threshold_method& ) const;    
         void set( int ch, const adcontrols::threshold_method& );    
         void get( adcontrols::threshold_action& ) const;    
-        void set( const adcontrols::threshold_action& );    
+        void set( const adcontrols::threshold_action& );
+
+        void setRemoteAccess( bool, const QString& );
+        QPair< bool, QString> remoteAccess() const;
 
     signals:
         void valueChanged( idCategory cat, int ch );

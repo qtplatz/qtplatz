@@ -29,6 +29,7 @@
 #include <acqrscontrols/ap240/method.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/threshold_action.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
 #include <adwidgets/thresholdactionform.hpp>
@@ -95,8 +96,16 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 
         if ( auto hLayout = new QHBoxLayout() ) {
             layout->addLayout( hLayout );
-            hLayout->addWidget( new QCheckBox( tr("Remote access:") ) );
-            hLayout->addWidget( new QLineEdit() );
+            if ( auto cbx = new QCheckBox( tr("Remote access:") ) ) {
+                hLayout->addWidget( cbx );
+                connect( cbx, &QCheckBox::toggled, this, []( bool check ){
+                        ADDEBUG() << "toggled(" << check << ")";
+                    });
+            }
+
+            if ( auto edit = new QLineEdit() ) {
+                hLayout->addWidget( edit );
+            }
         }
     }
     
@@ -366,3 +375,28 @@ ap240form::set( const adcontrols::threshold_action& m )
     if ( auto form = findChild< adwidgets::ThresholdActionForm *>() )
         form->set( m );
 }
+
+void
+ap240form::setRemoteAccess( bool remote, const QString& host )
+{
+    if ( auto cbx = findChild< QCheckBox * >() )
+        cbx->setCheckState( remote ? Qt::Checked : Qt::Unchecked );
+
+    if ( auto edit = findChild< QLineEdit * >() )
+        edit->setText( host );
+}
+
+QPair< bool, QString>
+ap240form::remoteAccess() const
+{
+    bool isRemote( false );
+    QString host;
+    if ( auto cbx = findChild< QCheckBox * >() )
+        isRemote = cbx->checkState() == Qt::Checked ? true : false;
+
+    if ( auto edit = findChild< QLineEdit * >() )
+        host = edit->text();
+
+    return QPair< bool, QString >( isRemote, host );
+}
+
