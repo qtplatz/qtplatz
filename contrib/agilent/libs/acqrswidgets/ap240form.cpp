@@ -94,69 +94,31 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                 });            
         }
 
-        if ( auto hLayout = new QHBoxLayout() ) {
-            layout->addLayout( hLayout );
-            if ( auto cbx = new QCheckBox( tr("Remote access:") ) ) {
-                hLayout->addWidget( cbx );
-                connect( cbx, &QCheckBox::toggled, this, []( bool check ){
-                        ADDEBUG() << "toggled(" << check << ")";
-                    });
-            }
+        if ( auto gbx = new QGroupBox( tr("Digitizer Remote Access") ) ) {
 
-            if ( auto edit = new QLineEdit() ) {
+            gbx->setObjectName( "RemoteAccess" );
+            gbx->setFlat( true );
+            layout->addWidget( gbx );
+            gbx->setCheckable( true );
+
+            if ( auto hLayout = new QHBoxLayout( gbx ) ) {
+
+                hLayout->setSpacing( 0 );
+                hLayout->setMargin( 0 );
+                
+                auto edit = new QLineEdit();
                 hLayout->addWidget( edit );
+
+                connect( gbx, &QGroupBox::toggled, this, [this,edit]( bool remote ){
+                        emit deviceConfigChanged( remote, edit->text() );
+                    });
+                connect( edit, &QLineEdit::editingFinished, this, [this,gbx,edit](){
+                        emit deviceConfigChanged( gbx->isChecked(), edit->text() );
+                    });
             }
         }
     }
     
-#if 0
-    // Vertical configuration
-    if ( auto layout = new QVBoxLayout( ui->groupBox_3 ) ) {
-
-        if ( auto tab = new QTabWidget() ) {
-            layout->addWidget( tab );
-            for ( auto& channel :
-                { std::make_pair( 1, tr( "CH-1" ) ), std::make_pair( 2, tr( "CH-2" ) ), std::make_pair( -1, tr( "Ext") ) } ) {
-                if ( auto gbox = new QGroupBox( channel.second, this ) ) {
-                    gbox->setObjectName( channel.second );
-                    gbox->setCheckable( true );
-                    gbox->setTitle( channel.second );
-                    
-                    auto layout = new QVBoxLayout( gbox );
-                    layout->setMargin( 0 );
-                    layout->setSpacing( 0 );
-                    
-                    auto w = new ap240VerticalForm();
-                    w->setChannel( channel.first );
-                    layout->addWidget( w );
-                    tab->addTab( gbox, channel.second );
-                    
-                    connect( w, &ap240VerticalForm::valueChanged, [this] ( ap240VerticalForm::idItem id, int channel, const QVariant& ) {
-                            emit valueChanged( idVertical, channel ); } );
-                    connect( gbox, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( idChannels, -1 ); } );
-                }
-            }
-            {
-                // Trigger configuration
-                auto w = new ap240TriggerForm();
-                tab->addTab( w, tr("Trigger") );
-                connect( w, &ap240TriggerForm::valueChanged, [this] ( ap240TriggerForm::idItem id, const QVariant& d ) {
-                        emit valueChanged( idTrigger, -1 );
-                    } );
-            }
-        }
-    }
-
-    if ( auto layout = new QVBoxLayout( ui->groupBox_4 ) ) {
-        layout->setMargin( 0 );
-        layout->setSpacing( 0 );
-        auto w = new ap240HorizontalForm();
-        layout->addWidget( w );
-        connect( w, &ap240HorizontalForm::valueChanged, [this] ( ap240HorizontalForm::idItem id, const QVariant& d ) {
-                emit valueChanged( idHorizontal, -1 );
-            } );
-    }
-#endif
     set( acqrscontrols::ap240::method() );
 }
 
@@ -379,24 +341,24 @@ ap240form::set( const adcontrols::threshold_action& m )
 void
 ap240form::setRemoteAccess( bool remote, const QString& host )
 {
-    if ( auto cbx = findChild< QCheckBox * >() )
-        cbx->setCheckState( remote ? Qt::Checked : Qt::Unchecked );
-
-    if ( auto edit = findChild< QLineEdit * >() )
-        edit->setText( host );
+    if ( auto gbx = findChild< QGroupBox * >( "RemoteAccess" ) ) {
+        gbx->setChecked( remote );
+        if ( auto edit = gbx->findChild< QLineEdit * >() )
+            edit->setText( host );
+    }
 }
 
 QPair< bool, QString>
 ap240form::remoteAccess() const
 {
-    bool isRemote( false );
-    QString host;
-    if ( auto cbx = findChild< QCheckBox * >() )
-        isRemote = cbx->checkState() == Qt::Checked ? true : false;
+    bool remote( false );
+    QString rhost;
 
-    if ( auto edit = findChild< QLineEdit * >() )
-        host = edit->text();
-
-    return QPair< bool, QString >( isRemote, host );
+    if ( auto gbx = findChild< QGroupBox * >( "RemoteAccess" ) ) {
+        remote = gbx->isChecked();
+        if ( auto edit = gbx->findChild< QLineEdit * >() )
+            rhost = edit->text();
+    }
+    return QPair< bool, QString >( remote, rhost );
 }
 

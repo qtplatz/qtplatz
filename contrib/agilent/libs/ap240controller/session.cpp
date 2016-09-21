@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "session.hpp"
-//#include "masterobserver.hpp"
 #include "waveformobserver.hpp"
 #include <ap240/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -48,10 +47,10 @@ namespace ap240controller { namespace Instrument {
             impl() : work_( io_service_ )
                    , masterObserver_( std::make_shared< adicontroller::MasterObserver >( "master.ap240.ms-cheminfo.com" ) )
                    , waveformObserver_( std::make_shared< WaveformObserver >() ) {
-
+                
                 // {5df0f451-4b42-597f-b223-4378f92baa48}
                 masterObserver_->addSibling( waveformObserver_.get() );
-
+                
             }
             
             static std::once_flag flag_, flag2_, flag3_;

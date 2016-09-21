@@ -25,9 +25,9 @@
 #include "mainwindow.hpp"
 #include "document.hpp"
 #include "tcp_server.hpp"
-#include "tcp_client.hpp"
 #include "task.hpp"
 #include <acqrscontrols/acqiris_method.hpp>
+#include <acqrscontrols/acqiris_client.hpp>
 #include <QApplication>
 #if defined USING_PROTOBUF
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
         isClient = true;
         
         document::instance()->set_client(
-            std::make_unique< acqiris::client::tcp_client >(
+            std::make_unique< acqrscontrols::aqdrv4::acqiris_client >(
                 vm["connect"].as< std::string >(), vm["port"].as< std::string >() ) );
     }
 

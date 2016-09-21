@@ -35,9 +35,11 @@
 #include <vector>
 
 namespace acqrscontrols {
-    class acqiris_method;
-    class waveform;
-    enum SubMethodType : unsigned int;
+    namespace aqdrv4 {
+        class acqiris_method;
+        class waveform;
+        enum SubMethodType : unsigned int;
+    }
 }
 
 namespace acqiris {

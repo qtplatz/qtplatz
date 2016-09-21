@@ -76,6 +76,8 @@ namespace acqrswidgets {
     signals:
         void valueChanged( idCategory cat, int ch );
         // void valueChanged( int, const QVariant& );
+
+        void deviceConfigChanged( bool remote_access, const QString& remote_host );
     
     private:
         Ui::ap240form *ui;

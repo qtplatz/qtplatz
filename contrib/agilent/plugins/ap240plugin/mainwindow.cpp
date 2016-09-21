@@ -100,30 +100,40 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    auto widget = new acqrswidgets::ap240form();
+    auto form = new acqrswidgets::ap240form();
 
     if ( auto tm = document::instance()->threshold_method( 0 ) )
-        widget->set( 0, *tm );
+        form->set( 0, *tm );
     
     if ( auto tm = document::instance()->threshold_method( 1 ) )    
-        widget->set( 1, *tm );
+        form->set( 1, *tm );
+
+    if ( auto settings = document::instance()->settings() ) {
+        bool remote = settings->value( "Digitizer/RemoteAccess", false ).toBool();
+        QString rhost = settings->value( "Digitizer/RemoteHost", "nipxi" ).toString();
+        form->setRemoteAccess( remote, rhost );
+    }    
     
-    createDockWidget( widget, "AP240", "AP240" );
-    
-    connect( widget, &acqrswidgets::ap240form::valueChanged, [this] ( acqrswidgets::idCategory cat, int ch ) {
-            if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
-                if ( cat == acqrswidgets::idSlopeTimeConverter ) {
-                    adcontrols::threshold_method tm;
-                    form->get( ch, tm );
-                    document::instance()->set_threshold_method( ch, tm );
-                } else {
-                    acqrscontrols::ap240::method m;
-                    form->get( m );
-                    document::instance()->setControlMethod( m, QString() );
-                }
+    createDockWidget( form, "AP240", "AP240" );
+
+    connect( form, &acqrswidgets::ap240form::valueChanged, [this,form] ( acqrswidgets::idCategory cat, int ch ) {
+            if ( cat == acqrswidgets::idSlopeTimeConverter ) {
+                adcontrols::threshold_method tm;
+                form->get( ch, tm );
+                document::instance()->set_threshold_method( ch, tm );
+            } else {
+                acqrscontrols::ap240::method m;
+                form->get( m );
+                document::instance()->setControlMethod( m, QString() );
             }
         } );
     
+    connect( form, &acqrswidgets::ap240form::deviceConfigChanged, [this] ( bool remote, const QString& host ){
+            if ( auto settings = document::instance()->settings() ) {
+                settings->setValue( "Digitizer/RemoteAccess", remote );
+                settings->setValue( "Digitizer/RemoteHost", host );
+            }
+        });
 }
 
 void
@@ -274,6 +284,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 {
     if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
         widget->setWindowTitle( title );
+
     if ( widget->objectName().isEmpty() )
         widget->setObjectName( page );
 

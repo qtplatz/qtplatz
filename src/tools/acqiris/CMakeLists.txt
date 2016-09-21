@@ -17,6 +17,7 @@ set ( CMAKE_CXX_STANDARD 14 )
 set ( USING_CHARTS OFF )
 
 set ( STANDALONE OFF )
+set ( LOCAL_TCP_CLIENT OFF )
 
 if ( STANDALONE )
   include( "standalone" )
@@ -79,8 +80,6 @@ add_executable( ${PROJECT_NAME}
   tcp_connection.hpp  
   tcp_connection_manager.cpp
   tcp_connection_manager.hpp
-  tcp_client.cpp
-  tcp_client.hpp
   tcp_server.cpp
   tcp_server.hpp
   tcp_task.cpp

@@ -39,6 +39,7 @@ class QSettings;
 namespace acqrscontrols {
 namespace aqdrv4 {
 
+    class acqiris_client;
     class acqiris_method;
     class waveform;
 
@@ -84,11 +85,16 @@ public:
     void acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > );
 
     void set_server( std::unique_ptr< acqiris::server::tcp_server >&& );
-    void set_client( std::unique_ptr< acqiris::client::tcp_client >&& );
     void close_client();
 
     acqiris::server::tcp_server * server() { return server_.get(); }
+# if LOCAL_TCP_CLIENT
     acqiris::client::tcp_client * client() { return client_.get(); }
+    void set_client( std::unique_ptr< acqiris::client::tcp_client >&& );
+# else
+    acqrscontrols::aqdrv4::acqiris_client * client() { return client_.get(); }
+    void set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&& );
+# endif
 
     static bool save( const std::string& file, std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > );
     static std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > load( const std::string& file );
@@ -112,7 +118,11 @@ private:
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > method_;
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > adapted_method_;
     std::unique_ptr< acqiris::server::tcp_server > server_;
+# if LOCAL_TCP_CLIENT    
     std::unique_ptr< acqiris::client::tcp_client > client_;
+#else
+    std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client > client_;
+#endif
     std::unique_ptr< QSettings > settings_;
     std::vector< std::thread > tcp_threads_;
     int temperature_;

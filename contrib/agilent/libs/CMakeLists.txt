@@ -18,3 +18,4 @@ endif()
 
 add_subdirectory( acqrsinterpreter )
 add_subdirectory( acqrscontrols )
+add_subdirectory( aqdrv4controller )  # Remote access to AP240/DC122

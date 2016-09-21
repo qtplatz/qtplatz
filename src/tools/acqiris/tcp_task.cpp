@@ -21,9 +21,9 @@
 **
 **************************************************************************/
 
-#include <acqrscontrols/acqiris_method.hpp>
 #include "tcp_task.hpp"
-#include "tcp_client.hpp"
+#include <acqrscontrols/acqiris_client.hpp>
+#include <acqrscontrols/acqiris_method.hpp>
 #include "document.hpp"
 #include "waveform.hpp"
 #include <adportable/debug.hpp>
@@ -107,6 +107,8 @@ tcp_task::worker_thread()
 void
 tcp_task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType )
 {
+    ADDEBUG() << "prepare_for_run";
+    
     if ( auto client = document::instance()->client() ) {
         if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *m ) ) {
             client->write( data );

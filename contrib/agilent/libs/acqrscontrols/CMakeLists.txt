@@ -39,6 +39,8 @@ add_library( ${PROJECT_NAME} SHARED
   u5303a/histogram.cpp
   u5303a/waveform.hpp
   u5303a/waveform.cpp
+  acqiris_client.cpp
+  acqiris_client.hpp
   acqiris_method.cpp
   acqiris_method.hpp
   acqiris_protocol.cpp

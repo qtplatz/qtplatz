@@ -25,7 +25,12 @@
 #include "document.hpp"
 #include "digitizer.hpp"
 #include "tcp_server.hpp"
+#if LOCAL_TCP_CLIENT
 #include "tcp_client.hpp"
+#else
+#include "tcp_task.hpp"
+#include <acqrscontrols/acqiris_client.hpp>
+#endif
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
@@ -208,6 +213,7 @@ document::close_client()
     }
 }
 
+#if LOCAL_TCP_CLIENT
 void
 document::set_client( std::unique_ptr< acqiris::client::tcp_client >&& client )
 {
@@ -216,6 +222,43 @@ document::set_client( std::unique_ptr< acqiris::client::tcp_client >&& client )
             tcp_threads_.emplace_back( std::thread( [&]{ client_->run(); } ) );
         });    
 }
+
+#else
+
+void
+document::set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&& client )
+{
+    using namespace acqrscontrols;
+    
+    client_ = std::move( client );
+
+    acqiris::client::tcp_task::instance()->initialize();
+
+    std::call_once( flag, [&](){
+            tcp_threads_.emplace_back( std::thread( [&]{ client_->run(); } ) );
+        });
+    
+    client_->connect( [&]( const aqdrv4::preamble * preamble, const char * data, size_t length ){
+            if ( preamble->clsid == aqdrv4::waveform::clsid() ) {
+                
+                if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::waveform >( *preamble, data ) )
+                    acqiris::client::tcp_task::instance()->push( p );
+                
+            } else if ( preamble->clsid == aqdrv4::acqiris_method::clsid() ) {
+                
+                if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
+                    acqiris::client::tcp_task::instance()->push( p );
+                
+            } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_temperature ) {
+                
+                aqdrv4::pod_reader reader( data, preamble->length );
+                document::instance()->replyTemperature( reader.get< int32_t >() );
+                
+            }
+        });
+}
+
+#endif
 
 bool
 document::save( const std::string& file, std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > p )
@@ -259,6 +302,7 @@ document::connect_finalize( const final_close_t::slot_type & subscriber )
 void
 document::handleValueChanged( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType subType )
 {
+    ADDEBUG() << "handleValueChanged";
     set_acqiris_method( m );
     signal_prepare_for_run_( m, subType );
 }
