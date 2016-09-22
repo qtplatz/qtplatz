@@ -7,6 +7,13 @@ if ( WIN32 )
   set( ACQRSDIR   "C:/Program Files (x86)/Agilent/Acqiris" )
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
 
+  if ( AgMD2_INCLUDE_DIR )
+    include_directories( ${AgMD2_INCLUDE_DIR} )
+  endif()
+  if ( AqDrv4_INCLUDE_DIR )
+    include_directories( ${AqDrv4_INCLUDE_DIR} )
+  endif()
+
 elseif( APPLE )
 
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS ${CMAKE_SOURCE_DIR}/../infitof/acqiris/include )
