@@ -89,12 +89,11 @@ rawdata::loadAcquiredConf()
     if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
 
         for ( const auto& conf: conf_ ) {
-            ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
                 if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) 
                     readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
             } else {
-                ADERROR() << "No data reader found for '" << conf.trace_id << "'";
+                ADERROR() << "## No data reader found for '" << conf.trace_id << "'";
             }
         }
         fcnCount_ = 0;

@@ -47,7 +47,7 @@ namespace adicontroller {
         
         void prepare_storage( SignalObserver::Observer * );
 
-        void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
+        // void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
 
         void write( const boost::uuids::uuid& objId, adicontroller::SignalObserver::DataWriter& );
         

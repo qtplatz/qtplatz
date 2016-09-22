@@ -189,55 +189,54 @@ SampleProcessor::storage_name() const
     return storage_name_;
 }
 
-void
-SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& rdBuf )
-{
-    if ( rdBuf.events() & SignalObserver::wkEvent_INJECT ) {
-        ts_inject_trigger_ = rdBuf.epoch_time();
-        tp_inject_trigger_ = std::chrono::steady_clock::now(); // CAUTION: this has some unknown delay from exact trigger.
-        if ( !c_acquisition_active_ )
-            ADTRACE() << boost::format( "Sample '%1%' got an INJECTION" ) % this->storage_name_.string();
-		c_acquisition_active_ = true;
-    }
+// void
+// SampleProcessor::handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& rdBuf )
+// {
+//     if ( rdBuf.events() & SignalObserver::wkEvent_INJECT ) {
+//         ts_inject_trigger_ = rdBuf.epoch_time();
+//         tp_inject_trigger_ = std::chrono::steady_clock::now(); // CAUTION: this has some unknown delay from exact trigger.
+//         if ( !c_acquisition_active_ )
+//             ADTRACE() << boost::format( "Sample '%1%' got an INJECTION" ) % this->storage_name_.string();
+// 		c_acquisition_active_ = true;
+//     }
 
-	if ( ! c_acquisition_active_ )
-		return;
+// 	if ( ! c_acquisition_active_ )
+// 		return;
 
-	adfs::stmt sql( fs_->db() );
-	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :fcn, :events, :data, :meta )" );
-	sql.begin();
-	sql.bind( 1 ) = objId;
-    sql.bind( 2 ) = rdBuf.timepoint();
-	sql.bind( 3 ) = pos;
-	sql.bind( 4 ) = rdBuf.fcn();
-    sql.bind( 5 ) = rdBuf.events();
-	sql.bind( 6 ) = adfs::blob( rdBuf.xdata().size(), reinterpret_cast<const int8_t *>( rdBuf.xdata().data() ) );
-    sql.bind( 7 ) = adfs::blob( rdBuf.xmeta().size(), reinterpret_cast<const int8_t *>( rdBuf.xmeta().data() ) ); // method
-	if ( sql.step() == adfs::sqlite_done )
-		sql.commit();
-	else
-		sql.reset();
+// 	adfs::stmt sql( fs_->db() );
+// 	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :fcn, :events, :data, :meta )" );
+// 	sql.begin();
+// 	sql.bind( 1 ) = objId;
+//     sql.bind( 2 ) = rdBuf.timepoint();
+// 	sql.bind( 3 ) = pos;
+// 	sql.bind( 4 ) = rdBuf.fcn();
+//     sql.bind( 5 ) = rdBuf.events();
+// 	sql.bind( 6 ) = adfs::blob( rdBuf.xdata().size(), reinterpret_cast<const int8_t *>( rdBuf.xdata().data() ) );
+//     sql.bind( 7 ) = adfs::blob( rdBuf.xmeta().size(), reinterpret_cast<const int8_t *>( rdBuf.xmeta().data() ) ); // method
+// 	if ( sql.step() == adfs::sqlite_done )
+// 		sql.commit();
+// 	else
+// 		sql.reset();
 
-    if ( objId == objId_front_ && pos_front_ > unsigned( pos + 10 ) ) {
-        size_t nBehind = pos_front_ - pos;
-        if ( stop_triggered_ && ( nBehind % 5 == 0 ) )
-            ADTRACE() << boost::format( "'%1%' is being closed.  Saving %2% more data in background." ) % storage_name_.stem() % nBehind;
-        else if ( nBehind % 25 == 0 )
-            ADTRACE() << boost::format( "Sample '%1%' %2% data behind." ) % storage_name_.stem() % nBehind;
-    }
+//     if ( objId == objId_front_ && pos_front_ > unsigned( pos + 10 ) ) {
+//         size_t nBehind = pos_front_ - pos;
+//         if ( stop_triggered_ && ( nBehind % 5 == 0 ) )
+//             ADTRACE() << boost::format( "'%1%' is being closed.  Saving %2% more data in background." ) % storage_name_.stem() % nBehind;
+//         else if ( nBehind % 25 == 0 )
+//             ADTRACE() << boost::format( "Sample '%1%' %2% data behind." ) % storage_name_.stem() % nBehind;
+//     }
 
-    auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
-#if 0
-    if ( objId == 1 )
-        Logging( L"Elapsed time: %1%", EventLog::pri_INFO ) % double( elapsed_time.count() / 60.0 );
-#endif
-    if ( elapsed_time.count() >= sampleRun_->methodTime() || double( elapsed_count ) * 1.0e-6 >= sampleRun_->methodTime() ) {
-        c_acquisition_active_ = false;
-    }
+//     auto elapsed_count = rdBuf.timepoint() - ts_inject_trigger_;
+//     auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - tp_inject_trigger_);
+// #if 0
+//     if ( objId == 1 )
+//         Logging( L"Elapsed time: %1%", EventLog::pri_INFO ) % double( elapsed_time.count() / 60.0 );
+// #endif
+//     if ( elapsed_time.count() >= sampleRun_->methodTime() || double( elapsed_count ) * 1.0e-6 >= sampleRun_->methodTime() ) {
+//         c_acquisition_active_ = false;
+//     }
 
-}
-
+// }
 
 void
 SampleProcessor::write( const boost::uuids::uuid& objId

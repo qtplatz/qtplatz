@@ -47,6 +47,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <atomic>
 #include <map>
 #include <memory>
@@ -63,13 +64,15 @@ namespace acqrsinterpreter {
         typedef Interpreter type;
     };
 
+    // "{ebec355c-3277-5b15-9430-b83031e7555c}" histogram.1.malpix.ms-cheminfo.com
+
     // u5303a
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::value = "1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::display_name = "1.u5303a";
 
     template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result> >::value = "timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount[u5303a]";
-    
+
     template<> const std::string TID< histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< histogram::DataInterpreter >::display_name = "histogram";
     
@@ -77,11 +80,15 @@ namespace acqrsinterpreter {
     template<> const std::string TID< softavgr::DataInterpreter>::display_name = "waveform";
 
     // ap240
+    // "{4f431f91-b08c-54ba-94f0-e1d13eba29d7}"
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
 
+    // "{76d1f823-2680-5da7-89f2-4d2d956149bd}"
     template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
     template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "waveform[ap240]";
+
+    // "{04c23c3c-7fd6-11e6-aa18-b7efcbc41dcd}", "1.dc122.ms-cheminfo.com"
 
     typedef boost::mpl::vector<
         TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform> >
@@ -109,10 +116,11 @@ namespace acqrsinterpreter {
         std::unique_ptr< adcontrols::DataInterpreter >& interpreter;
         std::string& display_name;
         lookup_and_create( const char * _id, std::unique_ptr< adcontrols::DataInterpreter >& t, std::string& name )
-            : id( _id ), interpreter( t ), display_name( name ) {}
+            : id( _id ), interpreter( t ), display_name( name )
+            {}
         template < typename T > void operator () ( wrap<T> ) const {
             if ( id == T::value ) {
-                interpreter = std::unique_ptr< typename T::type >( new typename T::type() );
+                interpreter = std::make_unique< typename T::type >();
                 display_name = T::display_name;
             }
         }
@@ -238,7 +246,13 @@ DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
 
-    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
+    if ( std::string( traceid ) == "1.dc122.ms-cheminfo.com" ) {
+        interpreter_ = std::make_unique< waveform::DataInterpreter< acqrscontrols::ap240::waveform > >();
+        display_name_ = "waveform[dc122]";
+    } else {
+        boost::mpl::for_each< interpreter_types
+                              , wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
+    }
 }
 
 // static
@@ -247,6 +261,7 @@ DataReader::traceid_list()
 {
     std::vector< std::string > list;
     boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( make_trace_id_list( list ) );
+    list.emplace_back( "1.dc122.ms-cheminfo.com" );
     return list;
 }
 
@@ -254,7 +269,8 @@ bool
 DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
-        ADDEBUG() << "initialize data for: " << objtext;
+        ADDEBUG() << "## initialize DataReader for: " << objtext << "\tobjid: " << objid;
+        
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
         db_ = dbf._ptr();

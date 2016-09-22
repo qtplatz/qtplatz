@@ -33,6 +33,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adportable/debug.hpp>
 #include <boost/asio.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/msm/back/tools.hpp>
 #include <stdexcept>
