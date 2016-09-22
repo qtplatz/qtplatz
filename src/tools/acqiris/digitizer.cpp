@@ -87,10 +87,11 @@ digitizer::checkError( ViSession instId, ViStatus st, const char * text, ViInt32
     std::array< ViChar, 1024 > msg;
     std::fill( msg.begin(), msg.end(), 0 );
     AcqrsD1_errorMessageEx( instId, st, msg.data(), msg.size() );
-    std::cout << boost::format( "%s (0x%x): %s" ) % text % int(st) % msg.data();
+    std::ostringstream o;
+    o << boost::format( "%s (0x%x): %s" ) % text % int(st) % msg.data();
     if ( arg )
-        std::cout << " #" << arg;
-    std::cout << std::endl;
+        o << " #" << arg;
+    ADDEBUG() << o.str();
     return false;
 }
 
@@ -98,13 +99,13 @@ bool
 digitizer::initialize()
 {
     if ( getenv("AcqirisDxDir") == 0 ) {
-        std::cout << L"AcqirisDxDir environment variable not set." << std::endl;
+        ADDEBUG() << L"AcqirisDxDir environment variable not set.";
         return false;
     }
 
     struct stat st;
     if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
-        std::cout << L"/dev/acqrsPID does not exists" << std::endl;
+        ADDEBUG() << L"/dev/acqrsPID does not exists";
         return false;
     }
     return true;
@@ -118,9 +119,9 @@ digitizer::findDevice()
     numInstruments_ = 0;
     
     if ( ( status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ ) ) != VI_SUCCESS ) {
-        std::cout << error_msg( status, "digitizer::findDevice()" ) << std::endl;
+        ADDEBUG() << error_msg( status, "digitizer::findDevice()" );
     } else {
-        std::cout << boost::format( "find %1% acqiris devices." ) % numInstruments_ << std::endl;
+        ADDEBUG() << boost::format( "find %1% acqiris devices." ) % numInstruments_;
     }
 
     if ( numInstruments_ == 0 ) {
@@ -153,7 +154,7 @@ digitizer::findDevice()
                 nbrADCBits_ = value;
 
             
-            std::cout << "\tfound device on: " << device_name_ << std::endl;
+            ADDEBUG() << "\tfound device on: " << device_name_;
             return true;
         } else {
             std::cout << error_msg( status, "digitizer::findDevice" ) << std::endl;
@@ -283,7 +284,7 @@ digitizer::digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiri
             if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
                 if ( AcqrsD1_getHorizontal( inst_, &sampInterval, &delayTime_ ) == VI_SUCCESS ) {
                     checkError( inst_, status, "AcqrsD1_configHorizontal", __LINE__  );
-                    std::cout << boost::format( "\tsampInterval: %gns <- %gns, delay: %e <- %e\n" )
+                    ADDEBUG() << boost::format( "\tsampInterval: %gns <- %gns, delay: %e <- %e\n" )
                         % ( sampInterval * std::nano::den )
                         % ( hor->sampInterval * std::nano::den )
                         % delayTime_ % hor->delayTime;
@@ -301,7 +302,7 @@ digitizer::digitizer_setup( std::shared_ptr< const acqrscontrols::aqdrv4::acqiri
                 if ( AcqrsD1_getMemory( inst_, &nbrSamples_, &nSegments ) == VI_SUCCESS )
                     
                     if ( hor->nbrSamples != nbrSamples_ ) {
-                        std::cout << "\tnbrSamples adapted from " << hor->nbrSamples << " to " << nbrSamples_ << std::endl;
+                        ADDEBUG() << "\tnbrSamples adapted from " << hor->nbrSamples << " to " << nbrSamples_;
                         checkError( inst_, status, "AcqrsD1_configMemory", __LINE__ );
                         auto ax = adapted->mutable_hor();
                         ax->nbrSamples = nbrSamples_;

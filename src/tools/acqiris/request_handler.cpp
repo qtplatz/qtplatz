@@ -35,13 +35,18 @@ request_handler::handle_request( boost::asio::streambuf& response
 
         using acqrscontrols::aqdrv4::protocol_serializer;
         try {
-            if ( auto p = protocol_serializer::deserialize< acqrscontrols::aqdrv4::acqiris_method >( *preamble, data ) ) {
-                document::instance()->handleValueChanged( p, acqrscontrols::aqdrv4::allMethod );
+            if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) ) {
+                document::instance()->handleValueChanged( p, aqdrv4::allMethod );
                 document::instance()->acqiris_method_adapted( p );
             }
         } catch ( ... ) {
             ADDEBUG() << boost::current_exception_diagnostic_information();
         }
+    } else if ( preamble->clsid == aqdrv4::clsid_event_out ) {
+        aqdrv4::pod_reader reader( data, preamble->length );
+        document::instance()->handleEventOut( reader.get< uint32_t >() );
+    } else {
+        ADDEBUG() << "unknown protocol: " << aqdrv4::preamble::debug( preamble );
     }
 
     response.consume( sizeof( aqdrv4::preamble ) + preamble->length );

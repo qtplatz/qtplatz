@@ -38,8 +38,11 @@
 namespace adcontrols { class MassSpectrum; }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
-namespace acqrscontrols { namespace ap240 { class method; class threshold_result; } }
 namespace adportable { template<typename T> class mblock; }
+namespace acqrscontrols {
+    namespace ap240 { class method; class threshold_result; }
+    namespace aqdrv4 { class waveform; }
+}
 
 namespace acqrscontrols {
     namespace ap240 {
@@ -84,7 +87,7 @@ namespace acqrscontrols {
 
         public:
             waveform();
-                
+            
             waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0, uint32_t posorg = 0 );
 
             waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events, uint64_t tp );
@@ -111,7 +114,7 @@ namespace acqrscontrols {
             }
 
             waveform& operator += ( const waveform& );
-
+            
             std::pair<double, int> operator [] ( size_t ) const;
             std::pair<double, int> xy( size_t idx ) const;
             
@@ -128,6 +131,8 @@ namespace acqrscontrols {
             double timeSinceInject_;
             identify ident_;
 
+            void move( std::shared_ptr< acqrscontrols::aqdrv4::waveform >&& );
+            
             size_t size() const; // number of samples (octet size is depend on meta_.dataType)
 
             int dataType() const; // 1 - int8_t, 2 = int16_t, 4 = int32_t

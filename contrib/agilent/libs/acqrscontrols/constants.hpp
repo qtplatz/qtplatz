@@ -54,5 +54,11 @@ namespace acqrscontrols {
         
         enum { nchannels = 2 };        
     }
+
+    namespace dc122 {
+        const char * const waveform_observer_name        = "1.dc122.ms-cheminfo.com";
+        const char * const waveform_observer_uuid        = "{04c23c3c-7fd6-11e6-aa18-b7efcbc41dcd}";
+        enum { nchannels = 1 };
+    }
     
 }

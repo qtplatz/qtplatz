@@ -70,8 +70,10 @@ namespace ap240 {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::Trace&, const std::wstring& traceId );
         bool editor_factories( adextension::iSequenceImpl& );
-        void setControlMethod( const acqrscontrols::ap240::method& );
-        void getControlMethod( acqrscontrols::ap240::method& m );
+        // void setControlMethod( const acqrscontrols::ap240::method& );
+        // void getControlMethod( acqrscontrols::ap240::method& m );
+        void setControlMethod( std::shared_ptr< const acqrscontrols::ap240::method > );
+        void getControlMethod( std::shared_ptr< acqrscontrols::ap240::method > );
         void editor_commit();
 
     private:

@@ -33,6 +33,8 @@ namespace boost {
     namespace serialization { class access; }
 }
 
+namespace acqrscontrols {  namespace ap240 { class waveform; } }
+
 namespace acqrscontrols {
 namespace aqdrv4 {
 
@@ -93,12 +95,44 @@ namespace aqdrv4 {
             return segDesc_;
         }
 
+        // inline uint64_t serialNumber() const {
+        //      return serialnumber_;
+        // }
+        // inline uint64_t& serialNumber() {
+        //      return serialnumber_;
+        // }
         inline uint64_t serialNumber() const {
             return serialnumber_;
         }
-
         inline uint64_t& serialNumber() {
             return serialnumber_;
+        }
+        inline uint64_t serialNumber0() const {
+            return serialnumber0_;
+        }
+        inline uint64_t& serialNumber0() {
+            return serialnumber0_;
+        }
+
+        inline uint32_t wellKnownEvents() const {
+            return wellKnownEvents_;
+        }        
+        inline uint32_t& wellKnownEvents() {
+            return wellKnownEvents_;
+        }
+
+        inline uint64_t timeSinceEpoch() const {
+            return timeSinceEpoch_;
+        }
+        inline uint64_t& timeSinceEpoch() {
+            return timeSinceEpoch_;
+        }
+
+        inline uint64_t timeSinceInject() const {
+            return timeSinceInject_;
+        }
+        inline uint64_t& timeSinceInject() {
+            return timeSinceInject_;
         }
 
         inline double delayTime() const {
@@ -127,14 +161,26 @@ namespace aqdrv4 {
 
         inline int32_t& dataType() {
             return dataType_;
-        }    
+        }
+
+        inline void setMethodNumber( uint32_t d ) {
+            methodNumber_ = d;
+        }
+
+        inline uint32_t methodNumber() const {
+            return methodNumber_;
+        }
     private:
-        uint64_t serialnumber_;
+        uint64_t serialnumber_;            // a.k.a. trigger number
+        uint64_t serialnumber0_;           // serialnumber at inject
+        uint64_t timeSinceEpoch_;          // host computer time point base
+        uint64_t timeSinceInject_;         // hardware timestamp base
         uint32_t wellKnownEvents_;
+        int32_t  dataType_;                // actual data type (sizeof(int8_t), sizeof(int32_t) ...)
+        uint32_t methodNumber_;            // method sequence number for async method identification
         double delayTime_;
         AqDataDescriptor dataDesc_;
         AqSegmentDescriptor segDesc_;
-        int32_t dataType_;                // actual data type (sizeof(int8_t), sizeof(int32_t) ...)
         std::vector< value_type > d_;
 
         //////////////////////////////
@@ -142,6 +188,7 @@ namespace aqdrv4 {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
         friend class waveform_archive<waveform>;
         friend class waveform_archive<const waveform>;
+        friend class ap240::waveform;
     };
 
     template<> const int8_t * waveform::begin() const;

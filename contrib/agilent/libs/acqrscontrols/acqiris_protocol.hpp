@@ -50,6 +50,7 @@ namespace aqdrv4 {
     extern boost::uuids::uuid clsid_acknowledge;
     extern boost::uuids::uuid clsid_readData;
     extern boost::uuids::uuid clsid_temperature;
+    extern boost::uuids::uuid clsid_event_out;
 
     struct ACQRSCONTROLSSHARED_EXPORT preamble {
         uint32_t aug; // methionine '07 09 16 20

@@ -80,11 +80,15 @@ namespace aqdrv4 {
             using namespace boost::serialization;
         
             ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
+            ar & BOOST_SERIALIZATION_NVP( _.serialnumber0_ );
+            ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
+            ar & BOOST_SERIALIZATION_NVP( _.timeSinceInject_ );
             ar & BOOST_SERIALIZATION_NVP( _.wellKnownEvents_ );
+            ar & BOOST_SERIALIZATION_NVP( _.dataType_ );
+            ar & BOOST_SERIALIZATION_NVP( _.methodNumber_ );
             ar & BOOST_SERIALIZATION_NVP( _.delayTime_ );
             ar & BOOST_SERIALIZATION_NVP( _.dataDesc_ );
             ar & BOOST_SERIALIZATION_NVP( _.segDesc_ );
-            ar & BOOST_SERIALIZATION_NVP( _.dataType_ );
             ar & BOOST_SERIALIZATION_NVP( _.d_ );
         }
     };

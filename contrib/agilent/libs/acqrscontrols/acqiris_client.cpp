@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "acqiris_client.hpp"
-//#include "acqiris_client_task.hpp"
 #include "acqiris_waveform.hpp"
 #include "acqiris_protocol.hpp"
 #include "acqiris_method.hpp"
@@ -222,28 +221,6 @@ acqiris_client::do_read()
                             if ( response_handler_ )
                                 response_handler_( preamble, data, preamble->length );
 
-                            // if ( preamble->clsid == waveform::clsid() ) {
-                                
-                            //     if ( auto p = protocol_serializer::deserialize<waveform>( *preamble, data ) )
-                            //         acqiris_client_task::instance()->push( p );
-                                
-                            // } else if ( preamble->clsid == aqdrv4::acqiris_method::clsid() ) {
-                                
-                            //     if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
-                            //         acqiris_client_task::instance()->push( p );
-                                
-                            // } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_temperature ) {
-
-                            //     if ( response_header_ )
-                            //         response_handler_( preamble );
-                            //     // acqrscontrols::aqdrv4::pod_reader reader( data, preamble->length );
-                            //     // document::instance()->replyTemperature( reader.get< int32_t >() );
-                                
-                            // } else {
-
-                            //     ADDEBUG() << "Success: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
-
-                            // }
                             response_.consume( sizeof( acqrscontrols::aqdrv4::preamble ) + preamble->length );
                             
                         }

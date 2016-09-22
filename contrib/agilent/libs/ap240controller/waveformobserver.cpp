@@ -51,7 +51,7 @@ static const char * objtext__ = "1.ap240.ms-cheminfo.com";
 WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )
 {
     so::Description desc;
-    desc.set_trace_method( so::eTRACE_IMAGE_TDC );
+    desc.set_trace_method( so::eTRACE_SPECTRA );
     desc.set_spectrometer( so::eMassSpectrometer );
     desc.set_trace_id( objtext__ );  // unique name for the trace, can be used as 'data storage name'
     desc.set_trace_display_name( L"AP240 Waveforms" );

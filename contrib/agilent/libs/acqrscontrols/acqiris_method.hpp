@@ -139,6 +139,7 @@ namespace aqdrv4 {
         std::shared_ptr< const vertical_method > ch2() const;
         
         boost::uuids::uuid clsid_;
+        uint32_t methodNumber_;
         std::shared_ptr< trigger_method > trig_;
         std::shared_ptr< horizontal_method > hor_;
         std::shared_ptr< vertical_method > ext_;

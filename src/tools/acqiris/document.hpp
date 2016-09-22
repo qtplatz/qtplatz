@@ -100,12 +100,18 @@ public:
     static std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > load( const std::string& file );
 
     void handleValueChanged( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >, acqrscontrols::aqdrv4::SubMethodType );
+    void handleEventOut( uint32_t );
     void replyTemperature( int );
 
     typedef boost::signals2::signal< void( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >
                                            , acqrscontrols::aqdrv4::SubMethodType ) > prepare_for_run_t;
+
+    typedef boost::signals2::signal< void( uint32_t ) > event_out_t;
+    
     typedef boost::signals2::signal< void() > final_close_t;
+    
     boost::signals2::connection connect_prepare( const prepare_for_run_t::slot_type & subscriber );
+    boost::signals2::connection connect_event_out( const event_out_t::slot_type & subscriber );
     boost::signals2::connection connect_finalize( const final_close_t::slot_type & subscriber );
     
 signals:
@@ -118,14 +124,11 @@ private:
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > method_;
     std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > adapted_method_;
     std::unique_ptr< acqiris::server::tcp_server > server_;
-# if LOCAL_TCP_CLIENT    
-    std::unique_ptr< acqiris::client::tcp_client > client_;
-#else
     std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client > client_;
-#endif
     std::unique_ptr< QSettings > settings_;
     std::vector< std::thread > tcp_threads_;
     int temperature_;
     prepare_for_run_t signal_prepare_for_run_;
     final_close_t signal_final_close_;
+    event_out_t signal_event_out_;
 };

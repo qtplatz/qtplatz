@@ -388,9 +388,9 @@ document::prepare_for_run()
 {
     using adcontrols::ControlMethod::MethodItem;
 
-    acqrscontrols::ap240::method m;
+    auto m = std::make_shared< acqrscontrols::ap240::method >();
     MainWindow::instance()->getControlMethod( m );
-    digitizer_->peripheral_prepare_for_run( m );
+    digitizer_->peripheral_prepare_for_run( *m );
 }
 
 void
@@ -599,10 +599,10 @@ document::finalClose()
             return;
         }
     }
-    acqrscontrols::ap240::method m;
+    auto m = std::make_shared< acqrscontrols::ap240::method >();
     MainWindow::instance()->getControlMethod( m );
     boost::filesystem::path fname( dir / "ap240.xml" );
-    save( QString::fromStdWString( fname.wstring() ), m );
+    save( QString::fromStdWString( fname.wstring() ), *m );
 
     std::vector< adcontrols::threshold_method > x{ *impl_->threshold_method(0), *impl_->threshold_method(1) };
     std::wofstream outf( boost::filesystem::path( dir / "ap240_slope_time_method.xml" ).string() );

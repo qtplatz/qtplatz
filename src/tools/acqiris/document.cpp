@@ -25,12 +25,8 @@
 #include "document.hpp"
 #include "digitizer.hpp"
 #include "tcp_server.hpp"
-#if LOCAL_TCP_CLIENT
-#include "tcp_client.hpp"
-#else
 #include "tcp_task.hpp"
 #include <acqrscontrols/acqiris_client.hpp>
-#endif
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
@@ -213,18 +209,6 @@ document::close_client()
     }
 }
 
-#if LOCAL_TCP_CLIENT
-void
-document::set_client( std::unique_ptr< acqiris::client::tcp_client >&& client )
-{
-    client_ = std::move( client );
-    std::call_once( flag, [&](){
-            tcp_threads_.emplace_back( std::thread( [&]{ client_->run(); } ) );
-        });    
-}
-
-#else
-
 void
 document::set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&& client )
 {
@@ -248,17 +232,19 @@ document::set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&&
                 
                 if ( auto p = aqdrv4::protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) )
                     acqiris::client::tcp_task::instance()->push( p );
+
+            } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_event_out ) {                
+
+                ADDEBUG() << "## Error: Got event out from server.";
                 
             } else if ( preamble->clsid == acqrscontrols::aqdrv4::clsid_temperature ) {
                 
                 aqdrv4::pod_reader reader( data, preamble->length );
-                document::instance()->replyTemperature( reader.get< int32_t >() );
+                replyTemperature( reader.get< int32_t >() );
                 
             }
         });
 }
-
-#endif
 
 bool
 document::save( const std::string& file, std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > p )
@@ -294,6 +280,12 @@ document::connect_prepare( const prepare_for_run_t::slot_type & subscriber )
 }
 
 boost::signals2::connection
+document::connect_event_out( const event_out_t::slot_type & subscriber )
+{
+    return signal_event_out_.connect( subscriber );
+}
+
+boost::signals2::connection
 document::connect_finalize( const final_close_t::slot_type & subscriber )
 {
     return signal_final_close_.connect( subscriber );
@@ -305,6 +297,13 @@ document::handleValueChanged( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_me
     ADDEBUG() << "handleValueChanged";
     set_acqiris_method( m );
     signal_prepare_for_run_( m, subType );
+}
+
+void
+document::handleEventOut( uint32_t event )
+{
+    ADDEBUG() << "handleEventOut(" << event << ")";
+    signal_event_out_( event );
 }
 
 void

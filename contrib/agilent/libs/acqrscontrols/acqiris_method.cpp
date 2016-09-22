@@ -82,6 +82,7 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.ext_ );            
             ar & BOOST_SERIALIZATION_NVP( _.ch1_ );
             ar & BOOST_SERIALIZATION_NVP( _.ch2_ );
+            ar & BOOST_SERIALIZATION_NVP( _.methodNumber_ );
         }
     };
 
@@ -182,7 +183,9 @@ namespace aqdrv4 {
 
 using namespace acqrscontrols::aqdrv4;
 
-acqiris_method::acqiris_method()
+static uint32_t __counter__ = 0;
+
+acqiris_method::acqiris_method() : methodNumber_( __counter__++ )
 {
 }
 
@@ -191,6 +194,7 @@ acqiris_method::acqiris_method( const acqiris_method& t ) : clsid_( clsid() )
                                                           , hor_( t.hor_ )
                                                           , ch1_( t.ch1_ )
                                                           , ch2_( t.ch2_ )
+                                                          , methodNumber_( t.methodNumber_ )
 {
 }
 

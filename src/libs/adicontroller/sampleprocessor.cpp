@@ -63,13 +63,21 @@ SampleProcessor::~SampleProcessor()
         }
         
         fs_->close();
-        boost::filesystem::path progress_name = storage_name_;
-        storage_name_.replace_extension( ".adfs" );
 
+        boost::filesystem::path progress_name = storage_name_;
         boost::system::error_code ec;
-        boost::filesystem::rename( progress_name, storage_name_, ec );
-        if ( ec ) 
-            ADDEBUG() << boost::format( "Sample %1% close failed: %2%" ) % storage_name_.stem().string() % ec.message();
+        
+        if ( c_acquisition_active_ ) {
+            storage_name_.replace_extension( ".adfs" ); // *.adfs~ -> *.adfs
+            boost::filesystem::rename( progress_name, storage_name_, ec );
+            if ( ec ) 
+                ADDEBUG() << boost::format( "Sample %1% close failed: %2%" ) % storage_name_.stem().string() % ec.message();
+        } else {
+            boost::filesystem::remove( storage_name_, ec );
+            if ( ec )
+                ADDEBUG() << boost::format( "Sample %1% remove failed: %2%" ) % storage_name_.stem().string() % ec.message();
+        }
+        
     } catch ( std::exception& e ) {
         ADDEBUG() << boost::diagnostic_information( e );
     } catch ( ... ) {

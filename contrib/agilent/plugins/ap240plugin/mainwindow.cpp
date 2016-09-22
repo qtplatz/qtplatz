@@ -122,9 +122,9 @@ MainWindow::createDockWidgets()
                 form->get( ch, tm );
                 document::instance()->set_threshold_method( ch, tm );
             } else {
-                acqrscontrols::ap240::method m;
+                auto m = std::make_shared< acqrscontrols::ap240::method >();
                 form->get( m );
-                document::instance()->setControlMethod( m, QString() );
+                document::instance()->setControlMethod( *m, QString() );
             }
         } );
     
@@ -165,7 +165,7 @@ MainWindow::OnInitialUpdate()
             widget->set( 0, *tm );
         if ( auto tm = document::instance()->threshold_method( 1 ) )
             widget->set( 1, *tm );
-        widget->set( *document::instance()->controlMethod() );
+        widget->set( document::instance()->controlMethod() );
     }
 }
 
@@ -601,7 +601,7 @@ MainWindow::editor_factories( adextension::iSequenceImpl& impl )
 
 
 void
-MainWindow::setControlMethod( const acqrscontrols::ap240::method& m )
+MainWindow::setControlMethod( std::shared_ptr< const acqrscontrols::ap240::method > m )
 {
     if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
         form->set( m );
@@ -609,7 +609,7 @@ MainWindow::setControlMethod( const acqrscontrols::ap240::method& m )
 }
 
 void
-MainWindow::getControlMethod( acqrscontrols::ap240::method& m )
+MainWindow::getControlMethod( std::shared_ptr< acqrscontrols::ap240::method > m )
 {
     if ( auto form = findChild< acqrswidgets::ap240form * >() ) {
         form->get( m );

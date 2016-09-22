@@ -63,8 +63,11 @@ namespace acqrswidgets {
         void onInitialUpdate();
         void onStatus( int );
 
-        void get( acqrscontrols::ap240::method& ) const;
-        void set( const acqrscontrols::ap240::method& );
+        // void get( acqrscontrols::ap240::method& ) const;
+        // void set( const acqrscontrols::ap240::method& );
+        void get( std::shared_ptr< acqrscontrols::ap240::method > ) const;
+        void set( std::shared_ptr< const acqrscontrols::ap240::method> );
+
         void get( int ch, adcontrols::threshold_method& ) const;    
         void set( int ch, const adcontrols::threshold_method& );    
         void get( adcontrols::threshold_action& ) const;    
@@ -75,7 +78,6 @@ namespace acqrswidgets {
 
     signals:
         void valueChanged( idCategory cat, int ch );
-        // void valueChanged( int, const QVariant& );
 
         void deviceConfigChanged( bool remote_access, const QString& remote_host );
     

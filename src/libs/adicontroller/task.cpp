@@ -89,7 +89,7 @@ namespace adicontroller {
         boost::asio::deadline_timer timer_;
         double methodTime_;
         bool inject_triggered_;
-        
+        uint32_t sequence_warning_count_;
         static Instrument::eInstStatus instStatus( int id_state );
     };
 
@@ -254,11 +254,15 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adicontroll
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
 
-    if ( impl_->sequence_->size() == 0 )
+    if ( impl_->sequence_->size() == 0 && impl_->sequence_warning_count_++ == 0 )
         ADDEBUG() << "handle_write -- no sample processor in sample sequence";
     
-    for ( auto& sampleprocessor : *impl_->sequence_ )
+    for ( auto& sampleprocessor : *impl_->sequence_ ) {
+
         sampleprocessor->write( uuid, *dw );
+
+        impl_->sequence_warning_count_ = 0;
+    }
     
 }
 
@@ -278,6 +282,7 @@ task::impl::impl() : fsm_( this )
                    , timer_( io_service_ )
                    , methodTime_( 60.0 )
                    , inject_triggered_( false )
+                   , sequence_warning_count_( 0 )
 {
 }
 

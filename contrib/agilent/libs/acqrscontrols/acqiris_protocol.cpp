@@ -47,6 +47,9 @@ namespace aqdrv4 {
 
     boost::uuids::uuid clsid_temperature =
         boost::uuids::string_generator()( "{162ceb80-7a71-11e6-aafc-637da0013f14}" );    
+
+    boost::uuids::uuid clsid_event_out =
+        boost::uuids::string_generator()( "{109c4276-8046-11e6-9b9a-0f4a8020d4ef}" );    
     
     preamble::preamble( const boost::uuids::uuid& uuid, size_t size ) : clsid( uuid )
                                                                       , aug( __aug__ )

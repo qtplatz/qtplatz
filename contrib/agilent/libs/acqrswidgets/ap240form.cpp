@@ -84,13 +84,11 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
             layout->addWidget( widget );
             widget->setStyleSheet( "QTreeView { background: #e8f4fc; }\n"
                                    "QTreeView::item:open { background-color: #1d3dec; color: white; }" );
-            connect( widget, &AcqirisWidget::dataChanged, []( const AcqirisWidget * w, int ){
-                    auto m = std::make_shared< acqrscontrols::ap240::method >();
-                    w->getContents( m );
+            connect( widget, &AcqirisWidget::dataChanged, [&]( const AcqirisWidget * w, int cat ){
+                    emit valueChanged( idAP240Any, 0 );
                 });
-            connect( widget, &AcqirisWidget::stateChanged, [widget]( const QModelIndex&, bool ){
-                    auto m = std::make_shared< acqrscontrols::ap240::method >();
-                    widget->getContents( m );                    
+            connect( widget, &AcqirisWidget::stateChanged, [&]( const QModelIndex& index, bool ){
+                    emit valueChanged( idChannels, index.row() - 2 );
                 });            
         }
 
@@ -119,7 +117,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
         }
     }
     
-    set( acqrscontrols::ap240::method() );
+    set( std::make_shared< acqrscontrols::ap240::method >() );
 }
 
 ap240form::~ap240form()
@@ -156,11 +154,11 @@ ap240form::getContents( boost::any& a ) const
 
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
         
-        acqrscontrols::ap240::method m;
+        auto m = std::make_shared< acqrscontrols::ap240::method>();
         get( m );
-        adcontrols::ControlMethod::MethodItem item( m.clsid(), m.modelClass() );
+        adcontrols::ControlMethod::MethodItem item( m->clsid(), m->modelClass() );
         item.setItemLabel( "ap240" );
-        item.set<>( item, m ); // serialize
+        item.set<>( item, *m ); // serialize
         ptr->insert( item );
         
         return true;
@@ -168,20 +166,19 @@ ap240form::getContents( boost::any& a ) const
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
-        acqrscontrols::ap240::method m;
+        auto m = std::make_shared< acqrscontrols::ap240::method>();
         get( m );
         pi->setModelname( "ap240" );
         pi->setItemLabel( "ap240" );
         pi->unitnumber( 1 );
         pi->funcid( 1 );
-        pi->set<>( *pi, m ); // serialize
+        pi->set<>( *pi, *m ); // serialize
         return true;
     } else if ( adportable::a_type< acqrscontrols::ap240::method >::is_pointer( a ) ) {
-
-        auto pm = boost::any_cast<acqrscontrols::ap240::method *>( a );
-        get( *pm );
-        return true;
-
+        assert( 0 );
+        // auto pm = boost::any_cast<acqrscontrols::ap240::method *>( a );
+        // get( *pm );
+        // return true;
     }
     return false;
 }
@@ -210,9 +207,9 @@ ap240form::setContents( boost::any&& a )
     }
 
     if ( pi ) {
-        acqrscontrols::ap240::method m;
+        auto m = std::make_shared< acqrscontrols::ap240::method >();
 		try {
-            pi->get<>( *pi, m );
+            pi->get<>( *pi, *m );
             set( m );
 		} catch (boost::exception& ex) {
 			QMessageBox::warning(this, "AP240 Method", QString::fromStdString(boost::diagnostic_information(ex)));
@@ -235,73 +232,25 @@ ap240form::onStatus( int )
 }
 
 void
-ap240form::set( const acqrscontrols::ap240::method& m )
+ap240form::get( std::shared_ptr< acqrscontrols::ap240::method > m ) const
 {
-#if 0
-    if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
-        QSignalBlocker block( gbox );
-        gbox->setChecked( m.channels_ & 0x01 );
+    if ( auto w = findChild< AcqirisWidget * >() ) {
+        w->getContents( m );
+        get( 0, m->slope1_ );
+        get( 1, m->slope2_ );
+        get( m->action_ );
     }
-    if ( auto gbox = findChild< QGroupBox * >( "CH-2" ) ) {
-        QSignalBlocker block( gbox );
-        gbox->setChecked( m.channels_ & 0x02 );
-    }
-    if ( auto gbox = findChild< QGroupBox * >( "Ext" ) ) {
-        QSignalBlocker block( gbox );
-        gbox->setChecked( m.trig_.trigPattern & 0x80000000 );
-    }
-
-    if ( auto form = findChild< ap240HorizontalForm *>() ) {
-        QSignalBlocker block( form );
-        form->set( m );
-    }
-    
-    if ( auto form = findChild< ap240TriggerForm *>() ) {
-        QSignalBlocker block( form );
-        form->set( m );        
-    }
-    
-    for ( auto form : findChildren< ap240VerticalForm * >() ) {
-        QSignalBlocker block( form );
-        form->set( m );        
-    }
-    set( 0, m.slope1_ );
-    set( 1, m.slope2_ );
-    set( m.action_ );
-#endif
 }
 
 void
-ap240form::get( acqrscontrols::ap240::method& m ) const
+ap240form::set( std::shared_ptr< const acqrscontrols::ap240::method> m )
 {
-#if 0
-    uint32_t channels( 0 );
-    
-    if ( auto gbox = findChild< QGroupBox * >( "CH-1" ) ) {
-        if ( gbox->isChecked() )
-            channels |= 1;             
-    }
-    if ( auto gbox = findChild< QGroupBox * >( "CH-2" ) ) {
-        if ( gbox->isChecked() )
-            channels |= 2;
+    if ( auto w = findChild< AcqirisWidget * >() ) {
+        w->setContents( m );
+        set( 0, m->slope1_ );
+        set( 1, m->slope2_ );
+        set( m->action_ );
     }    
-    m.channels_ = channels;
- 
-    if ( auto form = findChild< ap240HorizontalForm *>() ) {
-        form->get( m );
-    }
-    
-    if ( auto form = findChild< ap240TriggerForm *>() ) {
-        form->get( m );        
-    }
-    
-    for ( auto form : findChildren< ap240VerticalForm * >() ) {
-        form->get( m );        
-    }
-#endif
-    get( 0, m.slope1_ );
-    get( 1, m.slope2_ );
-    get( m.action_ );
 }
 
 void

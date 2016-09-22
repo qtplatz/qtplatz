@@ -24,6 +24,7 @@
 
 #include "waveform.hpp"
 #include "threshold_result.hpp"
+#include "../acqiris_waveform.hpp"
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -563,11 +564,10 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
                                    , 0 /* mode */ );
-    //info.fSampInterval( waveform.meta_.xIncrement );
     prop.setAcceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );
-    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
+    prop.setTimeSinceInjection( waveform.timeSinceInject_ ); // meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "ap240" );
 
@@ -700,6 +700,24 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     using namespace adcontrols::metric;
 
     auto& waveform = *result.data();
+
+    if ( result.processed().size() == waveform.size() ) { // has filterd waveform
+        translate_property( sp, waveform );
+        sp.resize( waveform.size() );
+        int idx = 0;
+        
+        if ( scale <= 1 )
+            sp.setIntensityArray( result.processed().data() ); // return Volts (no binary avilable for processed waveform)
+        else
+            for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
+                sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
+    } else {
+
+        return translate( sp, waveform, scale );
+
+    }
+
+#if 0    
     translate_property( sp, waveform );
 
     sp.resize( waveform.size() );
@@ -719,6 +737,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
         else
             for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
                 sp.setIntensity( idx++, *y );          // binary 
+    } else if ( waveform.meta_.dataType == 2 ) {
+        if ( scale )
+            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
+                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V, mV ...
+        else
+            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
+                sp.setIntensity( idx++, *y );          // binary 
     } else {
         double dbase, rms;
         double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
@@ -731,8 +756,8 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
                 sp.setIntensity( idx++, *y - dbase );  // binary
         
     }
-    
 	return true;
+#endif
 }
 
 bool
@@ -922,4 +947,36 @@ waveform::accumulate( double tof, double window ) const
         }
     }
     return 0;
+}
+
+void
+waveform::move( std::shared_ptr< acqrscontrols::aqdrv4::waveform >&& t )
+{
+    const auto& dataDesc = t->dataDesc();
+
+    timeSinceEpoch_           = t->timeSinceEpoch_;
+    meta_.dataType            = t->dataType_;
+    meta_.indexFirstPoint     = dataDesc.indexFirstPoint;
+    meta_.channel             = 0;
+    meta_.actualAverages      = 0;
+    meta_.actualPoints        = dataDesc.returnedSamplesPerSeg; // data.d_.size();
+    meta_.flags               = 0;                              // not supported on digitizer
+    meta_.initialXOffset      = t->delayTime_;                  // data.method_.hor_.delayTime;
+    meta_.initialXTimeSeconds = double( t->timeStamp() ) / 1.0e12;
+            
+    meta_.scaleFactor         = dataDesc.vGain;     // V = vGain * data - vOffset
+    meta_.scaleOffset         = dataDesc.vOffset;
+    meta_.xIncrement          = dataDesc.sampTime;
+    meta_.horPos              = t->segDesc_.horPos;
+    
+    // acqrscontrols::ap240::method method_;
+    serialnumber_             = t->serialnumber_;
+    serialnumber_origin_      = t->serialnumber0_;
+    wellKnownEvents_          = t->wellKnownEvents_;
+    firstValidPoint_          = t->dataDesc_.indexFirstPoint;
+    timeSinceEpoch_           = t->timeSinceEpoch_;  // uint64_t (ns)
+    timeSinceInject_          = double( t->timeSinceInject_ ) / std::nano::den; // uint64_t(ns) -> double(s)
+    // identify ident_;
+
+    d_ = std::move( t->d_ );
 }

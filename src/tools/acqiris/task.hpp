@@ -60,6 +60,7 @@ public:
 
     void prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method >
                           , acqrscontrols::aqdrv4::SubMethodType );
+    void event_out( uint32_t );
 
     bool digitizer_initialize();
 
@@ -72,8 +73,13 @@ private:
     adportable::semaphore sema_;
     std::vector< std::thread > threads_;
     std::atomic_flag acquire_posted_;
-    std::chrono::time_point<std::chrono::system_clock> tp_data_handled_;
     const std::chrono::time_point<std::chrono::system_clock> tp_uptime_;
+    std::chrono::time_point<std::chrono::system_clock> tp_data_handled_;
+    uint32_t methodNumber_;
+    uint64_t inject_timepoint_;
+    uint64_t inject_serialnumber_;
+    bool inject_requested_;
+    bool acquisition_active_;
 
     void acquire();
     void worker_thread();

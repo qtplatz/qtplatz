@@ -28,6 +28,7 @@
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
+#include <adicontroller/constants.hpp>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <iostream>
@@ -40,8 +41,13 @@ task::task() : worker_stopping_( false )
              , work_( io_service_ )
              , strand_( io_service_ )
              , timer_( io_service_ )
-             , tp_data_handled_( std::chrono::system_clock::now() )
              , tp_uptime_( std::chrono::system_clock::now() )
+             , tp_data_handled_( tp_uptime_ )
+             , inject_timepoint_( 0 )
+             , inject_serialnumber_( 0 )
+             , inject_requested_( false )
+             , acquisition_active_( false )
+    
 {
     acquire_posted_.clear();
 }
@@ -81,6 +87,7 @@ task::initialize()
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
 
             document::instance()->connect_prepare( boost::bind( &task::prepare_for_run, this, _1, _2 ) );
+            document::instance()->connect_event_out( boost::bind( &task::event_out, this, _1 ) );
             document::instance()->connect_finalize( boost::bind( &task::finalize, this ) );
             
         } );
@@ -120,6 +127,7 @@ task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_met
     strand_.post( [=] {
             auto adapted = task::digitizer()->digitizer_setup( m );
             document::instance()->acqiris_method_adapted( adapted );
+            methodNumber_ = m->methodNumber_;
         } );
 
     if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
@@ -129,6 +137,13 @@ task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_met
         if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *m ) )
             server->post( data );
     }
+}
+
+void
+task::event_out( uint32_t events )
+{
+    if ( events == adicontroller::Instrument::instEventInjectOut )
+        strand_.post( [=] { inject_requested_ = true; });
 }
 
 void
@@ -144,11 +159,14 @@ task::acquire()
     using namespace std::chrono_literals;
 
     if ( task::digitizer()->acquire() ) {
+
+        auto tp_trig = std::chrono::system_clock::now();
         
         if ( digitizer()->waitForEndOfAcquisition( 3000 ) == digitizer::success ) {
             
             static const int nbrADCBits = digitizer()->nbrADCBits();
             auto d = std::make_shared< acqrscontrols::aqdrv4::waveform >( ( nbrADCBits > 8 ) ? sizeof( int16_t ) : sizeof( int8_t ) );
+            d->setMethodNumber( methodNumber_ );
 
             bool success;
             if ( nbrADCBits <= 8 ) {
@@ -164,9 +182,18 @@ task::acquire()
             }
 
             static uint64_t serialCounter_ = 0;
-            
-            d->delayTime() = digitizer()->delayTime();
+
             d->serialNumber() = serialCounter_++;
+            if ( inject_requested_ ) {
+                d->wellKnownEvents() |= adicontroller::SignalObserver::wkEvent_INJECT;
+                inject_timepoint_    = d->timeStamp(); // ps
+                inject_serialnumber_ = d->serialNumber();
+                inject_requested_    = false;
+            }
+            d->delayTime()          = digitizer()->delayTime();
+            d->timeSinceInject()    = ( d->timeStamp() - inject_timepoint_ ) / 1000; // ps -> ns
+            d->serialNumber0()      = inject_serialnumber_;
+            d->timeSinceEpoch()     = std::chrono::nanoseconds( tp_trig.time_since_epoch() ).count();
 
             document::instance()->push( std::move( d ) );
 
