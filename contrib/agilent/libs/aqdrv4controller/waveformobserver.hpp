@@ -46,8 +46,8 @@ namespace aqdrv4controller {
         WaveformObserver();
         virtual ~WaveformObserver();
 
-        const boost::uuids::uuid& objid() const;
-        const char * objtext() const;
+        const boost::uuids::uuid& objid() const override;
+        const char * objtext() const override;
         
         uint64_t uptime() const override;
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const override;

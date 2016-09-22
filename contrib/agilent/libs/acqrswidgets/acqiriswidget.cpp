@@ -39,6 +39,7 @@
 #include <QVariant>
 #include <QTreeView>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <ratio>
 
@@ -168,6 +169,7 @@ public:
         } else {
             return QStyledItemDelegate::createEditor( parent, option, index );
         }
+        return nullptr;
     }
 
     void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
@@ -216,6 +218,7 @@ public:
         } else {
             return QStyledItemDelegate::editorEvent( event, model, option, index );
         }
+        return false;
     }
     
 };

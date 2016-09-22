@@ -31,7 +31,7 @@ configure_file(
 execute_process( COMMAND ${XMLPATTERNS} -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 find_package( qwt )

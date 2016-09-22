@@ -1,7 +1,7 @@
 
 if ( NOT CMAKE_CROSSCOMPILING )
 
-  if ( AqDrv4_INCLUDE_DIR )
+  if ( AqDrv4_INCLUDE_DIR AND NOT APPLE )
     add_subdirectory( ap240 )
     add_subdirectory( ap240controller )
   endif()
@@ -18,4 +18,7 @@ endif()
 
 add_subdirectory( acqrsinterpreter )
 add_subdirectory( acqrscontrols )
-add_subdirectory( aqdrv4controller )  # Remote access to AP240/DC122
+
+if ( AqDrv4_INCLUDE_DIR )
+  add_subdirectory( aqdrv4controller )  # Remote access to AP240/DC122
+endif()

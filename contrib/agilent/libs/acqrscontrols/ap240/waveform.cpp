@@ -712,52 +712,12 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
             for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
                 sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
     } else {
-
+        
         return translate( sp, waveform, scale );
-
-    }
-
-#if 0    
-    translate_property( sp, waveform );
-
-    sp.resize( waveform.size() );
-	int idx = 0;
-
-    if ( result.processed().size() == waveform.size() ) { // has filterd waveform
-        if ( scale <= 1 )
-            sp.setIntensityArray( result.processed().data() ); // return Volts (no binary avilable for processed waveform)
-        else
-            for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
-                sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
-        
-    } else if ( waveform.meta_.dataType == 1 ) {
-        if ( scale )
-            for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V, mV ...
-        else
-            for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
-                sp.setIntensity( idx++, *y );          // binary 
-    } else if ( waveform.meta_.dataType == 2 ) {
-        if ( scale )
-            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V, mV ...
-        else
-            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
-                sp.setIntensity( idx++, *y );          // binary 
-    } else {
-        double dbase, rms;
-        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-
-        if ( scale )
-            for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale ); // V, mV ...
-        else
-            for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, *y - dbase );  // binary
         
     }
-	return true;
-#endif
+    
+    return false;
 }
 
 bool

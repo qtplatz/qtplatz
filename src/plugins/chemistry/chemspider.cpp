@@ -77,6 +77,7 @@ namespace chemistry {
                 request_stream << "Content-Length: " << xml.length() << "\r\n";
                 request_stream << "Connection: close\r\n\r\n";
                 request_stream << xml;
+                return true;
             }
         };
 
@@ -91,6 +92,7 @@ namespace chemistry {
                 request_stream << "Content-Length: " << xml.length() << "\r\n";
                 request_stream << "Connection: close\r\n\r\n";
                 request_stream << xml;
+                return true;
             }
         };
         

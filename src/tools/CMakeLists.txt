@@ -2,6 +2,9 @@
 add_subdirectory (eventbroker)
 add_subdirectory (eventtool)
 add_subdirectory (counting)
-add_subdirectory (acqiris)  
+
+if ( NOT APPLE )
+  add_subdirectory (acqiris)
+endif()
 
 
