@@ -104,11 +104,9 @@ CountingWidget::CountingWidget(QWidget *parent) : QWidget(parent)
                     emit valueChanged( index.row(), CountingWidget::CountingEnable, state == Qt::Checked );
                 });
 
-            // rows removed
-            connect( model_.get(), &QStandardItemModel::rowsRemoved, [&]( const QModelIndex&, int start, int end ){
-                    emit rowsRemoved( start, end );
-                });
+            // rows removed --> handle by MolTableView, do nothing at here
 
+            // item changed
             connect( model_.get(), &QStandardItemModel::itemChanged, this, &CountingWidget::handleItemChanged );
             
             vboxLayout->addWidget( moltable );
