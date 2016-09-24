@@ -129,6 +129,8 @@ namespace adcontrols {
             Method& operator = ( const Method& );
             
             static const wchar_t * dataClass() { return L"adcontrols::ControlMethod"; }
+            static const boost::uuids::uuid& clsid();
+            
             typedef size_t size_type;
             typedef std::vector< MethodItem >::iterator iterator;
             typedef std::vector< MethodItem >::const_iterator const_iterator;

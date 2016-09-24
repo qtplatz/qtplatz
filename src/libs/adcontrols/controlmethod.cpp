@@ -159,6 +159,13 @@ namespace adcontrols {
 
 using namespace adcontrols::ControlMethod;
 
+const boost::uuids::uuid&
+Method::clsid()
+{
+    static boost::uuids::uuid __clsid = boost::uuids::string_generator()( "{cd53abe6-8223-11e6-b2d8-cb9185077a24}" );
+    return __clsid;
+}
+
 Method::~Method()
 {
 }

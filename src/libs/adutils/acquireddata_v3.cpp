@@ -83,6 +83,14 @@ AcquiredData::create_table_v3( adfs::sqlite& db )
 ,data         BLOB         \
 ,meta         BLOB         \
 )"
+             ) &&
+         sql.exec(
+             "CREATE TABLE \
+ MetaData \
+(clsid     UUID \
+,attrib    TEXT \
+,data      BLOB \
+)"
              ) )
         return true;
     
