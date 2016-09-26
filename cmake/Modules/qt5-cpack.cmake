@@ -23,7 +23,7 @@ else()
   endif()
 endif()
 
-message( STATUS "Qt5 Version: " ${Qt5_VERSION} "\t" ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR})
+# message( STATUS "Qt5 Version: " ${Qt5_VERSION} "\t" ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR})
 
 get_target_property( _loc Qt5::Core LOCATION )
 get_filename_component( _dir ${_loc} DIRECTORY )
@@ -81,7 +81,6 @@ else()
   message( FATAL_ERROR "plugins: " ${QT_INSTALL_PLUGINS} )
 endif()
 
-message( STATUS "##### plugins: " ${QT_INSTALL_PLUGINS} )
 foreach( plugin ${_plugins} )
   install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins COMPONENT plugins )
 endforeach()

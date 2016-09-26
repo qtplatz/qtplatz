@@ -12,7 +12,9 @@ configure_file(
   @ONLY
   )
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
+if ( NOT Boost_FOUND )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
+endif()
 
 set( COMPASSDIR "C:/Program Files/Bruker Daltonik/CompassXtract" )
 

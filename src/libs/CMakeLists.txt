@@ -42,4 +42,3 @@ if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
 
 endif()
 
-message( STATUS "------------ end libs ----------------" )

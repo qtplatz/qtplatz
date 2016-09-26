@@ -27,7 +27,9 @@ add_definitions( -D_LINUX -D_ACQIRIS )
 
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
-find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+if ( NOT Boost_FOUND )
+  find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+endif()
 find_package( Threads REQUIRED )
 
 add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" )

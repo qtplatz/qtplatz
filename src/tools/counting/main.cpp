@@ -30,6 +30,13 @@
 #include <iostream>
 #include <fstream>
 #include <ratio>
+#if OPENCV
+# include <cv.h>
+# include <opencv2/cvconfig.h>
+# include <opencv2/flann/flann.hpp>
+using namespace cv;
+# include <opencv2/flann/hdf5.h>
+#endif
 
 namespace po = boost::program_options;
 
@@ -163,6 +170,9 @@ main(int argc, char *argv[])
                         summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                         summary.print_statistics( statfile );
                     }
+#if OPENCV
+		    summary.findPeaks();
+#endif
 
                     summary.report( std::cout );
                 }
@@ -295,33 +305,54 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
 void
 Summary::findPeaks()
 {
-    enum slope_state { none, upslope, downslope };
-#if 0
-    slope_state state( none );
-    std::vector< std::pair< CountingHistogram::const_iterator, CountingHistogram::const_iterator > > peaks;
+#if OPENCV
+    auto numPeaks = std::accumulate( hgrm_.begin(), hgrm_.end(), size_t(0), [](size_t x, const auto& pk ) { return x + pk.second.size(); } );
 
-    if ( hgrm_.size() > 3 ) {
-        CountingHistogram::const_iterator pkfront( hgrm_.end() ), pkback( hgrm_.end() );
-        
-        for ( auto it = hgrm_.begin() + 1; it != hgrm_.end() - 1; ++it ) {
-            double dx = ( ( it + 1 )->first - ( it - 1 )->first ) / 2 / xIncrement_ ;
-            double dy = ( it + 1 )->second->size() - ( it - 1 )->second->size();
-            int d = int( dx / dy / 2 );  // d := count-diffs / sampling interval
-            if ( d > 2 ) {
-                if ( state == none ) {
-                    state = upslope;
-                    pkfont = it;
-                }
-            } else if ( d < 0 ) {
-                if ( state == upslope || state == none )
-                    state = downslope;
-            } else if ( d == 0 ) {
-                if ( d < 0 ) {
-                    state = downslope;
-                }
-            } else if ( state == downslope ) {
-            }
-        }
+    std::vector< float > times(numPeaks);
+
+    auto it = times.begin();
+    for ( const auto& column : hgrm_ ) {
+        std::transform( column.second.begin(), column.second.end(), it, []( auto& pk ){ return float( pk.apex().first ); } );
+        std::advance( it, column.second.size() );
     }
+    
+    std::cout << "numPeaks: " << numPeaks << std::endl;
+
+    cv::Mat features( times.size(), 1, CV_32FC1, times.data() );
+
+#if 0
+    std::vector< int > labels;
+    std::vector< float > centres;
+
+    cv::kmeans( m
+                , 1
+                , labels
+                , cv::TermCriteria( CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 10, 5.0e-9 )
+                , 3
+                , cv::KMEANS_PP_CENTERS
+                , centres );
+    
+    std::cout << "labels: " << labels.size() << ", centres: " << centres.size() << std::endl;
+    
+    for ( auto& c: centres )
+      std::cout << c << std::endl;
+
+    for ( auto& l: labels )
+      std::cout << l << std::endl;
+#endif
+    
+   cvflann::KMeansIndexParams params( 3, 5, cvflann::FLANN_CENTERS_RANDOM, 0.1 );
+    
+    typedef cv::flann::L2_Simple< float > distance_type;
+    //auto index = std::make_unique< cv::flann::GenericIndex< distance_type > >( features, params );
+    
+    cv::Mat centres( 6, 1, CV_32FC1, float(0) );
+
+    int count = cv::flann::hierarchicalClustering< distance_type >( features, centres, params );
+    
+    std::cout << "count=" << count << std::endl;
+    
+    std::cout << centres << std::endl;
+
 #endif
 }

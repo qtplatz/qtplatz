@@ -155,6 +155,7 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.fullScale );
             ar & BOOST_SERIALIZATION_NVP( _.offset );
             ar & BOOST_SERIALIZATION_NVP( _.coupling );
+            ar & BOOST_SERIALIZATION_NVP( _.bandwidth );
             ar & BOOST_SERIALIZATION_NVP( _.invertData );
             ar & BOOST_SERIALIZATION_NVP( _.autoScale );
             if ( version >= 2 )

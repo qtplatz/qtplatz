@@ -13,7 +13,9 @@ find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 #endif()
 
 find_package( qwt )
-find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

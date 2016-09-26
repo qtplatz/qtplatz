@@ -17,10 +17,13 @@ configure_file(
 add_subdirectory( libs )
 
 if ( NOT QTPLATZ_CORELIB_ONLY )
+  # message( STATUS "------------ src/adplugins ----------------" )
   add_subdirectory( adplugins )
+  # message( STATUS "------------ src/app ----------------------" )
   add_subdirectory( app )
+  # message( STATUS "------------ src/plugins ------------------" )
   add_subdirectory( plugins )
+  # message( STATUS "------------ src/tools --------------------" )
   add_subdirectory( tools )  
 endif()
 
-message( STATUS "------------ end src ----------------" )

@@ -4,8 +4,10 @@ cmake_policy( SET CMP0028 NEW )
 project( batchproc )
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Script Network ) 
-find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem iostreams )
+find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Script Network )
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem iostreams )
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

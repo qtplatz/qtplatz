@@ -13,8 +13,14 @@ set(CMAKE_AUTORCC ON)
 set ( CMAKE_CXX_STANDARD 14 )
 
 # include( "standalone.cmake" )
+if ( NOT Boost_FOUND )
+  find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+endif()
 
-find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+if ( OpenCV_FOUND )
+  add_definitions( "-DOPENCV=1" )
+  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+endif()
 
 include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )
 
@@ -29,6 +35,8 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adfs
   ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${HDF5_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}

@@ -39,10 +39,7 @@ if ( NOT rdkit_FOUND )
     /usr/include/rdkit
     )
 
-  if ( _include_dir )
-    message( STATUS "###########################################" )
-    message( STATUS "## Findrdkit: found by include_dir search: "  ${_include_dir} )
-  else()
+  if ( NOT _include_dir )
     return()
   endif()
 
@@ -60,8 +57,6 @@ if ( NOT rdkit_FOUND )
   endif()
 
   get_filename_component ( RDBASE ${_libdir} DIRECTORY )
-  #message( "##### RDBASE : " ${RDBASE} )
-  #message( "##### _fileparsers_lib: " ${_fileparsers_lib} )
 
   set ( rdkit_FOUND TRUE )
   set ( RDKit_INCLUDE_DIRS ${_include_dir} )
@@ -149,5 +144,3 @@ set (RDKit_LIBRARIES
   Inchi
   RDInchiLib
   )
-
-

@@ -6,7 +6,9 @@ set( BOOST_VERSION boost-1_59 )
 set( Boost_INCLUDE_DIR "/usr/local/${BOOST_VERSION}/include")
 set( Boost_LIBRARY_DIR "/usr/local/${BOOST_VERSION}/lib")
 
-find_package(Boost 1.57 REQUIRED COMPONENTS thread system date_time filesystem )
+if ( NOT Boost_FOUND) 
+  find_package(Boost 1.57 REQUIRED COMPONENTS thread system date_time filesystem )
+endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 

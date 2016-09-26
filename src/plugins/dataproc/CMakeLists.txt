@@ -4,7 +4,6 @@ cmake_policy( SET CMP0028 NEW )
 project( dataproc )
 
 set( PROVIDER MS-Cheminformatics )
-
 find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network ) 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

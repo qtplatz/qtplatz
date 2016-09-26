@@ -9,7 +9,9 @@ cmake_policy(SET CMP0020 NEW)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+if ( NOT Boost_FOUND )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+endif()
 
 add_definitions(-DADICONTROLLER_LIBRARY)
 if (WIN32)

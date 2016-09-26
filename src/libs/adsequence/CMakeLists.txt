@@ -7,7 +7,9 @@ cmake_policy( SET CMP0022 NEW )
 
 add_definitions( -DADSEQUENCE_LIBRARY )
 include_directories( ${Qt5Core_INCLUDE_DIRS} )
-find_package(Boost 1.57 REQUIRED COMPONENTS system wserialization serialization)
+if ( NOT Boost_FOUND )
+  find_package(Boost 1.57 REQUIRED COMPONENTS system wserialization serialization)
+endif()
 
 set( adsequence_SOURCES
   adsequence.cpp

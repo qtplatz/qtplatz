@@ -14,7 +14,9 @@ if ( MSVC )
   add_definitions(-DACQRSINTERPRETER_LIBRARY -D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+if ( NOT Boost_FOUND )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+endif()
 
 include_directories( ${PROJECT_SOURCE_DIR}/.. )
 

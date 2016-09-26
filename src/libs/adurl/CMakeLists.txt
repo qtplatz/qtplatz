@@ -3,7 +3,9 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adurl )
 
-find_package( Boost 1.59 REQUIRED COMPONENTS system program_options date_time regex )
+if ( NOT Boost_FOUND )
+  find_package( Boost 1.59 REQUIRED COMPONENTS system program_options date_time regex )
+endif()
 
 if ( NOT WIN32 )
   set( oslibs "pthread" )

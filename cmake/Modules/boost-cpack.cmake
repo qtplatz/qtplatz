@@ -1,5 +1,7 @@
 
-find_package( Boost REQUIRED )
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED )
+endif()
 
 include( "soname" )
 
