@@ -30,12 +30,14 @@ add_library( ${PROJECT_NAME} SHARED
 include_directories( ${Qt5Core_INCLUDE_DIRS}  )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  ${Boost_LIBRARIES}
+  adcontrols
   adportable
   xmlparser
   adlog
   adplugin
-  Qt5::Core )
+  Qt5::Core
+  ${Boost_LIBRARIES}
+  )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

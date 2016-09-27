@@ -23,12 +23,12 @@ add_library( adplugin SHARED
   plugin.hpp
   plugin_ptr.cpp
   plugin_ptr.hpp  
-  orbfactory.cpp
-  orbfactory.hpp
-  orbbroker.cpp
-  orbbroker.hpp
-  orbservant.cpp
-  orbservant.hpp
+#  orbfactory.cpp
+#  orbfactory.hpp
+#  orbbroker.cpp
+#  orbbroker.hpp
+#  orbservant.cpp
+#  orbservant.hpp
   visitor.cpp
   visitor.hpp
   )

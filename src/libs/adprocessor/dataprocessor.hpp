@@ -52,7 +52,7 @@ namespace adprocessor {
 
         // dataprocessor
         virtual void setModified( bool );
-
+        
         virtual bool open( const std::wstring&, std::wstring& errmsg );
         
 		virtual const std::wstring& filename() const;

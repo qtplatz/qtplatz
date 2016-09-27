@@ -24,6 +24,11 @@
 
 #include <compiler/disable_unused_parameter.h>
 #include "manager.hpp"
+#include "loader.hpp"
+#include <adcontrols/datafile_factory.hpp>
+#include <adcontrols/datafilebroker.hpp>
+#include <adcontrols/massspectrometer_factory.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
@@ -40,6 +45,7 @@
 #include <adlog/logging_handler.hpp>
 #include <adportable/string.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <QCoreApplication>
 #include <QLibrary>
 #include <fstream>
 #include <map>
@@ -340,3 +346,39 @@ manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
 }
 
 
+//static
+void
+manager::standalone_initialize()
+{
+    auto apath = QCoreApplication::instance()->applicationDirPath().toStdWString();
+    auto tpath = boost::filesystem::canonical( boost::filesystem::path( apath ) / "../" );
+
+    adplugin::loader::populate( tpath.wstring().c_str() );
+
+    // spectrometers
+	std::vector< adplugin::plugin_ptr > spectrometers;
+	if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
+		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
+                adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
+                if ( factory )
+                    adcontrols::MassSpectrometerBroker::register_factory( factory );
+            });
+	}
+    
+    // dataproverders
+    std::vector< adplugin::plugin_ptr > dataproviders;
+    std::vector< std::string > mime; // todo
+
+    if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
+        
+        std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
+                adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
+                if ( factory ) {
+                    ADDEBUG() << "installing " << factory->name() << "...";
+                    adcontrols::datafileBroker::register_factory( factory, d->clsid() );
+                    if ( factory->mimeTypes() )
+                        mime.push_back( factory->mimeTypes() );
+                }
+            } );
+    }
+}

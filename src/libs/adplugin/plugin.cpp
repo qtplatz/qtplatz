@@ -24,8 +24,6 @@
 
 #include <compiler/preamble.h>
 #include "plugin.hpp"
-#include "orbfactory.hpp"
-#include "orbservant.hpp"
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 
