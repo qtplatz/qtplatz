@@ -93,9 +93,12 @@ main(int argc, char *argv[])
 
             std::wstring msg;
             auto processor = std::make_shared< adprocessor::dataprocessor >();
+
             if ( processor->open( file.wstring(), msg ) ) {
-	      auto doc = std::make_unique< counting2d::document >();
-	      doc->populate( processor );
+
+                auto doc = std::make_unique< counting2d::document >();
+                if ( doc->setDataprocessor( processor ) )
+                    doc->fetch();
                 
             } else {
                 std::wcout << msg << std::endl;

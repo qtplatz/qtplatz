@@ -23,12 +23,22 @@
 **************************************************************************/
 
 #include "document.hpp"
+#include <adcontrols/datareader.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/mappedspectra.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 namespace adprocessor { class dataprocessor; }
+
+
+namespace counting2d {
+    // See malpix/malpix/mpxcontrols/constants.hpp    
+    // malpix_observer = name_generator( "{6AE63365-1A4D-4504-B0CD-38AE86309F83}" )( "1.image.malpix.ms-cheminfo.com" )
+    static const boost::uuids::uuid malpix_observer = boost::uuids::string_generator()( "{62ede8f7-dfa3-54c3-a034-e012173e2d10}" );
+}
 
 using namespace counting2d;
 
@@ -37,19 +47,42 @@ document::document()
 }
 
 bool
-document::populate( std::shared_ptr< adprocessor::dataprocessor > p )
+document::setDataprocessor( std::shared_ptr< adprocessor::dataprocessor > dp )
 {
-    if ( ( processor_ = p ) ) {
+    if ( auto rawfile = dp->rawdata() ) {
 
-        adfs::stmt sql( *processor_->db() );
+        if ( rawfile->dataformat_version() >= 3 ) {
 
-        static const auto objuuid_malpix = boost::uuids::string_generator()( "{62ede8f7-dfa3-54c3-a034-e012173e2d10}" );
-
-        sql.prepare( "SELECT COUNT(*) FROM AcquiredConf WHERE objuuid = ?" );
-        sql.bind( 1 ) = objuuid_malpix;
-        
-        while ( sql.step() == adfs::sqlite_row )
-            return true;
+            // is this contains MALPIX image data?
+            adfs::stmt sql( *dp->db() );
+            sql.prepare( "SELECT COUNT(*) FROM AcquiredConf WHERE objuuid = ?" );
+            sql.bind( 1 ) = malpix_observer;
+            while ( sql.step() == adfs::sqlite_row ) {
+                // has MALPIX raw image (dataFrame) for each trigger
+                if ( auto malpixReader = rawfile->dataReader( malpix_observer ) ) {
+                    processor_ = dp;
+		    malpixReader->TIC(0);
+                    return true;
+                }
+            }
+        }
     }
     return false;
+}
+
+bool
+document::fetch()
+{
+    if ( auto dp = processor_ ) {
+        if ( auto reader = dp->rawdata()->dataReader( malpix_observer ) ) {
+	  
+	  for ( auto it = reader->begin(); it != reader->end(); ++it ) {
+	      if ( auto map = reader->getMappedSpectra( it->rowid() ) ) {
+		ADDEBUG() << map->averageCount() << ", trig#: " << map->trigIds().first
+		  << ", sampIntval: " << map->samplingInterval() << ", timeRange: " << map->acqTimeRange().first << ", " << map->acqTimeRange().second;
+	      }
+	  }
+        }
+    }
+    
 }

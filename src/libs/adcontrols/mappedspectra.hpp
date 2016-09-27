@@ -81,7 +81,7 @@ namespace adcontrols {
 
         void setTrigIds( uint32_t, bool first );
         const std::pair< uint32_t, uint32_t >& trigIds() const;
-
+ 
         double acqDelay() const;
         double samplingInterval() const;
         uint32_t acqSamples() const;

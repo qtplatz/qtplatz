@@ -37,8 +37,9 @@ namespace counting2d {
 
     public:
         document();
-        bool populate( std::shared_ptr< adprocessor::dataprocessor > );
-
+        bool setDataprocessor( std::shared_ptr< adprocessor::dataprocessor > );
+        bool fetch();
+        
     private:
         std::shared_ptr< adprocessor::dataprocessor > processor_;
     };
