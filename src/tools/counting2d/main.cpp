@@ -104,8 +104,10 @@ main(int argc, char *argv[])
 
             if ( processor->open( file.wstring(), msg ) ) {
 
-                if ( doc->setDataprocessor( processor ) )
+                if ( doc->setDataprocessor( processor ) ) {
                     doc->fetch();
+                    break;
+                }
 
             } else {
                 std::wcout << msg << std::endl;

@@ -25,6 +25,7 @@
 #pragma once
 
 #include <QObject>
+#include <opencv2/ml.hpp>
 #include <vector>
 #include <memory>
 
@@ -41,41 +42,52 @@ namespace counting2d {
         document();
     public:
         static document * instance();
+
+        typedef std::vector< std::shared_ptr< adcontrols::MappedDataFrame > >::const_iterator const_iterator;
         
         bool setDataprocessor( std::shared_ptr< adprocessor::dataprocessor > );
 	
         bool fetch();
-	
-        // inline std::vector< std::shared_ptr< adcontrols::MappedSpectra > >::const_iterator begin() const {
-        //     return mappedSpectra_.begin();
-        // }
-	
-        // inline std::vector< std::shared_ptr< adcontrols::MappedSpectra > >::const_iterator end() const {
-        //     return mappedSpectra_.end();
-        // }
 
-        // inline std::shared_ptr< const adcontrols::MappedSpectra > back() const {
-        //     return mappedSpectra_.back();
-        // }
-        inline std::vector< std::shared_ptr< adcontrols::MappedDataFrame > >::const_iterator begin() const {
+        inline void rewind() {
+            cursor_ = mappedDataFrame_.begin();
+        }
+
+        inline const_iterator forward() {
+            if ( cursor_ != mappedDataFrame_.end() )
+                return ++cursor_;
+            return mappedDataFrame_.end();
+        }
+        
+        inline const_iterator begin() const {
             return mappedDataFrame_.begin();
         }
 	
-        inline std::vector< std::shared_ptr< adcontrols::MappedDataFrame > >::const_iterator end() const {
+        inline const_iterator end() const {
             return mappedDataFrame_.end();
         }
 
         inline std::shared_ptr< const adcontrols::MappedDataFrame > back() const {
-            return mappedDataFrame_.back();
+            if ( cursor_ != end() )
+                return *cursor_;
+            return nullptr;
         }
+
+        void em( std::shared_ptr< const adcontrols::MappedDataFrame > df );
+        void kmean( std::shared_ptr< const adcontrols::MappedDataFrame > df );
+        void contours( std::shared_ptr< const adcontrols::MappedDataFrame > df );
+        const cv::Mat& mat() const;
         
     signals:
         void dataChanged();
         
     private:
         std::shared_ptr< adprocessor::dataprocessor > processor_;
-        // std::vector< std::shared_ptr< adcontrols::MappedSpectra > > mappedSpectra_;
         std::vector< std::shared_ptr< adcontrols::MappedDataFrame > > mappedDataFrame_;
+        const_iterator cursor_;
+        cv::Ptr< cv::ml::EM > em_model_;
+        cv::Mat mat_;
+        void makeGrayScale( const adcontrols::MappedDataFrame& );
     };
     
 }
