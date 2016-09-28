@@ -269,7 +269,6 @@ bool
 DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
-        ADDEBUG() << "## initialize DataReader for: " << objtext << "\tobjid: " << objid;
         
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
@@ -298,17 +297,27 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             // workaround for Sep. to Dec., 2015 data file
             // find if protocol override exist
             {
-                std::vector< std::pair< int, double > > protocols;
-                adfs::stmt sql( *db );
-                sql.prepare( "SELECT  mode, ext_adc_delay from PROTOCOL_OVERRIDE ORDER BY id" );
-                while ( sql.step() == adfs::sqlite_row ) {
-                    int mode = int( sql.get_column_value< uint64_t >( 0 ) );
-                    double delay = sql.get_column_value< double >( 1 );
-                    protocols.emplace_back( mode, delay );
-                }
-                if ( ! protocols.empty() ) {
-                    if ( auto ip = dynamic_cast< acqrsinterpreter::DataInterpreter * >( interpreter_.get() ) )
-                        ip->setWorkaroundProtocols( protocols );
+                bool exists( false );
+                {
+                    adfs::stmt sql( *db );
+                    sql.prepare( "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='PROTOCOL_OVERRIDE'" );
+                    if ( sql.step() == adfs::sqlite_row )
+                        exists = sql.get_column_value<int64_t>( 0 );
+                };
+                
+                if ( exists ) {
+                    std::vector< std::pair< int, double > > protocols;
+                    adfs::stmt sql( *db );
+                    sql.prepare( "SELECT  mode, ext_adc_delay from PROTOCOL_OVERRIDE ORDER BY id" );
+                    while ( sql.step() == adfs::sqlite_row ) {
+                        int mode = int( sql.get_column_value< uint64_t >( 0 ) );
+                        double delay = sql.get_column_value< double >( 1 );
+                        protocols.emplace_back( mode, delay );
+                    }
+                    if ( ! protocols.empty() ) {
+                        if ( auto ip = dynamic_cast< acqrsinterpreter::DataInterpreter * >( interpreter_.get() ) )
+                            ip->setWorkaroundProtocols( protocols );
+                    }
                 }
             }
             // end workaround

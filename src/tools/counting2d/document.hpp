@@ -24,24 +24,58 @@
 
 #pragma once
 
+#include <QObject>
+#include <vector>
 #include <memory>
 
 namespace adprocessor { class dataprocessor; }
+namespace adcontrols { class MappedSpectra; class MappedDataFrame; }
 
 namespace counting2d {
 
-    class document {
+    class document : public QObject {
 
+        Q_OBJECT
         document( const document& ) = delete;
         document& operator = ( const document& ) = delete;
-
-    public:
         document();
+    public:
+        static document * instance();
+        
         bool setDataprocessor( std::shared_ptr< adprocessor::dataprocessor > );
+	
         bool fetch();
+	
+        // inline std::vector< std::shared_ptr< adcontrols::MappedSpectra > >::const_iterator begin() const {
+        //     return mappedSpectra_.begin();
+        // }
+	
+        // inline std::vector< std::shared_ptr< adcontrols::MappedSpectra > >::const_iterator end() const {
+        //     return mappedSpectra_.end();
+        // }
+
+        // inline std::shared_ptr< const adcontrols::MappedSpectra > back() const {
+        //     return mappedSpectra_.back();
+        // }
+        inline std::vector< std::shared_ptr< adcontrols::MappedDataFrame > >::const_iterator begin() const {
+            return mappedDataFrame_.begin();
+        }
+	
+        inline std::vector< std::shared_ptr< adcontrols::MappedDataFrame > >::const_iterator end() const {
+            return mappedDataFrame_.end();
+        }
+
+        inline std::shared_ptr< const adcontrols::MappedDataFrame > back() const {
+            return mappedDataFrame_.back();
+        }
+        
+    signals:
+        void dataChanged();
         
     private:
         std::shared_ptr< adprocessor::dataprocessor > processor_;
+        // std::vector< std::shared_ptr< adcontrols::MappedSpectra > > mappedSpectra_;
+        std::vector< std::shared_ptr< adcontrols::MappedDataFrame > > mappedDataFrame_;
     };
     
 }

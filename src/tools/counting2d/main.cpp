@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "document.hpp"
+#include "mainwindow.hpp"
 #include <adprocessor/dataprocessor.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <QApplication>
@@ -84,7 +85,14 @@ main(int argc, char *argv[])
         boost::filesystem::current_path( cdir );
         f_directory = true;
     }
-    
+
+    counting2d::MainWindow w;
+    w.resize( 800, 600 );
+    auto doc = counting2d::document::instance();
+    w.onInitialUpdate();
+    w.show();
+    a.processEvents();
+
     if ( vm.count("args") ) {
         
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
@@ -96,14 +104,15 @@ main(int argc, char *argv[])
 
             if ( processor->open( file.wstring(), msg ) ) {
 
-                auto doc = std::make_unique< counting2d::document >();
                 if ( doc->setDataprocessor( processor ) )
                     doc->fetch();
-                
+
             } else {
                 std::wcout << msg << std::endl;
             }
         }
     }
+
+    a.exec();
 }
 

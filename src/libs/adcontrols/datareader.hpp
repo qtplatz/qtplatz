@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/any.hpp>
 #include <functional>
 #include <utility>
 #include <vector>
@@ -136,7 +137,8 @@ namespace adcontrols {
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
-
+        
+        virtual boost::any getData( int64_t rowid ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
         virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }

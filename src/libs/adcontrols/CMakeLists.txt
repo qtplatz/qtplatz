@@ -103,12 +103,14 @@ add_library( adcontrols SHARED
   lockmass.hpp
   logging_hook.cpp
   logging_hook.hpp   
-  mappedspectrum.cpp
-  mappedspectrum.hpp
+  mappeddataframe.cpp
+  mappeddataframe.hpp
+  mappedimage.cpp
+  mappedimage.hpp
   mappedspectra.cpp
   mappedspectra.hpp
-  mappedimage.cpp
-  mappedimage.hpp      
+  mappedspectrum.cpp
+  mappedspectrum.hpp
   massspectrometer.cpp
   massspectrometer.hpp 
   massspectrometerbroker.cpp

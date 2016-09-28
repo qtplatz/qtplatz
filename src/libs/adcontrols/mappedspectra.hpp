@@ -87,6 +87,8 @@ namespace adcontrols {
         uint32_t acqSamples() const;
         std::pair< double, double > acqTimeRange() const;
 
+        bool empty() const;
+
     private:
         class impl;
         impl * impl_;

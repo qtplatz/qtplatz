@@ -16,6 +16,8 @@ add_library( adportable
   dgprotocols.hpp
   dgprotocol.hpp
   fft.cpp
+  graycode.cpp
+  graycode.hpp
   http_client.cpp
   histogram_processor.cpp
   histogram_processor.hpp

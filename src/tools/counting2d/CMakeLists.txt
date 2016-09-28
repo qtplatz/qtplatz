@@ -28,9 +28,15 @@ endif()
 include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )
 
 add_executable( ${PROJECT_NAME}
-  main.cpp
   document.cpp
   document.hpp
+  imageview.cpp
+  imageview.hpp
+  main.cpp
+  mainwindow.cpp
+  mainwindow.hpp
+  spectrogramplot.cpp
+  spectrogramplot.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
@@ -38,7 +44,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adfs
   adprocessor
+  adplot
   adplugin_manager
+  adwidgets
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${HDF5_LIBRARIES}
