@@ -24,7 +24,6 @@ endif()
 if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
 
   add_subdirectory (adextension)
-  
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
   add_subdirectory (adplugin_manager)
