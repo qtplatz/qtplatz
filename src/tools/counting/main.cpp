@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 #include <ratio>
+#include <iomanip>
 #if OPENCV
 # include <cv.h>
 # include <opencv2/cvconfig.h>
@@ -178,6 +179,7 @@ main(int argc, char *argv[])
                         summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                         summary.print_statistics( statfile );
                     }
+                    
                     summary.findPeaks();
                     summary.report( std::cout );
 
@@ -242,7 +244,9 @@ Summary::compute_statistics( double xIncrement )
         size_t sz = peaks.size();
         auto it = std::remove_if( peaks.begin(), peaks.end(), [&]( const auto& pk ){ return pk.apex().second > threshold_; } );
         peaks.erase( it, peaks.end() );
+        std::sort( peaks.begin(), peaks.end(), []( const auto& a, const auto& b ){ return a.apex().second > b.apex().second; } );
     }
+    
 }
 
 void
@@ -292,6 +296,24 @@ Summary::print_statistics( const std::string& file )
 void
 Summary::pivot( const std::string& file )
 {
+    std::string xfile( file );
+    int id(1);
+    while( boost::filesystem::exists( xfile ) )
+        xfile = ( boost::format( "%s-%d" ) % file % id++ ).str();
+        
+    std::ofstream of( xfile );
+    using namespace adcontrols;
+
+    for ( const auto& pklist: hgrm_ ) {
+        for( auto& peak: pklist.second ) {
+            of << std::fixed << std::setprecision(8)
+               << pklist.first
+               << "\t" << peak.apex().first << "\t" << peak.apex().second
+               << "\t" << peak.front().first << "\t" << peak.front().second
+               << "\t" << peak.back().first << "\t" << peak.back().second
+               << std::endl;
+        }
+    }
 }
 
 void
@@ -314,81 +336,28 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
     auto stem = boost::filesystem::path( infile ).stem();
     stem += suffix;
 
+    if ( std::abs( threshold_ ) >= 1.0e-6 )
+        stem += ( boost::format( "_%.1fmV" ) % threshold_ ).str();
+
     if ( outdir_.empty() ) {
-        std::string path = stem.string() + ".log";
+        std::string path = stem.string() + ".csv";
         while ( boost::filesystem::exists( path ) )
-            path = ( boost::format( "%s~%d.log" ) % stem.string() % id++ ).str();
+            path = ( boost::format( "%s~%d.csv" ) % stem.string() % id++ ).str();
         return path;
     } else {
         auto name = boost::filesystem::path( outdir_ ) / stem;
-        std::string path = name.string() + ".log";
+        std::string path = name.string() + ".csv";
         while ( boost::filesystem::exists( path ) ) {
-            path = ( boost::format( "%s~%d.log" ) % name.string() % id++ ).str();
+            path = ( boost::format( "%s~%d.csv" ) % name.string() % id++ ).str();
         }
         return path;
     }
         
 }
 
-#if OPENCV
-void
-Summary::findPeaks()
-{
-    auto numPeaks = std::accumulate( hgrm_.begin(), hgrm_.end(), size_t(0), [](size_t x, const auto& pk ) { return x + pk.second.size(); } );
-
-    std::vector< float > times(numPeaks);
-
-    auto it = times.begin();
-    for ( const auto& column : hgrm_ ) {
-        std::transform( column.second.begin(), column.second.end(), it, []( auto& pk ){ return float( pk.apex().first ); } );
-        std::advance( it, column.second.size() );
-    }
-    
-    std::cout << "numPeaks: " << numPeaks << std::endl;
-
-    cv::Mat features( times.size(), 1, CV_32FC1, times.data() );
-
-#if 0
-    std::vector< int > labels;
-    std::vector< float > centres;
-
-    cv::kmeans( m
-                , 1
-                , labels
-                , cv::TermCriteria( CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 10, 5.0e-9 )
-                , 3
-                , cv::KMEANS_PP_CENTERS
-                , centres );
-    
-    std::cout << "labels: " << labels.size() << ", centres: " << centres.size() << std::endl;
-    
-    for ( auto& c: centres )
-      std::cout << c << std::endl;
-
-    for ( auto& l: labels )
-      std::cout << l << std::endl;
-#endif
-    
-   cvflann::KMeansIndexParams params( 3, 5, cvflann::FLANN_CENTERS_RANDOM, 0.1 );
-    
-    typedef cv::flann::L2_Simple< float > distance_type;
-    //auto index = std::make_unique< cv::flann::GenericIndex< distance_type > >( features, params );
-    
-    cv::Mat centres( 6, 1, CV_32FC1, float(0) );
-
-    int count = cv::flann::hierarchicalClustering< distance_type >( features, centres, params );
-    
-    std::cout << "count=" << count << std::endl;
-    
-    std::cout << centres << std::endl;
-}
-
-#else
-
 void
 Summary::findPeaks()
 {
 }
 
-#endif
 
