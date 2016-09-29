@@ -20,6 +20,7 @@ endif()
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} )
 endif()
 
 include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )
@@ -35,8 +36,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adfs
   ${Boost_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${HDF5_LIBRARIES}
+  ${_opencv_libraries}
   )
 
 install( TARGETS ${PROJECT_NAME}

@@ -109,8 +109,8 @@ if ( WITH_RDKIT )
 endif()
 
 if ( WITH_OPENCV )
-  find_package( OpenCV 3 REQUIRED )
-  find_package( HDF5 REQUIRED )
+  find_package( OpenCV 3 QUIET )
+  find_package( HDF5 QUIET )
 endif()
 
 #message( STATUS "---------------------------------" )

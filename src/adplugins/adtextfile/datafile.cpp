@@ -36,6 +36,7 @@
 #include "txtspectrum.hpp"
 #include "txtchromatogram.hpp"
 #include "time_data_reader.hpp"
+#include <adcontrols/countinghistogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
@@ -43,7 +44,9 @@
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -131,7 +134,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     dlg.show();
     
     if ( dlg.exec() ) {
-        
+
         QApplication::changeOverrideCursor( Qt::WaitCursor );
         
         if ( dlg.dataType() == Dialog::data_chromatogram ) {
@@ -152,8 +155,15 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
             }
         } else if ( dlg.dataType() == Dialog::counting_time_data ) {
             time_data_reader reader;
-            if ( reader.load( path.string() ) ) {
+            if ( reader.load( path.string()
+                              , [&]( size_t numerator, size_t denominator ){
+                                  std::cerr << "Processing: " << path.string()
+                                            << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                                  return true;
+                              }) && prepare_portfolio( reader, filename, portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
+                processedDataset_->xml( portfolio.xml() );
+                return true;                
             }
         }
     }
@@ -271,3 +281,44 @@ datafile::prepare_portfolio( const TXTChromatogram& txt, const std::wstring& fil
     return true;
 }
 
+bool
+datafile::prepare_portfolio( const time_data_reader& reader, const std::wstring& filename, portfolio::Portfolio& portfolio )
+{
+    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
+    boost::filesystem::path path( filename );
+
+    adcontrols::CountingHistogram hgrm;
+    for ( auto& trig: reader.data() )
+        hgrm << trig;
+
+    const auto& front = *hgrm.begin();
+    const auto& back  = *( hgrm.begin() + ( hgrm.size() - 1 ) );
+
+    adcontrols::MSProperty prop;
+    double delay      = front.first;
+    uint32_t nDelay   = delay / hgrm.xIncrement();
+    uint32_t nSamples = ( back.first - front.first ) / hgrm.xIncrement();
+        
+    adcontrols::SamplingInfo info( hgrm.xIncrement(), delay, nDelay, uint32_t( nSamples ), /* number of average */ 1, /*mode*/ 0 );
+    prop.setSamplingInfo( info );
+    
+    auto sp = std::make_shared< adcontrols::MassSpectrum >();
+    sp->setMSProperty( prop );
+    sp->setCentroid( adcontrols::CentroidNative );
+    sp->resize( hgrm.size() );
+    size_t idx(0);
+    for ( auto& pair: hgrm ) {
+        sp->setTime( idx, pair.first );
+        sp->setIntensity( idx, pair.second.size() );
+        // ADDEBUG() << idx << ", " << pair.first << ", " << pair.second.size();
+        ++idx;
+    }
+
+    std::wstring name( ( boost::wformat( L"%1%(%2%)" ) % path.stem().wstring() % idx++).str() );
+    portfolio::Folium folium = spectra.addFolium( name );
+    folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
+
+    data_[ folium.id() ] = sp;
+
+    return true;
+}

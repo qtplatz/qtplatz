@@ -76,7 +76,7 @@ main(int argc, char *argv[])
         description.add_options()
             ( "help,h",      "Display this help message" )
             ( "args",        po::value< std::vector< std::string > >(),  "input files" )
-            ( "hist,h",      "histogram outfile" )
+            ( "hist",        "histogram outfile" )
             ( "stat,s",      "peak statistics outfile" )
             ( "directory,C", po::value< std::string >(), "result output directory" )
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
@@ -128,7 +128,7 @@ main(int argc, char *argv[])
                     std::string spectrometer;
 
                     if ( adtextfile::time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) ) {
-
+                        
                         std::cout << "#datafile: " << file << " <- " << adfsname << std::endl;
                         std::cout << "#\taccelerator voltage: " << acclVoltage
                                   << "\ttDelay: " << tDelay
@@ -170,10 +170,7 @@ main(int argc, char *argv[])
                         summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                         summary.print_statistics( statfile );
                     }
-#if OPENCV
-		    summary.findPeaks();
-#endif
-
+                    summary.findPeaks();
                     summary.report( std::cout );
                 }
 
@@ -213,7 +210,7 @@ Summary::print_histogram( const std::string& file )
     boost::filesystem::path plt( file );
     plt.replace_extension( ".plt" );
     std::ofstream pf( plt.string() );
-    pf << "set terminal x11" << std::endl;
+    // pf << "set terminal x11" << std::endl;
     pf << "plot \"" << file << "\" using 1:2" << std::endl;
 }
 
@@ -221,7 +218,8 @@ void
 Summary::compute_statistics( double xIncrement )
 {
     hgrm_.clear();
-
+    std::cerr << "computing statistics" << std::endl;
+    
     for ( auto& trig: reader_->data() ) {
 
         hgrm_ << trig;
@@ -302,10 +300,10 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
         
 }
 
+#if OPENCV
 void
 Summary::findPeaks()
 {
-#if OPENCV
     auto numPeaks = std::accumulate( hgrm_.begin(), hgrm_.end(), size_t(0), [](size_t x, const auto& pk ) { return x + pk.second.size(); } );
 
     std::vector< float > times(numPeaks);
@@ -353,6 +351,14 @@ Summary::findPeaks()
     std::cout << "count=" << count << std::endl;
     
     std::cout << centres << std::endl;
+}
+
+#else
+
+void
+Summary::findPeaks()
+{
+}
 
 #endif
-}
+

@@ -135,8 +135,8 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             spectra_.push_back( ptr );
         }
     } else {
-
-        std::shared_ptr< adcontrols::MassSpectrum > ptr( new adcontrols::MassSpectrum );
+        
+        auto ptr = std::make_shared< adcontrols::MassSpectrum >();
         ptr->resize( nSamples );
         MSProperty prop;
 

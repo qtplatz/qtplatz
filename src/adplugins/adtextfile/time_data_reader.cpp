@@ -138,7 +138,6 @@ time_data_reader::load( const std::string& name
             }
             data_.emplace_back( data );
         }
-
     } while( ! in.eof() );
 
     return true;

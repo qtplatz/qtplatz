@@ -57,8 +57,8 @@ CountingHistogram::operator << ( const CountingData& data )
             
             auto it = std::lower_bound( pklists_.begin(), pklists_.end(), pk
                                         , [&]( const std::pair< double, std::vector< adcontrols::CountingPeak > >& a
-                                              , const adcontrols::CountingPeak& b ){
-                                            return size_t( 0.5 + a.first / xIncrement_ ) < size_t( 0.5 + b.apex().first / xIncrement_ );
+                                               , const adcontrols::CountingPeak& b ){
+                                            return size_t( a.first / xIncrement_ + 0.5 ) < size_t( b.apex().first / xIncrement_ + 0.5 );
                                         });
 
             if ( it == pklists_.end() ) {
@@ -66,14 +66,15 @@ CountingHistogram::operator << ( const CountingData& data )
                 pklists_.emplace_back( size_t( 0.5 + pk.apex().first / xIncrement_ ) * xIncrement_
                                        , std::vector< adcontrols::CountingPeak >( { pk } ) );
                 
-            } else if ( size_t( 0.5 + it->first / xIncrement_ ) ==
-                        size_t( 0.5 + std::get< CountingPeak::pk_apex >( pk.d_ ).first / xIncrement_ ) ) {
+            } else if ( size_t( it->first / xIncrement_ + 0.5 ) ==
+                        size_t( std::get< CountingPeak::pk_apex >( pk.d_ ).first / xIncrement_ + 0.5 ) ) {
 
                 it->second.emplace_back( pk );
             
             } else {
 
-                pklists_.emplace( it, std::make_pair( pk.apex().first, std::vector< adcontrols::CountingPeak >( { pk } ) ) );
+                double bin = size_t( pk.apex().first / xIncrement_ + 0.5 ) * xIncrement_;
+                pklists_.emplace( it, std::make_pair( bin, std::vector< adcontrols::CountingPeak >( { pk } ) ) );
 
             }
         }
