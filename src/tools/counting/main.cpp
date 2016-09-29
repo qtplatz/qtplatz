@@ -55,9 +55,11 @@ public:
     void report( std::ostream& );
     void print_histogram( const std::string& file );
     void print_statistics( const std::string& file );
+    void pivot( const std::string& file );
     void findPeaks();
     std::string make_outfname( const std::string& infile, const std::string& suffix );
     void set_resolution( double );
+    void set_threshold( double );
 
 private:
     std::string outdir_;
@@ -65,6 +67,7 @@ private:
     std::unique_ptr< adtextfile::time_data_reader > reader_;
     adcontrols::CountingHistogram hgrm_;
     double resolution_;
+    double threshold_;
 };
 
 int
@@ -82,6 +85,8 @@ main(int argc, char *argv[])
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
             ( "peak",        po::value< double >(),  "specify time-of-flight in microseconds" )
             ( "resolution",  po::value< double >(),  "peak width (ns)" )
+            ( "threshold",   po::value< double >(),  "threshold (mV)" )
+            ( "pivot",       "Pivotting data" )
             ;
 
         po::positional_options_description p;
@@ -139,8 +144,11 @@ main(int argc, char *argv[])
                     }
                 }
 
-                if ( vm.count( "res" ) )
-                    summary.set_resolution( vm[ "res" ].as< double >() * 1.0e-9 );
+                if ( vm.count( "resolution" ) )
+                    summary.set_resolution( vm[ "resolution" ].as< double >() * 1.0e-9 );
+
+                if ( vm.count( "threshold" ) )
+                    summary.set_threshold( vm[ "threshold" ].as< double >() );
 
                 if ( summary.reader()->load(
                          file
@@ -172,6 +180,11 @@ main(int argc, char *argv[])
                     }
                     summary.findPeaks();
                     summary.report( std::cout );
+
+                    if ( vm.count( "pivot" ) ) {
+                        auto pivotfile = summary.make_outfname( file, "_pivot" );
+                        summary.pivot( pivotfile );
+                    }
                 }
 
             } else {
@@ -185,6 +198,7 @@ main(int argc, char *argv[])
 
 Summary::Summary( std::unique_ptr< adtextfile::time_data_reader >&& reader ) : reader_( std::move( reader ) )
                                                                              , resolution_( 0 )
+                                                                             , threshold_( 0 )
 {
 }
 
@@ -220,10 +234,14 @@ Summary::compute_statistics( double xIncrement )
     hgrm_.clear();
     std::cerr << "computing statistics" << std::endl;
     
-    for ( auto& trig: reader_->data() ) {
-
+    for ( auto& trig: reader_->data() )
         hgrm_ << trig;
-        
+
+    for ( auto& pklist: hgrm_ ) {
+        auto& peaks = pklist.second;
+        size_t sz = peaks.size();
+        auto it = std::remove_if( peaks.begin(), peaks.end(), [&]( const auto& pk ){ return pk.apex().second > threshold_; } );
+        peaks.erase( it, peaks.end() );
     }
 }
 
@@ -252,7 +270,7 @@ Summary::print_statistics( const std::string& file )
         of << boost::format( "%.9le\t%d" )
             % pklist.first // tof
             % pklist.second.size(); // count
-        of << boost::format( "\tdt:\t%9.4lf" ) % (( pklist.first - t ) * 1.0e9);
+        // of << boost::format( "\tdt:\t%9.4lf" ) % (( pklist.first - t ) * 1.0e9);
         t = pklist.first;
         of << boost::format( "\tV:\t%9.4lf\t%9.3lf" ) % apex.mean % apex.stddev;
         of << boost::format( "\tH:\t%9.4lf\t%9.3lf" ) % height.mean % height.stddev;
@@ -272,9 +290,21 @@ Summary::print_statistics( const std::string& file )
 }
 
 void
+Summary::pivot( const std::string& file )
+{
+}
+
+void
 Summary::set_resolution( double res )
 {
     resolution_ = res;
+}
+
+void
+Summary::set_threshold( double th )
+{
+    threshold_ = th;
+    std::cout << "set_threshold( " << th << ")" << std::endl;
 }
 
 std::string
