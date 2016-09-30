@@ -143,6 +143,104 @@ time_data_reader::load( const std::string& name
     return true;
 }
 
+bool
+time_data_reader::load( const std::string& name
+                        , std::function<bool( size_t, size_t, const adcontrols::CountingData& )> handler )
+{
+	boost::filesystem::path path( name );
+
+	boost::filesystem::ifstream in( path );
+    if ( in.fail() ) 
+        return false;
+
+    size_t fsize = boost::filesystem::file_size( path );
+
+    typedef boost::char_separator<char> separator;
+    typedef boost::tokenizer< separator > tokenizer;
+
+    size_t line_count(0);
+    
+    separator sep( ", \t", "", boost::drop_empty_tokens );
+    do {
+        std::string line;
+        if ( std::getline( in, line ) ) {
+
+            ++line_count;
+            
+            if ( line.at( 0 ) == '#' )
+                continue;
+
+            tokenizer tokens( line, sep );
+            adcontrols::CountingData data;
+            adcontrols::CountingPeak peak;
+            
+            char * end;
+
+            int col = 0;
+            for ( auto it = tokens.begin(); it != tokens.end(); ++it, ++col ) {
+                if ( col < 7 ) {
+                    switch( col ) {
+                    case 0:
+                        data = adcontrols::CountingData();
+                        peak = adcontrols::CountingPeak();
+                        data.setTriggerNumber( std::strtol( it->c_str(), &end, 10 ) );   // trig#
+                        break;
+                    case 1:
+                        data.setProtocolIndex( std::strtol( it->c_str(), &end, 10 ) );   // prot#
+                        break;
+                    case 2:
+                        data.setElapsedTime( std::strtod( it->c_str(), &end ) );         // timestamp
+                        break;
+                    case 3:
+                        data.setTimeSinceEpoch( std::strtoll( it->c_str(), &end, 10 ) ); // epock time
+                        break;
+                    case 4:
+                        data.setEvents( std::strtol( it->c_str(), &end, 16 ) );          // events
+                        break;
+                    case 5:
+                        data.setThreshold( std::strtod( it->c_str(), &end ) / 1000 );    // threshold (mV)->(V)
+                        break;
+                    case 6:
+                        data.setAlgo( std::strtol( it->c_str(), &end, 10 ) ); // algo
+                        break;
+                    default:
+                        break;
+                    }
+
+                } else {
+                    int pcol = ( col - 7 ) % 6;
+                    switch( pcol ) {
+                    case 0:
+                        peak = adcontrols::CountingPeak();
+                        peak.apex().first = std::strtod( it->c_str(), &end );
+                        break;
+                    case 1:
+                        peak.apex().second = std::strtod( it->c_str(), &end );
+                        break;
+                    case 2:
+                        peak.front().first = std::strtod( it->c_str(), &end );
+                        break;
+                    case 3:
+                        peak.front().second = std::strtod( it->c_str(), &end );
+                        break;
+                    case 4:
+                        peak.back().first = std::strtod( it->c_str(), &end );
+                        break;
+                    case 5:
+                        peak.back().second = std::strtod( it->c_str(), &end );
+                        break;                                                                        
+                    }
+                    if ( pcol == 5 )
+                        data.peaks().emplace_back( peak );
+                }
+            }
+            handler( in.tellg(), fsize, data );
+        }
+    } while( ! in.eof() );
+
+    return true;
+}
+
 const std::vector< adcontrols::CountingData >&
 time_data_reader::data() const
 {

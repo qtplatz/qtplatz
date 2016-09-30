@@ -41,6 +41,9 @@ namespace adtextfile {
         bool load( const std::string&
                    , std::function<bool( size_t, size_t )> progress = std::function<bool( size_t, size_t )>() );
 
+        static bool load( const std::string& name
+                          , std::function<bool( size_t, size_t, const adcontrols::CountingData& )> );        
+
         static bool is_time_data( const std::string& path, std::string& adfsname );
         
         static bool readScanLaw( const std::string& adfsname
