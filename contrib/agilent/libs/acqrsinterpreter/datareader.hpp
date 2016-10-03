@@ -60,7 +60,7 @@ namespace acqrsinterpreter {
 
         const_iterator begin( int fcn ) const override;
         const_iterator end() const override;
-        const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override;
+        const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const override;
         
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override;
 

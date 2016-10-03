@@ -89,6 +89,7 @@ namespace adcontrols {
         }
 
         inline int64_t rowid() const { return value_.rowid_; }
+        inline int _fcn() const { return fcn_; } // query specified fcn
     };
 
 	class ADCONTROLSSHARED_EXPORT DataReader : public std::enable_shared_from_this< DataReader > {
@@ -120,7 +121,7 @@ namespace adcontrols {
         virtual const_iterator end() const = 0;
         
         /* findPos returns trigger number on the data stream across all protocol functions */
-        virtual const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const = 0;
+        virtual const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const = 0;
 
         /* findTime returns elapsed time for the data specified by trigger number */
         virtual double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const = 0;

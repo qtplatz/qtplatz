@@ -135,7 +135,7 @@ namespace acqrsinterpreter {
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& ptr ) const
     {
-        return ptr->indecies().size();
+        return ptr->indecies2().size();
     }
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result >& ptr ) const
@@ -372,8 +372,8 @@ DataReader::fcnCount() const
 {
     // skip timecount data -- too large to handle in the dataproc
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
-        (void)i;
-        return 0;
+         (void)i;
+         return 0;
     }
     return fcnCount_;
 }
@@ -381,8 +381,23 @@ DataReader::fcnCount() const
 adcontrols::DataReader::const_iterator
 DataReader::begin( int fcn ) const
 {
-    if ( indecies_.empty() )
-        return end();
+    if ( indecies_.empty() ) {
+        
+        if ( auto db = db_.lock() ) {
+            adfs::stmt sql( *db );
+            if ( fcn >= 0 ) {
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? AND fcn=? ORDER BY npos LIMIT 1" );
+                sql.bind( 1 ) = objid_;
+            } else {
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? ORDER BY npos LIMIT 1" );
+                sql.bind( 1 ) = objid_;
+            }
+            if ( sql.step() == adfs::sqlite_row ) {
+                auto rowid = sql.get_column_value< int64_t >( 0 );
+                return adcontrols::DataReader_iterator( this, rowid, fcn );
+            }
+        }
+    }
     return adcontrols::DataReader_iterator( this, next( 0, fcn ), fcn );
 }
 
@@ -393,12 +408,30 @@ DataReader::end() const
 }
 
 adcontrols::DataReader::const_iterator
-DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
+DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    if ( indecies_.empty() )
-        return end();
+    ADDEBUG() << "findPos( " << int64_t( seconds * std::nano::den ) << ")";
+    
+    if ( tspec == ElapsedTime ) {    
+        if ( auto db = db_.lock() ) {
+            adfs::stmt sql( *db );
+            sql.prepare(
+                "SELECT rowid FROM AcquiredData WHERE "
+                "objuuid=:objid "
+                "AND fcn=? "
+                "AND elapsed_time >= (SELECT MIN(elapsed_time) FROM AcquiredData WHERE objuuid=:objid) + ? LIMIT 1");
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = ( fcn < 0 ? 0 : fcn );
+            sql.bind( 3 ) = uint64_t( seconds * std::nano::den );
 
-    if ( tspec == ElapsedTime ) {
+            if ( sql.step() == adfs::sqlite_row ) {
+                auto rowid = sql.get_column_value< int64_t >( 0 );
+                return adcontrols::DataReader_iterator( this, rowid, fcn );
+            }
+        }
+#if 0
+        // compute from indecies_
+        if ( tspec == ElapsedTime ) {
 
         int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
 
@@ -416,6 +449,7 @@ DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
         }
 
         return adcontrols::DataReader_iterator( this, it->rowid );
+#endif
     }
 
     return end();
@@ -662,8 +696,7 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
 {
-    auto ptr = std::make_shared< adcontrols::MassSpectrum >();
-    ptr->setDataReaderUuid( objid_ );
+    ADDEBUG() << "coaddSpectrum: {" << begin->pos() << ", " << begin->fcn() << "}";
 
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
@@ -671,21 +704,32 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
             
             adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
-            sql.bind( 1 ) = objid_;
-            sql.bind( 2 ) = begin->fcn();
-            sql.bind( 3 ) = begin->pos();
-            sql.bind( 4 ) = end->pos();
+            int fcn = begin._fcn(); // if this is -1, query all protocols
+
+            if ( fcn < 0 ) {
+                sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
+                sql.bind( 1 ) = objid_;
+                sql.bind( 2 ) = begin->pos();
+                sql.bind( 3 ) = end->pos();
+            } else {
+                sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
+                sql.bind( 1 ) = objid_;
+                sql.bind( 2 ) = fcn;
+                sql.bind( 3 ) = begin->pos();
+                sql.bind( 4 ) = end->pos();
+            }
+
+            std::map< int, std::pair< size_t, waveform_types > > coadded;
+            auto ptr = std::make_shared< adcontrols::MassSpectrum >();
             
-            ADDEBUG() << "npos = {" << begin->pos() << ", " << end->pos() << "}";
-
-            waveform_types coadded;
-
+            // waveform_types coadded;
+            
             size_t n(0);
             while ( sql.step() == adfs::sqlite_row ) {
                 
                 int col = 0;
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                auto _fno = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
                 
@@ -693,26 +737,37 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-                    if ( n++ == 0 ) {
+                    if ( coadded[ _fno ].first++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                        boost::apply_visitor( coadd_initialize( coadded ), waveform );
+                        boost::apply_visitor( coadd_initialize( coadded[ _fno ].second ), waveform );
                         // coadded = waveform;
                     } else {
-                        boost::apply_visitor( coadd_spectrum( coadded ), waveform );
+                        boost::apply_visitor( coadd_spectrum( coadded[ _fno ].second ), waveform );
                     }
                 }
             }
+            
+            int count(0);
+            for ( const auto& wform: coadded ) {
+                
+                auto ms = ( count == 0 ) ? ptr : std::make_shared< adcontrols::MassSpectrum >();
+                ms->setDataReaderUuid( objid_ );
 
-            boost::apply_visitor( make_massspectrum( *ptr ), coadded );
-            if ( spectrometer_ ) {
-                spectrometer_->assignMasses( *ptr );
-                const auto& info = ptr->getMSProperty().samplingInfo();
-                double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
-                double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
-                ptr->setAcquisitionMassRange( lMass, uMass );
+                boost::apply_visitor( make_massspectrum( *ms ), wform.second.second );
+                ADDEBUG() << "protocolId = " << ms->protocolId() << "== fcn=" << wform.first;
+
+                if ( spectrometer_ ) {
+                    spectrometer_->assignMasses( *ms );
+                    const auto& info = ms->getMSProperty().samplingInfo();
+                    double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                    double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                    ms->setAcquisitionMassRange( lMass, uMass );
+                }
+                if ( count > 0 )
+                    (*ptr) << std::move( ms );
+                ++count;
             }
-            ptr->setDataReaderUuid( objid_ );
-
+            
             return ptr;
         }
     }
