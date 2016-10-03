@@ -49,16 +49,16 @@ namespace dataproc {
     class Dataprocessor;
     class DataprocessorFactory;
 
-    class dataproc_document : public QObject
+    class document : public QObject
     {
         Q_OBJECT
         
-        explicit dataproc_document(QObject *parent = 0);
+        explicit document(QObject *parent = 0);
         
-        static std::atomic<dataproc_document * > instance_;
+        static std::atomic<document * > instance_;
         static std::mutex mutex_;
     public:
-        static dataproc_document * instance();
+        static document * instance();
         
         void initialSetup();
         void finalClose();

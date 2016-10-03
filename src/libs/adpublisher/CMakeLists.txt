@@ -20,10 +20,12 @@ if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
   set( _libs "Qt5::WebKit" "Qt5::WebKitWidgets" )
 else()
   # 5.6 or higher
-  find_package( Qt5 CONFIG REQUIRED Concurrent Sql Svg Xml PrintSupport XmlPatterns WebEngineWidgets Core )
-  include_directories( ${Qt5WebEngineWidgets_INCLUDE_DIRS} )
-  set( _libs "Qt5::WebEngineWidgets" )
+#  find_package( Qt5 CONFIG QUIET Concurrent Sql Svg Xml PrintSupport XmlPatterns WebEngineWidgets Core )
+#  include_directories( ${Qt5WebEngineWidgets_INCLUDE_DIRS} )
+#  set( _libs "Qt5::WebEngineWidgets" )
 endif()
+
+find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
 
 find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
 
@@ -40,7 +42,7 @@ include_directories(
 
 set( adpublisher_SOURCES
   document.cpp
-  docbrowser.cpp
+#  docbrowser.cpp
   doceditor.cpp
   doctree.cpp
   docedit.cpp
@@ -51,7 +53,7 @@ set( adpublisher_HEADERS
   adpublisher.hpp
   adpublisher_global.hpp 
   document.hpp 
-  docbrowser.hpp 
+#  docbrowser.hpp 
   doceditor.hpp 
   doctree.hpp 
   docedit.hpp 

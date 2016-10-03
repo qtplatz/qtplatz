@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
@@ -81,10 +81,10 @@ namespace dataproc {
 
 using namespace dataproc;
 
-std::atomic<dataproc_document * > dataproc_document::instance_(0);
-std::mutex dataproc_document::mutex_;
+std::atomic<document * > document::instance_(0);
+std::mutex document::mutex_;
 
-dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
+document::document(QObject *parent) : QObject(parent)
                                     , quant_( std::make_shared< adcontrols::MSQPeaks >() )
                                     , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
@@ -94,22 +94,22 @@ dataproc_document::dataproc_document(QObject *parent) : QObject(parent)
 {
 }
 
-dataproc_document * 
-dataproc_document::instance()
+document * 
+document::instance()
 {
-    static dataproc_document __instance;
+    static document __instance;
     return &__instance;
 }
 
 std::shared_ptr< adcontrols::ProcessMethod >
-dataproc_document::processMethod() const
+document::processMethod() const
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     return pm_;
 }
 
 void
-dataproc_document::setProcessMethod( const adcontrols::ProcessMethod& m, const QString& filename )
+document::setProcessMethod( const adcontrols::ProcessMethod& m, const QString& filename )
 {
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -125,19 +125,19 @@ dataproc_document::setProcessMethod( const adcontrols::ProcessMethod& m, const Q
 }
 
 void
-dataproc_document::addToRecentFiles( const QString& filename )
+document::addToRecentFiles( const QString& filename )
 {
     qtwrapper::settings(*settings_).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
 }
 
 void
-dataproc_document::initialSetup()
+document::initialSetup()
 {
     boost::filesystem::path dir = user_preference::path( settings_.get() );
 
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "dataproc::dataproc_document"
+            QMessageBox::information( 0, "dataproc::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
         }
     }
@@ -159,12 +159,12 @@ dataproc_document::initialSetup()
 }
 
 void
-dataproc_document::finalClose()
+document::finalClose()
 {
     boost::filesystem::path dir = user_preference::path( settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "dataproc::dataproc_document"
+            QMessageBox::information( 0, "dataproc::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
         }
@@ -179,25 +179,25 @@ dataproc_document::finalClose()
 }
 
 adcontrols::MSQPeaks *
-dataproc_document::msQuanTable()
+document::msQuanTable()
 {
     return quant_.get();
 }
 
 const adcontrols::MSQPeaks *
-dataproc_document::msQuanTable() const
+document::msQuanTable() const
 {
     return quant_.get();
 }
 
 void
-dataproc_document::setMSQuanTable( const adcontrols::MSQPeaks& v )
+document::setMSQuanTable( const adcontrols::MSQPeaks& v )
 {
     quant_ = std::make_shared< adcontrols::MSQPeaks >( v );
 }
 
 QString
-dataproc_document::recentFile( const char * group, bool dir_on_fail )
+document::recentFile( const char * group, bool dir_on_fail )
 {
     if ( group == 0 )
         group = Constants::GRP_DATA_FILES;
@@ -222,7 +222,7 @@ dataproc_document::recentFile( const char * group, bool dir_on_fail )
 
 // static
 size_t
-dataproc_document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
+document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
 {
     vfcn.clear();
     if ( dp ) {
@@ -246,7 +246,7 @@ dataproc_document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
 
 //static
 const std::shared_ptr< adcontrols::Chromatogram >
-dataproc_document::findTIC( Dataprocessor * dp, int fcn )
+document::findTIC( Dataprocessor * dp, int fcn )
 {
     if ( dp ) {
         
@@ -268,7 +268,7 @@ dataproc_document::findTIC( Dataprocessor * dp, int fcn )
 }
 
 bool
-dataproc_document::load( const QString& filename, adcontrols::ProcessMethod& pm )
+document::load( const QString& filename, adcontrols::ProcessMethod& pm )
 {
     QFileInfo fi( filename );
 
@@ -302,7 +302,7 @@ dataproc_document::load( const QString& filename, adcontrols::ProcessMethod& pm 
 }
 
 bool
-dataproc_document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
+document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
 {
     adfs::filesystem file; // (filename.toStdWString().c_str());
 
@@ -340,7 +340,7 @@ dataproc_document::save( const QString& filename, const adcontrols::ProcessMetho
 }
 
 void
-dataproc_document::saveScanLaw( const QString& model, double flength, double accv, double tdelay, double mass, const QString& formula )
+document::saveScanLaw( const QString& model, double flength, double accv, double tdelay, double mass, const QString& formula )
 {
     if ( settings_ ) {
         settings_->beginGroup( "ScanLaws" );
@@ -355,7 +355,7 @@ dataproc_document::saveScanLaw( const QString& model, double flength, double acc
 }
 
 bool
-dataproc_document::findScanLaw( const QString& model, double& flength, double& accv, double& tdelay, double& mass, QString& formula )
+document::findScanLaw( const QString& model, double& flength, double& accv, double& tdelay, double& mass, QString& formula )
 {
     bool result( false );
 
@@ -380,7 +380,7 @@ dataproc_document::findScanLaw( const QString& model, double& flength, double& a
 }
 
 void
-dataproc_document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
+document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	qtwrapper::waitCursor w;
 
@@ -389,7 +389,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
             
-            auto cptr = dataproc_document::findTIC( dp, 0 );
+            auto cptr = document::findTIC( dp, 0 );
             if ( !cptr )
                 return;
 
@@ -407,7 +407,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 }
 
 void
-dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
+document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
     try {
         adcontrols::MassSpectrum ms;
@@ -474,7 +474,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, c
 }
 
 void
-dataproc_document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
+document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
     double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
@@ -496,7 +496,7 @@ dataproc_document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, c
 
 
 void
-dataproc_document::onSelectSpectrum_v3( double /*minutes*/, const adcontrols::DataReader_iterator& iterator )
+document::onSelectSpectrum_v3( double /*minutes*/, const adcontrols::DataReader_iterator& iterator )
 {
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
@@ -520,7 +520,7 @@ dataproc_document::onSelectSpectrum_v3( double /*minutes*/, const adcontrols::Da
 }
 
 void
-dataproc_document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
+document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 {
 	qtwrapper::waitCursor w;
 
@@ -550,7 +550,7 @@ dataproc_document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn 
 }
 
 void
-dataproc_document::handle_folium_added( const QString& fname, const QString& path, const QString& id )
+document::handle_folium_added( const QString& fname, const QString& path, const QString& id )
 {
     qtwrapper::waitCursorBlocker block;
 
@@ -569,7 +569,7 @@ dataproc_document::handle_folium_added( const QString& fname, const QString& pat
 }
 
 void
-dataproc_document::handle_portfolio_created( const QString& filename )
+document::handle_portfolio_created( const QString& filename )
 {
     // simulate file->open()
     Core::ICore * core = Core::ICore::instance();
@@ -588,7 +588,7 @@ dataproc_document::handle_portfolio_created( const QString& filename )
 }
 
 adcontrols::axis::AxisH
-dataproc_document::horAxis( Plot id ) const
+document::horAxis( Plot id ) const
 {
     auto it = horAxis_.find( id );
     if ( it != horAxis_.end() )
@@ -598,7 +598,7 @@ dataproc_document::horAxis( Plot id ) const
 }
 
 void 
-dataproc_document::setHorAxis( Plot id, adcontrols::axis::AxisH value )
+document::setHorAxis( Plot id, adcontrols::axis::AxisH value )
 {
     horAxis_[ id ] = value;
 }

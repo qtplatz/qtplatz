@@ -25,7 +25,7 @@
 #include "mainwindow.hpp"
 #include "aboutdlg.hpp"
 #include "chromatogramwnd.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
 #include "dataprocplugin.hpp"
@@ -466,7 +466,7 @@ MainWindow::createContents( Core::IMode * mode )
     // This is significantly important for child widget has right QRectF for each QwtPlot.
     connect( SessionManager::instance(), &SessionManager::signalSelectionChanged, this, &MainWindow::handleSelectionChanged );
 
-    connect( dataproc_document::instance(), &dataproc_document::scanLawChanged, [this] ( double length, double vaccl, double tdelay ) {
+    connect( document::instance(), &document::scanLawChanged, [this] ( double length, double vaccl, double tdelay ) {
         if ( auto w = findChild< adwidgets::MSSimulatorWidget * >() ) {
             w->setTimeSquaredScanLaw( length, vaccl, tdelay );
         }
@@ -801,13 +801,13 @@ MainWindow::handleProcess( const QString& origin )
         // peak identification, and then compute calibration equation
         auto pm = std::make_shared< adcontrols::ProcessMethod >();
         getProcessMethod( *pm );
-        dataproc_document::instance()->setProcessMethod( *pm );
+        document::instance()->setProcessMethod( *pm );
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
             processor->applyCalibration( *pm );
     } else if ( origin == "TargetingWidget" ) {
         auto pm = std::make_shared< adcontrols::ProcessMethod >();
         getProcessMethod( *pm );
-        dataproc_document::instance()->setProcessMethod( *pm );
+        document::instance()->setProcessMethod( *pm );
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
             processor->applyProcess( *pm, TargetingProcess );
     }
@@ -905,15 +905,15 @@ MainWindow::OnInitialUpdate()
 			pLifeCycle->OnInitialUpdate();
     }
 
-    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+    if ( auto pm = document::instance()->processMethod() ) {
         setProcessMethod( *pm ); // write to UI
         getProcessMethod( *pm ); // read back from UI
     } else {
         adcontrols::ProcessMethod m;
         getProcessMethod( m );
-        dataproc_document::instance()->setProcessMethod( m );
+        document::instance()->setProcessMethod( m );
     }
-    connect( dataproc_document::instance(), &dataproc_document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
+    connect( document::instance(), &document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
 
     setSimpleDockWidgetArrangement();
 
@@ -1057,7 +1057,7 @@ MainWindow::handleImportChecked()
     } while ( 0 );
 
     if ( handled )
-        dataproc_document::instance()->handle_portfolio_created( filename );
+        document::instance()->handle_portfolio_created( filename );
 }
 
 void
@@ -1069,7 +1069,7 @@ MainWindow::actionApply()
 
     getProcessMethod( pm );  // update by what values GUI holds
 
-    dataproc_document::instance()->setProcessMethod( pm );
+    document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         
@@ -1087,7 +1087,7 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
         
     getProcessMethod( pm );
 
-    dataproc_document::instance()->setProcessMethod( pm );
+    document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 
@@ -1103,7 +1103,7 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, port
 
     getProcessMethod( pm );
     
-    dataproc_document::instance()->setProcessMethod( pm );
+    document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 
@@ -1303,7 +1303,7 @@ MainWindow::handleProcessMethodChanged( const QString& filename )
     for ( auto& edit : findChildren< QLineEdit * >( Constants::EDIT_PROCMETHOD ) )
         edit->setText( filename );
 
-    if ( auto pm = dataproc_document::instance()->processMethod() ) {
+    if ( auto pm = document::instance()->processMethod() ) {
         setProcessMethod( *pm ); // update UI
     }
 

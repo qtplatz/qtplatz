@@ -72,7 +72,7 @@ threshold_result::data()
 std::vector< uint32_t >&
 threshold_result::indecies()
 {
-    return indecies_;
+     return indecies_;
 }
 
 const std::vector< uint32_t >&
@@ -80,18 +80,6 @@ threshold_result::indecies() const
 {
     return indecies_;
 }
-
-// std::vector< adportable::counting::threshold_index >&
-// threshold_result::indecies2()
-// {
-//     return indecies2_;
-// }
-
-// const std::vector< adportable::counting::threshold_index >&
-// threshold_result::indecies2() const
-// {
-//     return indecies2_;
-// }
 
 std::vector< double >&
 threshold_result::processed()

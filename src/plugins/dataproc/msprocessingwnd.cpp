@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "msprocessingwnd.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessworker.hpp"
@@ -216,14 +216,16 @@ namespace dataproc {
 #if 0
                         // the code below is too slow
                         if ( ticFinder3( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
-                            QString ammend = QString::fromStdString( ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
+                            QString ammend = QString::fromStdString(
+                                ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
                             text.setText( QString( "%1 %2" ).arg( text.text(), ammend ), QwtText::RichText );
                             return true;
                         }
 #endif
                     } else {
                         if ( ticFinder2( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
-                            QString ammend = QString::fromStdString( ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
+                            QString ammend = QString::fromStdString(
+                                ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
                             text.setText( QString( "%1 %2" ).arg( text.text(), ammend ), QwtText::RichText );
                             return true;
                         }
@@ -323,7 +325,6 @@ MSProcessingWnd::init()
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
         //pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
-        
 
         pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );
 		connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) )
@@ -850,7 +851,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                 std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfs" )
                                                                  % reader->display_name() % rect.left() ).str().c_str() )
                                                 , [=] () {
-                                                    dataproc_document::instance()->onSelectSpectrum_v3( rect.left(), it );
+                                                    document::instance()->onSelectSpectrum_v3( rect.left(), it );
                                                 } )
                                 );
                     }
@@ -867,7 +868,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     actions.push_back(
                         std::make_pair( menu.addAction(
                                             (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str().c_str() )
-                                        , [=] () { dataproc_document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } )
+                                        , [=] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } )
                         );
                     
                     if ( index < 0 || fcn < 0 )
@@ -876,7 +877,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     actions.push_back(
                         std::make_pair( menu.addAction( (boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str().c_str() )
                                         , [=] () {
-                                            dataproc_document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
+                                            document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
                                         } ) );
                     
                 }
@@ -913,7 +914,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
         }
 
     } else {
-        dataproc_document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
+        document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
     }
 
 }
@@ -1231,7 +1232,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
 
                 double fLength, accVoltage, tDelay, mass;
                 QString formula;
-                if ( dataproc_document::instance()->findScanLaw( name, fLength, accVoltage, tDelay, mass, formula ) ) {
+                if ( document::instance()->findScanLaw( name, fLength, accVoltage, tDelay, mass, formula ) ) {
                     dlg.setValues( fLength, accVoltage, tDelay, 0 );
                     dlg.setMass( mass );
                     if ( !formula.isEmpty() )
@@ -1243,7 +1244,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
             if ( dlg.exec() != QDialog::Accepted )
                 return false;
 
-            dataproc_document::instance()->saveScanLaw( name
+            document::instance()->saveScanLaw( name
                                                         , dlg.fLength()
                                                         , dlg.acceleratorVoltage()
                                                         , dlg.tDelay()
@@ -1656,7 +1657,7 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, adcon
 void
 MSProcessingWnd::save_image_file()
 {
-    auto settings = dataproc_document::instance()->settings();
+    auto settings = document::instance()->settings();
     using namespace dataproc::Constants;
     settings->beginGroup( GRP_SPECTRUM_IMAGE );
     QString fmt = settings->value( KEY_IMAGEE_FORMAT, "svg" ).toString();

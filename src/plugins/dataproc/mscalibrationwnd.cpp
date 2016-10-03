@@ -24,7 +24,7 @@
 
 #include "mscalibrationwnd.hpp"
 #include "mainwindow.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"
 #include "qtwidgets_name.hpp"

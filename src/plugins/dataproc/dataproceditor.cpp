@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "dataproceditor.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataprocconstants.hpp"
@@ -84,7 +84,7 @@ DataprocEditor::open( QString* errorMessage, const QString &filename, const QStr
 
         Core::DocumentManager::addDocument( processor_->document() );
         Core::DocumentManager::addToRecentFiles( filename );
-        dataproc_document::instance()->addToRecentFiles( filename );
+        document::instance()->addToRecentFiles( filename );
 
         return true;
     }

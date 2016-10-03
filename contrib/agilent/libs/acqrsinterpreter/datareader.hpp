@@ -88,6 +88,7 @@ namespace acqrsinterpreter {
         int64_t objrowid_;
         std::string display_name_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
+        size_t fcnCount_;
 
         struct index {
             int64_t rowid; int64_t pos; int64_t elapsed_time; int fcn;

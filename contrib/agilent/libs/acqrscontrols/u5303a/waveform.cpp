@@ -244,16 +244,28 @@ waveform::operator += ( const waveform& t )
         meta_.actualAverages += t.meta_.actualAverages;
         wellKnownEvents_ |= t.wellKnownEvents_;
 
+        double tic(0), dbase(0), rms(0);
+
+        if ( t.meta_.dataType == 2 ) {
+            tic = adportable::spectrum_processor::tic( t.size(), t.begin<int16_t>(), dbase, rms, 5 );
+        } else if ( t.meta_.dataType == 4 ) {
+            tic = adportable::spectrum_processor::tic( t.size(), t.begin<int32_t>(), dbase, rms, 5 );
+        }
+
         if ( t.meta_.dataType == 2 ) {
             if ( meta_.dataType == 2 )
-                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int16_t>() );
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int16_t>(), data<int16_t>()
+                                , [&]( int a, int b ){ return int( a + b - dbase ); } );
             else
-                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+                std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>()
+                                , [&]( int32_t a, int32_t b ){ return int32_t( a + b - dbase ); } );
         } else {
             if ( meta_.dataType == 2 )
-                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>(), std::plus<int32_t>() );
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>()
+                                , [&]( int a, int b ){ return int( a + b - dbase ); } );
             else
-                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>(), std::plus<int32_t>() );
+                std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>()
+                                , [&]( int32_t a, int32_t b ){ return int32_t( a + b - dbase ); } );
         }
     }
     return *this;
@@ -306,7 +318,8 @@ waveform::trim( metadata& meta, uint32_t& nSamples ) const
 
     size_t offset = 0;
     if ( method_._device_method().digitizer_delay_to_first_sample < method_._device_method().delay_to_first_sample_ )
-        offset = size_t( ( ( method_._device_method().delay_to_first_sample_ - method_._device_method().digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
+        offset = size_t( ( ( method_._device_method().delay_to_first_sample_
+                             - method_._device_method().digitizer_delay_to_first_sample ) / meta.xIncrement ) + 0.5 );
 
     nSamples = method_._device_method().nbr_of_s_to_acquire_;
     if ( nSamples + offset > method_._device_method().digitizer_nbr_of_s_to_acquire )
@@ -509,9 +522,11 @@ waveform::transform( std::vector< double >& v, const waveform& w, int scale )
     v.resize( w.size() );
 
     if ( w.meta_.dataType == 2 ) {
-        std::transform( w.begin<int16_t>(), w.end<int16_t>(), v.begin(), [&]( int16_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+        std::transform( w.begin<int16_t>(), w.end<int16_t>(), v.begin()
+                        , [&]( int16_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
     } else {
-        std::transform( w.begin<int32_t>(), w.end<int32_t>(), v.begin(), [&]( int32_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
+        std::transform( w.begin<int32_t>(), w.end<int32_t>(), v.begin()
+                        , [&]( int32_t y ){ return scale ? w.toVolts( y ) * scale : y; } );
     }
     return true;
 }
@@ -531,9 +546,11 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
         } else if ( m.filter == adcontrols::threshold_method::DFT_Filter ) {
 
             if ( m.complex_ )
-                adcontrols::waveform_filter::fft4c::bandpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
+                adcontrols::waveform_filter::fft4c::bandpass_filter( v.size(), v.data()
+                                                                     , w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
             else
-                adcontrols::waveform_filter::fft4g::bandpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
+                adcontrols::waveform_filter::fft4g::bandpass_filter( v.size(), v.data()
+                                                                     , w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
         }
         
         return true;
@@ -675,13 +692,14 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
     
     adcontrols::MSProperty prop = sp.getMSProperty();
     double zHalf = ( waveform.meta_.initialXOffset + ext_adc_delay ) < 0 ? -0.5 : 0.5;
-    adcontrols::SamplingInfo info( waveform.meta_.xIncrement
-                                   , waveform.meta_.initialXOffset + ext_adc_delay
-                                   , int32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + zHalf )
-                                   , uint32_t( waveform.size() )
-                                   , waveform.meta_.actualAverages
-                                   , this_protocol.mode() );
-    //info.fSampInterval( waveform.meta_.xIncrement );
+    adcontrols::SamplingInfo info(
+        waveform.meta_.xIncrement
+        , waveform.meta_.initialXOffset + ext_adc_delay
+        , int32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + zHalf )
+        , uint32_t( waveform.size() )
+        , waveform.meta_.actualAverages
+        , this_protocol.mode() );
+
     prop.setAcceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     
@@ -703,7 +721,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 
     if ( result.processed().size() == waveform.size() ) { // has filterd waveform
         if ( scale <= 1 )
-            sp.setIntensityArray( result.processed().data() ); // return Volts (no binary avilable for processed waveform)
+            sp.setIntensityArray( result.processed().data() );
         else
             for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
                 sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)

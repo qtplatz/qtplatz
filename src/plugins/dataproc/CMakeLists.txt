@@ -58,7 +58,8 @@ add_library( ${PROJECT_NAME} MODULE
   dataprocplugin.cpp
   mode.cpp
   mainwindow.cpp
-  dataproc_document.cpp
+  document.cpp
+  document.hpp
   navigationdelegate.cpp
   navigationwidgetfactory.cpp
   navigationwidget.cpp
@@ -96,7 +97,6 @@ add_library( ${PROJECT_NAME} MODULE
   dataprocconstants.hpp
   mode.hpp
   mainwindow.hpp
-  dataproc_document.hpp
   navigationwidgetfactory.hpp
   navigationwidget.hpp
   dataprocessor.hpp

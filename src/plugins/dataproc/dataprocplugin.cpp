@@ -26,7 +26,7 @@
 #include "dataprocplugin.hpp"
 #include "actionmanager.hpp"
 #include "constants.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
@@ -266,7 +266,7 @@ void
 DataprocPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
-    dataproc_document::instance()->initialSetup();
+    document::instance()->initialSetup();
     Core::ModeManager::activateMode( mode_->id() );
 }
 
@@ -274,7 +274,7 @@ DataprocPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 DataprocPlugin::aboutToShutdown()
 {
-    dataproc_document::instance()->finalClose();
+    document::instance()->finalClose();
 
     mainWindow_->OnFinalClose();
 
@@ -285,11 +285,11 @@ bool
 DataprocPlugin::connect_isnapshothandler_signals()
 {
     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onPortfolioCreated, this, [] ( const QString& _1 ) {
-            dataproc_document::instance()->handle_portfolio_created( _1 );
+            document::instance()->handle_portfolio_created( _1 );
         } );
 
     connect( iSnapshotHandler_.get(), &iSnapshotHandlerImpl::onFoliumAdded, this, [] ( const QString& _1, const QString& _2, const QString& _3 ) {
-            dataproc_document::instance()->handle_folium_added( _1, _2, _3 );
+            document::instance()->handle_folium_added( _1, _2, _3 );
         } );
 
     return true;

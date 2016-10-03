@@ -240,8 +240,9 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
-                                               , objid_( {{0}} )
-                                               , objrowid_(-1)
+                                               , objid_( {{ 0 }} )
+                                               , objrowid_( -1 )
+                                               , fcnCount_( 0 )
 {
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
@@ -282,7 +283,15 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 if ( sql.step() == adfs::sqlite_row )
                     objrowid_ = sql.get_column_value< int64_t >( 0 );
             }
-
+            // fcnCount
+            {
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData WHERE objuuid = ?" );
+                sql.bind( 1 ) = objid_;
+                if ( sql.step() == adfs::sqlite_row )
+                    fcnCount_ = sql.get_column_value< int64_t >( 0 );
+            }
+            
             // find ScanLaw
             double acclVoltage( 0 ), tDelay( 0 ), fLength;
             boost::uuids::uuid clsid { 0 };
@@ -364,29 +373,9 @@ DataReader::fcnCount() const
     // skip timecount data -- too large to handle in the dataproc
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
         (void)i;
-        ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
         return 0;
     }
-#if 0
-    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >() ) {
-        ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
-        return 0;
-    }    
-#endif
-
-    if ( auto db = db_.lock() ) {
-
-        adfs::stmt sql( *db );
-        sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData WHERE objuuid = ?" );
-        sql.bind( 1 ) = objid_;
-        
-        size_t fcnCount( 0 );
-        while ( sql.step() == adfs::sqlite_row )
-            fcnCount += sql.get_column_value< int64_t >( 0 );
-        
-        return fcnCount;
-    }
-    return 0;
+    return fcnCount_;
 }
 
 adcontrols::DataReader::const_iterator

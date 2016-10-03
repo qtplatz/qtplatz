@@ -25,7 +25,7 @@
 
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/timeutil.hpp>
@@ -152,7 +152,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
         double fLength, accVoltage, tDelay, mass;
         QString formula;
         
-        if ( dataproc_document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
+        if ( document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
             dlg.setValues( fLength, accVoltage, tDelay, 0 );
             dlg.setMass( mass );
             if ( !formula.isEmpty() )
@@ -165,7 +165,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
     if ( dlg.exec() != QDialog::Accepted )
         return;
 
-    dataproc_document::instance()->saveScanLaw( model_name
+    document::instance()->saveScanLaw( model_name
                                                 , dlg.fLength()
                                                 , dlg.acceleratorVoltage()
                                                 , dlg.tDelay()
