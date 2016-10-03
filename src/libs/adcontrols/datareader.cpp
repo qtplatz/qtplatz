@@ -253,7 +253,7 @@ DataReader::const_iterator
 DataReader::findPos( double seconds, const std::vector< std::shared_ptr< const DataReader > >& readers, findPosFlags flag )
 {
     double diff = std::numeric_limits<double>::max();
-    const_iterator result;
+    iterator result;
 
     for ( auto& reader : readers ) {
         if ( auto it = reader->findPos( seconds ) ) {

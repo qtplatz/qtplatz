@@ -496,12 +496,12 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 
 
 void
-document::onSelectSpectrum_v3( double /*minutes*/, const adcontrols::DataReader_iterator& iterator )
+document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterator iterator )
 {
     // read from v3 format data
     if ( auto reader = iterator.dataReader() ) {
 
-        if ( auto ms = iterator.dataReader()->getSpectrum( iterator->rowid() ) ) {
+        if ( auto ms = reader->readSpectrum( iterator ) ) {
 
             std::wostringstream text;
             text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring(reader->display_name())

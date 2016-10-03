@@ -496,7 +496,7 @@ DataReader::loadTICs()
 
             adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
+            sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos,fcn" );
             sql.bind( 1 ) = objid_;
             
             while ( sql.step() == adfs::sqlite_row ) {
@@ -601,26 +601,76 @@ DataReader::fcn( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::getSpectrum( int64_t rowid ) const
 {
-    if ( auto db = db_.lock() ) {
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+    
+        if ( auto db = db_.lock() ) {
+     
+            adfs::stmt sql( *db );
+            
+            if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
+                sql.bind( 1 ) = rowid;
+         
+                if ( sql.step() == adfs::sqlite_row ) {
+             
+                    adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
+                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
 
-        adfs::stmt sql( *db );
+                    waveform_types waveform;
+                    if ( interpreter->translate( waveform, xdata.data(), xdata.size()
+                                                 , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-        if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
-        
-            sql.bind( 1 ) = rowid;
+                        auto ptr = std::make_shared< adcontrols::MassSpectrum >();
+                        boost::apply_visitor( make_massspectrum( *ptr ), waveform );
+                        if ( spectrometer_ ) {
+                            spectrometer_->assignMasses( *ptr );
+                            const auto& info = ptr->getMSProperty().samplingInfo();
+                            double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                            double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                            ptr->setAcquisitionMassRange( lMass, uMass );
+                        }
+                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        ptr->setDataReaderUuid( objid_ );
+                        ptr->setRowid( rowid );
 
-            if ( sql.step() == adfs::sqlite_row ) {
+                        return ptr;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
+std::shared_ptr< adcontrols::MassSpectrum >
+DataReader::readSpectrum( const_iterator& it ) const
+{
+    if ( it._fcn() >= 0 )
+        return getSpectrum( it->rowid() );
 
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
+        if ( auto db = db_.lock() ) {
+            
+            adfs::stmt sql( *db );
+            sql.prepare( "SELECT rowid,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? ORDER BY npos LIMIT ?" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = it->pos();
+            sql.bind( 3 ) = fcnCount();
+            
+            std::shared_ptr< adcontrols::MassSpectrum > prime;
+            
+            while ( sql.step() == adfs::sqlite_row ) {
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
-
-                if ( interpreter_->translate( *ptr
-                                              , reinterpret_cast< const char *>(xdata.data()), xdata.size()
-                                              , reinterpret_cast< const char *>(xmeta.data()), xmeta.size()
-                                              , *spectrometer_
-                                              , size_t(0), L"" ) == adcontrols::translate_complete ) {
+                int col = 0;
+                auto rowid = sql.get_column_value< int64_t >( col++ );
+                auto _fno  = sql.get_column_value< int64_t >( col++ );
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+                
+                waveform_types waveform;
+                if ( interpreter->translate( waveform, xdata.data(), xdata.size()
+                                             , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+                    
+                    boost::apply_visitor( make_massspectrum( *ptr ), waveform );
                     if ( spectrometer_ ) {
                         spectrometer_->assignMasses( *ptr );
                         const auto& info = ptr->getMSProperty().samplingInfo();
@@ -628,18 +678,19 @@ DataReader::getSpectrum( int64_t rowid ) const
                         double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
                         ptr->setAcquisitionMassRange( lMass, uMass );
                     }
-                    
+                    ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                     ptr->setDataReaderUuid( objid_ );
                     ptr->setRowid( rowid );
-
-                    return ptr;
                 }
-                
+                if ( !prime )
+                    prime = ptr;
+                else
+                    (*prime) << std::move( ptr );
             }
-        }
-        
-    }
 
+            return prime;
+        }
+    }
     return nullptr;
 }
 
@@ -696,8 +747,6 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
 {
-    ADDEBUG() << "coaddSpectrum: {" << begin->pos() << ", " << begin->fcn() << "}";
-
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
         if ( auto db = db_.lock() ) {

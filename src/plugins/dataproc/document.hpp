@@ -90,7 +90,7 @@ namespace dataproc {
         static const std::shared_ptr< adcontrols::Chromatogram > findTIC( Dataprocessor *, int );
 
         void onSelectSpectrum_v2( double minutes, size_t pos, int fcn );
-        void onSelectSpectrum_v3( double minutes, const adcontrols::DataReader_iterator& );
+        void onSelectSpectrum_v3( double minutes, adcontrols::DataReader_iterator );
 
     public slots:
         void handle_folium_added( const QString& fname, const QString& path, const QString& id );

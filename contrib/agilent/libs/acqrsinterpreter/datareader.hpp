@@ -75,6 +75,7 @@ namespace acqrsinterpreter {
         
         std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
         std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override; // only by time range
+        std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( const_iterator& ) const override;
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const override;
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
         

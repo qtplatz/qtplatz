@@ -101,6 +101,7 @@ namespace adcontrols {
         DataReader( const DataReader& );
         DataReader& operator = ( const DataReader& );
 
+        typedef DataReader_iterator iterator;
         typedef DataReader_iterator const_iterator;
 
         enum TimeSpec { ElapsedTime, EpochTime };
@@ -140,11 +141,17 @@ namespace adcontrols {
         virtual int fcn( int64_t rowid ) const { return -1; }
         
         virtual boost::any getData( int64_t rowid ) const { return nullptr; }
-        virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
-        virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
-        virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }
         
-        virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
+        
+        virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  readSpectrum( const_iterator& it ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
         virtual const void * _narrow_workaround( const char * /* typename */ ) const { return nullptr; }
