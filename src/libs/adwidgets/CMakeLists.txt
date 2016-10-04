@@ -23,6 +23,7 @@ include_directories(
 
 if ( rdkit_FOUND )
   include_directories( ${RDKit_INCLUDE_DIRS} )
+  set( adchem_library adchem )
 endif()
 
 add_definitions(-DADWIDGETS_LIBRARY)
@@ -166,6 +167,7 @@ set( ${PROJECT_NAME}_HEADERS
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
 
 target_link_libraries( adwidgets LINK_PUBLIC
+  ${adchem_library}
   adplugin
   adplugin_manager
   adlog

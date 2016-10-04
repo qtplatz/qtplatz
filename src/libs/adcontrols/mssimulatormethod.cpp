@@ -107,13 +107,22 @@ namespace adcontrols {
     template<> void
     MSSimulatorMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        ar & boost::serialization::make_nvp( "impl", *impl_ );
+        try {
+            ar & boost::serialization::make_nvp( "impl", *impl_ );
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize to xml_woarchive" ) );
+        }
+        
     }
 
     template<> void
     MSSimulatorMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        ar & boost::serialization::make_nvp( "impl", *impl_ );
+        try {
+            ar & boost::serialization::make_nvp( "impl", *impl_ );
+        } catch ( std::exception& ex ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize to xml_woarchive" ) );
+        }        
     }
 }
 

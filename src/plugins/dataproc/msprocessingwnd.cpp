@@ -42,7 +42,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
-#include <adcontrols/mschromatogrammethod.hpp>
+// #include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>

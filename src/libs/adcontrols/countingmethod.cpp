@@ -206,7 +206,7 @@ CountingMethod::archive( std::ostream& os, const CountingMethod& t )
         ar & t;
         return true;
     } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("binary archive CountingMethod" ) ) );        
     }
     return false;
 }
@@ -219,7 +219,7 @@ CountingMethod::restore( std::istream& is, CountingMethod& t )
         ar & t;
         return true;
     } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("binary restore CountingMethod" ) ) );        
     }
     return false;
 }
@@ -232,7 +232,7 @@ CountingMethod::xml_archive( std::wostream& os, const CountingMethod& t )
         ar & boost::serialization::make_nvp( "m", t );
         return true;
     } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("xml archive CountingMethod" ) ) );
     }
     return false;
 }
@@ -245,7 +245,7 @@ CountingMethod::xml_restore( std::wistream& is, CountingMethod& t )
         ar & boost::serialization::make_nvp( "m", t );
         return true;
     } catch ( std::exception& ex ) {
-        BOOST_THROW_EXCEPTION( ex );
+        BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("xml restore CountingMethod" ) ) );
     }
     return false;
         

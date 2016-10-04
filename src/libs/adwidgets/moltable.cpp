@@ -54,6 +54,7 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4267 4018 )
 #endif
+#include <adchem/drawing.hpp>
 #include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
@@ -64,8 +65,6 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <RDGeneral/RDLog.h>
-#include <GraphMol/MolDrawing/MolDrawing.h>
-#include <GraphMol/MolDrawing/DrawingToSVG.h>
 #endif
 
 #include <boost/format.hpp>
@@ -239,8 +238,7 @@ namespace adwidgets {
 #if HAVE_RDKit
                 if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles.toStdString(), 0, false ) ) ) {
                     mol->updatePropertyCache( false );
-                    auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                    auto xsvg = RDKit::Drawing::DrawingToSVG( drawing );
+                    auto xsvg = adchem::drawing::toSVG( *mol );
                     model.setData( model.index( row, c_svg ), QByteArray( xsvg.data(), int( xsvg.size() ) ) );
                 }
 #endif                
@@ -437,8 +435,8 @@ MolTable::handleValueChanged( const QModelIndex& index )
             if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles.toStdString(), 0, false ) ) ) {
                 mol->updatePropertyCache( false );
                 auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-                auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                auto svg = RDKit::Drawing::DrawingToSVG( drawing );
+                //auto drawing = RDKit::Drawing::MolToDrawing( *mol );
+                auto svg = adchem::drawing::toSVG( *mol ); //RDKit::Drawing::DrawingToSVG( drawing );
                 auto adducts = model_->index( index.row(), c_adducts ).data( Qt::EditRole ).toString();
                 auto synonym = model_->index( index.row(), c_synonym ).data( Qt::EditRole ).toString();
                 auto description = model_->index( index.row(), c_description ).data( Qt::EditRole ).toString();
@@ -568,8 +566,8 @@ MolTable::dropEvent( QDropEvent * event )
                         mol->updatePropertyCache( false );
                         auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
                         auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-                        auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                        auto svg = RDKit::Drawing::DrawingToSVG( drawing );
+                        // auto drawing = RDKit::Drawing::MolToDrawing( *mol );
+                        auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
                         impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
                     }
                     ++row;

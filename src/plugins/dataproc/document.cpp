@@ -63,6 +63,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <atomic>
@@ -304,38 +305,38 @@ document::load( const QString& filename, adcontrols::ProcessMethod& pm )
 bool
 document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
 {
-    adfs::filesystem file; // (filename.toStdWString().c_str());
-
-    if ( !file.create( filename.toStdWString().c_str() ) ) {
-        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
+    boost::filesystem::path name( filename.toStdWString() );
+    name.replace_extension( ".pmth" );
+    
+    adfs::filesystem fs;
+    
+    if ( !fs.create( name.wstring().c_str() ) ) {
+        ADDEBUG() << "Error: \"" << filename.toStdString() << "\" can't be created";
         return false;
     }
     
-    adfs::folder folder = file.addFolder( L"/ProcessMethod" );
-    adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
+    adfs::folder folder = fs.addFolder( L"/ProcessMethod" );
+    adfs::file adfile = folder.addFile( name.wstring(), name.wstring() );
     try {
         adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
         adfile.save( pm );
     } catch ( std::exception& ex ) {
-        ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
+        ADDEBUG() << "Exception: " << boost::diagnostic_information( ex );
         return false;
     }
     adfile.commit();
 
-    QFileInfo xmlfile( filename + ".xml" );
-    if ( xmlfile.exists() )
-        QFile::remove( xmlfile.absoluteFilePath() );
+    name.replace_extension( ".pmth.xml" );
+    if ( boost::filesystem::exists( name ) )
+        boost::filesystem::remove( name );
 
-    std::wstringstream o;
     try {
-        adcontrols::ProcessMethod::xml_archive( o, pm );
+        std::wofstream of( name.string() );
+        adcontrols::ProcessMethod::xml_archive( of, pm );
     } catch ( std::exception& ex ) {
         ADDEBUG() << boost::diagnostic_information( ex );
     }
-    pugi::xml_document doc;
-    doc.load( o );
-    // todo: add style sheet
-    doc.save_file( xmlfile.absoluteFilePath().toStdString().c_str() );
+
     return true;
 }
 
@@ -413,8 +414,8 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
         adcontrols::MassSpectrum ms;
         size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) );
         size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
-        double t1 = x1; //adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos1 ) ); // to minuites
-        double t2 = x2; // adcontrols::Chromatogram::toMinutes( dset->timeFromPos( pos2 ) ); // to minutes
+        double t1 = x1;
+        double t2 = x2;
         
         int pos = int( pos1 );
 
@@ -502,11 +503,15 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
     if ( auto reader = iterator.dataReader() ) {
 
         if ( auto ms = reader->readSpectrum( iterator ) ) {
-
+            
             std::wostringstream text;
-            text << boost::wformat( L"%s #%d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring(reader->display_name())
-                                                                      % iterator->pos() % ms->protocolId() % ms->nProtocols()
-                                                                      % (iterator->time_since_inject() );
+            if ( iterator._fcn() < 0 )
+                text << boost::wformat ( L"%s #%d @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
+                    % iterator->pos() % ( iterator->time_since_inject() );
+            else
+                text << boost::wformat ( L"%s #%d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
+                    % iterator->pos() % ms->protocolId() % ms->nProtocols()
+                    % ( iterator->time_since_inject() );
 
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( L"create", text.str() ) );

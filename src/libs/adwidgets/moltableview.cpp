@@ -59,7 +59,6 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4267 4018 )
 #endif
-#include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/RDKitBase.h>
@@ -68,6 +67,7 @@
 #include <GraphMol/Substruct/SubstructMatch.h>
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
+#include <RDGeneral/Invariant.h>
 #include <RDGeneral/RDLog.h>
 #endif
 
@@ -141,7 +141,7 @@ namespace adwidgets {
         
         ///////////////////////
         struct paint_f_mass {
-
+            
             int cformula;
             int cadducts;
             paint_f_mass( int _cformula, int _cadducts ) : cformula( _cformula ), cadducts( _cadducts ) {}
@@ -617,5 +617,18 @@ MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adduct
     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
     
     return exactMass;
+}
+
+// static
+QByteArray
+MolTableView::smilesToSvg( const QString& smiles )
+{
+#if HAVE_RDKit
+    if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles.toStdString() ) ) ) {
+        std::string svg = adchem::drawing::toSVG( *mol );
+        return QByteArray( svg.data(), svg.size() );
+    }
+#endif                
+    return QByteArray();
 }
 

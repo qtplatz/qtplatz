@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#ifndef MOLECULE_HPP
-#define MOLECULE_HPP
+#ifndef MOL_HPP
+#define MOL_HPP
 
 #include "adchem_global.hpp"
 #include <memory>
@@ -33,24 +33,27 @@ namespace RDKit { class ROMol; }
 
 namespace adchem {
 
-    class ADCHEMSHARED_EXPORT molecule {
+    class ADCHEMSHARED_EXPORT mol {
     public:
-        ~molecule();
-        molecule();
-        molecule( const molecule& );
-        molecule( RDKit::ROMol * );
+        enum inputType { SMILES, INCHI };
+        ~mol();
+        mol();
+        mol( const mol& );
+        mol( const std::string&, inputType t = SMILES );
+        inline operator const RDKit::ROMol * () const { return mol_.get(); }
+        inline operator RDKit::ROMol * () { return mol_.get(); }
+        static std::string smiles( const RDKit::ROMol& );
+        static std::string formula( const RDKit::ROMol&, bool separateIsotopes = true, bool abbreviateHIsotopes = false );
 
-        inline operator bool() const { return mol_ != 0; }
-        inline RDKit::ROMol * get() { return mol_; }
-        inline const RDKit::ROMol * get() const { return mol_; }
-        static RDKit::ROMol * SmilesToMol( const std::string& );
-        static std::string MolToSmiles( const RDKit::ROMol& );
-        static std::string MolToFormula( RDKit::ROMol&, bool separateIsotopes = true, bool abbreviateHIsotopes = false );
+        std::string formula() const;
+        std::string smiles() const;
+        std::string InChI() const;
+        static std::string InChIToInChIKey( const std::string& );
 
     private:
-        RDKit::ROMol * mol_;
+        std::unique_ptr< RDKit::ROMol > mol_;
     };
 
 }
 
-#endif // MOLECULE_HPP
+#endif // MOL_HPP

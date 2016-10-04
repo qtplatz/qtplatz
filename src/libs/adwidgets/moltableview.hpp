@@ -56,6 +56,7 @@ namespace adwidgets {
         void setPrecision( int column, int prec );
 
         static double getMonoIsotopicMass( const QString& formula, const QString& adducts = QString() );
+        static QByteArray smilesToSvg( const QString& smiles );
 
     private:
         class delegate;

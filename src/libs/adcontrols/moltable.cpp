@@ -26,6 +26,7 @@
 #include "serializer.hpp"
 #include <adportable/float.hpp>
 #include <boost/serialization/access.hpp>
+#include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
@@ -41,15 +42,15 @@ namespace boost {
 
         template <class Archive >
         void serialize( Archive& ar, moltable::value_type& p, const unsigned int ) {
-            ar & BOOST_SERIALIZATION_NVP( p.enable() );
-            ar & BOOST_SERIALIZATION_NVP( p.flags() );
-            ar & BOOST_SERIALIZATION_NVP( p.mass() );
-            ar & BOOST_SERIALIZATION_NVP( p.abundance() );
-            ar & BOOST_SERIALIZATION_NVP( p.formula() );
-            ar & BOOST_SERIALIZATION_NVP( p.adducts() );
-            ar & BOOST_SERIALIZATION_NVP( p.synonym() );
-            ar & BOOST_SERIALIZATION_NVP( p.smiles() );
-            ar & BOOST_SERIALIZATION_NVP( p.description() );
+            ar & BOOST_SERIALIZATION_NVP( p.enable_ );
+            ar & BOOST_SERIALIZATION_NVP( p.flags_ );
+            ar & BOOST_SERIALIZATION_NVP( p.mass_ );
+            ar & BOOST_SERIALIZATION_NVP( p.abundance_ );
+            ar & BOOST_SERIALIZATION_NVP( p.formula_ );
+            ar & BOOST_SERIALIZATION_NVP( p.adducts_ );
+            ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
+            ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
+            ar & BOOST_SERIALIZATION_NVP( p.description_ );
         }
     }
 }
@@ -64,7 +65,11 @@ namespace adcontrols {
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP( data_ );
+            try {
+                ar & BOOST_SERIALIZATION_NVP( data_ );
+            } catch ( std::exception& ex ) {
+                BOOST_THROW_EXCEPTION( serializer_error() << info( std::string( typeid(Archive).name() ) ) );
+            }
         }
         
         impl() {

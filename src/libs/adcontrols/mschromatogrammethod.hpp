@@ -88,10 +88,6 @@ namespace adcontrols {
     
 }
 
-//#if defined _MSC_VER
-//    template class ADCONTROLSSHARED_EXPORT std::vector < adcontrols::MSChromatogramMethod::value_type > ;
-//#endif
-
 BOOST_CLASS_VERSION( adcontrols::MSChromatogramMethod, 3 )
 
 #endif // MSCHROMATOGRAMMETHOD_HPP
