@@ -244,7 +244,6 @@ double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
 {
     return samplingData_->delayTime() + pos * samplingData_->fSampInterval() + samplingData_->horPos(); // seconds
-	//return double( samplingData_->nSamplingDelay() + pos ) * samplingData_->fSampInterval() + samplingData_->horPos(); // seconds
 }
 
 std::pair<double, double>
@@ -254,6 +253,13 @@ MSProperty::instTimeRange() const
 
     double t0 = metric::scale_to_base( x.delayTime(), metric::base );
     double t1 = metric::scale_to_base( x.delayTime() + ( x.nSamples() * x.fSampInterval() ), metric::base );
+    
+    // workaround for old version of adcontrols::TimeDigitalHistgram::translate implementation
+    if ( t0 < ( x.fSampDelay() - x.fSampInterval() * 2 ) ) {
+        // delayTime contains trigger interporated time, which is negative time to trigger point.
+        t0 = x.fSampDelay(); // old TimeDigitalHistgram does not add actual delayTime in histogram.
+        t1 = x.fSampDelay() + ( x.nSamples() * x.fSampInterval() );
+    }
 
     return std::make_pair( t0, t1 );
 }
