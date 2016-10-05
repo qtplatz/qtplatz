@@ -46,6 +46,7 @@
 #include <QDragEnterEvent>
 #include <QFileInfo>
 #include <QHeaderView>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPainter>
@@ -259,8 +260,15 @@ namespace adwidgets {
 					if ( idx >= 0 && idx < state.choice.size() )
 						model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
 				}
-            } else 
+            } else if ( state.field == ColumnState::f_formula || state.field == ColumnState::f_adducts ) {
+                // protect chemical paser from non-ascii 8-bit input
+                if ( auto edit = qobject_cast< QLineEdit * >( editor ) ) {
+                    QString text = QString::fromLatin1( edit->text().toLatin1() );
+                    model->setData( index, text, Qt::EditRole );
+                }
+            } else {
                 QStyledItemDelegate::setModelData( editor, model, index );
+            }
 
             // impl_->onValueChanged( index );
         }
