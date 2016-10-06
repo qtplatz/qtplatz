@@ -151,3 +151,9 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
 
+install( TARGETS ${PROJECT_NAME}d
+  RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+  )
+
