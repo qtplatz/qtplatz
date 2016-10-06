@@ -21,8 +21,9 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#if ! defined DAEMON
 #include "mainwindow.hpp"
+#endif
 #include "document.hpp"
 #include "tcp_server.hpp"
 #include "task.hpp"
@@ -113,10 +114,12 @@ main(int argc, char *argv[])
 
     } else {
 
+#if ! defined DAEMON
         MainWindow w;
         w.resize( 800, 600 );
         w.onInitialUpdate();
         w.show();
+#endif
         
         a.exec();
     }

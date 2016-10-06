@@ -97,6 +97,28 @@ add_executable( ${PROJECT_NAME}
   ${Resources}
   )
 
+add_executable( ${PROJECT_NAME}d
+  digitizer.cpp
+  digitizer.hpp
+  document.cpp
+  document.hpp
+  main.cpp
+  task.cpp
+  task.hpp
+  tcp_connection.cpp
+  tcp_connection.hpp  
+  tcp_connection_manager.cpp
+  tcp_connection_manager.hpp
+  tcp_server.cpp
+  tcp_server.hpp
+  tcp_task.cpp
+  tcp_task.hpp
+  request_handler.cpp
+  request_handler.hpp
+  ${proto_sources}           # disable
+  ${proto_headers}           # disable
+  )
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   acqrswidgets
@@ -107,6 +129,18 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${chart_libraries}
   Qt5::Widgets
   Qt5::Svg
+  Threads::Threads
+  dl
+  )
+
+target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
+
+target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
+  adportable
+  acqrswidgets
+  AqDrv4
+  ${PROTOBUF_LIBRARIES}
+  ${Boost_LIBRARIES}
   Threads::Threads
   dl
   )
