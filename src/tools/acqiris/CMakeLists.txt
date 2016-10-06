@@ -137,10 +137,11 @@ target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
 
 target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
   adportable
-  acqrswidgets
+  acqrscontrols
   AqDrv4
   ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
+  Qt5::Core
   Threads::Threads
   dl
   )

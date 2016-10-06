@@ -29,7 +29,11 @@
 #include "task.hpp"
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_client.hpp>
-#include <QApplication>
+#if defined DAEMON
+# include <QCoreApplication>
+#else
+# include <QApplication>
+#endif
 #if defined USING_PROTOBUF
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -44,7 +48,11 @@ namespace po = boost::program_options;
 int
 main(int argc, char *argv[])
 {
+#if defined DAEMON
+    QCoreApplication a(argc, argv);
+#else
     QApplication a(argc, argv);
+#endif
 
     po::variables_map vm;
     po::options_description description( "acqiris" );

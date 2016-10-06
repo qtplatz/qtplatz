@@ -30,7 +30,6 @@
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
-#include <acqrswidgets/acqiriswidget.hpp>
 #include <QSettings>
 #include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>

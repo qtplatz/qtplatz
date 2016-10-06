@@ -22,10 +22,10 @@
 **************************************************************************/
 
 #include "tcp_task.hpp"
+#include "document.hpp"
 #include <acqrscontrols/acqiris_client.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
-#include "document.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/ap240/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
 
