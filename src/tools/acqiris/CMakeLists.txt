@@ -13,10 +13,10 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
+set ( STANDALONE OFF CACHE BOOL "STANDALONE" )
 set ( CMAKE_CXX_STANDARD 14 )
 set ( USING_CHARTS OFF )
 
-set ( STANDALONE OFF )
 set ( LOCAL_TCP_CLIENT OFF )
 
 if ( STANDALONE )
