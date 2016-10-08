@@ -7,8 +7,6 @@ if ( OpenCV_FOUND )
   add_subdirectory (counting2d)
 endif()
 
-if ( NOT APPLE )
-  add_subdirectory (acqiris)
-endif()
+add_subdirectory (acqiris)
 
 

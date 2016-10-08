@@ -99,8 +99,10 @@ main(int argc, char *argv[])
                 vm["connect"].as< std::string >(), vm["port"].as< std::string >() ) );
     }
 
+#if ! __APPLE__
     if ( !isClient )
         task::instance()->digitizer_initialize();
+#endif
 
     if ( vm.count( "daemon" ) ) {
 

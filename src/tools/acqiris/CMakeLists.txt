@@ -15,14 +15,13 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-
 set ( CMAKE_CXX_STANDARD 14 )
 set ( USING_CHARTS OFF )
 
 if ( STANDALONE )
   include( "standalone.cmake" )
 else()
-  set( acqirisd_libraries   acqrscontrols )
+  set( acqirisd_libraries  acqrscontrols )
 endif()
 
 add_definitions( -D_LINUX -D_ACQIRIS )
@@ -48,6 +47,23 @@ if ( WIN32 )
   include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
 endif()
 
+if ( APPLE )
+  if ( STANDALONE )
+    include_directories( "${CMAKE_SOURCE_DIR}/../../../contrib/agilent/include" )
+  else()
+    include_directories( "${CMAKE_SOURCE_DIR}/contrib/agilent/include" )
+  endif()
+  set( task_sources )  
+else()
+  set( AqDrv4_LIBRARIES AqDrv4 )
+  set( task_sources
+    digitizer.cpp
+    digitizer.hpp
+    task.cpp
+    task.hpp
+    )
+endif()
+
 include_directories(
   ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
@@ -61,15 +77,12 @@ set( qwt_dependent_sources
   )
 
 add_executable( ${PROJECT_NAME}
-  digitizer.cpp
-  digitizer.hpp
   document.cpp
   document.hpp
   main.cpp
   mainwindow.cpp
   mainwindow.hpp
-  task.cpp
-  task.hpp
+  ${task_sources}
   tcp_connection.cpp
   tcp_connection.hpp  
   tcp_connection_manager.cpp
@@ -88,52 +101,16 @@ add_executable( ${PROJECT_NAME}
   ${Resources}
   )
 
-add_executable( ${PROJECT_NAME}d
-  digitizer.cpp
-  digitizer.hpp
-  document.cpp
-  document.hpp
-  main.cpp
-  task.cpp
-  task.hpp
-  tcp_connection.cpp
-  tcp_connection.hpp  
-  tcp_connection_manager.cpp
-  tcp_connection_manager.hpp
-  tcp_server.cpp
-  tcp_server.hpp
-  tcp_task.cpp
-  tcp_task.hpp
-  request_handler.cpp
-  request_handler.hpp
-  ${standalone_additional_sources}
-  ${proto_sources}           # disable
-  ${proto_headers}           # disable
-  )
-
-target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
-
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   acqrscontrols
   acqrswidgets
-  AqDrv4
+  ${AqDrv4_LIBRARIES}
   ${QWT_LIBRARIES}
   ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
   Qt5::Widgets
   Qt5::Svg
-  Threads::Threads
-  dl
-  )
-
-target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
-  adportable
-  AqDrv4
-  ${acqirisd_libraries}
-  ${PROTOBUF_LIBRARIES}
-  ${Boost_LIBRARIES}
-  Qt5::Core
   Threads::Threads
   dl
   )
@@ -144,9 +121,47 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
 
-install( TARGETS ${PROJECT_NAME}d
-  RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
-  )
+if ( NOT APPLE )
+  add_executable( ${PROJECT_NAME}d
+    digitizer.cpp
+    digitizer.hpp
+    document.cpp
+    document.hpp
+    main.cpp
+    task.cpp
+    task.hpp
+    tcp_connection.cpp
+    tcp_connection.hpp  
+    tcp_connection_manager.cpp
+    tcp_connection_manager.hpp
+    tcp_server.cpp
+    tcp_server.hpp
+    tcp_task.cpp
+    tcp_task.hpp
+    request_handler.cpp
+    request_handler.hpp
+    ${standalone_additional_sources}
+    ${proto_sources}           # disable
+    ${proto_headers}           # disable
+    )
+  target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
+
+  target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
+    adportable
+    AqDrv4
+    ${acqirisd_libraries}
+    ${PROTOBUF_LIBRARIES}
+    ${Boost_LIBRARIES}
+    Qt5::Core
+    Threads::Threads
+    dl
+    )
+
+  install( TARGETS ${PROJECT_NAME}d
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin COMPONENT applications
+    LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+    ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+    )
+  
+endif()
 

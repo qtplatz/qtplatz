@@ -23,7 +23,9 @@
 **************************************************************************/
 
 #include "document.hpp"
+#if ! __APPLE__
 #include "digitizer.hpp"
+#endif
 #include "tcp_server.hpp"
 #include "tcp_task.hpp"
 #include <acqrscontrols/acqiris_client.hpp>
