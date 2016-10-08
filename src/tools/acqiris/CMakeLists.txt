@@ -4,6 +4,8 @@ cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0028 NEW)
 
+set ( STANDALONE OFF CACHE BOOL "STANDALONE" )
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -13,14 +15,14 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-set ( STANDALONE OFF CACHE BOOL "STANDALONE" )
+
 set ( CMAKE_CXX_STANDARD 14 )
 set ( USING_CHARTS OFF )
 
-set ( LOCAL_TCP_CLIENT OFF )
-
 if ( STANDALONE )
-  include( "standalone" )
+  include( "standalone.cmake" )
+else()
+  set( acqirisd_libraries   acqrscontrols )
 endif()
 
 add_definitions( -D_LINUX -D_ACQIRIS )
@@ -51,22 +53,12 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   )
 
-if ( NOT USING_CHARTS )
-  set( qwt_dependent_sources
-    waveformview.cpp
-    waveformview.hpp
-    xyseriesdata.cpp
-    xyseriesdata.hpp
-    )
-else()
-  add_definitions( -DUSING_CHARTS )
-  find_package( Qt5 CONFIG REQUIRED Charts )
-  set( chart_dependent_sources
-    chartview.cpp
-    chartview.hpp
-    )
-  set( chart_libraries Qt5::Charts )
-endif()
+set( qwt_dependent_sources
+  waveformview.cpp
+  waveformview.hpp
+  xyseriesdata.cpp
+  xyseriesdata.hpp
+  )
 
 add_executable( ${PROJECT_NAME}
   digitizer.cpp
@@ -90,7 +82,6 @@ add_executable( ${PROJECT_NAME}
   request_handler.hpp
   outputwidget.cpp
   outputwidget.hpp
-  ${chart_dependent_sources} # disable
   ${qwt_dependent_sources}
   ${proto_sources}           # disable
   ${proto_headers}           # disable
@@ -115,30 +106,31 @@ add_executable( ${PROJECT_NAME}d
   tcp_task.hpp
   request_handler.cpp
   request_handler.hpp
+  ${standalone_additional_sources}
   ${proto_sources}           # disable
   ${proto_headers}           # disable
   )
 
+target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
+  acqrscontrols
   acqrswidgets
   AqDrv4
   ${QWT_LIBRARIES}
   ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${chart_libraries}
   Qt5::Widgets
   Qt5::Svg
   Threads::Threads
   dl
   )
 
-target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
-
 target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
   adportable
-  acqrscontrols
   AqDrv4
+  ${acqirisd_libraries}
   ${PROTOBUF_LIBRARIES}
   ${Boost_LIBRARIES}
   Qt5::Core
