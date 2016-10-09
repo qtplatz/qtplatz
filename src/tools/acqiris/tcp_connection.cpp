@@ -112,8 +112,11 @@ connection::do_write()
                 if ( connection_requested_ ) {
                     connection_requested_ = false;
                     connected_ = true;
+#if ACQIRIS_DAEMON
+#else
                     if ( auto server = document::instance()->server() )
                         server->setConnected();
+#endif
                 }
 
                 do_read();

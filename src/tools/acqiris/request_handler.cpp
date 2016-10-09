@@ -8,7 +8,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#if ACQIRIS_DAEMON
+#include "mediator.hpp"
+#else
 #include "document.hpp"
+#endif
 #include "request_handler.hpp"
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
@@ -23,8 +27,7 @@ request_handler::request_handler()
 }
 
 void
-request_handler::handle_request( boost::asio::streambuf& response
-                                 , boost::asio::streambuf& reply )
+request_handler::handle_request( boost::asio::streambuf& response, boost::asio::streambuf& reply )
 {
     using namespace acqrscontrols;
     
@@ -36,17 +39,28 @@ request_handler::handle_request( boost::asio::streambuf& response
         using acqrscontrols::aqdrv4::protocol_serializer;
         try {
             if ( auto p = protocol_serializer::deserialize< aqdrv4::acqiris_method >( *preamble, data ) ) {
-                document::instance()->handleValueChanged( p, aqdrv4::allMethod );
-                document::instance()->acqiris_method_adapted( p );
+
+                mediator::instance()->prepare_for_run( p, aqdrv4::allMethod ); // method changed by a sibling client
+
             }
         } catch ( ... ) {
             ADDEBUG() << boost::current_exception_diagnostic_information();
         }
+
     } else if ( preamble->clsid == aqdrv4::clsid_event_out ) {
+
         aqdrv4::pod_reader reader( data, preamble->length );
-        document::instance()->handleEventOut( reader.get< uint32_t >() );
+
+        mediator::instance()->eventOut( reader.get< uint32_t >() );
+
+    } else if ( preamble->clsid == aqdrv4::clsid_connection_request ) {
+
+        // do noting 
+
     } else {
-        ADDEBUG() << "unknown protocol: " << aqdrv4::preamble::debug( preamble );
+
+        ADDEBUG() << "unhandled protocol: " << aqdrv4::preamble::debug( preamble );
+
     }
 
     response.consume( sizeof( aqdrv4::preamble ) + preamble->length );

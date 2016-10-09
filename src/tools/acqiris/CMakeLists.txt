@@ -24,7 +24,10 @@ else()
   set( acqirisd_libraries  acqrscontrols )
 endif()
 
-add_definitions( -D_LINUX -D_ACQIRIS )
+include( version )
+set ( VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
+
+add_definitions( -D_LINUX -D_ACQIRIS -DVERSION="${VERSION}")
 
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
@@ -77,11 +80,15 @@ set( qwt_dependent_sources
   )
 
 add_executable( ${PROJECT_NAME}
+  app.cpp
+  app.hpp
   document.cpp
   document.hpp
   main.cpp
   mainwindow.cpp
   mainwindow.hpp
+  mediator.cpp
+  mediator.hpp
   ${task_sources}
   tcp_connection.cpp
   tcp_connection.hpp  
@@ -123,11 +130,15 @@ install( TARGETS ${PROJECT_NAME}
 
 if ( NOT APPLE )
   add_executable( ${PROJECT_NAME}d
+    daemon.cpp
+    daemon.hpp
     digitizer.cpp
     digitizer.hpp
-    document.cpp
-    document.hpp
+    log.cpp
+    log.hpp
     main.cpp
+    mediator.cpp
+    mediator.hpp
     task.cpp
     task.hpp
     tcp_connection.cpp
@@ -136,15 +147,13 @@ if ( NOT APPLE )
     tcp_connection_manager.hpp
     tcp_server.cpp
     tcp_server.hpp
-    tcp_task.cpp
-    tcp_task.hpp
     request_handler.cpp
     request_handler.hpp
     ${standalone_additional_sources}
     ${proto_sources}           # disable
     ${proto_headers}           # disable
     )
-  target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DDAEMON=1 )
+  target_compile_definitions( ${PROJECT_NAME}d PRIVATE -DACQIRIS_DAEMON=1 )
 
   target_link_libraries( ${PROJECT_NAME}d LINK_PUBLIC
     adportable

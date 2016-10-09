@@ -67,8 +67,6 @@ namespace acqiris {
 
             /// The handler for all incoming requests.
             request_handler request_handler_;
-
-            bool hasClient_;
         };
 
     } // namespace server
