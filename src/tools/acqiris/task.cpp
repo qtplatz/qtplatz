@@ -87,12 +87,7 @@ task::initialize()
 
             timer_.expires_from_now( 5s );
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
-#if ! ACQIRIS_DAEMON
-            document::instance()->connect_prepare( boost::bind( &task::prepare_for_run, this, _1, _2 ) );
-            document::instance()->connect_event_out( boost::bind( &task::event_out, this, _1 ) );
-            document::instance()->connect_finalize( boost::bind( &task::finalize, this ) );
-#endif
-            
+
         } );
 
     return true;
@@ -196,13 +191,7 @@ task::acquire()
             d->timeSinceEpoch()     = std::chrono::nanoseconds( tp_trig.time_since_epoch() ).count();
 
             push_handler_( std::move( d ) );
-#if ! ACQIRIS_DAEMON                
-            // auto tp = std::chrono::system_clock::now();
-            // if ( tp - tp_data_handled_ > 200ms ) {
-            //     emit document::instance()->updateData();
-            //     tp_data_handled_ = tp;
-            // }
-#endif
+
         } else {
             ADDEBUG() << "acquire timed out " << count++;
         }
@@ -222,11 +211,7 @@ task::handle_timer( const boost::system::error_code& ec )
 
         strand_.post( [this] {
                 int temp = digitizer()->readTemperature();
-#if ACQIRIS_DAEMON
                 emit_replyTemperature_( temp );
-#else                
-                document::instance()->replyTemperature( temp );
-#endif
             } );
 
         boost::system::error_code erc;
@@ -262,12 +247,6 @@ task::connect_replyTemperature( const replyTemperature_t::slot_type & subscriber
 {
     return emit_replyTemperature_.connect( subscriber );
 }
-
-// void
-// task::connect_post( std::function< void( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > ) > f )
-// {
-//     post_handler_ = f;
-// }
 
 void
 task::connect_push( std::function< void( std::shared_ptr< acqrscontrols::aqdrv4::waveform > ) > f )
