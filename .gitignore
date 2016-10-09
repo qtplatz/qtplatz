@@ -53,6 +53,9 @@ release_build
 #netbeans
 nbproject
 
+#kdevelop
+*.kdev4
+
 # Visual Studio generated files
 *.ib_pdb_index
 *.idb
