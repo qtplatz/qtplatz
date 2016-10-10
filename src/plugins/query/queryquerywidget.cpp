@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -35,10 +34,13 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <utils/styledbar.h>
+#include <QCompleter>
 #include <QFileDialog>
+#include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QGridLayout>
+#include <QSqlError>
+#include <QStringListModel>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QMessageBox>
@@ -67,6 +69,7 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     topLayout->addLayout( layout_ );
 
     connect( QueryDocument::instance(), &QueryDocument::onConnectionChanged, this, &QueryQueryWidget::handleConnectionChanged );
+    connect( QueryDocument::instance(), &QueryDocument::onHistoryChanged, this, [this](){ form_->setSqlHistory( QueryDocument::instance()->sqlHistory() ); } );
     connect( form_.get(), &QueryQueryForm::triggerQuery, this, &QueryQueryWidget::handleQuery );
     
     if ( auto toolBar = new Utils::StyledBar ) {
@@ -90,9 +93,8 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     
     layout_->addWidget( form_.get() );
     layout_->addWidget( table_.get() );
-    //layout_->setRowStretch( 1, 0 );
-    //layout_->setRowStretch( 2, 1 );
-    //bool rcode = connect( this, &QueryQueryWidget::onQueryData, &QueryQueryWidget::handleQueryData );
+
+    form_->setSqlHistory( QueryDocument::instance()->sqlHistory() );
 }
 
 void
@@ -103,19 +105,44 @@ QueryQueryWidget::handleConnectionChanged()
 
     if ( auto conn = QueryDocument::instance()->connection() ) {
         if ( auto form = findChild< QueryQueryForm * >() ) {
-            QList< QString > tables, sublist;
-            auto query = conn->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
-            while ( query.next() )
-                tables.push_back( query.value( 1 ).toString() );
+            QStringList tables;
+            auto query = conn->sqlQuery( "SELECT name FROM sqlite_master WHERE type='table'" );
+            while ( query.next() ) 
+                tables << query.value( 0 ).toString();
             tables.push_back( "sqlite_master" );
 
             form->setTableList( tables );
 
-            query = conn->sqlQuery( "SELECT * FROM AcquiredConf" );
-            while ( query.next() )
-                sublist.push_back( query.value( 0 ).toString() );
+            form->setSqlHistory( QueryDocument::instance()->sqlHistory() );            
+            
+            QStringList words ( tables );
 
-            form->setSubList( sublist );
+            if ( QCompleter * completer = new QCompleter( this ) ) {
+                QFile file( ":/query/wordlist.txt" );
+                if ( file.open( QFile::ReadOnly ) ) {
+                    while ( !file.atEnd() ) {
+                        QByteArray line = file.readLine();
+                        if ( ! line.isEmpty() )
+                            words << line.trimmed();
+                    }
+                }
+
+                for ( auto& table: tables ) 
+                    words << table;
+                
+                query = conn->sqlQuery( "SELECT objuuid FROM AcquiredConf" );
+                while ( query.next() ) 
+                    words << query.value( 0 ).toString(); // guid
+
+                words.sort( Qt::CaseInsensitive );
+                words.removeDuplicates();
+
+                completer->setModel( new QStringListModel( words, completer ) );
+                completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
+                completer->setCaseSensitivity( Qt::CaseInsensitive );
+                completer->setWrapAround( false );
+                form->setCompleter( completer );
+            }
         }
     }
 
@@ -140,6 +167,16 @@ QueryQueryWidget::handleQuery( const QString& sql )
     if ( auto connection = QueryDocument::instance()->connection() ) {
 
         auto query = connection->sqlQuery( sql );
+
+        auto sqlError = query.lastError();
+        if ( sqlError.type() != QSqlError::NoError ) {
+            QMessageBox::information( this
+                                      , tr( "QtPlatz/Query" )
+                                      , sqlError.driverText() + "\n" + sqlError.databaseText() );
+        } else {
+            QueryDocument::instance()->addSqlHistory( sql );
+        }
+        
         table_->setQuery( query );
     }
 }

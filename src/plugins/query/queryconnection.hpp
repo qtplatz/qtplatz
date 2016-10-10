@@ -54,7 +54,7 @@ namespace query {
 
         QSqlDatabase& sqlDatabase();
         QSqlQuery sqlQuery( const QString& );
-
+        
         adfs::file select_file( const std::wstring& dataClass, const wchar_t * folder = L"/Processed/Spectra" );
 
         const std::wstring& filepath() const { return filename_; }

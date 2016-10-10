@@ -46,7 +46,6 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QFuture>
-
 #include <algorithm>
 
 namespace query {
@@ -68,9 +67,10 @@ QueryDocument::~QueryDocument()
 {
 }
 
-QueryDocument::QueryDocument() : settings_( std::make_shared< QSettings >(QSettings::IniFormat, QSettings::UserScope
-                                                                        , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                                        , QLatin1String( "Query" ) ) )
+QueryDocument::QueryDocument()
+    : settings_( std::make_unique< QSettings >(QSettings::IniFormat, QSettings::UserScope
+                                               , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                               , QLatin1String( "Query" ) ) )
 {
     //connect( this, &QueryDocument::onProcessed, this, &QueryDocument::handle_processed );
 }
@@ -110,26 +110,53 @@ QueryDocument::connection()
     return queryConnection_.get();
 }
 
-// void
-// QueryDocument::addRecentFiles( const QString& group, const QString& key, const QString& value )
-// {
-//     qtwrapper::settings( *settings_ ).addRecentFiles( group, key, value );
-// }
-
-// void
-// QueryDocument::getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const
-// {
-//     qtwrapper::settings( *settings_ ).getRecentFiles( group, key, list );
-// }
-
-// QString
-// QueryDocument::recentFile( const QString& group, const QString& key ) const
-// {
-//     return qtwrapper::settings( *settings_ ).recentFile( group, key );    
-// }
-
 QString
 QueryDocument::lastDataDir() const
 {
     return qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
+}
+
+void
+QueryDocument::addSqlHistory( const QString& sql )
+{
+    auto list = sqlHistory();
+    
+    list.erase( std::remove_if( list.begin(), list.end(), [sql] ( const QString& a ){ return sql == a; } ), list.end() );
+    
+    settings_->beginGroup( "Query" );
+    settings_->beginWriteArray( "History" );
+
+    settings_->setArrayIndex( 0 );
+    settings_->setValue( "Sql", sql );
+
+    for ( size_t i = 0; i < list.size() && i < 256; ++i ) {
+        settings_->setArrayIndex( i + 1 );
+        settings_->setValue( "Sql", list[ i ] );
+    }
+    
+    settings_->endArray();
+    settings_->endGroup();
+
+    emit onHistoryChanged();
+}
+
+
+QStringList
+QueryDocument::sqlHistory()
+{
+    QStringList list;
+
+    settings_->beginGroup( "Query" );
+
+    auto size = settings_->beginReadArray( "History" );
+
+    for ( int i = 0; i < size; ++i ) {
+        settings_->setArrayIndex( i );
+        list << settings_->value( "Sql" ).toString();
+    }
+
+    settings_->endArray();
+    settings_->endGroup();
+    
+    return list;
 }

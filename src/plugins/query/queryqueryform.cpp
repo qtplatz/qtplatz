@@ -22,6 +22,11 @@
 **************************************************************************/
 
 #include "queryqueryform.hpp"
+#include "sqledit.hpp"
+#include <adportable/debug.hpp>
+#include <QAbstractItemView>
+#include <QCompleter>
+#include <QScrollBar>
 #include <QStringList>
 #include <QPlainTextEdit>
 #include <QBoxLayout>
@@ -30,8 +35,7 @@
 
 using namespace query;
 
-QueryQueryForm::QueryQueryForm(QWidget *parent) :  QWidget(parent)
-                                                   //, ui(new Ui::QueryQueryForm)
+QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
                                                 , semiColonCaptured_( false )
 {
     resize( 200, 100 );
@@ -39,7 +43,7 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) :  QWidget(parent)
     auto vLayout = new QVBoxLayout( this );
     auto gridLayout = new QGridLayout();
 
-    if ( auto textEditor = new QPlainTextEdit() ) {
+    if ( auto textEditor = new SqlEdit() ) {
         textEditor->installEventFilter( this );
         textEditor->setMaximumHeight( 80 );
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -54,14 +58,15 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) :  QWidget(parent)
     if ( auto combo = new QComboBox() ) {
         combo->setObjectName( "tableList" );
         gridLayout->addWidget( combo, 1, 0, 1, 1 );
-
-        connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this, &QueryQueryForm::on_comboBox_currentIndexChanged );
+        connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
+                 , this, &QueryQueryForm::on_comboBox_currentIndexChanged );
     }
 
     if ( auto combo = new QComboBox() ) {
-        combo->setObjectName( "subList" );
+        combo->setObjectName( "history" );
         gridLayout->addWidget( combo, 1, 1, 1, 1 );
-        connect( combo, static_cast<void( QComboBox::* )( const QString& )>( &QComboBox::currentIndexChanged ), this, &QueryQueryForm::on_subList_currentIndexChanged );
+        connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
+                 , this, &QueryQueryForm::on_history_currentIndexChanged );
     }
 
     if ( auto button = new QPushButton( "execute query" ) ) {
@@ -95,11 +100,10 @@ QueryQueryForm::setTableList( const QList< QString >& list )
 }
 
 void
-QueryQueryForm::setSubList( const QList< QString >& list )
+QueryQueryForm::setSqlHistory( const QStringList& list )
 {
-    if ( auto combo = findChild< QComboBox * >( "subList" ) ) {
+    if ( auto combo = findChild< QComboBox * >( "history" ) ) {
         combo->clear();
-        combo->addItem( "" );
         combo->addItems( list );
     }
 }
@@ -133,24 +137,14 @@ QueryQueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
     if ( auto combo = findChild< QComboBox * >( "subList" ) )
         subItem = combo->currentText();
 
-    if ( itemText == "AcquiredData" ) {
-        if ( subItem.isEmpty() )
-            setSQL( QString( "SELECT * FROM %1 ORDER BY npos" ).arg( itemText ));
-        else
-            setSQL( QString( "SELECT * FROM %1 WHERE objuuid = '%2' ORDER BY npos" ).arg( itemText, subItem ));
-    } else {
-        setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));
-    }
+    setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));
 }
 
 void 
-QueryQueryForm::on_subList_currentIndexChanged( const QString& itemText )
+QueryQueryForm::on_history_currentIndexChanged( const QString& itemText )
 {
-    if ( auto combo = findChild< QComboBox * >( "tableList" ) ) {
-        if ( combo->currentText() == "AcquiredData" ) {
-            on_comboBox_currentIndexChanged( combo->currentText() );
-        }
-    }
+    if ( auto combo = findChild< QComboBox * >( "history" ) )
+        setSQL( itemText );
 }
 
 bool
@@ -160,13 +154,31 @@ QueryQueryForm::eventFilter( QObject * object, QEvent * event )
 
     if ( textEdit && event->type() == QEvent::KeyPress ) {
         if ( QKeyEvent * keyEvent = static_cast<QKeyEvent *>(event) ) {
-            if ( keyEvent->key() == ';' )
+            if ( keyEvent->key() == ';' ) {
                 semiColonCaptured_ = true;
-            else if ( keyEvent->key() == Qt::Key_Return && semiColonCaptured_ )
+            } else if ( keyEvent->key() == Qt::Key_Return && semiColonCaptured_ ) {
                 emit triggerQuery( textEdit->toPlainText() );
-            else
+            } else {
                 semiColonCaptured_ = false;
+            }
         }
     }
     return QWidget::eventFilter( object, event );
 }
+
+void
+QueryQueryForm::setCompleter( QCompleter *completer )
+{
+    if ( auto textEditor = findChild< SqlEdit * >() ) {
+        textEditor->setCompleter( completer );
+    }
+}
+
+QCompleter *
+QueryQueryForm::completer() const
+{
+    if ( auto textEditor = findChild< SqlEdit * >() )
+        return textEditor->completer();
+    return nullptr;
+}
+

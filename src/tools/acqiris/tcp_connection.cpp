@@ -60,8 +60,7 @@ connection::do_read()
         socket_
         , response_
         , boost::asio::transfer_at_least( 1 ) // sizeof( acqrscontrols::aqdrv4::preamble ) )
-        , [this,self]( const boost::system::error_code& ec
-                       , std::size_t bytes_transferred ) {
+        , [this,self]( const boost::system::error_code& ec, std::size_t bytes_transferred ) {
 
             if ( !ec ) {
                 
@@ -70,7 +69,7 @@ connection::do_read()
                     auto preamble = boost::asio::buffer_cast< const aqdrv4::preamble * >( response_.data() );
 
                     if ( !aqdrv4::preamble::isOk( preamble ) ) {
-
+                        
                         ADDEBUG() << "Error: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         
                     } else {
@@ -112,11 +111,6 @@ connection::do_write()
                 if ( connection_requested_ ) {
                     connection_requested_ = false;
                     connected_ = true;
-#if ACQIRIS_DAEMON
-#else
-                    if ( auto server = document::instance()->server() )
-                        server->setConnected();
-#endif
                 }
 
                 do_read();
@@ -139,8 +133,6 @@ connection::write( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > da
 
         auto self( this );
         
-        // ADDEBUG() << "*** do_write. " << acqrscontrols::aqdrv4::preamble::debug( &data->preamble() );
-
         boost::asio::async_write(
             socket_
             , data->to_buffers()

@@ -24,45 +24,34 @@
 
 #pragma once
 
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <memory>
-#include "adpublisher_global.hpp"
 
 class QCompleter;
 class QContextMenuEvent;
 
-namespace pugi { class xml_document; }
-
-namespace adpublisher {
-
-    class document;
+namespace query {
 
     namespace detail { class text_writer; }
 
-    class ADPUBLISHERSHARED_EXPORT docEdit : public QTextEdit {
+    class SqlEdit : public QPlainTextEdit {
         Q_OBJECT
-        docEdit( const docEdit& ) = delete;
+        SqlEdit( const SqlEdit& ) = delete;
         friend class detail::text_writer;
     public:
-        ~docEdit();
-        explicit docEdit(QWidget *parent = 0);
+        ~SqlEdit();
+        explicit SqlEdit(QWidget *parent = 0);
 
-        // std::shared_ptr< adpublisher::document > document();
-        void setDocument( std::shared_ptr< adpublisher::document >& );
-        
         void setCompleter( QCompleter * );
         QCompleter * completer() const;
-        void fetch( pugi::xml_document& xml );
 
     protected:
         void keyPressEvent( QKeyEvent * );
         void focusInEvent( QFocusEvent * );
 
     private:
-        std::weak_ptr< adpublisher::document > doc_;
         QCompleter * completer_;
 
-        void repaint( const pugi::xml_document& );
         QString textUnderCursor() const;
         void contextMenuEvent( QContextMenuEvent * );
 
@@ -73,8 +62,6 @@ namespace adpublisher {
     private slots:
         void insertCompletion(const QString &completion);
         void addSummaryTable();
-        void handleBlockDeleted();
-
     };
 
 }

@@ -61,13 +61,17 @@ namespace query {
         inline QSettings& settings() { return *settings_; }
         QString lastDataDir() const;
 
+        void addSqlHistory( const QString& );
+        QStringList sqlHistory();
+
     private:
         friend std::unique_ptr< QueryDocument >::deleter_type;
-        std::shared_ptr< QSettings > settings_;
+        std::unique_ptr< QSettings > settings_;
         std::shared_ptr< QueryConnection > queryConnection_;
 
     signals:
         void onConnectionChanged();
+        void onHistoryChanged();
     };
 }
 

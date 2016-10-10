@@ -58,39 +58,36 @@ link_directories(
 
 set( query_SOURCES
   mainwindow.cpp
-  queryconnection.cpp
-  querydocument.cpp
-  queryeditor.cpp
-  queryfactory.cpp
-  querymode.cpp
-  queryplugin.cpp
-  queryquery.cpp  
-  queryqueryform.cpp  
-  queryquerywidget.cpp
-  queryresulttable.cpp
-  )
-
-set( query_HEADERS
   mainwindow.hpp
-  queryconnection.hpp  
-  querydocument.hpp  
+  queryconnection.cpp
+  queryconnection.hpp
+  querydocument.cpp
+  querydocument.hpp
+  queryeditor.cpp
   queryeditor.hpp
+  queryfactory.cpp
   queryfactory.hpp
+  querymode.cpp
   querymode.hpp
+  queryplugin.cpp
   queryplugin.hpp
+  queryquery.cpp
   queryquery.hpp  
+  queryqueryform.cpp
   queryqueryform.hpp  
+  queryquerywidget.cpp
   queryquerywidget.hpp
-  queryresulttable.hpp  
+  queryresulttable.cpp
+  queryresulttable.hpp
+  sqledit.cpp
+  sqledit.hpp
   )
 
-set( query_RESOURCES query.qrc )
 set( query_FORMS doubletabwidget.ui  queryconfigform.ui )
 
 add_library( Query MODULE
   ${query_SOURCES}
-  ${query_HEADERS}
-  ${query_RESOURCES}
+  ${Resources}
   )
 
 target_link_libraries(

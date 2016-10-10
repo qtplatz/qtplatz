@@ -26,6 +26,7 @@
 #define QUERYQUERYFORM_HPP
 
 #include <QWidget>
+class QCompleter;
 
 namespace query {
     namespace Ui {
@@ -42,23 +43,25 @@ namespace query {
 
         void setSQL( const QString& t);
         QString sql() const;
-        //QSize sizeHint() const override { return QSize( 40, 600 ); }
         void setTableList( const QList< QString >& );
-        void setSubList( const QList< QString >& );
+        void setSqlHistory( const QStringList& );
+
+        void setCompleter( QCompleter * );
+        QCompleter * completer() const;
 
     private slots:
         void on_plainTextEdit_textChanged();
         void on_pushButton_pressed();
 
         void on_comboBox_currentIndexChanged( const QString& );
-        void on_subList_currentIndexChanged( const QString& );
+        void on_history_currentIndexChanged( const QString& );
 
     signals:
         void triggerQuery( const QString& );
 
     private:
-        bool semiColonCaptured_;
         bool eventFilter( QObject *object, QEvent *event );
+        bool semiColonCaptured_;
     };
 }
 
