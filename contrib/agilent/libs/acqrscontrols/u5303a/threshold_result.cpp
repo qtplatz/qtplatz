@@ -184,9 +184,9 @@ threshold_result::write3( std::ostream& os, const threshold_result& t )
                     % apex.first    // apex (time)
                     % ( t.data()->toVolts( apex.second ) * std::milli::den )
                     % ( int( idx.first ) - int( idx.apex ) )   // front-apex distance
-                    % ( t.data()->toVolts( (*data)[ idx.first ] ) * std::milli::den )     // front intensity
+                    % ( t.data()->toVolts( int64_t( (*data)[ idx.first ] ) ) * std::milli::den )     // front intensity
                     % ( int( idx.second ) - int( idx.apex ) )
-                    % ( t.data()->toVolts( (*data)[ idx.second ] ) * std::milli::den );
+                    % ( t.data()->toVolts( int64_t( (*data)[ idx.second ] ) ) * std::milli::den );
             }
         }
     }

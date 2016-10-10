@@ -47,7 +47,7 @@ namespace acqrscontrols {
             double scaleFactor;
             double scaleOffset;
             // CLASS VERSION 2
-            int32_t dataType;  // 2(int16_t)|4(int32_t)
+            int32_t dataType;  // 2(int16_t)|4(int32_t)|8(int64_t)|-8(double)
             // CLASS VERSION 3
             int32_t protocolIndex;
 

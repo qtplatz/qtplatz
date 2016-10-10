@@ -44,6 +44,7 @@ namespace adportable {
         static double tic( size_t nbrSamples, const int8_t * praw, double& dbase, double& sd, size_t N = 5 );
         static double tic( size_t nbrSamples, const int16_t * praw, double& dbase, double& sd, size_t N = 5 );        
         static double tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& sd, size_t N = 5 );
+        static double tic( size_t nbrSamples, const int64_t * praw, double& dbase, double& sd, size_t N = 5 );
         static double tic( size_t nbrSamples, const double * praw, double& dbase, double& sd, size_t N = 5 );
 
         static void moving_average( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );

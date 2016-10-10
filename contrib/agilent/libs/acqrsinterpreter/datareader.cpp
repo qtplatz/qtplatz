@@ -178,6 +178,12 @@ namespace acqrsinterpreter {
             waveform = rhs;
         }
     };
+    
+    // template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::u5303a::waveform > const& rhs ) const
+    // {
+    //     //waveform = std::make_shared< acqrscontrols::u5303a::waveform >( sizeof( int64_t ), *rhs );
+    //     waveform = std::make_shared< acqrscontrols::u5303a::waveform >( sizeof( int32_t ), *rhs );
+    // }
 
     template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
     {

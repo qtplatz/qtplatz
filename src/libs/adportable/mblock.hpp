@@ -36,7 +36,7 @@ namespace adportable {
         size_t size_;
 
         mblock( const mblock& ) = delete;
-
+        
     public:
 
         mblock( size_t size = 8192 ) : pData_( new value_type[ size ] )

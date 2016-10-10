@@ -142,7 +142,7 @@ namespace acqrscontrols {
             bool push_averaged_waveform( AverageData& d ) {
                 
                 const bool invertData = d.method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
-                
+
                 auto w = std::make_shared< acqrscontrols::u5303a::waveform >( d.method_
                                                                               , d.meta_
                                                                               , d.serialnumber_
@@ -157,7 +157,7 @@ namespace acqrscontrols {
                 d.waveform_register_.reset();
 
                 accumulated_waveforms_.emplace_back( w );
-                
+
                 // display data
                 recent_waveforms_[ d.protocolIndex_ ] = w;
 
@@ -271,9 +271,6 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     auto& datum = impl_->accumulator_[ proto ];
     
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
-
-    size_t nacc = datum.average_waveform( *waveform );
-    size_t avrg = impl_->tofChromatogramsMethod_->numberOfTriggers();
 
     if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
 

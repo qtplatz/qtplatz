@@ -222,6 +222,12 @@ spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase,
 }
 
 double
+spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, double& dbase, double& rms, size_t N )
+{
+    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+}
+
+double
 spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
     return tic_calculator()( nbrSamples, praw, dbase, rms, N );

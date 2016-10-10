@@ -120,7 +120,8 @@ namespace acqrscontrols {
 
             int operator [] ( size_t idx ) const;
             std::pair<double, int> xy( size_t idx ) const;
-            double toVolts( int ) const;
+            double toVolts( int32_t ) const;
+            double toVolts( int64_t ) const;
             double toVolts( double ) const;
             double time( size_t idx ) const;
             bool isDEAD() const;

@@ -238,10 +238,10 @@ waveform::waveform( const method& method
 waveform&
 waveform::operator += ( const waveform& t )
 {
-    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement ) &&
-         ( meta_.dataType == t.meta_.dataType ) && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
+    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement )
+         && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
 
-        meta_.actualAverages += t.meta_.actualAverages;
+        meta_.actualAverages += ( t.meta_.actualAverages == 0 ) ? 1 : t.meta_.actualAverages;
         wellKnownEvents_ |= t.wellKnownEvents_;
 
         double tic(0), dbase(0), rms(0);
@@ -259,7 +259,7 @@ waveform::operator += ( const waveform& t )
             else
                 std::transform( t.begin<int16_t>(), t.begin<int16_t>() + size(), data<int32_t>(), data<int32_t>()
                                 , [&]( int32_t a, int32_t b ){ return int32_t( a + b - dbase ); } );
-        } else {
+        } else if ( t.meta_.dataType == 4 ) {
             if ( meta_.dataType == 2 )
                 std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int16_t>(), data<int16_t>()
                                 , [&]( int a, int b ){ return int( a + b - dbase ); } );
@@ -267,6 +267,14 @@ waveform::operator += ( const waveform& t )
                 std::transform( t.begin<int32_t>(), t.begin<int32_t>() + size(), data<int32_t>(), data<int32_t>()
                                 , [&]( int32_t a, int32_t b ){ return int32_t( a + b - dbase ); } );
         }
+
+        if ( t.meta_.dataType == 4 ) {
+            auto it1 = std::max_element( t.begin< int32_t >(), t.begin< int32_t >() + t.size() );
+            auto it2 = std::min_element( t.begin< int32_t >(), t.begin< int32_t >() + t.size() );
+            auto a = data< int32_t >()[ std::distance( t.begin< int32_t >(), it1 ) ];
+            ADDEBUG() << boost::format( "[%d] max: %-8d, min: %-8d, %-8d" ) % meta_.actualAverages % *it1 % *it2 % a;
+        }
+        
     }
     return *this;
 }
@@ -382,7 +390,16 @@ waveform::time( size_t idx ) const
 }
 
 double
-waveform::toVolts( int d ) const
+waveform::toVolts( int32_t d ) const
+{
+    if ( meta_.actualAverages == 0 )
+        return meta_.scaleFactor * d + meta_.scaleOffset;
+    else
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages * ( meta_.scaleOffset * meta_.actualAverages );
+}
+
+double
+waveform::toVolts( int64_t d ) const
 {
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d + meta_.scaleOffset;

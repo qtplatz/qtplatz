@@ -79,6 +79,7 @@ namespace adportable {
             
             mblk_[ proto ]  = std::make_shared< mblock< int16_t > >( actualPoints_ );
 
+            int min(4096), max(-4096);
             for ( size_t i = 0; i < actualPoints_; ++i ) {
                 double t = /* delay_ + */ xIncrement_ * i;
                 double y(0);
@@ -89,7 +90,10 @@ namespace adportable {
                     }
                 }
                 mblk_[ proto ]->data()[ i ] = int( y );
+                min = std::min( int(y), min );
+                max = std::max( int(y), max );
             }
+            ADDEBUG() << "########### max: " << max << ", min: " << min;
         }
 
         template< typename value_type >
