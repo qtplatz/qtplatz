@@ -538,6 +538,12 @@ spectrum_processor::area( const areaFraction& frac, double base, const double* p
 }
 
 double
+spectrum_processor::area( const areaFraction& frac, double base, const int64_t* pData, size_t nData )
+{
+    return areaCalculator<int64_t>::area( frac, base, pData, nData );
+}
+
+double
 spectrum_processor::area( const areaFraction& frac, double base, const int32_t* pData, size_t nData )
 {
     return areaCalculator<int32_t>::area( frac, base, pData, nData );
