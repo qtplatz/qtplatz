@@ -3,6 +3,8 @@ cmake_policy( SET CMP0028 NEW )
 
 project( Quan )
 set( PROVIDER MS-Cheminformatics )
+set( COMPAT_VERSION 3.2.81 )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
@@ -22,9 +24,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
-
-set(COMPAT_VERSION 3.2.81)
-set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/pluginspec.in"

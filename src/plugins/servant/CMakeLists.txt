@@ -7,12 +7,13 @@ set( PROVIDER MS-Cheminformatics )
 
 find_package( Qt5 CONFIG REQUIRED Core Widgets Network Sql PrintSupport )
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/MS-Chrminformatics ) #plugins
-
 set(CMAKE_AUTOMOC ON)
 
+set(COMPAT_VERSION 3.2.81)
+set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 

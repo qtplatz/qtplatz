@@ -189,7 +189,6 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/prerm.in ${CMAKE_CURRENT_BINARY_DIR}/prerm @ONLY )  
 
-  include( qtplatz-cpack-config )
   include( boost-cpack )
   if ( Qt5_FOUND )
     include( qt5-cpack )

@@ -4,6 +4,8 @@ cmake_policy( SET CMP0028 NEW )
 project( ap240plugin )
 
 set( PROVIDER MS-Cheminformatics )
+set( COMPAT_VERSION 3.2.81 )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 #QT += core svg printsupport widgets
 find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
@@ -19,10 +21,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB ap240_Resources *.qrc)
-
-set(COMPAT_VERSION 3.2.81)
-
-set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
