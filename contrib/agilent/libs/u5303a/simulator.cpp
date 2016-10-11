@@ -285,8 +285,6 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
     next_protocol(); // write protocolIndex to dgpio driver
 
-    // std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
-    
     if ( ! vec.empty() )  {
 
         auto& w = *vec[ 0 ];
@@ -303,8 +301,8 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
             w.firstValidPoint_ = 0;
 
             for ( auto& w: vec ) {
-                 w->setData( mblock, w->firstValidPoint_ );
-                 w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
+                w->setData( mblock, w->firstValidPoint_ );
+                w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
             }
 
         } else { // int32_t
