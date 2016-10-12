@@ -60,9 +60,9 @@ QueryConnection::connect( const std::wstring& database )
             if ( fs_->mount( database.c_str() ) ) {
                 // this is qtplatz native data file
                 fs_->db().register_error_handler( [=] ( const char * msg ) { QMessageBox::warning( 0, "SQLite SQL Error", msg ); } );
-                filename_ = database;
             } else
                 fs_.reset();
+            filename_ = database;
         }
         return true;
     }

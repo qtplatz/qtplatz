@@ -29,6 +29,7 @@
 #include "queryqueryform.hpp"
 #include "queryresulttable.hpp"
 #include <adportable/profile.hpp>
+#include <adportable/debug.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -39,6 +40,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QSplitter>
 #include <QSqlError>
 #include <QStringListModel>
 #include <QToolButton>
@@ -71,28 +73,37 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     connect( QueryDocument::instance(), &QueryDocument::onConnectionChanged, this, &QueryQueryWidget::handleConnectionChanged );
     connect( QueryDocument::instance(), &QueryDocument::onHistoryChanged, this, [this](){ form_->setSqlHistory( QueryDocument::instance()->sqlHistory() ); } );
     connect( form_.get(), &QueryQueryForm::triggerQuery, this, &QueryQueryWidget::handleQuery );
-    
-    if ( auto toolBar = new Utils::StyledBar ) {
 
+    if ( auto toolBar = new Utils::StyledBar ) {
+        
         layout_->addWidget( toolBar );
         
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 2 );
         toolBarLayout->setSpacing( 2 );
-
+        
         if ( auto btnOpen = new QToolButton ) {
             btnOpen->setDefaultAction( Core::ActionManager::instance()->command( Constants::FILE_OPEN )->action() );
             btnOpen->setToolTip( tr("Open result file...") );
             toolBarLayout->addWidget( btnOpen );
-        }
 
-        auto edit = new QLineEdit;
-        edit->setObjectName( Constants::editQueryFilename );
-        toolBarLayout->addWidget( edit );
-    } // end toolbar
-    
-    layout_->addWidget( form_.get() );
-    layout_->addWidget( table_.get() );
+            auto edit = new QLineEdit;
+            edit->setReadOnly( true );
+            edit->setObjectName( Constants::editQueryFilename );
+            toolBarLayout->addWidget( edit );
+        }
+    }
+
+    if ( QSplitter * splitter = new QSplitter ) {
+        splitter->setOrientation( Qt::Vertical );
+
+        splitter->addWidget( form_.get() );
+        splitter->addWidget( table_.get() );
+        layout_->addWidget( splitter );
+
+        splitter->setStretchFactor( 0, 0 );
+        splitter->setStretchFactor( 1, 2 );
+    }
 
     form_->setSqlHistory( QueryDocument::instance()->sqlHistory() );
 }
@@ -100,8 +111,11 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
 void
 QueryQueryWidget::handleConnectionChanged()
 {
-    if ( auto edit = findChild< QLineEdit * >( Constants::editQueryFilename ) )
+    ADDEBUG() << "set file: " << QueryDocument::instance()->connection()->filepath();
+
+    if ( auto edit = findChild< QLineEdit * >( Constants::editQueryFilename ) ) {
         edit->setText( QString::fromStdWString( QueryDocument::instance()->connection()->filepath() ) );
+    }
 
     if ( auto conn = QueryDocument::instance()->connection() ) {
         if ( auto form = findChild< QueryQueryForm * >() ) {

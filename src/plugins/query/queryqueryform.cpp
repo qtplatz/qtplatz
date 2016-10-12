@@ -25,6 +25,7 @@
 #include "sqledit.hpp"
 #include <adportable/debug.hpp>
 #include <QAbstractItemView>
+#include <QApplication>
 #include <QCompleter>
 #include <QScrollBar>
 #include <QStringList>
@@ -32,6 +33,7 @@
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QPushButton>
+#include <QStyledItemDelegate>
 
 using namespace query;
 
@@ -45,14 +47,7 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
 
     if ( auto textEditor = new SqlEdit() ) {
         textEditor->installEventFilter( this );
-        textEditor->setMaximumHeight( 80 );
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(textEditor->sizePolicy().hasHeightForWidth());
-        textEditor->setSizePolicy(sizePolicy);
-        textEditor->setMaximumSize(QSize(16777215, 80));
-        gridLayout->addWidget( textEditor, 0, 0, /*row span= */ 1, /* column span = */ 4 );
+        vLayout->addWidget( textEditor );
     }
 
     if ( auto combo = new QComboBox() ) {
@@ -64,6 +59,8 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
 
     if ( auto combo = new QComboBox() ) {
         combo->setObjectName( "history" );
+        combo->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLength );
+        //combo->setItemDelegate( new ComboBoxDelegate() );
         gridLayout->addWidget( combo, 1, 1, 1, 1 );
         connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
                  , this, &QueryQueryForm::on_history_currentIndexChanged );
@@ -73,7 +70,7 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
         gridLayout->addWidget( button, 1, 2, 1, 1 );
         connect( button, &QPushButton::pressed, this, &QueryQueryForm::on_pushButton_pressed );
     }
-
+    
     vLayout->addLayout( gridLayout );
 }
 

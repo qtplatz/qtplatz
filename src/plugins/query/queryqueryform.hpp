@@ -62,6 +62,7 @@ namespace query {
     private:
         bool eventFilter( QObject *object, QEvent *event );
         bool semiColonCaptured_;
+        class ComboBoxDelegate;
     };
 }
 
