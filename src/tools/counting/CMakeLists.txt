@@ -27,6 +27,8 @@ include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_
 
 add_executable( ${PROJECT_NAME}
   main.cpp
+  rawdata.cpp
+  rawdata.hpp
   ${QTPLATZ_SOURCE_DIR}/src/adplugins/adtextfile/time_data_reader.cpp
   ${QTPLATZ_SOURCE_DIR}/src/adplugins/adtextfile/time_data_reader.hpp
   )

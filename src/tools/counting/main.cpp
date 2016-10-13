@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include "rawdata.hpp"
 #include <adplugins/adtextfile/time_data_reader.hpp>
 #include <adcontrols/countinghistogram.hpp>
 #include <adfs/sqlite.hpp>
@@ -130,85 +131,97 @@ main(int argc, char *argv[])
 
             std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
 
-            std::string adfsname;
-            if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
-                
-                Summary summary;
-                
-                if ( ! adfsname.empty() ) {            
-                    
-                    double acclVoltage(0), tDelay(0), fLength(0);
-                    std::string spectrometer;
-                    
-                    if ( adtextfile::time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) ) {
-                        
-                        std::cout << "#datafile: " << file << " <- " << adfsname << std::endl;
-                        std::cout << "#\taccelerator voltage: " << acclVoltage
-                                  << "\ttDelay: " << tDelay
-                                  << "\tfLength: " << fLength
-                                  << std::endl;
-                        std::cout << "#\tSpectrometer: " << spectrometer << std::endl;
-                    
-                    }
+            boost::filesystem::path path( file );
+            if ( path.extension() == ".adfs" ) {
+
+                rawdata d;
+                if ( d.open( path ) ) {
+                    d.processIt( []( size_t idx, size_t total ){
+                            std::cerr << "\rprocessed: " << idx << "/" << total;
+                        });
                 }
-
-                if ( vm.count( "sqlite" ) ) {
-
-                    SQLImport importer;
-                    importer.import( file );
-
-                } else {
-                    
-                    if ( vm.count( "resolution" ) )
-                        summary.set_resolution( vm[ "resolution" ].as< double >() * 1.0e-9 );
-                    
-                    if ( vm.count( "threshold" ) )
-                        summary.set_threshold( vm[ "threshold" ].as< double >() );
-                    
-                    size_t processed(0);
-                    if ( adtextfile::time_data_reader::load(
-                             file
-                             , [&]( size_t numerator, size_t denominator, const adcontrols::CountingData& d ){
-                                 if ( ( processed++ % 1000 ) == 0 )
-                                     std::cerr << "Processing: " << file
-                                               << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
-                                 summary.add( d );
-                                 return true;
-                             }) ) {
-                        std::cerr << std::endl;
-                        
-                        if ( vm.count( "hist" ) ) {
-                            auto histfile = summary.make_outfname( file, "_hist" );
-                            summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                            summary.print_histogram( histfile );
-                        }
-                        
-                        if ( vm.count( "stat" ) ) {
-                            auto statfile = summary.make_outfname( file, "_stat" );
-                            summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                            summary.print_statistics( statfile );
-                        }
-                        
-                        if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
-                            // assume --stat if no process specified
-                            auto statfile = summary.make_outfname( file, "_stat" );
-                            
-                            summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                            summary.print_statistics( statfile );
-                        }
-                        
-                        summary.findPeaks();
-                        summary.report( std::cout );
-                        
-                        if ( vm.count( "pivot" ) ) {
-                            auto pivotfile = summary.make_outfname( file, "_pivot" );
-                            summary.pivot( pivotfile );
-                        }
-                    }
-                }
-
+                
             } else {
-                std::cout << "#file: " << file << " does not reconginsed as time_data file" << std::endl;
+
+                std::string adfsname;
+                if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
+                    
+                    Summary summary;
+                    
+                    if ( ! adfsname.empty() ) {            
+                        
+                        double acclVoltage(0), tDelay(0), fLength(0);
+                        std::string spectrometer;
+                        
+                        if ( adtextfile::time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) ) {
+                            
+                            std::cout << "#datafile: " << file << " <- " << adfsname << std::endl;
+                            std::cout << "#\taccelerator voltage: " << acclVoltage
+                                      << "\ttDelay: " << tDelay
+                                      << "\tfLength: " << fLength
+                                      << std::endl;
+                            std::cout << "#\tSpectrometer: " << spectrometer << std::endl;
+                            
+                        }
+                    }
+                    
+                    if ( vm.count( "sqlite" ) ) {
+                        
+                        SQLImport importer;
+                        importer.import( file );
+                        
+                    } else {
+                        
+                        if ( vm.count( "resolution" ) )
+                            summary.set_resolution( vm[ "resolution" ].as< double >() * 1.0e-9 );
+                        
+                        if ( vm.count( "threshold" ) )
+                            summary.set_threshold( vm[ "threshold" ].as< double >() );
+                        
+                        size_t processed(0);
+                        if ( adtextfile::time_data_reader::load(
+                                 file
+                                 , [&]( size_t numerator, size_t denominator, const adcontrols::CountingData& d ){
+                                     if ( ( processed++ % 1000 ) == 0 )
+                                         std::cerr << "Processing: " << file
+                                                   << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                                     summary.add( d );
+                                     return true;
+                                 }) ) {
+                            std::cerr << std::endl;
+                            
+                            if ( vm.count( "hist" ) ) {
+                                auto histfile = summary.make_outfname( file, "_hist" );
+                                summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                                summary.print_histogram( histfile );
+                            }
+                            
+                            if ( vm.count( "stat" ) ) {
+                                auto statfile = summary.make_outfname( file, "_stat" );
+                                summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                                summary.print_statistics( statfile );
+                            }
+                            
+                            if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
+                                // assume --stat if no process specified
+                                auto statfile = summary.make_outfname( file, "_stat" );
+                                
+                                summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                                summary.print_statistics( statfile );
+                            }
+                            
+                            summary.findPeaks();
+                            summary.report( std::cout );
+                            
+                            if ( vm.count( "pivot" ) ) {
+                                auto pivotfile = summary.make_outfname( file, "_pivot" );
+                                summary.pivot( pivotfile );
+                            }
+                        }
+                    }
+                } else {
+                    std::cout << "#file: " << file << " does not reconginsed as time_data file" << std::endl;
+                }
             }
         }
     }
