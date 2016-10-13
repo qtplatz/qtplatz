@@ -139,7 +139,8 @@ namespace aqdrv4 {
             try {            
                 ar & *p;
             } catch ( ... ) {
-                ADDEBUG() << boost::current_exception_diagnostic_information();
+                ADDEBUG() << boost::current_exception_diagnostic_information()
+                          << acqrscontrols::aqdrv4::preamble::debug( &pre );
                 return nullptr;
             }
 

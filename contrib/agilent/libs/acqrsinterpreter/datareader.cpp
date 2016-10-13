@@ -1,26 +1,26 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
-*
-** Contact: toshi.hondo@qtplatz.com
-**
-** Commercial Usage
-**
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with
-** the Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
-**
-** GNU Lesser General Public License Usage
-**
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.TXT included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-**************************************************************************/
+ ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ *
+ ** Contact: toshi.hondo@qtplatz.com
+ **
+ ** Commercial Usage
+ **
+ ** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+ ** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+ ** the Software or, alternatively, in accordance with the terms contained in
+ ** a written agreement between you and MS-Cheminformatics.
+ **
+ ** GNU Lesser General Public License Usage
+ **
+ ** Alternatively, this file may be used under the terms of the GNU Lesser
+ ** General Public License version 2.1 as published by the Free Software
+ ** Foundation and appearing in the file LICENSE.TXT included in the
+ ** packaging of this file.  Please review the following information to
+ ** ensure the GNU Lesser General Public License version 2.1 requirements
+ ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+ **
+ **************************************************************************/
 
 #include "datareader.hpp"
 #include "datainterpreter.hpp"
@@ -234,6 +234,14 @@ namespace acqrsinterpreter {
     };
     //------------------ make_title visitor ----------------
 
+    //------------------ waveforms_types --> any cast ---------------->>
+    struct any_cast : public boost::static_visitor < boost::any > {
+        template< typename T >
+        boost::any operator()( T& t ) const {
+            return boost::any( t );
+        }
+    };
+    //<<------------------ waveforms_types --> any cast ----------------
 }
 
 using namespace acqrsinterpreter;
@@ -246,9 +254,9 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
-                                               , objid_( {{ 0 }} )
-                                               , objrowid_( -1 )
-                                               , fcnCount_( 0 )
+    , objid_( {{ 0 }} )
+    , objrowid_( -1 )
+    , fcnCount_( 0 )
 {
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
@@ -276,7 +284,7 @@ bool
 DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
-        
+
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
         db_ = dbf._ptr();
@@ -339,7 +347,6 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
         }
         return true;
     }
-    ADDEBUG() << "initialize failed for: " << objtext;
     return false;
 }
 
@@ -378,8 +385,8 @@ DataReader::fcnCount() const
 {
     // skip timecount data -- too large to handle in the dataproc
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
-         (void)i;
-         return 0;
+        (void)i;
+        return 0;
     }
     return fcnCount_;
 }
@@ -439,88 +446,88 @@ DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) con
         // compute from indecies_
         if ( tspec == ElapsedTime ) {
 
-        int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
+            int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
 
-        if ( indecies_.front().elapsed_time > elapsed_time )
-            return begin( (-1) );
+            if ( indecies_.front().elapsed_time > elapsed_time )
+                return begin( (-1) );
 
-        if ( indecies_.back().elapsed_time < elapsed_time )
-            return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
+            if ( indecies_.back().elapsed_time < elapsed_time )
+                return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
 
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
+            auto it = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
 
-        if ( closest && ( it != indecies_.end() ) ) {
-            if ( std::abs( elapsed_time - it->elapsed_time ) > std::abs( elapsed_time - ( it + 1 )->elapsed_time ) ) 
-                ++it;
+            if ( closest && ( it != indecies_.end() ) ) {
+                if ( std::abs( elapsed_time - it->elapsed_time ) > std::abs( elapsed_time - ( it + 1 )->elapsed_time ) ) 
+                    ++it;
+            }
+
+            return adcontrols::DataReader_iterator( this, it->rowid );
+#endif
         }
 
-        return adcontrols::DataReader_iterator( this, it->rowid );
-#endif
+        return end();
     }
 
-    return end();
-}
+    double
+        DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
+    {
+        assert( ispec == TriggerNumber );
 
-double
-DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
-{
-    assert( ispec == TriggerNumber );
+        if ( indecies_.empty() )
+            return -1;
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), pos, [] ( const index& a, int64_t b ) { return a.pos < b; } );
+        if ( it != indecies_.end() )
+            return double( it->elapsed_time ) * 1.0e-9;
 
-    if ( indecies_.empty() )
-        return -1;
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), pos, [] ( const index& a, int64_t b ) { return a.pos < b; } );
-    if ( it != indecies_.end() )
-        return double( it->elapsed_time ) * 1.0e-9;
+        return -1.0;
+    }
 
-    return -1.0;
-}
+    std::shared_ptr< const adcontrols::Chromatogram >
+        DataReader::TIC( int fcn ) const
+    {
+        if ( tics_.empty() )
+            const_cast< DataReader * >(this)->loadTICs();
 
-std::shared_ptr< const adcontrols::Chromatogram >
-DataReader::TIC( int fcn ) const
-{
-    if ( tics_.empty() )
-        const_cast< DataReader * >(this)->loadTICs();
+        if ( tics_.size() > fcn )
+            return tics_[ fcn ];
 
-    if ( tics_.size() > fcn )
-        return tics_[ fcn ];
+        return nullptr;
+    }
 
-    return nullptr;
-}
+    void
+        DataReader::loadTICs()
+    {
+        auto nfcn = fcnCount();
 
-void
-DataReader::loadTICs()
-{
-    auto nfcn = fcnCount();
-
-    std::map< int, std::pair< std::shared_ptr< adcontrols::Chromatogram >, uint64_t > > tics;
+        std::map< int, std::pair< std::shared_ptr< adcontrols::Chromatogram >, uint64_t > > tics;
     
-    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+        if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
-        if ( auto db = db_.lock() ) {
+            if ( auto db = db_.lock() ) {
             
-            indecies_.clear();
+                indecies_.clear();
 
-            adfs::stmt sql( *db );
+                adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos,fcn" );
-            sql.bind( 1 ) = objid_;
+                sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos,fcn" );
+                sql.bind( 1 ) = objid_;
             
-            while ( sql.step() == adfs::sqlite_row ) {
+                while ( sql.step() == adfs::sqlite_row ) {
                 
-                int col = 0;
-                auto row = sql.get_column_value< int64_t >( col++ );
-                auto pos = sql.get_column_value< int64_t >( col++ );
-                auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
-                auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+                    int col = 0;
+                    auto row = sql.get_column_value< int64_t >( col++ );
+                    auto pos = sql.get_column_value< int64_t >( col++ );
+                    auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
+                    auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                    adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
+                    indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
 
-                if ( tics.find( fcn ) == tics.end() ) {
-                    tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
-                    tics [ fcn ].first->setDataReaderUuid( objid_ );
-                    tics [ fcn ].first->setFcn( fcn );
+                    if ( tics.find( fcn ) == tics.end() ) {
+                        tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
+                        tics [ fcn ].first->setDataReaderUuid( objid_ );
+                        tics [ fcn ].first->setFcn( fcn );
                 }
 
                 auto pair = tics[ fcn ];
@@ -602,6 +609,35 @@ DataReader::fcn( int64_t rowid ) const
     if ( it != indecies_.end() )
         return it->fcn;
     return -1;    
+}
+
+boost::any
+DataReader::getData( int64_t rowid ) const
+{
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+    
+        if ( auto db = db_.lock() ) {
+     
+            adfs::stmt sql( *db );
+            
+            if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
+                sql.bind( 1 ) = rowid;
+         
+                if ( sql.step() == adfs::sqlite_row ) {
+             
+                    adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
+                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
+                    
+                    waveform_types waveform;
+                    if ( interpreter->translate( waveform, xdata.data(), xdata.size()
+                                                 , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+                        return boost::apply_visitor( any_cast(), waveform );
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >

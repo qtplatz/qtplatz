@@ -30,6 +30,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <QCoreApplication>
 #include <iostream>
 #include <fstream>
 #include <ratio>
@@ -81,8 +82,10 @@ private:
 int
 main(int argc, char *argv[])
 {
+    QCoreApplication a( argc, argv );
+    
     po::variables_map vm;
-    po::options_description description( "acqiris" );
+    po::options_description description( "counting" );
     {
         description.add_options()
             ( "help,h",      "Display this help message" )
@@ -130,7 +133,7 @@ main(int argc, char *argv[])
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
             std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
-
+            
             boost::filesystem::path path( file );
             if ( path.extension() == ".adfs" ) {
 
@@ -139,6 +142,7 @@ main(int argc, char *argv[])
                     d.processIt( []( size_t idx, size_t total ){
                             std::cerr << "\rprocessed: " << idx << "/" << total;
                         });
+                    std::cerr << std::endl;
                 }
                 
             } else {

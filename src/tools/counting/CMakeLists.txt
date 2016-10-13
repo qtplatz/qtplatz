@@ -23,7 +23,12 @@ if ( OpenCV_FOUND )
   set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} )
 endif()
 
-include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )
+include_directories(
+  ${QTPLATZ_INCLUDE_DIRS}
+  ${QWT_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  )
 
 add_executable( ${PROJECT_NAME}
   main.cpp
@@ -37,6 +42,9 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adcontrols
   adfs
+  adplugin_manager
+  adprocessor
+  acqrscontrols
   ${Boost_LIBRARIES}
   ${_opencv_libraries}
   )

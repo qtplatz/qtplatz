@@ -28,6 +28,9 @@
 #include <boost/filesystem/path.hpp>
 #include <functional>
 
+namespace acqrscontrols { namespace ap240 { class waveform; } }
+
+namespace adprocessor { class dataprocessor; }
 class rawdata {
 public:
     enum polarity { positive_polarity, negative_polarity };
@@ -38,10 +41,12 @@ public:
     polarity polarity() const;
 
     bool processIt( std::function< void( size_t, size_t ) > progress );
+
+    void tdc( std::shared_ptr< acqrscontrols::ap240::waveform > );
         
 private:
     enum polarity polarity_;
     double threshold_;
     boost::filesystem::path path_;
-    adfs::filesystem fs_;
+    std::shared_ptr< adprocessor::dataprocessor > processor_;
 };
