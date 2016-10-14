@@ -24,13 +24,22 @@
 
 #pragma oncne
 
+#include <adcontrols/countinghistogram.hpp>
+#include <adcontrols/countingdata.hpp>
+#include <adcontrols/threshold_method.hpp>
 #include <adfs/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <functional>
 
-namespace acqrscontrols { namespace ap240 { class waveform; } }
+namespace acqrscontrols {
+    namespace ap240 {
+        class waveform;
+        class threshold_result;
+    }
+}
 
 namespace adprocessor { class dataprocessor; }
+
 class rawdata {
 public:
     enum polarity { positive_polarity, negative_polarity };
@@ -43,10 +52,15 @@ public:
     bool processIt( std::function< void( size_t, size_t ) > progress );
 
     void tdc( std::shared_ptr< acqrscontrols::ap240::waveform > );
-        
+
+    std::shared_ptr< acqrscontrols::ap240::threshold_result >  processThreshold3(
+        std::shared_ptr< acqrscontrols::ap240::waveform > waveform
+        , const adcontrols::threshold_method& method );
+
 private:
     enum polarity polarity_;
     double threshold_;
     boost::filesystem::path path_;
     std::shared_ptr< adprocessor::dataprocessor > processor_;
+    adcontrols::CountingHistogram hgrm_;
 };

@@ -51,7 +51,7 @@ log::log( priority level ) : level_( level )
 log::~log()
 {
 #if defined __linux__
-    syslog( level_, o_.str().c_str() );
+    syslog( level_, "%s", o_.str().c_str() );
 #endif
 }
 

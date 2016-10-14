@@ -131,7 +131,7 @@ main(int argc, char *argv[])
     if ( vm.count("args") ) {
         
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
-
+            
             std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
             
             boost::filesystem::path path( file );
@@ -146,7 +146,7 @@ main(int argc, char *argv[])
                 }
                 
             } else {
-
+                
                 std::string adfsname;
                 if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
                     

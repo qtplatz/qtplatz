@@ -28,6 +28,7 @@
 #include "metadata.hpp"
 #include "method.hpp"
 #include <adcontrols/countingmethod.hpp>
+#include <adcontrols/countingresult.hpp>
 #include <adportable/counting/threshold_finder.hpp>
 #include <adportable/counting/counting_result.hpp>
 #include <adportable/counting/peak_finder.hpp>

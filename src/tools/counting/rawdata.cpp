@@ -23,14 +23,18 @@
 **************************************************************************/
 
 #include "rawdata.hpp"
+#include <acqrscontrols/u5303a/find_threshold_peaks.hpp>
+#include <acqrscontrols/u5303a/find_threshold_timepoints.hpp>
+#include <acqrscontrols/ap240/tdcdoc.hpp>
+#include <acqrscontrols/ap240/threshold_result.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
 #include <adfs/sqlite.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adportable/counting/counting_result.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adportable/debug.hpp>
-#include <acqrscontrols/ap240/waveform.hpp>
-#include <acqrscontrols/ap240/tdcdoc.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/format.hpp>
 #include <iostream>
@@ -125,14 +129,56 @@ rawdata::tdc( std::shared_ptr< acqrscontrols::ap240::waveform > ptr )
 
     acqrscontrols::ap240::tdcdoc::find_threshold_timepoints( *ptr, method, elements, processed );
 
-    ADDEBUG() << boost::format( "s/n=%d dtyp=%d size=%d SF=%g, offs=%g, threshold: %d" )
-        % ptr->serialnumber_ % ptr->meta_.dataType % ptr->size() % ptr->meta_.scaleFactor % ptr->meta_.scaleOffset % elements.size() ;
+    adcontrols::CountingData d;
+    d.setTriggerNumber( ptr->serialnumber_ );
+    d.setProtocolIndex( 0 );
+    d.setTimeSinceEpoch( ptr->timeSinceEpoch_ );
+    d.setElapsedTime( ptr->timeSinceEpoch_ );
+    d.setEvents( ptr->wellKnownEvents_ );
+    d.setThreshold( threshold_ );
+    d.setAlgo( method.algo_ );
+
+    ADDEBUG() << boost::format( "s/n=%d dtyp=%d size=%d SF=%g, offs=%g, n= %d" )
+        % ptr->serialnumber_
+        % ptr->meta_.dataType
+        % ptr->size()
+        % ptr->meta_.scaleFactor
+        % ptr->meta_.scaleOffset
+        % elements.size() ;
+}
+
+std::shared_ptr< acqrscontrols::ap240::threshold_result >
+rawdata::processThreshold3( std::shared_ptr< acqrscontrols::ap240::waveform > waveform
+                            , const adcontrols::threshold_method& method )
+{
+    auto result = std::make_shared< acqrscontrols::ap240::threshold_result >( waveform );
     
-    // if ( ptr->meta_.dataType == 1 ) {
-    //     const int8_t * data = ptr->data< int8_t >();
-    //     for ( int i = 0; i < ptr->size() && i < 16; ++i )
-    //         std::cout << int( data[i] ) << ", ";
-    //     std::cout << std::endl;
-    // }
+    // result>setFindUp( method.slope == adcontrols::threshold_method::CrossUp );
+    // result->threshold_level() = method.threshold_level;
+    // result->algo() = static_cast< enum adportable::counting::counting_result::algo >( method.algo_ );
+
+    adcontrols::CountingMethod range;
+    adportable::counting::counting_result counting_result;
+            
+    const auto idx = waveform->method_.protocolIndex();
     
+    
+    if ( method.enable ) {
+        
+        if ( method.algo_ == adcontrols::threshold_method::Differential ) {
+            if  ( method.slope == adcontrols::threshold_method::CrossUp ) {
+                acqrscontrols::find_threshold_peaks< true, acqrscontrols::ap240::waveform > find_peaks( method, range );
+                find_peaks( *waveform, counting_result, result->processed() );
+            } else {
+                acqrscontrols::find_threshold_peaks< false, acqrscontrols::ap240::waveform > find_peaks( method, range );
+                find_peaks( *waveform, counting_result, result->processed() );
+            }
+        } else {
+            acqrscontrols::find_threshold_timepoints< acqrscontrols::ap240::waveform > find_threshold( method, range );
+            find_threshold( *waveform, counting_result, result->processed() );
+        }
+        
+    }
+
+    return result;
 }
