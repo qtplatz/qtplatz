@@ -122,9 +122,9 @@ acqrsdata::processIt( std::function< void( size_t, size_t ) > progress )
 
                             writer << rp;
                             auto wp = rp->data(); // waveform
-                            ADDEBUG() << wp->serialnumber_ << ", " << rp->indecies2().size() << " count found";
-
-                            progress( idx++, size );
+                            
+                            if ( ( idx % 1000 ) == 0 )
+                                progress( idx++, size );
                             
                         }
                     }

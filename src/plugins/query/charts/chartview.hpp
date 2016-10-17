@@ -56,6 +56,7 @@ namespace query {
         private:
             bool isTouching_;
             void copyToClipboard();
+            void saveImage( bool clipboard );
         };
     }
 }

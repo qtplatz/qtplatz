@@ -24,21 +24,28 @@
 
 #include "chartview.hpp"
 #include "waveform.hpp"
-#include <QAbstractItemModel>
-#include <QApplication>
 #include <QChartView>
 #include <QChart>
+#include <QLineSeries>
 #include <QScatterSeries>
 #include <QVXYModelMapper>
 #include <QXYSeries>
+#include <QRubberBand>
+
+#include <QAbstractItemModel>
+#include <QApplication>
+#include <QBuffer>
 #include <QClipboard>
+#include <QDebug>
+#include <QFileDialog>
 #include <QGesture>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QMenu>
+#include <QMimeData>
 #include <QMouseEvent>
-#include <QRubberBand>
-#include <QLineSeries>
+#include <QPainter>
+#include <QSvgGenerator>
 #include <ratio>
 
 using namespace query::charts;
@@ -148,13 +155,20 @@ ChartView::mouseReleaseEvent(QMouseEvent *event)
         QMenu menu;
         menu.addAction( "Unzoom" );
         menu.addAction( "Copy" );
+        menu.addAction( "Copy SVG" );
+        menu.addAction( "Save as SVG File..." );
 
         if ( auto selected = menu.exec( event->globalPos() ) ) {
             if ( selected->text() == "Unzoom" ) {
                 chart()->zoomReset();
             } else if ( selected->text() == "Copy" ) {
                 copyToClipboard();
+            } else if ( selected->text() == "Copy SVG" ) {
+                saveImage( true );
+            } else if ( selected->text() == "Save as SVG File..." ) {
+                saveImage( false );                
             }
+            
             return;
         }
     }
@@ -264,4 +278,41 @@ ChartView::copyToClipboard()
 {
     auto pixmap = grab();
     QApplication::clipboard()->setPixmap( pixmap );
+}
+
+void
+ChartView::saveImage( bool clipboard )
+{
+    QSvgGenerator generator;
+    QByteArray svg;
+    QBuffer buffer( &svg );
+    
+    generator.setTitle( "QtPlatz Generated SVG" );
+    generator.setDescription( "Copyright (C) 2013-2017 MS-Cheminformataics, All rights reserved" );
+    auto sz = this->size();
+    generator.setViewBox( QRectF( 0, 0, sz.width(), sz.height() ) );
+
+    if ( clipboard ) {
+
+        generator.setOutputDevice( &buffer );        
+
+    } else {
+        auto name = QFileDialog::getSaveFileName( this, tr( "Save SVG File" )
+                                                  , "chart.svg"
+                                                  , tr( "SVG (*.svg)" ) );
+        if ( ! name.isEmpty() )
+            generator.setFileName( name );
+    }
+
+    QPainter painter;
+    painter.begin( &generator );
+    painter.setRenderHint( QPainter::Antialiasing );
+    render( &painter );
+    painter.end();
+
+    if ( clipboard ) {
+        QMimeData * mime = new QMimeData();
+        mime->setData( "image/svg+xml", svg );
+        QApplication::clipboard()->setMimeData( mime, QClipboard::Clipboard );
+    }
 }
