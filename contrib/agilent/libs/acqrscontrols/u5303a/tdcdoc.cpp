@@ -24,8 +24,8 @@
 
 #include "tdcdoc.hpp"
 #include "averagedata.hpp"
-#include "find_threshold_timepoints.hpp"
-#include "find_threshold_peaks.hpp"
+#include "../find_threshold_timepoints.hpp"
+#include "../find_threshold_peaks.hpp"
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/threshold_action_finder.hpp>

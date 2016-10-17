@@ -25,8 +25,6 @@
 #pragma once
 #include "waveform_horizontal.hpp"
 #include "waveform.hpp"
-#include "metadata.hpp"
-#include "method.hpp"
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adportable/average.hpp>
@@ -38,7 +36,7 @@
 
 namespace acqrscontrols {
 
-    template< typename waveform_type = u5303a::waveform >
+    template< typename waveform_type > // u5303a::waveform | ap240::waveform
     class find_threshold_timepoints {
         const adcontrols::threshold_method& method;
         const adcontrols::CountingMethod& ranges;
@@ -86,6 +84,9 @@ namespace acqrscontrols {
                                 if ( method.use_filter ) {
                                     auto sd = stddev( processed.begin() + offs.first, offs.second );
                                     finder( processed.begin(), processed.begin() + eoffs, elements, level + sd.second, offs.first );
+                                } else if ( data.meta_.dataType == 1 ) {
+                                    auto sd = stddev( data.template begin<int16_t>() + offs.first, offs.second );
+                                    finder( data.template begin<int8_t>(), data.template begin< int8_t >() + eoffs, elements, level + sd.second, offs.first );
                                 } else if ( data.meta_.dataType == 2 ) {
                                     auto sd = stddev( data.template begin<int16_t>() + offs.first, offs.second );
                                     finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level + sd.second, offs.first );
@@ -96,6 +97,8 @@ namespace acqrscontrols {
                             } else {
                                 if ( method.use_filter ) {
                                     finder( processed.begin(), processed.begin() + eoffs, elements, level, offs.first );
+                                } else if ( data.meta_.dataType == 1 ) {
+                                    finder( data.template begin<int8_t>(), data.template begin< int8_t >() + eoffs, elements, level, offs.first );
                                 } else if ( data.meta_.dataType == 2 ) {
                                     finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, elements, level, offs.first );
                                 } else if ( data.meta_.dataType == 4 ) {
@@ -112,6 +115,9 @@ namespace acqrscontrols {
                     if ( method.use_filter ) {
                         auto sd = stddev( processed.begin(), processed.size() );
                         finder( processed.begin(), processed.end(), elements, level + sd.second, 0 );
+                    } else if ( data.meta_.dataType == 1 ) {
+                        auto sd = stddev( data.template begin< int8_t >(), data.size() );
+                        finder( data.template begin<int8_t>(), data.template end<int8_t>(), elements, level + sd.second );
                     } else if ( data.meta_.dataType == 2 ) {
                         auto sd = stddev( data.template begin< int16_t >(), data.size() );
                         finder( data.template begin<int16_t>(), data.template end<int16_t>(), elements, level + sd.second );
@@ -122,6 +128,8 @@ namespace acqrscontrols {
                 } else {
                     if ( method.use_filter ) {
                         finder( processed.begin(), processed.end(), elements, level, 0 );
+                    } else if ( data.meta_.dataType == 1 ) {
+                        finder( data.template begin<int8_t>(), data.template end<int8_t>(), elements, level );
                     } else if ( data.meta_.dataType == 2 ) {
                         finder( data.template begin<int16_t>(), data.template end<int16_t>(), elements, level );
                     } else if ( data.meta_.dataType == 4 ) {

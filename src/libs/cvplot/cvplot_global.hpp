@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,42 +21,15 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef CVPLOT_GLOBAL_HPP
+#define CVPLOT_GLOBAL_HPP
 
-#include <QWidget>
-#include <memory>
+#include <QtCore/qglobal.h>
 
-class QGridLayout;
+#if defined(CVPLOT_LIBRARY)
+#  define CVPLOTSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define CVPLOTSHARED_EXPORT Q_DECL_IMPORT
+#endif
 
-namespace query {
-
-    class QueryQueryForm;
-    class QueryResultTable;
-    class QueryQuery;
-
-    class QueryQueryWidget : public QWidget  {
-        Q_OBJECT
-    public:
-        ~QueryQueryWidget();
-        explicit QueryQueryWidget(QWidget *parent = 0);
-
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QueryQueryForm > form_;
-        std::unique_ptr< QueryResultTable > table_;
-
-        void executeQuery();
-
-    signals:
-        void onQueryData( std::shared_ptr< QueryQuery > );
-
-    public slots :
-        void handleConnectionChanged();
-
-    private slots:
-        void handleQuery( const QString& );
-        void handlePlot();
-    };
-
-}
-
+#endif // CVPLOT_GLOBAL_HPP

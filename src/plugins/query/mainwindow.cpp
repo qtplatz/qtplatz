@@ -102,15 +102,15 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        Core::ActionManager * am = Core::ActionManager::instance(); // ->actionManager();
-        if ( am ) {
-            // [file open] button
-            //toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
-            //-- separator --
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //---
-            //toolBarLayout->addWidget( topLineEdit_.get() );
-        }
+        // Core::ActionManager * am = Core::ActionManager::instance(); // ->actionManager();
+        // if ( am ) {
+        //     // [file open] button
+        //     //toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
+        //     //-- separator --
+        //     toolBarLayout->addWidget( new Utils::StyledSeparator );
+        //     //---
+        //     //toolBarLayout->addWidget( topLineEdit_.get() );
+        // }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
     }
@@ -121,21 +121,6 @@ void
 MainWindow::onInitialUpdate()
 {
     QueryDocument::instance()->onInitialUpdate();
-#if 0
-    if ( auto rw = findChild< QueryReportWidget * >() )
-        rw->onInitialUpdate( QueryDocument::instance() );
-
-    if ( auto qm = QueryDocument::instance()->pm().find< adcontrols::QueryMethod >() ) {
-        boost::filesystem::path path = qm->queryMethodFilename();
-        if ( !path.empty() ) {
-            auto list = findChildren< QLineEdit * >( Constants::editQueryMethodName );
-            for ( auto& edit : list ) {
-                edit->setText( QString::fromStdWString( path.wstring() ) );
-                edit->setEnabled( false );
-            }
-        }
-    }
-#endif
 }
 
 void
@@ -169,9 +154,9 @@ MainWindow::createActions()
         
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Query") );
-
+        
         if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open SQLite file..." ), this ) ) {
-
+            
             am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Query|Open SQLite file...
             connect( p, &QAction::triggered, this, &MainWindow::handleOpen );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
@@ -199,15 +184,6 @@ MainWindow::handleIndexChanged( int index, int subIndex )
 void
 MainWindow::commit()
 {
-#if 0
-    if ( stack_ ) {
-        for ( int idx = 0; idx < stack_->count(); ++idx ) {
-            QWidget * widget = stack_->widget( idx );
-            if ( auto panels = dynamic_cast< PanelsWidget * >( widget ) )
-                panels->commit();
-        }
-    }
-#endif
 }
 
 void

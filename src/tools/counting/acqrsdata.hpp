@@ -40,10 +40,10 @@ namespace acqrscontrols {
 
 namespace adprocessor { class dataprocessor; }
 
-class rawdata {
+class acqrsdata {
 public:
     enum polarity { positive_polarity, negative_polarity };
-    rawdata();
+    acqrsdata();
     bool open( const boost::filesystem::path& );
     void setThreshold( double );
     void setPolairty( polarity );
@@ -54,7 +54,7 @@ public:
     void tdc( std::shared_ptr< acqrscontrols::ap240::waveform > );
 
     std::shared_ptr< acqrscontrols::ap240::threshold_result >  processThreshold3(
-        std::shared_ptr< acqrscontrols::ap240::waveform > waveform
+        std::shared_ptr< const acqrscontrols::ap240::waveform > waveform
         , const adcontrols::threshold_method& method );
 
 private:

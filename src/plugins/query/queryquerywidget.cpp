@@ -28,6 +28,10 @@
 #include "queryquery.hpp"
 #include "queryqueryform.hpp"
 #include "queryresulttable.hpp"
+#if QT5_CHARTS
+# include "charts/chartview.hpp"
+#endif
+#include "plotdialog.hpp"
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -36,6 +40,7 @@
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <utils/styledbar.h>
 #include <QCompleter>
+#include "qwt/chartview.hpp"
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -43,6 +48,7 @@
 #include <QSplitter>
 #include <QSqlError>
 #include <QStringListModel>
+#include <QStackedWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QMessageBox>
@@ -53,6 +59,10 @@
 #include <algorithm>
 
 using namespace query;
+
+#if QT5_CHARTS
+QT_CHARTS_USE_NAMESPACE;
+#endif
 
 QueryQueryWidget::~QueryQueryWidget()
 {
@@ -73,6 +83,7 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     connect( QueryDocument::instance(), &QueryDocument::onConnectionChanged, this, &QueryQueryWidget::handleConnectionChanged );
     connect( QueryDocument::instance(), &QueryDocument::onHistoryChanged, this, [this](){ form_->setSqlHistory( QueryDocument::instance()->sqlHistory() ); } );
     connect( form_.get(), &QueryQueryForm::triggerQuery, this, &QueryQueryWidget::handleQuery );
+    connect( table_.get(), &QueryResultTable::plot, this, &QueryQueryWidget::handlePlot );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         
@@ -98,7 +109,23 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
         splitter->setOrientation( Qt::Vertical );
 
         splitter->addWidget( form_.get() );
-        splitter->addWidget( table_.get() );
+
+        if ( auto hsp = new QSplitter ) {
+            hsp->setOrientation( Qt::Horizontal );
+            hsp->addWidget( table_.get() );
+            if ( auto stack = new QStackedWidget ) {
+#if QT5_CHARTS
+                if ( auto chartView = new charts::ChartView )
+                    stack->addWidget( chartView );
+#endif
+                if ( auto chartView = new qwt::ChartView )
+                    stack->addWidget( chartView );
+                hsp->addWidget( stack );
+                stack->hide();
+            }
+            splitter->addWidget( hsp );
+        }
+
         layout_->addWidget( splitter );
 
         splitter->setStretchFactor( 0, 0 );
@@ -195,3 +222,33 @@ QueryQueryWidget::handleQuery( const QString& sql )
     }
 }
 
+void
+QueryQueryWidget::handlePlot()
+{
+#if QT5_CHARTS
+    PlotDialog dlg( this );
+    dlg.setModel( table_->model() );
+    if ( dlg.exec() ) {
+
+        if ( dlg.clearExisting() ) {
+            if ( auto chart = findChild< charts::ChartView * >() )
+                chart->clear();
+        }
+        
+        auto type = dlg.chartType();
+        auto plots = dlg.plots();
+        for( auto& plot: plots ) {
+            auto title = std::get< 0 >( plot );
+            int iX = std::get< 1 >( plot );
+            int iY = std::get< 2 >( plot );
+            auto xtitle = table_->model()->headerData( iX, Qt::Horizontal ).toString();
+            auto ytitle = table_->model()->headerData( iY, Qt::Horizontal ).toString();
+
+            if ( auto chart = findChild< charts::ChartView * >() )
+                chart->setData( table_->model(), title, iX, iY, xtitle, ytitle, type );
+        }
+        if ( auto stack = findChild< QStackedWidget * >() )
+            stack->show();
+    }
+#endif
+}

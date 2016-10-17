@@ -21,6 +21,10 @@ if ( rdkit_FOUND )
   add_subdirectory ( adchem )
 endif()
 
+if ( OpenCV_FOUND )
+  add_subdirectory ( cvplot )
+endif()
+
 if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
 
   add_subdirectory (adextension)

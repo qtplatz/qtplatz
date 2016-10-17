@@ -30,6 +30,8 @@
 #include <adwidgets/delegatehelper.hpp>
 #include <adwidgets/htmlheaderview.hpp>
 #include <qtwrapper/font.hpp>
+#include <QHeaderView>
+#include <QMenu>
 #include <QStyledItemDelegate>
 #include <QSqlField>
 #include <QSqlQuery>
@@ -47,13 +49,14 @@
 namespace query {
 
     namespace so = adicontroller::SignalObserver;
+    using namespace acqrscontrols;
 
     static std::map< boost::uuids::uuid, std::string > __uuid_db__ = {
-        { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name ), acqrscontrols::u5303a::waveform_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::timecount_observer_name ), acqrscontrols::u5303a::timecount_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name ), acqrscontrols::u5303a::histogram_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::softavgr_observer_name ), acqrscontrols::u5303a::softavgr_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_traces_observer_name ), acqrscontrols::u5303a::tdcdoc_traces_observer_name }
+        { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::waveform_observer_name ),        u5303a::waveform_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::timecount_observer_name ),     u5303a::timecount_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::histogram_observer_name ),     u5303a::histogram_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::softavgr_observer_name ),      u5303a::softavgr_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::tdcdoc_traces_observer_name ), u5303a::tdcdoc_traces_observer_name }
     };
 
 }
@@ -73,7 +76,8 @@ namespace query {
                         if ( column_name == "elapsed_time" ) {
                             auto t0 = queryModel->record(0).value( column_name ).toDouble() * 1.0e-9;
                             double raw = index.data().toDouble() * 1.0e-9;
-                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
+                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter
+                                               , QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
                         } else if ( index.data().type() == QVariant::ByteArray ) {
                             auto v = queryModel->record(index.row()).value( "objuuid" );
                             if ( v.isValid() ) {
@@ -164,3 +168,23 @@ QueryResultTable::findColumn( const QString& name )
     }
     return -1;
 }
+
+QAbstractItemModel *
+QueryResultTable::model()
+{
+    return model_.get();
+}
+
+void
+QueryResultTable::addActionsToMenu( QMenu& menu, const QPoint& pt )
+{
+    adwidgets::TableView::addActionsToMenu( menu, pt );
+    menu.addAction( tr( "Plot..." ), this, SLOT( handlePlot() ) );
+}
+
+void
+QueryResultTable::handlePlot()
+{
+    emit plot();
+}
+

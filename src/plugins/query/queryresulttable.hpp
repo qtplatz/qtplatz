@@ -44,11 +44,18 @@ namespace query {
         ~QueryResultTable();
         explicit QueryResultTable(QWidget *parent = 0);
 
+        // adwidgets::TableView
+        void addActionsToMenu( QMenu& menu, const QPoint& ) override;
+        //
+
         void setQuery( const QSqlQuery& );
         void setDatabase( QSqlDatabase& );
 
         void clear();
         int findColumn( const QString& );
+
+
+        QAbstractItemModel * model();
 
     private:
         //std::unique_ptr< QSqlTableModel > model_;
@@ -59,9 +66,12 @@ namespace query {
 
     signals:
         void onCurrentChanged( const QModelIndex& );
+        void plot(); 
 
     public slots:
 
+    private slots:
+        void handlePlot();
     };
 
 }

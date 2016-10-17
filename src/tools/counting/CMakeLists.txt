@@ -32,8 +32,10 @@ include_directories(
 
 add_executable( ${PROJECT_NAME}
   main.cpp
-  rawdata.cpp
-  rawdata.hpp
+  acqrsdata.cpp
+  acqrsdata.hpp
+  resultwriter.cpp
+  resultwriter.hpp
   ${QTPLATZ_SOURCE_DIR}/src/adplugins/adtextfile/time_data_reader.cpp
   ${QTPLATZ_SOURCE_DIR}/src/adplugins/adtextfile/time_data_reader.hpp
   )

@@ -181,6 +181,8 @@ namespace acqrscontrols {
             }
         };
 
+        template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;

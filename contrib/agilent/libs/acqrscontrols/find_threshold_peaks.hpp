@@ -25,8 +25,6 @@
 #pragma once
 #include "waveform_horizontal.hpp"
 #include "waveform.hpp"
-#include "metadata.hpp"
-#include "method.hpp"
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/countingresult.hpp>
 #include <adportable/counting/threshold_finder.hpp>
@@ -39,7 +37,7 @@
 
 namespace acqrscontrols {
 
-    template< bool findPositive, typename waveform_type = u5303a::waveform >
+    template< bool findPositive, typename waveform_type > // u5303a::waveform | ap240::waveform
     class find_threshold_peaks {
 
         const adcontrols::threshold_method& method;

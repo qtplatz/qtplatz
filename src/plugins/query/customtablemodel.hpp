@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,40 +24,36 @@
 
 #pragma once
 
-#include <QWidget>
-#include <memory>
-
-class QGridLayout;
+#include <QAbstractTableModel>
+#include <QHash>
+#include <QRect>
 
 namespace query {
+ 
+    class CustomTableModel : public QAbstractTableModel {
 
-    class QueryQueryForm;
-    class QueryResultTable;
-    class QueryQuery;
-
-    class QueryQueryWidget : public QWidget  {
         Q_OBJECT
+
     public:
-        ~QueryQueryWidget();
-        explicit QueryQueryWidget(QWidget *parent = 0);
+        explicit CustomTableModel(QObject *parent = 0);
+
+        int rowCount(const QModelIndex &parent = QModelIndex()) const;
+        int columnCount(const QModelIndex &parent = QModelIndex()) const;
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+        QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+        bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+        Qt::ItemFlags flags(const QModelIndex &index) const;
+
+        void addMapping(QString color, QRect area);
+        void clearMapping() { m_mapping.clear(); }
 
     private:
-        QGridLayout * layout_;
-        std::unique_ptr< QueryQueryForm > form_;
-        std::unique_ptr< QueryResultTable > table_;
-
-        void executeQuery();
-
-    signals:
-        void onQueryData( std::shared_ptr< QueryQuery > );
-
-    public slots :
-        void handleConnectionChanged();
-
-    private slots:
-        void handleQuery( const QString& );
-        void handlePlot();
+        QList<QVector<qreal> * > m_data;
+        QHash<QString, QRect> m_mapping;
+        int m_columnCount;
+        int m_rowCount;
     };
 
 }
+
 

@@ -56,6 +56,7 @@ add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )
 add_library( QTC::Utils SHARED IMPORTED )
 
+add_library( acewrapper STATIC IMPORTED )
 add_library( adchem SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
 add_library( adextension SHARED IMPORTED )
@@ -70,21 +71,19 @@ add_library( adprot SHARED IMPORTED )
 add_library( adurl  SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
-add_library( chromatogr SHARED IMPORTED )
-add_library( portfolio SHARED IMPORTED )
-add_library( u5303a SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
 add_library( acqrswidgets SHARED IMPORTED )
 add_library( acqrscontrols SHARED IMPORTED )
-add_library( multumcontrols SHARED IMPORTED )
-
-add_library( acewrapper STATIC IMPORTED )
-#add_library( adfs STATIC IMPORTED ) #change 16-DEC-2015
 add_library( adfs SHARED IMPORTED )
 add_library( adinterface STATIC IMPORTED )
 add_library( adportable STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
+add_library( chromatogr SHARED IMPORTED )
+add_library( cvplot SHARED IMPORTED )
+add_library( multumcontrols SHARED IMPORTED )
+add_library( portfolio SHARED IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
+add_library( u5303a SHARED IMPORTED )
 add_library( xmlparser STATIC IMPORTED )
 
 if (WIN32)
@@ -144,6 +143,10 @@ if (WIN32)
   set_target_properties( adplot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplot.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplotd.lib )
+
+  set_target_properties( cvplot PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/cvplot.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/cvplotd.lib )
 
   set_target_properties( adprot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adprot.lib
@@ -249,6 +252,10 @@ elseif ( APPLE )
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot_debug.dylib )
 
+  set_target_properties( cvplot PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot_debug.dylib )
+
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot_debug.dylib )
@@ -329,6 +336,9 @@ else()  #Linux
 
   set_target_properties( adplot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.so )
+
+  set_target_properties( cvplot PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot.so )  
 
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.so )

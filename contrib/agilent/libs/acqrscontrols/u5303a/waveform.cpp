@@ -834,7 +834,20 @@ waveform::setData( const std::shared_ptr< adportable::mblock<int16_t> >& mblk, s
     firstValidPoint_ = firstValidPoint;
 }
 
-//////////////// int32_t ////////////////
+//////////////// int8_t -- does not exist -- ////////////////
+template<> const int8_t *
+waveform::begin() const
+{
+    throw std::bad_cast();
+}
+
+template<> const int8_t *
+waveform::end() const
+{
+    throw std::bad_cast();
+}
+
+//////////////// int16_t ////////////////
 template<> const int16_t *
 waveform::begin() const
 {

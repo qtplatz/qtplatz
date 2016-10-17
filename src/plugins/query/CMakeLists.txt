@@ -8,9 +8,26 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
+set( WITH_CHARTS ON )
+if ( WITH_CHARTS )
+  find_package( Qt5 CONFIG REQUIRED Charts )
+  list( APPEND _charts_libraries "Qt5::Charts" )
+  list( APPEND _charts_sources charts/chartview.cpp charts/chartview.hpp )
+  add_definitions( "-DQT5_CHARTS=1" )
+endif()
+
 find_package( qwt )
+list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp )
+include_directories( ${QWT_INCLUDE_DIRS} )
+
 if ( NOT Boost_FOUND )
   find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
+endif()
+
+if ( OpenCV_FOUND )
+  add_definitions( "-DOPENCV=1" )
+  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} cvplot )
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -38,7 +55,6 @@ add_definitions(
   )
 
 include_directories(
-  ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${Qt5Core_INCLUDE_DIRS}
@@ -49,7 +65,7 @@ link_directories(
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
-set( query_SOURCES
+add_library( Query MODULE
   mainwindow.cpp
   mainwindow.hpp
   queryconnection.cpp
@@ -72,15 +88,12 @@ set( query_SOURCES
   queryquerywidget.hpp
   queryresulttable.cpp
   queryresulttable.hpp
+  plotdialog.cpp
+  plotdialog.hpp
   sqledit.cpp
   sqledit.hpp
-  )
-
-set( query_FORMS doubletabwidget.ui  queryconfigform.ui )
-
-add_library( Query MODULE
-  ${query_SOURCES}
   ${Resources}
+  ${_charts_sources}
   )
 
 target_link_libraries(
@@ -102,8 +115,9 @@ target_link_libraries(
   xmlparser
   Core
   extensionsystem
-  ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${_opencv_libraries}
+  ${_charts_libraries}
   )
   
 set_target_properties( ${PROJECT_NAME}

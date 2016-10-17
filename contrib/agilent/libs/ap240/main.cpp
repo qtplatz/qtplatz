@@ -100,7 +100,7 @@ main(int argc, char* argv[])
                         //     std::cout << int(*p++) << ", ";
                         
                         for ( int i = 0; i < 5; ++i ) {
-                            auto pair = (*wform)[i];
+                            auto pair = wform->xy( i );
                             std::cout << "{" << ( pair.first * 1.0e6 ) << "," << pair.second << "}, ";
                         }
                         std::cout << std::endl;

@@ -62,7 +62,7 @@ namespace query {
 
     private:
         std::wstring filename_;
-        std::shared_ptr< adfs::filesystem > fs_;
+        // std::shared_ptr< adfs::filesystem > fs_;
         QSqlDatabase db_;
 
         bool readMethods();

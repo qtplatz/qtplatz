@@ -278,15 +278,15 @@ waveform::dataType() const
     return meta_.dataType;
 }
 
-std::pair<double, int>
+int64_t
 waveform::operator [] ( size_t idx ) const
 {
     double time = idx * meta_.xIncrement + meta_.horPos + meta_.initialXOffset;    
 
     switch( meta_.dataType ) {
-    case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
-    case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
-    case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
+    case 1: return *(begin<int8_t>()  + idx);
+    case 2: return *(begin<int16_t>() + idx);
+    case 4: return *(begin<int32_t>() + idx);
     }
     throw std::exception();
 }
@@ -305,7 +305,16 @@ waveform::xy( size_t idx ) const
 }
 
 double
-waveform::toVolts( int d ) const
+waveform::toVolts( int32_t d ) const
+{
+    if ( meta_.actualAverages == 0 )
+        return meta_.scaleFactor * d - meta_.scaleOffset;
+    else
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages - ( meta_.scaleOffset * meta_.actualAverages );
+}
+
+double
+waveform::toVolts( int64_t d ) const
 {
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d - meta_.scaleOffset;

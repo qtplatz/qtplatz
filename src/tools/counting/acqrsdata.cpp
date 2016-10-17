@@ -22,9 +22,10 @@
 **
 **************************************************************************/
 
-#include "rawdata.hpp"
-#include <acqrscontrols/u5303a/find_threshold_peaks.hpp>
-#include <acqrscontrols/u5303a/find_threshold_timepoints.hpp>
+#include "acqrsdata.hpp"
+#include "resultwriter.hpp"
+#include <acqrscontrols/find_threshold_peaks.hpp>
+#include <acqrscontrols/find_threshold_timepoints.hpp>
 #include <acqrscontrols/ap240/tdcdoc.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
@@ -41,15 +42,15 @@
 
 static const boost::uuids::uuid ap240_observer = boost::uuids::string_generator()( "{76d1f823-2680-5da7-89f2-4d2d956149bd}" );
 
-rawdata::rawdata() : polarity_( negative_polarity )
-                   , threshold_( -0.010 )
-                   , processor_( std::make_shared< adprocessor::dataprocessor >() )
+acqrsdata::acqrsdata() : polarity_( positive_polarity )
+                       , threshold_( 0.010 )
+                       , processor_( std::make_shared< adprocessor::dataprocessor >() )
 {
     adplugin::manager::standalone_initialize(); 
 }
 
 bool
-rawdata::open( const boost::filesystem::path& path )
+acqrsdata::open( const boost::filesystem::path& path )
 {
     path_ = path;
     std::wstring msg;
@@ -63,47 +64,69 @@ rawdata::open( const boost::filesystem::path& path )
 }
 
 void
-rawdata::setThreshold( double t )
+acqrsdata::setThreshold( double t )
 {
     threshold_ = t;
 }
 
 void
-rawdata::setPolairty( enum polarity t )
+acqrsdata::setPolairty( enum polarity t )
 {
     polarity_ = t;
 }
 
 
-enum rawdata::polarity
-rawdata::polarity() const
+enum acqrsdata::polarity
+acqrsdata::polarity() const
 {
     return polarity_;
 }
 
 bool
-rawdata::processIt( std::function< void( size_t, size_t ) > progress )
+acqrsdata::processIt( std::function< void( size_t, size_t ) > progress )
 {
+    using adcontrols::threshold_method;
+    threshold_method method;
+
+    method.enable          = true;
+    method.threshold_level = threshold_;
+    method.time_resolution = 0;
+    method.response_time   = 0;
+    method.use_filter      = false;
+    method.slope           = polarity_ == positive_polarity ? threshold_method::CrossUp : threshold_method::CrossDown;
+    method.algo_           = threshold_method::Absolute;
+    
     if ( auto dp = processor_ ) {
+
+        ResultWriter writer( *dp->db() );
 
         adfs::stmt sql( *dp->db() );
         
         size_t size(0);
+        size_t idx(0);
         sql.prepare( "SELECT count(*) FROM AcquiredData WHERE objuuid = '76d1f823-2680-5da7-89f2-4d2d956149bd'" );
         if ( sql.step() == adfs::sqlite_row )
             size = sql.get_column_value< uint64_t >( 0 );
-        
-        sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = '76d1f823-2680-5da7-89f2-4d2d956149bd'" );        
-        
+
         if ( auto reader = dp->rawdata()->dataReader( ap240_observer ) ) {
+
+            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = '76d1f823-2680-5da7-89f2-4d2d956149bd'" );
 	  
-            // for ( auto it = reader->begin(); it != reader->end(); ++it ) {
             while( sql.step() == adfs::sqlite_row ) {
+                
                 auto rowid = sql.get_column_value< int64_t >( 0 );
                 boost::any a = reader->getData( rowid ); // ( it->rowid() );
                 if ( a.type() == typeid( std::shared_ptr< acqrscontrols::ap240::waveform > ) ) {
                     if ( auto ptr = boost::any_cast< std::shared_ptr< acqrscontrols::ap240::waveform > >( a ) ) {
-                        tdc( ptr );
+                        if ( auto rp = processThreshold3( ptr, method ) ) {
+
+                            writer << rp;
+                            auto wp = rp->data(); // waveform
+                            ADDEBUG() << wp->serialnumber_ << ", " << rp->indecies2().size() << " count found";
+
+                            progress( idx++, size );
+                            
+                        }
                     }
                 }
             }
@@ -113,69 +136,34 @@ rawdata::processIt( std::function< void( size_t, size_t ) > progress )
     return false;
 }
 
-void
-rawdata::tdc( std::shared_ptr< acqrscontrols::ap240::waveform > ptr )
-{
-    adcontrols::threshold_method method;
-    method.enable = true;
-    method.threshold_level = threshold_;
-    method.time_resolution = 0;
-    method.response_time   = 0;
-    method.use_filter      = false;
-    method.algo_           = adcontrols::threshold_method::Absolute;
-    
-    std::vector< uint32_t > elements;
-    std::vector< double > processed;
-
-    acqrscontrols::ap240::tdcdoc::find_threshold_timepoints( *ptr, method, elements, processed );
-
-    adcontrols::CountingData d;
-    d.setTriggerNumber( ptr->serialnumber_ );
-    d.setProtocolIndex( 0 );
-    d.setTimeSinceEpoch( ptr->timeSinceEpoch_ );
-    d.setElapsedTime( ptr->timeSinceEpoch_ );
-    d.setEvents( ptr->wellKnownEvents_ );
-    d.setThreshold( threshold_ );
-    d.setAlgo( method.algo_ );
-
-    ADDEBUG() << boost::format( "s/n=%d dtyp=%d size=%d SF=%g, offs=%g, n= %d" )
-        % ptr->serialnumber_
-        % ptr->meta_.dataType
-        % ptr->size()
-        % ptr->meta_.scaleFactor
-        % ptr->meta_.scaleOffset
-        % elements.size() ;
-}
-
 std::shared_ptr< acqrscontrols::ap240::threshold_result >
-rawdata::processThreshold3( std::shared_ptr< acqrscontrols::ap240::waveform > waveform
+acqrsdata::processThreshold3( std::shared_ptr< const acqrscontrols::ap240::waveform > waveform
                             , const adcontrols::threshold_method& method )
 {
     auto result = std::make_shared< acqrscontrols::ap240::threshold_result >( waveform );
     
-    // result>setFindUp( method.slope == adcontrols::threshold_method::CrossUp );
-    // result->threshold_level() = method.threshold_level;
-    // result->algo() = static_cast< enum adportable::counting::counting_result::algo >( method.algo_ );
+    //result->setFindUp( method.slope == adcontrols::threshold_method::CrossUp );
+    result->threshold_level() = method.threshold_level;
+    result->algo() = static_cast< enum adportable::counting::counting_result::algo >( method.algo_ );
 
     adcontrols::CountingMethod range;
-    adportable::counting::counting_result counting_result;
+    range.setEnable( false );
             
     const auto idx = waveform->method_.protocolIndex();
-    
     
     if ( method.enable ) {
         
         if ( method.algo_ == adcontrols::threshold_method::Differential ) {
             if  ( method.slope == adcontrols::threshold_method::CrossUp ) {
                 acqrscontrols::find_threshold_peaks< true, acqrscontrols::ap240::waveform > find_peaks( method, range );
-                find_peaks( *waveform, counting_result, result->processed() );
+                find_peaks( *waveform, *result, result->processed() );
             } else {
                 acqrscontrols::find_threshold_peaks< false, acqrscontrols::ap240::waveform > find_peaks( method, range );
-                find_peaks( *waveform, counting_result, result->processed() );
+                find_peaks( *waveform, *result, result->processed() );
             }
         } else {
             acqrscontrols::find_threshold_timepoints< acqrscontrols::ap240::waveform > find_threshold( method, range );
-            find_threshold( *waveform, counting_result, result->processed() );
+            find_threshold( *waveform, *result, result->processed() );
         }
         
     }

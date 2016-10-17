@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "rawdata.hpp"
+#include "acqrsdata.hpp"
 #include <adplugins/adtextfile/time_data_reader.hpp>
 #include <adcontrols/countinghistogram.hpp>
 #include <adfs/sqlite.hpp>
@@ -96,7 +96,8 @@ main(int argc, char *argv[])
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
             ( "peak",        po::value< double >(),  "specify time-of-flight in microseconds" )
             ( "resolution",  po::value< double >(),  "peak width (ns)" )
-            ( "threshold",   po::value< double >(),  "threshold (mV)" )
+            ( "threshold",   po::value< double >()->default_value( 15.0 ),  "threshold (mV)" )
+            ( "polarity",    po::value< std::string >()->default_value( "positive" ),  "polarity (positive|negative)" )
             ( "sqlite",      "import to SQLite" )
             ( "pivot",       "Pivotting data" )
             ;
@@ -137,7 +138,11 @@ main(int argc, char *argv[])
             boost::filesystem::path path( file );
             if ( path.extension() == ".adfs" ) {
 
-                rawdata d;
+                acqrsdata d;
+                d.setThreshold( vm[ "threshold" ].as< double >() / std::milli::den );
+                d.setPolairty( vm[ "polarity" ].as< std::string >() == "positive" ?
+                               acqrsdata::positive_polarity : acqrsdata::negative_polarity );
+
                 if ( d.open( path ) ) {
                     d.processIt( []( size_t idx, size_t total ){
                             std::cerr << "\rprocessed: " << idx << "/" << total;
@@ -180,7 +185,7 @@ main(int argc, char *argv[])
                             summary.set_resolution( vm[ "resolution" ].as< double >() * 1.0e-9 );
                         
                         if ( vm.count( "threshold" ) )
-                            summary.set_threshold( vm[ "threshold" ].as< double >() );
+                            summary.set_threshold( vm[ "threshold" ].as< double >() / std::milli::den );
                         
                         size_t processed(0);
                         if ( adtextfile::time_data_reader::load(

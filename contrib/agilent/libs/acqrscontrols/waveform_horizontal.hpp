@@ -25,9 +25,8 @@
 #pragma once
 
 #include "waveform.hpp"
-#include "metadata.hpp"
-#include "method.hpp"
 #include <adcontrols/threshold_method.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adportable/counting/threshold_finder.hpp>
 #include <adportable/waveform_processor.hpp>

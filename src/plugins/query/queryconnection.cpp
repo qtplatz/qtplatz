@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "queryconnection.hpp"
-//#include "queryplotdata.hpp"
 #include "queryquery.hpp"
 #include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
@@ -56,30 +55,32 @@ QueryConnection::connect( const std::wstring& database )
     db_.setDatabaseName( QString::fromStdWString( database ) );
 
     if ( db_.open() ) {
-        if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
-            if ( fs_->mount( database.c_str() ) ) {
-                // this is qtplatz native data file
-                fs_->db().register_error_handler( [=] ( const char * msg ) { QMessageBox::warning( 0, "SQLite SQL Error", msg ); } );
-            } else
-                fs_.reset();
-            filename_ = database;
-        }
+        // if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
+        //     if ( fs_->mount( database.c_str() ) ) {
+        //         // this is qtplatz native data file
+        //         fs_->db().register_error_handler( [=] ( const char * msg ) { QMessageBox::warning( 0, "SQLite SQL Error", msg ); } );
+        //     } else
+        //         fs_.reset();
+        //     filename_ = database;
+        // }
+        filename_ = database;        
         return true;
     }
 
-    QMessageBox::critical( 0, QObject::tr( "Cannot open database" ),
-                           QObject::tr( "Unable to establish a database connection.\nClick Cancel to exit." ), QMessageBox::Cancel );
+    QMessageBox::critical( 0
+                           , QObject::tr( "Cannot open database" )
+                           , QObject::tr( "Unable to establish a database connection.\nClick Cancel to exit." ), QMessageBox::Cancel );
 
     return false;
 }
 
-std::shared_ptr<QueryQuery>
-QueryConnection::query()
-{
-    if ( fs_ )
-        return std::make_shared<QueryQuery>( fs_->db() );
-    return 0;
-}
+// std::shared_ptr<QueryQuery>
+// QueryConnection::query()
+// {
+//     if ( fs_ )
+//         return std::make_shared<QueryQuery>( fs_->db() );
+//     return 0;
+// }
 
 QSqlDatabase&
 QueryConnection::sqlDatabase()
@@ -93,20 +94,20 @@ QueryConnection::sqlQuery( const QString& query )
     return QSqlQuery( query, db_ );
 }
 
-adfs::sqlite&
-QueryConnection::db()
-{
-    if ( fs_ )
-        return fs_->db();
-    static adfs::sqlite dummy;
-    return dummy;
-}
+// adfs::sqlite&
+// QueryConnection::db()
+// {
+//     if ( fs_ )
+//         return fs_->db();
+//     static adfs::sqlite dummy;
+//     return dummy;
+// }
 
-adfs::file
-QueryConnection::select_file( const std::wstring& dataGuid, const wchar_t * path )
-{
-    if ( auto folder = fs_->findFolder( path ) ) // L"/Processed/Spectra" | L"/Processed/Chromatograms
-        return folder.selectFile( dataGuid );
-    return adfs::file();
-}
+// adfs::file
+// QueryConnection::select_file( const std::wstring& dataGuid, const wchar_t * path )
+// {
+//     if ( auto folder = fs_->findFolder( path ) ) // L"/Processed/Spectra" | L"/Processed/Chromatograms
+//         return folder.selectFile( dataGuid );
+//     return adfs::file();
+// }
 

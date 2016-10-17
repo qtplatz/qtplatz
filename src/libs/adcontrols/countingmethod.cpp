@@ -94,7 +94,7 @@ namespace adcontrols {
 
 using namespace adcontrols;
 
-CountingMethod::CountingMethod() : enable_( true )
+CountingMethod::CountingMethod() : enable_( false )
 {
 }
 
