@@ -123,8 +123,8 @@ acqrsdata::processIt( std::function< void( size_t, size_t ) > progress )
                             writer << rp;
                             auto wp = rp->data(); // waveform
                             
-                            if ( ( idx % 1000 ) == 0 )
-                                progress( idx++, size );
+                            if ( ( idx++ % 100 ) == 0 )
+                                progress( idx, size );
                             
                         }
                     }

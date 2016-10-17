@@ -22,11 +22,13 @@
 **************************************************************************/
 
 #pragma once
+
 #include <qwt_series_data.h>
 #include <QPointF>
+#include <QAbstractItemModel>
 #include <memory>
 
-namespace acqrscontrols { namespace aqdrv4 { class waveform; } }
+class QAbstractItemModel;
 
 class XYSeriesData : public QwtSeriesData< QPointF > {
 
@@ -34,15 +36,24 @@ class XYSeriesData : public QwtSeriesData< QPointF > {
     XYSeriesData& operator = ( const XYSeriesData& ) = delete;
 
 public:
-    XYSeriesData( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > );
+    XYSeriesData();
 
     size_t size() const override;
     QPointF sample( size_t idx ) const override;
     QRectF boundingRect() const override;
-    void setRawVertical( bool );
     
-private:
-    bool rawVertical_;
-    std::shared_ptr< const acqrscontrols::aqdrv4::waveform > d_;
+protected:
+    std::vector< QPointF > series_;
     QRectF boundingRect_;
 };
+
+class XYScatterData : public XYSeriesData {
+public:
+    XYScatterData( QAbstractItemModel *, int x, int y );
+};
+
+class XYHistogramData : public XYSeriesData {
+public:
+    XYHistogramData( QAbstractItemModel *, int x, int y );
+};
+

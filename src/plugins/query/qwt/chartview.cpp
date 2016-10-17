@@ -55,7 +55,6 @@ public:
 };
 
 ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
-                                               , curve_( std::make_unique< QwtPlotCurve >() )
 {
     // void setupPalette()
     {
@@ -75,12 +74,12 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
     }
     
     // setCanvasBackground( QColor( "#d0d0d0" ) );
-    curve_->setStyle( QwtPlotCurve::Lines );
-    curve_->setPen( canvas()->palette().color( QPalette::WindowText ) );
-    curve_->setRenderHint( QwtPlotItem::RenderAntialiased, true );
-    curve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );
-    curve_->setYAxis( QwtPlot::yRight );
-    curve_->attach( this );
+    // curve_->setStyle( QwtPlotCurve::Lines );
+    // curve_->setPen( canvas()->palette().color( QPalette::WindowText ) );
+    // curve_->setRenderHint( QwtPlotItem::RenderAntialiased, true );
+    // curve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+    // curve_->setYAxis( QwtPlot::yRight );
+    // curve_->attach( this );
 
     QwtPlotGrid *grid = new QwtPlotGrid();
     grid->setPen( Qt::gray, 0.0, Qt::DotLine );
@@ -120,43 +119,74 @@ ChartView::~ChartView()
 }
 
 void
-ChartView::setTitle( const QString& text )
+ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int y
+                    , const QString& xLabel, const QString& yLabel, const QString& chartType )
 {
-	QwtText qwtText( text, QwtText::RichText );
-    QwtPlot::setTitle( qwtText );
+    QRectF bRect;
+    
+    if ( model ) {
+        
+        if ( chartType == "Scatter" ) {
+
+            auto curve = std::make_shared< QwtPlotCurve >();
+            plots_.emplace_back( curve );
+
+            auto series = new XYScatterData( model, x, y );
+            curve->setSamples( series );
+            curve->attach( this );
+            bRect = series->boundingRect();
+
+        } else if ( chartType == "Line" ) {
+
+            auto curve = std::make_shared< QwtPlotCurve >();
+            plots_.emplace_back( curve );
+
+            curve->setStyle( QwtPlotCurve::Lines );
+            curve->setPen( canvas()->palette().color( QPalette::WindowText ) );
+            curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
+            curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+            curve->setYAxis( QwtPlot::yRight );
+
+            auto series = new XYScatterData( model, x, y );
+            curve->setSamples( series );
+            curve->attach( this );
+            bRect = series->boundingRect();
+            
+        } else if ( chartType == "Histogram" ) {
+
+            auto curve = std::make_shared< QwtPlotCurve >();
+            plots_.emplace_back( curve );            
+
+            curve->setStyle( QwtPlotCurve::Lines );
+            curve->setPen( canvas()->palette().color( QPalette::WindowText ) );
+            curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
+            curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+            curve->setYAxis( QwtPlot::yRight );
+
+            auto series = new XYHistogramData( model, x, y );
+            curve->setSamples( series );
+            curve->attach( this );
+            bRect = series->boundingRect();
+        }
+
+        setAxisScale( QwtPlot::yLeft,   bRect.bottom(), bRect.top() );
+        setAxisScale( QwtPlot::xBottom, bRect.left(), bRect.right() );
+
+        if ( auto zoomer = findChild< QwtPlotZoomer * >() )
+            zoomer->setZoomBase();
+
+        // if ( auto axisX = chart->axisX() )
+        //     axisX->setTitleText( xLabel );
+        
+        // if ( auto axisY = chart->axisY() )
+        //     axisY->setTitleText( yLabel );            
+    }
+    
 }
 
 void
-ChartView::setFooter( const QString& text )
+ChartView::clear()
 {
-	QwtText qwtText( text, QwtText::RichText );
-    QwtPlot::setFooter( qwtText );
+    plots_.clear();
 }
 
-// void
-// ChartView::setData( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > d )
-// {
-//     auto data = new XYSeriesData( d );
-//     curve_->setSamples( data );
-
-//     auto rect = data->boundingRect();
-    
-//     uint64_t ts = d->timeStamp();
-//     // if ( ts == 0 ) {
-//     //     static uint64_t counter = 0;
-//     //     ts = ++counter * std::pico::den;
-//     // }
-
-//     setFooter( QString::fromStdString( ( boost::format( "min/max=%g/%g sampTime=%gns offs=%g" )
-//                                          % rect.bottom()
-//                                          % rect.top()
-//                                          % ( d->xIncrement() * std::nano::den )
-//                                          % d->vOffset() ).str() ) );
-    
-//     setTitle( ( boost::format( "Time: %.4f" ) % (double(ts) / std::pico::den) ).str().c_str() );
-
-//     setAxisScale( QwtPlot::yLeft, rect.top(), rect.bottom() );
-//     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    
-//     replot();
-// }

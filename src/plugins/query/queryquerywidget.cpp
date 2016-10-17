@@ -110,20 +110,20 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
 
         splitter->addWidget( form_.get() );
 
-        if ( auto hsp = new QSplitter ) {
-            hsp->setOrientation( Qt::Horizontal );
-            hsp->addWidget( table_.get() );
-            if ( auto stack = new QStackedWidget ) {
-#if QT5_CHARTS
-                if ( auto chartView = new charts::ChartView )
-                    stack->addWidget( chartView );
+        if ( auto hsplitter = new QSplitter ) {
+            hsplitter->setOrientation( Qt::Horizontal );
+            hsplitter->addWidget( table_.get() );
+#if QT5_CHARTS            
+            if ( auto chartView = new charts::ChartView )
+                hsplitter->addWidget( chartView );
+#else
+            if ( auto chartView = new qwt::ChartView )
+                hsplitter->addWidget( chartView );
 #endif
-                if ( auto chartView = new qwt::ChartView )
-                    stack->addWidget( chartView );
-                hsp->addWidget( stack );
-                stack->hide();
-            }
-            splitter->addWidget( hsp );
+            if ( auto w = hsplitter->widget( 1 ) )
+                w->hide();
+
+            splitter->addWidget( hsplitter );
         }
 
         layout_->addWidget( splitter );
@@ -226,29 +226,38 @@ void
 QueryQueryWidget::handlePlot()
 {
 #if QT5_CHARTS
-    PlotDialog dlg( this );
-    dlg.setModel( table_->model() );
-    if ( dlg.exec() ) {
-
-        if ( dlg.clearExisting() ) {
-            if ( auto chart = findChild< charts::ChartView * >() )
-                chart->clear();
-        }
-        
-        auto type = dlg.chartType();
-        auto plots = dlg.plots();
-        for( auto& plot: plots ) {
-            auto title = std::get< 0 >( plot );
-            int iX = std::get< 1 >( plot );
-            int iY = std::get< 2 >( plot );
-            auto xtitle = table_->model()->headerData( iX, Qt::Horizontal ).toString();
-            auto ytitle = table_->model()->headerData( iY, Qt::Horizontal ).toString();
-
-            if ( auto chart = findChild< charts::ChartView * >() )
-                chart->setData( table_->model(), title, iX, iY, xtitle, ytitle, type );
-        }
-        if ( auto stack = findChild< QStackedWidget * >() )
-            stack->show();
-    }
+    typedef charts::ChartView ChartView_t;
+#else
+    typedef qwt::ChartView ChartView_t;
 #endif
+    
+    if ( auto chart = findChild< ChartView_t * >() ) {
+
+        PlotDialog dlg( this );
+        dlg.setModel( table_->model() );
+
+        if ( dlg.exec() ) {
+
+            if ( dlg.clearExisting() )
+                chart->clear();
+
+            
+            auto type = dlg.chartType();
+            auto plots = dlg.plots();
+            for( auto& plot: plots ) {
+
+                auto title = std::get< 0 >( plot );
+                int iX = std::get< 1 >( plot );
+                int iY = std::get< 2 >( plot );
+
+                auto xtitle = table_->model()->headerData( iX, Qt::Horizontal ).toString();
+                auto ytitle = table_->model()->headerData( iY, Qt::Horizontal ).toString();
+                
+                chart->setData( table_->model(), title, iX, iY, xtitle, ytitle, type );
+            }
+            
+            if ( auto chart = findChild< ChartView_t * >() )
+                chart->show();
+        }
+    }
 }

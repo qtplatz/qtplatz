@@ -29,6 +29,7 @@
 
 class XYSeriesData;
 class QwtPlotCurve;
+class QAbstractItemModel;
 
 namespace query {
 
@@ -40,15 +41,15 @@ namespace query {
 
         public:
             ChartView( QWidget * parent = 0 );
+            
             ~ChartView();
 
-            void setTitle( const QString& );
-            void setFooter( const QString& );
-    
-            //void setData( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > );
+            void setData( QAbstractItemModel *, const QString& title, int x, int y
+                          , const QString& xLabel, const QString& yLabel, const QString& chartType );
 
+            void clear();
         private:
-            std::unique_ptr< QwtPlotCurve > curve_;
+            std::vector< std::shared_ptr< QwtPlotCurve > > plots_;
         };
 
     }

@@ -8,16 +8,19 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
-set( WITH_CHARTS ON )
+set( WITH_CHARTS OFF )
+
 if ( WITH_CHARTS )
-  find_package( Qt5 CONFIG REQUIRED Charts )
-  list( APPEND _charts_libraries "Qt5::Charts" )
-  list( APPEND _charts_sources charts/chartview.cpp charts/chartview.hpp )
-  add_definitions( "-DQT5_CHARTS=1" )
+  find_package( Qt5 CONFIG OPTIONAL_COMPONENTS Charts )
+  if ( Qt5Charts_CONFIG )
+    list( APPEND _charts_libraries "Qt5::Charts" )
+    list( APPEND _charts_sources charts/chartview.cpp charts/chartview.hpp )
+    add_definitions( "-DQT5_CHARTS=1" )
+  endif()
 endif()
 
 find_package( qwt )
-list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp )
+list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp qwt/xyseriesdata.cpp qwt/xyseriesdata.hpp )
 include_directories( ${QWT_INCLUDE_DIRS} )
 
 if ( NOT Boost_FOUND )

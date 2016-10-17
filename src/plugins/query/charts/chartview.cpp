@@ -290,7 +290,8 @@ ChartView::saveImage( bool clipboard )
     generator.setTitle( "QtPlatz Generated SVG" );
     generator.setDescription( "Copyright (C) 2013-2017 MS-Cheminformataics, All rights reserved" );
     auto sz = this->size();
-    generator.setViewBox( QRectF( 0, 0, sz.width(), sz.height() ) );
+    QRectF rc( 0, 0, sz.width(), sz.height() );
+    generator.setViewBox( rc );
 
     if ( clipboard ) {
 
