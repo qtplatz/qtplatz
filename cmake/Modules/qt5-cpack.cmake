@@ -8,19 +8,21 @@ find_package( Qt5
   Core DBus Gui
   Multimedia
   MultimediaWidgets
-  Network OpenGL PrintSupport Script Sensors Sql Svg
-  Positioning Quick Qml WebChannel
+  Network
+  OpenGL
+  PrintSupport
+  Sensors
+  Sql
+  Svg
+  Positioning
   Widgets
-  Xml XmlPatterns )
+  Xml
+  XmlPatterns
+  )
 
 if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
   find_package( Qt5 REQUIRED WebKit WebKitWidgets WebEngineWidgets )
   set( _webkits Qt5::WebKit Qt5::WebKitWidgets )
-else()
-  find_package( Qt5 COMPONENTS WebView WebEngineWidgets WebEngineCore QUIET )
-  if ( Qt5WebView_FOUND AND Qt5WebEngineWidgets AND WebEngineCorde )
-    set( _webkits Qt5::WebView Qt5::WebEngineWidgets Qt5::WebEngineCore )
-  endif()
 endif()
 
 # message( STATUS "Qt5 Version: " ${Qt5_VERSION} "\t" ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR})
@@ -47,14 +49,10 @@ foreach( lib
     Qt5::Network
     Qt5::OpenGL
     Qt5::PrintSupport
-    Qt5::Script
     Qt5::Sensors
     Qt5::Sql
     Qt5::Svg
     Qt5::Positioning
-    Qt5::Quick
-    Qt5::Qml
-    Qt5::WebChannel
     Qt5::Widgets
     ${_webkits}
     Qt5::Xml
