@@ -37,6 +37,7 @@ class XYSeriesData : public QwtSeriesData< QPointF > {
 
 public:
     XYSeriesData();
+    XYSeriesData( QAbstractItemModel *, int x, int y );
 
     size_t size() const override;
     QPointF sample( size_t idx ) const override;
@@ -44,12 +45,6 @@ public:
     
 protected:
     std::vector< QPointF > series_;
-    QRectF boundingRect_;
-};
-
-class XYScatterData : public XYSeriesData {
-public:
-    XYScatterData( QAbstractItemModel *, int x, int y );
 };
 
 class XYHistogramData : public XYSeriesData {
