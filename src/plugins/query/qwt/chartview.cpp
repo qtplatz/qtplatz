@@ -29,6 +29,7 @@
 #include <qwt_plot_grid.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_panner.h>
+#include <qwt_plot_picker.h>
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_renderer.h>
 #include <qwt_scale_engine.h>
@@ -212,7 +213,8 @@ ChartView::mouseReleaseEvent(QMouseEvent *event)
     if ( event->button() & Qt::RightButton ) {
         QMenu menu;
         menu.addAction( "Unzoom" );
-        menu.addAction( "Copy" );
+        menu.addAction( "Copy x-coordinate" );
+        menu.addAction( "Copy image" );
         menu.addAction( "Copy SVG" );
         menu.addAction( "Save as SVG File..." );
 
@@ -221,7 +223,10 @@ ChartView::mouseReleaseEvent(QMouseEvent *event)
             if ( selected->text() == "Unzoom" ) {
                 if ( auto zoomer = findChild< QwtPlotZoomer * >() )
                     zoomer->setZoomStack( zoomer->zoomStack(), 0 );
-            } else if ( selected->text() == "Copy" ) {
+            } else if ( selected->text() == "Copy x-coordinate" ) {
+                double x = invTransform( QwtPlot::xBottom, event->pos().x() );
+                QApplication::clipboard()->setText( QString::number( x, 'g', 14 ) );
+            } else if ( selected->text() == "Copy image" ) {
                 copyToClipboard();
             } else if ( selected->text() == "Copy SVG" ) {
                 saveImage( true );
