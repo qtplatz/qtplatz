@@ -13,7 +13,7 @@ find_package( arch )
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    # "C:/Boost/include/boost-1_60"   # V14 
+    "C:/Boost/include/boost-1_62"   # V14 
     "C:/Boost/include/boost-1_59"   # V13 
     "C:/Boost/include/boost-1_58"   # V12
     "C:/Boost/include/boost-1_57" )
@@ -32,10 +32,11 @@ else()
 
   find_path( _boost NAMES include/boost HINTS
     "/usr/local"
-    # "/usr/local/boost-1_60"        # V14
+    "/usr/local/boost-1_62"        # V14
     "/usr/local/boost-1_59"        # V13
     "/usr/local/boost-1_58"        # V12
-    "/usr/local/boost-1_57" )
+    "/usr/local/boost-1_57"
+    )
 
   if ( _boost )
     set(Boost_INCLUDE_DIR "${_boost}/include")

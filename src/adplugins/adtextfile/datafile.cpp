@@ -157,8 +157,9 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
             time_data_reader reader;
             if ( reader.load( path.string()
                               , [&]( size_t numerator, size_t denominator ){
-                                  std::cerr << "Processing: " << path.string()
-                                            << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                                  ADDEBUG() << "Processing: " << path.string()
+                                            << boost::format( "\t%.1f%%\r")
+                                      % (double( numerator ) * 100 / double(denominator) );
                                   return true;
                               }) && prepare_portfolio( reader, filename, portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );

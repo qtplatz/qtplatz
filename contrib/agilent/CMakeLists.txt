@@ -16,7 +16,7 @@ if ( WIN32 )
 
 elseif( APPLE )
 
-  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS ${CMAKE_SOURCE_DIR}/../infitof/acqiris/include )
+  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS ${CMAKE_SOURCE_DIR}/contrib/acqiris/include )
   if ( AqDrv4_INCLUDE_DIR )
     add_definitions(-D_LINUX -D_ACQIRIS )
     include_directories( ${AqDrv4_INCLUDE_DIR} )
