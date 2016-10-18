@@ -22,6 +22,8 @@
 **************************************************************************/
 
 #include "xyseriesdata.hpp"
+#include <QDebug>
+#include <limits>
 #include <ratio>
 
 XYSeriesData::XYSeriesData()
@@ -46,66 +48,48 @@ XYSeriesData::sample( size_t idx ) const
 QRectF
 XYSeriesData::boundingRect() const 
 {
-    return boundingRect_;
+    return d_boundingRect;
 }
 
 ///////////////////////
 
-XYScatterData::XYScatterData( QAbstractItemModel * model, int x, int y )
+XYSeriesData::XYSeriesData( QAbstractItemModel * model, int x, int y )
 {
     int row = 0;
-    double xMin, xMax, yMin, yMax;
+
+    double xMin( std::numeric_limits< double >::max() ), xMax( std::numeric_limits< double >::lowest() )
+        , yMin( std::numeric_limits< double >::max() ), yMax( std::numeric_limits< double >::lowest() );
 
     do {
         model->fetchMore( model->index( row, x ) );
         
         while ( model->index( row, x ).isValid() ) {
-            QPointF p1( model->index( row, x ).data().toDouble(), model->index( row, y ).data().toDouble() );
-            series_.emplace_back( p1 );
-            if ( row == 0 ) {
-                xMin = xMax = p1.x();
-                yMin = yMax = p1.y();
-            } else {
-                xMin = std::min( xMin, p1.x() );
-                xMax = std::max( xMax, p1.x() );
-                yMin = std::min( yMin, p1.y() );
-                yMax = std::max( yMax, p1.y() );                
-            }
-            ++row;
+
+            QPointF p( model->index( row, x ).data().toDouble(), model->index( row, y ).data().toDouble() );
+
+            series_.emplace_back( p );
+
+            ++row;            
+
+            if ( xMin > p.x() )
+                xMin = p.x();
+            if ( xMax < p.x() )
+                xMax = p.x();
+            if ( yMin > p.y() )
+                yMin = p.y();
+            if ( yMax < p.y() )
+                yMax = p.y();            
         }
         
     } while ( model->canFetchMore( model->index( row, x ) ) );
 
-    boundingRect_.setCoords( xMin, yMin, xMax, yMax );
+    // RectF below looks like upside down, however qwtBoundingRect returns this way...
+    
+    d_boundingRect = QRectF( QPointF( xMin, yMin ), QPointF( xMax, yMax ) );
 }
 
 ////////////////////
-XYHistogramData::XYHistogramData( QAbstractItemModel * model, int x, int y )
+XYHistogramData::XYHistogramData( QAbstractItemModel * model, int x, int y ) : XYSeriesData( model, x, y )
 {
-    int row = 0;
-    double xMin(0), xMax(0), yMax(0);    
-    do {
-        model->fetchMore( model->index( row, x ) );
-        
-        while ( model->index( row, x ).isValid() ) {
-            QPointF p0( model->index( row, x ).data().toDouble(), 0.0 );
-            QPointF p1( model->index( row, x ).data().toDouble(), model->index( row, y ).data().toDouble() );
-            series_.emplace_back( p0 );
-            series_.emplace_back( p1 );
-            series_.emplace_back( p0 );
-            if ( row == 0 ) {
-                xMin = xMax = p1.x();
-            } else {
-                xMin = std::min( xMin, p1.x() );
-                xMax = std::max( xMax, p1.x() );
-                yMax = std::max( yMax, p1.y() );
-            }
-
-            ++row;
-        }
-        
-    } while ( model->canFetchMore( model->index( row, x ) ) );
-
-    boundingRect_.setCoords( xMin, 0.0, xMax, yMax );    
 }
 

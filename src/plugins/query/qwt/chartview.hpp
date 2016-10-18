@@ -48,8 +48,15 @@ namespace query {
                           , const QString& xLabel, const QString& yLabel, const QString& chartType );
 
             void clear();
+
         private:
             std::vector< std::shared_ptr< QwtPlotCurve > > plots_;
+
+            void copyToClipboard();
+            void saveImage( bool clipboard );
+
+        private slots:
+            void mouseReleaseEvent(QMouseEvent *event) override;
         };
 
     }
