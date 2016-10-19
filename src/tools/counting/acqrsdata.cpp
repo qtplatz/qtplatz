@@ -46,7 +46,8 @@ acqrsdata::acqrsdata() : polarity_( positive_polarity )
                        , threshold_( 0.010 )
                        , processor_( std::make_shared< adprocessor::dataprocessor >() )
 {
-    adplugin::manager::standalone_initialize(); 
+    static std::once_flag flag;
+    std::call_once( flag, &adplugin::manager::standalone_initialize );
 }
 
 bool
@@ -83,7 +84,7 @@ acqrsdata::polarity() const
 }
 
 bool
-acqrsdata::processIt( std::function< void( size_t, size_t ) > progress )
+acqrsdata::processIt( std::function< void( size_t, size_t, const std::string& ) > progress )
 {
     using adcontrols::threshold_method;
     threshold_method method;
@@ -121,10 +122,7 @@ acqrsdata::processIt( std::function< void( size_t, size_t ) > progress )
                         if ( auto rp = processThreshold3( ptr, method ) ) {
 
                             writer << rp;
-                            auto wp = rp->data(); // waveform
-                            
-                            if ( ( idx++ % 100 ) == 0 )
-                                progress( idx, size );
+                            progress( idx++, size, ( boost::format("\t%d peaks found") % rp->indecies2().size() ).str() );
                             
                         }
                     }

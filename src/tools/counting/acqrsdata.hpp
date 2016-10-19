@@ -49,7 +49,7 @@ public:
     void setPolairty( polarity );
     polarity polarity() const;
 
-    bool processIt( std::function< void( size_t, size_t ) > progress );
+    bool processIt( std::function< void( size_t, size_t, const std::string& ) > progress );
 
     void tdc( std::shared_ptr< acqrscontrols::ap240::waveform > );
 

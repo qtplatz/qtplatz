@@ -143,9 +143,11 @@ main(int argc, char *argv[])
                 d.setPolairty( vm[ "polarity" ].as< std::string >() == "positive" ?
                                acqrsdata::positive_polarity : acqrsdata::negative_polarity );
 
+                std::cout << "Processing : " << path.string() << std::endl;
+
                 if ( d.open( path ) ) {
-                    d.processIt( []( size_t idx, size_t total ){
-                            std::cerr << "\rprocessed: " << idx << "/" << total;
+                    d.processIt( []( size_t idx, size_t total, const std::string& msg ){
+                            std::cerr << "\rprocessed: " << idx << "/" << total << msg;
                         });
                     std::cerr << std::endl;
                 }

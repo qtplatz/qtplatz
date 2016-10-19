@@ -132,7 +132,7 @@ done
 
 cat > ${build_dirs[0]}/../qtplatz-build.sh <<EOF
 #!/bin/bash
-for i in ${build_dirs[*]}; do (cd \$i; make -j4 package); done
+for i in ${build_dirs[*]}; do (cd \$i; cmake . ; make -j8 package); done
 for i in ${build_dirs[*]}; do (cd \$i; mv *.deb ..); done
 EOF
 

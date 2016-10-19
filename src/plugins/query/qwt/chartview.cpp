@@ -25,6 +25,7 @@
 #include "chartview.hpp"
 #include "xyseriesdata.hpp"
 #include <adplot/zoomer.hpp>
+#include <qwt_picker_machine.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_layout.h>
@@ -123,9 +124,17 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
     zoomer->setRubberBandPen( c );
     zoomer->setTrackerPen( c );
 
-    QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
-    panner->setAxisEnabled( QwtPlot::yRight, false );
-    panner->setMouseButton( Qt::MidButton );
+    if ( auto panner = new QwtPlotPanner( canvas() ) ) {
+        panner->setAxisEnabled( QwtPlot::yRight, false );
+        panner->setMouseButton( Qt::MidButton );
+    }
+
+    if ( auto picker = new QwtPlotPicker( canvas() ) ) {
+        picker->setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
+        picker->setStateMachine( new QwtPickerClickPointMachine() );
+        connect( picker, static_cast< void(QwtPlotPicker::*)(const QPointF&) >(&QwtPlotPicker::selected), this, &ChartView::selected );
+        picker->setEnabled( true );
+    }
 }
 
 ChartView::~ChartView()
@@ -205,41 +214,6 @@ ChartView::clear()
     plots_.clear();
 }
 
-void
-ChartView::mouseReleaseEvent(QMouseEvent *event)
-{
-    // Because we disabled animations when touch event was detected
-    // we must put them back on.
-    if ( event->button() & Qt::RightButton ) {
-        QMenu menu;
-        menu.addAction( "Unzoom" );
-        menu.addAction( "Copy x-coordinate" );
-        menu.addAction( "Copy image" );
-        menu.addAction( "Copy SVG" );
-        menu.addAction( "Save as SVG File..." );
-
-        if ( auto selected = menu.exec( event->globalPos() ) ) {
-
-            if ( selected->text() == "Unzoom" ) {
-                if ( auto zoomer = findChild< QwtPlotZoomer * >() )
-                    zoomer->setZoomStack( zoomer->zoomStack(), 0 );
-            } else if ( selected->text() == "Copy x-coordinate" ) {
-                double x = invTransform( QwtPlot::xBottom, event->pos().x() );
-                QApplication::clipboard()->setText( QString::number( x, 'g', 14 ) );
-            } else if ( selected->text() == "Copy image" ) {
-                copyToClipboard();
-            } else if ( selected->text() == "Copy SVG" ) {
-                saveImage( true );
-            } else if ( selected->text() == "Save as SVG File..." ) {
-                saveImage( false );                
-            }
-            
-            return;
-        }
-    }
-
-    QwtPlot::mouseReleaseEvent(event);
-}
 
 void
 ChartView::copyToClipboard()
@@ -307,4 +281,45 @@ ChartView::saveImage( bool clipboard )
         mime->setData( "image/svg+xml", svg );
         QApplication::clipboard()->setMimeData( mime, QClipboard::Clipboard );
     }
+}
+
+void
+ChartView::selected( const QPointF& pos )
+{
+    QMenu menu;
+
+    int idx(0);
+    menu.addAction( tr( "Unzoom" ) )->setData( idx++ );                 // 0
+    menu.addAction( tr( "Copy x-coordinate" ) )->setData( idx++ );      // 1
+    menu.addAction( tr( "Copy x,y-coordinate" ) )->setData( idx++ );    // 2
+    menu.addAction( tr( "Copy image" ) )->setData( idx++ );             // 3
+    menu.addAction( tr( "Copy SVG" ) )->setData( idx++ );               // 4
+    menu.addAction( tr( "Save as SVG File..." ) )->setData( idx++ );    // 5
+
+    if ( auto selected = menu.exec( QCursor::pos() ) ) {
+
+        switch ( selected->data().toInt() ) {
+        case 0:
+            if ( auto zoomer = findChild< QwtPlotZoomer * >() )
+                zoomer->setZoomStack( zoomer->zoomStack(), 0 );
+            break;
+        case 1:
+            QApplication::clipboard()->setText( QString::number( pos.x(), 'g', 14 ) );
+            break;
+        case 2:
+            QApplication::clipboard()->setText( QString( "%1, %2" ).arg( QString::number( pos.x(), 'g', 14 )
+                                                                         , QString::number( pos.y(), 'g', 14 ) ) );
+            break;
+        case 3:
+            copyToClipboard();
+            break;
+        case 4:
+            saveImage( true );
+            break;
+        case 5:
+            saveImage( false );
+            break;
+        }
+    }
+
 }

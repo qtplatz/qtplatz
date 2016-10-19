@@ -56,7 +56,9 @@ namespace query {
             void saveImage( bool clipboard );
 
         private slots:
-            void mouseReleaseEvent(QMouseEvent *event) override;
+            void selected( const QPointF& );
+            // void mouseReleaseEvent(QMouseEvent *event) override;
+            // void mouseMoveEvent(QMouseEvent *event) override;            
         };
 
     }
