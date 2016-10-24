@@ -15,6 +15,12 @@ add_library( adportable
   dgprotocols.cpp
   dgprotocols.hpp
   dgprotocol.hpp
+  dgioconfig.cpp
+  dgioconfig.hpp
+  dgiomethod.cpp
+  dgiomethod.hpp
+  dgiosequence.cpp
+  dgiosequence.hpp
   fft.cpp
   graycode.cpp
   graycode.hpp

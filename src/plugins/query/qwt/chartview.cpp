@@ -123,6 +123,7 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
     const QColor c( Qt::darkBlue );
     zoomer->setRubberBandPen( c );
     zoomer->setTrackerPen( c );
+    zoomer->autoYScale( false );
 
     if ( auto panner = new QwtPlotPanner( canvas() ) ) {
         panner->setAxisEnabled( QwtPlot::yRight, false );

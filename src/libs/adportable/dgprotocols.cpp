@@ -69,7 +69,7 @@ namespace adportable {
                 boost::property_tree::read_json( json, pt );
 
                 protocols.interval_ = std::stod( pt.get_child( "protocols.interval" ).data() ) * 1.0e-6; // us -> seconds
-
+                
                 for ( const auto& v : pt.get_child( "protocols.protocol" ) ) {
 
                     protocol<delay_pulse_count> data;
