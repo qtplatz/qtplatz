@@ -75,7 +75,7 @@ sequence::read_json( std::istream& is, sequence& t )
     try {
         boost::property_tree::read_json( is, pt );
 
-        print( pt );
+        // print( pt );
 
         if ( auto value = pt.get_optional< size_t >( "sequence.replicates" ) )
             t.replicates() = value.get();

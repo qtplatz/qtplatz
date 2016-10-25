@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -59,8 +60,8 @@ namespace adportable {
             
             void setConfig( const configuration& );
 
-            inline std::vector< iEvent >& prepare() { return prepare_; }
-            inline const std::vector< iEvent >& prepare() const { return prepare_; }            
+            inline std::map< uint32_t, iEvent >& prepare() { return prepare_; }
+            inline const std::map< uint32_t, iEvent >& prepare() const { return prepare_; }            
 
             inline std::vector< tEvent >& table() { return table_; }
             inline const std::vector< tEvent >& table() const { return table_; }
@@ -74,7 +75,7 @@ namespace adportable {
         private:
             uint32_t id_;
             std::string title_;
-            std::vector< iEvent > prepare_;
+            std::map< uint32_t, iEvent > prepare_;
             std::vector< tEvent > table_;
         };
         

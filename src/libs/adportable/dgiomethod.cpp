@@ -50,7 +50,7 @@ method::setConfig( const configuration& c )
     for ( auto& io: c ) {
         if ( io.mode_ == OUT && io.enable_ ) {
             tAction a = io.initState_ == High ? ioHigh : ioLow;
-            prepare_.emplace_back( iEvent{ io.id_, a } );
+            prepare_[ io.id_ ] = iEvent{ io.id_, a };
         }
     }
 }
@@ -83,7 +83,7 @@ method::read_json( std::istream& json, method& m )
                 if ( boost::optional< int > value = item.second.get_optional<int>( "action" ) )
                     e.action_ = tAction( value.get() );
                 
-                m.prepare().emplace_back( e );
+                m.prepare()[ e.pid_ ] = e;
             }
         } else
             return false;
@@ -128,8 +128,8 @@ method::write_json( std::ostream& json, const method& m )
 
         boost::property_tree::ptree xitem;
 
-        xitem.put( "pid",          iv.pid_ );
-        xitem.put( "action",       iv.action_ );
+        xitem.put( "pid",          iv.second.pid_ );
+        xitem.put( "action",       iv.second.action_ );
 
         pv.push_back( std::make_pair( "", xitem ) );
     }
