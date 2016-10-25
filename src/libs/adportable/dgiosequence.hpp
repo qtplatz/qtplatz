@@ -37,7 +37,7 @@ namespace adportable {
         public:
             sample();
             sample( const sample& );
-            
+            uint32_t id_;
             double runLength_;
             double injVolume_;
             std::string sampleId_;

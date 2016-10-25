@@ -29,14 +29,28 @@
 #include <boost/exception/all.hpp>
 #include <iostream>
 
+static void
+print( const boost::property_tree::ptree& pt )
+{
+    using boost::property_tree::ptree;
+
+    ptree::const_iterator end = pt.end();
+    for (ptree::const_iterator it = pt.begin(); it != end; ++it) {
+        std::cout << it->first << ": " << it->second.get_value<std::string>() << std::endl;
+        print(it->second);
+    }    
+}
+
 using namespace adportable::dg;
 
-sample::sample() : runLength_( 60.0 )
+sample::sample() : id_( 0 )
+                 , runLength_( 60.0 )
                  , injVolume_( 1.0 )
 {
 }
 
-sample::sample( const sample& t ) : runLength_( t.runLength_ )
+sample::sample( const sample& t ) : id_( t.id_ )
+                                  , runLength_( t.runLength_ )
                                   , injVolume_( t.injVolume_ )
                                   , sampleId_( t.sampleId_ )
                                   , description_( t.description_ )
@@ -44,7 +58,7 @@ sample::sample( const sample& t ) : runLength_( t.runLength_ )
 {
 }
 
-sequence::sequence()
+sequence::sequence() : replicates_( 1 )
 {
 }
 
@@ -56,22 +70,30 @@ sequence::sequence( const sequence& t ) : samples_( t.samples_ )
 bool
 sequence::read_json( std::istream& is, sequence& t )
 {
-    t.samples().clear();
     boost::property_tree::ptree pt;
 
     try {
         boost::property_tree::read_json( is, pt );
 
+        print( pt );
+
         if ( auto value = pt.get_optional< size_t >( "sequence.replicates" ) )
             t.replicates() = value.get();
 
-        if ( auto child = pt.get_child_optional( "samples" ) ) {
+        if ( auto child = pt.get_child_optional( "sequence.samples" ) ) {
+
+            t.samples().clear();
+            
             for ( const auto& item: child.get() ) {
                 sample s;
                 read_json( item.second, s );
                 t.samples().emplace_back( s );
             }
-        }
+
+        } else
+            return false;
+
+        return true;
 
     } catch ( std::exception& e ) {
         throw e;
@@ -101,6 +123,8 @@ sequence::write_json( std::ostream& os, const sequence& t )
 bool
 sequence::read_json( const boost::property_tree::ptree& pt, sample& t )
 {
+    if ( auto value = pt.get_optional< uint32_t >( "id" ) )
+        t.id_ = value.get();    
     if ( auto value = pt.get_optional< double >( "runlength" ) )
         t.runLength_ = value.get();
     if ( auto value = pt.get_optional< double >( "injvolume" ) )
@@ -118,6 +142,7 @@ sequence::read_json( const boost::property_tree::ptree& pt, sample& t )
 bool
 sequence::write_json( boost::property_tree::ptree& pt, const sample& t )
 {
+    pt.put( "id", t.id_ );
     pt.put( "runlength",   t.runLength_ );
     pt.put( "injvolume",   t.injVolume_ );
     pt.put( "sampleid",    t.sampleId_ );

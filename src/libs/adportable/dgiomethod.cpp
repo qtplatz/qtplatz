@@ -59,8 +59,6 @@ method::setConfig( const configuration& c )
 bool
 method::read_json( std::istream& json, method& m )
 {
-    m.table().clear();
-    
     boost::property_tree::ptree pt;
     
     try {
@@ -74,38 +72,46 @@ method::read_json( std::istream& json, method& m )
         if ( auto value = pt.get_optional< std::string >( "method.title" ) )
             m.title() = value.get();
 
-        if ( auto child = pt.get_child_optional( "prepare" ) ) {
+        if ( auto child = pt.get_child_optional( "method.prepare" ) ) {
+
+            m.prepare().clear();
 
             for ( const auto& item: child.get() ) {
                 iEvent e;
                 if ( boost::optional< int > value = item.second.get_optional<int>( "id" ) )
-                    e.id_   = value.get();
+                    e.pid_   = value.get();
                 if ( boost::optional< int > value = item.second.get_optional<int>( "action" ) )
                     e.action_ = tAction( value.get() );
                 
                 m.prepare().emplace_back( e );
             }
-        }
-        
+        } else
+            return false;
 
-        if ( auto child = pt.get_child_optional( "table" ) ) {
+        if ( auto child = pt.get_child_optional( "method.table" ) ) {
 
+            m.table().clear();
+            
             for ( const auto& item: child.get() ) {
                 tEvent e;
+                if ( boost::optional< int > value = item.second.get_optional<int>( "pid" ) )
+                    e.pid_   = value.get();
+                else
+                    return false;
                 if ( boost::optional< double > value = item.second.get_optional<double>( "elapsed_time" ) )
                     e.elapsed_time_ = value.get();
-                if ( boost::optional< int > value = item.second.get_optional<int>( "id" ) )
-                    e.id_   = value.get();
                 if ( boost::optional< int > value = item.second.get_optional<int>( "action" ) )
                     e.action_ = tAction( value.get() );
                 
                 m.table().emplace_back( e );
             }
-        }
+        } else
+            return false;
+
         return true;
 
     } catch ( std::exception& e ) {
-        throw e;
+        std::cout << boost::diagnostic_information( e ) << std::endl;
     }
     return false;
 }
@@ -122,7 +128,7 @@ method::write_json( std::ostream& json, const method& m )
 
         boost::property_tree::ptree xitem;
 
-        xitem.put( "id",           iv.id_ );
+        xitem.put( "pid",          iv.pid_ );
         xitem.put( "action",       iv.action_ );
 
         pv.push_back( std::make_pair( "", xitem ) );
@@ -136,7 +142,7 @@ method::write_json( std::ostream& json, const method& m )
         
         xitem.put( "elapsed_time", ev.elapsed_time_ );
         xitem.put( "action",       ev.action_ );
-        xitem.put( "id",           ev.id_ );
+        xitem.put( "pid",          ev.pid_ );
         
         tv.push_back( std::make_pair( "", xitem ) );
     }
@@ -147,3 +153,4 @@ method::write_json( std::ostream& json, const method& m )
     
     return true;
 }
+

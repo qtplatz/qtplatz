@@ -38,14 +38,14 @@ namespace adportable {
 
         class tEvent {
         public:
-            uint32_t id_;
+            uint32_t pid_;  // corresponding to gpio pin#
             double elapsed_time_;
             tAction action_;
         };
         
         class iEvent {
         public:
-            uint32_t id_;
+            uint32_t pid_;  // corresponding to gpio pin#
             tAction action_;
         };
 
@@ -56,7 +56,7 @@ namespace adportable {
             
             static bool read_json( std::istream&, method& );
             static bool write_json( std::ostream&, const method& );
-
+            
             void setConfig( const configuration& );
 
             inline std::vector< iEvent >& prepare() { return prepare_; }
