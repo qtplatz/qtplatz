@@ -27,7 +27,7 @@
 #include "client.hpp"
 #include "request.hpp"
 #include <adportable/debug.hpp>
-#include <adportable/dgprotocols.hpp>
+#include <adio/dgprotocols.hpp>
 #include <boost/asio.hpp>
 #include <memory>
 #include <iostream>
@@ -99,7 +99,7 @@ dg::resetError()
 }
 
 bool
-dg::fetch( adportable::dg::protocols<adportable::dg::protocol<> >& p )
+dg::fetch( adio::dg::protocols<adio::dg::protocol<> >& p )
 {
     boost::asio::io_service io_service;
 
@@ -142,13 +142,13 @@ dg::fetch( std::string& json )
 }
 
 bool
-dg::commit( const adportable::dg::protocols<adportable::dg::protocol<> > & p )
+dg::commit( const adio::dg::protocols<adio::dg::protocol<> > & p )
 {
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
 
     std::ostringstream json;
-    adportable::dg::protocols<>::write_json( json, p );
+    adio::dg::protocols<>::write_json( json, p );
     
     request_stream << "POST " << "/dg/ctl?commit.json=" << request::url_encode( json.str() ) << " HTTP/1.0\r\n";
     request_stream << "Host: " << server_ << "\r\n";

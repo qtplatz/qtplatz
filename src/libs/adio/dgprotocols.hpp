@@ -28,7 +28,7 @@
 #include "dgprotocol.hpp"
 #include <vector>
 
-namespace adportable {
+namespace adio {
     namespace dg {
 
         template< typename protocol_type = protocol< delay_pulse_count > >

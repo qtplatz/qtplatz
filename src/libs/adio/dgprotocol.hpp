@@ -27,7 +27,7 @@
 
 #include <array>
 
-namespace adportable {
+namespace adio {
 
     namespace dg {
 

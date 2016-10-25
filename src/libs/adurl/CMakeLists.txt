@@ -22,6 +22,7 @@ add_executable( adurltool main.cpp )
 add_library( adurl SHARED client.cpp client.hpp request.cpp request.hpp dg.cpp dg.hpp sse.hpp sse.cpp )
 
 target_link_libraries( adurl LINK_PUBLIC
+  adio
   adportable
   ${oslibs}
   ${Boost_LIBRARIES}
@@ -29,6 +30,7 @@ target_link_libraries( adurl LINK_PUBLIC
 
 target_link_libraries( adurltool LINK_PUBLIC
   adurl
+  adio
   adportable
   ${oslibs}
   ${Boost_LIBRARIES}

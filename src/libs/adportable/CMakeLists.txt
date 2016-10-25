@@ -12,15 +12,6 @@ add_library( adportable
   date_string.cpp
   debug.cpp
   debug_core.cpp
-  dgprotocols.cpp
-  dgprotocols.hpp
-  dgprotocol.hpp
-  dgioconfig.cpp
-  dgioconfig.hpp
-  dgiomethod.cpp
-  dgiomethod.hpp
-  dgiosequence.cpp
-  dgiosequence.hpp
   fft.cpp
   graycode.cpp
   graycode.hpp

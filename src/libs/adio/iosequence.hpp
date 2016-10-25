@@ -30,9 +30,9 @@
 #include <vector>
 #include <cstdint>
 
-namespace adportable {
-    namespace dg {
-
+namespace adio {
+    namespace io {
+    
         class sample {
         public:
             sample();

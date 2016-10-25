@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "dgioconfig.hpp"
-#include "dgiomethod.hpp"
+#include "ioconfig.hpp"
+#include "iomethod.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <iostream>
 
-using namespace adportable::dg;
+using namespace adio::io;
 
 method::method() : id_( 0 )
 {
@@ -98,10 +98,13 @@ method::read_json( std::istream& json, method& m )
                     e.pid_   = value.get();
                 else
                     return false;
+
                 if ( boost::optional< double > value = item.second.get_optional<double>( "elapsed_time" ) )
                     e.elapsed_time_ = value.get();
                 if ( boost::optional< int > value = item.second.get_optional<int>( "action" ) )
                     e.action_ = tAction( value.get() );
+                if ( boost::optional< double > value = item.second.get_optional< double >( "duration" ) )
+                    e.duration_ = tAction( value.get() );                
                 
                 m.table().emplace_back( e );
             }

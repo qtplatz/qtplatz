@@ -33,16 +33,11 @@
 namespace adportable {
     namespace dg {
 
-        enum ioMode       { OUT, IN };
-        enum ioState      { High, Low };
-        enum trigConfig   { Edge = 0, Level = 1 };
-        enum trigPolarity { Positive = 0x00, Negative = 0x10 };
-
-        class ioConfig {
+        class ioState {
         public:
-            ioConfig();
-            ioConfig( const ioConfig& );
-            ioConfig( bool enable
+            ioState();
+            ioState( const ioState& );
+            ioState( bool enable
                       , uint32_t id
                       , ioMode mode
                       , uint32_t trig
@@ -58,31 +53,6 @@ namespace adportable {
             std::string note_;
         };
 
-        class configuration {
-        public:
-            configuration();
-            configuration( const configuration& );
-            
-            static bool read_json( std::istream&, configuration& );
-            static bool read_json( std::istream&, ioConfig& );
-            static bool write_json( std::ostream&, const configuration& );
-            
-            typedef typename std::vector< ioConfig >::const_iterator const_iterator;
-            typedef typename std::vector< ioConfig >::iterator iterator;
-
-            void clear();
-
-            inline const_iterator begin() const { return config_.begin(); }
-            inline const_iterator end() const { return config_.end(); }
-            inline iterator begin() { return config_.begin(); }
-            inline iterator end() { return config_.end(); }
-
-            inline std::vector< ioConfig >& config() { return config_; }
-        private:
-            static bool read_json( const boost::property_tree::ptree&, ioConfig& );
-            
-            std::vector< ioConfig > config_;
-        };
 
     }
 }

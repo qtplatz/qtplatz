@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "dgioconfig.hpp"
+#include "ioconfig.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
@@ -42,7 +42,7 @@ print( const boost::property_tree::ptree& pt )
     }    
 }
 
-using namespace adportable::dg;
+using namespace adio::io;
 
 ioConfig::ioConfig() : enable_( false )
                      , id_( 0 )

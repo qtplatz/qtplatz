@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "dgiosequence.hpp"
+#include "iosequence.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
@@ -41,7 +41,7 @@ print( const boost::property_tree::ptree& pt )
     }    
 }
 
-using namespace adportable::dg;
+using namespace adio::io;
 
 sample::sample() : id_( 0 )
                  , runLength_( 60.0 )

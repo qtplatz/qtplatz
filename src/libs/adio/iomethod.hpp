@@ -30,18 +30,20 @@
 #include <vector>
 #include <cstdint>
 
-namespace adportable {
-    namespace dg {
+namespace adio {
 
-        enum tAction     { ioHigh, ioLow, ioPulse };
+    namespace io {
+
+        enum tAction     { ioHigh, ioLow, ioPulse, ioWait };
 
         class configuration;
 
         class tEvent {
         public:
-            uint32_t pid_;  // corresponding to gpio pin#
+            uint32_t pid_;         // corresponding to gpio pin#
             double elapsed_time_;
             tAction action_;
+            double duration_;
         };
         
         class iEvent {
@@ -81,3 +83,4 @@ namespace adportable {
         
     }
 }
+

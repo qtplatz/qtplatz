@@ -25,7 +25,7 @@
 #include "client.hpp"
 #include "dg.hpp"
 #include "sse.hpp"
-#include <adportable/dgprotocols.hpp>
+#include <adio/dgprotocols.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
@@ -99,7 +99,7 @@ main( int argc, char* argv[] )
                     std::cout << json << std::endl;
 
             } else {
-                adportable::dg::protocols< adportable::dg::protocol<> > proto;
+                adio::dg::protocols< adio::dg::protocol<> > proto;
                 if ( dg.fetch( proto ) ) {
                     std::cout << boost::format( "interval: %.3le (s)" ) % proto.interval() << std::endl;
                     
@@ -117,7 +117,7 @@ main( int argc, char* argv[] )
         if ( vm.count( "commit" ) ) {
 
             std::ifstream json( vm[ "commit" ].as< std::string >() );
-            adportable::dg::protocols< adportable::dg::protocol<> > protocols;
+            adio::dg::protocols< adio::dg::protocol<> > protocols;
             try {
                 if ( protocols.read_json( json, protocols ) ) {
                     dg.commit( protocols );

@@ -134,24 +134,25 @@ add_library( ${PROJECT_NAME} MODULE
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adcontrols
+  adextension
+  adfs
+  adio
+  adlog
   adplot
   adplugin
-  adcontrols
-  adlog
-  adutils
-  adwidgets
-  portfolio
-  qtwrapper
-  adfs
-  chromatogr
-  adprot
-  adextension
   adportable
   adprocessor
+  adprot
+  adutils
+  adwidgets
+  chromatogr
+  extensionsystem
+  portfolio
+  qtwrapper
+  utils
   xmlparser
   Core
-  extensionsystem
-  utils
   Qt5::Core
   ${Boost_LIBRARIES}
 )

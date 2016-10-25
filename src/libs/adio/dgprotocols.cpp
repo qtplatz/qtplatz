@@ -55,7 +55,7 @@ print( const boost::property_tree::ptree& pt )
 
 // using namespace adportable::dg;
 
-namespace adportable {
+namespace adio {
     namespace dg {
 
         template<> bool
