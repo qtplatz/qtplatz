@@ -14,20 +14,23 @@ if ( WIN32 )
 elseif( APPLE )
   
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
-  message( STATUS "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )  
-  if ( NOT AqDrv4_INCLUDE_DIR )
-    message( FATAL_ERROR "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
-  endif()
-
   if ( AqDrv4_INCLUDE_DIR )
     add_definitions(-D_LINUX -D_ACQIRIS )
     include_directories( ${AqDrv4_INCLUDE_DIR} )
+  else()
+    message( FATAL_ERROR "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
   endif()
   
-else()
+else() # Linux
   
   find_path( AgMD2_INCLUDE_DIR NAME AgMD2.h PATHS /usr/include )
-  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS /usr/include )
+  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS /usr/include ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
+  find_library( AqDrv4_LIBRARY AqDrv4 )
+  if ( AgMD2_INCLUDE_DIR )
+    set( WITH_AP240 ON )
+  else()
+    find_path( AqDrv4_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
+  endif()
   
 endif()
 

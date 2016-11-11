@@ -31,6 +31,10 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   )
 
+if ( AqDrv4_INCLUDE_DIR )
+  include_directories( ${AqDrv4_INCLUDE_DIR} )
+endif()
+
 if ( WIN32 )
   add_definitions( -wd4996 )
   include_directories( "C:/Program Files (x86)/Agilent/Acqiris/include" )

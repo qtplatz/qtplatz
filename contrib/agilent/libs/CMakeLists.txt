@@ -1,7 +1,8 @@
 
 if ( NOT CMAKE_CROSSCOMPILING )
 
-  if ( AqDrv4_INCLUDE_DIR AND NOT APPLE )
+  if ( AqDrv4_LIBRARY )
+    # if AqDrv4 driver installed
     add_subdirectory( ap240 )
     add_subdirectory( ap240controller )
   endif()

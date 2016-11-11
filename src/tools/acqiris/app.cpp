@@ -90,7 +90,7 @@ app::main( int argc, char * argv [] )
         return 0;
     }
 
-#if ! __APPLE__
+#if HAVE_AqDrv4 // no AP240/DCnnn hardware driver installed on the compiling host
     if ( ! isClient ) {
 
         task::instance()->connect_acqiris_method_adapted(

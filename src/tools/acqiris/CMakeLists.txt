@@ -51,20 +51,27 @@ if ( WIN32 )
 endif()
 
 if ( APPLE )
+  add_definitions( -DHAVE_AqDrv4=1 )
   if ( STANDALONE )
     include_directories( "${CMAKE_SOURCE_DIR}/../../../contrib/agilent/include" )
   else()
     include_directories( "${CMAKE_SOURCE_DIR}/contrib/agilent/include" )
   endif()
   set( task_sources )  
-else()
-  set( AqDrv4_LIBRARIES AqDrv4 )
-  set( task_sources
-    digitizer.cpp
-    digitizer.hpp
-    task.cpp
-    task.hpp
-    )
+else() #Linux
+  if ( AqDrv4_LIBRARY )
+    add_definitions( -DHAVE_AqDrv4=1 )
+    set( AqDrv4_LIBRARIES ${AqDrv4_LIBRARY} )
+    set( task_sources
+      digitizer.cpp
+      digitizer.hpp
+      task.cpp
+      task.hpp
+      )
+  else()
+    add_definitions( -DHAVE_AqDrv4=0 )
+    include_directories( ${AqDrv4_INCLUDE_DIR} )
+  endif()
 endif()
 
 include_directories(
@@ -128,7 +135,8 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
 
-if ( NOT APPLE )
+if ( AqDrv4_LIBRARY )
+
   add_executable( ${PROJECT_NAME}d
     daemon.cpp
     daemon.hpp

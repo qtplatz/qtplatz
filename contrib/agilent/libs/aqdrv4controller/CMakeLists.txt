@@ -15,6 +15,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${QWT_INCLUDE_DIRS}
+  ${AqDrv4_INCLUDE_DIR}
   )
 
 set( _sources

@@ -13,6 +13,8 @@ set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
 option( WITH_RDKIT         "Include chemistry support"  ON  )
 option( WITH_OPENCV        "Include OpenCV"             ON  )
 option( WITH_QWT           "Include QWT"                ON  )
+option( WITH_AP240         "Keysight AP240"             ON )
+option( WITH_AgMD2         "Keysight U5303A"            ON )
 
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )

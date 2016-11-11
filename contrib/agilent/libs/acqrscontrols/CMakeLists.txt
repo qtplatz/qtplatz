@@ -13,6 +13,7 @@ endif()
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_SOURCE_DIR}/src/libs
+  ${AqDrv4_INCLUDE_DIR}
   )
 
 message( STATUS "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
