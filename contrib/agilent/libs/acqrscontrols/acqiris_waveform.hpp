@@ -28,6 +28,7 @@
 #include <vector>
 #include <ratio>
 #include <boost/uuid/uuid_generators.hpp>
+#include "acqrscontrols_global.hpp"
 
 namespace boost {
     namespace serialization { class access; }
@@ -40,7 +41,7 @@ namespace aqdrv4 {
 
     template< typename T > class waveform_archive;
 
-    class waveform {
+    class ACQRSCONTROLSSHARED_EXPORT waveform {
 
         waveform( const waveform& ) = delete;
         void operator = ( const waveform& ) = delete;

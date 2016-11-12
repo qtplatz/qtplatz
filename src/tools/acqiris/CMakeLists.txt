@@ -51,7 +51,7 @@ if ( WIN32 )
 endif()
 
 if ( APPLE )
-  add_definitions( -DHAVE_AqDrv4=1 )
+  add_definitions( -DHAVE_AqDrv4=0 )
   if ( STANDALONE )
     include_directories( "${CMAKE_SOURCE_DIR}/../../../contrib/agilent/include" )
   else()
