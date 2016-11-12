@@ -57,12 +57,12 @@ if ( APPLE )
   else()
     include_directories( "${CMAKE_SOURCE_DIR}/contrib/agilent/include" )
   endif()
-  set( task_sources )  
+  set( aqdrv4_sources )  
 else() #Linux
   if ( AqDrv4_LIBRARY )
     add_definitions( -DHAVE_AqDrv4=1 )
     set( AqDrv4_LIBRARIES ${AqDrv4_LIBRARY} )
-    set( task_sources
+    set( aqdrv4_sources
       digitizer.cpp
       digitizer.hpp
       task.cpp
@@ -96,7 +96,7 @@ add_executable( ${PROJECT_NAME}
   mainwindow.hpp
   mediator.cpp
   mediator.hpp
-  ${task_sources}
+  ${aqdrv4_sources}
   tcp_connection.cpp
   tcp_connection.hpp  
   tcp_connection_manager.cpp
