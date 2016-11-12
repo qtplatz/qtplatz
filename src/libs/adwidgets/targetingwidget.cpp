@@ -142,7 +142,7 @@ TargetingWidget::setContents( boost::any&& a )
         return false;
 
     } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
-
+        
         const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
 
         if ( const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >() ) {

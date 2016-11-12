@@ -33,6 +33,7 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
+#include <adportable/debug.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -90,7 +91,9 @@ namespace adwidgets {
         stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
                 return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
             });
-
+        ///////////////////////
+        ADDEBUG() << "computeMass(" << v[0] << " <- " << stdformula << ")=" << adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] );
+        ///////////////////////
         return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
     }
 

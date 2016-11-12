@@ -22,6 +22,9 @@
 **
 **************************************************************************/
 
+#if defined __APPLE__
+# include <compiler/disable_deprecated.h>
+#endif
 #include "app.hpp"
 #include "mainwindow.hpp"
 #include "document.hpp"

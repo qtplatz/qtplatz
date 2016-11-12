@@ -22,6 +22,9 @@
 **
 **************************************************************************/
 
+#if defined __APPLE__
+# include <compiler/disable_deprecated.h>
+#endif
 #include "mainwindow.hpp"
 #include "aboutdlg.hpp"
 #include "chromatogramwnd.hpp"

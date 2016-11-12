@@ -170,8 +170,11 @@ namespace adcontrols {
             std::for_each( comp.first.begin(), comp.first.end(), [&]( const std::pair< adportable::chem::atom_type, int >& a ){
                     // atom_type = std::pair< int, const char * >
                     int nelements = a.second; // number of element
-                    if ( nelements > 0 ) { 
-                        o << a.first.second; // element name (omit atomic weight, e.g. 13C)
+                    if ( nelements > 0 ) {
+                        if ( a.first.first > 0 )
+                            o << a.first.first << a.first.second << " "; // ex. "13C "
+                        else
+                            o << a.first.second;
                         if ( nelements  > 1 )
                             o << a.second;
                     }
@@ -183,6 +186,7 @@ namespace adcontrols {
                     o << std::abs( comp.second );
                 o << ( comp.second < 0 ? "-" : "+" );
             }
+            ADDEBUG() << "make_string(" << o.str() << ")";
             return o.str();
         }
 
