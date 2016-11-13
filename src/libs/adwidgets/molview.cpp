@@ -62,7 +62,8 @@ MolView::MolView(QWidget *parent) : QGraphicsView( parent )
     setBackgroundBrush( tilePixmap );
 
     // OpenGL
-    setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers) ) );
+    //setViewport( new QGLWidget( QGLFormat(QGL::SampleBuffers) ) );
+    setViewport( new QWidget() );
     setRenderHint( QPainter::HighQualityAntialiasing, true );
 }
 
@@ -80,21 +81,6 @@ MolView::svgSize() const
 {
     return svgItem_ ? svgItem_->boundingRect().size().toSize() : QSize();
 }
-
-#if 0
-void MolView::setRenderer(RendererType type)
-{
-    renderer = type;
-
-    if (renderer == OpenGL) {
-#ifndef QT_NO_OPENGL
-        setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
-#endif
-    } else {
-        setViewport(new QWidget);
-    }
-}
-#endif
 
 void MolView::setHighQualityAntialiasing(bool highQualityAntialiasing)
 {

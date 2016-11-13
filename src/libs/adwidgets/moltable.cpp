@@ -92,7 +92,7 @@ namespace adwidgets {
                 return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
             });
         ///////////////////////
-        ADDEBUG() << "computeMass(" << v[0] << " <- " << stdformula << ")=" << adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] );
+        // ADDEBUG() << "computeMass(" << v[0] << " <- " << stdformula << ")=" << adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] );
         ///////////////////////
         return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
     }
@@ -129,7 +129,7 @@ namespace adwidgets {
                 DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
             } else if ( index.column() == MolTable::c_abundance ) {
-
+                
                 if ( index.data().toDouble() <= 0.002 ) {
                     painter->save();
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
@@ -153,8 +153,11 @@ namespace adwidgets {
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
                 else 
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
-                
-                QStyledItemDelegate::paint( painter, opt, index );
+
+                painter->drawText( option.rect
+                                   , option.displayAlignment
+                                   , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 8  ) );
+                // QStyledItemDelegate::paint( painter, opt, index );
                 painter->restore();
 
             } else if ( index.column() == MolTable::c_svg ) {

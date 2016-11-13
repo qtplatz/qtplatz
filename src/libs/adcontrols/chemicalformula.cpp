@@ -172,11 +172,10 @@ namespace adcontrols {
                     int nelements = a.second; // number of element
                     if ( nelements > 0 ) {
                         if ( a.first.first > 0 )
-                            o << a.first.first << a.first.second << " "; // ex. "13C "
-                        else
-                            o << a.first.second;
-                        if ( nelements  > 1 )
-                            o << a.second;
+                            o << ' ' << a.first.first; // add spece before isotope number; ex. ' 13C 
+                        o << a.first.second; // atomic symbol ex. 'C'
+                        if ( nelements > 1 )
+                            o << a.second;   // number of atom
                     }
                 } );
             
@@ -186,7 +185,7 @@ namespace adcontrols {
                     o << std::abs( comp.second );
                 o << ( comp.second < 0 ? "-" : "+" );
             }
-            ADDEBUG() << "make_string(" << o.str() << ")";
+            // ADDEBUG() << "make_string( '" << o.str() << "' )";
             return o.str();
         }
 
