@@ -506,7 +506,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
     if ( portfolio::Folder folder = folium.getParentFolder() ) {
 
-        if ( folder.name() == L"Spectra" ) { // || folder.name() == L"Chromatograms" ) {
+        if ( folder.name() == L"Spectra" ) { //|| folder.name() == L"Chromatograms" ) {
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
@@ -792,7 +792,6 @@ void
 MSProcessingWnd::handleFoliumDataChanged( const QString& id )
 {
     if ( id == QString::fromStdWString( idSpectrumFolium_ ) ) {
-        // if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         pImpl_->profileSpectrum_->replot();
         pImpl_->processedSpectrum_->replot();
     }
@@ -801,7 +800,8 @@ MSProcessingWnd::handleFoliumDataChanged( const QString& id )
 void
 MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )
 {
-    (void)processor;    (void)isChecked;
+    (void)processor;
+    (void)isChecked;
 
     portfolio::Folder folder = folium.getParentFolder();
 	if ( !folder )
@@ -1013,6 +1013,10 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 	} else {
         
         QMenu menu;
+
+        bool isHistogram( false );
+        if ( auto ms = pProfileSpectrum_.second.lock() )
+            isHistogram = ms->isCentroid();
         
         std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
@@ -1020,6 +1024,12 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         actions.push_back( std::make_pair( menu.addAction( tr( "Copy to clipboard" ) ), [this] () { adplot::plot::copyToClipboard( pImpl_->profileSpectrum_ ); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Frequency analysis" ) ), [this] () { frequency_analysis(); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Save image file..." ) ), [this] () { save_image_file(); } ));
+        actions.push_back( std::make_pair( menu.addAction( tr( "Make profile" ) ), [this] () { } ));
+        if ( isHistogram ) {
+            actions[2].first->setEnabled( false ); // Frequency analysis
+        } else {
+            actions[4].first->setEnabled( false ); // Make profile
+        }
 
         auto iid_spectrometers = adcontrols::MassSpectrometerBroker::installed_uuids();
 

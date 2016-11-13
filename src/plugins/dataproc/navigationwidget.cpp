@@ -27,6 +27,7 @@
 #include "navigationdelegate.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
+#include "document.hpp"
 #include "sessionmanager.hpp"
 #include "actionmanager.hpp"
 #include <adcontrols/chromatogram.hpp>
@@ -151,7 +152,7 @@ class PortfolioHelper {
 
 public:
 
-    static void appendAttachment( QStandardItem& parent, portfolio::Folium& folium ) {
+    static void appendAttachment( QStandardItem& parent, const portfolio::Folium& folium ) {
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, false );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
     }
@@ -176,8 +177,9 @@ public:
             appendFolder( *item, *it );
 
         portfolio::Folio folio = folder.folio();
-        for ( portfolio::Folio::iterator it = folio.begin(); it != folio.end(); ++it ) 
+        for ( portfolio::Folio::iterator it = folio.begin(); it != folio.end(); ++it ) {
             appendFolium( *item, *it );
+        }
     }
 };
 
@@ -291,6 +293,8 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         connect( mgr, &SessionManager::onFolderChanged, this, &NavigationWidget::handleFolderChanged );
         
         connect( pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
+
+        connect( mgr, &SessionManager::foliumChanged, this, &NavigationWidget::handleFoliumChanged );
     }
 
     setAutoSynchronization(true);
@@ -376,6 +380,24 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
         portfolio::Portfolio portfolio = processor->getPortfolio();
         for ( auto folder: portfolio.folders() )
             PortfolioHelper::appendFolder( *item, folder );
+    }
+}
+
+// add child node when process applied (such as Centroid)
+// this is responcible to add/redraw attributes under specified folium
+void
+NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
+{
+    if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
+        if ( auto folder = StandardItemHelper::findFolder( top, folium.getParentFolder().name() ) ) {
+            if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
+                item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
+                for ( auto& att: folium.attachments() ) {
+                    if ( StandardItemHelper::findFolium( item, att.id() ) == nullptr )
+                        PortfolioHelper::appendAttachment( *item, att );
+                }
+            }
+        }
     }
 }
 
@@ -468,7 +490,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
         PortfolioHelper::appendFolder( *item, folder );
 
 	pTreeView_->expand( item->index() );
-	 // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
+    // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
 	for ( int i = 0; i < item->rowCount(); ++i)
         pTreeView_->expand( model.index( i, 0, item->index()) );
 }

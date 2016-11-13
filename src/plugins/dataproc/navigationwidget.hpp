@@ -58,6 +58,9 @@ namespace dataproc {
 		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
 		void handleSessionUpdated( Dataprocessor *, const QString& foliumId );
 		void handleFolderChanged( Dataprocessor *, const QString& folder );
+
+        // add child node when process applied (such as Centroid)
+        void handleFoliumChanged( Dataprocessor *, const portfolio::Folium& );  
         void handleRemoveSession( Dataprocessor * );
 
         void handleCheckAllSpectra();
