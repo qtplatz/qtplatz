@@ -122,6 +122,10 @@ namespace adcontrols {
         bool isCentroid() const;
         void setCentroid( CentroidAlgorithm );
 
+        void setIntensityArray( std::vector< double >&& );
+        void setMassArray( std::vector< double >&& );
+        void setTimeArray( std::vector< double >&& );
+
         // ---
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
@@ -185,7 +189,6 @@ namespace adcontrols {
         static bool archive( std::ostream&, const MassSpectrum& );
         static bool restore( std::istream&, MassSpectrum& );
 
-        // [[deprecated("Use operator << std::move( ptr )")]] size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* o..n */ );
 
         const MassSpectrum& getSegment( size_t fcn /* 0..n */ ) const;

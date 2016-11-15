@@ -377,7 +377,7 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_protocol,    Qt::Horizontal, QObject::tr( "protocol" ) );
     model.setHeaderData( c_mspeaktable_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mspeaktable_description, Qt::Horizontal, QObject::tr( "description" ) );
-
+    
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
@@ -878,7 +878,8 @@ MSPeakTable::exactMass( std::string formula )
 {
     if ( formula.empty() )
         return 0;
-
+#if 0
+    // this is handling adduct/lose but conflict with charge state e.g. [He]2+
     std::string adduct_lose;
     std::string::size_type pos = formula.find_first_of( "+-" );
     int sign = 1;
@@ -887,13 +888,17 @@ MSPeakTable::exactMass( std::string formula )
         adduct_lose = formula.substr( pos + 1 );
         formula = formula.substr( 0, pos );
     }
-    adcontrols::ChemicalFormula formulaParser;
+#endif
 
+    adcontrols::ChemicalFormula formulaParser;
     double exactMass = formulaParser.getMonoIsotopicMass( formula );
+
+#if 0
     if ( !adduct_lose.empty() ) {
         double a = formulaParser.getMonoIsotopicMass( adduct_lose );
         exactMass += a * sign;
     }
+#endif
     return exactMass;
 }
 

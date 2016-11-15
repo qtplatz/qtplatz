@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <memory>
 #include <string>
+#include <tuple>
 #include <vector>
 #include <map>
 
@@ -89,6 +90,7 @@ namespace adcontrols {
         static std::vector< std::wstring > get_model_names();
 
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
+        virtual bool estimateScanLaw( const std::vector< std::tuple< double, double, int > >&, double& va, double& t0 ) const;
 
     protected:
         // v2

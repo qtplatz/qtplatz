@@ -91,6 +91,8 @@ add_library( adcontrols SHARED
   elementalcompositionmethod.hpp
   error_code.cpp
   error_code.hpp
+  histogram.cpp
+  histogram.hpp
   isotopecluster.cpp
   isotopecluster.hpp 
   isotopemethod.cpp

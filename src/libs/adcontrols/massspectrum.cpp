@@ -85,10 +85,10 @@ namespace adcontrols {
            MassSpectrumImpl( const MassSpectrumImpl& );
            void clone( const MassSpectrumImpl&, bool deep = false );
 	    
-           inline const double * getTimeArray() const { return tofArray_.data(); }
-           inline const double * getMassArray() const { return massArray_.data(); }
-           inline const double * getIntensityArray() const { return intsArray_.data(); }
-           inline const unsigned char * getColorArray() const { return colArray_.data(); }
+           inline const double * getTimeArray() const { return tofArray_.size() ? tofArray_.data() : 0; }
+           inline const double * getMassArray() const { return massArray_.size() ? massArray_.data() : 0; }
+           inline const double * getIntensityArray() const { return intsArray_.size() ? intsArray_.data() : 0; }
+           inline const unsigned char * getColorArray() const { return colArray_.size() ? colArray_.data() : 0; }
            inline size_t size() const { return massArray_.size(); }
            inline bool isCentroid() const { return algo_ != CentroidNone; }
            inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
@@ -145,7 +145,6 @@ namespace adcontrols {
 
            // exclude from archive
            std::string uuid_; // for instance equality check; out of serialization scope
-           // std::shared_ptr< ScanLaw > scanLaw_;
            std::tuple< bool, double, double > minmax_;
 	    
            friend class MassSpectrum;
@@ -335,19 +334,6 @@ MassSpectrum::mode() const
     return pImpl_->getMSProperty().mode();
 }
 
-// const ScanLaw*
-// MassSpectrum::scanLaw() const
-// {
-//     // deprecated
-//     if ( !pImpl_->scanLaw_ ) {
-//         if ( auto spectrometer = adcontrols::MassSpectrometer::create( getMSProperty().dataInterpreterClsid() ) ) {
-//             spectrometer->setAcceleratorVoltage( getMSProperty().acceleratorVoltage(), 0 );
-//             return spectrometer->scanLaw();
-//         }
-//     }
-//     return pImpl_->scanLaw_.get();
-// }
-
 const double *
 MassSpectrum::getMassArray() const
 {
@@ -409,12 +395,12 @@ MassSpectrum::getIntensity( size_t idx ) const
 double
 MassSpectrum::getTime( size_t idx ) const
 {
-    if ( idx < pImpl_->size() ) {
-        const double * p = pImpl_->getTimeArray();
-        if ( p )
-            return p[ idx ];
+    if ( pImpl_->tofArray_.empty() )
         return MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
-    }
+    if ( pImpl_->size() > idx )
+        return pImpl_->tofArray_[ idx ];
+    else 
+        return pImpl_->tofArray_[ pImpl_->tofArray_.size() - 1 ];
     return 0;
 }
 
@@ -477,9 +463,36 @@ MassSpectrum::setIntensityArray( const double * values )
 }
 
 void
+MassSpectrum::setIntensityArray( std::vector< double >&& a )
+{
+    pImpl_->intsArray_ = std::move( a );
+}
+
+void
+MassSpectrum::setMassArray( std::vector< double >&& a )
+{
+    pImpl_->massArray_ = std::move( a );
+
+    if ( ! pImpl_->massArray_.empty() ) {
+
+        if ( pImpl_->acqRange_.first > pImpl_->massArray_.front() )
+            pImpl_->acqRange_.first = pImpl_->massArray_.front();
+
+        if ( pImpl_->acqRange_.second < pImpl_->massArray_.back() )
+            pImpl_->acqRange_.second = pImpl_->massArray_.back();
+    }
+}
+
+void
+MassSpectrum::setTimeArray( std::vector< double >&& a )
+{
+    pImpl_->tofArray_ = std::move( a );
+}
+
+void
 MassSpectrum::setTimeArray( const double * values )
 {
-   pImpl_->setTimeArray( values );
+    pImpl_->setTimeArray( values );
 }
 
 const unsigned char *
@@ -947,9 +960,13 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 void
 MassSpectrumImpl::setTimeArray( const double * p )
 {
-	if ( tofArray_.size() != size() )
-		tofArray_.resize( size() );
-	std::copy( p, p + tofArray_.size(), tofArray_.begin() );
+    if ( p == nullptr ) {
+        tofArray_.clear();
+    } else {
+        if ( tofArray_.size() != size() )
+            tofArray_.resize( size() );
+        std::copy( p, p + tofArray_.size(), tofArray_.begin() );
+    }
 }
 
 void

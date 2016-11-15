@@ -360,13 +360,18 @@ MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 }
 
 size_t
-MSProperty::toIndex( double seconds, const SamplingInfo& info )
+MSProperty::toIndex( double seconds, const SamplingInfo& info, bool closest )
 {
     double dx = ( seconds - info.horPos() - info.delayTime() ) / info.fSampInterval();
     if ( dx < 0 )
         return 0;
-    size_t idx = size_t( dx + 0.5 );
-    return idx < info.nSamples() ? idx : info.nSamples() - 1;
+
+    size_t idx = dx; // closest minimum
+    if ( closest ) {
+        if ( std::abs( seconds - toSeconds( idx, info ) ) > std::abs( toSeconds( idx + 1, info ) - seconds ) )
+            idx++;
+    }
+    return idx;
 }
 
 size_t

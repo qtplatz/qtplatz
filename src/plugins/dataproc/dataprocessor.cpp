@@ -39,11 +39,13 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/histogram.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibration.hpp>
@@ -64,11 +66,14 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adfs/adfs.hpp>
-#include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
+#include <adfs/file.hpp>
+#include <adfs/sqlite.hpp>
+#include <adutils/acquiredconf_v3.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/xml_serializer.hpp>
@@ -437,6 +442,58 @@ namespace dataproc {
     //-----
 }
 
+portfolio::Folium
+Dataprocessor::findProfiledHistogram( const portfolio::Folium& folium )
+{
+    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+        return portfolio::find_first_of( folium.attachments()
+                                         , []( const portfolio::Folium& a ){
+                                             return a.name() == Constants::F_PROFILED_HISTOGRAM;
+                                         } );
+    }
+    return portfolio::Folium();
+}
+        
+
+portfolio::Folium
+Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
+{
+    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+        auto att = findProfiledHistogram( folium );
+        
+        if ( ! att && ptr->isCentroid() ) {
+
+            boost::uuids::uuid objiid { 0 };
+            adfs::stmt sql( *db() );
+            sql.prepare( "SELECT objuuid FROM AcquiredConf where objtext like 'histogram.timecount.%'" );
+            if ( sql.step() == adfs::sqlite_row )
+                objiid = sql.get_column_value< boost::uuids::uuid >( 0 );
+            
+            double acclVoltage( 0 ), tDelay( 0 ), fLength( 0 );
+            boost::uuids::uuid clsid { 0 };
+            adutils::v3::AcquiredConf::findScanLaw( *db(), objiid, clsid, acclVoltage, tDelay, fLength );
+
+            // even if lock mass applied on datafile, but histogram has the original mass-time assign, so back to original value
+            acclVoltage = ptr->getMSProperty().acceleratorVoltage();
+            tDelay = ptr->getMSProperty().tDelay();
+
+            if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) {
+                
+                spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+                att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
+                auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
+                att.assign( ms, ms->dataClass() );
+                emit SessionManager::instance()->foliumChanged( this, folium );
+            }
+        }
+        return att;
+    }
+
+    return portfolio::Folium();
+}
+
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
@@ -764,6 +821,7 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
         if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
             portfolio::Folio atts = folium.attachments();
+
             auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
             if ( it != atts.end() ) {
                 auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
@@ -777,6 +835,7 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                     }
                 }
             }
+
             if ( verified ) {
                 auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_DFT_FILTERD; });
                 if ( it != atts.end() ) {

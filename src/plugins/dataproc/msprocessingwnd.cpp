@@ -37,6 +37,7 @@
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/histogram.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -337,9 +338,52 @@ MSProcessingWnd::init()
 }
 
 void
+MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectrumPtr& hist )
+{
+    if ( ! hist->isCentroid() ) {
+        draw_profile( folium.id(), hist );
+        return;
+    }
+
+    std::shared_ptr< adcontrols::MassSpectrum > profile;
+    
+    if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto att = dp->addProfiledHistogram( folium ) ) {
+
+            profile = portfolio::get< adcontrols::MassSpectrumPtr >( att );
+            
+            pProfileSpectrum_ = std::make_pair( folium.id(), hist ); // sticked
+            pProfileHistogram_ = std::make_pair( att.id(), profile ); // profiled
+        }
+    }
+
+    if ( axis_ == adcontrols::hor_axis_mass ) {
+        if ( hist->size() > 0
+             && adportable::compare<double>::approximatelyEqual( hist->getMass( hist->size() - 1 ), hist->getMass( 0 ) ) ) {
+            // Spectrum has no mass assigned
+            MainWindow::instance()->setSpectrumAxisChoice( adcontrols::hor_axis_time );
+        }
+    }
+
+    pImpl_->profileSpectrum_->setData( profile, static_cast<int>(drawIdx1_++) );
+    pImpl_->profileSpectrum_->setData( hist, static_cast<int>(drawIdx1_++) );
+    pImpl_->profileSpectrum_->setAlpha( drawIdx1_ - 1, 0x40 );
+    
+    QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
+	for ( auto text: hist->getDescriptions() )
+		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
+
+	pImpl_->profileSpectrum_->setTitle( title );
+    pImpl_->processedSpectrum_->clear();
+
+	drawIdx2_ = 0;
+}
+
+void
 MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPtr& ptr )
 {
     pProfileSpectrum_ = std::make_pair( guid, ptr );
+    pProfileHistogram_.second.reset();
 
     if ( axis_ == adcontrols::hor_axis_mass ) {
         if ( ptr->size() > 0
@@ -505,7 +549,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
     drawIdx2_ = 0;
 
     if ( portfolio::Folder folder = folium.getParentFolder() ) {
-
+        
         if ( folder.name() == L"Spectra" ) { //|| folder.name() == L"Chromatograms" ) {
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
@@ -520,7 +564,10 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
 
-                    draw_profile( folium.id(), ptr );
+                    if ( ptr->isCentroid() )
+                        draw_histogram( folium, ptr );
+                    else
+                        draw_profile( folium.id(), ptr );
 
                     if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
@@ -1024,7 +1071,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         actions.push_back( std::make_pair( menu.addAction( tr( "Copy to clipboard" ) ), [this] () { adplot::plot::copyToClipboard( pImpl_->profileSpectrum_ ); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Frequency analysis" ) ), [this] () { frequency_analysis(); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Save image file..." ) ), [this] () { save_image_file(); } ));
-        actions.push_back( std::make_pair( menu.addAction( tr( "Make profile" ) ), [this] () { } ));
+        actions.push_back( std::make_pair( menu.addAction( tr( "Make profile" ) ), [this] () { make_profile(); } ));
         if ( isHistogram ) {
             actions[2].first->setEnabled( false ); // Frequency analysis
         } else {
@@ -1626,6 +1673,14 @@ MSProcessingWnd::frequency_analysis()
     }
 }
 
+void
+MSProcessingWnd::make_profile()
+{
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        
+    }
+}
+
 
 void
 MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader, adcontrols::hor_axis axis, double s, double e )
@@ -1698,3 +1753,4 @@ MSProcessingWnd::save_image_file()
         adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
     }
 }
+

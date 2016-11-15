@@ -93,7 +93,7 @@ namespace dataproc {
 		void onFolderChanged( Dataprocessor *, const QString& folder );
         void onSessionRemoved( Dataprocessor * );
         void onProcessed( Dataprocessor *, portfolio::Folium& );
-        void foliumChanged( Dataprocessor *, portfolio::Folium& );
+        void foliumChanged( Dataprocessor *, const portfolio::Folium& );
 
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );

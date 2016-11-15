@@ -57,7 +57,7 @@ namespace adcontrols {
         int mode() const;
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
-
+        
         double timeSinceInjection() const;
         void setTimeSinceInjection( int64_t, metric::prefix pfx = metric::micro ); // for previous compatibility
         void setTimeSinceInjection( double );
@@ -79,7 +79,7 @@ namespace adcontrols {
         std::pair<double, double> instTimeRange() const;
 
         // Device specific parameters
-
+        
         void setDataInterpreterClsid( const char * utf8 );
         const char * dataInterpreterClsid() const;
         void setDeviceData( const char * device, size_t size );
@@ -93,7 +93,7 @@ namespace adcontrols {
         std::shared_ptr< const TofProtocol > tofProtocol();
 
         static double toSeconds( size_t idx, const SamplingInfo& info );
-        static size_t toIndex( double seconds, const SamplingInfo& info );
+        static size_t toIndex( double seconds, const SamplingInfo& info, bool closest = true );
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:
