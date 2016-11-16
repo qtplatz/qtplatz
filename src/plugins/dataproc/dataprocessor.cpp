@@ -815,40 +815,40 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                                 , const adcontrols::MassSpectrumPtr& ms
                                 , const adcontrols::lockmass::mslock& lockmass )
 {
-	if ( portfolio::Folium folium = this->portfolio().findFolium( foliumId ) ) {
+    using portfolio::Folium;
+
+	if ( Folium folium = this->portfolio().findFolium( foliumId ) ) {
         
-        bool verified = false;
-        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+        if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
+            lockmass( *profile );
+            
             portfolio::Folio atts = folium.attachments();
+            for ( auto& a: atts ) {
+                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( a ) ) {
 
-            auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
-            if ( it != atts.end() ) {
-                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
-                if ( centroid == ms ) {
-                    verified = true;
-                    // update attached peakinfo
-                    if ( auto fchild = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& child ){
-                                return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );} ) ) {
-                        auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild );
-                        DataprocHandler::reverse_copy( *pkinfo, *centroid );
+                    if ( ptr == ms ) {
+                        // 'ptr' is mass locked source, don't apply lock mass twince
+
+                        // update attached peakinfo
+                        if ( auto fchild = portfolio::find_first_of( a.attachments(), []( Folium& child ){
+                                    return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );
+                                } ) )   {
+
+                            if ( auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild ) )
+                                DataprocHandler::reverse_copy( *pkinfo, *ptr );
+                        }
+
+                    } else {
+                        // ADDEBUG() << "apply lockmass to: " << a.name();
+                        lockmass( *ptr );
                     }
                 }
             }
 
-            if ( verified ) {
-                auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_DFT_FILTERD; });
-                if ( it != atts.end() ) {
-                    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( *it ) )
-                        lockmass( *ptr );
-                }
-
-                if ( lockmass( *ptr ) ) // update profile spectrum
-                    ptr->addDescription( adcontrols::description( L"Process", L"Mass locked" ) );
-                setModified( true );
-            }
+            setModified( true );
         }
-	}
+    }
 }
 
 void
@@ -867,7 +867,7 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 
     if ( auto folium = folder.findFoliumByName( name ) )
         return folium; // already exists
-
+    
     portfolio::Folium folium = folder.addFolium( name );
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     folium.assign( ms, ms->dataClass() );
@@ -891,7 +891,6 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum >& p
         return folium; // already exists
 
     portfolio::Folium folium = folder.addFolium( name );
-    // adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     folium.assign( ptr, ptr->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )

@@ -39,7 +39,7 @@
 using namespace adcontrols;
 
 isotopeCluster::isotopeCluster() : threshold_daltons_( 1.0e-8 )
-                                 , threshold_abundance_( 1.0e-10 ) 
+                                 , threshold_abundance_( 1.0e-12 ) 
 {
 }
 
@@ -68,7 +68,7 @@ isotopeCluster::operator()( mol::molecule& mol, int charge ) const
             std::vector< mol::isotope > cluster;
             
             for ( auto& p: mol.cluster ) {
-
+                
                 for ( auto& i: element.isotopes() ) {
                     
                     mol::isotope mi( p.mass + i.mass, p.abundance * i.abundance );
@@ -104,7 +104,7 @@ isotopeCluster::merge( mol::isotope& it, const mol::isotope& mi ) const
 
     if ( std::abs( it.mass - mi.mass ) < threshold_daltons_ ) {
         it.abundance += mi.abundance;
-
+        
         // weighting average for mass -- this may affected when other independent molecule is co-exist
         double m = ( it.mass * it.abundance + mi.mass * mi.abundance ) / ( it.abundance + mi.abundance );
         // assert( std::abs( it.mass - m ) < ( 2.0e-7 );
@@ -164,7 +164,6 @@ isotopeCluster::operator()( std::vector< isopeak >& mi
                                    , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
     double pmax = maxIt->abundance;
 
-
     auto tail = mol.cluster.end();
 
     if ( mol.elements.size() > 1 )   {
@@ -200,14 +199,14 @@ isotopeCluster::operator()( MassSpectrum& ms
     
     for ( auto& formula_abundance: formula_abundances )
         ( *this )( peaks, formula_abundance.first, formula_abundance.second );
-
+    
     if ( ! peaks.empty() ) {
-
+        
         merge_peaks( peaks, resolving_power );
         ms.resize( peaks.size() );
         
         size_t idx(0);
-
+        
         for ( auto& i: peaks ) {
             ms.setMass( idx, i.mass );
             ms.setIntensity( idx, i.abundance * 100 );

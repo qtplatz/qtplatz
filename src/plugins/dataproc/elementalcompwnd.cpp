@@ -45,6 +45,8 @@
 #include <adportfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
+#include <qwt_scale_engine.h>
+#include <qwt_plot.h>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adwidgets/scanlawdialog.hpp>
@@ -105,7 +107,9 @@ ElementalCompWnd::init()
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
 		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );        
+		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+
+        // pImpl_->referenceSpectrum_->setAxisScaleEngine( QwtPlot::yLeft, new QwtLogScaleEngine );
 
         pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );
         //pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );

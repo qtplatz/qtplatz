@@ -340,6 +340,8 @@ MSProcessingWnd::init()
 void
 MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectrumPtr& hist )
 {
+    ADDEBUG() << "draw histogram";
+    
     if ( ! hist->isCentroid() ) {
         draw_profile( folium.id(), hist );
         return;
@@ -348,10 +350,13 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     std::shared_ptr< adcontrols::MassSpectrum > profile;
     
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        if ( auto att = dp->addProfiledHistogram( folium ) ) {
-
+        auto att = dp->findProfiledHistogram( folium );
+        if ( !att ) {
+            att = dp->addProfiledHistogram( folium );
+            ADDEBUG() << "add draw new histogram-profiled";
+        }
+        if ( att ) {
             profile = portfolio::get< adcontrols::MassSpectrumPtr >( att );
-            
             pProfileSpectrum_ = std::make_pair( folium.id(), hist ); // sticked
             pProfileHistogram_ = std::make_pair( att.id(), profile ); // profiled
         }
@@ -382,6 +387,8 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
 void
 MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPtr& ptr )
 {
+    ADDEBUG() << "draw profile";
+    
     pProfileSpectrum_ = std::make_pair( guid, ptr );
     pProfileHistogram_.second.reset();
 
@@ -405,6 +412,7 @@ MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPt
 void
 MSProcessingWnd::draw1()
 {
+    ADDEBUG() << "draw1";
     if ( auto ptr = pProfileSpectrum_.second.lock() ) {
         if ( drawIdx1_ )
             --drawIdx1_;
@@ -422,6 +430,7 @@ MSProcessingWnd::draw1()
 void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
+    ADDEBUG() << "draw2";    
     int idx = int( drawIdx2_++ );
     if ( ptr->isCentroid() )
         pImpl_->processedSpectrum_->setData( ptr, idx, false );
@@ -817,7 +826,7 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
                 pImpl_->processedSpectrum_->update_annotation();
 
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
-					dp->lockMassHandled( idSpectrumFolium_, ms, lockmass ); // update profile
+					dp->lockMassHandled( idSpectrumFolium_, ms, lockmass ); // update profile, attribute data
 
                 MainWindow::instance()->lockMassHandled( ms ); // update MSPeakTable
                 handleDataMayChanged();
@@ -1011,7 +1020,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
             }
                 
             if ( axis_ == adcontrols::hor_axis_time )
-                range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) ), ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
+                range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) )
+                                        , ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
             else {
                 const double * masses = ms->getMassArray();
                 range = std::make_pair( std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.left() ) )

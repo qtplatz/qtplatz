@@ -429,7 +429,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
 
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
-
+        
         bool reduce = false;
         if ( d1 >= slope ) {
             if ( ( base_c = std::min( base_c, w * 2 ) ) )

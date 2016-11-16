@@ -24,7 +24,8 @@
 
 #include "histogram_processor.hpp"
 #include "moment.hpp"
-
+#include "debug.hpp"
+#include <cassert>
 #include <cmath>
 #include <cstring> // for memset()
 #include <stdexcept>
@@ -37,7 +38,8 @@ using namespace adportable;
 
 namespace adportable {
     namespace histogram {
-        
+
+        ///////////////////////////////
         struct distance {
 
             const double * pTimes_;
@@ -58,6 +60,95 @@ namespace adportable {
             }
         };
 
+        ///////////////////////////////
+        constexpr const size_t stack_size = 64;
+
+        template< class T > class stack {
+            T vec_[ stack_size ];
+            T * bp_;
+            inline const T * end() const  { return &vec_[ stack_size ]; }
+            inline const T * begin() const { return &vec_[ 0 ]; }
+        public:
+            stack() : bp_( &vec_[ stack_size ] ) {   }
+            inline bool empty() const                     { return bp_ == end(); }
+            inline size_t size() const                    { return end() - bp_; }
+            inline void push( const T& t )                { if ( bp_ <= begin() ) throw std::out_of_range("overflow"); *(--bp_) = t; }
+            inline void pop()                             { if ( bp_ >= end() ) throw std::out_of_range("underflow");  ++bp_; }
+            inline const T& top() const                   { return *bp_; }
+            inline T& top()                               { return *bp_; }
+            inline const T& operator [] ( int idx ) const { return bp_[ idx ]; }
+            inline T& operator [] ( int idx )             { return bp_[ idx ]; }
+        };
+
+        enum event_type { None, Up, Down };
+
+        struct counter {
+            event_type type_;
+            size_t bpos_;
+            size_t tpos_;
+            counter( size_t pos = 0, event_type type = None ) : type_( type ), bpos_( pos ), tpos_( pos ) {}
+            counter( const counter& t ) : type_( t.type_ ), bpos_( t.bpos_ ), tpos_( t.tpos_ ) {}
+            event_type type() const { return type_; }
+            inline void operator ++ (int) { ++tpos_; }
+            inline size_t distance() const { return tpos_ - bpos_; }
+            inline void operator += ( const counter& t ) {
+                assert ( t.type_ == type_ );
+                tpos_ = t.tpos_;
+            }
+        };
+
+        template<class T=counter> struct slope_state {
+
+            stack< T > stack_;
+            size_t width_;
+
+            slope_state( size_t w = 5 ) : width_( w ) {}
+
+            bool reduce( std::pair< T, T >& res ) {
+                if ( stack_[1].type() == Down && stack_.size() >= 3 ) {
+                    res.first = stack_[2];
+                    res.second = stack_[1];
+                    counter top = stack_.top();
+                    stack_.pop();
+                    stack_.pop();
+                    stack_.pop();
+                    stack_.push( top );
+                    return true;
+                }
+                return false;
+            }
+
+            bool shift_reduce( const T& c ) {
+                while ( stack_.top().distance() < width_ ) {
+                    // && stack_.top().type() == peakfind::Down ) { // discard narrow 'down' state
+                    stack_.pop();
+                    if ( stack_.empty() ) {
+                        stack_.push( c );
+                        return false;
+                    }
+                }
+
+                if ( stack_.top().type() == c.type() )  // marge
+                    stack_.top() += c;  // marge
+
+                // if (Up - Down)|(Down - Up), should push counter and wait for next state
+                if ( stack_.top().type() != c.type() )
+                    stack_.push( c );
+
+                return stack_.size() >= 3;
+            };
+
+            bool process_slope( const T& t ) {
+                if ( stack_.empty() ) {
+                    stack_.push( t ); // Up|Down
+                    return false;
+                } else if ( stack_.top().type() == t.type() ) {
+                    stack_.top()++;
+                    return false;
+                } else
+                    return shift_reduce( t );
+            }
+        };
     }
 }
 
@@ -102,19 +193,34 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
 
         ++idx;
     }
-
+    
+    static const int width = 3;
+    static const double slope = 0.0;
+    
     for ( auto& cluster: clusters ) {
+        if ( ( cluster.second - cluster.first ) > width ) {
 
-        auto it = std::max_element( pCounts + cluster.first, pCounts + cluster.second + 1 );
-        auto idx = std::distance( pCounts, it );
+            //ADDEBUG() << "cluster: " << cluster.first << ", " << cluster.second;
 
-        if ( ( distance.slope( cluster.first, idx ) > 0 ) &&
-             ( distance.slope( idx, cluster.second ) < 0 ) ) {
+            slope_state< counter > state( width / 2 );
 
-            results_.emplace_back( peakinfo( cluster.first, cluster.second, 0 ) );
-
+            bool reduce = false;
+            for ( auto it = pCounts + cluster.first + 1; it < pCounts + cluster.second; ++it ) {
+                double d1 = ( -( it[ -1 ] ) + it[ 1 ] ) / 2;
+                size_t x = std::distance( pCounts, it );
+                if ( d1 >= slope )
+                    reduce = state.process_slope( counter( x, Up ) );
+                else if ( d1 <= (-slope) )
+                    reduce = state.process_slope( counter( x, Down ) );
+                if ( reduce ) {
+                    std::pair< counter, counter > peak;
+                    while ( state.reduce( peak ) ) {
+                        // ADDEBUG() << peak.first.bpos_ << ", " << peak.second.tpos_;
+                        results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                    }
+                }
+            }
         }
-        
     }
     
     return results_.size();
