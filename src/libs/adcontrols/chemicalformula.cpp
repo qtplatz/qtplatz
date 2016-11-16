@@ -610,12 +610,12 @@ std::vector< std::string >
 ChemicalFormula::standardFormulae( const std::string& formula, const std::string& adducts, std::vector< std::string >& adductlist )
 {
     std::vector< std::string > formulae;
-
+    
     adportable::chem::icomp_type mol;
     if ( chem::parser()( mol, formula ) ) {
         
         chem::adductlist_splitter()( adductlist, adducts ); // split by comma; e.g. "+[H]+, +[Na]+" --> "+[H]+", "+[Na]+"
-
+        
         if ( adductlist.empty() )
             formulae.emplace_back( chem::make_string< char >( mol ) );
 

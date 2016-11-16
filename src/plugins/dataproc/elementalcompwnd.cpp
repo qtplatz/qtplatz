@@ -38,6 +38,7 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/polfit.hpp>
@@ -259,6 +260,11 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
                 display_formulae.push_back( mol.formula() );
             }
         }
+    }
+    for ( const auto& f: formula_abundances ) {
+        auto list = adcontrols::isotopeCluster::formulae( f.first );
+        for ( auto& x: list )
+            ADDEBUG() << x;
     }
 
     auto ms = std::make_shared< adcontrols::MassSpectrum >();

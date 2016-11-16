@@ -88,7 +88,7 @@ namespace adportable {
 
         template< typename Iterator, typename handler = formulaComposition, typename startType = icomp_type >
         struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
-
+            
             chemical_formula_parser() : chemical_formula_parser::base_type( molecule )
                                       , element( element_table, element_table )  {
                 molecule =
