@@ -168,57 +168,28 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
     if ( pTimes == 0 || pCounts == 0 )
         return 0;
 
-    std::vector< std::pair< size_t, size_t > > clusters;
-    
-    distance distance( pTimes, pCounts, xInterval_ );
-
-    // find contenous data reagion
-
-    size_t idx = 0;
-    while ( idx < nbrSamples - 1 ) {
-        
-        if ( distance( idx, idx + 1 ) == 1 ) {
-            
-            size_t first = idx;
-            
-            while ( ( distance( idx, idx + 1 ) == 1 ) && ( idx < nbrSamples - 1 ) )
-                ++idx;
-
-            auto last = idx;
-
-            if ( ( last - first + 1 ) >= 3 )
-                clusters.emplace_back( first, idx );
-            
-        }
-
-        ++idx;
-    }
-    
     static const int width = 3;
     static const double slope = 0.0;
-    
-    for ( auto& cluster: clusters ) {
-        if ( ( cluster.second - cluster.first ) > width ) {
 
-            //ADDEBUG() << "cluster: " << cluster.first << ", " << cluster.second;
-
-            slope_state< counter > state( width / 2 );
-
-            bool reduce = false;
-            for ( auto it = pCounts + cluster.first + 1; it < pCounts + cluster.second; ++it ) {
-                double d1 = ( -( it[ -1 ] ) + it[ 1 ] ) / 2;
-                size_t x = std::distance( pCounts, it );
-                if ( d1 >= slope )
-                    reduce = state.process_slope( counter( x, Up ) );
-                else if ( d1 <= (-slope) )
-                    reduce = state.process_slope( counter( x, Down ) );
-                if ( reduce ) {
-                    std::pair< counter, counter > peak;
-                    while ( state.reduce( peak ) ) {
-                        // ADDEBUG() << peak.first.bpos_ << ", " << peak.second.tpos_;
-                        results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
-                    }
-                }
+    slope_state< counter > state( width / 2 );
+            
+    bool reduce = false;
+    for ( auto it = pCounts + 1; it < pCounts + nbrSamples - 1; ++it ) {
+        double d1 = ( -( it[ -1 ] ) + it[ 1 ] ) / 2;
+        { // debug
+            //double t = pTimes[ std::distance( pCounts, it ) ];
+            //ADDEBUG() << "data: " << std::distance( pCounts, it ) << "\t, " << t << "\t" << *it << "\td1=" << d1;
+        }
+        size_t x = std::distance( pCounts, it );
+        if ( d1 >= slope )
+            reduce = state.process_slope( counter( x, Up ) );
+        else if ( d1 <= (-slope) )
+            reduce = state.process_slope( counter( x, Down ) );
+        if ( reduce ) {
+            std::pair< counter, counter > peak;
+            while ( state.reduce( peak ) ) {
+                //ADDEBUG() << "reduce: " << peak.first.bpos_ << ", " << peak.second.tpos_;
+                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
             }
         }
     }
