@@ -32,6 +32,7 @@
 #endif
 #include <adportable/scoped_flag.hpp>
 #include <adportable/date_string.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <qtwrapper/font.hpp>
 #include <QAction>
@@ -40,6 +41,7 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QPainter>
+#include <QPushButton>
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -159,7 +161,7 @@ namespace adwidgets {
 
     signals:
 
-    private slots:
+    public slots:
         void handleDataChanged( const QModelIndex& topLeft, const QModelIndex& bottomRight ) {
             if ( inProgress_ )
                 return;
@@ -186,6 +188,8 @@ namespace adwidgets {
             path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
             model_->setData( model_->index( 2, 1 ), QString::fromStdWString( path.wstring() ) );
             menuIndex_ = QModelIndex();
+
+            ADDEBUG() << "setDefault(" << path.string() << ")";
         }
 
     };
@@ -196,19 +200,36 @@ using namespace adwidgets;
 
 SampleRunWidget::SampleRunWidget(QWidget *parent) :  QWidget(parent)
 {
-    if ( QSplitter * splitter = new QSplitter ) {
+    if ( auto topLayout = new QVBoxLayout( this ) ) {
 
-        splitter->addWidget( new SampleRunTable );
-        splitter->addWidget( new QTextEdit );
+        if ( QSplitter * splitter = new QSplitter ) {
 
-        splitter->setOrientation( Qt::Horizontal );
-        splitter->setStretchFactor( 0, 4 );
-        splitter->setStretchFactor( 1, 1 );
+            splitter->addWidget( new SampleRunTable );
+            splitter->addWidget( new QTextEdit );
 
-        if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
-            layout->setMargin( 0 );
-            layout->setSpacing( 0 );
-            layout->addWidget( splitter );
+            splitter->setOrientation( Qt::Horizontal );
+            splitter->setStretchFactor( 0, 4 );
+            splitter->setStretchFactor( 1, 1 );
+
+            if ( QVBoxLayout * layout = new QVBoxLayout ) {
+                layout->setMargin( 0 );
+                layout->setSpacing( 0 );
+                layout->addWidget( splitter );
+                topLayout->addLayout( layout );
+            }
+        }
+
+        if ( auto vLayout = new QHBoxLayout ) {
+            if ( auto button = new QPushButton( tr("Apply") ) ) {
+                vLayout->addWidget( button );
+                connect( button, &QPushButton::released, this, [this](){ emit apply(); } );
+            }
+            if ( auto button = new QPushButton( tr("Default folder") ) ) {
+                vLayout->addWidget( button );
+                if ( auto table = findChild< SampleRunTable * >() )
+                    connect( button, &QPushButton::released, table, &SampleRunTable::setDefault );
+            }
+            topLayout->addLayout( vLayout );
         }
     }
 }

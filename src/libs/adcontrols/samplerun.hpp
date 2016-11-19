@@ -43,6 +43,8 @@ namespace adcontrols {
     ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::weak_ptr < SampleRun > ;
 #endif
 
+    // SampleRun class is corresponding to a sequence
+
     class ADCONTROLSSHARED_EXPORT SampleRun : public std::enable_shared_from_this< SampleRun > {
     public:
         ~SampleRun();
@@ -72,7 +74,7 @@ namespace adcontrols {
         void description( const char * );
 
         size_t runCount() const;
-        size_t operator ++( );
+        size_t operator ++();
 
         std::pair< std::wstring, size_t > findNextRunName() const;
 
