@@ -66,6 +66,7 @@ namespace adplot {
         impl * impl_;
 
         void redraw_all();
+        void yScaleHock( QRectF& );
 
     signals:
         void onMoved( const QPointF& );

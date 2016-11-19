@@ -242,16 +242,7 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
         zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, _1 ) );
         zoomer->tracker2( std::bind( &SpectrumWidget::impl::tracker2, impl_, _1, _2 ) );
 
-        zoomer->autoYScaleHock( [this]( QRectF& rc ){
-                std::pair<double, double > left, right;
-                auto hasAxis = impl_->scaleY( rc, left, right );
-                if ( hasAxis.second )
-                    setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
-
-                if ( hasAxis.first ) { // yLeft; zoom rect seems be upside down
-                    rc.setCoords( rc.left(), left.first, rc.right(), left.second );
-                }
-            } );
+        zoomer->autoYScaleHock( [this]( QRectF& rc ){ yScaleHock( rc ); } );
 
         connect( zoomer, &QwtPlotZoomer::zoomed, this, &SpectrumWidget::zoomed );
     }
@@ -277,6 +268,21 @@ SpectrumWidget::update_annotation( bool bReplot )
     impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ) );
     if ( bReplot )
         replot();
+}
+
+void
+SpectrumWidget::yScaleHock( QRectF& rc )
+{
+    std::pair<double, double > left, right;
+
+    auto hasAxis = impl_->scaleY( rc, left, right );
+    if ( hasAxis.second ) {
+        if ( ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) )
+            setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+    }
+    
+    if ( hasAxis.first ) 
+        rc.setCoords( rc.left(), left.first, rc.right(), left.second );
 }
 
 void
@@ -835,6 +841,8 @@ TraceData::y_range( double left, double right ) const
             }
         }
     }
+    if ( top < bottom )
+        return std::make_pair( 0.0, 1.0 );
     return std::make_pair<>(bottom, top);
 }
 
