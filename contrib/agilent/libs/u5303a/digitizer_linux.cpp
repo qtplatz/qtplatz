@@ -312,7 +312,6 @@ task::task() : work_( io_service_ )
 
 task::~task()
 {
-    ADDEBUG() << "******** task dtor";
 }
 
 bool

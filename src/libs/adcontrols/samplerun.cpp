@@ -170,7 +170,6 @@ using namespace adcontrols;
 
 SampleRun::~SampleRun()
 {
-    ADDEBUG() << "############ DTOR SampleRun ################";
 }
 
 SampleRun::SampleRun() : impl_( new impl() )
