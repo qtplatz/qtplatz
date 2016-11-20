@@ -239,7 +239,8 @@ task::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >& run, const 
 {
     auto pCM  = std:: make_shared< adcontrols::ControlMethod::Method >( method );
 
-    if ( auto sp = std::make_shared< SampleProcessor >( run, pCM ) ) {
+    auto clone = std::make_shared< adcontrols::SampleRun >( *run );
+    if ( auto sp = std::make_shared< SampleProcessor >( clone, pCM ) ) {
 
         sp->prepare_storage( impl_->masterObserver_.get() );
 

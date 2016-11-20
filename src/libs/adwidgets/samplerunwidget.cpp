@@ -139,8 +139,8 @@ namespace adwidgets {
             //t.methodTime( model.index( 0, 1 ).data().toDouble() * 60.0 ); // stored in seconds
             t.methodTime( model.index( 0, 1 ).data().toDouble() ); // stored in seconds
             t.replicates( model.index( 1, 1 ).data().toInt() );
-            t.dataDirectory( model.index( 2, 1 ).data().toString().toStdWString().c_str() );
-            t.filePrefix( model.index( 3, 1 ).data().toString().toStdWString().c_str() );
+            t.setDataDirectory( model.index( 2, 1 ).data().toString().toStdWString() );
+            t.setFilePrefix( model.index( 3, 1 ).data().toString().toStdWString() );
             return true;
         }
 

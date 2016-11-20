@@ -109,9 +109,7 @@ SampleProcessor::prepare_storage( adicontroller::SignalObserver::Observer * mast
 	if ( ! boost::filesystem::exists( path ) )
 		boost::filesystem::create_directories( path );
 
-    auto pair = sampleRun_->findNextRunName();
-
-	boost::filesystem::path filename = path / pair.first;
+	boost::filesystem::path filename = sampleRun_->filename();
 	filename.replace_extension( ".adfs~" );
 
 	storage_name_ = filename.normalize();
@@ -140,31 +138,9 @@ SampleProcessor::prepare_sample_run( adcontrols::SampleRun& run, bool createDire
     if ( !boost::filesystem::exists( path ) ) {
         if ( !createDirectory )
             return boost::filesystem::path();
-
         boost::filesystem::create_directories( path );
     }
-
-    boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( run.filePrefix() );
-
-    int runno = 0;
-	if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
-        using boost::filesystem::directory_iterator;
-		for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
-            boost::filesystem::path fname = (*it);
-			if ( fname.extension().string() == ".adfs" ) {
-                runno = std::max( runno, adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
-            }
-        }
-    }
-    std::wostringstream o;
-    o << prefix.wstring() << std::setw( 4 ) << std::setfill( L'0' ) << (runno + 1);
-    
-    boost::filesystem::path filename = path / o.str();
-	filename.replace_extension( ".adfs~" );
-
-    run.setFilePrefix( filename.stem().wstring() );
-
-    return filename;
+    return run.filename( L".adfs~" );
 }
 
 void
