@@ -41,6 +41,7 @@ namespace adplot {
         Zoomer( int xAxis, int yAxis, QWidget * canvas );
 
         void autoYScale( bool );
+        bool autoYScale() const;
         void autoYScaleHock( std::function< void( QRectF& ) > );
         void tracker1( std::function<QwtText( const QPointF& )> );
         void tracker2( std::function<QwtText( const QPointF&, const QPointF& )> );

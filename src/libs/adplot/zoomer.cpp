@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "zoomer.hpp"
+#include <QGuiApplication>
 #include <QMouseEvent>
 #include <qwt_painter.h>
 #include <qwt_picker_machine.h>
@@ -41,8 +42,8 @@ Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis,
     // Shift+LeftButton: zoom out to full size
     setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton, Qt::ShiftModifier );
     
-    // Ctrl+LeftButton: zoom out by 1
-    setMousePattern( QwtEventPattern::MouseSelect3, Qt::LeftButton, Qt::ControlModifier );
+    // Ctrl+LeftButton: zoom out by 1 => override for zoom y
+    // setMousePattern( QwtEventPattern::MouseSelect3, Qt::LeftButton, Qt::ControlModifier );
     // in addition to this, double click for zoom out by 1 via override widgetMouseDoubleClickEvent
 
     QPen pen( QColor( 0xff, 0, 0, 0x40 ) ); // transparent darkRed
@@ -62,6 +63,12 @@ void
 Zoomer::autoYScale( bool f )
 {
     autoYScale_ = f;
+}
+
+bool
+Zoomer::autoYScale() const
+{
+    return autoYScale_;
 }
 
 void
@@ -189,6 +196,8 @@ Zoomer::trackerTextF( const QPointF &pos ) const
 void
 Zoomer::zoom( const QRectF& rect )
 {
+    qDebug() << "Zoomer::zoom " << rect;
+    
     if ( autoYScale_ && autoYScaleHock_ ) {
         QRectF rc( rect );
         autoYScaleHock_( rc );

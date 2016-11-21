@@ -98,7 +98,7 @@ namespace aqdrv4 {
         }
 
         std::vector< boost::asio::const_buffer > to_buffers();
-
+        
     private:
         struct preamble preamble_;
         std::string payload_;

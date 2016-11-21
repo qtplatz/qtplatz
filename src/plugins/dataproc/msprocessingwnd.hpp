@@ -44,6 +44,10 @@ namespace adcontrols {
     enum hor_axis: unsigned int;
 }
 
+namespace adplot {
+    class plot;
+}
+
 namespace portfolio {
     class Folium;
 }
@@ -126,7 +130,9 @@ namespace dataproc {
         void frequency_analysis();
         void save_image_file();
         void make_chromatogram( const adcontrols::DataReader *, adcontrols::hor_axis, double, double );
-        void make_profile();
+        void make_chromatograms( std::shared_ptr< const adcontrols::MassSpectrum >, adcontrols::hor_axis, double, double );
+        void autoYScale( adplot::plot * );
+        void autoYZoom( adplot::plot *, double, double );
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );

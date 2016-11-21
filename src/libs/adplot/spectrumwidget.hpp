@@ -58,7 +58,7 @@ namespace adplot {
         void setKeepZoomed( bool );
         void setZoomBase( const std::pair< double, double >& range, bool horizontal = true );
         void setVectorCompression( int ) override;
-
+        void yZoom( double xmin, double xmax ) override;
         static QColor index_color( unsigned int idx );
 
     private:
@@ -67,6 +67,7 @@ namespace adplot {
 
         void redraw_all();
         void yScaleHock( QRectF& );
+
 
     signals:
         void onMoved( const QPointF& );
