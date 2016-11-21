@@ -26,6 +26,7 @@
 #include "queryquery.hpp"
 #include <acqrscontrols/constants.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adportable/debug.hpp>
 #include <adwidgets/delegatehelper.hpp>
@@ -72,8 +73,15 @@ namespace query {
                                                     , time_column_( -1 ) {
         }
         QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override {
-            if ( time_column_ >= 0 && index.column() == computed_mass_column_ )
-                return QVariant( 999.99 );
+            if ( computed_mass_column_ == index.column() && ( role == Qt::EditRole || role == Qt::DisplayRole ) ) {
+                if ( index.isValid() ) {
+                    // don't call record( row ), it will recurse data() and stack overflow; use query().record() instead
+                    auto rec = query().record();
+                    int proto = rec.value( "protocol" ).toInt();
+                    double t = rec.value( "time" ).toDouble();
+                    return spectrometer_->scanLaw()->getMass( t, spectrometer_->mode( proto ) );
+                }
+            }
             return QSqlQueryModel::data( index, role );
         }
         int computed_mass_column_;
@@ -104,7 +112,7 @@ namespace query {
                                     painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( it->second ) );
                             }
                         } else if ( column_name == "meta" && index.data().type() == QVariant::ByteArray ) {
-
+                            
                         } else {
                             QStyledItemDelegate::paint( painter, op, index );
                         }
@@ -180,20 +188,20 @@ QueryResultTable::setDatabase( QSqlDatabase& db )
 void
 QueryResultTable::setQuery( const QSqlQuery& query )
 {
+    model_->clear();
     model_->setQuery( query );
-    int rec = query.record().indexOf( "time" );
+    
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) ) {
 
-    ADDEBUG() << "setQuery time rec=" << rec;
+        int rec = query.record().indexOf( "time" ); // non-case sensitive
 
-    auto model = dynamic_cast< SqlQueryModel * >( model_.get() );
-
-    if ( model ){
+        model->computed_mass_column_ = rec;
         model->time_column_ = rec;
-        model->computed_mass_column_ = ( rec < 0 ) ? -1 : rec + 1;
-    }
-    if ( rec >= 0 ) {
-        model_->insertColumns( rec + 1, 1 );
-        model_->setHeaderData( rec + 1, Qt::Horizontal, tr("m/z") );
+
+        if ( rec >= 0 ) {
+            model_->insertColumns( rec, 1 );
+            model_->setHeaderData( rec, Qt::Horizontal, tr("m/z") );
+        }
     }
 }
 
