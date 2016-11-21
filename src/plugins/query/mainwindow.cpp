@@ -102,15 +102,6 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        // Core::ActionManager * am = Core::ActionManager::instance(); // ->actionManager();
-        // if ( am ) {
-        //     // [file open] button
-        //     //toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
-        //     //-- separator --
-        //     toolBarLayout->addWidget( new Utils::StyledSeparator );
-        //     //---
-        //     //toolBarLayout->addWidget( topLineEdit_.get() );
-        // }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
     }
@@ -191,7 +182,7 @@ MainWindow::handleOpen()
 {
     try {
         QString name = QFileDialog::getOpenFileName( this
-                                                     , tr( "Open Quantitative Analysis Result file" )
+                                                     , tr( "Open SQLite file" )
                                                      , QueryDocument::instance()->lastDataDir()
                                                      , tr( "File(*.adfs)|(*)" ) );
         if ( !name.isEmpty() ) {

@@ -25,6 +25,7 @@
 #include "queryresulttable.hpp"
 #include "queryquery.hpp"
 #include <acqrscontrols/constants.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adportable/debug.hpp>
 #include <adwidgets/delegatehelper.hpp>
@@ -62,8 +63,24 @@ namespace query {
 }
 
 
-
 namespace query {
+
+    class SqlQueryModel : public QSqlQueryModel {
+    public:
+        SqlQueryModel( QObject * parent = nullptr ) : QSqlQueryModel( parent )
+                                                    , computed_mass_column_( -1 )
+                                                    , time_column_( -1 ) {
+        }
+        QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override {
+            if ( time_column_ >= 0 && index.column() == computed_mass_column_ )
+                return QVariant( 999.99 );
+            return QSqlQueryModel::data( index, role );
+        }
+        int computed_mass_column_;
+        int time_column_;
+        std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
+    };
+    
     namespace queryresulttable {
         
         class ItemDelegate : public QStyledItemDelegate {
@@ -121,7 +138,6 @@ namespace query {
                 } else
                     return QStyledItemDelegate::sizeHint( option, index );
             }
-        
         };
     }
 }
@@ -133,12 +149,27 @@ QueryResultTable::~QueryResultTable()
 }
 
 QueryResultTable::QueryResultTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                    , model_( new QSqlQueryModel() )
+                                                    , model_( new SqlQueryModel() )
 {
     setAllowDelete( false );
     setModel( model_.get() );
     setItemDelegate( new queryresulttable::ItemDelegate );
     setHorizontalHeader( new adwidgets::HtmlHeaderView );
+}
+
+void
+QueryResultTable::setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > sp )
+{
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+        model->spectrometer_ = sp;
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+QueryResultTable::massSpectrometer()
+{
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+        return model->spectrometer_;
+    return nullptr;
 }
 
 void
@@ -150,6 +181,20 @@ void
 QueryResultTable::setQuery( const QSqlQuery& query )
 {
     model_->setQuery( query );
+    int rec = query.record().indexOf( "time" );
+
+    ADDEBUG() << "setQuery time rec=" << rec;
+
+    auto model = dynamic_cast< SqlQueryModel * >( model_.get() );
+
+    if ( model ){
+        model->time_column_ = rec;
+        model->computed_mass_column_ = ( rec < 0 ) ? -1 : rec + 1;
+    }
+    if ( rec >= 0 ) {
+        model_->insertColumns( rec + 1, 1 );
+        model_->setHeaderData( rec + 1, Qt::Horizontal, tr("m/z") );
+    }
 }
 
 void

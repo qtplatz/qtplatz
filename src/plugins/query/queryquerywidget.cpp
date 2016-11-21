@@ -34,6 +34,9 @@
 #include "plotdialog.hpp"
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
+#include <adcontrols/controlmethod.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -47,6 +50,7 @@
 #include <QLineEdit>
 #include <QSplitter>
 #include <QSqlError>
+#include <QSqlRecord>
 #include <QStringListModel>
 #include <QStackedWidget>
 #include <QToolButton>
@@ -55,6 +59,10 @@
 #include <QStandardItemModel>
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <fstream>
 #include <algorithm>
 
@@ -80,8 +88,10 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    connect( QueryDocument::instance(), &QueryDocument::onConnectionChanged, this, &QueryQueryWidget::handleConnectionChanged );
-    connect( QueryDocument::instance(), &QueryDocument::onHistoryChanged, this, [this](){ form_->setSqlHistory( QueryDocument::instance()->sqlHistory() ); } );
+    connect( QueryDocument::instance(), &QueryDocument::onConnectionChanged
+             , this, &QueryQueryWidget::handleConnectionChanged );
+    connect( QueryDocument::instance(), &QueryDocument::onHistoryChanged, this
+             , [this](){ form_->setSqlHistory( QueryDocument::instance()->sqlHistory() ); } );
     connect( form_.get(), &QueryQueryForm::triggerQuery, this, &QueryQueryWidget::handleQuery );
     connect( table_.get(), &QueryResultTable::plot, this, &QueryQueryWidget::handlePlot );
 
@@ -147,13 +157,22 @@ QueryQueryWidget::handleConnectionChanged()
     if ( auto conn = QueryDocument::instance()->connection() ) {
         if ( auto form = findChild< QueryQueryForm * >() ) {
             QStringList tables;
+            bool hasPeak( false ), hasTrigger( false );
             auto query = conn->sqlQuery( "SELECT name FROM sqlite_master WHERE type='table'" );
-            while ( query.next() ) 
+            while ( query.next() ) {
                 tables << query.value( 0 ).toString();
+                if ( query.value( 0 ).toString().compare( "peak", Qt::CaseInsensitive ) )
+                    hasPeak = true;
+                else if ( query.value( 0 ).toString().compare( "trigger", Qt::CaseInsensitive ) )
+                    hasTrigger = true;
+            }
             tables.push_back( "sqlite_master" );
 
-            form->setTableList( tables );
+            if ( hasPeak && hasTrigger )
+                tables.push_back( "{Counting,trigger}" ); // '{}' never appear on sql table name
 
+            form->setTableList( tables );
+            
             form->setSqlHistory( QueryDocument::instance()->sqlHistory() );            
             
             QStringList words ( tables );
@@ -194,11 +213,48 @@ void
 QueryQueryWidget::executeQuery()
 {
     if ( auto connection = QueryDocument::instance()->connection() ) {
-        form_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
-
-        auto query = connection->sqlQuery( form_->sql() );
-        table_->setQuery( query );
-        //table_->setDatabae( connection->sqlDatabase() );
+        {
+            form_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
+            auto query = connection->sqlQuery( form_->sql() );
+            table_->setQuery( query );
+        }
+            
+        {
+            QSqlQuery query( connection->sqlDatabase() );
+            query.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE spectrometer='InfiTOF' LIMIT 1" );
+            if ( query.exec() ) {
+                while ( query.next() ) {
+                    auto rec = query.record();
+                    double acclVoltage = rec.value( 0 ).toDouble();
+                    double tDelay = rec.value( 1 ).toDouble();
+                    auto uuid = boost::uuids::string_generator()( rec.value( 2 ).toString().toStdString() );
+                    if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( uuid ) ) {
+                        spectrometer->setScanLaw( acclVoltage, tDelay, 1.0 );
+                        table_->setMassSpectrometer( spectrometer );
+                    }
+                }
+            }
+        }
+        {
+            // see infitof2/document.cpp line 940
+            auto idstr = boost::lexical_cast< std::string >( adcontrols::ControlMethod::Method::clsid() );
+            QSqlQuery query( connection->sqlDatabase() );
+            query.prepare( "SELECT data FROM MetaData WHERE clsid = ?" );
+            query.bindValue( 0, QString::fromStdString( idstr ) );
+            if ( query.exec() ) {
+                while ( query.next() ) {
+                    auto rec = query.record();
+                    auto blob = rec.value( 0 ).toByteArray();
+                    adcontrols::ControlMethod::Method m;
+                    boost::iostreams::basic_array_source< char > device( blob.data(), size_t( blob.size() ) );
+                    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
+                    if ( adcontrols::ControlMethod::Method::restore( strm, m ) ) {
+                        if ( auto sp = table_->massSpectrometer() )
+                            sp->setMethod( m );
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -241,7 +297,6 @@ QueryQueryWidget::handlePlot()
             if ( dlg.clearExisting() )
                 chart->clear();
 
-            
             auto type = dlg.chartType();
             auto plots = dlg.plots();
             for( auto& plot: plots ) {

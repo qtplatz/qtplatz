@@ -34,6 +34,10 @@ class QSqlTableModel;
 class QSqlQueryModel;
 class QSqlQuery;
 
+namespace adcontrols {
+    class MassSpectrometer;
+}
+
 namespace query {
 
     class QueryQuery;
@@ -54,11 +58,12 @@ namespace query {
         void clear();
         int findColumn( const QString& );
 
+        void setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > );
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
         QAbstractItemModel * model();
 
     private:
-        //std::unique_ptr< QSqlTableModel > model_;
         std::unique_ptr< QSqlQueryModel > model_;
         std::set< std::string > hideColumns_;
 
