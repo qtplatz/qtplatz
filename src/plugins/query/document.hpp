@@ -36,6 +36,7 @@
 #include <QObject>
 
 namespace boost { namespace filesystem { class path; } }
+namespace adcontrols { class MassSpectrometer; }
 
 class QSettings;
 
@@ -43,14 +44,14 @@ namespace query {
     
     class QueryConnection;
 
-    class QueryDocument : public QObject {
+    class document : public QObject {
         Q_OBJECT
-        QueryDocument();
+        document();
     private:
-        ~QueryDocument();
-        static std::unique_ptr< QueryDocument > instance_;
+        ~document();
+        static std::unique_ptr< document > instance_;
     public:
-        static QueryDocument * instance();
+        static document * instance();
 
         void setConnection( QueryConnection * );
         QueryConnection * connection();
@@ -64,10 +65,14 @@ namespace query {
         void addSqlHistory( const QString& );
         QStringList sqlHistory();
 
+        void setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > );
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
+
     private:
-        friend std::unique_ptr< QueryDocument >::deleter_type;
+        friend std::unique_ptr< document >::deleter_type;
         std::unique_ptr< QSettings > settings_;
         std::shared_ptr< QueryConnection > queryConnection_;
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer_;
 
     signals:
         void onConnectionChanged();

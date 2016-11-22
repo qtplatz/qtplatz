@@ -24,6 +24,7 @@
 
 #include "chartview.hpp"
 #include "xyseriesdata.hpp"
+#include <adportable/float.hpp>
 #include <adplot/zoomer.hpp>
 #include <qwt_picker_machine.h>
 #include <qwt_plot_curve.h>
@@ -130,11 +131,14 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
         panner->setAxisEnabled( QwtPlot::yRight, false );
         panner->setMouseButton( Qt::MidButton );
     }
-
+    
     if ( auto picker = new QwtPlotPicker( canvas() ) ) {
         picker->setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
-        picker->setStateMachine( new QwtPickerClickPointMachine() );
-        connect( picker, static_cast< void(QwtPlotPicker::*)(const QPointF&) >(&QwtPlotPicker::selected), this, &ChartView::selected );
+        picker->setStateMachine( new QwtPickerDragRectMachine() );
+        picker->setRubberBand( QwtPicker::RectRubberBand );
+        picker->setRubberBandPen( QColor(Qt::red) );
+        picker->setTrackerPen( QColor( Qt::blue ) );
+        connect( picker, static_cast< void(QwtPlotPicker::*)(const QRectF&) >(&QwtPlotPicker::selected), this, &ChartView::selected );
         picker->setEnabled( true );
     }
 }
@@ -163,7 +167,7 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
             curve->attach( this );
 
         } else if ( chartType == "Line" ) {
-
+            
             auto curve = std::make_shared< QwtPlotCurve >();
             plots_.emplace_back( curve );
 
@@ -171,7 +175,7 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
             curve->setPen( QPen( color ) );
             curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
             curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
-            curve->setYAxis( QwtPlot::yRight );
+            //curve->setYAxis( QwtPlot::yLeft );
 
             curve->setSamples( new XYSeriesData( model, x, y ) );
             curve->attach( this );
@@ -184,7 +188,7 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
             curve->setStyle( QwtPlotCurve::Sticks );
             curve->setPen( QPen( color ) );            
             curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
-            curve->setYAxis( QwtPlot::yRight );
+            //curve->setYAxis( QwtPlot::yLeft );
 
             curve->setSamples( new XYHistogramData( model, x, y ) );
             curve->attach( this );
@@ -286,23 +290,50 @@ ChartView::saveImage( bool clipboard )
 }
 
 void
-ChartView::selected( const QPointF& pos )
+ChartView::selected( const QRectF& rc )
 {
     QMenu menu;
 
+	double x0 = this->transform( QwtPlot::xBottom, rc.left() );
+	double x1 = this->transform( QwtPlot::xBottom, rc.right() );
+    bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
+
     int idx(0);
-    menu.addAction( tr( "Unzoom" ) )->setData( idx++ );                 // 0
-    menu.addAction( tr( "Copy x-coordinate" ) )->setData( idx++ );      // 1
-    menu.addAction( tr( "Copy x,y-coordinate" ) )->setData( idx++ );    // 2
+    if ( auto action = menu.addAction( tr( "Unzoom" ) ) ) {
+        action->setData( idx++ ); // 0
+        action->setEnabled( !hasRange );
+    }
+    if ( auto action = menu.addAction( tr( "Copy x-coordinate" ) ) ) {
+        action->setData( idx++ ); // 1
+        action->setEnabled( !hasRange );
+    }
+    if ( auto action = menu.addAction( tr( "Copy x,y-coordinate" ) ) ) {
+        action->setData( idx++ ); // 2
+        action->setEnabled( !hasRange );
+    }
     menu.addAction( tr( "Copy image" ) )->setData( idx++ );             // 3
     menu.addAction( tr( "Copy SVG" ) )->setData( idx++ );               // 4
     menu.addAction( tr( "Save as SVG File..." ) )->setData( idx++ );    // 5
     if ( auto zoomer = findChild< adplot::Zoomer * >() ) {
         auto action = menu.addAction( tr( "Auto Y-Scale" ) );
-        action->setData( idx++ ); // 6
+        action->setData( idx++ );                                       // 6
         action->setCheckable( true );
         action->setChecked( zoomer->autoYScale() );
     }
+    if ( auto action = menu.addAction( tr( "y-zoom" ) ) ) {
+        action->setData( idx++ );                                       // 7
+        action->setEnabled( hasRange );
+    }
+    if ( auto action = menu.addAction( tr( "Make query for count in range" ) ) ) {
+        action->setData( idx++ );                                       // 8
+        action->setEnabled( hasRange );
+    }
+    if ( auto action = menu.addAction( tr( "Make query for count/frequency in range" ) ) ) {
+        action->setData( idx++ );                                       // 9
+        action->setEnabled( hasRange );
+    }
+
+    QPointF pos = QPointF( rc.left(), rc.top() );
 
     if ( auto selected = menu.exec( QCursor::pos() ) ) {
 
@@ -330,12 +361,90 @@ ChartView::selected( const QPointF& pos )
         case 6:
             findChild< adplot::Zoomer * >()->autoYScale( selected->isChecked() );
             break;
+        case 7:
+            yZoom( rc );
+            break;            
+        case 8:
+            emit makeQuery( "COUNTING", rc, bool( axisTitle( QwtPlot::xBottom ).text().contains( "m/z" ) ) );
+            break;
+        case 9:
+            emit makeQuery( "COUNTING.FREQUENCY", rc, bool( axisTitle( QwtPlot::xBottom ).text().contains( "m/z" ) ) );
+            break;            
         }
     }
 
 }
 
 void
+ChartView::yZoom( const QRectF& rect )
+{
+    std::pair<double, double > left, right;
+
+    auto hasAxis = scaleY( rect, left, right );
+    
+    if ( hasAxis.first && ! adportable::compare<double>::approximatelyEqual( left.first, left.second ) ) {
+        setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
+    }
+    
+    if ( hasAxis.second && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
+        setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+    }
+
+    replot();
+}
+
+void
 ChartView::yScaleHock( QRectF& rc )
 {
+    std::pair<double, double > left, right;
+
+    auto hasAxis = scaleY( rc, left, right );
+    if ( hasAxis.second ) {
+        if ( ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) )
+            setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+    }
+    if ( hasAxis.first ) {
+        rc.setBottom( left.first );
+        rc.setTop( left.second );
+    }
+}
+
+std::pair<bool, bool>
+ChartView::scaleY( const QRectF& rc, std::pair< double, double >& left, std::pair< double, double >& right )
+{
+    bool hasYLeft( false ), hasYRight( false );
+    
+    left = right = std::make_pair( std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest() );
+
+    for ( auto curve: plots_ ) {
+        if ( curve->yAxis() == QwtPlot::yLeft )
+            hasYLeft = true;
+        if ( curve->yAxis() == QwtPlot::yRight )
+            hasYRight = true;
+
+        auto& yScale = curve->yAxis() == QwtPlot::yLeft ? left : right;
+
+        if ( auto xy = dynamic_cast< const XYHistogramData * >( curve->data() ) ) {
+            // x-axis of histogram should be sorted
+            auto it0 = std::lower_bound( xy->begin(), xy->end(), rc.left(), [&]( const QPointF& a, const double& b ){ return a.x() < b; } );
+            auto it1 = std::lower_bound( xy->begin(), xy->end(), rc.right(), [&]( const QPointF& a, const double& b ){ return a.x() < b; } );
+            auto pair = std::minmax_element( it0, it1, []( const QPointF& a, const QPointF& b ){ return a.y() < b.y(); } );
+            yScale.first = std::min( yScale.first, pair.first->y() );
+            yScale.second = std::max( yScale.second, pair.second->y() );
+        } else {
+            if ( auto xy = dynamic_cast< const XYSeriesData * >( curve->data() ) ) {
+                for ( const auto& pos: *xy ) {
+                    if ( pos.x() > rc.left() && pos.x() < rc.right() ) {
+                        yScale.first = std::min( yScale.first, pos.y() );
+                        yScale.second = std::max( yScale.second, pos.y() );
+                    }
+                }
+            }
+        }
+    }
+
+    left.second = left.second + (left.second - left.first) * 0.12;
+    right.second = right.second + (right.second - right.first) * 0.12;
+
+    return std::make_pair( hasYLeft, hasYRight );
 }

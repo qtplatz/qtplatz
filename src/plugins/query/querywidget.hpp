@@ -22,39 +22,43 @@
 **
 **************************************************************************/
 
-#ifndef QUERYQUERY_HPP
-#define QUERYQUERY_HPP
+#pragma once
 
+#include <QWidget>
 #include <memory>
-#include <adfs/sqlite.hpp>
-#include <QString>
-#include <QVariant>
+
+class QGridLayout;
 
 namespace query {
 
-    class QueryQuery : public std::enable_shared_from_this< QueryQuery > {
+    class QueryForm;
+    class QueryResultTable;
+    class QueryQuery;
+
+    class QueryWidget : public QWidget  {
+        Q_OBJECT
     public:
-        QueryQuery( adfs::sqlite& );
-        QueryQuery( const QueryQuery& );
+        ~QueryWidget();
+        explicit QueryWidget(QWidget *parent = 0);
 
-        bool prepare( const std::string& sql );
-        bool prepare( const std::wstring& sql );
-
-        adfs::sqlite_state step();
-
-        size_t column_count() const;
-
-        QString column_name( size_t idx ) const;
-        static QString column_name_tr( const QString& );
-        QVariant column_value( size_t idx ) const;
-            
     private:
-        adfs::sqlite_state state_;
-        adfs::stmt sql_;
+        QGridLayout * layout_;
+        std::unique_ptr< QueryForm > form_;
+        std::unique_ptr< QueryResultTable > table_;
+
+        void executeQuery();
+
+    signals:
+        void onQueryData( std::shared_ptr< QueryQuery > );
+
+    public slots :
+        void handleConnectionChanged();
+
+    private slots:
+        void handleQuery( const QString& );
+        void handlePlot();
+        void buildQuery( const QString&, const QRectF&, bool );
     };
 
 }
 
-Q_DECLARE_METATYPE(std::shared_ptr< query::QueryQuery >)
-
-#endif // QUERYQUERY_HPP

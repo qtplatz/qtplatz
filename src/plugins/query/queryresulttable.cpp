@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "queryresulttable.hpp"
-#include "queryquery.hpp"
+#include "queryconnection.hpp"
 #include <acqrscontrols/constants.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/scanlaw.hpp>
@@ -69,8 +69,7 @@ namespace query {
     class SqlQueryModel : public QSqlQueryModel {
     public:
         SqlQueryModel( QObject * parent = nullptr ) : QSqlQueryModel( parent )
-                                                    , computed_mass_column_( -1 )
-                                                    , time_column_( -1 ) {
+                                                    , computed_mass_column_( -1 ) {
         }
         QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override {
             if ( computed_mass_column_ == index.column() && ( role == Qt::EditRole || role == Qt::DisplayRole ) ) {
@@ -85,7 +84,6 @@ namespace query {
             return QSqlQueryModel::data( index, role );
         }
         int computed_mass_column_;
-        int time_column_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
     };
     
@@ -161,8 +159,8 @@ QueryResultTable::QueryResultTable(QWidget *parent) : adwidgets::TableView(paren
 {
     setAllowDelete( false );
     setModel( model_.get() );
-    setItemDelegate( new queryresulttable::ItemDelegate );
-    setHorizontalHeader( new adwidgets::HtmlHeaderView );
+    // setItemDelegate( new queryresulttable::ItemDelegate );
+    // setHorizontalHeader( new adwidgets::HtmlHeaderView );
 }
 
 void
@@ -186,23 +184,32 @@ QueryResultTable::setDatabase( QSqlDatabase& db )
 }
 
 void
+QueryResultTable::setQuery( const QSqlQuery& query, std::shared_ptr< QueryConnection > connection )
+{
+    // this is the workaround preventing segmentation violation at model_->clear();
+    if ( connection_ )
+        model_->setQuery( QSqlQuery() );
+    connection_ = connection;
+    // end workaound
+
+    setQuery( query );
+}
+
+void
 QueryResultTable::setQuery( const QSqlQuery& query )
 {
     model_->clear();
     model_->setQuery( query );
-    
-    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) ) {
 
-        int rec = query.record().indexOf( "time" ); // non-case sensitive
+    int tIndex = query.record().indexOf( "time" ); // non-case sensitive
 
-        model->computed_mass_column_ = rec;
-        model->time_column_ = rec;
-
-        if ( rec >= 0 ) {
-            model_->insertColumns( rec, 1 );
-            model_->setHeaderData( rec, Qt::Horizontal, tr("m/z") );
-        }
+    if ( tIndex >= 0 ) {
+        model_->insertColumns( tIndex, 1 );
+        model_->setHeaderData( tIndex, Qt::Horizontal, tr("m/z") );
     }
+
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+        model->computed_mass_column_ = tIndex;
 }
 
 void

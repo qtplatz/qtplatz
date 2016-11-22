@@ -54,11 +54,15 @@ namespace query {
 
             void copyToClipboard();
             void saveImage( bool clipboard );
+            std::pair< bool, bool > scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
+
+        signals:
+            void makeQuery( const QString&, const QRectF&, bool );
 
         private slots:
-            void selected( const QPointF& );
-            // void mouseReleaseEvent(QMouseEvent *event) override;
-            // void mouseMoveEvent(QMouseEvent *event) override;
+            //void selected( const QPointF& );
+            void selected( const QRectF& );
+            void yZoom( const QRectF& );
             void yScaleHock( QRectF& );
         };
 

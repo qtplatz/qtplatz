@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "queryconnection.hpp"
-#include "queryquery.hpp"
 #include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
@@ -53,7 +52,7 @@ bool
 QueryConnection::connect( const std::wstring& database )
 {
     db_.setDatabaseName( QString::fromStdWString( database ) );
-
+    
     if ( db_.open() ) {
         filename_ = database;        
         return true;

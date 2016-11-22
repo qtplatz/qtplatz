@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "querydocument.hpp"
+#include "document.hpp"
 #include "queryconnection.hpp"
 #include "queryconstants.hpp"
 #include <adcontrols/processmethod.hpp>
@@ -61,41 +61,41 @@ namespace query {
 
 using namespace query;
 
-std::unique_ptr< QueryDocument > QueryDocument::instance_;
+std::unique_ptr< document > document::instance_;
 
-QueryDocument::~QueryDocument()
+document::~document()
 {
 }
 
-QueryDocument::QueryDocument()
+document::document()
     : settings_( std::make_unique< QSettings >(QSettings::IniFormat, QSettings::UserScope
                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                , QLatin1String( "Query" ) ) )
 {
-    //connect( this, &QueryDocument::onProcessed, this, &QueryDocument::handle_processed );
+    //connect( this, &document::onProcessed, this, &document::handle_processed );
 }
 
-QueryDocument *
-QueryDocument::instance()
+document *
+document::instance()
 {
     static std::once_flag flag;
-    std::call_once( flag, [] () { instance_.reset( new QueryDocument() ); } );
+    std::call_once( flag, [] () { instance_.reset( new document() ); } );
     return instance_.get();
 }
 
 void
-QueryDocument::onInitialUpdate()
+document::onInitialUpdate()
 {
 }
 
 void
-QueryDocument::onFinalClose()
+document::onFinalClose()
 {
 }
 
 
 void
-QueryDocument::setConnection( QueryConnection * conn )
+document::setConnection( QueryConnection * conn )
 {
     queryConnection_ = conn->shared_from_this();
 
@@ -105,19 +105,19 @@ QueryDocument::setConnection( QueryConnection * conn )
 }
 
 QueryConnection *
-QueryDocument::connection()
+document::connection()
 {
     return queryConnection_.get();
 }
 
 QString
-QueryDocument::lastDataDir() const
+document::lastDataDir() const
 {
     return qtwrapper::settings( *settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
 }
 
 void
-QueryDocument::addSqlHistory( const QString& sql )
+document::addSqlHistory( const QString& sql )
 {
     auto list = sqlHistory();
     
@@ -142,7 +142,7 @@ QueryDocument::addSqlHistory( const QString& sql )
 
 
 QStringList
-QueryDocument::sqlHistory()
+document::sqlHistory()
 {
     QStringList list;
 
@@ -159,4 +159,16 @@ QueryDocument::sqlHistory()
     settings_->endGroup();
     
     return list;
+}
+
+void
+document::setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > sp )
+{
+    massSpectrometer_ = sp;
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+document::massSpectrometer()
+{
+    return massSpectrometer_;
 }

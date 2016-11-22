@@ -41,6 +41,7 @@ namespace adcontrols {
 namespace query {
 
     class QueryQuery;
+    class QueryConnection;
 
     class QueryResultTable : public adwidgets::TableView  {
         Q_OBJECT
@@ -52,6 +53,7 @@ namespace query {
         void addActionsToMenu( QMenu& menu, const QPoint& ) override;
         //
 
+        void setQuery( const QSqlQuery&, std::shared_ptr< QueryConnection > );
         void setQuery( const QSqlQuery& );
         void setDatabase( QSqlDatabase& );
 
@@ -66,6 +68,7 @@ namespace query {
     private:
         std::unique_ptr< QSqlQueryModel > model_;
         std::set< std::string > hideColumns_;
+        std::shared_ptr< QueryConnection > connection_;
 
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
 

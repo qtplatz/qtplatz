@@ -33,13 +33,13 @@ namespace query {
         class QueryQueryForm;
     }
 
-    class QueryQueryForm : public QWidget
+    class QueryForm : public QWidget
     {
         Q_OBJECT
 
     public:
-        explicit QueryQueryForm(QWidget *parent = 0);
-        ~QueryQueryForm();
+        explicit QueryForm(QWidget *parent = 0);
+        ~QueryForm();
 
         void setSQL( const QString& t);
         QString sql() const;

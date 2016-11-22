@@ -67,11 +67,11 @@ PlotDialog::setModel( QAbstractItemModel * record )
             for ( auto label: { "X", "Y" } )
                 parent->appendRow( QList< QStandardItem * >() << new QStandardItem( label ) << new QStandardItem() );
 
-            model->itemFromIndex( model->index( 0, 0, parent->index() ) )->setEditable( false ); // X
-            model->itemFromIndex( model->index( 1, 0, parent->index() ) )->setEditable( false ); // Y
+            model->itemFromIndex( model->index( 0, 0, parent->index() ) )->setEditable( false ); // X (title)
+            model->itemFromIndex( model->index( 1, 0, parent->index() ) )->setEditable( false ); // Y (title)
             
             model->setData( model->index( 0, 1, parent->index() ), list_[0], Qt::EditRole );
-            model->setData( model->index( 1, 1, parent->index() ), list_[1], Qt::EditRole );
+            model->setData( model->index( 1, 1, parent->index() ), (list_.size() > 2 ) ? list_[2] : list_[ 1 ], Qt::EditRole );
 
             ui->treeView->setModel( model );
             ui->treeView->setItemDelegate( new delegate( list_ ) );

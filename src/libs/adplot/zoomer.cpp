@@ -196,8 +196,6 @@ Zoomer::trackerTextF( const QPointF &pos ) const
 void
 Zoomer::zoom( const QRectF& rect )
 {
-    qDebug() << "Zoomer::zoom " << rect;
-    
     if ( autoYScale_ && autoYScaleHock_ ) {
         QRectF rc( rect );
         autoYScaleHock_( rc );

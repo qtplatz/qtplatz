@@ -21,7 +21,7 @@
 **
 **************************************************************************/
 
-#include "queryqueryform.hpp"
+#include "queryform.hpp"
 #include "sqledit.hpp"
 #include <adportable/debug.hpp>
 #include <QAbstractItemView>
@@ -37,7 +37,7 @@
 
 using namespace query;
 
-QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
+QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
                                                 , semiColonCaptured_( false )
 {
     resize( 200, 100 );
@@ -54,7 +54,7 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
         combo->setObjectName( "tableList" );
         gridLayout->addWidget( combo, 1, 0, 1, 1 );
         connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
-                 , this, &QueryQueryForm::on_comboBox_currentIndexChanged );
+                 , this, &QueryForm::on_comboBox_currentIndexChanged );
     }
 
     if ( auto combo = new QComboBox() ) {
@@ -63,23 +63,23 @@ QueryQueryForm::QueryQueryForm(QWidget *parent) : QWidget(parent)
         //combo->setItemDelegate( new ComboBoxDelegate() );
         gridLayout->addWidget( combo, 1, 1, 1, 1 );
         connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
-                 , this, &QueryQueryForm::on_history_currentIndexChanged );
+                 , this, &QueryForm::on_history_currentIndexChanged );
     }
 
     if ( auto button = new QPushButton( "execute query" ) ) {
         gridLayout->addWidget( button, 1, 2, 1, 1 );
-        connect( button, &QPushButton::pressed, this, &QueryQueryForm::on_pushButton_pressed );
+        connect( button, &QPushButton::pressed, this, &QueryForm::on_pushButton_pressed );
     }
     
     vLayout->addLayout( gridLayout );
 }
 
-QueryQueryForm::~QueryQueryForm()
+QueryForm::~QueryForm()
 {
 }
 
 void
-QueryQueryForm::setSQL( const QString& t )
+QueryForm::setSQL( const QString& t )
 {
     if ( auto textEdit = findChild< QPlainTextEdit * >() )     {
         textEdit->clear();
@@ -88,7 +88,7 @@ QueryQueryForm::setSQL( const QString& t )
 }
 
 void
-QueryQueryForm::setTableList( const QList< QString >& list )
+QueryForm::setTableList( const QList< QString >& list )
 {
     if ( auto combo = findChild< QComboBox * >( "tableList" ) ) {
         combo->clear();
@@ -97,7 +97,7 @@ QueryQueryForm::setTableList( const QList< QString >& list )
 }
 
 void
-QueryQueryForm::setSqlHistory( const QStringList& list )
+QueryForm::setSqlHistory( const QStringList& list )
 {
     if ( auto combo = findChild< QComboBox * >( "history" ) ) {
         combo->clear();
@@ -107,7 +107,7 @@ QueryQueryForm::setSqlHistory( const QStringList& list )
 
 
 QString
-QueryQueryForm::sql() const
+QueryForm::sql() const
 {
     if ( auto textEdit = findChild< QPlainTextEdit * >() )
         return textEdit->toPlainText();
@@ -116,35 +116,35 @@ QueryQueryForm::sql() const
 }
 
 void 
-QueryQueryForm::on_plainTextEdit_textChanged()
+QueryForm::on_plainTextEdit_textChanged()
 {
 }
 
 void 
-QueryQueryForm::on_pushButton_pressed()
+QueryForm::on_pushButton_pressed()
 {
     if ( auto textEdit = findChild< QPlainTextEdit * >() )
         emit triggerQuery( textEdit->toPlainText() );
 }
 
 void 
-QueryQueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
+QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
 {
     if ( itemText == "{Counting}" )
-        setSQL( QString( "SELECT round( peak_time, 10 ) AS time, COUNT(*), protocol  FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" ) );
+        setSQL( QString( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol  FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" ) );
     else
         setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));
 }
 
 void 
-QueryQueryForm::on_history_currentIndexChanged( const QString& itemText )
+QueryForm::on_history_currentIndexChanged( const QString& itemText )
 {
     if ( auto combo = findChild< QComboBox * >( "history" ) )
         setSQL( itemText );
 }
 
 bool
-QueryQueryForm::eventFilter( QObject * object, QEvent * event )
+QueryForm::eventFilter( QObject * object, QEvent * event )
 {
     auto textEdit = qobject_cast<QPlainTextEdit *>( object );
 
@@ -163,7 +163,7 @@ QueryQueryForm::eventFilter( QObject * object, QEvent * event )
 }
 
 void
-QueryQueryForm::setCompleter( QCompleter *completer )
+QueryForm::setCompleter( QCompleter *completer )
 {
     if ( auto textEditor = findChild< SqlEdit * >() ) {
         textEditor->setCompleter( completer );
@@ -171,7 +171,7 @@ QueryQueryForm::setCompleter( QCompleter *completer )
 }
 
 QCompleter *
-QueryQueryForm::completer() const
+QueryForm::completer() const
 {
     if ( auto textEditor = findChild< SqlEdit * >() )
         return textEditor->completer();

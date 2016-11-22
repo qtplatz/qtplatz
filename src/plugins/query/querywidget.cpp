@@ -21,12 +21,11 @@
 **
 **************************************************************************/
 
-#include "queryquerywidget.hpp"
+#include "querywidget.hpp"
 #include "queryconnection.hpp"
 #include "queryconstants.hpp"
-#include "querydocument.hpp"
-#include "queryquery.hpp"
-#include "queryqueryform.hpp"
+#include "document.hpp"
+#include "queryform.hpp"
 #include "queryresulttable.hpp"
 #if QT5_CHARTS
 # include "charts/chartview.hpp"
@@ -37,6 +36,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -57,8 +57,9 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QStandardItemModel>
-#include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -72,28 +73,26 @@ using namespace query;
 QT_CHARTS_USE_NAMESPACE;
 #endif
 
-QueryQueryWidget::~QueryQueryWidget()
+QueryWidget::~QueryWidget()
 {
 }
 
-QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
+QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QGridLayout )
-                                                    , form_( new QueryQueryForm )
+                                                    , form_( new QueryForm )
                                                     , table_( new QueryResultTable )
 {
-    qRegisterMetaType < std::shared_ptr< QueryQuery > >();
-
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    connect( QueryDocument::instance(), &QueryDocument::onConnectionChanged
-             , this, &QueryQueryWidget::handleConnectionChanged );
-    connect( QueryDocument::instance(), &QueryDocument::onHistoryChanged, this
-             , [this](){ form_->setSqlHistory( QueryDocument::instance()->sqlHistory() ); } );
-    connect( form_.get(), &QueryQueryForm::triggerQuery, this, &QueryQueryWidget::handleQuery );
-    connect( table_.get(), &QueryResultTable::plot, this, &QueryQueryWidget::handlePlot );
+    connect( document::instance(), &document::onConnectionChanged, this, &QueryWidget::handleConnectionChanged );
+    connect( document::instance(), &document::onHistoryChanged, this, [this](){
+            form_->setSqlHistory( document::instance()->sqlHistory() );
+        } );
+    connect( form_.get(), &QueryForm::triggerQuery, this, &QueryWidget::handleQuery );
+    connect( table_.get(), &QueryResultTable::plot, this, &QueryWidget::handlePlot );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         
@@ -127,8 +126,10 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
             if ( auto chartView = new charts::ChartView )
                 hsplitter->addWidget( chartView );
 #else
-            if ( auto chartView = new qwt::ChartView )
+            if ( auto chartView = new qwt::ChartView ) {
                 hsplitter->addWidget( chartView );
+                connect( chartView, &qwt::ChartView::makeQuery, this, &QueryWidget::buildQuery );
+            }
 #endif
             if ( auto w = hsplitter->widget( 1 ) )
                 w->hide();
@@ -142,20 +143,20 @@ QueryQueryWidget::QueryQueryWidget(QWidget *parent) : QWidget(parent)
         splitter->setStretchFactor( 1, 2 );
     }
 
-    form_->setSqlHistory( QueryDocument::instance()->sqlHistory() );
+    form_->setSqlHistory( document::instance()->sqlHistory() );
 }
 
 void
-QueryQueryWidget::handleConnectionChanged()
+QueryWidget::handleConnectionChanged()
 {
-    ADDEBUG() << "set file: " << QueryDocument::instance()->connection()->filepath();
+    ADDEBUG() << "set file: " << document::instance()->connection()->filepath();
 
     if ( auto edit = findChild< QLineEdit * >( Constants::editQueryFilename ) ) {
-        edit->setText( QString::fromStdWString( QueryDocument::instance()->connection()->filepath() ) );
+        edit->setText( QString::fromStdWString( document::instance()->connection()->filepath() ) );
     }
 
-    if ( auto conn = QueryDocument::instance()->connection() ) {
-        if ( auto form = findChild< QueryQueryForm * >() ) {
+    if ( auto conn = document::instance()->connection() ) {
+        if ( auto form = findChild< QueryForm * >() ) {
             QStringList tables;
             bool hasPeak( false ), hasTrigger( false );
             auto query = conn->sqlQuery( "SELECT name FROM sqlite_master WHERE type='table'" );
@@ -173,7 +174,7 @@ QueryQueryWidget::handleConnectionChanged()
 
             form->setTableList( tables );
             
-            form->setSqlHistory( QueryDocument::instance()->sqlHistory() );            
+            form->setSqlHistory( document::instance()->sqlHistory() );            
             
             QStringList words ( tables );
 
@@ -210,13 +211,13 @@ QueryQueryWidget::handleConnectionChanged()
 }
 
 void
-QueryQueryWidget::executeQuery()
+QueryWidget::executeQuery()
 {
-    if ( auto connection = QueryDocument::instance()->connection() ) {
+    if ( auto connection = document::instance()->connection() ) {
         {
             form_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
             auto query = connection->sqlQuery( form_->sql() );
-            table_->setQuery( query );
+            table_->setQuery( query, connection->shared_from_this() );
         }
             
         {
@@ -230,6 +231,7 @@ QueryQueryWidget::executeQuery()
                     auto uuid = boost::uuids::string_generator()( rec.value( 2 ).toString().toStdString() );
                     if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( uuid ) ) {
                         spectrometer->setScanLaw( acclVoltage, tDelay, 1.0 );
+                        document::instance()->setMassSpectrometer( spectrometer );
                         table_->setMassSpectrometer( spectrometer );
                     }
                 }
@@ -259,9 +261,9 @@ QueryQueryWidget::executeQuery()
 }
 
 void
-QueryQueryWidget::handleQuery( const QString& sql )
+QueryWidget::handleQuery( const QString& sql )
 {
-    if ( auto connection = QueryDocument::instance()->connection() ) {
+    if ( auto connection = document::instance()->connection() ) {
 
         auto query = connection->sqlQuery( sql );
 
@@ -271,7 +273,7 @@ QueryQueryWidget::handleQuery( const QString& sql )
                                       , tr( "QtPlatz/Query" )
                                       , sqlError.driverText() + "\n" + sqlError.databaseText() );
         } else {
-            QueryDocument::instance()->addSqlHistory( sql );
+            document::instance()->addSqlHistory( sql );
         }
         
         table_->setQuery( query );
@@ -279,7 +281,7 @@ QueryQueryWidget::handleQuery( const QString& sql )
 }
 
 void
-QueryQueryWidget::handlePlot()
+QueryWidget::handlePlot()
 {
 #if QT5_CHARTS
     typedef charts::ChartView ChartView_t;
@@ -316,3 +318,67 @@ QueryQueryWidget::handlePlot()
         }
     }
 }
+
+void
+QueryWidget::buildQuery( const QString& q, const QRectF& rc, bool isMass )
+{
+    if ( q == "COUNTING" || q == "COUNTING.FREQUENCY" ) {
+
+        std::vector< std::pair< int, std::pair< double, double > > > t_ranges;
+
+        if ( auto conn = document::instance()->connection()->shared_from_this() ) {
+            std::vector< std::pair< int, std::pair< double, double > > > p_ranges; // protocol tof range
+            {
+                QSqlQuery sql( "SELECT protocol, min( peak_time ), max( peak_time ) FROM peak,trigger WHERE id=idTrigger GROUP BY protocol"
+                               , conn->sqlDatabase() );
+                sql.exec();
+                while( sql.next() )
+                    p_ranges.emplace_back( sql.value( 0 ).toInt(), std::make_pair( sql.value( 1 ).toDouble(), sql.value( 2 ).toDouble() ) );
+            }
+
+            if ( isMass ) {
+                if ( auto sp = document::instance()->massSpectrometer() ) {
+                    if ( auto scanlaw = sp->scanLaw() ) {
+                        for ( auto& p_range: p_ranges ) {
+                            auto t_range = std::make_pair( scanlaw->getTime( rc.left(), sp->mode( p_range.first ) )
+                                                           , scanlaw->getTime( rc.right(), sp->mode( p_range.first ) ) );
+                            if ( t_range.first >= p_range.second.first && t_range.second <= p_range.second.second )
+                                t_ranges.emplace_back( /* proto */ p_range.first, t_range );
+                        }
+                    }
+                }
+            } else {
+                for ( auto& p_range: p_ranges ) {
+                    if ( rc.left() >= p_range.second.first && rc.right() <= p_range.second.second )
+                        t_ranges.emplace_back( /* proto */ p_range.first, std::make_pair( rc.left(), rc.right() ) );
+                }
+            }
+        }
+
+        std::ostringstream stmt;
+        if ( t_ranges.size() == 1 && q == "COUNTING" ) {
+            const auto& t = t_ranges[0];
+            stmt << boost::format("SELECT COUNT(*),protocol FROM peak,trigger WHERE id=idTrigger AND protocol=%d AND peak_time > %.8e AND peak_time < %.8e" )
+                % t.first
+                % t.second.first
+                % t.second.second;
+
+        } else {
+            char name('A');
+            stmt << "SELECT name,ROUND(peak_intensity/10)*10 AS threshold,avg(peak_time) AS time, avg(peak_intensity) as mV, COUNT(*) FROM (\r\n";
+            for ( auto& t: t_ranges ) {
+                stmt << "\tSELECT peak_time,peak_intensity, '" << name++ << "' AS name FROM peak,trigger "
+                     << boost::format( "WHERE id=idTrigger AND protocol=%d AND peak_time>%.8e AND peak_time < %.8e " )
+                    % t.first
+                    % t.second.first
+                    % t.second.second;
+                if ( t_ranges.size() > 1 )
+                    stmt << "UNION ALL";
+                stmt << "\r\n";
+            }
+            stmt <<") WHERE peak_intensity < threshold GROUP by name,threshold";            
+        }
+        form_->setSQL( QString::fromStdString( stmt.str() ) );
+    }
+}
+

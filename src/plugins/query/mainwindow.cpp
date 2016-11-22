@@ -25,8 +25,8 @@
 #include "mainwindow.hpp"
 #include "queryconstants.hpp"
 #include "queryconnection.hpp"
-#include "querydocument.hpp"
-#include "queryquerywidget.hpp"
+#include "document.hpp"
+#include "querywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -86,7 +86,7 @@ MainWindow::createContents( Core::IMode * )
     viewLayout->setMargin(0);
     viewLayout->setSpacing(0);
 
-    if ( auto widget = new QueryQueryWidget ) {
+    if ( auto widget = new QueryWidget ) {
         viewLayout->addWidget( widget );
     }
 
@@ -111,14 +111,14 @@ MainWindow::createTopStyledBar()
 void
 MainWindow::onInitialUpdate()
 {
-    QueryDocument::instance()->onInitialUpdate();
+    document::instance()->onInitialUpdate();
 }
 
 void
 MainWindow::onFinalClose()
 {
     commit();
-    QueryDocument::instance()->onFinalClose();
+    document::instance()->onFinalClose();
 }
 
 // static
@@ -183,7 +183,7 @@ MainWindow::handleOpen()
     try {
         QString name = QFileDialog::getOpenFileName( this
                                                      , tr( "Open SQLite file" )
-                                                     , QueryDocument::instance()->lastDataDir()
+                                                     , document::instance()->lastDataDir()
                                                      , tr( "File(*.adfs)|(*)" ) );
         if ( !name.isEmpty() ) {
 
@@ -193,7 +193,7 @@ MainWindow::handleOpen()
 
                 if ( connection->connect( name.toStdWString() ) ) {
 
-                    QueryDocument::instance()->setConnection( connection.get() );
+                    document::instance()->setConnection( connection.get() );
                 }
             }
 

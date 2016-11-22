@@ -69,12 +69,14 @@ link_directories(
   )
 
 add_library( Query MODULE
+  document.cpp
+  document.hpp
   mainwindow.cpp
   mainwindow.hpp
+  plotdialog.cpp
+  plotdialog.hpp
   queryconnection.cpp
   queryconnection.hpp
-  querydocument.cpp
-  querydocument.hpp
   queryeditor.cpp
   queryeditor.hpp
   queryfactory.cpp
@@ -83,16 +85,12 @@ add_library( Query MODULE
   querymode.hpp
   queryplugin.cpp
   queryplugin.hpp
-  queryquery.cpp
-  queryquery.hpp  
-  queryqueryform.cpp
-  queryqueryform.hpp  
-  queryquerywidget.cpp
-  queryquerywidget.hpp
+  queryform.cpp
+  queryform.hpp  
+  querywidget.cpp
+  querywidget.hpp
   queryresulttable.cpp
   queryresulttable.hpp
-  plotdialog.cpp
-  plotdialog.hpp
   sqledit.cpp
   sqledit.hpp
   ${Resources}

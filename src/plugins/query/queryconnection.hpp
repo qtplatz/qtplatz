@@ -49,8 +49,6 @@ namespace query {
         ~QueryConnection();
 
         bool connect( const std::wstring& database );
-        std::shared_ptr< QueryQuery > query();
-        adfs::sqlite& db();
 
         QSqlDatabase& sqlDatabase();
         QSqlQuery sqlQuery( const QString& );
@@ -62,7 +60,6 @@ namespace query {
 
     private:
         std::wstring filename_;
-        // std::shared_ptr< adfs::filesystem > fs_;
         QSqlDatabase db_;
 
         bool readMethods();

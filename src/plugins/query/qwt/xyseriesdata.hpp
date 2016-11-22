@@ -42,6 +42,10 @@ public:
     size_t size() const override;
     QPointF sample( size_t idx ) const override;
     QRectF boundingRect() const override;
+
+    typedef std::vector< QPointF >::const_iterator const_iterator;
+    inline const_iterator begin() const { return series_.begin(); };
+    inline const_iterator end() const { return series_.end(); };
     
 protected:
     std::vector< QPointF > series_;
