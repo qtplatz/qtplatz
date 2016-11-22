@@ -38,6 +38,7 @@
 #include <qwt_scale_draw.h>
 #include <qwt_series_data.h>
 #include <qwt_symbol.h>
+#include <QAction>
 #include <QApplication>
 #include <QBuffer>
 #include <QClipboard>
@@ -82,22 +83,22 @@ using namespace query::qwt;
 ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
 {
     // void setupPalette()
-     {
-         QPalette pal = palette();
-         QLinearGradient gradient;
-         gradient.setCoordinateMode( QGradient::StretchToDeviceMode );
-         // gradient.setColorAt( 0.0, QColor( 0xcf, 0xcf, 0xc4 ) ); // pastel gray
-         // gradient.setColorAt( 1.0, QColor( 0xae, 0xc6, 0xcf ) ); // pastel blue
-         gradient.setColorAt( 0.0, QColor( 0xc1, 0xff, 0xc1 ) ); // darkseagreen
-         gradient.setColorAt( 1.0, QColor( 0xb4, 0xee, 0xb4 ) ); // darkseagreen 2
+    {
+        QPalette pal = palette();
+        QLinearGradient gradient;
+        gradient.setCoordinateMode( QGradient::StretchToDeviceMode );
+        // gradient.setColorAt( 0.0, QColor( 0xcf, 0xcf, 0xc4 ) ); // pastel gray
+        // gradient.setColorAt( 1.0, QColor( 0xae, 0xc6, 0xcf ) ); // pastel blue
+        gradient.setColorAt( 0.0, QColor( 0xc1, 0xff, 0xc1 ) ); // darkseagreen
+        gradient.setColorAt( 1.0, QColor( 0xb4, 0xee, 0xb4 ) ); // darkseagreen 2
          
-         pal.setBrush( QPalette::Window, QBrush( gradient ) );
+        pal.setBrush( QPalette::Window, QBrush( gradient ) );
          
-         // QPalette::WindowText is used for the curve color
-         // pal.setColor( QPalette::WindowText, Qt::green );
+        // QPalette::WindowText is used for the curve color
+        // pal.setColor( QPalette::WindowText, Qt::green );
 
-         setPalette( pal );
-     }
+        setPalette( pal );
+    }
 
     this->enableAxis( QwtPlot::yLeft, true );
     this->enableAxis( QwtPlot::xBottom, true );
@@ -116,14 +117,14 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
     auto zoomer = new adplot::Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, this->canvas() );
 
     // Shift+LeftButton: zoom out to full size
-    // Ctrl+LeftButton: zoom out by 1
+    // Double click: zoom out by 1
     zoomer->setMousePattern( QwtEventPattern::MouseSelect2, Qt::LeftButton, Qt::ShiftModifier );
-    zoomer->setMousePattern( QwtEventPattern::MouseSelect3, Qt::LeftButton, Qt::ControlModifier );
 
     const QColor c( Qt::darkBlue );
     zoomer->setRubberBandPen( c );
     zoomer->setTrackerPen( c );
-    zoomer->autoYScale( false );
+    zoomer->autoYScaleHock( [&]( QRectF& rc ){ yScaleHock( rc ); } ); 
+    zoomer->autoYScale( true );
 
     if ( auto panner = new QwtPlotPanner( canvas() ) ) {
         panner->setAxisEnabled( QwtPlot::yRight, false );
@@ -296,6 +297,12 @@ ChartView::selected( const QPointF& pos )
     menu.addAction( tr( "Copy image" ) )->setData( idx++ );             // 3
     menu.addAction( tr( "Copy SVG" ) )->setData( idx++ );               // 4
     menu.addAction( tr( "Save as SVG File..." ) )->setData( idx++ );    // 5
+    if ( auto zoomer = findChild< adplot::Zoomer * >() ) {
+        auto action = menu.addAction( tr( "Auto Y-Scale" ) );
+        action->setData( idx++ ); // 6
+        action->setCheckable( true );
+        action->setChecked( zoomer->autoYScale() );
+    }
 
     if ( auto selected = menu.exec( QCursor::pos() ) ) {
 
@@ -320,7 +327,15 @@ ChartView::selected( const QPointF& pos )
         case 5:
             saveImage( false );
             break;
+        case 6:
+            findChild< adplot::Zoomer * >()->autoYScale( selected->isChecked() );
+            break;
         }
     }
 
+}
+
+void
+ChartView::yScaleHock( QRectF& rc )
+{
 }

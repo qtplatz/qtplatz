@@ -131,8 +131,6 @@ void
 QueryQueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
 {
     if ( itemText == "{Counting}" )
-        setSQL( QString( "SELECT round( peak_time, 10 ) AS time, COUNT(*) FROM peak GROUP BY time" ) );
-    else if ( itemText == "{Counting,trigger}" )
         setSQL( QString( "SELECT round( peak_time, 10 ) AS time, COUNT(*), protocol  FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" ) );
     else
         setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));

@@ -169,7 +169,7 @@ QueryQueryWidget::handleConnectionChanged()
             tables.push_back( "sqlite_master" );
 
             if ( hasPeak && hasTrigger )
-                tables.push_back( "{Counting,trigger}" ); // '{}' never appear on sql table name
+                tables.push_back( "{Counting}" ); // '{}' never appear on sql table name
 
             form->setTableList( tables );
             

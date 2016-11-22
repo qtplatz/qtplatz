@@ -58,7 +58,8 @@ namespace query {
         private slots:
             void selected( const QPointF& );
             // void mouseReleaseEvent(QMouseEvent *event) override;
-            // void mouseMoveEvent(QMouseEvent *event) override;            
+            // void mouseMoveEvent(QMouseEvent *event) override;
+            void yScaleHock( QRectF& );
         };
 
     }
