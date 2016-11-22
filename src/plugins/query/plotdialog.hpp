@@ -29,6 +29,9 @@ namespace query {
         std::vector< std::tuple< QString, int, int > > plots() const;
 
         bool clearExisting() const;
+        void setClearExisting( bool );
+        void setChartType( const QString& );
+        void setPlot( size_t, const QString&, int, int );
 
     private:
         Ui::PlotDialog *ui;

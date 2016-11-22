@@ -48,6 +48,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QSettings>
 #include <QSplitter>
 #include <QSqlError>
 #include <QSqlRecord>
@@ -292,15 +293,43 @@ QueryWidget::handlePlot()
     if ( auto chart = findChild< ChartView_t * >() ) {
 
         PlotDialog dlg( this );
-        dlg.setModel( table_->model() );
 
+        dlg.setModel( table_->model() );
+        
+        auto& settings = document::instance()->settings();
+        settings.beginGroup( "PlotDialog" );
+        dlg.setClearExisting( settings.value( "clearExisting", true ).toBool() );
+        dlg.setChartType( settings.value( "chartType", "Histogram" ).toString() );
+        size_t size = settings.beginReadArray( "plot" );
+        for ( size_t i = 0; i < size; ++i ) {
+            settings.setArrayIndex( i );
+            dlg.setPlot( i, settings.value( "title" ).toString(), settings.value( "plot_x" ).toInt(), settings.value( "plot_y" ).toInt() );
+        }
+        settings.endArray();
+        settings.endGroup();
+        
         if ( dlg.exec() ) {
+            
+            settings.beginGroup( "PlotDialog" );
+            settings.setValue( "clearExisting", dlg.clearExisting() );
+            settings.setValue( "chartType", dlg.chartType() );
+            settings.beginWriteArray( "plot" );
+            size_t i(0);
+            for ( const auto& plot: dlg.plots() ) {
+                settings.setArrayIndex( i );
+                settings.setValue( "title", std::get< 0 > ( plot ) );
+                settings.setValue( "plot_x", std::get< 1 > ( plot ) );
+                settings.setValue( "plot_y", std::get< 2 > ( plot ) );
+            }
+            settings.endArray();
+            settings.endGroup();
 
             if ( dlg.clearExisting() )
                 chart->clear();
 
             auto type = dlg.chartType();
             auto plots = dlg.plots();
+
             for( auto& plot: plots ) {
 
                 auto title = std::get< 0 >( plot );
@@ -322,7 +351,9 @@ QueryWidget::handlePlot()
 void
 QueryWidget::buildQuery( const QString& q, const QRectF& rc, bool isMass )
 {
-    if ( q == "COUNTING" || q == "COUNTING.FREQUENCY" ) {
+    qtwrapper::waitCursor wait;
+    
+    if ( q.contains( "COUNTING" ) ) {
 
         std::vector< std::pair< int, std::pair< double, double > > > t_ranges;
 

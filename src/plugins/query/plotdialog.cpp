@@ -37,6 +37,8 @@ PlotDialog::PlotDialog(QWidget *parent) : QDialog(parent)
     connect( ui->buttonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
     connect( ui->buttonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
 
+    ui->comboBox->addItems( QStringList() << "Histogram" << "Scatter" << "Line" );
+
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect( ui->treeView, &QTreeView::customContextMenuRequested, this, &PlotDialog::handleContextMenuRequested );
 }
@@ -51,8 +53,6 @@ PlotDialog::setModel( QAbstractItemModel * record )
 {
     for ( int col = 0; col < record->columnCount(); ++col )
         list_ << record->headerData( col, Qt::Horizontal ).toString();
-
-    ui->comboBox->addItems( QStringList() << "Histogram" << "Scatter" << "Line" );
 
     if ( list_.size() >= 2 ) {
         if ( auto model = new QStandardItemModel ) {
@@ -141,3 +141,38 @@ PlotDialog::clearExisting() const
 {
     return ui->checkBox->isChecked();
 }
+
+void
+PlotDialog::setClearExisting( bool check )
+{
+    ADDEBUG() << "setClearExisting( " << check << ")";
+    ui->checkBox->setChecked( check );
+}
+
+void
+PlotDialog::setChartType( const QString& type )
+{
+    ADDEBUG() << "setChartType( " << type.toStdString() << ui->comboBox->currentIndex() << ")";
+    ui->comboBox->setCurrentText( type );
+    ADDEBUG() << "setChartType( " << ui->comboBox->currentIndex() << ")";
+}
+
+void
+PlotDialog::setPlot( size_t row, const QString& title, int x , int y )
+{
+    ADDEBUG() << "setPlot( " << row << ", " << title.toStdString() << ", " << x << ", " << y << ")";
+    
+    if ( auto model = qobject_cast< QStandardItemModel * >( ui->treeView->model() ) ) {
+        if ( row >= model->rowCount() )
+            model->setRowCount( row + 1 );
+        auto parent = model->index( row, 0 );
+
+        // title
+        model->setData( model->index( 0, 0 ), title, Qt::EditRole );
+
+        // child
+        model->setData( model->index( 0, 1, parent ), (list_.size() > x ) ? list_[x] : list_[ 0 ], Qt::EditRole );
+        model->setData( model->index( 1, 1, parent ), (list_.size() > y ) ? list_[y] : list_[ 1 ], Qt::EditRole );
+    }
+}
+
