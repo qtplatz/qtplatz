@@ -210,6 +210,8 @@ QueryResultTable::setQuery( const QSqlQuery& query )
 
     if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
         model->computed_mass_column_ = tIndex;
+
+    resizeColumnsToContents();
 }
 
 void

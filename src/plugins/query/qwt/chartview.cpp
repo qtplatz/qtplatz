@@ -324,14 +324,13 @@ ChartView::selected( const QRectF& rc )
         action->setData( idx++ );                                       // 7
         action->setEnabled( hasRange );
     }
-    if ( auto action = menu.addAction( tr( "Make query for count in range" ) ) ) {
+    if ( auto action = menu.addAction( tr( "Add time range to query" ) ) ) {
         action->setData( idx++ );                                       // 8
         action->setEnabled( hasRange );
     }
-    if ( auto action = menu.addAction( tr( "Make query for count/frequency in range" ) ) ) {
+    if ( auto action = menu.addAction( tr( "Show query ranges" ) ) ) {
         action->setData( idx++ );                                       // 9
-        action->setEnabled( hasRange );
-    }
+    }    
 
     QPointF pos = QPointF( rc.left(), rc.top() );
 
@@ -368,7 +367,7 @@ ChartView::selected( const QRectF& rc )
             emit makeQuery( "COUNTING", rc, bool( axisTitle( QwtPlot::xBottom ).text().contains( "m/z" ) ) );
             break;
         case 9:
-            emit makeQuery( "COUNTING.FREQUENCY", rc, bool( axisTitle( QwtPlot::xBottom ).text().contains( "m/z" ) ) );
+            emit makeQuery( "", rc, false ); // show
             break;            
         }
     }

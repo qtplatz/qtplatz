@@ -38,7 +38,7 @@
 using namespace query;
 
 QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
-                                                , semiColonCaptured_( false )
+                                      , semiColonCaptured_( false )
 {
     resize( 200, 100 );
 
@@ -57,15 +57,19 @@ QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
                  , this, &QueryForm::on_comboBox_currentIndexChanged );
     }
 
+    if ( auto button = new QPushButton( "View History" ) ) {
+        gridLayout->addWidget( button, 1, 1, 1, 1 );
+        connect( button, &QPushButton::clicked, this, [&](){ emit showHistory(); });
+    }
+/*
     if ( auto combo = new QComboBox() ) {
         combo->setObjectName( "history" );
         combo->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLength );
-        //combo->setItemDelegate( new ComboBoxDelegate() );
         gridLayout->addWidget( combo, 1, 1, 1, 1 );
         connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
                  , this, &QueryForm::on_history_currentIndexChanged );
     }
-
+*/
     if ( auto button = new QPushButton( "execute query" ) ) {
         gridLayout->addWidget( button, 1, 2, 1, 1 );
         connect( button, &QPushButton::pressed, this, &QueryForm::on_pushButton_pressed );
@@ -96,15 +100,14 @@ QueryForm::setTableList( const QList< QString >& list )
     }
 }
 
-void
-QueryForm::setSqlHistory( const QStringList& list )
-{
-    if ( auto combo = findChild< QComboBox * >( "history" ) ) {
-        combo->clear();
-        combo->addItems( list );
-    }
-}
-
+// void
+// QueryForm::setSqlHistory( const QStringList& list )
+// {
+//     if ( auto combo = findChild< QComboBox * >( "history" ) ) {
+//         combo->clear();
+//         combo->addItems( list );
+//     }
+// }
 
 QString
 QueryForm::sql() const

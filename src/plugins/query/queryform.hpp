@@ -44,7 +44,6 @@ namespace query {
         void setSQL( const QString& t);
         QString sql() const;
         void setTableList( const QList< QString >& );
-        void setSqlHistory( const QStringList& );
 
         void setCompleter( QCompleter * );
         QCompleter * completer() const;
@@ -58,6 +57,7 @@ namespace query {
 
     signals:
         void triggerQuery( const QString& );
+        void showHistory();
 
     private:
         bool eventFilter( QObject *object, QEvent *event );

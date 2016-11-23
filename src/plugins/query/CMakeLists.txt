@@ -73,6 +73,8 @@ add_library( Query MODULE
   document.hpp
   mainwindow.cpp
   mainwindow.hpp
+  countingquerydialog.cpp
+  countingquerydialog.hpp
   plotdialog.cpp
   plotdialog.hpp
   queryconnection.cpp
@@ -93,6 +95,8 @@ add_library( Query MODULE
   queryresulttable.hpp
   sqledit.cpp
   sqledit.hpp
+  sqlhistorydialog.cpp
+  sqlhistorydialog.hpp
   ${Resources}
   ${_charts_sources}
   )

@@ -30,6 +30,8 @@
 #if QT5_CHARTS
 # include "charts/chartview.hpp"
 #endif
+#include "countingquerydialog.hpp"
+#include "sqlhistorydialog.hpp"
 #include "plotdialog.hpp"
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>
@@ -79,9 +81,11 @@ QueryWidget::~QueryWidget()
 }
 
 QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
-                                                    , layout_( new QGridLayout )
-                                                    , form_( new QueryForm )
-                                                    , table_( new QueryResultTable )
+                                          , layout_( new QGridLayout )
+                                          , form_( new QueryForm )
+                                          , table_( new QueryResultTable )
+                                          , dlg_( new CountingQueryDialog )
+                                          , hdlg_( new SqlHistoryDialog )
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -90,10 +94,18 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
 
     connect( document::instance(), &document::onConnectionChanged, this, &QueryWidget::handleConnectionChanged );
     connect( document::instance(), &document::onHistoryChanged, this, [this](){
-            form_->setSqlHistory( document::instance()->sqlHistory() );
+            hdlg_->appendSql( document::instance()->sqlHistory() );
         } );
     connect( form_.get(), &QueryForm::triggerQuery, this, &QueryWidget::handleQuery );
+    connect( form_.get(), &QueryForm::showHistory, this, &QueryWidget::showHistory );
     connect( table_.get(), &QueryResultTable::plot, this, &QueryWidget::handlePlot );
+
+    dlg_->setModal( false );
+    connect( dlg_, &CountingQueryDialog::accepted, this, [this]{ accept(); } );
+    connect( dlg_, &CountingQueryDialog::applied, this, [this]{ applyQuery(); } );
+
+    hdlg_->setModal( false );
+    connect( hdlg_, &SqlHistoryDialog::accepted, this, [&]{ hdlg_->hide(); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         
@@ -144,7 +156,7 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
         splitter->setStretchFactor( 1, 2 );
     }
 
-    form_->setSqlHistory( document::instance()->sqlHistory() );
+    hdlg_->appendSql( document::instance()->sqlHistory() );
 }
 
 void
@@ -168,17 +180,16 @@ QueryWidget::handleConnectionChanged()
                 else if ( query.value( 0 ).toString().compare( "trigger", Qt::CaseInsensitive ) )
                     hasTrigger = true;
             }
-            tables.push_back( "sqlite_master" );
+            tables.insert( 0, "sqlite_master" );
 
             if ( hasPeak && hasTrigger )
-                tables.push_back( "{Counting}" ); // '{}' never appear on sql table name
+                tables.insert( 0, "{Counting}" ); // '{}' never appear on sql table name
+            tables.insert( 0, "" ); // empty on top of combobox
 
             form->setTableList( tables );
             
-            form->setSqlHistory( document::instance()->sqlHistory() );            
-            
             QStringList words ( tables );
-
+            
             if ( QCompleter * completer = new QCompleter( this ) ) {
                 QFile file( ":/query/wordlist.txt" );
                 if ( file.open( QFile::ReadOnly ) ) {
@@ -216,8 +227,7 @@ QueryWidget::executeQuery()
 {
     if ( auto connection = document::instance()->connection() ) {
         {
-            form_->setSQL( "SELECT * FROM sqlite_master WHERE type='table'" );
-            auto query = connection->sqlQuery( form_->sql() );
+            auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
             table_->setQuery( query, connection->shared_from_this() );
         }
             
@@ -351,65 +361,129 @@ QueryWidget::handlePlot()
 void
 QueryWidget::buildQuery( const QString& q, const QRectF& rc, bool isMass )
 {
-    qtwrapper::waitCursor wait;
+    (void)q;
     
-    if ( q.contains( "COUNTING" ) ) {
+    qtwrapper::waitCursor wait;
 
-        std::vector< std::pair< int, std::pair< double, double > > > t_ranges;
+    auto model = qobject_cast< QStandardItemModel *>( dlg_->model() );
+    dlg_->setCommandText( q );
+    dlg_->activateWindow();
+    dlg_->show();
+    dlg_->raise();
+    
+    std::vector< std::pair< int, std::pair< double, double > > > t_ranges;
 
-        if ( auto conn = document::instance()->connection()->shared_from_this() ) {
-            std::vector< std::pair< int, std::pair< double, double > > > p_ranges; // protocol tof range
-            {
-                QSqlQuery sql( "SELECT protocol, min( peak_time ), max( peak_time ) FROM peak,trigger WHERE id=idTrigger GROUP BY protocol"
-                               , conn->sqlDatabase() );
-                sql.exec();
-                while( sql.next() )
-                    p_ranges.emplace_back( sql.value( 0 ).toInt(), std::make_pair( sql.value( 1 ).toDouble(), sql.value( 2 ).toDouble() ) );
-            }
+    if ( auto conn = document::instance()->connection()->shared_from_this() ) {
+        std::vector< std::pair< int, std::pair< double, double > > > p_ranges; // protocol tof range
+        {
+            QSqlQuery sql( "SELECT protocol, min( peak_time ), max( peak_time ) FROM peak,trigger WHERE id=idTrigger GROUP BY protocol"
+                           , conn->sqlDatabase() );
+            sql.exec();
+            while( sql.next() )
+                p_ranges.emplace_back( sql.value( 0 ).toInt(), std::make_pair( sql.value( 1 ).toDouble(), sql.value( 2 ).toDouble() ) );
+        }
 
-            if ( isMass ) {
-                if ( auto sp = document::instance()->massSpectrometer() ) {
-                    if ( auto scanlaw = sp->scanLaw() ) {
-                        for ( auto& p_range: p_ranges ) {
-                            auto t_range = std::make_pair( scanlaw->getTime( rc.left(), sp->mode( p_range.first ) )
-                                                           , scanlaw->getTime( rc.right(), sp->mode( p_range.first ) ) );
-                            if ( t_range.first >= p_range.second.first && t_range.second <= p_range.second.second )
-                                t_ranges.emplace_back( /* proto */ p_range.first, t_range );
-                        }
+        if ( isMass ) {
+            if ( auto sp = document::instance()->massSpectrometer() ) {
+                if ( auto scanlaw = sp->scanLaw() ) {
+                    for ( auto& p_range: p_ranges ) {
+                        auto t_range = std::make_pair( scanlaw->getTime( rc.left(), sp->mode( p_range.first ) )
+                                                       , scanlaw->getTime( rc.right(), sp->mode( p_range.first ) ) );
+                        if ( t_range.first >= p_range.second.first && t_range.second <= p_range.second.second )
+                            t_ranges.emplace_back( /* proto */ p_range.first, t_range );
                     }
                 }
-            } else {
-                for ( auto& p_range: p_ranges ) {
-                    if ( rc.left() >= p_range.second.first && rc.right() <= p_range.second.second )
-                        t_ranges.emplace_back( /* proto */ p_range.first, std::make_pair( rc.left(), rc.right() ) );
-                }
             }
-        }
-
-        std::ostringstream stmt;
-        if ( t_ranges.size() == 1 && q == "COUNTING" ) {
-            const auto& t = t_ranges[0];
-            stmt << boost::format("SELECT COUNT(*),protocol FROM peak,trigger WHERE id=idTrigger AND protocol=%d AND peak_time > %.8e AND peak_time < %.8e" )
-                % t.first
-                % t.second.first
-                % t.second.second;
-
         } else {
-            char name('A');
-            stmt << "SELECT name,ROUND(peak_intensity/10)*10 AS threshold,avg(peak_time) AS time, avg(peak_intensity) as mV, COUNT(*) FROM (\r\n";
-            for ( auto& t: t_ranges ) {
-                stmt << "\tSELECT peak_time,peak_intensity, '" << name++ << "' AS name FROM peak,trigger "
-                     << boost::format( "WHERE id=idTrigger AND protocol=%d AND peak_time>%.8e AND peak_time < %.8e " )
-                    % t.first
-                    % t.second.first
-                    % t.second.second;
-                if ( t_ranges.size() > 1 )
-                    stmt << "UNION ALL";
-                stmt << "\r\n";
+            for ( auto& p_range: p_ranges ) {
+                if ( rc.left() >= p_range.second.first && rc.right() <= p_range.second.second )
+                    t_ranges.emplace_back( /* proto */ p_range.first, std::make_pair( rc.left(), rc.right() ) );
             }
-            stmt <<") WHERE peak_intensity < threshold GROUP by name,threshold";            
         }
-        form_->setSQL( QString::fromStdString( stmt.str() ) );
     }
+    QString postfix = QString("%1-%2").arg( rc.left() ).arg( rc.right() );
+        
+    int row = model->rowCount();
+    model->setRowCount( row + t_ranges.size() );
+    for ( auto& t: t_ranges ) {
+        model->setData( model->index( row, 0 ), QString("pk%1@%2").arg( row ).arg( postfix ), Qt::EditRole );
+        model->setData( model->index( row, 1 ), t.first );
+        model->setData( model->index( row, 2 ), t.second.first );
+        model->setData( model->index( row, 3 ), t.second.second );
+    }
+    dlg_->tableView()->resizeColumnsToContents();
 }
 
+void
+QueryWidget::accept()
+{
+    std::ostringstream stmt;
+
+    auto model = dlg_->model();
+    std::vector< std::tuple< QString, int, double, double > > ranges;
+
+    if ( model->rowCount() == 0 )
+        return;
+
+    for ( int row = 0; row < model->rowCount(); ++row ) {
+        ranges.emplace_back( std::make_tuple( model->index( row, 0 ).data( Qt::EditRole ).toString()
+                                              , model->index( row, 1 ).data( Qt::EditRole ).toInt()
+                                              , model->index( row, 2 ).data( Qt::EditRole ).toDouble()
+                                              , model->index( row, 3 ).data( Qt::EditRole ).toDouble() ) );
+    }
+    
+    if ( dlg_->commandText() == "COUNTING" ) {
+        size_t idx( 0 );
+        for ( auto& t: ranges ) {
+            stmt << boost::format( "SELECT '%s' as 'name',avg(peak_time),COUNT(*) FROM peak,trigger "
+                                   "WHERE id=idTrigger AND protocol=%d AND peak_time>%.8e AND peak_time < %.8e AND peak_intensity < -10" )
+                % std::get< 0 >( t ).toStdString() // label
+                % std::get< 1 >( t )  // protocol
+                % std::get< 2 >( t )  // peak_time left
+                % std::get< 3 >( t ); // peak_time right
+            if ( ++idx < ranges.size() )
+                stmt << "\r\n\tUNION ALL";
+            stmt << "\r\n";
+        }
+
+    } else if ( dlg_->commandText() == "COUNTING.FREQUENCY" ) {
+        
+        stmt << "SELECT name,ROUND(peak_intensity/10)*10 AS threshold,avg(peak_time) AS time, avg(peak_intensity) as mV, COUNT(*) FROM (\r\n";
+        size_t idx( 0 );
+        for ( auto& t: ranges ) {
+            stmt << boost::format( "\tSELECT peak_time,peak_intensity, '%s' AS name FROM peak,trigger "
+                                   "WHERE id=idTrigger AND protocol=%d AND peak_time>%.8e AND peak_time < %.8e " )
+                % std::get< 0 >( t ).toStdString()
+                % std::get< 1 >( t )  // protocol
+                % std::get< 2 >( t )  // peak_time left
+                % std::get< 3 >( t ); // peak_time right
+
+            if ( ++idx < ranges.size() )
+                stmt << "\r\n\tUNION ALL";
+            stmt << "\r\n";
+        }
+        stmt <<") WHERE peak_intensity < threshold GROUP by name,threshold";
+
+    } else if ( dlg_->commandText() == "ELAPSEDTIME.INTENSITY" ) {
+        const auto& t = ranges[ 0 ]; // take 1st one
+        stmt << boost::format( "SELECT elapsedTime - (select min(elapsedTime) from trigger ) as 'elapsed time', peak_time, peak_intensity FROM peak,trigger "
+                               "WHERE id=idTrigger AND protocol=%d AND peak_time>%.8e AND peak_time < %.8e AND peak_intensity < -10 ORDER by elapsedTime" )
+            % std::get< 1 >( t ) % std::get< 2 >( t ) % std::get< 3 >( t );
+    }
+    form_->setSQL( QString::fromStdString( stmt.str() ) );
+}
+
+void
+QueryWidget::applyQuery()
+{
+    accept();
+    handleQuery( form_->sql() );
+}
+
+void
+QueryWidget::showHistory()
+{
+    hdlg_->activateWindow();
+    hdlg_->show();
+    hdlg_->raise();
+}

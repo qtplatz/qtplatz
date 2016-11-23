@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,50 +22,44 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef COUNTINGQUERYDIALOG_HPP
+#define COUNTINGQUERYDIALOG_HPP
 
-#include <QWidget>
-#include <memory>
+#include <QDialog>
 
-class QGridLayout;
+class QTableView;
+class QAbstractItemModel;
 
 namespace query {
+    
+    namespace Ui {
+        class CountingQueryDialog;
+    }
 
-    class QueryForm;
-    class QueryResultTable;
-    class QueryQuery;
-    class CountingQueryDialog;
-    class SqlHistoryDialog;
-
-    class QueryWidget : public QWidget  {
+    class CountingQueryDialog : public QDialog
+    {
         Q_OBJECT
+
     public:
-        ~QueryWidget();
-        explicit QueryWidget(QWidget *parent = 0);
+        explicit CountingQueryDialog(QWidget *parent = 0);
+        ~CountingQueryDialog();
 
-    private:
-        QGridLayout * layout_;
-        std::unique_ptr< QueryForm > form_;
-        std::unique_ptr< QueryResultTable > table_;
-        CountingQueryDialog * dlg_;
-        SqlHistoryDialog * hdlg_;
+        QTableView * tableView();
+        QAbstractItemModel * model();
+        void setCommandText( const QString& );
+        QString commandText() const;
 
-        void executeQuery();
+        void clear();
+
+    public slots:
+        void accept() override;
 
     signals:
-        void onQueryData( std::shared_ptr< QueryQuery > );
+        void applied();
 
-    public slots :
-        void handleConnectionChanged();
-
-    private slots:
-        void handleQuery( const QString& );
-        void handlePlot();
-        void buildQuery( const QString&, const QRectF&, bool );
-        void accept(); // <- dialog
-        void applyQuery();
-        void showHistory();
+    private:
+        Ui::CountingQueryDialog *ui;
     };
-
 }
 
+#endif // COUNTINGQUERYDIALOG_HPP
