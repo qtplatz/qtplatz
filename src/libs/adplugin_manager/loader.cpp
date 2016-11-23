@@ -81,7 +81,11 @@ loader::populate( const wchar_t * topdir )
                             QLibrary lib( libname );
 
                             boost::filesystem::path path( libname.toStdString() );
+#if BOOST_VERSION >= 106100
                             ADDEBUG() << "\tloading : " << boost::filesystem::relative( path, appdir, ec ).string();
+#else
+                            ADDEBUG() << "\tloading : " << path.string();
+#endif
                             if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
                                 break;
                             } else {
@@ -91,8 +95,7 @@ loader::populate( const wchar_t * topdir )
                                 if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
                                     break;
 #endif
-                                ADDEBUG() << "## failed to load: " << libname.toStdString()
-                                          << "\n\t" << lib.errorString().toStdString();
+                                ADDEBUG() << "## failed to load: " << libname.toStdString() << "\n\t" << lib.errorString().toStdString();
                             }
                         }
                     }
@@ -101,6 +104,7 @@ loader::populate( const wchar_t * topdir )
             }
         }
     } else {
+        ADDEBUG() << boost::format( "## Error: loader %1% is not a directory" ) % modules.generic_string();
         BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "loader %1% is not directory" ) % modules.generic_string() ).str() ) );
     }
     ADDEBUG() << "loader populated : " << topdir << ".";
@@ -117,20 +121,6 @@ loader::library_filename( const char * library )
 #endif
     return dname;
 }
-
-#if 0
-plugin_ptr
-loader::select_iid( const char * iid )
-{
-    return manager::instance()->select_iid( iid );
-}
-
-size_t
-loader::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
-{
-    return manager::instance()->select_iids( regex, vec );
-}
-#endif
 
 // static
 std::wstring
