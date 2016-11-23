@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/version.hpp>
 
 using namespace adplugin;
 
@@ -79,8 +80,8 @@ loader::populate( const wchar_t * topdir )
                             QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
                             QLibrary lib( libname );
 
-                            ADDEBUG() << "\tloading : " << libname.toStdString();
-                                                    
+                            boost::filesystem::path path( libname.toStdString() );
+                            ADDEBUG() << "\tloading : " << boost::filesystem::relative( path, appdir, ec ).string();
                             if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
                                 break;
                             } else {
@@ -102,6 +103,7 @@ loader::populate( const wchar_t * topdir )
     } else {
         BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "loader %1% is not directory" ) % modules.generic_string() ).str() ) );
     }
+    ADDEBUG() << "loader populated : " << topdir << ".";
 	manager::instance()->populated();
 }
 
