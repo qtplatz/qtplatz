@@ -241,8 +241,6 @@ SampleRun::setFilePrefix( const std::wstring& file )
 {
     impl_->filePrefix_ = file;
     impl_->runNumber_  = adportable::split_filename::trailer_number_int( file );
-
-    ADDEBUG() << "############ setFilePrefix(" << file << ") run# " << impl_->runNumber_ << " ###################";
 }
 
 const char * // utf8
@@ -287,8 +285,6 @@ SampleRun::operator ++ ()
     } while ( exists );
 
     impl_->filePrefix_ = impl_->make_name( impl_->runNumber_ );
-
-    ADDEBUG() << "############ increment (" << impl_->filePrefix_ << ") run# " << impl_->runNumber_ << " ###################";
 
     return ++(impl_->runCount_);
 }

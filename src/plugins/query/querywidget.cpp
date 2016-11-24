@@ -448,10 +448,10 @@ QueryWidget::accept()
 
     } else if ( dlg_->commandText() == "COUNTING.FREQUENCY" ) {
         
-        stmt << "SELECT name,ROUND(peak_intensity/10)*10 AS threshold,avg(peak_time) AS time, avg(peak_intensity) as mV, COUNT(*) FROM (\r\n";
+        stmt << "SELECT name,ROUND(peak_intensity/10)*10 AS threshold,avg(peak_time), avg(peak_intensity), avg(peak_width), COUNT(*) FROM (\r\n";
         size_t idx( 0 );
         for ( auto& t: ranges ) {
-            stmt << boost::format( "\tSELECT peak_time,peak_intensity, '%s' AS name FROM peak,trigger "
+            stmt << boost::format( "\tSELECT '%s' AS name, peak_time,peak_intensity, (back_offset-front_offset) as peak_width FROM peak,trigger "
                                    "WHERE id=idTrigger AND protocol=%d AND peak_time>%.8e AND peak_time < %.8e " )
                 % std::get< 0 >( t ).toStdString()
                 % std::get< 1 >( t )  // protocol
