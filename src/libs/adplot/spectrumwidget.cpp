@@ -520,24 +520,28 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 {
     using spectrumwidget::TraceData;
 
+    if ( !ptr && impl_->traces_.size() >= size_t( idx ) ) {
+        return;
+        // if ptr == nullptr, traces_[ idx ] need to be removed
+    }
+
     while ( int( impl_->traces_.size() ) <= idx ) 
 		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
-
+    
     TraceData& trace = impl_->traces_[ idx ];
 
     auto lock = trace.pSpectrum_;
 
     QRectF rect;
-    trace.setData( *this, ptr, rect, impl_->haxis_, yRight );
+    trace.setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
 
     QRectF baseRect;
     impl_->baseScale( yRight, baseRect );
 
     auto rectIndex = zoomer()->zoomRectIndex();
-    //QRectF z = zoomer()->zoomRect();
-
+    
     if ( !yRight && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
-
+        
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
         
         setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
@@ -566,7 +570,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         }
     }
 
-    if ( ptr->isCentroid() ) {
+    if ( ptr && ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
         update_annotation( false );
     } else {
@@ -705,6 +709,11 @@ TraceData::setData( plot& plot
                     , bool yRight )
 {
     curves_.clear();
+    
+    if ( !ms ) {
+        pSpectrum_.reset();
+        return;
+    }
 
     if ( pSpectrum_ != ms )
         pSpectrum_ = ms;

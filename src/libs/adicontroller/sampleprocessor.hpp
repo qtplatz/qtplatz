@@ -47,8 +47,6 @@ namespace adicontroller {
         
         void prepare_storage( SignalObserver::Observer * );
 
-        // void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
-
         void write( const boost::uuids::uuid& objId, adicontroller::SignalObserver::DataWriter& );
         
         void pos_front( unsigned int pos, unsigned long objId );
@@ -64,6 +62,7 @@ namespace adicontroller {
         adfs::filesystem& filesystem() const;
 
         static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
+
         const boost::filesystem::path& storage_name() const;
         
     private:

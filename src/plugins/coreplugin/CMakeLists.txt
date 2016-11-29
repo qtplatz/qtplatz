@@ -324,6 +324,8 @@ target_link_libraries(
   Qt5::Core
   ${MHDVIEWER_EXE_NAME}
   ${EXTRA_LIBS}
+  adportable
+  ${Boost_LIBRARIES}
 )
 
 if ( UNIX )
