@@ -239,7 +239,6 @@ namespace adicontroller {
             /** \brief get the process method as serialzied octet stream which stroed in the observer object
              */
             virtual bool processMethod( const std::string& dataClass, octet_array& serialized );
-
         };
     
     };

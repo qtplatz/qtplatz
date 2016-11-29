@@ -208,6 +208,33 @@ SampleProcessor::write( const boost::uuids::uuid& objId
 void
 SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
 {
+    populate_calibration( parent, fs_->db() );
+
+    // auto vec = parent->siblings();
+
+    // for ( auto observer : vec ) {
+    //     std::string dataClass;
+    //     octet_array data;
+    //     int32_t idx = 0;
+    //     while ( observer->readCalibration( idx++, data, dataClass ) ) {
+    //         adfs::stmt sql( fs_->db() );
+    //         sql.prepare( "INSERT INTO Calibration VALUES(:objuuid,:dataClass,:data,0)" );
+    //         sql.bind( 1 ) = observer->objid();
+    //         sql.bind( 2 ) = dataClass;
+    //         sql.bind( 3 ) = adfs::blob( data.size(), reinterpret_cast<const int8_t *>( data.data() ) );
+    //         if ( sql.step() == adfs::sqlite_done )
+    //             sql.commit();
+    //         else
+    //             sql.reset();
+    //     }
+    //     populate_calibration( observer.get() );
+    // }
+}
+
+// static
+void
+SampleProcessor::populate_calibration( SignalObserver::Observer * parent, adfs::sqlite& db )
+{
     auto vec = parent->siblings();
 
     for ( auto observer : vec ) {
@@ -215,7 +242,7 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
         octet_array data;
         int32_t idx = 0;
         while ( observer->readCalibration( idx++, data, dataClass ) ) {
-            adfs::stmt sql( fs_->db() );
+            adfs::stmt sql( db );
             sql.prepare( "INSERT INTO Calibration VALUES(:objuuid,:dataClass,:data,0)" );
             sql.bind( 1 ) = observer->objid();
             sql.bind( 2 ) = dataClass;
@@ -225,13 +252,14 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
             else
                 sql.reset();
         }
-        populate_calibration( observer.get() );
+        populate_calibration( observer.get(), db );
     }
     
 }
 
+// static
 void
-SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
+SampleProcessor::populate_descriptions( SignalObserver::Observer * parent, adfs::sqlite& db )
 {
     auto vec = parent->siblings();
 
@@ -240,20 +268,45 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
         if ( auto clsid = observer->dataInterpreterClsid() ) {
             (void)clsid;
 
-            //const auto& a = observer->objid();
-            //const auto& b = observer->description().data().objid;
-
             if ( observer->objid() != observer->description().data().objid ) {
                 assert( observer->objid() == observer->description().data().objid );
                 return;
             }
 
-            adutils::v3::AcquiredConf::insert( fs_->db()
+            adutils::v3::AcquiredConf::insert( db
                                                , observer->objid()
                                                , observer->description().data() );
         }
-        populate_descriptions( observer.get() );
+        populate_descriptions( observer.get(), db );
     }
+}
+
+void
+SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
+{
+    populate_descriptions( parent, fs_->db() );
+
+    // auto vec = parent->siblings();
+
+    // for ( auto observer : vec ) {
+
+    //     if ( auto clsid = observer->dataInterpreterClsid() ) {
+    //         (void)clsid;
+
+    //         //const auto& a = observer->objid();
+    //         //const auto& b = observer->description().data().objid;
+
+    //         if ( observer->objid() != observer->description().data().objid ) {
+    //             assert( observer->objid() == observer->description().data().objid );
+    //             return;
+    //         }
+
+    //         adutils::v3::AcquiredConf::insert( fs_->db()
+    //                                            , observer->objid()
+    //                                            , observer->description().data() );
+    //     }
+    //     populate_descriptions( observer.get() );
+    // }
 }
 
 std::shared_ptr< const adcontrols::SampleRun >
@@ -284,4 +337,22 @@ adfs::filesystem&
 SampleProcessor::filesystem() const
 {
     return *fs_;
+}
+
+bool
+SampleProcessor::prepare_snapshot_storage( adfs::sqlite& db ) const
+{
+    if ( auto masterObserver = masterObserver_.lock() ) {
+
+        adutils::v3::AcquiredConf::create_table_v3( db );
+        adutils::v3::AcquiredData::create_table_v3( db );
+        v3::mscalibio::create_table_v3( db );
+	
+        populate_descriptions( masterObserver.get(), db );
+        populate_calibration( masterObserver.get(), db );
+
+        return true;
+    }
+
+    return false;
 }

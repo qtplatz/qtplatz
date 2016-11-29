@@ -51,7 +51,7 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     auto& prop = ms.getMSProperty();
     auto& info = prop.samplingInfo();
 
-    std::vector< double > counts, masses, times;  //( info.nSamples() ); // counts intensity array
+    std::vector< double > counts, masses, times; // ( info.nSamples() ); // counts intensity array
     counts.reserve( info.nSamples() );
     masses.reserve( info.nSamples() );
     times.reserve( info.nSamples() );
@@ -60,13 +60,28 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     if ( !scanlaw )
         return;
 
-    size_t x(0);
-    std::generate( masses.begin(), masses.end(), [&]{ return scanlaw->getMass( prop.toSeconds( x++, info ), int( info.mode() ) ); } );
+    // size_t x(0);
+    // std::generate( masses.begin(), masses.end(), [&]{ return scanlaw->getMass( prop.toSeconds( x++, info ), int( info.mode() ) ); } );
+
+    const double td = info.fSampInterval() * 2;
+    double tp = info.delayTime();
 
     for ( size_t i = 0; i < ms.size(); ++i ) {
+        
+        double tc = ms.getTime( i );
+        if ( ( tc - tp ) >= td ) {
+            counts.emplace_back( 0 );
+            times.emplace_back( tp + info.fSampInterval() ); // insert a sample next to previous data
+            masses.emplace_back( scanlaw->getMass( tp + info.fSampInterval(), int( info.mode() ) ) );
+            
+            counts.emplace_back( 0 );
+            times.emplace_back( tc - info.fSampInterval() ); // insert previous sample as 0 count
+            masses.emplace_back( scanlaw->getMass( tc - info.fSampInterval(), int( info.mode() ) ) );
+        }
         counts.emplace_back( ms.getIntensity( i ) );
-        times.emplace_back( ms.getTime( i ) );
+        times.emplace_back( tc );
         masses.emplace_back( ms.getMass( i ) );
+        tp = tc;
     }
 
     ms.setCentroid( CentroidNone );

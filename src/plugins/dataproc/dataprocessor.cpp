@@ -463,29 +463,31 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 
         auto att = findProfiledHistogram( folium );
         
-        if ( ! att && ptr->isCentroid() ) {
+        if ( !att && ptr->isCentroid() ) {
+
+            double acclVoltage = ptr->getMSProperty().acceleratorVoltage();
+            double tDelay = ptr->getMSProperty().tDelay();
 
             boost::uuids::uuid objiid { 0 };
             adfs::stmt sql( *db() );
             sql.prepare( "SELECT objuuid FROM AcquiredConf where objtext like 'histogram.timecount.%'" );
-            if ( sql.step() == adfs::sqlite_row )
+            if ( sql.step() == adfs::sqlite_row ) {
                 objiid = sql.get_column_value< boost::uuids::uuid >( 0 );
-            
-            double acclVoltage( 0 ), tDelay( 0 ), fLength( 0 );
-            boost::uuids::uuid clsid { 0 };
-            adutils::v3::AcquiredConf::findScanLaw( *db(), objiid, clsid, acclVoltage, tDelay, fLength );
 
-            // even if lock mass applied on datafile, but histogram has the original mass-time assign, so back to original value
-            acclVoltage = ptr->getMSProperty().acceleratorVoltage();
-            tDelay = ptr->getMSProperty().tDelay();
-
-            if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) {
+                boost::uuids::uuid clsid { 0 };
+                double _0( 0 ), _1( 0 ), fLength( 0 );
+                adutils::v3::AcquiredConf::findScanLaw( *db(), objiid, clsid, _0, _1, fLength );
                 
-                spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
-                att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
-                auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
-                att.assign( ms, ms->dataClass() );
-                emit SessionManager::instance()->foliumChanged( this, folium );
+                if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) {
+                    
+                    // using original scanlaw stored in parent folium
+                    spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+                    
+                    att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
+                    auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
+                    att.assign( ms, ms->dataClass() );
+                    emit SessionManager::instance()->foliumChanged( this, folium );
+                }
             }
         }
         return att;
