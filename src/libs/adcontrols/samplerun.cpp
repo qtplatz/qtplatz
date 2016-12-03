@@ -295,6 +295,12 @@ SampleRun::runCount() const
     return impl_->runCount_;
 }
 
+void
+SampleRun::resetRunCount()
+{
+    impl_->runCount_ = 0;
+}
+
 //static
 bool
 SampleRun::archive( std::ostream& os, const SampleRun& t )

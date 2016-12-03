@@ -154,7 +154,7 @@ namespace adwidgets {
                     
                     if ( cadducts >= 0 )
                         expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
-
+                    
                     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
                     if ( exactMass > 0.7 ) {  // Any 'chemical formula' mass should be > 1.0 (Hydrogen := 1.007825)
                         double mass = index.data( Qt::EditRole ).toDouble();

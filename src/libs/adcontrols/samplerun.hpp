@@ -68,6 +68,7 @@ namespace adcontrols {
         const char * description() const;
         void description( const char * );
 
+        void resetRunCount();
         size_t runCount() const;
         size_t operator ++();
 

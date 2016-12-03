@@ -1154,7 +1154,7 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
 }
 
 bool
-DataprocessorImpl::applyMethod( Dataprocessor *
+DataprocessorImpl::applyMethod( Dataprocessor * dp
                                 , portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
 {
     using namespace portfolio;
@@ -1162,9 +1162,20 @@ DataprocessorImpl::applyMethod( Dataprocessor *
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     auto spectrometer = adcontrols::MassSpectrometer::create( pProfile->getMSProperty().dataInterpreterClsid() );
-    if ( !spectrometer )
-        fixupDataInterpreterClsid( folium );
-
+    if ( !spectrometer ) {
+        // adcontrols::TimeDigitalHistogram
+        adfs::stmt sql ( *dp->db() );
+        sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid=?" );
+        sql.bind( 1 ) = boost::uuids::uuid{ 0 };
+        if ( sql.step() == adfs::sqlite_row ) {
+            boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 2 );
+            if ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) )
+                spectrometer->setScanLaw( pProfile->getMSProperty().acceleratorVoltage(), pProfile->getMSProperty().tDelay(), 1.0 );
+        } else {
+            fixupDataInterpreterClsid( folium );
+        }
+    }
+    
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( attCentroid != atts.end() ) {
