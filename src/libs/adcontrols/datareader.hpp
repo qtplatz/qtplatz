@@ -103,7 +103,7 @@ namespace adcontrols {
 
         typedef DataReader_iterator iterator;
         typedef DataReader_iterator const_iterator;
-
+        
         enum TimeSpec { ElapsedTime, EpochTime };
         enum IndexSpec { TriggerNumber, IndexCount };
 

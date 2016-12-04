@@ -20,7 +20,7 @@ if ( WITH_CHARTS )
 endif()
 
 find_package( qwt )
-list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp qwt/xyseriesdata.cpp qwt/xyseriesdata.hpp )
+#list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp qwt/xyseriesdata.cpp qwt/xyseriesdata.hpp )
 include_directories( ${QWT_INCLUDE_DIRS} )
 
 if ( NOT Boost_FOUND )

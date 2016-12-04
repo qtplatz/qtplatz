@@ -92,6 +92,9 @@ set( quan_SOURCES
   quanplot.cpp
   quansvgplot.cpp
   quantarget.cpp
+  quantarget.hpp
+  sqledit.cpp
+  sqledit.hpp
   )
 
 set( quan_HEADERS
@@ -136,7 +139,6 @@ set( quan_HEADERS
   quanprogress.hpp
   quanplot.hpp
   quansvgplot.hpp
-  quantarget.cpp  
   )
 
 set( quan_RESOURCES quan.qrc )
@@ -161,6 +163,7 @@ target_link_libraries(
   adplot
   adwidgets
   adportable
+  adprocessor
   adpublisher
   chromatogr
   qtwrapper

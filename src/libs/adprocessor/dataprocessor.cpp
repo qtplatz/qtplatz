@@ -26,15 +26,21 @@
 #include "dataprocessor.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
+#include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportfolio/portfolio.hpp>
 
@@ -42,7 +48,10 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 using namespace adprocessor;
 
@@ -164,5 +173,74 @@ dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 void
 dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * )
 {
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+dataprocessor::readSpectrumFromTimeCount()
+{
+    std::shared_ptr< adcontrols::MassSpectrum > ms;
+    
+    adfs::stmt sql( *this->db() );
+    sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like 'histogram.timecount.1.%' LIMIT 1" );
+    if ( sql.step() == adfs::sqlite_row ) {
+        auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
+        
+        if ( auto raw = this->rawdata() ) {
+            if ( auto reader = raw->dataReader( objuuid ) ) {
+                auto it = reader->begin();
+                ms = reader->readSpectrum( it );
+            }
+        }
+    }
+    
+    boost::uuids::uuid clsidSpectrometer{ 0 };
+    double acclVoltage(0), tDelay(0), fLength(0);
+    sql.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
+    if ( sql.step() == adfs::sqlite_row ) {
+        acclVoltage = sql.get_column_value< double >( 0 );
+        tDelay      = sql.get_column_value< double >( 1 );
+        fLength     = sql.get_column_value< double >( 2 );
+        clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 3 );
+    }
+    if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
+        
+        spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+        auto scanlaw = spectrometer->scanLaw();
+        
+        {
+            // lead control method
+            auto idstr = boost::lexical_cast< std::string >( adcontrols::ControlMethod::Method::clsid() );
+            sql.prepare( "SELECT data FROM MetaData WHERE clsid = ?" );
+            sql.bind( 1 ) = idstr;
+            while( sql.step() == adfs::sqlite_row ) {
+                adcontrols::ControlMethod::Method m;
+                auto blob = sql.get_column_value< adfs::blob >( 0 );
+                boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >( blob.data() ), size_t( blob.size() ) );
+                boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
+                if ( adcontrols::ControlMethod::Method::restore( strm, m ) )
+                    spectrometer->setMethod( m );
+            }
+        }
+        
+        std::shared_ptr< adcontrols::MassSpectrum > hist = std::make_shared< adcontrols::MassSpectrum >();
+        hist->clone( *ms );
+        hist->setCentroid( adcontrols::CentroidNative );
+        
+        std::vector< double > t, y, m;
+        
+        sql.prepare( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" );
+        while ( sql.step() == adfs::sqlite_row ) {
+            double time = sql.get_column_value< double >( 0 ); // time
+            t.emplace_back( time );
+            y.emplace_back( sql.get_column_value< size_t >( 1 ) ); // count
+            int proto = sql.get_column_value< uint64_t >( 2 );                    
+            m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
+        }
+        hist->setMassArray( std::move( m ) );
+        hist->setTimeArray( std::move( t ) );
+        hist->setIntensityArray( std::move( y ) );
+
+        return hist;
+    }
 }
 

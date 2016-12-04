@@ -39,13 +39,13 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adplot/chartview.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <qtwrapper/progresshandler.hpp>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <utils/styledbar.h>
 #include <QCompleter>
-#include "qwt/chartview.hpp"
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -131,7 +131,7 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
         splitter->setOrientation( Qt::Vertical );
 
         splitter->addWidget( form_.get() );
-
+        
         if ( auto hsplitter = new QSplitter ) {
             hsplitter->setOrientation( Qt::Horizontal );
             hsplitter->addWidget( table_.get() );
@@ -139,9 +139,9 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
             if ( auto chartView = new charts::ChartView )
                 hsplitter->addWidget( chartView );
 #else
-            if ( auto chartView = new qwt::ChartView ) {
+            if ( auto chartView = new adplot::ChartView ) {
                 hsplitter->addWidget( chartView );
-                connect( chartView, &qwt::ChartView::makeQuery, this, &QueryWidget::buildQuery );
+                connect( chartView, &adplot::ChartView::makeQuery, this, &QueryWidget::buildQuery );
             }
 #endif
             if ( auto w = hsplitter->widget( 1 ) )
@@ -233,7 +233,8 @@ QueryWidget::executeQuery()
             
         {
             QSqlQuery query( connection->sqlDatabase() );
-            query.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE spectrometer='InfiTOF' LIMIT 1" );
+            //query.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE spectrometer='InfiTOF' LIMIT 1" );
+            query.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
             if ( query.exec() ) {
                 while ( query.next() ) {
                     auto rec = query.record();
@@ -297,7 +298,7 @@ QueryWidget::handlePlot()
 #if QT5_CHARTS
     typedef charts::ChartView ChartView_t;
 #else
-    typedef qwt::ChartView ChartView_t;
+    typedef adplot::ChartView ChartView_t;
 #endif
     
     if ( auto chart = findChild< ChartView_t * >() ) {

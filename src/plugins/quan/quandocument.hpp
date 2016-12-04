@@ -106,6 +106,7 @@ namespace quan {
         void replace_method( const adpublisher::document& );
         void replace_method( const adcontrols::ProcessMethod& );
 
+        void execute_counting();
         void run();
         void stop();
 

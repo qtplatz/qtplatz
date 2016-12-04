@@ -51,7 +51,7 @@
 #include <QMimeData>
 #include <QMessageBox>
 #include <QPainter>
-#include <QStandardItemModel>
+#include <QStandardItem>
 #include <QStyledItemDelegate>
 #include <QDebug>
 
@@ -135,8 +135,8 @@ namespace quan {
                 } else {
                     QStyledItemDelegate::setModelData( editor, model, index );
                 }
-                if ( valueChanged_ )
-                    valueChanged_( index );
+                // if ( valueChanged_ )
+                //     valueChanged_( index );
             }
             
             QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
@@ -152,14 +152,14 @@ namespace quan {
                 return QStyledItemDelegate::createEditor( parent, option, index );
             }
             
-            void register_valueChanged( std::function<void( const QModelIndex& )> f ) { 
-                valueChanged_ = f;
-            }
+            // void register_valueChanged( std::function<void( const QModelIndex& )> f ) { 
+            //     valueChanged_ = f;
+            // }
             
             void levels( int value ) { levels_ = value; }
             void replicates( int value ) { replicates_ = value; }
         private:
-            std::function<void( const QModelIndex& )> valueChanged_;
+            // std::function<void( const QModelIndex& )> valueChanged_;
             int levels_;
             int replicates_;
         };
@@ -217,7 +217,7 @@ using namespace quan;
 using namespace quan::datasequencetable;
 
 DataSequenceTable::DataSequenceTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                      , model_( new QStandardItemModel )
+                                                      , model_( std::make_unique< QStandardItemModel >() )
                                                       , dropCount_( 0 )
 {
     auto delegate = new ItemDelegate;
@@ -229,7 +229,7 @@ DataSequenceTable::DataSequenceTable(QWidget *parent) : adwidgets::TableView(par
     delegate->levels( qm.levels() );
     delegate->replicates( qm.replicates() );
 
-    delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
+    // delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
 
     onInitialUpdate();
 }
@@ -242,13 +242,10 @@ DataSequenceTable::onInitialUpdate()
     model.setColumnCount( number_of_columns );
 
     model.setHeaderData( c_datafile, Qt::Horizontal, tr("Data name") );       // read only
-
     model.setHeaderData( c_sample_type, Qt::Horizontal, tr("Sample type") );  // UNK/STD/QC
     model.setHeaderData( c_process, Qt::Horizontal, tr("Data Generation") );  // Average (start,end)
     model.setHeaderData( c_level, Qt::Horizontal, tr("Level") );              // if standard
-
     model.setHeaderData( c_description, Qt::Horizontal, tr("Description") );  // if standard
-
     model.setHeaderData( c_error_state, Qt::Horizontal, tr( "Error Status" ) );
     setColumnHidden( c_error_state, true );
 
@@ -258,6 +255,19 @@ DataSequenceTable::onInitialUpdate()
     setAcceptDrops( true );
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &TableView::customContextMenuRequested, this, &DataSequenceTable::handleContextMenu );
+    connect( model_.get(), &QStandardItemModel::itemChanged, this, [&]( QStandardItem * item ){ handleValueChanged( item->index() ); });
+}
+
+void
+DataSequenceTable::setSampleInlet( int inlet )
+{
+    if ( inlet == adcontrols::QuanSample::Counting ) {
+        setColumnHidden( c_process, true );
+        setColumnHidden( c_level, true );
+    } else {
+        setColumnHidden( c_process, false );
+        setColumnHidden( c_level, false );
+    }
 }
 
 void
@@ -421,6 +431,11 @@ DataSequenceTable::handleContextMenu( const QPoint& pt )
     if ( !index.isValid() )
         delete_action->setEnabled( false );
 
+    if ( auto action = menu.addAction( tr( "Plot Histogram" ), this, SLOT( plotHistogram() ) ) ) {
+        if ( !index.isValid() || !isCounting_ )
+            delete_action->setEnabled( false );        
+    }
+
     TableView::addActionsToMenu( menu, pt );
     
     menu.exec( this->mapToGlobal( pt ) );
@@ -440,6 +455,17 @@ DataSequenceTable::delLine()
     //model_->removeRow( index.row(), index.parent() );
     TableView::handleDeleteSelection();
     Chromatography::duplicate_file_check( *model_ );
+}
+
+void
+DataSequenceTable::plotHistogram()
+{
+    // QMenu entry
+    QModelIndex index = currentIndex();
+    if ( index.isValid() ) {
+        QString datafile = model_->index( index.row(), c_datafile ).data( Qt::EditRole ).toString();
+        emit plot( datafile );
+    }
 }
 
 void

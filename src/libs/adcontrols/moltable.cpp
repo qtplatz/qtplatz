@@ -119,7 +119,6 @@ moltable::value_type::isMSRef() const
 void
 moltable::value_type::setIsMSRef( bool on )
 {
-    //flags = on ? flags & moltable::isMSRef : flags & ~moltable::isMSRef;
     flags_ = on ? moltable::isMSRef : 0;
 }
 

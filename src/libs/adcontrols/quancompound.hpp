@@ -50,7 +50,7 @@ namespace adcontrols {
         const boost::uuids::uuid& uuid() const;
         uint32_t row() const;
         void row( uint32_t );
-
+        
         const wchar_t * display_name() const;
         void displya_name( const wchar_t * );
         const char * formula() const;

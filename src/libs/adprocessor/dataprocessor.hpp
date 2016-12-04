@@ -37,6 +37,7 @@ namespace adcontrols {
     class datafile;
     class LCMSDataset;
     class ProcessedDataset;
+    class MassSpectrum;
 }
 
 namespace portfolio { class Portfolio; class Folder; class Folium; }
@@ -68,10 +69,13 @@ namespace adprocessor {
         virtual const portfolio::Portfolio& portfolio() const;
         virtual portfolio::Portfolio& portfolio();
 
+        virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
+
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
         virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
+        //
 
     private:
         std::unique_ptr< adfs::filesystem > fs_;
