@@ -117,7 +117,8 @@ namespace dataproc {
                               , profileSpectrum_(0)
                               , processedSpectrum_(0)
                               , pwplot_( new adplot::TraceWidget )
-                              , is_time_axis_( false ) {
+                              , is_time_axis_( false )
+                              , hasHistogram_( false ) {
         }
 
         void currentChanged( const adcontrols::MSPeakInfoItem& pk ) {
@@ -252,6 +253,7 @@ namespace dataproc {
         std::shared_ptr< adplot::PeakMarker > processed_marker_;
         std::map< int, std::weak_ptr< adcontrols::Chromatogram > > checkedChromatograms_;
         bool is_time_axis_;
+        bool hasHistogram_;
     };
 
 }
@@ -341,12 +343,12 @@ MSProcessingWnd::init()
 void
 MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectrumPtr& hist )
 {
-    ADDEBUG() << "draw histogram";
-    
     if ( ! hist->isCentroid() ) {
         draw_profile( folium.id(), hist );
         return;
     }
+
+    pImpl_->hasHistogram_ = true;
 
     std::shared_ptr< adcontrols::MassSpectrum > profile;
     
@@ -372,8 +374,9 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     }
 
     pImpl_->profileSpectrum_->setData( profile, static_cast<int>(drawIdx1_++) );
-    pImpl_->profileSpectrum_->setData( hist, static_cast<int>(drawIdx1_++) );
     pImpl_->profileSpectrum_->setAlpha( drawIdx1_ - 1, 0x40 );
+
+    pImpl_->profileSpectrum_->setData( hist, static_cast<int>(drawIdx1_++) );
     
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: hist->getDescriptions() )
@@ -388,10 +391,13 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
 void
 MSProcessingWnd::draw_profile( const std::wstring& guid, adutils::MassSpectrumPtr& ptr )
 {
-    ADDEBUG() << "draw profile";
-    
     pProfileSpectrum_ = std::make_pair( guid, ptr );
     pProfileHistogram_.second.reset();
+
+    if ( pImpl_->hasHistogram_ ) {
+        pImpl_->profileSpectrum_->clear();
+        pImpl_->hasHistogram_ = false;
+    }
 
     if ( axis_ == adcontrols::hor_axis_mass ) {
         if ( ptr->size() > 0

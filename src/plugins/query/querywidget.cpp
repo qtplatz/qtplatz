@@ -240,9 +240,10 @@ QueryWidget::executeQuery()
                     auto rec = query.record();
                     double acclVoltage = rec.value( 0 ).toDouble();
                     double tDelay = rec.value( 1 ).toDouble();
-                    auto uuid = boost::uuids::string_generator()( rec.value( 2 ).toString().toStdString() );
+                    double fLength = rec.value( 2 ).toDouble();
+                    auto uuid = boost::uuids::string_generator()( rec.value( 3 ).toString().toStdString() );
                     if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( uuid ) ) {
-                        spectrometer->setScanLaw( acclVoltage, tDelay, 1.0 );
+                        spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
                         document::instance()->setMassSpectrometer( spectrometer );
                         table_->setMassSpectrometer( spectrometer );
                     }
