@@ -31,6 +31,8 @@
 #include "quanprocessor.hpp"
 #include "quanprogress.hpp"
 #include "quanpublisher.hpp"
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancalibration.hpp>
 #include <adcontrols/quancompounds.hpp>
@@ -38,6 +40,8 @@
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adfs/filesystem.hpp>
@@ -48,12 +52,13 @@
 #include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <app/app_version.h>
 #include <QApplication>
@@ -373,7 +378,10 @@ QuanDocument::execute_counting()
     auto compounds( quanCompounds() );
     auto qm = pm_->find< adcontrols::QuanMethod >();
     auto tm = pm_->find< adcontrols::TargetingMethod >();
+    auto cm = pm_->find< adcontrols::CentroidMethod >();
+
     double tolerance = tm->tolerance( adcontrols::idToleranceDaltons ) / 2.0;
+    adcontrols::CentroidProcess centroidProcess( *cm );
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
 
@@ -386,15 +394,37 @@ QuanDocument::execute_counting()
         }
 
         boost::filesystem::ofstream of( outfile );
+        of << "#filename,\t[ion,\tcounts,\twidth,\tmass,\tarea (at " << cm->peakCentroidFraction() * 100 << "%)]..." << std::endl;
 
         for ( auto it = quanSequence_->begin(); it != quanSequence_->end(); ++it ) {
-
+            
             of << boost::filesystem::path( it->dataSource() ).string();
 
             auto dp = std::make_shared< adprocessor::dataprocessor >();
             std::wstring emsg;
             std::shared_ptr< adcontrols::MassSpectrum > hist;
+
             if ( dp->open( it->dataSource(), emsg ) && ( hist = dp->readSpectrumFromTimeCount() ) ) {
+                using adcontrols::MSPeakInfo;
+                using adcontrols::MSPeakInfoItem;
+                std::map< std::string, MSPeakInfoItem > pks;
+
+                if ( centroidProcess( *hist ) ) {
+                    const auto& pkinfo = centroidProcess.getPeakInfo();
+
+                    for ( const auto& compound: compounds ) {
+                        auto beg = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m){
+                                return a.mass() < m;
+                            });
+                        auto end = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() + tolerance, [](const auto& a, const double& m){
+                                return a.mass() < m;
+                            });                        
+                        if ( beg != pkinfo.end() ) {
+                            auto it = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
+                            pks[ compound.formula() ] = *it;
+                        }
+                    }
+                }
 
                 const double * masses = hist->getMassArray();
                 const double * counts = hist->getIntensityArray();
@@ -410,7 +440,8 @@ QuanDocument::execute_counting()
                         size = std::distance( beg, end );
                         count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
                     }
-                    of << ",\t" << compound.formula() << ",\t" << size_t( count + 0.5 ) << ",\t" << idx << ",\t" << size;
+                    auto pk = pks[ compound.formula() ];
+                    of << boost::format(",\t\"%s\",\t%d,\t%d,\t%.14lf,\t%g" ) % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.area();
                 }
                 of << std::endl;
             }
