@@ -183,6 +183,7 @@ dataprocessor::readSpectrumFromTimeCount()
     adfs::stmt sql( *this->db() );
     sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like 'histogram.timecount.1.%' LIMIT 1" );
     if ( sql.step() == adfs::sqlite_row ) {
+
         auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
         
         if ( auto raw = this->rawdata() ) {
@@ -232,7 +233,7 @@ dataprocessor::readSpectrumFromTimeCount()
         while ( sql.step() == adfs::sqlite_row ) {
             double time = sql.get_column_value< double >( 0 ); // time
             t.emplace_back( time );
-            y.emplace_back( sql.get_column_value< size_t >( 1 ) ); // count
+            y.emplace_back( sql.get_column_value< uint64_t >( 1 ) ); // count
             int proto = sql.get_column_value< uint64_t >( 2 );                    
             m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
         }

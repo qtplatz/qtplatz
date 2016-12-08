@@ -11,7 +11,6 @@ QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 default:
 	@echo "################################################"
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
-	@echo "RDBASE is: " $(RDBASE)
 	@echo "################################################"
 	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
@@ -57,13 +56,3 @@ otool:
 	done
 	@echo "-------- ---------"
 	otool -L ${PLUGINS}/platforms/libqcocoa.dylib
-
-otool_rdkit:
-	for i in $(RDKit_LIBS); do \
-		otool -L $(RDKIT_STAGE_DIR)/$$i.dylib ;\
-	done
-
-otool_boost:
-	for i in $(BOOST_LIBS); do \
-		otool -L $(BOOST_STAGE_DIR)/$$i.dylib ;\
-	done

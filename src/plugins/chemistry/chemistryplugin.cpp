@@ -28,7 +28,7 @@
 #include "mainwindow.hpp"
 #include "constants.hpp"
 #include <adlog/logger.hpp>
-#include <adportable/debug_core.hpp>
+#include <adportable/debug.hpp>
 #include <adlog/logging_handler.hpp>
 
 #include <coreplugin/icore.h>
@@ -73,11 +73,8 @@ ChemistryPlugin::~ChemistryPlugin()
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    Q_UNUSED(arguments)
-    Q_UNUSED(errorString)
-
-    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-
+    ADDEBUG() << "##### ChemistryPlugin initialize...";
+    
     // 
     initialize_actions();
 
@@ -88,6 +85,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
         mode_->setWidget( widget );
     addObject( mode_.get() );
 
+    ADDEBUG() << "ChemistryPlugin initialized";    
     return true;
 }
 
@@ -121,6 +119,7 @@ void
 ChemistryPlugin::extensionsInitialized()
 {
 	mainWindow_->OnInitialUpdate();
+    ADDEBUG() << "ChemistryPlugin extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
