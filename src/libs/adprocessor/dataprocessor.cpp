@@ -203,6 +203,7 @@ dataprocessor::readSpectrumFromTimeCount()
         fLength     = sql.get_column_value< double >( 2 );
         clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 3 );
     }
+    
     if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
         
         spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
@@ -228,15 +229,35 @@ dataprocessor::readSpectrumFromTimeCount()
         hist->setCentroid( adcontrols::CentroidNative );
         
         std::vector< double > t, y, m;
-        
+        double ptime(0);
         sql.prepare( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" );
         while ( sql.step() == adfs::sqlite_row ) {
+
             double time = sql.get_column_value< double >( 0 ); // time
+            int proto = sql.get_column_value< uint64_t >( 2 );                    
+            
+            if ( (time - ptime) > 1.2e-9 ) {
+                if ( ptime > 1.0e-9 ) {
+                    // add count(0) to the end of last cluster
+                    t.emplace_back( ptime + 1.0e-9 );
+                    y.emplace_back( 0 ); // count
+                    m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
+                }
+                // add count(0) to the begining of next cluster
+                t.emplace_back( time - 1.0e-9 );
+                y.emplace_back( 0 ); // count
+                m.emplace_back( scanlaw->getMass( ( time - 1.0e-9 ), spectrometer->mode( proto ) ) );
+            }
             t.emplace_back( time );
             y.emplace_back( sql.get_column_value< uint64_t >( 1 ) ); // count
-            int proto = sql.get_column_value< uint64_t >( 2 );                    
             m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
+            ptime = time;
         }
+        // close cluster if exists
+        // t.emplace_back( ptime + 1.0e-9 );
+        // y.emplace_back( 0 ); // count
+        // m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
+        
         hist->setMassArray( std::move( m ) );
         hist->setTimeArray( std::move( t ) );
         hist->setIntensityArray( std::move( y ) );
