@@ -184,7 +184,7 @@ SpectrogramWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& fo
 void
 SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& folium )
 {
-    portfolio::Folder folder = folium.getParentFolder();
+    portfolio::Folder folder = folium.parentFolder();
 
     if ( folder && folder.name() == L"Spectrograms" ) {
         adcontrols::MassSpectraPtr ptr;

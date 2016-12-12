@@ -334,7 +334,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
     for ( auto c: vec )
         folium = processor->addChromatogram( *c, *pm );
 
-	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 
@@ -359,7 +359,7 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
     portfolio::Folium folium;
     for ( auto c: vec )
         folium = processor->addChromatogram( *c, *method );
-	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
@@ -387,7 +387,7 @@ DataprocessWorker::handleCreateChromatogramsV3( Dataprocessor * processor
     for ( auto c: vec )
         folium = processor->addChromatogram( *c, *pm );
 
-	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+	SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 
@@ -556,7 +556,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
             }
         }
         portfolio::Folium folium = processor->addSpectrogram( spectra );
-        SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+        SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }
     
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
@@ -602,7 +602,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
         using adportable::utf;
         spectra->addDescription( adcontrols::description( L"Create", ( boost::wformat( L"%s,fcn(%d)" ) % utf::to_wstring( reader->display_name() ) % fcn ).str() ) );
         portfolio::Folium folium = processor->addSpectrogram( spectra );
-        SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+        SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }

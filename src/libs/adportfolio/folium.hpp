@@ -60,8 +60,8 @@ namespace portfolio {
         ~Folium();
         Folium();
         Folium( const Folium& );
-        Folium( pugi::xml_node&, internal::PortfolioImpl * impl );
-        Folium( pugi::xml_node, internal::PortfolioImpl * impl );
+        Folium( const pugi::xml_node&, internal::PortfolioImpl * impl );
+        // Folium( pugi::xml_node, internal::PortfolioImpl * impl );
     public:
 
         bool nil() const;
@@ -76,7 +76,9 @@ namespace portfolio {
 
         std::vector< Folium > attachments();
         const std::vector< Folium > attachments() const;
-        Folder getParentFolder() const;
+
+        Folium parentFolium() const;
+        Folder parentFolder() const;
 		std::string fullpath( bool fullyqualified = true ) const;
 
         typedef std::vector< Folium > vector_type;

@@ -707,7 +707,7 @@ MainWindow::handleProcessed( dataproc::Dataprocessor * processor, portfolio::Fol
 void
 MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium& folium )
 {
-	if ( portfolio::Folder folder = folium.getParentFolder() ) {
+	if ( portfolio::Folder folder = folium.parentFolder() ) {
 
 		if ( folder.name() == L"MSCalibration" ) {
             if ( stack_->currentIndex() != idSelMSCalibration && stack_->currentIndex() != idSelMSCalibSpectra )

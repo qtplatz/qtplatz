@@ -393,8 +393,18 @@ QuanDocument::execute_counting()
             boost::filesystem::rename( outfile, backup );
         }
 
+        // save sequence
+        boost::filesystem::path qseq( outfile );
+        qseq.replace_extension( ".qseq" );
+        if ( boost::filesystem::exists( qseq ) ) {
+            boost::filesystem::path backup( qseq );
+            backup.replace_extension( ".qseq.old" );
+            boost::filesystem::rename( qseq, backup );
+            save( qseq, *quanSequence_, false );
+        }
+
         boost::filesystem::ofstream of( outfile );
-        of << "#filename,\t[ion,\tcounts,\twidth,\tmass,\tarea (at " << cm->peakCentroidFraction() * 100 << "%)]..." << std::endl;
+        of << "#filename\t[ion\tcounts\twidth\tmass\ttime\tarea (at " << cm->peakCentroidFraction() * 100 << "%)]..." << std::endl;
 
         for ( auto it = quanSequence_->begin(); it != quanSequence_->end(); ++it ) {
             
@@ -441,7 +451,8 @@ QuanDocument::execute_counting()
                         count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
                     }
                     auto pk = pks[ compound.formula() ];
-                    of << boost::format(",\t\"%s\",\t%d,\t%d,\t%.14lf,\t%g" ) % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.area();
+                    of << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
+                        % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
                 }
                 of << std::endl;
             }

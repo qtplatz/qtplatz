@@ -25,6 +25,7 @@
 #include "folium.hpp"
 #include "folder.hpp"
 #include "portfolioimpl.hpp"
+#include <adportable/debug.hpp>
 
 using namespace portfolio;
 
@@ -40,13 +41,13 @@ Folium::Folium( const Folium& t ) : Node( t )
 {
 }
 
-Folium::Folium( pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+Folium::Folium( const pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, impl )
 {
 }
 
-Folium::Folium( pugi::xml_node n, internal::PortfolioImpl * impl ) : Node( n, impl )
-{
-}
+// Folium::Folium( pugi::xml_node n, internal::PortfolioImpl * impl ) : Node( n, impl )
+// {
+// }
 
 bool
 Folium::empty() const
@@ -131,14 +132,29 @@ Folium::removeAttachment( const std::wstring& name, bool removeContents )
     return false;
 }
 
-
-Folder
-Folium::getParentFolder() const
+Folium
+Folium::parentFolium() const
 {
     pugi::xml_node parent = node_.parent();
+
+    while ( parent && parent.attribute( "folderType" ).value() != std::string( "file" ) )
+        parent = parent.parent();
+
+    if ( parent && parent.attribute( "folderType" ).value() == std::string( "file" ) )
+        return Folium( parent, impl_ );
+
+    return Folium();
+}
+
+Folder
+Folium::parentFolder() const
+{
+    pugi::xml_node parent = node_.parent();
+
     while ( parent && parent.attribute( "folderType" ).value() != std::string( "directory" ) )
         parent = parent.parent();
-    if ( parent.name() == std::string( "folder" )
+
+    if ( parent && parent.name() == std::string( "folder" )
         && parent.attribute( "folderType" ).value() == std::string( "directory" ) ) 
         return Folder( parent, impl_ );
 

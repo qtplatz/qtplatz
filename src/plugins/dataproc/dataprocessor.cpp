@@ -547,6 +547,22 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 }
 
 void
+Dataprocessor::remove( portfolio::Folium folium )
+{
+    if ( portfolio::Folium parent = folium.parentFolium() ) {
+        
+        if ( parent.removeAttachment( folium.name() ) )
+            setModified( true );
+
+    } else if ( portfolio::Folder folder = folium.parentFolder() ) {
+
+        folder.removeFolium( folium );
+        setModified( true );
+
+    }
+}
+
+void
 Dataprocessor::removeCheckedItems()
 {
     for ( auto& folder: portfolio_->folders() ) {

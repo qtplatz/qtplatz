@@ -356,7 +356,7 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
         auto att = dp->findProfiledHistogram( folium );
         if ( !att ) {
             att = dp->addProfiledHistogram( folium );
-            ADDEBUG() << "add draw new histogram-profiled";
+            ADDEBUG() << "new histogram-profiled added";
         }
         if ( att ) {
             profile = portfolio::get< adcontrols::MassSpectrumPtr >( att );
@@ -562,7 +562,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
-    if ( portfolio::Folder folder = folium.getParentFolder() ) {
+    if ( portfolio::Folder folder = folium.parentFolder() ) {
         
         if ( folder.name() == L"Spectra" ) { //|| folder.name() == L"Chromatograms" ) {
 
@@ -864,7 +864,7 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
     (void)processor;
     (void)isChecked;
 
-    portfolio::Folder folder = folium.getParentFolder();
+    portfolio::Folder folder = folium.parentFolder();
 	if ( !folder )
 		return;
     if ( folder.name() == L"Chromatograms" ) {

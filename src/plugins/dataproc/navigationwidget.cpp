@@ -388,8 +388,10 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
 void
 NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
+    ADDEBUG() << "handleFoliumChanged: " << folium.name();
+
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
-        if ( auto folder = StandardItemHelper::findFolder( top, folium.getParentFolder().name() ) ) {
+        if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {
                 item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
                 for ( auto& att: folium.attachments() ) {
@@ -438,7 +440,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
     if ( QStandardItem * processorItem = StandardItemHelper::findRow< Dataprocessor * >( model, processor ) ) {
 
         if ( QStandardItem * folderItem
-             = StandardItemHelper::findFolder( processorItem, folium.getParentFolder().name() ) ) {
+             = StandardItemHelper::findFolder( processorItem, folium.parentFolder().name() ) ) {
             
             if ( QStandardItem * item = StandardItemHelper::findFolium( processorItem, folium.id() ) ) {
                 // replace existing
@@ -448,7 +450,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
             }
 
         } else {
-            portfolio::Folder parent = folium.getParentFolder();
+            portfolio::Folder parent = folium.parentFolder();
             PortfolioHelper::appendFolder( *processorItem, parent );
         }
     }
@@ -714,7 +716,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         QString active_spectrum;
         if ( auto activeProcessor = SessionManager::instance()->getActiveDataprocessor() ) {
             if ( (active_folium = activeProcessor->currentSelection()) ) {
-                if ( active_folium.getParentFolder().name() == L"Spectra" )
+                if ( active_folium.parentFolder().name() == L"Spectra" )
                     active_spectrum = QString::fromStdWString( active_folium.name() );
             }
         }
@@ -730,13 +732,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
                     menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
                 }
-
+                
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
                 portfolio::Folium folium = data.value< portfolio::Folium >();
             
-                if ( (folium.getParentFolder().name() == L"Spectra") ||
-                    (folium.getParentFolder().name() == L"MSCalibration") )  {
+                if ( (folium.parentFolder().name() == L"Spectra") ||
+                    (folium.parentFolder().name() == L"MSCalibration") )  {
 
                     QString selected_spectrum = QString::fromStdWString( folium.name() );
 
@@ -768,10 +770,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         menu.add( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
                             , BackgroundSubtraction( active_folium, folium ), !active_spectrum.isEmpty() );
 
+                        menu.add( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [&]( Dataprocessor * dp ){
+                                dp->remove( folium );
+                                this->invalidateSession( dp );
+                            } );
+
                         menu.add( tr("Remove unchecked items"), RemoveChecked( this ) );
+
                     }
                 }
-                if ( folium.getParentFolder().name() == L"Chromatograms" ) {
+                if ( folium.parentFolder().name() == L"Chromatograms" ) {
 
                     QAction * doSpectrogram = 0;
                     menu.add( tr( "Remove unchecked items" ), RemoveChecked( this ) );
@@ -779,7 +787,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                     menu.add( tr("Save Chromatogram as..."), SaveChromatogramAs( folium ), true );
                 }
-                if ( folium.getParentFolder().name() == L"Spectrograms" ) {
+                if ( folium.parentFolder().name() == L"Spectrograms" ) {
                     menu.add( tr("Apply lock mass"), [&]( Dataprocessor * processor ){
                             if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
                                 processor->applyLockMass( v );

@@ -126,7 +126,7 @@ namespace dataproc {
 
         void sendCheckedSpectraToCalibration( Dataprocessor * );
         void removeCheckedItems();
-
+        void remove( portfolio::Folium );
         void createSpectrogram();
         void clusterSpectrogram();
         void findPeptide( const adprot::digestedPeptides& );

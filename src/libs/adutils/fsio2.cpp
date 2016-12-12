@@ -244,7 +244,7 @@ fsio2::appendOnFile( const std::wstring& filename, const portfolio::Folium& foli
             return false;
     }
 
-	portfolio::Folder folder = folium.getParentFolder();
+	portfolio::Folder folder = folium.parentFolder();
 
     // "/Processed/Spectra" | "/Processed/MSCalibration"    
     boost::filesystem::path pathname = adportable::path::posix( boost::filesystem::path( "/Processed" ) / folder.name() );
@@ -278,7 +278,7 @@ fsio2::append( adfs::filesystem& fs
                , const portfolio::Folium& folium
                , const adcontrols::datafile& source )
 {
-	portfolio::Folder folder = folium.getParentFolder();
+	portfolio::Folder folder = folium.parentFolder();
     boost::filesystem::path pathname = adportable::path::posix( boost::filesystem::path( "/Processed" ) / folder.name() );
 
     adfs::folder dbf = fs.addFolder( pathname.wstring() );
