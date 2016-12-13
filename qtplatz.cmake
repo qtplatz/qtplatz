@@ -10,6 +10,9 @@ find_package( arch )
 #####################
 # boost setup
 #
+set( Boost_NO_SYSTEM_PATHS ON )
+set( Boost_ADDITIONAL_VERSIONS "1.62.0" "1.62" )
+
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
