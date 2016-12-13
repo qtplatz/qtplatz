@@ -27,8 +27,10 @@
 
 namespace adportable {
 
+    // doi = "10.1103/RevModPhys.88.035009"
     const double kATOMIC_MASS_CONSTANT = 1.660538921e-27; // [kg/u]
     const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
+
     const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
 
     class TimeSquaredScanLaw {

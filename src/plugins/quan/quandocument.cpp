@@ -33,17 +33,19 @@
 #include "quanpublisher.hpp"
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancalibration.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/mspeakinfo.hpp>
-#include <adcontrols/mspeakinfoitem.hpp>
-#include <adcontrols/msreferences.hpp>
-#include <adcontrols/msreference.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adfs/filesystem.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
@@ -382,9 +384,9 @@ QuanDocument::execute_counting()
 
     double tolerance = tm->tolerance( adcontrols::idToleranceDaltons ) / 2.0;
     adcontrols::CentroidProcess centroidProcess( *cm );
-
+    
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
-
+        
         boost::filesystem::path outfile( quanSequence_->outfile() );
         outfile.replace_extension( ".csv" );
         if ( boost::filesystem::exists( outfile ) ) {
@@ -432,6 +434,12 @@ QuanDocument::execute_counting()
                         if ( beg != pkinfo.end() ) {
                             auto it = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
                             pks[ compound.formula() ] = *it;
+                            // if ( auto spectrometer = dp->massSpectrometer() ) {
+                            //     auto scanlaw = spectrometer->scanLaw();
+                            //     ADDEBUG() << "###" << compound.formula()
+                            //               << "\t" << it->mass() << "\t" << scanlaw->getMass( it->time(), hist->mode() )
+                            //               << "\t" << it->time() << "\t" << scanlaw->getTime( it->mass(), hist->mode() );
+                            // }
                         }
                     }
                 }

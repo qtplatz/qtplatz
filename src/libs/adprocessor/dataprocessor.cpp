@@ -175,6 +175,45 @@ dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * )
 {
 }
 
+std::shared_ptr< adcontrols::MassSpectrometer >
+dataprocessor::massSpectrometer()
+{
+    if ( ! spectrometer_ ) {
+        // std::shared_ptr< adcontrols::MassSpectrum > ms;
+        
+        adfs::stmt sql( *this->db() );
+        // sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like 'histogram.timecount.1.%' LIMIT 1" );
+        // if ( sql.step() == adfs::sqlite_row ) {
+            
+        //     auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
+            
+        //     if ( auto raw = this->rawdata() ) {
+        //         if ( auto reader = raw->dataReader( objuuid ) ) {
+        //             auto it = reader->begin();
+        //             ms = reader->readSpectrum( it );
+        //         }
+        //     }
+        // }
+        
+        boost::uuids::uuid clsidSpectrometer{ 0 };
+        double acclVoltage(0), tDelay(0), fLength(0);
+        sql.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
+        if ( sql.step() == adfs::sqlite_row ) {
+            acclVoltage = sql.get_column_value< double >( 0 );
+            tDelay      = sql.get_column_value< double >( 1 );
+            fLength     = sql.get_column_value< double >( 2 );
+            clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 3 );
+        }
+        
+        if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
+            spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+            spectrometer_ = spectrometer;
+        }
+    }
+    return spectrometer_;
+}
+
+
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readSpectrumFromTimeCount()
 {
