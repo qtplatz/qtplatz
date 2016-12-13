@@ -22,14 +22,13 @@ if( WIN32 )
     "C:/Boost/include/boost-1_57" )
 
   set( BOOST_ROOT ${_boost} )
-  set( Boost_INCLUDE_DIR ${_boost} )
-  set( Boost_USE_STATIC_LIBS ON )
-
+  set( BOOST_INCLUDEDIR ${_boost} )
   if ( RTC_ARCH_X64 )
-    set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib" )
+    set( BOOST_LIBRARYDIR C:/Boost/x86_64/lib )
   else()
-    set( Boost_LIBRARY_DIR "C:/Boost/lib" )    
+    set( BOOST_LIBRARYDIR "C:/Boost/lib" )    
   endif()
+  set( Boost_USE_STATIC_LIBS ON )
 
 else()
 

@@ -8,22 +8,26 @@ if ( WIN32 )
 
   find_package( Boost QUIET )
   
-  set( _rdkit "C:/RDKit" )
-  if ( MSVC_VERSION EQUAL 1900 )
-    set( _vc "vc140" )
-  elseif ( MSVC_VERSION EQUAL 1800 )
-    set( _vc "vc120" )
-  endif()
-  set( _rdkit_libdirs 
-    "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
-    "${_rdkit}/lib${__arch}_${_vc}_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" #ex: C:/RDKit/lib_vc140_boost-1_59
-    "${_rdkit}/lib${__arch}_${_vc}"
-    "${_rdkit}/lib_${_vc}"
-    "${_rdkit}/lib"
-    )
-  set( _rdkit_incdirs "${_rdkit}/include/rdkit" )
-  find_package( rdkit CONFIG HINTS ${_rdkit_libdirs} ) # find ex. C:/RDKit/lib_vc140_boost-1_59/rdkit-config.cmake
-  set ( RDKit_LIBRARY_DIRS ${_dir} )  
+  #set( _rdkit "C:/RDKit" )
+  set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "/usr/local/lib" )  
+  set( _rdkit_incdirs
+    "${CMAKE_SOURCE_DIR}/../rdkit/Code" "${RDBASE}/Code"
+    "${CMAKE_SOURCE_DIR}/../rdkit/External" "${RDBASE}/External" "/usr/local/include/rdkit" )
+#  if ( MSVC_VERSION EQUAL 1900 )
+#    set( _vc "vc140" )
+#  elseif ( MSVC_VERSION EQUAL 1800 )
+#    set( _vc "vc120" )
+#  endif()
+#  set( _rdkit_libdirs 
+#    "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
+#    "${_rdkit}/lib${__arch}_${_vc}_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" #ex: C:/RDKit/lib_vc140_boost-1_59
+#    "${_rdkit}/lib${__arch}_${_vc}"
+#    "${_rdkit}/lib_${_vc}"
+#    "${_rdkit}/lib"
+#    )
+#  set( _rdkit_incdirs "${_rdkit}/include/rdkit" )
+#  find_package( rdkit CONFIG HINTS ${_rdkit_libdirs} ) # find ex. C:/RDKit/lib_vc140_boost-1_59/rdkit-config.cmake
+#  set ( RDKit_LIBRARY_DIRS ${_dir} )  
   
 else()
   set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "/usr/local/lib" )

@@ -105,6 +105,7 @@ XYSeriesData::operator << ( const QPointF& pt )
         if ( d_boundingRect.top() < pt.y() )
             d_boundingRect.setTop( pt.y() );                
     }
+    return *this;
 }
 
 ////////////////////
