@@ -16,7 +16,7 @@
 #include "request_handler.hpp"
 
 namespace acqrscontrols { namespace aqdrv4 {
-    class preamble;
+    struct preamble;
     class acqiris_protocol;
 }}
     

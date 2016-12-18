@@ -34,6 +34,9 @@ namespace adcontrols {
 
     class CountingPeak;
     class CountingData;
+#if defined _MSC_VER
+    template class ADCONTROLSSHARED_EXPORT std::vector< adcontrols::CountingPeak >;
+#endif
 
     class ADCONTROLSSHARED_EXPORT CountingHistogram {
     public:

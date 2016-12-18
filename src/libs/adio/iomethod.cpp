@@ -104,7 +104,7 @@ method::read_json( std::istream& json, method& m )
                 if ( boost::optional< int > value = item.second.get_optional<int>( "action" ) )
                     e.action_ = tAction( value.get() );
                 if ( boost::optional< double > value = item.second.get_optional< double >( "duration" ) )
-                    e.duration_ = tAction( value.get() );                
+                    e.duration_ = double( value.get() );                
                 
                 m.table().emplace_back( e );
             }

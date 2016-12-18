@@ -10,6 +10,10 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system )
+endif()
+
 add_definitions(-DADDATAFILE_LIBRARY)
 
 add_library( addatafile MODULE 

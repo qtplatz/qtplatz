@@ -36,7 +36,7 @@ namespace acqrscontrols {
         class acqiris_method;
         class trigger_method;
         class vertical_method;
-        class horizontal_method;
+        struct horizontal_method;
     }
 }
 

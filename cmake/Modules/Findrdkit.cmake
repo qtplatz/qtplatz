@@ -13,35 +13,17 @@ if ( WIN32 )
   set( _rdkit_incdirs
     "${CMAKE_SOURCE_DIR}/../rdkit/Code" "${RDBASE}/Code"
     "${CMAKE_SOURCE_DIR}/../rdkit/External" "${RDBASE}/External" "/usr/local/include/rdkit" )
-#  if ( MSVC_VERSION EQUAL 1900 )
-#    set( _vc "vc140" )
-#  elseif ( MSVC_VERSION EQUAL 1800 )
-#    set( _vc "vc120" )
-#  endif()
-#  set( _rdkit_libdirs 
-#    "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
-#    "${_rdkit}/lib${__arch}_${_vc}_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" #ex: C:/RDKit/lib_vc140_boost-1_59
-#    "${_rdkit}/lib${__arch}_${_vc}"
-#    "${_rdkit}/lib_${_vc}"
-#    "${_rdkit}/lib"
-#    )
-#  set( _rdkit_incdirs "${_rdkit}/include/rdkit" )
-#  find_package( rdkit CONFIG HINTS ${_rdkit_libdirs} ) # find ex. C:/RDKit/lib_vc140_boost-1_59/rdkit-config.cmake
-#  set ( RDKit_LIBRARY_DIRS ${_dir} )  
-  
 else()
   set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "/usr/local/lib" )
   set( _rdkit_incdirs
     "${CMAKE_SOURCE_DIR}/../rdkit/Code" "${RDBASE}/Code"
-    "${CMAKE_SOURCE_DIR}/../rdkit/External" "${RDBASE}/External" "/usr/local/include/rdkit" )
+    "${CMAKE_SOURCE_DIR}/../rdkit/External" "${RDBASE}/External"
+    "/usr/local/include/rdkit" "/usr/include/rdkit" )
 endif()
 
 if ( NOT rdkit_FOUND )
 
-  find_path( _include_dir GraphMol/RDKitBase.h HINTS
-    ${_rdkit_incdirs}
-    /usr/include/rdkit
-    )
+  find_path( _include_dir GraphMol/RDKitBase.h HINTS ${_rdkit_incdirs} )
 
   if ( NOT _include_dir )
     return()
@@ -50,9 +32,13 @@ if ( NOT rdkit_FOUND )
   find_path( _inchi_inc_dir INCHI-API/inchi.h HINTS ${_rdkit_incdirs} )
   
   find_library( _fileparsers_lib NAMES FileParsers HINTS
+    ${_rdkit_libdirs}
     ${_include_dir}/../lib
     /usr/local/lib
     /usr/lib )
+
+  message( "#####" )
+  message( "##### rdkit fileparsers_lib: " ${_fileparsers_lib} )
 
   if ( _fileparsers_lib )
     get_filename_component ( _libdir ${_fileparsers_lib} PATH )
@@ -131,6 +117,10 @@ if ( NOT rdkit_FOUND )
     include( ${version_cmake} )
     set( RDKit_PACKAGE_VERSION ${PACKAGE_VERSION} )
   endif()
+  #find_file( rdkit_config NAMES rdkit-config.cmake PATHS ${RDKit_LIBRARY_DIRS} NO_DEFAULT_PATH )
+  #if ( _config )
+  # include( ${ rdkit_config} )
+  #endif()
 
 endif()
 

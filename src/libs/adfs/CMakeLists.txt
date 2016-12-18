@@ -7,7 +7,7 @@ cmake_policy( SET CMP0022 NEW )
 set( SHARED_ADFS_LIBRARY ON )
 
 if ( SHARED_ADFS_LIBRARY )
-  if ( NOT Boost_FOUND )
+  if ( NOT Boost_FOUND OR WIN32 )
     find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
   endif()
   find_package(Threads REQUIRED)

@@ -103,5 +103,5 @@ mol::InChI() const
 std::string
 mol::InChIToInChIKey( const std::string& inchi )
 {
-    RDKit::InchiToInchiKey( inchi );
+    return RDKit::InchiToInchiKey( inchi );
 }

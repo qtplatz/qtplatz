@@ -22,7 +22,6 @@
 **
 **************************************************************************/
 
-#include "molview.hpp"
 #include <memory>
 
 #include <QDebug>
@@ -33,6 +32,7 @@
 #include <QGraphicsSvgItem>
 #include <QPaintEvent>
 #include <qmath.h>
+#include "molview.hpp"
 
 #ifndef QT_NO_OPENGL
 #include <QGLWidget>

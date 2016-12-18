@@ -26,6 +26,7 @@
 
 #include "adwidgets_global.hpp"
 #include <QGraphicsView>
+#include <QSvgRenderer>
 #include <memory>
 
 QT_BEGIN_NAMESPACE

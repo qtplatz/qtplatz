@@ -33,6 +33,10 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package( Boost COMPONENTS system )
+endif()
+
 find_package( qwt )
 
 add_definitions(
