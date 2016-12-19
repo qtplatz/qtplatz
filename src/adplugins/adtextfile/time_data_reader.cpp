@@ -193,7 +193,7 @@ time_data_reader::readScanLaw( const std::string& adfsname
                 return true;
             ++rows;
         }
-        return rows;
+        return rows != 0;
     }
     return false;
 }

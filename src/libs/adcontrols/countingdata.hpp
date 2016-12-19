@@ -35,6 +35,11 @@
 
 namespace adcontrols {
 
+#if defined _MSC_VER
+    struct CountingPeak;
+    template class ADCONTROLSSHARED_EXPORT std::vector< adcontrols::CountingPeak >;
+#endif    
+
     struct ADCONTROLSSHARED_EXPORT CountingPeak {
 
         std::tuple<
