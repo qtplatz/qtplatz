@@ -10,6 +10,10 @@ endif()
 
 find_package( rdkit )
 
+if ( NOT rdkit_FOUND )
+  return()
+endif()
+
 add_definitions( -DADCHEM_LIBRARY )
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
