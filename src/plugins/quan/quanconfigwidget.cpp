@@ -123,7 +123,5 @@ QuanConfigWidget::importQuanMethod()
         adcontrols::ProcessMethod m;
         QuanDocument::load( name.toStdWString(), m );
         QuanDocument::instance()->replace_method( m );
-        //if ( auto ptr = m.find< adcontrols::QuanMethod >() )
-        //QuanDocument::instance()->replace_method( *ptr );
     }
 }

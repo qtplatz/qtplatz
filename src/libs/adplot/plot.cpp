@@ -79,7 +79,7 @@ namespace adplot {
         std::shared_ptr< plotlink > plotlink_;
         bool linkedzoom_inprocess_;
         bool vectorCompression_;
-        std::unique_ptr< Zoomer > zoomer1_;  // left bottom axix
+        std::unique_ptr< Zoomer > zoomer1_;  // left bottom axis
         std::unique_ptr< Picker > picker_;   // (right mouse button)
         std::unique_ptr< Panner > panner_;
     };
@@ -266,4 +266,15 @@ Panner *
 plot::panner() const
 {
     return impl_->panner_.get();
+}
+
+void
+plot::setAxisScale( int axisId, double min, double max, double stepSize )
+{
+    QwtPlot::setAxisScale( axisId, min, max, stepSize );
+}
+
+void
+plot::yZoom( double xmin, double xmax )
+{
 }

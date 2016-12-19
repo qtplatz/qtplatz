@@ -37,6 +37,7 @@ namespace adcontrols {
         const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
         const wchar_t * const F_TARGETING          = L"Targeting";
         const wchar_t * const F_QUANSAMPLE         = L"QuanSample";
+        const wchar_t * const F_PROFILED_HISTOGRAM = L"Profiled Histogram";
     }
 
     namespace iids {

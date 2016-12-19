@@ -150,32 +150,48 @@ namespace adcontrols {
     template<> void
     MSChromatogramMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        ar & *impl_; // write v4 format
+        try {
+            ar & *impl_; // write v4 format
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::MSChromatogramMethod' to portable_binary_oarchive" ) );
+        }
     }
 
     template<> void
     MSChromatogramMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        if ( version <= 2 )
-            impl_->serialize( ar, version );
-        else
-            ar & *impl_;
+        try {
+            if ( version <= 2 )
+                impl_->serialize( ar, version );
+            else
+                ar & *impl_;
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::MSChromatogramMethod' to portable_binary_iarchive" ) );
+        }
     }
 
     ///////// XML archive ////////
     template<> void
     MSChromatogramMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        ar & boost::serialization::make_nvp( "impl", *impl_ );
+        try {
+            ar & boost::serialization::make_nvp( "impl", *impl_ );
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::MSChromatogramMethod ' to xml_woarchive" ) );
+        }
     }
 
     template<> void
     MSChromatogramMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        if ( version <= 2 )
-            impl_->serialize( ar, version );
-        else
-            ar & boost::serialization::make_nvp( "impl", *impl_ );
+        try {
+            if ( version <= 2 )
+                impl_->serialize( ar, version );
+            else
+                ar & boost::serialization::make_nvp( "impl", *impl_ );
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::MSChromatogramMethod ' to xml_wiarchive" ) );
+        }
     }
 }
 

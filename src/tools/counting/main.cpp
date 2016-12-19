@@ -22,59 +22,84 @@
 **
 **************************************************************************/
 
+#include "acqrsdata.hpp"
 #include <adplugins/adtextfile/time_data_reader.hpp>
 #include <adcontrols/countinghistogram.hpp>
+#include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <QCoreApplication>
 #include <iostream>
 #include <fstream>
 #include <ratio>
+#include <iomanip>
+#if OPENCV
+# include <cv.h>
+# include <opencv2/cvconfig.h>
+# include <opencv2/flann/flann.hpp>
+using namespace cv;
+# include <opencv2/flann/hdf5.h>
+#endif
 
 namespace po = boost::program_options;
 
+class SQLImport {
+    adfs::sqlite sqlite_;
+public:
+    SQLImport()
+        {}
+    void import( const std::string& file );
+    void insert( const adcontrols::CountingData& );
+};
+
 class Summary {
-    Summary() = delete;
     Summary( const Summary& ) = delete;
     Summary& operator = ( const Summary& ) = delete;
 public:
-    Summary( std::unique_ptr< adtextfile::time_data_reader > && reader );
+    Summary();
 
-    adtextfile::time_data_reader * reader() { return reader_.get(); }
-
-    // void compute_histogram( double xIncrement );
     void compute_statistics( double xIncrement );
 
     void report( std::ostream& );
     void print_histogram( const std::string& file );
     void print_statistics( const std::string& file );
+    void pivot( const std::string& file );
     void findPeaks();
     std::string make_outfname( const std::string& infile, const std::string& suffix );
     void set_resolution( double );
-
+    void set_threshold( double );
+    void add( const adcontrols::CountingData& );
 private:
     std::string outdir_;
     std::string infile_;
-    std::unique_ptr< adtextfile::time_data_reader > reader_;
     adcontrols::CountingHistogram hgrm_;
     double resolution_;
+    double threshold_;
 };
 
 int
 main(int argc, char *argv[])
 {
+    QCoreApplication a( argc, argv );
+    
     po::variables_map vm;
-    po::options_description description( "acqiris" );
+    po::options_description description( "counting" );
     {
         description.add_options()
             ( "help,h",      "Display this help message" )
             ( "args",        po::value< std::vector< std::string > >(),  "input files" )
-            ( "hist,h",      "histogram outfile" )
+            ( "hist",        "histogram outfile" )
             ( "stat,s",      "peak statistics outfile" )
             ( "directory,C", po::value< std::string >(), "result output directory" )
             ( "samp-rate",   po::value< double >()->default_value( 1 ),  "digitizer sampling rate (xIncrement, ns)" )
             ( "peak",        po::value< double >(),  "specify time-of-flight in microseconds" )
             ( "resolution",  po::value< double >(),  "peak width (ns)" )
+            ( "threshold",   po::value< double >()->default_value( 15.0 ),  "threshold (mV)" )
+            ( "polarity",    po::value< std::string >()->default_value( "positive" ),  "polarity (positive|negative)" )
+            ( "sqlite",      "import to SQLite" )
+            ( "pivot",       "Pivotting data" )
             ;
 
         po::positional_options_description p;
@@ -107,89 +132,127 @@ main(int argc, char *argv[])
     if ( vm.count("args") ) {
         
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
-
+            
             std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
+            
+            boost::filesystem::path path( file );
+            if ( path.extension() == ".adfs" ) {
 
-            std::string adfsname;
-            if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
+                acqrsdata d;
+                d.setThreshold( vm[ "threshold" ].as< double >() / std::milli::den );
+                d.setPolairty( vm[ "polarity" ].as< std::string >() == "positive" ?
+                               acqrsdata::positive_polarity : acqrsdata::negative_polarity );
 
-                Summary summary( std::make_unique< adtextfile::time_data_reader >() );
+                std::cout << "Processing : " << path.string() << std::endl;
 
-                if ( ! adfsname.empty() ) {            
-
-                    double acclVoltage(0), tDelay(0), fLength(0);
-                    std::string spectrometer;
-
-                    if ( adtextfile::time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) ) {
-
-                        std::cout << "#datafile: " << file << " <- " << adfsname << std::endl;
-                        std::cout << "#\taccelerator voltage: " << acclVoltage
-                                  << "\ttDelay: " << tDelay
-                                  << "\tfLength: " << fLength
-                                  << std::endl;
-                        std::cout << "#\tSpectrometer: " << spectrometer << std::endl;
-                    
-                    }
-                }
-
-                if ( vm.count( "res" ) )
-                    summary.set_resolution( vm[ "res" ].as< double >() * 1.0e-9 );
-
-                if ( summary.reader()->load(
-                         file
-                         , [&]( size_t numerator, size_t denominator ){
-                             std::cerr << "Processing: " << file
-                                       << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
-                             return true;
-                         }) ) {
+                if ( d.open( path ) ) {
+                    d.processIt( []( size_t idx, size_t total, const std::string& msg ){
+                            std::cerr << "\rprocessed: " << idx << "/" << total << msg;
+                        });
                     std::cerr << std::endl;
-                    
-                    if ( vm.count( "hist" ) ) {
-                        auto histfile = summary.make_outfname( file, "_hist" );
-                        summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                        summary.print_histogram( histfile );
-                    }
-                    
-                    if ( vm.count( "stat" ) ) {
-                        auto statfile = summary.make_outfname( file, "_stat" );
-                        summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                        summary.print_statistics( statfile );
-                    }
-
-                    if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
-                        // assume --stat if no process specified
-                        auto statfile = summary.make_outfname( file, "_stat" );
-                        
-                        summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
-                        summary.print_statistics( statfile );
-                    }
-
-                    summary.report( std::cout );
                 }
-
+                
             } else {
-                std::cout << "#file: " << file << " does not reconginsed as time_data file" << std::endl;
+                
+                std::string adfsname;
+                if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
+                    
+                    Summary summary;
+                    
+                    if ( ! adfsname.empty() ) {            
+                        
+                        double acclVoltage(0), tDelay(0), fLength(0);
+                        std::string spectrometer;
+                        
+                        if ( adtextfile::time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) ) {
+                            
+                            std::cout << "#datafile: " << file << " <- " << adfsname << std::endl;
+                            std::cout << "#\taccelerator voltage: " << acclVoltage
+                                      << "\ttDelay: " << tDelay
+                                      << "\tfLength: " << fLength
+                                      << std::endl;
+                            std::cout << "#\tSpectrometer: " << spectrometer << std::endl;
+                            
+                        }
+                    }
+                    
+                    if ( vm.count( "sqlite" ) ) {
+                        
+                        SQLImport importer;
+                        importer.import( file );
+                        
+                    } else {
+                        
+                        if ( vm.count( "resolution" ) )
+                            summary.set_resolution( vm[ "resolution" ].as< double >() * 1.0e-9 );
+                        
+                        if ( vm.count( "threshold" ) )
+                            summary.set_threshold( vm[ "threshold" ].as< double >() / std::milli::den );
+                        
+                        size_t processed(0);
+                        if ( adtextfile::time_data_reader::load(
+                                 file
+                                 , [&]( size_t numerator, size_t denominator, const adcontrols::CountingData& d ){
+                                     if ( ( processed++ % 1000 ) == 0 )
+                                         std::cerr << "Processing: " << file
+                                                   << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                                     summary.add( d );
+                                     return true;
+                                 }) ) {
+                            std::cerr << std::endl;
+                            
+                            if ( vm.count( "hist" ) ) {
+                                auto histfile = summary.make_outfname( file, "_hist" );
+                                summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                                summary.print_histogram( histfile );
+                            }
+                            
+                            if ( vm.count( "stat" ) ) {
+                                auto statfile = summary.make_outfname( file, "_stat" );
+                                summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                                summary.print_statistics( statfile );
+                            }
+                            
+                            if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
+                                // assume --stat if no process specified
+                                auto statfile = summary.make_outfname( file, "_stat" );
+                                
+                                summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
+                                summary.print_statistics( statfile );
+                            }
+                            
+                            summary.findPeaks();
+                            summary.report( std::cout );
+                            
+                            if ( vm.count( "pivot" ) ) {
+                                auto pivotfile = summary.make_outfname( file, "_pivot" );
+                                summary.pivot( pivotfile );
+                            }
+                        }
+                    }
+                } else {
+                    std::cout << "#file: " << file << " does not reconginsed as time_data file" << std::endl;
+                }
             }
         }
     }
 
 }
 
-
-Summary::Summary( std::unique_ptr< adtextfile::time_data_reader >&& reader ) : reader_( std::move( reader ) )
-                                                                             , resolution_( 0 )
+Summary::Summary() : resolution_( 0 )
+                   , threshold_( 0 )
 {
 }
 
 void
 Summary::report( std::ostream& out )
 {
-    auto& data = reader_->data();
-    size_t total_peaks = std::accumulate( data.begin(), data.end(), size_t(0)
-                                          , []( size_t count, const adcontrols::CountingData& d ){
-            return d.peaks().size() + count;
-        });
-    std::cout << "total triggers: " << data.size() << "\ttotal peaks\t" << total_peaks << std::endl;
+    // auto& data = reader_->data();
+    // size_t total_peaks = std::accumulate( data.begin(), data.end(), size_t(0)
+    //                                       , []( size_t count, const adcontrols::CountingData& d ){
+    //         return d.peaks().size() + count;
+    //     });
+    // std::cout << "total triggers: " << data.size() << "\ttotal peaks\t" << total_peaks << std::endl;
 }
 
 void
@@ -203,19 +266,28 @@ Summary::print_histogram( const std::string& file )
     boost::filesystem::path plt( file );
     plt.replace_extension( ".plt" );
     std::ofstream pf( plt.string() );
-    pf << "set terminal x11" << std::endl;
+    // pf << "set terminal x11" << std::endl;
     pf << "plot \"" << file << "\" using 1:2" << std::endl;
+}
+
+void
+Summary::add( const adcontrols::CountingData& d )
+{
+    if ( ! d.peaks().empty() )
+        hgrm_ << d;
 }
 
 void
 Summary::compute_statistics( double xIncrement )
 {
-    hgrm_.clear();
-
-    for ( auto& trig: reader_->data() ) {
-
-        hgrm_ << trig;
-        
+    std::cerr << "computing statistics" << std::endl;
+    
+    for ( auto& pklist: hgrm_ ) {
+        auto& peaks = pklist.second;
+        size_t sz = peaks.size();
+        auto it = std::remove_if( peaks.begin(), peaks.end(), [&]( const auto& pk ){ return pk.apex().second > threshold_; } ); // NEG peak
+        peaks.erase( it, peaks.end() );
+        std::sort( peaks.begin(), peaks.end(), []( const auto& a, const auto& b ){ return a.apex().second > b.apex().second; } );
     }
 }
 
@@ -244,7 +316,7 @@ Summary::print_statistics( const std::string& file )
         of << boost::format( "%.9le\t%d" )
             % pklist.first // tof
             % pklist.second.size(); // count
-        of << boost::format( "\tdt:\t%9.4lf" ) % (( pklist.first - t ) * 1.0e9);
+        // of << boost::format( "\tdt:\t%9.4lf" ) % (( pklist.first - t ) * 1.0e9);
         t = pklist.first;
         of << boost::format( "\tV:\t%9.4lf\t%9.3lf" ) % apex.mean % apex.stddev;
         of << boost::format( "\tH:\t%9.4lf\t%9.3lf" ) % height.mean % height.stddev;
@@ -269,6 +341,13 @@ Summary::set_resolution( double res )
     resolution_ = res;
 }
 
+void
+Summary::set_threshold( double th )
+{
+    threshold_ = th;
+    std::cout << "set_threshold( " << th << ")" << std::endl;
+}
+
 std::string
 Summary::make_outfname( const std::string& infile, const std::string& suffix )
 {
@@ -276,16 +355,19 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
     auto stem = boost::filesystem::path( infile ).stem();
     stem += suffix;
 
+    if ( std::abs( threshold_ ) >= 1.0e-6 )
+        stem += ( boost::format( "_%.1fmV" ) % threshold_ ).str();
+
     if ( outdir_.empty() ) {
-        std::string path = stem.string() + ".log";
+        std::string path = stem.string() + ".csv";
         while ( boost::filesystem::exists( path ) )
-            path = ( boost::format( "%s~%d.log" ) % stem.string() % id++ ).str();
+            path = ( boost::format( "%s~%d.csv" ) % stem.string() % id++ ).str();
         return path;
     } else {
         auto name = boost::filesystem::path( outdir_ ) / stem;
-        std::string path = name.string() + ".log";
+        std::string path = name.string() + ".csv";
         while ( boost::filesystem::exists( path ) ) {
-            path = ( boost::format( "%s~%d.log" ) % name.string() % id++ ).str();
+            path = ( boost::format( "%s~%d.csv" ) % name.string() % id++ ).str();
         }
         return path;
     }
@@ -295,33 +377,124 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
 void
 Summary::findPeaks()
 {
-    enum slope_state { none, upslope, downslope };
-#if 0
-    slope_state state( none );
-    std::vector< std::pair< CountingHistogram::const_iterator, CountingHistogram::const_iterator > > peaks;
+}
 
-    if ( hgrm_.size() > 3 ) {
-        CountingHistogram::const_iterator pkfront( hgrm_.end() ), pkback( hgrm_.end() );
+void
+Summary::pivot( const std::string& file )
+{
+    std::string xfile( file );
+    int id(1);
+    while( boost::filesystem::exists( xfile ) )
+        xfile = ( boost::format( "%s-%d" ) % file % id++ ).str();
         
-        for ( auto it = hgrm_.begin() + 1; it != hgrm_.end() - 1; ++it ) {
-            double dx = ( ( it + 1 )->first - ( it - 1 )->first ) / 2 / xIncrement_ ;
-            double dy = ( it + 1 )->second->size() - ( it - 1 )->second->size();
-            int d = int( dx / dy / 2 );  // d := count-diffs / sampling interval
-            if ( d > 2 ) {
-                if ( state == none ) {
-                    state = upslope;
-                    pkfont = it;
-                }
-            } else if ( d < 0 ) {
-                if ( state == upslope || state == none )
-                    state = downslope;
-            } else if ( d == 0 ) {
-                if ( d < 0 ) {
-                    state = downslope;
-                }
-            } else if ( state == downslope ) {
-            }
+    std::ofstream of( xfile );
+    using namespace adcontrols;
+
+    for ( const auto& pklist: hgrm_ ) {
+        for( auto& peak: pklist.second ) {
+            of << std::fixed << std::setprecision(8)
+               << pklist.first
+               << "\t" << peak.apex().first << "\t" << peak.apex().second
+               << "\t" << peak.front().first << "\t" << peak.front().second
+               << "\t" << peak.back().first << "\t" << peak.back().second
+               << std::endl;
         }
     }
-#endif
+}
+
+void
+SQLImport::import( const std::string& file )
+{
+    auto stem = boost::filesystem::path( file ).stem();
+    
+    boost::filesystem::path dbf( stem );
+    dbf.replace_extension( ".sqlite3" );
+    
+    // if ( boost::filesystem::exists( dbf ) )
+    //     boost::filesystem::remove( dbf );
+    
+    if ( sqlite_.open( dbf.string().c_str(), adfs::opencreate ) ) {
+        adfs::stmt sql( sqlite_ );
+
+        sql.exec( "PRAGMA synchronous = OFF" );
+        sql.exec( "PRAGMA journal_mode = MEMORY" );
+        sql.exec( "PRAGMA page_size = 8192" );
+
+        sql.exec(
+            "CREATE TABLE \
+trigger (                 \
+id INTEGER PRIMARY KEY    \
+, protocol INTEGER        \
+, timeSinceEpoch INTEGER  \
+, elapsedTime REAL        \
+, events INTEGER          \
+, threshold REAL          \
+, algo INTEGER )" );
+
+        sql.exec(
+            "CREATE TABLE \
+peak (                    \
+idTrigger INTEGER         \
+,peak_time REAL           \
+,peak_intensity REAL      \
+,front_offset INTEGER     \
+,front_intensity REAL     \
+,back_offset INTEGER      \
+,back_intensity REAL      \
+,FOREIGN KEY( idTrigger ) REFERENCES trigger( id ))" );
+
+        size_t processed( 0 );
+        adtextfile::time_data_reader::load(
+            file
+            , [&]( size_t numerator, size_t denominator, const adcontrols::CountingData& d ){
+                if ( ( processed++ % 1000 ) == 0 )
+                    std::cerr << "Processing: " << file
+                              << boost::format( "\t%.1f%%\r") % (double( numerator ) * 100 / double(denominator) );
+                insert( d );
+                return true;
+            });
+    }
+}
+
+void
+SQLImport::insert( const adcontrols::CountingData& d )
+{
+    do {
+        adfs::stmt sql( sqlite_ );
+        
+        sql.prepare( "INSERT INTO trigger ( id,protocol,timeSinceEpoch,elapsedTime,events,threshold,algo ) VALUES (?,?,?,?,?,?,?)" );
+        int id(1);
+        sql.bind( id++ ) = d.triggerNumber();
+        sql.bind( id++ ) = d.protocolIndex();
+        sql.bind( id++ ) = d.timeSinceEpoch();
+        sql.bind( id++ ) = d.elapsedTime();
+        sql.bind( id++ ) = d.events();
+        sql.bind( id++ ) = d.threshold();
+        sql.bind( id++ ) = d.algo();
+        if ( sql.step() != adfs::sqlite_done ) {
+            ADDEBUG() << "sql error";
+            return;
+        }
+    } while ( 0 );
+
+    do {
+        adfs::stmt sql( sqlite_ );
+        
+        sql.prepare( "INSERT INTO peak ( idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )\
+ VALUES (?,?,?,?,?,?,?)" );
+        for ( auto& pk: d.peaks() ) {
+            int id = 1;
+            sql.bind( id++ ) = d.triggerNumber();
+            sql.bind( id++ ) = pk.apex().first;
+            sql.bind( id++ ) = pk.apex().second;
+            sql.bind( id++ ) = pk.front().first;
+            sql.bind( id++ ) = pk.front().second;
+            sql.bind( id++ ) = pk.back().first;
+            sql.bind( id++ ) = pk.back().second;
+            if ( sql.step() != adfs::sqlite_done ) {
+                ADDEBUG() << "sql error";
+                return;
+            }        
+        }
+    } while ( 0 );
 }

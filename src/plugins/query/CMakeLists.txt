@@ -3,17 +3,35 @@ cmake_policy( SET CMP0028 NEW )
 
 project( Query )
 set( PROVIDER MS-Cheminformatics )
+set( COMPAT_VERSION 3.2.81 )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
-#if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
-#  find_package( Qt5 CONFIG REQUIRED WebKitWidgets )  
-#else()
-#  find_package( Qt5 CONFIG REQUIRED WebEngineWidgets )
-#endif()
+set( WITH_CHARTS OFF )
+
+if ( WITH_CHARTS )
+  find_package( Qt5 CONFIG OPTIONAL_COMPONENTS Charts )
+  if ( Qt5Charts_CONFIG )
+    list( APPEND _charts_libraries "Qt5::Charts" )
+    list( APPEND _charts_sources charts/chartview.cpp charts/chartview.hpp )
+    add_definitions( "-DQT5_CHARTS=1" )
+  endif()
+endif()
 
 find_package( qwt )
-find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
+#list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp qwt/xyseriesdata.cpp qwt/xyseriesdata.hpp )
+include_directories( ${QWT_INCLUDE_DIRS} )
+
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
+endif()
+
+if ( OpenCV_FOUND )
+  add_definitions( "-DOPENCV=1" )
+  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} cvplot )
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -22,9 +40,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
-
-set(COMPAT_VERSION 3.2.81)
-set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/pluginspec.in"
@@ -43,7 +58,6 @@ add_definitions(
   )
 
 include_directories(
-  ${QWT_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${Qt5Core_INCLUDE_DIRS}
@@ -54,41 +68,37 @@ link_directories(
   ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
   )
 
-set( query_SOURCES
-  mainwindow.cpp
-  queryconnection.cpp
-  querydocument.cpp
-  queryeditor.cpp
-  queryfactory.cpp
-  querymode.cpp
-  queryplugin.cpp
-  queryquery.cpp  
-  queryqueryform.cpp  
-  queryquerywidget.cpp
-  queryresulttable.cpp
-  )
-
-set( query_HEADERS
-  mainwindow.hpp
-  queryconnection.hpp  
-  querydocument.hpp  
-  queryeditor.hpp
-  queryfactory.hpp
-  querymode.hpp
-  queryplugin.hpp
-  queryquery.hpp  
-  queryqueryform.hpp  
-  queryquerywidget.hpp
-  queryresulttable.hpp  
-  )
-
-set( query_RESOURCES query.qrc )
-set( query_FORMS doubletabwidget.ui  queryconfigform.ui )
-
 add_library( Query MODULE
-  ${query_SOURCES}
-  ${query_HEADERS}
-  ${query_RESOURCES}
+  document.cpp
+  document.hpp
+  mainwindow.cpp
+  mainwindow.hpp
+  countingquerydialog.cpp
+  countingquerydialog.hpp
+  plotdialog.cpp
+  plotdialog.hpp
+  queryconnection.cpp
+  queryconnection.hpp
+  queryeditor.cpp
+  queryeditor.hpp
+  queryfactory.cpp
+  queryfactory.hpp
+  querymode.cpp
+  querymode.hpp
+  queryplugin.cpp
+  queryplugin.hpp
+  queryform.cpp
+  queryform.hpp  
+  querywidget.cpp
+  querywidget.hpp
+  queryresulttable.cpp
+  queryresulttable.hpp
+  sqledit.cpp
+  sqledit.hpp
+  sqlhistorydialog.cpp
+  sqlhistorydialog.hpp
+  ${Resources}
+  ${_charts_sources}
   )
 
 target_link_libraries(
@@ -110,12 +120,14 @@ target_link_libraries(
   xmlparser
   Core
   extensionsystem
-  ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${_opencv_libraries}
+  ${_charts_libraries}
   )
   
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
+  CXX_STANDARD 14
   LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} # for WIN32
   LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER} )

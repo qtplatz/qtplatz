@@ -23,13 +23,17 @@
 **************************************************************************/
 
 #include "queryresulttable.hpp"
-#include "queryquery.hpp"
+#include "queryconnection.hpp"
 #include <acqrscontrols/constants.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adicontroller/signalobserver.hpp>
 #include <adportable/debug.hpp>
 #include <adwidgets/delegatehelper.hpp>
 #include <adwidgets/htmlheaderview.hpp>
 #include <qtwrapper/font.hpp>
+#include <QHeaderView>
+#include <QMenu>
 #include <QStyledItemDelegate>
 #include <QSqlField>
 #include <QSqlQuery>
@@ -47,20 +51,42 @@
 namespace query {
 
     namespace so = adicontroller::SignalObserver;
+    using namespace acqrscontrols;
 
     static std::map< boost::uuids::uuid, std::string > __uuid_db__ = {
-        { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::waveform_observer_name ), acqrscontrols::u5303a::waveform_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::timecount_observer_name ), acqrscontrols::u5303a::timecount_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::histogram_observer_name ), acqrscontrols::u5303a::histogram_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::softavgr_observer_name ), acqrscontrols::u5303a::softavgr_observer_name }
-        , { boost::uuids::name_generator( so::Observer::base_uuid() )( acqrscontrols::u5303a::tdcdoc_traces_observer_name ), acqrscontrols::u5303a::tdcdoc_traces_observer_name }
+        { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::waveform_observer_name ),        u5303a::waveform_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::timecount_observer_name ),     u5303a::timecount_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::histogram_observer_name ),     u5303a::histogram_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::softavgr_observer_name ),      u5303a::softavgr_observer_name }
+        , { boost::uuids::name_generator( so::Observer::base_uuid() )( u5303a::tdcdoc_traces_observer_name ), u5303a::tdcdoc_traces_observer_name }
     };
 
 }
 
 
-
 namespace query {
+
+    class SqlQueryModel : public QSqlQueryModel {
+    public:
+        SqlQueryModel( QObject * parent = nullptr ) : QSqlQueryModel( parent )
+                                                    , computed_mass_column_( -1 ) {
+        }
+        QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override {
+            if ( computed_mass_column_ == index.column() && ( role == Qt::EditRole || role == Qt::DisplayRole ) ) {
+                if ( index.isValid() ) {
+                    // don't call record( row ), it will recurse data() and stack overflow; use query().record() instead
+                    auto rec = query().record();
+                    int proto = rec.value( "protocol" ).toInt();
+                    double t = rec.value( "time" ).toDouble();
+                    return spectrometer_->scanLaw()->getMass( t, spectrometer_->mode( proto ) );
+                }
+            }
+            return QSqlQueryModel::data( index, role );
+        }
+        int computed_mass_column_;
+        std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
+    };
+    
     namespace queryresulttable {
         
         class ItemDelegate : public QStyledItemDelegate {
@@ -73,7 +99,8 @@ namespace query {
                         if ( column_name == "elapsed_time" ) {
                             auto t0 = queryModel->record(0).value( column_name ).toDouble() * 1.0e-9;
                             double raw = index.data().toDouble() * 1.0e-9;
-                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
+                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter
+                                               , QString("%1 [%2s]").arg( QString::number( raw, 'f', 5 ), QString::number( raw - t0, 'f', 5 ) ) );
                         } else if ( index.data().type() == QVariant::ByteArray ) {
                             auto v = queryModel->record(index.row()).value( "objuuid" );
                             if ( v.isValid() ) {
@@ -83,7 +110,7 @@ namespace query {
                                     painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::fromStdString( it->second ) );
                             }
                         } else if ( column_name == "meta" && index.data().type() == QVariant::ByteArray ) {
-
+                            
                         } else {
                             QStyledItemDelegate::paint( painter, op, index );
                         }
@@ -117,7 +144,6 @@ namespace query {
                 } else
                     return QStyledItemDelegate::sizeHint( option, index );
             }
-        
         };
     }
 }
@@ -129,12 +155,27 @@ QueryResultTable::~QueryResultTable()
 }
 
 QueryResultTable::QueryResultTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                    , model_( new QSqlQueryModel() )
+                                                    , model_( new SqlQueryModel() )
 {
     setAllowDelete( false );
     setModel( model_.get() );
-    setItemDelegate( new queryresulttable::ItemDelegate );
-    setHorizontalHeader( new adwidgets::HtmlHeaderView );
+    // setItemDelegate( new queryresulttable::ItemDelegate );
+    // setHorizontalHeader( new adwidgets::HtmlHeaderView );
+}
+
+void
+QueryResultTable::setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > sp )
+{
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+        model->spectrometer_ = sp;
+}
+
+std::shared_ptr< adcontrols::MassSpectrometer >
+QueryResultTable::massSpectrometer()
+{
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+        return model->spectrometer_;
+    return nullptr;
 }
 
 void
@@ -143,9 +184,34 @@ QueryResultTable::setDatabase( QSqlDatabase& db )
 }
 
 void
+QueryResultTable::setQuery( const QSqlQuery& query, std::shared_ptr< QueryConnection > connection )
+{
+    // this is the workaround preventing segmentation violation at model_->clear();
+    if ( connection_ )
+        model_->setQuery( QSqlQuery() );
+    connection_ = connection;
+    // end workaound
+
+    setQuery( query );
+}
+
+void
 QueryResultTable::setQuery( const QSqlQuery& query )
 {
+    model_->clear();
     model_->setQuery( query );
+
+    int tIndex = query.record().indexOf( "time" ); // non-case sensitive
+
+    if ( tIndex >= 0 ) {
+        model_->insertColumns( tIndex, 1 );
+        model_->setHeaderData( tIndex, Qt::Horizontal, tr("m/z") );
+    }
+
+    if ( auto model = dynamic_cast< SqlQueryModel * >( model_.get() ) )
+        model->computed_mass_column_ = tIndex;
+
+    resizeColumnsToContents();
 }
 
 void
@@ -164,3 +230,23 @@ QueryResultTable::findColumn( const QString& name )
     }
     return -1;
 }
+
+QAbstractItemModel *
+QueryResultTable::model()
+{
+    return model_.get();
+}
+
+void
+QueryResultTable::addActionsToMenu( QMenu& menu, const QPoint& pt )
+{
+    adwidgets::TableView::addActionsToMenu( menu, pt );
+    menu.addAction( tr( "Plot..." ), this, SLOT( handlePlot() ) );
+}
+
+void
+QueryResultTable::handlePlot()
+{
+    emit plot();
+}
+

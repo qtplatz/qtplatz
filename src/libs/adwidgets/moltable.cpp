@@ -33,6 +33,7 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adportable/float.hpp>
+#include <adportable/debug.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -54,6 +55,7 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4267 4018 )
 #endif
+#include <adchem/drawing.hpp>
 #include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
@@ -64,8 +66,6 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <RDGeneral/RDLog.h>
-#include <GraphMol/MolDrawing/MolDrawing.h>
-#include <GraphMol/MolDrawing/DrawingToSVG.h>
 #endif
 
 #include <boost/format.hpp>
@@ -91,7 +91,9 @@ namespace adwidgets {
         stdFormula = std::accumulate( v.begin(), v.end(), QString(), []( const QString& a, const std::string& b ){
                 return a.isEmpty() ? QString::fromStdString( b ) : a + "\n" + QString::fromStdString( b );
             });
-
+        ///////////////////////
+        // ADDEBUG() << "computeMass(" << v[0] << " <- " << stdformula << ")=" << adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] );
+        ///////////////////////
         return adcontrols::ChemicalFormula().getMonoIsotopicMass( v[0] ); // handle first molecule
     }
 
@@ -127,7 +129,7 @@ namespace adwidgets {
                 DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
 
             } else if ( index.column() == MolTable::c_abundance ) {
-
+                
                 if ( index.data().toDouble() <= 0.002 ) {
                     painter->save();
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
@@ -151,8 +153,11 @@ namespace adwidgets {
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
                 else 
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x40 ) ); // tomato
-                
-                QStyledItemDelegate::paint( painter, opt, index );
+
+                painter->drawText( option.rect
+                                   , option.displayAlignment
+                                   , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', 8  ) );
+                // QStyledItemDelegate::paint( painter, opt, index );
                 painter->restore();
 
             } else if ( index.column() == MolTable::c_svg ) {
@@ -239,8 +244,7 @@ namespace adwidgets {
 #if HAVE_RDKit
                 if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles.toStdString(), 0, false ) ) ) {
                     mol->updatePropertyCache( false );
-                    auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                    auto xsvg = RDKit::Drawing::DrawingToSVG( drawing );
+                    auto xsvg = adchem::drawing::toSVG( *mol );
                     model.setData( model.index( row, c_svg ), QByteArray( xsvg.data(), int( xsvg.size() ) ) );
                 }
 #endif                
@@ -437,8 +441,8 @@ MolTable::handleValueChanged( const QModelIndex& index )
             if ( auto mol = std::unique_ptr< RDKit::ROMol >( RDKit::SmilesToMol( smiles.toStdString(), 0, false ) ) ) {
                 mol->updatePropertyCache( false );
                 auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
-                auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                auto svg = RDKit::Drawing::DrawingToSVG( drawing );
+                //auto drawing = RDKit::Drawing::MolToDrawing( *mol );
+                auto svg = adchem::drawing::toSVG( *mol ); //RDKit::Drawing::DrawingToSVG( drawing );
                 auto adducts = model_->index( index.row(), c_adducts ).data( Qt::EditRole ).toString();
                 auto synonym = model_->index( index.row(), c_synonym ).data( Qt::EditRole ).toString();
                 auto description = model_->index( index.row(), c_description ).data( Qt::EditRole ).toString();
@@ -568,8 +572,8 @@ MolTable::dropEvent( QDropEvent * event )
                         mol->updatePropertyCache( false );
                         auto formula = QString::fromStdString( RDKit::Descriptors::calcMolFormula( *mol, true, false ) );
                         auto smiles = QString::fromStdString( RDKit::MolToSmiles( *mol ) );
-                        auto drawing = RDKit::Drawing::MolToDrawing( *mol );
-                        auto svg = RDKit::Drawing::DrawingToSVG( drawing );
+                        // auto drawing = RDKit::Drawing::MolToDrawing( *mol );
+                        auto svg = adchem::drawing::toSVG( *mol ); // RDKit::Drawing::DrawingToSVG( drawing );
                         impl_->setData( *this, row, formula, QString(), smiles, QByteArray( svg.data(), int( svg.size() ) ) );
                     }
                     ++row;

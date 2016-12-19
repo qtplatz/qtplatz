@@ -10,32 +10,35 @@ find_package( arch )
 #####################
 # boost setup
 #
+set( Boost_NO_SYSTEM_PATHS ON )
+set( Boost_ADDITIONAL_VERSIONS "1.62.0" "1.62" )
+
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    # "C:/Boost/include/boost-1_60"   # V14 
+    "C:/Boost/include/boost-1_62"   # V14 
     "C:/Boost/include/boost-1_59"   # V13 
     "C:/Boost/include/boost-1_58"   # V12
     "C:/Boost/include/boost-1_57" )
 
   set( BOOST_ROOT ${_boost} )
-  set( Boost_INCLUDE_DIR ${_boost} )
-  set( Boost_USE_STATIC_LIBS ON )
-
+  set( BOOST_INCLUDEDIR ${_boost} )
   if ( RTC_ARCH_X64 )
-    set( Boost_LIBRARY_DIR "C:/Boost/x86_64/lib" )
+    set( BOOST_LIBRARYDIR C:/Boost/x86_64/lib )
   else()
-    set( Boost_LIBRARY_DIR "C:/Boost/lib" )    
+    set( BOOST_LIBRARYDIR "C:/Boost/lib" )    
   endif()
+  set( Boost_USE_STATIC_LIBS ON )
 
 else()
 
   find_path( _boost NAMES include/boost HINTS
     "/usr/local"
-    # "/usr/local/boost-1_60"        # V14
+    "/usr/local/boost-1_62"        # V14
     "/usr/local/boost-1_59"        # V13
     "/usr/local/boost-1_58"        # V12
-    "/usr/local/boost-1_57" )
+    "/usr/local/boost-1_57"
+    )
 
   if ( _boost )
     set(Boost_INCLUDE_DIR "${_boost}/include")
@@ -48,7 +51,7 @@ endif()
 # Qt5 setup
 #
 
-if ( NOT CMAKE_CROSSCOMPILING AND NOT QTPLATZ_CORELIB_ONLY )
+if ( WITH_QT5 )
 
   if ( WIN32 )
     if((MSVC_VERSION GREATER 1900) OR (MSVC_VERSION EQUAL 1900))

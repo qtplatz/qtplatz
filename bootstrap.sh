@@ -113,13 +113,14 @@ for build_dir in ${build_dirs[@]}; do
 	    helio|armv7l|de0-nano-soc|arm-linux-gnueabihf)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
-		      -DQTPLATZ_CORELIB_ONLY=ON $source_dir
-		cp $toolchain_file $build_dir/toolchain.cmake 
+		      -DQTPLATZ_CORELIB_ONLY=ON -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir
+		echo cp $toolchain_file $build_dir/toolchain.cmake
+		cp $toolchain_file toolchain.cmake 
 		;;
 	    raspi)
 		toolchain_file=$cwd/toolchain-raspi.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file -DCMAKE_PREFIX_PATH=/opt/qt5pi $source_dir
-		cp $toolchain_file $build_dir/toolchain.cmake
+		cp $toolchain_file toolchain.cmake
 		;;
 	    *)
 		echo "Unknown cross_target: $cross_target"
@@ -132,7 +133,7 @@ done
 
 cat > ${build_dirs[0]}/../qtplatz-build.sh <<EOF
 #!/bin/bash
-for i in ${build_dirs[*]}; do (cd \$i; make -j4 package); done
+for i in ${build_dirs[*]}; do (cd \$i; cmake . ; make -j8 package); done
 for i in ${build_dirs[*]}; do (cd \$i; mv *.deb ..); done
 EOF
 

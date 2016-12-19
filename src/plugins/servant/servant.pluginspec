@@ -1,6 +1,6 @@
 <plugin name="servant" version="2.7.8" compatVersion="2.7.8">
     <vendor>MS-Cheminformatics</vendor>
-    <copyright>(C)2010-2015 MS-Cheminformatics LLC</copyright>
+    <copyright>(C)2010-2016 MS-Cheminformatics LLC</copyright>
     <license>
 GNU Lesser General Public License Usage
 
@@ -9,7 +9,7 @@ General Public License version 2.1 as published by the Free Software
 Foundation.  Please review the following information to
 ensure the GNU Lesser General Public License version 2.1 requirements
 will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
-    <description>QtPlatz CORBA Servant Server plugin.</description>
+    <description>QtPlatz Servant server plugin.</description>
     <url>http://www.ms-cheminfo.com</url>
     <dependencyList>
         <dependency name="Core" version="3.2.81"/>

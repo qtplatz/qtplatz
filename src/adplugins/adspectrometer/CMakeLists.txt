@@ -7,7 +7,9 @@ set( PROVIDER MS-Cheminformatics )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+endif()
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.adplugin"

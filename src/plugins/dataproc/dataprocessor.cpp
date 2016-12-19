@@ -25,12 +25,12 @@
 
 #include "dataprocessor.hpp"
 #include "constants.hpp"
-#include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
-#include "mainwindow.hpp"
 #include "dataprocessworker.hpp"
+#include "document.hpp"
+#include "mainwindow.hpp"
+#include "sessionmanager.hpp"
 
-#include <adportable/array_wrapper.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -39,11 +39,13 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/histogram.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibration.hpp>
@@ -64,13 +66,17 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adfs/adfs.hpp>
-#include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
+#include <adfs/file.hpp>
+#include <adfs/sqlite.hpp>
+#include <adutils/acquiredconf_v3.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/array_wrapper.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <adportable/profile.hpp>
-//#include <adportable/serializer.hpp>
-#include <adportable/xml_serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/xml_serializer.hpp>
 #include <adutils/fsio.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -98,13 +104,16 @@ using namespace dataproc;
 namespace dataproc {
 
     struct DataprocessorImpl {
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::IsotopeMethod& );
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::TargetingMethod& );
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&
+                                 , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&
+                                 , const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&
+                                 , const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
         static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
-        static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
-        static bool applyMethod( portfolio::Folium&, const adcontrols::TargetingMethod& );
-        static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
-        static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
-        static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
-        static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
         static bool fixupDataInterpreterClsid( portfolio::Folium& );
     };
 
@@ -344,15 +353,19 @@ namespace dataproc {
 
     // dispatch method
     struct doSpectralProcess : public boost::static_visitor<bool> {
-        //const adutils::MassSpectrumPtr& ptr_;
         std::shared_ptr< const adcontrols::MassSpectrum > ptr_;
+        Dataprocessor * dataprocessor_;
 
         portfolio::Folium& folium;
 
-        doSpectralProcess( const adutils::MassSpectrumPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+        doSpectralProcess( const adutils::MassSpectrumPtr& p
+                           , portfolio::Folium& f
+                           , Dataprocessor * dp ) : ptr_(p), folium(f), dataprocessor_( dp ) {
         }
 
-        doSpectralProcess( std::shared_ptr< const adcontrols::MassSpectrum >& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+        doSpectralProcess( std::shared_ptr< const adcontrols::MassSpectrum >& p
+                           , portfolio::Folium& f
+                           , Dataprocessor * dp ) : ptr_(p), folium(f), dataprocessor_( dp ) {
         }
 
         template<typename T> bool operator () ( T& ) const {
@@ -361,29 +374,34 @@ namespace dataproc {
         }
 
         bool operator () ( const adcontrols::CentroidMethod& m ) const {
-            return DataprocessorImpl::applyMethod( folium, m, *ptr_ );
+            if ( ptr_ && ptr_->isCentroid() )
+                ADDEBUG() << "Apply centroid to histogram; converting to profile";
+            return DataprocessorImpl::applyMethod( dataprocessor_, folium, m, *ptr_ );
         }
 
         bool operator () ( const adcontrols::TargetingMethod& m ) const {
-            return DataprocessorImpl::applyMethod( folium, m );
+            return DataprocessorImpl::applyMethod( dataprocessor_, folium, m );
         }
 
         bool operator () ( const adcontrols::IsotopeMethod& m ) const {
-            return DataprocessorImpl::applyMethod( folium, m );
+            return DataprocessorImpl::applyMethod( dataprocessor_, folium, m );
         }
 
         bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
-            return DataprocessorImpl::applyMethod( folium, m );
+            return DataprocessorImpl::applyMethod( dataprocessor_, folium, m );
         }
     };
 
     // dispatch method
     struct doChromatogramProcess : public boost::static_visitor<bool> {
+
         const adutils::ChromatogramPtr& ptr_;
-
         portfolio::Folium& folium;
+        Dataprocessor * dataprocessor_;
 
-        doChromatogramProcess( const adutils::ChromatogramPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+        doChromatogramProcess( const adutils::ChromatogramPtr& p
+                               , portfolio::Folium& f
+                               , Dataprocessor * dp ) : ptr_(p), folium(f), dataprocessor_( dp ) {
         }
 
         template<typename T> bool operator () ( T& ) const {
@@ -392,17 +410,21 @@ namespace dataproc {
         }
 
         bool operator () ( const adcontrols::PeakMethod& m ) const {
-            return DataprocessorImpl::applyMethod( folium, m, *ptr_ );
+            return DataprocessorImpl::applyMethod( dataprocessor_, folium, m, *ptr_ );
         }
     };
 
 
     // dispatch data type
     struct processIt : public boost::static_visitor<bool> {
+        
         const adcontrols::ProcessMethod::value_type& m_;
         portfolio::Folium& folium_;
-
-        processIt( const adcontrols::ProcessMethod::value_type& m, portfolio::Folium& f ) : m_(m), folium_(f) {
+        Dataprocessor * dataprocessor_;
+        
+        processIt( const adcontrols::ProcessMethod::value_type& m
+                   , portfolio::Folium& f
+                   , Dataprocessor * dp ) : m_(m), folium_(f), dataprocessor_( dp ) {
         }
 
         template<typename T> bool operator ()( T& ) const {
@@ -410,21 +432,73 @@ namespace dataproc {
         }
 
         bool operator () ( adutils::MassSpectrumPtr& ptr ) const {
-            return boost::apply_visitor( doSpectralProcess(ptr, folium_), m_ );
+            return boost::apply_visitor( doSpectralProcess(ptr, folium_, dataprocessor_ ), m_ );
         }
 
         bool operator () ( adutils::ChromatogramPtr& ptr ) const {
-            return boost::apply_visitor( doChromatogramProcess(ptr, folium_), m_ );
+            return boost::apply_visitor( doChromatogramProcess(ptr, folium_, dataprocessor_ ), m_ );
         }
     };
     //-----
 }
 
+portfolio::Folium
+Dataprocessor::findProfiledHistogram( const portfolio::Folium& folium )
+{
+    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+        return portfolio::find_first_of( folium.attachments()
+                                         , []( const portfolio::Folium& a ){
+                                             return a.name() == Constants::F_PROFILED_HISTOGRAM;
+                                         } );
+    }
+    return portfolio::Folium();
+}
+        
+
+portfolio::Folium
+Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
+{
+    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+        auto att = findProfiledHistogram( folium );
+        
+        if ( !att && ptr->isCentroid() ) {
+
+            double acclVoltage = ptr->getMSProperty().acceleratorVoltage();
+            double tDelay = ptr->getMSProperty().tDelay();
+
+            boost::uuids::uuid objiid { 0 };
+            adfs::stmt sql( *db() );
+            sql.prepare( "SELECT objuuid FROM AcquiredConf where objtext like 'histogram.timecount.%'" );
+            if ( sql.step() == adfs::sqlite_row ) {
+                objiid = sql.get_column_value< boost::uuids::uuid >( 0 );
+
+                boost::uuids::uuid clsid { 0 };
+                double _0( 0 ), _1( 0 ), fLength( 0 );
+                adutils::v3::AcquiredConf::findScanLaw( *db(), objiid, clsid, _0, _1, fLength );
+                
+                if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) {
+                    
+                    // using original scanlaw stored in parent folium
+                    spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+                    
+                    att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
+                    auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
+                    att.assign( ms, ms->dataClass() );
+                    emit SessionManager::instance()->foliumChanged( this, folium );
+                }
+            }
+        }
+        return att;
+    }
+
+    return portfolio::Folium();
+}
+
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
-    ADTRACE() << "applyProcess: " << procType;
-
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium )
         applyProcess( folium, m, procType );
@@ -439,7 +513,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         adcontrols::ProcessMethod method;
 
         methodselector selector( m );
-
+        
         if ( procType == CentroidProcess ) {
             selector.append< adcontrols::CentroidMethod >( method );
             selector.append< adcontrols::TargetingMethod >( method ); // always does 'targeting' when centroid
@@ -460,12 +534,31 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
             selector.append< adcontrols::PeakMethod >( method );
         }
 
-        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-     
+        adutils::ProcessedData::value_type data
+            = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        
         for ( auto it = method.begin(); it != method.end(); ++it )
-            boost::apply_visitor( processIt(*it, folium), data );
+            boost::apply_visitor( processIt(*it, folium, this ), data );
+
         setModified( true );
+
         SessionManager::instance()->processed( this, folium );
+    }
+}
+
+void
+Dataprocessor::remove( portfolio::Folium folium )
+{
+    if ( portfolio::Folium parent = folium.parentFolium() ) {
+        
+        if ( parent.removeAttachment( folium.name() ) )
+            setModified( true );
+
+    } else if ( portfolio::Folder folder = folium.parentFolder() ) {
+
+        folder.removeFolium( folium );
+        setModified( true );
+
     }
 }
 
@@ -603,7 +696,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
 		folium.assign( ms, ms->dataClass() );
 
 		for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-			boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
+			boost::apply_visitor( doSpectralProcess( ms, folium, this ), *it );
 
 		SessionManager::instance()->updateDataprocessor( this, folium );
 		setModified( true );
@@ -663,7 +756,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
 
     // todo: process method to be added
     
-    if ( DataprocessorImpl::applyMethod( folium, calibMethod, assigned ) ) 
+    if ( DataprocessorImpl::applyMethod( this, folium, calibMethod, assigned ) ) 
         SessionManager::instance()->updateDataprocessor( this, folium );
 
 	setModified( true );
@@ -688,7 +781,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
             return;
 		adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
 		// replace calibration
-		if ( DataprocessorImpl::applyMethod( folium, *mcalib, assigned ) )
+		if ( DataprocessorImpl::applyMethod( this, folium, *mcalib, assigned ) )
 			SessionManager::instance()->updateDataprocessor( this, folium );
         setModified( true );
     }
@@ -740,38 +833,40 @@ Dataprocessor::lockMassHandled( const std::wstring& foliumId
                                 , const adcontrols::MassSpectrumPtr& ms
                                 , const adcontrols::lockmass::mslock& lockmass )
 {
-	if ( portfolio::Folium folium = this->portfolio().findFolium( foliumId ) ) {
-        
-        bool verified = false;
-        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+    using portfolio::Folium;
 
+	if ( Folium folium = this->portfolio().findFolium( foliumId ) ) {
+        
+        if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+
+            lockmass( *profile );
+            
             portfolio::Folio atts = folium.attachments();
-            auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
-            if ( it != atts.end() ) {
-                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
-                if ( centroid == ms ) {
-                    verified = true;
-                    // update attached peakinfo
-                    if ( auto fchild = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& child ){
-                                return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );} ) ) {
-                        auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild );
-                        DataprocHandler::reverse_copy( *pkinfo, *centroid );
+            for ( auto& a: atts ) {
+                if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( a ) ) {
+
+                    if ( ptr == ms ) {
+                        // 'ptr' is mass locked source, don't apply lock mass twince
+
+                        // update attached peakinfo
+                        if ( auto fchild = portfolio::find_first_of( a.attachments(), []( Folium& child ){
+                                    return portfolio::is_type< adcontrols::MSPeakInfoPtr >( child );
+                                } ) )   {
+
+                            if ( auto pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( fchild ) )
+                                DataprocHandler::reverse_copy( *pkinfo, *ptr );
+                        }
+
+                    } else {
+                        // ADDEBUG() << "apply lockmass to: " << a.name();
+                        lockmass( *ptr );
                     }
                 }
             }
-            if ( verified ) {
-                auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ){ return f.name() == Constants::F_DFT_FILTERD; });
-                if ( it != atts.end() ) {
-                    if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( *it ) )
-                        lockmass( *ptr );
-                }
 
-                if ( lockmass( *ptr ) ) // update profile spectrum
-                    ptr->addDescription( adcontrols::description( L"Process", L"Mass locked" ) );
-                setModified( true );
-            }
+            setModified( true );
         }
-	}
+    }
 }
 
 void
@@ -790,13 +885,13 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 
     if ( auto folium = folder.findFoliumByName( name ) )
         return folium; // already exists
-
+    
     portfolio::Folium folium = folder.addFolium( name );
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     folium.assign( ms, ms->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
+        boost::apply_visitor( doSpectralProcess( ms, folium, this ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
@@ -814,11 +909,10 @@ Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum >& p
         return folium; // already exists
 
     portfolio::Folium folium = folder.addFolium( name );
-    // adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     folium.assign( ptr, ptr->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( doSpectralProcess( ptr, folium ), *it );
+        boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
@@ -837,7 +931,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 	folium.assign( c, c->dataClass() );
     
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-		boost::apply_visitor( doChromatogramProcess( c, folium ), *it );
+		boost::apply_visitor( doChromatogramProcess( c, folium, this ), *it );
 
     if ( checked )
         folium.setAttribute( L"isChecked", L"true" );
@@ -980,9 +1074,13 @@ DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
 }
 
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::TargetingMethod& m )
+DataprocessorImpl::applyMethod( Dataprocessor *
+                                , portfolio::Folium& folium
+                                , const adcontrols::TargetingMethod& m )
 {
-    if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+    if ( auto fCentroid = portfolio::find_first_of(
+             folium.attachments()
+             , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
 
         if ( adcontrols::MassSpectrumPtr centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fCentroid ) ) {
             
@@ -1008,7 +1106,8 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Tar
 }
 
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::IsotopeMethod& m )
+DataprocessorImpl::applyMethod( Dataprocessor *
+                                , portfolio::Folium& folium, const adcontrols::IsotopeMethod& m )
 {
     adcontrols::MassSpectrumPtr prev = findAttachedMassSpectrum( folium );
     // copy centroid result if exist, for meta data copy
@@ -1071,16 +1170,28 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
 }
 
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
+DataprocessorImpl::applyMethod( Dataprocessor * dp
+                                , portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
 {
     using namespace portfolio;
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     auto spectrometer = adcontrols::MassSpectrometer::create( pProfile->getMSProperty().dataInterpreterClsid() );
-    if ( !spectrometer )
-        fixupDataInterpreterClsid( folium );
-
+    if ( !spectrometer ) {
+        // adcontrols::TimeDigitalHistogram
+        adfs::stmt sql ( *dp->db() );
+        sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid=?" );
+        sql.bind( 1 ) = boost::uuids::uuid{ 0 };
+        if ( sql.step() == adfs::sqlite_row ) {
+            boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 2 );
+            if ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) )
+                spectrometer->setScanLaw( pProfile->getMSProperty().acceleratorVoltage(), pProfile->getMSProperty().tDelay(), 1.0 );
+        } else {
+            fixupDataInterpreterClsid( folium );
+        }
+    }
+    
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( attCentroid != atts.end() ) {
@@ -1119,7 +1230,8 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 }
 
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium
+DataprocessorImpl::applyMethod( Dataprocessor *
+                                , portfolio::Folium& folium
                                 , const adcontrols::MSCalibrateMethod& m
                                 , const adcontrols::MSAssignedMasses& assigned )
 {
@@ -1153,7 +1265,8 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
 }
 
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium
+DataprocessorImpl::applyMethod( Dataprocessor * dataprocessor
+                                , portfolio::Folium& folium
                                 , const adcontrols::CentroidMethod& m
                                 , const adcontrols::MassSpectrum& profile )
 {
@@ -1196,7 +1309,9 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
         att.addAttachment( L"Process Method" ).assign( mptr, mptr->dataClass() );
 
         att.addAttachment( L"MSPeakInfo" ).assign( pkInfo, pkInfo->dataClass() );
-
+        
+        emit SessionManager::instance()->foliumChanged( dataprocessor, folium );
+        
         return true;
     } else {
         pCentroid->addDescription( adcontrols::description( L"process", L"Centroid failed" ) );
@@ -1208,7 +1323,9 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
 
 // static
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
+DataprocessorImpl::applyMethod( Dataprocessor *
+                                , portfolio::Folium& folium
+                                , const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
 {
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
     adcontrols::PeakResultPtr pResult( std::make_shared< adcontrols::PeakResult >() );
@@ -1282,7 +1399,8 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
 
 // static
 bool
-Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResult, const adcontrols::MassSpectrum& calibSpectrum )
+Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResult
+                                  , const adcontrols::MassSpectrum& calibSpectrum )
 {
     boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
     dir /= "data";
@@ -1299,12 +1417,14 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
     try {
         adutils::fsio::save_mscalibfile( dbf, calibResult );
     } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "saveMSCalibration", (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
+        QMessageBox::warning( 0, "saveMSCalibration"
+                              , (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
     }
     try {
         adutils::fsio::save_mscalibfile( dbf, calibSpectrum );
     } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "saveMSCalibration", (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
+        QMessageBox::warning( 0, "saveMSCalibration"
+                              , (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
     }
 
     // for debugging convension
@@ -1318,7 +1438,8 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
 
 // static
 bool
-Dataprocessor::loadMSCalibration( const std::wstring& filename, adcontrols::MSCalibrateResult& r, adcontrols::MassSpectrum& ms )
+Dataprocessor::loadMSCalibration( const std::wstring& filename
+                                  , adcontrols::MSCalibrateResult& r, adcontrols::MassSpectrum& ms )
 {
     boost::filesystem::path path( filename );
     if ( ! boost::filesystem::exists( path ) ) 
@@ -1351,8 +1472,9 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
         return;
 
     if ( auto rawfile = rawdata() ) {
-        auto msfractuation = rawfile->msFractuation();
 
+        auto msfractuation = rawfile->msFractuation();
+        
         bool interporate( false );
 
         if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
@@ -1360,7 +1482,8 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
             int result = QMessageBox::question( MainWindow::instance()
                                                 , QObject::tr("Lock mass")
                                                 , QObject::tr( "Blacketing ?" )
-                                                , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+                                                , QMessageBox::Yes
+                                                , QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
             if ( result == QMessageBox::Yes ) 
                 interporate = true;
         }
@@ -1373,7 +1496,8 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
 }
 
 void
-Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > spectra, const std::wstring& foliumId )
+Dataprocessor::exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra > spectra
+                                    , const std::wstring& foliumId )
 {
     DataprocessWorker::instance()->exportMatchedMasses( this, spectra, foliumId );
 }

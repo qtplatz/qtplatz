@@ -41,11 +41,9 @@
 #include <adlog/logger.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
-#include <adplugin/orbfactory.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adplugin_manager/loader.hpp>
 #include <adplugin/constants.hpp>
-#include <adplugin/orbbroker.hpp>
 #include <adlog/logging_handler.hpp>
 #include <adcontrols/logging_hook.hpp>
 #include <adportfolio/logging_hook.hpp>
@@ -116,8 +114,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
 
+    ADDEBUG() << "ServantPlugin::initilize -- loader::populate...";
     adplugin::loader::populate( apppath.c_str() );
-    
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
 		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
@@ -126,12 +124,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                     adcontrols::MassSpectrometerBroker::register_factory( factory );
             });
 	}
+    ADDEBUG() << "ServantPlugin::initilize -- loader::populated.";
     return true;
 }
 
 void
 ServantPlugin::extensionsInitialized()
 {
+    ADDEBUG() << "ServantPlugin::extentionInitialized.";    
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

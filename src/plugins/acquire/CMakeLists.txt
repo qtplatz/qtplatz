@@ -10,7 +10,10 @@ find_package( qwt )
 if ( QTPLATZ_SUPPORT_CORBA )
   find_package( ace+tao )
 endif()
-find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )
+
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization )
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

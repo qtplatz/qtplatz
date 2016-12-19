@@ -9,5 +9,6 @@
         <file>images/mode_project@2x.png</file>
         <file>images/fileopen.png</file>
         <file>images/filesave.png</file>
+	<file>wordlist.txt</file>
     </qresource>
 </RCC>

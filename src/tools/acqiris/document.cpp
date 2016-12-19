@@ -23,14 +23,15 @@
 **************************************************************************/
 
 #include "document.hpp"
+#if ! __APPLE__
 #include "digitizer.hpp"
+#endif
 #include "tcp_server.hpp"
 #include "tcp_task.hpp"
 #include <acqrscontrols/acqiris_client.hpp>
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
-#include <acqrswidgets/acqiriswidget.hpp>
 #include <QSettings>
 #include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
@@ -133,22 +134,32 @@ document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
     
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
 
+    static auto tp_data_handled = std::chrono::steady_clock::now();
+    static auto tp_rate_handled = std::chrono::steady_clock::now();
+
+    using namespace std::chrono_literals;
+
+    auto tp = std::chrono::steady_clock::now();
+    if ( ( tp - tp_data_handled ) > 200ms ) {
+        emit updateData();
+        tp_data_handled = tp;
+    }
+
     if ( server_ )
         server_->post( d );
     
     if ( que_.size() >= 4096 ) {
         
-        using namespace std::chrono_literals;
-        static auto tp = std::chrono::steady_clock::now();
-        if ( std::chrono::steady_clock::now() - tp > 10s ) {
+        if ( tp - tp_rate_handled > 10s ) {
+            tp_rate_handled = tp;
 
-            tp = std::chrono::steady_clock::now();
             double rate = ( que_.back()->timeStamp() - que_.front()->timeStamp() ) / ( que_.size() - 1 );
             ADDEBUG() << "average trig. interval: " << rate / std::nano::den << "s";
         }
 
         que_.erase( que_.begin(), que_.begin() + ( que_.size() - 2048 ) );
     }
+    
 }
 
 std::shared_ptr< acqrscontrols::aqdrv4::waveform >
@@ -190,6 +201,11 @@ document::acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiri
         adapted_method_ = p;
     }
     emit on_acqiris_method_adapted();
+
+    if ( auto s = server() ) {
+        if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *p ) )
+            s->post( data );
+    }
 }
 
 void
@@ -276,6 +292,7 @@ document::load( const std::string& file )
 boost::signals2::connection
 document::connect_prepare( const prepare_for_run_t::slot_type & subscriber )
 {
+    // call from tcp_task
     return signal_prepare_for_run_.connect( subscriber );
 }
 
@@ -291,18 +308,19 @@ document::connect_finalize( const final_close_t::slot_type & subscriber )
     return signal_final_close_.connect( subscriber );
 }
 
+
+// mainwindow|request_handler(mediator) -> this
 void
-document::handleValueChanged( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType subType )
+document::prepare_for_run( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType subType )
 {
-    ADDEBUG() << "handleValueChanged";
     set_acqiris_method( m );
-    signal_prepare_for_run_( m, subType );
+    signal_prepare_for_run_( m, subType ); // forward to tcp_taks|task
 }
 
+// local ui | request_handler(mediator) -> this; a client request event out -> this -> send it to 'task' if this is server
 void
-document::handleEventOut( uint32_t event )
+document::eventOut( uint32_t event )
 {
-    ADDEBUG() << "handleEventOut(" << event << ")";
     signal_event_out_( event );
 }
 

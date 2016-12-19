@@ -30,22 +30,24 @@ QuanMethod::~QuanMethod()
 {
 }
 
-QuanMethod::QuanMethod() : isChromatogram_( false )
-                         , eq_(idCalibLinear)
+QuanMethod::QuanMethod() : isCounting_( true )
+                         , isChromatogram_( false )
                          , isISTD_( false )
-                         , polynomialOrder_(2)
                          , use_weighting_( false )
-                         , weighting_( idWeight_C1 )
                          , use_bracketing_( true )
-                         , levels_(1)
-                         , bracketing_( idBracketStandard )
-                         , replicates_(1)
-                         , debug_level_( 0 )
+                         , eq_(idCalibLinear)
+                         , weighting_( idWeight_C1 )
+                         , bracketing_( idBracketStandard )                           
+                         , polynomialOrder_( 1 )
+                         , debug_level_( 0 )                           
+                         , levels_( 1 )
+                         , replicates_( 1 )
                          , save_on_datasource_( false )
 {
 }
 
 QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
+                                              , isCounting_( t.isCounting_ )
                                               , isChromatogram_( t.isChromatogram_ )
                                               , isISTD_( t.isISTD_ )
                                               , use_weighting_( t.use_weighting_) 
@@ -56,10 +58,10 @@ QuanMethod::QuanMethod( const QuanMethod& t ) : ident_( t.ident_ )
                                               , levels_( t.levels_)
                                               , replicates_( t.replicates_ )
                                               , polynomialOrder_( t.polynomialOrder_ )
-                                              , quanMethodFilename_( t.quanMethodFilename_ )
                                               , debug_level_( t.debug_level_ )
-                                              , quanCompoundsFilename_( t.quanCompoundsFilename_ )
                                               , save_on_datasource_( t.save_on_datasource_ )
+                                              , quanMethodFilename_( t.quanMethodFilename_ )
+                                              , quanCompoundsFilename_( t.quanCompoundsFilename_ )
                                               , quanSequenceFilename_( t.quanSequenceFilename_ )
 {
 }
@@ -89,13 +91,25 @@ QuanMethod::polynomialOrder( uint32_t v )
 }
 
 bool
+QuanMethod::isCounting() const
+{
+    return isCounting_;
+}
+
+void
+QuanMethod::setIsCounting( bool v )
+{
+    isCounting_ = v;
+}
+
+bool
 QuanMethod::isChromatogram() const
 {
     return isChromatogram_;
 }
 
 void
-QuanMethod::isChromatogram( bool v )
+QuanMethod::setIsChromatogram( bool v )
 {
     isChromatogram_ = v;
 }
@@ -107,7 +121,7 @@ QuanMethod::isWeighting() const
 }
 
 void
-QuanMethod::isWeighting( bool v )
+QuanMethod::setIsWeighting( bool v )
 {
     use_weighting_ = v;
 }
@@ -119,7 +133,7 @@ QuanMethod::weighting() const
 }
 
 void
-QuanMethod::weighting( CalibWeighting v )
+QuanMethod::setWeighting( CalibWeighting v )
 {
     weighting_ = v;
 }
@@ -131,7 +145,7 @@ QuanMethod::isBracketing() const
 }
 
 void
-QuanMethod::isBracketing( bool v )
+QuanMethod::setIsBracketing( bool v )
 {
     use_bracketing_ = v;
 }
@@ -143,7 +157,7 @@ QuanMethod::bracketing() const
 }
 
 void
-QuanMethod::bracketing( QuanMethod::Bracketing v )
+QuanMethod::setBracketing( QuanMethod::Bracketing v )
 {
     bracketing_ = v;
 }
@@ -155,7 +169,7 @@ QuanMethod::isInternalStandard() const
 }
 
 void
-QuanMethod::isInternalStandard( bool v )
+QuanMethod::setIsInternalStandard( bool v )
 {
     isISTD_ = v;
 }
@@ -167,7 +181,7 @@ QuanMethod::levels() const
 }
 
 void
-QuanMethod::levels( uint32_t v )
+QuanMethod::setLevels( uint32_t v )
 {
     levels_ = v;
 }
@@ -179,7 +193,7 @@ QuanMethod::replicates() const
 }
 
 void
-QuanMethod::replicates( uint32_t v )
+QuanMethod::setReplicates( uint32_t v )
 {
     replicates_ = v;
 }
@@ -191,7 +205,7 @@ QuanMethod::debug_level() const
 }
 
 void
-QuanMethod::debug_level( uint32_t v )
+QuanMethod::set_debug_level( uint32_t v )
 {
     debug_level_ = v;
 }
@@ -203,7 +217,7 @@ QuanMethod::save_on_datasource() const
 }
 
 void
-QuanMethod::save_on_datasource( bool v )
+QuanMethod::set_save_on_datasource( bool v )
 {
     save_on_datasource_ = v;
 }

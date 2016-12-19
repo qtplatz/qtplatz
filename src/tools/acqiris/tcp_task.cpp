@@ -22,10 +22,10 @@
 **************************************************************************/
 
 #include "tcp_task.hpp"
+#include "document.hpp"
 #include <acqrscontrols/acqiris_client.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
-#include "document.hpp"
-#include "waveform.hpp"
+#include <acqrscontrols/ap240/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
 
@@ -73,6 +73,7 @@ tcp_task::initialize()
 
             document::instance()->connect_prepare( boost::bind( &tcp_task::prepare_for_run, this, _1, _2 ) );
             document::instance()->connect_finalize( boost::bind( &tcp_task::finalize, this ) );
+            // don't connect to eventOut
         } );
 
     return true;
@@ -104,11 +105,11 @@ tcp_task::worker_thread()
     } while ( true );
 }
 
+
+// method modified on local gui(document signal->this) -> server(remote)
 void
 tcp_task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m, acqrscontrols::aqdrv4::SubMethodType )
 {
-    ADDEBUG() << "prepare_for_run";
-    
     if ( auto client = document::instance()->client() ) {
         if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *m ) ) {
             client->write( data );
@@ -116,6 +117,7 @@ tcp_task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris
     }
 }
 
+// waveform from server(remote) -> this
 void
 tcp_task::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
 {
@@ -130,6 +132,7 @@ tcp_task::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
     }
 }
 
+// server applied method to digitizer -> this
 void
 tcp_task::push( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m )
 {

@@ -222,6 +222,12 @@ spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase,
 }
 
 double
+spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, double& dbase, double& rms, size_t N )
+{
+    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+}
+
+double
 spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
     return tic_calculator()( nbrSamples, praw, dbase, rms, N );
@@ -423,7 +429,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
 
     for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
-
+        
         bool reduce = false;
         if ( d1 >= slope ) {
             if ( ( base_c = std::min( base_c, w * 2 ) ) )
@@ -529,6 +535,12 @@ double
 spectrum_processor::area( const areaFraction& frac, double base, const double* pData, size_t nData )
 {
     return areaCalculator<double>::area( frac, base, pData, nData );
+}
+
+double
+spectrum_processor::area( const areaFraction& frac, double base, const int64_t* pData, size_t nData )
+{
+    return areaCalculator<int64_t>::area( frac, base, pData, nData );
 }
 
 double

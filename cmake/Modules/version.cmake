@@ -30,4 +30,4 @@ if ( _count GREATER 3 ) # count >= 4
   string( REGEX REPLACE "v[0-9]+\\.[0-9]+[\\.-][0-9]+-[0-9]+-(.*)$" "\\1" VERSION_HASH ${git_describe} )    
 endif()
 
-message( STATUS "## version: " "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK}(${VERSION_HASH})" )
+# message( STATUS "## version: " "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK}(${VERSION_HASH})" )

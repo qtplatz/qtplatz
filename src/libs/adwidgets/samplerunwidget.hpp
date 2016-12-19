@@ -55,6 +55,7 @@ namespace adwidgets {
         void getSampleRun( adcontrols::SampleRun& ) const;
 
     signals:
+        void apply();
 
     public slots:
 

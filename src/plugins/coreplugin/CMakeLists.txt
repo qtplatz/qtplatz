@@ -25,6 +25,10 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
   )
 
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package( Boost COMPONENTS system )
+endif()
+
 find_package( Qt5 CONFIG REQUIRED PrintSupport Network Sql Widgets Gui Core )
 
 add_definitions(  -DCORE_LIBRARY )
@@ -324,6 +328,8 @@ target_link_libraries(
   Qt5::Core
   ${MHDVIEWER_EXE_NAME}
   ${EXTRA_LIBS}
+  adportable
+  ${Boost_LIBRARIES}
 )
 
 if ( UNIX )

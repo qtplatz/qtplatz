@@ -35,8 +35,8 @@
 
 namespace adcontrols {
 
-    //typedef boost::error_info< struct tag_errno, int > info;
     typedef boost::error_info< struct tag_errmsg, std::string > info;
+    struct serializer_error : virtual boost::exception, virtual std::exception { };
 
     namespace internal {
 
@@ -50,8 +50,8 @@ namespace adcontrols {
                     boost::archive::xml_woarchive ar( os );
                     ar & boost::serialization::make_nvp( name_, t );
                     return true;
-                } catch ( std::exception& ex ) {
-                    BOOST_THROW_EXCEPTION( ex );// << info( "xml archive" );
+                } catch ( std::exception& ) {
+                    BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("xml arcinving " ) + typeid(T).name() ) );
                 }
                 return false;
             }
@@ -61,8 +61,8 @@ namespace adcontrols {
                     boost::archive::xml_wiarchive ar( is );
                     ar & boost::serialization::make_nvp( name_, t );
                     return true;
-                } catch ( std::exception& ex ) {
-                    BOOST_THROW_EXCEPTION( ex );// << error_info( "xml restore" );
+                } catch ( std::exception& ) {
+                    BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("xml restoring ") + typeid(T).name() ) );
                 }
                 return false;
             }
@@ -75,8 +75,8 @@ namespace adcontrols {
                     portable_binary_oarchive ar( os );
                     ar & t;
                     return true;
-                } catch ( std::exception& ex ) {
-                    BOOST_THROW_EXCEPTION( ex );// << error_info( "bin archive" );
+                } catch ( std::exception& ) {
+                    BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("bin archiving ") + typeid(T).name() ) );
                 }
                 return false;
             }
@@ -86,8 +86,8 @@ namespace adcontrols {
                     portable_binary_iarchive ar( is );
                     ar & t;
                     return true;
-                } catch ( std::exception& ex ) {
-                    BOOST_THROW_EXCEPTION( ex );// << error_info( "bin restore" );
+                } catch ( std::exception& ) {
+                    BOOST_THROW_EXCEPTION( serializer_error() << info( std::string("bin restoring ") + typeid(T).name() ) );
                 }
                 return false;
             }

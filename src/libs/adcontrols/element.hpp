@@ -39,7 +39,7 @@ namespace adcontrols {
     namespace mol {
 
         // class implements in "tableofelement.cpp"
-
+        
         class ADCONTROLSSHARED_EXPORT element {
 
         public:

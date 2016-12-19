@@ -13,18 +13,21 @@ endif()
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_SOURCE_DIR}/src/libs
+  ${AqDrv4_INCLUDE_DIR}
   )
+
+message( STATUS "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
 
 add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
+  find_threshold_timepoints.hpp
+  find_threshold_peaks.hpp
   resultwriter.hpp
+  waveform_horizontal.hpp
   u5303a/averagedata.hpp
   u5303a/averagedata.cpp
   u5303a/device_method.hpp
   u5303a/device_method.cpp
-  u5303a/find_threshold_timepoints.hpp
-  u5303a/find_threshold_peaks.hpp
-  u5303a/waveform_horizontal.hpp
   u5303a/identify.hpp
   u5303a/identify.cpp
   u5303a/metadata.hpp

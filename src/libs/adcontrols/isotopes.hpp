@@ -30,10 +30,10 @@
 namespace adcontrols {
 
     namespace toe {
-
+        
         // iterator for fast access to isotopes in table-of-element
         struct isotope { double mass; double abundance; };
-
+        
         class isotopes {
             typedef const isotope * const_iterator;
             typedef size_t size_type;

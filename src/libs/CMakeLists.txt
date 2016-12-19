@@ -4,6 +4,7 @@ add_subdirectory (acewrapper)
 add_subdirectory (adcontrols)
 add_subdirectory (adfs)
 add_subdirectory (adicontroller)
+add_subdirectory (adio)
 add_subdirectory (adlog)
 add_subdirectory (adportable)
 add_subdirectory (adprocessor)
@@ -21,10 +22,13 @@ if ( rdkit_FOUND )
   add_subdirectory ( adchem )
 endif()
 
+if ( OpenCV_FOUND )
+  add_subdirectory ( cvplot )
+endif()
+
 if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
 
   add_subdirectory (adextension)
-  
   add_subdirectory (qtwrapper)
   add_subdirectory (adwidgets)
   add_subdirectory (adplugin_manager)
@@ -36,10 +40,9 @@ if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
   find_package( Qt5 COMPONENTS XmlPatterns QUIET )
   find_package( Qt5 COMPONENTS WebEngineWidgets QUIET )
   
-  if ( Qt5XmlPatterns_FOUND AND Qt5WebEngineWidgets_FOUND )
+  #if ( Qt5XmlPatterns_FOUND AND Qt5WebEngineWidgets_FOUND )
     add_subdirectory (adpublisher)
-  endif()
+  #endif()
 
 endif()
 
-message( STATUS "------------ end libs ----------------" )

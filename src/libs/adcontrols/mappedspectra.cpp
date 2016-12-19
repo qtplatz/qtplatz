@@ -338,3 +338,16 @@ MappedSpectra::acqTimeRange() const
 {
     return { impl_->delay_, ( impl_->delay_ + impl_->sampInterval_ * impl_->nSamples_ ) };
 }
+
+bool
+MappedSpectra::empty() const
+{
+    for ( size_t i = 0; i < impl_->data_.size1(); ++i ) {
+        for ( size_t j = 0; j < impl_->data_.size2(); ++j ) {
+            if ( impl_->data_( i, j ).size() )
+                return false;
+        }
+    }
+    return true;
+}
+

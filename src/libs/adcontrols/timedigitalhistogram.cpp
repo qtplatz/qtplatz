@@ -393,10 +393,9 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
     
     adcontrols::MSProperty prop;
-    double zhalf = ( ( hgrm.initialXOffset() + ext_trig_delay ) >= 0 ) ? 0.5 : -0.5;
     adcontrols::SamplingInfo info( hgrm.xIncrement()
-                                   , hgrm.initialXOffset()
-                                   , int32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() + zhalf )  // delay
+                                   , hgrm.initialXOffset() + ext_trig_delay
+                                   , int32_t( ( hgrm.initialXOffset() + ext_trig_delay ) / hgrm.xIncrement() )  // delay
                                    , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
                                    , uint32_t( hgrm.trigger_count() )
                                    , hgrm.this_protocol_.mode() /* mode */);

@@ -30,8 +30,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-
-class QStandardItemModel;
+#include <QStandardItemModel>
 class QStandardItem;
 class QModelIndex;
 
@@ -50,6 +49,7 @@ namespace quan {
 
         void setData( std::shared_ptr< adcontrols::datafile >& );
         void setData( const QStringList& );
+        void setSampleInlet( int );
         bool setContents( const adcontrols::QuanSequence& );
         bool getContents( adcontrols::QuanSequence& );
 
@@ -66,7 +66,8 @@ namespace quan {
 
     private:
         std::vector< std::shared_ptr< datasequencetable::dataSubscriber > > dataSubscribers_;
-        std::shared_ptr< QStandardItemModel > model_;
+        std::unique_ptr< QStandardItemModel > model_;
+        bool isCounting_;
 
         void handleValueChanged( const QModelIndex& );
         void dropIt( const std::wstring& );
@@ -74,12 +75,14 @@ namespace quan {
 
     signals:
         void onJoin( int row );
+        void plot( const QString& );
 
     private slots:
         void handleContextMenu( const QPoint& );
         void delAll();
         void delLine();
         void addLine();
+        void plotHistogram();
     };
 
 }

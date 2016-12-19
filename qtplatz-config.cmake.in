@@ -23,8 +23,8 @@ set ( QTPLATZ_RUNTIME_OUTPUT_DIRECTORY "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@" ) # ex
 set ( CMAKE_INSTALL_PREFIX       "@CMAKE_INSTALL_PREFIX@" )
 set ( QTPLATZ_PLUGIN_DIRECTORY   "@QTPLATZ_PLUGIN_DIRECTORY@" )
 set ( QTPLATZ_PLUGIN_DESTINATION "@QTPLATZ_PLUGIN_DESTINATION@" )
-set ( QTPLATZ_CORELIB_ONLY       @QTPLATZ_CORELIB_ONLY@ )
-set ( QTPLATZ_SUPPORT_CORBA      @QTPLATZ_SUPPORT_CORBA@ )
+set ( QTPLATZ_CORELIB_ONLY       "@QTPLATZ_CORELIB_ONLY@" )
+set ( WITH_OPENCV                "@WITH_OPENCV@" )
 
 if ( APPLE )
   set ( CMAKE_SHARED_MODULE_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@" )
@@ -56,6 +56,7 @@ add_library( QTC::Core SHARED IMPORTED )
 add_library( QTC::ExtensionSystem SHARED IMPORTED )
 add_library( QTC::Utils SHARED IMPORTED )
 
+add_library( acewrapper STATIC IMPORTED )
 add_library( adchem SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
 add_library( adextension SHARED IMPORTED )
@@ -70,21 +71,20 @@ add_library( adprot SHARED IMPORTED )
 add_library( adurl  SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
-add_library( chromatogr SHARED IMPORTED )
-add_library( portfolio SHARED IMPORTED )
-add_library( u5303a SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
 add_library( acqrswidgets SHARED IMPORTED )
 add_library( acqrscontrols SHARED IMPORTED )
-add_library( multumcontrols SHARED IMPORTED )
-
-add_library( acewrapper STATIC IMPORTED )
-#add_library( adfs STATIC IMPORTED ) #change 16-DEC-2015
 add_library( adfs SHARED IMPORTED )
 add_library( adinterface STATIC IMPORTED )
 add_library( adportable STATIC IMPORTED )
+add_library( adio STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
+add_library( chromatogr SHARED IMPORTED )
+add_library( cvplot SHARED IMPORTED )
+add_library( multumcontrols SHARED IMPORTED )
+add_library( portfolio SHARED IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
+add_library( u5303a SHARED IMPORTED )
 add_library( xmlparser STATIC IMPORTED )
 
 if (WIN32)
@@ -144,6 +144,10 @@ if (WIN32)
   set_target_properties( adplot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplot.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplotd.lib )
+
+  set_target_properties( cvplot PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/cvplot.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/cvplotd.lib )
 
   set_target_properties( adprot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adprot.lib
@@ -249,6 +253,10 @@ elseif ( APPLE )
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot_debug.dylib )
 
+  set_target_properties( cvplot PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot_debug.dylib )
+
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot_debug.dylib )
@@ -330,6 +338,9 @@ else()  #Linux
   set_target_properties( adplot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.so )
 
+  set_target_properties( cvplot PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot.so )  
+
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.so )
 
@@ -375,6 +386,10 @@ if (WIN32)
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adportable.lib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adportabled.lib )
 
+  set_target_properties( adio PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adio.lib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adiod.lib )
+
   set_target_properties( acewrapper PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acewrapper.lib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acewrapperd.lib )
@@ -399,23 +414,27 @@ elseif( APPLE )
   
   set_target_properties( adportable PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libadportable_debug.a )
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable_debug.a )
+
+  set_target_properties( adio PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio.a
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio_debug.a )
 
   set_target_properties( acewrapper PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libacewrapper_debug.a )
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper_debug.a )
 
   set_target_properties( adutils PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadutils.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libadutils_debug.a )
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadutils_debug.a )
 
   set_target_properties( qtwrapper PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libqtwrapper.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libqtwrapper_debug.a )
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libqtwrapper_debug.a )
 
   set_target_properties( xmlparser PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser.a
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/libxmlparser_debug.a )
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libxmlparser_debug.a )
 
 else()
 
@@ -424,6 +443,9 @@ else()
 
   set_target_properties( adportable PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable.a )
+
+  set_target_properties( adio PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio.a )  
 
   set_target_properties( acewrapper PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper.a )

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "mediator.hpp"
 #include <QObject>
 #include <boost/numeric/ublas/fwd.hpp>
 #include <boost/msm/back/state_machine.hpp>
@@ -64,7 +65,8 @@ namespace acqiris {
 
 class AcqirisWidget;
 
-class document : public QObject {
+class document : public QObject
+               , public mediator {
     Q_OBJECT
     ~document();
     document( const document& ) = delete;
@@ -82,26 +84,22 @@ public:
     std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > acqiris_method();
     std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > adapted_acqiris_method();
     void set_acqiris_method( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > );
-    void acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > );
 
     void set_server( std::unique_ptr< acqiris::server::tcp_server >&& );
+    void set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&& );
     void close_client();
 
     acqiris::server::tcp_server * server() { return server_.get(); }
-# if LOCAL_TCP_CLIENT
-    acqiris::client::tcp_client * client() { return client_.get(); }
-    void set_client( std::unique_ptr< acqiris::client::tcp_client >&& );
-# else
     acqrscontrols::aqdrv4::acqiris_client * client() { return client_.get(); }
-    void set_client( std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client >&& );
-# endif
 
     static bool save( const std::string& file, std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > );
     static std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > load( const std::string& file );
 
-    void handleValueChanged( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >, acqrscontrols::aqdrv4::SubMethodType );
-    void handleEventOut( uint32_t );
-    void replyTemperature( int );
+    // mediator
+    void acqiris_method_adapted( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > ) override;
+    void prepare_for_run( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >, acqrscontrols::aqdrv4::SubMethodType ) override;
+    void eventOut( uint32_t ) override;
+    void replyTemperature( int ) override;
 
     typedef boost::signals2::signal< void( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method >
                                            , acqrscontrols::aqdrv4::SubMethodType ) > prepare_for_run_t;

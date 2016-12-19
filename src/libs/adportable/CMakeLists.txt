@@ -12,10 +12,9 @@ add_library( adportable
   date_string.cpp
   debug.cpp
   debug_core.cpp
-  dgprotocols.cpp
-  dgprotocols.hpp
-  dgprotocol.hpp
   fft.cpp
+  graycode.cpp
+  graycode.hpp
   http_client.cpp
   histogram_processor.cpp
   histogram_processor.hpp

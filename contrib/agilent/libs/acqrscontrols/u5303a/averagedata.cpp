@@ -66,6 +66,13 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > u16wrap;
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > u32wrap;
 
+    ///////////
+    // if ( waveform.dataType() == 2 ) {
+    //     auto pair = std::minmax_element( waveform.data< int16_t >(), waveform.data< int16_t >() + waveform.size() );
+    //     ADDEBUG() << "average_waveform(" << *(pair.first) << ", " << *(pair.second) << ")";
+    // }
+    /////////
+    
     if ( ! waveform_register_ ) {
 
         protocolIndex_ = waveform.method_.protocolIndex();
@@ -81,13 +88,13 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
         else
             waveform_register_ = std::make_shared< averager_type >( u32wrap( waveform ) );
         
-        meta_ = waveform.meta_;
-        method_ = waveform.method_;
+        meta_            = waveform.meta_;
+        method_          = waveform.method_;
         wellKnownEvents_ = waveform.wellKnownEvents_;
-        serialnumber_ = waveform.serialnumber_;
-        timeSinceEpoch_ = waveform.timeSinceEpoch_;
+        serialnumber_    = waveform.serialnumber_;
+        timeSinceEpoch_  = waveform.timeSinceEpoch_;
         timeSinceInject_ = waveform.timeSinceInject_;
-        ident_ = waveform.ident_ptr();
+        ident_           = waveform.ident_ptr();
                     
     } else {
 
@@ -106,12 +113,14 @@ AverageData::average_waveform( const acqrscontrols::u5303a::waveform& waveform )
                 ( *waveform_register_ ) += u16wrap( waveform );
             else
                 ( *waveform_register_ ) += u32wrap( waveform );
-                        
+
         } catch ( std::out_of_range& ) {
             reset();
             return average_waveform( waveform );
         }
     }
+
+    meta_.actualAverages = waveform_register_->actualAverages();
 
     return waveform_register_->actualAverages();
 }

@@ -110,19 +110,19 @@ CountingData::elapsedTime() const
 }
 
 uint32_t
-CountingData::events()
+CountingData::events() const
 {
     return events_;
 }
 
 double
-CountingData::threshold()
+CountingData::threshold() const
 {
     return threshold_;
 }
 
 uint32_t
-CountingData::algo() // 0:Absolute, 1:Average, 2:Differential
+CountingData::algo() const // 0:Absolute, 1:Average, 2:Differential
 {
     return algo_;
 }

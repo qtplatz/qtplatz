@@ -74,47 +74,55 @@ namespace adcontrols {
         uint32_t polynomialOrder() const;
         void polynomialOrder( uint32_t );
 
+        bool isCounting() const;
+        void setIsCounting( bool );
+
         bool isChromatogram() const;
-        void isChromatogram( bool );
+        void setIsChromatogram( bool );
 
         bool isWeighting() const;
-        void isWeighting( bool );
+        void setIsWeighting( bool );
 
         bool isBracketing() const;
-        void isBracketing( bool );
+        void setIsBracketing( bool );
 
         Bracketing bracketing() const;
-        void bracketing( Bracketing );
+        void setBracketing( Bracketing );
         
         CalibWeighting weighting() const;
-        void weighting( CalibWeighting );
+        void setWeighting( CalibWeighting );
 
         bool isInternalStandard() const;
-        void isInternalStandard( bool );
+        void setIsInternalStandard( bool );
 
         bool isExternalStandard() const { return !isInternalStandard(); }
 
         uint32_t levels() const;
-        void levels( uint32_t );
+        void setLevels( uint32_t );
 
         uint32_t replicates() const;
-        void replicates( uint32_t );
+        void setReplicates( uint32_t );
 
+        // debug&trace methods
         uint32_t debug_level() const;
-        void debug_level( uint32_t );
+        void set_debug_level( uint32_t );
 
         bool save_on_datasource() const;
-        void save_on_datasource( bool );        
-
+        void set_save_on_datasource( bool );        
+        // <--
+        
         const wchar_t * quanMethodFilename() const { return quanMethodFilename_.c_str(); }
         void quanMethodFilename( const wchar_t * d ) { quanMethodFilename_ = d; }
+
         const wchar_t * quanCompoundsFilename() const { return quanCompoundsFilename_.c_str(); }
         void quanCompoundsFilename( const wchar_t * d ) { quanCompoundsFilename_ = d; }
+
         const wchar_t * quanSequenceFilename() const { return quanSequenceFilename_.c_str(); }
          void quanSequenceFilename( const wchar_t * d ) { quanSequenceFilename_ = d; }
 
     private:
         idAudit ident_;
+        bool isCounting_;
         bool isChromatogram_;
         bool isISTD_;
         bool use_weighting_;
@@ -156,12 +164,15 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( debug_level_ );
                 ar & BOOST_SERIALIZATION_NVP( save_on_datasource_ );
             }
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( isCounting_ );
+            }
         };
 
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanMethod, 2 )
+BOOST_CLASS_VERSION( adcontrols::QuanMethod, 3 )
 
 #endif // QUANMETHOD_HPP

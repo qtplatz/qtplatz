@@ -89,12 +89,11 @@ rawdata::loadAcquiredConf()
     if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
 
         for ( const auto& conf: conf_ ) {
-            ADDEBUG() << conf.trace_method << ", " << conf.trace_id;
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
                 if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) 
                     readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
             } else {
-                ADERROR() << "No data reader found for '" << conf.trace_id << "'";
+                ADERROR() << "# reader for '" << conf.trace_id << "'" << " not implemented.";
             }
         }
         fcnCount_ = 0;
@@ -114,6 +113,15 @@ rawdata::loadMSFractuation()
 
     auto fractuation = adcontrols::MSFractuation::create();
 
+    {
+        adfs::stmt sql( dbf_.db() );
+        sql.prepare( "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='MSLock'" );
+        if ( sql.step() == adfs::sqlite_row ) {
+            if ( sql.get_column_value< int64_t >( 0 ) == 0 )
+                return;
+        }
+    }
+    
     adfs::stmt sql( dbf_.db() );
     sql.prepare( "SELECT DISTINCT rowid FROM MSLock ORDER BY rowid" );
 

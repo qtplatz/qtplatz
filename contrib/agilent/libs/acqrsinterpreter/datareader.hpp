@@ -60,7 +60,7 @@ namespace acqrsinterpreter {
 
         const_iterator begin( int fcn ) const override;
         const_iterator end() const override;
-        const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const override;
+        const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const override;
         
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override;
 
@@ -72,9 +72,10 @@ namespace acqrsinterpreter {
         double time_since_inject( int64_t rowid ) const override;
         int fcn( int64_t rowid ) const override;
         // <============================
-        
+        boost::any getData( int64_t rowid ) const override;
         std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
         std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override; // only by time range
+        std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( const_iterator& ) const override;
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const override;
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
         
@@ -88,6 +89,7 @@ namespace acqrsinterpreter {
         int64_t objrowid_;
         std::string display_name_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
+        size_t fcnCount_;
 
         struct index {
             int64_t rowid; int64_t pos; int64_t elapsed_time; int fcn;

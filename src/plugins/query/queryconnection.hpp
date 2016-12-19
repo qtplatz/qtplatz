@@ -49,12 +49,10 @@ namespace query {
         ~QueryConnection();
 
         bool connect( const std::wstring& database );
-        std::shared_ptr< QueryQuery > query();
-        adfs::sqlite& db();
 
         QSqlDatabase& sqlDatabase();
         QSqlQuery sqlQuery( const QString& );
-
+        
         adfs::file select_file( const std::wstring& dataClass, const wchar_t * folder = L"/Processed/Spectra" );
 
         const std::wstring& filepath() const { return filename_; }
@@ -62,7 +60,6 @@ namespace query {
 
     private:
         std::wstring filename_;
-        std::shared_ptr< adfs::filesystem > fs_;
         QSqlDatabase db_;
 
         bool readMethods();

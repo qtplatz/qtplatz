@@ -34,9 +34,14 @@ class QSqlTableModel;
 class QSqlQueryModel;
 class QSqlQuery;
 
+namespace adcontrols {
+    class MassSpectrometer;
+}
+
 namespace query {
 
     class QueryQuery;
+    class QueryConnection;
 
     class QueryResultTable : public adwidgets::TableView  {
         Q_OBJECT
@@ -44,24 +49,37 @@ namespace query {
         ~QueryResultTable();
         explicit QueryResultTable(QWidget *parent = 0);
 
+        // adwidgets::TableView
+        void addActionsToMenu( QMenu& menu, const QPoint& ) override;
+        //
+
+        void setQuery( const QSqlQuery&, std::shared_ptr< QueryConnection > );
         void setQuery( const QSqlQuery& );
         void setDatabase( QSqlDatabase& );
 
         void clear();
         int findColumn( const QString& );
 
+        void setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > );
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
+
+        QAbstractItemModel * model();
+
     private:
-        //std::unique_ptr< QSqlTableModel > model_;
         std::unique_ptr< QSqlQueryModel > model_;
         std::set< std::string > hideColumns_;
+        std::shared_ptr< QueryConnection > connection_;
 
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
 
     signals:
         void onCurrentChanged( const QModelIndex& );
+        void plot(); 
 
     public slots:
 
+    private slots:
+        void handlePlot();
     };
 
 }

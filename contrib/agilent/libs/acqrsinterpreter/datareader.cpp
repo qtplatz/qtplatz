@@ -1,26 +1,26 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
-*
-** Contact: toshi.hondo@qtplatz.com
-**
-** Commercial Usage
-**
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with
-** the Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
-**
-** GNU Lesser General Public License Usage
-**
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.TXT included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-**************************************************************************/
+ ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ *
+ ** Contact: toshi.hondo@qtplatz.com
+ **
+ ** Commercial Usage
+ **
+ ** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
+ ** accordance with the MS-Cheminformatics Commercial License Agreement provided with
+ ** the Software or, alternatively, in accordance with the terms contained in
+ ** a written agreement between you and MS-Cheminformatics.
+ **
+ ** GNU Lesser General Public License Usage
+ **
+ ** Alternatively, this file may be used under the terms of the GNU Lesser
+ ** General Public License version 2.1 as published by the Free Software
+ ** Foundation and appearing in the file LICENSE.TXT included in the
+ ** packaging of this file.  Please review the following information to
+ ** ensure the GNU Lesser General Public License version 2.1 requirements
+ ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+ **
+ **************************************************************************/
 
 #include "datareader.hpp"
 #include "datainterpreter.hpp"
@@ -47,6 +47,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <atomic>
 #include <map>
 #include <memory>
@@ -63,13 +64,15 @@ namespace acqrsinterpreter {
         typedef Interpreter type;
     };
 
+    // "{ebec355c-3277-5b15-9430-b83031e7555c}" histogram.1.malpix.ms-cheminfo.com
+
     // u5303a
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::value = "1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::display_name = "1.u5303a";
 
     template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result> >::value = "timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount[u5303a]";
-    
+
     template<> const std::string TID< histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< histogram::DataInterpreter >::display_name = "histogram";
     
@@ -77,11 +80,15 @@ namespace acqrsinterpreter {
     template<> const std::string TID< softavgr::DataInterpreter>::display_name = "waveform";
 
     // ap240
+    // "{4f431f91-b08c-54ba-94f0-e1d13eba29d7}"
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
 
+    // "{76d1f823-2680-5da7-89f2-4d2d956149bd}"
     template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
     template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "waveform[ap240]";
+
+    // "{04c23c3c-7fd6-11e6-aa18-b7efcbc41dcd}", "1.dc122.ms-cheminfo.com"
 
     typedef boost::mpl::vector<
         TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform> >
@@ -109,10 +116,11 @@ namespace acqrsinterpreter {
         std::unique_ptr< adcontrols::DataInterpreter >& interpreter;
         std::string& display_name;
         lookup_and_create( const char * _id, std::unique_ptr< adcontrols::DataInterpreter >& t, std::string& name )
-            : id( _id ), interpreter( t ), display_name( name ) {}
+            : id( _id ), interpreter( t ), display_name( name )
+            {}
         template < typename T > void operator () ( wrap<T> ) const {
             if ( id == T::value ) {
-                interpreter = std::unique_ptr< typename T::type >( new typename T::type() );
+                interpreter = std::make_unique< typename T::type >();
                 display_name = T::display_name;
             }
         }
@@ -127,7 +135,7 @@ namespace acqrsinterpreter {
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& ptr ) const
     {
-        return ptr->indecies().size();
+        return ptr->indecies2().size();
     }
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result >& ptr ) const
@@ -170,6 +178,12 @@ namespace acqrsinterpreter {
             waveform = rhs;
         }
     };
+    
+    template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::u5303a::waveform > const& rhs ) const
+    {
+        waveform = std::make_shared< acqrscontrols::u5303a::waveform >( *rhs, sizeof( int64_t ) );
+        //waveform = std::make_shared< acqrscontrols::u5303a::waveform >( *rhs, sizeof( int32_t ) );
+    }
 
     template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
     {
@@ -220,6 +234,14 @@ namespace acqrsinterpreter {
     };
     //------------------ make_title visitor ----------------
 
+    //------------------ waveforms_types --> any cast ---------------->>
+    struct any_cast : public boost::static_visitor < boost::any > {
+        template< typename T >
+        boost::any operator()( T& t ) const {
+            return boost::any( t );
+        }
+    };
+    //<<------------------ waveforms_types --> any cast ----------------
 }
 
 using namespace acqrsinterpreter;
@@ -232,13 +254,20 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
-                                               , objid_( {{0}} )
-                                               , objrowid_(-1)
+    , objid_( {{ 0 }} )
+    , objrowid_( -1 )
+    , fcnCount_( 0 )
 {
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
 
-    boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
+    if ( std::string( traceid ) == "1.dc122.ms-cheminfo.com" ) {
+        interpreter_ = std::make_unique< waveform::DataInterpreter< acqrscontrols::ap240::waveform > >();
+        display_name_ = "waveform[dc122]";
+    } else {
+        boost::mpl::for_each< interpreter_types
+                              , wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
+    }
 }
 
 // static
@@ -247,6 +276,7 @@ DataReader::traceid_list()
 {
     std::vector< std::string > list;
     boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( make_trace_id_list( list ) );
+    list.emplace_back( "1.dc122.ms-cheminfo.com" );
     return list;
 }
 
@@ -254,7 +284,7 @@ bool
 DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
-        ADDEBUG() << "initialize data for: " << objtext;
+
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
         db_ = dbf._ptr();
@@ -267,7 +297,15 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 if ( sql.step() == adfs::sqlite_row )
                     objrowid_ = sql.get_column_value< int64_t >( 0 );
             }
-
+            // fcnCount
+            {
+                adfs::stmt sql( *db );
+                sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData WHERE objuuid = ?" );
+                sql.bind( 1 ) = objid_;
+                if ( sql.step() == adfs::sqlite_row )
+                    fcnCount_ = sql.get_column_value< int64_t >( 0 );
+            }
+            
             // find ScanLaw
             double acclVoltage( 0 ), tDelay( 0 ), fLength;
             boost::uuids::uuid clsid { 0 };
@@ -282,24 +320,33 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
             // workaround for Sep. to Dec., 2015 data file
             // find if protocol override exist
             {
-                std::vector< std::pair< int, double > > protocols;
-                adfs::stmt sql( *db );
-                sql.prepare( "SELECT  mode, ext_adc_delay from PROTOCOL_OVERRIDE ORDER BY id" );
-                while ( sql.step() == adfs::sqlite_row ) {
-                    int mode = int( sql.get_column_value< uint64_t >( 0 ) );
-                    double delay = sql.get_column_value< double >( 1 );
-                    protocols.emplace_back( mode, delay );
-                }
-                if ( ! protocols.empty() ) {
-                    if ( auto ip = dynamic_cast< acqrsinterpreter::DataInterpreter * >( interpreter_.get() ) )
-                        ip->setWorkaroundProtocols( protocols );
+                bool exists( false );
+                {
+                    adfs::stmt sql( *db );
+                    sql.prepare( "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='PROTOCOL_OVERRIDE'" );
+                    if ( sql.step() == adfs::sqlite_row )
+                        exists = sql.get_column_value<int64_t>( 0 ) != 0;
+                };
+                
+                if ( exists ) {
+                    std::vector< std::pair< int, double > > protocols;
+                    adfs::stmt sql( *db );
+                    sql.prepare( "SELECT  mode, ext_adc_delay from PROTOCOL_OVERRIDE ORDER BY id" );
+                    while ( sql.step() == adfs::sqlite_row ) {
+                        int mode = int( sql.get_column_value< uint64_t >( 0 ) );
+                        double delay = sql.get_column_value< double >( 1 );
+                        protocols.emplace_back( mode, delay );
+                    }
+                    if ( ! protocols.empty() ) {
+                        if ( auto ip = dynamic_cast< acqrsinterpreter::DataInterpreter * >( interpreter_.get() ) )
+                            ip->setWorkaroundProtocols( protocols );
+                    }
                 }
             }
             // end workaround
         }
         return true;
     }
-    ADDEBUG() << "initialize failed for: " << objtext;
     return false;
 }
 
@@ -339,36 +386,31 @@ DataReader::fcnCount() const
     // skip timecount data -- too large to handle in the dataproc
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
         (void)i;
-        ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
         return 0;
     }
-#if 0
-    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >() ) {
-        ADDEBUG() << "Timecount dataInterpreter found -- skip data.";
-        return 0;
-    }    
-#endif
-
-    if ( auto db = db_.lock() ) {
-
-        adfs::stmt sql( *db );
-        sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData WHERE objuuid = ?" );
-        sql.bind( 1 ) = objid_;
-        
-        size_t fcnCount( 0 );
-        while ( sql.step() == adfs::sqlite_row )
-            fcnCount += sql.get_column_value< int64_t >( 0 );
-        
-        return fcnCount;
-    }
-    return 0;
+    return fcnCount_;
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::begin( int fcn ) const
 {
-    if ( indecies_.empty() )
-        return end();
+    if ( indecies_.empty() ) {
+        
+        if ( auto db = db_.lock() ) {
+            adfs::stmt sql( *db );
+            if ( fcn >= 0 ) {
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? AND fcn=? ORDER BY npos LIMIT 1" );
+                sql.bind( 1 ) = objid_;
+            } else {
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? ORDER BY npos LIMIT 1" );
+                sql.bind( 1 ) = objid_;
+            }
+            if ( sql.step() == adfs::sqlite_row ) {
+                auto rowid = sql.get_column_value< int64_t >( 0 );
+                return adcontrols::DataReader_iterator( this, rowid, fcn );
+            }
+        }
+    }
     return adcontrols::DataReader_iterator( this, next( 0, fcn ), fcn );
 }
 
@@ -379,94 +421,113 @@ DataReader::end() const
 }
 
 adcontrols::DataReader::const_iterator
-DataReader::findPos( double seconds, bool closest, TimeSpec tspec ) const
+DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    if ( indecies_.empty() )
-        return end();
+    ADDEBUG() << "findPos( " << int64_t( seconds * std::nano::den ) << ")";
+    
+    if ( tspec == ElapsedTime ) {    
+        if ( auto db = db_.lock() ) {
+            adfs::stmt sql( *db );
+            sql.prepare(
+                "SELECT rowid FROM AcquiredData WHERE "
+                "objuuid=:objid "
+                "AND fcn=? "
+                "AND elapsed_time >= (SELECT MIN(elapsed_time) FROM AcquiredData WHERE objuuid=:objid) + ? LIMIT 1");
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = ( fcn < 0 ? 0 : fcn );
+            sql.bind( 3 ) = uint64_t( seconds * std::nano::den );
 
-    if ( tspec == ElapsedTime ) {
+            if ( sql.step() == adfs::sqlite_row ) {
+                auto rowid = sql.get_column_value< int64_t >( 0 );
+                return adcontrols::DataReader_iterator( this, rowid, fcn );
+            }
+        }
+#if 0
+        // compute from indecies_
+        if ( tspec == ElapsedTime ) {
 
-        int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
+            int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
 
-        if ( indecies_.front().elapsed_time > elapsed_time )
-            return begin( (-1) );
+            if ( indecies_.front().elapsed_time > elapsed_time )
+                return begin( (-1) );
 
-        if ( indecies_.back().elapsed_time < elapsed_time )
-            return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
+            if ( indecies_.back().elapsed_time < elapsed_time )
+                return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
 
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
+            auto it = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
 
-        if ( closest && ( it != indecies_.end() ) ) {
-            if ( std::abs( elapsed_time - it->elapsed_time ) > std::abs( elapsed_time - ( it + 1 )->elapsed_time ) ) 
-                ++it;
+            if ( closest && ( it != indecies_.end() ) ) {
+                if ( std::abs( elapsed_time - it->elapsed_time ) > std::abs( elapsed_time - ( it + 1 )->elapsed_time ) ) 
+                    ++it;
+            }
+
+            return adcontrols::DataReader_iterator( this, it->rowid );
+#endif
         }
 
-        return adcontrols::DataReader_iterator( this, it->rowid );
+        return end();
     }
 
-    return end();
-}
+    double
+        DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
+    {
+        assert( ispec == TriggerNumber );
 
-double
-DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
-{
-    assert( ispec == TriggerNumber );
+        if ( indecies_.empty() )
+            return -1;
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), pos, [] ( const index& a, int64_t b ) { return a.pos < b; } );
+        if ( it != indecies_.end() )
+            return double( it->elapsed_time ) * 1.0e-9;
 
-    if ( indecies_.empty() )
-        return -1;
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), pos, [] ( const index& a, int64_t b ) { return a.pos < b; } );
-    if ( it != indecies_.end() )
-        return double( it->elapsed_time ) * 1.0e-9;
+        return -1.0;
+    }
 
-    return -1.0;
-}
+    std::shared_ptr< const adcontrols::Chromatogram >
+        DataReader::TIC( int fcn ) const
+    {
+        if ( tics_.empty() )
+            const_cast< DataReader * >(this)->loadTICs();
 
-std::shared_ptr< const adcontrols::Chromatogram >
-DataReader::TIC( int fcn ) const
-{
-    if ( tics_.empty() )
-        const_cast< DataReader * >(this)->loadTICs();
+        if ( tics_.size() > fcn )
+            return tics_[ fcn ];
 
-    if ( tics_.size() > fcn )
-        return tics_[ fcn ];
+        return nullptr;
+    }
 
-    return nullptr;
-}
+    void
+        DataReader::loadTICs()
+    {
+        auto nfcn = fcnCount();
 
-void
-DataReader::loadTICs()
-{
-    auto nfcn = fcnCount();
-
-    std::map< int, std::pair< std::shared_ptr< adcontrols::Chromatogram >, uint64_t > > tics;
+        std::map< int, std::pair< std::shared_ptr< adcontrols::Chromatogram >, uint64_t > > tics;
     
-    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+        if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
-        if ( auto db = db_.lock() ) {
+            if ( auto db = db_.lock() ) {
             
-            indecies_.clear();
+                indecies_.clear();
 
-            adfs::stmt sql( *db );
+                adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
-            sql.bind( 1 ) = objid_;
+                sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos,fcn" );
+                sql.bind( 1 ) = objid_;
             
-            while ( sql.step() == adfs::sqlite_row ) {
+                while ( sql.step() == adfs::sqlite_row ) {
                 
-                int col = 0;
-                auto row = sql.get_column_value< int64_t >( col++ );
-                auto pos = sql.get_column_value< int64_t >( col++ );
-                auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
-                auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+                    int col = 0;
+                    auto row = sql.get_column_value< int64_t >( col++ );
+                    auto pos = sql.get_column_value< int64_t >( col++ );
+                    auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
+                    auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                    adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
+                    indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
 
-                if ( tics.find( fcn ) == tics.end() ) {
-                    tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
-                    tics [ fcn ].first->setDataReaderUuid( objid_ );
-                    tics [ fcn ].first->setFcn( fcn );
+                    if ( tics.find( fcn ) == tics.end() ) {
+                        tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
+                        tics [ fcn ].first->setDataReaderUuid( objid_ );
+                        tics [ fcn ].first->setFcn( fcn );
                 }
 
                 auto pair = tics[ fcn ];
@@ -550,29 +611,108 @@ DataReader::fcn( int64_t rowid ) const
     return -1;    
 }
 
+boost::any
+DataReader::getData( int64_t rowid ) const
+{
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+    
+        if ( auto db = db_.lock() ) {
+     
+            adfs::stmt sql( *db );
+            
+            if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
+                sql.bind( 1 ) = rowid;
+         
+                if ( sql.step() == adfs::sqlite_row ) {
+             
+                    adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
+                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
+                    
+                    waveform_types waveform;
+                    if ( interpreter->translate( waveform, xdata.data(), xdata.size()
+                                                 , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+                        return boost::apply_visitor( any_cast(), waveform );
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::getSpectrum( int64_t rowid ) const
 {
-    if ( auto db = db_.lock() ) {
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+    
+        if ( auto db = db_.lock() ) {
+     
+            adfs::stmt sql( *db );
+            
+            if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
+                sql.bind( 1 ) = rowid;
+         
+                if ( sql.step() == adfs::sqlite_row ) {
+             
+                    adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
+                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
 
-        adfs::stmt sql( *db );
+                    waveform_types waveform;
+                    if ( interpreter->translate( waveform, xdata.data(), xdata.size()
+                                                 , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-        if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
-        
-            sql.bind( 1 ) = rowid;
+                        auto ptr = std::make_shared< adcontrols::MassSpectrum >();
+                        boost::apply_visitor( make_massspectrum( *ptr ), waveform );
+                        if ( spectrometer_ ) {
+                            spectrometer_->assignMasses( *ptr );
+                            const auto& info = ptr->getMSProperty().samplingInfo();
+                            double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                            double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                            ptr->setAcquisitionMassRange( lMass, uMass );
+                        }
+                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        ptr->setDataReaderUuid( objid_ );
+                        ptr->setRowid( rowid );
 
-            if ( sql.step() == adfs::sqlite_row ) {
+                        return ptr;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 
-                adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
-                adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
+std::shared_ptr< adcontrols::MassSpectrum >
+DataReader::readSpectrum( const_iterator& it ) const
+{
+    if ( it._fcn() >= 0 )
+        return getSpectrum( it->rowid() );
 
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
+        if ( auto db = db_.lock() ) {
+            
+            adfs::stmt sql( *db );
+            sql.prepare( "SELECT rowid,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? ORDER BY npos LIMIT ?" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = it->pos();
+            sql.bind( 3 ) = fcnCount();
+            
+            std::shared_ptr< adcontrols::MassSpectrum > prime;
+            
+            while ( sql.step() == adfs::sqlite_row ) {
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
-
-                if ( interpreter_->translate( *ptr
-                                              , reinterpret_cast< const char *>(xdata.data()), xdata.size()
-                                              , reinterpret_cast< const char *>(xmeta.data()), xmeta.size()
-                                              , *spectrometer_
-                                              , size_t(0), L"" ) == adcontrols::translate_complete ) {
+                int col = 0;
+                auto rowid = sql.get_column_value< int64_t >( col++ );
+                auto _fno  = sql.get_column_value< int64_t >( col++ );
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+                
+                waveform_types waveform;
+                if ( interpreter->translate( waveform, xdata.data(), xdata.size()
+                                             , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
+                    
+                    boost::apply_visitor( make_massspectrum( *ptr ), waveform );
                     if ( spectrometer_ ) {
                         spectrometer_->assignMasses( *ptr );
                         const auto& info = ptr->getMSProperty().samplingInfo();
@@ -580,18 +720,19 @@ DataReader::getSpectrum( int64_t rowid ) const
                         double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
                         ptr->setAcquisitionMassRange( lMass, uMass );
                     }
-                    
+                    ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                     ptr->setDataReaderUuid( objid_ );
                     ptr->setRowid( rowid );
-
-                    return ptr;
                 }
-                
+                if ( !prime )
+                    prime = ptr;
+                else
+                    (*prime) << std::move( ptr );
             }
-        }
-        
-    }
 
+            return prime;
+        }
+    }
     return nullptr;
 }
 
@@ -648,30 +789,38 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
 {
-    auto ptr = std::make_shared< adcontrols::MassSpectrum >();
-    ptr->setDataReaderUuid( objid_ );
-
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
         if ( auto db = db_.lock() ) {
             
             adfs::stmt sql( *db );
             
-            sql.prepare( "SELECT elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
-            sql.bind( 1 ) = objid_;
-            sql.bind( 2 ) = begin->fcn();
-            sql.bind( 3 ) = begin->pos();
-            sql.bind( 4 ) = end->pos();
+            int fcn = begin._fcn(); // if this is -1, query all protocols
+
+            if ( fcn < 0 ) {
+                sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
+                sql.bind( 1 ) = objid_;
+                sql.bind( 2 ) = begin->pos();
+                sql.bind( 3 ) = end->pos();
+            } else {
+                sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
+                sql.bind( 1 ) = objid_;
+                sql.bind( 2 ) = fcn;
+                sql.bind( 3 ) = begin->pos();
+                sql.bind( 4 ) = end->pos();
+            }
+
+            std::map< int, std::pair< size_t, waveform_types > > coadded;
+            auto ptr = std::make_shared< adcontrols::MassSpectrum >();
             
-            ADDEBUG() << "npos = {" << begin->pos() << ", " << end->pos() << "}";
-
-            waveform_types coadded;
-
+            // waveform_types coadded;
+            
             size_t n(0);
             while ( sql.step() == adfs::sqlite_row ) {
                 
                 int col = 0;
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                auto _fno = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
                 
@@ -679,26 +828,37 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-                    if ( n++ == 0 ) {
+                    if ( coadded[ _fno ].first++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                        boost::apply_visitor( coadd_initialize( coadded ), waveform );
+                        boost::apply_visitor( coadd_initialize( coadded[ _fno ].second ), waveform );
                         // coadded = waveform;
                     } else {
-                        boost::apply_visitor( coadd_spectrum( coadded ), waveform );
+                        boost::apply_visitor( coadd_spectrum( coadded[ _fno ].second ), waveform );
                     }
                 }
             }
+            
+            int count(0);
+            for ( const auto& wform: coadded ) {
+                
+                auto ms = ( count == 0 ) ? ptr : std::make_shared< adcontrols::MassSpectrum >();
+                ms->setDataReaderUuid( objid_ );
 
-            boost::apply_visitor( make_massspectrum( *ptr ), coadded );
-            if ( spectrometer_ ) {
-                spectrometer_->assignMasses( *ptr );
-                const auto& info = ptr->getMSProperty().samplingInfo();
-                double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
-                double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
-                ptr->setAcquisitionMassRange( lMass, uMass );
+                boost::apply_visitor( make_massspectrum( *ms ), wform.second.second );
+                ADDEBUG() << "protocolId = " << ms->protocolId() << "== fcn=" << wform.first;
+
+                if ( spectrometer_ ) {
+                    spectrometer_->assignMasses( *ms );
+                    const auto& info = ms->getMSProperty().samplingInfo();
+                    double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                    double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                    ms->setAcquisitionMassRange( lMass, uMass );
+                }
+                if ( count > 0 )
+                    (*ptr) << std::move( ms );
+                ++count;
             }
-            ptr->setDataReaderUuid( objid_ );
-
+            
             return ptr;
         }
     }

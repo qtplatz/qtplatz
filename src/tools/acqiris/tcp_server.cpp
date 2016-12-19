@@ -31,7 +31,6 @@ tcp_server::tcp_server(const std::string& address, const std::string& port )
     , connection_manager_()
     , socket_( io_service_ )
     , request_handler_()
-    , hasClient_( false )
 {
     // Register to handle the signals that indicate when the server should exit.
     // It is safe to register for the same signal multiple times in a program,
@@ -109,28 +108,23 @@ tcp_server::do_await_stop()
 void
 tcp_server::post( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_protocol > p )
 {
-    if ( hasClient_ )
-        connection_manager_.write_all( p );
+    connection_manager_.write_all( p );
 }
 
 void
 tcp_server::post( std::shared_ptr< const acqrscontrols::aqdrv4::waveform > p )
 {
-    if ( hasClient_ ) {
-
-        strand_.post( [=] {
+    strand_.post( [=] {
+            
+            if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *p ) ) {
                 
-                if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *p ) ) {
-                    
-                    connection_manager_.write_all( data );
-
-                }
-            });
-    }
+                connection_manager_.write_all( data );
+                
+            }
+        });
 }
 
 void
 tcp_server::setConnected()
 {
-    hasClient_ = true;
 }

@@ -25,7 +25,7 @@
 
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/timeutil.hpp>
@@ -38,6 +38,7 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/polfit.hpp>
@@ -45,6 +46,8 @@
 #include <adportfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
+#include <qwt_scale_engine.h>
+#include <qwt_plot.h>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adwidgets/scanlawdialog.hpp>
@@ -105,7 +108,9 @@ ElementalCompWnd::init()
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
 		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
 		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );        
+		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+
+        // pImpl_->referenceSpectrum_->setAxisScaleEngine( QwtPlot::yLeft, new QwtLogScaleEngine );
 
         pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );
         //pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );
@@ -152,7 +157,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
         double fLength, accVoltage, tDelay, mass;
         QString formula;
         
-        if ( dataproc_document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
+        if ( document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
             dlg.setValues( fLength, accVoltage, tDelay, 0 );
             dlg.setMass( mass );
             if ( !formula.isEmpty() )
@@ -165,7 +170,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpect
     if ( dlg.exec() != QDialog::Accepted )
         return;
 
-    dataproc_document::instance()->saveScanLaw( model_name
+    document::instance()->saveScanLaw( model_name
                                                 , dlg.fLength()
                                                 , dlg.acceleratorVoltage()
                                                 , dlg.tDelay()
@@ -255,6 +260,11 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
                 display_formulae.push_back( mol.formula() );
             }
         }
+    }
+    for ( const auto& f: formula_abundances ) {
+        auto list = adcontrols::isotopeCluster::formulae( f.first );
+        for ( auto& x: list )
+            ADDEBUG() << x;
     }
 
     auto ms = std::make_shared< adcontrols::MassSpectrum >();

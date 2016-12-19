@@ -93,7 +93,7 @@ namespace adpublisher {
         std::shared_ptr< adpublisher::document > doc_;
         std::unique_ptr< docTree > tree_;
         std::unique_ptr< docEdit > text_;
-        std::unique_ptr< docBrowser > browser_;
+        // std::unique_ptr< docBrowser > browser_;
         std::array< QAction *, nIdActions > actions_;
         bool dirty_;
 

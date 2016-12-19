@@ -50,6 +50,7 @@ namespace Constants {
     const wchar_t * const F_CENTROID_SPECTRUM  = adcontrols::constants::F_CENTROID_SPECTRUM;
     const wchar_t * const F_MSPEAK_INFO        = adcontrols::constants::F_MSPEAK_INFO;
     const wchar_t * const F_TARGETING          = adcontrols::constants::F_TARGETING;
+    const wchar_t * const F_PROFILED_HISTOGRAM = adcontrols::constants::F_PROFILED_HISTOGRAM;
 
     // settings
     const char * const GRP_DATA_FILES       = "DataFiles";

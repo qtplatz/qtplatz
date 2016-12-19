@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/any.hpp>
 #include <functional>
 #include <utility>
 #include <vector>
@@ -88,6 +89,7 @@ namespace adcontrols {
         }
 
         inline int64_t rowid() const { return value_.rowid_; }
+        inline int _fcn() const { return fcn_; } // query specified fcn
     };
 
 	class ADCONTROLSSHARED_EXPORT DataReader : public std::enable_shared_from_this< DataReader > {
@@ -95,12 +97,13 @@ namespace adcontrols {
         virtual ~DataReader(void) {}
 
         DataReader( const char * traceid = nullptr );
-
+        
         DataReader( const DataReader& );
         DataReader& operator = ( const DataReader& );
 
+        typedef DataReader_iterator iterator;
         typedef DataReader_iterator const_iterator;
-
+        
         enum TimeSpec { ElapsedTime, EpochTime };
         enum IndexSpec { TriggerNumber, IndexCount };
 
@@ -119,7 +122,7 @@ namespace adcontrols {
         virtual const_iterator end() const = 0;
         
         /* findPos returns trigger number on the data stream across all protocol functions */
-        virtual const_iterator findPos( double seconds, bool closest = false, TimeSpec ts = ElapsedTime ) const = 0;
+        virtual const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const = 0;
 
         /* findTime returns elapsed time for the data specified by trigger number */
         virtual double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const = 0;
@@ -136,15 +139,23 @@ namespace adcontrols {
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
-
-        virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
-        virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
-        virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }
         
-        virtual std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+        virtual boost::any getData( int64_t rowid ) const { return nullptr; }
+        
+        virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
+        
+        virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  readSpectrum( const_iterator& it ) const { return nullptr; }
+
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
         virtual const void * _narrow_workaround( const char * /* typename */ ) const { return nullptr; }
+
         template< typename T > T * _narrow() const {
             return reinterpret_cast< T * >( _narrow_workaround( typeid( T ).name() ) );
         }

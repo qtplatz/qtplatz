@@ -93,12 +93,12 @@ namespace aqdrv4 {
         }
     };
 
-    template<> void waveform::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    template<> DECL_EXPORT void waveform::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         waveform_archive<>().serialize( ar, *this, version );
     }
 
-    template<> void waveform::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    template<> DECL_EXPORT void waveform::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         waveform_archive<>().serialize( ar, *this, version );
     }

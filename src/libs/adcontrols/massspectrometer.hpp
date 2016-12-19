@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <memory>
 #include <string>
+#include <tuple>
 #include <vector>
 #include <map>
 
@@ -45,6 +46,7 @@ namespace adcontrols {
     class ProcessMethod;
     class datafile;
     class ScanLaw;
+    namespace ControlMethod { class Method; }
 
 	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
 
@@ -81,14 +83,18 @@ namespace adcontrols {
         
         virtual const char * objtext() const = 0;
         virtual const boost::uuids::uuid& objclsid() const = 0;
-        virtual const ScanLaw * scanLaw() const = 0; 
+        virtual const ScanLaw * scanLaw() const = 0;
         // end v3 specific
+
+        virtual void setMethod( const ControlMethod::Method& ) { return; };
+        virtual int mode( uint32_t protocolNumber ) const { return 0; };
 
         // helper methods
         static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
 
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
+        virtual bool estimateScanLaw( const std::vector< std::tuple< double, double, int > >&, double& va, double& t0 ) const;
 
     protected:
         // v2

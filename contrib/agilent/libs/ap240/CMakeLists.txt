@@ -4,7 +4,9 @@ cmake_policy( SET CMP0028 NEW )
 
 project( ap240 )
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization program_options bzip2 iostreams )
+if ( NOT Boost_FOUND )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization program_options bzip2 iostreams )
+endif()
 
 add_definitions(-DAP240_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 
@@ -28,6 +30,10 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   )
+
+if ( AqDrv4_INCLUDE_DIR )
+  include_directories( ${AqDrv4_INCLUDE_DIR} )
+endif()
 
 if ( WIN32 )
   add_definitions( -wd4996 )

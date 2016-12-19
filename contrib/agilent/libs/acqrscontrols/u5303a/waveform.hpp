@@ -98,6 +98,8 @@ namespace acqrscontrols {
 
             waveform();
 
+            waveform( const waveform&, int dataType );
+
             waveform& operator += ( const waveform& );
 
             method method_;
@@ -118,9 +120,10 @@ namespace acqrscontrols {
             // 16bit interface
             void setData( const std::shared_ptr< adportable::mblock<int16_t> >&, size_t firstValidPoint );
 
-            int operator [] ( size_t idx ) const;
-            std::pair<double, int> xy( size_t idx ) const;
-            double toVolts( int ) const;
+            int64_t operator [] ( size_t idx ) const;
+            std::pair<double, int64_t> xy( size_t idx ) const;
+            double toVolts( int32_t ) const;
+            double toVolts( int64_t ) const;
             double toVolts( double ) const;
             double time( size_t idx ) const;
             bool isDEAD() const;
@@ -163,24 +166,36 @@ namespace acqrscontrols {
             friend class waveform_xmeta_archive< waveform >;
             friend class waveform_xmeta_archive< const waveform >;
             friend class waveform_xdata_archive< waveform >;
-            friend class waveform_xdata_archive< const waveform >;            
+            friend class waveform_xdata_archive< const waveform >;
 
-            pragma_msvc_warning_push_disable_4251
-                
             std::shared_ptr< const identify > ident_;
-            boost::variant < std::shared_ptr< adportable::mblock<int32_t> >
-                             , std::shared_ptr< adportable::mblock<int16_t> > > mblock_;
-            pragma_msvc_warning_pop      
+            boost::variant < std::shared_ptr< adportable::mblock<int16_t> >
+                             , std::shared_ptr< adportable::mblock<int32_t> >
+                             , std::shared_ptr< adportable::mblock<int64_t> >
+                             > mblock_;
+
+            template< typename lvalue_type
+                      , typename rvalue_type > void add( const waveform& t, double dbase ) {
+                std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
+                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );                
+            }
         };
 
+        template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::begin() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int8_t * waveform::end() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::begin() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::end() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::begin() const;
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::end() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int64_t * waveform::begin() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT const int64_t * waveform::end() const;
+
 		template<> ACQRSCONTROLSSHARED_EXPORT int16_t * waveform::data();
 		template<> ACQRSCONTROLSSHARED_EXPORT const int16_t * waveform::data() const;
         template<> ACQRSCONTROLSSHARED_EXPORT int32_t * waveform::data();
         template<> ACQRSCONTROLSSHARED_EXPORT const int32_t * waveform::data() const;
+        template<> ACQRSCONTROLSSHARED_EXPORT int64_t * waveform::data();
+        template<> ACQRSCONTROLSSHARED_EXPORT const int64_t * waveform::data() const;
     }
 }
 

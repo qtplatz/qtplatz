@@ -35,6 +35,7 @@
 #include "msfractuation.hpp"
 #include "msproperty.hpp"
 #include "scanlaw.hpp"
+#include <adportable/polfit.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/utf.hpp>
 #include <boost/exception/all.hpp>
@@ -256,3 +257,40 @@ MassSpectrometer::get_model_names()
 // }
 
 //////////////////////////////////////////////////////////////
+bool
+MassSpectrometer::estimateScanLaw( const std::vector< std::tuple< double, double, int > >& peaks // mass, time, mode
+                                   , double& va
+                                   , double& t0 ) const
+{
+    using namespace adcontrols::metric;
+    
+    if ( auto law = scanLaw() ) {
+
+        if ( peaks.size() == 1 ) {
+
+            auto& pk = peaks[ 0 ];
+            t0 = 0.0;
+            va = adportable::TimeSquaredScanLaw::acceleratorVoltage( std::get< 0 >( pk ), std::get< 1 >( pk ), law->fLength( std::get< 2 >( pk ) ), t0 );
+            return true;
+
+        } else if ( peaks.size() >= 2 ) {
+        
+            std::vector<double> x, y, coeffs;
+
+            for ( auto& pk : peaks ) {
+                x.push_back( std::sqrt( std::get<0>( pk ) ) * law->fLength( std::get<2>(pk) ) );  // exact_mass * fLength(mode)
+                y.push_back( std::get< 1 >( pk ) ); // time
+            }
+
+            if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
+                
+                t0 = coeffs[ 0 ];
+                double t1 = adportable::polfit::estimate_y( coeffs, 1.0 ); // estimate tof for m/z = 1.0, fLength = 1m
+                va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
+                
+                return true;
+            }
+        }
+    }
+    return false;
+}

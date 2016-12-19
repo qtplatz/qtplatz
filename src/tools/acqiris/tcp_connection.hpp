@@ -16,7 +16,7 @@
 #include "request_handler.hpp"
 
 namespace acqrscontrols { namespace aqdrv4 {
-    class preamble;
+    struct preamble;
     class acqiris_protocol;
 }}
     
@@ -51,9 +51,7 @@ namespace acqiris {
             boost::asio::ip::tcp::socket socket_;
             connection_manager& connection_manager_;
             request_handler& request_handler_;
-
-            std::array<char, 8192> buffer_;
-
+            
             boost::asio::streambuf reply_;
             boost::asio::streambuf response_;
             bool connection_requested_;

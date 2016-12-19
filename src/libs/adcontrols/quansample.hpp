@@ -68,6 +68,7 @@ namespace adcontrols {
         enum QuanInlet {
             Chromatography
             , Infusion
+            , Counting
         };
 
         enum QuanDataGeneration {

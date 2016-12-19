@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "visitor.hpp"
-#include "orbfactory.hpp"
 #include <adcontrols/datafile_factory.hpp>
 
 using namespace adplugin;

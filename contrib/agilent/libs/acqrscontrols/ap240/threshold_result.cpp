@@ -219,7 +219,7 @@ namespace acqrscontrols {
                 << boost::format( ", %.8e" ) % t.data()->meta_.initialXOffset;
 
             for ( auto& idx : t.indecies() ) {
-                auto v = ( *t.data() )[ idx ];
+                auto v = t.data()->xy( idx );
                 os << boost::format( ", %.14le, %d" ) % v.first % v.second;
             }
 

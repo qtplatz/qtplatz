@@ -45,6 +45,18 @@ bool
 time_data_reader::load( const std::string& name
                         , std::function<bool( size_t, size_t )> progress )
 {
+    return 
+        time_data_reader::load( name,
+                                [&]( size_t numerator, size_t denominator, const adcontrols::CountingData& data ){
+                                    data_.emplace_back( data );                            
+                                    return progress( numerator, denominator );
+                                });
+}
+
+bool
+time_data_reader::load( const std::string& name
+                        , std::function<bool( size_t, size_t, const adcontrols::CountingData& )> handler )
+{
 	boost::filesystem::path path( name );
 
 	boost::filesystem::ifstream in( path );
@@ -52,22 +64,18 @@ time_data_reader::load( const std::string& name
         return false;
 
     size_t fsize = boost::filesystem::file_size( path );
-    if ( progress )
-        progress( in.tellg(), fsize );
 
     typedef boost::char_separator<char> separator;
     typedef boost::tokenizer< separator > tokenizer;
 
     size_t line_count(0);
-
+    
     separator sep( ", \t", "", boost::drop_empty_tokens );
     do {
         std::string line;
         if ( std::getline( in, line ) ) {
 
             ++line_count;
-            if ( ( ( line_count % 1000 ) == 0 ) && progress )
-                progress( in.tellg(), fsize );
             
             if ( line.at( 0 ) == '#' )
                 continue;
@@ -136,9 +144,8 @@ time_data_reader::load( const std::string& name
                         data.peaks().emplace_back( peak );
                 }
             }
-            data_.emplace_back( data );
+            handler( in.tellg(), fsize, data );
         }
-
     } while( ! in.eof() );
 
     return true;

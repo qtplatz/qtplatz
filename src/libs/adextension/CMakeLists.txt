@@ -8,7 +8,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 add_definitions( -DADEXTENSION_LIBRARY )
-find_package( Boost 1.57 REQUIRED COMPONENTS system )
+#if ( NOT Boost_FOUND )
+  find_package( Boost 1.57 REQUIRED COMPONENTS system )
+#endif()
 
 set( adextension_SOURCES
   adextension.cpp

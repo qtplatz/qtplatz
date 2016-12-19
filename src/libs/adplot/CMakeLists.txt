@@ -23,30 +23,56 @@ if ( MSVC )
 endif()
 
 set( adplot_SOURCES 
-  annotation.cpp 
-  annotations.cpp 
-  axis.cpp 
-  baseline.cpp 
-  chromatogramwidget.cpp 
-  plot.cpp 
-  peak.cpp 
-  plotcurve.cpp 
-  seriesdata.cpp 
-  spectrumwidget.cpp 
-  tracewidget.cpp 
-  trace.cpp 
-  traces.cpp 
-  zoomer.cpp 
-  picker.cpp 
+  annotation.cpp
+  annotation.hpp 
+  annotations.cpp
+  annotations.hpp 
+  axis.cpp
+  axis.hpp 
+  baseline.cpp
+  baseline.hpp
+  chartview.cpp
+  chartview.hpp
+  chromatogramwidget.cpp
+  chromatogramwidget.hpp 
+  plot.cpp
+  plot.hpp 
+  peak.cpp
+  peak.hpp 
+  plotcurve.cpp
+  plotcurve.hpp 
+  seriesdata.cpp
+  seriesdata.hpp 
+  spectrumwidget.cpp
+  spectrumwidget.hpp 
+  tracewidget.cpp
+  tracewidget.hpp 
+  trace.cpp
+  trace.hpp 
+  traces.cpp
+  traces.hpp 
+  zoomer.cpp
+  zoomer.hpp 
+  picker.cpp
+  picker.hpp 
   panner.cpp
+  panner.hpp
   spanmarker.cpp
   spanmarker.hpp
-  spectrogramwidget.cpp 
-  spectrogramdata.cpp 
-  peakmarker.cpp 
-  plot_stderror.cpp 
-  adplotcurve.cpp 
+  spectrogramwidget.cpp
+  spectrogramwidget.hpp 
+  spectrogramdata.cpp
+  spectrogramdata.hpp 
+  peakmarker.cpp
+  peakmarker.hpp 
+  plot_stderror.cpp
+  plot_stderror.hpp 
+  adplotcurve.cpp
+  adplotcurve.hpp 
   timingchart.cpp
+  timingchart.hpp
+  xyseriesdata.cpp
+  xyseriesdata.hpp
 )
 
 add_library( adplot SHARED ${adplot_SOURCES} )

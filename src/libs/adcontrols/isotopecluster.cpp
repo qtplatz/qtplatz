@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #include <compiler/disable_unused_parameter.h>
-#include <cassert>
 #include "chemicalformula.hpp"
 #include "element.hpp"
 #include "isotopecluster.hpp"
@@ -32,14 +31,18 @@
 #include "massspectrum.hpp"
 #include "molecule.hpp"
 #include "tableofelement.hpp"
+#include <adportable/debug.hpp>
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <limits>
 #include <numeric>
+#include <sstream>
 
 using namespace adcontrols;
 
 isotopeCluster::isotopeCluster() : threshold_daltons_( 1.0e-8 )
-                                 , threshold_abundance_( 1.0e-10 ) 
+                                 , threshold_abundance_( 1.0e-12 ) 
 {
 }
 
@@ -60,33 +63,35 @@ isotopeCluster::operator()( mol::molecule& mol, int charge ) const
 {
     mol.cluster.clear();
     mol << mol::isotope( 0.0, 1.0 ); // trigger calculation
-    
+
+    // loop for each element e.g. 'C', 'H', 'N', ...
     for ( auto& element : mol.elements ) {
 
+        // loop for element count e.g. C6 
         for ( int k = 0; k < element.count(); ++k ) {
-
+            
             std::vector< mol::isotope > cluster;
             
             for ( auto& p: mol.cluster ) {
-
+                
                 for ( auto& i: element.isotopes() ) {
                     
                     mol::isotope mi( p.mass + i.mass, p.abundance * i.abundance );
-
+                    
                     // make an array of order of mass
                     auto it = std::lower_bound( cluster.begin(), cluster.end(), mi.mass
                                                 , []( const mol::isotope& mi, const double& mass ){
                                                     return mi.mass < mass;
                                                 });
                     if ( it == cluster.end() || !merge( *it, mi ) )
-                        cluster.insert( it, mi );
+                        cluster.emplace( it, mi );
                 }
             }
             
-            mol.cluster = cluster;
+            mol.cluster = std::move( cluster );
         }
     }
-    
+
     if ( charge > 0 ) {
         std::for_each( mol.cluster.begin(), mol.cluster.end()
                        , [&]( mol::isotope& pk ){ pk.mass = ( pk.mass - TableOfElement::instance()->electronMass() * charge ) / charge;});
@@ -104,7 +109,7 @@ isotopeCluster::merge( mol::isotope& it, const mol::isotope& mi ) const
 
     if ( std::abs( it.mass - mi.mass ) < threshold_daltons_ ) {
         it.abundance += mi.abundance;
-
+        
         // weighting average for mass -- this may affected when other independent molecule is co-exist
         double m = ( it.mass * it.abundance + mi.mass * mi.abundance ) / ( it.abundance + mi.abundance );
         // assert( std::abs( it.mass - m ) < ( 2.0e-7 );
@@ -149,7 +154,7 @@ isotopeCluster::merge_peaks( std::vector< isopeak >& peaks, double resolving_pow
 
 bool
 isotopeCluster::operator()( std::vector< isopeak >& mi
-                          , const std::string& formula, double relative_abundance, int idx ) const
+                            , const std::string& formula, double relative_abundance, int idx ) const
 {
     if ( formula.empty() || relative_abundance <= 0.0 )
         return false;
@@ -164,12 +169,11 @@ isotopeCluster::operator()( std::vector< isopeak >& mi
                                    , [] ( const mol::isotope& a, const mol::isotope& b ) { return a.abundance < b.abundance; } );
     double pmax = maxIt->abundance;
 
-
     auto tail = mol.cluster.end();
 
-    if ( mol.elements.size() > 1 )   {
+    if ( mol.elements.size() > 1 )  {
         tail = std::remove_if( mol.cluster.begin(), mol.cluster.end()
-                               , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-8; } );
+                               , [pmax]( const mol::isotope& i ) { return i.abundance / pmax < 1.0e-12; } );
     }
 
     std::for_each( mol.cluster.begin(), tail, [&]( const mol::isotope& i ){
@@ -200,14 +204,14 @@ isotopeCluster::operator()( MassSpectrum& ms
     
     for ( auto& formula_abundance: formula_abundances )
         ( *this )( peaks, formula_abundance.first, formula_abundance.second );
-
+    
     if ( ! peaks.empty() ) {
-
+        
         merge_peaks( peaks, resolving_power );
         ms.resize( peaks.size() );
         
         size_t idx(0);
-
+        
         for ( auto& i: peaks ) {
             ms.setMass( idx, i.mass );
             ms.setIntensity( idx, i.abundance * 100 );
@@ -219,3 +223,88 @@ isotopeCluster::operator()( MassSpectrum& ms
     return false;
 }
 
+namespace adcontrols {
+    namespace molformula {
+
+        struct isotope {
+            double mass;
+            double abundance;
+            std::map< std::pair< std::string, int >, size_t > elist;
+
+            isotope( double m = 0, double a = 1.0 ) : mass(m), abundance(a) {
+            }
+
+            isotope( const isotope& p
+                     , const std::string& symbol
+                     , const toe::isotope& i ) : mass( p.mass + i.mass )
+                                               , abundance( p.abundance * i.abundance ) {
+                elist[ std::make_pair( symbol, int( i.mass + 0.3 ) ) ]++;
+            }            
+        };
+        
+        ////////////////
+        struct molecule {
+            std::vector< isotope > cluster;
+            
+            molecule() {}
+            
+            molecule( const molecule& t ) : cluster( t.cluster ) {
+            }
+        };
+    }
+}
+
+// static
+std::vector< std::string >
+isotopeCluster::formulae( const std::string& formula )
+{
+    return std::vector< std::string >();
+    
+    int charge(0);
+    std::vector< mol::element > elements;
+    ChemicalFormula::getComposition( elements, formula, charge );
+
+    molformula::molecule mol;
+    mol.cluster.emplace_back( 0, 1.0 );
+
+    // loop for each element e.g. 'C', 'H', 'N', ...
+    for ( auto& element : elements ) {
+
+        // loop for element count e.g. C6 
+        for ( int k = 0; k < element.count(); ++k ) {
+            
+            std::vector< molformula::isotope > cluster;
+            
+            for ( auto& p: mol.cluster ) {
+                // ADDEBUG() << "mol.cluser.size: " << mol.cluster.size();
+                for ( auto& i: element.isotopes() ) {
+                    //molformula::isotope mi( p.mass + i.mass, p.abundance * i.abundance );
+                    molformula::isotope mi( p, element.symbol(), i );
+                    cluster.emplace_back( mi );
+                }
+            }
+            // ADDEBUG() << "cluser.size: " << cluster.size();
+            mol.cluster = std::move( cluster );
+        }
+    }
+
+    std::vector< std::string > result;
+    ADDEBUG() << "mol size: " << mol.cluster.size();
+    
+    for ( const auto& m: mol.cluster ) {
+        std::ostringstream o;
+        if ( charge )
+            o << "[";
+        for ( auto& a: m.elist )
+            o << a.first.second << a.first.first << a.second << ' '; // 13C6_
+        if ( charge ) {
+            o << "]";
+            if ( charge > 1 )
+                o << std::abs( charge );
+            o << ( charge > 0 ? "+" : "-" );
+        }
+        result.emplace_back( o.str() );
+    }
+
+    return result;
+}

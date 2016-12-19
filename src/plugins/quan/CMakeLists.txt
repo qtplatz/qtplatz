@@ -3,6 +3,8 @@ cmake_policy( SET CMP0028 NEW )
 
 project( Quan )
 set( PROVIDER MS-Cheminformatics )
+set( COMPAT_VERSION 3.2.81 )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
@@ -22,9 +24,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
-
-set(COMPAT_VERSION 3.2.81)
-set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/pluginspec.in"
@@ -93,6 +92,9 @@ set( quan_SOURCES
   quanplot.cpp
   quansvgplot.cpp
   quantarget.cpp
+  quantarget.hpp
+  sqledit.cpp
+  sqledit.hpp
   )
 
 set( quan_HEADERS
@@ -137,7 +139,6 @@ set( quan_HEADERS
   quanprogress.hpp
   quanplot.hpp
   quansvgplot.hpp
-  quantarget.cpp  
   )
 
 set( quan_RESOURCES quan.qrc )
@@ -162,6 +163,7 @@ target_link_libraries(
   adplot
   adwidgets
   adportable
+  adprocessor
   adpublisher
   chromatogr
   qtwrapper

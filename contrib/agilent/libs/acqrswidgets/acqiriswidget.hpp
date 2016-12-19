@@ -34,9 +34,9 @@ namespace acqrscontrols {
     namespace ap240 { class method; }
     namespace aqdrv4 {
         class acqiris_method;
-        class trigger_method;
-        class vertical_method;
-        class horizontal_method;
+        struct trigger_method;
+        struct vertical_method;
+        struct horizontal_method;
     }
 }
 

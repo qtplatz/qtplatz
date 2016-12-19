@@ -33,7 +33,9 @@ link_directories( ${QWT}/lib )
 
 find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg PrintSupport )
 
-#find_package(Boost COMPONENTS program_options system )
+if ( NOT Boost_FOUND )
+  find_package(Boost COMPONENTS program_options system )
+endif()
 
 add_executable( lrpviewer ${lrpviewer_SOURCES} ${Resources} )
 

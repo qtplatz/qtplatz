@@ -24,8 +24,8 @@
 
 #include "tdcdoc.hpp"
 #include "averagedata.hpp"
-#include "find_threshold_timepoints.hpp"
-#include "find_threshold_peaks.hpp"
+#include "../find_threshold_timepoints.hpp"
+#include "../find_threshold_peaks.hpp"
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/threshold_action_finder.hpp>
@@ -142,7 +142,7 @@ namespace acqrscontrols {
             bool push_averaged_waveform( AverageData& d ) {
                 
                 const bool invertData = d.method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
-                
+
                 auto w = std::make_shared< acqrscontrols::u5303a::waveform >( d.method_
                                                                               , d.meta_
                                                                               , d.serialnumber_
@@ -157,7 +157,7 @@ namespace acqrscontrols {
                 d.waveform_register_.reset();
 
                 accumulated_waveforms_.emplace_back( w );
-                
+
                 // display data
                 recent_waveforms_[ d.protocolIndex_ ] = w;
 
@@ -271,9 +271,6 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     auto& datum = impl_->accumulator_[ proto ];
     
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
-
-    size_t nacc = datum.average_waveform( *waveform );
-    size_t avrg = impl_->tofChromatogramsMethod_->numberOfTriggers();
 
     if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
 
@@ -696,74 +693,6 @@ tdcdoc::eraseTofChromatogramsMethod()
 {
     impl_->tofChromatogramsMethod_.reset();
 }
-
-#if 0
-// static
-// void
-// tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-//                                    , const adcontrols::threshold_method& method
-//                                    , std::vector< uint32_t >& elements
-//                                    , std::vector<double>& processed )
-// {
-//     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-//     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
-
-//     adportable::threshold_finder finder( findUp, nfilter );
-    
-//     if ( method.use_filter ) {
-
-//         waveform_type::apply_filter( processed, data, method );
-
-//         double level = method.threshold_level;
-//         finder( processed.begin(), processed.end(), elements, level );        
-        
-//     } else {
-
-//         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-//         double level = level_per_trigger;
-//         if ( data.meta_.actualAverages )
-//             level = level_per_trigger * data.meta_.actualAverages;
-
-//         if ( data.meta_.dataType == 2 )
-//             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
-//         else if ( data.meta_.dataType == 4 )
-//             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
-//     }
-// }
-
-// // static
-// void
-// tdcdoc::find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-//                                    , const adcontrols::threshold_method& method
-//                                    , std::vector< adportable::threshold_index >& elements
-//                                    , std::vector<double>& processed )
-// {
-//     const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-//     const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
-
-//     adportable::threshold_finder finder( findUp, nfilter );
-    
-//     if ( method.use_filter ) {
-
-//         waveform_type::apply_filter( processed, data, method );
-
-//         double level = method.threshold_level;
-//         finder( processed.begin(), processed.end(), elements, level );        
-        
-//     } else {
-
-//         double level_per_trigger = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
-//         double level = level_per_trigger;
-//         if ( data.meta_.actualAverages )
-//             level = level_per_trigger * data.meta_.actualAverages;
-
-//         if ( data.meta_.dataType == 2 )
-//             finder( data.begin<int16_t>(), data.end<int16_t>(), elements, level );
-//         else if ( data.meta_.dataType == 4 )
-//             finder( data.begin<int32_t>(), data.end<int32_t>(), elements, level );
-//     }
-// }
-#endif
 
 void
 tdcdoc::clear_histogram()

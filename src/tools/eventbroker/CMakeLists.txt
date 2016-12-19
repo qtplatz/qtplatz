@@ -4,7 +4,9 @@ project (eventbroker)
 
 cmake_policy(SET CMP0022 NEW)
 
-find_package( Boost 1.57 REQUIRED COMPONENTS system )
+if ( NOT Boost_FOUND )
+  find_package( Boost 1.57 REQUIRED COMPONENTS system )
+endif()
 
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
@@ -30,5 +32,6 @@ target_link_libraries( eventbroker LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  ARCHIVE DESTINATION lib COMPONENT libraries )
+

@@ -461,7 +461,7 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
 	using adcontrols::MSCalibration;
     using adcontrols::metric::micro;
 
-    portfolio::Folder folder = folium.getParentFolder();
+    portfolio::Folder folder = folium.parentFolder();
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
@@ -510,7 +510,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
     using adcontrols::MSCalibration;
     using adcontrols::metric::micro;
 
-    portfolio::Folder folder = folium.getParentFolder();
+    portfolio::Folder folder = folium.parentFolder();
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 

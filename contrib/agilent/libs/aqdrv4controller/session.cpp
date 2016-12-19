@@ -211,7 +211,7 @@ Session::initialize()
 bool
 Session::shutdown()
 {
-    task::instance()->finalize();
+    return task::instance()->finalize();
 }
 
 bool

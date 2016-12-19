@@ -3,7 +3,9 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adcontrols )
 
-find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
+endif()
 
 add_definitions(-DADCONTROLS_LIBRARY)
 if ( MSVC )
@@ -89,6 +91,8 @@ add_library( adcontrols SHARED
   elementalcompositionmethod.hpp
   error_code.cpp
   error_code.hpp
+  histogram.cpp
+  histogram.hpp
   isotopecluster.cpp
   isotopecluster.hpp 
   isotopemethod.cpp
@@ -101,12 +105,14 @@ add_library( adcontrols SHARED
   lockmass.hpp
   logging_hook.cpp
   logging_hook.hpp   
-  mappedspectrum.cpp
-  mappedspectrum.hpp
+  mappeddataframe.cpp
+  mappeddataframe.hpp
+  mappedimage.cpp
+  mappedimage.hpp
   mappedspectra.cpp
   mappedspectra.hpp
-  mappedimage.cpp
-  mappedimage.hpp      
+  mappedspectrum.cpp
+  mappedspectrum.hpp
   massspectrometer.cpp
   massspectrometer.hpp 
   massspectrometerbroker.cpp

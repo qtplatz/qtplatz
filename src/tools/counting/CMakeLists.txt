@@ -13,13 +13,29 @@ set(CMAKE_AUTORCC ON)
 set ( CMAKE_CXX_STANDARD 14 )
 
 # include( "standalone.cmake" )
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+endif()
 
-find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
+if ( OpenCV_FOUND )
+  add_definitions( "-DOPENCV=1" )
+  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} )
+endif()
 
-include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )
+include_directories(
+  ${QTPLATZ_INCLUDE_DIRS}
+  ${QWT_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  )
 
 add_executable( ${PROJECT_NAME}
   main.cpp
+  acqrsdata.cpp
+  acqrsdata.hpp
+  resultwriter.cpp
+  resultwriter.hpp
   ${QTPLATZ_SOURCE_DIR}/src/adplugins/adtextfile/time_data_reader.cpp
   ${QTPLATZ_SOURCE_DIR}/src/adplugins/adtextfile/time_data_reader.hpp
   )
@@ -28,7 +44,11 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adcontrols
   adfs
+  adplugin_manager
+  adprocessor
+  acqrscontrols
   ${Boost_LIBRARIES}
+  ${_opencv_libraries}
   )
 
 install( TARGETS ${PROJECT_NAME}

@@ -26,12 +26,10 @@
 #pragma once
 
 #include "adurl_global.h"
-#include <adportable/dgprotocols.hpp>
+#include <adio/dgprotocols.hpp>
 #include <array>
 #include <memory>
 #include <string>
-
-//namespace adportable { namespace dg { class protocols; } }
 
 namespace adurl {
 
@@ -39,7 +37,7 @@ namespace adurl {
     public:
 
         enum { size = 6 };  // CH0 (push), CH1(INJ), CH2(EXIT), CH3(GATE 0), CH4(GATE 1), CH5(ADC delay)
-        static constexpr const size_t number_of_channels = adportable::dg::delay_pulse_count;
+        static constexpr const size_t number_of_channels = adio::dg::delay_pulse_count;
         static constexpr const size_t number_of_protocols = 4;
 
         class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
@@ -51,7 +49,7 @@ namespace adurl {
         
         /** \brief commit (set) delay pulse to delay generator-box
          */
-        bool commit( const adportable::dg::protocols<adportable::dg::protocol<> >& );
+        bool commit( const adio::dg::protocols<adio::dg::protocol<> >& );
 
         /** \brief update (read) actual delay pulse data from delay-generator box
          *  
@@ -71,7 +69,7 @@ namespace adurl {
         */
         void resetError();
 
-        bool fetch( adportable::dg::protocols< adportable::dg::protocol<> >& );
+        bool fetch( adio::dg::protocols< adio::dg::protocol<> >& );
         bool fetch( std::string& json );
 
     private:

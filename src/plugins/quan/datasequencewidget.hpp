@@ -59,12 +59,14 @@ namespace quan {
         void handleDataChanged( int, bool );
 
     signals:
+        void plot( const QString& );
 
     public slots :
         void handleLevelChaged( int );
         void handleReplicatesChanged( int );
         void handleSampleInletChanged( int /* adcontrols::QuanSample::QuanInlet */);
-
+    private slots:
+        void handlePlot( const QString& );
     };
 
 }

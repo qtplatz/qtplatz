@@ -58,6 +58,9 @@ namespace adcontrols {
 
         double threshold_daltons() const;
         void threshold_daltons( double d );
+
+        static std::vector< std::string > formulae( const std::string& formula );
+
     private:
         static void merge_peaks( std::vector<isopeak>&, double resolving_power );
 

@@ -73,14 +73,17 @@ namespace adportable {
                 size_t count = 0;
                 bool flag;
                 auto it = begin + offset;
+                bool workprogress( false );
                 while ( it != end ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                         if ( flag == findUp ) {
                             indecies.emplace_back( uint32_t( std::distance( begin, it ) ), uint32_t(0), 0 ); // front
+                            workprogress = true;
                             if ( count_limit < count++ )
                                 return;
                         } else {
-                            if ( !indecies.empty() ) {
+                            if ( workprogress ) {
+                                workprogress = false;
                                 auto bIt = begin + indecies.back().first;
                                 auto aIt = findUp ? std::max_element( bIt, it + 1 ) : std::min_element( bIt, it + 1 );
                                 indecies.back().second = uint32_t( std::distance( begin, it ) );
@@ -89,7 +92,6 @@ namespace adportable {
                                 indecies.back().level = level;
                             }
                         }
-                        // adportable::advance( it, nskip, end );                    
                     }
                 }
             }

@@ -32,7 +32,7 @@
 #include <chrono>
 #include <compiler/pragma_warning.hpp>
 
-namespace adfs { class filesystem; class file; }
+namespace adfs { class filesystem; class file; class sqlite; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
 namespace adicontroller { namespace SignalObserver { class DataReadBuffer; class Observer; class DataWriter; } }
 namespace boost { namespace uuids { struct uuid; } }
@@ -46,8 +46,6 @@ namespace adicontroller {
                          , std::shared_ptr< adcontrols::ControlMethod::Method> );
         
         void prepare_storage( SignalObserver::Observer * );
-
-        void handle_data( unsigned long objId, long pos, const adicontroller::SignalObserver::DataReadBuffer& );
 
         void write( const boost::uuids::uuid& objId, adicontroller::SignalObserver::DataWriter& );
         
@@ -64,13 +62,19 @@ namespace adicontroller {
         adfs::filesystem& filesystem() const;
 
         static boost::filesystem::path prepare_sample_run( adcontrols::SampleRun&, bool createDirectory = false );
+
         const boost::filesystem::path& storage_name() const;
+
+        bool prepare_snapshot_storage( adfs::sqlite& db ) const;
         
     private:
 		void create_acquireddata_table();
         void populate_descriptions( SignalObserver::Observer * );
         void populate_calibration( SignalObserver::Observer * );
-        void populate_scanlaw( SignalObserver::Observer * );
+        // void populate_scanlaw( SignalObserver::Observer * );
+
+        static void populate_descriptions( SignalObserver::Observer *, adfs::sqlite& );
+        static void populate_calibration( SignalObserver::Observer *, adfs::sqlite& );
 
         pragma_msvc_warning_push_disable_4251
         boost::filesystem::path storage_name_;

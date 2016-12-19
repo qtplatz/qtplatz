@@ -49,7 +49,7 @@ namespace adpublisher {
 
         // std::shared_ptr< adpublisher::document > document();
         void setDocument( std::shared_ptr< adpublisher::document >& );
-
+        
         void setCompleter( QCompleter * );
         QCompleter * completer() const;
         void fetch( pugi::xml_document& xml );

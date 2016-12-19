@@ -4,23 +4,24 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adchem )
 
-find_package( Boost REQUIRED COMPONENTS system )
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package( Boost REQUIRED COMPONENTS system )
+endif()
 find_package( rdkit )
 
 add_definitions( -DADCHEM_LIBRARY )
-
-if ( MSVC )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996" )
-endif()
 
 include_directories( ${RDKit_INCLUDE_DIRS} )
 
 set( adchem_SOURCES
   adchem.cpp
+  adchem.hpp
   sdfile.cpp
-  molfile.cpp
+  sdfile.hpp
+  mol.cpp
+  mol.hpp
   drawing.cpp
-  molecule.cpp
+  drawing.hpp
   )
 
 if ( WIN32 )

@@ -72,7 +72,7 @@ threshold_result::data()
 std::vector< uint32_t >&
 threshold_result::indecies()
 {
-    return indecies_;
+     return indecies_;
 }
 
 const std::vector< uint32_t >&
@@ -80,18 +80,6 @@ threshold_result::indecies() const
 {
     return indecies_;
 }
-
-// std::vector< adportable::counting::threshold_index >&
-// threshold_result::indecies2()
-// {
-//     return indecies2_;
-// }
-
-// const std::vector< adportable::counting::threshold_index >&
-// threshold_result::indecies2() const
-// {
-//     return indecies2_;
-// }
 
 std::vector< double >&
 threshold_result::processed()
@@ -196,9 +184,9 @@ threshold_result::write3( std::ostream& os, const threshold_result& t )
                     % apex.first    // apex (time)
                     % ( t.data()->toVolts( apex.second ) * std::milli::den )
                     % ( int( idx.first ) - int( idx.apex ) )   // front-apex distance
-                    % ( t.data()->toVolts( (*data)[ idx.first ] ) * std::milli::den )     // front intensity
+                    % ( t.data()->toVolts( int64_t( (*data)[ idx.first ] ) ) * std::milli::den )     // front intensity
                     % ( int( idx.second ) - int( idx.apex ) )
-                    % ( t.data()->toVolts( (*data)[ idx.second ] ) * std::milli::den );
+                    % ( t.data()->toVolts( int64_t( (*data)[ idx.second ] ) ) * std::milli::den );
             }
         }
     }

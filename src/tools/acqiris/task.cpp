@@ -22,7 +22,9 @@
 **************************************************************************/
 
 #include "digitizer.hpp"
-#include "document.hpp"
+#if ! ACQIRIS_DAEMON
+# include "document.hpp"
+#endif
 #include "task.hpp"
 #include "tcp_server.hpp"
 #include <acqrscontrols/acqiris_waveform.hpp>
@@ -86,10 +88,6 @@ task::initialize()
             timer_.expires_from_now( 5s );
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
 
-            document::instance()->connect_prepare( boost::bind( &task::prepare_for_run, this, _1, _2 ) );
-            document::instance()->connect_event_out( boost::bind( &task::event_out, this, _1 ) );
-            document::instance()->connect_finalize( boost::bind( &task::finalize, this ) );
-            
         } );
 
     return true;
@@ -126,17 +124,14 @@ task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_met
 {
     strand_.post( [=] {
             auto adapted = task::digitizer()->digitizer_setup( m );
-            document::instance()->acqiris_method_adapted( adapted );
+
+            emit_acqiris_method_adapted_( adapted );
+
             methodNumber_ = m->methodNumber_;
         } );
 
     if ( !std::atomic_flag_test_and_set( &acquire_posted_) )
         strand_.post( [=] { acquire(); } );
-
-    if ( auto server = document::instance()->server() ) {
-        if ( auto data = acqrscontrols::aqdrv4::protocol_serializer::serialize( *m ) )
-            server->post( data );
-    }
 }
 
 void
@@ -195,13 +190,8 @@ task::acquire()
             d->serialNumber0()      = inject_serialnumber_;
             d->timeSinceEpoch()     = std::chrono::nanoseconds( tp_trig.time_since_epoch() ).count();
 
-            document::instance()->push( std::move( d ) );
+            push_handler_( std::move( d ) );
 
-            auto tp = std::chrono::system_clock::now();
-            if ( tp - tp_data_handled_ > 200ms ) {
-                emit document::instance()->updateData();
-                tp_data_handled_ = tp;
-            }
         } else {
             ADDEBUG() << "acquire timed out " << count++;
         }
@@ -219,16 +209,15 @@ task::handle_timer( const boost::system::error_code& ec )
     
     if ( ec != boost::asio::error::operation_aborted ) {
 
-        strand_.post( [] {
+        strand_.post( [this] {
                 int temp = digitizer()->readTemperature();
-                document::instance()->replyTemperature( temp );
+                emit_replyTemperature_( temp );
             } );
 
         boost::system::error_code erc;
         timer_.expires_from_now( 5s, erc );
         if ( !erc )
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
-
     }
 }
 
@@ -241,8 +230,27 @@ task::digitizer_initialize()
     
     if ( aqrs->initialize() ) {
         if ( aqrs->findDevice() ) {
-            task::instance()->prepare_for_run( document::instance()->acqiris_method(), acqrscontrols::aqdrv4::allMethod );
+            return true;
         }
     }
     return true;
 }
+
+boost::signals2::connection
+task::connect_acqiris_method_adapted( const acqiris_method_adapted_t::slot_type & subscriber )
+{
+    return emit_acqiris_method_adapted_.connect( subscriber );
+}
+
+boost::signals2::connection
+task::connect_replyTemperature( const replyTemperature_t::slot_type & subscriber )
+{
+    return emit_replyTemperature_.connect( subscriber );
+}
+
+void
+task::connect_push( std::function< void( std::shared_ptr< acqrscontrols::aqdrv4::waveform > ) > f )
+{
+    push_handler_ = f;
+}
+

@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "peakmethod.hpp"
+#include "serializer.hpp"
 #include <adportable/float.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
@@ -103,21 +104,37 @@ namespace adcontrols {
 
     template<> void PeakMethod::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-        PeakMethod_archive<>().serialize( ar, *this, version );
+        try {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::PeakMethod' to xml_woarchive" ) );
+        }
     }
     template<> void PeakMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        PeakMethod_archive<>().serialize( ar, *this, version );
+        try {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::PeakMethod' to xml_wiarchive" ) );
+        }
     }
     
     template<> void PeakMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-        PeakMethod_archive<>().serialize( ar, *this, version );
+        try {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::PeakMethod' to portable_binary_oarchive" ) );
+        }
     }
     
     template<> void PeakMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        PeakMethod_archive<>().serialize( ar, *this, version );
+        try {
+            PeakMethod_archive<>().serialize( ar, *this, version );
+        } catch ( std::exception& ) {
+            BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize 'adcontrols::PeakMethod' to portable_binary_iarchive" ) );
+        }
     }
 }
 

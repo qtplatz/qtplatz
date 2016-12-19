@@ -4,11 +4,15 @@ cmake_policy( SET CMP0028 NEW )
 project( u5303aplugin )
 
 set( PROVIDER MS-Cheminformatics )
+set( COMPAT_VERSION 3.2.81 )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 #QT += core svg printsupport widgets
 find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Script Network PrintSupport )
 find_package( qwt )
-find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization locale )
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization locale )
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -17,9 +21,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB u5303a_Resources *.qrc)
-
-set(COMPAT_VERSION 3.2.81)
-set(VERSION 3.1.4)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"

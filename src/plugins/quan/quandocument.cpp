@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,24 +31,36 @@
 #include "quanprocessor.hpp"
 #include "quanprogress.hpp"
 #include "quanpublisher.hpp"
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancalibration.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/msreferences.hpp>
-#include <adcontrols/msreference.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adfs/filesystem.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <adpublisher/document.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <app/app_version.h>
 #include <QApplication>
@@ -138,7 +150,7 @@ bool
 QuanDocument::save_default_methods()
 {
     boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-
+    
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "QuanDocument"
@@ -355,6 +367,102 @@ QuanDocument::run()
                 // update result outfile name on sequence for next run
                 for ( auto& client : clients_ )
                     client( idQuanSequence, true );
+            }
+        }
+    }
+}
+
+void
+QuanDocument::execute_counting()
+{
+    qtwrapper::waitCursor wait;
+
+    auto compounds( quanCompounds() );
+    auto qm = pm_->find< adcontrols::QuanMethod >();
+    auto tm = pm_->find< adcontrols::TargetingMethod >();
+    auto cm = pm_->find< adcontrols::CentroidMethod >();
+
+    double tolerance = tm->tolerance( adcontrols::idToleranceDaltons ) / 2.0;
+    adcontrols::CentroidProcess centroidProcess( *cm );
+    
+    if ( quanSequence_ && quanSequence_->size() > 0 ) {
+        
+        boost::filesystem::path outfile( quanSequence_->outfile() );
+        outfile.replace_extension( ".csv" );
+        if ( boost::filesystem::exists( outfile ) ) {
+            boost::filesystem::path backup( outfile );
+            backup.replace_extension( ".csv.old" );
+            boost::filesystem::rename( outfile, backup );
+        }
+
+        // save sequence
+        boost::filesystem::path qseq( outfile );
+        qseq.replace_extension( ".qseq" );
+        if ( boost::filesystem::exists( qseq ) ) {
+            boost::filesystem::path backup( qseq );
+            backup.replace_extension( ".qseq.old" );
+            boost::filesystem::rename( qseq, backup );
+            save( qseq, *quanSequence_, false );
+        }
+
+        boost::filesystem::ofstream of( outfile );
+        of << "#filename\t[ion\tcounts\twidth\tmass\ttime\tarea (at " << cm->peakCentroidFraction() * 100 << "%)]..." << std::endl;
+
+        for ( auto it = quanSequence_->begin(); it != quanSequence_->end(); ++it ) {
+            
+            of << boost::filesystem::path( it->dataSource() ).string();
+
+            auto dp = std::make_shared< adprocessor::dataprocessor >();
+            std::wstring emsg;
+            std::shared_ptr< adcontrols::MassSpectrum > hist;
+
+            if ( dp->open( it->dataSource(), emsg ) && ( hist = dp->readSpectrumFromTimeCount() ) ) {
+                using adcontrols::MSPeakInfo;
+                using adcontrols::MSPeakInfoItem;
+                std::map< std::string, MSPeakInfoItem > pks;
+
+                if ( centroidProcess( *hist ) ) {
+                    const auto& pkinfo = centroidProcess.getPeakInfo();
+
+                    for ( const auto& compound: compounds ) {
+                        auto beg = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m){
+                                return a.mass() < m;
+                            });
+                        auto end = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() + tolerance, [](const auto& a, const double& m){
+                                return a.mass() < m;
+                            });                        
+                        if ( beg != pkinfo.end() ) {
+                            auto it = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
+                            pks[ compound.formula() ] = *it;
+                            // if ( auto spectrometer = dp->massSpectrometer() ) {
+                            //     auto scanlaw = spectrometer->scanLaw();
+                            //     ADDEBUG() << "###" << compound.formula()
+                            //               << "\t" << it->mass() << "\t" << scanlaw->getMass( it->time(), hist->mode() )
+                            //               << "\t" << it->time() << "\t" << scanlaw->getTime( it->mass(), hist->mode() );
+                            // }
+                        }
+                    }
+                }
+
+                const double * masses = hist->getMassArray();
+                const double * counts = hist->getIntensityArray();
+
+                int n(0);
+                for ( const auto& compound: compounds ) {
+
+                    size_t size(0), count(0), idx;
+                    auto beg = std::lower_bound( masses, masses + hist->size(), compound.mass() - tolerance );
+                    auto end = std::lower_bound( masses, masses + hist->size(), compound.mass() + tolerance );
+                    if ( beg != masses + hist->size() ) {
+                        idx = std::distance( masses, beg );
+                        size = std::distance( beg, end );
+                        count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
+                    }
+                    auto pk = pks[ compound.formula() ];
+                    of << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
+                        % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
+                }
+                of << std::endl;
             }
         }
     }
@@ -659,7 +767,7 @@ bool
 QuanDocument::save( const boost::filesystem::path& path, const adcontrols::QuanSequence& t, bool updateSettings )
 {
     if ( path.extension() == ".xml" ) {
-
+        
         boost::filesystem::wofstream fo( path );
         if ( adcontrols::QuanSequence::xml_archive( fo, t ) ) {
             if ( updateSettings )
@@ -701,7 +809,7 @@ QuanDocument::load( const boost::filesystem::path& path, adcontrols::ProcessMeth
     			boost::filesystem::wifstream is( path );
     			return adcontrols::ProcessMethod::xml_restore( is, pm );
     		} catch ( std::exception& ex ) {
-    			ADWARN() << boost::diagnostic_information( ex );
+    			ADWARN() << boost::diagnostic_information( ex ) << " while loading: " << path;
     		}
     	}
     	return false;
@@ -739,8 +847,9 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::Proce
     		boost::filesystem::rename( path, backup, ec );
     	}
         try {
-            boost::filesystem::wofstream os( path );
-            return adcontrols::ProcessMethod::xml_archive( os, pm );
+            boost::filesystem::wofstream fo( path );
+            if ( adcontrols::ProcessMethod::xml_archive( fo, pm ) )
+                return true;
         }
         catch ( std::exception& ex ) {
             ADWARN() << boost::diagnostic_information( ex );

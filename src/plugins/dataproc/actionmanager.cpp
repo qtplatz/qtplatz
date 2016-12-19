@@ -26,7 +26,7 @@
 #include "actionmanager.hpp"
 #include "aboutdlg.hpp"
 #include "constants.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
@@ -247,13 +247,13 @@ ActionManager::actMethodSave()
 {
     QString name = QFileDialog::getSaveFileName( MainWindow::instance()
                                                  , tr("Save process method")
-                                                 , dataproc_document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
+                                                 , document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
                                                  , tr("Process method files(*.pmth)" ) );
 
     adcontrols::ProcessMethod pm;
     MainWindow::instance()->getProcessMethod( pm );
-    if ( dataproc_document::save( name, pm ) ) {
-        dataproc_document::instance()->setProcessMethod( pm, name );
+    if ( document::save( name, pm ) ) {
+        document::instance()->setProcessMethod( pm, name );
     }
 }
 
@@ -262,12 +262,12 @@ ActionManager::actMethodOpen()
 {
     QString name = QFileDialog::getOpenFileName( MainWindow::instance()
                                                  , tr("Open process method")
-                                                 , dataproc_document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
+                                                 , document::instance()->recentFile( Constants::GRP_METHOD_FILES, true )
                                                  , tr("Process method files(*.pmth);;XML Files(*.pmth.xml)" ) );
 
     adcontrols::ProcessMethod pm;
-    if ( dataproc_document::load( name, pm ) ) {
-        dataproc_document::instance()->setProcessMethod( pm, name );
+    if ( document::load( name, pm ) ) {
+        document::instance()->setProcessMethod( pm, name );
     }
 }
 

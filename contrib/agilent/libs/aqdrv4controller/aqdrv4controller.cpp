@@ -58,7 +58,7 @@ namespace aqdrv4controller {
 
         // adplugin impl
 
-        const char * iid() const { return "com.ms-cheminfo.qtplatz.adplugins.aqdrv4controller"; }
+        const char * iid() const override { return "com.ms-cheminfo.qtplatz.adplugins.aqdrv4controller"; }
 
         void * query_interface_workaround( const char * typenam ) override {
             if ( std::strcmp( typenam, typeid( adicontroller::manager ).name() ) == 0 )
@@ -66,7 +66,7 @@ namespace aqdrv4controller {
             return 0;
         }
         
-        void accept( adplugin::visitor& v, const char * adplugin ) {
+        void accept( adplugin::visitor& v, const char * adplugin ) override {
             v.visit( this, adplugin );
         }
     };

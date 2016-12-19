@@ -278,15 +278,15 @@ waveform::dataType() const
     return meta_.dataType;
 }
 
-std::pair<double, int>
+int64_t
 waveform::operator [] ( size_t idx ) const
 {
     double time = idx * meta_.xIncrement + meta_.horPos + meta_.initialXOffset;    
 
     switch( meta_.dataType ) {
-    case 1: return std::make_pair( time, *(begin<int8_t>()  + idx) );
-    case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
-    case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
+    case 1: return *(begin<int8_t>()  + idx);
+    case 2: return *(begin<int16_t>() + idx);
+    case 4: return *(begin<int32_t>() + idx);
     }
     throw std::exception();
 }
@@ -305,7 +305,16 @@ waveform::xy( size_t idx ) const
 }
 
 double
-waveform::toVolts( int d ) const
+waveform::toVolts( int32_t d ) const
+{
+    if ( meta_.actualAverages == 0 )
+        return meta_.scaleFactor * d - meta_.scaleOffset;
+    else
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages - ( meta_.scaleOffset * meta_.actualAverages );
+}
+
+double
+waveform::toVolts( int64_t d ) const
 {
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d - meta_.scaleOffset;
@@ -712,52 +721,12 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
             for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
                 sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
     } else {
-
+        
         return translate( sp, waveform, scale );
-
-    }
-
-#if 0    
-    translate_property( sp, waveform );
-
-    sp.resize( waveform.size() );
-	int idx = 0;
-
-    if ( result.processed().size() == waveform.size() ) { // has filterd waveform
-        if ( scale <= 1 )
-            sp.setIntensityArray( result.processed().data() ); // return Volts (no binary avilable for processed waveform)
-        else
-            for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
-                sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
-        
-    } else if ( waveform.meta_.dataType == 1 ) {
-        if ( scale )
-            for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V, mV ...
-        else
-            for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
-                sp.setIntensity( idx++, *y );          // binary 
-    } else if ( waveform.meta_.dataType == 2 ) {
-        if ( scale )
-            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );        // V, mV ...
-        else
-            for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
-                sp.setIntensity( idx++, *y );          // binary 
-    } else {
-        double dbase, rms;
-        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-
-        if ( scale )
-            for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale ); // V, mV ...
-        else
-            for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, *y - dbase );  // binary
         
     }
-	return true;
-#endif
+    
+    return false;
 }
 
 bool

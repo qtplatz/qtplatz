@@ -46,7 +46,7 @@ namespace acqrsinterpreter {
                             , std::shared_ptr< acqrscontrols::ap240::waveform >
                             , std::shared_ptr< adcontrols::TimeDigitalHistogram > // don't move this to first item in this variant (see coadd_spectrum)
                             > waveform_types;
-
+    
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:
         virtual ~DataInterpreter();

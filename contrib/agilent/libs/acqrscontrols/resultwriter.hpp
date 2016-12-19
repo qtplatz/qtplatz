@@ -65,6 +65,8 @@ namespace acqrscontrols {
             }
         }
 
+        inline const boost::uuids::uuid& objid() const { return uuid_; }
+
     private:
         std::mutex mutex_;
         std::vector< result_type > cache_;

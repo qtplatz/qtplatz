@@ -25,8 +25,8 @@
 #include "mainwindow.hpp"
 #include "queryconstants.hpp"
 #include "queryconnection.hpp"
-#include "querydocument.hpp"
-#include "queryquerywidget.hpp"
+#include "document.hpp"
+#include "querywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -86,7 +86,7 @@ MainWindow::createContents( Core::IMode * )
     viewLayout->setMargin(0);
     viewLayout->setSpacing(0);
 
-    if ( auto widget = new QueryQueryWidget ) {
+    if ( auto widget = new QueryWidget ) {
         viewLayout->addWidget( widget );
     }
 
@@ -102,15 +102,6 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
-        Core::ActionManager * am = Core::ActionManager::instance(); // ->actionManager();
-        if ( am ) {
-            // [file open] button
-            //toolBarLayout->addWidget( toolButton( am->command( Constants::FILE_OPEN )->action() ) );
-            //-- separator --
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //---
-            //toolBarLayout->addWidget( topLineEdit_.get() );
-        }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
     }
@@ -120,29 +111,14 @@ MainWindow::createTopStyledBar()
 void
 MainWindow::onInitialUpdate()
 {
-    QueryDocument::instance()->onInitialUpdate();
-#if 0
-    if ( auto rw = findChild< QueryReportWidget * >() )
-        rw->onInitialUpdate( QueryDocument::instance() );
-
-    if ( auto qm = QueryDocument::instance()->pm().find< adcontrols::QueryMethod >() ) {
-        boost::filesystem::path path = qm->queryMethodFilename();
-        if ( !path.empty() ) {
-            auto list = findChildren< QLineEdit * >( Constants::editQueryMethodName );
-            for ( auto& edit : list ) {
-                edit->setText( QString::fromStdWString( path.wstring() ) );
-                edit->setEnabled( false );
-            }
-        }
-    }
-#endif
+    document::instance()->onInitialUpdate();
 }
 
 void
 MainWindow::onFinalClose()
 {
     commit();
-    QueryDocument::instance()->onFinalClose();
+    document::instance()->onFinalClose();
 }
 
 // static
@@ -169,9 +145,9 @@ MainWindow::createActions()
         
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Query") );
-
+        
         if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open SQLite file..." ), this ) ) {
-
+            
             am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Query|Open SQLite file...
             connect( p, &QAction::triggered, this, &MainWindow::handleOpen );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
@@ -199,15 +175,6 @@ MainWindow::handleIndexChanged( int index, int subIndex )
 void
 MainWindow::commit()
 {
-#if 0
-    if ( stack_ ) {
-        for ( int idx = 0; idx < stack_->count(); ++idx ) {
-            QWidget * widget = stack_->widget( idx );
-            if ( auto panels = dynamic_cast< PanelsWidget * >( widget ) )
-                panels->commit();
-        }
-    }
-#endif
 }
 
 void
@@ -215,8 +182,8 @@ MainWindow::handleOpen()
 {
     try {
         QString name = QFileDialog::getOpenFileName( this
-                                                     , tr( "Open Quantitative Analysis Result file" )
-                                                     , QueryDocument::instance()->lastDataDir()
+                                                     , tr( "Open SQLite file" )
+                                                     , document::instance()->lastDataDir()
                                                      , tr( "File(*.adfs)|(*)" ) );
         if ( !name.isEmpty() ) {
 
@@ -226,7 +193,7 @@ MainWindow::handleOpen()
 
                 if ( connection->connect( name.toStdWString() ) ) {
 
-                    QueryDocument::instance()->setConnection( connection.get() );
+                    document::instance()->setConnection( connection.get() );
                 }
             }
 

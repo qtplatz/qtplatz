@@ -483,24 +483,26 @@ MSCalibrateSummaryTable::formulaChanged( const QModelIndex& index )
 	QStandardItemModel& model = *pModel_;
 
     if ( index.column() == c_formula ) {
-
+        
         std::wstring formula = qtwrapper::wstring( index.data( Qt::EditRole ).toString() );
         std::wstring adduct_lose;
         if ( ! formula.empty() ) {
-            std::wstring::size_type pos = formula.find_first_of( L"+-" );
-            int sign = 1;
-            if ( pos != std::wstring::npos ) {
-                sign = formula.at( pos ) == L'+' ? 1 : -1;
-                adduct_lose = formula.substr( pos + 1 );
-                formula = formula.substr( 0, pos );
-            }
-            
+
+            // this code brakes charge state in formula e.g. [He]2+
+            // std::wstring::size_type pos = formula.find_first_of( L"+-" );
+            // int sign = 1;
+            // if ( pos != std::wstring::npos ) {
+            //     sign = formula.at( pos ) == L'+' ? 1 : -1;
+            //     adduct_lose = formula.substr( pos + 1 );
+            //     formula = formula.substr( 0, pos );
+            // }
+
             adcontrols::ChemicalFormula cformula;
             double exactMass = cformula.getMonoIsotopicMass( formula );
-            if ( ! adduct_lose.empty() ) {
-                double a = cformula.getMonoIsotopicMass( adduct_lose );
-                exactMass += a * sign;
-            }
+            // if ( ! adduct_lose.empty() ) {
+            //     double a = cformula.getMonoIsotopicMass( adduct_lose );
+            //     exactMass += a * sign;
+            // }
 
             // update exact mass
             model.setData( model.index( index.row(), c_exact_mass ), exactMass );

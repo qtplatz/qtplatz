@@ -312,7 +312,6 @@ task::task() : work_( io_service_ )
 
 task::~task()
 {
-    ADDEBUG() << "******** task dtor";
 }
 
 bool
@@ -677,7 +676,15 @@ task::handle_acquire()
                 }
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
+
+                // read multiple waveform using mblock
                 digitizer::readData( *spDriver(), method_, vec );
+
+                // for debug
+                // if ( auto wp = std::make_shared< acqrscontrols::u5303a::waveform >( spDriver()->Identify(), spDriver()->dataSerialNumber() ) ) {
+                //     digitizer::readData16( *spDriver(), method_, *wp );
+                //     vec.emplace_back( wp );
+                // }
 
                 if ( simulated_ )
                     simulator::instance()->touchup( vec, method_ );
@@ -750,6 +757,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = spDriver()->dataSerialNumber();
 
+#if 0
     if ( simulated_ ) {
         if ( simulator::instance()->readData( data ) ) {
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -759,6 +767,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
             return true;
         }
     }
+#endif
     //-------------------
 
     bool result( false );
@@ -932,8 +941,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
              , __FILE__, __LINE__ ) ) {
 
         auto mblk = std::make_shared< adportable::mblock<int16_t> >( arraySize );
-
-		//std::unique_ptr< ViInt16[] > dataArray( new ViInt16[ arraySize ] );
+        std::fill( mblk->data(), mblk->data() + arraySize, 0 );
         
         ViInt64 actualRecords(0), waveformArrayActualSize(0);
         std::vector<ViInt64> actualPoints( numRecords ), firstValidPoints( numRecords );
@@ -978,11 +986,12 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     d.meta_.scaleOffset = scaleOffset;
                     d.meta_.dataType = mblk->dataType();
 
-                    // time @ data read (U5303A has the large delay (~500us) after acquire trigger, so that read time is more accurate
                     d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
                     d.setData( mblk, firstValidPoints[ iRecord ] );
-
-                    // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size();
+                    
+                    // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size()
+                    //           << " SF=" << scaleFactor << " SO=" << scaleOffset << " t=" << d.meta_.dataType
+                    //           << " data[10]=" << boost::format( "%x" ) % mblk->data()[ 10 ];
 
                     vec.emplace_back( data );
                 }
@@ -1012,12 +1021,12 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
 
         const auto& tp = task::instance()->tp_acquire();        
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
-		auto mblk = std::make_shared< adportable::mblock<int32_t> >( arraySize );
+		auto mblk = std::make_shared< adportable::mblock<int16_t> >( arraySize );
         
-        if ( AgMD2::log( AgMD2_FetchWaveformInt32( md2.session()
+        if ( AgMD2::log( AgMD2_FetchWaveformInt16( md2.session()
                                                    , "Channel1"
                                                    , arraySize
-												   , reinterpret_cast<ViInt32*>( mblk->data() )
+												   , reinterpret_cast<ViInt16*>( mblk->data() )
                                                    , actualPoints
                                                    , firstValidPoint
                                                    , &initialXOffset
@@ -1036,10 +1045,10 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.initialXOffset  = initialXOffset;
             data.meta_.scaleFactor = scaleFactor;
             data.meta_.scaleOffset = scaleOffset;
+            data.meta_.dataType = 2;
             data.firstValidPoint_ = firstValidPoint[0];
-
-            // time at data read (U5303A has the large delay (~500us) after acquire trigger, so that read time is more accurate
             data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
+            data.setData( mblk, firstValidPoint[0] );
             
             return true;
         }

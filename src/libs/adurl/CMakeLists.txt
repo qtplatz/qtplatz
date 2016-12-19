@@ -3,7 +3,9 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adurl )
 
-find_package( Boost 1.59 REQUIRED COMPONENTS system program_options date_time regex )
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package( Boost 1.59 REQUIRED COMPONENTS system program_options date_time regex )
+endif()
 
 if ( NOT WIN32 )
   set( oslibs "pthread" )
@@ -20,6 +22,7 @@ add_executable( adurltool main.cpp )
 add_library( adurl SHARED client.cpp client.hpp request.cpp request.hpp dg.cpp dg.hpp sse.hpp sse.cpp )
 
 target_link_libraries( adurl LINK_PUBLIC
+  adio
   adportable
   ${oslibs}
   ${Boost_LIBRARIES}
@@ -27,6 +30,7 @@ target_link_libraries( adurl LINK_PUBLIC
 
 target_link_libraries( adurltool LINK_PUBLIC
   adurl
+  adio
   adportable
   ${oslibs}
   ${Boost_LIBRARIES}

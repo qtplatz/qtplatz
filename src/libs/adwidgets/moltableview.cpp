@@ -46,6 +46,7 @@
 #include <QDragEnterEvent>
 #include <QFileInfo>
 #include <QHeaderView>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPainter>
@@ -59,7 +60,6 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4267 4018 )
 #endif
-#include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/RDKitBase.h>
@@ -68,6 +68,7 @@
 #include <GraphMol/Substruct/SubstructMatch.h>
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
+#include <RDGeneral/Invariant.h>
 #include <RDGeneral/RDLog.h>
 #endif
 
@@ -141,7 +142,7 @@ namespace adwidgets {
         
         ///////////////////////
         struct paint_f_mass {
-
+            
             int cformula;
             int cadducts;
             paint_f_mass( int _cformula, int _cadducts ) : cformula( _cformula ), cadducts( _cadducts ) {}
@@ -153,7 +154,7 @@ namespace adwidgets {
                     
                     if ( cadducts >= 0 )
                         expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
-
+                    
                     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
                     if ( exactMass > 0.7 ) {  // Any 'chemical formula' mass should be > 1.0 (Hydrogen := 1.007825)
                         double mass = index.data( Qt::EditRole ).toDouble();
@@ -259,8 +260,15 @@ namespace adwidgets {
 					if ( idx >= 0 && idx < state.choice.size() )
 						model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
 				}
-            } else 
+            } else if ( state.field == ColumnState::f_formula || state.field == ColumnState::f_adducts ) {
+                // protect chemical paser from non-ascii 8-bit input
+                if ( auto edit = qobject_cast< QLineEdit * >( editor ) ) {
+                    QString text = QString::fromLatin1( edit->text().toLatin1() );
+                    model->setData( index, text, Qt::EditRole );
+                }
+            } else {
                 QStyledItemDelegate::setModelData( editor, model, index );
+            }
 
             // impl_->onValueChanged( index );
         }
@@ -618,5 +626,18 @@ MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adduct
     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
     
     return exactMass;
+}
+
+// static
+QByteArray
+MolTableView::smilesToSvg( const QString& smiles )
+{
+#if HAVE_RDKit
+    if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles.toStdString() ) ) ) {
+        std::string svg = adchem::drawing::toSVG( *mol );
+        return QByteArray( svg.data(), svg.size() );
+    }
+#endif                
+    return QByteArray();
 }
 

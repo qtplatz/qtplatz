@@ -46,11 +46,11 @@ namespace aqdrv4 {
     class acqiris_method;
     class waveform;
 
-    extern boost::uuids::uuid clsid_connection_request;
-    extern boost::uuids::uuid clsid_acknowledge;
-    extern boost::uuids::uuid clsid_readData;
-    extern boost::uuids::uuid clsid_temperature;
-    extern boost::uuids::uuid clsid_event_out;
+    extern ACQRSCONTROLSSHARED_EXPORT boost::uuids::uuid clsid_connection_request;
+    extern ACQRSCONTROLSSHARED_EXPORT boost::uuids::uuid clsid_acknowledge;
+    extern ACQRSCONTROLSSHARED_EXPORT boost::uuids::uuid clsid_readData;
+    extern ACQRSCONTROLSSHARED_EXPORT boost::uuids::uuid clsid_temperature;
+    extern ACQRSCONTROLSSHARED_EXPORT boost::uuids::uuid clsid_event_out;
 
     struct ACQRSCONTROLSSHARED_EXPORT preamble {
         uint32_t aug; // methionine '07 09 16 20
@@ -98,7 +98,7 @@ namespace aqdrv4 {
         }
 
         std::vector< boost::asio::const_buffer > to_buffers();
-
+        
     private:
         struct preamble preamble_;
         std::string payload_;
@@ -122,7 +122,7 @@ namespace aqdrv4 {
                 }
             }
             data->preamble().clsid = d.clsid();
-            data->preamble().length = data->payload().size();
+            data->preamble().length = uint32_t( data->payload().size() );
 
             return data;
         }
@@ -139,7 +139,8 @@ namespace aqdrv4 {
             try {            
                 ar & *p;
             } catch ( ... ) {
-                ADDEBUG() << boost::current_exception_diagnostic_information();
+                ADDEBUG() << boost::current_exception_diagnostic_information()
+                          << acqrscontrols::aqdrv4::preamble::debug( &pre );
                 return nullptr;
             }
 

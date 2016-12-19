@@ -77,8 +77,8 @@ namespace adcontrols {
         typedef vector_type::iterator iterator;
         typedef vector_type::const_iterator const_iterator;
         
-        template<class T> void appendMethod( const T& t ) { vec_.push_back( t ); }
-        template<class T> ProcessMethod& operator << ( const T& t ) { vec_.push_back( t ); return *this; }
+        template<class T> void appendMethod( const T& t ) { vec_.emplace_back( t ); }
+        template<class T> ProcessMethod& operator << ( const T& t ) { vec_.emplace_back( t ); return *this; }
         template<class T> ProcessMethod& operator *= ( const T& t ) { remove<T>(); (*this) << t; return *this; } // remove if duplicate, and add
         ProcessMethod& operator *= ( const ProcessMethod& ); // remove duplicate and merge
 

@@ -27,16 +27,21 @@
 #include <qtwrapper/font.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adportable/debug.hpp>
+#include <QCompleter>
 #include <QMessageBox>
+#include <QStringListModel>
 #include <algorithm>
 
 namespace quan {
     namespace detail {
         enum idItem { 
             idGroupBox1
+            , idGroupBox2
+            , idGroupBox3 // Query
+            , idRadioCounting
             , idRadioChromatogram
             , idRadioInfusion
-            , idGroupBox2
             , idLabelCalibEq
             , idComboPolynomials
             , idCbxWeighting
@@ -66,9 +71,11 @@ namespace quan {
             QWidget * operator()( idItem id ) {
                 switch ( id ) {
                 case idGroupBox1: return ui_->groupBox_2;
+                case idGroupBox2: return ui_->groupBox;
+                case idGroupBox3: return ui_->groupBox_8;
+                case idRadioCounting: return ui_->radioButton_3;
                 case idRadioChromatogram: return ui_->radioButton;
                 case idRadioInfusion: return ui_->radioButton_2;
-                case idGroupBox2: return ui_->groupBox;
                 case idLabelCalibEq: return ui_->groupBox_6;
                 case idComboPolynomials: return ui_->comboBox;
                 case idCbxWeighting: return ui_->groupBox_5;
@@ -134,6 +141,57 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
         combo->clear();
         combo->insertItems( 0, QStringList() << tr("None") << tr("2nd phase") << tr("1st phase") );
     }
+
+    if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) ) {
+        connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
+                 , [&]( bool counting ){
+                     if ( counting ) {
+                         ui->groupBox->setEnabled( false );
+                         ui->groupBox_8->setEnabled( true );
+                         emit onSampleInletChanged( int( adcontrols::QuanSample::Counting ) );
+                     }
+                 });
+    }
+    if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) ) {
+        connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
+                 , [&]( bool chromatogram ){
+                     if ( chromatogram ) {
+                         ui->groupBox->setEnabled( true );
+                         ui->groupBox_8->setEnabled( false );
+                         emit onSampleInletChanged( int( adcontrols::QuanSample::Chromatography ) );
+                     }
+                 });
+    }
+    if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioInfusion ) ) ) {
+        connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
+                 , [&]( bool infusion ){
+                     if ( infusion ) {
+                         ui->groupBox->setEnabled( true );
+                         ui->groupBox_8->setEnabled( false );
+                         emit onSampleInletChanged( int( adcontrols::QuanSample::Infusion ) );
+                     }
+                 });
+    }
+
+    if ( QCompleter * completer = new QCompleter( this ) ) {
+        QStringList words;
+        QFile file( ":/query/wordlist.txt" );
+        if ( file.open( QFile::ReadOnly ) ) {
+            while ( !file.atEnd() ) {
+                QByteArray line = file.readLine();
+                if ( ! line.isEmpty() )
+                    words << line.trimmed();
+            }
+        }
+        words.sort( Qt::CaseInsensitive );
+        words.removeDuplicates();
+        
+        completer->setModel( new QStringListModel( words, completer ) );
+        completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
+        completer->setCaseSensitivity( Qt::CaseInsensitive );
+        completer->setWrapAround( false );
+        ui->plainTextEdit->setCompleter( completer );
+    }
 }
 
 QuanConfigForm::~QuanConfigForm()
@@ -179,19 +237,28 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
         cbx->setChecked( m.save_on_datasource() ? Qt::Checked : Qt::Unchecked );
     }
 
-    if ( m.isChromatogram() ) {
-        if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
+    if ( m.isCounting() ) {
+        if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) )
+            radioButton->setChecked( true );
+    } else if ( m.isChromatogram() ) {
+        if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
             radioButton->setChecked( true );
     } else {
-        if ( auto radioButton = dynamic_cast< QRadioButton * >( accessor( idRadioInfusion ) ) )
+        if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioInfusion ) ) )
             radioButton->setChecked( true );
     }
-    if ( auto gbx = dynamic_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
+    if ( auto gbx = qobject_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
         if ( m.isWeighting() )
             gbx->setChecked( true );
         else
             gbx->setChecked( false );
     }
+
+    if ( auto gbox = accessor( idGroupBox2 ) )
+        gbox->setEnabled( !m.isCounting() );
+    if ( auto gbox = accessor( idGroupBox3 ) )
+        gbox->setEnabled( m.isCounting() );    
+    
     w = 0;
     switch ( m.weighting() ) {
     case adcontrols::QuanMethod::idWeight_C1: w = accessor( idRadio_C1 ); break;
@@ -201,20 +268,20 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
     case adcontrols::QuanMethod::idWeight_Y2: w = accessor( idRadio_Y2 ); break;
     case adcontrols::QuanMethod::idWeight_Y3: w = accessor( idRadio_Y3 ); break;
     }
-    if ( auto radioButton = dynamic_cast<QRadioButton *>(w) ) {
+    if ( auto radioButton = qobject_cast<QRadioButton *>(w) ) {
         radioButton->setChecked( true );
     }
     if ( m.isInternalStandard() ) {
-        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) )
+        if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioInternalStandard )) )
             radioButton->setChecked( true );
     } else {
-        if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioExternalStandard )) )
+        if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioExternalStandard )) )
             radioButton->setChecked( true );
     }
-    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinLevel))) {
+    if ( auto spin = qobject_cast< QSpinBox *>( accessor(idSpinLevel))) {
         spin->setValue( m.levels());
     }
-    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinReplicates))) {
+    if ( auto spin = qobject_cast< QSpinBox *>( accessor(idSpinReplicates))) {
         spin->setValue( m.replicates() );
     }
     return true;
@@ -225,7 +292,7 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
 {
     ui_accessor accessor( ui );
 
-    if ( auto combo = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
+    if ( auto combo = qobject_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         uint32_t idEq = combo->currentIndex();
         if ( idEq == 0 )
             m.equation( adcontrols::QuanMethod::idCalibOnePoint );
@@ -239,51 +306,54 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
         }
     }
     
-    if ( auto combo = dynamic_cast<QComboBox *>( accessor( idComboDebugLevel ) ) ) {
+    if ( auto combo = qobject_cast<QComboBox *>( accessor( idComboDebugLevel ) ) ) {
         uint32_t debuglevel = combo->currentIndex();
-        m.debug_level( debuglevel * 2 );  // 0, 2, 4
+        m.set_debug_level( debuglevel * 2 );  // 0, 2, 4
     }
-    if ( auto cbx = dynamic_cast<QCheckBox *>(accessor( idCbxSaveOnDataSource )) ) {
+    if ( auto cbx = qobject_cast<QCheckBox *>(accessor( idCbxSaveOnDataSource )) ) {
         bool save = cbx->isChecked();
-        m.save_on_datasource( save );
+        m.set_save_on_datasource( save );
     }
 
-    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioChromatogram )) )
+    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioCounting )) )
         if ( radioButton->isChecked() )
-            m.isChromatogram( true );
-    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInfusion )) ) {
+            m.setIsCounting( true );
+    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioChromatogram )) )
         if ( radioButton->isChecked() )
-            m.isChromatogram( false );
+            m.setIsChromatogram( true );
+    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioInfusion )) ) {
+        if ( radioButton->isChecked() )
+            m.setIsChromatogram( false );
     }
-    if ( auto gbx = dynamic_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
-        m.isWeighting( gbx->isChecked() );
+    if ( auto gbx = qobject_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
+        m.setIsWeighting( gbx->isChecked() );
     }
 
     do {
         static const idItem items[] = { idRadio_C1, idRadio_C2, idRadio_C3, idRadio_Y1, idRadio_Y2, idRadio_Y3 };
         for ( auto& id : items ) {
-            if ( auto radio = dynamic_cast<QRadioButton *>(accessor( id )) ) {
+            if ( auto radio = qobject_cast<QRadioButton *>(accessor( id )) ) {
                 if ( radio->isChecked() ) {
-                    m.weighting( static_cast<adcontrols::QuanMethod::CalibWeighting>(id - items[ 0 ]) );
+                    m.setWeighting( static_cast<adcontrols::QuanMethod::CalibWeighting>(id - items[ 0 ]) );
                     break;
                 }
             }
         }
     } while ( 0 );
 
-    if ( auto radioButton = dynamic_cast<QRadioButton *>(accessor( idRadioInternalStandard )) ) {
+    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioInternalStandard )) ) {
         if ( radioButton->isChecked() )
-            m.isInternalStandard( true );
+            m.setIsInternalStandard( true );
         else
-            m.isInternalStandard( false );
+            m.setIsInternalStandard( false );
     }
 
-    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinLevel))) {
+    if ( auto spin = qobject_cast< QSpinBox *>( accessor(idSpinLevel))) {
         int value = spin->value();
-        m.levels( value );
+        m.setLevels( value );
     }
-    if ( auto spin = dynamic_cast< QSpinBox *>( accessor(idSpinReplicates))) {
-        m.replicates( spin->value() );
+    if ( auto spin = qobject_cast< QSpinBox *>( accessor(idSpinReplicates))) {
+        m.setReplicates( spin->value() );
     }
     return true;
 }
@@ -291,21 +361,14 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
 void
 QuanConfigForm::on_pushButton_clicked()
 {
-    QMessageBox::information(0, "QuanConfigForm", "Sorry, not implemented yet");
 }
 
 void
 QuanConfigForm::on_radioButton_clicked()
 {
-    if ( ui->radioButton->isChecked() )
-        emit onSampleInletChanged( int( adcontrols::QuanSample::Chromatography ) );
-    else
-        emit onSampleInletChanged( int( adcontrols::QuanSample::Infusion ) );
 }
-
 
 void
 QuanConfigForm::on_radioButton_2_clicked()
 {
-    on_radioButton_clicked();
 }

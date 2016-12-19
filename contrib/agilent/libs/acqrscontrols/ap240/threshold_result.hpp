@@ -25,6 +25,8 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include <adportable/counting/threshold_index.hpp>
+#include <adportable/counting/counting_result.hpp>
 #include <memory>
 #include <vector>
 #include <cstdint>
@@ -37,7 +39,7 @@ namespace acqrscontrols {
 
         class waveform;
 
-        class ACQRSCONTROLSSHARED_EXPORT threshold_result {
+        class ACQRSCONTROLSSHARED_EXPORT threshold_result : public adportable::counting::counting_result {
 
             std::shared_ptr< const acqrscontrols::ap240::waveform > data_;
             std::vector< uint32_t > indecies_;

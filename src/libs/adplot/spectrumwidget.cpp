@@ -187,7 +187,6 @@ namespace adplot {
     public:
         impl() : autoAnnotation_( true )
                , isTimeAxis_( false )
-               , autoYScale_( true ) 
                , keepZoomed_( true )
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
@@ -198,7 +197,6 @@ namespace adplot {
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
 
-        std::atomic<bool> autoYScale_;
         std::atomic<bool> keepZoomed_;
         std::atomic<HorizontalAxis> haxis_;
         std::atomic<int> focusedFcn_;
@@ -236,22 +234,14 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
                                                 , impl_( new SpectrumWidget::impl )
 {
     if ( auto zoomer = plot::zoomer() ) {
-        zoomer->autoYScale( impl_->autoYScale_ );
+
+        zoomer->autoYScale( true );
 
         using namespace std::placeholders;
         zoomer->tracker1( std::bind( &SpectrumWidget::impl::tracker1, impl_, _1 ) );
         zoomer->tracker2( std::bind( &SpectrumWidget::impl::tracker2, impl_, _1, _2 ) );
 
-        zoomer->autoYScaleHock( [this]( QRectF& rc ){
-                std::pair<double, double > left, right;
-                auto hasAxis = impl_->scaleY( rc, left, right );
-                if ( hasAxis.second )
-                    setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
-
-                if ( hasAxis.first ) { // yLeft; zoom rect seems be upside down
-                    rc.setCoords( rc.left(), left.first, rc.right(), left.second );
-                }
-            } );
+        zoomer->autoYScaleHock( [this]( QRectF& rc ){ yScaleHock( rc ); } );
 
         connect( zoomer, &QwtPlotZoomer::zoomed, this, &SpectrumWidget::zoomed );
     }
@@ -277,6 +267,38 @@ SpectrumWidget::update_annotation( bool bReplot )
     impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ) );
     if ( bReplot )
         replot();
+}
+
+void
+SpectrumWidget::yScaleHock( QRectF& rc )
+{
+    std::pair<double, double > left, right;
+
+    auto hasAxis = impl_->scaleY( rc, left, right );
+    if ( hasAxis.second ) {
+        if ( ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) )
+            setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+    }
+    
+    if ( hasAxis.first ) 
+        rc.setCoords( rc.left(), left.first, rc.right(), left.second );
+}
+
+void
+SpectrumWidget::yZoom( double xmin, double xmax )
+{
+    std::pair<double, double > left, right;
+    QRectF rc( QPointF( xmin, 0 ), QPointF( xmax, 0 ) );
+
+    auto hasAxis = impl_->scaleY( rc, left, right );
+    if ( hasAxis.second && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
+        setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
+    }
+
+    if ( hasAxis.first && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
+        setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
+    }
+    replot();
 }
 
 void
@@ -498,24 +520,28 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 {
     using spectrumwidget::TraceData;
 
+    if ( !ptr && impl_->traces_.size() >= size_t( idx ) ) {
+        return;
+        // if ptr == nullptr, traces_[ idx ] need to be removed
+    }
+
     while ( int( impl_->traces_.size() ) <= idx ) 
 		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
-
+    
     TraceData& trace = impl_->traces_[ idx ];
 
     auto lock = trace.pSpectrum_;
 
     QRectF rect;
-    trace.setData( *this, ptr, rect, impl_->haxis_, yRight );
+    trace.setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
 
     QRectF baseRect;
     impl_->baseScale( yRight, baseRect );
 
     auto rectIndex = zoomer()->zoomRectIndex();
-    //QRectF z = zoomer()->zoomRect();
-
+    
     if ( !yRight && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
-
+        
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
         
         setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
@@ -544,7 +570,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         }
     }
 
-    if ( ptr->isCentroid() ) {
+    if ( ptr && ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
         update_annotation( false );
     } else {
@@ -683,6 +709,11 @@ TraceData::setData( plot& plot
                     , bool yRight )
 {
     curves_.clear();
+    
+    if ( !ms ) {
+        pSpectrum_.reset();
+        return;
+    }
 
     if ( pSpectrum_ != ms )
         pSpectrum_ = ms;
@@ -835,6 +866,8 @@ TraceData::y_range( double left, double right ) const
             }
         }
     }
+    if ( top < bottom )
+        return std::make_pair( 0.0, 1.0 );
     return std::make_pair<>(bottom, top);
 }
 
@@ -1009,3 +1042,4 @@ SpectrumWidget::impl::tracker2( const QPointF& p1, const QPointF& pos )
             return QwtText( (boost::format( "<i>m/z=</i>%.4f (&delta;=%gDa)" ) % pos.x() % d).str().c_str(), QwtText::RichText );
     }
 }
+

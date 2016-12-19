@@ -85,8 +85,8 @@ namespace u5303a { namespace Instrument {
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eStop ); // 9
                     else if ( reply == "Running" )
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
-                }
-                ADTRACE() << "u5303a reply: " << method << " = " << reply;
+                } else
+                    ADTRACE() << "Unhandled u5303a reply: " << method << " = " << reply;
             }
             
             bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& next ) {

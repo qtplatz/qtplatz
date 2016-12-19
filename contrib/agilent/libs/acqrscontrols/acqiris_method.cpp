@@ -86,19 +86,19 @@ namespace aqdrv4 {
         }
     };
 
-    template<> void acqiris_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    template<> DECL_EXPORT void acqiris_method::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         acqiris_method_archive<>().serialize( ar, *this, version );
     }
-    template<> void acqiris_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    template<> DECL_EXPORT void acqiris_method::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         acqiris_method_archive<>().serialize( ar, *this, version );
     }    
-    template<> void acqiris_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    template<> DECL_EXPORT void acqiris_method::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         acqiris_method_archive<>().serialize( ar, *this, version );
     }
-    template<> void acqiris_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    template<> DECL_EXPORT void acqiris_method::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         acqiris_method_archive<>().serialize( ar, *this, version );
     }
@@ -155,6 +155,7 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( _.fullScale );
             ar & BOOST_SERIALIZATION_NVP( _.offset );
             ar & BOOST_SERIALIZATION_NVP( _.coupling );
+            ar & BOOST_SERIALIZATION_NVP( _.bandwidth );
             ar & BOOST_SERIALIZATION_NVP( _.invertData );
             ar & BOOST_SERIALIZATION_NVP( _.autoScale );
             if ( version >= 2 )

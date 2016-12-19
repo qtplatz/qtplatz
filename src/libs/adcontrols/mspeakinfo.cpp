@@ -253,10 +253,11 @@ MSPeakInfo::find_range( const MSPeakInfo& pki, double left, double right, bool i
 MSPeakInfo::const_iterator
 MSPeakInfo::max_element( const MSPeakInfo& pki, double left, double right, bool isTime )
 {
-    auto pair = find_range( pki, left, right, isTime );
+    if ( pki.size() > 0 ) {
+        auto pair = find_range( pki, left, right, isTime );
 
-    if ( pair.first != pki.end() )
-        return std::max_element( pair.first, pair.second, []( const MSPeakInfoItem& a, const MSPeakInfoItem& b ){ return a.height() < b.height(); } );
-
+        if ( pair.first != pki.end() )
+            return std::max_element( pair.first, pair.second, []( const MSPeakInfoItem& a, const MSPeakInfoItem& b ){ return a.height() < b.height(); } );
+    }
     return pki.end();
 }

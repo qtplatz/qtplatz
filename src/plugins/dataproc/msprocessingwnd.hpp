@@ -44,6 +44,10 @@ namespace adcontrols {
     enum hor_axis: unsigned int;
 }
 
+namespace adplot {
+    class plot;
+}
+
 namespace portfolio {
     class Folium;
 }
@@ -62,6 +66,7 @@ namespace dataproc {
         explicit MSProcessingWnd(QWidget *parent = 0);
 
         void draw_profile( const std::wstring& id, std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw_histogram( portfolio::Folium&, std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw( std::shared_ptr< adcontrols::Chromatogram >&, int idx );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
@@ -101,6 +106,7 @@ namespace dataproc {
         std::shared_ptr<MSProcessingWndImpl> pImpl_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProcessedSpectrum_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileSpectrum_;
+        std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > pProfileHistogram_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::MSPeakInfo > > pkinfo_;
         std::pair< std::wstring, std::weak_ptr< adcontrols::Targeting > > targeting_;
 
@@ -124,6 +130,9 @@ namespace dataproc {
         void frequency_analysis();
         void save_image_file();
         void make_chromatogram( const adcontrols::DataReader *, adcontrols::hor_axis, double, double );
+        void make_chromatograms( std::shared_ptr< const adcontrols::MassSpectrum >, adcontrols::hor_axis, double, double );
+        void autoYScale( adplot::plot * );
+        void autoYZoom( adplot::plot *, double, double );
 
     signals:
         void dataChanged( const QString& foliumGuid, const QString& attrGuid, int idx, int fcn );

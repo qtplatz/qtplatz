@@ -41,6 +41,7 @@ namespace adcontrols {
         typedef boost::variant< bool, uint32_t, double, std::string > custom_type;
         
         class ADCONTROLSSHARED_EXPORT value_type {
+        public:
             bool enable_;
             uint32_t flags_;
             double mass_;
@@ -51,7 +52,6 @@ namespace adcontrols {
             std::string smiles_;
             std::wstring description_;
             std::vector < std::pair< std::string, custom_type > > customValues_;
-
         public:
             bool& enable() { return enable_; }
             uint32_t& flags() { return flags_; }
@@ -122,6 +122,4 @@ namespace adcontrols {
 #endif    
 
 }
-
-
 

@@ -313,14 +313,14 @@ MainWindow::onInitialUpdate()
         connect( widget, &acqrswidgets::AcqirisWidget::dataChanged, this, []( const acqrswidgets::AcqirisWidget * w, int subType ){
                 auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
                 w->getContents( m );
-                document::instance()->handleValueChanged( m, acqrscontrols::aqdrv4::SubMethodType( subType ) );
+                document::instance()->prepare_for_run( m, acqrscontrols::aqdrv4::SubMethodType( subType ) );
             });
 
         // checkState for ch1, ch2
         connect( widget, &acqrswidgets::AcqirisWidget::stateChanged, this, [widget]( const QModelIndex& index , bool checked ){
                 auto m = std::make_shared< acqrscontrols::aqdrv4::acqiris_method >();
                 widget->getContents( m );
-                document::instance()->handleValueChanged( m, acqrscontrols::aqdrv4::SubMethodType( 0 ) );
+                document::instance()->prepare_for_run( m, acqrscontrols::aqdrv4::SubMethodType( 0 ) );
             });        
 
         connect( document::instance(), &document::on_acqiris_method_adapted, this, [this,widget](){

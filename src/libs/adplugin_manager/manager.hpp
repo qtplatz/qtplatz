@@ -71,6 +71,8 @@ namespace adplugin {
 
         std::vector< plugin_ptr > select_plugins( const char * regex );
 
+        static void standalone_initialize();
+
     private:
         friend std::unique_ptr< manager >::deleter_type;
     };

@@ -32,8 +32,11 @@
 
 namespace adcontrols {
 
-    class CountingPeak;
+    struct CountingPeak;
     class CountingData;
+#if defined _MSC_VER
+    template class ADCONTROLSSHARED_EXPORT std::vector< adcontrols::CountingPeak >;
+#endif
 
     class ADCONTROLSSHARED_EXPORT CountingHistogram {
     public:
@@ -48,7 +51,7 @@ namespace adcontrols {
         double xIncrement() const;
 
         typedef std::vector< std::pair< double, std::vector< adcontrols::CountingPeak > > >::const_iterator const_iterator;
-        typedef std::vector< std::pair< double, std::vector< adcontrols::CountingPeak > > >::const_iterator iterator;
+        typedef std::vector< std::pair< double, std::vector< adcontrols::CountingPeak > > >::iterator iterator;
 
         const_iterator begin() const;
         const_iterator end() const;

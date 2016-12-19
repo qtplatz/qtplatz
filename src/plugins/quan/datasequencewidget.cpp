@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,24 +32,39 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/icore.h>
-
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adlog/logger.hpp>
+#include <adplot/chartview.hpp>
+#include <adplot/xyseriesdata.hpp>
+#include <adprocessor/dataprocessor.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
-
+#include <adfs/sqlite.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
 #include <boost/format.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <boost/variant.hpp>
 #include <QAction>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QToolButton>
 #include <QFileDialog>
@@ -61,33 +76,33 @@ namespace quan {
         template<typename X> void setData( QWidget * w, const X& x ) {
             if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
                 p->setData( x );
-            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+            else if ( auto p = w->findChild<DataSequenceTable *>() )
                 p->setData( x );
         }
         template<typename X> bool getContents( QWidget * w, X& x ) {
             if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
                 return p->getContents( x );
-            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+            else if ( auto p = w->findChild<DataSequenceTable *>() )
                 return p->getContents( x );
             return false;
         }
         template<typename X> bool setContents( QWidget * w, const X& x ) {
             if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
                 return p->setContents( x );
-            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+            else if ( auto p = w->findChild<DataSequenceTable *>() )
                 return p->setContents( x );
             return false;
         }
         void handleLevelChanged( QWidget * w, int x ) {
             if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
                 return p->handleLevelChanged( x );
-            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+            else if ( auto p = w->findChild<DataSequenceTable *>() )
                 return p->handleLevelChanged( x );
         }
         void handleReplicatesChanged( QWidget * w, int x ) {
             if ( auto p = qobject_cast<DataSequenceTree *>( w ) )
                 return p->handleReplicatesChanged( x );
-            else if ( auto p = qobject_cast<DataSequenceTable *>( w ) )
+            else if ( auto p = w->findChild<DataSequenceTable *>() )
                 return p->handleReplicatesChanged( x );
         }
     };
@@ -116,13 +131,21 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
     const int row = layout_->rowCount();
     layout_->addWidget( dataSelectionBar(), row, 0 );
 
-    // Chromatography 
-    stack_->addWidget( dataSequenceChromatography_.get() );
+    // Chromatography | Counting
+    if ( QSplitter * splitter = new QSplitter ) {
+        splitter->setOrientation( Qt::Horizontal );
+        splitter->addWidget( dataSequenceChromatography_.get() );
+        if ( auto chartView = new adplot::ChartView )
+            splitter->addWidget( chartView );
+        stack_->addWidget( splitter );
+    }
 
     // Infusion
     stack_->addWidget( dataSequenceInfusion_.get() );
 
     layout_->addWidget( stack_.get() );
+
+    connect( dataSequenceChromatography_.get(), &DataSequenceTable::plot, this, &DataSequenceWidget::handlePlot );
 
     QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
 }
@@ -150,23 +173,6 @@ DataSequenceWidget::dataSelectionBar()
         // [DATA OPEN]|[SAVE][...line edit...][EXEC]
 
         auto label = new QLabel;
-        // label->setStyleSheet( "QLabel { color : blue; }" );
-        label->setText( " Sequence" );
-        toolBarLayout->addWidget( label );
-
-        if ( auto button = new QToolButton ) {
-            button->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_SEQUENCE_OPEN )->action() );
-            button->setToolTip( tr("Open Sequence...") );
-            toolBarLayout->addWidget( button );
-        }
-        if ( auto button = new QToolButton ) {
-            button->setDefaultAction( Core::ActionManager::instance()->command( Constants::QUAN_SEQUENCE_SAVE )->action() );
-            button->setToolTip( tr("Save Sequence...") );
-            toolBarLayout->addWidget( button );
-        }
-
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-
         auto button = new QToolButton;
         button->setIcon( QIcon( ":/quan/images/fileopen.png" ) );
         button->setToolTip( tr("Open data files...") );
@@ -175,7 +181,7 @@ DataSequenceWidget::dataSelectionBar()
         toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         auto label2 = new QLabel;
-        label2->setText( tr( "Data Save in:" ) );
+        label2->setText( tr( "Results Save in:" ) );
         toolBarLayout->addWidget( label2 );
 
         auto edit = new QLineEdit;
@@ -303,10 +309,42 @@ DataSequenceWidget::handleSampleInletChanged( int inlet )
 {
     if ( adcontrols::QuanSample::Chromatography == inlet ) {
         stack_->setCurrentIndex( 0 );
+        if ( auto table = stack_->currentWidget()->findChild< DataSequenceTable * >() )
+            table->setSampleInlet( inlet );
+    } else if ( adcontrols::QuanSample::Counting == inlet ) {
+        stack_->setCurrentIndex( 0 );
+        if ( auto table = stack_->currentWidget()->findChild< DataSequenceTable * >() )
+            table->setSampleInlet( inlet );        
     } else {
-        stack_->setCurrentIndex( 1 );
+        stack_->setCurrentIndex( 1 ); // Infusion; currently disabled due to a show stopper bug
     }
     datasequence_type().handleLevelChanged( stack_->currentWidget(), int(levels_) );
-    datasequence_type().handleReplicatesChanged( stack_->currentWidget(), int(replicates_) );    
+    datasequence_type().handleReplicatesChanged( stack_->currentWidget(), int(replicates_) );
 }
 
+void
+DataSequenceWidget::handlePlot( const QString& file )
+{
+    boost::filesystem::path path( file.toStdString() );
+
+    std::wstring errmsg;
+    
+    if ( boost::filesystem::exists( path ) ) {
+        
+        auto dp = std::make_shared< adprocessor::dataprocessor >();
+
+        if ( dp->open( path.wstring(), errmsg ) ) {
+
+            if ( auto hist = dp->readSpectrumFromTimeCount() ) {
+
+                if ( auto chart = findChild< adplot::ChartView * >() ) {
+                    auto data = new XYSeriesData();
+                    for ( size_t i = 0; i < hist->size(); ++i )
+                        (*data) << QPointF( hist->getMass( i ), hist->getIntensity( i ) );
+                    chart->clear();
+                    chart->setData( data, "Histogram", "m/z", "count(*)", "Line" );
+                }
+            }
+        }
+    }
+}

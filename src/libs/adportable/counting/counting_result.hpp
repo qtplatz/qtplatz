@@ -25,6 +25,8 @@
 #pragma once
 
 #include "threshold_index.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 #include <vector>
 
 namespace adportable {
@@ -39,8 +41,9 @@ namespace adportable {
                               , threshold_level_( 0 ) {
             }
             
-            counting_result( const counting_result& t ) : indecies2_( t.indecies2_ )
-                                                        , threshold_level_( t.threshold_level_ ){
+            counting_result( const counting_result& t ) : algo_( t.algo_ )
+                                                        , threshold_level_( t.threshold_level_ )
+                                                        , indecies2_( t.indecies2_ ){
             }
 
             inline std::vector< adportable::counting::threshold_index >& indecies2() {
@@ -68,9 +71,19 @@ namespace adportable {
             }
 
         protected:
-            std::vector< adportable::counting::threshold_index > indecies2_;
             enum algo algo_;
             double threshold_level_;
+            std::vector< adportable::counting::threshold_index > indecies2_;
+        private:
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+                ar & BOOST_SERIALIZATION_NVP( algo_ );
+                ar & BOOST_SERIALIZATION_NVP( threshold_level_ );
+                ar & BOOST_SERIALIZATION_NVP( indecies2_ );
+            }
         };
     }
 }
+
+BOOST_CLASS_VERSION( adportable::counting::counting_result, 1 )

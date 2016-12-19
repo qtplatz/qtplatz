@@ -37,7 +37,7 @@ namespace adcontrols {
     public:
         impl( idTarget id ) : idTarget_( id )
                             , toleranceMethod_( idToleranceDaltons )
-                            , findAlgorithm_( idFindClosest )
+                            , findAlgorithm_( idFindLargest )
                             , tolerancePpm_( 10.0 )
                             , toleranceDaltons_( 0.010 ) // 10mDa
                             , chargeStateMin_( 1 )

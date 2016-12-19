@@ -24,7 +24,7 @@
 
 #include "mscalibrationwnd.hpp"
 #include "mainwindow.hpp"
-#include "dataproc_document.hpp"
+#include "document.hpp"
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"
 #include "qtwidgets_name.hpp"
@@ -207,7 +207,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     using portfolio::Folium;
     using portfolio::Folio;
 	
-    portfolio::Folder folder = folium.getParentFolder();
+    portfolio::Folder folder = folium.parentFolder();
     
     if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() )
         pImpl_->restore_state( *centroid );

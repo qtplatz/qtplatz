@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "doceditor.hpp"
-#include "docbrowser.hpp"
 #include "doctree.hpp"
 #include "docedit.hpp"
 #include "document.hpp"
@@ -50,10 +49,11 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QPrintPreviewDialog>
+#include <QSettings>
 #include <QSplitter>
 #include <QStringListModel>
 #include <QStackedWidget>
-#include <QtConcurrent>
+//#include <QtConcurrent>
 #include <QTextCodec>
 #include <QTextEdit>
 #include <QTextBrowser>
@@ -83,7 +83,6 @@ docEditor::~docEditor()
 docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
                                         , tree_( new docTree )
                                         , text_( new docEdit )
-                                        , browser_( new docBrowser )
                                         , dirty_( false )
                                         , comboStyle( 0 )
                                         , comboFont( 0 )
@@ -97,7 +96,7 @@ docEditor::docEditor( QWidget *parent ) : QMainWindow( parent )
     setToolButtonStyle( Qt::ToolButtonFollowStyle );
 
     stacked_->addWidget( text_.get() );
-    stacked_->addWidget( browser_.get() );
+    // stacked_->addWidget( browser_.get() );
 
     auto widget = new QWidget;
     setCentralWidget( widget );
@@ -174,7 +173,7 @@ docEditor::setOutput( const QString& output, const QString& method )
 {
     (void)method;
     qtwrapper::waitCursor wait;
-    browser_->setOutput( output );
+    // browser_->setOutput( output );
     stacked_->setCurrentIndex( 1 );
 }
 
@@ -182,7 +181,7 @@ void
 docEditor::setOutput( const QUrl& url )
 {
     qtwrapper::waitCursor wait;
-    browser_->setOutput( url );
+    // browser_->setOutput( url );
     stacked_->setCurrentIndex( 1 );
 }
 

@@ -2,5 +2,5 @@
 
 if [ "$1" = "upgrade" -o "$1" = "remove" ]; then
     echo removing...
-    update-rc.d -f acqiris remove
+    update-rc.d -f acqirisd remove
 fi

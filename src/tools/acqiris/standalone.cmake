@@ -7,15 +7,23 @@ else()
   set( build_type "release" )
 endif()
 
-find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
-  "${QTPLATZ_BUILD_DIR}"
-  "${CMAKE_BINARY_DIR}/../qtplatz.netbeans"
-  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
-  )
+find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS "${QTPLATZ_BUILD_DIR}" )
 
-if ( NOT qtplatz_config )
-  message( FATAL_ERROR "qtplatz-config.cmake can not be found" )
+if ( qtplatz_config )
+  include( ${qtplatz_config} )
 endif()
 
-include( ${qtplatz_config} )
+include_directories( ${CMAKE_SOURCE_DIR}/../../libs )                      # qtplatz/src/libs
+include_directories( ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs )   # qtplatz/contrib/agilent/libs
 
+set( standalone_additional_sources
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_client.cpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_client.hpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_method.cpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_method.hpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_protocol.cpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_protocol.hpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_waveform.cpp
+  ${CMAKE_SOURCE_DIR}/../../../contrib/agilent/libs/acqrscontrols/acqiris_waveform.hpp
+  )
+  

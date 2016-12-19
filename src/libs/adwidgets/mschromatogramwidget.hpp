@@ -27,9 +27,11 @@
 
 #include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
+#include <memory>
 #include "adwidgets_global.hpp"
 
 class QMenu;
+class QStandardItemModel;
 
 namespace adcontrols { class MSChromatogramMethod; }
 
@@ -37,6 +39,7 @@ namespace adwidgets {
 
     class MSChromatogramForm;
     class TargetingTable;
+    class MolTableView;
 
     class ADWIDGETSSHARED_EXPORT MSChromatogramWidget : public QWidget
                                                       , public adplugin::LifeCycle {
@@ -62,6 +65,7 @@ namespace adwidgets {
         //
     private:
         void handleContextMenu( QMenu&, const QPoint& );
+        void setup( MolTableView * );
         
     signals:
         void triggerProcess( const QString& );
@@ -70,6 +74,11 @@ namespace adwidgets {
 
     private slots:
         void run();
+        void addRow();
+        void handleDataChanged( const QModelIndex&, const QModelIndex& );
+    private:
+        std::unique_ptr< QStandardItemModel > model_;
+        struct helper;
     };
 
 }

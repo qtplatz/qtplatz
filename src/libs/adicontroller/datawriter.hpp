@@ -35,6 +35,7 @@
 #include <compiler/pragma_warning.hpp>
 
 namespace boost { namespace uuids { struct uuid; } }
+namespace adfs { class filesystem; }
 
 namespace adicontroller {
 
@@ -86,7 +87,11 @@ namespace adicontroller {
             uint32_t events() const;    // well known events
             size_t xdata( std::string& ) const;
             size_t xmeta( std::string& ) const;
-        private:
+
+            // specific data write method -- if write returns true, skip xdata/xmada data write
+            virtual bool write( adfs::filesystem& ) const { return false; }
+            
+        protected:
             pragma_msvc_warning_push_disable_4251
             std::shared_ptr< DataAccess > accessor_;
             pragma_msvc_warning_pop

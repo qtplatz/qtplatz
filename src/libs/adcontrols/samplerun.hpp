@@ -38,12 +38,10 @@ namespace boost {
 namespace adcontrols {
 
     class idAudit;
-#if defined _MSC_VER
-    class SampleRun;
-    ADCONTROLSSHARED_TEMPLATE_EXPORT template class ADCONTROLSSHARED_EXPORT std::weak_ptr < SampleRun > ;
-#endif
 
-    class ADCONTROLSSHARED_EXPORT SampleRun : public std::enable_shared_from_this< SampleRun > {
+    // SampleRun class is corresponding to a sequence
+
+    class ADCONTROLSSHARED_EXPORT SampleRun { // : public std::enable_shared_from_this< SampleRun > {
     public:
         ~SampleRun();
         SampleRun();
@@ -65,16 +63,18 @@ namespace adcontrols {
         void setDataDirectory( const std::wstring& );
 
         const wchar_t * filePrefix() const; // RUN_0001
-        void filePrefix( const wchar_t * file );
         void setFilePrefix( const std::wstring& );
 
         const char * description() const;
         void description( const char * );
 
+        void resetRunCount();
         size_t runCount() const;
-        size_t operator ++( );
+        size_t operator ++();
 
-        std::pair< std::wstring, size_t > findNextRunName() const;
+        //std::pair< std::wstring, size_t > findNextRunName() const;
+        std::wstring runname() const;
+        std::wstring filename( const wchar_t * extention = L".adfs" ) const;
 
         static bool archive( std::ostream&, const SampleRun& );
         static bool restore( std::istream&, SampleRun& );
@@ -82,10 +82,8 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, SampleRun& );
 
     private:
-        pragma_msvc_warning_push_disable_4251
         class impl;
         std::unique_ptr< impl > impl_;
-        pragma_msvc_warning_pop
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );

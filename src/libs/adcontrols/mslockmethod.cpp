@@ -65,7 +65,8 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(_.toleranceDa_);
                 ar & BOOST_SERIALIZATION_NVP(_.tolerancePpm_);
                 ar & BOOST_SERIALIZATION_NVP(_.peakIntensityThreshold_);
-                ar & BOOST_SERIALIZATION_NVP( *_.molecules_ );
+                moltable& molecules = *_.molecules_;
+                ar & BOOST_SERIALIZATION_NVP( molecules );
             }
         }
     };

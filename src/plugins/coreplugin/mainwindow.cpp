@@ -27,6 +27,7 @@
 **
 ****************************************************************************/
 
+#include <adportable/debug.hpp>
 #include "mainwindow.h"
 #include "icore.h"
 #include "coreconstants.h"
@@ -1144,6 +1145,7 @@ bool MainWindow::showWarningWithOptions(const QString &title,
 
 void MainWindow::restoreWindowState()
 {
+    ADDEBUG() << "restoreWindowState()";
     QSettings *settings = PluginManager::settings();
     settings->beginGroup(QLatin1String(settingsGroup));
     if (!restoreGeometry(settings->value(QLatin1String(windowGeometryKey)).toByteArray()))
@@ -1152,6 +1154,7 @@ void MainWindow::restoreWindowState()
     settings->endGroup();
     show();
     m_statusBarManager->restoreSettings();
+    ADDEBUG() << "restoreWindowState() completed.";
 }
 
 void MainWindow::newItemDialogFinished()

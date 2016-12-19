@@ -4,7 +4,6 @@ cmake_policy( SET CMP0028 NEW )
 project( dataproc )
 
 set( PROVIDER MS-Cheminformatics )
-
 find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network ) 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -31,8 +30,12 @@ configure_file(
 execute_process( COMMAND ${XMLPATTERNS} -no-format 
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
+
+if ( NOT Boost_FOUND OR WIN32 )
+  find_package( Boost COMPONENTS system )
+endif()
 
 find_package( qwt )
 
@@ -59,7 +62,8 @@ add_library( ${PROJECT_NAME} MODULE
   dataprocplugin.cpp
   mode.cpp
   mainwindow.cpp
-  dataproc_document.cpp
+  document.cpp
+  document.hpp
   navigationdelegate.cpp
   navigationwidgetfactory.cpp
   navigationwidget.cpp
@@ -97,7 +101,6 @@ add_library( ${PROJECT_NAME} MODULE
   dataprocconstants.hpp
   mode.hpp
   mainwindow.hpp
-  dataproc_document.hpp
   navigationwidgetfactory.hpp
   navigationwidget.hpp
   dataprocessor.hpp
@@ -135,24 +138,25 @@ add_library( ${PROJECT_NAME} MODULE
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adcontrols
+  adextension
+  adfs
+  adio
+  adlog
   adplot
   adplugin
-  adcontrols
-  adlog
-  adutils
-  adwidgets
-  portfolio
-  qtwrapper
-  adfs
-  chromatogr
-  adprot
-  adextension
   adportable
   adprocessor
+  adprot
+  adutils
+  adwidgets
+  chromatogr
+  extensionsystem
+  portfolio
+  qtwrapper
+  utils
   xmlparser
   Core
-  extensionsystem
-  utils
   Qt5::Core
   ${Boost_LIBRARIES}
 )

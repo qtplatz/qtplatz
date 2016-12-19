@@ -54,7 +54,7 @@ namespace dataproc {
     class Dataprocessor;
     class iSequenceImpl;
     class AboutDlg;
-    class dataproc_document;
+    class document;
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT

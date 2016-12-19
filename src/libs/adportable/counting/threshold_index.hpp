@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 #include <cstdint>
 
 namespace adportable {
@@ -46,7 +48,18 @@ namespace adportable {
                 : first( _first ), second( _second ), apex( _apex )
                 , value( _value ), level( _level ) {
             }
+        private:
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize( Archive& ar, const unsigned int version ) {
+                ar & BOOST_SERIALIZATION_NVP( first );
+                ar & BOOST_SERIALIZATION_NVP( second );
+                ar & BOOST_SERIALIZATION_NVP( apex );
+                ar & BOOST_SERIALIZATION_NVP( value );
+                ar & BOOST_SERIALIZATION_NVP( level );
+            }
         };
-
     }
 }
+
+BOOST_CLASS_VERSION( adportable::counting::threshold_index, 1 )
