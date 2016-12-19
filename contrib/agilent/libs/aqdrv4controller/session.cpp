@@ -206,6 +206,7 @@ Session::initialize()
                 task::instance()->connect( remote_server_, remote_port_ );
             });
     }
+    return true;
 }
 
 bool

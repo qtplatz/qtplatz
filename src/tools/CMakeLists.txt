@@ -7,6 +7,8 @@ if ( OpenCV_FOUND )
   add_subdirectory (counting2d)
 endif()
 
-add_subdirectory (acqiris)
+if ( NOT WIN32 )
+  add_subdirectory (acqiris)
+endif()
 
 

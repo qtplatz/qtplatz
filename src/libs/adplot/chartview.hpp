@@ -26,6 +26,7 @@
 
 #include <qwt_plot.h>
 #include <memory>
+#include "adplot_global.hpp"
 
 class XYSeriesData;
 class QwtPlotCurve;
@@ -35,7 +36,7 @@ class QAbstractItemModel;
 
 namespace adplot {
 
-    class ChartView : public QwtPlot {
+    class ADPLOTSHARED_EXPORT ChartView : public QwtPlot {
 
         Q_OBJECT
 

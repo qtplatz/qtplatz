@@ -7,9 +7,10 @@ if ( WIN32 )
   set( ACQRSDIR   "C:/Program Files (x86)/Agilent/Acqiris" )
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
 
-  if ( AqDrv4_INCLUDE_DIR )
+  find_library( _lib NAME AqDrv4 PATHS "${ACQRSDIR}/bin" )
+  if ( _lib )
     set( AqDrv4_FOUND TRUE )
-    set( AqDrv4_LIBRARIES AqDrv4 )
+    set( AqDrv4_LIBRARIES ${_lib} )
   endif()
 
 elseif( APPLE )

@@ -31,7 +31,7 @@ add_definitions( -D_LINUX -D_ACQIRIS -DVERSION="${VERSION}")
 
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 find_package( qwt )
-if ( NOT Boost_FOUND )
+if ( NOT Boost_FOUND OR WIN32 )
   find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
 endif()
 find_package( Threads REQUIRED )
@@ -48,6 +48,10 @@ if ( WIN32 )
   set( ACQRSDIR "C:/Program Files (x86)/Agilent/Acqiris" )
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
   include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
+  message( STATUS "#########################################################")
+  message( STATUS "AqDrv4_LIBRARY : " ${AqDrv4_LIBRARY} )
+  message( STATUS "AqDrv4_LIBRARIES : " ${AqDrv4_LIBRARIES} )
+  message( STATUS "#########################################################")  
 endif()
 
 if ( APPLE )
@@ -60,6 +64,7 @@ if ( APPLE )
   set( aqdrv4_sources )  
 else() #Linux
   if ( AqDrv4_LIBRARY )
+    message( STATUS "############# HAVE AqDrv4 ######################")  
     add_definitions( -DHAVE_AqDrv4=1 )
     set( AqDrv4_LIBRARIES ${AqDrv4_LIBRARY} )
     set( aqdrv4_sources
@@ -126,7 +131,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Qt5::Widgets
   Qt5::Svg
   Threads::Threads
-  dl
+  ${CMAKE_DL_LIBS}
   )
 
 install( TARGETS ${PROJECT_NAME} 

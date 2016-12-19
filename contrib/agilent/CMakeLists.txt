@@ -1,17 +1,21 @@
 
 if ( WIN32 )
-  # set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
+
   set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
   find_path( AgMD2_INCLUDE_DIR NAME AgMD2.h PATHS ${IVIROOTDIR}/include )
-
+  if ( AgMD2_INCLUDE_DIR )
+    include_directories(  ${AgMD2_INCLUDE_DIR} )
+  endif()
+  
   set( ACQRSDIR   "C:/Program Files (x86)/Agilent/Acqiris" )
   find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
 
-  if ( NOT AgMD2_INCLUDE_DIR )
-    set( AgMD2_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
+  if ( AqDrv4_INCLUDE_DIR )
+    include_directories( ${AqDrv4_INCLUDE_DIR} )
+  else()
+    include_directories( ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
+    unset( AqDrv4_LIBRARY )
   endif()
-
-  include_directories( ${AgMD2_INCLUDE_DIR} )
 
 elseif( APPLE )
   
