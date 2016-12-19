@@ -86,7 +86,7 @@ namespace aqdrv4 {
     public:
         acqiris_protocol();
 
-        inline class preamble& preamble()   { return preamble_; }
+        inline struct preamble& preamble()   { return preamble_; }
         inline std::string& payload() { return payload_; }
 
         template< typename T >
@@ -100,7 +100,7 @@ namespace aqdrv4 {
         std::vector< boost::asio::const_buffer > to_buffers();
 
     private:
-        class preamble preamble_;
+        struct preamble preamble_;
         std::string payload_;
     };
 

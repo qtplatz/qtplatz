@@ -12,7 +12,7 @@ link_directories( ${Boost_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib )
 
 add_definitions( -DEVENTBROKER_LIBRARY )
 
-if ( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
+if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" )
   set( _libs pthread )
 endif()
 

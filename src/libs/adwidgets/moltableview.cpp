@@ -304,6 +304,7 @@ namespace adwidgets {
             } else {
                 return QStyledItemDelegate::editorEvent( event, model, option, index );
             }
+            return false;
         }
         
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {

@@ -8,29 +8,27 @@ if ( WIN32 )
 
   find_package( Boost QUIET )
   
-  set( _rdkit "C:/RDKit" )
-  if ( MSVC_VERSION EQUAL 1900 )
-    set( _vc "vc140" )
-  elseif ( MSVC_VERSION EQUAL 1800 )
-    set( _vc "vc120" )
-  endif()
-  set( _rdkit_libdirs 
+  set( _rdkit_libdirs
     "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
-    "${_rdkit}/lib${__arch}_${_vc}_boost-${Boost_MAJOR_VERSION}_${Boost_MINOR_VERSION}" #ex: C:/RDKit/lib_vc140_boost-1_59
-    "${_rdkit}/lib${__arch}_${_vc}"
-    "${_rdkit}/lib_${_vc}"
-    "${_rdkit}/lib"
+    "C:/RDKit/lib"
     )
-  set( _rdkit_incdirs "${_rdkit}/include/rdkit" )
-  find_package( rdkit CONFIG HINTS ${_rdkit_libdirs} ) # find ex. C:/RDKit/lib_vc140_boost-1_59/rdkit-config.cmake
-  set ( RDKit_LIBRARY_DIRS ${_dir} )  
-  
+
 else()
-  set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "/usr/local/lib" )
-  set( _rdkit_incdirs
-    "${CMAKE_SOURCE_DIR}/../rdkit/Code" "${RDBASE}/Code"
-    "${CMAKE_SOURCE_DIR}/../rdkit/External" "${RDBASE}/External" "/usr/local/include/rdkit" )
+
+  set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "$ENV{RDBASE}/lib" "/usr/local/lib" )
+
 endif()
+
+if ( NOT RDBASE AND $ENV{RDBASE} )
+  set( RDBASE, $ENV{RDBASE} )
+endif()
+
+set( _rdkit_incdirs
+  "${CMAKE_SOURCE_DIR}/../rdkit/Code"
+  "${CMAKE_SOURCE_DIR}/../rdkit/External"
+  "${RDBASE}/Code"  
+  "${RDBASE}/External"
+  "/usr/local/include/rdkit" )
 
 if ( NOT rdkit_FOUND )
 
@@ -59,15 +57,15 @@ if ( NOT rdkit_FOUND )
     return()
   endif()
 
+  # replace RDBASE
   get_filename_component ( RDBASE ${_libdir} DIRECTORY )
-  #message( "##### RDBASE : " ${RDBASE} )
-  #message( "##### _fileparsers_lib: " ${_fileparsers_lib} )
 
   set ( rdkit_FOUND TRUE )
   set ( RDKit_INCLUDE_DIRS ${_include_dir} )
   if ( _inchi_inc_dir )
     list( APPEND RDKit_INCLUDE_DIRS ${_inchi_inc_dir} )
   endif()
+
   set ( RDKit_LIBRARY_DIRS ${_libdir} )
 
   ## MolDraw2DSVG.h might be located on /usr/local/include/rdkit/, or $RDBASE/Code/GraphMol/MolDraw2D/
