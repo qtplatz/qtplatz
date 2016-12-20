@@ -146,6 +146,8 @@ if ( WIN32 )
     ${QTPLATZ_SOURCE_DIR}/makefile.nmake.in
     ${CMAKE_BINARY_DIR}/makefile @ONLY )
 
+  file( WRITE "${CMAKE_BINARY_DIR}/build-package.bat" "msbuild /m:4 /p:Configuration=Release PACKAGE.vcxproj" )
+
   if ( DEBUG_SYMBOL )
     set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
     set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
