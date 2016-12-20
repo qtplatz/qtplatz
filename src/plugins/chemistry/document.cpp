@@ -306,7 +306,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
                         sql.addBindValue( csid );
                         sql.addBindValue( QString::fromStdString( formula ) );
                         sql.addBindValue( mass );
-                        sql.addBindValue( QByteArray( svg.data(), svg.size() ) );
+                        sql.addBindValue( QByteArray( svg.data(), int( svg.size() ) ) );
                         sql.addBindValue( QString::fromStdString( smiles ) ); // utf8 on db
                         sql.addBindValue( QString::fromStdString( InChIKey ) );
                         sql.addBindValue( QString::fromStdString( InChI ) );

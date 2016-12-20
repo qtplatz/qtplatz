@@ -1577,7 +1577,7 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
     size_t n = 1;
     while ( size >> n )
         ++n;
-    size_t N = 1 << ( n - 1 );
+    size_t N = 1LL << ( n - 1 );
 
     std::vector< std::complex< double > > spc( N ), fft( N );
 	const double * intens = ms.getIntensityArray() + range.first;

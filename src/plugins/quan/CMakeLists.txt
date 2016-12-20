@@ -151,7 +151,6 @@ target_link_libraries(
   adutils
   adextension
   adfs
-  adplot
   adprot
   adportable
   adprocessor
@@ -163,6 +162,8 @@ target_link_libraries(
   qtwrapper
   xmlparser
   extensionsystem
+  ${QWT_LIBRARIES}
+  adplot
   ${Boost_LIBRARIES}
   )
   

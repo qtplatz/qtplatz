@@ -5,11 +5,7 @@ if ( qwt_FOUND )
 endif()
 
 if ( WIN32 )
-  if ( ${MSVC_VERSION} MATCHES "1900" ) # VS2015
-    find_path( qwt_DIR NAMES include/qwt.h HINTS C:/qwt-6.1.4-svn C:/Qwt-6.1.3-${__arch}-vc14.0 C:/Qwt-6.1.3-svn_vc14.0 $ENV{QWT} )
-  else()
-    find_path( qwt_DIR NAMES include/qwt.h HINTS C:/qwt-6.1.4-svn C:/Qwt-6.1.3-${__arch}-vc12.0 C:/Qwt-6.1.3-svn_vc12.0 $ENV{QWT} )
-  endif()
+  find_path( qwt_DIR NAMES include/qwt.h HINTS C:/Qwt-6.1.3 C:/qwt-6.1.4-svn $ENV{QWT} )
 else()
   find_path( qwt_DIR NAMES include/qwt.h HINTS
     /usr/local/qwt-6.1.4-svn
@@ -25,21 +21,23 @@ if ( qwt_DIR )
   set( QWT_INCLUDE_DIR ${qwt_DIR}/include )
   set( QWT_INCLUDE_DIRS ${QWT_INCLUDE_DIR} )
 
-  find_library( _release NAMES qwt HINTS ${qwt_DIR}/lib )
-  find_library( _debug NAMES qwtd HINTS ${qwt_DIR}/lib )  
+  set( QWT_LIB "QWT_LIB-NOTFOUND" )
+  set( QWT_DEBUG_LIB "QWT_DEBUG_LIB-NOTFOUND" )
+  find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
+  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )
 
-  if ( _release AND _debug )
+  if ( QWT_LIB AND QWT_DEBUG_LIB )
     
-    set( QWT_LIBRARIES
-      debug ${_debug}
-      optimized ${_release} )
+    set( QWT_LIBRARIES debug ${QWT_DEBUG_LIB} optimized ${QWT_LIB} )
     set( qwt_FOUND 1 )
 
-  elseif( _release )
+  elseif( QWT_LIB )
 
-    set( QWT_LIBRARIES ${_release} )
+    set( QWT_LIBRARIES ${QWT_LIB} )
     set( qwt_FOUND 1 )
 
+  else()
+    message( FATAL_ERROR "QWT NOT Found" )
   endif()
 
 else()
