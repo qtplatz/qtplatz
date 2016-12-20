@@ -338,7 +338,7 @@ DataSequenceWidget::handlePlot( const QString& file )
             if ( auto hist = dp->readSpectrumFromTimeCount() ) {
 
                 if ( auto chart = findChild< adplot::ChartView * >() ) {
-                    auto data = new XYSeriesData();
+                    auto data = new adplot::XYSeriesData();
                     for ( size_t i = 0; i < hist->size(); ++i )
                         (*data) << QPointF( hist->getMass( i ), hist->getIntensity( i ) );
                     chart->clear();

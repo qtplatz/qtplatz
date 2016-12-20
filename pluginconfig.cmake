@@ -1,7 +1,7 @@
 set ( QTPLATZ_CONFIG_Acquire ${QTPLATZ_SUPPORT_CORBA} )
 set ( QTPLATZ_CONFIG_Dataproc ON )
 if ( WIN32 )
-  set ( QTPLATZ_CONFIG_Quan OFF )
+  set ( QTPLATZ_CONFIG_Quan ON )
 else()
   set ( QTPLATZ_CONFIG_Quan ON )  
 endif()

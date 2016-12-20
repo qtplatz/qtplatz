@@ -8,14 +8,11 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 
-#if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
-#  find_package( Qt5 CONFIG REQUIRED WebKitWidgets )
-#else()
-#  find_package( Qt5 CONFIG REQUIRED WebEngineWidgets )
-#endif()
-
 find_package( qwt )
-find_package( Boost REQUIRED COMPONENTS chrono system date_time regex thread filesystem wserialization serialization )
+
+if ( NOT Boost_FOUND )
+  find_package( Boost REQUIRED COMPONENTS chrono system date_time regex thread filesystem wserialization serialization )
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -53,92 +50,89 @@ link_directories(
   )
 
 set( quan_SOURCES
+  quan_global.hpp
+  quanconstants.hpp
   mainwindow.cpp
+  mainwindow.hpp
   quanplugin.cpp
+  quanplugin.hpp
   quaneditor.cpp
+  quaneditor.hpp
   quanfactory.cpp
+  quanfactory.hpp
   quanmode.cpp
+  quanmode.hpp
   quandocument.cpp
+  quandocument.hpp
   panelswidget.cpp
+  panelswidget.hpp
   paneldata.cpp
+  paneldata.hpp
   doubletabwidget.cpp
+  doubletabwidget.hpp
   datasequencewidget.cpp
+  datasequencewidget.hpp
   datasequencetree.cpp
+  datasequencetree.hpp
   datasequencetable.cpp  
+  datasequencetable.hpp
   compoundswidget.cpp
+  compoundswidget.hpp
   compoundstable.cpp
+  compoundstable.hpp
   quancandidate.cpp
+  quancandidate.hpp
   quanconfigform.cpp
+  quanconfigform.hpp
   quanconfigwidget.cpp
+  quanconfigwidget.hpp
   quanchromatogram.cpp  
+  quanchromatogram.hpp  
   quanchromatograms.cpp  
+  quanchromatograms.hpp
   quandatawriter.cpp
+  quandatawriter.hpp
   quansampleprocessor.cpp
+  quansampleprocessor.hpp
   quanchromatogramsprocessor.cpp
+  quanchromatogramsprocessor.hpp
   processmethodwidget.cpp
+  processmethodwidget.hpp
   quanreportwidget.cpp
+  quanreportwidget.hpp
   quanquerywidget.cpp
+  quanquerywidget.hpp
   quanprocessor.cpp
+  quanprocessor.hpp
   quanresulttable.cpp
+  quanresulttable.hpp
   quanqueryform.cpp
+  quanqueryform.hpp
   quanconnection.cpp
+  quanconnection.hpp
   quanquery.cpp
+  quanquery.hpp
   quanplotwidget.cpp
+  quanplotwidget.hpp
   quanresultwnd.cpp
+  quanresultwnd.hpp
   quanresultwidget.cpp
+  quanresultwidget.hpp
   quancmpdwidget.cpp
+  quancmpdwidget.hpp
   quanplotdata.cpp
+  quanplotdata.hpp
   quanpublisher.cpp
+  quanpublisher.hpp
   quanplot.cpp
+  quanplot.hpp
   quansvgplot.cpp
+  quansvgplot.hpp
   quantarget.cpp
   quantarget.hpp
   sqledit.cpp
   sqledit.hpp
-  )
-
-set( quan_HEADERS
-  mainwindow.hpp
-  quanplugin.hpp
-  quan_global.hpp
-  quanconstants.hpp
-  quaneditor.hpp
-  quanfactory.hpp
-  quanmode.hpp
-  quandocument.hpp
-  panelswidget.hpp
-  paneldata.hpp
-  doubletabwidget.hpp
-  datasequencewidget.hpp
-  datasequencetree.hpp
-  datasequencetable.hpp
-  compoundswidget.hpp
-  compoundstable.hpp
-  quanconfigform.hpp
-  quanconfigwidget.hpp
-  quancandidate.hpp
-  quanchromatogram.hpp  
-  quanchromatograms.hpp
-  quanchromatogramsprocessor.hpp
-  quandatawriter.hpp
-  quansampleprocessor.hpp
-  processmethodwidget.hpp
-  quanreportwidget.hpp
-  quanquerywidget.hpp
-  quanprocessor.hpp
-  quanresulttable.hpp
-  quanqueryform.hpp
-  quanconnection.hpp
-  quanquery.hpp
-  quanplotwidget.hpp
-  quanresultwidget.hpp
-  quanresultwnd.hpp
-  quancmpdwidget.hpp
-  quanplotdata.hpp
-  quanpublisher.hpp
   quanprogress.hpp
-  quanplot.hpp
-  quansvgplot.hpp
   )
 
 set( quan_RESOURCES quan.qrc )
@@ -146,7 +140,6 @@ set( quan_FORMS doubletabwidget.ui  quanconfigform.ui  quanqueryform.ui )
 
 add_library( Quan MODULE
   ${quan_SOURCES}
-  ${quan_HEADERS}
   ${quan_RESOURCES}
   )
 
@@ -156,27 +149,23 @@ target_link_libraries(
   adcontrols
   adlog
   adutils
-  portfolio
-  adfs
-  adprot
   adextension
+  adfs
   adplot
-  adwidgets
+  adprot
   adportable
   adprocessor
   adpublisher
+  adwidgets
   chromatogr
+  Core
+  portfolio
   qtwrapper
   xmlparser
-  Core
   extensionsystem
-  ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
   )
   
-#linux-*: LIBS += -lqwt -ldl -lrt
-#macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
-
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   CXX_STANDARD 14

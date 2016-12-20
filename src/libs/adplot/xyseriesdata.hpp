@@ -27,32 +27,36 @@
 #include <QPointF>
 #include <QAbstractItemModel>
 #include <memory>
+#include "adplot_global.hpp"
 
 class QAbstractItemModel;
 
-class XYSeriesData : public QwtSeriesData< QPointF > {
+namespace adplot {
 
-    XYSeriesData( const XYSeriesData& ) = delete;
-    XYSeriesData& operator = ( const XYSeriesData& ) = delete;
+    class ADPLOTSHARED_EXPORT XYSeriesData : public QwtSeriesData< QPointF > {
 
-public:
-    XYSeriesData();
-    XYSeriesData( QAbstractItemModel *, int x, int y );
+        XYSeriesData( const XYSeriesData& ) = delete;
+        XYSeriesData& operator = ( const XYSeriesData& ) = delete;
 
-    size_t size() const override;
-    QPointF sample( size_t idx ) const override;
-    QRectF boundingRect() const override;
+    public:
+        XYSeriesData();
+        XYSeriesData( QAbstractItemModel *, int x, int y );
 
-    typedef std::vector< QPointF >::const_iterator const_iterator;
-    inline const_iterator begin() const { return series_.begin(); };
-    inline const_iterator end() const { return series_.end(); };
-    XYSeriesData& operator << ( const QPointF& );
-protected:
-    std::vector< QPointF > series_;
-};
+        size_t size() const override;
+        QPointF sample( size_t idx ) const override;
+        QRectF boundingRect() const override;
 
-class XYHistogramData : public XYSeriesData {
-public:
-    XYHistogramData( QAbstractItemModel *, int x, int y );
-};
+        typedef std::vector< QPointF >::const_iterator const_iterator;
+        inline const_iterator begin() const { return series_.begin(); };
+        inline const_iterator end() const { return series_.end(); };
+        XYSeriesData& operator << ( const QPointF& );
+    protected:
+        std::vector< QPointF > series_;
+    };
 
+    class ADPLOTSHARED_EXPORT XYHistogramData : public XYSeriesData {
+    public:
+        XYHistogramData( QAbstractItemModel *, int x, int y );
+    };
+
+}

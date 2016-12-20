@@ -28,13 +28,14 @@
 #include <memory>
 #include "adplot_global.hpp"
 
-class XYSeriesData;
-class QwtPlotCurve;
 template< typename T > class QwtSeriesData;
 
+class QwtPlotCurve;
 class QAbstractItemModel;
 
 namespace adplot {
+
+    class XYSeriesData;
 
     class ADPLOTSHARED_EXPORT ChartView : public QwtPlot {
 

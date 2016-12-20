@@ -26,6 +26,8 @@
 #include <limits>
 #include <ratio>
 
+using namespace adplot;
+
 XYSeriesData::XYSeriesData()
 {
 }
