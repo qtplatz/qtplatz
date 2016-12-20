@@ -1,8 +1,8 @@
 <Include>
-
+  <?define RDBASE = "@RDBASE@" ?>
   <ComponentGroup Id="RDKitComponents" Directory="LIB_RDKIT">
     <Component Id="rdkit_version.txt" Guid="EE9791B3-137B-4C17-BE0D-000D964F7F81" Win64="yes">
-      <File Id="rdkit_version.txt" Source="$(env.RDBASE)/license.txt" ProcessorArchitecture="x64" />
+      <File Id="rdkit_version.txt" Source="$(var.RDBASE)/license.txt" ProcessorArchitecture="x64" />
     </Component>
   </ComponentGroup>
 

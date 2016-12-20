@@ -2,9 +2,9 @@
 cmake_minimum_required(VERSION 2.8.11)
 project( wix_installer )
 
-if ( QTPALTZ_SUPPORT_CORBA )
-  find_package( ace+tao )
-endif()
+set ( BDBASE "C:/Program Files (x86)/Bruker Daltonik/CompassXtract/3.2.201 (64 bit)" )
+set ( INFITOF_TARGET "" )
+set ( MALPIX_TARGET "" )
 
 if ( MSVC_VERSION EQUAL 1900 )
   set( Generator "Visual Studio 14 Win64" )
@@ -14,8 +14,6 @@ elseif( MSVC_VERSION EQUAL 1800 )
   set( vcvers "vc120" )
 endif()
 
-set( INFITOF_TARGET "" )
-set( MALPIX_TARGET "" )
 
 find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${CMAKE_SOURCE_DIR}/../infitof )
 if ( INFITOF_SOURCE_DIR )
@@ -59,9 +57,6 @@ string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
 
 string( REGEX REPLACE "/" "\\\\" QTDIR ${QTDIR} )
 
-if ( QTPLATZ_SUPPORT_CORBA )
-  string( REGEX REPLACE "/" "\\\\" ACE_ROOT ${ace+tao_DIR} )
-endif()
   
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
@@ -82,14 +77,8 @@ configure_file(
   )
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/rdkit_components.wxi"
+  "${PROJECT_SOURCE_DIR}/rdkit_components.wxi.in"
   "${PROJECT_BINARY_DIR}/rdkit_components.wxi"
-  @ONLY
-  )
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/tao_components.wxi"
-  "${PROJECT_BINARY_DIR}/tao_components.wxi"
   @ONLY
   )
 

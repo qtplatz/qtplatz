@@ -135,7 +135,7 @@ vc140.wixobj: vc140.wxi
 	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC140.CRT" vc140.wxi
 
 bruker.wixobj: bruker.wxi 
-	$(CANDLE) -dSourceDir="$(QTPLATZ_SOURCE_DIR)\..\Bruker Daltonik\3.1.2" bruker.wxi
+	$(CANDLE) -dSourceDir="@BDBASE@" bruker.wxi
 
 #harvest: qt plugins translations qtplatz_translations bruker
 
@@ -184,6 +184,6 @@ vc140.wxi: makefile
 	-t x64transform.xslt -o vc140.wxi
 
 bruker.wxi: makefile
-	$(HEAT) dir "C:\Program Files (x86)\Bruker Daltonik\3.1.2" \
+	$(HEAT) dir "@BDBASE@" \
 	-dr LIB_BRUKER -cg BrukerComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o bruker.wxi
