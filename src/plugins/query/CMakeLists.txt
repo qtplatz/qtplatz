@@ -24,7 +24,7 @@ find_package( qwt )
 include_directories( ${QWT_INCLUDE_DIRS} )
 
 if ( NOT Boost_FOUND )
-  find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
+  #find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
 endif()
 
 if ( OpenCV_FOUND )

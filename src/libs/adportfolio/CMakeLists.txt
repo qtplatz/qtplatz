@@ -5,7 +5,7 @@ cmake_policy(SET CMP0022 NEW)
 add_definitions(-DPORTFOLIO_LIBRARY)
 
 if ( NOT Boost_FOUND OR WIN32 )
-  find_package(Boost COMPONENTS date_time system )
+  #find_package(Boost COMPONENTS date_time system )
 endif()
 
 add_library( portfolio SHARED

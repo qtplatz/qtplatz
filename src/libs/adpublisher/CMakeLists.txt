@@ -27,7 +27,7 @@ endif()
 
 find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
 
-find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
+#find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
 
 add_definitions(-DADPUBLISHER_LIBRARY)
 

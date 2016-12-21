@@ -67,7 +67,7 @@ namespace acqrscontrols {
                 xrange.first = 0;
                 xrange.second = size_t( ( ( t1 - delay ) / meta.xIncrement ) + 0.5 ); 
             }
-            if ( xrange.first > meta.actualPoints )
+            if ( int64_t( xrange.first ) > meta.actualPoints )
                 return { 0, 0 };
             auto x = std::min( 0, 1 );
             xrange.second = std::min( xrange.second, size_t( meta.actualPoints - xrange.first ) );

@@ -6,7 +6,7 @@ cmake_policy(SET CMP0028 NEW)
 project( ap240controller )
 
 if ( NOT Boost_FOUND )
-  find_package(Boost 1.56 COMPONENTS date_time system filesystem bzip2 iostreams wserialization serialization)
+  #find_package(Boost 1.56 COMPONENTS date_time system filesystem bzip2 iostreams wserialization serialization)
 endif()
 
 add_definitions(-DAP240CONTROLLER_LIBRARY)

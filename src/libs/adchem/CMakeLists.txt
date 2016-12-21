@@ -5,7 +5,7 @@ cmake_policy( SET CMP0022 NEW )
 project( adchem )
 
 if ( NOT Boost_FOUND OR WIN32 )
-  find_package( Boost REQUIRED COMPONENTS system thread )
+  #find_package( Boost REQUIRED COMPONENTS system thread )
 endif()
 
 find_package( rdkit )

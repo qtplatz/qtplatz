@@ -92,8 +92,25 @@ if ( WIN32 )
   add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 )
 endif()
 
-find_package( Boost 1.57 REQUIRED COMPONENTS bzip2 date_time iostreams system filesystem wserialization serialization locale regex program_options iostreams )
-include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
+find_package( Boost 1.57 REQUIRED COMPONENTS
+  bzip2
+  chrono
+  date_time
+  filesystem
+  iostreams
+  locale
+  program_options
+  regex
+  serialization
+  system
+  thread
+  wserialization )
+
+if ( Boost_FOUND )
+  include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
+endif()
+
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
 if ( WITH_QWT )
   find_package( qwt )
@@ -129,8 +146,6 @@ if ( WITH_AgMD2 )
     add_definitions( -DHAVE_AgMD2=1 )
   endif()  
 endif()
-
-#message( STATUS "---------------------------------" )
 
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
@@ -235,7 +250,10 @@ message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
 message( STATUS "# Qt5_DIR               : " ${Qt5_DIR} )
 message( STATUS "# QTDIR                 : " ${QTDIR} )
 message( STATUS "# QMAKE                 : " ${QMAKE} )
-message( STATUS "# QWT DIR               : " ${qwt_DIR} )      
+if ( WITH_QWT )
+  get_target_property( _value ${QWT_LIBRARIES} IMPORTED_LOCATION )
+  message( STATUS "# QWT                   : " ${_value} "\t" ${QWT_INCLUDE_DIR} )
+endif()
 message( STATUS "# XMLPATTERNS           : " ${XMLPATTERNS} )
 message( STATUS "# RDKit                 : " ${rdkit_FOUND} )
 if ( rdkit_FOUND )
@@ -296,3 +314,4 @@ message( STATUS "# CMAKE_BUILD_TYPE      : "  ${CMAKE_BUILD_TYPE} )
 message( STATUS "# CMAKE_GENERATOR       : "  ${CMAKE_GENERATOR} )
 message( STATUS "# VERSION               : "  ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
 message( STATUS "---------- END SUMMARY ------------" )
+#message( STATUS "# Boost_LIBRARIES       : " ${Boost_LIBRARIES} )

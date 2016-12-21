@@ -11,7 +11,7 @@ configure_file(
   )
 
 if ( NOT Boost_FOUND OR WIN32 )
-  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system )
+  #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system )
 endif()
 
 add_definitions(-DADDATAFILE_LIBRARY)

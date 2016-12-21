@@ -7,7 +7,7 @@ set( PROVIDER MS-Cheminformatics )
 add_definitions(-DACQRSCONTROLS_LIBRARY)
 add_definitions( -D_LINUX -D_ACQIRIS )
 if ( MSVC )
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 )
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS -wd4996 -wd4800 )
 endif()
 
 include_directories(

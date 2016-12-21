@@ -17,31 +17,23 @@ else()
 endif()
 
 if ( qwt_DIR )
-
   set( QWT_INCLUDE_DIR ${qwt_DIR}/include )
   set( QWT_INCLUDE_DIRS ${QWT_INCLUDE_DIR} )
 
   set( QWT_LIB "QWT_LIB-NOTFOUND" )
   set( QWT_DEBUG_LIB "QWT_DEBUG_LIB-NOTFOUND" )
+
   find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
-  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )
-
-  if ( QWT_LIB AND QWT_DEBUG_LIB )
-    
-    set( QWT_LIBRARIES debug ${QWT_DEBUG_LIB} optimized ${QWT_LIB} )
-    set( qwt_FOUND 1 )
-
-  elseif( QWT_LIB )
-
-    set( QWT_LIBRARIES ${QWT_LIB} )
-    set( qwt_FOUND 1 )
-
+  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )    
+  if ( QWT_LIB )
+    add_library( Qwt STATIC IMPORTED )
+    set ( QWT_LIBRARIES Qwt )
+    set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION ${QWT_LIB} )
+    if ( QWT_DEBUG_LIB )
+      set_target_properties( Qwt PROPERTIES IMPORTED_LOCATION_DEBUG ${QWT_DEBUG_LIB} )
+    endif()
+    set( qwt_FOUND TRUE )
   else()
-    message( FATAL_ERROR "QWT NOT Found" )
+    message( FATAL_ERROR ${QWT_LIB} " " ${QWT_DLL} )
   endif()
-
-else()
-
-  message( STATUS "QWT NOT Found" )
-
 endif()

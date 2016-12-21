@@ -13,7 +13,7 @@ configure_file(
   )
 
 if ( NOT Boost_FOUND )
-  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
+  #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
 endif()
 
 add_definitions( -DFTICR_LIBRARY )

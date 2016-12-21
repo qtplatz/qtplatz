@@ -8,8 +8,6 @@ set ( rdkit "rdkit-NOTFOUND" )
 
 if ( WIN32 )
 
-  find_package( Boost QUIET )
-  
   set( _rdkit_libdirs
     "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
     "C:/RDKit/lib"

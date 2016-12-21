@@ -26,7 +26,7 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   )
 
 if ( NOT Boost_FOUND OR WIN32 )
-  find_package( Boost COMPONENTS system )
+  #find_package( Boost COMPONENTS system )
 endif()
 
 find_package( Qt5 CONFIG REQUIRED PrintSupport Network Sql Widgets Gui Core )

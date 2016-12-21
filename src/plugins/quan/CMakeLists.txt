@@ -11,7 +11,7 @@ find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network )
 find_package( qwt )
 
 if ( NOT Boost_FOUND )
-  find_package( Boost REQUIRED COMPONENTS chrono system date_time regex thread filesystem wserialization serialization )
+  #find_package( Boost REQUIRED COMPONENTS chrono system date_time regex thread filesystem wserialization serialization )
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -143,6 +143,12 @@ add_library( Quan MODULE
   ${quan_RESOURCES}
   )
 
+if ( WIN32 )
+  set( w32libs ${QWT_LIBRARIES} )
+else()
+  set( w32libs "" )
+endif()
+
 target_link_libraries(
   Quan LINK_PUBLIC
   adplugin
@@ -162,9 +168,9 @@ target_link_libraries(
   qtwrapper
   xmlparser
   extensionsystem
+  ${w32libs} #<-- causing SEGV on Linux
   adplot
   ${Boost_LIBRARIES}
-  # ${QWT_LIBRARIES} <-- causing SEGV
   )
   
 set_target_properties( ${PROJECT_NAME}

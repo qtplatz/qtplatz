@@ -11,7 +11,7 @@ set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Script Network PrintSupport )
 find_package( qwt )
 if ( NOT Boost_FOUND )
-  find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization locale )
+  #find_package( Boost REQUIRED COMPONENTS system date_time regex filesystem wserialization serialization locale )
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

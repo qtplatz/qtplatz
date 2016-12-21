@@ -15,7 +15,7 @@ if ( MSVC )
 endif()
 
 if ( NOT Boost_FOUND )
-  find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
+  #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization bzip2 iostreams )
 endif()
 
 include_directories( ${PROJECT_SOURCE_DIR}/.. )

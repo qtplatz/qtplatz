@@ -5,7 +5,7 @@ project (eventbroker)
 cmake_policy(SET CMP0022 NEW)
 
 if ( NOT Boost_FOUND )
-  find_package( Boost 1.57 REQUIRED COMPONENTS system )
+  #find_package( Boost 1.57 REQUIRED COMPONENTS system )
 endif()
 
 include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )

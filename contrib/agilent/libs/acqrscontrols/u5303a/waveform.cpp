@@ -718,7 +718,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     } else {
 
-        double dbase, rms, tic(0);
+        double dbase(0), tic(0);
 		if ( waveform.meta_.dataType == 4 ) {
             //tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
             waveform_copy<int32_t>()( sp, waveform, scale, dbase );

@@ -8,7 +8,7 @@ set( SHARED_ADFS_LIBRARY ON )
 
 if ( SHARED_ADFS_LIBRARY )
   if ( NOT Boost_FOUND OR WIN32 )
-    find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
+    #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
   endif()
   find_package(Threads REQUIRED)
   add_definitions( -DADFS_SHARED_LIBRARY -DADFS_LIBRARY )

@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 
 add_definitions( -DADEXTENSION_LIBRARY )
 #if ( NOT Boost_FOUND )
-  find_package( Boost 1.57 REQUIRED COMPONENTS system )
+  #find_package( Boost 1.57 REQUIRED COMPONENTS system )
 #endif()
 
 set( adextension_SOURCES

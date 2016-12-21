@@ -28,7 +28,7 @@ link_directories( ${QWT}/lib )
 find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
 if ( NOT Boost_FOUND )
-  find_package(Boost COMPONENTS system )
+  #find_package(Boost COMPONENTS system )
 endif()
 
 if ( WIN32 )

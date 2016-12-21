@@ -39,7 +39,7 @@ namespace acqrscontrols {  namespace ap240 { class waveform; } }
 namespace acqrscontrols {
 namespace aqdrv4 {
 
-    template< typename T > class waveform_archive;
+    template< typename T > struct waveform_archive;
 
     class ACQRSCONTROLSSHARED_EXPORT waveform {
 
@@ -187,8 +187,8 @@ namespace aqdrv4 {
         //////////////////////////////
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
-        friend class waveform_archive<waveform>;
-        friend class waveform_archive<const waveform>;
+        friend struct  waveform_archive<waveform>;
+        friend struct waveform_archive<const waveform>;
         friend class ap240::waveform;
     };
 
