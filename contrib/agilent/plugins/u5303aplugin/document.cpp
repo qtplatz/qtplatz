@@ -956,16 +956,16 @@ document::set_method( const acqrscontrols::u5303a::method& )
     }
 }
 
-const adcontrols::SampleRun *
+std::shared_ptr< const adcontrols::SampleRun >
 document::sampleRun() const
 {
-    return impl_->nextSampleRun_.get();
+    return impl_->nextSampleRun_;
 }
 
-adcontrols::SampleRun *
+std::shared_ptr< adcontrols::SampleRun >
 document::sampleRun()
 {
-    return impl_->nextSampleRun_.get();
+    return impl_->nextSampleRun_;
 }
 
 void

@@ -111,8 +111,8 @@ namespace u5303a {
         adextension::iSequenceImpl * iSequence();
         u5303a::iControllerImpl * iController();
 
-        const adcontrols::SampleRun * sampleRun() const;
-        adcontrols::SampleRun * sampleRun();
+        std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
+        std::shared_ptr< adcontrols::SampleRun > sampleRun();
         void setSampleRun( std::shared_ptr< adcontrols::SampleRun > );
 
         void setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum >, unsigned int idx );

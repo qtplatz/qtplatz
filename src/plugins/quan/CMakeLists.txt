@@ -162,9 +162,9 @@ target_link_libraries(
   qtwrapper
   xmlparser
   extensionsystem
-  ${QWT_LIBRARIES}
   adplot
   ${Boost_LIBRARIES}
+  # ${QWT_LIBRARIES} <-- causing SEGV
   )
   
 set_target_properties( ${PROJECT_NAME}

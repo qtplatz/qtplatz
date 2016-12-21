@@ -465,7 +465,7 @@ MainWindow::createMidStyledToolbar()
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
-            auto sampleRun = document::instance()->sampleRun()->shared_from_this();
+            auto sampleRun = document::instance()->sampleRun();
             if ( auto label = new QLabel ) {
                 label->setText( tr("Data save in:" ) );
                 toolBarLayout->addWidget( label );

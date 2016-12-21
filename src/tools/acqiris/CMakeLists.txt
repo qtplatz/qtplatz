@@ -20,6 +20,7 @@ set ( USING_CHARTS OFF )
 
 if ( STANDALONE )
   include( "standalone.cmake" )
+  find_package( AqDrv4 )
 else()
   set( acqirisd_libraries  acqrscontrols )
 endif()
@@ -44,16 +45,6 @@ if ( USING_PROTOBUF )
   protobuf_generate_cpp( proto_sources proto_headers acqiris.proto )  
 endif()
 
-if ( WIN32 )
-  set( ACQRSDIR "C:/Program Files (x86)/Agilent/Acqiris" )
-  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
-  include_directories( ${AqDrv4_INCLUDE_DIR} "c:/Boost/include/boost-1_59" )
-  message( STATUS "#########################################################")
-  message( STATUS "AqDrv4_LIBRARY : " ${AqDrv4_LIBRARY} )
-  message( STATUS "AqDrv4_LIBRARIES : " ${AqDrv4_LIBRARIES} )
-  message( STATUS "#########################################################")  
-endif()
-
 if ( APPLE )
   add_definitions( -DHAVE_AqDrv4=0 )
   if ( STANDALONE )
@@ -63,10 +54,8 @@ if ( APPLE )
   endif()
   set( aqdrv4_sources )  
 else() #Linux
-  if ( AqDrv4_LIBRARY )
-    message( STATUS "############# HAVE AqDrv4 ######################")  
+  if ( AqDrv4_FOUND )
     add_definitions( -DHAVE_AqDrv4=1 )
-    set( AqDrv4_LIBRARIES ${AqDrv4_LIBRARY} )
     set( aqdrv4_sources
       digitizer.cpp
       digitizer.hpp
@@ -140,7 +129,7 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
 
-if ( AqDrv4_LIBRARY )
+if ( AqDrv4_FOUND )
 
   add_executable( ${PROJECT_NAME}d
     daemon.cpp
