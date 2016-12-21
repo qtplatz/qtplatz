@@ -35,12 +35,6 @@ else()
   list( APPEND u5303a_SOURCES digitizer_linux.cpp agmd2.cpp )
   list( APPEND u5303a_HEADERS agmd2.hpp )
 
-  if ( WIN32 )
-    find_library( AgMD2_LIBRARY AgMD2 ${IVIROOTDIR}/Lib_x64/msc )
-  else()
-    set( AgMD2_LIBRARY "AgMD2" )
-  endif()
-
 endif()
 
 set( u5303a_HEADERS
@@ -54,7 +48,7 @@ set( u5303a_HEADERS
   )
 
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
-  set( _libs rt )
+  set( LIBRT rt )
 endif()
 
 add_library( u5303a SHARED
@@ -66,7 +60,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_SOURCE_DIR}/contrib/linux
-  ${IVIROOTDIR}/Include
+  ${AgMD2_INCLUDE_DIR}
   ${IVIROOTDIR}/Bin
   ${VXIPNPPATH}/WinNT/include
   ${VXIPNPPATH}/WinNT/agvisa/include
@@ -81,9 +75,9 @@ target_link_libraries( u5303a PUBLIC
   adcontrols
   acqrscontrols
   dgpio
-  ${AgMD2_LIBRARY}
+  ${AgMD2_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${_libs}
+  ${LIBRT}
   )
 
 install( TARGETS ${PROJECT_NAME}

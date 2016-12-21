@@ -29,19 +29,16 @@ add_library( ap240 SHARED  ${ap240_SOURCES}  )
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  ${AqDrv4_INCLUDE_DIR}
   )
-
-if ( AqDrv4_INCLUDE_DIR )
-  include_directories( ${AqDrv4_INCLUDE_DIR} )
-endif()
 
 if ( WIN32 )
   add_definitions( -wd4996 )
-  include_directories( "C:/Program Files (x86)/Agilent/Acqiris/include" )
-  link_directories( "C:/Program Files (x86)/Agilent/Acqiris/lib" )
-  add_library( AqDrv4 SHARED IMPORTED )
-  set_target_properties( AqDrv4 PROPERTIES
-    IMPORTED_IMPLIB "C:/Program Files (x86)/Agilent/Acqiris/lib/AqDrv4_x64.lib" )
+  include_directories( "${AqDrv4_INCLUDE_DIR}" )
+  #link_directories( "C:/Program Files (x86)/Agilent/Acqiris/lib" )
+  #add_library( AqDrv4 SHARED IMPORTED ) --> FindAqDrv4.cmake
+  #set_target_properties( AqDrv4 PROPERTIES
+  #  IMPORTED_IMPLIB "C:/Program Files (x86)/Agilent/Acqiris/lib/AqDrv4_x64.lib" )
 endif()
 
 target_link_libraries( ap240 PUBLIC

@@ -1,44 +1,6 @@
 
-if ( WIN32 )
-
-  set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
-  find_path( AgMD2_INCLUDE_DIR NAME AgMD2.h PATHS ${IVIROOTDIR}/include )
-  if ( AgMD2_INCLUDE_DIR )
-    include_directories(  ${AgMD2_INCLUDE_DIR} )
-  endif()
-  
-  set( ACQRSDIR   "C:/Program Files (x86)/Agilent/Acqiris" )
-  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS "${ACQRSDIR}/include" )
-
-  if ( AqDrv4_INCLUDE_DIR )
-    include_directories( ${AqDrv4_INCLUDE_DIR} )
-  else()
-    include_directories( ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
-    unset( AqDrv4_LIBRARY )
-  endif()
-
-elseif( APPLE )
-  
-  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
-  if ( AqDrv4_INCLUDE_DIR )
-    add_definitions(-D_LINUX -D_ACQIRIS )
-    include_directories( ${AqDrv4_INCLUDE_DIR} )
-  else()
-    message( FATAL_ERROR "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
-  endif()
-  
-else() # Linux
-  
-  find_path( AgMD2_INCLUDE_DIR NAME AgMD2.h PATHS /usr/include )
-  find_path( AqDrv4_INCLUDE_DIR NAME AcqirisImport.h PATHS /usr/include ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
-  find_library( AqDrv4_LIBRARY AqDrv4 )
-  if ( AgMD2_INCLUDE_DIR )
-    set( WITH_AP240 ON )
-  else()
-    find_path( AqDrv4_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
-  endif()
-  
-endif()
+#find_package( AqDrv4 QUIET )
+#find_package( AgMD2 QUIET )
 
 add_subdirectory( libs )
 add_subdirectory( plugins )

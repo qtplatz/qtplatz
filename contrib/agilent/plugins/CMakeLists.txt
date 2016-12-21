@@ -1,12 +1,8 @@
 
-if ( WITH_AP240 )
-  if ( AqDrv4_LIBRARY )
-    add_subdirectory( ap240plugin )
-  endif()
+if ( WITH_AqDrv4 AND AqDrv4_FOUND )
+  add_subdirectory( ap240plugin )
 endif()
 
-if ( WITH_AgMD2 )
-  if ( AqMD2_INCLUDE_DIR )
-    add_subdirectory( u5303aplugin )
-  endif()
+if ( WITH_AgMD2 AND AgMD2_FOUND )
+  add_subdirectory( u5303aplugin )
 endif()
