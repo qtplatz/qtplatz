@@ -7,24 +7,21 @@ endif()
 set ( rdkit "rdkit-NOTFOUND" )
 
 if ( WIN32 )
-
   set( _rdkit_libdirs
     "${CMAKE_SOURCE_DIR}/../rdkit/lib"  # rdkit default install (intree)
     "C:/RDKit/lib"
     )
-
 else()
-
-  set( _rdkit_libdirs "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "$ENV{RDBASE}/lib" "/usr/local/lib" )
-
+  set( _rdkit_libdirs "/usr/local/lib" "${CMAKE_SOURCE_DIR}/../rdkit" "${RDBASE}/lib" "$ENV{RDBASE}/lib" )
 endif()
 
 set( _rdkit_incdirs
+  "/usr/local/include/rdkit"
   "${CMAKE_SOURCE_DIR}/../rdkit/Code"
   "${CMAKE_SOURCE_DIR}/../rdkit/External"
   "${RDBASE}/Code"  
   "${RDBASE}/External"
-  "/usr/local/include/rdkit" )
+  )
 
 find_path( _include_dir GraphMol/RDKitBase.h HINTS ${_rdkit_incdirs} )
 
@@ -164,143 +161,118 @@ else()
   add_library( RDInchiLib	SHARED IMPORTED )
 endif()
 
-set ( RDKit_LIBRARIES
-  ChemReactions
-  DataStructs
-  Depictor
-  Descriptors  
-  EigenSolvers
-  FileParsers
-  Fingerprints
-  GraphMol
-  MolDraw2D
-  PartialCharges
-  SmilesParse
-  SubstructMatch
-  ChemTransforms
-  Subgraphs
-  MolTransforms
-  RDGeometryLib
-  RDGeneral
-  Inchi
-  RDInchiLib
-  )
-
 find_library( CHEMREACTIONS_LIB NAMES ChemReactions HINTS ${_libdir} )
 find_library( CHEMREACTIONS_DEBUG_LIB NAMES ChemReactions${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT CHEMREACTIONS_LIB )
-  message( FATAL_ERROR "ChemReactions not found" )
+  message( FATAL_ERROR "${CHEMREACTIONS_LIB}" )
 endif()
 
 find_library( DATASTRUCTS_LIB NAMES DataStructs HINTS ${_libdir} )
 find_library( DATASTRUCTS_DEBUG_LIB NAMES DataStructs${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT DATASTRUCTS_LIB )
-  message( FATAL_ERROR "DataStructs not found" )
+  message( FATAL_ERROR "${DATASTRUCTS_LIB}" )
 endif()
 
 find_library( DEPICTOR_LIB NAMES Depictor HINTS ${_libdir} )
 find_library( DEPICTOR_DEBUG_LIB NAMES Depictor${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT DEPICTOR_LIB )
-  message( FATAL_ERROR "DEPICTOR not found" )
+  message( FATAL_ERROR "${DEPICTOR_LIB}" )
 endif()
 
 find_library( DESCRIPTORS_LIB NAMES Descriptors HINTS ${_libdir} )
 find_library( DESCRIPTORS_DEBUG_LIB NAMES Descriptors${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT DESCRIPTORS_LIB )
-  message( FATAL_ERROR "DESCRIPTORS not found" )
+  message( FATAL_ERROR "${DESCRIPTORS_LIB}" )
 endif()
 
 find_library( EIGENSOLVERS_LIB NAMES EigenSolvers HINTS ${_libdir} )
 find_library( EIGENSOLVERS_DEBUG_LIB NAMES EigenSolvers${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT EIGENSOLVERS_LIB )
-  message( FATAL_ERROR "EIGENSOLVERS not found" )
+  message( FATAL_ERROR "${EIGENSOLVERS_LIB}" )
 endif()
 
 find_library( FILEPARSERS_LIB NAMES FileParsers HINTS ${_libdir} )
 find_library( FILEPARSERS_DEBUG_LIB NAMES FileParsers${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT FILEPARSERS_LIB )
-  message( FATAL_ERROR "FILEPARSERS not found" )
-endif()
-if ( NOT FILEPARSERS_DEBUG_LIB )
-  message( FATAL_ERROR "FILEPARSERS_DEBUG not found" )
+  message( FATAL_ERROR "${FILEPARSERS_LIB}" )
 endif()
 
 find_library( FINGERPRINTS_LIB NAMES Fingerprints HINTS ${_libdir} )
 find_library( FINGERPRINTS_DEBUG_LIB NAMES Fingerprints${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT FINGERPRINTS_LIB )
-  message( FATAL_ERROR "FINGERPRINTS not found" )
+  message( FATAL_ERROR "${FINGERPRINTS_LIB}" )
 endif()
 
 find_library( GRAPHMOL_LIB NAMES GraphMol HINTS ${_libdir} )
 find_library( GRAPHMOL_DEBUG_LIB NAMES GraphMol${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT GRAPHMOL_LIB )
-  message( FATAL_ERROR "GraphMol not found" )
+  message( FATAL_ERROR "${GRAPHMOL_LIB}" )
 endif()
 
 find_library( MOLDRAW2D_LIB NAMES MolDraw2D HINTS ${_libdir} )
 find_library( MOLDRAW2D_DEBUG_LIB NAMES MolDraw2D${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT MOLDRAW2D_LIB )
-  message( FATAL_ERROR "MolDraw2D not found" )
+  message( FATAL_ERROR "${MOLDRAW2D_LIB}" )
 endif()
 
 find_library( PARTIALCHARGES_LIB NAMES PartialCharges HINTS ${_libdir} )
 find_library( PARTIALCHARGES_DEBUG_LIB NAMES PartialCharges${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT PARTIALCHARGES_LIB )
-  message( FATAL_ERROR "PartialCharges not found" )
+  message( FATAL_ERROR "${PARTIALCHARGES_LIB}" )
 endif()
 
 find_library( SMILESPARSE_LIB NAMES SmilesParse HINTS ${_libdir} )
 find_library( SMILESPARSE_DEBUG_LIB NAMES SmilesParse${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT SMILESPARSE_LIB )
-  message( FATAL_ERROR "SmilesParse not found" )
+  message( FATAL_ERROR "${SMILESPARSE_LIB}" )
 endif()
 
 find_library( SUBSTRUCTMATCH_LIB NAMES SubstructMatch HINTS ${_libdir} )
 find_library( SUBSTRUCTMATCH_DEBUG_LIB NAMES SubstructMatch${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT SUBSTRUCTMATCH_LIB )
-  message( FATAL_ERROR "SubstructMatch not found" )
+  message( FATAL_ERROR "${SUBSTRUCTMATCH_LIB}" )
 endif()
 
 find_library( CHEMTRANSFORMS_LIB NAMES ChemTransforms HINTS ${_libdir} )
 find_library( CHEMTRANSFORMS_DEBUG_LIB NAMES ChemTransforms${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT CHEMTRANSFORMS_LIB )
-  message( FATAL_ERROR "ChemTransforms not found" )
+  message( FATAL_ERROR "${CHEMTRANSFORMS_LIB}" )
 endif()
 
 find_library( SUBGRAPHS_LIB NAMES Subgraphs HINTS ${_libdir} )
 find_library( SUBGRAPHS_DEBUG_LIB NAMES Subgraphs${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT SUBGRAPHS_LIB )
-  message( FATAL_ERROR "Subgraphs not found" )
+  message( FATAL_ERROR "${SUBGRAPHS_LIB}" )
 endif()
 
 find_library( MOLTRANSFORMS_LIB NAMES MolTransforms HINTS ${_libdir} )
 find_library( MOLTRANSFORMS_DEBUG_LIB NAMES MolTransforms${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT MOLTRANSFORMS_LIB )
-  message( FATAL_ERROR "MolTransforms not found" )
+  message( FATAL_ERROR "${MOLTRANSFORMS_LIB}" )
 endif()
 
 find_library( RDGEOMETRYLIB_LIB NAMES RDGeometryLib HINTS ${_libdir} )
 find_library( RDGEOMETRYLIB_DEBUG_LIB NAMES RDGeometryLib${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT RDGEOMETRYLIB_LIB )
-  message( FATAL_ERROR "RDGeometryLib not found" )
+  message( FATAL_ERROR "${RDGEOMETRYLIB_LIB}" )
 endif()
 
 find_library( RDGENERAL_LIB NAMES RDGeneral HINTS ${_libdir} )
 find_library( RDGENERAL_DEBUG_LIB NAMES RDGeneral${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT RDGENERAL_LIB )
-  message( FATAL_ERROR "RDGeneral not found" )
+  message( FATAL_ERROR "${RDGENERAL_LIB}" )
 endif()
 
 find_library( INCHI_LIB NAMES Inchi HINTS ${_libdir} )
 find_library( INCHI_DEBUG_LIB NAMES Inchi${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT INCHI_LIB )
-  message( FATAL_ERROR "Inchi not found" )
+  message( FATAL_ERROR "${INCHI_LIB}" )
 endif()
 
 find_library( RDINCHILIB_LIB NAMES RDInchiLib HINTS ${_libdir} )
 find_library( RDINCHILIB_DEBUG_LIB NAMES RDInchiLib${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
 if ( NOT RDINCHILIB_LIB )
-  message( FATAL_ERROR "RDInchiLib not found" )
+  message( FATAL_ERROR "${RDINCHILIB_LIB}" )
 endif()
 
 if ( WIN32 )
@@ -345,6 +317,27 @@ else()
   set_target_properties( RDInchiLib	PROPERTIES IMPORTED_LOCATION ${RDINCHILIB_LIB} )
 endif()
 
+set ( RDKit_LIBRARIES
+  ChemReactions
+  DataStructs
+  Depictor
+  Descriptors  
+  EigenSolvers
+  FileParsers
+  Fingerprints
+  GraphMol
+  MolDraw2D
+  PartialCharges
+  SmilesParse
+  SubstructMatch
+  ChemTransforms
+  Subgraphs
+  MolTransforms
+  RDGeometryLib
+  RDGeneral
+  Inchi
+  RDInchiLib
+  )
+
 set ( rdkit TRUE )
 set ( rdkit_FOUND TRUE )
-

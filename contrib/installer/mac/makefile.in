@@ -1,11 +1,9 @@
 
-DEPLOYQT = ${QTDIR}/bin/macdeployqt
-
+QTDIR      = @QTDIR@
+DEPLOYQT   = ${QTDIR}/bin/macdeployqt
 FRAMEWORKS = ./qtplatz.app/Contents/Frameworks
-PLUGINS   = ./qtplatz.app/Contents/PlugIns
-
-TARGET = qtplatz-@QTPLATZ_VERSION@.dmg
-
+PLUGINS    = ./qtplatz.app/Contents/PlugIns
+TARGET     = qtplatz-@QTPLATZ_VERSION@.dmg
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 
 default:
@@ -30,7 +28,7 @@ stage:
 # all: qtplatz.app
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c . | tar xvf -
-	find @Boost_LIBRARY_DIR@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
+	find @Boost_LIBRARY_DIRS@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
 
 clean:
 	rm -rf qtplatz.app ${TARGET}

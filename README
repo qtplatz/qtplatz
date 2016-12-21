@@ -59,6 +59,7 @@ cd rdkit
 export RDBASE=`pwd`
 mkdir build; cd build
 cmake -DBOOST_ROOT=/usr/local/boost-1_62 -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF ..
+cmake -DBOOST_ROOT=/usr/local/boost-1_62 -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DRDK_INSTALL_INTREE=OFF -DCMAKE_MACOSX_RPATH=TRUE ..
 make -j8
 make test
 make install
