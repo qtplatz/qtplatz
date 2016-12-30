@@ -147,7 +147,7 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
 
     connect( dataSequenceChromatography_.get(), &DataSequenceTable::plot, this, &DataSequenceWidget::handlePlot );
 
-    QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
+    QuanDocument::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
 }
 
 void

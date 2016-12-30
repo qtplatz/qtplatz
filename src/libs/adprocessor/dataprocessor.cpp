@@ -271,7 +271,7 @@ dataprocessor::readSpectrumFromTimeCount()
         double ptime(0);
         sql.prepare( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" );
         while ( sql.step() == adfs::sqlite_row ) {
-
+            
             double time = sql.get_column_value< double >( 0 ); // time
             int proto = sql.get_column_value< uint64_t >( 2 );                    
             

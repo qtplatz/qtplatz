@@ -57,7 +57,7 @@ CompoundsWidget::CompoundsWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    QuanDocument::instance()->register_dataChanged( [this] ( int id, bool f ){ handleDataChanged( id, f ); } );
+    QuanDocument::instance()->connectDataChanged( [this] ( int id, bool f ){ handleDataChanged( id, f ); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );

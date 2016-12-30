@@ -188,6 +188,10 @@ QuanDataWriter::create_table()
 ,reason        TEXT\
 ,UNIQUE(uuid) )" );
 
+    // MetaData, see acquireddata_v3.cpp L88
+    result &= sql.exec( "CREATE TABLE IF NOT EXISTS "
+                        "MetaData ( clsid UUID, attrib TEXT, data BLOB )"  );
+
     result &= sql.exec( 
         "CREATE TABLE QuanMethod (\
  id      INTEGER PRIMARY KEY \
@@ -195,6 +199,7 @@ QuanDataWriter::create_table()
 ,uuid            UUID \
 ,equation        INTEGER \
 ,polynomialOrder INTEGER \
+,isCounting      INTEGER \
 ,isChromatogram  INTEGER \
 ,isWeighting     INTEGER \
 ,isBracketing    INTEGER \
@@ -328,12 +333,51 @@ CREATE TABLE QuanCalib (\
 }
 
 bool
+QuanDataWriter::create_counting_tables()
+{
+    adfs::sqlite & db = fs_.db();
+
+    adfs::stmt sql( db );
+    bool result( true );
+    
+    result &= sql.exec(
+        "CREATE TABLE IF NOT EXISTS datafile ("
+        " id INTEGER PRIMARY KEY"
+        ", name TEXT"
+        ", grpid INTEGER"
+        ", sampid INTEGER"
+        ", UNIQUE( name )"
+        ")" );
+
+    result &= sql.exec(
+        "CREATE TABLE IF NOT EXISTS reference ("
+        " id INTEGER PRIMARY KEY"
+        ", name TEXT"
+        ", amount REAL"
+        ")" );
+
+    result &= sql.exec(
+        "CREATE TABLE IF NOT EXISTS response ("
+        " dataid INTEGER"
+        ", compid INTEGER"
+        ", count INTEGER"
+        ", FOREIGN KEY ( dataid ) REFERENCES datafiles ( id )"
+        ", FOREIGN KEY ( compid ) REFERENCES comp ( id )"
+        ")");
+
+    return result;
+}
+
+bool
 QuanDataWriter::drop_table()
 {
     adfs::stmt sql( fs_.db() );
 
     static const char * drop_order[] = {
-        "QuanResponse"
+        "response"
+        , "reference"
+        , "datafile"
+        , "QuanResponse"
         , "QuanSample"
         , "QuanSequence"
         , "QuanISTD"
@@ -387,14 +431,15 @@ QuanDataWriter::insert_table( const adcontrols::QuanMethod& t )
     insert_table( sql, t.ident(), "Create QuanMethod" );
 
     if ( sql.prepare( "\
-INSERT INTO QuanMethod (idAudit,uuid,equation,polynomialOrder,isChromatogram,isWeighting,isBracketing\
+INSERT INTO QuanMethod (idAudit,uuid,equation,polynomialOrder,isCounting,isChromatogram,isWeighting,isBracketing\
 ,bracketing,weighting,isISTD,levels,replicates,fnMethod,fnCompounds,fnSequence) \
-SELECT idAudit.id,:uuid,?,?,?,?,?,?,?,?,?,?,?,?,? from idAudit WHERE uuid = :uuid" ) ) {
+SELECT idAudit.id,:uuid,?,?,?,?,?,?,?,?,?,?,?,?,?,? from idAudit WHERE uuid = :uuid" ) ) {
 
         int row = 1;
         sql.bind( row++ ) = t.ident().uuid(); // :uuid (idAudit.rowid)
         sql.bind( row++ ) = int64_t(t.equation());
         sql.bind( row++ ) = int64_t(t.polynomialOrder());
+        sql.bind( row++ ) = int64_t(t.isCounting());
         sql.bind( row++ ) = int64_t(t.isChromatogram());
         sql.bind( row++ ) = int64_t(t.isWeighting());
         sql.bind( row++ ) = int64_t(t.isBracketing());
@@ -440,11 +485,26 @@ QuanDataWriter::insert_table( const adcontrols::QuanSequence& t )
     sql.begin();
     for ( auto& sample: t ) {
 
-        if ( sql.prepare( "INSERT INTO QuanSample\
-(uuid,idSequence,uidQuanSequence,row,name,dataType,dataSource,sampleType,level,ISTDID,injVol,amountsAdded,channel,dataGeneration,data_first,data_second) \
-SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
+        if ( sql.prepare( "INSERT INTO QuanSample"
+                          "(uuid"
+                          ",idSequence"
+                          ",uidQuanSequence"
+                          ",row"
+                          ",name"
+                          ",dataType"
+                          ",dataSource"
+                          ",sampleType"
+                          ",level"
+                          ",ISTDID"
+                          ",injVol"
+                          ",amountsAdded"
+                          ",channel"
+                          ",dataGeneration"
+                          ",data_first"
+                          ",data_second)"
+                          "SELECT ?,id,uuid,?,?,?,?,?,?,?,?,?,?,?,?,? FROM QuanSequence WHERE uuid = :uuid" ) ) {
 
-        int row = 1;
+            int row = 1;
             sql.bind( row++ ) = sample.uuid();  // own unique id
             // <-- QuanSequence.id where QuanSequence.uuid = t.uuid // parent (sequence) id
             sql.bind( row++ ) = sample.row();                   // parent row#
@@ -522,8 +582,9 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
 
         for ( int i = 0; i < int(c.levels()); ++i ) {
             if ( sql.prepare( 
-                     "INSERT INTO QuanAmount (idCompound, idCmpd, level, amount) \
-SELECT QuanCompound.id, :idCmpd, :level, :amount FROM QuanCompound WHERE uuid = :idCmpd" ) ) {
+                     "INSERT INTO QuanAmount (idCompound, idCmpd, level, amount)"
+                     "SELECT QuanCompound.id, :idCmpd, :level, :amount "
+                     "FROM QuanCompound WHERE uuid = :idCmpd" ) ) {
                 int row = 1;
                 sql.bind( row++ ) = c.uuid();          // QuanCompound.idCmpd
                 sql.bind( row++ ) = i + 1;             // :level (1-origin)
@@ -551,10 +612,10 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 
     for ( auto& result: t.results() ) {
 
-        if ( sql.prepare( "INSERT INTO QuanResponse \
-(idSample,idx,fcn,intensity,idCmpd,idTable,dataGuid,formula,mass,tR) \
-SELECT QuanSample.id,?,?,?,?,?,?,?,?,? \
-FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
+        if ( sql.prepare( "INSERT INTO QuanResponse"
+                          "(idSample,idx,fcn,intensity,idCmpd,idTable,dataGuid,formula,mass,tR)"
+                          "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?"
+                          "FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 
             int col = 1;
             sql.bind( col++ ) = result.idx_;

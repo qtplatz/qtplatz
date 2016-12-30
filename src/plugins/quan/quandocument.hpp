@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,6 +34,7 @@
 #include <thread>
 #include <vector>
 #include <QObject>
+#include <boost/signals2/signal.hpp>
 
 namespace adcontrols {
     class QuanMethod; class QuanCompounds;
@@ -52,6 +53,7 @@ namespace quan {
 
     class PanelData;
     class QuanSampleProcessor;
+    class QuanCountingProcessor;
     class QuanProcessor;
     class QuanConnection;
     class QuanPublisher;
@@ -94,7 +96,10 @@ namespace quan {
         std::shared_ptr< adpublisher::document > docTemplate() const;
         void docTemplate( std::shared_ptr< adpublisher::document >& );
 
-        void register_dataChanged( std::function< void( int, bool ) > );
+        typedef boost::signals2::signal< void( int, bool ) > notify_update_t;
+
+        boost::signals2::connection connectDataChanged( const notify_update_t::slot_type& );
+        
         void setResultFile( const std::wstring& );
         void mslock_enabled( bool );
 
@@ -115,6 +120,7 @@ namespace quan {
 
         void handle_processed( QuanProcessor * );  // UI thread
         void sample_processed( QuanSampleProcessor * ); // within a sample process thread
+        void sample_processed( QuanCountingProcessor * ); // within a sample process thread
 
         QSettings * settings() { return settings_.get(); }
         std::shared_ptr< QSettings > settings_ptr() { return settings_; }
@@ -139,7 +145,8 @@ namespace quan {
         std::shared_ptr< QSettings > settings_;
         std::shared_ptr< QuanConnection > quanConnection_;
 
-        std::vector< std::function< void( int, bool ) > > clients_;
+        notify_update_t notify_update_;
+
         std::array< bool, idSize > dirty_flags_;
         std::vector< std::thread > threads_;
         std::atomic< size_t > postCount_;

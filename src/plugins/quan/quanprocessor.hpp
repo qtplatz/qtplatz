@@ -44,6 +44,10 @@ namespace quan {
         QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >&
                        , std::shared_ptr< adcontrols::ProcessMethod >& );
 
+        // combine per number of threads (for counting)
+        QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >
+                       , std::shared_ptr< adcontrols::ProcessMethod >, size_t );
+
         adcontrols::QuanSequence * sequence();
         const adcontrols::QuanSequence * sequence() const;
         const std::shared_ptr< adcontrols::ProcessMethod >& procmethod() const;

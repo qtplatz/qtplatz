@@ -35,6 +35,7 @@
 #include <adportable/polfit.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/exception/all.hpp>
@@ -71,6 +72,25 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
     // combine per dataSource
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it )
         que_[ it->dataSource() ].push_back( *it );
+    progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
+    progress_->setRange( 0, progress_total_ );
+}
+
+QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence > s
+                              , std::shared_ptr< adcontrols::ProcessMethod > pm
+                              , size_t nThreads ) : sequence_( s )
+                                                  , procmethod_( pm )
+                                                  , progress_( adwidgets::ProgressWnd::instance()->addbar() )
+                                                  , progress_total_(0)
+                                                  , progress_count_(0)
+{
+    // combine per number-of-threads
+
+    size_t n(0);
+    for ( auto it = sequence_->begin(); it != sequence_->end(); ++it ) {
+        auto ident = ( boost::wformat( L"%d" ) % ( n % nThreads ) ).str();
+        que_[ ident ].push_back( *it );
+    }
     progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
     progress_->setRange( 0, progress_total_ );
 }

@@ -83,7 +83,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     connect( centroidform, &adwidgets::CentroidForm::valueChanged, this, &ProcessMethodWidget::commit );
     connect( peakmethodform, &adwidgets::PeakMethodForm::valueChanged, this, &ProcessMethodWidget::commit );
 
-    QuanDocument::instance()->register_dataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
+    QuanDocument::instance()->connectDataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
     
 }
 

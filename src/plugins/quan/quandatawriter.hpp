@@ -59,6 +59,7 @@ namespace quan {
 
         bool drop_table();
         bool create_table();
+        bool create_counting_tables();
 
         bool insert_table( const adcontrols::QuanMethod& );
         bool insert_table( const adcontrols::QuanSequence& );

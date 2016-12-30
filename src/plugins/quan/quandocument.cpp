@@ -26,6 +26,7 @@
 #include "quanconnection.hpp"
 #include "quanconstants.hpp"
 #include "paneldata.hpp"
+#include "quancountingprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quansampleprocessor.hpp"
 #include "quanprocessor.hpp"
@@ -119,10 +120,10 @@ QuanDocument::instance()
     return tmp;
 }
 
-void
-QuanDocument::register_dataChanged( std::function< void( int, bool ) > f )
+boost::signals2::connection
+QuanDocument::connectDataChanged( const notify_update_t::slot_type& subscriber )
 {
-    clients_.push_back( f );
+    return notify_update_.connect( subscriber );
 }
 
 PanelData *
@@ -256,8 +257,7 @@ QuanDocument::quanMethod( const adcontrols::QuanMethod& t )
 {
     *pm_ *= t;
     dirty_flags_[ idQuanMethod ] = true;
-    for ( auto& client: clients_ )
-        client( idQuanMethod, false );
+    notify_update_( idQuanMethod, false );
 }
 
 const adcontrols::QuanCompounds&
@@ -282,8 +282,7 @@ QuanDocument::quanSequence( std::shared_ptr< adcontrols::QuanSequence >& ptr )
 {
     quanSequence_ = ptr;
     dirty_flags_[ idQuanSequence ] = true;
-    for ( auto& client: clients_ )
-        client( idQuanSequence, false );
+    notify_update_( idQuanSequence, false );
     addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( ptr->filename() ) );
 }
 
@@ -348,7 +347,6 @@ QuanDocument::run()
                 
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *pm_ );
-
                 auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
                 exec_.push_back( que );
                 
@@ -363,10 +361,9 @@ QuanDocument::run()
                     ++postCount_;
                     threads_.push_back( std::thread( [que,it,writer] () { QuanSampleProcessor( que.get(), it->second )(writer); } ) );
                 }
-
+                
                 // update result outfile name on sequence for next run
-                for ( auto& client : clients_ )
-                    client( idQuanSequence, true );
+                notify_update_( idQuanSequence, true );
             }
         }
     }
@@ -377,6 +374,48 @@ QuanDocument::execute_counting()
 {
     qtwrapper::waitCursor wait;
 
+    if ( quanSequence_ && quanSequence_->size() > 0 ) {
+
+        // deep copy which prepare for a long background process (e.g. chromatogram search...)
+        auto dup = std::make_shared< adcontrols::ProcessMethod >( *pm_ );
+        auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, 4 );
+
+        if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
+            
+            if ( writer->open() ) {
+                
+                if ( !writer->create_table() ) {
+                    QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
+                    return;
+                }
+                if ( !writer->create_counting_tables() ) {
+                    QMessageBox::information( 0, "QuanDocument", "Create counting table failed" );
+                    return;
+                }
+                
+                exec_.push_back( que );
+
+                writer->write( *quanSequence_ ); // save into global space in a result file
+                writer->write( *dup );           // ibid
+                
+                writer->insert_table( *pm_->find< adcontrols::QuanMethod >() );    // write data into sql table for user query
+                writer->insert_table( *pm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
+                writer->insert_table( *quanSequence_ );  // ibid
+
+                for ( auto it = que->begin(); it != que->end(); ++it ) {
+                    ++postCount_;
+                    threads_.push_back( std::thread( [que,it,writer] () { QuanCountingProcessor( que.get(), it->second )(writer); } ) );
+                }
+
+                // update result outfile name on sequence for next run
+                notify_update_( idQuanSequence, true );
+                
+            }
+        }
+        
+    }
+    
+#if 0 // simple (block gui) implementation for initial test
     auto compounds( quanCompounds() );
     auto qm = pm_->find< adcontrols::QuanMethod >();
     auto tm = pm_->find< adcontrols::TargetingMethod >();
@@ -388,6 +427,7 @@ QuanDocument::execute_counting()
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
         
         boost::filesystem::path outfile( quanSequence_->outfile() );
+        
         outfile.replace_extension( ".csv" );
         if ( boost::filesystem::exists( outfile ) ) {
             boost::filesystem::path backup( outfile );
@@ -466,6 +506,7 @@ QuanDocument::execute_counting()
             }
         }
     }
+#endif
 }
 
 void
@@ -480,6 +521,14 @@ QuanDocument::stop()
 
 void
 QuanDocument::sample_processed( QuanSampleProcessor * p )
+{
+    // hear is in a sample processing thread; p is a pointer on thread's local stack (not a heap!!)
+    auto processor = p->processor();
+    emit onProcessed( processor );
+}
+
+void
+QuanDocument::sample_processed( QuanCountingProcessor * p )
 {
     // hear is in a sample processing thread; p is a pointer on thread's local stack (not a heap!!)
     auto processor = p->processor();
@@ -531,12 +580,10 @@ QuanDocument::onInitialUpdate()
     if ( !load_default_doctemplate() )
         ADERROR() << "default document template load failed";
 
-    for ( auto& client: clients_ ) {
-        client( idQuanMethod, true );
-        client( idQuanCompounds, true );
-        client( idQuanSequence, true );
-        client( idProcMethod, true );
-    }
+    notify_update_( idQuanMethod, true );
+    notify_update_( idQuanCompounds, true );
+    notify_update_( idQuanSequence, true );
+    notify_update_( idProcMethod, true );
 }
 
 void
@@ -571,7 +618,7 @@ QuanDocument::method( const QuanMethodComplex& t )
     boost::filesystem::path path( t.filename() );
     settings_->setValue( "MethodFilename", QString::fromStdWString( path.normalize().wstring() ) );
 
-    for ( auto& client: clients_ ) {
+    for ( auto& client: notify_update_ ) {
         client( idQuanMethod, true );
         client( idQuanCompounds, true );
         client( idProcMethod, true );
@@ -595,12 +642,9 @@ void
 QuanDocument::replace_method( const adcontrols::ProcessMethod& d )
 {
     *pm_ *= d;
-    for ( auto& client: clients_ ) {
-        client( idQuanMethod, true );
-        client( idQuanCompounds, true );
-        //client( idQuanSequence, true );
-        client( idProcMethod, true );
-    }
+    notify_update_( idQuanMethod, true );
+    notify_update_( idQuanCompounds, true );
+    notify_update_( idProcMethod, true );
 }
 
 void

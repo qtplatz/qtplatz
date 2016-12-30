@@ -346,45 +346,43 @@ void
 MainWindow::run()
 {
     commit();
+    bool isCounting(false);
 
     if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
-        if ( qm->isCounting() ) {
 
-            return QuanDocument::instance()->execute_counting();
-            
-        } else {
-            
-            if ( qm->levels() == 1 && qm->replicates() == 1 ) {
-                if ( qm->equation() != adcontrols::QuanMethod::idCalibOnePoint ) {
-                    QMessageBox::critical( this, "Quan Method Error", "Calibration Eq. does not match with selected levels/replicates." );
-                    return;
-                }
+        if ( qm->levels() == 1 && qm->replicates() == 1 ) {
+            if ( qm->equation() != adcontrols::QuanMethod::idCalibOnePoint ) {
+                QMessageBox::critical( this, "Quan Method Error"
+                                       , "Calibration Eq. does not match with selected levels/replicates." );
+                return;
             }
         }
+        
+        isCounting = qm->isCounting();
     }
 
     if ( auto sequence = QuanDocument::instance()->quanSequence() ) {
-
+        
         if ( sequence->size() == 0 ) {
             QMessageBox::critical( this, "Quan Execution Error", "Empty sample sequence." );
             return;
         }
-
+            
         boost::filesystem::path path( sequence->outfile() );
         if ( path.empty() ) {
             QMessageBox::critical( this, "Quan Execution Error", "Empty data output filename." );
             return;
         }
-        
-        if ( boost::filesystem::exists( path ) ) {
             
+        if ( boost::filesystem::exists( path ) ) {
+                
             QString file( QString::fromStdWString( path.normalize().wstring() ) );
             auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
                                                 , QString("File %1% already exists, remove?").arg( file )
                                                 , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
             if ( reply == QMessageBox::No )
                 return;
-
+                
             if ( reply == QMessageBox::Yes ) {
                 boost::system::error_code ec;
                 boost::filesystem::remove( path, ec );
@@ -401,14 +399,17 @@ MainWindow::run()
 
     if ( auto stop = Core::ActionManager::command(Constants::QUAN_SEQUENCE_STOP)->action() )
         stop->setEnabled( true );
-
+    
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( false );
 
     boost::filesystem::path path = QuanDocument::instance()->quanSequence()->outfile();
     Core::DocumentManager::setProjectsDirectory( QString::fromStdWString( path.parent_path().wstring() ) );
 
-    QuanDocument::instance()->run();
+    if ( isCounting )
+        QuanDocument::instance()->execute_counting();
+    else
+        QuanDocument::instance()->run();
 }
 
 void

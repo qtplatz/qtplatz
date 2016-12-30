@@ -94,6 +94,8 @@ set( quan_SOURCES
   quandatawriter.hpp
   quansampleprocessor.cpp
   quansampleprocessor.hpp
+  quancountingprocessor.cpp
+  quancountingprocessor.hpp  
   quanchromatogramsprocessor.cpp
   quanchromatogramsprocessor.hpp
   processmethodwidget.cpp

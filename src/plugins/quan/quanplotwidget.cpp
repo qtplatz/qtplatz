@@ -64,7 +64,7 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
     else
         dplot_.reset( new adplot::SpectrumWidget );
     
-    QuanDocument::instance()->register_dataChanged( [this]( int id, bool f ){ handleDataChanged( id, f ); } );
+    QuanDocument::instance()->connectDataChanged( [this]( int id, bool f ){ handleDataChanged( id, f ); } );
 
     layout->addWidget( dplot_.get() );
 

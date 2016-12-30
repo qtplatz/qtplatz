@@ -89,7 +89,7 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
         layout_->addWidget( toolBar );            
     }
 
-    QuanDocument::instance()->register_dataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
+    QuanDocument::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
     const int row = layout_->rowCount();
     layout_->addWidget( form_.get(), row, 0 );
     form_->setContents( QuanDocument::instance()->quanMethod() );
