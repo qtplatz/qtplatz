@@ -97,7 +97,9 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
-    ADDEBUG() << "CountingProcessor has " << samples.size() << " samples";
+    progress_current_ = 0;
+    progress_total_ = samples.size();
+    progress_->setRange( int( progress_current_ ), int( progress_total_) );
 }
 
 QuanProcessor *
@@ -213,6 +215,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             }
         }
         writer->insert_table( sample );
+        (*progress_)();
         processor_->complete( &sample );
     }
     QuanDocument::instance()->sample_processed( this );

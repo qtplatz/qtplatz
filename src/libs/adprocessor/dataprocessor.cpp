@@ -42,6 +42,7 @@
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
 
 #include <boost/exception/all.hpp>
@@ -179,21 +180,8 @@ std::shared_ptr< adcontrols::MassSpectrometer >
 dataprocessor::massSpectrometer()
 {
     if ( ! spectrometer_ ) {
-        // std::shared_ptr< adcontrols::MassSpectrum > ms;
         
         adfs::stmt sql( *this->db() );
-        // sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like 'histogram.timecount.1.%' LIMIT 1" );
-        // if ( sql.step() == adfs::sqlite_row ) {
-            
-        //     auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
-            
-        //     if ( auto raw = this->rawdata() ) {
-        //         if ( auto reader = raw->dataReader( objuuid ) ) {
-        //             auto it = reader->begin();
-        //             ms = reader->readSpectrum( it );
-        //         }
-        //     }
-        // }
         
         boost::uuids::uuid clsidSpectrometer{ 0 };
         double acclVoltage(0), tDelay(0), fLength(0);
@@ -212,7 +200,6 @@ dataprocessor::massSpectrometer()
     }
     return spectrometer_;
 }
-
 
 std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readSpectrumFromTimeCount()
@@ -262,11 +249,11 @@ dataprocessor::readSpectrumFromTimeCount()
                     spectrometer->setMethod( m );
             }
         }
-        
+
         std::shared_ptr< adcontrols::MassSpectrum > hist = std::make_shared< adcontrols::MassSpectrum >();
         hist->clone( *ms );
         hist->setCentroid( adcontrols::CentroidNative );
-        
+
         std::vector< double > t, y, m;
         double ptime(0);
         sql.prepare( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" );
@@ -296,11 +283,16 @@ dataprocessor::readSpectrumFromTimeCount()
         // t.emplace_back( ptime + 1.0e-9 );
         // y.emplace_back( 0 ); // count
         // m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
-        
+
         hist->setMassArray( std::move( m ) );
         hist->setTimeArray( std::move( t ) );
         hist->setIntensityArray( std::move( y ) );
-
+        ADDEBUG() << "MASS RANGE ==> " << hist->getAcquisitionMassRange().first << ", " << hist->getAcquisitionMassRange().second;
+        if ( auto m = spectrometer->method() ) {
+            auto range = spectrometer->findMassRange( *m );
+            if ( range.first > 0 && range.second > 0 )
+                hist->setAcquisitionMassRange( range.first, range.second );
+        }
         return hist;
     }
 }
