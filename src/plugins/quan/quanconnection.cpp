@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -155,7 +155,7 @@ QuanConnection::fetch( const std::wstring& dataGuid )
             } else if ( att.dataClass() == adcontrols::QuanSample::dataClass() ) {
 
                 d->sample = std::make_shared< adcontrols::QuanSample >();
-                att.fetch( *d->sample );                
+                att.fetch( *d->sample );
 
             } else if ( att.dataClass() == adcontrols::ProcessMethod::dataClass() ) {
 
@@ -199,13 +199,15 @@ QuanConnection::readMethods()
         std::sort( files.begin(), files.end(), [] ( const adfs::file& a, const adfs::file& b ){ return a.rowid() > b.rowid(); } );
 
         do {
-            auto it = std::find_if( files.begin(), files.end(), [] ( const adfs::file& t ){ return t.dataClass() == adcontrols::ProcessMethod::dataClass(); } );
+            auto it = std::find_if( files.begin(), files.end()
+                                    , [] ( const adfs::file& t ){ return t.dataClass() == adcontrols::ProcessMethod::dataClass(); } );
             if ( it != files.end() )
                 it->fetch( *procmethod_ );
         } while ( false );
 
         do {
-            auto it = std::find_if( files.begin(), files.end(), [] ( const adfs::file& t ){ return t.dataClass() == adcontrols::QuanSequence::dataClass(); } );
+            auto it = std::find_if( files.begin(), files.end()
+                                    , [] ( const adfs::file& t ){ return t.dataClass() == adcontrols::QuanSequence::dataClass(); } );
             if ( it != files.end() )
                 it->fetch( *sequence_ );
         } while ( false );

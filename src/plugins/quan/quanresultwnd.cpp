@@ -79,6 +79,10 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
     grid->attach( calibplot_.get() );
 
+    calibplot_->setMinimumHeight( 80 );
+    dplot_->setMinimumHeight( 80 );
+    cplot_->setMinimumHeight( 40 );
+
     Core::MiniSplitter * splitter = new Core::MiniSplitter;// compound-table | plots
     
     splitter->setOrientation( Qt::Horizontal );
@@ -220,7 +224,9 @@ QuanResultWnd::handleResponseSelected( int respId )
         std::wstring dataSource;
         size_t idx;
         int fcn;
-        if ( sql.prepare( "SELECT dataGuid,idx,fcn,dataSource FROM QuanSample, QuanResponse WHERE QuanResponse.id = ? AND QuanSample.id = QuanResponse.idSample" ) ) {
+        if ( sql.prepare( "SELECT dataGuid,idx,fcn,dataSource "
+                          "FROM QuanSample, QuanResponse "
+                          "WHERE QuanResponse.id = ? AND QuanSample.id = QuanResponse.idSample" ) ) {
             sql.bind( 1 ) = respId;
             if ( sql.step() == adfs::sqlite_row ) {
                 dataGuid = sql.get_column_value< std::wstring >( 0 );
@@ -229,8 +235,10 @@ QuanResultWnd::handleResponseSelected( int respId )
                 dataSource = sql.get_column_value< std::wstring >( 3 );
             }
         }
+        
         if ( !dataGuid.empty() ) {
             if ( auto d = conn->fetch( dataGuid ) ) {
+                ADDEBUG() << "setData 1( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
                 dplot_->setData( d, idx, fcn, dataSource );
                 cplot_->setData( d, idx, fcn, dataSource );
             }
@@ -241,6 +249,7 @@ QuanResultWnd::handleResponseSelected( int respId )
                     auto idx = sql.get_column_value< uint64_t >( 1 );
                     auto fcn = sql.get_column_value< uint64_t >( 2 );
                     if ( auto d = conn->fetch( refDataGuid ) ) {
+                        ADDEBUG() << "setData 2( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
                         dplot_->setData( d, idx, fcn, dataSource );
                         cplot_->setData( d, idx, fcn, dataSource );
                     }

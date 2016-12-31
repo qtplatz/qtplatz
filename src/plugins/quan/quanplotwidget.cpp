@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -40,6 +40,7 @@
 #include <adplot/peakmarker.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/zoomer.hpp>
+#include <adportable/debug.hpp>
 
 #include <qwt_plot_marker.h>
 #include <QBoxLayout>
@@ -117,19 +118,26 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
             
             double mass = d->centroid->getMass( idx );
             QRectF rc = spw->zoomer()->zoomRect();
-            rc.setLeft( mass - 2 );
-            rc.setRight( mass + 2 );
-            spw->zoomer()->zoom( rc );
-            
             auto item = d->pkinfo->begin() + idx;
-            marker_->setYAxis( QwtPlot::yRight );
-            marker_->setPeak( *item );
-            marker_->visible( true );
+
+            double width = 1;
+            if ( d->pkinfo->size() > idx )
+                width = item->widthHH() * 5;
+
+            rc.setLeft( mass - width );
+            rc.setRight( mass + width );
+            spw->zoomer()->zoom( rc );
+
+            if ( d->pkinfo->size() > idx ) {
+                marker_->setYAxis( QwtPlot::yRight );
+                auto item = d->pkinfo->begin() + idx;
+                marker_->setPeak( *item );
+                marker_->visible( true );
             
-            spw->setFooter( ( boost::format( "FWHM=%.1fmDa (%.2fns)" )
-                              % ( item->widthHH( false ) * 1000 )
-                              % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
-            
+                spw->setFooter( ( boost::format( "FWHM=%.1fmDa (%.2fns)" )
+                                  % ( item->widthHH( false ) * 1000 )
+                                  % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
+            }
         }
     }
 }
