@@ -148,7 +148,6 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
                 for ( auto& compound: compounds ) {
 
-                    int32_t index_on_centroid(-1);
                     auto beg = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m){
                             return a.mass() < m;
                         });
@@ -162,14 +161,12 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                         it->set_peak_index( std::distance( pkinfo.begin(), it ) );
                         pks[ compound.formula() ] = *it;
                         
-                        ADDEBUG() << compound.formula() << ", mass=" << it->mass() << ", index=" << index_on_centroid;
-                        
                         using adcontrols::annotation;
                         centroid.get_annotations()
                             << annotation( compound.formula()
                                            , it->mass()
                                            , it->area()
-                                           , index_on_centroid
+                                           , it->peak_index()
                                            , 1000
                                            , annotation::dataFormula );
                     }
@@ -211,7 +208,8 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 resp.intensity_ = count;
                 resp.amounts_   = 0;
                 resp.tR_        = 0;
-                
+
+                hist->setCentroid( adcontrols::CentroidNone );
                 if ( auto file = writer->write( *hist, stem.wstring() ) ) {
                     resp.dataGuid_ = file.name();
                     auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
@@ -221,10 +219,8 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 }
                 sample << resp;
             
-                ADDEBUG() << "\n" << stem.string()
-                          << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
-                    % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
-                // of << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
+                // ADDEBUG() << "\n" << stem.string()
+                //           << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
                 //     % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
             }
         }

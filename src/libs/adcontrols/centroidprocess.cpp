@@ -426,8 +426,6 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 void
 CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 {
-    ADDEBUG() << "findCluster";
-    
     adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval() );
 
     const double * pCounts = histogram.getIntensityArray();

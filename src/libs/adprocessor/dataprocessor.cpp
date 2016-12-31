@@ -287,7 +287,7 @@ dataprocessor::readSpectrumFromTimeCount()
         hist->setMassArray( std::move( m ) );
         hist->setTimeArray( std::move( t ) );
         hist->setIntensityArray( std::move( y ) );
-        ADDEBUG() << "MASS RANGE ==> " << hist->getAcquisitionMassRange().first << ", " << hist->getAcquisitionMassRange().second;
+
         if ( auto m = spectrometer->method() ) {
             auto range = spectrometer->findMassRange( *m );
             if ( range.first > 0 && range.second > 0 )
