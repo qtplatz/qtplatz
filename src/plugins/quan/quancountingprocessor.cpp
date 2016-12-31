@@ -97,6 +97,7 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
+    ADDEBUG() << "CountingProcessor has " << samples.size() << " samples";
 }
 
 QuanProcessor *
@@ -193,6 +194,14 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     resp.intensity_ = count;
                     resp.amounts_ = 0;
                     resp.tR_ = 0;
+
+                    if ( auto file = writer->write( *hist, stem.wstring() ) ) {
+                        resp.dataGuid_ = file.name();
+                        auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
+                        writer->attach< adcontrols::ProcessMethod >( att, *procmethod_, L"ProcessMethod" );
+                        writer->attach< adcontrols::MSPeakInfo >( file, centroidProcess.getPeakInfo(), dataproc::Constants::F_MSPEAK_INFO );
+                        writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+                    }
                     sample << resp;
                     
                     ADDEBUG() << "\n" << stem.string()
@@ -201,16 +210,9 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     // of << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
                     //     % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
                 }
-                //of << std::endl;
-                
-                if ( auto file = writer->write( *hist, stem.wstring() ) ) {
-                    auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-                    writer->attach< adcontrols::ProcessMethod >( att, *procmethod_, L"ProcessMethod" );
-                    writer->attach< adcontrols::MSPeakInfo >( file, centroidProcess.getPeakInfo(), dataproc::Constants::F_MSPEAK_INFO );
-                    writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
-                }
             }
         }
+        writer->insert_table( sample );
         processor_->complete( &sample );
     }
     QuanDocument::instance()->sample_processed( this );

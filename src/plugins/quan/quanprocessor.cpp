@@ -85,10 +85,9 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence > s
                                                   , progress_count_(0)
 {
     // combine per number-of-threads
-
     size_t n(0);
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it ) {
-        auto ident = ( boost::wformat( L"%d" ) % ( n % nThreads ) ).str();
+        auto ident = ( boost::wformat( L"processor_%d" ) % ( n++ % nThreads ) ).str();
         que_[ ident ].push_back( *it );
     }
     progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );

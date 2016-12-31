@@ -378,7 +378,7 @@ QuanDocument::execute_counting()
 
         // deep copy which prepare for a long background process (e.g. chromatogram search...)
         auto dup = std::make_shared< adcontrols::ProcessMethod >( *pm_ );
-        auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, 4 );
+        auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, std::thread::hardware_concurrency() / 2 );
 
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
             
@@ -539,6 +539,7 @@ void
 QuanDocument::handle_processed( QuanProcessor * processor )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
+
     if ( postCount_ && ( --postCount_ == 0 ) ) {
 
         std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
@@ -561,8 +562,6 @@ QuanDocument::handle_processed( QuanProcessor * processor )
                     setConnection( connection.get() );
             }
         }
-
-        //adwidgets::ProgressWnd::instance()->hide();
 
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
