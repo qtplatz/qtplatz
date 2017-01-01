@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -206,7 +206,11 @@ namespace adcontrols {
 
             std::vector< datum > data;
             for ( size_t i = 0; i < massArray_.size(); ++i )
-                data.push_back( datum( i, massArray_[ i ], (tofArray_.empty() ? 0 : tofArray_[ i ]), intsArray_[i], (colArray_.empty() ? 0 : colArray_[ i ]) ) );
+                data.emplace_back( datum( i
+                                          , massArray_[ i ]
+                                          , (tofArray_.empty() ? 0 : tofArray_[ i ])
+                                          , intsArray_[i]
+                                          , (colArray_.empty() ? 0 : colArray_[ i ]) ) );
 
             ar & BOOST_SERIALIZATION_NVP( data );
 
@@ -674,12 +678,6 @@ MassSpectrum::protocolId() const
     return pImpl_->protocolId_;
 }
 
-void
-MassSpectrum::protocolId( int32_t v )
-{
-    pImpl_->protocolId_ = v;
-}
-
 int32_t
 MassSpectrum::nProtocols() const
 {
@@ -687,9 +685,10 @@ MassSpectrum::nProtocols() const
 }
 
 void
-MassSpectrum::nProtocols( int32_t v )
+MassSpectrum::setProtocol( int32_t proto, int32_t nproto )
 {
-    pImpl_->nProtocols_ = v;
+    pImpl_->protocolId_ = proto;
+    pImpl_->nProtocols_ = nproto;
 }
 
 // for v3 format datafile support

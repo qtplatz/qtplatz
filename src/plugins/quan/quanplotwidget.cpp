@@ -103,32 +103,34 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
         
         spw->enableAxis( QwtPlot::yRight );
         
-        if ( d->profile->protocolId() == fcn ) {
+        // if ( d->profile->protocolId() == fcn ) {
             
-            spw->setTitle( dataSource + L", " + d->centroid->getDescriptions().toString() );
-            
-            if ( d->filterd ) {
-                spw->setData( d->filterd, 0, true );
-                spw->setData( d->profile, 2, true );
-                spw->setData( d->centroid, 1, false );
-            } else {
-                spw->setData( d->profile, 0, true );
-                spw->setData( d->centroid, 1, false );
-            }
-            
-            double mass = d->centroid->getMass( idx );
+        spw->setTitle( dataSource + L", " + d->centroid->getDescriptions().toString() );
+        
+        if ( d->filterd ) {
+            spw->setData( d->filterd, 0, true );
+            spw->setData( d->profile, 2, true );
+            spw->setData( d->centroid, 1, false );
+        } else {
+            spw->setData( d->profile, 0, true );
+            spw->setData( d->centroid, 1, false );
+        }
+
+        auto pkinfo = d->pkinfo->findProtocol( fcn );
+
+        if ( pkinfo ) {
+            auto item = pkinfo->begin() + idx;
+
+            double mass = item->mass();
             QRectF rc = spw->zoomer()->zoomRect();
-            auto item = d->pkinfo->begin() + idx;
 
-            double width = 1;
-            if ( d->pkinfo->size() > idx )
-                width = item->widthHH() * 5;
-
+            double width = pkinfo->size() > idx ? item->widthHH() * 5 : 1.0;
+            
             rc.setLeft( mass - width );
             rc.setRight( mass + width );
             spw->zoomer()->zoom( rc );
 
-            if ( d->pkinfo->size() > idx ) {
+            if ( pkinfo->size() > idx ) {
                 marker_->setYAxis( QwtPlot::yRight );
                 auto item = d->pkinfo->begin() + idx;
                 marker_->setPeak( *item );

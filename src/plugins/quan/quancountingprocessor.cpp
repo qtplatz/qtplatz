@@ -125,106 +125,124 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
     if ( auto tm = procmethod_->find< adcontrols::TargetingMethod >() )
         tolerance = tm->tolerance( adcontrols::idToleranceDaltons ) / 2.0;
     
-    adcontrols::CentroidProcess centroidProcess( *cm );
-
     for ( auto& sample : samples_ ) {
 
         const boost::filesystem::path stem = boost::filesystem::path( sample.dataSource() ).stem();
         auto dp = std::make_shared< adprocessor::dataprocessor >();
         std::wstring emsg;
         std::shared_ptr< adcontrols::MassSpectrum > hist;
-        adcontrols::MassSpectrum centroid;
-        
+
         if ( dp->open( sample.dataSource(), emsg ) && ( hist = dp->readSpectrumFromTimeCount() ) ) {
-            using adcontrols::MSPeakInfo;
-            using adcontrols::MSPeakInfoItem;
 
-            std::map< std::string, MSPeakInfoItem > pks;
-            std::wstring dataGuid; // name (guid) on adfs filesystem for spectrum
+            std::wstring dataGuid;
+            adcontrols::MassSpectrum centroid;
+            adcontrols::MSPeakInfo pkinfo;
+            std::map< std::string, adcontrols::QuanResponse > responses;
 
-            if ( centroidProcess( *hist ) ) {  // process centroid spectrum
-                auto pkinfo = centroidProcess.getPeakInfo();
-                centroidProcess.getCentroidSpectrum( centroid );
+            if ( dp->doCentroid( pkinfo, centroid, *hist, *cm ) ) {
 
                 for ( auto& compound: compounds ) {
 
-                    auto beg = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m){
-                            return a.mass() < m;
-                        });
-                    auto end = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() + tolerance, [](const auto& a, const double& m){
-                            return a.mass() < m;
-                        });                        
-                    if ( beg != pkinfo.end() ) {
+                    adcontrols::segment_wrapper< adcontrols::MassSpectrum > centroids( centroid );
+                    int fcn(0);
+                    for ( auto& xpkinfo: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( pkinfo ) ) {
+
+                        auto beg = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() - tolerance
+                                                     , [](const auto& a, const double& m) {
+                                                         return a.mass() < m;
+                                                     });
+                        auto end = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() + tolerance
+                                                     , [](const auto& a, const double& m){
+                                                         return a.mass() < m;
+                                                     });
                         
-                        auto it = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
-                        it->formula( compound.formula() ); // assign formula to peak
-                        it->set_peak_index( std::distance( pkinfo.begin(), it ) );
-                        pks[ compound.formula() ] = *it;
-                        
-                        using adcontrols::annotation;
-                        centroid.get_annotations()
-                            << annotation( compound.formula()
-                                           , it->mass()
-                                           , it->area()
-                                           , it->peak_index()
-                                           , 1000
-                                           , annotation::dataFormula );
+                        if ( beg != xpkinfo.end() && ( beg->mass() < compound.mass() + tolerance ) ) {
+                            
+                            auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
+                            pk->formula( compound.formula() ); // assign formula to peak
+                            pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
+                            
+                            auto it = responses.find( compound.formula() );
+                            if ( it == responses.end() ) {
+                                auto& resp = responses[ compound.formula() ];
+                                resp.uuid_cmpd( compound.uuid() );
+                                resp.uuid_cmpd_table( compounds.uuid() );
+                                resp.formula( compound.formula() );
+                                resp.setPeakIndex( pk->peak_index() );
+                                resp.setFcn( fcn );
+                                resp.setMass( pk->mass() );
+                                resp.setIntensity( pk->area() );
+                                resp.setCountTimeCounts( pk->area() ); // TBD
+                                resp.setCountTriggers( hist->getMSProperty().numAverage() );
+                                resp.setAmounts( 0 );
+                                resp.set_tR( 0 );
+                            }
+                            
+                            using adcontrols::annotation;
+                            centroids[fcn].get_annotations()
+                                << annotation( compound.formula()
+                                               , pk->mass()
+                                               , pk->area()
+                                               , pk->peak_index()
+                                               , 1000
+                                               , annotation::dataFormula );
+
+                            
+                        }
+                        ++fcn;
                     }
                 }
-                
-                if ( auto file = writer->write( *hist, stem.wstring() ) ) {
-                    dataGuid = file.name();
-                    auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-                    writer->attach< adcontrols::ProcessMethod >( att, *procmethod_, L"ProcessMethod" );
-                    writer->attach< adcontrols::MSPeakInfo >( file, centroidProcess.getPeakInfo(), dataproc::Constants::F_MSPEAK_INFO );
-                    writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
-                }
-            }
 
-            // ion count from raw histogram
-            for ( auto& compound: compounds ) {            
-                const double * masses = hist->getMassArray();
-                const double * counts = hist->getIntensityArray();
-                
-                //int n(0);
-                size_t size(0), count(0), idx;
-                auto beg = std::lower_bound( masses, masses + hist->size(), compound.mass() - tolerance );
-                auto end = std::lower_bound( masses, masses + hist->size(), compound.mass() + tolerance );
-                if ( beg != masses + hist->size() ) {
-                    idx = std::distance( masses, beg );
-                    size = std::distance( beg, end );
-                    count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
-                }
-
-                auto pk = pks[ compound.formula() ];
-                adcontrols::QuanResponse resp;
-                resp.dataGuid_ = dataGuid;
-                resp.uuid_cmpd( compound.uuid() );
-                resp.uuid_cmpd_table( compounds.uuid() );
-                resp.formula( compound.formula() );
-                resp.idx_       = pk.peak_index();
-                resp.fcn_       = 0;
-                resp.mass_      = pk.mass();
-                resp.intensity_ = count;
-                resp.amounts_   = 0;
-                resp.tR_        = 0;
-
+                // change histogram to profile for gui
                 hist->setCentroid( adcontrols::CentroidNone );
                 if ( auto file = writer->write( *hist, stem.wstring() ) ) {
-                    resp.dataGuid_ = file.name();
+                    for ( auto& resp: responses )
+                        resp.second.dataGuid_ = file.name();
                     auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
                     writer->attach< adcontrols::ProcessMethod >( att, *procmethod_, L"ProcessMethod" );
-                    writer->attach< adcontrols::MSPeakInfo >( file, centroidProcess.getPeakInfo(), dataproc::Constants::F_MSPEAK_INFO );
+                    writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO );
                     writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+                    for ( const auto& resp: responses )
+                        sample << resp.second;
                 }
-                sample << resp;
-            
-                // ADDEBUG() << "\n" << stem.string()
-                //           << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
-                //     % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
             }
-        }
+#if 0
+            // ion count from raw histogram
+            for ( auto& compound: compounds ) {
+                int fcn(0);
+                for ( auto& xhist: *hist ) {
+                    const double * masses = hist->getMassArray();
+                    const double * counts = hist->getIntensityArray();
+                
+                    size_t size(0), count(0), idx;
+                    auto beg = std::lower_bound( masses, masses + hist->size(), compound.mass() - tolerance );
+                    auto end = std::lower_bound( masses, masses + hist->size(), compound.mass() + tolerance );
+                    if ( beg != masses + hist->size() ) {
+                        idx = std::distance( masses, beg );
+                        size = std::distance( beg, end );
+                        count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
+                    }
+                    
+                    auto pk = pks[ std::make_pair(compound.formula(), fcn) ];
+                    adcontrols::QuanResponse resp;
+                    resp.dataGuid_ = dataGuid;
+                    resp.uuid_cmpd( compound.uuid() );
+                    resp.uuid_cmpd_table( compounds.uuid() );
+                    resp.formula( compound.formula() );
+                    resp.setPeakIndex( pk.peak_index() );
+                    resp.setFcn( fcn++ );
+                    resp.setMass( pk.mass() );
+                    resp.setIntensity( pk.area() );
+                    resp.setCountTimeCounts( count );
+                    resp.setCountTriggers( hist->getMSProperty().numAverage() );
+                    resp.setAmounts( 0 );
+                    resp.set_tR( 0 );
 
+                    sample << resp;
+                }
+            }
+#endif
+        }
         writer->insert_table( sample );
         (*progress_)();
         processor_->complete( &sample );

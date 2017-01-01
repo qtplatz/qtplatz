@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "dataprocessor.hpp"
-#include <adcontrols/datafile.hpp>
+#include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/datafile.hpp>
@@ -36,6 +36,9 @@
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adfs/adfs.hpp>
@@ -231,7 +234,7 @@ dataprocessor::readSpectrumFromTimeCount()
     }
     
     if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
-        
+
         spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
         auto scanlaw = spectrometer->scanLaw();
         
@@ -241,59 +244,112 @@ dataprocessor::readSpectrumFromTimeCount()
             sql.prepare( "SELECT data FROM MetaData WHERE clsid = ?" );
             sql.bind( 1 ) = idstr;
             while( sql.step() == adfs::sqlite_row ) {
-                adcontrols::ControlMethod::Method m;
                 auto blob = sql.get_column_value< adfs::blob >( 0 );
                 boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >( blob.data() ), size_t( blob.size() ) );
                 boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
-                if ( adcontrols::ControlMethod::Method::restore( strm, m ) )
-                    spectrometer->setMethod( m );
+                adcontrols::ControlMethod::Method method;
+                if ( adcontrols::ControlMethod::Method::restore( strm, method ) )
+                    spectrometer->setMethod( method );
             }
         }
+
+        std::vector< uint64_t > countTriggers; // per protocol
+        {
+            sql.prepare( "SELECT COUNT(*) FROM trigger GROUP BY protocol ORDER BY protocol" );
+            while ( sql.step() == adfs::sqlite_row )
+                countTriggers.emplace_back( sql.get_column_value< uint64_t >( 0 ) );
+        }
+        size_t nbrProto = countTriggers.size();
 
         std::shared_ptr< adcontrols::MassSpectrum > hist = std::make_shared< adcontrols::MassSpectrum >();
-        hist->clone( *ms );
-        hist->setCentroid( adcontrols::CentroidNative );
+        // hist->clone( *ms );
+        // hist->setCentroid( adcontrols::CentroidNative );
 
-        std::vector< double > t, y, m;
-        double ptime(0);
-        sql.prepare( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" );
-        while ( sql.step() == adfs::sqlite_row ) {
+        size_t proto(0);
+        for ( const auto& trigCounts: countTriggers ) {
+
+            auto temp = proto == 0 ? hist : std::make_shared< adcontrols::MassSpectrum >();
+            temp->clone( *ms );
+            temp->setCentroid( adcontrols::CentroidNative );
             
-            double time = sql.get_column_value< double >( 0 ); // time
-            int proto = sql.get_column_value< uint64_t >( 2 );                    
-            
-            if ( (time - ptime) > 1.2e-9 ) {
-                if ( ptime > 1.0e-9 ) {
-                    // add count(0) to the end of last cluster
-                    t.emplace_back( ptime + 1.0e-9 );
+            std::vector< double > t, y, m;
+            double ptime(0);
+            sql.prepare( "SELECT ROUND(peak_time, 9) AS time,COUNT(*) FROM peak,trigger"
+                         " WHERE id=idTrigger AND protocol=? GROUP BY time ORDER BY time" );
+            sql.bind(1) = proto;
+            while ( sql.step() == adfs::sqlite_row ) {
+                
+                double time = sql.get_column_value< double >( 0 ); // time
+                uint64_t count = sql.get_column_value< uint64_t >( 1 ); // count
+                
+                if ( (time - ptime) > 1.2e-9 ) {
+                    if ( ptime > 1.0e-9 ) {
+                        // add count(0) to the end of last cluster
+                        t.emplace_back( ptime + 1.0e-9 );
+                        y.emplace_back( 0 ); // count
+                        m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
+                    }
+                    // add count(0) to the begining of next cluster
+                    t.emplace_back( time - 1.0e-9 );
                     y.emplace_back( 0 ); // count
-                    m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
+                    m.emplace_back( scanlaw->getMass( ( time - 1.0e-9 ), spectrometer->mode( proto ) ) );
                 }
-                // add count(0) to the begining of next cluster
-                t.emplace_back( time - 1.0e-9 );
-                y.emplace_back( 0 ); // count
-                m.emplace_back( scanlaw->getMass( ( time - 1.0e-9 ), spectrometer->mode( proto ) ) );
+                t.emplace_back( time );
+                y.emplace_back( count ); // count
+                m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
+                ptime = time;
             }
-            t.emplace_back( time );
-            y.emplace_back( sql.get_column_value< uint64_t >( 1 ) ); // count
-            m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
-            ptime = time;
-        }
-        // close cluster if exists
-        // t.emplace_back( ptime + 1.0e-9 );
-        // y.emplace_back( 0 ); // count
-        // m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
+            temp->setMassArray( std::move( m ) );
+            temp->setTimeArray( std::move( t ) );
+            temp->setIntensityArray( std::move( y ) );
 
-        hist->setMassArray( std::move( m ) );
-        hist->setTimeArray( std::move( t ) );
-        hist->setIntensityArray( std::move( y ) );
+            if ( auto method = spectrometer->method() )
+                spectrometer->setMSProperty( *temp, *method, proto );
 
-        if ( auto m = spectrometer->method() ) {
-            auto range = spectrometer->findMassRange( *m );
-            if ( range.first > 0 && range.second > 0 )
-                hist->setAcquisitionMassRange( range.first, range.second );
+            temp->getMSProperty().setNumAverage( trigCounts );
+
+            if ( proto++ )
+                (*hist) << std::move( temp );
         }
+
         return hist;
     }
+}
+
+bool
+dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
+                           , adcontrols::MassSpectrum& centroid
+                           , const adcontrols::MassSpectrum& profile
+                           , const adcontrols::CentroidMethod& m )
+{
+    adcontrols::CentroidProcess peak_detector;
+    bool result = false;
+
+    centroid.clone( profile, false );
+    
+    if ( peak_detector( m, profile ) ) {
+        result = peak_detector.getCentroidSpectrum( centroid );
+        pkInfo = peak_detector.getPeakInfo();
+        pkInfo.setProtocol( 0, profile.numSegments() + 1 );
+        centroid.setProtocol( 0, profile.numSegments() + 1 );
+    }
+
+    int fcn(0);
+    for ( auto& seg: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( profile ) ) {
+        if ( fcn ) {
+            auto temp = std::make_shared< adcontrols::MassSpectrum >();
+            result |= peak_detector( seg );
+            auto pkinfo = peak_detector.getPeakInfo();
+            pkinfo.setProtocol( fcn, profile.numSegments() + 1 );
+            pkInfo.addSegment( pkinfo );
+            
+            peak_detector.getCentroidSpectrum( *temp );
+            temp->setProtocol( fcn, profile.numSegments() + 1 );
+            centroid << std::move( temp );
+        }
+        ++fcn;
+    }
+
+    return result;
 }
 

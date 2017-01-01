@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -24,6 +24,7 @@
 
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
+#include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -82,12 +83,6 @@ MSPeakInfo::nProtocols() const
     return nProtocols_;
 }
 
-// void
-// MSPeakInfo::protocol( int32_t id, int32_t n )
-// {
-//     setProtocol( id, n );
-// }
-
 void
 MSPeakInfo::setProtocol( int32_t id, int32_t n )
 {
@@ -98,6 +93,7 @@ MSPeakInfo::setProtocol( int32_t id, int32_t n )
 void
 MSPeakInfo::addSegment( const MSPeakInfo& sibling )
 {
+    ADDEBUG() << "######### MSPeakInfo::addSegment( " << sibling.protocolId() << "/" << sibling.nProtocols() << ")";
     siblings_.push_back( sibling );
 }
 

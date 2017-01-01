@@ -121,65 +121,68 @@ QuanResultWidget::handleIndexChanged( int idx )
 {
     if ( idx == 0 ) { // All
 
-        execQuery("\
-SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name, sampleType, QuanSample.level, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
-, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound \
-WHERE QuanSample.id = QuanResponse.idSample \
-AND QuanResponse.idCmpd = QuanCompound.uuid \
-ORDER BY QuanCompound.id, QuanSample.level");
-        
+        execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+                  ", sampleType, QuanSample.level, QuanCompound.formula"
+                  ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
+                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+                  ", intensity, QuanResponse.amount, QuanCompound.description, dataSource"
+                  " FROM QuanSample, QuanResponse, QuanCompound"
+                  " WHERE QuanSample.id = QuanResponse.idSample"
+                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
+                  " ORDER BY QuanCompound.id, QuanSample.level");
     }
     else if ( idx == 1 ) { // Unknown
 
-        execQuery("\
-SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass\
-, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanResponse.amount, QuanCompound.description, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound \
-WHERE QuanSample.id = QuanResponse.idSample \
-AND QuanResponse.idCmpd = QuanCompound.uuid \
-AND sampleType = 0 \
-ORDER BY QuanCompound.id");
-
+        execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+                  ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
+                  ", QuanResponse.mass"
+                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(Da)'"
+                  ", intensity, QuanResponse.amount, QuanCompound.description, dataSource"
+                  " FROM QuanSample, QuanResponse, QuanCompound"
+                  " WHERE QuanSample.id = QuanResponse.idSample"
+                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
+                  " AND sampleType = 0 "
+                  " ORDER BY QuanCompound.id");
     }
     else if ( idx == 2 ) { // Standard
 
-        execQuery("\
-SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
-, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
-WHERE QuanSample.id = QuanResponse.idSample \
-AND QuanResponse.idCmpd = QuanCompound.uuid \
-AND sampleType = 1 \
-AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanCompound.id, QuanSample.level");
-
+        execQuery("SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+                  ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
+                  ", QuanResponse.mass"
+                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+                  ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
+                  " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+                  " WHERE QuanSample.id = QuanResponse.idSample"
+                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
+                  " AND sampleType = 1 "
+                  " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+                  " ORDER BY QuanCompound.id, QuanSample.level");
     }
     else if ( idx == 3 ) { // QC
 
-        execQuery("\
-SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
-, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
-WHERE QuanSample.id = QuanResponse.idSample \
-AND QuanResponse.idCmpd = QuanCompound.uuid \
-AND sampleType = 2 \
-AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanCompound.id, QuanSample.level");
-
+        execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
+                  ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass "
+                  ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+                  ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
+                  " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+                  " WHERE QuanSample.id = QuanResponse.idSample"
+                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
+                  " AND sampleType = 2"
+                  " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+                  " ORDER BY QuanCompound.id, QuanSample.level");
     }
     else if ( idx == 4 ) { // Blank
 
-        execQuery("\
-SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\", QuanResponse.mass \
-, QuanCompound.mass - QuanResponse.mass AS 'error(Da)', intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource \
-FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
-WHERE QuanSample.id = QuanResponse.idSample \
-AND QuanResponse.idCmpd = QuanCompound.uuid \
-AND sampleType = 3 \
-AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanCompound.id, QuanSample.level");
-
+        execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
+                  ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
+                  ", (QuanCompound.mass - QuanResponse.mass)*1000 AS 'error(mDa)'"
+                  ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
+                  " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+                  " WHERE QuanSample.id = QuanResponse.idSample"
+                  " AND QuanResponse.idCmpd = QuanCompound.uuid"
+                  " AND sampleType = 3"
+                  " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+                  " ORDER BY QuanCompound.id, QuanSample.level");
     }
 }
 

@@ -89,7 +89,7 @@ namespace adcontrols {
         virtual void setMethod( const ControlMethod::Method& ) { return; };
         virtual const ControlMethod::Method * method() const { return nullptr; };
         virtual int mode( uint32_t protocolNumber ) const { return 0; };
-        virtual std::pair< double, double > findMassRange( const ControlMethod::Method& ) const { return std::make_pair(-1,-1); }
+        virtual bool setMSProperty( MassSpectrum&, const ControlMethod::Method&, int proto = (-1) ) const { return false; }
 
         // helper methods
         static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );

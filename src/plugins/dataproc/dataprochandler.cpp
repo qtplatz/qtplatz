@@ -78,7 +78,7 @@ DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
     bool result = false;
     
     res.clone( profile, false );
-
+    
     if ( peak_detector( m, profile ) ) {
         result = peak_detector.getCentroidSpectrum( res );
         pkInfo = peak_detector.getPeakInfo();

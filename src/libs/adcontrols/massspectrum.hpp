@@ -176,8 +176,7 @@ namespace adcontrols {
 
         int32_t protocolId() const;
         int32_t nProtocols() const;
-        void protocolId( int32_t );
-        void nProtocols( int32_t );
+        void setProtocol( int, int );
 
         int64_t rowid() const;
         void setRowid( int64_t );

@@ -704,7 +704,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );
     sp.resize( waveform.size() );
-    sp.protocolId( waveform.method_.protocolIndex() );
+    sp.setProtocol( waveform.method_.protocolIndex(), waveform.method_.protocols().size() );
 
 	if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
 

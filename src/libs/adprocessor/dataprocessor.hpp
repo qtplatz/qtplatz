@@ -34,11 +34,13 @@
 namespace adfs { class filesystem; class sqlite; }
 
 namespace adcontrols {
+    class CentroidMethod;
     class datafile;
     class LCMSDataset;
     class ProcessedDataset;
     class MassSpectrum;
     class MassSpectrometer;
+    class MSPeakInfo;
 }
 
 namespace portfolio { class Portfolio; class Folder; class Folium; }
@@ -73,12 +75,16 @@ namespace adprocessor {
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
+        virtual bool doCentroid( adcontrols::MSPeakInfo& pkInfo
+                                 , adcontrols::MassSpectrum& centroid
+                                 , const adcontrols::MassSpectrum& profile
+                                 , const adcontrols::CentroidMethod& m );
+        
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
         virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
         //
-
     private:
         std::unique_ptr< adfs::filesystem > fs_;
         std::unique_ptr< adcontrols::datafile > file_;

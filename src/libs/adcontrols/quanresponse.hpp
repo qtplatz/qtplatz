@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -62,6 +62,32 @@ namespace adcontrols {
         double amounts_;                 // result
         double mass_;                    // observed mass
         double tR_;                      // observed retention time
+        uint64_t countTimeCounts_;       // count of time-counts
+        uint64_t countTriggers_;         // count of triggers
+
+        int32_t peakIndex() const;
+        const boost::uuids::uuid& idTable() const;
+        const boost::uuids::uuid& idCompound() const;
+        const std::wstring& dataGuid() const;
+        int32_t fcn() const;
+        double intensity() const;
+        double amounts() const;
+        double mass() const;
+        double tR() const;
+        uint64_t countTimeCounts() const;
+        uint64_t countTriggers() const;
+
+        void setPeakIndex( int32_t );
+        boost::uuids::uuid& idTable();
+        boost::uuids::uuid& idCompound();
+        void setDataGuid( const std::wstring& );
+        void setFcn( int32_t );
+        void setIntensity( double );
+        void setAmounts( double );
+        void setMass( double );
+        void set_tR( double );
+        void setCountTimeCounts( uint64_t );
+        void setCountTriggers( uint64_t );
 
     private:
         std::string formula_;
@@ -80,11 +106,15 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( amounts_ );
             ar & BOOST_SERIALIZATION_NVP( mass_ );
             ar & BOOST_SERIALIZATION_NVP( tR_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( countTimeCounts_ );
+                ar & BOOST_SERIALIZATION_NVP( countTriggers_ );
+            }
         }            
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanResponse, 1 )
+BOOST_CLASS_VERSION( adcontrols::QuanResponse, 2 )
 
 #endif // QUANRESPONSE_HPP
