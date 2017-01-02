@@ -103,8 +103,6 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
         
         spw->enableAxis( QwtPlot::yRight );
         
-        // if ( d->profile->protocolId() == fcn ) {
-            
         spw->setTitle( dataSource + L", " + d->centroid->getDescriptions().toString() );
         
         if ( d->filterd ) {

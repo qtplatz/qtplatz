@@ -307,6 +307,8 @@ QuanDataWriter::create_table()
 ,tR             REAL    \
 ,calibId        INTEGER \
 ,amount         REAL    \
+,timeCounts     INTEGER \
+,trigCounts     INTEGER \
 ,FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
 
     result &= sql.exec("\
@@ -613,20 +615,22 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
     for ( auto& result: t.results() ) {
 
         if ( sql.prepare( "INSERT INTO QuanResponse"
-                          "(idSample,idx,fcn,intensity,idCmpd,idTable,dataGuid,formula,mass,tR)"
-                          "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?"
+                          "(idSample,idx,fcn,intensity,idCmpd,idTable,dataGuid,formula,mass,tR,timeCounts,trigCounts)"
+                          "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?,?,?"
                           "FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 
             int col = 1;
             sql.bind( col++ ) = result.idx_;
             sql.bind( col++ ) = result.fcn_;
-            sql.bind( col++ ) = result.intensity_;
+            sql.bind( col++ ) = result.intensity();
             sql.bind( col++ ) = result.uuid_cmpd();              // QuanCompound.uuid
             sql.bind( col++ ) = result.uuid_cmpd_table();        // QuanCompounds.uuid (idTable)
-            sql.bind( col++ ) = result.dataGuid_;                // QuanCompounds.uuid (idTable)            
+            sql.bind( col++ ) = result.dataGuid();                // QuanCompounds.uuid (idTable)            
             sql.bind( col++ ) = std::string( result.formula() ); // identified formula (not equal to formula on compound if targeting applied)
-            sql.bind( col++ ) = result.mass_;                    // obserbed mass
-            sql.bind( col++ ) = result.tR_;                      // observed retention time
+            sql.bind( col++ ) = result.mass();                    // obserbed mass
+            sql.bind( col++ ) = result.tR();                      // observed retention time
+            sql.bind( col++ ) = result.countTimeCounts();        // ion count
+            sql.bind( col++ ) = result.countTriggers();          // total trigger count
             sql.bind( col++ ) = t.uuid();                        // QuanSample.uuid            
 
             if ( sql.step() != adfs::sqlite_done )

@@ -93,7 +93,6 @@ MSPeakInfo::setProtocol( int32_t id, int32_t n )
 void
 MSPeakInfo::addSegment( const MSPeakInfo& sibling )
 {
-    ADDEBUG() << "######### MSPeakInfo::addSegment( " << sibling.protocolId() << "/" << sibling.nProtocols() << ")";
     siblings_.push_back( sibling );
 }
 
@@ -133,13 +132,6 @@ MSPeakInfo::mode() const
 {
     return mode_;
 }
-
-// deprecated
-// void
-// MSPeakInfo::mode( int v )
-// {
-//     mode_ = v;
-// }
 
 void
 MSPeakInfo::setMode( int v )

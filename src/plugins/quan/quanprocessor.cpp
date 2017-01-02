@@ -164,22 +164,40 @@ QuanProcessor::doCalibration( adfs::sqlite& db )
     int order = qM->polynomialOrder(); // if CalibEq >= isCalibLinear, otherwise taking an average
 
     std::map< uint64_t, std::set< int > > levels;
+    std::string query;
+    if ( qM->isCounting() ) {
+        query = "SELECT QuanCompound.id"
+            ", QuanCompound.uuid"
+            ", QuanCompound.idTable"
+            ", QuanResponse.id"
+            ", QuanResponse.formula"
+            ", QuanResponse.intensity * 60000 / QuanResponse.trigCounts"
+            ", QuanAmount.amount"
+            ", QuanSample.level"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " AND sampleType = 1"
+            " ORDER BY QuanCompound.id";
+    } else {
+        query = "SELECT QuanCompound.id"
+            ", QuanCompound.uuid"
+            ", QuanCompound.idTable"
+            ", QuanResponse.id"
+            ", QuanResponse.formula"
+            ", QuanResponse.intensity"
+            ", QuanAmount.amount"
+            ", QuanSample.level"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " AND sampleType = 1"
+            " ORDER BY QuanCompound.id";
+    }
 
-    if ( sql.prepare( "\
-SELECT QuanCompound.id\
-, QuanCompound.uuid \
-, QuanCompound.idTable \
-, QuanResponse.id \
-, QuanResponse.formula \
-, QuanResponse.intensity \
-, QuanAmount.amount \
-, QuanSample.level \
-FROM QuanSample, QuanResponse, QuanCompound, QuanAmount \
-WHERE QuanSample.id = QuanResponse.idSample \
-AND QuanResponse.idCmpd = QuanCompound.uuid \
-AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level \
-AND sampleType = 1 \
-ORDER BY QuanCompound.id" ) ) {
+    if ( sql.prepare( query ) ) {
 
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;
@@ -267,6 +285,11 @@ VALUES (:uuid, ?, ?, ?, ?, :n, :min_x, :max_x, :chisqr, :a, :b, :c, :d, :e, :f)"
 void
 QuanProcessor::doQuantification( adfs::sqlite& db )
 {
+    auto qM = procmethod_->find< adcontrols::QuanMethod >();
+    if ( !qM )
+        return;
+    bool isCounting = qM->isCounting();
+    
     adfs::stmt sql( db );
 
     struct unknown {
@@ -280,14 +303,25 @@ QuanProcessor::doQuantification( adfs::sqlite& db )
     };
 
     std::map< uint64_t, unknown > unknowns;
+
+    std::string query;
+    if ( isCounting )
+        query = "SELECT QuanResponse.id, QuanSample.id, QuanCompound.formula"
+            ", QuanResponse.intensity * 60000 / QuanResponse.trigCount, a, b, c, d, e, f"
+            " FROM QuanResponse, QuanCompound, QuanSample, QuanCalib"
+            " WHERE QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND QuanSample.id = QuanResponse.idSample"
+            " AND QuanSample.sampleType = 0"
+            " AND QuanResponse.idCmpd = QuanCalib.idCmpd";
+    else
+        query = "SELECT QuanResponse.id, QuanSample.id, QuanCompound.formula, intensity, a, b, c, d, e, f"
+            " FROM QuanResponse, QuanCompound, QuanSample, QuanCalib"
+            " WHERE QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND QuanSample.id = QuanResponse.idSample"
+            " AND QuanSample.sampleType = 0"
+            " AND QuanResponse.idCmpd = QuanCalib.idCmpd";
     
-    if ( sql.prepare( "\
-SELECT QuanResponse.id, QuanSample.id, QuanCompound.formula, intensity, a, b, c, d, e, f \
-FROM QuanResponse, QuanCompound, QuanSample, QuanCalib \
-WHERE QuanResponse.idCmpd = QuanCompound.uuid \
-AND QuanSample.id = QuanResponse.idSample \
-AND QuanSample.sampleType = 0 \
-AND QuanResponse.idCmpd = QuanCalib.idCmpd" ) ) {
+    if ( sql.prepare( query ) ) {
         
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;

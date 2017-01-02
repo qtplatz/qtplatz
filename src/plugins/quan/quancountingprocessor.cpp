@@ -211,42 +211,6 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                         sample << resp.second;
                 }
             }
-#if 0
-            // ion count from raw histogram
-            for ( auto& compound: compounds ) {
-                int fcn(0);
-                for ( auto& xhist: *hist ) {
-                    const double * masses = hist->getMassArray();
-                    const double * counts = hist->getIntensityArray();
-                
-                    size_t size(0), count(0), idx;
-                    auto beg = std::lower_bound( masses, masses + hist->size(), compound.mass() - tolerance );
-                    auto end = std::lower_bound( masses, masses + hist->size(), compound.mass() + tolerance );
-                    if ( beg != masses + hist->size() ) {
-                        idx = std::distance( masses, beg );
-                        size = std::distance( beg, end );
-                        count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
-                    }
-                    
-                    auto pk = pks[ std::make_pair(compound.formula(), fcn) ];
-                    adcontrols::QuanResponse resp;
-                    resp.dataGuid_ = dataGuid;
-                    resp.uuid_cmpd( compound.uuid() );
-                    resp.uuid_cmpd_table( compounds.uuid() );
-                    resp.formula( compound.formula() );
-                    resp.setPeakIndex( pk.peak_index() );
-                    resp.setFcn( fcn++ );
-                    resp.setMass( pk.mass() );
-                    resp.setIntensity( pk.area() );
-                    resp.setCountTimeCounts( count );
-                    resp.setCountTriggers( hist->getMSProperty().numAverage() );
-                    resp.setAmounts( 0 );
-                    resp.set_tR( 0 );
-
-                    sample << resp;
-                }
-            }
-#endif
         }
         writer->insert_table( sample );
         (*progress_)();

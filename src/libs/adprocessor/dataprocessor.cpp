@@ -359,10 +359,12 @@ dataprocessor::countTimeCounts( const adcontrols::MassSpectrum& hist, double lMa
     const double * counts = hist.getIntensityArray();
     auto beg = std::lower_bound( masses, masses + hist.size(), lMass );
     auto end = std::lower_bound( masses, masses + hist.size(), uMass );
+
     if ( beg != masses + hist.size() ) {
-        size_t idx = std::distance( masses, beg );
-        size_t size = std::distance( masses, end );
-        return uint64_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
+        size_t ids = std::distance( masses, beg );
+        size_t ide = std::distance( masses, end );
+        uint64_t count = uint64_t( std::accumulate( counts + ids, counts + ide, double(0) ) + 0.5 );
+        return count;
     }
     return 0;
 }

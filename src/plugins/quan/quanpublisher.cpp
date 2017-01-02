@@ -144,7 +144,6 @@ QuanPublisher::QuanPublisher() : bProcessed_( false )
 
 QuanPublisher::QuanPublisher( const QuanPublisher& t ) : bProcessed_( t.bProcessed_ )
                                                        , conn_( t.conn_ )
-                                                       //, xmloutput_( t.xmloutput_ )
                                                        , filepath_( t.filepath_ )
                                                        , calib_curves_( t.calib_curves_ )
                                                        , resp_data_( t.resp_data_ )
@@ -602,6 +601,14 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
 {
     if ( auto node = doc.append_child( "QuanCalib" ) ) {
 
+        bool isCounting( false );
+        {
+            adfs::stmt sql( conn_->db() );
+            sql.prepare( "SELECT isCounting FROM QuanMethod LIMIT(1)" );
+            while ( sql.step() == adfs::sqlite_row )
+                isCounting = bool( sql.get_column_value<int64_t>( 0 ) );
+        }
+
         if ( auto cmpds = conn_->processMethod()->find< adcontrols::QuanCompounds >() ) {
             for ( auto& cmpd : *cmpds ) {
                 
@@ -643,13 +650,33 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
                         }
                         
                         adfs::stmt sql2( conn_->db() );
-                        if ( sql2.prepare("\
-SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity, QuanResponse.formula, dataGuid, QuanResponse.id \
-FROM QuanCompound, QuanSample, QuanAmount, QuanResponse \
-WHERE QuanCompound.uuid = :uuid AND QuanCompound.uuid = QuanAmount.idCmpd AND QuanCompound.uuid = QuanResponse.idCmpd \
-AND sampleType = 1 AND QuanResponse.idSample = QuanSample.id AND QuanAmount.level = QuanSample.level \
-ORDER BY QuanAmount.level" ) ) {
+                        std::string query;
+                        if ( isCounting )
+                            query =
+                                "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity * 60000/QuanResponse.trigCounts"
+                                ", QuanResponse.formula, dataGuid, QuanResponse.id"
+                                " FROM QuanCompound, QuanSample, QuanAmount, QuanResponse"
+                                " WHERE QuanCompound.uuid = :uuid "
+                                " AND QuanCompound.uuid = QuanAmount.idCmpd"
+                                " AND QuanCompound.uuid = QuanResponse.idCmpd"
+                                " AND sampleType = 1 "
+                                " AND QuanResponse.idSample = QuanSample.id"
+                                " AND QuanAmount.level = QuanSample.level"
+                                " ORDER BY QuanAmount.level";
+                        else
+                            query =
+                                "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity"
+                                ", QuanResponse.formula, dataGuid, QuanResponse.id"
+                                " FROM QuanCompound, QuanSample, QuanAmount, QuanResponse"
+                                " WHERE QuanCompound.uuid = :uuid "
+                                " AND QuanCompound.uuid = QuanAmount.idCmpd"
+                                " AND QuanCompound.uuid = QuanResponse.idCmpd"
+                                " AND sampleType = 1 "
+                                " AND QuanResponse.idSample = QuanSample.id"
+                                " AND QuanAmount.level = QuanSample.level"
+                                " ORDER BY QuanAmount.level";
 
+                        if ( sql2.prepare( query ) ) {
                             auto response_node = rnode.append_child( "response" );
 
                             sql2.bind( 1 ) = cmpd.uuid();
