@@ -141,6 +141,8 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
             if ( dp->doCentroid( pkinfo, centroid, *hist, *cm ) ) {
 
+                adcontrols::segment_wrapper<> hists( *hist );
+
                 for ( auto& compound: compounds ) {
 
                     adcontrols::segment_wrapper< adcontrols::MassSpectrum > centroids( centroid );
@@ -161,7 +163,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                             auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
                             pk->formula( compound.formula() ); // assign formula to peak
                             pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
-                            
+
                             auto it = responses.find( compound.formula() );
                             if ( it == responses.end() ) {
                                 auto& resp = responses[ compound.formula() ];
@@ -172,10 +174,13 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                                 resp.setFcn( fcn );
                                 resp.setMass( pk->mass() );
                                 resp.setIntensity( pk->area() );
-                                resp.setCountTimeCounts( pk->area() ); // TBD
-                                resp.setCountTriggers( hist->getMSProperty().numAverage() );
+                                auto count = dp->countTimeCounts( hists[fcn], pk->centroid_left(), pk->centroid_right() );
+                                resp.setCountTimeCounts( count );
+                                resp.setCountTriggers( hists[fcn].getMSProperty().numAverage() );
                                 resp.setAmounts( 0 );
                                 resp.set_tR( 0 );
+                            } else {
+                                ADDEBUG() << "duplicate peak identified within protocols for " << compound.formula();
                             }
                             
                             using adcontrols::annotation;

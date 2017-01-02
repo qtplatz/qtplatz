@@ -262,8 +262,6 @@ dataprocessor::readSpectrumFromTimeCount()
         size_t nbrProto = countTriggers.size();
 
         std::shared_ptr< adcontrols::MassSpectrum > hist = std::make_shared< adcontrols::MassSpectrum >();
-        // hist->clone( *ms );
-        // hist->setCentroid( adcontrols::CentroidNative );
 
         size_t proto(0);
         for ( const auto& trigCounts: countTriggers ) {
@@ -337,12 +335,13 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     int fcn(0);
     for ( auto& seg: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( profile ) ) {
         if ( fcn ) {
-            auto temp = std::make_shared< adcontrols::MassSpectrum >();
             result |= peak_detector( seg );
+
             auto pkinfo = peak_detector.getPeakInfo();
             pkinfo.setProtocol( fcn, profile.numSegments() + 1 );
             pkInfo.addSegment( pkinfo );
-            
+
+            auto temp = std::make_shared< adcontrols::MassSpectrum >();
             peak_detector.getCentroidSpectrum( *temp );
             temp->setProtocol( fcn, profile.numSegments() + 1 );
             centroid << std::move( temp );
@@ -353,3 +352,17 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     return result;
 }
 
+uint64_t
+dataprocessor::countTimeCounts( const adcontrols::MassSpectrum& hist, double lMass, double uMass )
+{
+    const double * masses = hist.getMassArray();
+    const double * counts = hist.getIntensityArray();
+    auto beg = std::lower_bound( masses, masses + hist.size(), lMass );
+    auto end = std::lower_bound( masses, masses + hist.size(), uMass );
+    if ( beg != masses + hist.size() ) {
+        size_t idx = std::distance( masses, beg );
+        size_t size = std::distance( masses, end );
+        return uint64_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
+    }
+    return 0;
+}

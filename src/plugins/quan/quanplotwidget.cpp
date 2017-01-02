@@ -130,16 +130,13 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
             rc.setRight( mass + width );
             spw->zoomer()->zoom( rc );
 
-            if ( pkinfo->size() > idx ) {
-                marker_->setYAxis( QwtPlot::yRight );
-                auto item = d->pkinfo->begin() + idx;
-                marker_->setPeak( *item );
-                marker_->visible( true );
+            marker_->setYAxis( QwtPlot::yRight );
+            marker_->setPeak( *item );
+            marker_->visible( true );
             
-                spw->setFooter( ( boost::format( "W=%.2fmDa (%.2fns)" )
-                                  % ( item->widthHH( false ) * 1000 )
-                                  % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
-            }
+            spw->setFooter( ( boost::format( "W=%.2fmDa (%.2fns)" )
+                              % ( item->widthHH( false ) * 1000 )
+                              % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
         }
     }
 }

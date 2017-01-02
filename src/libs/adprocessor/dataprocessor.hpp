@@ -79,6 +79,8 @@ namespace adprocessor {
                                  , adcontrols::MassSpectrum& centroid
                                  , const adcontrols::MassSpectrum& profile
                                  , const adcontrols::CentroidMethod& m );
+
+        virtual uint64_t countTimeCounts( const adcontrols::MassSpectrum&, double lMass, double uMass );
         
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
