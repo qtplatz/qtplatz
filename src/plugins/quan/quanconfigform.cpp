@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,6 +29,7 @@
 #include <adcontrols/quansample.hpp>
 #include <adportable/debug.hpp>
 #include <QCompleter>
+#include <QFile>
 #include <QMessageBox>
 #include <QStringListModel>
 #include <algorithm>
@@ -38,7 +39,7 @@ namespace quan {
         enum idItem { 
             idGroupBox1
             , idGroupBox2
-            , idGroupBox3 // Query
+            //, idGroupBox3 // Query
             , idRadioCounting
             , idRadioChromatogram
             , idRadioInfusion
@@ -72,7 +73,7 @@ namespace quan {
                 switch ( id ) {
                 case idGroupBox1: return ui_->groupBox_2;
                 case idGroupBox2: return ui_->groupBox;
-                case idGroupBox3: return ui_->groupBox_8;
+                    //case idGroupBox3: return ui_->groupBox_8;
                 case idRadioCounting: return ui_->radioButton_3;
                 case idRadioChromatogram: return ui_->radioButton;
                 case idRadioInfusion: return ui_->radioButton_2;
@@ -146,8 +147,8 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
         connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
                  , [&]( bool counting ){
                      if ( counting ) {
-                         ui->groupBox->setEnabled( false );
-                         ui->groupBox_8->setEnabled( true );
+                         //ui->groupBox->setEnabled( false );
+                         //ui->groupBox_8->setEnabled( true );
                          emit onSampleInletChanged( int( adcontrols::QuanSample::Counting ) );
                      }
                  });
@@ -156,8 +157,8 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
         connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
                  , [&]( bool chromatogram ){
                      if ( chromatogram ) {
-                         ui->groupBox->setEnabled( true );
-                         ui->groupBox_8->setEnabled( false );
+                         //ui->groupBox->setEnabled( true );
+                         //ui->groupBox_8->setEnabled( false );
                          emit onSampleInletChanged( int( adcontrols::QuanSample::Chromatography ) );
                      }
                  });
@@ -167,12 +168,12 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
                  , [&]( bool infusion ){
                      if ( infusion ) {
                          ui->groupBox->setEnabled( true );
-                         ui->groupBox_8->setEnabled( false );
+                         //ui->groupBox_8->setEnabled( false );
                          emit onSampleInletChanged( int( adcontrols::QuanSample::Infusion ) );
                      }
                  });
     }
-
+#if 0
     if ( QCompleter * completer = new QCompleter( this ) ) {
         QStringList words;
         QFile file( ":/query/wordlist.txt" );
@@ -192,6 +193,7 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
         completer->setWrapAround( false );
         ui->plainTextEdit->setCompleter( completer );
     }
+#endif
 }
 
 QuanConfigForm::~QuanConfigForm()
@@ -254,10 +256,10 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
             gbx->setChecked( false );
     }
 
-    if ( auto gbox = accessor( idGroupBox2 ) )
-        gbox->setEnabled( !m.isCounting() );
-    if ( auto gbox = accessor( idGroupBox3 ) )
-        gbox->setEnabled( m.isCounting() );    
+    // if ( auto gbox = accessor( idGroupBox2 ) )
+    //     gbox->setEnabled( !m.isCounting() );
+    // if ( auto gbox = accessor( idGroupBox3 ) )
+    //     gbox->setEnabled( m.isCounting() );    
     
     w = 0;
     switch ( m.weighting() ) {

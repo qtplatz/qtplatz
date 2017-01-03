@@ -377,7 +377,8 @@ QuanPublisher::appendTraceData( ProgressHandler& progress )
 {
     if ( bProcessed_ && conn_ ) {
         
-        size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end(), [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
+        size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end()
+                                      , [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
         progress.setProgressRange( 0, int(nTask) );
 
 

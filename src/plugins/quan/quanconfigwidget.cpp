@@ -58,8 +58,10 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
 
-    connect( form_->spinLevels(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this] ( int value ){ emit onLevelChanged( value ); } );
-    connect( form_->spinReplicates(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this] ( int value ){ emit onReplicatesChanged( value ); } );
+    connect( form_->spinLevels(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged)
+             , this, [this] ( int value ){ emit onLevelChanged( value ); } );
+    connect( form_->spinReplicates(), static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged)
+             , this, [this] ( int value ){ emit onReplicatesChanged( value ); } );
 
     if ( auto toolBar = new Utils::StyledBar ) {
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
