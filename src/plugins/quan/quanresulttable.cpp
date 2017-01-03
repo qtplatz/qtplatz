@@ -42,7 +42,11 @@ namespace quan {
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
                 if ( index.data().type() == QVariant::Double ) {
-                    painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
+                    double value = index.data().toDouble();
+                    if ( value < 0.01 )
+                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'e', 5 ) );
+                    else
+                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
                 } else if ( index.data().type() == QVariant::String ) {
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
                     if ( !formula.empty() )
@@ -72,7 +76,12 @@ namespace quan {
                     QFont font;
                     qtwrapper::font::setFont( font, qtwrapper::fontSizeNormal, qtwrapper::fontTableBody );
                     QFontMetricsF fm( font );
-                    double width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) ).width();
+                    double value = index.data().toDouble();
+                    double width;
+                    if ( value < 0.01 )
+                        width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( value, 'f', 5 ) ).width();
+                    else
+                        width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( value, 'e', 5 ) ).width();
                     QSize sz = QStyledItemDelegate::sizeHint( option, index );
                     sz.setWidth( width );
                     return sz;
@@ -149,8 +158,9 @@ QuanResultTable::clear()
 }
 
 void
-QuanResultTable::currentChanged( const QModelIndex& current, const QModelIndex& )
+QuanResultTable::currentChanged( const QModelIndex& current, const QModelIndex& index )
 {
+    scrollTo( index, QAbstractItemView::EnsureVisible );
     emit onCurrentChanged( current );
 }
 

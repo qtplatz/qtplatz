@@ -109,6 +109,7 @@ namespace quan {
         bool appendQuanResponseUnk( pugi::xml_node& );
         bool appendQuanResponseStd( pugi::xml_node& );
         bool appendQuanCalib( pugi::xml_node& );
+        bool appendCountingCalib( pugi::xml_node&, bool );
         bool appendQuanDataGuids( pugi::xml_node& );
         bool appendTraceData( pugi::xml_node dst, const pugi::xml_node& response, const std::string& refGuid, int idx, int fcn );
         bool appendPlot( pugi::xml_node& dst, const QuanPlotData&, size_t idx, int fcn, const std::string& );

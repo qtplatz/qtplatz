@@ -62,6 +62,8 @@ namespace quan {
         void complete( const adcontrols::QuanSample * );
         void doCalibration( adfs::sqlite& db );
         void doQuantification( adfs::sqlite& db );
+        void doCountingCalibration( adfs::sqlite& db );
+        void doCountingQuantification( adfs::sqlite& db );
 
     protected:
         std::shared_ptr< adcontrols::QuanSequence > sequence_;

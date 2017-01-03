@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -44,6 +44,7 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adportable/debug.hpp>
 #include <adpublisher/document.hpp>
 #include <adfs/sqlite3.h>
 #include <xmlparser/pugixml.hpp>
@@ -597,16 +598,91 @@ WHERE QuanCompound.uuid = ? AND sampleType = 1 AND QuanResponse.idCmpd = QuanCom
 }
 
 bool
+QuanPublisher::appendCountingCalib( pugi::xml_node& doc, bool isISTD )
+{
+    std::string query =
+        "SELECT idCmpd, level, amount, r1.CR/r2.CR as intensity, formula, dataGuid, id FROM "
+        "(SELECT QuanResponse.idCmpd,QuanAmount.level, QuanAmount.amount, QuanResponse.intensity/QuanResponse.trigCounts as CR"
+        ", QuanResponse.formula, dataGuid, QuanResponse.id, idSample"
+        " FROM QuanCompound, QuanSample, QuanAmount, QuanResponse"
+        " WHERE QuanCompound.uuid = QuanResponse.idCmpd "
+        " AND QuanCompound.uuid = QuanAmount.idCmpd"
+        " AND QuanCompound.uuid = QuanResponse.idCmpd"
+        " AND sampleType = 1 "
+        " AND QuanResponse.idSample = QuanSample.id"
+        " AND QuanAmount.level = QuanSample.level AND isISTD=0 ) r1"
+        " LEFT JOIN"
+        "(SELECT idSample,QuanResponse.intensity/QuanResponse.trigCounts as CR"
+        " FROM QuanResponse,QuanCompound"
+        " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) r2"
+        " ON r1.idSample=r2.idSample ORDER by level, r1.idSample";
+
+    if ( auto node = doc.append_child( "QuanCalib" ) ) {
+
+        // load calibration from db
+        adfs::stmt sql( conn_->db() );
+        if ( sql.prepare( "SELECT QuanCalib.idCmpd, formula, description, date, min_x, max_x, n, a, b, c, d, e, f"
+                          " FROM QuanCalib,QuanCompound where QuanCalib.idCmpd = QuanCompound.uuid" ) ) {
+            while ( sql.step() == adfs::sqlite_row ) {
+                auto calib = std::make_shared< calib_curve >();
+                if ( calib ) {
+                    int row = 0;
+                    calib->uuid = sql.get_column_value< boost::uuids::uuid >( row++ ); // cmpid
+                    calib->formula = sql.get_column_value< std::string >( row++ );
+                    calib->description = sql.get_column_value< std::wstring >( row++ );
+                    calib->date = sql.get_column_value< std::string >( row++ );
+                    calib->min_x = sql.get_column_value< double >( row++ );
+                    calib->max_x = sql.get_column_value< double >( row++ );
+                    calib->n = sql.get_column_value< uint64_t >( row++ );
+                    
+                    for ( int i = 'a'; i <= 'f'; ++i ) {
+                        if ( sql.is_null_column( row ) )
+                            break;
+                        calib->coeffs.push_back( sql.get_column_value< double >( row++ ) );
+                    }
+                    calib_curves_[ calib->uuid ] = calib;
+                }
+            }
+        }
+
+        if ( sql.prepare( query ) ) {
+            while ( sql.step() == adfs::sqlite_row ) {
+                auto cmpId = sql.get_column_value< boost::uuids::uuid >( 0 );
+                auto it = calib_curves_.find( cmpId );
+                if ( it != calib_curves_.end() ) {
+                    if ( auto calib = it->second ) {
+                        int level = int( sql.get_column_value<int64_t>( 1 ) );
+                        double amount = sql.get_column_value<double>( 2 );
+                        double intens = sql.get_column_value<double>( 3 );
+                        int64_t respid = int( sql.get_column_value< int64_t >( 6 ) );
+                        calib->std_amounts[ level ] = amount;
+                        calib->respIds.push_back( std::make_pair( level, respid ) );
+                        calib->xy.push_back( std::make_pair( intens, amount ) );
+                    }
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
 QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
 {
     if ( auto node = doc.append_child( "QuanCalib" ) ) {
 
         bool isCounting( false );
+        bool isISTD( false );
         {
             adfs::stmt sql( conn_->db() );
-            sql.prepare( "SELECT isCounting FROM QuanMethod LIMIT(1)" );
-            while ( sql.step() == adfs::sqlite_row )
+            sql.prepare( "SELECT isCounting,isISTD FROM QuanMethod LIMIT(1)" );
+            while ( sql.step() == adfs::sqlite_row ) {
                 isCounting = bool( sql.get_column_value<int64_t>( 0 ) );
+                isISTD = bool( sql.get_column_value<int64_t>( 1 ) );
+            }
+            if ( isCounting && isISTD )
+                return appendCountingCalib( doc, isISTD );
         }
 
         if ( auto cmpds = conn_->processMethod()->find< adcontrols::QuanCompounds >() ) {
@@ -650,31 +726,17 @@ QuanPublisher::appendQuanCalib( pugi::xml_node& doc )
                         }
                         
                         adfs::stmt sql2( conn_->db() );
-                        std::string query;
-                        if ( isCounting )
-                            query =
-                                "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity * 60000/QuanResponse.trigCounts"
-                                ", QuanResponse.formula, dataGuid, QuanResponse.id"
-                                " FROM QuanCompound, QuanSample, QuanAmount, QuanResponse"
-                                " WHERE QuanCompound.uuid = :uuid "
-                                " AND QuanCompound.uuid = QuanAmount.idCmpd"
-                                " AND QuanCompound.uuid = QuanResponse.idCmpd"
-                                " AND sampleType = 1 "
-                                " AND QuanResponse.idSample = QuanSample.id"
-                                " AND QuanAmount.level = QuanSample.level"
-                                " ORDER BY QuanAmount.level";
-                        else
-                            query =
-                                "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity"
-                                ", QuanResponse.formula, dataGuid, QuanResponse.id"
-                                " FROM QuanCompound, QuanSample, QuanAmount, QuanResponse"
-                                " WHERE QuanCompound.uuid = :uuid "
-                                " AND QuanCompound.uuid = QuanAmount.idCmpd"
-                                " AND QuanCompound.uuid = QuanResponse.idCmpd"
-                                " AND sampleType = 1 "
-                                " AND QuanResponse.idSample = QuanSample.id"
-                                " AND QuanAmount.level = QuanSample.level"
-                                " ORDER BY QuanAmount.level";
+                        std::string query =
+                            "SELECT QuanAmount.level, QuanAmount.amount, QuanResponse.intensity"
+                            ", QuanResponse.formula, dataGuid, QuanResponse.id" // <- respId
+                            " FROM QuanCompound, QuanSample, QuanAmount, QuanResponse"
+                            " WHERE QuanCompound.uuid = :uuid "
+                            " AND QuanCompound.uuid = QuanAmount.idCmpd"
+                            " AND QuanCompound.uuid = QuanResponse.idCmpd"
+                            " AND sampleType = 1 "
+                            " AND QuanResponse.idSample = QuanSample.id"
+                            " AND QuanAmount.level = QuanSample.level"
+                            " ORDER BY QuanAmount.level";
 
                         if ( sql2.prepare( query ) ) {
                             auto response_node = rnode.append_child( "response" );
@@ -711,8 +773,8 @@ QuanPublisher::appendQuanDataGuids( pugi::xml_node& doc )
 
         adfs::stmt sql( conn_->db() );
         if ( sql.prepare(
-                 "SELECT id, QuanResponse.dataGuid, refDataGuid,QuanDataGuids.idx,QuanDataGuids.fcn \
-FROM QuanResponse, QuanDataGuids WHERE QuanResponse.dataGuid = QuanDataGuids.dataGuid" ) ) {
+                 "SELECT id, QuanResponse.dataGuid, refDataGuid,QuanDataGuids.idx,QuanDataGuids.fcn"
+                 " FROM QuanResponse, QuanDataGuids WHERE QuanResponse.dataGuid = QuanDataGuids.dataGuid" ) ) {
 
             int nSelected = 0;
             while ( sql.step() == adfs::sqlite_row ) {

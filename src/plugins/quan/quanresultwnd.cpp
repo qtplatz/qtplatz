@@ -74,6 +74,8 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
                                               , calibplot_( new adplot::plot )
                                               , dplot_( new QuanPlotWidget( 0, false ) )
                                               , cplot_( new QuanPlotWidget( 0, true ) )
+                                              , isCounting_( false )
+                                              , isISTD_( false )
 {
     QwtPlotGrid * grid = new QwtPlotGrid;
     grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
@@ -93,7 +95,7 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
 
         wndSplitter->setOrientation( Qt::Vertical );  // horizontal line
         wndSplitter->addWidget( respTable_ );
-
+        
         if ( Core::MiniSplitter  * splitter2 = new Core::MiniSplitter ) { // left pane split top (table) & bottom (time,mass plot)
             splitter2->setOrientation( Qt::Horizontal );        // Caibration curve plot | Mass spectrum plot
             wndSplitter->addWidget( splitter2 );
@@ -137,6 +139,14 @@ QuanResultWnd::handleConnectionChanged()
             }
         }
 
+        isCounting_ = isISTD_ = false;
+        adfs::stmt sql( connection->db() );
+        if ( sql.prepare( "SELECT isCounting, isISTD FROM QuanMethod LIMIT(1)" ) ) {
+            while( sql.step() == adfs::sqlite_row ) {
+                isCounting_ = bool( sql.get_column_value< int64_t >( 0 ) );
+                isISTD_ = bool( sql.get_column_value< int64_t >( 1 ) );
+            }
+        }
     }
 }
 
@@ -188,8 +198,21 @@ QuanResultWnd::handleResponseSelected( int respId )
             }
         }
 
+        std::string query;
+        if ( isCounting_ && isISTD_ ) {
+            query =
+                "SELECT idCmpd, r1.CountRate/r2.CountRate as intensity, amount FROM"
+                " (SELECT QuanResponse.idCmpd, idSample, intensity/trigCounts as CountRate, amount"
+                "  FROM QuanResponse,QuanCompound WHERE uuid=idCmpd AND QuanResponse.id = ?) r1"
+                " LEFT JOIN"
+                " (SELECT idSample, intensity/trigCounts as CountRate from QuanResponse,QuanCompound WHERE uuid=idCmpd AND isISTD=1) r2"
+                " ON r1.idSample = r2.idSample";
+        } else {
+            query = "SELECT idCmpd, intensity, amount FROM QuanResponse WHERE id = ?";
+        }
+
         adfs::stmt sql( conn->db() );
-        if ( sql.prepare( "SELECT idCmpd, intensity, amount from QuanResponse WHERE id = ?" ) ) {
+        if ( sql.prepare( query ) ) {
 
             sql.bind( 1 ) = respId;
             while ( sql.step() == adfs::sqlite_row ) {
@@ -207,10 +230,8 @@ QuanResultWnd::handleResponseSelected( int respId )
                         QuanPlot plot( curves_, markers_ );
 
                         if ( uuid_plot_ != uuid ) {
-                            //plot::calib_curve_yx( calibplot_.get(), *calib, curves_ );
                             plot.plot_calib_curve_yx( calibplot_.get(), *calib );
                         }
-                        //plot_response_marker_yx( calibplot_.get(), intensity, amount );
                         plot.plot_response_marker_yx( calibplot_.get(), intensity, amount, std::make_pair( calib->min_x, calib->max_x ) );
                     }
                 }
@@ -238,7 +259,7 @@ QuanResultWnd::handleResponseSelected( int respId )
         
         if ( !dataGuid.empty() ) {
             if ( auto d = conn->fetch( dataGuid ) ) {
-                ADDEBUG() << "setData 1( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
+                //ADDEBUG() << "setData 1( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
                 dplot_->setData( d, idx, fcn, dataSource );
                 cplot_->setData( d, idx, fcn, dataSource );
             }
@@ -249,7 +270,7 @@ QuanResultWnd::handleResponseSelected( int respId )
                     auto idx = sql.get_column_value< uint64_t >( 1 );
                     auto fcn = sql.get_column_value< uint64_t >( 2 );
                     if ( auto d = conn->fetch( refDataGuid ) ) {
-                        ADDEBUG() << "setData 2( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
+                        //ADDEBUG() << "setData 2( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
                         dplot_->setData( d, idx, fcn, dataSource );
                         cplot_->setData( d, idx, fcn, dataSource );
                     }

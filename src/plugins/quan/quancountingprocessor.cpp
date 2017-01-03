@@ -200,6 +200,8 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
                 // change histogram to profile for gui
                 hist->setCentroid( adcontrols::CentroidNone );
+
+                // save instogram on adfs filesystem
                 if ( auto file = writer->write( *hist, stem.wstring() ) ) {
                     for ( auto& resp: responses )
                         resp.second.dataGuid_ = file.name();

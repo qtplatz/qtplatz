@@ -50,6 +50,7 @@ namespace quan {
         std::weak_ptr< QuanConnection > connection_;
 
         void execQuery( const std::string& );
+        void CountingIndexChanged( int );
         void handleIndexChanged( int );
         void handleCurrentChanged( const QModelIndex& );
 

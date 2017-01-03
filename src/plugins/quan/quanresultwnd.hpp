@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -69,6 +69,8 @@ namespace quan {
 
         boost::uuids::uuid uuid_plot_;
         std::set< boost::uuids::uuid > cmpds_;
+        bool isCounting_;
+        bool isISTD_;
         
         void handleConnectionChanged();
         void handleCompoundSelectionChanged( const QItemSelection&, const QItemSelection& );
