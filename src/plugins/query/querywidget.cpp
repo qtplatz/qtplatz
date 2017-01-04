@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -184,6 +184,9 @@ QueryWidget::handleConnectionChanged()
 
             if ( hasPeak && hasTrigger )
                 tables.insert( 0, "{Counting}" ); // '{}' never appear on sql table name
+            tables.insert( 0, "{CountRate}" );
+            tables.insert( 0, "{CountRatio}" );
+            
             tables.insert( 0, "" ); // empty on top of combobox
 
             form->setTableList( tables );

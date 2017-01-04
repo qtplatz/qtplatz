@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -133,10 +133,43 @@ QueryForm::on_pushButton_pressed()
 void 
 QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
 {
-    if ( itemText == "{Counting}" )
+    if ( itemText == "{Counting}" ) {
         setSQL( QString( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol  FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" ) );
-    else
+    } else if ( itemText == "{CountRate}" ) {
+        setSQL( QString( "SELECT idSample,dataSource,formula,cast(timeCounts AS REAL)/trigCounts as CountRate"
+                         " FROM QuanResponse,QuanSample WHERE QuanResponse.idSample=QuanSample.id" ) );
+    } else if ( itemText == "{CountRatio}" ) {
+        setSQL( QString(
+                    "SELECT t1.uuid as 'uuid'"
+                    ", t1.id as id"
+                    ", t1.idSample as idSample"
+                    ", t1.formula as formula"
+                    ", t1.mass as mass"
+                    ", t1.error as 'error(mDa)'"
+                    ", t1.CountRate"
+                    ", t2.formula as formula"
+                    ", t2.CountRate"
+                    ", t1.CountRate/t2.CountRate AS 'Ratio'"
+                    ", amount"
+                    ", trigCounts"
+                    ", replace(dataSource,rtrim(dataSource,replace(dataSource,'/','')),'') AS dataSource"
+                    "\n FROM"
+                    "\n (SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name,idSample"
+                    ", sampleType, QuanSample.level, QuanCompound.formula"
+                    ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
+                    ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
+                    ", timeCounts * 60000. / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
+                    " FROM QuanSample, QuanResponse, QuanCompound"
+                    " WHERE QuanSample.id = idSample"
+                    " AND QuanResponse.idCmpd = QuanCompound.uuid AND isISTD=0) t1"
+                    "\n LEFT JOIN"
+                    "\n(SELECT idSample, timeCounts * 60000. / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
+                    " FROM QuanResponse,QuanCompound"
+                    " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
+                    "\n ON t1.idSample=t2.idSample ORDER BY t1.idSample") );
+    } else {
         setSQL( QString( "SELECT * FROM %1" ).arg( itemText ));
+    }
 }
 
 void 

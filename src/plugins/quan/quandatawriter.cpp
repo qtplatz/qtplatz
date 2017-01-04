@@ -343,29 +343,13 @@ QuanDataWriter::create_counting_tables()
     bool result( true );
     
     result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS datafile ("
+        "CREATE TABLE IF NOT EXISTS group ("
         " id INTEGER PRIMARY KEY"
         ", name TEXT"
         ", grpid INTEGER"
         ", sampid INTEGER"
         ", UNIQUE( name )"
         ")" );
-
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS reference ("
-        " id INTEGER PRIMARY KEY"
-        ", name TEXT"
-        ", amount REAL"
-        ")" );
-
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS response ("
-        " dataid INTEGER"
-        ", compid INTEGER"
-        ", count INTEGER"
-        ", FOREIGN KEY ( dataid ) REFERENCES datafiles ( id )"
-        ", FOREIGN KEY ( compid ) REFERENCES comp ( id )"
-        ")");
 
     return result;
 }
@@ -376,9 +360,7 @@ QuanDataWriter::drop_table()
     adfs::stmt sql( fs_.db() );
 
     static const char * drop_order[] = {
-        "response"
-        , "reference"
-        , "datafile"
+        "group"
         , "QuanResponse"
         , "QuanSample"
         , "QuanSequence"
