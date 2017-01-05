@@ -10,11 +10,14 @@ find_package( arch )
 # boost setup
 #
 set( Boost_NO_SYSTEM_PATHS ON )
-set( Boost_ADDITIONAL_VERSIONS "1.62.0" "1.62" )
+set( Boost_ADDITIONAL_VERSIONS
+  "1.63.0" "1.63"
+  "1.62.0" "1.62" )
 
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
+    "C:/Boost/include/boost-1_63"   # V14 
     "C:/Boost/include/boost-1_62"   # V14 
     "C:/Boost/include/boost-1_59"   # V13 
     "C:/Boost/include/boost-1_58"   # V12
@@ -32,11 +35,12 @@ if( WIN32 )
 else()
 
   find_path( _boost NAMES include/boost HINTS
-    "/usr/local"
+    "/usr/local/boost-1_63"        # V14 'libs/serialization/src/basic_archive.cpp library_version_type(14)
     "/usr/local/boost-1_62"        # V14
     "/usr/local/boost-1_59"        # V13
     "/usr/local/boost-1_58"        # V12
     "/usr/local/boost-1_57"
+    "/usr/local"
     )
 
   if ( _boost )
