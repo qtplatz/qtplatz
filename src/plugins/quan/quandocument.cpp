@@ -378,7 +378,8 @@ QuanDocument::execute_counting()
 
         // deep copy which prepare for a long background process (e.g. chromatogram search...)
         auto dup = std::make_shared< adcontrols::ProcessMethod >( *pm_ );
-        auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, std::thread::hardware_concurrency() / 2 );
+        unsigned int concurrency = std::min( std::thread::hardware_concurrency(), 4u );
+        auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, concurrency );
 
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
             

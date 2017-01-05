@@ -342,14 +342,14 @@ QuanDataWriter::create_counting_tables()
     adfs::stmt sql( db );
     bool result( true );
     
-    result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS group ("
-        " id INTEGER PRIMARY KEY"
-        ", name TEXT"
-        ", grpid INTEGER"
-        ", sampid INTEGER"
-        ", UNIQUE( name )"
-        ")" );
+    // result &= sql.exec(
+    //     "CREATE TABLE IF NOT EXISTS group ("
+    //     " id INTEGER PRIMARY KEY"
+    //     ", name TEXT"
+    //     ", grpid INTEGER"
+    //     ", sampid INTEGER"
+    //     ", UNIQUE( name )"
+    //     ")" );
 
     return result;
 }
