@@ -113,7 +113,7 @@ for build_dir in ${build_dirs[@]}; do
 	    helio|armv7l|de0-nano-soc|arm-linux-gnueabihf)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
-		      -DQTPLATZ_CORELIB_ONLY=ON -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir
+		      -DQTPLATZ_CORELIB_ONLY=ON -DWITH_QT5=OFF -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir
 		echo cp $toolchain_file $build_dir/toolchain.cmake
 		cp $toolchain_file toolchain.cmake 
 		;;
