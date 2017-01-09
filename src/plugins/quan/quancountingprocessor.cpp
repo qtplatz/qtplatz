@@ -148,7 +148,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     adcontrols::segment_wrapper< adcontrols::MassSpectrum > centroids( centroid );
                     int fcn(0);
                     for ( auto& xpkinfo: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( pkinfo ) ) {
-
+                        
                         auto beg = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() - tolerance
                                                      , [](const auto& a, const double& m) {
                                                          return a.mass() < m;
@@ -163,7 +163,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                             auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
                             pk->formula( compound.formula() ); // assign formula to peak
                             pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
-
+                            
                             auto it = responses.find( compound.formula() );
                             if ( it == responses.end() ) {
                                 auto& resp = responses[ compound.formula() ];
@@ -174,7 +174,9 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                                 resp.setFcn( fcn );
                                 resp.setMass( pk->mass() );
                                 resp.setIntensity( pk->area() );
-                                auto count = dp->countTimeCounts( hists[fcn], pk->centroid_left(), pk->centroid_right() );
+                                //auto count = dp->countTimeCounts( hists[fcn], pk->centroid_left(), pk->centroid_right() );
+                                double w = pk->centroid_right() - pk->centroid_left();
+                                auto count = dp->countTimeCounts( hists[fcn], pk->mass() - w, pk->mass() + w );
                                 resp.setCountTimeCounts( count );
                                 resp.setCountTriggers( hists[fcn].getMSProperty().numAverage() );
                                 resp.setAmounts( 0 );

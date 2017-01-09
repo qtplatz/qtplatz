@@ -33,14 +33,7 @@ namespace adicontroller {
     class ADICONTROLLERSHARED_EXPORT octet_array {
         octet_array( const octet_array& t ) = delete;
         octet_array& operator = ( const octet_array& ) = delete;
-#if defined _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4251)
-#endif
         std::vector< uint8_t > d_;
-#if defined _MSC_VER
-# pragma warning(pop)
-#endif
     public:
         octet_array() {}
         octet_array( size_t n );
@@ -49,6 +42,7 @@ namespace adicontroller {
         uint8_t * data();
         size_t size() const;
         void resize( size_t n );
+        inline octet_array& operator = ( std::vector< uint8_t >&& t ) { d_ = std::move( t ); }
     };
 
 }

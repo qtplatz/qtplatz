@@ -29,7 +29,7 @@
 #if defined _MSC_VER
 # define pragma_diagnostic_push __pragma( warning(push) )
 #elif defined __GNUC__
-# define pragma_diagnostic_push _Pragma( GCC diagnostic push )
+# define pragma_diagnostic_push _Pragma( "GCC diagnostic push" )
 #else
 # define pragma_diagnostic_push
 #endif
@@ -37,9 +37,16 @@
 #if defined _MSC_VER
 # define pragma_diagnostic_pop __pragma( warning(pop) )
 #elif defined __GNUC__
-# define pragma_diagnostic_pop _Pragma( GCC diagnostic pop )
+# define pragma_diagnostic_pop _Pragma( "GCC diagnostic pop" )
 #else
 # define pragma_diagnostic_pop
+#endif
+
+#if defined __GNUC__
+# define gcc_warning(x) _Pragma(#x)
+# define gcc_disable_warning(x) _Pragma("GCC diagnostic ignored" #x)
+#else
+# define gcc_disable_warning(x)
 #endif
 
 #if defined _MSC_VER
