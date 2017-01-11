@@ -36,7 +36,7 @@ endif()
 if ( RTC_ARCH_X64 )
 
   set( arch_FOUND "x86_64" )
-  set( __arch "x86_64" )  
+  set( __arch "amd64" )  
 
 elseif( RTC_ARCH_X86 )
 
