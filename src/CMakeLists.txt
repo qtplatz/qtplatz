@@ -16,7 +16,7 @@ configure_file(
 
 add_subdirectory( libs )
 
-if ( NOT QTPLATZ_CORELIB_ONLY )
+if ( WITH_QT5 )
   # message( STATUS "------------ src/adplugins ----------------" )
   add_subdirectory( adplugins )
   # message( STATUS "------------ src/app ----------------------" )
