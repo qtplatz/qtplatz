@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,14 +27,37 @@
 #include <QStandardItemModel>
 #include <adportable/debug.hpp>
 #include <ratio>
+#include <app/app_version.h>
 
 using namespace adtextfile;
 
 Dialog::Dialog(QWidget *parent) : QDialog(parent)
                                 , ui(new Ui::Dialog)
+                                , settings_( QSettings::IniFormat
+                                             , QSettings::UserScope
+                                             , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                             , QLatin1String( "adtextfile" ) )
 {
     ui->setupUi(this);
     ui->tableView->setModel( new QStandardItemModel );
+
+    settings_.beginGroup( "Dialog" );
+    ui->checkBox->setChecked( settings_.value( "CheckBoxFileCreatedBy", true ).toBool() );
+    setDataType( static_cast< data_type >( settings_.value( "RadioButtonDataType", data_spectrum ).toInt() ) ); 
+    ui->checkBox_4->setChecked( settings_.value( "CheckBoxPeakList", false ).toBool() );
+    auto data_pair = settings_.value( "RadioButtonDataPair", "Time,Intensity" ).toString();
+    if ( data_pair == "Time,Intensity" )
+        ui->radioButton_3->setChecked( true );
+    if ( data_pair == "Mass,Intensity" )
+        ui->radioButton_4->setChecked( true );
+
+    ui->checkBox_2->setChecked( settings_.value( "CheckBoxInverseData", true ).toBool() );
+    ui->checkBox_3->setChecked( settings_.value( "CheckBoxBaselineCorrection", false ).toBool() );
+
+    ui->comboBox_2->setCurrentIndex( settings_.value( "ComboBoxTimePrefix", 2 ).toInt() ); // microseconds
+    ui->spinBox->setValue( settings_.value( "SpinBoxSkipFirst", 0 ).toInt() );
+    // scanlaw tbd
+    settings_.endGroup();
 
     connect( ui->radioButton_6, &QRadioButton::toggled, this, [&](bool f){
             ui->groupBox_3->setEnabled( !f );
@@ -43,6 +66,23 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
 Dialog::~Dialog()
 {
+    settings_.beginGroup( "Dialog" );
+
+    settings_.setValue( "CheckBoxFileCreatedBy", ui->checkBox->isChecked() );
+    settings_.setValue( "RadioButtonDataType", static_cast<int>( dataType() ) );
+    settings_.setValue( "CheckBoxPeakList", ui->checkBox_4->isChecked() );
+    if ( ui->radioButton_3->isChecked() )
+        settings_.setValue( "RadioButtonDataPair", "Time,Intensity" );
+    if ( ui->radioButton_4->isChecked() )
+        settings_.setValue( "RadioButtonDataPair", "Mass,Intensity" );
+
+    settings_.setValue( "CheckBoxInverseData", ui->checkBox_2->isChecked() );
+    settings_.setValue( "CheckBoxBaselineCorrection", ui->checkBox_3->isChecked() );
+    settings_.setValue( "ComboBoxTimePrefix", ui->comboBox_2->currentIndex() );
+    settings_.value( "SpinBoxSkipFirst", ui->spinBox->value() );
+
+    settings_.endGroup();
+    
     delete ui;
 }
 

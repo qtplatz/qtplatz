@@ -26,6 +26,7 @@
 #define DIALOG_HPP
 
 #include <QDialog>
+#include <QSettings>
 #include <adcontrols/metric/prefix.hpp>
 
 namespace Ui {
@@ -81,6 +82,7 @@ namespace adtextfile {
 
     private:
         Ui::Dialog *ui;
+        QSettings settings_;
     };
 
 }

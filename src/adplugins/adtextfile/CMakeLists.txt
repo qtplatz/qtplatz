@@ -22,6 +22,7 @@ configure_file(
 #include_directories( ${Qt5Core_INCLUDE_DIRS}  )
 include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
