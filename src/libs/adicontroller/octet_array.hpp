@@ -42,7 +42,7 @@ namespace adicontroller {
         uint8_t * data();
         size_t size() const;
         void resize( size_t n );
-        inline octet_array& operator = ( std::vector< uint8_t >&& t ) { d_ = std::move( t ); }
+        inline octet_array& operator = ( std::vector< uint8_t >&& t ) { d_ = std::move( t ); return *this; }
     };
 
 }

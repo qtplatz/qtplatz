@@ -56,6 +56,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <numeric>
 
 using namespace adprocessor;
 
@@ -312,6 +313,7 @@ dataprocessor::readSpectrumFromTimeCount()
 
         return hist;
     }
+    return nullptr;
 }
 
 bool
