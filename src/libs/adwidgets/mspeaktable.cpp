@@ -41,6 +41,7 @@
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
+#include <adportable/scoped_debug.hpp>
 #include <qtwrapper/font.hpp>
 #include <QApplication>
 #include <QClipboard>
@@ -318,6 +319,8 @@ MSPeakTable::setContents( boost::any&& a )
 {
     impl_->callback_.disconnect_all_slots();
 
+    ScopedDebug( x ); x << "setContents()";
+
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
         impl_->data_source_ = wptr;
@@ -348,6 +351,8 @@ MSPeakTable::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::f
 {
     impl_->data_source_ = ms;
 
+    ScopedDebug( x ); x << "setContents()";
+    
     impl_->callback_.disconnect_all_slots();
     if ( callback )
         impl_->callback_.connect( callback );
@@ -381,7 +386,7 @@ MSPeakTable::onInitialUpdate()
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
 
-    horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
+    //horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents ); <-- performance killer
     //horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 }
 
@@ -431,6 +436,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
 	QStandardItemModel& model = *impl_->model_;
 
+    ScopedDebug( x ); x << "setPeakInfo(info)";
+
     setUpdatesEnabled( false );
 
     model.setRowCount( static_cast< int >( info.total_size() ) );
@@ -474,8 +481,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
         }
         ++fcn;
     }
-    resizeColumnsToContents();
-    resizeRowsToContents();
+    //resizeColumnsToContents();
+    //resizeRowsToContents();
     setUpdatesEnabled( true );
 }
 
@@ -485,6 +492,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 	QStandardItemModel& model = *impl_->model_;
     size_t total_size = 0;
 
+    ScopedDebug( x ); x << "setPeakInfo(ms)";
+    
     setUpdatesEnabled( false );
  
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
@@ -552,8 +561,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     if ( hasFormula )
         hideRows();
 
-    resizeColumnsToContents();
-    resizeRowsToContents();
+    //resizeColumnsToContents();
+    //resizeRowsToContents();
     setUpdatesEnabled( true );
 }
 
@@ -562,6 +571,8 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
 	QStandardItemModel& model = *impl_->model_;
 
+    ScopedDebug( x ); x << "setData(ms)";
+    
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     size_t total_size = 0;
     for( auto& t: segs )
@@ -613,6 +624,8 @@ MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
     QStandardItemModel& model = *impl_->model_;
     (void)prev;
 
+    ScopedDebug( x ); x << "currentChanged";
+
     scrollTo( index, QAbstractItemView::EnsureVisible );
     
 	int row = index.row();
@@ -655,27 +668,31 @@ MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
     if ( impl_->data_source_.which() == 1 ) {
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( auto ptr = wptr.lock() ) {
-            std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() );
+            std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() ); // index,fcn
             if ( bp.first >= 0 && bp.second >= 0 ) {
-                // ---> change rel. intensity
-                setUpdatesEnabled( false );
-                double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
-                for ( int row = 0; row < model.rowCount(); ++row )
-                    model.setData( model.index( row, c_mspeaktable_relative_intensity )
-                                     , model.index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
 
-                resizeColumnsToContents();
-                resizeRowsToContents();
-                setUpdatesEnabled( true );
-                // <--- end rel. intensity
+                {
+                    // ---> change rel. intensity
+                    setUpdatesEnabled( false );
+                    double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
+                    for ( int row = 0; row < model.rowCount(); ++row ) {
+                        model.setData( model.index( row, c_mspeaktable_relative_intensity )
+                                       , model.index( row, c_mspeaktable_intensity ).data().toDouble() * 100 / base_height );
+                    }
+                    setUpdatesEnabled( true );
+                    // <--- end rel. intensity
+                }
+                
+                {
+                    for ( int row = 0; row < model.rowCount(); ++row ) {
+                        if ( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first
+                             && model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
 
-                for ( int row = 0; row < model.rowCount(); ++row ) {
-                    if ( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first
-                         && model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
-                        
-                        setCurrentIndex( model.index( row, c_mspeaktable_mass ) );
-                        scrollTo( model.index( row, c_mspeaktable_mass ) );
-                        break;
+                            QModelIndex index = model.index( row, c_mspeaktable_mass );
+                            setCurrentIndex( index );
+                            scrollTo( index, QAbstractItemView::EnsureVisible );
+                            break;
+                        }
                     }
                 }
             }

@@ -610,9 +610,12 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                             targeting_ = std::make_pair( ftgt.id(), portfolio::get< adcontrols::TargetingPtr >( ftgt ) );
 
                             // set corresponding targeting method to UI
-                            if ( auto fmth = portfolio::find_first_of( ftgt.attachments(), [] ( portfolio::Folium& a ){ return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); } ) )
+                            if ( auto fmth = portfolio::find_first_of(
+                                     ftgt.attachments(), [] ( portfolio::Folium& a ){
+                                         return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); } ) ) {
                                 if ( auto mth = portfolio::get< adcontrols::ProcessMethodPtr >( fmth ) )
                                     MainWindow::instance()->setProcessMethod( *mth );
+                            }
                         }
 
                     }

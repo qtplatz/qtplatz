@@ -48,3 +48,4 @@ namespace adportable {
     };
 }
 
+#define ScopedDebug(t) adportable::scoped_debug<adportable::debug> t(__FILE__, __LINE__)
