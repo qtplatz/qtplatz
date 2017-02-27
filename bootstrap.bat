@@ -73,6 +73,7 @@ if !build_type!==release (
     cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
     cd contrib\installer\wix
     nmake help
+    echo cd !build_dir!\contrib\installer\wix
     goto end
 )
 
@@ -80,3 +81,4 @@ cd %source_dir%
 
 :end
 endlocal
+

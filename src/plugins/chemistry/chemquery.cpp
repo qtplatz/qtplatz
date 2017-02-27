@@ -130,10 +130,12 @@ bool
 ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std::string& synonym, const std::string& _inchi )
 {
     std::string inchi( _inchi );
+#if !(defined WIN32 && defined _DEBUG) // it's too slow on debug mode vc14
     if ( inchi.empty() ) {
         RDKit::ExtraInchiReturnValues rv;
         inchi = RDKit::MolToInchi( mol, rv );
     }
+#endif
 
     if ( sql_.prepare( "SELECT COUNT(*) FROM mols WHERE InChI = ?" ) ) {
         sql_.bind( 1 ) = inchi;

@@ -25,7 +25,7 @@ if ( INFITOF_SOURCE_DIR )
   endif()  
 endif()
 
-find_path( MALPIX_SOURCE_DIR NAMES "src/mpx4" "src/plugins/malpix" HINTS ${CMAKE_SOURCE_DIR}/../malpix/malpix )
+find_path( MALPIX_SOURCE_DIR NAMES "src/plugins/malpixacquire" HINTS ${CMAKE_SOURCE_DIR}/../malpix/malpix )
 if ( MALPIX_SOURCE_DIR )
   set( MALPIX_TARGET "malpix" )
   if ( MSVC_VERSION EQUAL 1900 )
