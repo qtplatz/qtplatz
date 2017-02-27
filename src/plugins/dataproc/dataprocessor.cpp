@@ -516,7 +516,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         
         if ( procType == CentroidProcess ) {
             selector.append< adcontrols::CentroidMethod >( method );
-            selector.append< adcontrols::TargetingMethod >( method ); // always does 'targeting' when centroid
+            selector.append< adcontrols::TargetingMethod >( method ); // always do 'targeting' when centroid
         }
         else if ( procType == TargetingProcess ) {
             if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& f ) {

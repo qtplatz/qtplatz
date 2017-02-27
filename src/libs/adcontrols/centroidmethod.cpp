@@ -43,7 +43,7 @@ CentroidMethod::CentroidMethod() : baselineWidth_(500.0)
                                  , peakWidthMethod_(ePeakWidthTOF)
                                  , noiseFilterMethod_( eNoFilter )
                                  , cutoffFreqHz_( 100 * 1.0e6 ) // 100MHz
-                                 , areaMethod_( eAreaTime )
+                                 , areaMethod_( eAreaDa )
                                  , processOnTimeAxis_( false )
                                  , rsInSeconds_( 10.0e-9 ) // 10ns
 {
