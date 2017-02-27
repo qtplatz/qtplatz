@@ -103,10 +103,10 @@ namespace adcontrols {
             
             template<typename char_type> bool formulae( iformat_type& fmt, const std::basic_string<char_type>& formula ) const {
 
-                typename std::basic_string< char_type >::const_iterator it = formula.begin();
+                if ( formula.empty() )
+                    return false;
 
-                while ( std::isspace( *it ) && it != formula.end() )
-                    ++it;
+                typename std::basic_string< char_type >::const_iterator it = formula.begin();
 
                 do {
                     if ( *it == '+' ) {
@@ -116,8 +116,7 @@ namespace adcontrols {
                         fmt.first.emplace_back( adportable::chem::atom_type( 0, " -"), 0 ); // put [+|-] in the text
                         ++it;                    
                     }
-                    
-                } while ( parse< char_type >( it, formula.end(), fmt ) );
+                } while ( parse< char_type >( it, formula.end(), fmt ) && it != formula.end() );
 
                 return true;
             }
