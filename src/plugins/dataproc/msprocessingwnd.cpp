@@ -85,14 +85,15 @@
 #include <qwt_scale_engine.h>
 #include <qwt_symbol.h>
 #include <QApplication>
-#include <QSvgGenerator>
-#include <QPrinter>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QClipboard>
+// #include <QDockWidget>
 #include <QMenu>
+#include <QPrinter>
 #include <QSettings>
 #include <QSlider>
+#include <QSvgGenerator>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -1224,27 +1225,33 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 	drawRect.setHeight( size.height() );
     renderer.render( pImpl_->profileSpectrum_, &painter, drawRect );
 
-	QString formattedMethod;
-
-    portfolio::Folio attachments = folium.attachments();
-    portfolio::Folio::iterator it
-        = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
-    if ( it != attachments.end() ) {
-        adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-        const adcontrols::descriptions& desc = ms->getDescriptions();
-        for ( size_t i = 0; i < desc.size(); ++i ) {
-            const adcontrols::description& d = desc[i];
-            if ( ! std::string( d.xml() ).empty() ) {
-                formattedMethod.append( d.xml() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
+    {
+        QString formattedMethod;
+    
+        portfolio::Folio attachments = folium.attachments();
+        portfolio::Folio::iterator it
+            = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        if ( it != attachments.end() ) {
+            adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+            const adcontrols::descriptions& desc = ms->getDescriptions();
+            for ( size_t i = 0; i < desc.size(); ++i ) {
+                const adcontrols::description& d = desc[i];
+                if ( ! std::string( d.xml() ).empty() ) {
+                    formattedMethod.append( d.xml() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
+                }
             }
         }
+        drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+        drawRect.setHeight( printer.height() - drawRect.top() );
+        QFont font = painter.font();
+        font.setPointSize( 8 );
+        painter.setFont( font );
+        painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
     }
-    drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
-    drawRect.setHeight( printer.height() - drawRect.top() );
-    QFont font = painter.font();
-    font.setPointSize( 8 );
-    painter.setFont( font );
-    painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
+    ///////////
+    if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
+        p->handlePrint( printer, painter );
+    }
 }
 
 bool

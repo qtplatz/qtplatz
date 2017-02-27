@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,6 +33,7 @@
 #include <functional>
 
 class QStandardItemModel;
+class QPrinter;
 
 namespace adcontrols { class MSPeakInfo; class MassSpectrum; class ChemicalFormula; class Targeting;
     class MSPeaks; class MSPeak; }
@@ -91,7 +92,8 @@ namespace adwidgets {
         void handleCopyToClipboard() override;
         void handleZoomedOnSpectrum( const QRectF& );   // zoomer zoomed
         void hideRows();
-        void showRows();                       
+        void showRows();
+        void handlePrint( QPrinter&, QPainter& );
 
     private slots:
         void handleValueChanged( const QModelIndex& );

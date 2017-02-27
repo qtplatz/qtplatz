@@ -287,21 +287,21 @@ ActionManager::actPrintCurrentView()
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
 
 		boost::filesystem::path path = dp->getPortfolio().fullpath();
-		path = path.parent_path() / path.stem();
+        auto base_name = path.parent_path() / path.stem();
 
-		boost::filesystem::path pdfname = path;
-		pdfname.replace_extension( ".pdf" );
-		int nnn = 0;
-		while ( boost::filesystem::exists( pdfname ) )  {
-			pdfname = path.wstring() + ( boost::wformat(L"(%d)") % nnn++ ).str();
-			pdfname.replace_extension( ".pdf" );
-		}
-		std::string caption = ( boost::format( "Save %1% current view to file" ) % title ).str();
+        // don't use .replace_extention prevent infinite loop for '.' contained filename
+        boost::filesystem::path pdfname( base_name.string() + ".pdf" );
+
+		int nnn = 1;
+		while ( boost::filesystem::exists( pdfname ) && nnn <= 999 )
+			pdfname = base_name.string() + ( boost::format("_%d.pdf") % nnn++ ).str();
+
+		auto caption = QString( tr( "Save %1 current view to file" ) ).arg( QString::fromStdString( title ) );
 		QString qpdfname( qtwrapper::qstring::copy( pdfname.wstring() ) );
         QString fname = QFileDialog::getSaveFileName( MainWindow::instance() // parent
-                                                      , caption.c_str()    // caption
-                                                      , qpdfname                 // dir
-                                                      , tr("PDF (*.pdf *.svg)") );  // filter
+                                                      , caption
+                                                      , QString::fromStdString( pdfname.string() )
+                                                      , tr("PDF (*.pdf)") );  // filter
         MainWindow::instance()->printCurrentView( fname );
 	} else {
         QMessageBox::warning( MainWindow::instance(), tr("Print current view"), tr("No current data exist") );

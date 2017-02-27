@@ -25,6 +25,7 @@
 #include "mspeaktable.hpp"
 #include "htmlheaderview.hpp"
 #include "delegatehelper.hpp"
+#include "grid_render.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -49,12 +50,15 @@
 #include <QKeyEvent>
 #include <QStandardItemModel>
 #include <QMenu>
+#include <QPainter>
 #include <QPair>
+#include <QtPrintSupport/QPrinter>
 #include <boost/format.hpp>
 #include <boost/signals2.hpp>
 #include <boost/variant.hpp>
 #include <sstream>
 #include <set>
+#include <ratio>
 
 namespace adwidgets {
 
@@ -1021,3 +1025,93 @@ MSPeakTable::showRows()
             setRowHidden( row, false );
     }
 }
+
+void
+MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
+{
+    const QStandardItemModel& model = *(impl_->model_);
+    printer.newPage();
+	const QRect rect( printer.pageRect().x() + printer.pageRect().width() * 0.05
+                      , printer.pageRect().y() + printer.pageRect().height() * 0.05
+                      , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
+    
+    const int rows = model.rowCount();
+    const int cols = model.columnCount();
+
+    grid_render render( rect );
+
+    for ( int col = 0; col < cols; ++col ) {
+        double width = 0;
+        switch( col ) {
+        case c_mspeaktable_formula:              width = rect.width() / 180 * 30; break;
+        case c_mspeaktable_mass:                 width = rect.width() / 180 * 30; break;
+        case c_mspeaktable_mass_error:           width = rect.width() / 180 * 24; break;
+        case c_mspeaktable_intensity:            width = rect.width() / 180 * 24; break;
+        case c_mspeaktable_relative_intensity:   width = rect.width() / 180 * 24; break;
+        case c_mspeaktable_time:                 width = rect.width() / 180 * 18; break;
+        case c_mspeaktable_description:          width = rect.width() / 180 * 30; break;
+        }
+        render.add_tab( width );
+    }
+
+    render.new_page( painter );
+    for ( int col = 0; col < cols; ++col ) {
+        render( painter, col, model.headerData( col, Qt::Horizontal ).toString(), "center" );
+    }
+
+    render.new_line( painter );
+    render.draw_horizontal_line( painter );
+
+    for ( int row = 0; row < rows; ++row ) {
+
+        if ( isRowHidden( row ) )
+            continue;
+
+        for ( int col = 0; col < cols; ++col ) {
+            auto data = model.index( row, col ).data( Qt::EditRole );
+            QString text;
+            switch( col ) {
+            case c_mspeaktable_formula:
+                text = QString::fromStdString( adcontrols::ChemicalFormula::formatFormulae( data.toString().toStdString() ) );
+                render( painter, col, text, "left" );
+                break;
+            case c_mspeaktable_mass:
+                text = QString::fromStdString( (boost::format( "%.7lf" ) % ( data.toDouble() ) ).str() );
+                render( painter, col, text );
+                break;
+            case c_mspeaktable_mass_error:
+                text = QString::fromStdString( (boost::format( "%.5lf" ) % ( data.toDouble() * std::milli::den )).str().c_str() );
+                render( painter, col, text );
+                break;
+            case c_mspeaktable_intensity:
+                text = QString::fromStdString( (boost::format( "%.1lf" ) % data.toDouble()).str() );
+                render( painter, col, text );
+                break;                
+            case c_mspeaktable_relative_intensity:
+                text = QString::fromStdString( (boost::format( "%.4lf" ) % data.toDouble()).str() );
+                render( painter, col, text );
+                break;                                
+            case c_mspeaktable_time:
+                text = QString::fromStdString( (boost::format( "%.4lf" ) % ( data.toDouble() * std::micro::den ) ).str() );
+                render( painter, col, text );
+                break;                                                                
+            case c_mspeaktable_description:
+                text = data.toString();
+                render( painter, col, text );
+                break;                                
+            }
+        }
+        
+        if ( render.new_line( painter ) ) {
+            printer.newPage();
+            render.new_page( painter );
+            for ( int col = 0; col < cols; ++col )
+                render( painter, col, model.headerData( col, Qt::Horizontal ).toString(), "center" );
+            render.new_line( painter );
+            render.draw_horizontal_line( painter );  
+        }
+    }
+    render.draw_horizontal_line( painter );
+
+}
+

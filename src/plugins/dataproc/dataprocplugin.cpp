@@ -193,6 +193,10 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         
         //------------------------------------------------
         QStringList mTypes;
+
+        // core mime-types
+        if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
+            ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
         
         // externally installed mime-types
         std::wstring mimefile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
@@ -212,10 +216,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 					mimeTypeHelper::populate( mTypes, xml.c_str() );
             });
 
-
-        // core mime-types
-        if ( !Core::MimeDatabase::addMimeTypes( ":/dataproc/mimetype.xml", error_message ) )
-            ADWARN() << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
         addAutoReleasedObject( new DataprocessorFactory( this, mTypes ) );
         

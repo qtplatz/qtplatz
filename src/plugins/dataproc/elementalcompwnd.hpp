@@ -34,6 +34,8 @@ namespace portfolio {
     class Folium;
 }
 
+namespace adplot { class SpectrumWidget; }
+
 namespace adcontrols {
     class MassSpectrum;
 	class ProcessMethod;
@@ -65,9 +67,13 @@ namespace dataproc {
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handleAxisChanged( unsigned int );        
+        void handlePrintCurrentView( const QString& outpdf );
       
     private:
-        ElementalCompWndImpl * pImpl_;
+        adplot::SpectrumWidget * referenceSpectrum_;
+        adplot::SpectrumWidget * processedSpectrum_;
+        int drawIdx_;
+        std::weak_ptr< adcontrols::MassSpectrum > centroid_;
 
     private slots:
         void selectedOnProcessed( const QRectF& );

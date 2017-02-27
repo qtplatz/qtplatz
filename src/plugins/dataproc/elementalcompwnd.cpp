@@ -26,6 +26,7 @@
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
 #include "document.hpp"
+#include "sessionmanager.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/timeutil.hpp>
@@ -45,9 +46,10 @@
 #include <adutils/processeddata.hpp>
 #include <adportfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
+#include <qwt_plot.h>
+#include <qwt_plot_renderer.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_engine.h>
-#include <qwt_plot.h>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adwidgets/scanlawdialog.hpp>
@@ -55,36 +57,18 @@
 #include <boost/any.hpp>
 #include <QBoxLayout>
 #include <QMenu>
+#include <QPrinter>
 
 using namespace dataproc;
 
-namespace dataproc {
-
-    class ElementalCompWndImpl {
-    public:
-        ~ElementalCompWndImpl() {}
-        ElementalCompWndImpl() : ticPlot_(0)
-                               , referenceSpectrum_(0)
-                               , processedSpectrum_(0)
-                               , drawIdx_(0) {
-        }
-      
-        adplot::ChromatogramWidget * ticPlot_;
-        adplot::SpectrumWidget * referenceSpectrum_;
-        adplot::SpectrumWidget * processedSpectrum_;
-        int drawIdx_;
-        std::weak_ptr< adcontrols::MassSpectrum > centroid_;
-    };
-
-}
-
 ElementalCompWnd::~ElementalCompWnd()
 {
-    delete pImpl_;
 }
 
 ElementalCompWnd::ElementalCompWnd(QWidget *parent) : QWidget(parent)
-                                                    , pImpl_(0)
+                                                    , referenceSpectrum_( 0 )
+                                                    , processedSpectrum_( 0 )
+                                                    , drawIdx_( 0 )
 {
     init();
 }
@@ -92,28 +76,28 @@ ElementalCompWnd::ElementalCompWnd(QWidget *parent) : QWidget(parent)
 void
 ElementalCompWnd::init()
 {
-    pImpl_ = new ElementalCompWndImpl;
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
+
     if ( splitter ) {
-        if ( ( pImpl_->processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
-            splitter->addWidget( pImpl_->processedSpectrum_ );
-            connect( pImpl_->processedSpectrum_, &adplot::SpectrumWidget::onSelected, this, &ElementalCompWnd::selectedOnProcessed );
+        if ( ( processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
+            splitter->addWidget( processedSpectrum_ );
+            connect( processedSpectrum_, &adplot::SpectrumWidget::onSelected, this, &ElementalCompWnd::selectedOnProcessed );
         }
 
-        if ( ( pImpl_->referenceSpectrum_ = new adplot::SpectrumWidget(this) ) )
-            splitter->addWidget( pImpl_->referenceSpectrum_ );
+        if ( ( referenceSpectrum_ = new adplot::SpectrumWidget(this) ) )
+            splitter->addWidget( referenceSpectrum_ );
 
-        pImpl_->processedSpectrum_->setMinimumHeight( 80 );
-        pImpl_->referenceSpectrum_->setMinimumHeight( 80 );        
-		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-		pImpl_->referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+        processedSpectrum_->setMinimumHeight( 80 );
+        referenceSpectrum_->setMinimumHeight( 80 );        
+		processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+		referenceSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+		processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+		referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
 
-        // pImpl_->referenceSpectrum_->setAxisScaleEngine( QwtPlot::yLeft, new QwtLogScaleEngine );
+        // referenceSpectrum_->setAxisScaleEngine( QwtPlot::yLeft, new QwtLogScaleEngine );
 
-        pImpl_->processedSpectrum_->link( pImpl_->referenceSpectrum_ );
-        //pImpl_->referenceSpectrum_->link( pImpl_->processedSpectrum_ );
+        processedSpectrum_->link( referenceSpectrum_ );
+        //referenceSpectrum_->link( processedSpectrum_ );
 
         splitter->setOrientation( Qt::Vertical );
     }
@@ -127,7 +111,7 @@ ElementalCompWnd::init()
 void
 ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    pImpl_->referenceSpectrum_->setData( ptr, 0 );
+    referenceSpectrum_->setData( ptr, 0 );
 }
 
 void
@@ -182,8 +166,8 @@ ElementalCompWnd::handleAxisChanged( unsigned int axis )
 {
     using adplot::SpectrumWidget;
     using namespace adcontrols;
-    pImpl_->referenceSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
-    pImpl_->processedSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    referenceSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    processedSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
 }
 
 void
@@ -200,7 +184,7 @@ ElementalCompWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& 
 void
 ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
-    pImpl_->drawIdx_ = 0;
+    drawIdx_ = 0;
 
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
@@ -210,14 +194,14 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
             if ( ptr->size() > 0
                  && adportable::compare<double>::approximatelyEqual( ptr->getMass( ptr->size() - 1 ), ptr->getMass( 0 ) ) ) {
                 // no mass assigned
-                pImpl_->processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime, false );
+                processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime, false );
             } else {
-                pImpl_->processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisMass, false );
+                processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisMass, false );
             }
-            pImpl_->referenceSpectrum_->enableAxis( QwtPlot::yRight, true );            
-            pImpl_->processedSpectrum_->enableAxis( QwtPlot::yRight, true );
-            pImpl_->processedSpectrum_->setData( ptr, 1, true );
-            pImpl_->processedSpectrum_->setAlpha( 1, 0x20 );
+            referenceSpectrum_->enableAxis( QwtPlot::yRight, true );            
+            processedSpectrum_->enableAxis( QwtPlot::yRight, true );
+            processedSpectrum_->setData( ptr, 1, true );
+            processedSpectrum_->setAlpha( 1, 0x20 );
         }
 
         portfolio::Folio attachments = folium.attachments();
@@ -226,8 +210,8 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
         
             if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
                 if ( centroid->isCentroid() ) {
-                    pImpl_->processedSpectrum_->setData( centroid, 0, false );
-                    pImpl_->centroid_ = centroid;
+                    processedSpectrum_->setData( centroid, 0, false );
+                    centroid_ = centroid;
                 }
             }
         }
@@ -238,6 +222,49 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
 void
 ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
+}
+
+void
+ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
+{
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+    QPrinter printer;
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+	printer.setOrientation( QPrinter::Landscape );
+    
+    printer.setDocName( "QtPlatz isotope simulation report" );
+    printer.setOutputFileName( pdfname );
+    // printer.setResolution( resolution );
+
+    QPainter painter( &printer );
+
+    QRectF boundingRect;
+    QRectF drawRect( printer.resolution()/2, printer.resolution()/2, printer.width() - printer.resolution(), (12.0/72)*printer.resolution() );
+
+    QString fullpath;
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
+        fullpath = processor->qfilename();
+    
+	painter.drawText( drawRect, Qt::TextWordWrap, fullpath, &boundingRect );
+
+    drawRect.setTop( boundingRect.bottom() );
+    drawRect.setHeight( printer.height() - boundingRect.top() - printer.resolution()/2 );
+    //drawRect.setWidth( size.width() );
+    
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+    QRectF rc( drawRect );
+	rc.setHeight( drawRect.height() / 4 );
+    rc.setWidth( drawRect.width() * 0.6 );
+
+    renderer.render( referenceSpectrum_, &painter, rc );
+    rc.moveTo( rc.left(), rc.bottom() );
+    renderer.render( processedSpectrum_, &painter, rc );    
 }
 
 void
@@ -307,7 +334,7 @@ ElementalCompWnd::selectedOnProcessed( const QRectF& rc )
     if ( !models.empty() ) {
         for ( auto model : models )
             actions.push_back( menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) ) ) );
-        if ( !pImpl_->centroid_.lock() )
+        if ( !centroid_.lock() )
             std::for_each( actions.begin(), actions.end(), []( QAction * a ){ a->setEnabled( false );  } );
     }
     
@@ -315,7 +342,7 @@ ElementalCompWnd::selectedOnProcessed( const QRectF& rc )
     if ( selected ) {
         auto it = std::find( actions.begin(), actions.end(), selected );
         if ( it != actions.end() ) {
-            if ( auto centroid = pImpl_->centroid_.lock() )
+            if ( auto centroid = centroid_.lock() )
                 estimateScanLaw( QString::fromStdWString( models[ std::distance( actions.begin(), it ) ] ), centroid );
         }
     }

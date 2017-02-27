@@ -77,7 +77,7 @@ DelegateHelper::render_html( QPainter * painter, const QStyleOptionViewItem& opt
         document.setDefaultTextOption( QTextOption( op.displayAlignment ) ); // QTBUG 13467 -- valign is not taking in account
         document.setDefaultFont( op.font );
     }
-    document.setHtml( QString("<body>%1</body>").arg( text ) );
+    document.setHtml( QString("<body><div align='right'>%1</div></body>").arg( text ) );
 
     op.displayAlignment |= Qt::AlignVCenter;
     op.text = "";
