@@ -77,6 +77,7 @@
 #include <qtwrapper/xmlformatter.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <xmlparser/pugixml.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
@@ -88,12 +89,12 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QClipboard>
-// #include <QDockWidget>
 #include <QMenu>
 #include <QPrinter>
 #include <QSettings>
 #include <QSlider>
 #include <QSvgGenerator>
+#include <QTextDocument>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -1226,8 +1227,9 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     renderer.render( pImpl_->profileSpectrum_, &painter, drawRect );
 
     {
-        QString formattedMethod;
-    
+        QString html;
+        html.append( "<body><table><tr><th>Item</th><th>Value</th></tr>" );
+
         portfolio::Folio attachments = folium.attachments();
         portfolio::Folio::iterator it
             = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
@@ -1235,18 +1237,30 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
             adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
             const adcontrols::descriptions& desc = ms->getDescriptions();
             for ( size_t i = 0; i < desc.size(); ++i ) {
-                const adcontrols::description& d = desc[i];
-                if ( ! std::string( d.xml() ).empty() ) {
-                    formattedMethod.append( d.xml() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
+                std::string xml( desc[i].xml() );
+                if ( ! xml.empty() ) {
+                    pugi::xml_document dom;
+                    xml += "</boost_serialization>";
+                    if ( auto result = dom.load( xml.c_str() ) ) {
+                        pugi::xpath_node_set list = dom.select_nodes( "//CentroidMethod/*" );
+                        for ( const auto& xp: list ) {
+                            html.append( "<tr><td>" + QString::fromStdString( xp.node().name() ) + "</td>" );
+                            html.append( "<td>" + QString::fromStdString( xp.node().child_value() ) + "</td></tr>" );
+                        }
+                    }
                 }
             }
+            html.append( "</table></body>" );
         }
+
         drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
         drawRect.setHeight( printer.height() - drawRect.top() );
-        QFont font = painter.font();
-        font.setPointSize( 8 );
-        painter.setFont( font );
-        painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
+        QTextDocument doc;
+        doc.setHtml( html );
+        painter.save();
+        painter.translate( drawRect.topLeft() );
+        doc.drawContents( &painter );
+        painter.restore();
     }
     ///////////
     if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
