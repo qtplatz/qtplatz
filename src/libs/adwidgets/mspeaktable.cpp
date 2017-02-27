@@ -41,7 +41,6 @@
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
-#include <adportable/scoped_debug.hpp>
 #include <qtwrapper/font.hpp>
 #include <QApplication>
 #include <QClipboard>
@@ -319,8 +318,6 @@ MSPeakTable::setContents( boost::any&& a )
 {
     impl_->callback_.disconnect_all_slots();
 
-    ScopedDebug( x ); x << "setContents()";
-
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
         impl_->data_source_ = wptr;
@@ -351,8 +348,6 @@ MSPeakTable::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::f
 {
     impl_->data_source_ = ms;
 
-    ScopedDebug( x ); x << "setContents()";
-    
     impl_->callback_.disconnect_all_slots();
     if ( callback )
         impl_->callback_.connect( callback );
@@ -436,8 +431,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 {
 	QStandardItemModel& model = *impl_->model_;
 
-    ScopedDebug( x ); x << "setPeakInfo(info)";
-
     setUpdatesEnabled( false );
 
     model.setRowCount( static_cast< int >( info.total_size() ) );
@@ -492,8 +485,6 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 	QStandardItemModel& model = *impl_->model_;
     size_t total_size = 0;
 
-    ScopedDebug( x ); x << "setPeakInfo(ms)";
-    
     setUpdatesEnabled( false );
  
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
@@ -571,8 +562,6 @@ MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
 	QStandardItemModel& model = *impl_->model_;
 
-    ScopedDebug( x ); x << "setData(ms)";
-    
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     size_t total_size = 0;
     for( auto& t: segs )
@@ -623,8 +612,6 @@ MSPeakTable::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 {
     QStandardItemModel& model = *impl_->model_;
     (void)prev;
-
-    ScopedDebug( x ); x << "currentChanged";
 
     scrollTo( index, QAbstractItemView::EnsureVisible );
     

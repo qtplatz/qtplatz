@@ -215,15 +215,17 @@ Dataprocessor::save( QString * errorString, const QString& filename, bool /* aut
 
     if ( (file && file->saveContents( L"/Processed", *portfolio_, *this->file() )) ) {
 
-        setFile( std::move( file ) );
+        // setFile( std::move( file ) ); <- this will clash app at access portfolio.
         setModified( false );
-
+        
         // for debugging convension
+#if 0
         path.replace_extension( ".xml" );
         boost::filesystem::remove( path );
         pugi::xml_document dom;
         dom.load( portfolio_->xml().c_str() );
         dom.save_file( path.string().c_str() );
+#endif
         return true;
 
     }
@@ -267,8 +269,6 @@ Dataprocessor::create(const QString& filename )
     std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
     if ( file ) {
         setFile( std::move( file ) );
-        // file_.reset( file );
-        // file_->open( filename.toStdWString() );
         this->file()->accept( *this );
         setDisplayName( filename );
         return true;

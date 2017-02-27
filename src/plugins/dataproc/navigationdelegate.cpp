@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,10 +22,13 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
 #include "navigationdelegate.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/datafile.hpp>
+#include <adportable/debug.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <qdebug.h>
 #include <QEvent>
 #include <qlineedit.h>
@@ -60,15 +63,6 @@ NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, c
     } else {
         QItemDelegate::setModelData( editor,  model, index );
     }
-#if DEPRICATED
-    if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
-        portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
-        QString value = static_cast< QLineEdit * >( editor )->text();
-        folium.name( value.toStdWString() );
-    } else {
-        QItemDelegate::setModelData( editor,  model, index );
-    }
-#endif
 }
 
 void

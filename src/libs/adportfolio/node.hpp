@@ -69,6 +69,8 @@ namespace portfolio {
 
             static boost::uuids::uuid uuidFromString( const std::string& );
 
+            const PortfolioImpl * impl() { return impl_; };
+
         protected:
             pugi::xpath_node_set selectNodes( const std::wstring& query );
             pugi::xpath_node selectSingleNode( const std::wstring& query );
