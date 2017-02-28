@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,35 +22,28 @@
 **
 **************************************************************************/
 
-#ifndef LIBXSLT_TRANSFORMER_HPP
-#define LIBXSLT_TRANSFORMER_HPP
-
 #pragma once
 
-class QString;
+#include <memory>
+#include <ostream>
+#include "adpublisher_global.hpp"
 
-namespace boost { namespace filesystem { class path; } }
-namespace pugi  { class xml_document; }
+namespace pugi { class xml_document; }
+
+class QPrinter;
+class QPainter;
+class QRectF;
 
 namespace adpublisher {
 
-    namespace libxslt {
-
-        class transformer {
-            transformer();
-        public:
-            ~transformer();
-
-            static void xsltpath( boost::filesystem::path& path, const char * xsltfile );
-            static bool apply_template( const boost::filesystem::path& xsltfile, const boost::filesystem::path&, const boost::filesystem::path& outfile );
-            static bool apply_template( const boost::filesystem::path& xsltfile, const boost::filesystem::path&, QString& );
-
-            // in-memory transform
-            static bool apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document&, QString& );
-        };
-
-    }
+    class ADPUBLISHERSHARED_EXPORT printer {
+        printer( const printer& ) = delete;
+    public:
+        printer();
+        
+        static bool print( QPrinter&, QPainter&, QRectF& boundingRect, const pugi::xml_document&, const char * xsltfile );
+    };
 
 }
 
-#endif // MSXML_TRANSFORMER_HPP
+

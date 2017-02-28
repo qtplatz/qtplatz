@@ -141,7 +141,7 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
 void
 transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
 {
-    boost::filesystem::path dir = 
+    static const boost::filesystem::path dir = 
         boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() )
         /= boost::filesystem::path( "/../share/qtplatz/xslt" );
 

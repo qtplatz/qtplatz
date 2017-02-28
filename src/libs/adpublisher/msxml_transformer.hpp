@@ -27,6 +27,7 @@
 
 class QString;
 namespace boost { namespace filesystem { class path; } }
+namespace pugi { class xml_document; }
 
 namespace adpublisher {
 
@@ -40,6 +41,9 @@ namespace adpublisher {
             static void xsltpath( boost::filesystem::path& path, const char * xsltfile );
             static bool apply_template( const char * xsltfile, const char * xmlfile, const char * outfile );
             static bool apply_template( const char * xsltfile, const char * xmlfile, QString& );
+
+            // in-memory transform
+            static bool apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document&, QString& );
         private:
 
         };

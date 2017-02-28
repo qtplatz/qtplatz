@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -67,6 +67,7 @@
 #include <adportable/fft.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/float.hpp>
+#include <adpublisher/printer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/filedialog.hpp>
 #include <adwidgets/scanlawdialog.hpp>
@@ -1226,42 +1227,30 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 	drawRect.setHeight( size.height() );
     renderer.render( pImpl_->profileSpectrum_, &painter, drawRect );
 
+    // -- starting method print
+    drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+    drawRect.setHeight( printer.height() - drawRect.top() );
+    
     {
-        QString html;
-        html.append( "<body><table><tr><th>Item</th><th>Value</th></tr>" );
-
         portfolio::Folio attachments = folium.attachments();
-        portfolio::Folio::iterator it
-            = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        auto it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it != attachments.end() ) {
-            adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-            const adcontrols::descriptions& desc = ms->getDescriptions();
-            for ( size_t i = 0; i < desc.size(); ++i ) {
-                std::string xml( desc[i].xml() );
-                if ( ! xml.empty() ) {
+            auto atts = it->attachments();
+            auto pf = portfolio::Folium::find< adcontrols::ProcessMethodPtr >( atts.begin(), atts.end() );
+            if ( pf != atts.end() ) {
+                adcontrols::ProcessMethodPtr pm;
+                if ( portfolio::Folium::get< adcontrols::ProcessMethodPtr >( pm, *pf ) ) {
+                    std::wostringstream o;
+                    adcontrols::ProcessMethod::xml_archive( o, *pm );
                     pugi::xml_document dom;
-                    xml += "</boost_serialization>";
-                    if ( auto result = dom.load( xml.c_str() ) ) {
-                        pugi::xpath_node_set list = dom.select_nodes( "//CentroidMethod/*" );
-                        for ( const auto& xp: list ) {
-                            html.append( "<tr><td>" + QString::fromStdString( xp.node().name() ) + "</td>" );
-                            html.append( "<td>" + QString::fromStdString( xp.node().child_value() ) + "</td></tr>" );
-                        }
-                    }
+                    auto result = dom.load( pugi::as_utf8( o.str() ).c_str() );
+                    if ( result )
+                        adpublisher::printer::print( printer, painter, drawRect, dom, "process-method-html.xsl" );
                 }
             }
-            html.append( "</table></body>" );
         }
-
-        drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
-        drawRect.setHeight( printer.height() - drawRect.top() );
-        QTextDocument doc;
-        doc.setHtml( html );
-        painter.save();
-        painter.translate( drawRect.topLeft() );
-        doc.drawContents( &painter );
-        painter.restore();
     }
+
     ///////////
     if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
         p->handlePrint( printer, painter );

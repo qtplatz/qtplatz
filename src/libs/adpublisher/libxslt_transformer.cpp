@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "libxslt_transformer.hpp"
+#include <adportable/debug.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <libxslt/transform.h>
 #include <libxslt/xslt.h>
@@ -33,6 +34,7 @@
 #include <QMessageBox>
 #include <QString>
 #include <fstream>
+#include <sstream>
 
 using namespace adpublisher;
 using namespace adpublisher::libxslt;
@@ -47,18 +49,19 @@ transformer::transformer()
 
 //static
 bool
-transformer::apply_template( const char * xslfile, const char * xmlfile, const char * outfile )
+transformer::apply_template( const boost::filesystem::path& xslfile
+                             , const boost::filesystem::path& xmlfile, const boost::filesystem::path& outfile )
 {
     const char *params[16 + 1];
     memset( params, 0, sizeof( params ) );
 
-    if ( auto cur = xsltParseStylesheetFile( reinterpret_cast< const xmlChar *>(xslfile ) ) ) {
+    if ( auto cur = xsltParseStylesheetFile( reinterpret_cast< const xmlChar *>( xslfile.string().c_str() ) ) ) {
 
-        if ( auto doc = xmlParseFile( xmlfile ) ) {
-
+        if ( auto doc = xmlParseFile( xmlfile.string().c_str() ) ) {
+            
             if ( auto res = xsltApplyStylesheet( cur, doc, params ) ) {
 
-                if ( FILE *ofile = fopen( outfile, "w" ) ) {
+                if ( FILE *ofile = fopen( outfile.string().c_str(), "w" ) ) {
                     xsltSaveResultToFile( ofile, res, cur );
                     fclose( ofile );
                 }
@@ -77,14 +80,15 @@ transformer::apply_template( const char * xslfile, const char * xmlfile, const c
 }
 
 bool
-transformer::apply_template( const char * xmlfile, const char * xslfile, QString& output )
+transformer::apply_template( const boost::filesystem::path& xmlfile
+                             , const boost::filesystem::path& xslfile, QString& output )
 {
     const char *params[16 + 1];
     memset( params, 0, sizeof( params ) );
 
-    if ( auto cur = xsltParseStylesheetFile( reinterpret_cast< const xmlChar *>(xslfile ) ) ) {
+    if ( auto cur = xsltParseStylesheetFile( reinterpret_cast< const xmlChar *>( xslfile.string().c_str() ) ) ) {
 
-        if ( auto doc = xmlParseFile( xmlfile ) ) {
+        if ( auto doc = xmlParseFile( xmlfile.string().c_str() ) ) {
 
             if ( auto res = xsltApplyStylesheet( cur, doc, params ) ) {
 
@@ -94,7 +98,7 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
                     return false;
 
                 if ( xsltSaveResultToString( &doc_txt_ptr, &doc_txt_len, res, cur ) >= 0 ) {
-                    output = QString( reinterpret_cast< char *>( doc_txt_ptr ) );
+                    output = QString( reinterpret_cast< char * >( doc_txt_ptr ) );
                     free( doc_txt_ptr );
                 }
 
@@ -111,19 +115,59 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
     return false;
 }
 
+// in-memory transform
+//static
+bool
+transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document& dom, QString& output )
+{
+    const char *params[16 + 1];
+    memset( params, 0, sizeof( params ) );
+
+    if ( auto cur = xsltParseStylesheetFile( reinterpret_cast< const xmlChar *>( xsltfile.string().c_str() ) ) ) {
+
+        std::ostringstream xml;
+        dom.save( xml );
+
+        if ( auto doc = xmlParseMemory( xml.str().c_str(), xml.str().size() ) ) {
+
+            if ( auto res = xsltApplyStylesheet( cur, doc, params ) ) {
+
+                xmlChar * doc_txt_ptr = 0;
+                int doc_txt_len = 0;
+                if ( res->children == 0 )
+                    return false;
+
+                if ( xsltSaveResultToString( &doc_txt_ptr, &doc_txt_len, res, cur ) >= 0 ) {
+                    output = QString( reinterpret_cast< char * >( doc_txt_ptr ) );
+                    free( doc_txt_ptr );
+                }
+
+                xsltFreeStylesheet( cur );
+                xmlFreeDoc( res );
+                xmlFreeDoc( doc );
+                xmlCleanupParser();
+
+                return true;
+            } else
+                ADDEBUG() << "Error: xsltApplyStylesheet";
+        } else
+            ADDEBUG() << "Error: xsltParseStylesheetMemory: " << xml.str();
+    } else
+        ADDEBUG() << "Error: xsltParseStylesheetFile(" << xsltfile.string() << ")";
+    return false;
+}
+
 //static
 void
 transformer::xsltpath( boost::filesystem::path& path, const char * xsltfile )
 {
-    static auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() );
-    dir.remove_filename(); // updir
-
+    static const auto dir = boost::filesystem::path( QCoreApplication::applicationDirPath().toStdWString() ).remove_filename();
 #if defined Q_OS_MAC
-    dir /= "Resources/xslt";
+    static constexpr auto xsltdir = "Resources/xslt";
 #else
-    dir /= "share/qtplatz/Resources/xslt";
-#endif
+    static constexpr auto xsltdir = "share/qtplatz/xslt";
+#endif    
 
-    path = ( dir / boost::filesystem::path( xsltfile ) ).generic_wstring();
+    path = dir / xsltdir / boost::filesystem::path( xsltfile );
 }
 

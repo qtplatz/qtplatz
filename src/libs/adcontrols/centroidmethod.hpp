@@ -119,14 +119,18 @@ namespace adcontrols {
             void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
-            ar & BOOST_SERIALIZATION_NVP(baselineWidth_) // deprecated
-                & BOOST_SERIALIZATION_NVP(rsConstInDa_)
-                & BOOST_SERIALIZATION_NVP(rsPropoInPpm_)
-                & BOOST_SERIALIZATION_NVP(rsTofInDa_)
-                & BOOST_SERIALIZATION_NVP(rsTofAtMz_)
-                & BOOST_SERIALIZATION_NVP(attenuation_)
-                & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_)
-                & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
+            if ( version < 5 )
+                ar & BOOST_SERIALIZATION_NVP(baselineWidth_); // deprecated
+            ar & BOOST_SERIALIZATION_NVP(rsConstInDa_);
+            ar & BOOST_SERIALIZATION_NVP(rsPropoInPpm_);
+            ar & BOOST_SERIALIZATION_NVP(rsTofInDa_);
+            ar & BOOST_SERIALIZATION_NVP(rsTofAtMz_);
+            if ( version < 5 )
+                ar & BOOST_SERIALIZATION_NVP(attenuation_); // deprecated
+
+            ar & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_);
+            ar & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
+
             if ( version >= 2 ) {
                 ar & BOOST_SERIALIZATION_NVP(noiseFilterMethod_)
                     & BOOST_SERIALIZATION_NVP(cutoffFreqHz_)
@@ -139,10 +143,13 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( processOnTimeAxis_ );
                 ar & BOOST_SERIALIZATION_NVP( rsInSeconds_ );
             }
+            if ( version >= 5 ) {
+                ar & BOOST_SERIALIZATION_NVP( peakWidthMethod_ ); // this was forgotten
+            }
         }
 
 	};
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::CentroidMethod, 4 )
+BOOST_CLASS_VERSION( adcontrols::CentroidMethod, 5 )

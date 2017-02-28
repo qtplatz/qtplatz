@@ -14,20 +14,7 @@ configure_file(
   "${PROJECT_BINARY_DIR}/share/qtplatz/xslt"  # <QtPlatz>/share/qtplatz/xslt
   )
 
-if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
-  find_package( Qt5 CONFIG REQUIRED Concurrent Sql Svg Xml PrintSupport XmlPatterns WebKitWidgets WebKit Core )
-  include_directories( ${Qt5WebKitWidgets_INCLUDE_DIRS} )
-  set( _libs "Qt5::WebKit" "Qt5::WebKitWidgets" )
-else()
-  # 5.6 or higher
-#  find_package( Qt5 CONFIG QUIET Concurrent Sql Svg Xml PrintSupport XmlPatterns WebEngineWidgets Core )
-#  include_directories( ${Qt5WebEngineWidgets_INCLUDE_DIRS} )
-#  set( _libs "Qt5::WebEngineWidgets" )
-endif()
-
 find_package( Qt5 CONFIG REQUIRED Core Widgets Svg Sql PrintSupport OpenGL )
-
-#find_package( Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
 
 add_definitions(-DADPUBLISHER_LIBRARY)
 
@@ -38,27 +25,6 @@ include_directories(
   ${Qt5Xml_INCLUDE_DIRS}
   ${Qt5XmlPatterns_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS}
-  )
-
-set( adpublisher_SOURCES
-  document.cpp
-#  docbrowser.cpp
-  doceditor.cpp
-  doctree.cpp
-  docedit.cpp
-  transformer.cpp
-  )
-
-set( adpublisher_HEADERS
-  adpublisher.hpp
-  adpublisher_global.hpp 
-  document.hpp 
-#  docbrowser.hpp 
-  doceditor.hpp 
-  doctree.hpp 
-  docedit.hpp 
-  transformer.hpp 
-  msxml_transformer.hpp
   )
 
 if ( NOT WIN32 )
@@ -73,16 +39,11 @@ if ( NOT WIN32 )
     message( FATAL_ERROR "*** libxslt NOT FOUND ***")  
   endif()
 
-#  message( STATUS "Found libxml2 include: " ${libxml2_INCLUDE_DIR} "; library: " ${libxml2_LIBRARY} )
-#  message( STATUS "Found libxslt include: " ${libxslt_INCLUDE_DIR} "; library: " ${libxslt_LIBRARY} )
-
   include_directories( ${libxml2_INCLUDE_DIRS} )
   include_directories( ${libxslt_INCLUDE_DIRS} )  
 
-  set( adpublisher_SOURCES ${adpublisher_SOURCES} libxslt_transformer.cpp )
-  set( adpublisher_HEADERS ${adpublisher_HEADERS} libxslt_transformer.hpp )
-
-  set(adpublisher_LIBS ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
+  set( _xslt_sources libxslt_transformer.cpp libxslt_transformer.hpp )
+  set( _xslt_libs ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
 
   if (${CMAKE_SYSTEM_NAME} MATCHES Darwin ) # APPLE
     link_directories( /opt/local/lib )
@@ -90,31 +51,42 @@ if ( NOT WIN32 )
 
 else()
 
-  set( adpublisher_SOURCES ${adpublisher_SOURCES} msxml_transformer.cpp )
-  set( adpublisher_HEADERS ${adpublisher_HEADERS} msxml_transformer.hpp )
+  set( _xslt_sources msxml_transformer.cpp msxml_transformer.hpp )
 
 endif()
 
 set( adpublisher_RESOURCES adpublisher.qrc )
 
 add_library( adpublisher SHARED
-  ${adpublisher_SOURCES}
-  ${adpublisher_HEADERS}
+  adpublisher_global.hpp 
+  adpublisher.hpp
+  document.hpp 
+  document.cpp
+  doceditor.hpp 
+  doceditor.cpp
+  doctree.hpp 
+  doctree.cpp
+  docedit.hpp
+  docedit.cpp
+  transformer.cpp
+  transformer.hpp 
+  msxml_transformer.hpp
+  printer.hpp
+  printer.cpp
+  ${_xslt_sources}
   ${adpublisher_RESOURCES}  
   )
 
 target_link_libraries(
   adpublisher LINK_PUBLIC
-  adcontrols
   adportable
   qtwrapper
   xmlparser
   Qt5::Widgets
   Qt5::Core
-  ${_libs}
   Qt5::PrintSupport
+  ${_xslt_libs}
   ${Boost_LIBRARIES}
-  ${adpublisher_LIBS}
 )
 
 install( TARGETS ${PROJECT_NAME}
