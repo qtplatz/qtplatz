@@ -39,13 +39,11 @@ namespace adpublisher {
             ~transformer();
 
             static void xsltpath( boost::filesystem::path& path, const char * xsltfile );
-            static bool apply_template( const char * xsltfile, const char * xmlfile, const char * outfile );
-            static bool apply_template( const char * xsltfile, const char * xmlfile, QString& );
+            static bool apply_template( const boost::filesystem::path& xsltfile, const boost::filesystem::path&, const boost::filesystem::path& outfile );
+            static bool apply_template( const boost::filesystem::path& xsltfile, const boost::filesystem::path&, QString& );
 
             // in-memory transform
             static bool apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document&, QString& );
-        private:
-
         };
 
     }

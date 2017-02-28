@@ -88,5 +88,7 @@ printer::print( QPrinter& printer
         painter.restore();
         // std::ofstream o( "output.html" );
         // o << html.toStdString();
+        return true;
     }
+    return false;
 }

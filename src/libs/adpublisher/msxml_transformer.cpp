@@ -36,6 +36,7 @@
 #include <QMessageBox>
 #include <QString>
 #include <boost/filesystem/path.hpp>
+#include <sstream>
 
 
 namespace adpublisher {
@@ -71,7 +72,8 @@ using namespace adpublisher;
 using namespace adpublisher::msxml;
 
 bool
-transformer::apply_template( const char * xslfile, const char * xmlfile, const char * outfile )
+transformer::apply_template( const boost::filesystem::path& xslfile
+                             , const boost::filesystem::path& xmlfile, const boost::filesystem::path& outfile )
 {
     auto p = singleton::instance();
     (void)p;
@@ -84,8 +86,8 @@ transformer::apply_template( const char * xslfile, const char * xmlfile, const c
     if ( CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xsl ) != S_OK )
         return false;
 
-    if ( xml->load( _bstr_t( xmlfile ) ) == VARIANT_TRUE ) {
-        if ( xsl->load( _bstr_t( xslfile ) ) == VARIANT_TRUE ) {
+    if ( xml->load( _bstr_t( xmlfile.string().c_str() ) ) == VARIANT_TRUE ) {
+        if ( xsl->load( _bstr_t( xslfile.string().c_str() ) ) == VARIANT_TRUE ) {
 
             _bstr_t out = xml->transformNode( xsl );
 
@@ -94,7 +96,7 @@ transformer::apply_template( const char * xslfile, const char * xmlfile, const c
                 return false;
 
             oxml->loadXML( out );
-            oxml->save( _bstr_t( outfile ) );
+            oxml->save( _bstr_t( outfile.string().c_str() ) );
             
             return true;
 
@@ -104,7 +106,7 @@ transformer::apply_template( const char * xslfile, const char * xmlfile, const c
 }
 
 bool
-transformer::apply_template( const char * xmlfile, const char * xslfile, QString& output )
+transformer::apply_template( const boost::filesystem::path& xmlfile, const boost::filesystem::path& xslfile, QString& output )
 {
     auto p = singleton::instance();
     (void)p;
@@ -119,8 +121,47 @@ transformer::apply_template( const char * xmlfile, const char * xslfile, QString
     if ( hr != S_OK )
         return false;
 
-    if ( xml->load( _bstr_t( xmlfile ) ) == VARIANT_TRUE ) {
-        if ( xsl->load( _bstr_t( xslfile ) ) == VARIANT_TRUE ) {
+    if ( xml->load( _bstr_t( xmlfile.string().c_str() ) ) == VARIANT_TRUE ) {
+        if ( xsl->load( _bstr_t( xslfile.string().c_str() ) ) == VARIANT_TRUE ) {
+
+            try {
+                _bstr_t out = xml->transformNode( xsl );
+                output = QString::fromUtf16( reinterpret_cast<const ushort *>(static_cast<const wchar_t *>(out)) );
+            }
+            catch ( _com_error& ex ) {
+                QMessageBox::warning( 0, "apply_template", QString::fromWCharArray( ex.ErrorMessage() ) );
+            }
+
+            return true;
+
+        }
+    }
+    return false;
+}
+
+// in-memory transform
+//static
+bool
+transformer::apply_template( const boost::filesystem::path& xsltfile, const pugi::xml_document& dom, QString& output )
+{
+    auto p = singleton::instance();
+    (void)p;
+
+    MSXML2::IXMLDOMDocument3Ptr xml, xsl;
+    
+    auto hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xml );
+    if ( hr != S_OK )
+        return false;
+    
+    hr = CoCreateInstance( CLSID_DOMFreeThreadedDocument, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&xsl );
+    if ( hr != S_OK )
+        return false;
+
+    std::ostringstream xmlstr;
+    dom.save( xmlstr );
+
+    if ( xml->loadXML( _bstr_t( xmlstr.str().c_str() ) ) == VARIANT_TRUE ) {
+        if ( xsl->load( _bstr_t( xsltfile.string().c_str() ) ) == VARIANT_TRUE ) {
 
             try {
                 _bstr_t out = xml->transformNode( xsl );
