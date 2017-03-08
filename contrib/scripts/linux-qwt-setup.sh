@@ -3,8 +3,6 @@
 SRC=~/src
 QWT_BUILD_DIR=${SRC}/qwt-6.1
 
-subversion = $(dpkg -l subversion | grep subversion | wc -l)
-
 if ! which svn >/dev/null; then
     sudo apt-get -y install subversion
 fi
