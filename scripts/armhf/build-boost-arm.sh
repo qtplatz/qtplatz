@@ -1,8 +1,19 @@
 #!/bin/bash
 
 SRC=~/src
-ARM_SRC=$SRC/arm-linux
-BOOST_VERSION=1_63_0
+BUILD_DIR=$SRC/build-armhf
+
+# find host boost library, lookup host boost lib, then set same for target
+if [ -z $BOOST_VERSION ]; then
+    if [ -d /usr/local/boost-1_63 ]; then
+	BOOST_VERSION=1_63_0
+    elif [ -d /usr/local/boost-1_62 ]; then
+	BOOST_VERSION=1_62_0
+    else
+	BOOST_VERSION=1_62_0
+    fi
+fi
+
 BOOST_ARCHIVE=boost_${BOOST_VERSION}.tar.bz2
 BZIP2_SOURCE=$SRC/bzip2-1.0.6
 
@@ -17,31 +28,31 @@ fi
 if [ ! -f ~/user-config.jam ]; then
     echo "# Creating ~/user-config.jam..."
     cat <<EOF>~/user-config.jam
-using gcc : arm : arm-linux-gnueabihf-g++-4.9 : <cxxflags>"-std=c++11 -fPIC" ;
+using gcc : arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
 using python : 2.7 ;
 EOF
 fi
 
-if [ ! -d $ARM_SRC ]; then
-    mkdir -p $ARM_SRC
+if [ ! -d $BUILD_DIR ]; then
+    mkdir -p $BUILD_DIR
 fi
 
-if [ ! -d $ARM_SRC/boost_$BOOST_VERSION ]; then
+if [ ! -d $BUILD_DIR/boost_$BOOST_VERSION ]; then
     if [ ! -f ~/Downloads/$BOOST_ARCHIVE ]; then
 	echo "# downloading boost_$BOOST_VERSION"
 	VERSION=$(echo $BOOST_VERSION | tr _ .)
 	wget https://sourceforge.net/projects/boost/files/boost/$VERSION/$BOOST_ARCHIVE/download
 	mv download ~/Downloads/$BOOST_ARCHIVE
     fi
-    tar xvf ~/Downloads/$BOOST_ARCHIVE -C $ARM_SRC
+    tar xvf ~/Downloads/$BOOST_ARCHIVE -C $BUILD_DIR
 fi
 
-if [ ! -d $ARM_SRC/boost_$BOOST_VERSION ]; then
+if [ ! -d $BUILD_DIR/boost_$BOOST_VERSION ]; then
     echo "no boost source"
     exit
 fi
 
-cd $ARM_SRC/boost_$BOOST_VERSION
+cd $BUILD_DIR/boost_$BOOST_VERSION
 
 echo ./bootstrap.sh --prefix=/usr/local/arm-linux-gnueabihf/usr/local
 ./bootstrap.sh --prefix=/usr/local/arm-linux-gnueabihf/usr/local
