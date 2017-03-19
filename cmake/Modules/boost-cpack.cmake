@@ -22,8 +22,8 @@ if ( Boost_FOUND )
     wserialization )
 
   foreach ( lib ${libs} )
-    file( GLOB _libs ${Boost_LIBRARY_DIR}/libboost_${lib}.${SO}* )
-    install( PROGRAMS ${_libs} DESTINATION ${dest} COMPONENT runtime_libraries )
+    file( GLOB files ${Boost_LIBRARY_DIRS}/libboost_${lib}.${SO}* )
+    install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
   endforeach()
 
 endif()

@@ -36,13 +36,9 @@ if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
   add_subdirectory (aggregation)    
   add_subdirectory (extensionsystem)
   add_subdirectory (utils)
-  
   find_package( Qt5 COMPONENTS XmlPatterns QUIET )
   find_package( Qt5 COMPONENTS WebEngineWidgets QUIET )
-  
-  #if ( Qt5XmlPatterns_FOUND AND Qt5WebEngineWidgets_FOUND )
-    add_subdirectory (adpublisher)
-  #endif()
+  add_subdirectory (adpublisher)
 
 endif()
 
