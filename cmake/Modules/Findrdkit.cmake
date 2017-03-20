@@ -139,6 +139,8 @@ if ( WIN32 )
   add_library( RDGeneral	STATIC IMPORTED )
   add_library( Inchi		STATIC IMPORTED )
   add_library( RDInchiLib	STATIC IMPORTED )
+  add_library( FilterCatalog	SHARED IMPORTED )
+  add_library( Catalogs		SHARED IMPORTED )  
 else()
   add_library( ChemReactions	SHARED IMPORTED )
   add_library( DataStructs	SHARED IMPORTED )
@@ -159,6 +161,8 @@ else()
   add_library( RDGeneral	SHARED IMPORTED )
   add_library( Inchi		SHARED IMPORTED )
   add_library( RDInchiLib	SHARED IMPORTED )
+  add_library( FilterCatalog	SHARED IMPORTED )
+  add_library( Catalogs		SHARED IMPORTED )
 endif()
 
 find_library( CHEMREACTIONS_LIB NAMES ChemReactions HINTS ${_libdir} )
@@ -275,6 +279,18 @@ if ( NOT RDINCHILIB_LIB )
   message( FATAL_ERROR "${RDINCHILIB_LIB}" )
 endif()
 
+find_library( FILTERCATALOG_LIB NAMES FilterCatalog HINTS ${_libdir} )
+find_library( FILTERCATALOG_DEBUG_LIB NAMES FilterCatalog${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
+if ( NOT FILTERCATALOG_LIB )
+  message( FATAL_ERROR "${FILTERCATALOG_LIB}" )
+endif()
+
+find_library( CATALOGS_LIB NAMES Catalogs HINTS ${_libdir} )
+find_library( CATALOGS_DEBUG_LIB NAMES Catalogs${CMAKE_DEBUG_POSTFIX} HINTS ${_libdir} )
+if ( NOT CATALOGS_LIB )
+  message( FATAL_ERROR "${CATALOGS_LIB}" )
+endif()
+
 if ( WIN32 )
   set_target_properties( ChemReactions	PROPERTIES  IMPORTED_LOCATION ${CHEMREACTIONS_LIB}  IMPORTED_LOCATION_DEBUG ${CHEMREACTIONS_DEBUG_LIB} )
   set_target_properties( DataStructs	PROPERTIES  IMPORTED_LOCATION ${DATASTRUCTS_LIB}    IMPORTED_LOCATION_DEBUG ${DATASTRUCTS_DEBUG_LIB} )
@@ -295,6 +311,8 @@ if ( WIN32 )
   set_target_properties( RDGeneral	PROPERTIES  IMPORTED_LOCATION ${RDGENERAL_LIB}	    IMPORTED_LOCATION_DEBUG ${RDGENERAL_DEBUG_LIB} )
   set_target_properties( Inchi		PROPERTIES  IMPORTED_LOCATION ${INCHI_LIB}	    IMPORTED_LOCATION_DEBUG ${INCHI_DEBUG_LIB} )
   set_target_properties( RDInchiLib	PROPERTIES  IMPORTED_LOCATION ${RDINCHILIB_LIB}	    IMPORTED_LOCATION_DEBUG ${RDINCHILIB_DEBUG_LIB} )
+  set_target_properties( FilterCatalog	PROPERTIES  IMPORTED_LOCATION ${FILTERCATALOG_LIB}  IMPORTED_LOCATION_DEBUG ${FILTERCATALOG_DEBUG_LIB} )
+  set_target_properties( Catalog	PROPERTIES  IMPORTED_LOCATION ${CATALOGS_LIB}        IMPORTED_LOCATION_DEBUG ${CATALOGS_DEBUG_LIB} )
 else()
   set_target_properties( ChemReactions	PROPERTIES IMPORTED_LOCATION ${CHEMREACTIONS_LIB} )
   set_target_properties( DataStructs	PROPERTIES IMPORTED_LOCATION ${DATASTRUCTS_LIB} )
@@ -315,15 +333,19 @@ else()
   set_target_properties( RDGeneral	PROPERTIES IMPORTED_LOCATION ${RDGENERAL_LIB} )
   set_target_properties( Inchi		PROPERTIES IMPORTED_LOCATION ${INCHI_LIB} )
   set_target_properties( RDInchiLib	PROPERTIES IMPORTED_LOCATION ${RDINCHILIB_LIB} )
+  set_target_properties( FilterCatalog	PROPERTIES IMPORTED_LOCATION ${FILTERCATALOG_LIB} )
+  set_target_properties( Catalogs	PROPERTIES IMPORTED_LOCATION ${CATALOGS_LIB} )    
 endif()
 
 set ( RDKit_LIBRARIES
+  Catalogs
   ChemReactions
   DataStructs
   Depictor
   Descriptors  
   EigenSolvers
   FileParsers
+  FilterCatalog
   Fingerprints
   GraphMol
   MolDraw2D

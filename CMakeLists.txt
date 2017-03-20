@@ -62,7 +62,8 @@ else()
   set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
 
   set( CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib/qtplatz )
-  
+  set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
+
   if ( CROSS_COMPILING )
     set( CMAKE_PREFIX_PATH /usr/local/qt5 )
   endif()

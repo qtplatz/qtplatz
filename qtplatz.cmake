@@ -67,10 +67,16 @@ if ( WITH_QT5 )
       find_package( Qt5 5.5 OPTIONAL_COMPONENTS Core QUIET )
     endif()
   else()
-    # Qt5 location will be determined by PATH (qmake) on Linux & Apple are 
+
+    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
+    message( STATUS "### QMAKE = " ${QMAKE} )
+    if ( NOT QMAKE )
+      message( FATAL_ERROR "qmake command not found" )
+    endif()
+    
     find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET ) #PATHS "/opt/Qt5.7.0" /opt/Qt/5.7 )
     if ( NOT Qt5_FOUND )
-      execute_process( COMMAND qmake -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
+      execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
       string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
       list( APPEND CMAKE_PREFIX_PATH "${__prefix}/lib/cmake" )
       find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
@@ -80,12 +86,6 @@ if ( WITH_QT5 )
 
   if ( Qt5_FOUND )
     get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
-    
-    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
-    message( STATUS "### QMAKE = " ${QMAKE} )
-    if ( NOT QMAKE )
-      message( FATAL_ERROR "qmake command not found" )
-    endif()
     
     find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
     message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
