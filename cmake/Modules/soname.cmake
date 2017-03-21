@@ -9,4 +9,3 @@ else()
   set( SO "so" )
   set( dest "lib/qtplatz" )  
 endif()
-

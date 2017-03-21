@@ -57,3 +57,4 @@ target_link_libraries(
 )
 
 install( TARGETS qtplatz RUNTIME DESTINATION bin COMPONENT applications )
+install( FILES qtcreator.ico DESTINATION share/qtplatz COMPONENT applications )

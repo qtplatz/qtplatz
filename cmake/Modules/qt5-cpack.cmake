@@ -3,6 +3,10 @@
 
 include( "soname" )
 
+if ( UNIX )
+  set( dest "lib" )  # override
+endif()
+
 find_package( Qt5
   REQUIRED
   Core DBus Gui
@@ -59,7 +63,8 @@ foreach( lib
     Qt5::XmlPatterns )
   
   get_target_property( _loc ${lib} LOCATION )
-  #message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} )
+
+  message( STATUS "## qt5-cpack install: " ${lib} " --> " ${_loc} --> ${dest} )
   
   if ( WIN32 )
     install( FILES ${_loc} DESTINATION ${dest} COMPONENT runtime_libraries )
@@ -80,6 +85,7 @@ else()
 endif()
 
 foreach( plugin ${_plugins} )
+  #message( STATUS "## qt5-cpack install: " ${QT_INSTALL_PLUGINS}/${plugin} )
   install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins COMPONENT plugins )
 endforeach()
 

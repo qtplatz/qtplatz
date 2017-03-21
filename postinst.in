@@ -14,7 +14,7 @@ Type=Application
 Encoding=UTF-8
 Name=QtPlatz
 Exec=@CPACK_INSTALL_PREFIX@/bin/qtplatz
-Icon=QtPlatz
+Icon=@CPACK_INSTALL_PREFIX@/share/qtplatz/qtcreator.ico
 Categories=GNOME;GTK;Development;
 EOF
 fi

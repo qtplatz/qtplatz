@@ -305,6 +305,7 @@ int main(int argc, char **argv)
     // QML is unusable with the xlib backend
     // QApplication::setGraphicsSystem(QLatin1String("raster")); // <<- deprecated since 5.0
 #endif
+    // QApplication::addLibraryPath( "/opt/qtplatz/lib/qtplatz" );
 
     SharedTools::QtSingleApplication app( (QLatin1String( appNameC )), argc, argv );
 
