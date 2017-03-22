@@ -29,15 +29,15 @@ stats '< sqlite3 ' . input . ' \
 
 plot '< sqlite3 ' . input . ' \
 "SELECT threshold,sum(counts) FROM frequency WHERE threshold < -5.0 AND protocol=0 GROUP BY threshold"' \
-     using (-$1):($2*100/p0_max_y) with linespoints pt 4 ps 2.5 axis x1y1 title "p0 frequency" \
+     using (-$1):($2*100/p0_max_y) with linespoints pt 4 ps 2.5 axis x1y1 title "^4He^{++} frequency" \
      , '< sqlite3 ' . input . ' \
 "SELECT threshold,sum(counts) FROM frequency WHERE threshold < -5.0 AND protocol=1 GROUP BY threshold"' \
-     using (-$1):($2*100/p1_max_y) with linespoints pt 5 ps 2.5 axis x1y1 title "p1 frequency" \
+     using (-$1):($2*100/p1_max_y) with linespoints pt 5 ps 2.5 axis x1y1 title "^3He^+ frequency" \
      , '< sqlite3 ' . input . ' \
 "SELECT threshold,avg(average_peak_width),avg(average_peak_intensity) \
 FROM frequency WHERE threshold < -5.0 AND protocol=0 GROUP BY threshold"' \
-       using (-$1):(-$2/$3) with linespoints pt 6 ps 2.5 axis x1y2 title "p0 width/height" \
+       using (-$1):(-$2/$3) with linespoints pt 6 ps 2.5 axis x1y2 title "^4He^{++} width/height" \
      , '< sqlite3 ' . input . ' \
 "SELECT threshold,avg(average_peak_width),avg(average_peak_intensity) \
 FROM frequency WHERE threshold < -5.0 AND protocol=1 GROUP BY threshold"' \
-       using (-$1):(-$2/$3) with linespoints pt 7 ps 2.5 axis x1y2 title "p1 width/height"
+       using (-$1):(-$2/$3) with linespoints pt 7 ps 2.5 axis x1y2 title "^3He^+ width/height"
