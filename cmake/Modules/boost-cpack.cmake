@@ -23,7 +23,7 @@ if ( Boost_FOUND )
 
   foreach ( lib ${libs} )
     file( GLOB files ${Boost_LIBRARY_DIRS}/libboost_${lib}.${SO}* )
-    install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
+    install( PROGRAMS ${files} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
   endforeach()
 
 endif()

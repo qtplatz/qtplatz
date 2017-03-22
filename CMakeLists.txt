@@ -42,9 +42,9 @@ if ( APPLE )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS )
   set( CMAKE_SHARED_MODULE_SUFFIX ".dylib" )
   set( CMAKE_MACOSX_RPATH 1 )
+  set( CMAKE_SKIP_BUILD_RPATH  FALSE )  
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
   set( QTPLATZ_PLUGIN_DESTINATION bin/qtplatz.app/Contents/PlugIns )
-  set( CMAKE_SKIP_BUILD_RPATH  FALSE )
 
 else()
 
@@ -62,7 +62,6 @@ else()
   set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
 
   set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/qtplatz:${CMAKE_INSTALL_PREFIX}/lib" )
-  #set( CMAKE_INSTALL_RPATH "$ORIGIN/../lib/qtplatz" )
   set( CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE )
 
   if ( CROSS_COMPILING )
@@ -74,14 +73,20 @@ endif()
 if( WIN32 )
   set( CPACK_INSTALL_PREFIX "C:/QtPlatz" )
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
+  set( QTPLATZ_QT5_INSTALL_DIRECTORY "bin" )
+  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "bin" )
 elseif ( APPLE )
   set( CPACK_INSTALL_PREFIX "/opt/QtPlatz.app" )
-  set( CPACK_SET_DESTDIR ON )  
+  set( CPACK_SET_DESTDIR ON )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
+  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )  
 else() # Linux
   set( CPACK_INSTALL_PREFIX "/opt/qtplatz" )
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_STANDARD 14 )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib" )
+  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
 endif()
 
 if ( WIN32 )
@@ -114,12 +119,6 @@ if ( Boost_FOUND )
 endif()
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
-
-if ( WITH_QT5 AND DEFINED ENV{QT_PLUGIN_PATH} )
-  message( STATUS "################## WARNING ###################" )
-  message( STATUS "QT_PLUGIN_PATH has set to $ENV{QT_PLUGIN_PATH}" )
-  message( STATUS "################## WARNING ###################" )  
-endif()
 
 if ( WITH_QWT )
   find_package( qwt )

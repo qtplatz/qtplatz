@@ -11,7 +11,7 @@ if ( rdkit_FOUND )
 
     if ( WIN32 )
 
-      install( FILES ${_lib} DESTINATION ${dest} COMPONENT runtime_libraries )      
+      install( FILES ${_lib} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )      
 
     else()
 
@@ -19,7 +19,7 @@ if ( rdkit_FOUND )
       get_filename_component( _path ${_lib} DIRECTORY )
       
       file( GLOB files "${_path}/${_name}.${SO}.*" )
-      install( PROGRAMS ${files} DESTINATION ${dest} COMPONENT runtime_libraries )
+      install( PROGRAMS ${files} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
 
     endif()
   endforeach()
