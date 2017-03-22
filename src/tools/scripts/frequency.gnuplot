@@ -22,7 +22,8 @@ set datafile separator "|"
 #"SELECT threshold,sum(counts) FROM frequency WHERE threshold < -5.0 AND protocol=0 GROUP BY threshold"' \
 #      using (-$1):($2) name "p0"
 
-plot '< sqlite3 ' . input . ' "SELECT threshold \
+plot '< sqlite3 ' . input . ' \
+"SELECT threshold \
 ,sum(counts) \
 ,avg(average_peak_time) \
 ,avg(average_peak_intensity) \
