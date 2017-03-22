@@ -18,14 +18,13 @@ input = 'frequency.db'
 
 set datafile separator "|"
 
-stats '< sqlite3 '. input .'\
-"SELECT threshold,sum(counts) FROM frequency WHERE threshold < -5.0 AND protocol=0 GROUP BY threshold"' \
-      using (-$1):($2) name "p0"
+#stats '< sqlite3 '. input .'\
+#"SELECT threshold,sum(counts) FROM frequency WHERE threshold < -5.0 AND protocol=0 GROUP BY threshold"' \
+#      using (-$1):($2) name "p0"
 
-plot '< sqlite3 '. input .'\
-     "SELECT threshold\
-,sum(counts)\
-,avg(average_peak_time)\
-,avg(average_peak_intensity)\
+plot '< sqlite3 ' . input . ' "SELECT threshold \
+,sum(counts) \
+,avg(average_peak_time) \
+,avg(average_peak_intensity) \
 ,avg(average_peak_width) FROM frequency WHERE threshold < -5.0 AND protocol=0 GROUP BY threshold"' \
-     using (-$1):($2*100/p0_max_y) with linespoints pt 4 ps 2.5 axis x1y1 title "p1 frequency"
+     using (-$1):($2) with linespoints pt 4 ps 2.5 axis x1y1 title "p1 frequency"
