@@ -1,31 +1,76 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ ! -d ~/src/rdkit ]; then
-    git clone https://github.com/rdkit/rdkit ~/src/rdkit
-fi
+function prompt {
+    while true; do
+	read -p "Proceed (y/n)? " yn
+	case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+	esac
+    done
+}
 
-if [ -z $BOOST_ROOT ]; then
-    if [ -d /usr/local/boost-1_63 ]; then
-	BOOST_ROOT=/usr/local/boost-1_63
-    elif [ -d /usr/local/boost-1_62 ]; then
-	BOOST_ROOT=/usr/local/boost-1_62
+cwd=$(pwd)
+arch=`uname`-`arch`
+
+if [ -z $cross_target ]; then
+    BUILD_DIR=~/src/$arch/rdkit
+    export RDBASE=~/src/rdkit
+    if [ -z $BOOST_ROOT ]; then
+	if [ -d /usr/local/boost-1_63 ]; then
+	    BOOST_ROOT=/usr/local/boost-1_63
+	elif [ -d /usr/local/boost-1_62 ]; then
+	    BOOST_ROOT=/usr/local/boost-1_62
+	fi
+    fi
+else
+    BUILD_DIR=~/src/build-$cross_target/rdkit
+    CROSS_ROOT=/usr/local/arm-linux-gnueabihf
+    export RDBASE=$CROSS_ROOT/usr/local/rdkit
+    TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
+    if [ -z $BOOST_ROOT ]; then
+	if [ -d $CROSS_ROOT/usr/local/boost-1_63 ]; then
+	    BOOST_ROOT=/usr/local/boost-1_63
+	elif [ -d $CROSS_ROOT/usr/local/boost-1_62 ]; then
+	    BOOST_ROOT=/usr/local/boost-1_62
+	fi
     fi
 fi
 
-cd ~/src/rdkit
-export RDBASE=`pwd`
-
 echo "RDKit install on $RDBASE"
 
-mkdir build;
-cd build
-echo "Current working directory: $(pwd)"
-
-if [ -z BOOST_ROOT ]; then
-    cmake -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF ..
-else
-    cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF ..
+if [ ! -d $RDBASE ]; then
+    if [ ! -d $(dirname $RDBASE) ]; then
+	mkdir -p $(dirname $RDBASE)
+    fi
+    git clone https://github.com/rdkit/rdkit $RDBASE
 fi
-make -j8
-make test
-make install
+
+mkdir -p $BUILD_DIR;
+cd $BUILD_DIR;
+
+if [ -z $cross_target ]; then
+    echo "RDBASE    : " $RDBASE
+    echo "BUILD_DIR : " `pwd`        
+    echo cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF $RDBASE
+    prompt
+    cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF $RDBASE
+    make -j8
+    make test
+    make install      
+else
+    echo "RDBASE    : " $RDBASE
+    echo "BUILD_DIR : " `pwd`    
+    echo cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN $RDBASE
+    prompt
+    cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF \
+	  -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN \
+	  -DRDK_OPTIMIZE_NATIVE=OFF \
+	  $RDBASE
+    make -j8
+    if [ $? -eq 0 ]; then
+	make test
+	make install
+    fi
+fi
