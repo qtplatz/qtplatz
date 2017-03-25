@@ -102,7 +102,12 @@ MainWindow::createContents( Core::IMode * )
 
     connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
 
-    tabWidget->addTab( tr( "Quan" ), "", QStringList() << tr( "Select Data" ) << tr( "Compounds & Protocols" ) << tr( "Review Result" ) );
+    tabWidget->addTab( tr( "Quan" ), "", QStringList()
+                       << tr( "Select Data" )
+                       << tr( "Compounds & Protocols" )
+                       << tr( "Review Result" )
+                       << tr( "Report" ) );
+
     viewLayout->addWidget( tabWidget );
     tabWidget->setCurrentIndex( 0 );
 
@@ -174,16 +179,24 @@ MainWindow::createContents( Core::IMode * )
         stack_->addWidget( panelsWidget );
     }
 
-    // if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
-    //     if ( auto widget = new QuanQueryWidget ) {
-    //         auto data = std::make_shared< PanelData >( "Query"
-    //                                                    , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
-    //                                                    , widget );
-    //         widget->setMinimumHeight( 40 );
-    //         panelsWidget->addPanel( data.get() );
-    //     }
-    //     stack_->addWidget( panelsWidget );
-    // }
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+        if ( auto widget = new QuanReportWidget ) {
+            auto data = std::make_shared< PanelData >( "Reports"
+                                                       , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+                                                       , widget );
+            panelsWidget->addPanel( data.get() );
+            widget->setMaximumHeight( std::numeric_limits<int>::max() );
+        }
+        
+        //     if ( auto widget = new QuanQueryWidget ) {
+        //         auto data = std::make_shared< PanelData >( "Query"
+        //                                                    , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
+        //                                                    , widget );
+        //         widget->setMinimumHeight( 40 );
+        //         panelsWidget->addPanel( data.get() );
+        //     }
+        stack_->addWidget( panelsWidget );
+    }
 
     stack_->setCurrentIndex( 0 );
     

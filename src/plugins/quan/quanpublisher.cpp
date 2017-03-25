@@ -197,7 +197,7 @@ QuanPublisher::operator()( QuanConnection * conn, std::function<void(int)> progr
 
                         if ( appendQuanCalib( doc ) ) {
                             progress( step++ );
-
+        
                             if ( appendQuanDataGuids( doc ) ) {
                                 progress( step++ );
 

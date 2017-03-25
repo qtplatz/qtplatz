@@ -157,5 +157,9 @@ else()
     add_definitions( "-Wno-unused-local-typedefs" )
   endif()
 
+  if ( CMAKE_COMPILER_IS_GNUCC )
+    add_definitions( "-Wno-deprecated-declarations" )
+  endif()
+
 endif()
 
