@@ -73,7 +73,7 @@ endif()
 if( WIN32 )
   set( CPACK_INSTALL_PREFIX "C:/QtPlatz" )
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
-  set( QTPLATZ_QT5_INSTALL_DIRECTORY "bin" )
+  set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "bin" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "bin" )
 elseif ( APPLE )
   set( CPACK_INSTALL_PREFIX "/opt/QtPlatz.app" )
