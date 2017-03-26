@@ -116,26 +116,9 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
         }
     }
 
-    //layout_->addWidget( docEditor_.get() ); // 0
-
     layout_->addWidget( docBrowser_.get() );
     layout_->setStretch( 1, 10 );
     QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    //docEditor_->setSizePolicy( policy );
-}
-
-void
-QuanReportWidget::importDocTemplate()
-{
-    QString name = QFileDialog::getOpenFileName( this
-                                                 , tr( "Import ReportFormat..." )
-                                                 , QuanDocument::instance()->lastMethodDir()
-                                                 , tr( "Quan Document Files(*.tdoc);;XML Files(*.xml)" ) );
-    if ( !name.isEmpty() ) {
-        //QuanDocument::instance()->load( name.toStdWString(), m );
-        //auto ptr = m.docTemplate();
-        //QuanDocument::instance()->docTemplate( ptr );
-    }
 }
 
 void
@@ -156,16 +139,6 @@ QuanReportWidget::setupFileActions( QMenu * menu, QToolBar * tb )
         tb->addAction(a);
         menu->addAction( a );
 #if 0
-        QIcon newIcon = QIcon::fromTheme("document-new", QIcon(qrcpath + "/filenew.png"));
-        a = new QAction( newIcon, tr("&New"), this ); //, docEditor_.get());
-        a->setPriority(QAction::LowPriority);
-        a->setShortcut(QKeySequence::New);
-        connect( a, &QAction::triggered, this, &QuanReportWidget::fileDebug );
-        tb->addAction(a);
-        menu->addAction( a );
-        
-        menu->addSeparator();
-
 #ifndef QT_NO_PRINTER
         a = new QAction( QIcon::fromTheme("exportpdf", QIcon(qrcpath + "/exportpdf.png")), tr("&Export PDF..."), this );
         a->setPriority(QAction::LowPriority);

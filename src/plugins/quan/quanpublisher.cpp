@@ -277,12 +277,20 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 
     int idx = response.select_single_node( "column[@name='idx']" ).node().text().as_int();
     int fcn = response.select_single_node( "column[@name='fcn']" ).node().text().as_int();
+    std::string formula = response.select_single_node( "column[@name='formula' and @decltype='text']" ).node().text().as_string();
 
     dst.append_attribute( "idx" ) = idx;
     dst.append_attribute( "fcn" ) = fcn;
     dst.append_attribute( "formula" ) = response.select_single_node( "column[@name='formula' and @decltype='text']" ).node().text().as_string();
     dst.append_attribute( "dataGuid" ) = response.select_single_node( "column[@name='dataGuid']" ).node().text().as_string();
     dst.append_attribute( "respId" ) = respid;
+
+    // ADDEBUG() << "appendTrace( idx,fcn, formula )=" << idx << ", " << fcn << ", " << formula;
+
+    std::pair< double, double > range( 0, 0 );
+    double exact_mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
+    if ( exact_mass > 0.5 )
+        range = std::make_pair( exact_mass - 0.05, exact_mass + 0.05 );
                 
     std::wstring dataGuid = pugi::as_wide( response.select_single_node( "column[@name='dataGuid']" ).node().text().as_string() );
 
@@ -321,9 +329,8 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
             detail::append_class()( dst, data->profile->getDescriptions(), "class adcontrols::descriptions" );
 
             QuanSvgPlot svg;
-            //auto gnode = dst.append_child( "traces" );
 
-            if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
+            if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string(), range ) ) {
                 pugi::xml_document dom;
                 if ( dom.load( svg.data(), static_cast<unsigned int>( svg.size() ) ) ) {
                     auto trace = dst.append_child( "trace" );

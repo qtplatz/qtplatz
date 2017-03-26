@@ -26,6 +26,7 @@
 #include "quanplot.hpp"
 #include "quanplotdata.hpp"
 #include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -55,19 +56,34 @@ QuanSvgPlot::QuanSvgPlot()
 bool
 QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::string& dataSource )
 {
+    static const std::pair< double, double > range( 0, 0 );
     if ( data.chromatogram )
         return plot_chromatogram( data, idx, fcn, dataSource );
     else
-        return plot_spectrum( data, idx, fcn, dataSource );
+        return plot_spectrum( data, idx, fcn, dataSource, range );
     return false;
 }
 
 bool
-QuanSvgPlot::plot_spectrum( const QuanPlotData& data, size_t idx, int fcn, const std::string& dataSource )
+QuanSvgPlot::plot( const QuanPlotData& data, size_t idx, int fcn, const std::string& dataSource, const std::pair<double,double>& range )
+{
+    if ( data.chromatogram )
+        return plot_chromatogram( data, idx, fcn, dataSource );
+    else
+        return plot_spectrum( data, idx, fcn, dataSource, range );
+    return false;
+}
+
+bool
+QuanSvgPlot::plot_spectrum( const QuanPlotData& data
+                            , size_t idx
+                            , int fcn
+                            , const std::string& dataSource
+                            , const std::pair< double, double >& range )
 {
     if ( ! data.profile )
         return false;
-    
+
     auto tCentroid( std::make_shared< adcontrols::MassSpectrum >() );
     auto tProfile( std::make_shared< adcontrols::MassSpectrum >() );
 
@@ -81,15 +97,32 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data, size_t idx, int fcn, const
             return false;
 
         pk = *pkIt;
-
         double mass = pkIt->mass();
-        std::pair< double, double > range = std::make_pair( mass - 2.0, mass + 2.0 );
 
-        if ( !data.centroid->trim( *tCentroid, range ) )
-            return false;
-
-        if ( !data.profile->trim( *tProfile, range ) )
-            return false;
+        if ( range.first < mass && mass < range.second ) {
+            if ( auto profile = data.profile->findProtocol( fcn ) ) {
+                if ( !profile->trim( *tProfile, range ) ) {
+                    *tProfile = *profile;
+                }
+            } else {
+                adcontrols::segment_wrapper<> vec( *data.profile );
+                ADDEBUG() << "################## no-data " << fcn << "#################### " << vec.size();
+                for ( auto& ms: vec ) {
+                    ADDEBUG() << "proto = " << ms.protocolId();
+                }
+                *tProfile = *data.profile;
+            }
+            
+            if ( auto centroid = data.centroid->findProtocol( fcn ) ) {
+                if ( !centroid->trim( *tCentroid, range ) ) {
+                    *tCentroid = *centroid;
+                }
+            } else {
+                adcontrols::segment_wrapper<> vec( *data.centroid );
+                ADDEBUG() << "################## no-data " << fcn << "#################### " << vec.size();
+                *tCentroid = *data.centroid;
+            }
+        }
     }
 
     QSvgGenerator generator;
@@ -98,7 +131,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data, size_t idx, int fcn, const
     QBuffer buffer( &svg_ );
     generator.setOutputDevice( &buffer );
     generator.setTitle( "QtPlatz Generated SVG" );
-    generator.setDescription( "Copyright (C) 2013-2017 MS-Cheminformataics, All rights reserved" );
+    generator.setDescription( "Copyright (C) 2010-2017 MS-Cheminformataics, All rights reserved" );
 
     QRectF rect( 0, 0, 350, 300 );
     generator.setViewBox( rect );
@@ -111,6 +144,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data, size_t idx, int fcn, const
     adplot::SpectrumWidget plot;
     plot.setData( tProfile, 0 );
     plot.setData( tCentroid, 1, true );
+    // plot.setZoomBase( range, true );
     adplot::PeakMarker marker;
 
     marker.attach( &plot );
