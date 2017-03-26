@@ -234,86 +234,88 @@ dataprocessor::readSpectrumFromTimeCount()
         clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 3 );
     }
     
-    if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
-
-        spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
-        auto scanlaw = spectrometer->scanLaw();
-        
-        {
-            // lead control method
-            auto idstr = boost::lexical_cast< std::string >( adcontrols::ControlMethod::Method::clsid() );
-            sql.prepare( "SELECT data FROM MetaData WHERE clsid = ?" );
-            sql.bind( 1 ) = idstr;
-            while( sql.step() == adfs::sqlite_row ) {
-                auto blob = sql.get_column_value< adfs::blob >( 0 );
-                boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >( blob.data() ), size_t( blob.size() ) );
-                boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
-                adcontrols::ControlMethod::Method method;
-                if ( adcontrols::ControlMethod::Method::restore( strm, method ) )
-                    spectrometer->setMethod( method );
-            }
-        }
-
-        std::vector< uint64_t > countTriggers; // per protocol
-        {
-            sql.prepare( "SELECT COUNT(*) FROM trigger GROUP BY protocol ORDER BY protocol" );
-            while ( sql.step() == adfs::sqlite_row )
-                countTriggers.emplace_back( sql.get_column_value< uint64_t >( 0 ) );
-        }
-        size_t nbrProto = countTriggers.size();
-
-        std::shared_ptr< adcontrols::MassSpectrum > hist = std::make_shared< adcontrols::MassSpectrum >();
-
-        size_t proto(0);
-        for ( const auto& trigCounts: countTriggers ) {
-
-            auto temp = proto == 0 ? hist : std::make_shared< adcontrols::MassSpectrum >();
-            temp->clone( *ms );
-            temp->setCentroid( adcontrols::CentroidNative );
-            
-            std::vector< double > t, y, m;
-            double ptime(0);
-            sql.prepare( "SELECT ROUND(peak_time, 9) AS time,COUNT(*) FROM peak,trigger"
-                         " WHERE id=idTrigger AND protocol=? GROUP BY time ORDER BY time" );
-            sql.bind(1) = proto;
-            while ( sql.step() == adfs::sqlite_row ) {
-                
-                double time = sql.get_column_value< double >( 0 ); // time
-                uint64_t count = sql.get_column_value< uint64_t >( 1 ); // count
-                
-                if ( (time - ptime) > 1.2e-9 ) {
-                    if ( ptime > 1.0e-9 ) {
-                        // add count(0) to the end of last cluster
-                        t.emplace_back( ptime + 1.0e-9 );
-                        y.emplace_back( 0 ); // count
-                        m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
-                    }
-                    // add count(0) to the begining of next cluster
-                    t.emplace_back( time - 1.0e-9 );
-                    y.emplace_back( 0 ); // count
-                    m.emplace_back( scanlaw->getMass( ( time - 1.0e-9 ), spectrometer->mode( proto ) ) );
-                }
-                t.emplace_back( time );
-                y.emplace_back( count ); // count
-                m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
-                ptime = time;
-            }
-            temp->setMassArray( std::move( m ) );
-            temp->setTimeArray( std::move( t ) );
-            temp->setIntensityArray( std::move( y ) );
-
-            if ( auto method = spectrometer->method() )
-                spectrometer->setMSProperty( *temp, *method, proto );
-
-            temp->getMSProperty().setNumAverage( trigCounts );
-
-            if ( proto++ )
-                (*hist) << std::move( temp );
-        }
-
-        return hist;
+    auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer );
+    if ( ! spectrometer ) {
+        ADDEBUG() << "MassSpectrometer " << clsidSpectrometer << " Not installed.";
+        return nullptr;
     }
-    return nullptr;
+
+    spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+    auto scanlaw = spectrometer->scanLaw();
+        
+    {
+        // lead control method
+        auto idstr = boost::lexical_cast< std::string >( adcontrols::ControlMethod::Method::clsid() );
+        sql.prepare( "SELECT data FROM MetaData WHERE clsid = ?" );
+        sql.bind( 1 ) = idstr;
+        while( sql.step() == adfs::sqlite_row ) {
+            auto blob = sql.get_column_value< adfs::blob >( 0 );
+            boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char * >( blob.data() ), size_t( blob.size() ) );
+            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( device );
+            adcontrols::ControlMethod::Method method;
+            if ( adcontrols::ControlMethod::Method::restore( strm, method ) )
+                spectrometer->setMethod( method );
+        }
+    }
+
+    std::vector< uint64_t > countTriggers; // per protocol
+    {
+        sql.prepare( "SELECT COUNT(*) FROM trigger GROUP BY protocol ORDER BY protocol" );
+        while ( sql.step() == adfs::sqlite_row )
+            countTriggers.emplace_back( sql.get_column_value< uint64_t >( 0 ) );
+    }
+    size_t nbrProto = countTriggers.size();
+
+    std::shared_ptr< adcontrols::MassSpectrum > hist = std::make_shared< adcontrols::MassSpectrum >();
+
+    size_t proto(0);
+    for ( const auto& trigCounts: countTriggers ) {
+
+        auto temp = proto == 0 ? hist : std::make_shared< adcontrols::MassSpectrum >();
+        temp->clone( *ms );
+        temp->setCentroid( adcontrols::CentroidNative );
+            
+        std::vector< double > t, y, m;
+        double ptime(0);
+        sql.prepare( "SELECT ROUND(peak_time, 9) AS time,COUNT(*) FROM peak,trigger"
+                     " WHERE id=idTrigger AND protocol=? GROUP BY time ORDER BY time" );
+        sql.bind(1) = proto;
+        while ( sql.step() == adfs::sqlite_row ) {
+                
+            double time = sql.get_column_value< double >( 0 ); // time
+            uint64_t count = sql.get_column_value< uint64_t >( 1 ); // count
+                
+            if ( (time - ptime) > 1.2e-9 ) {
+                if ( ptime > 1.0e-9 ) {
+                    // add count(0) to the end of last cluster
+                    t.emplace_back( ptime + 1.0e-9 );
+                    y.emplace_back( 0 ); // count
+                    m.emplace_back( scanlaw->getMass( ( ptime + 1.0e-9 ), spectrometer->mode( proto ) ) );
+                }
+                // add count(0) to the begining of next cluster
+                t.emplace_back( time - 1.0e-9 );
+                y.emplace_back( 0 ); // count
+                m.emplace_back( scanlaw->getMass( ( time - 1.0e-9 ), spectrometer->mode( proto ) ) );
+            }
+            t.emplace_back( time );
+            y.emplace_back( count ); // count
+            m.emplace_back( scanlaw->getMass( time, spectrometer->mode( proto ) ) );
+            ptime = time;
+        }
+        temp->setMassArray( std::move( m ) );
+        temp->setTimeArray( std::move( t ) );
+        temp->setIntensityArray( std::move( y ) );
+
+        if ( auto method = spectrometer->method() )
+            spectrometer->setMSProperty( *temp, *method, proto );
+
+        temp->getMSProperty().setNumAverage( trigCounts );
+        temp->setProtocol( proto, nbrProto );
+
+        if ( proto++ )
+            (*hist) << std::move( temp );
+    }
+    return hist;
 }
 
 bool
