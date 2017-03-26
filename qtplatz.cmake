@@ -58,35 +58,21 @@ endif()
 
 if ( WITH_QT5 )
 
-  if ( WIN32 )
-    if((MSVC_VERSION GREATER 1900) OR (MSVC_VERSION EQUAL 1900))
-      set( CMAKE_PREFIX_PATH "C:/Qt/5.7/msvc2015_64" "C:/Qt/5.6/msvc2015_64" )
-      find_package( Qt5 5.6 OPTIONAL_COMPONENTS Core QUIET )
-    else()
-      set( Qt5_DIR $ENV{QTDIR}/lib/cmake/Qt5 )
-      find_package( Qt5 5.5 OPTIONAL_COMPONENTS Core QUIET )
-    endif()
-  else()
+  find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
 
-    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
-    message( STATUS "### QMAKE = " ${QMAKE} )
-    if ( NOT QMAKE )
-      message( FATAL_ERROR "qmake command not found" )
-    endif()
-    
-    find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET ) #PATHS "/opt/Qt5.7.0" /opt/Qt/5.7 )
-    if ( NOT Qt5_FOUND )
-      execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
-      string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
-      list( APPEND CMAKE_PREFIX_PATH "${__prefix}/lib/cmake" )
-      find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-    endif()
-
+  if ( QMAKE ) 
+    execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
+    string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
+    list( APPEND CMAKE_PREFIX_PATH "${__prefix}/lib/cmake" )
+    set( QTDIR ${QT_INSTALL_PREFIX} )
   endif()
 
+  find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
+  message( STATUS "### QMAKE = " ${QMAKE} )
+  message( STATUS "### Qt5 = " ${Qt5} )
+    
   if ( Qt5_FOUND )
     get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
-    
     find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
     message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
     if ( NOT XMLPATTERNS )

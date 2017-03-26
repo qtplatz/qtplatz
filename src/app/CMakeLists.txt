@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8.11)
 cmake_policy(SET CMP0028 NEW)
+cmake_policy(SET CMP0053 OLD)
 
 project (qtplatz)
 
