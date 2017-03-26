@@ -34,8 +34,8 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
-#include <adpublisher/doceditor.hpp>
 #include <adpublisher/document.hpp>
+#include <adpublisher/transformer.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
@@ -46,6 +46,7 @@
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
+#include <QComboBox>
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -55,6 +56,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
+#include <QTextBrowser>
 #include <QToolBar>
 #include <QToolButton>
 #include <QTreeView>
@@ -86,37 +88,40 @@ QuanReportWidget::~QuanReportWidget()
 
 QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QVBoxLayout( this ) )
-                                                    , docEditor_( new adpublisher::docEditor )
+                                                    , docBrowser_( new QTextBrowser )
 {
-    docEditor_->setSettings( QuanDocument::instance()->settings_ptr() );
+    if ( auto toolBar = new QToolBar ) {
+        toolBar->setObjectName( "publisherToolBar" );
+        auto tbLayout = new QHBoxLayout( toolBar );
+        tbLayout->setMargin( 0 );
+        tbLayout->setSpacing( 0 );
+        tbLayout->addWidget( new Utils::StyledSeparator );
 
-    if ( auto am = Core::ActionManager::instance() ) {
-
-        if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_FILE_MENU ) ) {
-            menuContainer->menu()->setTitle( tr( "Publisher" ) );
-            // docEditor_->setupFileActions( menuContainer->menu() );
-            setupFileActions( menuContainer->menu() );
-            am->actionContainer( Core::Constants::M_FILE )->addMenu( menuContainer );
+        if ( auto xslt = new QComboBox( toolBar ) ) {
+            xslt->setObjectName( "stylesCombo" );
+            QStringList list;
+            adpublisher::transformer::populateStylesheets( list );
+            xslt->addItems( list );
+            toolBar->addWidget( xslt );
         }
+        layout_->addWidget( toolBar );
 
-        if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_EDIT_MENU ) ) {
-            menuContainer->menu()->setTitle( tr( "Publisher" ) );
-            docEditor_->setupEditActions( menuContainer->menu() );
-            am->actionContainer( Core::Constants::M_EDIT )->addMenu( menuContainer );
-        }
+        if ( auto am = Core::ActionManager::instance() ) {
 
-        if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_TEXT_MENU ) ) {
-            menuContainer->menu()->setTitle( tr( "Format" ) );
-            docEditor_->setupTextActions( menuContainer->menu() );
-            am->actionContainer( Core::Constants::MENU_BAR )->addMenu( menuContainer, Core::Constants::G_VIEW );
+            if ( auto menuContainer = am->createMenu( Constants::PUBLISHER_FILE_MENU ) ) {
+                menuContainer->menu()->setTitle( tr( "Publisher" ) );
+                setupFileActions( menuContainer->menu(), toolBar );
+                am->actionContainer( Core::Constants::M_FILE )->addMenu( menuContainer );
+            }
         }
-        docEditor_->onInitialUpdate();
     }
 
-    layout_->addWidget( docEditor_.get() );
+    //layout_->addWidget( docEditor_.get() ); // 0
+
+    layout_->addWidget( docBrowser_.get() );
     layout_->setStretch( 1, 10 );
     QSizePolicy policy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    docEditor_->setSizePolicy( policy );
+    //docEditor_->setSizePolicy( policy );
 }
 
 void
@@ -136,96 +141,41 @@ QuanReportWidget::importDocTemplate()
 void
 QuanReportWidget::onInitialUpdate( QuanDocument * d )
 {
-    if ( auto doc = d->docTemplate() ) {
-        docEditor_->setDocument( doc );
-    } else {
-        auto ptr = docEditor_->document(); // setup hard-coded default
-        d->docTemplate( ptr ); // setup hard-coded default
-    }
+    connect( d, &QuanDocument::onConnectionChanged, this, &QuanReportWidget::handleConnectionChanged );
 }
 
 void
-QuanReportWidget::exportDocTemplate()
+QuanReportWidget::setupFileActions( QMenu * menu, QToolBar * tb )
 {
-    boost::filesystem::path path( QuanDocument::instance()->lastMethodDir().toStdWString() );
-    path.remove_filename();
-    path /= "reportTemplate.xml";
+    if ( tb ) {
+        QAction * a;
 
-    QString name = QFileDialog::getSaveFileName( this
-                                                 , tr( "Export doc template..." )
-                                                 , QString::fromStdWString( path.wstring() )
-                                                 , tr( "XML Files(*.xml)" ) );
-    if ( !name.isEmpty() ) {
-        auto doc = docEditor_->document();
-        doc->save_file( name.toUtf8() );
-    }
-}
-
-void
-QuanReportWidget::setupFileActions( QMenu * menu )
-{
-    QToolBar *tb = new QToolBar( docEditor_.get() );
-    tb->setWindowTitle(tr("File Actions"));
-    docEditor_->addToolBar( tb );
-
-    QAction *a;
-
-    a = new QAction( QIcon( ":/quan/images/run.png" ), tr( "Publish" ), this );
-    a->setPriority(QAction::LowPriority);
-    connect(a, &QAction::triggered, this, &QuanReportWidget::filePublish );
-    tb->addAction(a);
-    menu->addAction( a );
-
-    QIcon newIcon = QIcon::fromTheme("document-new", QIcon(qrcpath + "/filenew.png"));
-    a = new QAction( newIcon, tr("&New"), docEditor_.get());
-    a->setPriority(QAction::LowPriority);
-    a->setShortcut(QKeySequence::New);
-    // connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileNew()));
-    connect( a, &QAction::triggered, this, &QuanReportWidget::fileDebug );
-    tb->addAction(a);
-    menu->addAction( a );
-
-    a = new QAction(QIcon::fromTheme("document-open", QIcon(qrcpath + "/fileopen.png")), tr("&Open..."), docEditor_.get());
-    a->setShortcut(QKeySequence::Open);
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileOpen()));
-    tb->addAction(a);
-    menu->addAction( a );
-
-    menu->addSeparator();
-
-    a = new QAction( QIcon::fromTheme( "document-save", QIcon( qrcpath + "/filesave.png" ) ), tr( "&Save" ), docEditor_.get() );
-    docEditor_->setAction( adpublisher::docEditor::idActionSave, a );
-    a->setShortcut(QKeySequence::Save);
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileSave()));
-    a->setEnabled(false);
-    tb->addAction(a);
-    menu->addAction( a );
-
-    a = new QAction(tr("Save &As..."), docEditor_.get());
-    a->setPriority(QAction::LowPriority);
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(fileSaveAs()));
-    menu->addAction(a);
-    menu->addSeparator();
+        a = new QAction( QIcon( ":/quan/images/run.png" ), tr( "Publish" ), this );
+        a->setPriority(QAction::LowPriority);
+        connect(a, &QAction::triggered, this, &QuanReportWidget::filePublish );
+        tb->addAction(a);
+        menu->addAction( a );
+#if 0
+        QIcon newIcon = QIcon::fromTheme("document-new", QIcon(qrcpath + "/filenew.png"));
+        a = new QAction( newIcon, tr("&New"), this ); //, docEditor_.get());
+        a->setPriority(QAction::LowPriority);
+        a->setShortcut(QKeySequence::New);
+        connect( a, &QAction::triggered, this, &QuanReportWidget::fileDebug );
+        tb->addAction(a);
+        menu->addAction( a );
+        
+        menu->addSeparator();
 
 #ifndef QT_NO_PRINTER
-    a = new QAction(QIcon::fromTheme("document-print", QIcon(qrcpath + "/fileprint.png")),  tr("&Print..."), docEditor_.get());
-    a->setPriority(QAction::LowPriority);
-    a->setShortcut(QKeySequence::Print);
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(filePrint()));
-    tb->addAction(a);
-    menu->addAction( a );
-
-    a = new QAction(QIcon::fromTheme("fileprint", QIcon(qrcpath + "/fileprint.png")), tr("Print Preview..."), docEditor_.get());
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(filePrintPreview()));
-    menu->addAction( a );
-
-    a = new QAction(QIcon::fromTheme("exportpdf", QIcon(qrcpath + "/exportpdf.png")), tr("&Export PDF..."), docEditor_.get());
-    a->setPriority(QAction::LowPriority);
-    a->setShortcut(Qt::CTRL + Qt::Key_D);
-    connect(a, SIGNAL(triggered()), docEditor_.get(), SLOT(filePrintPdf()));
-    tb->addAction(a);
-    menu->addAction( a );
+        a = new QAction( QIcon::fromTheme("exportpdf", QIcon(qrcpath + "/exportpdf.png")), tr("&Export PDF..."), this );
+        a->setPriority(QAction::LowPriority);
+        a->setShortcut(Qt::CTRL + Qt::Key_D);
+        connect(a, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
+        tb->addAction(a);
+        menu->addAction( a );
 #endif
+#endif
+    }
 
 }
 
@@ -237,16 +187,12 @@ QuanReportWidget::filePublish()
     
     Core::ProgressManager::addTask( progress.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
 
-    docEditor_->fetchTemplate();
-    auto article = docEditor_->document();
-    QuanDocument::instance()->docTemplate( article );
-    
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
         try {
-
+            
             auto conn = QuanDocument::instance()->connection();
-            ( *publisher )( conn, progress, article->xml_document().get() );
+            ( *publisher )( conn, progress ); //, article->xml_document().get() );
 
         } catch ( boost::exception& ex ) {
             QMessageBox::information( this, "QuanReportWidget", ( boost::diagnostic_information( ex ) + "(1)").c_str() );
@@ -272,14 +218,17 @@ QuanReportWidget::filePublish()
                 
         publisher->save_file( path.string().c_str() ); // save publisher document xml
         
-        QString xslfile = docEditor_->currentStylesheet();
+        QString xslfile = currentStylesheet();
         QString output, method;
         adpublisher::document::apply_template( path.string().c_str(), xslfile.toStdString().c_str(), output, method );
         
         if ( !output.isEmpty() ) {
-
-            docEditor_->setOutput( output, method );
-            std::string extension = method.isEmpty() ? ".html" : (QString( ".%1" ).arg( method )).toStdString();
+            
+            docBrowser_->setHtml( output );
+            
+            std::string extension =
+                ( method.isEmpty() || method == "xhtml" ) ? ".html"
+                : (QString( ".%1" ).arg( method )).toStdString();
 
             path.replace_extension( extension );
 
@@ -291,9 +240,34 @@ QuanReportWidget::filePublish()
     }
 }
 
+QString
+QuanReportWidget::currentStylesheet() const
+{
+    if ( auto combo = findChild< QComboBox * >( "stylesCombo" ) ) {
+        return combo->currentText();
+    }
+    return QString();
+}
+
+void
+QuanReportWidget::filePrintPdf()
+{
+}
+
 void
 QuanReportWidget::fileDebug()
 {
-    auto doc = std::make_shared< adpublisher::document >();
-    docEditor_->setDocument( doc );
+    auto publisher = QuanDocument::instance()->publisher();
+    if ( *publisher ) { // if processed
+        publisher->save_file( publisher->filepath().string().c_str() );
+        std::ostringstream o;
+        publisher->save( o );
+        docBrowser_->setText( QString::fromStdString( o.str() ) );
+    }
+}
+
+void
+QuanReportWidget::handleConnectionChanged()
+{
+    fileDebug();
 }

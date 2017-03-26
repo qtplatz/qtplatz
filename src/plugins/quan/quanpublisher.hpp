@@ -31,6 +31,7 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include <ostream>
 
 namespace pugi { class xml_document; class xml_node; }
 namespace adcontrols { class MassSpectrum; class MSPeakInfo; }
@@ -55,6 +56,7 @@ namespace quan {
 
         const boost::filesystem::path& filepath() const;
         bool save_file( const char * filepath ) const;
+        bool save( std::ostream& ) const;
 
         struct resp_data {
             boost::uuids::uuid cmpId;

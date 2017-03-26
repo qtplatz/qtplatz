@@ -434,6 +434,15 @@ QuanPublisher::appendTraceData( ProgressHandler& progress )
     return false;
 }
 
+bool
+QuanPublisher::save( std::ostream& os ) const
+{
+    if ( bProcessed_ ) {
+        xmloutput_->save( os );
+        return true;
+    }
+    return false;
+}
 
 bool
 QuanPublisher::save_file( const char * filepath ) const

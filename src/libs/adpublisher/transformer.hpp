@@ -25,11 +25,13 @@
 #ifndef TRANSFORMER_HPP
 #define TRANSFORMER_HPP
 
+#include "adpublisher_global.hpp"
+
 class QStringList;
 
 namespace adpublisher {
 
-    class transformer {
+    class ADPUBLISHERSHARED_EXPORT transformer {
     public:
         transformer();
         static void populateStylesheets( QStringList& );

@@ -163,8 +163,8 @@ namespace quan {
 
         bool save_default_methods();
         bool load_default_methods();
-        bool save_default_doctemplate();
-        bool load_default_doctemplate();
+        //bool save_default_doctemplate();
+        //bool load_default_doctemplate();
 
         void addRecentFiles( const QString& group, const QString& key, const QString& value );
         void getRecentFiles( const QString& group, const QString& key, std::vector<QString>& list ) const;

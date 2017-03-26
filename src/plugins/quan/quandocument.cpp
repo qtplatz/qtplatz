@@ -212,20 +212,20 @@ QuanDocument::load_default_methods()
     return !(dirty_flags_[ idQuanSequence ] | dirty_flags_[ idMethodComplex ]);
 }
 
-bool
-QuanDocument::load_default_doctemplate()
-{
-    // recovery from backup
-    boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-    boost::filesystem::path backup = dir / L"QuanDocTemplate.xml";
+// bool
+// QuanDocument::load_default_doctemplate()
+// {
+//     // recovery from backup
+//     boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
+//     boost::filesystem::path backup = dir / L"QuanDocTemplate.xml";
 
-    auto doc = std::make_shared< adpublisher::document >();
-    if ( doc->load_file( backup.string().c_str() ) ) {
-        docTemplate_ = doc;
-        return true;
-    }
-    return false;
-}
+//     auto doc = std::make_shared< adpublisher::document >();
+//     if ( doc->load_file( backup.string().c_str() ) ) {
+//         docTemplate_ = doc;
+//         return true;
+//     }
+//     return false;
+// }
 
 void
 QuanDocument::docTemplate( std::shared_ptr< adpublisher::document >& doc )
@@ -577,8 +577,8 @@ QuanDocument::onInitialUpdate()
     if ( !load_default_methods() )
         ADERROR() << "default method load failed";
 
-    if ( !load_default_doctemplate() )
-        ADERROR() << "default document template load failed";
+    // if ( !load_default_doctemplate() )
+    //     ADERROR() << "default document template load failed";
 
     notify_update_( idQuanMethod, true );
     notify_update_( idQuanCompounds, true );

@@ -31,6 +31,8 @@
 class QGridLayout;
 class QVBoxLayout;
 class QMenu;
+class QTextBrowser;
+class QToolBar;
 
 namespace adpublisher { class docEditor; }
 
@@ -49,11 +51,14 @@ namespace quan {
 
     private:
         QVBoxLayout * layout_;
-        std::unique_ptr< adpublisher::docEditor > docEditor_;
+        //std::unique_ptr< adpublisher::docEditor > docEditor_;
+        std::unique_ptr< QTextBrowser > docBrowser_;
  
         void importDocTemplate();
         void exportDocTemplate();
-        void setupFileActions( QMenu * );
+        void setupFileActions( QMenu *, QToolBar * );
+
+        QString currentStylesheet() const;
 
     signals:
 
@@ -62,6 +67,8 @@ namespace quan {
     private slots:
         void filePublish();
         void fileDebug();
+        void filePrintPdf();
+        void handleConnectionChanged();
     };
 
 }
