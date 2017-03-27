@@ -58,7 +58,7 @@ endif()
 
 if ( WITH_QT5 )
 
-  find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
+  find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}/bin" )
 
   if ( QMAKE ) 
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )

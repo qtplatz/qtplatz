@@ -2,7 +2,8 @@
 @echo off
 
 setlocal enabledelayedexpansion
-
+set QTDIR=C:\Qt\5.7\msvc2015_64
+set PQTH=%QTDIR%\bin;%PATH%
 set source_dir=%cd%
 set build_root=..
 set build_arch=x86_64
