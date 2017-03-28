@@ -68,7 +68,7 @@ if ( WITH_QT5 )
     endif()
   else()
 
-    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}" )
+    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}/bin" )
     message( STATUS "### QMAKE = " ${QMAKE} )
     if ( NOT QMAKE )
       message( FATAL_ERROR "qmake command not found" )
