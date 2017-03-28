@@ -13,6 +13,7 @@ if ( Boost_FOUND )
     date_time
     filesystem
     iostreams
+    locale
     program_options
     regex
     serialization

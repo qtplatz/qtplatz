@@ -144,7 +144,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
     adplot::SpectrumWidget plot;
     plot.setData( tProfile, 0 );
     plot.setData( tCentroid, 1, true );
-    // plot.setZoomBase( range, true );
+    plot.setZoomBase( range, true );
     adplot::PeakMarker marker;
 
     marker.attach( &plot );
