@@ -110,7 +110,7 @@ for build_dir in ${build_dirs[@]}; do
 
 	echo "## Cross build for $arch"
 	case $cross_target in
-	    helio|armv7l|de0-nano-soc|arm-linux-gnueabihf)
+	    armhf|armv7l|arm-linux-gnueabihf|de0-nano-soc|helio)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
 		      -DQTPLATZ_CORELIB_ONLY=ON -DWITH_QT5=OFF -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir

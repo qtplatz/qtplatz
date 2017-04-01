@@ -15,7 +15,7 @@ cwd=$(pwd)
 arch=`uname`-`arch`
 
 if [ -z $cross_target ]; then
-    BUILD_DIR=~/src/$arch/rdkit
+    BUILD_DIR=~/src/build-$arch/rdkit
     export RDBASE=~/src/rdkit
     if [ -z $BOOST_ROOT ]; then
 	if [ -d /usr/local/boost-1_63 ]; then

@@ -56,6 +56,12 @@ function boost_build {
       
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
 	  ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+	echo "*****************************************************"
+	echo "boost has been built on `pwd`;
+	echo "run following command to install"
+	echo "cd `pwd`
+	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
+	echo "*****************************************************"
     )
 }
 
