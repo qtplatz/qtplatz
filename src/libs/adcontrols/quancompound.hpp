@@ -49,33 +49,46 @@ namespace adcontrols {
 
         const boost::uuids::uuid& uuid() const;
         uint32_t row() const;
-        void row( uint32_t );
+        void setRow( uint32_t );
         
         const wchar_t * display_name() const;
-        void displya_name( const wchar_t * );
+        void setDisplay_name( const wchar_t * );
+        
         const char * formula() const;
-        void formula( const char * );
-        bool isLKMSRef() const;
-        void isLKMSRef( bool );
-        bool isTimeRef() const;
-        void isTimeRef( bool );
-        bool isISTD() const;
-        void isISTD( bool );
-        int32_t idISTD() const;
-        void idISTD( int32_t );
-        void levels( size_t );
-        size_t levels() const;
-        const double * amounts() const;
-        void amounts( const double *, size_t size );
-        double mass() const;
-        void mass( double v );
-        double tR() const;
-        void tR( double v );
-        const wchar_t * description() const;
-        void description( const wchar_t * );
-        double criteria( bool second = false ) const;
-        void criteria( double v, bool second = false );
+        void setFormula( const char * );
 
+        void setIsLKMSRef( bool );
+        bool isLKMSRef() const;
+        
+        void setIsTimeRef( bool );
+        bool isTimeRef() const;
+        
+        void setIsISTD( bool );
+        bool isISTD() const;
+        
+        void setIdISTD( int32_t );
+        int32_t idISTD() const;
+
+        void setLevels( size_t );
+        size_t levels() const;
+
+        const double * amounts() const;
+        void setAmounts( const double *, size_t size );
+
+        double mass() const;
+        void setMass( double v );
+
+        double tR() const;
+        void set_tR( double v );
+
+        const wchar_t * description() const;
+        void setDescription( const wchar_t * );
+
+        double criteria( bool second = false ) const;
+        void setCriteria( double v, bool second = false );
+        
+        void setIsCounting( bool );
+        bool isCounting() const;
     private:
 
 #   if  defined _MSC_VER

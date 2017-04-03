@@ -62,6 +62,8 @@ namespace multumcontrols {
 
                 if ( version >= 7 )
                     ar & BOOST_SERIALIZATION_NVP( _.external_adc_delay );
+                if ( version >= 8 )
+                    ar & BOOST_SERIALIZATION_NVP( _.replicates_ );                    
                 
             } else {
                 ar & BOOST_SERIALIZATION_NVP( _.lower_mass );
@@ -93,10 +95,12 @@ namespace multumcontrols {
             }
         }
     };
+
     template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
+
     template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
@@ -171,6 +175,7 @@ OrbitProtocol::OrbitProtocol() : lower_mass( 0 )
                                , nlaps_( 0 )
                                , gate( 2 )
                                , reference_( 0 )
+                               , replicates_( 1 )
 {
 }
 
@@ -188,6 +193,7 @@ OrbitProtocol::OrbitProtocol( const OrbitProtocol& t ) : lower_mass(t.lower_mass
                                                        , nlaps_( t.nlaps_ )
                                                        , reference_( t.reference_ )
                                                        , formulae_( t.formulae_ )
+                                                       , replicates_( t.replicates_ )
 {            
 }
 
@@ -249,6 +255,18 @@ uint32_t
 OrbitProtocol::reference() const
 {
     return reference_;
+}
+
+uint32_t&
+OrbitProtocol::replicates()
+{
+    return replicates_;
+}
+
+uint32_t
+OrbitProtocol::replicates() const
+{
+    return replicates_;
 }
 
 ///////////////////

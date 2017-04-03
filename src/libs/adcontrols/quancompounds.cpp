@@ -121,7 +121,7 @@ QuanCompounds&
 QuanCompounds::operator << ( const QuanCompound& t )
 {
     impl_->compounds_.push_back( t );
-    impl_->compounds_.back().row( uint32_t( impl_->compounds_.size() - 1 ) );
+    impl_->compounds_.back().setRow( uint32_t( impl_->compounds_.size() - 1 ) );
     return *this;
 }
 

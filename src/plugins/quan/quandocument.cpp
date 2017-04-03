@@ -212,21 +212,6 @@ QuanDocument::load_default_methods()
     return !(dirty_flags_[ idQuanSequence ] | dirty_flags_[ idMethodComplex ]);
 }
 
-// bool
-// QuanDocument::load_default_doctemplate()
-// {
-//     // recovery from backup
-//     boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-//     boost::filesystem::path backup = dir / L"QuanDocTemplate.xml";
-
-//     auto doc = std::make_shared< adpublisher::document >();
-//     if ( doc->load_file( backup.string().c_str() ) ) {
-//         docTemplate_ = doc;
-//         return true;
-//     }
-//     return false;
-// }
-
 void
 QuanDocument::docTemplate( std::shared_ptr< adpublisher::document >& doc )
 {
@@ -373,9 +358,9 @@ void
 QuanDocument::execute_counting()
 {
     qtwrapper::waitCursor wait;
-
+    
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
-
+        
         // deep copy which prepare for a long background process (e.g. chromatogram search...)
         auto dup = std::make_shared< adcontrols::ProcessMethod >( *pm_ );
         unsigned int concurrency = std::min( std::thread::hardware_concurrency(), 4u );
@@ -389,6 +374,7 @@ QuanDocument::execute_counting()
                     QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
                     return;
                 }
+                
                 if ( !writer->create_counting_tables() ) {
                     QMessageBox::information( 0, "QuanDocument", "Create counting table failed" );
                     return;
@@ -415,99 +401,6 @@ QuanDocument::execute_counting()
         }
         
     }
-    
-#if 0 // simple (block gui) implementation for initial test
-    auto compounds( quanCompounds() );
-    auto qm = pm_->find< adcontrols::QuanMethod >();
-    auto tm = pm_->find< adcontrols::TargetingMethod >();
-    auto cm = pm_->find< adcontrols::CentroidMethod >();
-
-    double tolerance = tm->tolerance( adcontrols::idToleranceDaltons ) / 2.0;
-    adcontrols::CentroidProcess centroidProcess( *cm );
-    
-    if ( quanSequence_ && quanSequence_->size() > 0 ) {
-        
-        boost::filesystem::path outfile( quanSequence_->outfile() );
-        
-        outfile.replace_extension( ".csv" );
-        if ( boost::filesystem::exists( outfile ) ) {
-            boost::filesystem::path backup( outfile );
-            backup.replace_extension( ".csv.old" );
-            boost::filesystem::rename( outfile, backup );
-        }
-
-        // save sequence
-        boost::filesystem::path qseq( outfile );
-        qseq.replace_extension( ".qseq" );
-        if ( boost::filesystem::exists( qseq ) ) {
-            boost::filesystem::path backup( qseq );
-            backup.replace_extension( ".qseq.old" );
-            boost::filesystem::rename( qseq, backup );
-            save( qseq, *quanSequence_, false );
-        }
-
-        boost::filesystem::ofstream of( outfile );
-        of << "#filename\t[ion\tcounts\twidth\tmass\ttime\tarea (at " << cm->peakCentroidFraction() * 100 << "%)]..." << std::endl;
-
-        for ( auto it = quanSequence_->begin(); it != quanSequence_->end(); ++it ) {
-            
-            of << boost::filesystem::path( it->dataSource() ).string();
-
-            auto dp = std::make_shared< adprocessor::dataprocessor >();
-            std::wstring emsg;
-            std::shared_ptr< adcontrols::MassSpectrum > hist;
-
-            if ( dp->open( it->dataSource(), emsg ) && ( hist = dp->readSpectrumFromTimeCount() ) ) {
-                using adcontrols::MSPeakInfo;
-                using adcontrols::MSPeakInfoItem;
-                std::map< std::string, MSPeakInfoItem > pks;
-
-                if ( centroidProcess( *hist ) ) {
-                    const auto& pkinfo = centroidProcess.getPeakInfo();
-
-                    for ( const auto& compound: compounds ) {
-                        auto beg = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m){
-                                return a.mass() < m;
-                            });
-                        auto end = std::lower_bound( pkinfo.begin(), pkinfo.end(), compound.mass() + tolerance, [](const auto& a, const double& m){
-                                return a.mass() < m;
-                            });                        
-                        if ( beg != pkinfo.end() ) {
-                            auto it = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
-                            pks[ compound.formula() ] = *it;
-                            // if ( auto spectrometer = dp->massSpectrometer() ) {
-                            //     auto scanlaw = spectrometer->scanLaw();
-                            //     ADDEBUG() << "###" << compound.formula()
-                            //               << "\t" << it->mass() << "\t" << scanlaw->getMass( it->time(), hist->mode() )
-                            //               << "\t" << it->time() << "\t" << scanlaw->getTime( it->mass(), hist->mode() );
-                            // }
-                        }
-                    }
-                }
-
-                const double * masses = hist->getMassArray();
-                const double * counts = hist->getIntensityArray();
-
-                int n(0);
-                for ( const auto& compound: compounds ) {
-
-                    size_t size(0), count(0), idx;
-                    auto beg = std::lower_bound( masses, masses + hist->size(), compound.mass() - tolerance );
-                    auto end = std::lower_bound( masses, masses + hist->size(), compound.mass() + tolerance );
-                    if ( beg != masses + hist->size() ) {
-                        idx = std::distance( masses, beg );
-                        size = std::distance( beg, end );
-                        count = size_t( std::accumulate( counts + idx, counts + idx + size, double(0) ) + 0.5 );
-                    }
-                    auto pk = pks[ compound.formula() ];
-                    of << boost::format("\t\"%s\"\t%d\t%d\t%.14lf\t%.14le\t%g" )
-                        % compound.formula() % size_t( count + 0.5 ) % size % pk.mass() % pk.time() % pk.area();
-                }
-                of << std::endl;
-            }
-        }
-    }
-#endif
 }
 
 void

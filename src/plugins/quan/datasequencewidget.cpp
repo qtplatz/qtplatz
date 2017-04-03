@@ -44,7 +44,8 @@
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adlog/logger.hpp>
-#include <adplot/chartview.hpp>
+//#include <adplot/chartview.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <adplot/xyseriesdata.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adportable/debug.hpp>
@@ -135,8 +136,10 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
     if ( QSplitter * splitter = new QSplitter ) {
         splitter->setOrientation( Qt::Horizontal );
         splitter->addWidget( dataSequenceChromatography_.get() );
-        if ( auto chartView = new adplot::ChartView )
-            splitter->addWidget( chartView );
+        if ( auto spw = new adplot::SpectrumWidget )
+            splitter->addWidget( spw );
+        // if ( auto chartView = new adplot::ChartView )
+        //     splitter->addWidget( chartView );
         stack_->addWidget( splitter );
     }
 
@@ -336,7 +339,10 @@ DataSequenceWidget::handlePlot( const QString& file )
         if ( dp->open( path.wstring(), errmsg ) ) {
 
             if ( auto hist = dp->readSpectrumFromTimeCount() ) {
-
+                if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
+                    spw->setData( hist, 0 );
+                }
+#if 0
                 if ( auto chart = findChild< adplot::ChartView * >() ) {
                     auto data = new adplot::XYSeriesData();
                     for ( size_t i = 0; i < hist->size(); ++i )
@@ -344,6 +350,7 @@ DataSequenceWidget::handlePlot( const QString& file )
                     chart->clear();
                     chart->setData( data, "Histogram", "m/z", "count(*)", "Line" );
                 }
+#endif
             }
         }
     }

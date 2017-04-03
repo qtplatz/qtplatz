@@ -31,7 +31,6 @@
 #include <string>
 
 namespace boost { namespace serialization { class access; } }
-namespace adcontrols { class TofProtocol; }
 
 namespace multumcontrols {
     
@@ -79,12 +78,17 @@ namespace multumcontrols {
         uint32_t& reference();
         uint32_t reference() const;
 
+        uint32_t& replicates();
+        uint32_t replicates() const;
+
     private:
         std::vector< std::pair< eItem, int32_t > > additionals_;
         uint32_t nlaps_;        // number of laps
         uint32_t reference_;    // lock mass reference (bit position indicate which formula in formulae
         std::string formulae_;  // formula list, separate with ';'
         std::string description_;
+        // serializer v8
+        uint32_t replicates_;
         
     public:
         OrbitProtocol();
@@ -105,5 +109,5 @@ namespace multumcontrols {
 
 }
 
-BOOST_CLASS_VERSION( multumcontrols::OrbitProtocol, 7 )
+BOOST_CLASS_VERSION( multumcontrols::OrbitProtocol, 8 )
 BOOST_CLASS_VERSION( multumcontrols::DelayMethod, 1 )

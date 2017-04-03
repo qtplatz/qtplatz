@@ -73,9 +73,8 @@
 #include <QTableView>
 #include <QDockWidget>
 #include <QStandardItemModel>
-#include <QMenu>
 #include <QMessageBox>
-
+#include <QMenu>
 #include <boost/filesystem.hpp>
 #include <boost/exception/all.hpp>
 #include <numeric>

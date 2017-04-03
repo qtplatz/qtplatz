@@ -49,7 +49,16 @@ namespace adcontrols {
         }
   
         impl() : uuid_( adportable::uuid()() )
-               , row_( 0 ) {
+               , row_( 0 )
+               , amounts_( 1 )
+               , tR_( 0 )
+               , mass_( 0 )
+               , isISTD_( false )
+               , isLKMSRef_( false )
+               , isTimeRef_( false )
+               , idISTD_( -1 )
+               , criteria_( std::make_pair( 0, 0 ) )
+               , isCounting_( true ) {
         }
 
         impl( const boost::uuids::uuid& uuid ) : uuid_( uuid )
@@ -61,7 +70,8 @@ namespace adcontrols {
                                                , isLKMSRef_( false )
                                                , isTimeRef_( false )
                                                , idISTD_( -1 )
-                                               , criteria_( std::make_pair( 0, 0 ) ) {
+                                               , criteria_( std::make_pair( 0, 0 ) )
+                                               , isCounting_( true ) {
         }
 
         impl( const impl& t ) : uuid_( t.uuid_ )
@@ -76,7 +86,8 @@ namespace adcontrols {
                               , isLKMSRef_( t.isLKMSRef_ )
                               , isTimeRef_( t.isTimeRef_ )
                               , idISTD_( t.idISTD_ )
-                              , criteria_( t.criteria_ ) {
+                              , criteria_( t.criteria_ )
+                              , isCounting_( t.isCounting_ ) {
         }
 
     public:
@@ -93,6 +104,7 @@ namespace adcontrols {
         bool isTimeRef_;
         int32_t idISTD_;  // index for internal standad (referenced from non-istd
         std::pair< double, double > criteria_;  // pass/fail criteria
+        bool isCounting_; // use counting data channel if true
 
     //private:
         friend class boost::serialization::access;
@@ -112,13 +124,15 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( tR_ );
             ar & BOOST_SERIALIZATION_NVP( mass_ );
             ar & BOOST_SERIALIZATION_NVP( criteria_ );
-
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( isCounting_ );
+            }
         }
         
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanCompound::impl, 2 )
+BOOST_CLASS_VERSION( adcontrols::QuanCompound::impl, 3 )
 
 namespace adcontrols {
 
@@ -201,7 +215,7 @@ QuanCompound::row() const
 }
 
 void
-QuanCompound::row( uint32_t t )
+QuanCompound::setRow( uint32_t t )
 {
     impl_->row_ = t;
 }
@@ -213,7 +227,7 @@ QuanCompound::display_name() const
 }
 
 void
-QuanCompound::displya_name( const wchar_t * v )
+QuanCompound::setDisplay_name( const wchar_t * v )
 {
     impl_->display_name_ = v;
 }
@@ -225,7 +239,7 @@ QuanCompound::description() const
 }
 
 void
-QuanCompound::description( const wchar_t * v )
+QuanCompound::setDescription( const wchar_t * v )
 {
     impl_->description_ = v;
 }
@@ -237,9 +251,21 @@ QuanCompound::formula() const
 }
 
 void
-QuanCompound::formula( const char * v )
+QuanCompound::setFormula( const char * v )
 {
     impl_->formula_ = v;
+}
+
+bool
+QuanCompound::isCounting() const
+{
+    return impl_->isCounting_;
+}
+
+void
+QuanCompound::setIsCounting( bool f )
+{
+    impl_->isCounting_ = f;
 }
 
 bool
@@ -249,7 +275,7 @@ QuanCompound::isLKMSRef() const
 }
 
 void
-QuanCompound::isLKMSRef( bool f )
+QuanCompound::setIsLKMSRef( bool f )
 {
     impl_->isLKMSRef_ = f;
 }
@@ -261,7 +287,7 @@ QuanCompound::isTimeRef() const
 }
 
 void
-QuanCompound::isTimeRef( bool f )
+QuanCompound::setIsTimeRef( bool f )
 {
     impl_->isTimeRef_ = f;
 }
@@ -273,7 +299,7 @@ QuanCompound::isISTD() const
 }
 
 void
-QuanCompound::isISTD( bool f )
+QuanCompound::setIsISTD( bool f )
 {
     impl_->isISTD_ = f;
 }
@@ -285,13 +311,13 @@ QuanCompound::idISTD() const
 }
 
 void
-QuanCompound::idISTD( int32_t v )
+QuanCompound::setIdISTD( int32_t v )
 {
     impl_->idISTD_ = v;
 }
 
 void
-QuanCompound::levels( size_t v )
+QuanCompound::setLevels( size_t v )
 {
     impl_->amounts_.resize(v);
 }
@@ -303,7 +329,7 @@ QuanCompound::mass() const
 }
 
 void
-QuanCompound::mass( double v )
+QuanCompound::setMass( double v )
 {
     impl_->mass_ = v;
 }
@@ -315,10 +341,10 @@ QuanCompound::tR() const
 }
 
 void
-QuanCompound::tR( double v )
+QuanCompound::set_tR( double v )
 {
     impl_->tR_ = v;
-};
+}
 
 size_t
 QuanCompound::levels() const
@@ -333,7 +359,7 @@ QuanCompound::amounts() const
 }
 
 void
-QuanCompound::amounts( const double * d, size_t size )
+QuanCompound::setAmounts( const double * d, size_t size )
 {
     if ( size != impl_->amounts_.size() )
         impl_->amounts_.resize( size );
@@ -347,7 +373,7 @@ QuanCompound::criteria( bool second ) const
 }
 
 void
-QuanCompound::criteria( double v, bool second )
+QuanCompound::setCriteria( double v, bool second )
 {
     if ( second )
         impl_->criteria_.second = v;

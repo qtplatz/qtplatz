@@ -49,6 +49,7 @@ namespace quan {
             c_formula
             , c_mass
             , c_tR
+            , c_isCounting
             , c_isTimeReference // only for chromatography relative retention time
             , c_isLKMSReference // for lock mass
             , c_isISTD
@@ -226,7 +227,9 @@ CompoundsTable::onInitialUpdate()
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_formula,  Qt::Horizontal, tr( "formula" ) );
     model.setHeaderData( c_mass,  Qt::Horizontal, tr( "<i>m/z</i>" ) );
+    
     model.setHeaderData( c_tR,  Qt::Horizontal, tr( "t<sub>R</sub>(min)" ) );
+    model.setHeaderData( c_isCounting,  Qt::Horizontal, tr( "Counting" ) );
     model.setHeaderData( c_isTimeReference,  Qt::Horizontal, tr( "t<sub>R</sub> ref." ) );
     model.setHeaderData( c_isLKMSReference,  Qt::Horizontal, tr( "lock mass" ) );
     model.setHeaderData( c_isISTD,  Qt::Horizontal, tr( "ISTD" ) );
@@ -325,16 +328,17 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
     c.clear();
     for ( int row = 0; row < model.rowCount(); ++row ) {
         adcontrols::QuanCompound a;
-        a.formula( model.index( row, c_formula ).data().toString().toStdString().c_str() );
+        a.setFormula( model.index( row, c_formula ).data().toString().toStdString().c_str() );
         if ( std::string( a.formula() ).empty() )
             continue;
-        a.description( model.index( row, c_description ).data().toString().toStdWString().c_str() );
-        a.mass( model.index( row, c_mass ).data().toDouble() );
-        a.tR( model.index( row, c_tR ).data().toDouble() * 60.0 ); // min -> sec
-        a.isISTD( model.index( row, c_isISTD ).data().toBool() );
-        a.idISTD( model.index( row, c_isISTD ).data().toInt() );
-        a.isLKMSRef( model.index( row, c_isLKMSReference ).data().toBool() );
-        a.isTimeRef( model.index( row, c_isTimeReference ).data().toBool() );
+        a.setDescription( model.index( row, c_description ).data().toString().toStdWString().c_str() );
+        a.setMass( model.index( row, c_mass ).data().toDouble() );
+        a.set_tR( model.index( row, c_tR ).data().toDouble() ); // sec
+        a.setIsCounting( model.index( row, c_isCounting ).data().toBool() );
+        a.setIsISTD( model.index( row, c_isISTD ).data().toBool() );
+        a.setIdISTD( model.index( row, c_isISTD ).data().toInt() );
+        a.setIsLKMSRef( model.index( row, c_isLKMSReference ).data().toBool() );
+        a.setIsTimeRef( model.index( row, c_isTimeReference ).data().toBool() );
 
         std::vector< double > amounts;
         for ( int i = c_level_0; i <= c_level_last; ++i ) {
@@ -342,7 +346,7 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
             if ( !data.isNull() )
                 amounts.push_back( data.toDouble() );
         }
-        a.amounts( amounts.data(), amounts.size() );
+        a.setAmounts( amounts.data(), amounts.size() );
         c << a;
     }
     return false;
@@ -365,10 +369,17 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
         std::string formula = comp.formula();
         model.setData( model.index( row, c_formula ), QString::fromStdString( formula ) );
         model.setData( model.index( row, c_mass ), comp.mass() );
-        model.setData( model.index( row, c_tR ), comp.tR() / 60.0 ); // sec -> min
+        model.setData( model.index( row, c_tR ), comp.tR() ); // sec
         model.setData( model.index( row, c_description ), QString::fromStdWString( comp.description() ) );
 
         model.item( row, c_mass )->setEditable( false );
+
+        if ( auto cbx = model.itemFromIndex( model.index( row, c_isCounting ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( row, c_isCounting ), comp.isCounting(), Qt::EditRole );
+            model.setData( model.index( row, c_isCounting ), comp.isCounting() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
 
         if ( auto cbx = model.itemFromIndex( model.index( row, c_isLKMSReference ) ) ) {
             cbx->setEditable( false );

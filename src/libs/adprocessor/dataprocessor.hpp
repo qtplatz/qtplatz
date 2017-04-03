@@ -73,6 +73,8 @@ namespace adprocessor {
         virtual portfolio::Portfolio& portfolio();
 
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
+        virtual std::shared_ptr< adcontrols::MassSpectrum > readCoAddedSpectrum( bool histogram = false );
+        
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
         virtual bool doCentroid( adcontrols::MSPeakInfo& pkInfo

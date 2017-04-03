@@ -431,7 +431,7 @@ DataSequenceTable::handleContextMenu( const QPoint& pt )
     if ( !index.isValid() )
         delete_action->setEnabled( false );
 
-    if ( auto action = menu.addAction( tr( "Plot Histogram" ), this, SLOT( plotHistogram() ) ) ) {
+    if ( auto action = menu.addAction( tr( "Plot Spectrum" ), this, SLOT( plotHistogram() ) ) ) {
         if ( !index.isValid() || !isCounting_ )
             delete_action->setEnabled( false );        
     }
