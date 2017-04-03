@@ -44,7 +44,6 @@
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adlog/logger.hpp>
-//#include <adplot/chartview.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/xyseriesdata.hpp>
 #include <adprocessor/dataprocessor.hpp>
@@ -52,6 +51,7 @@
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 #include <adfs/sqlite.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
@@ -136,8 +136,12 @@ DataSequenceWidget::DataSequenceWidget(QWidget *parent) : QWidget(parent)
     if ( QSplitter * splitter = new QSplitter ) {
         splitter->setOrientation( Qt::Horizontal );
         splitter->addWidget( dataSequenceChromatography_.get() );
-        if ( auto spw = new adplot::SpectrumWidget )
+        if ( auto spw = new adplot::SpectrumWidget ) {
+            spw->enableAxis( QwtPlot::yRight, true );
+            spw->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+            spw->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
             splitter->addWidget( spw );
+        }
         // if ( auto chartView = new adplot::ChartView )
         //     splitter->addWidget( chartView );
         stack_->addWidget( splitter );
@@ -333,25 +337,39 @@ DataSequenceWidget::handlePlot( const QString& file )
     std::wstring errmsg;
     
     if ( boost::filesystem::exists( path ) ) {
+
+        qtwrapper::waitCursor wait;
         
         auto dp = std::make_shared< adprocessor::dataprocessor >();
 
         if ( dp->open( path.wstring(), errmsg ) ) {
+            if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
 
+                // averaged waveform
+                if ( auto ms = dp->readCoAddedSpectrum( true ) ) {
+                    spw->setData( ms, 0, false );
+                }
+
+                // counting histogram
+                if ( auto ms = dp->readCoAddedSpectrum( false ) ) {
+                    spw->setData( ms, 1, true );
+                }
+            }
+#if 0
             if ( auto hist = dp->readSpectrumFromTimeCount() ) {
                 if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
                     spw->setData( hist, 0 );
                 }
-#if 0
-                if ( auto chart = findChild< adplot::ChartView * >() ) {
-                    auto data = new adplot::XYSeriesData();
-                    for ( size_t i = 0; i < hist->size(); ++i )
-                        (*data) << QPointF( hist->getMass( i ), hist->getIntensity( i ) );
-                    chart->clear();
-                    chart->setData( data, "Histogram", "m/z", "count(*)", "Line" );
-                }
-#endif
+
+                // if ( auto chart = findChild< adplot::ChartView * >() ) {
+                //     auto data = new adplot::XYSeriesData();
+                //     for ( size_t i = 0; i < hist->size(); ++i )
+                //         (*data) << QPointF( hist->getMass( i ), hist->getIntensity( i ) );
+                //     chart->clear();
+                //     chart->setData( data, "Histogram", "m/z", "count(*)", "Line" );
+                // }
             }
+#endif
         }
     }
 }

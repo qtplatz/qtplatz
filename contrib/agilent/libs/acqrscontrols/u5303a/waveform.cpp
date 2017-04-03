@@ -322,6 +322,7 @@ waveform::operator += ( const waveform& t )
             }
         }
 
+#if 0
         /// debug
         if ( t.meta_.dataType == 4 ) {
             auto pair = std::minmax_element( t.begin< int32_t >(), t.begin< int32_t >() + t.size() );
@@ -329,7 +330,7 @@ waveform::operator += ( const waveform& t )
             ADDEBUG() << boost::format( "t=%d[%4d] (max,min)= (%-9d, %-9d), sum = %-9d" ) % meta_.dataType % meta_.actualAverages % *pair.second % *pair.first % a;
         }
         // end debug
-        
+#endif
     }
     return *this;
 }

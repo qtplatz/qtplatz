@@ -150,7 +150,7 @@ namespace adcontrols {
 
         virtual std::shared_ptr< adcontrols::MassSpectrum >  readSpectrum( const_iterator& it ) const { return nullptr; }
 
-        virtual std::shared_ptr< adcontrols::MassSpectrum >  coaddSpectrum( const_iterator& begin, const_iterator& end ) const { return nullptr; }
+        virtual std::shared_ptr< adcontrols::MassSpectrum >  coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const { return nullptr; }
 
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 

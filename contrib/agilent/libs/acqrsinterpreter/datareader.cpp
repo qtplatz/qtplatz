@@ -49,6 +49,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <atomic>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -689,6 +690,8 @@ DataReader::readSpectrum( const_iterator& it ) const
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );
 
+    ADDEBUG() << "readSpectrum fcn=" << it._fcn() << ", pos=" << it->pos() << ", " << objid_;
+            
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
         if ( auto db = db_.lock() ) {
             
@@ -787,7 +790,7 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
-DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
+DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
 {
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
@@ -796,12 +799,14 @@ DataReader::coaddSpectrum( const_iterator& begin, const_iterator& end ) const
             adfs::stmt sql( *db );
             
             int fcn = begin._fcn(); // if this is -1, query all protocols
+            
+            ADDEBUG() << "coaddSpectrum fcn=" << fcn << ", begin=" << begin->pos() << ", end=" << end->pos() << ", " << objid_;
 
             if ( fcn < 0 ) {
                 sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
                 sql.bind( 1 ) = objid_;
                 sql.bind( 2 ) = begin->pos();
-                sql.bind( 3 ) = end->pos();
+                sql.bind( 3 ) = end->pos() != (-1) ? end->pos() : std::numeric_limits<int64_t>::max();
             } else {
                 sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos >= ? AND npos <= ? ORDER BY npos" );
                 sql.bind( 1 ) = objid_;

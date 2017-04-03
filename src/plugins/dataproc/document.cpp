@@ -482,10 +482,7 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
 
     for ( auto reader: dset->dataReaders() ) {
         
-        auto begin = reader->findPos( t1 );
-        auto end = reader->findPos( t2 );
-        
-        if ( auto ms = reader->coaddSpectrum( begin, end ) ) {
+        if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
             std::ostringstream o;
             o << "Spectrum " << reader->display_name() << " (" << std::fixed << std::setprecision( 3 ) << x1 << " - " << x2 << ")min";
             adcontrols::ProcessMethod m;
