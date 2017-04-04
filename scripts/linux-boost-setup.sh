@@ -1,4 +1,5 @@
 #!/bin/bash
+arch=`uname`-`arch`
 
 function prompt {
     while true; do
@@ -30,22 +31,29 @@ function boost_download {
     BOOST_VERSION=$1
     BUILD_ROOT=$2
     BOOST_BUILD_DIR=$3
-    
-    if [ ! -d $BOOST_BUILD_DIR ]; then
-	VERSION=$(echo $BOOST_VERSION | tr _ .)
+
+    if [ ! -f ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 ]; then
 	echo "=============================="
+	VERSION=$(echo $BOOST_VERSION | tr _ .)    
 	echo wget https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 	if [ -f download ]; then
 	    echo "Clean previoud download file"
 	    rm -f download
 	fi
 	wget https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
-	tar xvf download -C $(dirname $BOOST_BUILD_DIR)
 	mv download ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2
     fi
+    if [ -f ${BOOST_BUILD_DIR} ]; then
+	rm -rf ${BOOST_BUILD_DIR}
+    fi
+    tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname $BOOST_BUILD_DIR)	
 }
 
 function boost_build {
+    echo "=============================="
+    echo "   BOOST install for $arch    "
+    echo "=============================="
+    
     BOOST_BUILD_DIR=$1
     BZIP2_SOURCE=$2
     ( cd $BOOST_BUILD_DIR;
@@ -57,17 +65,22 @@ function boost_build {
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
 	  ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	echo "*****************************************************"
-	echo "boost has been built on `pwd`;
+	echo "boost has been built on `pwd`";
 	echo "run following command to install"
-	echo "cd `pwd`
-	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
+	echo "cd `pwd`"
+	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
 	echo "*****************************************************"
 	prompt
-	sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
     )
 }
 
 function boost_cross_build {
+    echo "=============================="
+    echo "   BOOST install for $cross_target "
+    echo "=============================="
+    prompt
+    
     BOOST_BUILD_DIR=$1
     BZIP2_SOURCE=$2    
     if [ ! -d $(dirname $BOOST_PREFIX) ]; then
@@ -92,7 +105,6 @@ function boost_cross_build {
     )
 }
 
-
 if [ -z $BOOST_VERSION ]; then
     BOOST_VERSION=1_62_0
 fi
@@ -106,7 +118,7 @@ if [ -z $DOWNLOADS ]; then
 fi
 
 if [ -z $cross_target ]; then
-    BUILD_ROOT=~/src
+    BUILD_ROOT=~/src/build-$arch
     CROSS_ROOT=
 else
     BUILD_ROOT=~/src/build-$cross_target;
@@ -117,7 +129,7 @@ BZIP2_SOURCE=~/src/bzip2-1.0.6
 BOOST_BUILD_DIR=$BUILD_ROOT/boost_${BOOST_VERSION}
 BOOST_PREFIX=${CROSS_ROOT}$PREFIX/boost-${BOOST_VERSION/%_0//}
 
-echo "INSTALLING libboost to"
+echo "INSTALLING 'boost' $cross_target to"
 echo "	BOOST DOWNLOAD    : ${DOWNLOADS}"
 echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
 echo "	BOOST_PREFIX      : ${BOOST_PREFIX}"

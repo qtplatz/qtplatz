@@ -51,9 +51,10 @@ if [ -z $cross_target ]; then
 	    fi
 	    ;;
 	*)
-	    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
-	    build_dirs=("$build_root/build-$arch/boost" \
-			    "$build_root/build-$arch/qtplatz.$config" )
+#	    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
+#	    build_dirs=("$build_root/build-$arch/boost" "$build_root/build-$arch/qtplatz.$config" )
+	    source_dirs=( "$cwd" )
+	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
 	    if [ "$config" = "debug" ]; then
 		if [ "$ide" = "eclipse" ]; then
 		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
@@ -70,10 +71,8 @@ if [ -z $cross_target ]; then
 	    ;;
     esac
 else
-    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
-    build_dirs=("$build_root/build-$cross_target/boost" \
-		"$build_root/build-$cross_target/qtplatz.$config" )
-		    
+    source_dirs=( "$cwd" )
+    build_dirs=( "$build_root/build-$cross_target/qtplatz.$config" )
 fi
 
 ## Clean destinatiuon 
