@@ -62,6 +62,8 @@ function boost_build {
 	echo "cd `pwd`
 	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
 	echo "*****************************************************"
+	prompt
+	sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
     )
 }
 
@@ -142,6 +144,10 @@ prompt
 if [ ! -d ${BZIP2_SOURCE} ]; then
     bzip2_download $BZIP2_SOURCE $DOWNLOADS
     if [ ! $? -eq 0 ]; then exit 1; fi
+fi
+
+if [ ! -d ${BUILD_ROOT} ]; then
+    mkdir -p ${BUILD_ROOT}
 fi
 
 boost_download ${BOOST_VERSION} ${BUILD_ROOT} ${BOOST_BUILD_DIR}
