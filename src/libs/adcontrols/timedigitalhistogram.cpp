@@ -425,7 +425,7 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     size_t idx = 0;
     for ( auto it = hgrm.begin(); it != hgrm.end(); ++it, ++idx ) {
         sp.setTime( idx, it->first );
-        sp.setIntensity( idx, it->second );
+        sp.setIntensity( idx, it->second ); // return raw count values
     }
     
     return true;

@@ -412,7 +412,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db )
 
     if ( sql.prepare( query ) ) {
 
-        ADDEBUG() << query;
+        //ADDEBUG() << query;
 
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;

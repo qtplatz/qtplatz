@@ -60,6 +60,9 @@ QuanCmpdWidget::QuanCmpdWidget( QWidget * parent ) : QWidget( parent )
         topLayout->addWidget( toolBar );
     }
     topLayout->addWidget( table_ );
+
+    table_->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    table_->setSelectionBehavior(QAbstractItemView::SelectRows); // Selecting only rows
 }
 
 boost::uuids::uuid

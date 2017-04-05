@@ -848,7 +848,7 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 ms->setDataReaderUuid( objid_ );
 
                 boost::apply_visitor( make_massspectrum( *ms ), wform.second.second );
-                ADDEBUG() << "protocolId = " << ms->protocolId() << " == fcn=" << wform.first;
+                // ADDEBUG() << "protocolId = " << ms->protocolId() << " == fcn=" << wform.first;
 
                 if ( spectrometer_ ) {
                     spectrometer_->assignMasses( *ms );

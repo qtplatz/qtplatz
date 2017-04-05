@@ -360,6 +360,7 @@ dataprocessor::readCoAddedSpectrum( bool histogram )
         if ( auto raw = this->rawdata() ) {
             if ( auto reader = raw->dataReader( objuuid ) ) {
                 auto ms = reader->coaddSpectrum( reader->begin(), reader->end() );
+                
                 return ms;
             }
         }

@@ -106,6 +106,9 @@ QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
     setModel( model_.get() );
     setItemDelegate( new quanresulttable::ItemDelegate );
     setHorizontalHeader( new adwidgets::HtmlHeaderView );
+
+    setSelectionMode(QAbstractItemView::ContiguousSelection);
+    setSelectionBehavior(QAbstractItemView::SelectRows); // Selecting only rows
 }
 
 void

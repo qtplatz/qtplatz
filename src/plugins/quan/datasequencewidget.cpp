@@ -39,6 +39,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansample.hpp>
@@ -345,15 +346,34 @@ DataSequenceWidget::handlePlot( const QString& file )
         if ( dp->open( path.wstring(), errmsg ) ) {
             if ( auto spw = findChild< adplot::SpectrumWidget * >() ) {
 
-                // averaged waveform
-                if ( auto ms = dp->readCoAddedSpectrum( true ) ) {
+                // counting profile
+                if ( auto ms = dp->readCoAddedSpectrum( false ) ) {
                     spw->setData( ms, 0, false );
                 }
-
-                // counting histogram
-                if ( auto ms = dp->readCoAddedSpectrum( false ) ) {
+                
+                // averaged histogram
+                if ( auto hist = dp->readSpectrumFromTimeCount() ) {
+                    // normalize to 1000 trigger
+                    for ( auto& t: adcontrols::segment_wrapper<>( *hist ) ) {
+                        unsigned int count_trig = t.getMSProperty().numAverage();
+                        for ( size_t i = 0; i < t.size(); ++i )
+                            t.setIntensity( i, t.getIntensity( i ) * 1000 / count_trig );
+                    }
+                    spw->setData( hist, 1, true );
+                }
+#if 0                
+                // realtime histogram has a resolution problem
+                if ( auto ms = dp->readCoAddedSpectrum( true ) ) {
+                    // normalize to counts / 1000 trig
+                    for ( auto& t: adcontrols::segment_wrapper<>( *ms ) ) {
+                        unsigned int count_trig = t.getMSProperty().numAverage();
+                        ADDEBUG() << "##### num. count = " << count_trig << " proto# " << t.protocolId() << "/" << t.nProtocols();
+                        for ( size_t i = 0; i < t.size(); ++i )
+                            t.setIntensity( i, t.getIntensity( i ) * 1000 / count_trig );
+                    }
                     spw->setData( ms, 1, true );
                 }
+#endif
             }
 #if 0
             if ( auto hist = dp->readSpectrumFromTimeCount() ) {

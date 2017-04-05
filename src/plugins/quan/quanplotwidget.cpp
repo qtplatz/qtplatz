@@ -116,7 +116,7 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
 
         auto pkinfo = d->pkinfo->findProtocol( fcn );
 
-        if ( pkinfo ) {
+        if ( pkinfo && pkinfo->size() > idx ) {
             auto item = pkinfo->begin() + idx;
 
             double mass = item->mass();

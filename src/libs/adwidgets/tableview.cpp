@@ -59,7 +59,8 @@ void
 TableView::mouseReleaseEvent( QMouseEvent * event )
 {
 	QModelIndex index = indexAt( event->pos() );
-	QTableView::mousePressEvent( event );
+
+    QTableView::mouseReleaseEvent( event );
 
 	if ( index.isValid() ) {
         Qt::ItemFlags flags = model()->flags( index );

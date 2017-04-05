@@ -27,6 +27,7 @@
 #include <adcontrols/datasubscriber.hpp>
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 #include <mutex>
 
@@ -44,6 +45,11 @@ namespace adcontrols {
     class TargetingMethod;
     class QuanSample;
     class QuanCompounds;
+    class QuanResponse;
+}
+
+namespace adprocessor {
+    class dataprocessor;
 }
 
 namespace portfolio { class Portfolio; class Folium;  }
@@ -54,6 +60,11 @@ namespace quan {
     class QuanDataWriter;
     class QuanProcessor;
     class QuanChromatogram;
+
+    ////////////////////
+    class FindCompounds;
+
+    ///////////////////////////////////
 
     class QuanCountingProcessor : public adcontrols::dataSubscriber {
         QuanCountingProcessor( const QuanCountingProcessor& ) = delete;
@@ -70,6 +81,7 @@ namespace quan {
         
     private:
         friend class QuanChromatogramProcessor;
+
         std::wstring path_;
         const adcontrols::LCMSDataset * raw_;
         std::vector< adcontrols::QuanSample > samples_;

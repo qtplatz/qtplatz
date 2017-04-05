@@ -124,7 +124,49 @@ QuanResultWidget::CountingIndexChanged( int idx )
     bool isISTD = QuanDocument::instance()->quanMethod().isInternalStandard();
     std::string query;
     if ( isISTD ) {
-        query =
+
+        bool hasIsCounting( true );
+        
+        // if ( auto conn = connection_.lock() ) {
+        //     if ( auto query = conn->query() ) {
+        //         if ( query->prepare( "PRAGMA table_info( 'QuanCompound')" ) )
+                    
+        //     }
+        // }
+        
+        query = hasIsCounting ? 
+            "SELECT t1.uuid as 'uuid'"
+            ", t1.id as id"
+            ", t1.idSample as idSample"
+            ", t1.name as name"
+            ", t1.sampleType as sampletype"
+            ", t1.level as level"
+            ", t1.formula as formula"
+            ", t1.isCounting as isCounting"
+            ", t1.mass as mass"
+            ", t1.error as 'error(mDa)'"
+            ", t1.CountRate"
+            ", t2.formula as formula"
+            ", t2.CountRate as CountRate"
+            ", t1.CountRate/t2.CountRate AS 'Ratio'"
+            ", amount"
+            ", trigCounts,dataSource"
+            " FROM "
+            "(SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name,idSample"
+            ", sampleType, QuanSample.level, QuanCompound.formula"
+            ", QuanCompound.isCounting"
+            ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
+            ", intensity * 1000 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound"
+            " WHERE QuanSample.id = idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid %1%) t1"
+            " LEFT JOIN"
+            " (SELECT idSample, intensity * 1000 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
+            " FROM QuanResponse,QuanCompound"
+            " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
+            " ON t1.idSample=t2.idSample ORDER BY t1.idSample"
+            :
             "SELECT t1.uuid as 'uuid'"
             ", t1.id as id"
             ", t1.idSample as idSample"
@@ -154,6 +196,7 @@ QuanResultWidget::CountingIndexChanged( int idx )
             " FROM QuanResponse,QuanCompound"
             " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
             " ON t1.idSample=t2.idSample ORDER BY t1.idSample";
+        
     } else {
         query =
             "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"

@@ -707,6 +707,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     sp.resize( waveform.size() );
     sp.setProtocol( waveform.method_.protocolIndex(), waveform.method_.protocols().size() );
 
+    // waveform_copy
+    // normalize waveform to volts/millivolts scale with respect to actual number of average
+    
 	if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
 
 		if ( waveform.meta_.dataType == 2 ) {
@@ -719,12 +722,11 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     } else {
 
-        double dbase(0), tic(0);
+        double dbase(0); // dbase should already subtracted during waveform += operator
+        
 		if ( waveform.meta_.dataType == 4 ) {
-            //tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
             waveform_copy<int32_t>()( sp, waveform, scale, dbase );
         } else if ( waveform.meta_.dataType == 8 ) {
-            //tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
             waveform_copy<int64_t>()( sp, waveform, scale, dbase );
         }
     }

@@ -280,6 +280,7 @@ QuanDataWriter::create_table()
 ,description    TEXT     \
 ,criteria_0     REAL     \
 ,criteria_1     REAL     \
+,isCounting     INTEGER  \
 ,UNIQUE(uuid) \
 ,FOREIGN KEY( idTable ) REFERENCES idAudit( uuid ))" );
 
@@ -537,8 +538,8 @@ QuanDataWriter::insert_table( const adcontrols::QuanCompounds& t )
     for ( auto& c: t ) {
 
         if ( sql.prepare( "INSERT INTO QuanCompound \
-(uuid,idTable,row,display_name,formula,idISTD,levels,mass,tR,isLKMSRef,isTimeRef,isISTD,description,criteria_0,criteria_1) \
-VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
+(uuid,idTable,row,display_name,formula,idISTD,levels,mass,tR,isLKMSRef,isTimeRef,isISTD,description,criteria_0,criteria_1,isCounting) \
+VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
 
             int row = 1;
             sql.bind( row++ ) = c.uuid(); // uuid reference as 'idCmpd'
@@ -556,6 +557,7 @@ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" ) ) {
             sql.bind( row++ ) = std::wstring( c.description() );
             sql.bind( row++ ) = c.criteria(0);
             sql.bind( row++ ) = c.criteria(1);
+            sql.bind( row++ ) = int64_t( c.isCounting() );
 
             if ( sql.step() != adfs::sqlite_done ) {
                 ADTRACE() << "sql error";
