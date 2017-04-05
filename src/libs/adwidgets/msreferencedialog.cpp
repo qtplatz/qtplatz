@@ -88,6 +88,7 @@ namespace adwidgets {
             template<> void align_property::operator() ( QPushButton * ) const {}
             template<> void align_property::operator() ( QLineEdit * w ) const { w->setAlignment( Qt::AlignLeft | Qt::AlignVCenter ); }
 
+#if 0
             struct font_property : public boost::static_visitor < void > {
                 QFont font;
                 bool bold_;
@@ -100,6 +101,7 @@ namespace adwidgets {
                     widget->setFont( font );
                 }
             };
+#endif
 
             struct set_text :  public boost::static_visitor< void > {
                 const QString& text_;
@@ -125,15 +127,15 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
                                                         , ui( new Ui::MSReferenceDialog )
 {
     ui->setupUi( this );
-    font_property()(ui->groupBox);
+    // font_property()(ui->groupBox);
 
     ui_accessor accessor( ui );
 
-    for ( int i = 0; i < numItems; ++i ) {
-        control_variant v = accessor( idItem(i) );
-        boost::apply_visitor( font_property(false), accessor( idItem( i ) ) );
-        boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
-    }
+    // for ( int i = 0; i < numItems; ++i ) {
+    //     control_variant v = accessor( idItem(i) );
+    //     boost::apply_visitor( font_property(false), accessor( idItem( i ) ) );
+    //     boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
+    // }
 
     auto materials = boost::get< QComboBox * >( accessor( idAdductsMaterialsCombo ) );
     while ( materials->count() )

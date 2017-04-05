@@ -53,6 +53,9 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
                                                     , layout_( new QGridLayout )
                                                     , form_( new QuanConfigForm )
 {
+    form_->setObjectName( "quanConfigForm" );
+    form_->setStyleSheet( "#quanConfigForm * { font-size: 10pt }" );
+    
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
@@ -96,7 +99,6 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
     layout_->addWidget( form_.get(), row, 0 );
     form_->setContents( QuanDocument::instance()->quanMethod() );
     connect( form_.get(), &QuanConfigForm::onSampleInletChanged, [this] ( int t ) { emit onSampleInletChanged( t ); } );
-
 }
 
 void

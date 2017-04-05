@@ -33,14 +33,7 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QGroupBox" name="groupBox">
-       <property name="font">
-        <font>
-         <family>Calibri</family>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="title">
+	<property name="title">
         <string>Targeting</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">

@@ -77,6 +77,7 @@ namespace adwidgets {
                 }
             };
 
+#if 0 // moving on to styleSheet rater than code
             struct align_property : public boost::static_visitor < void > {
                 QFlags<Qt::AlignmentFlag> align_;
                 align_property() : align_( Qt::AlignRight | Qt::AlignTrailing | Qt::AlignVCenter ) {
@@ -98,6 +99,7 @@ namespace adwidgets {
                     widget->setFont( font );
                 }
             };
+#endif
         }
     }
 }
@@ -114,14 +116,14 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
     connect( ui->pushButton, &QPushButton::clicked, this, &MSCalibrateForm::handleReferenceDlg );
     connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
 
-    font_property()(ui->groupBox);
+    // font_property()(ui->groupBox);
 
     ui_locator accessor( ui );
 
-    for ( int i = 0; i < numItems; ++i ) {
-        boost::apply_visitor( font_property(false), accessor( idItem( i ) ) );
-        boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
-    }
+    // for ( int i = 0; i < numItems; ++i ) {
+    //     boost::apply_visitor( font_property(false), accessor( idItem( i ) ) );
+    //     boost::apply_visitor( align_property(), accessor( idItem( i ) ) );
+    // }
     spin_t< QSpinBox, int >::init( boost::get<QSpinBox *>(accessor(ePolynomialDegree)), 1, 25, 1);
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMassTolerance)), 2.0, 50.0, 1.0);
     spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA)), 0.0, 100.0, 1.0); // %

@@ -288,6 +288,13 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
             model.setData( model.index( index.row(), c_isISTD ), Qt::Unchecked, Qt::CheckStateRole );
         }
 
+        if ( auto cbx = model.itemFromIndex( model.index( index.row(), c_isCounting ) ) ) {
+            cbx->setEditable( false );
+            cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+            model.setData( model.index( index.row(), c_isCounting ), false, Qt::EditRole );
+            model.setData( model.index( index.row(), c_isCounting ), Qt::Unchecked, Qt::CheckStateRole );
+        }
+
     }
     if ( index.row() == model_->rowCount() - 1 ) {
         auto data = model_->index( index.row(), c_formula ).data( Qt::EditRole );
@@ -336,7 +343,7 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
         a.set_tR( model.index( row, c_tR ).data().toDouble() ); // sec
         a.setIsCounting( model.index( row, c_isCounting ).data().toBool() );
         a.setIsISTD( model.index( row, c_isISTD ).data().toBool() );
-        a.setIdISTD( model.index( row, c_isISTD ).data().toInt() );
+        a.setIdISTD( model.index( row, c_idISTD ).data().toInt() );
         a.setIsLKMSRef( model.index( row, c_isLKMSReference ).data().toBool() );
         a.setIsTimeRef( model.index( row, c_isTimeReference ).data().toBool() );
 
@@ -371,6 +378,7 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
         model.setData( model.index( row, c_mass ), comp.mass() );
         model.setData( model.index( row, c_tR ), comp.tR() ); // sec
         model.setData( model.index( row, c_description ), QString::fromStdWString( comp.description() ) );
+        model.setData( model.index( row, c_idISTD ), comp.idISTD() );
 
         model.item( row, c_mass )->setEditable( false );
 

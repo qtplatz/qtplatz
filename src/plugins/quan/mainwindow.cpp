@@ -118,34 +118,33 @@ MainWindow::createContents( Core::IMode * )
     // [Select Data] double tab
     
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
-        QuanConfigWidget * mw = 0;
-        if ( auto widget = new QuanConfigWidget ) {
+        if ( auto configwidget = new QuanConfigWidget ) {
+
             // Configuration
             auto panel = std::make_shared< PanelData >( tr("Configuration")
                                                         , QIcon( QLatin1String( ":/quan/images/BuildSettings.png" ) )
-                                                        , widget );
+                                                        , configwidget );
             panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
-            connect( panelsWidget, &PanelsWidget::onCommit, widget, &QuanConfigWidget::commit );
-            mw = widget;
-        }
-        
-        if ( auto widget = new DataSequenceWidget ) {
-            // Select Data (table)
-            auto panel = std::make_shared< PanelData >( tr("Select Data")
-                                                        , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
-                                                        , widget );
-            panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
-            connect( panelsWidget, &PanelsWidget::onCommit, widget, &DataSequenceWidget::commit );
-            connect( mw, &QuanConfigWidget::onLevelChanged, widget, &DataSequenceWidget::handleLevelChaged );
-            connect( mw, &QuanConfigWidget::onReplicatesChanged, widget, &DataSequenceWidget::handleReplicatesChanged );
-            connect( mw, &QuanConfigWidget::onSampleInletChanged, widget, &DataSequenceWidget::handleSampleInletChanged );
+            connect( panelsWidget, &PanelsWidget::onCommit, configwidget, &QuanConfigWidget::commit );
+            
+            if ( auto widget = new DataSequenceWidget ) {
+                // Select Data (table)
+                auto panel = std::make_shared< PanelData >( tr("Select Data")
+                                                            , QIcon( QLatin1String( ":/quan/images/ProjectDependencies.png" ) )
+                                                            , widget );
+                panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
+                connect( panelsWidget, &PanelsWidget::onCommit, widget, &DataSequenceWidget::commit );
+                connect( configwidget, &QuanConfigWidget::onLevelChanged, widget, &DataSequenceWidget::handleLevelChaged );
+                connect( configwidget, &QuanConfigWidget::onReplicatesChanged, widget, &DataSequenceWidget::handleReplicatesChanged );
+                connect( configwidget, &QuanConfigWidget::onSampleInletChanged, widget, &DataSequenceWidget::handleSampleInletChanged );
+            }
+            // configwidget->setStyleSheet( "QLineEdit { font-size: 10pt }" );
         }
         
         stack_->addWidget( panelsWidget );
     }
 
     // [Compounds & Protocols] double tab
-    
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
         if ( auto widget = new CompoundsWidget ) {
             auto data = std::make_shared< PanelData >( tr("Compounds")
@@ -161,6 +160,8 @@ MainWindow::createContents( Core::IMode * )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &ProcessMethodWidget::commit );
+            widget->setObjectName( "processMethodWidget" );
+            widget->setStyleSheet( "#processMethodWidget * { font-size: 10pt }" );
         }
         stack_->addWidget( panelsWidget );
     }
@@ -173,7 +174,6 @@ MainWindow::createContents( Core::IMode * )
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
-            //widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
         stack_->addWidget( panelsWidget );
     }
@@ -186,16 +186,12 @@ MainWindow::createContents( Core::IMode * )
             panelsWidget->addPanel( data.get() );
             widget->setMaximumHeight( std::numeric_limits<int>::max() );
         }
-        
-        //     if ( auto widget = new QuanQueryWidget ) {
-        //         auto data = std::make_shared< PanelData >( "Query"
-        //                                                    , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
-        //                                                    , widget );
-        //         widget->setMinimumHeight( 40 );
-        //         panelsWidget->addPanel( data.get() );
-        //     }
+
         stack_->addWidget( panelsWidget );
     }
+
+    for ( auto table: findChildren< QTableView * >() )
+        table->setStyleSheet( "*{ font-size: 10pt }" );
 
     stack_->setCurrentIndex( 0 );
     

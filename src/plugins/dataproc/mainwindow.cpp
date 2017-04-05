@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -62,6 +62,7 @@
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/utf.hpp>
 #include <adlog/logger.hpp>
@@ -898,6 +899,8 @@ MainWindow::OnInitialUpdate()
 
     createDockWidgets();
 
+    //setStyleSheet( "QDockWidget::QTabBar { font-size: 8pt }" );
+
     QList< QDockWidget *> widgets = dockWidgets();
   
     for ( auto widget: widgets ) {
@@ -921,6 +924,12 @@ MainWindow::OnInitialUpdate()
     setSimpleDockWidgetArrangement();
 
     currentPageChanged( 0 );
+
+    for ( auto dock: dockWidgets() )
+        dock->setStyleSheet( "* { font-size: 10pt; }" );
+
+    for ( auto tabbar: findChildren< QTabBar * >() )
+        tabbar->setStyleSheet( "QTabBar { font-size: 10pt }" );
 }
 
 void

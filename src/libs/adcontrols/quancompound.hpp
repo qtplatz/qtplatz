@@ -89,6 +89,7 @@ namespace adcontrols {
         
         void setIsCounting( bool );
         bool isCounting() const;
+
     private:
 
 #   if  defined _MSC_VER
