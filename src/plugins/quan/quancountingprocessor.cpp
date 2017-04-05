@@ -150,7 +150,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
         for ( auto& compound: compounds_ ) {
 
             if ( compound.isCounting() == isCounting ) {
-
+                
                 // ADDEBUG() << "### Looking for " << compound.formula() << " in " << ( compound.isCounting() ? "Counting" : "Profile" )
                 //           << " tolerance: " << tolerance_;
         
@@ -182,6 +182,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
                             resp.setPeakIndex( pk->peak_index() );
                             resp.setFcn( fcn );
                             resp.setMass( pk->mass() );
+                            // size_t trigCounts = centroids[ fcn ].getMSProperty().numAverage();
                             resp.setIntensity( pk->area() );
                             
                             ADDEBUG() << "FindCompounds : " << compound.formula()
@@ -194,7 +195,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
                                 auto count = dp->countTimeCounts( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn], pk->mass() - w, pk->mass() + w );
                                 resp.setCountTimeCounts( count );
                             } else {
-                                resp.setCountTimeCounts( 0 );
+                                resp.setCountTimeCounts( 0 ); // pk->area() * trigCounts );
                             }
 
                             resp.setCountTriggers( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn].getMSProperty().numAverage() );
