@@ -113,13 +113,17 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
     auto cm = procmethod_->find< adcontrols::CentroidMethod >();
     auto qm = procmethod_->find< adcontrols::QuanMethod >();
-
+    
     if ( !cm || !qm )
         return false;
 
     adcontrols::QuanCompounds compounds;
     if ( auto qc = procmethod_->find< adcontrols::QuanCompounds >() )
         compounds = *qc;
+
+    int channels( 0 ); // 1 := counting channel use, 2 := profile channel use, 3 := both
+    for ( const auto& c: compounds )
+        channels |= c.isCounting() ? 1 : 2;
 
     double tolerance = 0.001;
     if ( auto tm = procmethod_->find< adcontrols::TargetingMethod >() )

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2015-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2015-2016 MS-Cheminformatics LLC
+** Copyright (C) 2015-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2015-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -417,6 +417,7 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     prop.setDeviceData( ar.data(), ar.size() );
         
     sp.setMSProperty( prop );
+    sp.setProtocol( hgrm.protocolIndex_, hgrm.nProtocols_ );
 
     size_t size = hgrm.size();
 

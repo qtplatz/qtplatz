@@ -818,8 +818,6 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
             std::map< int, std::pair< size_t, waveform_types > > coadded;
             auto ptr = std::make_shared< adcontrols::MassSpectrum >();
             
-            // waveform_types coadded;
-            
             size_t n(0);
             while ( sql.step() == adfs::sqlite_row ) {
                 
@@ -843,14 +841,14 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 }
             }
             
-            int count(0);
+            int proto(0);
             for ( const auto& wform: coadded ) {
                 
-                auto ms = ( count == 0 ) ? ptr : std::make_shared< adcontrols::MassSpectrum >();
+                auto ms = ( proto == 0 ) ? ptr : std::make_shared< adcontrols::MassSpectrum >();
                 ms->setDataReaderUuid( objid_ );
 
                 boost::apply_visitor( make_massspectrum( *ms ), wform.second.second );
-                ADDEBUG() << "protocolId = " << ms->protocolId() << "== fcn=" << wform.first;
+                ADDEBUG() << "protocolId = " << ms->protocolId() << " == fcn=" << wform.first;
 
                 if ( spectrometer_ ) {
                     spectrometer_->assignMasses( *ms );
@@ -859,9 +857,9 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                     double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
                     ms->setAcquisitionMassRange( lMass, uMass );
                 }
-                if ( count > 0 )
+                if ( proto > 0 )
                     (*ptr) << std::move( ms );
-                ++count;
+                ++proto;
             }
             
             return ptr;
