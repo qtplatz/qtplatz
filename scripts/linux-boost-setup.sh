@@ -169,10 +169,23 @@ if [ -z $cross_target ]; then
     boost_build $BOOST_BUILD_DIR ${BZIP2_SOURCE}
 
 else
-    staff=$(id -Gn | grep -c staff)
-    if [ $staff = 0 ]; then
-	echo "You need to join 'staff' group as run follwoing command".
-	echo sudo usermod -a -G staff $USER
+    if [ ! -w $CROSS_ROOT ]; then
+	echo "You have no write access to $CROSS_ROOT"
+	echo "Do you want to continue with sudo?"
+	prompt
+	sudo mkdir -p $CROSS_ROOT
+	sudo chgrp staff $CROSS_ROOT
+	sudo chmod g+sw $CROSS_ROOT
+
+	staff=$(id -Gn | grep -c staff)
+	if [ $staff = 0 ]; then
+	    echo "You need to join 'staff' group as run follwoing command".
+	    sudo usermod -a -G staff $USER
+	fi
+	if [ ! -w $CROSS_ROOT ]; then
+	    echo "You may need to logout/login cycle"
+	    exit (1)
+	fi
     fi
 
     if [ ! -f ~/user-config.jam ]; then
