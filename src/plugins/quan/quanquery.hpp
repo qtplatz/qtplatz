@@ -47,6 +47,8 @@ namespace quan {
         QString column_name( size_t idx ) const;
         static QString column_name_tr( const QString& );
         QVariant column_value( size_t idx ) const;
+
+        bool hasColumn( const std::string& column, const std::string& table );
             
     private:
         adfs::sqlite_state state_;

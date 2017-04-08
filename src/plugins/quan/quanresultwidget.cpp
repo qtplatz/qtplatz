@@ -125,14 +125,11 @@ QuanResultWidget::CountingIndexChanged( int idx )
     std::string query;
     if ( isISTD ) {
 
-        bool hasIsCounting( true );
-        
-        // if ( auto conn = connection_.lock() ) {
-        //     if ( auto query = conn->query() ) {
-        //         if ( query->prepare( "PRAGMA table_info( 'QuanCompound')" ) )
-                    
-        //     }
-        // }
+        bool hasIsCounting( false );
+        if ( auto conn = connection_.lock() ) {
+            if ( auto q = conn->query() )
+                hasIsCounting = q->hasColumn( "isCounting", "QuanCompound" );
+        }
         
         query = hasIsCounting ? 
             "SELECT t1.uuid as 'uuid'"
@@ -141,11 +138,11 @@ QuanResultWidget::CountingIndexChanged( int idx )
             ", t1.name as name"
             ", t1.sampleType as sampletype"
             ", t1.level as level"
-            ", t1.formula as formula"
             ", t1.isCounting as isCounting"
+            ", t1.formula as formula"
             ", t1.mass as mass"
             ", t1.error as 'error(mDa)'"
-            ", t1.CountRate"
+            ", t1.CountRate as CountRate"
             ", t2.formula as formula"
             ", t2.CountRate as CountRate"
             ", t1.CountRate/t2.CountRate AS 'Ratio'"
@@ -157,12 +154,12 @@ QuanResultWidget::CountingIndexChanged( int idx )
             ", QuanCompound.isCounting"
             ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
             ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
-            ", intensity * 1000 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
+            ", timeCounts * 100.0 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
             " FROM QuanSample, QuanResponse, QuanCompound"
             " WHERE QuanSample.id = idSample"
             " AND QuanResponse.idCmpd = QuanCompound.uuid %1%) t1"
             " LEFT JOIN"
-            " (SELECT idSample, intensity * 1000 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
+            " (SELECT idSample, timeCounts * 100.0 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
             " FROM QuanResponse,QuanCompound"
             " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
             " ON t1.idSample=t2.idSample ORDER BY t1.idSample"
@@ -187,12 +184,12 @@ QuanResultWidget::CountingIndexChanged( int idx )
             ", sampleType, QuanSample.level, QuanCompound.formula"
             ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
             ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
-            ", intensity * 1000 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
+            ", timeCounts * 100.0 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
             " FROM QuanSample, QuanResponse, QuanCompound"
             " WHERE QuanSample.id = idSample"
             " AND QuanResponse.idCmpd = QuanCompound.uuid %1%) t1"
             " LEFT JOIN"
-            " (SELECT idSample, intensity * 1000 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
+            " (SELECT idSample, timeCounts * 100.0 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
             " FROM QuanResponse,QuanCompound"
             " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
             " ON t1.idSample=t2.idSample ORDER BY t1.idSample";
@@ -203,7 +200,7 @@ QuanResultWidget::CountingIndexChanged( int idx )
             ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
             ", QuanResponse.mass"
             ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(Da)'"
-            ", intensity * 1000 / trigCounts as 'CountRate', QuanResponse.amount, QuanCompound.description, dataSource"
+            ", timeCounts * 100.0 / trigCounts as 'CountRate', QuanResponse.amount, QuanCompound.description, dataSource"
             " FROM QuanSample, QuanResponse, QuanCompound"
             " WHERE QuanSample.id = QuanResponse.idSample"
             " AND QuanResponse.idCmpd = QuanCompound.uuid"
@@ -222,7 +219,7 @@ QuanResultWidget::CountingIndexChanged( int idx )
         execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
                   ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass "
                   ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
-                  ", intensity * 60000 / trigCounts as 'counts/min', QuanSample.level, QuanAmount.amount, QuanCompound.description"
+                  ", timeCounts * 100.0 / trigCounts as 'count rate', QuanSample.level, QuanAmount.amount, QuanCompound.description"
                   ", sampleType, dataSource"
                   " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
                   " WHERE QuanSample.id = QuanResponse.idSample"
@@ -235,7 +232,7 @@ QuanResultWidget::CountingIndexChanged( int idx )
         execQuery("SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
                   ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
                   ", (QuanCompound.mass - QuanResponse.mass)*1000 AS 'error(mDa)'"
-                  ", intensity * 60000 / trigCounts as 'counts/min', QuanSample.level, QuanAmount.amount, QuanCompound.description"
+                  ", timeCounts * 100.0 / trigCounts as 'counts/min', QuanSample.level, QuanAmount.amount, QuanCompound.description"
                   ", sampleType, dataSource"
                   " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
                   " WHERE QuanSample.id = QuanResponse.idSample"

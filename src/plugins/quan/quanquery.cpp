@@ -75,6 +75,21 @@ QuanQuery::column_name( size_t idx ) const
     return QString::fromStdString( name );
 }
 
+bool
+QuanQuery::hasColumn( const std::string& column, const std::string& table )
+{
+    sql_.reset();
+    sql_.prepare( "PRAGMA table_info('" + table + "')" );
+    while ( sql_.step() == adfs::sqlite_row ) {
+        std::string a = sql_.get_column_value< std::string >( 1 );
+        if ( strcasecmp(a.c_str(), column.c_str() ) ) {
+            sql_.reset();
+            return true;
+        }
+    }
+    return false;
+}
+
 QString
 QuanQuery::column_name_tr( const QString& d )
 {

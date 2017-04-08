@@ -76,6 +76,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <algorithm>
 
 namespace quan {
@@ -89,7 +90,7 @@ namespace quan {
         adcontrols::MassSpectrum centroid_;
         adcontrols::MSPeakInfo pkinfo_;
 
-        std::map< std::string, adcontrols::QuanResponse > responses_;
+        std::map< boost::uuids::uuid, adcontrols::QuanResponse > responses_;
         
         FindCompounds( const adcontrols::QuanCompounds& cmpds
                        , const adcontrols::CentroidMethod& cm
@@ -173,17 +174,16 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
                         pk->formula( compound.formula() ); // assign formula to peak
                         pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
                     
-                        auto it = responses_.find( compound.formula() );
+                        auto it = responses_.find( compound.uuid() );
                         if ( it == responses_.end() ) {
-                            auto& resp = responses_[ compound.formula() ];
+                            auto& resp = responses_[ compound.uuid() ];
                             resp.uuid_cmpd( compound.uuid() );
                             resp.uuid_cmpd_table( compounds_.uuid() );
                             resp.formula( compound.formula() );
                             resp.setPeakIndex( pk->peak_index() );
                             resp.setFcn( fcn );
                             resp.setMass( pk->mass() );
-                            // size_t trigCounts = centroids[ fcn ].getMSProperty().numAverage();
-                            resp.setIntensity( pk->area() );
+                            size_t trigCounts = centroids[ fcn ].getMSProperty().numAverage();
                             
                             ADDEBUG() << "FindCompounds : " << compound.formula()
                                       << ( compound.isCounting() ? " Counting " : " Profile " ) << " fcn[" << fcn << "] mass: " << pk->mass();
@@ -193,9 +193,11 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
                             if ( isCounting ) { // histogram specific
                                 double w = pk->centroid_right() - pk->centroid_left();
                                 auto count = dp->countTimeCounts( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn], pk->mass() - w, pk->mass() + w );
+                                resp.setIntensity( 0 );
                                 resp.setCountTimeCounts( count );
                             } else {
-                                resp.setCountTimeCounts( 0 ); // pk->area() * trigCounts );
+                                resp.setIntensity( pk->area() );
+                                resp.setCountTimeCounts( pk->area() * trigCounts );
                             }
 
                             resp.setCountTriggers( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn].getMSProperty().numAverage() );
