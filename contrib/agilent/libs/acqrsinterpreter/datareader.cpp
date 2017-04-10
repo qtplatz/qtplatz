@@ -444,7 +444,7 @@ DataReader::end() const
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    ADDEBUG() << "findPos( " << int64_t( seconds * std::nano::den ) << ")";
+    //ADDEBUG() << "findPos( " << int64_t( seconds * std::nano::den ) << ")";
     
     if ( tspec == ElapsedTime ) {    
         if ( auto db = db_.lock() ) {
@@ -745,16 +745,18 @@ DataReader::readSpectrum( const_iterator& it ) const
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );
 
+    ADDEBUG() << "readSpectrum( rowid=" << it->rowid() << " )";
+
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
         if ( auto db = db_.lock() ) {
             
             adfs::stmt sql( *db );
             // In case protocol replicates set 100,200,2 for 3 protocols, possiblly 3rd protocol has smallest pos though it might be larger rowid
             // so that following query always read order of spectrum was stored (not npos order)
-            sql.prepare( "SELECT DISTINCT rowid,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND rowid >= ? ORDER BY fcn LIMIT ?" );
+            sql.prepare( "SELECT min(rowid),fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND rowid >= ? GROUP BY fcn" );
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = it->rowid(); // Use rowid instead of pos()
-            sql.bind( 3 ) = fcnCount();
+            //sql.bind( 3 ) = fcnCount();
             
             std::shared_ptr< adcontrols::MassSpectrum > prime;
             
@@ -765,6 +767,8 @@ DataReader::readSpectrum( const_iterator& it ) const
                 auto _fno  = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+
+                ADDEBUG() << "\t---> readSpectrum( rowid=" << rowid << ", proto=" << _fno << " )";
                 
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
