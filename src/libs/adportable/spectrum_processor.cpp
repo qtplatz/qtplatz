@@ -112,18 +112,16 @@ namespace adportable {
 
         static double area( const spectrum_processor::areaFraction& frac, double baseH, const T* pData, size_t size ) {
 
-            //assert( frac.lFrac >= 0.0 && frac.lFrac <= 1.0 );
-            //assert( frac.uFrac >= 0.0 && frac.uFrac <= 1.0 );
-            //if ( frac.lPos == frac.uPos )
-            //    return double( pData[ frac.lPos ] ) - baseH;
+            if ( frac.lPos >= size )
+                return 0;
 
             double ax = 0;
-            for ( size_t i = frac.lPos; i <= frac.uPos; ++i ) {
+            for ( size_t i = frac.lPos; i <= frac.uPos && i < size; ++i ) {
                 double h = pData[ i ] - baseH;
                 ax += h;
             }
             double a_trapesium = 0;
-            if ( frac.lPos > 0 ) { // if one before data point exist
+            if ( frac.lPos > 0 ) { // if != 0 (one before data point exist)
                 // Left trapesium area
                 double y0 = std::min( pData[ frac.lPos ], pData[ frac.lPos - 1 ] ) - baseH;
                 double y1 = std::max( pData[ frac.lPos ], pData[ frac.lPos - 1 ] ) - baseH;
@@ -133,7 +131,7 @@ namespace adportable {
                 a_trapesium = a;
             }
 
-            if ( frac.uPos < size ) { // if following data point exist
+            if ( frac.uPos < size - 1 ) { // if following data point exist
                 // Right trapesium area
                 double y0 = std::max( pData[ frac.uPos ], pData[ frac.uPos + 1 ] ) - baseH;
                 double y1 = std::min( pData[ frac.uPos ], pData[ frac.uPos + 1 ] ) - baseH;
