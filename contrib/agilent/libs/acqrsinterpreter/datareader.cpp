@@ -49,6 +49,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <atomic>
+#include <cassert>
 #include <limits>
 #include <map>
 #include <memory>
@@ -255,9 +256,10 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
-    , objid_( {{ 0 }} )
-    , objrowid_( -1 )
-    , fcnCount_( 0 )
+                                               , objid_( {{ 0 }} )
+                                               , objrowid_( -1 )
+                                               , fcnCount_( 0 )
+                                               , elapsed_time_origin_( 0 )
 {
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
@@ -392,27 +394,45 @@ DataReader::fcnCount() const
     return fcnCount_;
 }
 
+size_t
+DataReader::size( int fcn ) const
+{
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );
+        if ( fcn >= 0 ) {
+            sql.prepare( "SELECT COUNT(*) FROM AcquiredData WHERE objuuid=? AND fcn=?" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = fcn;
+        } else {
+            sql.prepare( "SELECT COUNT(*) FROM AcquiredData WHERE objuuid=?" );
+            sql.bind( 1 ) = objid_;
+        }
+        if ( sql.step() == adfs::sqlite_row )
+            return sql.get_column_value< int64_t >( 0 );
+    }
+    return 0;
+}
+
 adcontrols::DataReader::const_iterator
 DataReader::begin( int fcn ) const
 {
-    if ( indecies_.empty() ) {
-        
-        if ( auto db = db_.lock() ) {
-            adfs::stmt sql( *db );
-            if ( fcn >= 0 ) {
-                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? AND fcn=? ORDER BY npos LIMIT 1" );
-                sql.bind( 1 ) = objid_;
-            } else {
-                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? ORDER BY npos LIMIT 1" );
-                sql.bind( 1 ) = objid_;
-            }
-            if ( sql.step() == adfs::sqlite_row ) {
-                auto rowid = sql.get_column_value< int64_t >( 0 );
-                return adcontrols::DataReader_iterator( this, rowid, fcn );
-            }
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );
+        if ( fcn >= 0 ) {
+            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? AND fcn=? ORDER BY npos LIMIT 1" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = fcn;
+        } else {
+            // choose min(rowid) due to protocol w/ complex replicates combination
+            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? ORDER BY rowid LIMIT 1" );
+            sql.bind( 1 ) = objid_;
+        }
+        if ( sql.step() == adfs::sqlite_row ) {
+            auto rowid = sql.get_column_value< int64_t >( 0 );
+            return adcontrols::DataReader_iterator( this, rowid, fcn );
         }
     }
-    return adcontrols::DataReader_iterator( this, next( 0, fcn ), fcn );
+    return end();
 }
 
 adcontrols::DataReader::const_iterator
@@ -429,11 +449,19 @@ DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) con
     if ( tspec == ElapsedTime ) {    
         if ( auto db = db_.lock() ) {
             adfs::stmt sql( *db );
-            sql.prepare(
-                "SELECT rowid FROM AcquiredData WHERE "
-                "objuuid=:objid "
-                "AND fcn=? "
-                "AND elapsed_time >= (SELECT MIN(elapsed_time) FROM AcquiredData WHERE objuuid=:objid) + ? LIMIT 1");
+            if ( closest ) {
+                sql.prepare(
+                    "SELECT rowid FROM AcquiredData WHERE "
+                    "objuuid=:objid "
+                    "AND fcn=? "
+                    "ORDER BY ABS( elapsed_time - (SELECT MIN(elapsed_time) + ? FROM AcquiredData)) LIMIT 1");
+            } else {
+                sql.prepare(
+                    "SELECT rowid FROM AcquiredData WHERE "
+                    "objuuid=:objid "
+                    "AND fcn=? "
+                    "AND elapsed_time >= (SELECT MIN(elapsed_time) + ? FROM AcquiredData) LIMIT 1");
+            }
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = ( fcn < 0 ? 0 : fcn );
             sql.bind( 3 ) = uint64_t( seconds * std::nano::den );
@@ -443,111 +471,103 @@ DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) con
                 return adcontrols::DataReader_iterator( this, rowid, fcn );
             }
         }
-#if 0
-        // compute from indecies_
-        if ( tspec == ElapsedTime ) {
-
-            int64_t elapsed_time = int64_t( seconds * 1e9 + 0.5 ) + indecies_.front().elapsed_time;
-
-            if ( indecies_.front().elapsed_time > elapsed_time )
-                return begin( (-1) );
-
-            if ( indecies_.back().elapsed_time < elapsed_time )
-                return adcontrols::DataReader_iterator( this, indecies_.back().rowid );
-
-            auto it = std::lower_bound( indecies_.begin(), indecies_.end(), elapsed_time, [] ( const index& a, int64_t b ) { return a.elapsed_time < b; } );
-
-            if ( closest && ( it != indecies_.end() ) ) {
-                if ( std::abs( elapsed_time - it->elapsed_time ) > std::abs( elapsed_time - ( it + 1 )->elapsed_time ) ) 
-                    ++it;
-            }
-
-            return adcontrols::DataReader_iterator( this, it->rowid );
-#endif
-        }
-
-        return end();
     }
 
-    double
-        DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
-    {
-        assert( ispec == TriggerNumber );
+    return end();
+}
 
-        if ( indecies_.empty() )
-            return -1;
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), pos, [] ( const index& a, int64_t b ) { return a.pos < b; } );
-        if ( it != indecies_.end() )
-            return double( it->elapsed_time ) * 1.0e-9;
-
-        return -1.0;
-    }
-
-    std::shared_ptr< const adcontrols::Chromatogram >
-        DataReader::TIC( int fcn ) const
-    {
-        if ( tics_.empty() )
-            const_cast< DataReader * >(this)->loadTICs();
-
-        if ( tics_.size() > fcn )
-            return tics_[ fcn ];
-
-        return nullptr;
-    }
-
-    void
-        DataReader::loadTICs()
-    {
-        auto nfcn = fcnCount();
-
-        std::map< int, std::pair< std::shared_ptr< adcontrols::Chromatogram >, uint64_t > > tics;
+double
+DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const 
+{
+    assert( ispec == TriggerNumber );
     
-        if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );
+        if ( exactMatch ) {
+            sql.prepare("SELECT elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) "
+                        "FROM AcquiredData WHERE objuuid=? AND fcn=? AND npos = ? LIMIT 1" );
+        } else {
+            sql.prepare("SELECT elapsed_time - (SELECT MIN(elapsed_time) FROM AcquiredData) "
+                        "FROM AcquiredData WHERE objuuid=? AND fcn=? AND npos >= ? LIMIT 1" );
+        }
+        if ( sql.step() == adfs::sqlite_row ) {
+            auto nanoseconds = sql.get_column_value< int64_t >( 0 );
+            return double( nanoseconds ) / std::nano::den;
+        }
+    }
+    return -1.0;
+}
 
-            if ( auto db = db_.lock() ) {
-            
-                indecies_.clear();
+std::shared_ptr< const adcontrols::Chromatogram >
+DataReader::TIC( int fcn ) const
+{
+    if ( tics_.empty() )
+        const_cast< DataReader * >(this)->loadTICs();
 
-                adfs::stmt sql( *db );
+    if ( tics_.size() > fcn )
+        return tics_[ fcn ];
+
+    return nullptr;
+}
+
+void
+DataReader::loadTICs()
+{
+    auto nfcn = fcnCount();
+
+    std::map< int, std::shared_ptr< adcontrols::Chromatogram > > tics;
+    
+    if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
+
+        if ( auto db = db_.lock() ) {
             
-                sql.prepare( "SELECT rowid,npos,fcn,elapsed_time,data,meta FROM AcquiredData WHERE objuuid = ? ORDER BY npos,fcn" );
-                sql.bind( 1 ) = objid_;
+            indecies_.clear();
+
+            adfs::stmt sql( *db );
+            //------------ determine elapsed_time 0 ----------------
+            sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData");
+            while ( sql.step() == adfs::sqlite_row )
+                elapsed_time_origin_ = sql.get_column_value< int64_t >( 0 );
+
+            //------------
+            sql.prepare( "SELECT rowid,npos,fcn,(elapsed_time-(select min(elapsed_time) FROM AcquiredData)),data,meta "
+                         "FROM AcquiredData WHERE objuuid = ? ORDER BY rowid" );
+            sql.bind( 1 ) = objid_;
             
-                while ( sql.step() == adfs::sqlite_row ) {
+            while ( sql.step() == adfs::sqlite_row ) {
                 
-                    int col = 0;
-                    auto row = sql.get_column_value< int64_t >( col++ );
-                    auto pos = sql.get_column_value< int64_t >( col++ );
-                    auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
-                    auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
-                    adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
-                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+                int col = 0;
+                auto row = sql.get_column_value< int64_t >( col++ );
+                auto pos = sql.get_column_value< int64_t >( col++ );
+                auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
+                auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
+                adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                    indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
+                indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
 
-                    if ( tics.find( fcn ) == tics.end() ) {
-                        tics [ fcn ] = std::make_pair( std::make_shared< adcontrols::Chromatogram >(), elapsed_time );
-                        tics [ fcn ].first->setDataReaderUuid( objid_ );
-                        tics [ fcn ].first->setFcn( fcn );
+                if ( tics.find( fcn ) == tics.end() ) {
+                    tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
+                    tics [ fcn ]->setDataReaderUuid( objid_ );
+                    tics [ fcn ]->setFcn( fcn );
                 }
 
-                auto pair = tics[ fcn ];
+                auto pChro = tics[ fcn ];
 
                 waveform_types waveform;
                 
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-                    if ( pair.first->size() == 0 )
-                        pair.first->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                    if ( pChro->size() == 0 )
+                        pChro->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
 
                     double d = boost::apply_visitor( total_ion_count(), waveform );
-                    ( *pair.first ) << std::make_pair( double( elapsed_time - pair.second ) * 1.0e-9, d );
-
+                    ( *pChro ) << std::make_pair( double( elapsed_time ) * 1.0e-9, d );
                 }
             }
 
             for ( auto tic : tics )
-                tics_.push_back( tic.second.first );
+                tics_.emplace_back( tic.second );
         }
     }
 }
@@ -555,9 +575,25 @@ DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) con
 int64_t
 DataReader::next( int64_t rowid ) const
 {
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-    if ( it != indecies_.end() && ++it != indecies_.end() )
-        return it->rowid;
+    if ( ! indecies_.empty() ) {
+
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indecies_.end() && ++it != indecies_.end() ) {
+            assert( rowid < it->rowid );
+            return it->rowid;
+        }
+        
+    } else {
+        if ( auto db = db_.lock() ) {
+            adfs::stmt sql( *db );
+            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND rowid > ?) LIMIT 1" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = rowid;
+            if ( sql.step() == adfs::sqlite_row )
+                return sql.get_column_value< int64_t >( 0 );
+        }
+    }
+    
     return -1;
 }
 
@@ -567,12 +603,26 @@ DataReader::next( int64_t rowid, int fcn ) const
     if ( fcn == ( -1 ) )
         return next( rowid );
 
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-    if ( it != indecies_.end() ) {
-        while ( ++it != indecies_.end() )
-            if ( it->fcn == fcn )
-                return it->rowid;
+    if ( ! indecies_.empty() ) {
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [&] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indecies_.end() ) { //
+            while ( ++it != indecies_.end() ) {
+                if ( it->fcn == fcn )
+                    return it->rowid;
+            }
+        }
     }
+
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos > (SELECT npos FROM AcquiredData WHERE rowid=?) LIMIT 1" );
+        sql.bind( 1 ) = objid_;
+        sql.bind( 2 ) = fcn;
+        sql.bind( 3 ) = rowid;
+        if ( sql.step() == adfs::sqlite_row )
+            return sql.get_column_value< int64_t >( 0 );
+    }
+
     return (-1);
 }
 
@@ -650,13 +700,16 @@ DataReader::getSpectrum( int64_t rowid ) const
      
             adfs::stmt sql( *db );
             
-            if ( sql.prepare( "SELECT data, meta FROM AcquiredData WHERE rowid = ?" ) ) {
+            if ( sql.prepare( "SELECT data, meta, elapsed_time FROM AcquiredData WHERE rowid = ?" ) ) {
                 sql.bind( 1 ) = rowid;
          
                 if ( sql.step() == adfs::sqlite_row ) {
              
-                    adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
-                    adfs::blob xmeta = sql.get_column_value< adfs::blob >( 1 );
+                    adfs::blob xdata  = sql.get_column_value< adfs::blob >( 0 );
+                    adfs::blob xmeta  = sql.get_column_value< adfs::blob >( 1 );
+                    auto elapsed_time = double( sql.get_column_value< int64_t >( 2 ) - elapsed_time_origin_ ) / std::nano::den;
+
+                    // ADDEBUG() << "rowid: " << rowid << " elapsed_time: " << elapsed_time;
 
                     waveform_types waveform;
                     if ( interpreter->translate( waveform, xdata.data(), xdata.size()
@@ -671,6 +724,8 @@ DataReader::getSpectrum( int64_t rowid ) const
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
                             ptr->setAcquisitionMassRange( lMass, uMass );
                         }
+                        // override elapsed_time (a.k.a. retention time)
+                        ptr->getMSProperty().setTimeSinceInjection( elapsed_time );
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                         ptr->setDataReaderUuid( objid_ );
                         ptr->setRowid( rowid );
@@ -690,15 +745,15 @@ DataReader::readSpectrum( const_iterator& it ) const
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );
 
-    ADDEBUG() << "readSpectrum fcn=" << it._fcn() << ", pos=" << it->pos() << ", " << objid_;
-            
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
         if ( auto db = db_.lock() ) {
             
             adfs::stmt sql( *db );
-            sql.prepare( "SELECT rowid,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? ORDER BY npos LIMIT ?" );
+            // In case protocol replicates set 100,200,2 for 3 protocols, possiblly 3rd protocol has smallest pos though it might be larger rowid
+            // so that following query always read order of spectrum was stored (not npos order)
+            sql.prepare( "SELECT DISTINCT rowid,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND rowid >= ? ORDER BY fcn LIMIT ?" );
             sql.bind( 1 ) = objid_;
-            sql.bind( 2 ) = it->pos();
+            sql.bind( 2 ) = it->rowid(); // Use rowid instead of pos()
             sql.bind( 3 ) = fcnCount();
             
             std::shared_ptr< adcontrols::MassSpectrum > prime;

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -44,6 +44,7 @@
 #include "waveform_filter.hpp"
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/unique_ptr.hpp>
 #include <adutils/acquiredconf.hpp>
@@ -51,7 +52,7 @@
 #include <numeric>
 #include <set>
 
-namespace adcontrols {
+namespace adprocessor {
 
     class v3::MSChromatogramExtractor::impl {
     public:
@@ -59,28 +60,27 @@ namespace adcontrols {
             {}
 
         void prepare_mslock( const adcontrols::MSChromatogramMethod&, const adcontrols::ProcessMethod& );
-        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, lockmass::mslock& );
+        void apply_mslock( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod&, adcontrols::lockmass::mslock& );
         void create_chromatograms( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                    , const adcontrols::MSChromatogramMethod& m );
-        void append_to_chromatogram( size_t pos, const MassSpectrum& ms, const adcontrols::MSChromatogramMethod& );
-        void append_to_chromatogram( size_t pos, const MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
+        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod&, const std::string& );
+        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
 
-        bool doMSLock( lockmass::mslock& mslock, const MassSpectrum& centroid, const MSLockMethod& m );
-        bool doCentroid( MassSpectrum& centroid, const MassSpectrum& profile, const CentroidMethod& );
+        bool doMSLock( adcontrols::lockmass::mslock& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
+        bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
         
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< hor_axis_mass > > > results_;
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< hor_axis_mass > > > debug_; // tic, base
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > results_;
+        // std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > debug_; // tic, base
 
-        std::map< size_t, std::shared_ptr< MassSpectrum > > spectra_;
+        std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
         const adcontrols::LCMSDataset * raw_;
-        std::shared_ptr< MSLockMethod > lockm_;
+        std::shared_ptr< adcontrols::MSLockMethod > lockm_;
         std::vector< std::pair< std::string, double > > msrefs_;
-        std::shared_ptr< CentroidMethod > centroidMetod_;
+        std::shared_ptr< adcontrols::CentroidMethod > centroidMetod_;
     };
 }
 
-using namespace adcontrols;
-using namespace adcontrols::v3;
+using namespace adprocessor::v3;
 
 MSChromatogramExtractor::~MSChromatogramExtractor()
 {
@@ -89,11 +89,6 @@ MSChromatogramExtractor::~MSChromatogramExtractor()
 
 MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset * raw ) : impl_( new impl( raw ) )
 {
-    // debug
-    using mschromatogramextractor::xChromatogram;
-    impl_->debug_.push_back( std::make_shared< xChromatogram<hor_axis_mass> >( L"base" ) );
-    impl_->debug_.push_back( std::make_shared< xChromatogram<hor_axis_mass> >( L"tic" ) );
-    // <--
 }
 
 bool
@@ -107,9 +102,9 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         return false;
 
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
-    
-        auto tic = reader->TIC( fcn );
-        size_t nSpectra = tic->size();
+
+        auto it = reader->begin( fcn ); 
+        size_t nSpectra   = reader->size( fcn );
 
         if ( nSpectra == 0 )
             return false;
@@ -125,23 +120,27 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         size_t n( 0 );
         
         adcontrols::lockmass::mslock mslock;
-        
+
         for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
 
             auto ms = reader->getSpectrum( it->rowid() );
 
             if ( cm->lockmass() )
                 impl_->apply_mslock( ms, pm, mslock );
-                
-            impl_->spectra_[ it->pos() ] = ms; // keep mass locked spectral series
+
+            impl_->spectra_[ it->pos() ] = ms; // (:= pos sort order) keep mass locked spectral series
 
             if ( progress( ++n, nSpectra ) )
                 return false;
         }
 
+        if ( impl_->spectra_.empty() )
+            return false;
+
         auto prev = impl_->spectra_.begin()->second;
         for ( auto& ms : impl_->spectra_ ) {
-            impl_->append_to_chromatogram( ms.first, *ms.second, *cm );
+            // append data point to chromatogram
+            impl_->append_to_chromatogram( /* pos */ ms.first, /* ms */ *ms.second, *cm, reader->display_name() );
         }
 
         std::pair< double, double > time_range =
@@ -149,11 +148,6 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
                           , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
         
         for ( auto& r : impl_->results_ ) {
-            r->pchr_->minimumTime( time_range.first );
-            r->pchr_->maximumTime( time_range.second );
-            vec.push_back( r->pchr_ );
-        }
-        for ( auto& r : impl_->debug_ ) {
             r->pchr_->minimumTime( time_range.first );
             r->pchr_->maximumTime( time_range.second );
             vec.push_back( r->pchr_ );
@@ -205,7 +199,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
     
     uint32_t target_index( 0 );
     for ( auto& range : ranges )
-        impl_->results_.push_back( std::make_shared< xChromatogram<hor_axis_mass> >( range, target_index++ ) );
+        impl_->results_.push_back( std::make_shared< xChromatogram<adcontrols::hor_axis_mass> >( range, target_index++ ) );
     
     size_t procCount( 0 );
     for ( auto it = reader->begin(); it != reader->end(); ++it ) {
@@ -241,22 +235,24 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 }
 
 void
-MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const adcontrols::MSChromatogramMethod& cm )
+MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
+                                                       , const adcontrols::MassSpectrum& ms
+                                                       , const adcontrols::MSChromatogramMethod& cm
+                                                       , const std::string& reader_name )
 {
-    using namespace adcontrols::mschromatogramextractor;
+    using namespace mschromatogramextractor;
     
     adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( ms );
 
     double width = cm.width( cm.widthMethod() );
     (void)(width);
 
-    uint32_t fcn = 0;
+    // uint32_t fcn = 0;
 
     for ( auto& fms: segments ) {
-        
-        double time = fms.getMSProperty().timeSinceInjection();
 
-        uint32_t target_index = 0; //  index to the cm.targets();
+        const int protocol = fms.protocolId();        
+        double time = fms.getMSProperty().timeSinceInjection();
 
         for ( auto& m : cm.molecules().data() ) {
 
@@ -287,25 +283,16 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
                 }
                 
                 auto chro = std::find_if( results_.begin(), results_.end()
-                                          , [=] ( std::shared_ptr<xChromatogram<hor_axis_mass> >& c ) { return c->fcn_ == fcn && c->target_index_ == target_index; } );
+                                          , [=] ( std::shared_ptr<xChromatogram<adcontrols::hor_axis_mass> >& c ) {
+                                              return c->fcn_ == protocol;
+                                          } );
                 if ( chro == results_.end() ) {
-                    results_.push_back( std::make_shared< xChromatogram<hor_axis_mass> >( m, width, fcn, target_index ) );
+                    results_.push_back( std::make_shared< xChromatogram<adcontrols::hor_axis_mass> >( m, width, protocol, 0, reader_name ) );
                     chro = results_.end() - 1;
                 }
                 ( *chro )->append( uint32_t( pos ), time, y );
             }
-                        
-            target_index++;
         }
-
-        if ( fcn == 0 && !debug_.empty() ) {
-            // add debug traces
-            double base, rms;
-            double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
-            debug_[ 0 ]->append( uint32_t( pos ), time, base ); // base
-            debug_[ 1 ]->append( uint32_t( pos ), time, tic );  // tic
-        }
-        ++fcn;    
     }
 
 }
@@ -315,7 +302,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                                                        , const adcontrols::MassSpectrum& ms
                                                        , const std::vector< std::pair<int, adcontrols::MSPeakInfoItem> >& ranges )
 {
-    using namespace adcontrols::mschromatogramextractor;
+    using namespace mschromatogramextractor;
     
     adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( ms );
 
@@ -352,7 +339,9 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 }
                 
                 auto chro = std::find_if( results_.begin(), results_.end()
-                                          , [=] ( std::shared_ptr<xChromatogram<hor_axis_mass> >& c ) { return c->fcn_ == fcn && c->target_index_ == target_index; } );
+                                          , [=] ( std::shared_ptr<xChromatogram<adcontrols::hor_axis_mass> >& c ) {
+                                              return c->fcn_ == fcn && c->target_index_ == target_index;
+                                          } );
 
                 if ( chro != results_.end() )
                     ( *chro )->append( uint32_t( pos ), time, y );

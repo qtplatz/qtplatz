@@ -120,6 +120,8 @@ namespace adcontrols {
         
         virtual const_iterator begin( int fcn = (-1) ) const = 0;
         virtual const_iterator end() const = 0;
+
+        virtual size_t size( int fcn = (-1) ) const = 0;
         
         /* findPos returns trigger number on the data stream across all protocol functions */
         virtual const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const = 0;

@@ -61,6 +61,7 @@ namespace acqrsinterpreter {
         const_iterator begin( int fcn ) const override;
         const_iterator end() const override;
         const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const override;
+        size_t size( int fcn ) const override;
         
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override;
 
@@ -90,6 +91,7 @@ namespace acqrsinterpreter {
         std::string display_name_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
         size_t fcnCount_;
+        int64_t elapsed_time_origin_;
 
         struct index {
             int64_t rowid; int64_t pos; int64_t elapsed_time; int fcn;

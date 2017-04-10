@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,6 +29,7 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QHeaderView>
+#include <QPainter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QLabel>
@@ -52,8 +53,10 @@ namespace adwidgets {
         
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             if ( index.column() == c_fcn ) {
+                size_t nProto = index.data( Qt::UserRole + 1 ).toInt();
                 auto combo = new QComboBox( parent );
-                for ( int fcn = 0; fcn < index.data( Qt::UserRole + 1 ).toInt(); ++fcn )
+                combo->addItem( "*" ); // -1
+                for ( int fcn = 0; fcn < nProto; ++fcn )
                     combo->addItem( QString::number( fcn ) );
                 return combo;
             }
@@ -63,13 +66,25 @@ namespace adwidgets {
         void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
             if ( index.column() == c_fcn ) {
                 if ( auto combo = qobject_cast< QComboBox * >( editor ) ) {
-                    int idx = combo->currentIndex();
-                    if ( idx < index.data( Qt::UserRole + 1 ).toInt() )
-                        model->setData( index, idx );
+                    int idx = int( combo->currentIndex() ) - 1;
+                    if ( idx < 0 )
+                        model->setData( index, -1 ); // protocol select all (*) = -1
+                    else if ( idx < index.data( Qt::UserRole + 1 ).toInt() )
+                        model->setData( index, idx ); // protocol specified
                 }
             }
         }
-        
+
+        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            if ( index.column() == c_fcn ) {
+                QStyleOptionViewItem opt(option);
+                initStyleOption( &opt, index );
+                opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+                painter->drawText( option.rect, option.displayAlignment, index.data().toInt() < 0 ? "*" : index.data().toString() );
+            } else {
+                QStyledItemDelegate::paint( painter, option, index );
+            }
+        }
     };
 
 }
@@ -103,7 +118,7 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< co
             const auto& reader = readers[ row ];
             model->setData( model->index( row, c_display_name ), QString::fromStdString( reader->display_name() ) );
             model->setData( model->index( row, c_objtext ), QString::fromStdString( reader->objtext() ) );
-            model->setData( model->index( row, c_fcn ), 0 ); // fcn
+            model->setData( model->index( row, c_fcn ), -1, Qt::EditRole ); // fcn '*'
             model->setData( model->index( row, c_fcn ), int( reader->fcnCount() ), Qt::UserRole + 1 );
             model->item( row, c_display_name )->setEditable( false );
             model->item( row, c_objtext )->setEditable( false );
@@ -115,6 +130,8 @@ DataReaderChoiceDialog::DataReaderChoiceDialog( std::vector< std::shared_ptr< co
         table->resizeRowsToContents();
         table->horizontalHeader()->setStretchLastSection( true );
         table->horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
+
+        table->setCurrentIndex( model->index( 0, 0 ) );
 
         layout->addWidget( table );
 

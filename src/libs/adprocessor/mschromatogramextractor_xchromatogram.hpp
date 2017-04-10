@@ -31,30 +31,31 @@
 #include <adportable/utf.hpp>
 #include <boost/format.hpp>
 
-
-namespace adcontrols {
+namespace adprocessor {
 
     namespace mschromatogramextractor {
 
-        template< hor_axis >
+        template< adcontrols::hor_axis >
         class xChromatogram {
             xChromatogram( const xChromatogram& ) = delete;
             xChromatogram& operator = ( const xChromatogram& ) = delete;
         public:
-            xChromatogram( const moltable::value_type& target
+            xChromatogram( const adcontrols::moltable::value_type& target
                            , double width
                            , uint32_t fcn
-                           , uint32_t target_index ) : fcn_( fcn )
-                                                     , target_index_( target_index )
-                                                     , count_( 0 )
-                                                     , target_( target )
-                                                     , pchr_( std::make_shared< adcontrols::Chromatogram >() )  {
+                           , uint32_t target_index
+                           , const std::string& reader ) : fcn_( fcn )
+                                                         , target_index_( target_index )
+                                                         , count_( 0 )
+                                                         , target_( target )
+                                                         , pchr_( std::make_shared< adcontrols::Chromatogram >() )  {
                 pchr_->addDescription(
                     adcontrols::description( L"Create"
-                                             , ( boost::wformat( L"%s %.4f (W:%.4gmDa) #%d" )
+                                             , ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s #%d" )
                                                  % adportable::utf::to_wstring( target.formula() )
                                                  % target.mass()
                                                  % ( width * 1000 )
+                                                 % adportable::utf::to_wstring( reader )
                                                  % fcn_
                                                  ).str() ) );
                 
@@ -92,7 +93,7 @@ namespace adcontrols {
             uint32_t target_index_;
             uint32_t pos_; // last pos
             uint32_t count_; // data count
-            moltable::value_type target_;
+            adcontrols::moltable::value_type target_;
             std::shared_ptr< adcontrols::Chromatogram > pchr_;
         };
     }

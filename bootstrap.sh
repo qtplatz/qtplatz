@@ -17,9 +17,15 @@ while [ $# -gt 0 ]; do
 	    shift
 	    ;;
 	eclipse)
+	    config=debug
 	    ide=eclipse
 	    shift
 	    ;;
+	codelite)
+	    config=debug	    
+	    ide=codelite
+	    shift
+	    ;;	
 	xcode)
 	    ide=xcode
 	    shift
@@ -58,14 +64,10 @@ if [ -z $cross_target ]; then
 	    if [ "$config" = "debug" ]; then
 		if [ "$ide" = "eclipse" ]; then
 		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
-		else
+		elif [ "$ide" = "codelite" ]; then
 		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
-		fi
-	    else
-		if [ "$ide" = "eclipse" ]; then
-		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Release')
 		else
-		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Release')
+		    cmake_args=('-G' 'CodeBlocks - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
 		fi
 	    fi
 	    ;;

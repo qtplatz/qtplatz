@@ -43,7 +43,6 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/moltable.hpp>
-#include <adcontrols/mschromatogramextractor.hpp>
 #include <adcontrols/msfinder.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -58,6 +57,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
+#include <adprocessor/mschromatogramextractor.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
@@ -121,6 +121,8 @@ DataprocessWorker::createChromatogramsV3( Dataprocessor* processor
         int fcn = range.first;
         double time = range.second.time();
         double width = range.second.widthHH( true );
+
+        ADDEBUG() << "DataprocessWorker::createChromatogramsV3 fcn[" << fcn << "] time: " << time << ", width:" << width;
         
         // mass|time,width pair
         if ( auto pChr = reader->getChromatogram( fcn, time, width ) ) {
@@ -324,10 +326,12 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
-        adcontrols::v2::MSChromatogramExtractor extract( dset );
+        adprocessor::v2::MSChromatogramExtractor extract( dset );
 
-        extract( vec, *pm, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
-
+        extract( vec, *pm, [progress] ( size_t curr, size_t total ) {
+                if ( curr == 0 )
+                    progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) );
+            } );
     }
 
     portfolio::Folium folium;
@@ -351,9 +355,11 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
 
     if ( const adcontrols::LCMSDataset * dset = processor->rawdata() ) {
 
-        adcontrols::v2::MSChromatogramExtractor extract( dset );
-        extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
-
+        adprocessor::v2::MSChromatogramExtractor extract( dset );
+        extract( vec, axis, ranges, [progress] ( size_t curr, size_t total ) {
+                if ( curr == 0 )
+                    progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) );
+            } );
     }
 
     portfolio::Folium folium;
@@ -376,7 +382,7 @@ DataprocessWorker::handleCreateChromatogramsV3( Dataprocessor * processor
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
-        adcontrols::v3::MSChromatogramExtractor extract( dset );
+        adprocessor::v3::MSChromatogramExtractor extract( dset );
 
         extract( vec, *pm, reader, fcn
                  , [progress] ( size_t curr, size_t total ) { if ( curr == 0 ) progress->setRange( 0, int( total ) ); return ( *progress )( int( curr ) ); } );
@@ -441,7 +447,8 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
                 auto idx = finder( *ms, mol.mass() );
                 if ( idx != adcontrols::MSFinder::npos ) {
                     lkms << adcontrols::lockmass::reference( mol.formula(), mol.mass(), ms->getMass( idx ), ms->getTime( idx ) );
-                    ms->addAnnotation( adcontrols::annotation( mol.formula(), mol.mass(), ms->getIntensity( idx ), int(idx), 999, adcontrols::annotation::dataFormula ) );
+                    ms->addAnnotation( adcontrols::annotation( mol.formula(), mol.mass(), ms->getIntensity( idx )
+                                                               , int(idx), 999, adcontrols::annotation::dataFormula ) );
                 }
             }
             if ( lkms.fit() ) {

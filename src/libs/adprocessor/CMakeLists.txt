@@ -31,6 +31,13 @@ endif()
 add_library( ${PROJECT_NAME} SHARED
   dataprocessor.hpp
   dataprocessor.cpp
+  mschromatogramextractor.hpp
+  mschromatogramextractor_accumulate.hpp
+  mschromatogramextractor_xchromatogram.hpp
+  mschromatogramextractor_v2.cpp
+  mschromatogramextractor_v2.hpp
+  mschromatogramextractor_v3.cpp
+  mschromatogramextractor_v3.hpp       
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

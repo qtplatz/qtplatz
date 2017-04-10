@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "adcontrols_global.h"
-#include <compiler/disable_dll_interface.h>
+#include "adprocessor_global.hpp"
 #include <adcontrols/constants.hpp>
 #include <string>
 #include <vector>
@@ -43,10 +42,12 @@ namespace adcontrols {
     class MSPeakInfoItem;
     class ProcessMethod;
     class DataReader;
+}
 
+namespace adprocessor {
     namespace v3 {
 
-        class ADCONTROLSSHARED_EXPORT MSChromatogramExtractor {
+        class ADPROCESSORSHARED_EXPORT MSChromatogramExtractor {
             
             MSChromatogramExtractor( const MSChromatogramExtractor& ) = delete;
             MSChromatogramExtractor& operator = ( const MSChromatogramExtractor& ) = delete;
@@ -57,13 +58,13 @@ namespace adcontrols {
             
             // v3 data
             bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                             , const ProcessMethod&
+                             , const adcontrols::ProcessMethod&
                              , std::shared_ptr< const adcontrols::DataReader >
                              , int fcn
                              , std::function<bool( size_t, size_t )> progress );
             
             bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
-                               , const ProcessMethod&
+                               , const adcontrols::ProcessMethod&
                                , adcontrols::hor_axis axis
                                , const std::vector< std::pair< int /* fcn */, adcontrols::MSPeakInfoItem > >& ranges
                                , const adcontrols::DataReader *

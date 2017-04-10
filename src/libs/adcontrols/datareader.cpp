@@ -62,6 +62,7 @@ namespace adcontrols {
         const_iterator end() const override { return const_iterator(this, -1); }
         const_iterator findPos( double seconds, int fcn, bool closest = false, TimeSpec ts = ElapsedTime ) const override { return end(); }
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override { return end(); }
+        size_t size( int ) const override { return 0; }
         
         static std::shared_ptr< DataReader > instance() {
 

@@ -26,7 +26,7 @@
 
 #include <numeric>
 
-namespace adcontrols {
+namespace adprocessor {
 
     namespace mschromatogramextractor {
 
