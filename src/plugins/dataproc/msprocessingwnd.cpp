@@ -1159,7 +1159,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                                        , [=](){ pImpl_->processedSpectrum_->yZoom( rect.left(), rect.right() ); } ) );
 
     actions.emplace_back( menu.addAction( tr( "Make mass chromatograms" ) )
-                          , [=]{ make_chromatograms( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
+                          , [=]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
 
     bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
     auto ptr = pProcessedSpectrum_.second.lock();
@@ -1680,7 +1680,7 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader
         auto pm = std::make_shared< adcontrols::ProcessMethod >();
         MainWindow::instance()->getProcessMethod( *pm );
         // [3]
-        DataprocessWorker::instance()->createChromatogramByAxisRange( processor, pm, axis, std::make_pair( s, e ), reader );
+        DataprocessWorker::instance()->createChromatogramByAxisRange3( processor, pm, axis, std::make_pair( s, e ), reader );
     }
 }
 
@@ -1688,39 +1688,48 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader
 /* make chromatograms from centroid data
  */
 void
-MSProcessingWnd::make_chromatograms( std::shared_ptr< const adcontrols::MassSpectrum > ptr, adcontrols::hor_axis axis, double left, double right )
+MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrols::MassSpectrum > ptr
+                                                , adcontrols::hor_axis axis
+                                                , double left
+                                                , double right )
 {
-    struct xcompare {
-        adcontrols::hor_axis axis_;
-        xcompare( adcontrols::hor_axis axis ) : axis_( axis )
-            {}
-        inline bool operator()( const adcontrols::MSPeakInfoItem& pk, double rvalue ) {
-            return ( axis_ == adcontrols::hor_axis_time ) ? ( pk.time() < rvalue * std::micro::den ) : ( pk.mass() < rvalue );
-        }
-    };
-
     if ( ptr && ptr->isCentroid() ) {
-        
+
+        std::shared_ptr< adcontrols::MSPeakInfo > xpkinfo;
         auto pkinfo = pkinfo_.second.lock();
-        adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > vinfo( *pkinfo );
-        
-        adcontrols::ProcessMethod pm;
-        MainWindow::instance()->getProcessMethod( pm );
-        
-        std::vector< std::pair< int, adcontrols::MSPeakInfoItem > > ranges;  // fcn, peaks
-        for ( auto pkinfo : vinfo ) {
-            using namespace adcontrols::metric;
-            auto it = std::lower_bound( pkinfo.begin(), pkinfo.end(), left, [&] ( const adcontrols::MSPeakInfoItem& a, const double& b ) {
-                    return axis_ == adcontrols::hor_axis_time ? a.time() < ( left * std::micro::den ) : a.mass() < left;
-                } );
-            xcompare compare( axis_ );
-            while ( it != pkinfo.end() && compare( *it, right ) )
-                ranges.emplace_back( pkinfo.protocolId(), *it++ );
+
+        for ( const auto& pkseg: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
+
+            adcontrols::MSPeakInfo xInfo;
+            
+            auto beg = std::lower_bound( pkseg.begin(), pkseg.end(), left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
+                    return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
+            if ( beg != pkseg.end() ) {
+                auto end = std::lower_bound( pkseg.begin(), pkseg.end(), right, [&]( const adcontrols::MSPeakInfoItem& a, const double& right ) {
+                        return ( axis == adcontrols::hor_axis_mass ) ? right < a.mass() : right < a.time(); });
+                xInfo.setMode( pkseg.mode() );
+                xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
+                std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){ xInfo << a; } );
+                if ( ! xpkinfo )
+                    xpkinfo = std::make_shared< adcontrols::MSPeakInfo >( xInfo );
+                else
+                    xpkinfo->addSegment( xInfo );
+            }
         }
         
-        if ( ! ranges.empty() ) {
+        if ( xpkinfo ) {
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-                DataprocessWorker::instance()->createChromatograms( processor, axis_, ranges, ptr->dataReaderUuid() );
+                if ( auto file = processor->rawdata() ) {
+                    if ( file->dataformat_version() >= 3 ) {
+                        if ( auto reader = file->dataReader( ptr->dataReaderUuid() ) ) {
+                            auto pm = std::make_shared< adcontrols::ProcessMethod >();
+                            MainWindow::instance()->getProcessMethod( *pm );
+                            DataprocessWorker::instance()->createChromatogramsByPeakInfo3( processor, pm, axis, xpkinfo, reader );
+                        }
+                    } else {
+                        // DataprocessWorker::instance()->createChromatograms( processor, axis_, ranges, ptr->dataReaderUuid() );
+                    }
+                }
             }
         }
     }

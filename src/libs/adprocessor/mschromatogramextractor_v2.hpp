@@ -66,6 +66,10 @@ namespace adprocessor {
                              , std::function<bool( size_t, size_t )> progress );
         
         private:
+            
+            bool loadSpectra( const adcontrols::ProcessMethod *
+                              , std::function<bool( size_t, size_t )> progress );
+            
             class impl;
             impl * impl_;
         };

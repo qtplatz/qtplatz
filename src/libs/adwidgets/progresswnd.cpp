@@ -202,3 +202,10 @@ Progress::operator()( int value )
     return wnd_->stop_requested_;
 }
 
+bool
+Progress::operator()( size_t curr, size_t total )
+{
+    if ( curr == 0 )
+        setRange( 0, int( total ) );
+    return (*this)( int( curr ) );
+}

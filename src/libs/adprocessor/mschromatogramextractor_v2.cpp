@@ -24,7 +24,7 @@
 
 #include "mschromatogramextractor_v2.hpp"
 #include "mschromatogramextractor_accumulate.hpp"
-#include "mschromatogramextractor_xchromatogram.hpp"
+#include "xchromatogram.hpp"
 #include "centroidmethod.hpp"
 #include "centroidprocess.hpp"
 #include "chemicalformula.hpp"
@@ -89,71 +89,83 @@ MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset 
 }
 
 bool
+MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
+                                      , std::function<bool( size_t, size_t )> progress )
+{
+    impl_->results_.clear();
+
+    adcontrols::Chromatogram tic;
+    size_t nSpectra(0);
+    if ( impl_->raw_ && impl_->raw_->getTIC( 0, tic ) )
+        nSpectra = tic.size();
+        
+    if ( nSpectra == 0 )
+        return false;
+
+    progress( 0, nSpectra );
+
+    const adcontrols::MSChromatogramMethod * cm = pm ? pm->find< adcontrols::MSChromatogramMethod >() : nullptr;
+    bool doLock = cm ? cm->lockmass() : false;
+    if ( doLock )
+        impl_->prepare_mslock( *cm, *pm );
+    
+    size_t pos = 0;
+    size_t n( 0 );
+    
+    adcontrols::lockmass::mslock mslock;
+    do {
+        auto ms = std::make_shared< adcontrols::MassSpectrum >();
+        
+        if ( ( pos = impl_->read_raw_spectrum( pos, impl_->raw_, *ms ) ) ) {
+            
+            if ( cm->lockmass() ) {
+                impl_->apply_mslock( ms, *pm, mslock );
+            } else {
+                adcontrols::lockmass::mslock lkms;
+                if ( impl_->raw_->mslocker( lkms ) ) // if acquisition on-the-fly lock-mass
+                    lkms( *ms );
+            }
+            impl_->spectra_[ pos - 1 ] = ms; // keep mass locked spectral series
+            
+            if ( progress( ++n, nSpectra ) )
+                return false;
+        }
+    } while ( pos );
+
+    return ! impl_->spectra_.empty();
+}
+
+bool
 MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                        , const adcontrols::ProcessMethod& pm
                                        , std::function<bool( size_t, size_t )> progress )
 {
+    if ( const adcontrols::MSChromatogramMethod * cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
-    if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
-    
-        adcontrols::Chromatogram tic;
-        size_t nSpectra(0);
-        if ( impl_->raw_ && impl_->raw_->getTIC( 0, tic ) )
-            nSpectra = tic.size();
-
-        if ( nSpectra == 0 )
-            return false;
-
-        progress( 0, nSpectra );
-
-        impl_->results_.clear();
-        
-        if ( cm->lockmass() )
-            impl_->prepare_mslock( *cm, pm );
-
-        size_t pos = 0;
-        size_t n( 0 );
-
-        adcontrols::lockmass::mslock mslock;
-        do {
-            auto ms = std::make_shared< adcontrols::MassSpectrum >();
+        if ( loadSpectra( &pm, progress ) ) {
             
-            if ( ( pos = impl_->read_raw_spectrum( pos, impl_->raw_, *ms ) ) ) {
-                
-                if ( cm->lockmass() ) {
-                    impl_->apply_mslock( ms, pm, mslock );
+            auto prev = impl_->spectra_.begin()->second;
+            for ( auto& ms : impl_->spectra_ ) {
+                if ( ms.second->size() != prev->size() || ms.second->getTime( 0 ) != prev->getTime( 0 ) ) {
+                    prev = ms.second; 
+                    // skip first spectrum after change condition; this elminates big artifact peak.
                 } else {
-                    adcontrols::lockmass::mslock lkms;
-                    if ( impl_->raw_->mslocker( lkms ) ) // if acquisition on-the-fly lock-mass
-                        lkms( *ms );
+                    impl_->append_to_chromatogram( ms.first, *ms.second, *cm );
                 }
-                impl_->spectra_[ pos - 1 ] = ms; // keep mass locked spectral series
-
-                if ( progress( ++n, nSpectra ) )
-                    return false;
             }
-        } while ( pos );
-
-        auto prev = impl_->spectra_.begin()->second;
-        for ( auto& ms : impl_->spectra_ ) {
-            if ( ms.second->size() != prev->size() || ms.second->getTime( 0 ) != prev->getTime( 0 ) ) {
-                prev = ms.second; 
-                // skip first spectrum after change condition; this elminates big artifact peak.
-            } else {
-                impl_->append_to_chromatogram( ms.first, *ms.second, *cm );
+            
+            std::pair< double, double > time_range =
+                std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
+                                , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
+            
+            for ( auto& r : impl_->results_ ) {
+                r->pChr_->minimumTime( time_range.first );
+                r->pChr_->maximumTime( time_range.second );
+                vec.push_back( r->pChr_ );
             }
-        }
 
-        std::pair< double, double > time_range =
-            std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
-                          , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
-        
-        for ( auto& r : impl_->results_ ) {
-            r->pChr_->minimumTime( time_range.first );
-            r->pChr_->maximumTime( time_range.second );
-            vec.push_back( r->pChr_ );
+            return true;
         }
-        return true;
     }
     return false;
 }
@@ -186,8 +198,10 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
         impl_->results_.clear();
 
         uint32_t target_index( 0 );
-        for ( auto& range : ranges )
-            impl_->results_.push_back( std::make_shared< xChromatogram >( range, target_index++ ) );
+        for ( auto& range : ranges ) {
+            //auto xc = std::make_shared< xChromatogram >( range, target_index++ );
+            //impl_->results_.push_back( std::make_shared< xChromatogram >( range, target_index++ ) );
+        }
 
         size_t pos = 0;
         size_t n( 0 );

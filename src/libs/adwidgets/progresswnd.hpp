@@ -84,6 +84,7 @@ namespace adwidgets {
         Progress( ProgressWnd *, int id );
         ~Progress();
         void setRange( int, int );
+        bool operator()( size_t, size_t );
         bool operator()( int );
         bool operator()(); // step forward
     };

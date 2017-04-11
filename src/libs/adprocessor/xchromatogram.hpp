@@ -60,19 +60,6 @@ namespace adprocessor {
                 
             }
             
-            xChromatogram( const std::pair< int, adcontrols::MSPeakInfoItem >& range
-                           , uint32_t cid ) : fcn_( std::get< 0 >( range ) )
-                                            , cid_( cid )
-                                            , count_( 0 )
-                                            , pChr_( std::make_shared< adcontrols::Chromatogram >() )  {
-                
-                    double mass = range.second.mass();
-                    double width = range.second.widthHH();
-                    pChr_->addDescription( adcontrols::description( L"Create"
-                        , ( boost::wformat( L"m/z %.4lf (W:%.4gmDa) #%d" ) % mass % ( width * 1000 ) % fcn_ ).str() ) );
-
-            }
-
             xChromatogram( int fcn, int cid ) : fcn_( fcn ), cid_( cid ), count_( 0 ), pos_(0)
                                               , pChr_( std::make_shared< adcontrols::Chromatogram >() )  {
 

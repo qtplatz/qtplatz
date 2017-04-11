@@ -39,6 +39,7 @@ namespace adcontrols {
     class ProcessMethod;
     class MSChromatogramMethod;
     class DataReader;
+    class MSPeakInfo;
     class MSPeakInfoItem;
     class MSLockMethod;
 }
@@ -67,26 +68,29 @@ namespace dataproc {
         // [0]
         void createChromatogramsByMethod( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
 
-        // [3] Create from GUI selected m/z|time range
-        void createChromatogramByAxisRange( Dataprocessor * processor
-                                            , std::shared_ptr< const adcontrols::ProcessMethod > pm
-                                            , adcontrols::hor_axis axis
-                                             , const std::pair<double, double >& range
-                                            , const adcontrols::DataReader * reader );
 
-        // [1]
-        void createChromatograms( Dataprocessor * processor
-                                  , adcontrols::hor_axis axis
-                                  , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
-                                  , const boost::uuids::uuid& dataReaderUuid );
+        // [1] (Support both V2&V3)
+        // void createChromatograms( Dataprocessor * processor
+        //                           , adcontrols::hor_axis axis
+        //                           , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
+        //                           , const boost::uuids::uuid& dataReaderUuid );
         // [2]
         void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& );
 
-        // [4]
-        void createChromatogramsV3( Dataprocessor *
-                                    , adcontrols::hor_axis
-                                    , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges                                    
-                                    , const adcontrols::DataReader * reader );
+
+        // [3] Create from GUI selected m/z|time range
+        void createChromatogramByAxisRange3( Dataprocessor * processor
+                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                             , adcontrols::hor_axis axis
+                                             , const std::pair<double, double >& range
+                                             , const adcontrols::DataReader * reader );
+        
+        // [4] V3
+        void createChromatogramsByPeakInfo3( Dataprocessor *
+                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                             , adcontrols::hor_axis axis
+                                             , std::shared_ptr< const adcontrols::MSPeakInfo >
+                                             , const adcontrols::DataReader * reader );
 
         void createSpectrogram( Dataprocessor * );
 		void clusterSpectrogram( Dataprocessor * );
@@ -111,20 +115,26 @@ namespace dataproc {
                                           , std::shared_ptr<adwidgets::Progress> );
         
         // for v3 data format
-        void handleChromatogramsByMethod( Dataprocessor *
+        void handleChromatogramsByMethod3( Dataprocessor *
                                           , const adcontrols::MSChromatogramMethod&
                                           , std::shared_ptr< const adcontrols::ProcessMethod >
                                           , std::shared_ptr< const adcontrols::DataReader >
                                           , int fcn                                        
                                           , std::shared_ptr<adwidgets::Progress> );
 
-        void handleChromatogramByAxisRange( Dataprocessor *
+        void handleChromatogramByAxisRange3( Dataprocessor *
                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm
                                             , adcontrols::hor_axis axis
                                             , const std::pair<double, double >& range
                                             , std::shared_ptr< const adcontrols::DataReader >
                                             , int fcn
                                             , std::shared_ptr<adwidgets::Progress> );
+        // for v3 data format
+        void handleChromatogramsByPeakInfo3( Dataprocessor *
+                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                             , std::shared_ptr< const adcontrols::MSPeakInfo > pkinfo
+                                             , std::shared_ptr< const adcontrols::DataReader >
+                                             , std::shared_ptr<adwidgets::Progress> );
         
         // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *
@@ -132,11 +142,11 @@ namespace dataproc {
                                       , std::shared_ptr<adwidgets::Progress> );
 
         // for v3 data format
-        void handleCreateSpectrogram( Dataprocessor *
-                                      , std::shared_ptr< const adcontrols::ProcessMethod >
-                                      , const adcontrols::DataReader *
-                                      , int fcn
-                                      , std::shared_ptr<adwidgets::Progress> );
+        void handleCreateSpectrogram3( Dataprocessor *
+                                       , std::shared_ptr< const adcontrols::ProcessMethod >
+                                       , const adcontrols::DataReader *
+                                       , int fcn
+                                       , std::shared_ptr<adwidgets::Progress> );
         
         void handleClusterSpectrogram( Dataprocessor *
                                        , const std::shared_ptr< adcontrols::ProcessMethod >

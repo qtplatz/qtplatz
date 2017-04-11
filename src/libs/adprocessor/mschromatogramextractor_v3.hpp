@@ -39,6 +39,7 @@ namespace adcontrols {
     class LCMSDataset;
     class MassSpectrum;
     class MSChromatogramMethod;
+    class MSPeakInfo;
     class MSPeakInfoItem;
     class ProcessMethod;
     class DataReader;
@@ -57,20 +58,19 @@ namespace adprocessor {
             MSChromatogramExtractor( const adcontrols::LCMSDataset * );
             
             // [0] Chromatograms from a list of mol in process method
-            bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
-                             , const adcontrols::ProcessMethod&
-                             , std::shared_ptr< const adcontrols::DataReader >
-                             , int fcn
-                             , std::function<bool( size_t, size_t )> progress );
+            bool extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
+                                  , const adcontrols::ProcessMethod&
+                                  , std::shared_ptr< const adcontrols::DataReader >
+                                  , int fcn
+                                  , std::function<bool( size_t, size_t )> progress );
 
             // [1] Chromatograms from centroid result
-            bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
-                               , const adcontrols::ProcessMethod&
-                               , adcontrols::hor_axis axis
-                               , const std::vector< std::pair< int /* fcn */, adcontrols::MSPeakInfoItem > >& ranges
-                               , std::shared_ptr< const adcontrols::DataReader >                               
-                               , std::function<bool( size_t, size_t )> progress );
-
+            bool extract_by_peak_info( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
+                                       , const adcontrols::ProcessMethod&
+                                       , std::shared_ptr< const adcontrols::MSPeakInfo > pkinfo
+                                       , std::shared_ptr< const adcontrols::DataReader > reader                        
+                                       , std::function<bool( size_t, size_t )> progress );
+            
             // [2] Chromatograms from specified m/z or time range
             bool extract_by_axis_range( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                         , const adcontrols::ProcessMethod&
