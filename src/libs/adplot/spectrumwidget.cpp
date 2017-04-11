@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -195,7 +195,8 @@ namespace adplot {
         bool isTimeAxis_;
         std::weak_ptr< const adcontrols::MassSpectrum > centroid_;  // for annotation
         std::vector< Annotation > annotations_;
-        std::vector< spectrumwidget::TraceData > traces_;
+        //std::vector< spectrumwidget::TraceData > traces_;
+        std::vector< std::unique_ptr< spectrumwidget::TraceData > > traces_;
 
         std::atomic<bool> keepZoomed_;
         std::atomic<HorizontalAxis> haxis_;
@@ -319,9 +320,12 @@ void
 SpectrumWidget::setVectorCompression( int compression )
 {
     plot::setVectorCompression( compression );
-    for ( auto& trace : impl_->traces_ )
-        for ( auto& curve: trace.curves_ )
-            curve->setVectorCompression( compression );
+    for ( auto& trace : impl_->traces_ ) {
+        if ( trace ) {
+            for ( auto& curve: trace->curves_ )
+                curve->setVectorCompression( compression );
+        }
+    }
 }
 
 std::pair<bool, bool>
@@ -332,14 +336,16 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
     
     left = right = std::make_pair( std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest() );
 
-    for ( const TraceData& trace: traces_ ) {
-        std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
-        if ( trace.yRight() ) {
-            hasYRight = true;
-            right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
-        } else {
-            hasYLeft = true;
-            left = std::make_pair( std::min( y.first, left.first ), std::max( y.second, left.second ) );
+    for ( const auto& trace: traces_ ) {
+        if ( trace ) {
+            std::pair<double, double> y = trace->y_range( rc.left(), rc.right() );
+            if ( trace->yRight() ) {
+                hasYRight = true;
+                right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
+            } else {
+                hasYLeft = true;
+                left = std::make_pair( std::min( y.first, left.first ), std::max( y.second, left.second ) );
+            }
         }
     }
 
@@ -376,9 +382,12 @@ SpectrumWidget::impl::baseScale( bool yRight, QRectF& rc )
 
     rc = QRectF(); // make them 'null'
 
-    for ( const TraceData& trace: traces_ ) {
+    for ( const auto& trace: traces_ ) {
 
-        const QRectF& t = trace.rect();
+        if ( !trace )
+            continue;
+        
+        const QRectF& t = trace->rect();
 
         if ( rc.isNull() ) {
 
@@ -389,7 +398,7 @@ SpectrumWidget::impl::baseScale( bool yRight, QRectF& rc )
             rc.setLeft( std::min( t.left(), rc.left() ) );
             rc.setRight( std::max( t.right(), rc.right() ) );
             
-            if ( trace.yRight() == yRight ) {
+            if ( trace->yRight() == yRight ) {
                 
                 rc.setBottom( std::min( t.bottom(), rc.bottom() ) );
                 rc.setTop( std::max( t.top(), rc.top() ) );
@@ -470,7 +479,7 @@ void
 SpectrumWidget::removeData( int idx, bool bReplot )
 {
     if ( idx < int(impl_->traces_.size()) ) {
-        impl_->traces_[ idx ] = spectrumwidget::TraceData( idx );
+        impl_->traces_[ idx ] = std::make_unique< spectrumwidget::TraceData >( idx );
         impl_->clear_annotations();
         if ( bReplot )
             replot();
@@ -482,8 +491,10 @@ SpectrumWidget::redraw_all()
 {
     QRectF rcLeft, rcRight;
 
-    for ( auto& trace: impl_->traces_ )
-        trace.redraw( *this, impl_->haxis_, rcLeft, rcRight );
+    for ( auto& trace: impl_->traces_ ) {
+        if ( trace )
+            trace->redraw( *this, impl_->haxis_, rcLeft, rcRight );
+    }
 
     if ( !rcLeft.isNull() ) {
         setAxisScale( QwtPlot::xBottom, rcLeft.left(), rcLeft.right() );
@@ -501,8 +512,8 @@ void
 SpectrumWidget::setAlpha( int idx, int alpha )
 {
     if ( impl_->traces_.size() > idx ) {
-        spectrumwidget::TraceData& trace = impl_->traces_[ idx ];
-        trace.setAlpha( alpha < 0 ? 0xff : alpha );
+        if ( auto& trace = impl_->traces_[ idx ] )
+            trace->setAlpha( alpha < 0 ? 0xff : alpha & 0xff );
     }
 }
 
@@ -510,8 +521,8 @@ void
 SpectrumWidget::setColor( int idx, const QColor& color )
 {
     if ( impl_->traces_.size() > idx ) {
-        spectrumwidget::TraceData& trace = impl_->traces_[ idx ];
-        trace.setColor( color );
+        if ( auto& trace = impl_->traces_[ idx ] )
+            trace->setColor( color );
     }
 }
 
@@ -525,15 +536,20 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         // if ptr == nullptr, traces_[ idx ] need to be removed
     }
 
-    while ( int( impl_->traces_.size() ) <= idx ) 
-		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
-    
-    TraceData& trace = impl_->traces_[ idx ];
+    if ( impl_->traces_.size() <= idx )
+        impl_->traces_.resize( idx + 1 );
 
-    auto lock = trace.pSpectrum_;
+    if ( ! impl_->traces_[ idx ] )
+        impl_->traces_[ idx ] = std::make_unique< TraceData >( idx );
+    // while ( int( impl_->traces_.size() ) <= idx ) 
+	// 	impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
+    
+    auto& trace = impl_->traces_[ idx ];
+
+    auto lock = trace->pSpectrum_;
 
     QRectF rect;
-    trace.setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
+    trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
 
     QRectF baseRect;
     impl_->baseScale( yRight, baseRect );
@@ -582,8 +598,10 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 void
 SpectrumWidget::setFocusedFcn( int fcn )
 {
-    for ( auto& trace: impl_->traces_ )
-		trace.setFocusedFcn( fcn );
+    for ( auto& trace: impl_->traces_ ) {
+        if ( trace )
+            trace->setFocusedFcn( fcn );
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -611,7 +629,7 @@ TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const
 
         int cid = ( idx_ + fcn ) % ( sizeof(color_table)/sizeof(color_table[0]) );
         QColor color( color_table[ cid ] );
-        color.setAlpha( alpha_ );
+        color.setAlpha( alpha_ & 0xff );
         ptr->setPen( color );
         ptr->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
         if ( yRight )
@@ -671,7 +689,7 @@ TraceData::setCentroidData( plot& plot, const adcontrols::MassSpectrum& _ms, con
             int cid = ( idx_ ) % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) );
             QColor color( color_table[ cid ] );
             //QColor color( color_table[ 0 ] );
-            color.setAlpha( 255 - (idx_ * 16) );
+            color.setAlpha( 255 - ( ( idx_ * 16 ) & 0xff ) );
             curve->setPen( QPen( color ) );
             curve->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
             curve->setStyle( QwtPlotCurve::Sticks );
@@ -790,7 +808,7 @@ TraceData::setAlpha( int alpha )
         alpha_ = alpha;
         int fcn = 0;
         for ( auto& curve: curves_ ) {
-            color_.setAlpha( alpha );
+            color_.setAlpha( alpha & 0xff );
             curve->setPen( color_ );
             ++fcn;
         }
