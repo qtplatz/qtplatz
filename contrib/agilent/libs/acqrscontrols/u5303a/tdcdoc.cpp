@@ -78,11 +78,14 @@ namespace acqrscontrols {
                 if ( !v.empty() && v[ 0 ] ) {
                     
                     waveform::translate( ms, v[ 0 ], assignee );
+                    ms.setProtocol( 0, protocolCount_ );
                     
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();                    
-                        if ( auto& w = v[ proto ] )
+                        if ( auto& w = v[ proto ] ) {
                             waveform::translate( *sp, w, assignee );
+                            sp->setProtocol( proto, protocolCount_ );
+                        }
                         ms << std::move(sp);
                     }
                     return true;
@@ -105,6 +108,7 @@ namespace acqrscontrols {
                         htop = v[ 0 ]->merge_peaks( resolution );
 
                     adcontrols::TimeDigitalHistogram::translate( ms, *htop, assignee );
+                    ms.setProtocol( 0, protocolCount_ );
 
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
 
@@ -116,6 +120,7 @@ namespace acqrscontrols {
                                 hgrm = hgrm->merge_peaks( resolution );
 
                             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
+                            sp->setProtocol( proto, protocolCount_ );
                         }
 
                         ms << std::move(sp);

@@ -165,7 +165,6 @@ MSPeakInfo::clear()
     vec_.clear();
 }
 
-
 // static
 bool
 MSPeakInfo::archive( std::ostream& os, const MSPeakInfo& t )
