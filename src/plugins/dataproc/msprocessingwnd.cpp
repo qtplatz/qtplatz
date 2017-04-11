@@ -1012,7 +1012,6 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                         if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
                             auto display_name = QString::fromStdString( reader->display_name() );
                             
-                            // ADDEBUG() << boost::lexical_cast< std::string > ( ms->dataReaderUuid() );
                             // todo: chromatogram creation by m/z|time range
                             if ( axis_ == adcontrols::hor_axis_mass ) {
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
@@ -1670,72 +1669,18 @@ MSProcessingWnd::frequency_analysis()
     }
 }
 
+// process on profile spectrum
 void
 MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader
                                     , std::shared_ptr< const adcontrols::MassSpectrum > ms
                                     , adcontrols::hor_axis axis
                                     , double s, double e )
 {
-    std::map< int, std::pair< double, double > > time_range;
-    std::map< int, std::pair< double, double > > mass_range;
-        
-    if ( axis == adcontrols::hor_axis_mass ) {
-        if ( auto spectrometer = reader->massSpectrometer() ) {
-            for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-                auto trange = sp.getMSProperty().instTimeRange();
-                auto mrange = std::make_pair( spectrometer->massFromTime( trange.first, sp ), spectrometer->massFromTime( trange.second, sp ) );
-                if ( mrange.first < s && e < mrange.second ) {
-                    double t0 = spectrometer->timeFromMass( s, sp );
-                    double t1 = spectrometer->timeFromMass( e, sp );
-                    mass_range[ sp.protocolId() ] = std::make_pair( s, e );
-                    time_range[ sp.protocolId() ] = std::make_pair( t0, t1 );
-                }
-            }
-        }
-    } else {
-        for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-            if ( sp.getTime( 0 ) < s && e < sp.getTime( sp.size() - 1 ) )
-                time_range[ sp.protocolId() ] = std::make_pair( s, e );
-        }
-    }
-
-    for ( auto& range: time_range ) {
-
-        int proto = range.first;
-        double w = range.second.second - range.second.first;
-        double t = range.second.first + ( w / 2 );    
-
-        using namespace adcontrols::metric;
-        
-        if ( auto pChr = reader->getChromatogram( proto, t, w ) ) {
-            
-            if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-                
-                portfolio::Portfolio portfolio = processor->getPortfolio();
-                portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
-                
-                std::wostringstream o;            
-                if ( axis == adcontrols::hor_axis_time ) {
-                    o << boost::wformat( L"%s %.3lf(us)(w:%.2lf(ns))#%d" )
-                        % adportable::utf::to_wstring( reader->display_name() ) % ( t * 1.0e6 ) %  ( w * 1.0e9 ) % proto;
-                } else {
-                    double mw = mass_range[ proto ].second - mass_range[ proto ].first;
-                    double mz = mass_range[ proto ].first + mw / 2;
-                    o << boost::wformat( L"%s %.3lf(w:%.2lf(mDa))#%d" )
-                        % adportable::utf::to_wstring( reader->display_name() ) % mz % ( mw * 1000 ) % proto;
-                }
-                
-                //auto folium = folder.findFoliumByName( adcontrols::Chromatogram::make_folder_name( o.str() ) );
-                auto folium = folder.findFoliumByName( o.str() );
-                if ( folium.nil() ) {
-                    pChr->addDescription( adcontrols::description( L"acquire.title", o.str() ) );
-                    adcontrols::ProcessMethod m;
-                    MainWindow::instance()->getProcessMethod( m );
-                    portfolio::Folium folium = processor->addChromatogram( *pChr, m, true );
-                }
-                processor->setCurrentSelection( folium );
-            }
-        }
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        auto pm = std::make_shared< adcontrols::ProcessMethod >();
+        MainWindow::instance()->getProcessMethod( *pm );
+        // [3]
+        DataprocessWorker::instance()->createChromatogramByAxisRange( processor, pm, axis, std::make_pair( s, e ), reader );
     }
 }
 

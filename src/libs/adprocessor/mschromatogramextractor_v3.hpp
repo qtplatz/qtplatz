@@ -56,15 +56,14 @@ namespace adprocessor {
             ~MSChromatogramExtractor();
             MSChromatogramExtractor( const adcontrols::LCMSDataset * );
             
-            // v3 data
-            // [0]
+            // [0] Chromatograms from a list of mol in process method
             bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
                              , const adcontrols::ProcessMethod&
                              , std::shared_ptr< const adcontrols::DataReader >
                              , int fcn
                              , std::function<bool( size_t, size_t )> progress );
 
-            // [1]            
+            // [1] Chromatograms from centroid result
             bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                , const adcontrols::ProcessMethod&
                                , adcontrols::hor_axis axis
@@ -72,16 +71,16 @@ namespace adprocessor {
                                , std::shared_ptr< const adcontrols::DataReader >                               
                                , std::function<bool( size_t, size_t )> progress );
 
-            // [2]
-            bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
-                               , const adcontrols::ProcessMethod&
-                               , std::shared_ptr< const adcontrols::DataReader >
-                               , int fcn
-                               , adcontrols::hor_axis axis
-                               , const std::pair< double, double >& range
-                               , std::function<bool( size_t, size_t )> progress );
+            // [2] Chromatograms from specified m/z or time range
+            bool extract_by_axis_range( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
+                                        , const adcontrols::ProcessMethod&
+                                        , std::shared_ptr< const adcontrols::DataReader >
+                                        , int fcn
+                                        , adcontrols::hor_axis axis
+                                        , const std::pair< double, double >& range
+                                        , std::function<bool( size_t, size_t )> progress );
 
-            static bool computeIntensity( double& y, const adcontrols::MassSpectrum&, adcontrols::hor_axis, std::pair< double, double >&& );
+            static bool computeIntensity( double& y, const adcontrols::MassSpectrum&, adcontrols::hor_axis, const std::pair< double, double >& );
             
         private:
             bool loadSpectra( const adcontrols::ProcessMethod *

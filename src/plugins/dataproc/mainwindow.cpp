@@ -789,7 +789,7 @@ MainWindow::handleProcess( const QString& origin )
         if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( ! cm->molecules().data().empty() ) {
                 if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
-                    DataprocessWorker::instance()->createChromatograms( processor, pm, origin );
+                    DataprocessWorker::instance()->createChromatogramsByMethod( processor, pm, origin );
             }
         }
     } else if ( origin == "MSSimulatorWidget" ) {

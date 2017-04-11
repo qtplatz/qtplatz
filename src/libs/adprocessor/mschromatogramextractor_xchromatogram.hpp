@@ -73,6 +73,11 @@ namespace adprocessor {
 
             }
 
+            xChromatogram( int fcn, int cid ) : fcn_( fcn ), cid_( cid ), count_( 0 ), pos_(0)
+                                              , pChr_( std::make_shared< adcontrols::Chromatogram >() )  {
+
+            }
+
             void append( uint32_t pos, double time, double y ) {
 
                 if ( count_++ == 0 && pos > 0 )
@@ -83,7 +88,7 @@ namespace adprocessor {
 
             }
 
-            uint32_t fcn_;
+            int32_t fcn_;
             uint32_t cid_;
             uint32_t pos_;   // last pos
             uint32_t count_; // data count

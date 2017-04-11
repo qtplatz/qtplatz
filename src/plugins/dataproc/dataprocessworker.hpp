@@ -64,22 +64,25 @@ namespace dataproc {
 
         static DataprocessWorker * instance();
 
-        // this will shows up Reader Choice Dialog
-        void createChromatograms( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
+        // [0]
+        void createChromatogramsByMethod( Dataprocessor *, std::shared_ptr< const adcontrols::ProcessMethod >, const QString& origin );
 
+        // [3] Create from GUI selected m/z|time range
+        void createChromatogramByAxisRange( Dataprocessor * processor
+                                            , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                            , adcontrols::hor_axis axis
+                                             , const std::pair<double, double >& range
+                                            , const adcontrols::DataReader * reader );
+
+        // [1]
         void createChromatograms( Dataprocessor * processor
                                   , adcontrols::hor_axis axis
                                   , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
                                   , const boost::uuids::uuid& dataReaderUuid );
-
+        // [2]
         void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& );
 
-        void createChromatogram( Dataprocessor * processor
-                                 , adcontrols::hor_axis axis
-                                 , std::pair<double, double >&& range
-                                 , std::shared_ptr< const adcontrols::MassSpectrum >
-                                 , const adcontrols::DataReader * reader );
-        
+        // [4]
         void createChromatogramsV3( Dataprocessor *
                                     , adcontrols::hor_axis
                                     , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges                                    
@@ -108,13 +111,21 @@ namespace dataproc {
                                           , std::shared_ptr<adwidgets::Progress> );
         
         // for v3 data format
-        void handleCreateChromatogramsV3( Dataprocessor *
+        void handleChromatogramsByMethod( Dataprocessor *
                                           , const adcontrols::MSChromatogramMethod&
                                           , std::shared_ptr< const adcontrols::ProcessMethod >
                                           , std::shared_ptr< const adcontrols::DataReader >
                                           , int fcn                                        
                                           , std::shared_ptr<adwidgets::Progress> );
 
+        void handleChromatogramByAxisRange( Dataprocessor *
+                                            , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                            , adcontrols::hor_axis axis
+                                            , const std::pair<double, double >& range
+                                            , std::shared_ptr< const adcontrols::DataReader >
+                                            , int fcn
+                                            , std::shared_ptr<adwidgets::Progress> );
+        
         // for v2 data format
         void handleCreateSpectrogram( Dataprocessor *
                                       , const std::shared_ptr< adcontrols::ProcessMethod >

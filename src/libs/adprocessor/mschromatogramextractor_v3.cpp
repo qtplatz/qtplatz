@@ -50,6 +50,7 @@
 #include <adutils/acquiredconf.hpp>
 #include <boost/format.hpp>
 #include <numeric>
+#include <ratio>
 #include <set>
 
 namespace adprocessor {
@@ -69,6 +70,9 @@ namespace adprocessor {
 
         // [1]
         void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, const std::vector< std::pair<int, adcontrols::MSPeakInfoItem > >& ranges );
+
+        // [2]
+        void append_to_chromatogram( size_t pos, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis, const std::pair<double, double>& range, const std::string& );
 
         bool doMSLock( adcontrols::lockmass::mslock& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
         bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
@@ -156,9 +160,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 
     if ( loadSpectra( &pm, reader, fcn, progress ) ) {
 
-        auto prev = impl_->spectra_.begin()->second;
         for ( auto& ms : impl_->spectra_ ) {
-            // append data point to chromatogram
             // [0]
             impl_->append_to_chromatogram( ms.first /*pos */, *ms.second, *cm, reader->display_name() );
         }
@@ -219,38 +221,39 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 ///////////////
 // [2] Create chromatograms from selected range
 bool
-MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
-                                       , const adcontrols::ProcessMethod& pm
-                                       , std::shared_ptr< const adcontrols::DataReader > reader
-                                       , int fcn
-                                       , adcontrols::hor_axis axis
-                                       , const std::pair< double, double >& range
-                                       , std::function<bool( size_t, size_t )> progress )
+MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
+                                                , const adcontrols::ProcessMethod& pm
+                                                , std::shared_ptr< const adcontrols::DataReader > reader
+                                                , int fcn
+                                                , adcontrols::hor_axis axis
+                                                , const std::pair< double, double >& range
+                                                , std::function<bool( size_t, size_t )> progress )
 {
     if ( loadSpectra( &pm, reader, fcn, progress ) ) {
-    
-        auto prev = impl_->spectra_.begin()->second;
+
         for ( auto& ms : impl_->spectra_ ) {
-            // append data point to chromatogram
-            // impl_->append_to_chromatogram( /* pos */ ms.first, /* ms */ *ms.second, *cm, reader->display_name() );
+            // [2]
+            impl_->append_to_chromatogram( ms.first /*pos */, *ms.second, axis, range, reader->display_name() );
         }
+
+        std::pair< double, double > time_range =
+            std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
+                          , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
+        
+        for ( auto& r : impl_->results_ ) {
+            r->pChr_->minimumTime( time_range.first );
+            r->pChr_->maximumTime( time_range.second );
+            vec.emplace_back( std::move( r->pChr_ ) );
+        }
+        return true;
     }
-    
-    std::pair< double, double > time_range =
-        std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
-                        , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
-    
-    for ( auto& r : impl_->results_ ) {
-        r->pChr_->minimumTime( time_range.first );
-        r->pChr_->maximumTime( time_range.second );
-        vec.emplace_back( std::move( r->pChr_ ) );
-    }
-    return true;
+
+    return false;
 }
 
 // static
 bool
-MSChromatogramExtractor::computeIntensity( double& y, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis axis, std::pair< double, double >&& range )
+MSChromatogramExtractor::computeIntensity( double& y, const adcontrols::MassSpectrum& ms, adcontrols::hor_axis axis, const std::pair< double, double >& range )
 {
     if ( axis == adcontrols::hor_axis_mass ) {
         auto acqMrange = ms.getAcquisitionMassRange();
@@ -406,6 +409,46 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             ++fcn;
         }
         target_index++;
+    }
+}
+
+// [2] Chromatogram from GUI selected m/z|time range
+void
+MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
+                                                       , const adcontrols::MassSpectrum& ms
+                                                       , adcontrols::hor_axis axis
+                                                       , const std::pair< double, double >& range
+                                                       , const std::string& display_name )
+{
+    using namespace mschromatogramextractor;
+    
+    const int protocol = ms.protocolId();        
+    double time = ms.getMSProperty().timeSinceInjection();
+
+    int cid(0); // chromatogram identifier in the given protocol
+    double y(0);
+    if ( computeIntensity( y, ms, axis, range ) ) {
+
+        auto it = std::find_if( results_.begin(), results_.end(), [=]( std::shared_ptr<xChromatogram>& xc ) { return xc->fcn_ == protocol && xc->cid_ == cid; } );
+            
+        if ( it == results_.end() ) {
+            results_.emplace_back( std::make_shared< xChromatogram >( protocol, cid ) );
+            it = results_.end() - 1;
+            double value_width = range.second - range.first;
+            double value = range.first + value_width;
+            if ( axis == adcontrols::hor_axis_mass ) {
+                ( *it )->pChr_->addDescription( adcontrols::description(
+                                                    L"Create"
+                                                    , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)#d" )
+                                                        % value % value_width % protocol ).str() ) );
+            } else {
+                ( *it )->pChr_->addDescription( adcontrols::description(
+                                                    L"Create"
+                                                    , ( boost::wformat( L"%s %.4lfus(W:%.4gns)#d" )
+                                                        % (value*std::micro::den) % (value_width*std::nano::den) % protocol ).str() ) );
+            }
+        }
+        ( *it )->append( uint32_t( pos ), time, y );
     }
 }
 
