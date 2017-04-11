@@ -184,7 +184,6 @@ namespace acqrsinterpreter {
     template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::u5303a::waveform > const& rhs ) const
     {
         waveform = std::make_shared< acqrscontrols::u5303a::waveform >( *rhs, sizeof( int64_t ) );
-        //waveform = std::make_shared< acqrscontrols::u5303a::waveform >( *rhs, sizeof( int32_t ) );
     }
 
     template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
@@ -561,7 +560,7 @@ DataReader::loadTICs()
                     if ( pChro->size() == 0 )
                         pChro->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
 
-                    double d = boost::apply_visitor( total_ion_count(), waveform );
+                    double d = boost::apply_visitor( total_ion_count(), waveform ); // <- d is the digital value w/o normalization to mV
                     ( *pChro ) << std::make_pair( double( elapsed_time ) * 1.0e-9, d );
                 }
             }
@@ -708,8 +707,6 @@ DataReader::getSpectrum( int64_t rowid ) const
                     adfs::blob xdata  = sql.get_column_value< adfs::blob >( 0 );
                     adfs::blob xmeta  = sql.get_column_value< adfs::blob >( 1 );
                     auto elapsed_time = double( sql.get_column_value< int64_t >( 2 ) - elapsed_time_origin_ ) / std::nano::den;
-
-                    // ADDEBUG() << "rowid: " << rowid << " elapsed_time: " << elapsed_time;
 
                     waveform_types waveform;
                     if ( interpreter->translate( waveform, xdata.data(), xdata.size()

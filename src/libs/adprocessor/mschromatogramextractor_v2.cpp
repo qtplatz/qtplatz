@@ -65,10 +65,11 @@ namespace adprocessor {
         bool doMSLock( adcontrols::lockmass::mslock& mslock, const adcontrols::MassSpectrum& centroid, const adcontrols::MSLockMethod& m );
         bool doCentroid( adcontrols::MassSpectrum& centroid, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& );
         
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > results_;
-        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram< adcontrols::hor_axis_mass > > > debug_; // tic, base
+        std::vector< std::shared_ptr< mschromatogramextractor::xChromatogram > > results_;
 
+        // cache all spectra with lockmass
         std::map< size_t, std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+        
         const adcontrols::LCMSDataset * raw_;
         std::shared_ptr< adcontrols::MSLockMethod > lockm_;
         std::vector< std::pair< std::string, double > > msrefs_;
@@ -85,11 +86,6 @@ MSChromatogramExtractor::~MSChromatogramExtractor()
 
 MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset * raw ) : impl_( new impl( raw ) )
 {
-    // debug
-    using mschromatogramextractor::xChromatogram;
-    impl_->debug_.push_back( std::make_shared< xChromatogram<adcontrols::hor_axis_mass> >( L"base" ) );
-    impl_->debug_.push_back( std::make_shared< xChromatogram<adcontrols::hor_axis_mass> >( L"tic" ) );
-    // <--
 }
 
 bool
@@ -153,14 +149,9 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
                           , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
         
         for ( auto& r : impl_->results_ ) {
-            r->pchr_->minimumTime( time_range.first );
-            r->pchr_->maximumTime( time_range.second );
-            vec.push_back( r->pchr_ );
-        }
-        for ( auto& r : impl_->debug_ ) {
-            r->pchr_->minimumTime( time_range.first );
-            r->pchr_->maximumTime( time_range.second );
-            vec.push_back( r->pchr_ );
+            r->pChr_->minimumTime( time_range.first );
+            r->pChr_->maximumTime( time_range.second );
+            vec.push_back( r->pChr_ );
         }
         return true;
     }
@@ -196,7 +187,7 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
 
         uint32_t target_index( 0 );
         for ( auto& range : ranges )
-            impl_->results_.push_back( std::make_shared< xChromatogram<adcontrols::hor_axis_mass> >( range, target_index++ ) );
+            impl_->results_.push_back( std::make_shared< xChromatogram >( range, target_index++ ) );
 
         size_t pos = 0;
         size_t n( 0 );
@@ -225,9 +216,9 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
                             , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
         for ( auto& r : impl_->results_ ) {
-            r->pchr_->minimumTime( time_range.first );
-            r->pchr_->maximumTime( time_range.second );
-            vec.push_back( r->pchr_ );
+            r->pChr_->minimumTime( time_range.first );
+            r->pChr_->maximumTime( time_range.second );
+            vec.push_back( r->pChr_ );
         }
         return true;
     }
@@ -292,25 +283,17 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos, const adcontr
                 }
                 
                 auto chro = std::find_if( results_.begin(), results_.end()
-                                          , [=] ( std::shared_ptr<xChromatogram<adcontrols::hor_axis_mass> >& c ) {
-                                              return c->fcn_ == fcn && c->target_index_ == target_index;
+                                          , [=] ( std::shared_ptr<xChromatogram>& c ) {
+                                              return c->fcn_ == fcn && c->cid_ == target_index;
                                           } );
                 if ( chro == results_.end() ) {
-                    results_.push_back( std::make_shared< xChromatogram<adcontrols::hor_axis_mass> >( m, width, fcn, target_index, std::string() ) );
+                    results_.push_back( std::make_shared< xChromatogram >( m, width, fcn, target_index, std::string() ) );
                     chro = results_.end() - 1;
                 }
                 ( *chro )->append( uint32_t( pos ), time, y );
             }
                         
             target_index++;
-        }
-
-        if ( fcn == 0 && !debug_.empty() ) {
-            // add debug traces
-            double base, rms;
-            double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
-            debug_[ 0 ]->append( uint32_t( pos ), time, base ); // base
-            debug_[ 1 ]->append( uint32_t( pos ), time, tic );  // tic
         }
         ++fcn;    
     }
@@ -359,9 +342,9 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 }
                 
                 auto chro = std::find_if( results_.begin(), results_.end()
-                                          , [=] ( std::shared_ptr<xChromatogram<adcontrols::hor_axis_mass> >& c )
+                                          , [=] ( std::shared_ptr<xChromatogram>& c )
                                           {
-                                              return c->fcn_ == fcn && c->target_index_ == target_index;
+                                              return c->fcn_ == fcn && c->cid_ == target_index;
                                           } );
 
                 if ( chro != results_.end() )

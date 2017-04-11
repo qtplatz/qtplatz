@@ -882,9 +882,9 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
                 if ( folium.empty() )
                     processor->fetch( folium );
-                auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium );
-                pImpl_->setCheckedChromatogram( cptr, idx );
-                pImpl_->ticPlot_->setData( cptr, idx );
+                if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) 
+					pImpl_->setCheckedChromatogram( cptr, idx );
+                //pImpl_->ticPlot_->setData( cptr, idx );
             }
             ++idx;
         }
@@ -1012,7 +1012,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                         if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
                             auto display_name = QString::fromStdString( reader->display_name() );
                             
-                            ADDEBUG() << boost::lexical_cast< std::string > ( ms->dataReaderUuid() );
+                            // ADDEBUG() << boost::lexical_cast< std::string > ( ms->dataReaderUuid() );
                             // todo: chromatogram creation by m/z|time range
                             if ( axis_ == adcontrols::hor_axis_mass ) {
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
@@ -1676,28 +1676,26 @@ MSProcessingWnd::make_chromatogram( const adcontrols::DataReader * reader
                                     , adcontrols::hor_axis axis
                                     , double s, double e )
 {
-    if ( ms->isCentroid() )
-        return;  // should not come here
-
     std::map< int, std::pair< double, double > > time_range;
     std::map< int, std::pair< double, double > > mass_range;
         
     if ( axis == adcontrols::hor_axis_mass ) {
-
-        for ( auto& pms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-            const double * beg = pms.getMassArray();
-            const double * end = beg + pms.size();
-            if ( beg[ 0 ] < s && e < end[ -2 ] ) {
-                auto lx = std::distance( beg, std::lower_bound( beg, end, s ) );
-                auto ux = std::distance( beg, std::lower_bound( beg, end, e ) ) + 1;
-                mass_range[ pms.protocolId() ] = std::make_pair( pms.getMass( lx ), pms.getMass( ux ) );
-                time_range[ pms.protocolId() ] = std::make_pair( pms.getTime( lx ), pms.getTime( ux ) );
+        if ( auto spectrometer = reader->massSpectrometer() ) {
+            for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
+                auto trange = sp.getMSProperty().instTimeRange();
+                auto mrange = std::make_pair( spectrometer->massFromTime( trange.first, sp ), spectrometer->massFromTime( trange.second, sp ) );
+                if ( mrange.first < s && e < mrange.second ) {
+                    double t0 = spectrometer->timeFromMass( s, sp );
+                    double t1 = spectrometer->timeFromMass( e, sp );
+                    mass_range[ sp.protocolId() ] = std::make_pair( s, e );
+                    time_range[ sp.protocolId() ] = std::make_pair( t0, t1 );
+                }
             }
         }
     } else {
-        for ( auto& pms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-            if ( pms.getTime( 0 ) < s && e < pms.getTime( pms.size() - 1 ) )
-                time_range[ pms.protocolId() ] = std::make_pair( s, e );
+        for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
+            if ( sp.getTime( 0 ) < s && e < sp.getTime( sp.size() - 1 ) )
+                time_range[ sp.protocolId() ] = std::make_pair( s, e );
         }
     }
 

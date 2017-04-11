@@ -154,6 +154,65 @@ DataprocessWorker::createChromatogramsV3( Dataprocessor* processor
     MainWindow::instance()->getProcessMethod( *pm );
 }
 
+void
+DataprocessWorker::createChromatogram( Dataprocessor * processor
+                                       , adcontrols::hor_axis axis
+                                       , std::pair<double, double >&& range
+                                       , std::shared_ptr< const adcontrols::MassSpectrum > spRef
+                                       , const adcontrols::DataReader * reader )
+{
+    std::map< int, std::pair<double, double> > time_range; // < fcn, <time, time> >
+
+    if ( axis == adcontrols::hor_axis_mass ) {
+        if ( auto spectrometer = reader->massSpectrometer() ) {
+            for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *spRef ) ) {
+                auto mrange = spectrometer->massFromTime( ms.getMSProperty().instTimeRange(), ms );
+                if ( mrange.first < range.first && range.second < mrange.second )
+                    time_range[ ms.protocolId() ] = spectrometer->timeFromMass( mrange, ms );
+            }
+        }
+    } else {
+        for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *spRef ) ) {
+            auto trange = ms.getMSProperty().instTimeRange();
+            if ( trange.first < range.first && range.second < trange.second )
+                time_range[ ms.protocolId() ] = trange;
+        }
+    }
+
+    if ( time_range.empty() )
+        return;
+
+    adcontrols::ProcessMethod dummy;
+    MainWindow::instance()->getProcessMethod( dummy );
+    
+    for ( auto& range: time_range ) {
+        int proto = range.first;
+        double w = range.second.second - range.second.first;
+        double t = range.first + w / 2;
+    
+        if ( auto pChr = reader->getChromatogram( proto, t, w ) ) {
+            portfolio::Portfolio portfolio = processor->getPortfolio();
+            portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
+
+            std::wstring name;
+            if ( axis == adcontrols::hor_axis_mass ) {
+                double mw = range.second.second - range.second.first;
+                double mx = range.second.first + mw / 2;
+                name = ( boost::wformat( L"%s %.3lf(w:%.2lf(mDa))#%d" )
+                         % adportable::utf::to_wstring( reader->display_name() ) % mx % ( mw * 1000 ) % proto ).str();
+            } else {
+                name = ( boost::wformat( L"%s %.3lf(us)(w:%.2lf(ns))#%d" )
+                         % adportable::utf::to_wstring( reader->display_name() ) % ( t * 1.0e6 ) %  ( w * 1.0e9 ) % proto ).str();
+            }
+            
+            pChr->addDescription( adcontrols::description( L"acquire.title", name ) );
+            
+            portfolio::Folium folium = processor->addChromatogram( *pChr, dummy, true );
+
+            processor->setCurrentSelection( folium );
+        }
+    }
+}
 
 void
 DataprocessWorker::createChromatograms( Dataprocessor* processor,  std::shared_ptr< const adcontrols::ProcessMethod > pm, const QString& origin )

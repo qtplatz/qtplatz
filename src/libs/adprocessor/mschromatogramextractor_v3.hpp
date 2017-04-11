@@ -57,20 +57,38 @@ namespace adprocessor {
             MSChromatogramExtractor( const adcontrols::LCMSDataset * );
             
             // v3 data
+            // [0]
             bool operator()( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
                              , const adcontrols::ProcessMethod&
                              , std::shared_ptr< const adcontrols::DataReader >
                              , int fcn
                              , std::function<bool( size_t, size_t )> progress );
-            
+
+            // [1]            
             bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                , const adcontrols::ProcessMethod&
                                , adcontrols::hor_axis axis
                                , const std::vector< std::pair< int /* fcn */, adcontrols::MSPeakInfoItem > >& ranges
-                               , const adcontrols::DataReader *
+                               , std::shared_ptr< const adcontrols::DataReader >                               
                                , std::function<bool( size_t, size_t )> progress );
+
+            // [2]
+            bool operator () ( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
+                               , const adcontrols::ProcessMethod&
+                               , std::shared_ptr< const adcontrols::DataReader >
+                               , int fcn
+                               , adcontrols::hor_axis axis
+                               , const std::pair< double, double >& range
+                               , std::function<bool( size_t, size_t )> progress );
+
+            static bool computeIntensity( double& y, const adcontrols::MassSpectrum&, adcontrols::hor_axis, std::pair< double, double >&& );
             
         private:
+            bool loadSpectra( const adcontrols::ProcessMethod *
+                              , std::shared_ptr< const adcontrols::DataReader >
+                              , int fcn
+                              , std::function<bool( size_t, size_t )> progress );
+
             class impl;
             impl * impl_;
         };

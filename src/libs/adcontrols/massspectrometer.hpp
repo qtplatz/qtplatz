@@ -98,6 +98,10 @@ namespace adcontrols {
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
         virtual bool estimateScanLaw( const std::vector< std::tuple< double, double, int > >&, double& va, double& t0 ) const;
 
+        virtual double timeFromMass( double, const MassSpectrum& ) const;
+        virtual double massFromTime( double, const MassSpectrum& ) const;
+        virtual std::pair<double,double> timeFromMass( const std::pair<double,double>&, const MassSpectrum& ) const;
+        virtual std::pair<double,double> massFromTime( const std::pair<double,double>&, const MassSpectrum& ) const;
     protected:
         // v2
         adcontrols::datafile * datafile_;

@@ -71,9 +71,15 @@ namespace dataproc {
                                   , adcontrols::hor_axis axis
                                   , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges
                                   , const boost::uuids::uuid& dataReaderUuid );
-        
+
         void createChromatogramsV2( Dataprocessor *, adcontrols::hor_axis, const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& );
 
+        void createChromatogram( Dataprocessor * processor
+                                 , adcontrols::hor_axis axis
+                                 , std::pair<double, double >&& range
+                                 , std::shared_ptr< const adcontrols::MassSpectrum >
+                                 , const adcontrols::DataReader * reader );
+        
         void createChromatogramsV3( Dataprocessor *
                                     , adcontrols::hor_axis
                                     , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges                                    

@@ -249,12 +249,29 @@ MassSpectrometer::get_model_names()
     return names;
 }
 
-// void
-// MassSpectrometer::register_default_spectrometers()
-// {
-//    // static adcontrols::internal::GenericTofSpectrometer * tof = new adcontrols::internal::GenericTofSpectrometer();
-//     //massSpectrometerBroker::register_factory( tof, tof->name() );
-// }
+double
+MassSpectrometer::timeFromMass( double mass, const MassSpectrum& ms ) const
+{
+    return scanLaw()->getTime( mass, ms.mode() );
+}
+
+double 
+MassSpectrometer::massFromTime( double time, const MassSpectrum& ms ) const
+{
+    return scanLaw()->getMass( time, ms.mode() );
+}
+
+std::pair<double,double>
+MassSpectrometer::timeFromMass( const std::pair<double,double>& range, const MassSpectrum& ms ) const
+{
+    return std::make_pair( timeFromMass( range.first, ms ), timeFromMass( range.second, ms ) );
+}
+
+std::pair<double,double>
+MassSpectrometer::massFromTime( const std::pair<double,double>& range, const MassSpectrum& ms ) const
+{
+    return std::make_pair( massFromTime( range.first, ms ), massFromTime( range.second, ms ) );
+}
 
 //////////////////////////////////////////////////////////////
 bool
