@@ -476,8 +476,9 @@ SpectrumWidget::setAxis( HorizontalAxis axis, bool replot
 
     if ( zoomer()->zoomRectIndex() > 0 && axisConverter ) {
         auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end(), [&]( std::unique_ptr< spectrumwidget::TraceData >& trace ){ return trace && trace->pSpectrum_; } );
+        auto ms( (*it)->pSpectrum_ );
         if ( it != impl_->traces_.end() )
-            zRect = axisConverter( zoomer()->zoomRect(), *((*it)->pSpectrum_), impl_->haxis_ );
+            zRect = axisConverter( zoomer()->zoomRect(), *ms, impl_->haxis_ );
     }
 
     impl_->haxis_ = axis;
