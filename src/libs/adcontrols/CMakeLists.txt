@@ -351,7 +351,6 @@ install( FILES
   mspeaks.hpp 
   msqpeak.hpp 
   msqpeaks.hpp
-  mschromatogramextractor.hpp
   mschromatogrammethod.hpp
   mssimulatormethod.hpp
   moltable.hpp
