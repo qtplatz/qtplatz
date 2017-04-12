@@ -32,6 +32,7 @@
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
@@ -464,16 +465,33 @@ SpectrumWidget::axis() const
 }
 
 void
-SpectrumWidget::setAxis( HorizontalAxis haxis, bool replot )
+SpectrumWidget::setAxis( HorizontalAxis axis, bool replot
+                         , std::function< QRectF( const QRectF&, const adcontrols::MassSpectrum&, HorizontalAxis ) > axisConverter )
 {
-    impl_->haxis_ = haxis;
-    impl_->isTimeAxis_ = haxis == HorizontalAxisTime;
+    if ( impl_->haxis_ == axis ) 
+        return; // nothing to be done
+
+    // on trial -- it may be a problem when various number of laps protocols are combined.
+    QRectF zRect;
+
+    if ( zoomer()->zoomRectIndex() > 0 && axisConverter ) {
+        auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end(), [&]( std::unique_ptr< spectrumwidget::TraceData >& trace ){ return trace && trace->pSpectrum_; } );
+        if ( it != impl_->traces_.end() )
+            zRect = axisConverter( zoomer()->zoomRect(), *((*it)->pSpectrum_), impl_->haxis_ );
+    }
+
+    impl_->haxis_ = axis;
+    impl_->isTimeAxis_ = axis == HorizontalAxisTime;
     setAxisTitle(QwtPlot::xBottom, QwtText( impl_->haxis_ == HorizontalAxisMass ? "<i>m/z</i>" : "Time[&mu;s]", QwtText::RichText) );
+
     if ( replot ) {
         redraw_all();
         zoomer()->setZoomBase();
-    } else
-        clear();
+        if ( zRect.isValid() )
+            zoomer()->zoom( zRect );
+    } else {
+        clear();                
+    }
 }
 
 void
@@ -545,8 +563,6 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 
     auto& trace = impl_->traces_[ idx ];
 	
-	ADDEBUG() << "idx[" << idx << "] mass range: " << ptr->getAcquisitionMassRange().first << ", " << ptr->getAcquisitionMassRange().second;
-
     QRectF rect;
     trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
 

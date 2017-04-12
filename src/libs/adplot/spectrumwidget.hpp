@@ -27,12 +27,12 @@
 
 #include "plot.hpp"
 #include "adplot_global.hpp"
+#include <functional>
 #include <memory>
 
 class QwtPlotZoomer;
 
-namespace adcontrols { class MassSpectrum; }
-
+namespace adcontrols { class MassSpectrum; class MassSpectrometer; }
 
 namespace adplot {
 
@@ -50,7 +50,10 @@ namespace adplot {
         void setFocusedFcn( int fcn );
         
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
-        void setAxis( HorizontalAxis, bool replot = false );
+        void setAxis( HorizontalAxis
+                      , bool replot = false
+                      , std::function< QRectF( const QRectF&, const adcontrols::MassSpectrum&, HorizontalAxis ) > f
+                      = std::function< QRectF( const QRectF&, const adcontrols::MassSpectrum&, HorizontalAxis ) >() );
         HorizontalAxis axis() const;
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );

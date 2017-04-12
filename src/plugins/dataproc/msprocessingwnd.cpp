@@ -671,10 +671,25 @@ MSProcessingWnd::handleAxisChanged( adcontrols::hor_axis axis )
     using adplot::SpectrumWidget;
 
     axis_ = axis;
-
     pImpl_->set_time_axis( axis == adcontrols::hor_axis_mass ? false : true );
-    pImpl_->profileSpectrum_->setAxis( axis == adcontrols::hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
-    pImpl_->processedSpectrum_->setAxis( axis == adcontrols::hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    auto plot_axis = ( axis == adcontrols::hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
+
+    std::shared_ptr< adcontrols::MassSpectrometer > spectrometer;
+    
+    if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
+        spectrometer = processor->massSpectrometer();
+
+    pImpl_->processedSpectrum_->setAxis( plot_axis, true );
+
+    pImpl_->profileSpectrum_->setAxis( plot_axis, true, [&](const QRectF& z, const adcontrols::MassSpectrum& ms, adplot::SpectrumWidget::HorizontalAxis axis ){
+            if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
+                auto range = spectrometer->timeFromMass( std::make_pair( z.left(), z.right() ), ms );
+                return QRectF( range.first * std::micro::den, z.bottom(), ( range.second - range.first ) * std::micro::den, z.height() );
+            } else { // time --> mass
+                auto range = spectrometer->massFromTime( std::make_pair( z.left() / std::micro::den, z.right() / std::micro::den ), ms );
+                return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
+            }
+        });
 }
 
 void

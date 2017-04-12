@@ -30,7 +30,6 @@
 #include "msproperty.hpp"
 #include "massspectra.hpp"
 #include "samplinginfo.hpp"
-#include "scanlaw.hpp"
 
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>

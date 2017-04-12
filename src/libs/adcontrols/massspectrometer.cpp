@@ -264,7 +264,7 @@ MassSpectrometer::massFromTime( double time, const MassSpectrum& ms ) const
 std::pair<double,double>
 MassSpectrometer::timeFromMass( const std::pair<double,double>& range, const MassSpectrum& ms ) const
 {
-    return std::make_pair( timeFromMass( range.first, ms ), timeFromMass( range.second, ms ) );
+    return std::make_pair( timeFromMass( range.first, ms ), timeFromMass( range.second, ms ) );        
 }
 
 std::pair<double,double>
