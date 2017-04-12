@@ -1266,6 +1266,9 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
 
         }
 
+        auto t_range = prop.instTimeRange();
+        this->setAcquisitionMassRange( assign_mass( t_range.first, mode ), assign_mass( t_range.second, mode ) );
+
         return true;
     }
     return false;

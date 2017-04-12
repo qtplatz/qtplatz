@@ -465,29 +465,11 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
         
         if ( !att && ptr->isCentroid() ) {
 
-            double acclVoltage = ptr->getMSProperty().acceleratorVoltage();
-            double tDelay = ptr->getMSProperty().tDelay();
-
-            boost::uuids::uuid objiid { 0 };
-            adfs::stmt sql( *db() );
-            sql.prepare( "SELECT objuuid FROM AcquiredConf where objtext like 'histogram.timecount.%'" );
-            if ( sql.step() == adfs::sqlite_row ) {
-                objiid = sql.get_column_value< boost::uuids::uuid >( 0 );
-
-                boost::uuids::uuid clsid { 0 };
-                double _0( 0 ), _1( 0 ), fLength( 0 );
-                adutils::v3::AcquiredConf::findScanLaw( *db(), objiid, clsid, _0, _1, fLength );
-                
-                if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) {
-                    
-                    // using original scanlaw stored in parent folium
-                    spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
-                    
-                    att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
-                    auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
-                    att.assign( ms, ms->dataClass() );
-                    emit SessionManager::instance()->foliumChanged( this, folium );
-                }
+            if ( auto spectrometer = massSpectrometer() ) { // implemented in base class 'adprocessor::dataprocessor'
+                att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
+                auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
+                att.assign( ms, ms->dataClass() );
+                emit SessionManager::instance()->foliumChanged( this, folium );
             }
         }
         return att;

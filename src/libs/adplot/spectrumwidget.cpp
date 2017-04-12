@@ -542,12 +542,10 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 
     if ( ! impl_->traces_[ idx ] )
         impl_->traces_[ idx ] = std::make_unique< TraceData >( idx );
-    // while ( int( impl_->traces_.size() ) <= idx ) 
-	// 	impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
-    
-    auto& trace = impl_->traces_[ idx ];
 
-    auto lock = trace->pSpectrum_;
+    auto& trace = impl_->traces_[ idx ];
+	
+	ADDEBUG() << "idx[" << idx << "] mass range: " << ptr->getAcquisitionMassRange().first << ", " << ptr->getAcquisitionMassRange().second;
 
     QRectF rect;
     trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
