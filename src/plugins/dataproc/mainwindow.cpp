@@ -926,10 +926,10 @@ MainWindow::OnInitialUpdate()
     currentPageChanged( 0 );
 
     for ( auto dock: dockWidgets() )
-        dock->setStyleSheet( "* { font-size: 10pt; }" );
+        dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
 
     for ( auto tabbar: findChildren< QTabBar * >() )
-        tabbar->setStyleSheet( "QTabBar { font-size: 10pt }" );
+        tabbar->setStyleSheet( "QTabBar { font-size: 9pt }" );
 }
 
 void
