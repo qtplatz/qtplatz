@@ -33,7 +33,7 @@ add_library( ${PROJECT_NAME} SHARED
   dataprocessor.cpp
   mschromatogramextractor.hpp
   mschromatogramextractor_accumulate.hpp
-  mschromatogramextractor_xchromatogram.hpp
+  xchromatogram.hpp
   mschromatogramextractor_v2.cpp
   mschromatogramextractor_v2.hpp
   mschromatogramextractor_v3.cpp
