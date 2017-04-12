@@ -160,11 +160,11 @@ MainWindow::createContents( Core::IMode * )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &ProcessMethodWidget::commit );
-            widget->setObjectName( "processMethodWidget" );
-            widget->setStyleSheet( "#processMethodWidget * { font-size: 10pt }" );
+            widget->setStyleSheet( "* { font-size: 10pt; }" );
         }
         stack_->addWidget( panelsWidget );
     }
+
 
     // Browse calibration curve & results
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {

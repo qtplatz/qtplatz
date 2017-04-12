@@ -132,6 +132,7 @@ namespace adplot {
         public:
             TraceData( int idx ) : idx_( idx )
                                  , focusedFcn_( -1 )
+                                 , alpha_( 255 )
                                  , yRight_( false )  {
 
                 color_ = color_table[ idx % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) ) ];
@@ -140,7 +141,7 @@ namespace adplot {
             
             TraceData( const TraceData& t ) : idx_( t.idx_ )
                                             , focusedFcn_( t.focusedFcn_ )
-                                            , alpha_( 0xff )
+                                            , alpha_( t.alpha_ )
                                             , rect_( t.rect_ )
                                             , yRight_( t.yRight_ )
                                             , color_( t.color_ )
@@ -168,7 +169,7 @@ namespace adplot {
 
             int idx_;
             int focusedFcn_;
-            int alpha_;
+            uint8_t alpha_;
             QRectF rect_;
             bool yRight_;
             QColor color_;
@@ -513,7 +514,7 @@ SpectrumWidget::setAlpha( int idx, int alpha )
 {
     if ( impl_->traces_.size() > idx ) {
         if ( auto& trace = impl_->traces_[ idx ] )
-            trace->setAlpha( alpha < 0 ? 0xff : alpha & 0xff );
+            trace->setAlpha( alpha );
     }
 }
 
@@ -629,7 +630,7 @@ TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const
 
         int cid = ( idx_ + fcn ) % ( sizeof(color_table)/sizeof(color_table[0]) );
         QColor color( color_table[ cid ] );
-        color.setAlpha( alpha_ & 0xff );
+        color.setAlpha( alpha_ );
         ptr->setPen( color );
         ptr->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
         if ( yRight )
@@ -641,6 +642,7 @@ TraceData::setProfileData( plot& plot, const adcontrols::MassSpectrum& ms, const
 void
 TraceData::changeFocus( int focusedFcn )
 {
+    return;
     int fcn = 0;
     for ( auto& curve: curves_ ) {
         QColor color( color_table[ idx_ ] );
@@ -656,11 +658,9 @@ TraceData::changeFocus( int focusedFcn )
 void
 TraceData::setCentroidData( plot& plot, const adcontrols::MassSpectrum& _ms, const QRectF& rect, bool yRight )
 {
-    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( _ms );
-
     curves_.clear();
 
-    for ( auto& seg: segments ) {
+    for ( auto& seg: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( _ms ) ) {
         if ( const unsigned char * colors = seg.getColorArray() ) {
             std::set< unsigned char > color;
             for ( size_t i = 0; i < seg.size(); ++i )
@@ -688,8 +688,7 @@ TraceData::setCentroidData( plot& plot, const adcontrols::MassSpectrum& _ms, con
 
             int cid = ( idx_ ) % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) );
             QColor color( color_table[ cid ] );
-            //QColor color( color_table[ 0 ] );
-            color.setAlpha( 255 - ( ( idx_ * 16 ) & 0xff ) );
+            color.setAlpha( 255 - ( idx_ * 16 ) );
             curve->setPen( QPen( color ) );
             curve->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
             curve->setStyle( QwtPlotCurve::Sticks );
@@ -808,7 +807,7 @@ TraceData::setAlpha( int alpha )
         alpha_ = alpha;
         int fcn = 0;
         for ( auto& curve: curves_ ) {
-            color_.setAlpha( alpha & 0xff );
+            color_.setAlpha( alpha );
             curve->setPen( color_ );
             ++fcn;
         }
