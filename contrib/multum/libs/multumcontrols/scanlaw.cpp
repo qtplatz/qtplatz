@@ -80,14 +80,14 @@ ScanLaw::ScanLaw( double acceleratorVoltage
                   , double tDelay
                   , double _1, double _2, double _3
                   , double _4, double _5, double _6, double _7 )
-    : tof_( std::make_unique< adportable::TimeSquaredScanLaw >( acceleratorVoltage, tDelay ) )
+    : adportable::TimeSquaredScanLaw( acceleratorVoltage, tDelay )
     , gateOffset_( 0 )
     , dimension_( { _1, _2, _3, _4, _5, _6, _7 } )
 {
 }
 
 ScanLaw::ScanLaw( const ScanLaw& t )
-    : tof_( std::make_unique< adportable::TimeSquaredScanLaw >( *t.tof_ ) )
+    : adportable::TimeSquaredScanLaw( t )
     , gateOffset_( t.gateOffset_ )
     , dimension_( t.dimension_ )
 {
@@ -96,7 +96,8 @@ ScanLaw::ScanLaw( const ScanLaw& t )
 ScanLaw&
 ScanLaw::operator = ( const ScanLaw& t )
 {
-    tof_ = std::make_unique< adportable::TimeSquaredScanLaw >( *t.tof_ );
+    static_cast< adportable::TimeSquaredScanLaw& >(*this) = static_cast< const adportable::TimeSquaredScanLaw >( t );
+    
     gateOffset_ = t.gateOffset_;
     dimension_ = t.dimension_;
     return *this;
@@ -106,43 +107,43 @@ ScanLaw::operator = ( const ScanLaw& t )
 double
 ScanLaw::tDelay() const
 {
-    return tof_->tDelay();
+    return adportable::TimeSquaredScanLaw::tDelay();
 }
 
 double
 ScanLaw::kAcceleratorVoltage() const
 {
-    return tof_->kAcceleratorVoltage();
+    return adportable::TimeSquaredScanLaw::kAcceleratorVoltage();
 }
 
 double
 ScanLaw::acceleratorVoltage( double mass, double time, int mode, double tDelay )
 {
-    return tof_->acceleratorVoltage( mass, time, mode, tDelay );
+    return adportable::TimeSquaredScanLaw::acceleratorVoltage( mass, time, mode, tDelay );
 }
 
 double
 ScanLaw::getMass( double t, int mode ) const
 {
-    return tof_->getMass( t, fLength( mode ) );
+    return adportable::TimeSquaredScanLaw::getMass( t, fLength( mode ) );
 }
 
 double
 ScanLaw::getTime( double m, int mode ) const
 {
-    return tof_->getTime( m, fLength( mode ) );    
+    return adportable::TimeSquaredScanLaw::getTime( m, fLength( mode ) );    
 }
 
 double
 ScanLaw::getMass( double t, double fLength ) const
 {
-    return tof_->getMass( t, fLength );        
+    return adportable::TimeSquaredScanLaw::getMass( t, fLength );        
 }
 
 double
 ScanLaw::getTime( double m, double fLength ) const
 {
-    return tof_->getTime( m, fLength );
+    return adportable::TimeSquaredScanLaw::getTime( m, fLength );
 }
 
 double
@@ -154,7 +155,7 @@ ScanLaw::fLength( int mode ) const
 double
 ScanLaw::orbital_period( double mass ) const
 {
-    double k = ( adportable::kTimeSquaredCoeffs * tof_->kAcceleratorVoltage() ) / ( dimension_[ LENGTH_LT ] * dimension_[ LENGTH_LT ] );
+    double k = ( adportable::kTimeSquaredCoeffs * kAcceleratorVoltage() ) / ( dimension_[ LENGTH_LT ] * dimension_[ LENGTH_LT ] );
 	return std::sqrt(mass / k); // don't add tDealy for orbital period
 }
 

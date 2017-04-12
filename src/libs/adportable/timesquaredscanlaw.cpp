@@ -45,6 +45,13 @@ TimeSquaredScanLaw::TimeSquaredScanLaw( const TimeSquaredScanLaw& t )
 {
 }
 
+TimeSquaredScanLaw&
+TimeSquaredScanLaw::operator = ( const TimeSquaredScanLaw& t )
+{
+    kAcceleratorVoltage_ = t.kAcceleratorVoltage_;
+    tDelay_ = t.tDelay_;
+}
+
 double
 TimeSquaredScanLaw::getMass( double time, int mode ) const
 {

@@ -42,8 +42,8 @@ namespace multumcontrols {
     }
 
     //////////////    
-    class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public adcontrols::ScanLaw {
-        std::unique_ptr< adportable::TimeSquaredScanLaw > tof_;
+    class MULTUMCONTROLSSHARED_EXPORT ScanLaw : public adcontrols::ScanLaw, protected adportable::TimeSquaredScanLaw {
+        //std::unique_ptr< adportable::TimeSquaredScanLaw > tof_;
         double gateOffset_;
         std::array< double, 7 > dimension_;
     public:
