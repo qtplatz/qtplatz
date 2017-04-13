@@ -74,7 +74,7 @@ Trace::set_fcn( size_t n )
 }
 
 bool
-Trace::push_back( size_t npos, double x, double y )
+Trace::append( size_t npos, double x, double y )
 {
     if ( !values_.empty() && ( npos < std::get< data_number >( values_.back() ) ))
         return false;

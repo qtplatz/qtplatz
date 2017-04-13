@@ -58,7 +58,7 @@ namespace adcontrols {
         const unsigned long * getEventsArray() const;
         std::pair<double, double> range_y() const;
 
-        bool push_back( size_t pos, double x, double y );
+        bool append( size_t pos, double x, double y );
         bool erase_before( size_t pos );
         size_t npos() const;
 

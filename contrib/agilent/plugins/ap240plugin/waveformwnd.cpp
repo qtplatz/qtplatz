@@ -288,7 +288,7 @@ WaveformWnd::handle_waveform()
 
             double dbase(0), rms(0), tic(0);            
             tic = adportable::spectrum_processor::tic( sp->size(), sp->getIntensityArray(), dbase, rms );
-            tp->push_back( waveform->serialnumber_, timestamp, tic );
+            tp->append( waveform->serialnumber_, timestamp, tic );
             tpw_->setData( tp, channel, channel );
             
             // prop.setDeviceData(); TBA

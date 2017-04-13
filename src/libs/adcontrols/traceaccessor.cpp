@@ -74,7 +74,7 @@ TraceAccessor::operator >> ( Trace& t ) const
     size_t n = 0;
     for ( const auto& d: trace_ ) {
         if ( d.fcn == t.fcn() ) {
-            t.push_back( d.npos, d.x.seconds, d.y );
+            t.append( d.npos, d.x.seconds, d.y );
             ++n;
         }
     }
@@ -86,7 +86,7 @@ TraceAccessor::copy_to( Trace& trace, int fcn )
 {
     for ( const auto& d: trace_ ) {
         if ( d.fcn == fcn )
-            trace.push_back( d.npos, d.x.seconds, d.y );
+            trace.append( d.npos, d.x.seconds, d.y );
     }
 }
 
