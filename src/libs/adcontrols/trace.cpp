@@ -45,6 +45,7 @@ Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
 {
 }
 
+#if 0
 Trace::Trace( const Trace& t ) : upper_limit( t.upper_limit )
                                , lower_limit( t.lower_limit )
 							   , fcn_( t.fcn_ )
@@ -57,6 +58,8 @@ Trace::Trace( const Trace& t ) : upper_limit( t.upper_limit )
 Trace&
 Trace::operator = ( const Trace& t )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     fcn_ = t.fcn_;
 	lower_limit = t.lower_limit;
 	upper_limit = t.upper_limit;
@@ -66,6 +69,7 @@ Trace::operator = ( const Trace& t )
     isCountingTrace_ = t.isCountingTrace_;
     return *this;
 }
+#endif
 
 void
 Trace::set_fcn( size_t n )
@@ -76,6 +80,8 @@ Trace::set_fcn( size_t n )
 bool
 Trace::append( size_t npos, double x, double y )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     if ( !values_.empty() && ( npos < std::get< data_number >( values_.back() ) ))
         return false;
 
@@ -99,6 +105,8 @@ Trace::append( size_t npos, double x, double y )
 bool
 Trace::erase_before( size_t npos )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     auto it = std::upper_bound( values_.begin(), values_.end(), npos, [] ( size_t npos, const value_type& b ) { return npos < std::get<data_number>( b ); } );
 
     if ( it != values_.end() ) {
@@ -117,6 +125,8 @@ Trace::erase_before( size_t npos )
 void
 Trace::clear()
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
     values_.clear();
     minY_ = isCountingTrace_ ? 0 : std::numeric_limits<double>::max();
     maxY_ = std::numeric_limits<double>::lowest();
@@ -131,6 +141,7 @@ Trace::size() const
 void
 Trace::resize( size_t size )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
     values_.resize( size );
 }
 
@@ -173,9 +184,8 @@ Trace::npos() const
 void
 Trace::setIsCountingTrace( bool f )
 {
-    if ( isCountingTrace_ != f ) {
+    if ( isCountingTrace_ != f )
         clear();
-    }
 
     isCountingTrace_ = f;
     if ( isCountingTrace_ )

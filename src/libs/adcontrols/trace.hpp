@@ -27,17 +27,20 @@
 
 #include <adcontrols/timeutil.hpp>
 #include <cstdint>
+#include <mutex>
 #include <vector>
 #include "adcontrols_global.h"
 
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT Trace {
+
+        Trace( const Trace& ) = delete;
+        Trace& operator = ( const Trace& ) = delete;
+
     public:
         ~Trace();
 		Trace( int fcn = 0, unsigned lower = 2048 - 512, unsigned upper = 2048 );
-        Trace( const Trace& );
-        Trace& operator = ( const Trace& );
 
 		unsigned upper_limit;
         unsigned lower_limit;
@@ -70,7 +73,7 @@ namespace adcontrols {
 
         enum { data_number, x_value, y_value, event_flags };
         typedef std::tuple< size_t, double, double, uint32_t > value_type;
-
+        std::mutex mutex_;
         std::vector< value_type > values_;
     };
 
