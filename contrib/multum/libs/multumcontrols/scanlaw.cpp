@@ -160,6 +160,12 @@ ScanLaw::orbital_period( double mass ) const
 }
 
 double
+ScanLaw::orbital_length() const
+{
+    return dimension_[ LENGTH_LT ];
+}
+
+double
 ScanLaw::go_around_threshold_length() const
 {
     return dimension_[ LENGTH_L1 ] + dimension_[ LENGTH_L2 ];

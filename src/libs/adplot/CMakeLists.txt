@@ -57,6 +57,8 @@ set( adplot_SOURCES
   picker.hpp 
   panner.cpp
   panner.hpp
+  rangemarker.cpp
+  rangemarker.hpp
   spanmarker.cpp
   spanmarker.hpp
   spectrogramwidget.cpp
