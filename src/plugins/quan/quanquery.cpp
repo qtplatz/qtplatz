@@ -30,6 +30,11 @@
 #include <boost/lexical_cast.hpp>
 #include <QObject>
 
+#ifdef _MSC_VER 
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 using namespace quan;
 
 QuanQuery::QuanQuery( adfs::sqlite& db ) : sql_( db )

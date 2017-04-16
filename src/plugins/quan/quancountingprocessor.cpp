@@ -221,6 +221,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
             }
         }
     }
+    return true;
 }
 
 void
