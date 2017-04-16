@@ -50,6 +50,7 @@ TimeSquaredScanLaw::operator = ( const TimeSquaredScanLaw& t )
 {
     kAcceleratorVoltage_ = t.kAcceleratorVoltage_;
     tDelay_ = t.tDelay_;
+    return * this;
 }
 
 double
