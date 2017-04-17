@@ -1167,7 +1167,7 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
         sql.bind( 1 ) = boost::uuids::uuid{ 0 };
         if ( sql.step() == adfs::sqlite_row ) {
             boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 2 );
-            if ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) )
+            if ( ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
                 spectrometer->setScanLaw( pProfile->getMSProperty().acceleratorVoltage(), pProfile->getMSProperty().tDelay(), 1.0 );
         } else {
             fixupDataInterpreterClsid( folium );

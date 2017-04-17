@@ -25,6 +25,8 @@ add_library( ${PROJECT_NAME} SHARED
   scanlaw.hpp
   )
 
+set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14 )
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adportable
