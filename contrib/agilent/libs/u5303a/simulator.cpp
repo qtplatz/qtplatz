@@ -263,7 +263,7 @@ simulator::next_protocol()
     auto m( method_ );
         
     if ( --protocolReplicates_ <= 0 ) {
-
+        
         if ( ++protocolIndex_ >= m->protocols().size() )
             protocolIndex_ = 0;
 

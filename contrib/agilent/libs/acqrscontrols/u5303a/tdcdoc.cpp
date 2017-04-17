@@ -237,7 +237,7 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
         d.histogram_register_ = std::make_shared< histogram_type >();
     
     if ( d.histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
-        
+
         // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
 
@@ -265,7 +265,7 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     auto proto = waveform->method_.protocolIndex();
     auto count = waveform->method_.protocols().size();
 
-    if ( ( count > max_protocol ) || ( proto >= count ) || count >= max_protocol )
+    if ( ( count > max_protocol ) || ( proto >= count ) )
         return false;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );

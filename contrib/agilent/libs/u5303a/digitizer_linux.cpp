@@ -378,7 +378,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tinvert_signal: " << m.invert_signal
               << "\tnsa: " << m.nsa;
 #endif
-
+    // ADDEBUG() << "u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
 
     return true;
@@ -671,9 +671,8 @@ task::handle_acquire()
                 if ( protocolIndex < 0 && simulated_ )
                 	protocolIndex = simulator::instance()->protocol_number();
 
-                if ( protocolIndex >= 0 ) {
+                if ( protocolIndex >= 0 ) 
                     method_.setProtocolIndex( protocolIndex, false );
-                }
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
