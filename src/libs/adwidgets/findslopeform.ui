@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>463</width>
-    <height>199</height>
+    <height>267</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,10 +75,20 @@
              <number>0</number>
             </property>
             <item row="2" column="3">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_resp"/>
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_resp">
+              <property name="keyboardTracking">
+               <bool>false</bool>
+              </property>
+             </widget>
             </item>
             <item row="0" column="1">
              <widget class="QDoubleSpinBox" name="doubleSpinBox">
+              <property name="accelerated">
+               <bool>true</bool>
+              </property>
+              <property name="keyboardTracking">
+               <bool>false</bool>
+              </property>
               <property name="prefix">
                <string/>
               </property>
@@ -136,6 +146,9 @@
             </item>
             <item row="2" column="1">
              <widget class="QDoubleSpinBox" name="doubleSpinBox_resolution">
+              <property name="keyboardTracking">
+               <bool>false</bool>
+              </property>
               <property name="minimum">
                <double>0.500000000000000</double>
               </property>
@@ -261,6 +274,9 @@
              </item>
              <item row="1" column="1">
               <widget class="QSpinBox" name="spinBox_dft_high">
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
                <property name="minimum">
                 <number>0</number>
                </property>
@@ -274,6 +290,9 @@
              </item>
              <item row="0" column="1">
               <widget class="QSpinBox" name="spinBox_sg">
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
                <property name="minimum">
                 <number>3</number>
                </property>
@@ -320,6 +339,9 @@
              </item>
              <item row="2" column="1">
               <widget class="QSpinBox" name="spinBox_dft_low">
+               <property name="keyboardTracking">
+                <bool>false</bool>
+               </property>
                <property name="maximum">
                 <number>1000</number>
                </property>
@@ -353,7 +375,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>
