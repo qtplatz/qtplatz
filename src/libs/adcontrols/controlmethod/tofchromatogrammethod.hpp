@@ -71,6 +71,9 @@ namespace adcontrols {
         eIntensityAlgorishm intensityAlgorithm() const;
         void setIntensityAlgorithm( eIntensityAlgorishm );
 
+        void setProtocol( int );
+        int protocol() const;
+
     private:
         class impl;
         impl * impl_;

@@ -32,6 +32,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QSignalBlocker>
+#include <ratio>
 
 namespace adwidgets {
 }
@@ -100,8 +101,8 @@ ThresholdActionForm::get( adcontrols::threshold_action& m ) const
     m.recordOnFile = ui->checkBox->isChecked();
     m.enableTimeRange = ui->checkBox_3->isChecked();
     m.exclusiveDisplay = ui->checkBox_2->isChecked();
-    m.delay = ui->doubleSpinBox->value() * 1.0e-6;
-    m.width = ui->doubleSpinBox_2->value() * 1.0e-6;
+    m.delay = ui->doubleSpinBox->value() / std::micro::den;
+    m.width = ui->doubleSpinBox_2->value() / std::micro::den;
 
     if ( auto sp = spectrometer_.lock() ) {
         m.objid_spectrometer = sp->objtext();

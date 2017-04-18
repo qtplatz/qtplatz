@@ -42,7 +42,8 @@ namespace adcontrols {
                , massWindow_( 0 )
                , time_( 0 )
                , timeWindow_( 0 )
-               , algo_( ePeakAreaOnProfile ) {
+               , algo_( ePeakAreaOnProfile )
+               , protocol_( -1 ) {
         }        
 
         impl( const impl& t ) : formula_( t.formula_ )
@@ -50,7 +51,8 @@ namespace adcontrols {
                               , massWindow_( t.massWindow_ )             
                               , time_( t.time_ )
                               , timeWindow_( t.timeWindow_ )             
-                              , algo_( t.algo_ ) {
+                              , algo_( t.algo_ )
+                              , protocol_( t.protocol_ ) {
         }
         
         std::string formula_;
@@ -59,10 +61,11 @@ namespace adcontrols {
         double time_;
         double timeWindow_;
         TofChromatogramMethod::eIntensityAlgorishm algo_;
+        int protocol_; // -1, 0, 1...
 
     private:
         friend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
             ar & BOOST_SERIALIZATION_NVP( formula_ );
@@ -71,7 +74,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( time_ );
             ar & BOOST_SERIALIZATION_NVP( timeWindow_ );
             ar & BOOST_SERIALIZATION_NVP( algo_ );
-            
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( protocol_ );
         }
     };
 
@@ -102,6 +106,8 @@ namespace adcontrols {
     }
     
 }
+
+BOOST_CLASS_VERSION( adcontrols::TofChromatogramMethod::impl, 1 )
 
 using namespace adcontrols;
 
@@ -190,4 +196,16 @@ TofChromatogramMethod::setIntensityAlgorithm( eIntensityAlgorishm algo )
     impl_->algo_ = algo;
 }
 
+
+void
+TofChromatogramMethod::setProtocol( int proto )
+{
+    impl_->protocol_ = proto;
+}
+
+int
+TofChromatogramMethod::protocol() const
+{
+    return impl_->protocol_;
+}
 
