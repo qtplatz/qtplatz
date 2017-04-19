@@ -26,6 +26,7 @@
 #include "tofchromatogramsform.hpp"
 #include "moltableview.hpp"
 #include <adportable/is_type.hpp>
+#include <adportable/debug.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -53,7 +54,7 @@ namespace adwidgets {
         
         impl( TofChromatogramsWidget * p ) : this_( p )
                                            , model_( std::make_unique< QStandardItemModel >() ) {
-
+            
             model_->setColumnCount( ncolumns );
             model_->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
             model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
@@ -83,9 +84,6 @@ namespace adwidgets {
                 }
             }
             emit this_->valueChanged();
-        }
-
-        void handleSpectrometer() {
         }
 
         void handleContextMenu( const QPoint& pt );
@@ -121,16 +119,29 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         
         table->setModel( impl_->model_.get() );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
+
+        table->setColumnField( impl::c_formula, ColumnState::f_any, true, true );
+        table->setPrecision( impl::c_mass, 4 );
+
+        {
+            std::vector< std::pair< QString, QVariant > > choice;
+            choice.emplace_back( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) );
+            choice.emplace_back( "Height", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) );
+            choice.emplace_back( "Counting", QVariant( adcontrols::TofChromatogramMethod::eCounting ) );
+            table->setChoice( impl::c_algo, choice );
+        }
+        {
+            std::vector< std::pair< QString, QVariant > > choice;
+            choice.emplace_back( "0", QVariant( 0 ) );
+            choice.emplace_back( "1", QVariant( 1 ) );
+            choice.emplace_back( "3", QVariant( 2 ) );
+            choice.emplace_back( "4", QVariant( 3 ) );
+            table->setChoice( impl::c_protocol, choice );
+        }
+        
         table->setColumnHidden( impl::c_id, true );
         table->setColumnHidden( impl::c_time, true );
         table->setColumnHidden( impl::c_timewindow, true );
-        table->setPrecision( impl::c_mass, 4 );
-
-        std::vector< std::pair< QString, QVariant > > choice;
-        choice.emplace_back( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) );
-        choice.emplace_back( "Height", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) );
-        choice.emplace_back( "Counting", QVariant( adcontrols::TofChromatogramMethod::eCounting ) );
-        table->setChoice( impl::c_algo, choice );
     }
 
     if ( auto form = findChild< TofChromatogramsForm * >() )  {
@@ -159,8 +170,10 @@ TofChromatogramsWidget::OnInitialUpdate()
     
     if ( auto table = findChild< MolTableView *>() ) {
         table->onInitialUpdate();
-        connect( table, &MolTableView::onContextMenu, this, &TofChromatogramsWidget::handleContextMenu );
+        // connect( table, &MolTableView::onContextMenu, this, &TofChromatogramsWidget::handleContextMenu );
     }
+
+    setContents( adcontrols::TofChromatogramsMethod() );
 }
 
 void
@@ -213,6 +226,8 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
     for ( int row = 0; row < model.rowCount(); ++row ) {
         using adcontrols::TofChromatogramMethod;
         adcontrols::TofChromatogramMethod item;
+
+        item.setEnable( model.index( row, impl::c_formula ).data( Qt::CheckStateRole ) == Qt::Checked );
         item.setFormula( model.index( row, impl::c_formula ).data( Qt::EditRole ).toString().toStdString() );
         item.setMass( model.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble() );
         item.setMassWindow( model.index( row, impl::c_masswindow ).data( Qt::EditRole ).toDouble() );
@@ -222,6 +237,13 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         item.setProtocol( model.index( row, impl::c_protocol ).data( Qt::EditRole ).toInt() );
         m << item;
     }
+
+    int row(0);
+    for ( auto& i: m ) {
+        ADDEBUG() << "row[" << row << "] formula: " << i.formula() << " enable: " << i.enable();
+        ++row;
+    }
+    
     return true;
 }
 
@@ -235,14 +257,21 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
     model.setRowCount( m.size() );
 
     int row(0);
-    for ( auto& item: m ) {
-        model.setData( model.index( row, impl::c_formula ), QString::fromStdString( item.formula() ) );
-        model.setData( model.index( row, impl::c_mass ), item.mass() );
-        model.setData( model.index( row, impl::c_masswindow ), item.massWindow() );
-        model.setData( model.index( row, impl::c_time ), item.time() * std::micro::den );
-        model.setData( model.index( row, impl::c_timewindow ), item.timeWindow() * std::nano::den );
-        model.setData( model.index( row, impl::c_algo ), item.intensityAlgorithm() );
-        model.setData( model.index( row, impl::c_protocol ), item.protocol() );
+    for ( auto& trace: m ) {
+        model.setData( model.index( row, impl::c_formula ), QString::fromStdString( trace.formula() ) );
+        
+        if ( auto item = model.item( row, impl::c_formula ) ) {
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            model.setData( model.index( row, impl::c_formula ), trace.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+        
+        model.setData( model.index( row, impl::c_mass ), trace.mass() );
+        model.setData( model.index( row, impl::c_masswindow ), trace.massWindow() );
+        model.setData( model.index( row, impl::c_time ), trace.time() * std::micro::den );
+        model.setData( model.index( row, impl::c_timewindow ), trace.timeWindow() * std::nano::den );
+        model.setData( model.index( row, impl::c_algo ), trace.intensityAlgorithm() );
+        model.setData( model.index( row, impl::c_protocol ), trace.protocol() );
+        ++row;
     }
     return true;
 
@@ -291,5 +320,11 @@ void
 TofChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > sp )
 {
     impl_->spectrometer_ = sp;
-    impl_->handleSpectrometer();
 }
+
+void
+TofChromatogramsWidget::handleScanLawChanged()
+{
+    
+}
+

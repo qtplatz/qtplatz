@@ -65,7 +65,7 @@ if [ -z $cross_target ]; then
 		if [ "$ide" = "eclipse" ]; then
 		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
 		elif [ "$ide" = "codelite" ]; then
-		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
+		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
 		else
 		    cmake_args=('-G' 'CodeBlocks - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
 		fi

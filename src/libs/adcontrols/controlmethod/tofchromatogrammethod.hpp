@@ -47,6 +47,9 @@ namespace adcontrols {
             , eCounting
         };
 
+        bool enable() const;
+        void setEnable( bool );
+
         /** Chemical formula for generate trace
          */
         const std::string& formula() const;
@@ -73,6 +76,9 @@ namespace adcontrols {
 
         void setProtocol( int );
         int protocol() const;
+
+        void setId( int );
+        int id() const;
 
     private:
         class impl;

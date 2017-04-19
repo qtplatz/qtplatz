@@ -45,32 +45,6 @@ Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
 {
 }
 
-#if 0
-Trace::Trace( const Trace& t ) : upper_limit( t.upper_limit )
-                               , lower_limit( t.lower_limit )
-							   , fcn_( t.fcn_ )
-                               , minY_( t.minY_ )
-                               , maxY_( t.maxY_ )
-                               , values_( t.values_ )
-{
-}
-
-Trace&
-Trace::operator = ( const Trace& t )
-{
-    std::lock_guard< std::mutex > lock( mutex_ );
-    
-    fcn_ = t.fcn_;
-	lower_limit = t.lower_limit;
-	upper_limit = t.upper_limit;
-    minY_ = t.minY_;
-    maxY_ = t.maxY_;
-    values_ = t.values_;
-    isCountingTrace_ = t.isCountingTrace_;
-    return *this;
-}
-#endif
-
 void
 Trace::set_fcn( size_t n )
 {
@@ -94,7 +68,8 @@ Trace::append( size_t npos, double x, double y )
 
         values_.erase( values_.begin(), values_.begin() + ( upper_limit - lower_limit ) );
 
-        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) { return std::get<y_value>( a ) < std::get<y_value>( b ); } );;
+        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) {
+                return std::get<y_value>( a ) < std::get<y_value>( b ); } );;
         maxY_ = std::get<y_value>(*minmax.second);
         minY_ = isCountingTrace_ ? 0 : std::get<y_value>(*minmax.first);
 
@@ -107,13 +82,15 @@ Trace::erase_before( size_t npos )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     
-    auto it = std::upper_bound( values_.begin(), values_.end(), npos, [] ( size_t npos, const value_type& b ) { return npos < std::get<data_number>( b ); } );
+    auto it = std::upper_bound( values_.begin(), values_.end(), npos, [] ( size_t npos, const value_type& b ) {
+            return npos < std::get<data_number>( b ); } );
 
     if ( it != values_.end() ) {
 
         values_.erase( values_.begin(), it );
 
-        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) { return std::get<x_value>( a ) < std::get<y_value>( b ); } );;
+        auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) {
+                return std::get<x_value>( a ) < std::get<y_value>( b ); } );;
         maxY_ = std::get<y_value>(*minmax.second);
         minY_ = isCountingTrace_ ? 0 : std::get<y_value>(*minmax.first);
 

@@ -32,9 +32,11 @@
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/countingmethod.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/binary_serializer.hpp>
@@ -286,82 +288,38 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::u5303a::wavef
     return ! impl_->accumulated_waveforms_.empty();
 }
 
-
 bool
-tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& waveform
-                                , std::vector< std::pair< double, double > >& results )
+tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
+                                , const adcontrols::TofChromatogramsMethod& method
+                                , std::vector< std::pair< uint32_t, double > >& values )
 {
     typedef acqrscontrols::u5303a::waveform waveform_type;
 
-    results.clear();
+    values.clear();
 
     const double xIncrement = waveform->meta_.xIncrement;
-
     auto wrap = adportable::waveform_wrapper< int32_t, waveform_type >( *waveform );
 
-    double rms(0), dbase(0);
-    double tic = adportable::spectrum_processor::tic( wrap.size(), wrap.begin(), dbase, rms, 7 );
+    for ( auto& item: method ) {
+        if ( item.protocol() == waveform->meta_.protocolIndex ) {
+            if ( item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) {
+                double a = waveform->accumulate( item.time(), item.timeWindow() );
+                values.emplace_back( item.id(), a );
+            } else if ( item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) {
 
-    for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
-
-        bool found( false );
-            
-        double time = item.time();
-        double window = item.timeWindow();
-
-        if ( time < 1.0e-9 || window < 1.0e-11 ) { // assume TIC requsted
-
-            auto height = waveform->toVolts( *std::max_element( wrap.begin(), wrap.end() ) - dbase ) * 1000; // mV
-
-            results.emplace_back( std::make_pair( tic, height ) );
-
-        } else {
-
-            double wsta = time - window / 2;
-            double wend = time + window / 2;
-
-            if ( wend < waveform->xy( 0 ).first || wsta > waveform->xy( waveform->size() - 1 ).first ) {
-
-                results.emplace_back(  0, 0 );  // out of range
-
-            } else {
-
-                size_t ista = size_t( wsta < waveform->xy( 0 ).first ? 0 : ( wsta - waveform->xy( 0 ).first ) / xIncrement + 0.5 );
-                size_t iend = size_t( ( wend - waveform->xy( 0 ).first ) / xIncrement + 0.5 ) + 1;
-                if ( iend > waveform->size() )
-                    iend = waveform->size();
-
-                auto it = std::max_element( wrap.begin() + ista, wrap.begin() + iend );
-                auto height = waveform->toVolts( *it - dbase ) * 1000;
-
-                adportable::spectrum_processor::areaFraction fraction;
-
-                fraction.lPos = ista;
-                fraction.uPos = iend;
-                // tbd
-                fraction.lFrac = 0; // ( masses[ frac.lPos ] - lMass ) / ( masses[ frac.lPos ] - masses[ frac.lPos - 1 ] );
-                fraction.uFrac = 0; // ( hMass - masses[ frac.uPos ] ) / ( masses[ frac.uPos + 1 ] - masses[ frac.uPos ] );
-                
-                double a = adportable::spectrum_processor::area( fraction, dbase, wrap.begin(), waveform->size() );
-#if 0
-                size_t n = iend - ibeg + 1;
-                double area = a * waveform->meta_.scaleFactor + ( waveform->meta_.scaleOffset * n );
-                if ( waveform->meta_.actualAverages )
-                    area /= waveform->meta_.actualAverages;
-
-                ADDEBUG() << "a=" << a << ", " << area;
-#endif                
-                results.emplace_back( a, height );
+                double rms(0), dbase(0);
+                double tic = adportable::spectrum_processor::tic( wrap.size(), wrap.begin(), dbase, rms, 7 );
+                double v = waveform->toVolts( *std::max_element( wrap.begin(), wrap.end() ) - dbase ) * 1000; // mV
+                values.emplace_back( item.id(), v );
             }
-            
         }
     }
-    
     return true;
 }
 
 bool
-tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram, std::vector< uint32_t >& results )
+tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram
+                                        , std::vector< uint32_t >& results )
 {
     for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
 
@@ -676,14 +634,6 @@ bool
 tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
-    //-----------
-    // auto ptr( impl_->tofChromatogramsMethod_ );
-    // ADDEBUG() << "ChromatogramMethod: ";
-    // for ( size_t fcn = 0; fcn < ptr->size(); ++fcn ) {
-    //     auto item = ptr->begin() + fcn;
-    //     ADDEBUG() << "     " << fcn << ": " << item->formula() << ", " << int( item->intensityAlgorithm() );
-    // }
-    //-----------
     return true;
 }
 

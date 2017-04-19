@@ -70,6 +70,7 @@ namespace adwidgets {
         void applyTriggered();
 
     public slots:
+        void handleScanLawChanged();
 
     private slots:
         

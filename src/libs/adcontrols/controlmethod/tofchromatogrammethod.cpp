@@ -38,21 +38,26 @@ namespace adcontrols {
         ~impl() {
         }
         
-        impl() : mass_( 0 )
+        impl() : formula_( "TIC" )
+               , mass_( 0 )
                , massWindow_( 0 )
                , time_( 0 )
                , timeWindow_( 0 )
                , algo_( ePeakAreaOnProfile )
-               , protocol_( -1 ) {
+               , protocol_( 0 )
+               , id_( -1 )
+               , enable_( false ) {
         }        
 
         impl( const impl& t ) : formula_( t.formula_ )
                               , mass_( t.mass_ )
                               , massWindow_( t.massWindow_ )             
                               , time_( t.time_ )
-                              , timeWindow_( t.timeWindow_ )             
+                              , timeWindow_( t.timeWindow_ )
                               , algo_( t.algo_ )
-                              , protocol_( t.protocol_ ) {
+                              , protocol_( t.protocol_ )
+                              , id_( t.id_ )
+                              , enable_( t.enable_ ) {
         }
         
         std::string formula_;
@@ -61,7 +66,9 @@ namespace adcontrols {
         double time_;
         double timeWindow_;
         TofChromatogramMethod::eIntensityAlgorishm algo_;
-        int protocol_; // -1, 0, 1...
+        int32_t protocol_;  // 0, 1...
+        int32_t id_;        // trace id := color index
+        bool enable_;
 
     private:
         friend class boost::serialization::access;
@@ -74,8 +81,11 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( time_ );
             ar & BOOST_SERIALIZATION_NVP( timeWindow_ );
             ar & BOOST_SERIALIZATION_NVP( algo_ );
-            if ( version >= 1 )
+            if ( version >= 1 ) {
                 ar & BOOST_SERIALIZATION_NVP( protocol_ );
+                ar & BOOST_SERIALIZATION_NVP( id_ );
+                ar & BOOST_SERIALIZATION_NVP( enable_ );
+            }
         }
     };
 
@@ -196,7 +206,6 @@ TofChromatogramMethod::setIntensityAlgorithm( eIntensityAlgorishm algo )
     impl_->algo_ = algo;
 }
 
-
 void
 TofChromatogramMethod::setProtocol( int proto )
 {
@@ -209,3 +218,26 @@ TofChromatogramMethod::protocol() const
     return impl_->protocol_;
 }
 
+void
+TofChromatogramMethod::setId( int id )
+{
+    impl_->id_ = id;
+}
+
+int
+TofChromatogramMethod::id() const
+{
+    return impl_->id_;
+}
+
+bool
+TofChromatogramMethod::enable() const
+{
+    return impl_->enable_;
+}
+
+void
+TofChromatogramMethod::setEnable( bool enable )
+{
+    impl_->enable_ = enable;
+}

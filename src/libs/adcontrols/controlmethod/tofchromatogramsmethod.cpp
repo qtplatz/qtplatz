@@ -38,12 +38,29 @@ namespace adcontrols {
     class TofChromatogramsMethod::impl {
     public:
 
-        impl() : numberOfTriggers_( 100 ), refreshHistogram_( true ) {
+        impl() : numberOfTriggers_( 100 )
+               , refreshHistogram_( true )
+               , vec_( 8 ) {
+            initialize();
         }
 
         impl( const impl& t ) : numberOfTriggers_( t.numberOfTriggers_ )
                               , refreshHistogram_( t.refreshHistogram_ )
                               , vec_( t.vec_ ) {
+            initialize();
+        }
+
+        void initialize() {
+            const size_t sz = vec_.size();
+            if ( sz < 8 )
+                vec_.resize( 8 );
+            for ( size_t i = 0; i < vec_.size(); ++i )
+                vec_[ i ].setId( i );
+            for ( size_t i = sz; i < vec_.size(); ++i ) {
+                vec_[ i ].setFormula( "TIC" );
+                vec_[ i ].setIntensityAlgorithm( i % 01 ? TofChromatogramMethod::ePeakAreaOnProfile : TofChromatogramMethod::eCounting );
+                vec_[ i ].setEnable( false );
+            }
         }
 
         size_t numberOfTriggers_;

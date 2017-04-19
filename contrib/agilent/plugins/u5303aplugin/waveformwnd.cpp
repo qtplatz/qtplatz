@@ -313,8 +313,6 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 void
 WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
-    ADDEBUG() << "setMethod .....";
-    
     int idx = 0;
     for ( auto& item : m ) {
 

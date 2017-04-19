@@ -191,6 +191,10 @@ waveform::waveform() : serialnumber_( 0 )
                      , timeSinceEpoch_( 0 )
                      , firstValidPoint_( 0 )
                      , timeSinceInject_( 0.0 )
+                     , hasTic_( false )
+                     , tic_( 0 )
+                     , dbase_( 0 )
+                     , rms_( 0 )
 {
 }
 
@@ -201,6 +205,10 @@ waveform::waveform( std::shared_ptr< const identify > id
                                                                    , timeSinceEpoch_( tp )
                                                                    , firstValidPoint_( 0 )
                                                                    , timeSinceInject_( 0.0 )
+                                                                   , hasTic_( false )
+                                                                   , tic_( 0 )
+                                                                   , dbase_( 0 )
+                                                                   , rms_( 0 )
 {
 }
 
@@ -222,6 +230,10 @@ waveform::waveform( const method& method
                                     , firstValidPoint_( firstValidPoint )
                                     , timeSinceInject_( timeSinceInject )
                                     , ident_( id )
+                                    , hasTic_( false )
+                                    , tic_( 0 )
+                                    , dbase_( 0 )
+                                    , rms_( 0 )
                                     , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
 {
     typedef int32_t value_type;
@@ -242,7 +254,10 @@ waveform::waveform( const waveform& t, int dataType ) : method_( t.method_ )
                                                       , firstValidPoint_( t.firstValidPoint_ )
                                                       , timeSinceInject_( t.timeSinceInject_ )
                                                       , ident_( t.ident_ )
-                                                      
+                                                      , hasTic_( t.hasTic_ )
+                                                      , tic_( t.tic_ )
+                                                      , dbase_( t.dbase_ )
+                                                      , rms_( t.rms_ )
 {
     if ( dataType == 8 ) {
         auto mb = std::make_shared< adportable::mblock< int64_t > >( t.size() );
@@ -339,17 +354,23 @@ double
 waveform::accumulate( double tof, double window ) const
 {
     double tic(0), dbase(0), rms(0);
-    if ( meta_.dataType == 2 ) {
-        tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
-    } else if ( meta_.dataType == 4 ) {
-        tic = adportable::spectrum_processor::tic( size(), begin<int32_t>(), dbase, rms, 5 );
-    } else if ( meta_.dataType == 8 ) {
-        tic = adportable::spectrum_processor::tic( size(), begin<int64_t>(), dbase, rms, 5 );
+    if ( ! hasTic_ ) {
+        if ( meta_.dataType == 2 ) {
+            tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
+        } else if ( meta_.dataType == 4 ) {
+            tic = adportable::spectrum_processor::tic( size(), begin<int32_t>(), dbase, rms, 5 );
+        } else if ( meta_.dataType == 8 ) {
+            tic = adportable::spectrum_processor::tic( size(), begin<int64_t>(), dbase, rms, 5 );
+        }
+        const_cast< waveform& >(*this).hasTic_ = true;
+        const_cast< waveform& >(*this).dbase_ = dbase;
+        const_cast< waveform& >(*this).rms_ = rms;
+        const_cast< waveform& >(*this).tic_ = tic;
     }
     
     if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
 
-        return tic;
+        return tic_;
 
     } else {
 
@@ -368,11 +389,11 @@ waveform::accumulate( double tof, double window ) const
         frac.uFrac = x2 - double( frac.uPos );
 
         if ( meta_.dataType == 2 ) {
-            return adportable::spectrum_processor::area( frac, dbase, begin<int16_t>(), size() );
+            return adportable::spectrum_processor::area( frac, dbase_, begin<int16_t>(), size() );
         } else if ( meta_.dataType == 4 ) {
-            return adportable::spectrum_processor::area( frac, dbase, begin<int32_t>(), size() );
+            return adportable::spectrum_processor::area( frac, dbase_, begin<int32_t>(), size() );
         } else if ( meta_.dataType == 8 ) {
-            return adportable::spectrum_processor::area( frac, dbase, begin<int64_t>(), size() );            
+            return adportable::spectrum_processor::area( frac, dbase_, begin<int64_t>(), size() );            
         }
     }
     return 0;

@@ -147,6 +147,7 @@ namespace acqrscontrols {
             bool deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize );
 
             double accumulate( double tof, double window ) const;
+            double tic( double& dbase, double& rms ) const;
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
 
@@ -169,6 +170,11 @@ namespace acqrscontrols {
             friend class waveform_xdata_archive< const waveform >;
 
             std::shared_ptr< const identify > ident_;
+            bool hasTic_;
+            double tic_;
+            double dbase_;
+            double rms_;
+            
             boost::variant < std::shared_ptr< adportable::mblock<int16_t> >
                              , std::shared_ptr< adportable::mblock<int32_t> >
                              , std::shared_ptr< adportable::mblock<int64_t> >

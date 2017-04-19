@@ -40,7 +40,9 @@ namespace acqrscontrols { namespace u5303a { class waveform; class threshold_res
 namespace adcontrols {
     class threshold_action;
     class threshold_method;
+    class MassSpectrometer;
     class MassSpectrum;
+    class TofChromatogramMethod;
     class TofChromatogramsMethod;
     class TimeDigitalHistogram;
     class CountingMethod;
@@ -123,9 +125,14 @@ namespace acqrscontrols {
             std::shared_ptr< adcontrols::MassSpectrum >
                 recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;
             
-            bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&, std::vector< std::pair<double, double> >& results );
-
-            bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
+            // bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&
+            //                              , std::vector< std::pair<double, double> >& results );
+            bool makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
+                                         , const adcontrols::TofChromatogramsMethod& method
+                                         , std::vector< std::pair< uint32_t, double > >& values );
+            
+            bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&
+                                                 , std::vector< uint32_t >& results );
 
             static bool computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
                                           , const adcontrols::CountingMethod&
