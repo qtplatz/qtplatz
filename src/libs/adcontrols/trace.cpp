@@ -25,6 +25,7 @@
 
 #include <compiler/disable_dll_interface.h>
 #include "trace.hpp"
+#include <adicontroller/constants.hpp>
 #include <iostream>
 #include <algorithm>
 #include <numeric>
@@ -43,6 +44,7 @@ Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
                                                         , maxY_( std::numeric_limits<double>::lowest() )
                                                         , isCountingTrace_( false )
                                                         , enable_( true )
+                                                        , injectTime_( 0 )
 {
 }
 
@@ -59,14 +61,14 @@ Trace::setProtocol( int proto )
 }
 
 bool
-Trace::append( size_t npos, double x, double y )
+Trace::append( size_t npos, double x, double y, uint32_t events )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
+
     if ( !values_.empty() && ( npos < std::get< data_number >( values_.back() ) ))
         return false;
 
-    values_.emplace_back( npos, x, y, 0 );
+    values_.emplace_back( npos, x, y, events );
 
     maxY_ = std::max( maxY_, y );
     minY_ = isCountingTrace_ ? 0 : std::min( minY_, y );
@@ -76,7 +78,8 @@ Trace::append( size_t npos, double x, double y )
         values_.erase( values_.begin(), values_.begin() + ( upper_limit - lower_limit ) );
 
         auto minmax = std::minmax_element( values_.begin(), values_.end(), [] ( const value_type& a, const value_type& b ) {
-                return std::get<y_value>( a ) < std::get<y_value>( b ); } );;
+                return std::get<y_value>( a ) < std::get<y_value>( b );
+            } );
         maxY_ = std::get<y_value>(*minmax.second);
         minY_ = isCountingTrace_ ? 0 : std::get<y_value>(*minmax.first);
 
@@ -153,6 +156,15 @@ Trace::xy( size_t idx ) const
     return { 0, 0 };
 }
 
+uint32_t
+Trace::events( size_t idx ) const
+{
+    if ( values_.size() > idx )        
+        return std::get< event_flags >( values_.at( idx ) );
+    return 0;
+}
+    
+
 std::pair<double, double>
 Trace::range_y() const
 {
@@ -194,3 +206,14 @@ Trace::enable() const
     return enable_;
 }
 
+void
+Trace::setInjectTime( double t )
+{
+    injectTime_ = t;
+}
+
+double
+Trace::injectTime() const
+{
+    return injectTime_;
+}

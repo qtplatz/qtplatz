@@ -65,7 +65,7 @@ namespace adplot {
         void setZoomed( const QRectF&, bool keepY = true );
         QColor color( int idx ) const;
         QwtPlotItem * getPlotItem( int idx );
-
+        
         enum HorizontalAxis { HorizontalAxisSeconds, HorizontalAxisMinutes };
         void setAxis( HorizontalAxis, bool replot = false );
 

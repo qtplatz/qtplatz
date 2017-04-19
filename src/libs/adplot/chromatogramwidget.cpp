@@ -131,7 +131,7 @@ namespace adplot {
             QPointF sample( size_t idx ) const override {
                 auto y = t_->range_y();
                 double v = 1000 * ( t_->y( idx ) - y.first ) / ( y.second - y.first );  // Relative
-                return QPointF( t_->x(idx), v );
+                return QPointF( t_->x(idx) - t_->injectTime(), v );
             }
             
             virtual QRectF boundingRect() const override {
@@ -148,7 +148,7 @@ namespace adplot {
         public:
             ~TraceData() { }
 			TraceData( plot& plot ) : curve_( plot ) { }
-			TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) { }
+            TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) { }
             void setData( std::shared_ptr<const T> ) {}
 			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
@@ -165,12 +165,13 @@ namespace adplot {
             if ( trace->size() > 2 ) {
 
                 auto * d_trace = new tSeriesData< adcontrols::Trace >( trace );
+
+                double x0 = trace->x( 0 ) - trace->injectTime();
+                double x1 = trace->x( trace->size() - 1 ) - trace->injectTime();
+
+                // ADDEBUG() << "time: " << d_trace->sample( 0 ).x() << " - " << trace->injectTime() << " ==> " << x0;
                 
-                // make rect upside down due to QRectF 'or' operator flips y-coord for negative height
-                // rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace->range_y().first )
-                //                 , QPointF(d_trace->sample( trace->size() - 1 ).x(), trace->range_y().second ) );
-                // normalize to 0.0 - 1.0
-                rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), -10.0 ), QPointF( d_trace->sample( trace->size() - 1 ).x(), 1010.0 ) );
+                rect_ = QRectF( QPointF( x0, -10.0 ), QPointF( x1, 1010.0 ) );
                 
                 d_trace->setBoundingRect( rect_ );
                 curve_.p()->setData( d_trace );

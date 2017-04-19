@@ -64,13 +64,17 @@ namespace adcontrols {
         double x( size_t ) const;
         double y( size_t ) const;
         std::pair< double, double > xy( size_t ) const;
+        uint32_t events( size_t ) const;
 
         const unsigned long * getEventsArray() const;
         std::pair<double, double> range_y() const;
 
-        bool append( size_t pos, double x, double y );
+        bool append( size_t pos, double x, double y, uint32_t events = 0 );
         bool erase_before( size_t pos );
         size_t npos() const;
+
+        void setInjectTime( double );
+        double injectTime() const;
 
     private:
 		int fcn_;
@@ -78,6 +82,7 @@ namespace adcontrols {
         double maxY_;
         bool isCountingTrace_;
         bool enable_;
+        double injectTime_;
 
         enum { data_number, x_value, y_value, event_flags };
         typedef std::tuple< size_t, double, double, uint32_t > value_type;
