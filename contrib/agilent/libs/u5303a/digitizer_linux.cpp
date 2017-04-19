@@ -983,6 +983,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     d.meta_.initialXOffset = initialXOffset[ iRecord ];
                     d.meta_.scaleFactor = scaleFactor;
                     d.meta_.scaleOffset = scaleOffset;
+                    d.meta_.protocolIndex = m.protocolIndex();
                     d.meta_.dataType = mblk->dataType();
 
                     d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
@@ -1044,6 +1045,7 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.initialXOffset  = initialXOffset;
             data.meta_.scaleFactor = scaleFactor;
             data.meta_.scaleOffset = scaleOffset;
+            data.meta_.protocolIndex = m.protocolIndex();
             data.meta_.dataType = 2;
             data.firstValidPoint_ = firstValidPoint[0];
             data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();

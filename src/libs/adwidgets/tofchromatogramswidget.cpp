@@ -238,11 +238,11 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         m << item;
     }
 
-    int row(0);
-    for ( auto& i: m ) {
-        ADDEBUG() << "row[" << row << "] formula: " << i.formula() << " enable: " << i.enable();
-        ++row;
-    }
+    // int row(0);
+    // for ( auto& i: m ) {
+    //     ADDEBUG() << "row[" << row << "] formula: " << i.formula() << " enable: " << i.enable();
+    //     ++row;
+    // }
     
     return true;
 }

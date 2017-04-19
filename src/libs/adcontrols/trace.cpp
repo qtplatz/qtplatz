@@ -42,6 +42,7 @@ Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
                                                         , minY_( std::numeric_limits<double>::max() )
                                                         , maxY_( std::numeric_limits<double>::lowest() )
                                                         , isCountingTrace_( false )
+                                                        , enable_( true )
 {
 }
 
@@ -49,6 +50,12 @@ void
 Trace::set_fcn( size_t n )
 {
     fcn_ = static_cast<int>(n);
+}
+
+void
+Trace::setProtocol( int proto )
+{
+    fcn_ = proto;
 }
 
 bool
@@ -174,3 +181,16 @@ Trace::isCountingTrace() const
 {
     return isCountingTrace_;
 }
+
+void
+Trace::setEnable( bool enable )
+{
+    enable_ = enable;
+}
+
+bool
+Trace::enable() const
+{
+    return enable_;
+}
+

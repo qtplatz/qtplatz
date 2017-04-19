@@ -606,6 +606,20 @@ ChromatogramWidget::selected( const QRectF& rect )
 	emit onSelected( rect );
 }
 
+QwtPlotItem *
+ChromatogramWidget::getPlotItem( int idx )
+{
+    if ( idx < impl_->traces_.size() ) {
+        if ( impl_->traces_[ idx ].which() == 0 ) {
+            auto& trace = boost::get< ChromatogramData >( impl_->traces_[ idx ] );
+            return &trace.plot_curve();
+        } else {
+            auto& trace = boost::get< TraceData< adcontrols::Trace > >( impl_->traces_[ idx ] );
+            return &trace.plot_curve();            
+        }
+    }
+    return nullptr;
+}
 
 //--------------
 void

@@ -298,19 +298,29 @@ tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
     values.clear();
 
     const double xIncrement = waveform->meta_.xIncrement;
-    auto wrap = adportable::waveform_wrapper< int32_t, waveform_type >( *waveform );
+    auto wform = adportable::waveform_wrapper< int32_t, waveform_type >( *waveform );
 
-    for ( auto& item: method ) {
-        if ( item.protocol() == waveform->meta_.protocolIndex ) {
-            if ( item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) {
-                double a = waveform->accumulate( item.time(), item.timeWindow() );
-                values.emplace_back( item.id(), a );
-            } else if ( item.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) {
-
+    for ( auto& trace: method ) {
+        if ( trace.enable() && trace.protocol() == waveform->meta_.protocolIndex ) {
+            if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) {
+                double a = waveform->accumulate( trace.time(), trace.timeWindow() );
+                values.emplace_back( trace.id(), a );
+            } else if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) {
                 double rms(0), dbase(0);
-                double tic = adportable::spectrum_processor::tic( wrap.size(), wrap.begin(), dbase, rms, 7 );
-                double v = waveform->toVolts( *std::max_element( wrap.begin(), wrap.end() ) - dbase ) * 1000; // mV
-                values.emplace_back( item.id(), v );
+                double tic = adportable::spectrum_processor::tic( wform.size(), wform.begin(), dbase, rms, 7 );
+                if ( trace.time() < 1.0e-9 ) {
+                    // base peak height
+                    double v = waveform->toVolts( *std::max_element( wform.begin(), wform.end() ) - dbase ) * 1000; // mV
+                    values.emplace_back( trace.id(), v );
+                } else {
+                    // base peak in time range
+                    if ( *wform.begin() < trace.time() && trace.time() < *(wform.end() - 1) ) {
+                        size_t i0 = ( ( trace.time() - trace.timeWindow() / 2 ) - *wform.begin() ) / xIncrement;
+                        size_t i1 = ( ( trace.time() + trace.timeWindow() / 2 ) - *wform.begin() ) / xIncrement + 0.5;
+                        double v = waveform->toVolts( *std::max_element( wform.begin() + i0, wform.begin() + i1 ) - dbase ) * 1000;
+                        values.emplace_back( trace.id(), v );
+                    }
+                }
             }
         }
     }

@@ -42,7 +42,6 @@ namespace adcontrols {
     class threshold_method;
     class MassSpectrometer;
     class MassSpectrum;
-    class TofChromatogramMethod;
     class TofChromatogramsMethod;
     class TimeDigitalHistogram;
     class CountingMethod;

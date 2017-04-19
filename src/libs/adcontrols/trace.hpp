@@ -45,12 +45,19 @@ namespace adcontrols {
 		unsigned upper_limit;
         unsigned lower_limit;
 
-        void set_fcn( size_t fcn );
-        inline int fcn() const { return fcn_; }
+        [[deprecated("Replaced by setProtocol(int)")]] void set_fcn( size_t fcn );
+        [[deprecated("Replaced by protocol()")]] inline int fcn() const { return fcn_; }
+
+        void setProtocol( int );
+        inline int protocol() const { return fcn_; }
+
         void clear();
         size_t size() const;
         void resize( size_t size );
 
+        void setEnable( bool );
+        bool enable() const;
+        
         void setIsCountingTrace( bool );
         bool isCountingTrace() const;
 
@@ -70,6 +77,7 @@ namespace adcontrols {
         double minY_;
         double maxY_;
         bool isCountingTrace_;
+        bool enable_;
 
         enum { data_number, x_value, y_value, event_flags };
         typedef std::tuple< size_t, double, double, uint32_t > value_type;
