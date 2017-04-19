@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -78,6 +78,7 @@ namespace adplot {
             Qt::lightGray,
         };
 
+        // for ChromatogramData
         class xSeriesData : public QwtSeriesData< QPointF > {
             xSeriesData( const xSeriesData& ) = delete;
             xSeriesData& operator = ( const xSeriesData ) = delete;
@@ -111,24 +112,26 @@ namespace adplot {
             QRectF boundingRect() const override { return rect_; }
         };
 
+        // for TraceData
         template< typename T >
-        class series_data : public QwtSeriesData< QPointF > {
+        class tSeriesData : public QwtSeriesData< QPointF > {
 
-            series_data( const series_data& ) = delete;
-            series_data& operator = ( const series_data& ) = delete;
+            tSeriesData( const tSeriesData& ) = delete;
+            tSeriesData& operator = ( const tSeriesData& ) = delete;
             std::shared_ptr<const T> t_;
 
         public:
-            series_data() { }
-			series_data( std::shared_ptr< const T> t ) : t_( t ) { }
-			~series_data() { }
-			// inline operator T& () {	return *t_;	};
+            tSeriesData() { }
+			tSeriesData( std::shared_ptr< const T> t ) : t_( t ) { }
+			~tSeriesData() { }
 
             // implements QwtSeriesData<>
             size_t size() const override { return t_->size(); }
 
-            QPointF sample( size_t idx ) const override { 
-                return QPointF( t_->x(idx), t_->y(idx) );
+            QPointF sample( size_t idx ) const override {
+                auto y = t_->range_y();
+                double v = 1000 * ( t_->y( idx ) - y.first ) / ( y.second - y.first );  // Relative
+                return QPointF( t_->x(idx), v );
             }
             
             virtual QRectF boundingRect() const override {
@@ -161,13 +164,13 @@ namespace adplot {
         {
             if ( trace->size() > 2 ) {
 
-                series_data< adcontrols::Trace > * d_trace = new series_data< adcontrols::Trace >( trace );
+                auto * d_trace = new tSeriesData< adcontrols::Trace >( trace );
                 
                 // make rect upside down due to QRectF 'or' operator flips y-coord for negative height
-                rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace->range_y().first )
-                                , QPointF(d_trace->sample( trace->size() - 1 ).x(), trace->range_y().second ));
-                
-                // qDebug() << __FILE__ << ":" << __LINE__ << " " << rect_ << ", " << "x=" << trace->x(0);
+                // rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), trace->range_y().first )
+                //                 , QPointF(d_trace->sample( trace->size() - 1 ).x(), trace->range_y().second ) );
+                // normalize to 0.0 - 1.0
+                rect_ = QRectF( QPointF( d_trace->sample( 0 ).x(), -10.0 ), QPointF( d_trace->sample( trace->size() - 1 ).x(), 1010.0 ) );
                 
                 d_trace->setBoundingRect( rect_ );
                 curve_.p()->setData( d_trace );
@@ -225,21 +228,50 @@ namespace adplot {
             bool y2_;
         };
         
-        typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
+        // typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
+        typedef boost::variant< std::unique_ptr< ChromatogramData >
+                                , std::unique_ptr< TraceData<adcontrols::Trace> > > trace_variant;
 
         struct boundingRect_visitor : public boost::static_visitor< QRectF > {
-            template<typename T> QRectF operator()( const T& t ) const { return t.boundingRect(); }
+            template<typename T> QRectF operator()( const T& t ) const {
+                return t ? t->boundingRect() : QRectF();
+            }
         };
 
-        struct yAxis_visitor : public boost::static_visitor< int > {
-            template< typename T > int operator ()( const T& t ) const { return t.plot_curve().yAxis(); }
+        struct yAxis_visitor : public boost::static_visitor< QwtPlot::Axis > {
+            template< typename T > QwtPlot::Axis operator ()( const T& t ) const { return t ? QwtPlot::Axis( t->plot_curve().yAxis() ) : QwtPlot::yLeft; }
         };
 
         struct updateMarkers_visitor : public boost::static_visitor< void > {
             QwtPlot * plot_;
             std::pair< double, double > range_;
             updateMarkers_visitor( QwtPlot * plot, const std::pair< double, double >& range ) : plot_( plot ), range_( range ) {}
-            template<typename T> void operator()( T& t ) const { t.drawMarkers( plot_, range_ ); }
+            template<typename T> void operator()( T& t ) const { if ( t ) t->drawMarkers( plot_, range_ ); }
+        };
+
+        template< typename trace_type >
+        struct isValid : public boost::static_visitor< bool > {
+            template< typename T > bool operator()( T& t ) const {
+                return bool( t ) && typeid(T) == typeid(trace_type);
+            };
+        };
+
+        struct isNull : public boost::static_visitor< bool > {
+            template< typename T > bool operator()( T& t ) const {
+                return !( t );
+            };
+        };
+
+        struct GetPlotItem : public boost::static_visitor< QwtPlotItem * > {
+            template< typename T > QwtPlotItem * operator()( T& t ) const {
+                return t ? &(t->plot_curve()) : nullptr;
+            };
+        };
+
+        struct RemoveData : public boost::static_visitor< void > {
+            template< typename T > void operator()( T& t ) const {
+                t = nullptr;
+            };
         };
 
         class zoomer : public QwtPlotZoomer {
@@ -357,8 +389,12 @@ ChromatogramWidget::clear()
 void
 ChromatogramWidget::removeData( int idx, bool bReplot )
 {
-    if ( impl_->traces_.size() > size_t(idx) )
-        impl_->traces_[ idx ] = ChromatogramData( *this );
+    if ( impl_->traces_.size() > size_t(idx) ) {
+        boost::apply_visitor( RemoveData(), impl_->traces_[ idx ] );
+        // if ( impl_->traces_[ idx ].which() == 0 )
+        //     boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_[ idx ] ) = 0;
+        // impl_->traces_[ idx ] = std::move( std::unique_ptr< ChromatogramData >( 0 ) ); //ChromatogramData( *this );
+    }
     if ( bReplot )
         replot();
 }
@@ -375,43 +411,40 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
 {
     if ( c->size() < 2 )
         return;
-    
-    while ( int( impl_->traces_.size() ) <= idx )
-        impl_->traces_.emplace_back( TraceData< adcontrols::Trace >( *this ) );
-    
-    TraceData< adcontrols::Trace > * trace = 0;
-    try {
-        trace = &boost::get< TraceData< adcontrols::Trace > >( impl_->traces_[ idx ] );
-    } catch ( boost::bad_get& ex ) {
-        adportable::debug(__FILE__, __LINE__) << ex.what();
-    }
-    
-    if ( trace ) {
 
+    if ( impl_->traces_.size() <= size_t( idx ) )
+        impl_->traces_.resize( idx + 1 );
+
+    if ( ! boost::apply_visitor( isValid< TraceData< adcontrols::Trace > >(), impl_->traces_[ idx ] ) )
+        impl_->traces_[ idx ] = std::make_unique< TraceData< adcontrols::Trace > >( *this );
+
+    if ( auto& trace = boost::get< std::unique_ptr< TraceData< adcontrols::Trace > > >( impl_->traces_[ idx ] ) ) {
+        
         trace->plot_curve().setPen( QPen( color_table [ idx ] ) );
         trace->plot_curve().setYAxis( yRight ? QwtPlot::yRight : QwtPlot::yLeft );
         trace->setData( c );
 
         auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
 
-        auto rc = std::accumulate( impl_->traces_.begin(), impl_->traces_.end(), QRectF {}, [&] ( const QRectF& a, const trace_variant& b ) {
-
-                QRectF rect( boost::apply_visitor( boundingRect_visitor(), b ) );
-                
-                if ( boost::apply_visitor( yAxis_visitor(), b ) == yAxis ) {
-                    return ( a == QRectF() ) ? rect : ( a | rect );
-                } else {
-                    if ( a == QRectF() )
-                        return rect;
-                    else
-                        return QRectF( QPointF( std::min( rect.left(), a.left() ), a.top() ), QPointF( std::max( rect.right(), a.right() ), a.bottom() ) );
-                }
-            } );
+        QRectF rc;
+        for ( auto& trace: impl_->traces_ ) {
+            if ( ( ! boost::apply_visitor( isNull(), trace ) ) && ( boost::apply_visitor( yAxis_visitor(), trace ) == yAxis ) ) {
+                QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
+                if ( rc.isEmpty() )
+                    rc = rect;
+                else
+                    rc |= rect;
+            }
+        }
+        for ( auto& trace: impl_->traces_ ) {
+            if ( ! boost::apply_visitor( isNull(), trace ) && ( boost::apply_visitor( yAxis_visitor(), trace ) != yAxis ) ) {
+                QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
+                rc = QRectF( QPointF( std::min( rc.left(), rect.left() ), rc.top() ), QPointF( std::max( rc.right(), rect.right() ), rc.bottom() ) );
+            }
+        }
 
         if ( adportable::compare<double>::essentiallyEqual( rc.height(), 0.0 ) )
             rc.setHeight( 1.0 );
-
-        // qDebug() << __FILE__ << ", " << __LINE__ << " rc=" << rc;
 
         setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
         setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale 
@@ -435,13 +468,16 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
 
     using adcontrols::Chromatogram;
 
-    while ( int ( impl_->traces_.size() ) <= idx )
-		impl_->traces_.push_back( ChromatogramData( *this ) );
+    if ( impl_->traces_.size() <= size_t( idx ) )
+        impl_->traces_.resize( idx + 1 );
 
-    auto& trace = boost::get< ChromatogramData >( impl_->traces_ [ idx ] );
+    if ( ! boost::apply_visitor( isValid< ChromatogramData >(), impl_->traces_[ idx ] ) )
+        impl_->traces_[ idx ] = std::make_unique< ChromatogramData >( *this );
 
-	trace.plot_curve().setPen( QPen( color_table[idx] ) ); 
-    trace.setData( cp, yRight );
+    auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
+
+	trace->plot_curve().setPen( QPen( color_table[idx] ) ); 
+    trace->setData( cp, yRight );
     impl_->peak_annotations_.clear();
 
     for ( auto& pk: cp->peaks() )
@@ -451,18 +487,20 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
     
     plotAnnotations( impl_->peak_annotations_ );
     
-    QRectF rect = trace.boundingRect();
+    QRectF rect = trace->boundingRect();
     std::pair< double, double > horizontal( std::make_pair( rect.left(), rect.right() ) );
     std::pair< double, double > vertical( std::make_pair( rect.bottom(), rect.top() ) );
     
     for ( const auto& v: impl_->traces_ ) {
-        auto& trace = boost::get< ChromatogramData >( v );
-        if ( trace.y2() == yRight ) {
-            QRectF rc = trace.boundingRect();
-            horizontal.first = std::min( horizontal.first, rc.left() );
-            horizontal.second = std::max( horizontal.second, rc.right() );
-            vertical.first = std::min( vertical.first, rc.bottom() );
-            vertical.second = std::max( vertical.second, rc.top() );
+        if ( boost::apply_visitor( isValid< ChromatogramData >(), v ) ) {
+            auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
+            if ( trace->y2() == yRight ) {
+                QRectF rc = trace->boundingRect();
+                horizontal.first = std::min( horizontal.first, rc.left() );
+                horizontal.second = std::max( horizontal.second, rc.right() );
+                vertical.first = std::min( vertical.first, rc.bottom() );
+                vertical.second = std::max( vertical.second, rc.top() );
+            }
         }
     }
     double h = vertical.second - vertical.first;
@@ -609,15 +647,8 @@ ChromatogramWidget::selected( const QRectF& rect )
 QwtPlotItem *
 ChromatogramWidget::getPlotItem( int idx )
 {
-    if ( idx < impl_->traces_.size() ) {
-        if ( impl_->traces_[ idx ].which() == 0 ) {
-            auto& trace = boost::get< ChromatogramData >( impl_->traces_[ idx ] );
-            return &trace.plot_curve();
-        } else {
-            auto& trace = boost::get< TraceData< adcontrols::Trace > >( impl_->traces_[ idx ] );
-            return &trace.plot_curve();            
-        }
-    }
+    if ( idx < impl_->traces_.size() )
+        return boost::apply_visitor( GetPlotItem(), impl_->traces_[ idx ] );
     return nullptr;
 }
 
