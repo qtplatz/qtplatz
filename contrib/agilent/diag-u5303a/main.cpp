@@ -343,9 +343,9 @@ main( int argc, char * argv [] )
                     execStatistics::instance().dataCount_ += vec.size();
 
                     if ( __verbose__ >= 5 ) {
-                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveforms @ protocol#"
+                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveform(s), proto#"
                                   << dgpio.protocol_number()
-                                  << "\ttotal: " << execStatistics::instance().dataCount_ << std::endl;
+                                  << "\t(" << i << "/" << replicates << ")" << execStatistics::instance().dataCount_ << std::endl;
                     }
 
                     vec.clear();
