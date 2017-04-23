@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <libdgpio/pio.hpp>
 #include <u5303a/ppio.hpp>
 #include <u5303a/agmd2.hpp>
 #include <u5303a/digitizer.hpp>
@@ -124,7 +125,7 @@ main( int argc, char * argv [] )
             ( "width,w",    po::value<double>()->default_value( 100.0 ), "Waveform width (us)" )
             ( "replicates", po::value<int>()->default_value( 1000 ), "Number of triggers to acquire waveforms" )
             ( "rate",       po::value<double>()->default_value( 1.0 ),  "Trigger interval in millisecond" )
-            ( "verbose",    po::value<int>()->default_value( 0 ),  "Verbose 0..9" )            
+            ( "verbose",    po::value<int>()->default_value( 5 ),  "Verbose 0..9" )            
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -153,6 +154,10 @@ main( int argc, char * argv [] )
     execStatistics::instance().rate_ = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
 
     ppio pp;
+    dgpio::pio dgpio;
+
+    if ( ! dgpio.open() )
+        std::cerr << "dgpio open failed -- ignored." << std::endl;
 
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
 
@@ -333,10 +338,13 @@ main( int argc, char * argv [] )
                     pp << uint8_t( 0x02 );
 
                     u5303a::digitizer::readData( *md2, method, vec );
+
+                    int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
                     execStatistics::instance().dataCount_ += vec.size();
 
                     if ( __verbose__ >= 5 ) {
-                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveforms"
+                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveforms @ protocol#"
+                                  << dgpio.protocol_number()
                                   << "\ttotal: " << execStatistics::instance().dataCount_ << std::endl;
                     }
 
@@ -346,15 +354,6 @@ main( int argc, char * argv [] )
 
             std::cout << execStatistics::instance();
             
-            // uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - tp ).count();
-            // double s = double(ns) * 1.0e-9;
-            // std::cout << "Took " << s << " seconds; " << double(dataCount) / s << "Hz" << std::endl;
-            // std::cout << deadcount << " DEAD data received / " << dataCount << " waveforms read" << std::endl;
-            // std::cout << exceededTimings.size() << " waveforms has the trigger timing exceeded from external trig rate of " << rate << std::endl;
-
-            // for ( auto& pair: exceededTimings ) {
-            //     std::cout << "waveform at " << pair.first << " interval: " << pair.second << std::endl;
-            // }
         }
     }
     

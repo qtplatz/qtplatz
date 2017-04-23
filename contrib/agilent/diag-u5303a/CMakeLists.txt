@@ -1,7 +1,7 @@
 #
 cmake_minimum_required (VERSION 2.8.9)
 
-project ( test_u5303a )
+project ( diag-u5303a )
 
 find_package( Boost REQUIRED COMPONENTS system iostreams bzip2 )
 
@@ -18,6 +18,7 @@ endif()
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
+  ${QTPLATZ_SOURCE_DIR}/contrib/linux
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
 
@@ -25,7 +26,7 @@ find_package(Boost 1.57 REQUIRED COMPONENTS program_options thread system date_t
 
 set( SOURCES test_u5303a.cpp )
 
-add_executable( test_u5303a main.cpp )
+add_executable( ${PROJECT_NAME} main.cpp )
 
 link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplatz )
 
@@ -39,6 +40,7 @@ target_link_libraries( ${PROJECT_NAME}
   u5303a
   adcontrols
   acqrscontrols
+  dgpio
   ${Boost_LIBRARIES}
   ${AgMD2_LIBRARY}
   ${DL} )
