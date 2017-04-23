@@ -40,6 +40,8 @@
 
 namespace po = boost::program_options;
 
+int __verbose__ = 0;
+
 class execStatistics {
     execStatistics( const execStatistics& ) = delete; // non copyable
 
@@ -122,6 +124,7 @@ main( int argc, char * argv [] )
             ( "width,w",    po::value<double>()->default_value( 100.0 ), "Waveform width (us)" )
             ( "replicates", po::value<int>()->default_value( 1000 ), "Number of triggers to acquire waveforms" )
             ( "rate",       po::value<double>()->default_value( 1.0 ),  "Trigger interval in millisecond" )
+            ( "verbose",    po::value<int>()->default_value( 0 ),  "Verbose 0..9" )            
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -135,6 +138,9 @@ main( int argc, char * argv [] )
     if ( vm.count( "tsr" ) ) {
         TSR_enabled = true;
     }
+
+    if ( vm.count( "verbose" ) )
+        __verbose__ = vm[ "verbose" ].as< int >();
 
 #if defined __linux
     signal( SIGINT, &sigint );
@@ -321,13 +327,19 @@ main( int argc, char * argv [] )
 
                     pp << uint8_t( 0x01 );
 
+                    if ( __verbose__ >= 9 )
+                        std::cout << "md2->AcquisitionInitiate()" << std::endl;
+                    
                     md2->AcquisitionInitiate();
-                    md2->AcquisitionWaitForAcquisitionComplete( 1000 );
+                    md2->AcquisitionWaitForAcquisitionComplete( 3000 );
 
                     pp << uint8_t( 0x02 );
 
                     u5303a::digitizer::readData( *md2, method, vec );
                     execStatistics::instance().dataCount_ += vec.size();
+
+                    if ( __verbose__ >= 9 )
+                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveforms" << std::endl;
 
                     vec.clear();
                 }

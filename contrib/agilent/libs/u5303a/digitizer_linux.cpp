@@ -444,7 +444,7 @@ task::fsm_action_stop()
 void
 task::fsm_action_TSR_stop()
 {
-    spDriver_->Abort();
+    spDriver_->abort();
 }
 
 void
@@ -452,7 +452,7 @@ task::fsm_action_prepare()
 {
 
     if ( spDriver_->TSREnabled() )
-        spDriver_->Abort();
+        spDriver_->abort();
 }
 
 void
@@ -557,7 +557,8 @@ task::handle_initial_setup()
 
         device::initial_setup( *this, method_, ident().Options() );
 
-        spDriver_->Abort();
+        if ( ! spDriver_->abort() )
+            ADDEBUG() << "agmd2 abort failed";
         fsm_.process_event( fsm::Stop() );
     } else {
         fsm_.process_event( fsm::Error() );
@@ -720,7 +721,7 @@ task::handle_acquire()
     } else {
         std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
         if ( ! spDriver_->isIdle() )
-            spDriver_->Abort();
+            spDriver_->abort();
     }
     return false;
 }

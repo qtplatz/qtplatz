@@ -382,10 +382,10 @@ AgMD2::TSRContinue()
 }
 
 bool
-AgMD2::Abort()
+AgMD2::abort()
 {
     ViBoolean value( VI_FALSE );
-    return log( AgMD2_Abort( session_ ), __FILE__, __LINE__ ) ;
+    return log( AgMD2_Abort( session_ ), __FILE__, __LINE__, [](){ return "Abort"; } ) ;
 }
 
 bool

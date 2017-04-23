@@ -120,7 +120,7 @@ namespace u5303a {
 
         bool TSRContinue();
 
-        bool Abort();
+        bool abort();
 
         bool setTriggerHoldOff( double seconds );
 
