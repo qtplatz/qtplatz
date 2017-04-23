@@ -40,7 +40,7 @@
 
 namespace po = boost::program_options;
 
-int __verbose__ = 0;
+int __verbose__ = 5;
 
 class execStatistics {
     execStatistics( const execStatistics& ) = delete; // non copyable
@@ -327,9 +327,6 @@ main( int argc, char * argv [] )
 
                     pp << uint8_t( 0x01 );
 
-                    if ( __verbose__ >= 9 )
-                        std::cout << "md2->AcquisitionInitiate()" << std::endl;
-                    
                     md2->AcquisitionInitiate();
                     md2->AcquisitionWaitForAcquisitionComplete( 3000 );
 
@@ -338,8 +335,10 @@ main( int argc, char * argv [] )
                     u5303a::digitizer::readData( *md2, method, vec );
                     execStatistics::instance().dataCount_ += vec.size();
 
-                    if ( __verbose__ >= 9 )
-                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveforms" << std::endl;
+                    if ( __verbose__ >= 5 ) {
+                        std::cout << "u5303a::digitizer::readData read " << vec.size() << " waveforms"
+                                  << "\ttotal: " << execStatistics::instance().dataCount_ << std::endl;
+                    }
 
                     vec.clear();
                 }
