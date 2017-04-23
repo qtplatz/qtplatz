@@ -184,7 +184,7 @@ else
 	fi
 	if [ ! -w $CROSS_ROOT ]; then
 	    echo "You may need to logout/login cycle"
-	    exit (1)
+	    exit 1
 	fi
     fi
 
