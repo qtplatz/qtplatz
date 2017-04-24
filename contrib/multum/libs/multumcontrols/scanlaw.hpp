@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,7 +32,8 @@
 namespace multumcontrols {
 
     namespace infitof {
-        const double FLIGHT_LENGTH_L1      = 0.06626 + 0.08806; // ion pulse point to injection sector exit (1 -- 2)
+        //const double FLIGHT_LENGTH_L1    = 0.06626 + 0.08806; // ion pulse point to injection sector exit (1 -- 2)
+        const double FLIGHT_LENGTH_L1      = 0.06626 + 0.109907284; // according to 132Xe at laps of 30 and 40 acquired 21st APR 2017
         const double FLIGHT_LENGTH_L2      = 0.30512; // injection sector exit to ejection sector entry (2 -- 3)
         const double FLIGHT_LENGTH_L3      = 0.32766; // injection sector exit to 4 (2--4)
         const double FLIGHT_LENGTH_LG      = 0.61973; // injection sector exit to ion gate (2--5)

@@ -110,6 +110,12 @@ MassSpectrometer::~MassSpectrometer()
 }
 
 void
+MassSpectrometer::initialSetup( adfs::filesystem& dbf, std::shared_ptr< adcontrols::DataReader > )
+{
+    // do nothig
+}
+
+void
 MassSpectrometer::setAcceleratorVoltage( double acclVolts, double tDelay )
 {
     acceleratorVoltage_ = acclVolts;

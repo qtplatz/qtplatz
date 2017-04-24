@@ -315,8 +315,10 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 // src/adplugins/adspectrometer/massspectrometer.hpp; "adspectrometer"
                 // clsid = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
                 // acclVoltage = 5000.0;
-                if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
+                if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) ) {
                     spectrometer_->setScanLaw( acclVoltage, tDelay, fLength );
+                    spectrometer_->initialSetup( dbf, this->shared_from_this() );
+                }
             }
 
             // workaround for Sep. to Dec., 2015 data file

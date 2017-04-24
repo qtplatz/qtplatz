@@ -4,7 +4,9 @@ project (qtplatz)
 if (NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 endif()
-   
+
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
 cmake_minimum_required (VERSION 3.4)
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW )
