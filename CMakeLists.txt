@@ -107,6 +107,7 @@ if ( WIN32 )
 endif()
 
 find_package( Boost 1.57 REQUIRED COMPONENTS
+  atomic
   bzip2
   chrono
   date_time

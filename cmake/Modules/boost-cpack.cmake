@@ -8,6 +8,7 @@ include( "soname" )
 if ( Boost_FOUND )
 
   set ( libs
+    atomic
     bzip2
     chrono
     date_time
