@@ -1,17 +1,18 @@
 #!/bin/bash
 
+source ./constants.sh
 source ./prompt.sh
 
 cwd=$(pwd)
 arch=`uname`-`arch`
 target=opencv
 
-source_dir=~/src/$target
+source_dir=$SRC/$target
 contrib_dir=$(dirname $source_dir)/opencv_contrib
 extra_dir=$(dirname $source_dir)/opencv_extra
 
 if [ -z $cross_target ]; then
-    BUILD_DIR=~/src/build-$arch/$target
+    BUILD_DIR=$SRC/build-$arch/$target
 else
     exit 0
 fi

@@ -1061,13 +1061,13 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                                , [=](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } ) );
             
             actions.push_back( 
-                std::make_pair( menu.addAction( QString( f_rms ).arg( left, right ) ), [=](){
+                std::make_pair( menu.addAction( QString( f_rms ).arg( left, right ) ), [&](){
                         if ( compute_rms( rect.left(), rect.right() ) > 0 )
                             draw1();                        
                     }) );
             
             actions.push_back( 
-                std::make_pair( menu.addAction( QString( f_maxval ).arg( left, right ) ), [=](){
+                std::make_pair( menu.addAction( QString( f_maxval ).arg( left, right ) ), [&](){
                         compute_minmax( rect.left(), rect.right() );
                         draw1();                        
                     }) );
@@ -1095,7 +1095,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         }
         
 	} else {
-        
+        using adplot::plot;
         QMenu menu;
 
         bool isHistogram( false );
@@ -1104,8 +1104,8 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         
         std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
-        actions.push_back( std::make_pair( menu.addAction( tr( "Correct baseline" ) ), [this] () { correct_baseline(); draw1(); } ) );
-        actions.push_back( std::make_pair( menu.addAction( tr( "Copy to clipboard" ) ), [this] () { adplot::plot::copyToClipboard( pImpl_->profileSpectrum_ ); } ));
+        actions.push_back( std::make_pair( menu.addAction( tr( "Correct baseline" ) ), [this] ()   { correct_baseline(); draw1(); } ) );
+        actions.push_back( std::make_pair( menu.addAction( tr( "Copy to clipboard" ) ), [this] ()  { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Frequency analysis" ) ), [this] () { frequency_analysis(); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Save image file..." ) ), [this] () { save_image_file(); } ));
         actions.push_back( std::make_pair( menu.addAction( tr( "Auto Y Scale" ) ), [this] () { autoYScale( pImpl_->profileSpectrum_ ); } ));

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source ./constants.sh
 source ./prompt.sh
 
 if type cmake > /dev/null; then
@@ -12,19 +13,19 @@ fi
 echo "=========="
 echo "building cmake"
 
-if [ ! -d ~/src/cmake ]; then
-    if [ ! -d ~/src ]; then
-	mkdir ~/src
+if [ ! -d $SRC/cmake ]; then
+    if [ ! -d $SRC ]; then
+	mkdir $SRC
     fi
-    # git clone https://gitlab.kitware.com/cmake/cmake ~/src/cmake
+    # git clone https://gitlab.kitware.com/cmake/cmake $SRC/cmake
     if [ ! -f ~/Downloads/cmake-3.8.0.tar.gz ]; then
       ( cd ~/Downloads;
         wget https://cmake.org/files/v3.8/cmake-3.8.0.tar.gz )
     fi
-    tar xvf ~/Downloads/cmake-3.8.0.tar.gz -C ~/src
+    tar xvf ~/Downloads/cmake-3.8.0.tar.gz -C $SRC
 fi
 
-cd ~/src/cmake-3.8.0
+cd $SRC/cmake-3.8.0
 ./bootstrap
 if make -j4; then
     sudo make install

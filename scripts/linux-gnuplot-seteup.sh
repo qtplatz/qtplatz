@@ -1,11 +1,12 @@
 #!/bin/bash
 
+source ./constants.sh
 source ./prompt.sh
 
 cwd=$(pwd)
 arch=`uname`-`arch`
 target=gnuplot
-source_dir=~/src/gnuplot
+source_dir=$SRC/gnuplot
 
 echo "Install dependency"
 sudo apt-get update

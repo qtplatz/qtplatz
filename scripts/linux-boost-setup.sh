@@ -1,16 +1,7 @@
 #!/bin/bash
+source ./constants.sh
+source ./prompt.sh
 arch=`uname`-`arch`
-
-function prompt {
-    while true; do
-	read -p "Proceed (y/n)? " yn
-	case $yn in
-            [Yy]* ) break;;
-            [Nn]* ) exit;;
-            * ) echo "Please answer yes or no.";;
-	esac
-    done
-}
 
 function bzip2_download {
     BZIP2_SOURCE=$1
@@ -113,19 +104,15 @@ if [ -z $PREFIX ]; then
     PREFIX=/usr/local
 fi
 
-if [ -z $DOWNLOADS ]; then
-    DOWNLOADS=~/Downloads
-fi
-
 if [ -z $cross_target ]; then
-    BUILD_ROOT=~/src/build-$arch
+    BUILD_ROOT=$SRC/build-$arch
     CROSS_ROOT=
 else
-    BUILD_ROOT=~/src/build-$cross_target;
+    BUILD_ROOT=$SRC/build-$cross_target;
     CROSS_ROOT=/usr/local/arm-linux-gnueabihf
 fi
 
-BZIP2_SOURCE=~/src/bzip2-1.0.6
+BZIP2_SOURCE=$SRC/bzip2-1.0.6
 BOOST_BUILD_DIR=$BUILD_ROOT/boost_${BOOST_VERSION}
 BOOST_PREFIX=${CROSS_ROOT}$PREFIX/boost-${BOOST_VERSION/%_0//}
 

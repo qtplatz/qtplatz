@@ -1,22 +1,14 @@
 #!/bin/bash
 
-function prompt {
-    while true; do
-	read -p "Proceed (y/n)? " yn
-	case $yn in
-            [Yy]* ) break;;
-            [Nn]* ) exit;;
-            * ) echo "Please answer yes or no.";;
-	esac
-    done
-}
+source ./constants.sh
+source ./prompt.sh
 
 cwd=$(pwd)
 arch=`uname`-`arch`
 
 if [ -z $cross_target ]; then
-    BUILD_DIR=~/src/build-$arch/rdkit
-    export RDBASE=~/src/rdkit
+    BUILD_DIR=$SRC/build-$arch/rdkit
+    export RDBASE=$SRC/rdkit
     if [ -z $BOOST_ROOT ]; then
 	if [ -d /usr/local/boost-1_63 ]; then
 	    BOOST_ROOT=/usr/local/boost-1_63
@@ -25,7 +17,7 @@ if [ -z $cross_target ]; then
 	fi
     fi
 else
-    BUILD_DIR=~/src/build-$cross_target/rdkit
+    BUILD_DIR=$SRC/build-$cross_target/rdkit
     CROSS_ROOT=/usr/local/arm-linux-gnueabihf
     export RDBASE=$CROSS_ROOT/usr/local/rdkit
     TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
