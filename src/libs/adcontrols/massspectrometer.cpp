@@ -35,6 +35,8 @@
 #include "msfractuation.hpp"
 #include "msproperty.hpp"
 #include "scanlaw.hpp"
+#include <adfs/filesystem.hpp>
+#include <adfs/sqlite.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/utf.hpp>
@@ -110,25 +112,19 @@ MassSpectrometer::~MassSpectrometer()
 }
 
 void
-MassSpectrometer::initialSetup( adfs::filesystem& dbf, std::shared_ptr< adcontrols::DataReader > )
-{
-    // do nothig
-}
-
-void
 MassSpectrometer::setAcceleratorVoltage( double acclVolts, double tDelay )
 {
     acceleratorVoltage_ = acclVolts;
     tDelay_ = tDelay;
 }
 
-void
-MassSpectrometer::setScanLaw( double acclVolts, double tDelay, double fLength )
-{
-    acceleratorVoltage_ = acclVolts;
-    tDelay_  = tDelay;
-    fLength_ = fLength;
-}
+// void
+// MassSpectrometer::setScanLaw( double acclVolts, double tDelay, double fLength )
+// {
+//     acceleratorVoltage_ = acclVolts;
+//     tDelay_  = tDelay;
+//     fLength_ = fLength;
+// }
 
 double
 MassSpectrometer::acceleratorVoltage() const

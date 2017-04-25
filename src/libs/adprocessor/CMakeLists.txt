@@ -37,7 +37,9 @@ add_library( ${PROJECT_NAME} SHARED
   mschromatogramextractor_v2.cpp
   mschromatogramextractor_v2.hpp
   mschromatogramextractor_v3.cpp
-  mschromatogramextractor_v3.hpp       
+  mschromatogramextractor_v3.hpp
+  processmediator.hpp
+  processmediator.cpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

@@ -244,11 +244,11 @@ ScanLawDialog2::setSpectrometerData( const boost::uuids::uuid& id, const QString
 void
 ScanLawDialog2::setLength( double value )
 {
-    if ( auto form = findChild< ScanLawForm * >() ) {
-        form->setLength( value );
-        if ( impl_->spectrometer_ )
-            impl_->spectrometer_->setScanLaw( form->acceleratorVoltage(), form->tDelay(), form->length() );
-    }
+    // if ( auto form = findChild< ScanLawForm * >() ) {
+    //     form->setLength( value );
+    //     if ( impl_->spectrometer_ )
+    //         impl_->spectrometer_->setScanLaw( form->acceleratorVoltage(), form->tDelay(), form->length() );
+    // }
 }
 
 void

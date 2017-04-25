@@ -116,6 +116,18 @@ ScanLaw::kAcceleratorVoltage() const
     return adportable::TimeSquaredScanLaw::kAcceleratorVoltage();
 }
 
+void
+ScanLaw::setAcceleratorVoltage( double v )
+{
+    adportable::TimeSquaredScanLaw::setAcceleratorVoltage( v );
+}
+                                
+void
+ScanLaw::setTDelay( double t )
+{
+    adportable::TimeSquaredScanLaw::setTDelay( t );
+}
+    
 double
 ScanLaw::acceleratorVoltage( double mass, double time, int mode, double tDelay )
 {

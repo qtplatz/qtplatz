@@ -218,15 +218,6 @@ namespace dataproc {
                     
                     if ( rawfile->dataformat_version() >= 3 ) {
                         return true;
-#if 0
-                        // the code below is too slow
-                        if ( ticFinder3( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
-                            QString ammend = QString::fromStdString(
-                                ( boost::format( "[data#%d idx:%d [rep:%d] fcn:%d]" ) % npos % index % rep % fcn ).str() );
-                            text.setText( QString( "%1 %2" ).arg( text.text(), ammend ), QwtText::RichText );
-                            return true;
-                        }
-#endif
                     } else {
                         if ( ticFinder2( rawfile, pos.x(), npos, index, rep, fcn, minutes ) ) {
                             QString ammend = QString::fromStdString(
@@ -913,10 +904,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 	double x0 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.right() );
 
-    typedef std::pair < QAction *, std::function<void()> > action_type; 
-
     QMenu menu; 
-    std::vector < action_type > actions;
 
 	if ( int( std::abs( x1 - x0 ) ) <= 2 ) {
         
@@ -928,13 +916,9 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     auto readers = rawfile->dataReaders();
                     for ( auto& reader : readers ) {
                         if ( auto it = reader->findPos( rect.left() ) )
-                            actions.push_back(
-                                std::make_pair( menu.addAction( (boost::format( "Select spectrum (%s) @ %.3lfs" )
-                                                                 % reader->display_name() % rect.left() ).str().c_str() )
-                                                , [=] () {
-                                                    document::instance()->onSelectSpectrum_v3( rect.left(), it );
-                                                } )
-                                );
+                            menu.addAction( QString::fromStdString( ( boost::format( "Select spectrum (%s) @ %.3lfs" )
+                                                                      % reader->display_name() % rect.left() ).str() )
+                                            , [&] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
                     }
                     
                 } else {
@@ -946,53 +930,41 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                         seconds = 0;
                         index = fcn = -1;
                     }
-                    actions.push_back(
-                        std::make_pair( menu.addAction(
-                                            (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str().c_str() )
-                                        , [=] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } )
-                        );
+                    menu.addAction( QString::fromStdString( 
+                                        (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str() )
+                                    , [&] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } );
                     
                     if ( index < 0 || fcn < 0 )
-                        actions.back().first->setEnabled( false );
+                        menu.actions().back()->setEnabled( false );
                     
-                    actions.push_back(
-                        std::make_pair( menu.addAction( (boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str().c_str() )
-                                        , [=] () {
-                                            document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
-                                        } ) );
-                    
+                    menu.addAction( QString::fromStdString(
+                                        ( boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str() )
+                                    , [&] () { document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); } );
                 }
             }
         }
                     
-        actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [=] () {
-                    adplot::plot::copyToClipboard( pImpl_->ticPlot_ );
-                } ) );
+        menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( pImpl_->ticPlot_ ); } );
         
-        actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
-                    QString name = QFileDialog::getSaveFileName( MainWindow::instance()
-                                                                 , "Save SVG File"
-                                                                 , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
-                                                                 , tr( "SVG (*.svg)" ) );
-                    if ( ! name.isEmpty() )
-                        adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
-                }) );
+        menu.addAction( tr( "Save SVG File" ), [&] () {
+                QString name = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                             , "Save SVG File"
+                                                             , MainWindow::makePrintFilename( idChromatogramFolium_, L"_" )
+                                                             , tr( "SVG (*.svg)" ) );
+                if ( ! name.isEmpty() )
+                    adplot::plot::copyImageToFile( pImpl_->ticPlot_, name, "svg" );
+            });
 
-        actions.push_back( std::make_pair( menu.addAction( tr("Frequency analysis") ), [&] () {
-                    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
-                        auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
-                        if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                            power_spectrum( *chr );
-                        }
+        menu.addAction( tr("Frequency analysis"), [&] () {
+                if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+                    auto folium = dp->getPortfolio().findFolium( idChromatogramFolium_ );
+                    if ( auto chr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                        power_spectrum( *chr );
                     }
-                }) );
+                }
+            } );
                 
-        QAction * selected = menu.exec( QCursor::pos() );
-        if ( selected ) {
-            auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
-            if ( it != actions.end() )
-                (it->second)();
-        }
+        menu.exec( QCursor::pos() );
 
     } else {
         document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() );
@@ -1006,15 +978,14 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 	double x0 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
 
+    QMenu menu;
+    
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
 
         using namespace adcontrols::metric;
 
         QString left = QString::number( rect.left(), 'f', 3 );
         QString right = QString::number( rect.right(), 'f', 3 );
-
-		QMenu menu;
-        std::vector < std::pair< QAction *, std::function<void()> > > actions;
 
         std::pair<size_t, size_t> range;
         
@@ -1031,13 +1002,13 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                             if ( axis_ == adcontrols::hor_axis_mass ) {
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
-                                actions.emplace_back( menu.addAction( title.c_str() )
-                                                      , [=] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
+                                menu.addAction( QString::fromStdString (title.c_str() )
+                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left(), rect.right() ); } );
                             } else {
                                 auto title = ( boost::format( "Make chromatogram from %ss in range %.3lf -- %.3lf(us)" )
                                                % reader->display_name() % rect.left() % rect.right() ).str();
-                                actions.emplace_back( menu.addAction( title.c_str() )
-                                                      , [=] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
+                                menu.addAction( QString::fromStdString( title.c_str() )
+                                                , [=] () { make_chromatogram( reader, ms, axis_, rect.left() * 1.0e-6, rect.right() * 1.0e-6 ); } );
                             }
                         }
                     }
@@ -1053,87 +1024,67 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                                         , std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.right() ) ) );
             }
             
-            const auto f_rms = ( axis_ == adcontrols::hor_axis_time ) ? tr("RMS in range %1 -- %2(us)") : tr("RMS in m/z range %1 -- %2");
-            const auto f_maxval = ( axis_ == adcontrols::hor_axis_time ) ? tr("Max value in range %1 -- %2(us)") : tr("Max value in m/z range %1 -- %2");
-            const auto f_count = ( axis_ == adcontrols::hor_axis_time ) ? tr("Count/Area in range %1 -- %2(us)") : tr("Count/Area in m/z range %1 -- %2");
+            const auto f_rms = ( axis_ == adcontrols::hor_axis_time ) ?
+                tr("RMS in range %1 -- %2(us)") : tr("RMS in m/z range %1 -- %2");
+            const auto f_maxval = ( axis_ == adcontrols::hor_axis_time ) ?
+                tr("Max value in range %1 -- %2(us)") : tr("Max value in m/z range %1 -- %2");
+            const auto f_count = ( axis_ == adcontrols::hor_axis_time ) ?
+                tr("Count/Area in range %1 -- %2(us)") : tr("Count/Area in m/z range %1 -- %2");
 
-            actions.push_back( std::make_pair( menu.addAction( tr( "y-zoom" ) )
-                                               , [=](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } ) );
+            menu.addAction( tr( "y-zoom" )
+                , [=](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } );
             
-            actions.push_back( 
-                std::make_pair( menu.addAction( QString( f_rms ).arg( left, right ) ), [&](){
-                        if ( compute_rms( rect.left(), rect.right() ) > 0 )
-                            draw1();                        
-                    }) );
-            
-            actions.push_back( 
-                std::make_pair( menu.addAction( QString( f_maxval ).arg( left, right ) ), [&](){
-                        compute_minmax( rect.left(), rect.right() );
+            menu.addAction( QString( f_rms ).arg( left, right ), [&](){
+                    if ( compute_rms( rect.left(), rect.right() ) > 0 )
                         draw1();                        
-                    }) );
+                });
+            
+            menu.addAction( QString( f_maxval ).arg( left, right ), [&](){
+                    compute_minmax( rect.left(), rect.right() );
+                    draw1();                        
+                });
 
-            actions.push_back(
-                std::make_pair( menu.addAction( QString( f_count ).arg( left, right ) ), [&](){
-                        compute_count( rect.left(), rect.right() );
-                        draw1();
-                    }) );
+            menu.addAction( QString( f_count ).arg( left, right ), [&](){
+                    compute_count( rect.left(), rect.right() );
+                    draw1();
+                });
             
-            actions.push_back( 
-                std::make_pair( menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ) ), [&](){
-                        power_spectrum( *ms, range );
-                    }) );
-            
-            if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
-                auto it = std::find_if( actions.begin(), actions.end()
-                                        , [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) {
-                                            return item.first == selectedItem;
-                                        } );
-                if ( it != actions.end() ) {
-                    ( it->second )( );
-                }
-            }
+            menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ), [&](){
+                    power_spectrum( *ms, range );
+                });
         }
+
+        menu.exec( QCursor::pos() );
         
 	} else {
         using adplot::plot;
-        QMenu menu;
 
         bool isHistogram( false );
         if ( auto ms = pProfileSpectrum_.second.lock() )
             isHistogram = ms->isCentroid();
         
-        std::vector < std::pair< QAction *, std::function<void()> > > actions;
-
-        actions.push_back( std::make_pair( menu.addAction( tr( "Correct baseline" ) ), [this] ()   { correct_baseline(); draw1(); } ) );
-        actions.push_back( std::make_pair( menu.addAction( tr( "Copy to clipboard" ) ), [this] ()  { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } ));
-        actions.push_back( std::make_pair( menu.addAction( tr( "Frequency analysis" ) ), [this] () { frequency_analysis(); } ));
-        actions.push_back( std::make_pair( menu.addAction( tr( "Save image file..." ) ), [this] () { save_image_file(); } ));
-        actions.push_back( std::make_pair( menu.addAction( tr( "Auto Y Scale" ) ), [this] () { autoYScale( pImpl_->profileSpectrum_ ); } ));
-        actions[4].first->setCheckable( true );
-        actions[4].first->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
+        menu.addAction( tr( "Correct baseline" ),   [this] () { correct_baseline(); draw1(); } );
+        menu.addAction( tr( "Copy to clipboard" ),  [this] () { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } );
+        menu.addAction( tr( "Frequency analysis" ), [this] () { frequency_analysis(); } );
+        menu.addAction( tr( "Save image file..." ), [this] () { save_image_file(); } );
+        menu.addAction( tr( "Auto Y Scale" ),       [this] () { autoYScale( pImpl_->profileSpectrum_ ); } );
+        menu.actions()[4]->setCheckable( true );
+        menu.actions()[4]->setChecked( pImpl_->profileSpectrum_->zoomer()->autoYScale() );
 
         if ( isHistogram )
-            actions[2].first->setEnabled( false ); // Frequency analysis
+            menu.actions()[2]->setEnabled( false ); // Frequency analysis
 
         auto iid_spectrometers = adcontrols::MassSpectrometerBroker::installed_uuids();
 
         for ( auto model : iid_spectrometers ) {
-            auto action = menu.addAction( QString( tr( "Re-assign masses using %1 scan law" ) ).arg( QString::fromStdString( model.second ) ) );
-            actions.push_back( std::make_pair( action, [=] () {
-                        assign_masses_to_profile( model );
-                pImpl_->profileSpectrum_->replot();
-            } ) );
+            menu.addAction( QString( tr( "Re-assign masses using %1 scan law" ) ).arg( QString::fromStdString( model.second ) )
+                            , [&](){
+                                assign_masses_to_profile( model );
+                                pImpl_->profileSpectrum_->replot();
+                            });
         }
 
-        if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
-            auto it = std::find_if( actions.begin(), actions.end()
-                                    , [selectedItem] ( const std::pair<QAction *, std::function<void()> >& item ) {
-                                        return item.first == selectedItem;
-                                    } );
-            if ( it != actions.end() ) {
-                (it->second)();
-            }
-        }
+        menu.exec( QCursor::pos() );
     }
 }
 
@@ -1141,23 +1092,18 @@ void
 MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
 {
     QMenu menu;
-    
-    std::array< QAction *, 3 > fixedActions;
-    fixedActions[ 0 ] = menu.addAction( "Copy to Clipboard" );
-    fixedActions[ 1 ] = menu.addAction( "Save as SVG File..." );
-    fixedActions[ 2 ] = menu.addAction( "Dismiss" );
-    
-    QAction * selectedItem = menu.exec( QCursor::pos() );
-    if ( fixedActions[ 0 ] == selectedItem )
-        adplot::plot::copyToClipboard( pImpl_->pwplot_ );
-    else if ( fixedActions[ 1 ] == selectedItem ) {
-        QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                     , MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr( "SVG (*.svg)" ) );
-        if ( !name.isEmpty() )
-            adplot::plot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
-    }
-    else if ( fixedActions[ 2 ] == selectedItem )
-        pImpl_->pwplot_->hide();
+
+    menu.addAction( tr( "Copy to Clipboard" ), [&](){ adplot::plot::copyToClipboard( pImpl_->pwplot_ ); } );
+
+    menu.addAction( tr( "Save as SVG File..." ), [&](){
+            QString name =
+                QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+                                              , MainWindow::makePrintFilename( idSpectrumFolium_, L"_power_" ), tr( "SVG (*.svg)" ) );
+            if ( !name.isEmpty() )
+                adplot::plot::copyImageToFile( pImpl_->pwplot_, name, "svg" );
+        } );
+
+    menu.addAction( tr( "Dismiss" ), [&](){ pImpl_->pwplot_->hide(); } );
 }
 
 void
@@ -1168,32 +1114,34 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
     QMenu menu;
 
-    std::vector < std::pair< QAction *, std::function<void()> > > actions;
-
-    actions.push_back( std::make_pair( menu.addAction( tr( "y-zoom" ) )
-                                       , [=](){ pImpl_->processedSpectrum_->yZoom( rect.left(), rect.right() ); } ) );
-
-    actions.emplace_back( menu.addAction( tr( "Make mass chromatograms" ) )
-                          , [=]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
+    menu.addAction( tr( "y-zoom" ), [&](){ pImpl_->processedSpectrum_->yZoom( rect.left(), rect.right() ); } );
+    
+    menu.addAction( tr( "Make mass chromatograms" )
+                    , [&]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
 
     bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
     auto ptr = pProcessedSpectrum_.second.lock();
-    actions[ 0 ].first->setEnabled( hasRange );
-    actions[ 1 ].first->setEnabled( hasRange && ptr && ptr->isCentroid() );
+    auto actions = menu.actions();
+    if ( actions.size() >= 2 ) {
+        actions[ 0 ]->setEnabled( hasRange );
+        actions[ 1 ]->setEnabled( hasRange && ptr && ptr->isCentroid() );
+    }
+    
+    menu.addAction( tr( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
 
-    actions.emplace_back( menu.addAction( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
-    actions.emplace_back( menu.addAction( "Save as SVG File..." ), [&]{
+    menu.addAction( tr( "Save as SVG File..." ), [&]{
             QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                          , MainWindow::makePrintFilename( idSpectrumFolium_, L"_processed_" ), tr("SVG (*.svg)") );
             if ( ! name.isEmpty() )
                 adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );                
         });
     
-    if ( QAction * selectedItem = menu.exec( QCursor::pos() ) ) {
-        auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( auto& item ){ return item.first == selectedItem; } );
-        if ( it != actions.end() )
-            ( it->second )();
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        dp->addContextMenu( adprocessor::ContextMenuOnProcessedMS, menu, ptr
+                            , { rect.left(), rect.right() }, axis_ == adcontrols::hor_axis_time );
     }
+    
+    menu.exec( QCursor::pos() );
 }
 
 void
@@ -1280,72 +1228,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
     } else {
         estimateScanLaw( iid_spectrometer.first );
         return true;        
-        // if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( iid_spectrometer.first ) ) {
-        // }
     }
-    
-#if 0
-    adwidgets::ScanLawDialog dlg;
-    QString name = QString::fromStdString( iid_spectrometer.second );
- 
-    try {
-        if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( iid_spectrometer.first ) ) {
-
-        	if ( auto ms = pProfileSpectrum_.second.lock() ) {
-        		auto& prop = ms->getMSProperty();
-        		spectrometer->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
-                
-                dlg.setScanLaw( spectrometer, prop.mode() );
-
-        	} else {
-
-                double fLength, accVoltage, tDelay, mass;
-                QString formula;
-                if ( document::instance()->findScanLaw( name, fLength, accVoltage, tDelay, mass, formula ) ) {
-                    dlg.setValues( fLength, accVoltage, tDelay, 0 );
-                    dlg.setMass( mass );
-                    if ( !formula.isEmpty() )
-                        dlg.setFormula( formula );
-                }
-                
-            }
-
-            if ( dlg.exec() != QDialog::Accepted )
-                return false;
-
-            document::instance()->saveScanLaw( name
-                                                        , dlg.fLength()
-                                                        , dlg.acceleratorVoltage()
-                                                        , dlg.tDelay()
-                                                        , dlg.mass(), dlg.formula() );
-
-            auto& law = dlg.scanLaw();
-
-            std::pair< double, double > mass_range;
-
-            if ( auto x = this->pProfileSpectrum_.second.lock() ) {
-
-                spectrometer->setAcceleratorVoltage( dlg.acceleratorVoltage(), dlg.tDelay() );
-                const adcontrols::ScanLaw * scanlaw = spectrometer->scanLaw();
-
-                adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
-
-                for ( auto& ms : segments ) {
-                    ms.getMSProperty().setAcceleratorVoltage( dlg.acceleratorVoltage() );
-                    ms.getMSProperty().setTDelay( dlg.tDelay() );
-                    ms.assign_masses( [&](double time, int mode){ return scanlaw->getMass( time, mode ); } );
-                }
-                //x->setAcquisitionMassRange( mass_range.first, mass_range.second );
-            }
-
-            return true;
-        }
-    } catch ( boost::exception& ex ) {
-        ADERROR() << boost::diagnostic_information( ex );
-        return assign_masses_to_profile();
-        
-    }
-#endif
     return false;
 }
 

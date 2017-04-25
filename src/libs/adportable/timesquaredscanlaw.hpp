@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -47,6 +47,10 @@ namespace adportable {
 
         virtual double tDelay() const { return tDelay_; }
         virtual double kAcceleratorVoltage() const { return kAcceleratorVoltage_; }
+
+        virtual void setAcceleratorVoltage( double );
+        virtual void setTDelay( double );
+        
         virtual double acceleratorVoltage( double mass, double time, int mode, double tDelay );
         static double acceleratorVoltage( double mass, double time, double flength, double tDelay );
         

@@ -57,9 +57,12 @@ namespace multumcontrols {
         ScanLaw& operator = ( const ScanLaw& );
         
         // TimeSquaredScanLaw
-        double tDelay() const;
-        double kAcceleratorVoltage() const;
-        double acceleratorVoltage( double mass, double time, int mode, double tDelay );
+        double tDelay() const override;
+        double kAcceleratorVoltage() const override;
+        double acceleratorVoltage( double mass, double time, int mode, double tDelay ) override;
+        void setAcceleratorVoltage( double ) override;
+        void setTDelay( double ) override;
+
         double acceleratorVoltage( double mass, double time, double flength, double tDelay );
 
         // adcontrols::ScanLaw

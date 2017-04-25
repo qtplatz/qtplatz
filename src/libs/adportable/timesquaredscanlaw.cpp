@@ -91,6 +91,18 @@ TimeSquaredScanLaw::fLength( int mode ) const
     return fLength_; 
 }
 
+void
+TimeSquaredScanLaw::setAcceleratorVoltage( double v )
+{
+    kAcceleratorVoltage_ = v;
+}
+
+void
+TimeSquaredScanLaw::setTDelay( double t )
+{
+    tDelay_ = t;
+}
+
 double
 TimeSquaredScanLaw::acceleratorVoltage( double mass, double time, int mode, double tDelay )
 {

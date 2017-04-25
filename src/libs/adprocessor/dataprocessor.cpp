@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "dataprocessor.hpp"
+#include "processmediator.hpp"
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -188,17 +189,12 @@ dataprocessor::massSpectrometer()
         adfs::stmt sql( *this->db() );
         
         boost::uuids::uuid clsidSpectrometer{ 0 };
-        double acclVoltage(0), tDelay(0), fLength(0);
-        sql.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
-        if ( sql.step() == adfs::sqlite_row ) {
-            acclVoltage = sql.get_column_value< double >( 0 );
-            tDelay      = sql.get_column_value< double >( 1 );
-            fLength     = sql.get_column_value< double >( 2 );
-            clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 3 );
-        }
+        sql.prepare( "SELECT id FROM Spectrometer LIMIT 1" );
+        if ( sql.step() == adfs::sqlite_row )
+            clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 0 );
         
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
-            spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+            spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
             spectrometer_ = spectrometer;
         }
     }
@@ -225,14 +221,9 @@ dataprocessor::readSpectrumFromTimeCount()
     }
     
     boost::uuids::uuid clsidSpectrometer{ 0 };
-    double acclVoltage(0), tDelay(0), fLength(0);
-    sql.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
-    if ( sql.step() == adfs::sqlite_row ) {
-        acclVoltage = sql.get_column_value< double >( 0 );
-        tDelay      = sql.get_column_value< double >( 1 );
-        fLength     = sql.get_column_value< double >( 2 );
-        clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 3 );
-    }
+    sql.prepare( "SELECT id FROM Spectrometer LIMIT 1" );
+    if ( sql.step() == adfs::sqlite_row ) 
+        clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 0 );
     
     auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer );
     if ( ! spectrometer ) {
@@ -240,7 +231,7 @@ dataprocessor::readSpectrumFromTimeCount()
         return nullptr;
     }
 
-    spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+    spectrometer->initialSetup( *db(), { 0 } );
     auto scanlaw = spectrometer->scanLaw();
         
     {
@@ -422,3 +413,19 @@ dataprocessor::countTimeCounts( const adcontrols::MassSpectrum& hist, double lMa
     }
     return 0;
 }
+
+void
+dataprocessor::addContextMenu( ContextID context
+                               , QMenu& menu
+                               , std::shared_ptr< const adcontrols::MassSpectrum > ms
+                               , const std::pair<double, double> & range , bool isTime )
+{
+    if ( auto sp = massSpectrometer() )
+        ProcessMediator::instance()->addContextMenu( spectrometer_->objclsid()
+                                                     , context
+                                                     , menu
+                                                     , ms
+                                                     , range
+                                                     , isTime );
+}
+

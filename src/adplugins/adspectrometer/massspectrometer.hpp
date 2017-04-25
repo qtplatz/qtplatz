@@ -74,7 +74,8 @@ namespace adspectrometer {
         static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext;
 
         void setAcceleratorVoltage( double acclVolts, double tDelay ) override;
-        void setScanLaw( double acclVolts, double tDelay, double fLength ) override;
+        //void setScanLaw( double acclVolts, double tDelay, double fLength ) override;
+        void initialSetup( adfs::sqlite&, const boost::uuids::uuid& ) override;
         
         const char * objtext() const override { return class_name; }
         const boost::uuids::uuid& objclsid() const override;

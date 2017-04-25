@@ -34,7 +34,7 @@
 
 namespace boost { namespace uuids { struct uuid; } }
 
-namespace adfs { class filesystem; }
+namespace adfs { class sqlite; }
 
 namespace adcontrols {
 
@@ -73,9 +73,9 @@ namespace adcontrols {
         // end v2 specific
 
         // data format v3 interface
-        virtual void initialSetup( adfs::filesystem& dbf, std::shared_ptr< adcontrols::DataReader > );
+        virtual void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& objuuid ) = 0;
         virtual void setAcceleratorVoltage( double acclVolts, double tDelay );
-        virtual void setScanLaw( double acclVolts, double tDelay, double fLength );
+        // virtual void setScanLaw( double acclVolts, double tDelay, double fLength );
         virtual double fLength() const;
         virtual double tDelay() const;
         virtual double acceleratorVoltage() const;

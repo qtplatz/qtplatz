@@ -31,6 +31,8 @@
 #include <vector>
 #include <string>
 
+class QMenu;
+
 namespace adfs { class filesystem; class sqlite; }
 
 namespace adcontrols {
@@ -46,6 +48,11 @@ namespace adcontrols {
 namespace portfolio { class Portfolio; class Folder; class Folium; }
 
 namespace adprocessor {
+
+    enum ContextID {
+        ContextMenuOnProfileMS
+        , ContextMenuOnProcessedMS
+    };
 
     class ADPROCESSORSHARED_EXPORT dataprocessor : public std::enable_shared_from_this< dataprocessor >
                                                  , public adcontrols::dataSubscriber {
@@ -89,7 +96,11 @@ namespace adprocessor {
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
         virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
-        //
+        // <----
+
+        virtual void addContextMenu( ContextID, QMenu&,
+                                     std::shared_ptr< const adcontrols::MassSpectrum >, const std::pair< double, double >&, bool isTime );
+
     private:
         std::unique_ptr< adfs::filesystem > fs_;
         std::unique_ptr< adcontrols::datafile > file_;

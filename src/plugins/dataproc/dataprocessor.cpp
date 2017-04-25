@@ -1114,19 +1114,28 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
     std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
     if ( models.empty() ) {
         if ( !diClsid.empty() )
-            QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "It has no mass spectrometer for %1 installed so that mass can't be assinged." ).arg( diClsid.c_str() ) );
+            QMessageBox::warning( 0
+                                  , QObject::tr( "Calibration" )
+                                  , QObject::tr( "It has no mass spectrometer for %1 installed so that mass can't be assinged." )
+                                  .arg( diClsid.c_str() ) );
         else
-            QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "It has no mass spectrometer installed so that mass can't be assigned." ) );
+            QMessageBox::warning( 0
+                                  , QObject::tr( "Calibration" )
+                                  , QObject::tr( "It has no mass spectrometer installed so that mass can't be assigned." ) );
         return false;
     }
 
     std::string dataInterpreter = adportable::utf::to_utf8( models[ 0 ] );
     if ( !diClsid.empty() ) {
-        QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "No mass spectrometer class '%1' installed." ).arg( diClsid.c_str() ) );
+        QMessageBox::warning( 0
+                              , QObject::tr( "Calibration" )
+                              , QObject::tr( "No mass spectrometer class '%1' installed." ).arg( diClsid.c_str() ) );
         return false;
     }
     else {
-        QMessageBox::warning( 0, QObject::tr( "Calibration" ), QObject::tr( "Data has no mass spectrometer information, assume %1" ).arg( dataInterpreter.c_str() ) );
+        QMessageBox::warning( 0
+                              , QObject::tr( "Calibration" )
+                              , QObject::tr( "Data has no mass spectrometer information, assume %1" ).arg( dataInterpreter.c_str() ) );
 
         adcontrols::segment_wrapper<> segments( *profile );
         for ( auto& fms : segments ) {
@@ -1163,12 +1172,12 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
     if ( !spectrometer ) {
         // adcontrols::TimeDigitalHistogram
         adfs::stmt sql ( *dp->db() );
-        sql.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE objuuid=?" );
+        sql.prepare( "SELECT clsidSpectrometer FROM ScanLaw WHERE objuuid=?" );
         sql.bind( 1 ) = boost::uuids::uuid{ 0 };
         if ( sql.step() == adfs::sqlite_row ) {
-            boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 2 );
+            boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 0 );
             if ( ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
-                spectrometer->setScanLaw( pProfile->getMSProperty().acceleratorVoltage(), pProfile->getMSProperty().tDelay(), 1.0 );
+                spectrometer->initialSetup( *dp->db(), { 0 } );
         } else {
             fixupDataInterpreterClsid( folium );
         }

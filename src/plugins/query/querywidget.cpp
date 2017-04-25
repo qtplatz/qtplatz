@@ -235,6 +235,9 @@ QueryWidget::executeQuery()
         }
             
         {
+            adfs::sqlite sqlite;
+            sqlite.open( boost::filesystem::path( connection->filepath() ).string().c_str(), adfs::readonly );
+            
             QSqlQuery query( connection->sqlDatabase() );
             //query.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE spectrometer='InfiTOF' LIMIT 1" );
             query.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
@@ -246,7 +249,8 @@ QueryWidget::executeQuery()
                     double fLength = rec.value( 2 ).toDouble();
                     auto uuid = boost::uuids::string_generator()( rec.value( 3 ).toString().toStdString() );
                     if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( uuid ) ) {
-                        spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+                        // spectrometer->setScanLaw( acclVoltage, tDelay, fLength );
+                        spectrometer->initialSetup( sqlite, { 0 } );
                         document::instance()->setMassSpectrometer( spectrometer );
                         table_->setMassSpectrometer( spectrometer );
                     }
