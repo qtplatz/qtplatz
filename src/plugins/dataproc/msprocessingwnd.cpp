@@ -1104,6 +1104,8 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
         } );
 
     menu.addAction( tr( "Dismiss" ), [&](){ pImpl_->pwplot_->hide(); } );
+
+    menu.exec( QCursor::pos() );    
 }
 
 void
@@ -1508,7 +1510,7 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
     //----- draw 
     std::ostringstream o;
     o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (x.size() * 2) % dc % nyquist;
-    QString title = QString("[%1]&nbsp;&nbsp;&nbsp;&nbsp;%2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
+    QString title = QString("[%1] %2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
     pImpl_->pwplot_->setData( x.size() - 1, x.data() + 1, y.data() + 1 );
     pImpl_->pwplot_->setTitle( title );
     pImpl_->pwplot_->show();
