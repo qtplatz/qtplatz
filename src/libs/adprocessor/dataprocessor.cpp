@@ -97,6 +97,9 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
                     fs_ = std::move( fs );
             }
         }
+
+        if ( auto sp = massSpectrometer() )
+            ProcessMediator::instance()->onCreate( sp->objclsid(), this->shared_from_this() );
         
         return true;
     }
@@ -421,7 +424,8 @@ dataprocessor::addContextMenu( ContextID context
                                , const std::pair<double, double> & range , bool isTime )
 {
     if ( auto sp = massSpectrometer() )
-        ProcessMediator::instance()->addContextMenu( spectrometer_->objclsid()
+        ProcessMediator::instance()->addContextMenu( sp->objclsid()
+                                                     , this->shared_from_this()
                                                      , context
                                                      , menu
                                                      , ms

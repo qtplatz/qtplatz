@@ -52,21 +52,33 @@ namespace adprocessor {
         virtual ~ProcessMediator();
         static ProcessMediator * instance();
         
-        typedef boost::signals2::signal< void( ContextID
+        typedef boost::signals2::signal< void( std::shared_ptr< adprocessor::dataprocessor >, bool ) > onCreate_t;
+
+        typedef boost::signals2::signal< void( std::shared_ptr< adprocessor::dataprocessor >
+                                               , ContextID
                                                , QMenu&
                                                , std::shared_ptr< const adcontrols::MassSpectrum >
                                                , const std::pair< double, double >&, bool isTime ) > addContextMenu_t;
+
+        void onCreate( const boost::uuids::uuid&, std::shared_ptr< adprocessor::dataprocessor > );
+        void onDestroy( const boost::uuids::uuid&, std::shared_ptr< adprocessor::dataprocessor > );
         
+        boost::signals2::connection registerOnCreate( const boost::uuids::uuid&, onCreate_t::slot_type );
         boost::signals2::connection registerAddContextMenu( const boost::uuids::uuid&, addContextMenu_t::slot_type );
 
         void addContextMenu( const boost::uuids::uuid&
+                             , std::shared_ptr< adprocessor::dataprocessor >
                              , ContextID
                              , QMenu&
                              , std::shared_ptr< const adcontrols::MassSpectrum >
-                             , const std::pair< double, double >&, bool isTime );
+                             , const std::pair< double, double >&
+                             , bool isTime );
+
+        void unregister( const boost::uuids::uuid& );
         
     private:
         std::map< boost::uuids::uuid, addContextMenu_t > addContextMenu_;
+        std::map< boost::uuids::uuid, onCreate_t > onCreate_;
     };
 
 }

@@ -43,13 +43,36 @@ ProcessMediator::instance()
 }
 
 boost::signals2::connection
+ProcessMediator::registerOnCreate( const boost::uuids::uuid& uuid, onCreate_t::slot_type slot )
+{
+    return onCreate_[ uuid ].connect( slot );
+}
+
+boost::signals2::connection
 ProcessMediator::registerAddContextMenu( const boost::uuids::uuid& uuid, addContextMenu_t::slot_type slot )
 {
     return addContextMenu_[ uuid ].connect( slot );
 }
 
 void
+ProcessMediator::onCreate( const boost::uuids::uuid& uuid, std::shared_ptr< adprocessor::dataprocessor > dp )
+{
+    auto it = onCreate_.find( uuid );
+    if ( it != onCreate_.end() )
+        it->second( dp, false );
+}
+
+void
+ProcessMediator::onDestroy( const boost::uuids::uuid& uuid, std::shared_ptr< adprocessor::dataprocessor > dp )
+{
+    auto it = onCreate_.find( uuid );
+    if ( it != onCreate_.end() )
+        it->second( dp, true );
+}
+
+void
 ProcessMediator::addContextMenu( const boost::uuids::uuid& uuid
+                                 , std::shared_ptr< adprocessor::dataprocessor > dp
                                  , ContextID context
                                  , QMenu& menu
                                  , std::shared_ptr< const adcontrols::MassSpectrum > ms
@@ -59,6 +82,12 @@ ProcessMediator::addContextMenu( const boost::uuids::uuid& uuid
     auto it = addContextMenu_.find( uuid );
 
     if ( it != addContextMenu_.end() )
-        it->second( context, menu, ms, range, isTime );
+        it->second( dp, context, menu, ms, range, isTime );
 }
 
+void
+ProcessMediator::unregister( const boost::uuids::uuid& uuid )
+{
+    addContextMenu_.erase( uuid );
+    onCreate_.erase( uuid );
+}

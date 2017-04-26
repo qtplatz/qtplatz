@@ -115,7 +115,7 @@ namespace adwidgets {
         case c_mspeaktable_time:
             op.displayAlignment = Qt::AlignRight | Qt::AlignHCenter;
             drawDisplay( painter, op, option.rect
-                , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
+                         , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
             break;
         case c_mspeaktable_mass:
             drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );

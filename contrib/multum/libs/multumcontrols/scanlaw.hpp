@@ -80,6 +80,7 @@ namespace multumcontrols {
         double exit_through_threshold_time( double mass, int nTurns ) const;
 
         double orbital_length() const;
+        double linear_length() const;
         double go_around_threshold_length() const;
         double gate_through_threshold_length() const;
         double entry_through_threshold_length() const;

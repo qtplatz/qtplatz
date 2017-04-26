@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -175,6 +175,12 @@ double
 ScanLaw::orbital_length() const
 {
     return dimension_[ LENGTH_LT ];
+}
+
+double
+ScanLaw::linear_length() const
+{
+    return dimension_[ LENGTH_L1 ] + dimension_[ LENGTH_L2 ] + dimension_[ LENGTH_EXIT ];
 }
 
 double
