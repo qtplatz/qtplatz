@@ -35,6 +35,11 @@ endif()
 
 add_library( adchem SHARED ${adchem_SOURCES} )
 
+foreach( lib ${RDKit_LIBRARIES} )
+  get_target_property( prop ${lib} IMPORTED_LOCATION )
+  message( "RDKit library: " ${lib} ",	" ${prop} )
+endforeach()
+
 target_link_libraries( adchem LINK_PUBLIC
   adportable
   ${RDKit_LIBRARIES}

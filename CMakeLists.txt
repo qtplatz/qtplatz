@@ -105,6 +105,9 @@ endif()
 if ( WIN32 )
   add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 )
 endif()
+if ( APPLE )
+  add_definitions( -Wno-deprecated-declarations )
+endif()
 
 find_package( Boost 1.57 REQUIRED COMPONENTS
   atomic

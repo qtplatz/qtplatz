@@ -29,7 +29,7 @@ find_library( _fileparsers_lib NAMES RDKitFileParsers HINTS
   /usr/local/lib
   /usr/lib )
 
-message( STATUS "################ " ${_fileparsers_lib} )
+message( STATUS "## Findrdkit.cmake ## " ${_fileparsers_lib} )
 
 if ( NOT _fileparsers_lib )
   return()
@@ -38,6 +38,8 @@ endif()
 get_filename_component ( _libdir ${_fileparsers_lib} PATH )
 get_filename_component ( RDBASE ${_libdir} DIRECTORY )
 set ( RDKit_LIBRARY_DIRS ${_libdir} )
+
+message( STATUS "## Findrdkit.cmake ## RDBASE = " ${RDBASE} )
 
 set ( RDKit_INCLUDE_DIRS ${_include_dir} )
 if ( _inchi_inc_dir )
@@ -57,49 +59,49 @@ if ( version_cmake )
 endif()
 
 if ( WIN32 )
-  add_library( RDKitChemReactions	STATIC IMPORTED )
-  add_library( RDKitDataStructs		STATIC IMPORTED )
-  add_library( RDKitDepictor		STATIC IMPORTED )
-  add_library( RDKitDescriptors		STATIC IMPORTED )
-  add_library( RDKitEigenSolvers	STATIC IMPORTED )
-  add_library( RDKitFileParsers		STATIC IMPORTED )
-  add_library( RDKitFingerprints	STATIC IMPORTED )
-  add_library( RDKitGraphMol		STATIC IMPORTED )
-  add_library( RDKitMolDraw2D		STATIC IMPORTED )
-  add_library( RDKitPartialCharges	STATIC IMPORTED )
-  add_library( RDKitSmilesParse		STATIC IMPORTED )
-  add_library( RDKitSubstructMatch	STATIC IMPORTED )
-  add_library( RDKitChemTransforms	STATIC IMPORTED )
-  add_library( RDKitSubgraphs		STATIC IMPORTED )
-  add_library( RDKitMolTransforms	STATIC IMPORTED )
-  add_library( RDKitRDGeometryLib	STATIC IMPORTED )
-  add_library( RDKitRDGeneral		STATIC IMPORTED )
-  add_library( RDKitInchi		STATIC IMPORTED )
-  add_library( RDKitRDInchiLib		STATIC IMPORTED )
-  add_library( RDKitFilterCatalog	STATIC IMPORTED )
-  add_library( RDKitCatalogs		STATIC IMPORTED )  
+  add_library( RDKit::ChemReactions	STATIC IMPORTED )
+  add_library( RDKit::DataStructs		STATIC IMPORTED )
+  add_library( RDKit::Depictor		STATIC IMPORTED )
+  add_library( RDKit::Descriptors		STATIC IMPORTED )
+  add_library( RDKit::EigenSolvers	STATIC IMPORTED )
+  add_library( RDKit::FileParsers		STATIC IMPORTED )
+  add_library( RDKit::Fingerprints	STATIC IMPORTED )
+  add_library( RDKit::GraphMol		STATIC IMPORTED )
+  add_library( RDKit::MolDraw2D		STATIC IMPORTED )
+  add_library( RDKit::PartialCharges	STATIC IMPORTED )
+  add_library( RDKit::SmilesParse		STATIC IMPORTED )
+  add_library( RDKit::SubstructMatch	STATIC IMPORTED )
+  add_library( RDKit::ChemTransforms	STATIC IMPORTED )
+  add_library( RDKit::Subgraphs		STATIC IMPORTED )
+  add_library( RDKit::MolTransforms	STATIC IMPORTED )
+  add_library( RDKit::RDGeometryLib	STATIC IMPORTED )
+  add_library( RDKit::RDGeneral		STATIC IMPORTED )
+  add_library( RDKit::Inchi		STATIC IMPORTED )
+  add_library( RDKit::RDInchiLib		STATIC IMPORTED )
+  add_library( RDKit::FilterCatalog	STATIC IMPORTED )
+  add_library( RDKit::Catalogs		STATIC IMPORTED )  
 else()
-  add_library( RDKitChemReactions	SHARED IMPORTED )
-  add_library( RDKitDataStructs		SHARED IMPORTED )
-  add_library( RDKitDepictor		SHARED IMPORTED )
-  add_library( RDKitDescriptors		SHARED IMPORTED )
-  add_library( RDKitEigenSolvers	SHARED IMPORTED )
-  add_library( RDKitFileParsers		SHARED IMPORTED )
-  add_library( RDKitFingerprints	SHARED IMPORTED )
-  add_library( RDKitGraphMol		SHARED IMPORTED )
-  add_library( RDKitMolDraw2D		SHARED IMPORTED )
-  add_library( RDKitPartialCharges	SHARED IMPORTED )
-  add_library( RDKitSmilesParse		SHARED IMPORTED )
-  add_library( RDKitSubstructMatch	SHARED IMPORTED )
-  add_library( RDKitChemTransforms	SHARED IMPORTED )
-  add_library( RDKitSubgraphs		SHARED IMPORTED )
-  add_library( RDKitMolTransforms	SHARED IMPORTED )
-  add_library( RDKitRDGeometryLib	SHARED IMPORTED )
-  add_library( RDKitRDGeneral		SHARED IMPORTED )
-  add_library( RDKitInchi		SHARED IMPORTED )
-  add_library( RDKitRDInchiLib		SHARED IMPORTED )
-  add_library( RDKitFilterCatalog	SHARED IMPORTED )
-  add_library( RDKitCatalogs		SHARED IMPORTED )
+  add_library( RDKit::ChemReactions	SHARED IMPORTED )
+  add_library( RDKit::DataStructs		SHARED IMPORTED )
+  add_library( RDKit::Depictor		SHARED IMPORTED )
+  add_library( RDKit::Descriptors		SHARED IMPORTED )
+  add_library( RDKit::EigenSolvers	SHARED IMPORTED )
+  add_library( RDKit::FileParsers		SHARED IMPORTED )
+  add_library( RDKit::Fingerprints	SHARED IMPORTED )
+  add_library( RDKit::GraphMol		SHARED IMPORTED )
+  add_library( RDKit::MolDraw2D		SHARED IMPORTED )
+  add_library( RDKit::PartialCharges	SHARED IMPORTED )
+  add_library( RDKit::SmilesParse		SHARED IMPORTED )
+  add_library( RDKit::SubstructMatch	SHARED IMPORTED )
+  add_library( RDKit::ChemTransforms	SHARED IMPORTED )
+  add_library( RDKit::Subgraphs		SHARED IMPORTED )
+  add_library( RDKit::MolTransforms	SHARED IMPORTED )
+  add_library( RDKit::RDGeometryLib	SHARED IMPORTED )
+  add_library( RDKit::RDGeneral		SHARED IMPORTED )
+  add_library( RDKit::Inchi		SHARED IMPORTED )
+  add_library( RDKit::RDInchiLib		SHARED IMPORTED )
+  add_library( RDKit::FilterCatalog	SHARED IMPORTED )
+  add_library( RDKit::Catalogs		SHARED IMPORTED )
 endif()
 
 find_library( CHEMREACTIONS_LIB NAMES RDKitChemReactions HINTS ${_libdir} )
@@ -229,73 +231,73 @@ if ( NOT CATALOGS_LIB )
 endif()
 
 if ( WIN32 )
-  set_target_properties( RDKitChemReactions	PROPERTIES  IMPORTED_LOCATION ${CHEMREACTIONS_LIB}  IMPORTED_LOCATION_DEBUG ${CHEMREACTIONS_DEBUG_LIB} )
-  set_target_properties( RDKitDataStructs	PROPERTIES  IMPORTED_LOCATION ${DATASTRUCTS_LIB}    IMPORTED_LOCATION_DEBUG ${DATASTRUCTS_DEBUG_LIB} )
-  set_target_properties( RDKitDepictor		PROPERTIES  IMPORTED_LOCATION ${DEPICTOR_LIB}	    IMPORTED_LOCATION_DEBUG ${DEPICTOR_DEBUG_LIB} )
-  set_target_properties( RDKitDescriptors	PROPERTIES  IMPORTED_LOCATION ${DESCRIPTORS_LIB}    IMPORTED_LOCATION_DEBUG ${DESCRIPTORS_DEBUG_LIB} )
-  set_target_properties( RDKitEigenSolvers	PROPERTIES  IMPORTED_LOCATION ${EIGENSOLVERS_LIB}   IMPORTED_LOCATION_DEBUG ${EIGENSOLVERS_DEBUG_LIB} )
-  set_target_properties( RDKitFileParsers	PROPERTIES  IMPORTED_LOCATION ${FILEPARSERS_LIB}    IMPORTED_LOCATION_DEBUG ${FILEPARSERS_DEBUG_LIB} )
-  set_target_properties( RDKitFingerprints	PROPERTIES  IMPORTED_LOCATION ${FINGERPRINTS_LIB}   IMPORTED_LOCATION_DEBUG ${FINGERPRINTS_DEBUG_LIB} )
-  set_target_properties( RDKitGraphMol		PROPERTIES  IMPORTED_LOCATION ${GRAPHMOL_LIB}	    IMPORTED_LOCATION_DEBUG ${GRAPHMOL_DEBUG_LIB} )
-  set_target_properties( RDKitMolDraw2D		PROPERTIES  IMPORTED_LOCATION ${MOLDRAW2D_LIB}	    IMPORTED_LOCATION_DEBUG ${MOLDRAW2D_DEBUG_LIB} )
-  set_target_properties( RDKitPartialCharges	PROPERTIES  IMPORTED_LOCATION ${PARTIALCHARGES_LIB} IMPORTED_LOCATION_DEBUG ${PARTIALCHARGES_DEBUG_LIB} )
-  set_target_properties( RDKitSmilesParse	PROPERTIES  IMPORTED_LOCATION ${SMILESPARSE_LIB}    IMPORTED_LOCATION_DEBUG ${SMILESPARSE_DEBUG_LIB} )
-  set_target_properties( RDKitSubstructMatch	PROPERTIES  IMPORTED_LOCATION ${SUBSTRUCTMATCH_LIB} IMPORTED_LOCATION_DEBUG ${SUBSTRUCTMATCH_DEBUG_LIB} )
-  set_target_properties( RDKitChemTransforms	PROPERTIES  IMPORTED_LOCATION ${CHEMTRANSFORMS_LIB} IMPORTED_LOCATION_DEBUG ${CHEMTRANSFORMS_DEBUG_LIB} )
-  set_target_properties( RDKitSubgraphs		PROPERTIES  IMPORTED_LOCATION ${SUBGRAPHS_LIB}	    IMPORTED_LOCATION_DEBUG ${SUBGRAPHS_DEBUG_LIB} )
-  set_target_properties( RDKitMolTransforms	PROPERTIES  IMPORTED_LOCATION ${MOLTRANSFORMS_LIB}  IMPORTED_LOCATION_DEBUG ${MOLTRANSFORMS_DEBUG_LIB} )
-  set_target_properties( RDKitRDGeometryLib	PROPERTIES  IMPORTED_LOCATION ${RDGEOMETRYLIB_LIB}  IMPORTED_LOCATION_DEBUG ${RDGEOMETRYLIB_DEBUG_LIB} )
-  set_target_properties( RDKitRDGeneral		PROPERTIES  IMPORTED_LOCATION ${RDGENERAL_LIB}	    IMPORTED_LOCATION_DEBUG ${RDGENERAL_DEBUG_LIB} )
-  set_target_properties( RDKitInchi		PROPERTIES  IMPORTED_LOCATION ${INCHI_LIB}	    IMPORTED_LOCATION_DEBUG ${INCHI_DEBUG_LIB} )
-  set_target_properties( RDKitRDInchiLib	PROPERTIES  IMPORTED_LOCATION ${RDINCHILIB_LIB}	    IMPORTED_LOCATION_DEBUG ${RDINCHILIB_DEBUG_LIB} )
-  set_target_properties( RDKitFilterCatalog	PROPERTIES  IMPORTED_LOCATION ${FILTERCATALOG_LIB}  IMPORTED_LOCATION_DEBUG ${FILTERCATALOG_DEBUG_LIB} )
-  set_target_properties( RDKitCatalogs		PROPERTIES  IMPORTED_LOCATION ${CATALOGS_LIB}       IMPORTED_LOCATION_DEBUG ${CATALOGS_DEBUG_LIB} )
+  set_target_properties( RDKit::ChemReactions	PROPERTIES  IMPORTED_LOCATION ${CHEMREACTIONS_LIB}  IMPORTED_LOCATION_DEBUG ${CHEMREACTIONS_DEBUG_LIB} )
+  set_target_properties( RDKit::DataStructs	PROPERTIES  IMPORTED_LOCATION ${DATASTRUCTS_LIB}    IMPORTED_LOCATION_DEBUG ${DATASTRUCTS_DEBUG_LIB} )
+  set_target_properties( RDKit::Depictor		PROPERTIES  IMPORTED_LOCATION ${DEPICTOR_LIB}	    IMPORTED_LOCATION_DEBUG ${DEPICTOR_DEBUG_LIB} )
+  set_target_properties( RDKit::Descriptors	PROPERTIES  IMPORTED_LOCATION ${DESCRIPTORS_LIB}    IMPORTED_LOCATION_DEBUG ${DESCRIPTORS_DEBUG_LIB} )
+  set_target_properties( RDKit::EigenSolvers	PROPERTIES  IMPORTED_LOCATION ${EIGENSOLVERS_LIB}   IMPORTED_LOCATION_DEBUG ${EIGENSOLVERS_DEBUG_LIB} )
+  set_target_properties( RDKit::FileParsers	PROPERTIES  IMPORTED_LOCATION ${FILEPARSERS_LIB}    IMPORTED_LOCATION_DEBUG ${FILEPARSERS_DEBUG_LIB} )
+  set_target_properties( RDKit::Fingerprints	PROPERTIES  IMPORTED_LOCATION ${FINGERPRINTS_LIB}   IMPORTED_LOCATION_DEBUG ${FINGERPRINTS_DEBUG_LIB} )
+  set_target_properties( RDKit::GraphMol		PROPERTIES  IMPORTED_LOCATION ${GRAPHMOL_LIB}	    IMPORTED_LOCATION_DEBUG ${GRAPHMOL_DEBUG_LIB} )
+  set_target_properties( RDKit::MolDraw2D		PROPERTIES  IMPORTED_LOCATION ${MOLDRAW2D_LIB}	    IMPORTED_LOCATION_DEBUG ${MOLDRAW2D_DEBUG_LIB} )
+  set_target_properties( RDKit::PartialCharges	PROPERTIES  IMPORTED_LOCATION ${PARTIALCHARGES_LIB} IMPORTED_LOCATION_DEBUG ${PARTIALCHARGES_DEBUG_LIB} )
+  set_target_properties( RDKit::SmilesParse	PROPERTIES  IMPORTED_LOCATION ${SMILESPARSE_LIB}    IMPORTED_LOCATION_DEBUG ${SMILESPARSE_DEBUG_LIB} )
+  set_target_properties( RDKit::SubstructMatch	PROPERTIES  IMPORTED_LOCATION ${SUBSTRUCTMATCH_LIB} IMPORTED_LOCATION_DEBUG ${SUBSTRUCTMATCH_DEBUG_LIB} )
+  set_target_properties( RDKit::ChemTransforms	PROPERTIES  IMPORTED_LOCATION ${CHEMTRANSFORMS_LIB} IMPORTED_LOCATION_DEBUG ${CHEMTRANSFORMS_DEBUG_LIB} )
+  set_target_properties( RDKit::Subgraphs		PROPERTIES  IMPORTED_LOCATION ${SUBGRAPHS_LIB}	    IMPORTED_LOCATION_DEBUG ${SUBGRAPHS_DEBUG_LIB} )
+  set_target_properties( RDKit::MolTransforms	PROPERTIES  IMPORTED_LOCATION ${MOLTRANSFORMS_LIB}  IMPORTED_LOCATION_DEBUG ${MOLTRANSFORMS_DEBUG_LIB} )
+  set_target_properties( RDKit::RDGeometryLib	PROPERTIES  IMPORTED_LOCATION ${RDGEOMETRYLIB_LIB}  IMPORTED_LOCATION_DEBUG ${RDGEOMETRYLIB_DEBUG_LIB} )
+  set_target_properties( RDKit::RDGeneral		PROPERTIES  IMPORTED_LOCATION ${RDGENERAL_LIB}	    IMPORTED_LOCATION_DEBUG ${RDGENERAL_DEBUG_LIB} )
+  set_target_properties( RDKit::Inchi		PROPERTIES  IMPORTED_LOCATION ${INCHI_LIB}	    IMPORTED_LOCATION_DEBUG ${INCHI_DEBUG_LIB} )
+  set_target_properties( RDKit::RDInchiLib	PROPERTIES  IMPORTED_LOCATION ${RDINCHILIB_LIB}	    IMPORTED_LOCATION_DEBUG ${RDINCHILIB_DEBUG_LIB} )
+  set_target_properties( RDKit::FilterCatalog	PROPERTIES  IMPORTED_LOCATION ${FILTERCATALOG_LIB}  IMPORTED_LOCATION_DEBUG ${FILTERCATALOG_DEBUG_LIB} )
+  set_target_properties( RDKit::Catalogs		PROPERTIES  IMPORTED_LOCATION ${CATALOGS_LIB}       IMPORTED_LOCATION_DEBUG ${CATALOGS_DEBUG_LIB} )
 else()
-  set_target_properties( RDKitChemReactions	PROPERTIES IMPORTED_LOCATION ${CHEMREACTIONS_LIB} )
-  set_target_properties( RDKitDataStructs	PROPERTIES IMPORTED_LOCATION ${DATASTRUCTS_LIB} )
-  set_target_properties( RDKitDepictor		PROPERTIES IMPORTED_LOCATION ${DEPICTOR_LIB} )
-  set_target_properties( RDKitDescriptors	PROPERTIES IMPORTED_LOCATION ${DESCRIPTORS_LIB} )
-  set_target_properties( RDKitEigenSolvers	PROPERTIES IMPORTED_LOCATION ${EIGENSOLVERS_LIB} )
-  set_target_properties( RDKitFileParsers	PROPERTIES IMPORTED_LOCATION ${FILEPARSERS_LIB} )
-  set_target_properties( RDKitFingerprints	PROPERTIES IMPORTED_LOCATION ${FINGERPRINTS_LIB} )
-  set_target_properties( RDKitGraphMol		PROPERTIES IMPORTED_LOCATION ${GRAPHMOL_LIB} )
-  set_target_properties( RDKitMolDraw2D		PROPERTIES IMPORTED_LOCATION ${MOLDRAW2D_LIB} )
-  set_target_properties( RDKitPartialCharges	PROPERTIES IMPORTED_LOCATION ${PARTIALCHARGES_LIB} )
-  set_target_properties( RDKitSmilesParse	PROPERTIES IMPORTED_LOCATION ${SMILESPARSE_LIB} )
-  set_target_properties( RDKitSubstructMatch	PROPERTIES IMPORTED_LOCATION ${SUBSTRUCTMATCH_LIB} )
-  set_target_properties( RDKitChemTransforms	PROPERTIES IMPORTED_LOCATION ${CHEMTRANSFORMS_LIB} )
-  set_target_properties( RDKitSubgraphs		PROPERTIES IMPORTED_LOCATION ${SUBGRAPHS_LIB} )
-  set_target_properties( RDKitMolTransforms	PROPERTIES IMPORTED_LOCATION ${MOLTRANSFORMS_LIB} )
-  set_target_properties( RDKitRDGeometryLib	PROPERTIES IMPORTED_LOCATION ${RDGEOMETRYLIB_LIB} )
-  set_target_properties( RDKitRDGeneral		PROPERTIES IMPORTED_LOCATION ${RDGENERAL_LIB} )
-  set_target_properties( RDKitInchi		PROPERTIES IMPORTED_LOCATION ${INCHI_LIB} )
-  set_target_properties( RDKitRDInchiLib	PROPERTIES IMPORTED_LOCATION ${RDINCHILIB_LIB} )
-  set_target_properties( RDKitFilterCatalog	PROPERTIES IMPORTED_LOCATION ${FILTERCATALOG_LIB} )
-  set_target_properties( RDKitCatalogs		PROPERTIES IMPORTED_LOCATION ${CATALOGS_LIB} )    
+  set_target_properties( RDKit::ChemReactions	PROPERTIES IMPORTED_LOCATION ${CHEMREACTIONS_LIB} )
+  set_target_properties( RDKit::DataStructs	PROPERTIES IMPORTED_LOCATION ${DATASTRUCTS_LIB} )
+  set_target_properties( RDKit::Depictor		PROPERTIES IMPORTED_LOCATION ${DEPICTOR_LIB} )
+  set_target_properties( RDKit::Descriptors	PROPERTIES IMPORTED_LOCATION ${DESCRIPTORS_LIB} )
+  set_target_properties( RDKit::EigenSolvers	PROPERTIES IMPORTED_LOCATION ${EIGENSOLVERS_LIB} )
+  set_target_properties( RDKit::FileParsers	PROPERTIES IMPORTED_LOCATION ${FILEPARSERS_LIB} )
+  set_target_properties( RDKit::Fingerprints	PROPERTIES IMPORTED_LOCATION ${FINGERPRINTS_LIB} )
+  set_target_properties( RDKit::GraphMol		PROPERTIES IMPORTED_LOCATION ${GRAPHMOL_LIB} )
+  set_target_properties( RDKit::MolDraw2D		PROPERTIES IMPORTED_LOCATION ${MOLDRAW2D_LIB} )
+  set_target_properties( RDKit::PartialCharges	PROPERTIES IMPORTED_LOCATION ${PARTIALCHARGES_LIB} )
+  set_target_properties( RDKit::SmilesParse	PROPERTIES IMPORTED_LOCATION ${SMILESPARSE_LIB} )
+  set_target_properties( RDKit::SubstructMatch	PROPERTIES IMPORTED_LOCATION ${SUBSTRUCTMATCH_LIB} )
+  set_target_properties( RDKit::ChemTransforms	PROPERTIES IMPORTED_LOCATION ${CHEMTRANSFORMS_LIB} )
+  set_target_properties( RDKit::Subgraphs		PROPERTIES IMPORTED_LOCATION ${SUBGRAPHS_LIB} )
+  set_target_properties( RDKit::MolTransforms	PROPERTIES IMPORTED_LOCATION ${MOLTRANSFORMS_LIB} )
+  set_target_properties( RDKit::RDGeometryLib	PROPERTIES IMPORTED_LOCATION ${RDGEOMETRYLIB_LIB} )
+  set_target_properties( RDKit::RDGeneral		PROPERTIES IMPORTED_LOCATION ${RDGENERAL_LIB} )
+  set_target_properties( RDKit::Inchi		PROPERTIES IMPORTED_LOCATION ${INCHI_LIB} )
+  set_target_properties( RDKit::RDInchiLib	PROPERTIES IMPORTED_LOCATION ${RDINCHILIB_LIB} )
+  set_target_properties( RDKit::FilterCatalog	PROPERTIES IMPORTED_LOCATION ${FILTERCATALOG_LIB} )
+  set_target_properties( RDKit::Catalogs		PROPERTIES IMPORTED_LOCATION ${CATALOGS_LIB} )    
 endif()
 
 set ( RDKit_LIBRARIES
-  RDKitCatalogs
-  RDKitChemReactions
-  RDKitDataStructs
-  RDKitDepictor
-  RDKitDescriptors  
-  RDKitEigenSolvers
-  RDKitFileParsers
-  RDKitFilterCatalog
-  RDKitFingerprints
-  RDKitGraphMol
-  RDKitMolDraw2D
-  RDKitPartialCharges
-  RDKitSmilesParse
-  RDKitSubstructMatch
-  RDKitChemTransforms
-  RDKitSubgraphs
-  RDKitMolTransforms
-  RDKitRDGeometryLib
-  RDKitRDGeneral
-  RDKitInchi
-  RDKitRDInchiLib
+  RDKit::Catalogs
+  RDKit::ChemReactions
+  RDKit::DataStructs
+  RDKit::Depictor
+  RDKit::Descriptors  
+  RDKit::EigenSolvers
+  RDKit::FileParsers
+  RDKit::FilterCatalog
+  RDKit::Fingerprints
+  RDKit::GraphMol
+  RDKit::MolDraw2D
+  RDKit::PartialCharges
+  RDKit::SmilesParse
+  RDKit::SubstructMatch
+  RDKit::ChemTransforms
+  RDKit::Subgraphs
+  RDKit::MolTransforms
+  RDKit::RDGeometryLib
+  RDKit::RDGeneral
+  RDKit::Inchi
+  RDKit::RDInchiLib
   )
 
 set ( rdkit TRUE )

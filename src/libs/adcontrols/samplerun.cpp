@@ -280,7 +280,7 @@ SampleRun::operator ++ ()
     bool exists( false );
     do {
         boost::filesystem::path path = dir / ( impl_->make_name( impl_->runNumber_ ) + L".adfs" );
-        if ( exists = boost::filesystem::exists( path ) )
+        if ( ( exists = boost::filesystem::exists( path ) ) )
             impl_->runNumber_++;
     } while ( exists );
 

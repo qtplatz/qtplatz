@@ -54,7 +54,7 @@ namespace quan {
     public:
         ~QuanEditor();
         QuanEditor( QObject * parent = 0 );
-        bool eventFilter( QObject * object, QEvent * event );
+        bool eventFilter( QObject * object, QEvent * event ) override;
 
         // Core::IEditor
         bool open( QString*, const QString&, const QString& ) override;
