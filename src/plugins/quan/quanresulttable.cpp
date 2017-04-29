@@ -60,11 +60,11 @@ namespace quan {
                 } else
                     QStyledItemDelegate::paint( painter, op, index );
             }
-            void setEditorData( QWidget * editor, const QModelIndex& index ) const {
+            void setEditorData( QWidget * editor, const QModelIndex& index ) const override {
                 QStyledItemDelegate::setEditorData( editor, index );
             }
 
-            void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const {
+            void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
                 QStyledItemDelegate::setModelData( editor, model, index );
             }
             

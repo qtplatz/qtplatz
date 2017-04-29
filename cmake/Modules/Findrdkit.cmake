@@ -1,6 +1,57 @@
 # find RDKit
 
-if ( rdkit_FOUND )
+set ( rdkit "rdkit-NOTFOUND" )
+set( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib" "${CMAKE_SOURCE_DIR}/../rdkit/lib" )
+
+find_file( rdkit_config_cmake "rdkit-config.cmake" PATH "${rdkit_libdirs}" )
+
+if ( rdkit_config_cmake )
+  message( STATUS "###### rdkit-config.cmake found in " ${rdkit_config_cmake} )
+  include( ${rdkit_config_cmake} )
+
+  get_filename_component( _dir "${rdkit_config_cmake}" PATH )
+  get_filename_component( _prefix "${_dir}/.." ABSOLUTE )
+
+  find_file( version_cmake NAMES "rdkit-config-version.cmake" PATHS ${_dir} NO_DEFAULT_PATH )
+  if ( version_cmake )
+    include( ${version_cmake} )
+    set( RDKit_PACKAGE_VERSION ${PACKAGE_VERSION} )
+  endif()
+
+  find_path( _inchi_include "INCHI-API/inchi.h" PATHS "${_prefix}/Code" "${_prefix}/External" )
+  if ( _inchi_include )
+    list( APPEND RDKit_INCLUDE_DIRS ${_inchi_include} )
+  endif()
+
+  find_path( _moldraw2d_include "MolDraw2DSVG.h" PATHS "${_prefix/GraphMol/MolDraw2D}" )
+  if ( _moldraw2d_include )
+    list( APPEND RDKit_INCLUDE_DIRS ${_moldraw2d_include} )
+  endif()
+  
+  set ( RDKit_LIBRARIES
+    Catalogs
+    ChemReactions
+    DataStructs
+    Depictor
+    Descriptors  
+    EigenSolvers
+    FileParsers
+    FilterCatalog
+    Fingerprints
+    GraphMol
+    MolDraw2D
+    PartialCharges
+    SubstructMatch
+    ChemTransforms
+    Subgraphs
+    MolTransforms
+    RDGeometryLib
+    RDGeneral
+    Inchi
+    RDInchiLib
+    SmilesParse
+    )
+  set( rdkit_FOUND TRUE )
   return()
 endif()
 

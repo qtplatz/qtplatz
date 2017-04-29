@@ -25,9 +25,9 @@
 #include "moldraw.hpp"
 
 #if defined HAVE_RDKit && HAVE_RDKit
-#if defined _MSC_VER
+# if defined _MSC_VER
 # pragma warning( disable: 4267 4018 )
-#endif
+# endif
 
 #include <RDGeneral/Invariant.h>
 #include <GraphMol/Depictor/RDDepictor.h>
@@ -39,11 +39,11 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <RDGeneral/RDLog.h>
-#if _MSC_VER
+//#if _MSC_VER
 #include <GraphMol/MolDraw2D/MolDraw2DSVG.h> // <-- if RDKit installs in INTREE
-#else
-#include <MolDraw2DSVG.h>
-#endif
+//#else
+//#include <MolDraw2DSVG.h>
+//#endif
 #endif
 
 using namespace adwidgets;
