@@ -30,6 +30,14 @@ else
     fi
 fi
 
+cmake_args=("-DBOOST_ROOT=$BOOST_ROOT" "-DRDK_BUILD_INCHI_SUPPORT=ON" "-DRDK_BUILD_PYTHON_WRAPPERS=OFF")
+if [ `arch` == "Darwin" ]; then
+    cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
+fi
+if [ ! -z $cross_target ]; then
+    cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" "-DRDK_OPTIMIZE_NATIVE=OFF" )
+fi
+
 echo "RDKit install on $RDBASE"
 
 if [ ! -d $RDBASE ]; then
@@ -45,21 +53,18 @@ cd $BUILD_DIR;
 if [ -z $cross_target ]; then
     echo "RDBASE    : " $RDBASE
     echo "BUILD_DIR : " `pwd`        
-    echo cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF $RDBASE
+    echo cmake "${cmake_args[@]}" $RDBASE
     prompt
-    cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF $RDBASE
+    cmake "${cmake_args[@]}" $RDBASE
     make -j8
     make test
     make install      
 else
     echo "RDBASE    : " $RDBASE
     echo "BUILD_DIR : " `pwd`    
-    echo cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN $RDBASE
+    echo cmake "${cmake_args[@]}" $RDBASE
     prompt
-    cmake -DBOOST_ROOT=$BOOST_ROOT -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF \
-	  -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN \
-	  -DRDK_OPTIMIZE_NATIVE=OFF \
-	  $RDBASE
+    cmake "${cmake_args[@]}" $RDBASE
     make -j8
     if [ $? -eq 0 ]; then
 	make test
