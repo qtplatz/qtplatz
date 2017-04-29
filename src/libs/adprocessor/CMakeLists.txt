@@ -10,10 +10,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-if ( NOT Boost_FOUND )
-  #find_package(Boost 1.57 REQUIRED COMPONENTS filesystem wserialization serialization )
-endif()
-
 include_directories(
   ${QWT_INCLUDE_DIR}
   ${Qt5PrintSupport_INCLUDE_DIRS}

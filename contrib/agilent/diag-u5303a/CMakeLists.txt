@@ -3,8 +3,6 @@ cmake_minimum_required (VERSION 2.8.9)
 
 project ( diag-u5303a )
 
-find_package( Boost REQUIRED COMPONENTS system iostreams bzip2 )
-
 if ( WIN32 )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS )
   set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
@@ -21,8 +19,6 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/linux
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
-
-find_package(Boost 1.57 REQUIRED COMPONENTS program_options thread system date_time filesystem )
 
 set( SOURCES test_u5303a.cpp )
 

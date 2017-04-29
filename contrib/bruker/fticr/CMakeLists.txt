@@ -12,10 +12,6 @@ configure_file(
   @ONLY
   )
 
-if ( NOT Boost_FOUND )
-  #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem )
-endif()
-
 add_definitions( -DFTICR_LIBRARY )
 if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )

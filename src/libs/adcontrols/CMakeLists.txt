@@ -3,10 +3,6 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adcontrols )
 
-if ( NOT Boost_FOUND OR WIN32 )
-  #find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
-endif()
-
 add_definitions(-DADCONTROLS_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)

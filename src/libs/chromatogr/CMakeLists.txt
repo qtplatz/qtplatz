@@ -3,8 +3,6 @@ project( chromatogr )
 
 cmake_policy(SET CMP0022 NEW)
 
-#find_package(Boost 1.57 REQUIRED COMPONENTS date_time system filesystem wserialization serialization)
-
 add_definitions(-DCHROMATOGR_LIBRARY)
 
 add_library( chromatogr SHARED 

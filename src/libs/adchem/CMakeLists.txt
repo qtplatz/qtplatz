@@ -4,11 +4,7 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adchem )
 
-if ( NOT Boost_FOUND OR WIN32 )
-  #find_package( Boost REQUIRED COMPONENTS system thread )
-endif()
-
-find_package( rdkit )
+#find_package( rdkit )
 
 if ( NOT rdkit_FOUND )
   return()
@@ -29,21 +25,12 @@ set( adchem_SOURCES
   drawing.hpp
   )
 
-if ( WIN32 )
-  add_definitions( -wd4996 -wd4348 )
-endif()
-
 add_library( adchem SHARED ${adchem_SOURCES} )
-
-foreach( lib ${RDKit_LIBRARIES} )
-  get_target_property( prop ${lib} IMPORTED_LOCATION )
-  message( "RDKit library: " ${lib} ",	" ${prop} )
-endforeach()
 
 target_link_libraries( adchem LINK_PUBLIC
   adportable
-  ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${RDKit_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}

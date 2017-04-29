@@ -5,10 +5,6 @@ cmake_policy(SET CMP0028 NEW)
 
 project( aqdrv4controller )
 
-if ( NOT Boost_FOUND )
-  #find_package(Boost 1.56 COMPONENTS date_time system filesystem bzip2 iostreams wserialization serialization)
-endif()
-
 add_definitions(-DAQDRV4CONTROLLER_LIBRARY -D_LINUX -D_ACQIRIS )
 
 include_directories(

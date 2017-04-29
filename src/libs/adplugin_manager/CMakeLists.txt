@@ -7,9 +7,6 @@ cmake_policy(SET CMP0028 NEW)
 cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 
-if ( NOT Boost_FOUND OR WIN32 )
-  #find_package( Boost 1.57 COMPONENTS date_time system regex )
-endif()
 find_package( Qt5 COMPONENTS Core REQUIRED )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

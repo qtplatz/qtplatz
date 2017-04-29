@@ -3,10 +3,6 @@ cmake_policy(SET CMP0022 NEW)
 
 add_definitions(-DADPROT_LIBRARY)
 
-if ( NOT Boost_FOUND OR WIN32 )
-  #find_package(Boost COMPONENTS system filesystem )
-endif()
-
 add_library( adprot SHARED
   adprot.cpp 
   peptide.cpp 

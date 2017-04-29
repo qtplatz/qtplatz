@@ -31,7 +31,7 @@ else
 fi
 
 cmake_args=("-DBOOST_ROOT=$BOOST_ROOT" "-DRDK_BUILD_INCHI_SUPPORT=ON" "-DRDK_BUILD_PYTHON_WRAPPERS=OFF")
-if [ `arch` == "Darwin" ]; then
+if [ `uname` == "Darwin" ]; then
     cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
 fi
 if [ ! -z $cross_target ]; then

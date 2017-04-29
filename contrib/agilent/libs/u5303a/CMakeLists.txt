@@ -6,10 +6,6 @@ project( u5303a )
 
 set( DISABLE_IVI_COM TRUE )
 
-if ( NOT Boost_FOUND )
-  #find_package(Boost 1.57 REQUIRED COMPONENTS date_time regex system filesystem wserialization serialization)
-endif()
-
 add_definitions( -DU5303A_LIBRARY )
 
 if ( WIN32 )

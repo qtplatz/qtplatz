@@ -15,10 +15,6 @@ if ( MSVC )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
 endif()
 
-if ( NOT Boost_FOUND )
-  find_package(Boost 1.57 REQUIRED COMPONENTS date_time filesystem program_options serialization system )
-endif()
-
 include_directories( ${Boost_INCLUDE_DIRS} ${QTPLATZ_SOURCE_DIR}/src/libs )
 
 if ( WIN32 )

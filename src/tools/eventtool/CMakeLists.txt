@@ -27,10 +27,6 @@ link_directories( ${QWT}/lib )
 
 find_package(Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
-if ( NOT Boost_FOUND )
-  #find_package(Boost COMPONENTS system )
-endif()
-
 if ( WIN32 )
   add_executable( eventtool WIN32 ${eventtool_SOURCES} ${Resources} )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4800" )

@@ -16,10 +16,6 @@ set ( CMAKE_CXX_STANDARD 14 )
 
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
-if ( NOT Boost_FOUND )
-  find_package( Boost COMPONENTS filesystem system program_options serialization wserialization )
-endif()
-
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )

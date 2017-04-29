@@ -23,10 +23,6 @@ find_package( qwt )
 #list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp qwt/xyseriesdata.cpp qwt/xyseriesdata.hpp )
 include_directories( ${QWT_INCLUDE_DIRS} )
 
-if ( NOT Boost_FOUND )
-  #find_package( Boost REQUIRED COMPONENTS system date_time regex thread filesystem wserialization serialization )
-endif()
-
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )

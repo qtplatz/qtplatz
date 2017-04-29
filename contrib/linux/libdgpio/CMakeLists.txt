@@ -3,10 +3,6 @@ cmake_minimum_required (VERSION 2.8.9)
 
 project ( libdgpio )
 
-if ( NOT Boost_FOUND )
-  find_package( Boost 1.57 REQUIRED COMPONENTS program_options )
-endif()
-
 # --> lookup qtplatz build/config 
 #find_file( qtplatz_config NAMES "qtplatz-config.cmake" HINTS ${QTPLATZ_BUILD_DIR} )
 
