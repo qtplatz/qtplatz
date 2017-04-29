@@ -9,6 +9,12 @@ set(CMAKE_AUTOMOC ON)
 
 add_definitions( -DADEXTENSION_LIBRARY )
 
+if ( UNIX )
+  # Boost find on here for avoiding undefined reference on Ubuntu
+  #message( STATUS "## Find boost for adextention ##" )
+  #find_package( Boost 1.57 REQUIRED COMPONENTS system serialization wserialization )
+endif()
+
 set( adextension_SOURCES
   adextension.cpp
   adextension.hpp
@@ -54,6 +60,7 @@ set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14 )
 target_link_libraries( adextension LINK_PUBLIC 
   Qt5::Core
   adicontroller
+  adportable
   ${Boost_LIBRARIES}
   )
 
