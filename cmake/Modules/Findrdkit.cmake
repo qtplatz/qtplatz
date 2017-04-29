@@ -1,12 +1,18 @@
 # find RDKit
 
-set ( rdkit "rdkit-NOTFOUND" )
-set( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib" "${CMAKE_SOURCE_DIR}/../rdkit/lib" )
+if ( rdkit_FOUND )
+  return()
+endif()
 
-find_file( rdkit_config_cmake "rdkit-config.cmake" PATH "${rdkit_libdirs}" )
+set ( rdkit "rdkit-NOTFOUND" )
+set ( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib" "${CMAKE_SOURCE_DIR}/../rdkit/lib" )
+
+find_file( rdkit_config_cmake "rdkit-config.cmake" PATHS ${_rdkit_libdirs} )
+
+message( STATUS "###### rdkit-config.cmake : " ${rdkit_config_cmake} )
 
 if ( rdkit_config_cmake )
-  message( STATUS "###### rdkit-config.cmake found in " ${rdkit_config_cmake} )
+
   include( ${rdkit_config_cmake} )
 
   get_filename_component( _dir "${rdkit_config_cmake}" PATH )
