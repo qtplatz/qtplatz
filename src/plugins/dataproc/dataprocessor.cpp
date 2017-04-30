@@ -83,6 +83,7 @@
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
 #include <extensionsystem/pluginmanager.h>
+#include <coreplugin/documentmanager.h>
 #include <coreplugin/id.h>
 #include <coreplugin/idocument.h>
 #include <qtwrapper/waitcursor.hpp>
@@ -283,6 +284,7 @@ Dataprocessor::open(const QString &filename, QString& emsg )
     std::wstring msg;
     if ( adprocessor::dataprocessor::open( filename.toStdWString(), msg ) ) {
         Core::IDocument::setFilePath( filename );
+        Core::DocumentManager::setCurrentFile( filename );
         return true;
     }
     emsg = QString::fromStdWString( msg );
