@@ -9,12 +9,6 @@ set(CMAKE_AUTOMOC ON)
 
 add_definitions( -DADEXTENSION_LIBRARY )
 
-if ( UNIX )
-  # Boost find on here for avoiding undefined reference on Ubuntu
-  #message( STATUS "## Find boost for adextention ##" )
-  #find_package( Boost 1.57 REQUIRED COMPONENTS system serialization wserialization )
-endif()
-
 set( adextension_SOURCES
   adextension.cpp
   adextension.hpp

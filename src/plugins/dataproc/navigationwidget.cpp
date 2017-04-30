@@ -228,10 +228,12 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     pTreeView_->setModel( pModel_ );
     pTreeView_->setItemDelegate( pDelegate_ );
 	pTreeView_->setDragEnabled( true );
+    pTreeView_->setTextElideMode(Qt::ElideMiddle);
 
     setStyleSheet(
         "QTreeView {"
         " show-decoration-selected: 1;"
+        " font-size: 9pt;"
         "}"
         "QTreeView::item:selected {"
         " border: 1px solid #567dbc;"

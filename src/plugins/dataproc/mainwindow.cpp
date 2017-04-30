@@ -930,6 +930,7 @@ MainWindow::OnInitialUpdate()
 
     for ( auto tabbar: findChildren< QTabBar * >() )
         tabbar->setStyleSheet( "QTabBar { font-size: 9pt }" );
+
 }
 
 void
