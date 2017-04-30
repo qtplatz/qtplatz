@@ -18,6 +18,8 @@ if ( rdkit_config_cmake )
   get_filename_component( _dir "${rdkit_config_cmake}" PATH )
   get_filename_component( _prefix "${_dir}/.." ABSOLUTE )
 
+  set ( RDKit_LIBRARY_DIRS ${_dir} )
+
   find_file( version_cmake NAMES "rdkit-config-version.cmake" PATHS ${_dir} NO_DEFAULT_PATH )
   if ( version_cmake )
     include( ${version_cmake} )
