@@ -337,14 +337,15 @@ namespace adwidgets {
 MolTableView::MolTableView(QWidget *parent) : TableView(parent)
                                             , impl_( new impl( this ) )
 {
+    setObjectName("MolTableView");
     setHorizontalHeader( new HtmlHeaderView );
     setItemDelegate( new delegate( impl_.get() ) );
 
     setSortingEnabled( true );
     setAcceptDrops( true );
 
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
+    // QFont font;
+    // setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
 

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "font.hpp"
+#include <QString>
 #include <QFont>
 #include <array>
 
@@ -95,4 +96,26 @@ QFont&
 font::operator () ( QFont&& font, fontSize size, fontFamily family )
 {
     return setFamily( setSize( font, size ), family );
+}
+
+namespace qtwrapper {
+
+    template<> double
+    font_size::operator()<double>( int sz ) const
+    {
+        return FSIZE( double(sz) );
+    }
+
+    template<> int
+    font_size::operator()<int>( int sz ) const
+    {
+        return int( FSIZE( double(sz) ) + 0.5 );
+    }
+
+    template<> QString
+    font_size::operator()<QString>( int sz ) const
+    {
+        return QString::number( FSIZE( double(sz) ) );
+    }
+
 }

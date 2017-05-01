@@ -97,8 +97,7 @@ MainWindow::createContents( Core::IMode * mode )
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( editorHolderLayout );
-        wnds_.push_back ( new ProteinWnd() );
-        editorHolderLayout->addWidget( wnds_.back() );
+        editorHolderLayout->addWidget( new ProteinWnd() );
 
         Utils::StyledBar * toolBar1 = createTopStyledBar();
         Utils::StyledBar * toolBar2 = createMidStyledBar();
@@ -223,6 +222,31 @@ MainWindow::onInitialUpdate()
 {
     setSimpleDockWidgetArrangement();
     setDemoData();
+    if ( auto wnd = findChild< ProteinWnd * >() ) {
+        //wnd->setStyleSheet( "* { font-size: 9pt; background-color: cyan;}" );
+
+        wnd->setStyleSheet( "QHeaderView::section {"
+                            "  background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1"
+                            "    ,stop:0 #616161, stop: 0.5 #505050"
+                            "    ,stop: 0.6 #434343, stop:1 #656565 );"
+                            "  color: white;"
+                            "  padding-left: 4px;"
+                            "  border: 1px solid #6c6c6c;"
+#if !defined Q_OS_MAC
+                            "  font-size: 9pt;"
+#endif
+                            "}"
+                            // "QHeaderView::section:checked {"
+                            // "  background-color: red;"
+                            // "  font-size: 9pt;"                            
+                            // "}"
+#if !defined Q_OS_MAC                            
+                            "QTableView {"
+                            "  font-size: 9pt;"                            
+                            "}"
+#endif
+            );
+    }
 }
 
 void
@@ -347,12 +371,12 @@ MainWindow::setDemoData()
                              " NRLCVLHEKT PVSEKVTKCC TESLVNRRPC FSALTPDETY VPKAFDEKLF TFHADICTLP" \
                              " DTEKQIKKQT ALVELLKHKP KATEEQLKTV MENFVAFVDK CCAADDKEAC FAVEGPKLVV" \
                              " STQTALA" );
+
 	protfile_ = std::make_shared< adprot::protfile >( "demo data" );
 	*protfile_ << protein;
-	std::for_each( wnds_.begin(), wnds_.end(), [=]( QWidget * w ){
-                    if ( ProteinWnd * p = dynamic_cast< ProteinWnd *>(w) )
-                        p->setData( *protfile_ );
-                });
+
+    if ( auto wnd = findChild< ProteinWnd * >() )
+        wnd->setData( *protfile_ );        
 }
 
 void
@@ -372,10 +396,8 @@ MainWindow::actFileOpen()
         auto file = std::make_shared< adprot::protfile >( name.toStdString() );
         if ( *file ) {
             protfile_ = file;
-            std::for_each( wnds_.begin(), wnds_.end(), [=]( QWidget * w ){
-                    if ( ProteinWnd * p = dynamic_cast< ProteinWnd *>(w) )
-                        p->setData( *protfile_ );
-                });
+            if ( auto wnd = findChild< ProteinWnd * >() )
+                wnd->setData( *protfile_ );
         }
 
 	}

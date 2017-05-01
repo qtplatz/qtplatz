@@ -112,6 +112,9 @@ void
 MainWindow::onInitialUpdate()
 {
     document::instance()->onInitialUpdate();
+#if ! defined Q_OS_MAC
+    setStyleSheet( "* { font-size: 9pt; }" );
+#endif
 }
 
 void

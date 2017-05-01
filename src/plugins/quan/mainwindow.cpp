@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -38,6 +38,7 @@
 #include "quanquerywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/font.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/quansequence.hpp>
@@ -59,20 +60,20 @@
 #include <coreplugin/documentmanager.h>
 #include <utils/styledbar.h>
 
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QLineEdit>
+#include <QLabel>
 #include <QMessageBox>
 #include <QStackedWidget>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QTextEdit>
-#include <QtWidgets/qlabel.h>
-#include <QtWidgets/qlineedit.h>
+#include <QStandardItemModel>
+#include <QString>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QToolButton>
+#include <QTextEdit>
 #include <QTextEdit>
 #include <QTableView>
-#include <QDockWidget>
-#include <QStandardItemModel>
 #include <QMessageBox>
 #include <QMenu>
 #include <boost/filesystem.hpp>
@@ -240,6 +241,23 @@ MainWindow::onInitialUpdate()
             }
         }
     }
+
+#if ! defined Q_OS_MAC
+    auto fsize = qtwrapper::font_size()( 9 );
+    
+    for ( auto e : findChildren<QLineEdit*>() )
+        e->setStyleSheet(QString( "* {font-size: %1pt;}" ).arg( fsize ) );
+
+    for ( auto p: findChildren<QTableView *>() ) {
+        p->setStyleSheet( QString("QHeaderView::section {"
+                                  "  padding-left: 4px;"
+                                  "}"
+                                  // "QTableView {"
+                                  // "  font-size: %1pt;"
+                                  // "}"
+                              ).arg( fsize ) );
+    }
+#endif
 }
 
 void

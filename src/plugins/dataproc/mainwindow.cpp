@@ -925,12 +925,13 @@ MainWindow::OnInitialUpdate()
 
     currentPageChanged( 0 );
 
+#if ! defined Q_OS_MAC
     for ( auto dock: dockWidgets() )
         dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
 
     for ( auto tabbar: findChildren< QTabBar * >() )
         tabbar->setStyleSheet( "QTabBar { font-size: 9pt }" );
-
+#endif
 }
 
 void

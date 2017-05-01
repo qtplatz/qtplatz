@@ -79,9 +79,9 @@ namespace peptide {
                 QTextOption to;
                 to.setWrapMode( QTextOption::WrapAtWordBoundaryOrAnywhere );
                 document.setDefaultTextOption( to );
-				QFont font;
-				font.setFamily( "Consolas" );
-				document.setDefaultFont( font );
+				//QFont font;
+				//font.setFamily( "Consolas" );
+				//document.setDefaultFont( font );
 				document.setTextWidth( op.rect.width() );
                 document.setHtml( text );
                 op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
@@ -102,6 +102,7 @@ ProteinTable::ProteinTable(QWidget *parent) : QTableView( parent )
                                             , model_( new QStandardItemModel )
                                             , delegate_( new detail::ProteinTableDelegate )
 {
+    setObjectName( "ProteinTable" );
     setModel( model_ );
     setItemDelegate( delegate_ );
     init( *model_ );

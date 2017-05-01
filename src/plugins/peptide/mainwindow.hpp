@@ -70,7 +70,6 @@ namespace peptide {
         static MainWindow * instance_;
         std::array< QAction *, numActions > actions_;
         std::unique_ptr< QLineEdit > topLineEdit_;
-        std::vector< QWidget * > wnds_;
 
         std::shared_ptr< adprot::protfile > protfile_;
         std::shared_ptr< adprot::protease > protease_;

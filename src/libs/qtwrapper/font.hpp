@@ -25,7 +25,10 @@
 #ifndef FONT_HPP
 #define FONT_HPP
 
+#pragma once
+
 class QFont;
+class QString;
 
 namespace qtwrapper {
 
@@ -61,10 +64,12 @@ namespace qtwrapper {
         static QFont& setFont( QFont& font, fontSize size, fontFamily family );
         static QFont& setSize( QFont& font, fontSize size );
         static QFont& setFamily( QFont& font, fontFamily family );
-
         QFont& operator () ( QFont&& font, fontSize size, fontFamily family );
     };
 
+    struct font_size {
+        template<typename T=QString> T operator()( int sz ) const;
+    };
 }
 
 #endif // FONT_HPP

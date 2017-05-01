@@ -29,7 +29,6 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
-#include <qtwrapper/font.hpp>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QMenu>
@@ -195,8 +194,8 @@ CompoundsTable::CompoundsTable(QWidget *parent) : TableView(parent)
     delegate->register_handler( [=]( const QModelIndex& index ){ handleValueChanged( index ); } );
 	setItemDelegate( delegate );
     setSortingEnabled( true );
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
+    // QFont font;
+    // setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &CompoundsTable::handleContextMenu );

@@ -66,7 +66,7 @@ ProteinWnd::init()
         layout->setSpacing( 0 );
     
         if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {  // protein | spectrum
-
+            
             proteinTable_ = new ProteinTable;
             splitter->addWidget( proteinTable_ );
 

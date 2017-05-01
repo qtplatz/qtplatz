@@ -95,6 +95,33 @@ MainWindow::OnInitialUpdate()
     
 	setSimpleDockWidgetArrangement();
     document::instance()->initialSetup();
+
+    if ( auto wnd = findChild< MolTableWnd * >() ) {
+        wnd->setStyleSheet( "QHeaderView::section {"
+                            "  background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1"
+                            "    ,stop:0 #616161, stop: 0.5 #505050"
+                            "    ,stop: 0.6 #434343, stop:1 #656565 );"
+                            "  color: white;"
+                            "  padding-left: 4px;"
+                            "  border: 1px solid #6c6c6c;"
+                            "  font-size: 9pt;"
+                            "}"
+                            "QHeaderView::section:checked {"
+                            "  background-color: gray;"
+                            "  font-size: 9pt;"                            
+                            "}"
+                            "QTableView {"
+                            "  font-size: 9pt;"                            
+                            "}"                            
+            );
+    }
+#if ! defined Q_OS_MAC
+    for ( auto dock: dockWidgets() )
+        dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
+
+    for ( auto tabbar: findChildren< QTabBar * >() )
+        tabbar->setStyleSheet( "QTabBar { font-size: 9pt }" );
+#endif
 }
 
 void
