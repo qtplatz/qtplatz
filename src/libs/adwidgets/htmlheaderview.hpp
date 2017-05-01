@@ -41,9 +41,7 @@ namespace adwidgets {
         QString styleSheet_;
     public:
         HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0)
-            : QHeaderView( orientation, parent )
-            , styleSheet_( "body { font-size: 10pt }" ) {
-            
+            : QHeaderView( orientation, parent ) {
             setSectionsClickable( true );
         }
 
@@ -71,7 +69,8 @@ namespace adwidgets {
                     QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
                     painter->translate( textRect.topLeft() );
                     QTextDocument doc;
-                    doc.setDefaultStyleSheet( styleSheet_ );
+                    if ( ! styleSheet_.isEmpty() )
+                        doc.setDefaultStyleSheet( styleSheet_ );
                     doc.setTextWidth( textRect.width() );
                     doc.setDocumentMargin(0);
                     doc.setHtml( QString("<body>%1</body>").arg( model()->headerData( logicalIndex, Qt::Horizontal ).toString() ) );

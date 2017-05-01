@@ -96,6 +96,7 @@ MainWindow::OnInitialUpdate()
 	setSimpleDockWidgetArrangement();
     document::instance()->initialSetup();
 
+#if ! defined Q_OS_MAC
     if ( auto wnd = findChild< MolTableWnd * >() ) {
         wnd->setStyleSheet( "QHeaderView::section {"
                             "  background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1"
@@ -115,7 +116,7 @@ MainWindow::OnInitialUpdate()
                             "}"                            
             );
     }
-#if ! defined Q_OS_MAC
+
     for ( auto dock: dockWidgets() )
         dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
 

@@ -899,8 +899,6 @@ MainWindow::OnInitialUpdate()
 
     createDockWidgets();
 
-    //setStyleSheet( "QDockWidget::QTabBar { font-size: 8pt }" );
-
     QList< QDockWidget *> widgets = dockWidgets();
   
     for ( auto widget: widgets ) {
