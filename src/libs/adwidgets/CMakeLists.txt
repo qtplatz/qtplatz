@@ -53,6 +53,7 @@ set( ${PROJECT_NAME}_SOURCES
   dualspinslider.cpp
   filedialog.cpp
   findslopeform.cpp
+  htmlheaderview.hpp
   insttreeview.cpp
   mslockdialog.cpp
   moldraw.hpp

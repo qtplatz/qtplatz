@@ -152,8 +152,7 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
         grid->attach( plot.get() );
     }
 
-	QFont font;
-	qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisTitle ); 
+	QFont font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisTitle ); 
 
     int id = 0;
     for ( auto& plot: plots_ ) {

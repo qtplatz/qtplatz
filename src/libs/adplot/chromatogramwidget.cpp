@@ -343,8 +343,7 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
     
     // -----------
-    QFont font;
-    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
+    auto font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
     

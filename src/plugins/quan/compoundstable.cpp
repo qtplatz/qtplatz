@@ -25,6 +25,7 @@
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
 #include <adwidgets/delegatehelper.hpp>
+#include <adwidgets/htmlheaderview.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
@@ -88,34 +89,6 @@ namespace quan {
             , c_criteria_0
             , c_criteria_1
             , nbrColums
-        };
-
-        class HeaderView : public QHeaderView {
-        public:
-			HeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0) : QHeaderView( orientation, parent ) {}
-            
-			void paintSection( QPainter * painter, const QRect& rect, int logicalIndex ) const override {
-				if ( !rect.isValid() )
-					return;
-                QStyleOptionHeader op;
-                initStyleOption( &op );
-                op.text = "";
-                op.rect = rect;
-                op.textAlignment = Qt::AlignVCenter | Qt::AlignHCenter;
-                // draw the section
-                style()->drawControl( QStyle::CE_Header, &op, painter, this );
-                // html paiting
-                painter->save();
-                QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
-                painter->translate( textRect.topLeft() );
-                QTextDocument doc;
-                doc.setTextWidth( textRect.width() );
-                doc.setDefaultTextOption( QTextOption( Qt::AlignHCenter ) );
-                doc.setDocumentMargin( 0 );
-                doc.setHtml( model()->headerData( logicalIndex, Qt::Horizontal ).toString() );
-                doc.drawContents( painter, QRect( QPoint( 0, 0 ), textRect.size() ) );
-                painter->restore();
-			}
         };
 
         class CompoundsDelegate : public QStyledItemDelegate {
@@ -219,7 +192,7 @@ CompoundsTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
-    setHorizontalHeader( new HeaderView );
+    setHorizontalHeader( new adwidgets::HtmlHeaderView );
 
     // horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 

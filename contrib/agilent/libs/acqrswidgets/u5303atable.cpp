@@ -112,8 +112,6 @@ u5303ATable::u5303ATable(QWidget *parent) : adwidgets::TableView(parent)
 {
     setModel( model_ );
 	setItemDelegate( new MyDelegate( this ) );
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 }
 
 void

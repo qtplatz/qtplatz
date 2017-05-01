@@ -151,8 +151,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );    
     yAxis->setTitle( "m/z" );
 
-    QFont font;
-    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
+    auto font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
 
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );

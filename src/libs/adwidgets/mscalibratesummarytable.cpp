@@ -126,8 +126,6 @@ MSCalibrateSummaryTable::MSCalibrateSummaryTable(QWidget *parent) : QTableView(p
     setContextMenuPolicy( Qt::CustomContextMenu );
     setSortingEnabled( true );
     verticalHeader()->setDefaultSectionSize( 18 );
-    QFont font;
-    setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
     connect( this, &QTableView::customContextMenuRequested, this, &MSCalibrateSummaryTable::showContextMenu);
 }
 

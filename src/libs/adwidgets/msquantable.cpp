@@ -182,8 +182,8 @@ MSQuanTable::MSQuanTable( QWidget * parent ) : QTableView( parent )
     verticalHeader()->setDefaultSectionSize( 18 );
     setContextMenuPolicy( Qt::CustomContextMenu );
 
-    QFont font;
-    this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
+    // QFont font;
+    // this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
 
     connect( this, &QTableView::customContextMenuRequested, this, &MSQuanTable::handleContextMenuRequested );
 }

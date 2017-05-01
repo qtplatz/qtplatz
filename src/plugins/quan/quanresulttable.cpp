@@ -73,9 +73,7 @@ namespace quan {
                 if ( index.data().isNull() ) {
                     return QSize();
                 } else if ( index.data().type() == QVariant::Double ) {
-                    QFont font;
-                    qtwrapper::font::setFont( font, qtwrapper::fontSizeNormal, qtwrapper::fontTableBody );
-                    QFontMetricsF fm( font );
+                    QFontMetricsF fm = op.fontMetrics;
                     double value = index.data().toDouble();
                     double width;
                     if ( value < 0.01 )

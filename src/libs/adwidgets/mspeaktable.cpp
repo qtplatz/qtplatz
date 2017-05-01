@@ -42,7 +42,6 @@
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/is_type.hpp>
-#include <qtwrapper/font.hpp>
 #include <QApplication>
 #include <QClipboard>
 #include <QHeaderView>
@@ -247,13 +246,6 @@ MSPeakTable::MSPeakTable(QWidget *parent) : TableView(parent)
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
     this->setContextMenuPolicy( Qt::CustomContextMenu );
-
-    QFont font;
-	this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
-
-	QFont hfont;
-	qtwrapper::font::setFont( hfont, qtwrapper::fontSizeSmall, qtwrapper::fontTableHeader);
-	this->horizontalHeader()->setFont( hfont );
 
     connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
     connect( impl_->delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );

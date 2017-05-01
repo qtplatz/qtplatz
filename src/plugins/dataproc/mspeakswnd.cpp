@@ -168,11 +168,10 @@ MSPeaksWnd::MSPeaksWnd(QWidget *parent) : QWidget(parent)
     };
     assert( sizeof( axis_titles ) / sizeof( axis_titles[0] ) == plots_.size() );
 
-    QFont font;
-	qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
-    font.setFamily( "Consolas" );
-    font.setBold( false );
-	font.setPointSize( 8 );
+	auto font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
+    // font.setFamily( "Consolas" );
+    // font.setBold( false );
+	// font.setPointSize( 8 );
 
     int n = 0;
     for ( auto& plot: plots_ ) {

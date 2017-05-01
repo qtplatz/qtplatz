@@ -89,8 +89,6 @@ MSPeakSummary::MSPeakSummary(QWidget *parent) : QTreeView(parent)
     this->setModel( model_.get() );
     this->setItemDelegate( new ItemDelegate );
     this->setSortingEnabled( true );
-    QFont font;
-	this->setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontTableBody ) );
     this->setTabKeyNavigation( true );
 	this->setSelectionMode( QAbstractItemView::ExtendedSelection );
 

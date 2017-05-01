@@ -134,9 +134,7 @@ namespace query {
                 if ( index.data().isNull() ) {
                     return QSize();
                 } else if ( index.data().type() == QVariant::Double ) {
-                    QFont font;
-                    qtwrapper::font::setFont( font, qtwrapper::fontSizeNormal, qtwrapper::fontTableBody );
-                    QFontMetricsF fm( font );
+                    auto fm = op.fontMetrics;
                     double width = fm.boundingRect( op.rect, Qt::AlignJustify | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) ).width();
                     QSize sz = QStyledItemDelegate::sizeHint( option, index );
                     sz.setWidth( width );

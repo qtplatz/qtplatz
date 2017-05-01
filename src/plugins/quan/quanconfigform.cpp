@@ -115,14 +115,14 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
 {
     ui->setupUi(this);
 
-    QFont font;
-    qtwrapper::font::setFamily( font, qtwrapper::fontForm );
+    //QFont font;
+    //qtwrapper::font::setFamily( font, qtwrapper::fontForm );
 
     ui_accessor accessor( ui );
-    for ( int id = idGroupBox1; id < idEnd; ++id ) {
-        if ( QWidget * w = accessor( idItem( id ) ) )
-            w->setFont( font );
-    }
+    // for ( int id = idGroupBox1; id < idEnd; ++id ) {
+    //     if ( QWidget * w = accessor( idItem( id ) ) )
+    //         w->setFont( font );
+    // }
     if ( QComboBox * order = dynamic_cast<QComboBox *>(accessor( idComboPolynomials )) ) {
         order->clear();
         order->insertItems( 0, QStringList()

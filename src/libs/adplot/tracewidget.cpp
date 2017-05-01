@@ -152,9 +152,6 @@ TraceWidget::TraceWidget(QWidget *parent) : plot(parent)
     setAxisTitle(QwtPlot::xBottom, "Time(microsecond)");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
 
-    QFont font;
-    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
-
     // handle zoom rect by this
     if ( zoomer() ) {
         zoomer()->autoYScale( autoYZoom_ );

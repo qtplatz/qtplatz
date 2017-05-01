@@ -68,34 +68,21 @@ font::font()
 }
 
 QFont&
-font::setFamily( QFont& font, fontFamily family )
+font::operator () ( QFont&& font, fontSize size, fontFamily family )
 {
     if ( family >= 1 && family < font_family_list.size() )
         font.setFamily( font_family_list[ family ] );
 
-    return font;
-}
-
-
-QFont&
-font::setSize( QFont& font, fontSize size )
-{
     if ( size >= 0 && size < font_size_list.size() )
         font.setPointSize( font_size_list[ size ] );
-
     return font;
 }
 
 QFont&
-font::setFont( QFont& font, fontSize size, fontFamily family )
+font::operator () ( QFont&& font, double scale )
 {
-    return setFamily( setSize( font, size ), family );
-}
-
-QFont&
-font::operator () ( QFont&& font, fontSize size, fontFamily family )
-{
-    return setFamily( setSize( font, size ), family );
+    font.setPointSize( font.pointSize() * scale );
+    return font;
 }
 
 namespace qtwrapper {

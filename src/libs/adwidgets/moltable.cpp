@@ -71,7 +71,6 @@
 #include <boost/format.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <qtwrapper/font.hpp>
 #include <functional>
 
 using namespace adwidgets;
@@ -302,9 +301,6 @@ MolTable::MolTable(QWidget *parent) : TableView(parent)
             if ( model_->rowCount() == 0 )
                 model_->setRowCount( 1 );                
         });
-
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &MolTable::handleContextMenu );

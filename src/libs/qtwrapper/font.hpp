@@ -61,10 +61,11 @@ namespace qtwrapper {
     class font {
     public:
         font();
-        static QFont& setFont( QFont& font, fontSize size, fontFamily family );
-        static QFont& setSize( QFont& font, fontSize size );
-        static QFont& setFamily( QFont& font, fontFamily family );
+        // static QFont& setFont( QFont& font, fontSize size, fontFamily family );
+        // static QFont& setSize( QFont& font, fontSize size );
+        // static QFont& setFamily( QFont& font, fontFamily family );
         QFont& operator () ( QFont&& font, fontSize size, fontFamily family );
+        QFont& operator () ( QFont&& font, double scale );
     };
 
     struct font_size {

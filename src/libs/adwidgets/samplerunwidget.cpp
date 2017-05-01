@@ -83,8 +83,6 @@ namespace adwidgets {
         explicit SampleRunTable( QWidget *parent = 0) : TableView( parent )
                                                       , model_( new QStandardItemModel )
                                                       , inProgress_( false ) {
-            QFont font;
-            setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
             setModel( model_ );
             setItemDelegate( new sampleruntable::ItemDelegate );
 

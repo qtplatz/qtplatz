@@ -40,7 +40,6 @@
 #include <QStyledItemDelegate>
 
 #include <boost/format.hpp>
-#include <qtwrapper/font.hpp>
 #include <functional>
 
 using namespace adwidgets;
@@ -125,8 +124,6 @@ TargetingTable::TargetingTable(QWidget *parent) : TableView(parent)
     delegate->register_handler( [=]( const QModelIndex& index ){ handleValueChanged( index ); } );
 	setItemDelegate( delegate );
     setSortingEnabled( true );
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &TargetingTable::handleContextMenu );

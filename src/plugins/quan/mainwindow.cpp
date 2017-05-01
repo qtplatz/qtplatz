@@ -47,6 +47,7 @@
 #include <adportable/profile.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
+#include <adwidgets/htmlheaderview.hpp>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/id.h>
@@ -62,6 +63,7 @@
 
 #include <QDockWidget>
 #include <QFileDialog>
+#include <QHeaderView>
 #include <QLineEdit>
 #include <QLabel>
 #include <QMessageBox>
@@ -139,7 +141,6 @@ MainWindow::createContents( Core::IMode * )
                 connect( configwidget, &QuanConfigWidget::onReplicatesChanged, widget, &DataSequenceWidget::handleReplicatesChanged );
                 connect( configwidget, &QuanConfigWidget::onSampleInletChanged, widget, &DataSequenceWidget::handleSampleInletChanged );
             }
-            // configwidget->setStyleSheet( "QLineEdit { font-size: 10pt }" );
         }
         
         stack_->addWidget( panelsWidget );
@@ -161,7 +162,6 @@ MainWindow::createContents( Core::IMode * )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
             connect( panelsWidget, &PanelsWidget::onCommit, widget, &ProcessMethodWidget::commit );
-            widget->setStyleSheet( "* { font-size: 10pt; }" );
         }
         stack_->addWidget( panelsWidget );
     }
@@ -190,9 +190,6 @@ MainWindow::createContents( Core::IMode * )
 
         stack_->addWidget( panelsWidget );
     }
-
-    for ( auto table: findChildren< QTableView * >() )
-        table->setStyleSheet( "*{ font-size: 10pt }" );
 
     stack_->setCurrentIndex( 0 );
     
@@ -242,19 +239,20 @@ MainWindow::onInitialUpdate()
         }
     }
 
-#if ! defined Q_OS_MAC
+#if defined Q_OS_LINUX
     auto fsize = qtwrapper::font_size()( 9 );
-    
+
     for ( auto e : findChildren<QLineEdit*>() )
         e->setStyleSheet(QString( "* {font-size: %1pt;}" ).arg( fsize ) );
 
-    for ( auto p: findChildren<QTableView *>() ) {
-        p->setStyleSheet( QString("QHeaderView::section {"
-                                  "  padding-left: 4px;"
+    if ( auto p = findChild< CompoundsWidget * >() ) {
+        p->setStyleSheet( QString("* { font-size: %1pt; }"
+                                  "QHeaderView::section {"
+                                  "  font-size: %1pt;"
                                   "}"
-                                  // "QTableView {"
-                                  // "  font-size: %1pt;"
-                                  // "}"
+                                  "QTableView {"
+                                  "  font-size: %1pt;"
+                                  "}"
                               ).arg( fsize ) );
     }
 #endif
@@ -399,7 +397,7 @@ MainWindow::run()
             QMessageBox::critical( this, "Quan Execution Error", "Empty data output filename." );
             return;
         }
-            
+        
         if ( boost::filesystem::exists( path ) ) {
                 
             QString file( QString::fromStdWString( path.normalize().wstring() ) );

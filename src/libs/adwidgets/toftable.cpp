@@ -99,10 +99,6 @@ TOFTable::TOFTable(QWidget *parent) : TableView(parent)
 	this->setItemDelegate( delegate );
     this->setSortingEnabled( true );
     this->verticalHeader()->setDefaultSectionSize( 18 );
-    QFont font;
-    font.setFamily( "Consolas" );
-	font.setPointSize( 8 );
-    this->setFont( font );
 }
 
 void

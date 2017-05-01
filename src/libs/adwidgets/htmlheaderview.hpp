@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,6 +33,7 @@ class QModelIndex;
 #include <QPainter>
 #include <QTextDocument>
 #include <QStylePainter>
+#include <adportable/debug.hpp>
 #include "adwidgets_global.hpp"
 
 namespace adwidgets {
@@ -61,16 +62,18 @@ namespace adwidgets {
                 if ( logicalIndex >= 0 ) {
                     QStyleOptionHeader op;
                     initStyleOption(&op);
+                    auto css = styleSheet_.isEmpty() ? QString( "* {font-size: %1pt;}" ).arg( painter->font().pointSize() ) : styleSheet_;
+                    
                     op.rect = rect;
                     // draw the section
                     style()->drawControl( QStyle::CE_Header, &op, painter, this );
                     // html painting
                     painter->save();
                     QRect textRect = style()->subElementRect( QStyle::SE_HeaderLabel, &op, this );
+
                     painter->translate( textRect.topLeft() );
                     QTextDocument doc;
-                    if ( ! styleSheet_.isEmpty() )
-                        doc.setDefaultStyleSheet( styleSheet_ );
+                    doc.setDefaultStyleSheet( css );
                     doc.setTextWidth( textRect.width() );
                     doc.setDocumentMargin(0);
                     doc.setHtml( QString("<body>%1</body>").arg( model()->headerData( logicalIndex, Qt::Horizontal ).toString() ) );

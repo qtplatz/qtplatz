@@ -28,7 +28,6 @@
 #if defined _MSC_VER
 # pragma warning( disable:4251 )
 #endif
-#include <qtwrapper/font.hpp>
 #include <QHeaderView>
 #include <QMenu>
 #include <QPainter>
@@ -86,9 +85,6 @@ ControlMethodTable::ControlMethodTable( ControlMethodWidget * parent ) : adwidge
 
     setSelectionMode( QAbstractItemView::SingleSelection );
     setSelectionBehavior( QAbstractItemView::SelectRows );
-
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &QTableView::customContextMenuRequested, this, &ControlMethodTable::showContextMenu );

@@ -344,9 +344,6 @@ MolTableView::MolTableView(QWidget *parent) : TableView(parent)
     setSortingEnabled( true );
     setAcceptDrops( true );
 
-    // QFont font;
-    // setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
-
     setContextMenuPolicy( Qt::CustomContextMenu );
 
     connect( this, &QTableView::customContextMenuRequested, [this]( const QPoint& pt ){

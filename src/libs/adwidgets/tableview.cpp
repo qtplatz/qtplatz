@@ -167,3 +167,4 @@ TableView::contextMenuEvent( QContextMenuEvent * event )
     addActionsToMenu( menu, event->pos() );
     menu.exec( event->globalPos() );
 }
+

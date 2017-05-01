@@ -123,10 +123,7 @@ MSReferenceTable::MSReferenceTable(QWidget *parent) : TableView(parent)
 
     setContextMenuPolicy( Qt::CustomContextMenu );
     connect( this, &MSReferenceTable::customContextMenuRequested, this, &MSReferenceTable::handleContextMenu ); 
-
-    QFont font;
-    setFont( qtwrapper::font::setFamily( font, qtwrapper::fontTableBody ) );
-
+    
     model_->setRowCount( 1 );
 }
 

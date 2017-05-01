@@ -257,10 +257,6 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
 
     setAxisTitle( QwtPlot::xBottom, QwtText( "<i>m/z</i>", QwtText::RichText ) );
     setAxisTitle( QwtPlot::yLeft, QwtText( "Intensity" ) );
-
-    // -----------
-    QFont font;
-    qtwrapper::font::setFont( font, qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
 }
 
 void

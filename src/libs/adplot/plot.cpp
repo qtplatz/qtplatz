@@ -103,10 +103,8 @@ void
 plot::setTitle( const QString& text )
 {
 	QwtText qwtText( text, QwtText::RichText );
-    QFont font = qwtText.font();
 
-    qtwrapper::font::setFont( font, qtwrapper::fontSizePlotTitle, qtwrapper::fontPlotTitle );
-    qwtText.setFont( font );
+    qwtText.setFont( qtwrapper::font()( qwtText.font(), qtwrapper::fontSizePlotTitle, qtwrapper::fontPlotTitle ) );
     qwtText.setRenderFlags( Qt::AlignLeft | Qt::AlignTop );
 
     QwtPlot::setTitle( qwtText );
@@ -116,8 +114,7 @@ void
 plot::setFooter( const QString& text )
 {
 	QwtText qwtText( text, QwtText::RichText );
-    QFont font = qwtText.font();
-    qwtText.setFont( qtwrapper::font::setFont( font, qtwrapper::fontSizePlotFooter, qtwrapper::fontPlotFooter ) );
+    qwtText.setFont( qtwrapper::font()( qwtText.font(), qtwrapper::fontSizePlotFooter, qtwrapper::fontPlotFooter ) );
     qwtText.setRenderFlags( Qt::AlignRight | Qt::AlignBottom );
     QwtPlot::setFooter( qwtText );
 }

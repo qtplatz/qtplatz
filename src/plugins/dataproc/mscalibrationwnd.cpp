@@ -561,9 +561,7 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
         }
         drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
         drawRect.setHeight( printer.height() - drawRect.top() );
-        QFont font = painter.font();
-		qtwrapper::font::setSize( font, qtwrapper::fontSizeSmall );
-        painter.setFont( font );
+        painter.setFont( qtwrapper::font()( QFont( painter.font() ), 0.8 ) );
         painter.drawText( drawRect, Qt::TextWordWrap, text );
     }
     // ---------- end calibration equestion -----
