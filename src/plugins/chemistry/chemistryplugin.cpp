@@ -73,7 +73,7 @@ ChemistryPlugin::~ChemistryPlugin()
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    ADDEBUG() << "##### ChemistryPlugin initialize...";
+    // ADDEBUG() << "##### ChemistryPlugin initialize...";
     
     // 
     initialize_actions();
@@ -84,8 +84,8 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
     addObject( mode_.get() );
-
-    ADDEBUG() << "ChemistryPlugin initialized";    
+    
+    // ADDEBUG() << "ChemistryPlugin initialized";    
     return true;
 }
 
@@ -119,7 +119,7 @@ void
 ChemistryPlugin::extensionsInitialized()
 {
 	mainWindow_->OnInitialUpdate();
-    ADDEBUG() << "ChemistryPlugin extensionsInitialized.";
+    // ADDEBUG() << "ChemistryPlugin extensionsInitialized.";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag

@@ -30,12 +30,14 @@
 #include <adcontrols/scanlaw.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
-#include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/serializer.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adlog/logger.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <memory>
 
 namespace adspectrometer {
@@ -99,27 +101,19 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
 {
     adfs::stmt sql( dbf );
     
-    boost::uuids::uuid clsidSpectrometer{ 0 };
-    sql.prepare( "SELECT acclVoltage,tDelay,fLength FROM ScanLaw,Spectrometer"
-                 " WHERE id=clsidSpectrometer"
-                 " AND objuuid=?"
+    sql.prepare(
+        "SELECT acclVoltage,tDelay,fLength FROM ScanLaw,Spectrometer"
+        " WHERE ScanLaw.spectrometer=Spectrometer.id"
+        " AND objuuid=?"
         );
-    sql.bind( 1 ) = objuuid;
+    sql.bind( 1 ) = objuuid;  // <- trace (signal-obserber) id
     if ( sql.step() == adfs::sqlite_row ) {
         acceleratorVoltage_ = sql.get_column_value< double >( 0 );
         tDelay_             = sql.get_column_value< double >( 1 );
         fLength_            = sql.get_column_value< double >( 2 );
+        scanlaw_ = std::make_unique< ScanLaw >( acceleratorVoltage_, tDelay_, fLength_ );
     }
 }
-
-// void
-// MassSpectrometer::setScanLaw( double acclVolts, double tDelay, double fLength )
-// {
-//     acceleratorVoltage_ = acclVolts;
-//     tDelay_ = tDelay;
-//     fLength_ = fLength;
-//     scanlaw_ = std::make_unique< ScanLaw >( acceleratorVoltage_, tDelay_, fLength_ );
-// }
 
 bool
 MassSpectrometer::subscribe( const adcontrols::LCMSDataset& data )

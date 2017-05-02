@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "datareader.hpp"
+#include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cmath>
 #include <limits>
@@ -244,6 +245,7 @@ DataReader::impl::make_reader( const char * traceid ) const
         if ( factory != reader_factories_.end() )
             return factory->second( traceid );
     }
+    ADDEBUG() << "make_reader(" << traceid << ") not installed.";
     return nullptr;
 }
 

@@ -30,7 +30,6 @@
 #include "document.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
-
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -466,17 +465,15 @@ Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
         auto att = findProfiledHistogram( folium );
         
         if ( !att && ptr->isCentroid() ) {
-
             if ( auto spectrometer = massSpectrometer() ) { // implemented in base class 'adprocessor::dataprocessor'
                 att = folium.addAttachment( Constants::F_PROFILED_HISTOGRAM );            
                 auto ms = adcontrols::histogram::make_profile( *ptr, *spectrometer );
                 att.assign( ms, ms->dataClass() );
                 emit SessionManager::instance()->foliumChanged( this, folium );
+                return att;                
             }
         }
-        return att;
     }
-
     return portfolio::Folium();
 }
 

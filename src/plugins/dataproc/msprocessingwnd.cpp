@@ -347,15 +347,17 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     std::shared_ptr< adcontrols::MassSpectrum > profile;
     
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+
+        pProfileSpectrum_ = std::make_pair( folium.id(), hist ); // sticked
+        
         auto att = dp->findProfiledHistogram( folium );
-        if ( !att ) {
+        if ( !att )
             att = dp->addProfiledHistogram( folium );
-            ADDEBUG() << "new histogram-profiled added";
-        }
         if ( att ) {
             profile = portfolio::get< adcontrols::MassSpectrumPtr >( att );
-            pProfileSpectrum_ = std::make_pair( folium.id(), hist ); // sticked
             pProfileHistogram_ = std::make_pair( att.id(), profile ); // profiled
+        } else {
+            pProfileHistogram_.second.reset();
         }
     }
 
@@ -916,9 +918,9 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     auto readers = rawfile->dataReaders();
                     for ( auto& reader : readers ) {
                         if ( auto it = reader->findPos( rect.left() ) )
-                            menu.addAction( QString::fromStdString( ( boost::format( "Select spectrum (%s) @ %.3lfs" )
-                                                                      % reader->display_name() % rect.left() ).str() )
-                                            , [&] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
+                            menu.addAction( QString::fromStdString(
+                                                ( boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str() )
+                                            , [=] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
                     }
                     
                 } else {
@@ -932,7 +934,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     }
                     menu.addAction( QString::fromStdString( 
                                         (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str() )
-                                    , [&] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } );
+                                    , [=] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } );
                     
                     if ( index < 0 || fcn < 0 )
                         menu.actions().back()->setEnabled( false );
@@ -1449,7 +1451,7 @@ MSProcessingWnd::compute_count( double s, double e )
             
             if ( found ) {
 
-                ADDEBUG() << "data range: " << range.first << ", " << range.second;
+                // ADDEBUG() << "data range: " << range.first << ", " << range.second;
                 
                 const double * data = ms.getIntensityArray();
                 double count = std::accumulate( data + range.first, data + range.second, 0.0 );

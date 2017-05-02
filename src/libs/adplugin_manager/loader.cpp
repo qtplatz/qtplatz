@@ -107,7 +107,7 @@ loader::populate( const wchar_t * topdir )
         ADDEBUG() << boost::format( "## Error: loader %1% is not a directory" ) % modules.generic_string();
         BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "loader %1% is not directory" ) % modules.generic_string() ).str() ) );
     }
-    ADDEBUG() << "loader populated : " << topdir << ".";
+    //ADDEBUG() << "loader populated : " << topdir << ".";
 	manager::instance()->populated();
 }
 

@@ -60,7 +60,7 @@
 
 namespace acqrsinterpreter {
 
-    template< typename Interpreter > struct TID {
+    template< typename Interpreter, int = 0 > struct TID {
         static const std::string value;
         static const std::string display_name;
         typedef Interpreter type;
@@ -69,36 +69,50 @@ namespace acqrsinterpreter {
     // "{ebec355c-3277-5b15-9430-b83031e7555c}" histogram.1.malpix.ms-cheminfo.com
 
     // u5303a
-    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::value = "1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform> >::display_name = "1.u5303a";
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::value = "1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::display_name = "1.u5303a";
 
-    template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result> >::value = "timecount.1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >::display_name = "timecount[u5303a]";
-
-    template<> const std::string TID< histogram::DataInterpreter >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID< histogram::DataInterpreter >::display_name = "histogram";
-    
-    template<> const std::string TID< softavgr::DataInterpreter>::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
-    template<> const std::string TID< softavgr::DataInterpreter>::display_name = "waveform";
+    template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::value = "timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::display_name = "timecount[u5303a]";
 
     // ap240
+    // "{76d1f823-2680-5da7-89f2-4d2d956149bd}"
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "1.ap240";
+    
     // "{4f431f91-b08c-54ba-94f0-e1d13eba29d7}"
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
     template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
 
-    // "{76d1f823-2680-5da7-89f2-4d2d956149bd}"
-    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::value = "1.ap240.ms-cheminfo.com";
-    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "waveform[ap240]";
+    // shareing objects
+    template<> const std::string TID< softavgr::DataInterpreter, 0 >::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< softavgr::DataInterpreter, 0 >::display_name = "waveform.u5303a";
 
+    template<> const std::string TID< histogram::DataInterpreter, 0 >::value = "histogram.timecount.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< histogram::DataInterpreter, 0 >::display_name = "histogram.u5303a";
+
+    // "{eb9d5589-a3a4-582c-94c6-f7affbe8348a}", "tdcdoc.waveform.1.ap240.ms-cheminfo.com"
+    template<> const std::string TID< softavgr::DataInterpreter, 1 >::value = "tdcdoc.waveform.1.ap240.ms-cheminfo.com";
+    template<> const std::string TID< softavgr::DataInterpreter, 1 >::display_name = "waveform.ap240";
+    
+    // "{89a396e5-2f58-571a-8f0c-9da68dd31ae4}", "histogram.timecount.1.ap240.ms-cheminfo.com"
+    template<> const std::string TID< histogram::DataInterpreter, 1 >::value = "histogram.timecount.1.ap240.ms-cheminfo.com";
+    template<> const std::string TID< histogram::DataInterpreter, 1 >::display_name = "histogram.ap240";
+    
     // "{04c23c3c-7fd6-11e6-aa18-b7efcbc41dcd}", "1.dc122.ms-cheminfo.com"
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform>, 1 >::value = "1.dc122.ms-cheminfo.com";
+    template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform>, 1 >::display_name = "1.dc122";
 
     typedef boost::mpl::vector<
-        TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform> >
-        , TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result > >
-        , TID< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result > >
-        , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform > >
-        , TID< histogram::DataInterpreter >
-        , TID< softavgr::DataInterpreter >
+        TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform> >              // u5303a raw waveform
+        , TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result > >  // u5303a soft-tdc
+        , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform >, 0 >         // ap240  raw waveform
+        , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform >, 1 >         // dc122  raw waveform
+        , TID< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result > >   // ap240  soft-tdc
+        , TID< histogram::DataInterpreter, 0 >                                         // u5303a, co-added tdc
+        , TID< histogram::DataInterpreter, 1 >                                         // ap240,  co-added tdc
+        , TID< softavgr::DataInterpreter, 0 >                                          // u5303a  co-added waveform
+        , TID< softavgr::DataInterpreter, 1 >                                          // ap240   co-added waveform
         > interpreter_types;
 
     //-------------------
@@ -194,24 +208,28 @@ namespace acqrsinterpreter {
     }
     
     //------------------ make_massspactrum visitor ----------------
-    struct make_massspectrum : public boost::static_visitor< void > {
+    struct make_massspectrum : public boost::static_visitor< bool > {
         adcontrols::MassSpectrum& ms;
 
         make_massspectrum( adcontrols::MassSpectrum& t ) : ms( t ) {}
 
-        template< typename T > void operator () ( T const& waveform ) const {
-            waveform->translate( ms, *waveform );
+        template< typename T > bool operator () ( T const& waveform ) const {
+            return waveform->translate( ms, *waveform );
         }
     };
 
-    template<> void make_massspectrum::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result > const& rhs ) const
+    template<> bool make_massspectrum::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result > const& rhs ) const
     {
         // TBA
+        ADDEBUG() << "function 'make_massspectrum( acqrscontrols::u5303a::threshold_result )' not supported";
+        return false;
     }
 
-    template<> void make_massspectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    template<> bool make_massspectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
     {
-        // TBA
+        adcontrols::TimeDigitalHistogram hgrm;
+        *rhs >> hgrm;
+        return adcontrols::TimeDigitalHistogram::translate( ms, hgrm );
     }
     //------------------ make_massspactrum visitor ----------------
 
@@ -263,13 +281,8 @@ DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid
     // traceid determines type of trace, a.k.a. type of mass-spectormeter, multi-dimentional chromatogram etc.
     // Though traceid does not indiecate trace object (in case two UV-ditectors on the system, traceid does not tell which one)
 
-    if ( std::string( traceid ) == "1.dc122.ms-cheminfo.com" ) {
-        interpreter_ = std::make_unique< waveform::DataInterpreter< acqrscontrols::ap240::waveform > >();
-        display_name_ = "waveform[dc122]";
-    } else {
-        boost::mpl::for_each< interpreter_types
-                              , wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
-    }
+    boost::mpl::for_each< interpreter_types
+                          , wrap< boost::mpl::placeholders::_1> >( lookup_and_create( traceid, interpreter_, display_name_ ) );
 }
 
 // static
@@ -278,7 +291,6 @@ DataReader::traceid_list()
 {
     std::vector< std::string > list;
     boost::mpl::for_each< interpreter_types, wrap< boost::mpl::placeholders::_1> >( make_trace_id_list( list ) );
-    list.emplace_back( "1.dc122.ms-cheminfo.com" );
     return list;
 }
 
@@ -316,7 +328,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 // clsid = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
                 // acclVoltage = 5000.0;
                 if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
-                    spectrometer_->initialSetup( *db, objid_ );
+                    spectrometer_->initialSetup( *db, { 0 } );
             }
 
             // workaround for Sep. to Dec., 2015 data file
@@ -742,7 +754,7 @@ DataReader::readSpectrum( const_iterator& it ) const
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );
 
-    ADDEBUG() << "readSpectrum( rowid=" << it->rowid() << " )";
+    ADDEBUG() << "readSpectrum( rowid=" << it->rowid() << " ) " << objid_;
 
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
         if ( auto db = db_.lock() ) {
@@ -761,27 +773,33 @@ DataReader::readSpectrum( const_iterator& it ) const
                 auto ptr = std::make_shared< adcontrols::MassSpectrum >();
                 int col = 0;
                 auto rowid = sql.get_column_value< int64_t >( col++ );
-                auto _fno  = sql.get_column_value< int64_t >( col++ );
+                auto proto = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                ADDEBUG() << "\t---> readSpectrum( rowid=" << rowid << ", proto=" << _fno << " )";
+                ADDEBUG() << "\t---> readSpectrum( rowid=" << rowid << ", proto=" << proto << " )";
                 
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
                     
-                    boost::apply_visitor( make_massspectrum( *ptr ), waveform );
-                    if ( spectrometer_ ) {
-                        spectrometer_->assignMasses( *ptr );
-                        const auto& info = ptr->getMSProperty().samplingInfo();
-                        double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
-                        double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
-                        ptr->setAcquisitionMassRange( lMass, uMass );
+                    if ( boost::apply_visitor( make_massspectrum( *ptr ), waveform ) ) {
+                    
+                        if ( spectrometer_ ) {
+                            spectrometer_->assignMasses( *ptr );
+                            const auto& info = ptr->getMSProperty().samplingInfo();
+                            double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
+                            double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
+                            ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
+                            ptr->setAcquisitionMassRange( lMass, uMass );
+                        }
+                        ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
+                        ptr->setDataReaderUuid( objid_ );
+                        ptr->setRowid( rowid );
+
+                    } else {
+                        ADDEBUG() << "# Error: failed to translate spectrum( rowid=" << rowid << ", proto=" << proto << " ) " << objid_;
                     }
-                    ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                    ptr->setDataReaderUuid( objid_ );
-                    ptr->setRowid( rowid );
                 }
                 if ( !prime )
                     prime = ptr;
@@ -879,7 +897,7 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 
                 int col = 0;
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
-                auto _fno = sql.get_column_value< int64_t >( col++ );
+                auto proto = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
                 
@@ -887,12 +905,11 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
 
-                    if ( coadded[ _fno ].first++ == 0 ) {
+                    if ( coadded[ proto ].first++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-                        boost::apply_visitor( coadd_initialize( coadded[ _fno ].second ), waveform );
-                        // coadded = waveform;
+                        boost::apply_visitor( coadd_initialize( coadded[ proto ].second ), waveform );
                     } else {
-                        boost::apply_visitor( coadd_spectrum( coadded[ _fno ].second ), waveform );
+                        boost::apply_visitor( coadd_spectrum( coadded[ proto ].second ), waveform );
                     }
                 }
             }

@@ -71,7 +71,7 @@ namespace adspectrometer {
         //-----------------------------------------
         // v3 interface
         static constexpr const char * clsid_text = "{E45D27E0-8478-414C-B33D-246F76CF62AD}";
-        static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext;
+        static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext; // 'adspectrometer'
 
         void setAcceleratorVoltage( double acclVolts, double tDelay ) override;
 

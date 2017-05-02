@@ -178,8 +178,6 @@ threshold_result::operator >> ( adcontrols::TimeDigitalHistogram& x ) const
 
     x.trigger_count()++;
     
-    ADDEBUG() << "index size: " << indecies_.size() << " time: this =" << data()->meta_.initialXTimeSeconds;
-   
     if ( indecies_.empty() )
         return true;
     

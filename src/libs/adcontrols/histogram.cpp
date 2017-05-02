@@ -60,9 +60,6 @@ histogram::histogram_to_profile( MassSpectrum& ms, const MassSpectrometer& spect
     if ( !scanlaw )
         return;
 
-    // size_t x(0);
-    // std::generate( masses.begin(), masses.end(), [&]{ return scanlaw->getMass( prop.toSeconds( x++, info ), int( info.mode() ) ); } );
-
     const double td = info.fSampInterval() * 2;
     double tp = info.delayTime();
 

@@ -27,6 +27,7 @@
 #include "processmediator.hpp"
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datareader.hpp>
@@ -199,6 +200,11 @@ dataprocessor::massSpectrometer()
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
             spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
             spectrometer_ = spectrometer;
+        } else {
+            if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( adcontrols::iids::adspectrometer_uuid ) ) {
+                spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
+                spectrometer_ = spectrometer;                
+            }
         }
     }
     return spectrometer_;
