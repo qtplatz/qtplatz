@@ -43,8 +43,8 @@ namespace acqrscontrols {
 
                 if ( action->enableTimeRange ) {
                     
-                    uint32_t beg = uint32_t( ( action->delay - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
-                    uint32_t end = uint32_t( ( action->delay + action->width - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
+                    uint32_t beg = uint32_t( ( action->delay - action->width / 2 - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
+                    uint32_t end = uint32_t( ( action->delay + action->width / 2 - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
 
                     auto it = std::lower_bound( result->indecies().begin(), result->indecies().end(), beg );
                     if ( it != result->indecies().end() ) {

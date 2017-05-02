@@ -360,7 +360,7 @@ tdcdoc::computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
         if ( std::get< CountingMethod::CountingEnable >( v ) ) {
 
             auto range = std::get< CountingMethod::CountingRange >( v );
-            
+
             rates[ idx ].first += histogram.accumulate( range.first, range.second );
             rates[ idx ].second += histogram.trigger_count();
         }

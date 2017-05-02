@@ -361,7 +361,7 @@ TimeDigitalHistogram::accumulate( double tof, double window ) const
                                     , []( const uint32_t& a, const std::pair<double, uint32_t>& b ){ return a + b.second; });
         }
 
-        // histogram_ is an array of digitizer time, so that adjust external (helio) trigger delay.
+        // histogram_ is an array of digitizer time, so that adjust external (de0-nano-soc) trigger delay.
         tof -= this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
 
         auto lower = std::lower_bound( histogram_.begin(), histogram_.end(), (tof - window / 2.0)

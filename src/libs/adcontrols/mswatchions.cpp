@@ -33,12 +33,15 @@ MSWatchIons::~MSWatchIons()
 }
 
 MSWatchIons::MSWatchIons() : acceleratorVoltage_( 0 )
-                         , timeOffset_( 0 )
-                         , hasCalibration_( false )
-                         , mode_( 0 )
-                         , fLength_( 0 )
-                         , toleranceMethod_( ToleranceInPeakWidth )
+                           , timeOffset_( 0 )
+                           , hasCalibration_( false )
+                           , mode_( 0 )
+                           , fLength_( 0 )
+                           , toleranceMethod_( ToleranceInDa )
 {
+    tolerances_[ ToleranceInDa ] = 0.010; // 10mDa
+    tolerances_[ ToleranceInTime ] = 0.10; // 100ns
+    tolerances_[ ToleranceInPeakWidth ] = 1.0; 
 }
 
 MSWatchIons::MSWatchIons( const MSWatchIons& t )
