@@ -1463,24 +1463,29 @@ Dataprocessor::applyLockMass( std::shared_ptr< adcontrols::MassSpectra > spectra
 
     if ( auto rawfile = rawdata() ) {
 
-        auto msfractuation = rawfile->msFractuation();
+        if ( auto msfractuation = rawfile->msFractuation() ) {
         
-        bool interporate( false );
+            bool interporate( false );
 
-        if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
+            if ( !msfractuation->has_a( (*spectra->begin())->rowid() ) ) {
 
-            int result = QMessageBox::question( MainWindow::instance()
-                                                , QObject::tr("Lock mass")
-                                                , QObject::tr( "Blacketing ?" )
-                                                , QMessageBox::Yes
-                                                , QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
-            if ( result == QMessageBox::Yes ) 
-                interporate = true;
-        }
+                int result = QMessageBox::question( MainWindow::instance()
+                                                    , QObject::tr("Lock mass")
+                                                    , QObject::tr( "Blacketing ?" )
+                                                    , QMessageBox::Yes
+                                                    , QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
+                if ( result == QMessageBox::Yes ) 
+                    interporate = true;
+            }
 
-        for ( auto& ms : *spectra ) {
-            auto fitter = msfractuation->find( ms->rowid(), interporate );
-            fitter( *ms );
+            for ( auto& ms : *spectra ) {
+                auto fitter = msfractuation->find( ms->rowid(), interporate );
+                fitter( *ms );
+            }
+        } else {
+            QMessageBox::information( MainWindow::instance()
+                                      , QObject::tr( "QtPlatz" )
+                                      , QObject::tr( "No MS-Fractuation instance exists in this data file" ) );
         }
     }
 }

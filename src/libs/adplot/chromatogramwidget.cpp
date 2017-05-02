@@ -60,22 +60,25 @@ namespace adplot {
 
     namespace chromatogram_widget {
 
-        static Qt::GlobalColor color_table[] = {
-            Qt::blue,
-            Qt::red,
-            Qt::darkGreen,
-            Qt::darkCyan,
-            Qt::magenta,
-            Qt::yellow,
-            Qt::darkRed,
-            Qt::green,
-            Qt::darkBlue,
-            Qt::cyan,
-            Qt::darkMagenta,
-            Qt::darkYellow,
-            Qt::darkGray,
-            Qt::gray,
-            Qt::lightGray,
+        static QColor color_table [] = {
+            QColor( 0x00, 0x00, 0xff )    // 0  blue
+            , QColor( 0xff, 0x00, 0x00 )  // 1  red
+            , QColor( 0x00, 0x80, 0x00 )  // 2  green            
+            , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
+            , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
+            , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
+            , QColor( 0x80, 0x00, 0x80 )  // 6  purple
+            , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
+            , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
+            , QColor( 0x80, 0x80, 0x80 )  // 9  gray
+            , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
+            , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
+            , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
+            , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
+            , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
+            , QColor( 0xff, 0xff, 0xff )  //15  white
+            , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
+            , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
         };
 
         // for ChromatogramData

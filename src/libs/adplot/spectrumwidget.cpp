@@ -60,6 +60,7 @@ namespace adplot {
 
     namespace spectrumwidget {
 
+#if 0
         static Qt::GlobalColor color_table[] = {
             Qt::blue          // 0
             , Qt::red           // 1
@@ -68,7 +69,7 @@ namespace adplot {
             , Qt::darkMagenta   // 4
             , Qt::darkYellow    // 5
             , Qt::darkBlue      // 6
-            , Qt::darkRed       // 7            
+            , Qt::darkRed       // 7
             , Qt::green         // 8
             , Qt::cyan          // 9
             , Qt::magenta       // 10
@@ -79,6 +80,27 @@ namespace adplot {
             , Qt::white         // 15
             , Qt::gray          // 16
             , Qt::transparent   // 17
+        };
+#endif
+        static QColor color_table [] = {
+            QColor( 0x00, 0x00, 0xff )    // 0  blue
+            , QColor( 0xff, 0x00, 0x00 )  // 1  red
+            , QColor( 0x00, 0x80, 0x00 )  // 2  green
+            , QColor( 0x94, 0x00, 0xd3 )  // 3  dark violet
+            , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
+            , QColor( 0x80, 0x00, 0x80 )  // 5  purple
+            , QColor( 0x4b, 0x00, 0x82 )  // 6  indigo
+            , QColor( 0xdc, 0x13, 0x4c )  // 7  crimson
+            , QColor( 0x69, 0x69, 0x69 )  // 8  dim gray
+            , QColor( 0x80, 0x80, 0x80 )  // 9  gray
+            , QColor( 0xa9, 0xa9, 0xa9 )  //10  dark gray
+            , QColor( 0xc0, 0xc0, 0xc0 )  //11  silver
+            , QColor( 0xd3, 0xd3, 0xd3 )  //12  light gray
+            , QColor( 0xd2, 0x69, 0x1e )  //13  chocolate
+            , QColor( 0x00, 0x00, 0x8b )  //14  dark blue
+            , QColor( 0xff, 0xff, 0xff )  //15  white
+            , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
+            , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
         };
         
         class xSeriesData : public QwtSeriesData<QPointF>, boost::noncopyable {
