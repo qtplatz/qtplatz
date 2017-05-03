@@ -131,8 +131,8 @@ add_library( adcontrols SHARED
   mscalibration.hpp
   msfractuation.cpp
   msfractuation.hpp
-  mswatchions.cpp
-  mswatchions.hpp 
+  msmoltable.cpp
+  msmoltable.hpp 
   mslockmethod.cpp
   mslockmethod.hpp 
   mspeakinfoitem.cpp

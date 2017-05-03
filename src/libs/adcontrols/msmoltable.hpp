@@ -36,12 +36,15 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT MSWatchIons {
+    class MSPeakInfoItem;
+    class ScanLaw;
+
+    class ADCONTROLSSHARED_EXPORT MSMolTable {
     public:
-        ~MSWatchIons();
-        MSWatchIons();
-        MSWatchIons( const MSWatchIons& );
-        static const wchar_t * dataClass() { return L"adcontrols::MSWatchIons"; }
+        ~MSMolTable();
+        MSMolTable();
+        MSMolTable( const MSMolTable& );
+        static const wchar_t * dataClass() { return L"adcontrols::MSMolTable"; }
 
         enum eTolerance {
             ToleranceInDa
@@ -58,6 +61,7 @@ namespace adcontrols {
         double fLength() const;
         eTolerance toleranceMethod() const;
         double tolerance( eTolerance ) const;
+        double tolerance() const;
 
         const MSPeaks& expected() const;
         const MSPeaks& assigned() const;
@@ -71,6 +75,8 @@ namespace adcontrols {
         void fLength( double );
         void toleranceMethod( eTolerance );
         void tolerance( eTolerance, double );
+
+        bool assignFormula( adcontrols::MSPeakInfoItem&, const adcontrols::ScanLaw&, int mode ) const;
 
     private:
         double acceleratorVoltage_;
