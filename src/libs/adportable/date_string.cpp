@@ -60,8 +60,9 @@ date_string::utc_to_localtime_string( time_t utc, unsigned usec, bool add_utc_of
 		boost::posix_time::ptime putc = boost::posix_time::from_time_t( utc );
 		boost::posix_time::ptime lt = boost::date_time::c_local_adjustor< boost::posix_time::ptime>::utc_to_local( putc );
 		std::ostringstream o;
-		o << boost::posix_time::to_simple_string( lt );
-		o << " " << std::fixed << std::setw(7) << std::setfill('0') << std::setprecision(3) << double( usec ) / 1000.0;
+		//o << boost::posix_time::to_simple_string( lt );
+        o << boost::posix_time::to_iso_extended_string( lt );
+		o << "." << std::fixed << std::setw(6) << std::setfill('0') << usec; // usec precision std::setprecision(3) << double( usec ) / 1000.0;
 
         if ( add_utc_offset ) {
             boost::posix_time::time_duration td( boost::posix_time::second_clock::local_time() - boost::posix_time::second_clock::universal_time() );

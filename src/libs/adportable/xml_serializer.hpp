@@ -96,7 +96,6 @@ namespace adportable {
             template<class T> bool operator()( const T& data, std::wostream& output ) const {
 
                 typename IF< has_archive<T, bool( std::wostream&, const T& )>::value, Archiver, archive_functor<T> >::type ar( output );
-
                 ar & nvp_functor< has_archive<T, bool( std::wostream&, const T& )>::value >()( data );
 
                 output.flush();

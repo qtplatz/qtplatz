@@ -27,6 +27,7 @@
 #include "mspeak.hpp"
 #include "mspeakinfoitem.hpp"
 #include "scanlaw.hpp"
+#include <boost/uuid/uuid_generators.hpp>
 
 using namespace adcontrols;
 
@@ -35,19 +36,21 @@ MSMolTable::~MSMolTable()
 }
 
 MSMolTable::MSMolTable() : acceleratorVoltage_( 0 )
-                           , timeOffset_( 0 )
-                           , hasCalibration_( false )
-                           , mode_( 0 )
-                           , fLength_( 0 )
-                           , toleranceMethod_( ToleranceInDa )
+                         , timeOffset_( 0 )
+                         , hasCalibration_( false )
+                         , mode_( 0 )
+                         , fLength_( 0 )
+                         , toleranceMethod_( ToleranceInDa )
+                         , tolerances_( { 0.100, 0.1e-6, 5.0 } ) // 0.1Da, 0.1us, x5.0
 {
-    tolerances_[ ToleranceInDa ] = 0.100; // 100mDa
-    tolerances_[ ToleranceInTime ] = 0.1e-6; // 0.1us
-    tolerances_[ ToleranceInPeakWidth ] = 5.0; 
+    // tolerances_[ ToleranceInDa ] = 0.100; // 100mDa
+    // tolerances_[ ToleranceInTime ] = 0.1e-6; // 0.1us
+    // tolerances_[ ToleranceInPeakWidth ] = 5.0; 
 }
 
 MSMolTable::MSMolTable( const MSMolTable& t )
-    : acceleratorVoltage_( t.acceleratorVoltage_ )
+    : ident_( t.ident_ )
+    , acceleratorVoltage_( t.acceleratorVoltage_ )
     , timeOffset_( t.timeOffset_ )
     , hasCalibration_( t.hasCalibration_ )
     , mode_( t.mode_ )
@@ -58,6 +61,20 @@ MSMolTable::MSMolTable( const MSMolTable& t )
     , assigned_( t.assigned_ )
 {
 }
+
+const idAudit&
+MSMolTable::ident() const
+{
+    return ident_;
+}
+
+const boost::uuids::uuid&
+MSMolTable::clsid()
+{
+    static boost::uuids::uuid __clsid = boost::uuids::string_generator()( "{5bdc69c6-a2fd-4df8-95cd-db5feaebd151}" );
+    return __clsid;
+}
+
 
 double
 MSMolTable::acceleratorVoltage() const

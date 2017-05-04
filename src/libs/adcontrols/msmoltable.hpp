@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,18 +26,19 @@
 
 #include "adcontrols_global.h"
 #include "mspeaks.hpp"
+#include "idaudit.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <string>
 #include <memory>
 #include <array>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
     class MSPeakInfoItem;
     class ScanLaw;
+    class MSPeaks;
 
     class ADCONTROLSSHARED_EXPORT MSMolTable {
     public:
@@ -45,6 +46,7 @@ namespace adcontrols {
         MSMolTable();
         MSMolTable( const MSMolTable& );
         static const wchar_t * dataClass() { return L"adcontrols::MSMolTable"; }
+        static const boost::uuids::uuid& clsid(); // "{5bdc69c6-a2fd-4df8-95cd-db5feaebd151}" );
 
         enum eTolerance {
             ToleranceInDa
@@ -53,7 +55,7 @@ namespace adcontrols {
             , nToleranceMethod
         };
 
-        // centroid method
+        const idAudit& ident() const;
         double acceleratorVoltage() const;
         double timeOffset() const;
         bool   hasCalibration() const;
@@ -79,13 +81,14 @@ namespace adcontrols {
         bool assignFormula( adcontrols::MSPeakInfoItem&, const adcontrols::ScanLaw&, int mode ) const;
 
     private:
+        idAudit ident_;
         double acceleratorVoltage_;
         double timeOffset_; // t0
         bool   hasCalibration_;
         int32_t mode_;
         double fLength_;
         eTolerance toleranceMethod_;
-        std::array< double, nToleranceMethod > tolerances_;
+        std::vector< double > tolerances_;
         MSPeaks expected_;
         MSPeaks assigned_;
 
@@ -93,16 +96,16 @@ namespace adcontrols {
         template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
             (void)(version);
-            ar & acceleratorVoltage_
-                & timeOffset_
-                & hasCalibration_
-                & mode_
-                & fLength_
-                & toleranceMethod_
-                & tolerances_
-                & expected_
-                & assigned_
-                ;
+            ar & BOOST_SERIALIZATION_NVP(ident_);
+            ar & BOOST_SERIALIZATION_NVP(acceleratorVoltage_);
+            ar & BOOST_SERIALIZATION_NVP(timeOffset_);
+            ar & BOOST_SERIALIZATION_NVP(hasCalibration_);
+            ar & BOOST_SERIALIZATION_NVP(mode_);
+            ar & BOOST_SERIALIZATION_NVP(fLength_);
+            ar & BOOST_SERIALIZATION_NVP(toleranceMethod_);
+            ar & BOOST_SERIALIZATION_NVP(tolerances_);
+            ar & BOOST_SERIALIZATION_NVP(expected_);
+            ar & BOOST_SERIALIZATION_NVP(assigned_);
         }
     };
 

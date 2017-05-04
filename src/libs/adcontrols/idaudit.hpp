@@ -59,19 +59,12 @@ namespace adcontrols {
         static bool xml_restore( std::wistream&, idAudit& );
 
     private:
-# if defined _MSC_VER
-#  pragma warning(push)
-#  pragma warning(disable:4251)
-# endif
         boost::uuids::uuid uuid_;
         std::string digest_;
         std::string dateCreated_;
         std::wstring idComputer_;
         std::wstring idCreatedBy_;
         std::wstring nameCreatedBy_;
-# if defined _MSC_VER
-#  pragma warning(pop)
-# endif
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int ) {
