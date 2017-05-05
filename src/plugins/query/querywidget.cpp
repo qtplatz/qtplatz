@@ -99,7 +99,6 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
     connect( form_.get(), &QueryForm::triggerQuery, this, &QueryWidget::handleQuery );
     connect( form_.get(), &QueryForm::showHistory, this, &QueryWidget::showHistory );
     connect( table_.get(), &QueryResultTable::plot, this, &QueryWidget::handlePlot );
-
     dlg_->setModal( false );
     connect( dlg_, &CountingQueryDialog::accepted, this, [this]{ accept(); } );
     connect( dlg_, &CountingQueryDialog::applied, this, [this]{ applyQuery(); } );

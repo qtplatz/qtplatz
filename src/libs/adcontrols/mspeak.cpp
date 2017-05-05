@@ -233,8 +233,8 @@ MSPeak::spectrumIndex( int v )
 double
 MSPeak::exact_mass() const
 {
-    if ( !formula_.empty() && exact_mass_ < 1.0 )
-        const_cast< MSPeak *>(this)->exact_mass_ = ChemicalFormula().getMonoIsotopicMass( formula_ );
+    if ( !formula_.empty() && exact_mass_ < 0.7 )
+        return ChemicalFormula().getMonoIsotopicMass( formula_ );
     return exact_mass_;
 }
 
