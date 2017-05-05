@@ -82,6 +82,7 @@ namespace acqrsinterpreter {
         
     private:
         void loadTICs();
+        void loadCachedTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
         std::weak_ptr< adfs::sqlite > db_;

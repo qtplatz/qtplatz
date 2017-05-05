@@ -90,7 +90,7 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
     sql.exec(
         "CREATE TABLE \
 AcquiredConf (                \
- objuuid              UUID    \
+ objuuid              UUID PRIMARY KEY \
 ,objtext              TEXT    \
 ,pobjuuid             UUID    \
 ,dataInterpreterClsid TEXT    \

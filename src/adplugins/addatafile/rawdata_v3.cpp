@@ -199,83 +199,12 @@ rawdata::dataReaders( bool allPossible ) const
 bool
 rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
 {
-#if 0
-    boost::uuids::uuid objid;
-    
-    auto it = std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& c){
-            return c.dataInterpreterClsid == dataInterpreterClsid;
-        });
-
-    if ( it != conf_.end() )
-        objid = it->objid;
-    else {
-        if ( conf_.empty() ) 
-            adutils::v3::AcquiredConf::create_table_v3( dbf_.db() );
-        adutils::v3::AcquiredConf::data d;
-		d.objid = objid;
-        d.dataInterpreterClsid.resize( dataInterpreterClsid.size() );
-        std::copy( dataInterpreterClsid.begin(), dataInterpreterClsid.end(), d.dataInterpreterClsid.begin() );
-        if ( !adutils::v3::AcquiredConf::insert( dbf_.db(), objid, d ) )
-            return false;
-    }
-
-	const std::wstring calibId = calibResult.calibration().calibId();
-    std::string device;
-    if ( adportable::binary::serialize<>()(calibResult, device) ) {
-        adutils::mscalibio::writeCalibration( dbf_.db(), uint32_t( objid ), calibId.c_str(), calibResult.dataClass(), device.data(), device.size() );
-        loadAcquiredConf();
-        loadCalibrations();
-        return true;
-    }
-#endif
     return false;
 }
 
 void
 rawdata::loadCalibrations()
 {
-#if 0
-    // using adportable::serializer;
-    using adcontrols::MSCalibrateResult;
-
-    std::for_each( conf_.begin(), conf_.end(), [&]( const adutils::AcquiredConf::data& conf ){
-            std::vector< char > device;
-            int64_t rev;
-            if ( adutils::mscalibio::readCalibration( dbf_.db(), uint32_t(conf.objid), MSCalibrateResult::dataClass(), device, rev ) ) {
-
-                auto calibResult = std::make_shared< MSCalibrateResult >();
-                
-                boost::iostreams::basic_array_source< char > source( device.data(), device.size() );
-                boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( source );
-
-                if ( MSCalibrateResult::restore( strm, *calibResult ) ) {
-                    calibResults_[ conf.objid ] = calibResult;
-                    if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() ) )
-                        spectrometer->setCalibration( calibResult->mode(), *calibResult );
-                }
-            }
-        });
-#endif
-}
-
-std::shared_ptr< adcontrols::MassSpectrometer >
-rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid )
-{
-#if 0
-    auto it = spectrometers_.find( objid );
-    if ( it == spectrometers_.end() ) {
-		if ( auto ptr = adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ ) ) {
-            spectrometers_[ objid ] = ptr;
-			it = spectrometers_.find( objid );
-		} else {
-            return 0;
-			//static adcontrols::MassSpectrometer x;
-			//return x;
-		}
-    }
-    return it->second;
-#endif
-    return 0;
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >

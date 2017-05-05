@@ -524,62 +524,155 @@ DataReader::TIC( int fcn ) const
 void
 DataReader::loadTICs()
 {
-    auto nfcn = fcnCount();
-
-    std::map< int, std::shared_ptr< adcontrols::Chromatogram > > tics;
-    
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
         if ( auto db = db_.lock() ) {
+
+            ADDEBUG() << "loadTICs: " << objid_ << " indecies: " << indecies_.size();
             
             indecies_.clear();
 
-            adfs::stmt sql( *db );
-            //------------ determine elapsed_time 0 ----------------
-            sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData");
-            while ( sql.step() == adfs::sqlite_row )
-                elapsed_time_origin_ = sql.get_column_value< int64_t >( 0 );
+            {
+                adfs::stmt sql( *db );
+                //------------ determine elapsed_time 0 ----------------
+                sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData");
+                while ( sql.step() == adfs::sqlite_row )
+                    elapsed_time_origin_ = sql.get_column_value< int64_t >( 0 );
+            }
 
+            adfs::stmt sql( *db );                
+            sql.exec( "CREATE TABLE IF NOT EXISTS TIC (id INTEGER PRIMARY KEY, intensity REAL)" );
+            sql.prepare( "SELECT * FROM "
+                         "(SELECT COUNT(*) FROM TIC,AcquiredData WHERE id=AcquiredData.rowid AND objuuid=?)"
+                         " JOIN (SELECT COUNT(*) FROM AcquiredData WHERE objuuid=?)" );
+            sql.bind( 1 ) = objid_;
+            sql.bind( 2 ) = objid_;
+
+            if ( sql.step() == adfs::sqlite_row ) {
+                auto s1 = sql.get_column_value< int64_t >( 0 );
+                auto s2 = sql.get_column_value< int64_t >( 1 );
+
+                ADDEBUG() << "size = " << s1 << ", " << s2;
+
+                if ( sql.get_column_value< int64_t >( 0 ) == sql.get_column_value<int64_t>( 1 ) )
+                    return loadCachedTICs();
+            }
+
+            std::map< int, std::shared_ptr< adcontrols::Chromatogram > > tics;
+
+            adfs::stmt sql2( *db );
+            sql2.begin();
+            
             //------------
-            sql.prepare( "SELECT rowid,npos,fcn,(elapsed_time-(select min(elapsed_time) FROM AcquiredData)),data,meta "
+            sql.prepare( "SELECT rowid,npos,fcn,(elapsed_time-(SELECT min(elapsed_time) FROM AcquiredData)),data,meta "
                          "FROM AcquiredData WHERE objuuid = ? ORDER BY rowid" );
             sql.bind( 1 ) = objid_;
             
             while ( sql.step() == adfs::sqlite_row ) {
                 
                 int col = 0;
-                auto row = sql.get_column_value< int64_t >( col++ );
+                auto rowid = sql.get_column_value< int64_t >( col++ );
                 auto pos = sql.get_column_value< int64_t >( col++ );
                 auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
-
-                indecies_.emplace_back( row, pos, elapsed_time, fcn ); // <-- struct index
-
+                
+                indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
+                
                 if ( tics.find( fcn ) == tics.end() ) {
                     tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
                     tics [ fcn ]->setDataReaderUuid( objid_ );
                     tics [ fcn ]->setFcn( fcn );
                 }
-
+                
                 auto pChro = tics[ fcn ];
-
+                
                 waveform_types waveform;
                 
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size(), xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
-
-                    if ( pChro->size() == 0 )
-                        pChro->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
-
+                    
+                    if ( pChro->size() == 0 ) {
+                        std::wstring title = boost::apply_visitor( make_title(), waveform );
+                        pChro->addDescription( adcontrols::description( L"title", title.c_str() ) );
+                        adfs::stmt sql3( *db );
+                        sql3.prepare( "UPDATE OR REPLACE AcquiredConf SET trace_display_name=? WHERE objuuid=?");
+                        sql3.bind( 1 ) = title;
+                        sql3.bind( 2 ) = objid_;
+                        if ( sql3.step() != adfs::sqlite_done )
+                            ADDEBUG() << "sqlite error " << sql2.errcode();
+                    }
+                    
                     double d = boost::apply_visitor( total_ion_count(), waveform ); // <- d is the digital value w/o normalization to mV
                     ( *pChro ) << std::make_pair( double( elapsed_time ) * 1.0e-9, d );
+                    
+                    //<--
+                    sql2.prepare( "INSERT INTO TIC (id,intensity) VALUES (?,?)" );
+                    sql2.bind( 1 ) = rowid;
+                    sql2.bind( 2 ) = d;
+                    if ( sql2.step() != adfs::sqlite_done )
+                        ADDEBUG() << "sqlite error " << sql2.errcode();
+                    //-->
                 }
-            }
+            } // while
+
+            sql2.commit();
 
             for ( auto tic : tics )
-                tics_.emplace_back( tic.second );
+                tics_.emplace_back( std::move( tic.second ) );
         }
+    }
+}
+
+void
+DataReader::loadCachedTICs()
+{
+    
+    if ( auto db = db_.lock() ) {
+
+        std::map< int, std::shared_ptr< adcontrols::Chromatogram > > tics;
+            
+        adfs::stmt sql( *db );                
+
+        sql.prepare( "SELECT AcquiredData.rowid,npos,fcn,(elapsed_time-(SELECT min(elapsed_time) FROM AcquiredData)),intensity"
+                     " FROM AcquiredData,TIC WHERE objuuid = ? AND TIC.id=AcquiredData.rowid"
+                     " ORDER BY AcquiredData.rowid" );
+        sql.bind( 1 ) = objid_;
+        
+        while ( sql.step() == adfs::sqlite_row ) {
+            
+            int col = 0;
+            auto rowid = sql.get_column_value< int64_t >( col++ );
+            auto pos = sql.get_column_value< int64_t >( col++ );
+            auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
+            auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+            auto d = sql.get_column_value< double >( col++ );
+            
+            indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
+            
+            if ( tics.find( fcn ) == tics.end() ) {
+                tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
+                tics [ fcn ]->setDataReaderUuid( objid_ );
+                tics [ fcn ]->setFcn( fcn );
+            }
+            
+            auto pChro = tics[ fcn ];
+            
+            if ( pChro->size() == 0 ) {
+                adfs::stmt sql3( *db );
+                sql3.prepare("SELECT trace_display_name from AcquiredConf WHERE objuuid=?");
+                sql3.bind( 1 ) = objid_;
+                if ( sql3.step() == adfs::sqlite_row ) {
+                    auto title = sql3.get_column_value<std::wstring>(0);
+                    pChro->addDescription( adcontrols::description( L"title", title.c_str() ) );
+                }
+            }
+            
+            ( *pChro ) << std::make_pair( double( elapsed_time ) / std::nano::den, d );
+        }
+        
+        for ( auto tic : tics )
+            tics_.emplace_back( std::move( tic.second ) );
     }
 }
 

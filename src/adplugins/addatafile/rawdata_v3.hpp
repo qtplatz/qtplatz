@@ -120,13 +120,13 @@ namespace addatafile {
             int32_t fcnCount_;
         
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
-            std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer
-            std::map< uint64_t, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
+            //std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer
+            //std::map< uint64_t, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
             uint64_t npos0_;
             bool configLoaded_;
 
             std::shared_ptr< adcontrols::MassSpectrometer> getSpectrometer( uint64_t objid, const std::wstring& ) const;
-            std::shared_ptr< adcontrols::MassSpectrometer> getSpectrometer( uint64_t objid, const std::wstring& );
+            //std::shared_ptr< adcontrols::MassSpectrometer> getSpectrometer( uint64_t objid, const std::wstring& );
             std::vector< std::tuple< size_t, int, int> > fcnVec_; // <pos,fcn,rep,seconds>
             std::vector< std::pair< size_t, int > > fcnIdx_;
             std::vector< std::pair< double, int > > times_;
