@@ -305,7 +305,7 @@ install( FILES
   mscalibratemethod.hpp 
   mscalibrateresult.hpp 
   mscalibration.hpp 
-  mswatchions.hpp 
+  msmoltable.hpp 
   mslockmethod.hpp 
   mspeakinfoitem.hpp 
   msproperty.hpp 

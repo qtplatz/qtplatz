@@ -31,12 +31,12 @@
 #include "peak.hpp"
 #include "baseline.hpp"
 #include "plotcurve.hpp"
+#include "seriesdata.hpp"
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
 #include <qwt_symbol.h>
-#include "seriesdata.hpp"
 #include <adcontrols/trace.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/peakresult.hpp>
@@ -53,6 +53,7 @@
 #include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/variant.hpp>
+#include <QDebug>
 #include <queue>
 #include <memory>
 
@@ -442,7 +443,8 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
         for ( auto& trace: impl_->traces_ ) {
             if ( ! boost::apply_visitor( isNull(), trace ) && ( boost::apply_visitor( yAxis_visitor(), trace ) != yAxis ) ) {
                 QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
-                rc = QRectF( QPointF( std::min( rc.left(), rect.left() ), rc.top() ), QPointF( std::max( rc.right(), rect.right() ), rc.bottom() ) );
+                rc = QRectF( QPointF( std::min( rc.left(), rect.left() ), rc.top() )
+                             , QPointF( std::max( rc.right(), rect.right() ), rc.bottom() ) );
             }
         }
 
@@ -491,27 +493,18 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
     plotAnnotations( impl_->peak_annotations_ );
     
     QRectF rect = trace->boundingRect();
-    std::pair< double, double > horizontal( std::make_pair( rect.left(), rect.right() ) );
-    std::pair< double, double > vertical( std::make_pair( rect.bottom(), rect.top() ) );
-    
+
     for ( const auto& v: impl_->traces_ ) {
-        if ( boost::apply_visitor( isValid< ChromatogramData >(), v ) ) {
+        if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
             auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
-            if ( trace->y2() == yRight ) {
-                QRectF rc = trace->boundingRect();
-                horizontal.first = std::min( horizontal.first, rc.left() );
-                horizontal.second = std::max( horizontal.second, rc.right() );
-                vertical.first = std::min( vertical.first, rc.bottom() );
-                vertical.second = std::max( vertical.second, rc.top() );
-            }
+            if ( trace->y2() == yRight )
+                rect |= trace->boundingRect();
         }
     }
-    double h = vertical.second - vertical.first;
-    vertical.first -= h * 0.05;
-    vertical.second += h * 0.10;
-    
-    setAxisScale( QwtPlot::xBottom, horizontal.first, horizontal.second );
-    setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, vertical.first, vertical.second );
+
+    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+    setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft
+                  , rect.top() + rect.height() * 0.05, rect.bottom() - rect.height() * 0.05 );
 
     zoomer()->setZoomBase(); // zoom base set to data range
 }

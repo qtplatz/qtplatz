@@ -309,7 +309,7 @@ Node::removeAttachment( const std::wstring& name )
 {
 	std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
 
-    ADDEBUG() << "Node::removeAttachment(" << query << ")";
+    // ADDEBUG() << "Node::removeAttachment(" << query << ")";
     
     try {
         pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
