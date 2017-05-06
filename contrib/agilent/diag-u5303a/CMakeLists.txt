@@ -7,10 +7,6 @@ if ( WIN32 )
   add_definitions( -D_SCL_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS )
   set( IVIROOTDIR "C:/Program Files/IVI Foundation/IVI" )
   set( VXIPNPPATH "C:/Program Files/IVI Foundation/VISA" )
-  include_directories(  ${IVIROOTDIR}/Include  )
-  find_library( AgMD2_LIBRARY AgMD2 ${IVIROOTDIR}/Lib_x64/msc )
-else()
-  set( AgMD2_LIBRARY "AgMD2" )
 endif()
 
 include_directories(
@@ -37,8 +33,8 @@ target_link_libraries( ${PROJECT_NAME}
   adcontrols
   acqrscontrols
   dgpio
+  ${AgMD2_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${AgMD2_LIBRARY}
   ${DL} )
 
 

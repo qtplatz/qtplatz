@@ -142,7 +142,7 @@ else()
 endif()  
 
 if ( MSVC )
-  add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 -wd4996 -d4348 )
+  add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 -wd4996 -wd4348 )
 endif()
 
 if ( APPLE )

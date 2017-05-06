@@ -6,7 +6,7 @@ project( adcontrols )
 add_definitions(-DADCONTROLS_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-  add_definitions( -wd4251 -wd4244 -wd4348 )
+  add_definitions( -wd4251 -wd4244 )
 endif()
 
 add_library( adcontrols SHARED
