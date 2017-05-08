@@ -493,18 +493,19 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
     plotAnnotations( impl_->peak_annotations_ );
     
     QRectF rect = trace->boundingRect();
-
     for ( const auto& v: impl_->traces_ ) {
         if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
             auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( v );
-            if ( trace->y2() == yRight )
+            if ( trace->y2() == yRight ) {
                 rect |= trace->boundingRect();
+            }
         }
     }
 
+
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft
-                  , rect.top() + rect.height() * 0.05, rect.bottom() - rect.height() * 0.05 );
+                  , rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );
 
     zoomer()->setZoomBase(); // zoom base set to data range
 }
