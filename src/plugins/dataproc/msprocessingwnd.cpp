@@ -104,11 +104,12 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
 #include "selchanged.hpp"
-#include <sstream>
+#include <algorithm>
 #include <array>
-#include <numeric>
 #include <complex>
 #include <functional>
+#include <numeric>
+#include <sstream>
 
 using namespace dataproc;
 
@@ -733,6 +734,16 @@ MSProcessingWnd::handleFormulaChanged( int idx, int fcn )
 void
 MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
 {
+    if ( auto ms = pProcessedSpectrum_.second.lock() ) {
+
+        if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+            std::vector< std::pair< int, int> > crefs( refs.size() );
+            std::transform( refs.begin(), refs.end(), crefs.begin(), []( const auto& a ){ return std::make_pair( a.first, a.second ); } );
+            if ( dp->estimateScanLaw( ms, crefs ) )
+                return;
+        }
+    }
+
     estimateScanLaw( adcontrols::iids::adspectrometer_uuid );
 }
 
@@ -1135,7 +1146,8 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 
     menu.addAction( tr( "Save as SVG File..." ), [&]{
             QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
-                                                         , MainWindow::makePrintFilename( idSpectrumFolium_, L"_processed_" ), tr("SVG (*.svg)") );
+                                                         , MainWindow::makePrintFilename( idSpectrumFolium_, L"_processed_" )
+                                                         , tr("SVG (*.svg)") );
             if ( ! name.isEmpty() )
                 adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );                
         });

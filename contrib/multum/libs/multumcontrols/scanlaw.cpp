@@ -253,3 +253,17 @@ ScanLaw::gateOffsetLength() const
 {
     return gateOffset_;
 }
+
+void
+ScanLaw::setLength( int id, double length )
+{
+    if ( id < dimension_.size() )
+        dimension_[ id ] = length;
+}
+
+double
+ScanLaw::length( int id ) const
+{
+   if ( id < dimension_.size() )
+        return dimension_[ id ];
+}

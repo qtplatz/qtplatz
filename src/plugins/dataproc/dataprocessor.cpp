@@ -289,7 +289,7 @@ Dataprocessor::open(const QString &filename, QString& emsg )
     emsg = QString::fromStdWString( msg );
     return false;
 }
-
+	
 QString
 Dataprocessor::qfilename() const
 {

@@ -439,3 +439,15 @@ dataprocessor::addContextMenu( ContextID context
                                                      , isTime );
 }
 
+bool
+dataprocessor::estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum > ms
+                                , const std::vector<std::pair<int, int> > & refs )
+{
+    if ( auto sp = massSpectrometer() )
+        return ProcessMediator::instance()->estimateScanLaw( sp->objclsid()
+                                                             , this->shared_from_this()
+                                                             , ms
+                                                             , refs );
+
+    return false;
+}

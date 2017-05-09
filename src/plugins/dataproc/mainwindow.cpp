@@ -188,7 +188,7 @@ namespace dataproc {
         check_state_changed_connector( QObject * p ) : this_(p) {}
         template< class T > bool operator () ( T* wnd ) const {
             return 
-                this_->connect( SessionManager::instance(), &SessionManager::signalCheckStateChanged, wnd //( Dataprocessor*, portfolio::Folium&, bool ) )
+                this_->connect( SessionManager::instance(), &SessionManager::signalCheckStateChanged, wnd
                                 , [=]( Dataprocessor* dp, portfolio::Folium& f, bool st ){ wnd->handleCheckStateChanged( dp, f, st ); });
         }
     };
@@ -601,7 +601,9 @@ MainWindow::createDockWidgets()
 
             if ( widget.pageName == "TOFPeaks" ) {
                 // TOFPeaks
-                connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) ), pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
+                connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) )
+                         , pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
+
                 adplugin::LifeCycleAccessor accessor( pWidget );
                 if ( adplugin::LifeCycle * p = accessor.get() ) {
                     if ( auto wnd = findChild< MSPeaksWnd *>() ) {
@@ -611,25 +613,28 @@ MainWindow::createDockWidgets()
             }
 
             if ( qobject_cast< adwidgets::CentroidForm * >( pWidget ) == nullptr &&
-                 qobject_cast<adwidgets::MSSimulatorWidget *>( pWidget ) == nullptr &&
-                 qobject_cast<adwidgets::TargetingWidget *>( pWidget ) == nullptr &&
-                 qobject_cast<adwidgets::MSChromatogramWidget *>( pWidget ) == nullptr &&
-                 qobject_cast<adwidgets::PeakMethodForm *>( pWidget ) == nullptr &&
-                 qobject_cast<adwidgets::MSCalibrateWidget *>( pWidget ) == nullptr &&
-                 qobject_cast<dataproc::MSPropertyForm *>( pWidget ) == nullptr &&
-                 qobject_cast<adwidgets::MSPeakWidget *>( pWidget ) == nullptr ) {
+                 qobject_cast< adwidgets::MSSimulatorWidget *>( pWidget ) == nullptr &&
+                 qobject_cast< adwidgets::TargetingWidget *>( pWidget ) == nullptr &&
+                 qobject_cast< adwidgets::MSChromatogramWidget *>( pWidget ) == nullptr &&
+                 qobject_cast< adwidgets::PeakMethodForm *>( pWidget ) == nullptr &&
+                 qobject_cast< adwidgets::MSCalibrateWidget *>( pWidget ) == nullptr &&
+                 qobject_cast< dataproc::MSPropertyForm *>( pWidget ) == nullptr &&
+                 qobject_cast< adwidgets::MSPeakWidget *>( pWidget ) == nullptr ) {
 
                 // all MSPeakTable variants 
                 if ( auto wnd = findChild< MSProcessingWnd *>() ) {
                     connect( pWidget, SIGNAL( currentChanged( int, int ) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
                     connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
-                    connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
-                    connect( pWidget, SIGNAL( estimateScanLaw( const QVector<QPair<int, int>>& ) ), wnd, SLOT( handleScanLawEst( const QVector<QPair<int, int>>& ) ) );
+                    connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) )
+                             , wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
+                    connect( pWidget, SIGNAL( estimateScanLaw( const QVector<QPair<int, int>>& ) )
+                             , wnd, SLOT( handleScanLawEst( const QVector<QPair<int, int>>& ) ) );
                 }
                 connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
 
                 if ( qobject_cast<adwidgets::MSPeakTable *>( pWidget ) == nullptr )
-                    connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) ), pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
+                    connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) )
+                             , pWidget, SLOT( handleZoomedOnChromatogram( const QRectF& ) ) );
             }
 
             if ( qobject_cast< dataproc::MSPropertyForm * >( pWidget ) == nullptr &&

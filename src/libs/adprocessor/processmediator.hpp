@@ -60,12 +60,19 @@ namespace adprocessor {
                                                , std::shared_ptr< const adcontrols::MassSpectrum >
                                                , const std::pair< double, double >&, bool isTime ) > addContextMenu_t;
 
+        typedef boost::signals2::signal< bool( std::shared_ptr< adprocessor::dataprocessor >
+                                               , std::shared_ptr< const adcontrols::MassSpectrum >
+                                               , const std::vector< std::pair< int, int > >& refs ) > estimateScanLaw_t;
+
         void onCreate( const boost::uuids::uuid&, std::shared_ptr< adprocessor::dataprocessor > );
         void onDestroy( const boost::uuids::uuid&, std::shared_ptr< adprocessor::dataprocessor > );
         
         boost::signals2::connection registerOnCreate( const boost::uuids::uuid&, onCreate_t::slot_type );
         boost::signals2::connection registerAddContextMenu( const boost::uuids::uuid&, addContextMenu_t::slot_type );
+        boost::signals2::connection registerEstimateScanLaw( const boost::uuids::uuid&, estimateScanLaw_t::slot_type );
 
+        void unregister( const boost::uuids::uuid& );
+        
         void addContextMenu( const boost::uuids::uuid&
                              , std::shared_ptr< adprocessor::dataprocessor >
                              , ContextID
@@ -74,11 +81,15 @@ namespace adprocessor {
                              , const std::pair< double, double >&
                              , bool isTime );
 
-        void unregister( const boost::uuids::uuid& );
+        bool estimateScanLaw( const boost::uuids::uuid&
+                              , std::shared_ptr< adprocessor::dataprocessor >
+                              , std::shared_ptr< const adcontrols::MassSpectrum >
+                              , const std::vector< std::pair< int, int > >& );
         
     private:
-        std::map< boost::uuids::uuid, addContextMenu_t > addContextMenu_;
         std::map< boost::uuids::uuid, onCreate_t > onCreate_;
+        std::map< boost::uuids::uuid, addContextMenu_t > addContextMenu_;
+        std::map< boost::uuids::uuid, estimateScanLaw_t > estimateScanLaw_;
     };
 
 }

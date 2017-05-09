@@ -90,6 +90,9 @@ namespace multumcontrols {
 
         void setGateOffsetLength( double );
         double gateOffsetLength() const;
+
+        void setLength( int, double );
+        double length( int ) const;
     };
 
     namespace infitof {

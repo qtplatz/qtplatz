@@ -54,6 +54,12 @@ ProcessMediator::registerAddContextMenu( const boost::uuids::uuid& uuid, addCont
     return addContextMenu_[ uuid ].connect( slot );
 }
 
+boost::signals2::connection
+ProcessMediator::registerEstimateScanLaw( const boost::uuids::uuid& uuid, estimateScanLaw_t::slot_type slot )
+{
+    return estimateScanLaw_[ uuid ].connect( slot );
+}
+
 void
 ProcessMediator::onCreate( const boost::uuids::uuid& uuid, std::shared_ptr< adprocessor::dataprocessor > dp )
 {
@@ -71,6 +77,13 @@ ProcessMediator::onDestroy( const boost::uuids::uuid& uuid, std::shared_ptr< adp
 }
 
 void
+ProcessMediator::unregister( const boost::uuids::uuid& uuid )
+{
+    addContextMenu_.erase( uuid );
+    onCreate_.erase( uuid );
+}
+
+void
 ProcessMediator::addContextMenu( const boost::uuids::uuid& uuid
                                  , std::shared_ptr< adprocessor::dataprocessor > dp
                                  , ContextID context
@@ -85,9 +98,19 @@ ProcessMediator::addContextMenu( const boost::uuids::uuid& uuid
         it->second( dp, context, menu, ms, range, isTime );
 }
 
-void
-ProcessMediator::unregister( const boost::uuids::uuid& uuid )
+bool
+ProcessMediator::estimateScanLaw( const boost::uuids::uuid& uuid
+                                  , std::shared_ptr< adprocessor::dataprocessor > dp
+                                  , std::shared_ptr< const adcontrols::MassSpectrum > ms
+                                  , const std::vector< std::pair< int, int > >& refs )
 {
-    addContextMenu_.erase( uuid );
-    onCreate_.erase( uuid );
+    auto it = estimateScanLaw_.find( uuid );
+
+    if ( it != estimateScanLaw_.end() ) {
+        boost::optional<bool> result = it->second( dp, ms, refs );
+        return result.get();
+    }
+
+    return false;
 }
+
