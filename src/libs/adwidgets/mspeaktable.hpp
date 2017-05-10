@@ -76,6 +76,8 @@ namespace adwidgets {
 
         virtual int findColumn( const QString& name ) const;
 
+        virtual void addContextMenu( QMenu&, const QPoint&, std::shared_ptr< const adcontrols::MassSpectrum > ) const;
+
     protected:
         // reimplement QTableView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;

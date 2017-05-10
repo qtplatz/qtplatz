@@ -35,6 +35,7 @@
 #include "dataprocessorfactory.hpp"
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
+#include "mspeaktable.hpp"
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"
@@ -73,7 +74,6 @@
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/peptidewidget.hpp>
 #include <adwidgets/targetingwidget.hpp>
-#include <adwidgets/mspeaktable.hpp>
 #include <adwidgets/mscalibratewidget.hpp>
 #include <adwidgets/mschromatogramwidget.hpp>
 #include <adwidgets/peakmethodform.hpp>
@@ -108,7 +108,6 @@
 #include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
-//#include <QCheckBox>
 #include <QComboBox>
 #include <QPushButton>
 #include <QDir>
@@ -579,7 +578,7 @@ MainWindow::createDockWidgets()
 
     std::vector< widget > widgets = {
         { tr( "Centroid" ), "CentroidMethod", [] (){ return new adwidgets::CentroidForm; } } // should be first
-        , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new adwidgets::MSPeakTable; } }
+        , { tr( "MS Peaks" ), "MSPeakTable", [] () { return new dataproc::MSPeakTable; } }
         , { tr( "MS Simulator" ), "MSSimulatorMethod", [] () { return new adwidgets::MSSimulatorWidget; } }
         , { tr( "Targeting" ), "TargetingMethod", [] () { return new adwidgets::TargetingWidget; } }
         , { tr( "MS Chromatogr." ), "MSChromatogrMethod", [] (){ return new adwidgets::MSChromatogramWidget; } }

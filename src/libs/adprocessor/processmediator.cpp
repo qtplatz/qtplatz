@@ -29,6 +29,7 @@ using namespace adprocessor;
 
 ProcessMediator::ProcessMediator()
 {
+    // ProcessReactor::instance()->initialSetup();
 }
     
 ProcessMediator::~ProcessMediator()

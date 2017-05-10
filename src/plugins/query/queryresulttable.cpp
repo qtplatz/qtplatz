@@ -236,9 +236,9 @@ QueryResultTable::model()
 }
 
 void
-QueryResultTable::addActionsToMenu( QMenu& menu, const QPoint& pt )
+QueryResultTable::addActionsToContextMenu( QMenu& menu, const QPoint& pt ) const
 {
-    adwidgets::TableView::addActionsToMenu( menu, pt );
+    adwidgets::TableView::addActionsToContextMenu( menu, pt );
     menu.addAction( tr( "Plot..." ), this, SLOT( handlePlot() ) );
 }
 

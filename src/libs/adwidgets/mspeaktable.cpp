@@ -732,9 +732,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
             rows.insert( index.row() ); // make unique row list
         
         //----------- gather references ----------
-        std::ostringstream o;
-        o << "Lock mass with ";
-
+        QString formulae = "Lock mass with ";
         QVector< QPair<int, int> > refs;
 
         for ( int row: rows ) {
@@ -742,10 +740,7 @@ MSPeakTable::showContextMenu( const QPoint& pt )
             QString formula = model.data( model.index( row, c_mspeaktable_formula ) ).toString();
 
             if ( ! formula.isEmpty() ) {
-                if ( !refs.isEmpty() )
-                    o << ", ";
-                o << formula.toStdString();
-
+                formulae += QString( (refs.isEmpty() ? "%1" : ", %1") ).arg( formula );
                 int idx = model.data( model.index( row, c_mspeaktable_index ) ).toInt();
                 int fcn = model.data( model.index( row, c_mspeaktable_fcn ) ).toInt();
                 
@@ -754,7 +749,10 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         }
 
         //------------ lock mass
-        menu.addAction( QString::fromStdString( o.str() ), [=](){ impl_->callback_( lockmass_triggered, refs ); } );
+        if ( impl_->callback_.empty() )
+            menu.addAction( formulae, [=](){ emit triggerLockMass( refs ); } );
+        else
+            menu.addAction( formulae, [=](){ impl_->callback_( lockmass_triggered, refs ); } ); // for SpectrogramWnd
 
         //------------ scan law estimation
         menu.addAction( "Estimate scan law...", [=](){ emit estimateScanLaw( refs ); }  );
@@ -762,7 +760,13 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         //------------ Copy assigned 
         menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );
 
-        addActionsToMenu( menu, pt );
+        //-- add dataprocessor dependent menu --
+        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
+        addContextMenu( menu, pt, wptr.lock() );
+
+        menu.addSeparator();
+        //-- add base TableView's menu --
+        addActionsToContextMenu( menu, pt );
 
         menu.exec( this->mapToGlobal( pt ) );
     }
@@ -1099,3 +1103,7 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
 
 }
 
+void
+MSPeakTable::addContextMenu(QMenu &, const QPoint &, std::shared_ptr<const adcontrols::MassSpectrum>) const
+{
+}

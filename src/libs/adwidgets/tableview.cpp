@@ -154,7 +154,7 @@ TableView::handleDeleteSelection()
 }
 
 void
-TableView::addActionsToMenu( QMenu& menu, const QPoint& )
+TableView::addActionsToContextMenu( QMenu& menu, const QPoint& ) const
 {
     menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
     menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
@@ -164,7 +164,7 @@ void
 TableView::contextMenuEvent( QContextMenuEvent * event )
 {
     QMenu menu;
-    addActionsToMenu( menu, event->pos() );
+    addActionsToContextMenu( menu, event->pos() );
     menu.exec( event->globalPos() );
 }
 

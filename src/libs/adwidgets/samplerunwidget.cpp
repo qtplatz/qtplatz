@@ -145,16 +145,16 @@ namespace adwidgets {
     private:
         QStandardItemModel * model_;
         bool inProgress_;
-        QModelIndex menuIndex_;
+        // QModelIndex menuIndex_;
 
         // TableView
-        void addActionsToMenu( QMenu& menu, const QPoint& pt ) override {
-            menuIndex_ = indexAt( pt );
+        void addActionsToContextMenu( QMenu& menu, const QPoint& pt ) const override {
+            auto menuIndex = indexAt( pt );
             menu.addAction( tr( "Set default" ), this, SLOT( setDefault() ) );
-            auto action = menu.addAction( tr( "Find directory" ), this, SLOT( findDirectory() ) );
-            if ( !(menuIndex_.column() == 1 && menuIndex_.row() == 2) )
+            auto action = menu.addAction( tr( "Find directory" ), this, SLOT( findDirectory( QModelIndex& menuIndex ) ) );
+            if ( !(menuIndex.column() == 1 && menuIndex.row() == 2) )
                 action->setEnabled( false );
-            TableView::addActionsToMenu( menu, pt );
+            TableView::addActionsToContextMenu( menu, pt );
         }
 
     signals:
@@ -169,13 +169,13 @@ namespace adwidgets {
                 model.itemFromIndex( model.index( row, c_item_value ) )->setBackground( QColor( Qt::yellow ) );
         }
 
-        void findDirectory() {
-            if ( menuIndex_.isValid() && menuIndex_.column() == 1 && menuIndex_.row() == 2 ) {
-                QString dir = menuIndex_.data().toString();
+        void findDirectory( const QModelIndex& menuIndex ) {
+            if ( menuIndex.isValid() && menuIndex.column() == 1 && menuIndex.row() == 2 ) {
+                QString dir = menuIndex.data().toString();
                 dir = QFileDialog::getExistingDirectory( this, "Data save in:", dir );
-                model_->setData( menuIndex_, dir );
+                model_->setData( menuIndex, dir );
             }
-            menuIndex_ = QModelIndex();
+            // menuIndex_ = QModelIndex();
         }
 
         void setDefault() {
@@ -185,7 +185,7 @@ namespace adwidgets {
             path /= "data";
             path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
             model_->setData( model_->index( 2, 1 ), QString::fromStdWString( path.wstring() ) );
-            menuIndex_ = QModelIndex();
+            // menuIndex_ = QModelIndex();
 
             ADDEBUG() << "setDefault(" << path.string() << ")";
         }

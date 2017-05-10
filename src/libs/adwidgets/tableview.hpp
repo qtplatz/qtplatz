@@ -45,7 +45,8 @@ namespace adwidgets {
         void setAllowDelete( bool f ) { allowDelete_ = f; }
 
         virtual void handleDeleteSelection();
-        virtual void addActionsToMenu( QMenu&, const QPoint& );
+
+        virtual void addActionsToContextMenu( QMenu&, const QPoint& ) const;
 
         void contextMenuEvent( QContextMenuEvent * ) override;
 

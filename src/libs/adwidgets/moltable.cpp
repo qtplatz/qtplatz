@@ -489,7 +489,7 @@ MolTable::handleContextMenu( const QPoint& pt )
     actions.push_back( std::make_pair( menu.addAction( "Enable all" ), [=](){ enable_all( true ); }) );
     actions.push_back( std::make_pair( menu.addAction( "Disable all" ), [=](){ enable_all( false ); }) );
 
-    TableView::addActionsToMenu( menu, pt );
+    TableView::addActionsToContextMenu( menu, pt );
 
     if ( QAction * selected = menu.exec( mapToGlobal( pt ) ) ) {
         auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){

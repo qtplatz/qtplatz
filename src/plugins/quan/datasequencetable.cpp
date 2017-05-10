@@ -436,7 +436,7 @@ DataSequenceTable::handleContextMenu( const QPoint& pt )
             delete_action->setEnabled( false );        
     }
 
-    TableView::addActionsToMenu( menu, pt );
+    TableView::addActionsToContextMenu( menu, pt );
     
     menu.exec( this->mapToGlobal( pt ) );
 }

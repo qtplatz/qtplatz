@@ -52,6 +52,7 @@ namespace adprocessor {
     enum ContextID {
         ContextMenuOnProfileMS
         , ContextMenuOnProcessedMS
+        , ContextMenuOnMSPeakTable
     };
 
     class ADPROCESSORSHARED_EXPORT dataprocessor : public std::enable_shared_from_this< dataprocessor >

@@ -252,7 +252,7 @@ MSReferenceTable::handleContextMenu(const QPoint &pt)
 {
     QMenu menu;
 
-    addActionsToMenu( menu, pt );
+    addActionsToContextMenu( menu, pt );
     
     struct action_type { QAction * first; std::function<void()> second; };
         

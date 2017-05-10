@@ -225,7 +225,7 @@ ControlMethodTable::showContextMenu( const QPoint& pt )
 
     QAction * import_init = menu.addAction( "Import Inital Condition" );
 
-    TableView::addActionsToMenu( menu, pt );
+    TableView::addActionsToContextMenu( menu, pt );
     
     if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
         if ( selected == delete_action )

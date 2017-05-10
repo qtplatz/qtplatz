@@ -50,7 +50,7 @@ namespace query {
         explicit QueryResultTable(QWidget *parent = 0);
 
         // adwidgets::TableView
-        void addActionsToMenu( QMenu& menu, const QPoint& ) override;
+        void addActionsToContextMenu( QMenu& menu, const QPoint& ) const override;
         //
 
         void setQuery( const QSqlQuery&, std::shared_ptr< QueryConnection > );

@@ -86,6 +86,8 @@ add_library( ${PROJECT_NAME} MODULE
   dialogspectrometerchoice.cpp
   filepropertywidget.cpp
   mspeakswnd.cpp
+  mspeaktable.cpp
+  mspeaktable.hpp
   spectrogramwnd.cpp
   ipeptidehandlerimpl.cpp
   aboutdlg.hpp

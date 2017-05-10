@@ -11,18 +11,12 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 include_directories(
+  ${CMAKE_SOURCE_DIR}/src/adplugins
   ${QWT_INCLUDE_DIR}
-  ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5Sql_INCLUDE_DIRS}  
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 
 add_definitions(-DADPROCESSOR_LIBRARY)
-if ( MSVC )
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251" )
-endif()
 
 add_library( ${PROJECT_NAME} SHARED
   dataprocessor.hpp
@@ -41,6 +35,7 @@ add_library( ${PROJECT_NAME} SHARED
 target_link_libraries( adprocessor LINK_PUBLIC
   adcontrols
   adfs
+  adwidgets
   portfolio
   ${Boost_LIBRARIES}
   )
