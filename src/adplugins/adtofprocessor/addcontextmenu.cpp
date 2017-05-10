@@ -48,7 +48,7 @@ AddContextMenu::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
     if ( ( context == adprocessor::ContextMenuOnProcessedMS ) ||
          ( context == adprocessor::ContextMenuOnMSPeakTable ) )   {
 
-        menu.addAction( QObject::tr( "Calibrate 'scan law'" ), [=](){ CalibScanLaw()( dp, ms, range, isTime ); } );
+        menu.addAction( QObject::tr( "Calibrate for 'time squared scan law'" ), [=](){ CalibScanLaw()( dp, ms, range, isTime ); } );
 
     }
 }

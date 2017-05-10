@@ -30,6 +30,7 @@ using namespace adtofprocessor;
     
 OnCreate::OnCreate()
 {
+    ADDEBUG() << "##### OnCreate ctor";
 }
 
 OnCreate::~OnCreate()

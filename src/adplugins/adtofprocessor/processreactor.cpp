@@ -29,6 +29,7 @@
 #include "oncreate.hpp"
 #include <adprocessor/processmediator.hpp>
 #include <adspectrometer/massspectrometer.hpp>
+#include <adportable/debug.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace adtofprocessor;

@@ -750,6 +750,7 @@ MSProcessingWnd::handleScanLawEst( const QVector< QPair<int, int> >& refs )
 void
 MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
 {
+    // this will be relocate into 'CalibScanLaw' class defined in adtofprocessor
     adwidgets::ScanLawDialog2 dlg;
         
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
