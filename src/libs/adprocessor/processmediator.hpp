@@ -38,6 +38,11 @@ class QMenu;
 
 namespace adcontrols {
     class MassSpectrum;
+    class ProcessMethod;
+}
+
+namespace portfolio {
+    class Folium;
 }
 
 namespace adprocessor {
@@ -51,7 +56,7 @@ namespace adprocessor {
     public:
         virtual ~ProcessMediator();
         static ProcessMediator * instance();
-        
+
         typedef boost::signals2::signal< void( std::shared_ptr< adprocessor::dataprocessor >, bool ) > onCreate_t;
 
         typedef boost::signals2::signal< void( std::shared_ptr< adprocessor::dataprocessor >
@@ -60,20 +65,30 @@ namespace adprocessor {
                                                , std::shared_ptr< const adcontrols::MassSpectrum >
                                                , const std::pair< double, double >&, bool isTime ) > addContextMenu_t;
 
+        typedef boost::signals2::signal< void( std::shared_ptr< adprocessor::dataprocessor >
+                                               , ContextID
+                                               , QMenu&
+                                               , const portfolio::Folium& ) > addContextMenu2_t;
+
         typedef boost::signals2::signal< bool( std::shared_ptr< adprocessor::dataprocessor >
                                                , std::shared_ptr< const adcontrols::MassSpectrum >
                                                , const std::vector< std::pair< int, int > >& refs ) > estimateScanLaw_t;
+
+        typedef boost::signals2::signal< void( adcontrols::ProcessMethod& ) > processMethodProvider_t;
 
         void onCreate( const boost::uuids::uuid&, std::shared_ptr< adprocessor::dataprocessor > );
         void onDestroy( const boost::uuids::uuid&, std::shared_ptr< adprocessor::dataprocessor > );
         
         boost::signals2::connection registerOnCreate( const boost::uuids::uuid&, onCreate_t::slot_type );
         boost::signals2::connection registerAddContextMenu( const boost::uuids::uuid&, addContextMenu_t::slot_type );
+        boost::signals2::connection registerAddContextMenu2( const boost::uuids::uuid&, addContextMenu2_t::slot_type );
         boost::signals2::connection registerEstimateScanLaw( const boost::uuids::uuid&, estimateScanLaw_t::slot_type );
+
+        boost::signals2::connection registerProcessMethodProvider( processMethodProvider_t::slot_type );
 
         void unregister( const boost::uuids::uuid& );
         
-        void addContextMenu( const boost::uuids::uuid&
+        void addContextMenu( const boost::uuids::uuid& /* mass spectrometer uuid */
                              , std::shared_ptr< adprocessor::dataprocessor >
                              , ContextID
                              , QMenu&
@@ -81,15 +96,25 @@ namespace adprocessor {
                              , const std::pair< double, double >&
                              , bool isTime );
 
+        void addContextMenu( const boost::uuids::uuid& /* mass spectrometer uuid */
+                             , std::shared_ptr< adprocessor::dataprocessor >
+                             , ContextID
+                             , QMenu&
+                             , const portfolio::Folium& );
+        
         bool estimateScanLaw( const boost::uuids::uuid&
                               , std::shared_ptr< adprocessor::dataprocessor >
                               , std::shared_ptr< const adcontrols::MassSpectrum >
                               , const std::vector< std::pair< int, int > >& );
         
+        std::shared_ptr< adcontrols::ProcessMethod > getProcessMethod();
+        
     private:
         std::map< boost::uuids::uuid, onCreate_t > onCreate_;
         std::map< boost::uuids::uuid, addContextMenu_t > addContextMenu_;
+        std::map< boost::uuids::uuid, addContextMenu2_t > addContextMenu2_;
         std::map< boost::uuids::uuid, estimateScanLaw_t > estimateScanLaw_;
+        processMethodProvider_t processMethodProvider_;
     };
 
 }

@@ -439,6 +439,19 @@ dataprocessor::addContextMenu( ContextID context
                                                      , isTime );
 }
 
+void
+dataprocessor::addContextMenu( ContextID context
+                               , QMenu& menu
+                               , const portfolio::Folium& folium )
+{
+    if ( auto sp = massSpectrometer() )
+        ProcessMediator::instance()->addContextMenu( sp->objclsid()
+                                                     , this->shared_from_this()
+                                                     , context
+                                                     , menu
+                                                     , folium );
+}
+
 bool
 dataprocessor::estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum > ms
                                 , const std::vector<std::pair<int, int> > & refs )

@@ -57,7 +57,7 @@ void
 ProcessReactor::initialSetup()
 {
     adprocessor::ProcessMediator::instance()->registerOnCreate( clsid_, *onCreate_ );
-    adprocessor::ProcessMediator::instance()->registerAddContextMenu( clsid_, *addContextMenu_ );
+    adprocessor::ProcessMediator::instance()->registerAddContextMenu2( clsid_, *addContextMenu_ );
     adprocessor::ProcessMediator::instance()->registerEstimateScanLaw( clsid_, *estimateScanLaw_ );
 }
 

@@ -260,7 +260,7 @@ void
 DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 {
 	emit onApplyMethod( m );
-}
+}	
 
 void
 DataprocPlugin::extensionsInitialized()

@@ -59,6 +59,7 @@
 #include <adextension/ieditorfactory_t.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/iwidgetfactory.hpp>
+#include <adlog/logger.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adplugin_manager/manager.hpp>
@@ -66,7 +67,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/utf.hpp>
-#include <adlog/logger.hpp>
+#include <adprocessor/processmediator.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
@@ -282,11 +283,13 @@ MainWindow::createStyledBarTop()
                 am->registerAction( p, "dataproc.selChromatogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelChromatogram ) ) );
             }
+#if 0
             if ( auto p = new QAction( tr("TOF Plots"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSPeaks ); } );
                 am->registerAction( p, "dataproc.selTOFPlots", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSPeaks ) ) );
             }
+#endif
 
             if ( auto p = new QAction( tr("Spectrogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
@@ -585,7 +588,7 @@ MainWindow::createDockWidgets()
         , { tr( "Peak Find" ), "PeakFindMethod", [] () { return new adwidgets::PeakMethodForm; } }
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] () { return new adwidgets::MSCalibrateWidget; } }
         , { tr( "Data property" ), "DataProperty", [] () { return new dataproc::MSPropertyForm; } }
-        , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
+        // , { tr( "TOF Peaks" ), "TOFPeaks", [] (){ return new adwidgets::MSPeakWidget; } }
     };
 
     auto list = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iDataproc >();
@@ -922,6 +925,10 @@ MainWindow::OnInitialUpdate()
         document::instance()->setProcessMethod( m );
     }
     connect( document::instance(), &document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
+
+    adprocessor::ProcessMediator::instance()->registerProcessMethodProvider( [this]( adcontrols::ProcessMethod& pm ){
+            getProcessMethod( pm );
+        } );
 
     setSimpleDockWidgetArrangement();
 

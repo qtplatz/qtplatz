@@ -40,7 +40,13 @@ namespace adtofprocessor {
                          , adprocessor::ContextID
                          , QMenu&
                          , std::shared_ptr< const adcontrols::MassSpectrum >
-                         , const std::pair< double, double >&, bool isTime );
+                         , const std::pair< double, double >&
+                         , bool isTime );
+
+        void operator()( std::shared_ptr< adprocessor::dataprocessor >
+                         , adprocessor::ContextID
+                         , QMenu&
+                         , const portfolio::Folium& );
 
     };
 

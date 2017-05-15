@@ -847,7 +847,7 @@ DataReader::readSpectrum( const_iterator& it ) const
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );
 
-    ADDEBUG() << "readSpectrum( rowid=" << it->rowid() << " ) " << objid_;
+    // ADDEBUG() << "readSpectrum( rowid=" << it->rowid() << " ) " << objid_;
 
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
         if ( auto db = db_.lock() ) {
@@ -870,7 +870,7 @@ DataReader::readSpectrum( const_iterator& it ) const
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
 
-                ADDEBUG() << "\t---> readSpectrum( rowid=" << rowid << ", proto=" << proto << " )";
+                // ADDEBUG() << "\t---> readSpectrum( rowid=" << rowid << ", proto=" << proto << " )";
                 
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
@@ -883,7 +883,7 @@ DataReader::readSpectrum( const_iterator& it ) const
                             const auto& info = ptr->getMSProperty().samplingInfo();
                             double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
-                            ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
+                            // ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
                             ptr->setAcquisitionMassRange( lMass, uMass );
                         }
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
@@ -967,7 +967,7 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
             
             int fcn = begin._fcn(); // if this is -1, query all protocols
             
-            ADDEBUG() << "coaddSpectrum fcn=" << fcn << ", begin=" << begin->pos() << ", end=" << end->pos() << ", " << objid_;
+            // ADDEBUG() << "coaddSpectrum fcn=" << fcn << ", begin=" << begin->pos() << ", end=" << end->pos() << ", " << objid_;
 
             if ( fcn < 0 ) {
                 sql.prepare( "SELECT elapsed_time,fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND npos >= ? AND npos <= ? ORDER BY npos" );

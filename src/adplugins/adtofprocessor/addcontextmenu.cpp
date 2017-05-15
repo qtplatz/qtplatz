@@ -52,3 +52,12 @@ AddContextMenu::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
 
     }
 }
+
+void
+AddContextMenu::operator()( std::shared_ptr< adprocessor::dataprocessor >
+                            , adprocessor::ContextID
+                            , QMenu&
+                            , const portfolio::Folium& )
+{
+}
+

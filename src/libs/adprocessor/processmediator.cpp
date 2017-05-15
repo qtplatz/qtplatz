@@ -24,6 +24,7 @@
 
 #include "processmediator.hpp"
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/processmethod.hpp>
 
 using namespace adprocessor;
 
@@ -56,9 +57,21 @@ ProcessMediator::registerAddContextMenu( const boost::uuids::uuid& uuid, addCont
 }
 
 boost::signals2::connection
+ProcessMediator::registerAddContextMenu2( const boost::uuids::uuid& uuid, addContextMenu2_t::slot_type slot )
+{
+    return addContextMenu2_[ uuid ].connect( slot );
+}
+
+boost::signals2::connection
 ProcessMediator::registerEstimateScanLaw( const boost::uuids::uuid& uuid, estimateScanLaw_t::slot_type slot )
 {
     return estimateScanLaw_[ uuid ].connect( slot );
+}
+
+boost::signals2::connection
+ProcessMediator::registerProcessMethodProvider( processMethodProvider_t::slot_type slot )
+{
+    return processMethodProvider_.connect( slot );
 }
 
 void
@@ -94,10 +107,22 @@ ProcessMediator::addContextMenu( const boost::uuids::uuid& uuid
                                  , bool isTime )
 {
     auto it = addContextMenu_.find( uuid );
-
     if ( it != addContextMenu_.end() )
         it->second( dp, context, menu, ms, range, isTime );
 }
+
+void
+ProcessMediator::addContextMenu( const boost::uuids::uuid& uuid /* mass spectrometer uuid */
+                                 , std::shared_ptr< adprocessor::dataprocessor > dp
+                                 , ContextID context
+                                 , QMenu& menu
+                                 , const portfolio::Folium& folium )
+{
+    auto it = addContextMenu2_.find( uuid );
+    if ( it != addContextMenu2_.end() )
+        it->second( dp, context, menu, folium );
+}
+
 
 bool
 ProcessMediator::estimateScanLaw( const boost::uuids::uuid& uuid
@@ -115,3 +140,10 @@ ProcessMediator::estimateScanLaw( const boost::uuids::uuid& uuid
     return false;
 }
 
+std::shared_ptr< adcontrols::ProcessMethod >
+ProcessMediator::getProcessMethod()
+{
+    auto pm = std::make_shared< adcontrols::ProcessMethod >();
+    processMethodProvider_( *pm );
+    return pm;
+}

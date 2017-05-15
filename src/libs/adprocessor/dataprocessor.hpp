@@ -53,6 +53,7 @@ namespace adprocessor {
         ContextMenuOnProfileMS
         , ContextMenuOnProcessedMS
         , ContextMenuOnMSPeakTable
+        , ContextMenuOnNavigator
     };
 
     class ADPROCESSORSHARED_EXPORT dataprocessor : public std::enable_shared_from_this< dataprocessor >
@@ -90,7 +91,7 @@ namespace adprocessor {
                                  , adcontrols::MassSpectrum& centroid
                                  , const adcontrols::MassSpectrum& profile
                                  , const adcontrols::CentroidMethod& m );
-
+        
         virtual uint64_t countTimeCounts( const adcontrols::MassSpectrum&, double lMass, double uMass );
         
         // implement adcontrols::dataSubscriber
@@ -98,10 +99,8 @@ namespace adprocessor {
         virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
         virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
         // <----
-
-        virtual void addContextMenu( ContextID, QMenu&,
-                                     std::shared_ptr< const adcontrols::MassSpectrum >, const std::pair< double, double >&, bool isTime );
-
+        virtual void addContextMenu( ContextID, QMenu&, std::shared_ptr< const adcontrols::MassSpectrum >, const std::pair< double, double >&, bool isTime );
+        virtual void addContextMenu( ContextID, QMenu&, const portfolio::Folium& );
         virtual bool estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum >, const std::vector< std::pair<int, int> >& );
 
     private:

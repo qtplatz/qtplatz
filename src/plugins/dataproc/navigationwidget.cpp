@@ -581,12 +581,12 @@ namespace dataproc {
 
     enum ActionType { checkAll, unCheckAll, asProfile, asCentroid, doCalibration, removedChecked, asDFTProfile };
 
-    struct CheckState {
+    struct CheckAllFunctor {
         bool check;
         QStandardItemModel& model;
         QModelIndex index;
-        CheckState( bool f, QStandardItemModel& m, QModelIndex& idx ) : check( f ), model( m ), index( idx ) {};
-        void operator()( Dataprocessor * ) {
+        CheckAllFunctor( bool f, QStandardItemModel& m, QModelIndex& idx ) : check( f ), model( m ), index( idx ) {};
+        void operator()() {
             auto parent = model.itemFromIndex( index ); // ex. Spectra
             for ( int row = 0; row < parent->rowCount(); ++row ) {
                 if ( auto item = model.itemFromIndex( model.index( row, 0, parent->index() ) ) ) {
@@ -600,9 +600,10 @@ namespace dataproc {
     struct SaveSpectrumAs {
         ActionType idAction;
         portfolio::Folium folium;
-        SaveSpectrumAs( ActionType id, portfolio::Folium& f ) : idAction( id ), folium( f ) {}
+        Dataprocessor * processor;
+        SaveSpectrumAs( ActionType id, portfolio::Folium& f, Dataprocessor * p ) : idAction( id ), folium( f ), processor( p ) {}
 
-        void operator()( Dataprocessor * processor ) {
+        void operator()() {
 
             boost::filesystem::path path( processor->file()->filename() );
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
@@ -630,9 +631,11 @@ namespace dataproc {
 
     struct SaveChromatogramAs {
         portfolio::Folium folium;
-        SaveChromatogramAs( portfolio::Folium& f ) : folium( f )
+        Dataprocessor * processor;
+        
+        SaveChromatogramAs( portfolio::Folium& f, Dataprocessor * p ) : folium( f ), processor( p )
             {}
-        void operator()( Dataprocessor * processor ) {
+        void operator()() {
             
             boost::filesystem::path path( processor->file()->filename() );
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
@@ -658,48 +661,22 @@ namespace dataproc {
     };
     
     struct CalibrationAction {
-        CalibrationAction() {}
+        Dataprocessor * processor;
+        CalibrationAction( Dataprocessor * p ) : processor( p ) {}
 
-        void operator()( Dataprocessor * processor ) {
+        void operator()() {
             for ( auto& session : *SessionManager::instance() )
                 processor->sendCheckedSpectraToCalibration( session.processor() );
-        }
-    };
-
-    struct RemoveChecked {
-        NavigationWidget * navi;
-        RemoveChecked( NavigationWidget * nw ) : navi( nw ) {}
-        void operator()( Dataprocessor * processor ) const {
-            processor->removeCheckedItems();
-            navi->invalidateSession( processor );                
         }
     };
 
     struct BackgroundSubtraction {
         portfolio::Folium background;
         portfolio::Folium foreground;
-        BackgroundSubtraction( portfolio::Folium& back, portfolio::Folium& fore ) : background( back ), foreground( fore ) {}
-        void operator()( Dataprocessor * processor ) {
+        Dataprocessor * processor;
+        BackgroundSubtraction( portfolio::Folium& back, portfolio::Folium& fore, Dataprocessor * p ) : background( back ), foreground( fore ), processor( p ) {}
+        void operator()() {
             processor->subtract( foreground, background );
-        }
-    };
-
-    struct ContextMenu {
-        QMenu menu;
-        typedef std::pair< QAction *, std::function< void( Dataprocessor * ) > > pair_type;
-
-        std::vector < pair_type > actions;
-        QAction * add( const QString& text, std::function<void( Dataprocessor * )> f, bool enable = true ) {
-            QAction * pa = menu.addAction( text );
-            actions.push_back( std::make_pair( pa, f ) );
-            pa->setEnabled( enable );
-            return pa;
-        }
-
-        std::vector< pair_type >::iterator exec( QPoint globalPos ) {
-            if ( QAction * selected = menu.exec( globalPos ) )
-                return std::find_if( actions.begin(), actions.end(), [=]( const pair_type& t ){ return t.first == selected; });
-            return actions.end();
         }
     };
 }
@@ -710,7 +687,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 	QPoint globalPos = pTreeView_->mapToGlobal(pos);
 	QModelIndex index = pTreeView_->currentIndex();
 
-    ContextMenu menu;
+    //ContextMenu menu;
+    QMenu menu;
 
     if ( index.isValid() ) {
 
@@ -731,14 +709,14 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             if ( data.canConvert< portfolio::Folder >() ) {
 
                 if ( auto folder = data.value< portfolio::Folder >() ) {
-                    menu.add( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( false, *pModel_, index ) );
-                    menu.add( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckState( true, *pModel_, index ) );
+                    menu.addAction( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( false, *pModel_, index ) );
+                    menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( true, *pModel_, index ) );
                 }
                 
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
                 portfolio::Folium folium = data.value< portfolio::Folium >();
-            
+                
                 if ( (folium.parentFolder().name() == L"Spectra") ||
                     (folium.parentFolder().name() == L"MSCalibration") )  {
 
@@ -753,59 +731,70 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 return a.name() == Constants::F_CENTROID_SPECTRUM;
                             } );
                         bool hasCentroid = itCentroid != atts.end();
+
                         auto itFiltered = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_DFT_FILTERD;
                             } );
                         bool hasFilterd = itFiltered != atts.end();
 
-                        menu.add( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium ), isSpectrum );
+                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, processor ) ) ) 
+                            a->setEnabled( isSpectrum );
+                        
                         portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
 
-                        menu.add( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, centroid ), hasCentroid );
+                        if ( auto a = menu.addAction( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, centroid, processor ) ) )
+                            a->setEnabled( hasCentroid );
+                        
                         portfolio::Folium filtered = itFiltered != atts.end() ? *itFiltered : portfolio::Folium();
-                        menu.add( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, filtered ), hasFilterd );
+                        if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, filtered, processor ) ) )
+                            a->setEnabled( hasFilterd );
 
-                        menu.add( tr("Send checked spectra to calibration folder"), CalibrationAction() );
+                        menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( processor ) );
 
-                        menu.menu.addSeparator();
+                        menu.addSeparator();
 
-                        menu.add( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
-                            , BackgroundSubtraction( active_folium, folium ), !active_spectrum.isEmpty() );
+                        if ( auto a = menu.addAction( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
+                                                      , BackgroundSubtraction( active_folium, folium, processor ) ) )
+                            a->setEnabled( !active_spectrum.isEmpty() );
 
-                        menu.add( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [&]( Dataprocessor * dp ){
-                                dp->remove( folium );
-                                this->invalidateSession( dp );
+                        menu.addAction( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [=](){
+                                processor->remove( folium );
+                                invalidateSession( processor );
                             } );
-
-                        menu.add( tr("Remove unchecked items"), RemoveChecked( this ) );
 
                     }
                 }
+                
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
 
-                    QAction * doSpectrogram = 0;
-                    menu.add( tr( "Remove unchecked items" ), RemoveChecked( this ) );
-                    doSpectrogram = menu.add( tr( "Create Spectrogram" ), [] ( Dataprocessor * processor ) { processor->createSpectrogram(); } );
-
-                    menu.add( tr("Save Chromatogram as..."), SaveChromatogramAs( folium ), true );
+                    processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
+                    
+                    menu.addAction( tr( "Create Spectrogram" ), [processor] () { processor->createSpectrogram(); } );
+                    menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) );
+                    menu.addSeparator();                    
+                    menu.addAction( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [&](){
+                            processor->remove( folium );
+                            invalidateSession( processor );
+                        } );
                 }
+                
                 if ( folium.parentFolder().name() == L"Spectrograms" ) {
-                    menu.add( tr("Apply lock mass"), [&]( Dataprocessor * processor ){
+                    menu.addAction( tr("Apply lock mass"), [processor,folium](){
                             if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
                                 processor->applyLockMass( v );
                         } );
-                    menu.add( tr("Export matched masses..."), [&]( Dataprocessor * processor ){
+                    menu.addAction( tr("Export matched masses..."), [processor,folium](){
                             if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
                                 processor->exportMatchedMasses( v, folium.id() );
                         } );
                 }
             }
+            
+            menu.addSeparator();
+            menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
 
-            menu.add( tr( "Export data tree to XML" ), [] ( Dataprocessor * processor ) { processor->exportXML(); } );
+            menu.exec( globalPos );
 
-            auto selected = menu.exec( globalPos );
-            if ( selected != menu.actions.end() )
-                selected->second( processor );
         } // if dataprocessor
     } // if index.isValid
 }
