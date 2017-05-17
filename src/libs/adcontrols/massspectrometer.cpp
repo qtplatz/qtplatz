@@ -34,6 +34,8 @@
 #include "mscalibration.hpp"
 #include "msfractuation.hpp"
 #include "msproperty.hpp"
+#include "mspeak.hpp"
+#include "mspeaks.hpp"
 #include "scanlaw.hpp"
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
@@ -276,6 +278,15 @@ MassSpectrometer::massFromTime( const std::pair<double,double>& range, const Mas
 }
 
 //////////////////////////////////////////////////////////////
+bool
+MassSpectrometer::estimateScanLaw( const adcontrols::MSPeaks& pks, double& va, double& t0 ) const
+{
+    std::vector< std::tuple< double, double, int > > peaks;
+    for ( auto& pk: pks )
+        peaks.emplace_back( pk.time(), pk.exact_mass(), pk.mode() );
+    return estimateScanLaw( peaks, va, t0 );
+}
+
 bool
 MassSpectrometer::estimateScanLaw( const std::vector< std::tuple< double, double, int > >& peaks // mass, time, mode
                                    , double& va

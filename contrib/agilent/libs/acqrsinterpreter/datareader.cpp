@@ -858,7 +858,6 @@ DataReader::readSpectrum( const_iterator& it ) const
             sql.prepare( "SELECT min(rowid),fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND rowid >= ? GROUP BY fcn" );
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = it->rowid(); // Use rowid instead of pos()
-            //sql.bind( 3 ) = fcnCount();
             
             std::shared_ptr< adcontrols::MassSpectrum > prime;
             

@@ -66,7 +66,7 @@ MSLockDialog::MSLockDialog( QWidget *parent ) : QDialog( parent )
         connect( buttons, &QDialogButtonBox::rejected, this, [&] () { QDialog::reject(); } );
     }
 
-    resize( 400, size().height() );
+    resize( 650, size().height() );
     adjustSize();
 }
 

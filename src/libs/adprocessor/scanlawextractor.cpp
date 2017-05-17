@@ -47,6 +47,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mspeakinfo.hpp>
+#include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/unique_ptr.hpp>
@@ -109,14 +110,58 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
     if ( nSpectra == 0 )
         return false;
 
+    progress( 0, nSpectra * 2 );
+    size_t n( 0 );
+    
     auto cm = pm->find< adcontrols::CentroidMethod >();
     if ( !cm )
         return false;
     
-    progress( 0, nSpectra );
+    auto lockm = pm->find< const adcontrols::MSLockMethod >();
+    if ( !lockm )
+        return false;
+
+    if ( lockm->molecules().empty() )
+        return false;
+
+    adcontrols::MSFinder finder( lockm->tolerance( lockm->toleranceMethod() ), lockm->algorithm(), lockm->toleranceMethod() );
+
+    auto sql = adfs::stmt( *dp->db() );
+    sql.exec( "CREATE TABLE IF NOT EXISTS MassReference ("
+              " id INTEGER PRIMARY KEY"
+              ", formula TEXT"
+              ", exactMass REAL"
+              ")"
+        );
+
+    sql.exec( "CREATE TABLE IF NOT EXISTS ReferenceTof ("
+              " rowid INTEGAR"
+              ", refid INTEGER"
+              ", protocol INTEGER"
+              ", mode INTEGER"
+              ", mass REAL"
+              ", time REAL"
+              ", UNIQUE(rowid,refid)"
+              ")"
+        );
+
+    sql.exec( "DELETE FROM MassReference" );
+    sql.exec( "DELETE FROM ReferenceTof" );
     
-    size_t n( 0 );
-    
+    sql.prepare( "INSERT OR REPLACE INTO MassReference ( id, formula, exactMass ) VALUES ( ?,?,? )" );
+    int molId(0);
+    for ( auto& mol: lockm->molecules().data() ) {
+        if ( mol.enable() ) {
+            sql.bind( 1 ) = molId++;
+            sql.bind( 2 ) = std::string( mol.formula() );
+            sql.bind( 3 ) = mol.mass();
+            sql.step();
+        }
+    }
+
+    typedef std::tuple< int64_t, int, int, int, double, double > record_type;
+    std::vector< record_type > results;
+
     for ( auto it = reader->begin( proto ); it != reader->end(); ++it ) {
         
         auto ms = reader->getSpectrum( it->rowid() );
@@ -125,22 +170,52 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
 
         doCentroid( centroid, *ms, *cm );
 
-        auto& prop = ms->getMSProperty();
-        int proto = ms->protocolId();
-        int nproto = ms->nProtocols();
-        auto range = std::make_pair( ms->getMass( 0 ), ms->getMass( ms->size() - 1 ) );
-        
-        ADDEBUG() << n << ")" << prop.timeSinceInjection() << " proto=" << proto << "/" << nproto
-                  << " m/z(" << range.first << ", " << range.second << ") lap=" << prop.mode();
-        
-        // if ( doLock )
-        //     impl_->apply_mslock( ms, *pm, mslock );
-        
-        //impl_->spectra_[ it->pos() ] = ms; // (:= pos sort order) keep mass locked spectral series
+        int mode = ms->getMSProperty().mode();  // a.k.a. nlaps
+        int protocolId = ms->protocolId();
+
+        molId = 0;
+        for ( auto& mol: lockm->molecules().data() ) {
+            if ( mol.enable() ) {
+                size_t idx = finder( centroid, mol.mass() );
+                if ( idx != adcontrols::MSFinder::npos ) {
+                    results.emplace_back( it->rowid()
+                                          , molId
+                                          , protocolId
+                                          , mode
+                                          , centroid.getMass( idx )
+                                          , centroid.getTime( idx ) );
+                }
+                ++molId;
+            }
+        }
         
         if ( progress( ++n, nSpectra ) )
             return false;
     }
+
+    std::sort( results.begin(), results.end(), [](const auto& a, const auto& b){ return std::get<0>(a) < std::get<0>(b); } );
+
+    sql.prepare( "INSERT INTO ReferenceTof (rowid,refid,protocol,mode,mass,time) VALUES (?,?,?,?,?,?)" );
+    
+    for ( auto& rec: results ) {
+
+        sql.reset();
+        sql.bind( 1 ) = std::get< 0 >( rec ); // rowid
+        sql.bind( 2 ) = std::get< 1 >( rec ); // refid := modId
+        sql.bind( 3 ) = std::get< 2 >( rec ); // protocolId
+        sql.bind( 4 ) = std::get< 3 >( rec ); // mode := nlaps
+        sql.bind( 5 ) = std::get< 4 >( rec ); // mass (obserbed)
+        sql.bind( 6 ) = std::get< 5 >( rec ); // time
+
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "sql error";
+
+        if ( progress( ++n, nSpectra ) )
+            break;
+    }
+    // SELECT min(rowid),* FROM ReferenceTof WHERE rowid > ? GROUP BY protocol
+    
+    
     return true; //! impl_->spectra_.empty();
 }
 

@@ -41,10 +41,11 @@ namespace adcontrols {
     class DataInterpreter;
     class DataReader;
     class MassSpectrum;
-    class MSFractuation;
-	class MSProperty;
     class MSCalibrateResult;
 	class MSCalibration;
+    class MSFractuation;
+	class MSProperty;
+    class MSPeaks;
     class ProcessMethod;
     class datafile;
     class ScanLaw;
@@ -100,6 +101,7 @@ namespace adcontrols {
 
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
         virtual bool estimateScanLaw( const std::vector< std::tuple< double, double, int > >&, double& va, double& t0 ) const;
+        virtual bool estimateScanLaw( const adcontrols::MSPeaks&, double& va, double& t0 ) const;
 
         virtual double timeFromMass( double, const MassSpectrum& ) const;
         virtual double massFromTime( double, const MassSpectrum& ) const;
