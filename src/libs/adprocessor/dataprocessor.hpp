@@ -87,10 +87,10 @@ namespace adprocessor {
         
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
-        virtual bool doCentroid( adcontrols::MSPeakInfo& pkInfo
-                                 , adcontrols::MassSpectrum& centroid
-                                 , const adcontrols::MassSpectrum& profile
-                                 , const adcontrols::CentroidMethod& m );
+        static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
+                                , adcontrols::MassSpectrum& centroid
+                                , const adcontrols::MassSpectrum& profile
+                                , const adcontrols::CentroidMethod& m );
         
         virtual uint64_t countTimeCounts( const adcontrols::MassSpectrum&, double lMass, double uMass );
         

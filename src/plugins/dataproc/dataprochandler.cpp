@@ -52,6 +52,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/polfit.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <adlog/logger.hpp>
 #include <chromatogr/chromatography.hpp>
 #include <adportfolio/folium.hpp>
@@ -74,26 +75,7 @@ DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
                              , const adcontrols::MassSpectrum& profile
                              , const adcontrols::CentroidMethod& m )
 {
-    adcontrols::CentroidProcess peak_detector;
-    bool result = false;
-    
-    res.clone( profile, false );
-    
-    if ( peak_detector( m, profile ) ) {
-        result = peak_detector.getCentroidSpectrum( res );
-        pkInfo = peak_detector.getPeakInfo();
-    }
-
-    if ( profile.numSegments() > 0 ) {
-        for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
-            auto centroid = std::make_shared< adcontrols::MassSpectrum >();
-            result |= peak_detector( profile.getSegment( fcn ) );
-            pkInfo.addSegment( peak_detector.getPeakInfo() );
-            peak_detector.getCentroidSpectrum( *centroid );
-            res << std::move( centroid );
-        }
-    }
-    return result;
+    return adprocessor::dataprocessor::doCentroid( pkInfo, res, profile, m );
 }
 
 bool

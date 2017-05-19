@@ -584,10 +584,10 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
                         
                         if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
-                            if ( centroid->isCentroid() ) {
-                                draw2( centroid );
-                                pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
-                            }
+                            draw2( centroid );
+                            pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
+                        } else {
+                            pImpl_->processedSpectrum_->clear();
                         }
 
                         if ( auto fmethod = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
@@ -615,6 +615,8 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                             }
                         }
 
+                    } else {
+                        pImpl_->processedSpectrum_->clear();
                     }
 
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){

@@ -1285,10 +1285,10 @@ DataprocessorImpl::applyMethod( Dataprocessor * dataprocessor
         profile2->addDescription( adcontrols::description( L"process", Constants::F_DFT_FILTERD ) );
         filterd.assign( profile2, profile2->dataClass() );
 
-        centroid = DataprocHandler::doCentroid( *pkInfo, *pCentroid, *profile2, m );
+        centroid = adprocessor::dataprocessor::doCentroid( *pkInfo, *pCentroid, *profile2, m );
 
     } else {
-        centroid = DataprocHandler::doCentroid( *pkInfo, *pCentroid, profile, m );
+        centroid = adprocessor::dataprocessor::doCentroid( *pkInfo, *pCentroid, profile, m );
     }
 
     if ( centroid ) {
