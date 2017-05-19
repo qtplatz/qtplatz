@@ -377,23 +377,23 @@ dataprocessor::doCentroid( adcontrols::MSPeakInfo& pkInfo
     adcontrols::CentroidProcess peak_detector;
     bool result = false;
 
-    centroid.clone( profile, false );
-    
-    if ( peak_detector( m, profile ) ) {
-        result = peak_detector.getCentroidSpectrum( centroid );
-        pkInfo = peak_detector.getPeakInfo();
-        pkInfo.setProtocol( 0, profile.numSegments() + 1 );
-        centroid.setProtocol( 0, profile.numSegments() + 1 );
-    }
-
     int fcn(0);
     for ( auto& seg: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( profile ) ) {
-        if ( fcn ) {
+
+        if ( fcn == 0 ) {
+            result |= peak_detector( m, seg );
+
+            peak_detector.getCentroidSpectrum( centroid );
+            pkInfo = peak_detector.getPeakInfo();
+            pkInfo.setProtocol( 0, profile.numSegments() + 1 );
+            centroid.setProtocol( 0, profile.numSegments() + 1 );
+
+        } else {
             result |= peak_detector( seg );
 
-            auto pkinfo = peak_detector.getPeakInfo();
-            pkinfo.setProtocol( fcn, profile.numSegments() + 1 );
-            pkInfo.addSegment( pkinfo );
+            auto info = peak_detector.getPeakInfo();
+            info.setProtocol( fcn, profile.numSegments() + 1 );
+            pkInfo.addSegment( info );
 
             auto temp = std::make_shared< adcontrols::MassSpectrum >();
             peak_detector.getCentroidSpectrum( *temp );

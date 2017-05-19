@@ -154,9 +154,8 @@ CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
 {
 	pImpl_->copy( ms );
 
-	size_t nSize;
-	if ( pImpl_ && ( nSize = pImpl_->info_.size() ) ) {
-
+	if ( pImpl_ ) {
+        size_t nSize = pImpl_->info_.size();
 		ms.resize( nSize );
         ms.setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
 		bool is_area = pImpl_->method().centroidAreaIntensity();
