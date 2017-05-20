@@ -708,8 +708,10 @@ MSProcessingWnd::handleCurrentChanged( int idx, int fcn )
             pImpl_->focusedFcn( fcn );
 
         adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > fpks( *pkinfo );
-        auto pk = fpks[ fcn ].begin() + idx;
-        pImpl_->currentChanged( *pk );
+        if ( fpks[ fcn ].size() > idx ) {
+            auto pk = fpks[ fcn ].begin() + idx;
+            pImpl_->currentChanged( *pk );
+        }
 
     } else if ( auto ms = pProcessedSpectrum_.second.lock() ) {
 
