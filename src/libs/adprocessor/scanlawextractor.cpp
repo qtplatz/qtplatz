@@ -231,7 +231,7 @@ ScanLawExtractor::operator()( std::shared_ptr< adprocessor::dataprocessor > dp
 {
     auto raw = dp->rawdata();
     
-    if ( raw->dataformat_version() <= 2 )
+    if ( raw == nullptr || raw->dataformat_version() <= 2 )
         return false;
 
     std::shared_ptr< const adcontrols::DataReader > reader;
