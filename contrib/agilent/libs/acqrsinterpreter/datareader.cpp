@@ -820,7 +820,7 @@ DataReader::getSpectrum( int64_t rowid ) const
                         auto ptr = std::make_shared< adcontrols::MassSpectrum >();
                         boost::apply_visitor( make_massspectrum( *ptr ), waveform );
                         if ( spectrometer_ ) {
-                            spectrometer_->assignMasses( *ptr );
+                            spectrometer_->assignMasses( *ptr, rowid );
                             const auto& info = ptr->getMSProperty().samplingInfo();
                             double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
@@ -878,7 +878,7 @@ DataReader::readSpectrum( const_iterator& it ) const
                     if ( boost::apply_visitor( make_massspectrum( *ptr ), waveform ) ) {
                     
                         if ( spectrometer_ ) {
-                            spectrometer_->assignMasses( *ptr );
+                            spectrometer_->assignMasses( *ptr, rowid );
                             const auto& info = ptr->getMSProperty().samplingInfo();
                             double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
@@ -1016,7 +1016,7 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 // ADDEBUG() << "protocolId = " << ms->protocolId() << " == fcn=" << wform.first;
 
                 if ( spectrometer_ ) {
-                    spectrometer_->assignMasses( *ms );
+                    spectrometer_->assignMasses( *ms, begin->rowid() );
                     const auto& info = ms->getMSProperty().samplingInfo();
                     double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                     double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
