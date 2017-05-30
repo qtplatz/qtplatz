@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -687,7 +687,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 	QPoint globalPos = pTreeView_->mapToGlobal(pos);
 	QModelIndex index = pTreeView_->currentIndex();
 
-    //ContextMenu menu;
     QMenu menu;
 
     if ( index.isValid() ) {
@@ -718,7 +717,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 portfolio::Folium folium = data.value< portfolio::Folium >();
                 
                 if ( (folium.parentFolder().name() == L"Spectra") ||
-                    (folium.parentFolder().name() == L"MSCalibration") )  {
+                     (folium.parentFolder().name() == L"MSCalibration") )  {
 
                     QString selected_spectrum = QString::fromStdWString( folium.name() );
 
@@ -767,8 +766,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
 
-                    processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
-                    
                     menu.addAction( tr( "Create Spectrogram" ), [processor] () { processor->createSpectrogram(); } );
                     menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) );
                     menu.addSeparator();                    
@@ -788,6 +785,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 processor->exportMatchedMasses( v, folium.id() );
                         } );
                 }
+
+                processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
             }
             
             menu.addSeparator();
