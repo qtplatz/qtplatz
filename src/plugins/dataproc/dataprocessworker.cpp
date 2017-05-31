@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -63,13 +63,16 @@
 #include <adwidgets/datareaderchoicedialog.hpp>
 #include <adwidgets/mslockdialog.hpp>
 #include <coreplugin/icore.h>
+#include <QCoreApplication>
 #include <QMessageBox>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <functional>
 #include <chrono>
-#include <iomanip>
 #include <fstream>
+#include <functional>
+#include <future>
+#include <iomanip>
+#include <thread>
 
 using namespace dataproc;
 
@@ -278,16 +281,33 @@ DataprocessWorker::exportMatchedMasses( Dataprocessor * processor
 
     adcontrols::MSLockMethod lockm;
     lockm.setEnabled( true );
-    
+    if ( auto pm = std::make_unique< adcontrols::ProcessMethod >() ) {
+        MainWindow::instance()->getProcessMethod( *pm );
+        if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
+            lockm.setMolecules( cm->molecules() );
+            lockm.setToleranceMethod( adcontrols::idToleranceDaltons );
+            lockm.setTolerance( adcontrols::idToleranceDaltons, cm->tolerance() );
+        }
+        if ( auto tm = pm->find< adcontrols::TargetingMethod >() ) {
+            lockm.setMolecules( tm->molecules() );
+            lockm.setTolerance( tm->toleranceMethod(), tm->tolerance( tm->toleranceMethod() ) );
+        }
+    }
+
     adwidgets::MSLockDialog dlg;
     dlg.setContents( lockm );
     
     if ( dlg.exec() == QDialog::Accepted ) {
 
         if ( dlg.getContents( lockm ) && !lockm.molecules().empty() ) {
-            
-            auto p( adwidgets::ProgressWnd::instance()->addbar() );
-            threads_.push_back( adportable::asio::thread( [=] { handleExportMatchedMasses( processor, spectra, lockm, p ); } ) );
+
+            auto progress( adwidgets::ProgressWnd::instance()->addbar() );
+            auto future = std::async( std::launch::async, [&](){
+                    handleExportMatchedMasses( processor, spectra, lockm, progress );
+                } );
+
+            while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+                QCoreApplication::instance()->processEvents();
         }
     }
 }
@@ -526,38 +546,39 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
 
     for ( auto& mol : lockm.molecules().data() ) {
 
-        double t0 = (*spectra->begin())->getMSProperty().timeSinceInjection();
-        std::string name = ( boost::format( "%s_%s_%d.txt" ) % base.string() % mol.formula() % (*spectra->begin())->mode() ).str();
-        std::ofstream outf( name );
-        
-        int nprog( 0 );
-        std::vector< double > masses, times;
-        for ( auto& ms : *spectra ) {
-            (*progress)( nprog++ );
-            size_t idx = finder( *ms, mol.mass() );
-            if ( idx != adcontrols::MSFinder::npos ) {
-                times.push_back( ms->getMSProperty().timeSinceInjection() - t0 );
-                masses.push_back( ms->getMass( idx ) );
+        if ( mol.enable() ) {
+
+            double t0 = (*spectra->begin())->getMSProperty().timeSinceInjection();
+            std::string name = ( boost::format( "%s_%s_%d.txt" ) % base.string() % mol.formula() % (*spectra->begin())->mode() ).str();
+            std::ofstream outf( name );
+            
+            int nprog( 0 );
+            std::vector< double > masses, times;
+            for ( auto& ms : *spectra ) {
+                (*progress)( nprog++ );
+                size_t idx = finder( *ms, mol.mass() );
+                if ( idx != adcontrols::MSFinder::npos ) {
+                    times.push_back( ms->getMSProperty().timeSinceInjection() - t0 );
+                    masses.push_back( ms->getMass( idx ) );
+                }
             }
-        }
 
-        auto drift = std::make_shared< adcontrols::Chromatogram >();
-        drift->resize( masses.size() );
-        
-        drift->setIntensityArray( masses.data() );
-        drift->setTimeArray( times.data() );
-
-        for ( size_t i = 0; i < drift->size(); ++i )
+            auto drift = std::make_shared< adcontrols::Chromatogram >();
+            drift->resize( masses.size() );
+            
+            drift->setIntensityArray( masses.data() );
+            drift->setTimeArray( times.data() );
+            
+            for ( size_t i = 0; i < drift->size(); ++i )
             outf << std::fixed << std::setprecision( 14 ) << times[i] << "," << masses[i] << std::endl;
             
-        drift->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( mol.formula() ) ) );
-        for ( auto& desc: spectra->getDescriptions() )
-            drift->addDescription( desc );
-        
-        auto folium = processor->addChromatogram( *drift, m );
+            drift->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( mol.formula() ) ) );
+            for ( auto& desc: spectra->getDescriptions() )
+                drift->addDescription( desc );
+            
+            auto folium = processor->addChromatogram( *drift, m );
+        }
     }
-    
-    io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );    
 }
 
 

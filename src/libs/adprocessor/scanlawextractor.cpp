@@ -152,11 +152,11 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
     int molId(0);
     for ( auto& mol: lockm->molecules().data() ) {
         if ( mol.enable() ) {
-            sql.reset();
             sql.bind( 1 ) = molId++;
             sql.bind( 2 ) = std::string( mol.formula() );
             sql.bind( 3 ) = mol.mass();
             sql.step();
+            sql.reset();
         }
     }
 
@@ -205,8 +205,16 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
         sql.bind( 2 ) = std::get< 1 >( rec ); // refid := modId
         sql.bind( 3 ) = std::get< 2 >( rec ); // protocolId
         sql.bind( 4 ) = std::get< 3 >( rec ); // mode := nlaps
-        sql.bind( 5 ) = std::get< 4 >( rec ); // mass (obserbed)
+        sql.bind( 5 ) = std::get< 4 >( rec ); // mass (observed)
         sql.bind( 6 ) = std::get< 5 >( rec ); // time
+
+#if 0
+        ADDEBUG() << "Ref rowid(" << std::get< 0 >( rec )
+                  << ")[" << std::get< 1 >( rec )
+                  << "] protocol=" << std::get< 2 >( rec )
+                  << ", mass=" << std::get< 3 >( rec )
+                  << ", time=" << std::get< 4 >( rec ) * 1e6;
+#endif
 
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "sql error";

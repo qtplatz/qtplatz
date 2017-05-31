@@ -751,16 +751,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( processor ) );
 
                         menu.addSeparator();
-
+                        
                         if ( auto a = menu.addAction( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
                                                       , BackgroundSubtraction( active_folium, folium, processor ) ) )
                             a->setEnabled( !active_spectrum.isEmpty() );
-
-                        menu.addAction( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [=](){
-                                processor->remove( folium );
-                                invalidateSession( processor );
-                            } );
-
                     }
                 }
                 
@@ -769,10 +763,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     menu.addAction( tr( "Create Spectrogram" ), [processor] () { processor->createSpectrogram(); } );
                     menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) );
                     menu.addSeparator();                    
-                    menu.addAction( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [&](){
-                            processor->remove( folium );
-                            invalidateSession( processor );
-                        } );
                 }
                 
                 if ( folium.parentFolder().name() == L"Spectrograms" ) {
@@ -786,6 +776,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         } );
                 }
 
+                menu.addAction( QString( tr("Remove '%1'") ).arg( QString::fromStdWString( folium.name() ) ), [&](){
+                        processor->remove( folium );
+                        invalidateSession( processor );
+                    } );
+                
                 processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
             }
             
