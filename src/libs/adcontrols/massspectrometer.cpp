@@ -188,7 +188,7 @@ MassSpectrometer::getCalibrateResult( size_t idx ) const
 
 // v3
 bool
-MassSpectrometer::assignMasses( MassSpectrum& ms ) const
+MassSpectrometer::assignMasses( MassSpectrum& ms, int64_t /*rowid*/ ) const
 {
     auto mode = ms.mode();
     return ms.assign_masses( [&]( double time, int mode ) { return scanLaw()->getMass( time, mode ); } );

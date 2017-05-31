@@ -152,6 +152,7 @@ ScanLawExtractor::loadSpectra( std::shared_ptr< adprocessor::dataprocessor > dp
     int molId(0);
     for ( auto& mol: lockm->molecules().data() ) {
         if ( mol.enable() ) {
+            sql.reset();
             sql.bind( 1 ) = molId++;
             sql.bind( 2 ) = std::string( mol.formula() );
             sql.bind( 3 ) = mol.mass();

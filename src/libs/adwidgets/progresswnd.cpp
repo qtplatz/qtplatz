@@ -37,6 +37,7 @@ std::mutex ProgressWnd::mutex_;
 ProgressWnd *
 ProgressWnd::instance()
 {
+    // this is a singleton, but will be deleted when all progress object was deleted
     typedef ProgressWnd T;
     T * tmp = instance_.load( std::memory_order_relaxed );
     std::atomic_thread_fence( std::memory_order_acquire );

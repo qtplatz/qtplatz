@@ -80,7 +80,7 @@ namespace adcontrols {
         virtual double fLength() const;
         virtual double tDelay() const;
         virtual double acceleratorVoltage() const;
-        virtual bool assignMasses( adcontrols::MassSpectrum& ) const;
+        virtual bool assignMasses( adcontrols::MassSpectrum&, int64_t rowid = (-1) ) const;
         virtual void setDataReader( adcontrols::DataReader * );
         virtual void setMSFractuation( adcontrols::MSFractuation * );
         virtual adcontrols::MSFractuation * msFractuation() const;
