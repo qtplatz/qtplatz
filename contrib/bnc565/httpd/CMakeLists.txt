@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8.9)
-project( httpd-dg CXX )
+project( bnc565d CXX )
 
 find_package( Boost 1.57 COMPONENTS date_time regex filesystem thread system program_options serialization REQUIRED )
 set( Boost_USE_STATIC_LIBS ON )
@@ -29,6 +29,8 @@ add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" -DDOC_ROOT="${HTML_IN
 set( http_server_SOURCES
   connection.cpp
   connection_manager.cpp
+  dgprotocols.cpp
+  dgprotocols.hpp
   main.cpp
   mime_types.cpp
   reply.cpp

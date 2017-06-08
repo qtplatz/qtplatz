@@ -42,7 +42,7 @@ using namespace dg;
 
 log::log( priority level ) : level_( level )
 {
-#ifndef WIN32
+#if defined __linux__
     if ( !_is_syslog_open.test_and_set( std::memory_order_acquire ) )
         openlog( "dg-httpd", LOG_CONS | LOG_PID, LOG_DAEMON );
 #endif
