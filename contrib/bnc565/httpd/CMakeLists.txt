@@ -39,8 +39,8 @@ set( http_server_SOURCES
   server.cpp
   dgctl.cpp
   dgctl.hpp
-  fpga.cpp
-  fpga.hpp  
+  bnc565.cpp
+  bnc565.hpp  
   pugixml.cpp
   pugixml.hpp
   pugiconfig.hpp

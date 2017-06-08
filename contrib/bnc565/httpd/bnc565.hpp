@@ -37,21 +37,20 @@
 #include <boost/asio/steady_timer.hpp>
 #include <boost/signals2.hpp>
 
-// namespace adportable { namespace dg { class protocols; } }
+class serialport;
 
 namespace dg {
 
-    class fpga { // : public std::enable_shared_from_this< fpga > {
-        fpga();
+    class bnc565 { // : public std::enable_shared_from_this< bnc565 > {
+        bnc565();
     public:
-        ~fpga();
+        ~bnc565();
 
         enum DeviceType { NONE, HELIO, DE0 };
 
-        static fpga * instance();
+        static bnc565 * instance();
 
         operator bool () const;
-        bool has_dgmod() const;
 
         void setPulse( uint32_t channel, const std::pair< double, double >& );
         std::pair<double, double> pulse( uint32_t channel ) const;
@@ -77,9 +76,7 @@ namespace dg {
         inline boost::asio::io_service& io_service() { return io_service_; }
 
     private:
-        volatile uint32_t * mapped_ptr_;
         DeviceType deviceType_;
-        int dgmod_;
         int fd_;
         size_t tick_;
         tick_handler_t handler_; // tick handler
@@ -89,6 +86,24 @@ namespace dg {
         int deviceModelNumber_;
         int deviceRevision_;
         void on_timer( const boost::system::error_code& ec );
+        //
+        std::unique_ptr< serialport > usb_;
+        std::string idn_;
+        std::string inst_full_;
+        std::condition_variable cond_;
+        std::mutex mutex_;
+        std::mutex xlock_;
+        std::string receiving_data_;
+        std::vector< std::string > que_;
+        std::string ttyname_;
+        std::atomic< size_t > xsend_timeout_c_;
+        std::atomic< size_t > reply_timeout_c_;
+
+        bool _xsend( const char * data, std::string& );
+        bool _xsend( const char * data, std::string&, const std::string& expect, size_t ntry );
+        void handle_receive( const char * data, std::size_t length );
+        bool initialize( const std::string& );
+        bool reset();
     };
 }
 

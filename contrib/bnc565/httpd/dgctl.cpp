@@ -25,7 +25,7 @@
 
 #include "config.h"
 #include "dgctl.hpp"
-#include "fpga.hpp"
+#include "bnc565.hpp"
 #include "log.hpp"
 #include "pugixml.hpp"
 #include "dgprotocols.hpp"
@@ -52,7 +52,7 @@ dgctl::dgctl() : is_active_( false )
 {
     update();
     
-    fpga::instance()->register_handler( [&]( size_t tick ){
+    bnc565::instance()->register_handler( [&]( size_t tick ){
             std::string msg = std::to_string( tick );
             std::for_each( event_handlers_.begin(), event_handlers_.end()
                            , [msg]( std::function<void( const std::string& data, const std::string& id, const std::string& ev )> f ) {
@@ -79,11 +79,11 @@ dgctl::update()
     int channel = 0;
 
     for ( auto& pulse: pulses_ )
-        pulse = fpga::instance()->pulse( channel++ );
+        pulse = bnc565::instance()->pulse( channel++ );
     
-    pulser_interval_ = fpga::instance()->interval();
+    pulser_interval_ = bnc565::instance()->interval();
 
-    uint32_t trig = fpga::instance()->trigger();
+    uint32_t trig = bnc565::instance()->trigger();
 }
 
 size_t
@@ -132,35 +132,35 @@ dgctl::end() const
 double
 dgctl::pulser_interval() const
 {
-    return fpga::instance()->interval();
+    return bnc565::instance()->interval();
 }
 
 void
 dgctl::pulser_interval( double v )
 {
-    fpga::instance()->setInterval( v );
+    bnc565::instance()->setInterval( v );
 }
 
 void
 dgctl::commit()
 {
-    if ( fpga::instance()->has_dgmod() )
+    if ( *(bnc565::instance()) )
         return;
     
     int channel = 0;
 
     for ( auto& pulse: pulses_ )
-        fpga::instance()->setPulse( channel++, pulse );
+        bnc565::instance()->setPulse( channel++, pulse );
 
-    fpga::instance()->setInterval( pulser_interval_ );
+    bnc565::instance()->setInterval( pulser_interval_ );
 
-    fpga::instance()->commit();
+    bnc565::instance()->commit();
 }
 
 bool
 dgctl::activate_trigger()
 {
-    fpga::instance()->activate_trigger();
+    bnc565::instance()->activate_trigger();
     is_active_ = true;
     return true;
 }
@@ -168,7 +168,7 @@ dgctl::activate_trigger()
 bool
 dgctl::deactivate_trigger()
 {
-    fpga::instance()->deactivate_trigger();
+    bnc565::instance()->deactivate_trigger();
     is_active_ = false;
     return true;
 }
@@ -187,7 +187,7 @@ dgctl::http_request( const std::string& method, const std::string& request_path,
     if ( request_path == "/dg/ctl?status.json" ) {
 
         adio::dg::protocols<> p;
-        if ( fpga::instance()->fetch( p ) ) {
+        if ( bnc565::instance()->fetch( p ) ) {
             if ( adio::dg::protocols<>::write_json( o, p ) )
                 rep += o.str();                
             // if ( __debug_mode__ )
@@ -227,7 +227,7 @@ dgctl::http_request( const std::string& method, const std::string& request_path,
 
     } else if ( request_path == "/dg/ctl?banner" ) {
 
-        o << "<h2>Delay Generator V" << PACKAGE_VERSION " Rev. " << fpga::instance()->revision_number() << "</h2>";
+        o << "<h2>Delay Generator V" << PACKAGE_VERSION " Rev. " << bnc565::instance()->revision_number() << "</h2>";
         rep += o.str();
 
     } else if ( request_path.compare( 0, 20, "/dg/ctl?commit.json=", 20 ) == 0 ) {
@@ -238,7 +238,7 @@ dgctl::http_request( const std::string& method, const std::string& request_path,
         try {
             if ( adio::dg::protocols<>::read_json( payload, protocols ) ) {
 
-                fpga::instance()->commit( protocols );
+                bnc565::instance()->commit( protocols );
                 o << "COMMIT SUCCESS; " << ( is_active() ? "(trigger is active)" : ( "trigger is not active" ) );
                 rep = o.str();
             }
