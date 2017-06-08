@@ -27,25 +27,27 @@ endif()
 add_definitions( -DPID_NAME="/var/run/${PROJECT_NAME}.pid" -DDOC_ROOT="${HTML_INSTALL_DIR}/html" )
 
 set( http_server_SOURCES
+  bnc565.cpp
+  bnc565.hpp  
   connection.cpp
   connection_manager.cpp
+  dgctl.cpp
+  dgctl.hpp
   dgprotocols.cpp
   dgprotocols.hpp
+  log.cpp
+  log.hpp
   main.cpp
   mime_types.cpp
   reply.cpp
   request_handler.cpp
   request_parser.cpp
   server.cpp
-  dgctl.cpp
-  dgctl.hpp
-  bnc565.cpp
-  bnc565.hpp  
+  serialport.cpp
+  serialport.hpp
   pugixml.cpp
   pugixml.hpp
   pugiconfig.hpp
-  log.cpp
-  log.hpp
   )
 
 include_directories(

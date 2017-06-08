@@ -52,16 +52,18 @@ namespace dg {
 
         operator bool () const;
 
+        void setSerialDevice( const char * tty );
+        const std::string& serialDevice() const;
+
         void setPulse( uint32_t channel, const std::pair< double, double >& );
         std::pair<double, double> pulse( uint32_t channel ) const;
         
-        void setInterval( double );
-        double interval() const;
+        //double interval() const;
         
-        void commit();
-        void activate_trigger();
-        void deactivate_trigger();
-        uint32_t trigger() const;
+        //void commit();
+        //void activate_trigger();
+        //void deactivate_trigger();
+        //uint32_t trigger() const;
 
         typedef boost::signals2::signal< void( size_t ) > tick_handler_t;
 
@@ -69,12 +71,44 @@ namespace dg {
 
         uint32_t revision_number() const;
 
-        void commit( const adio::dg::protocols<>& );
-        bool fetch( adio::dg::protocols<>& ) const;
-        DeviceType deviceType() const;
+        void commit( const dg::protocols<>& );
+        bool fetch( dg::protocols<>& ) const;
 
         inline boost::asio::io_service& io_service() { return io_service_; }
 
+        //bool peripheral_initialize();
+        bool peripheral_terminate();
+        bool peripheral_query_device_data();
+
+        struct Channel {
+            bool state;
+            double width;
+            double delay;
+        };
+
+        struct DelaySetpoint {
+            bool state;
+            double width; // s
+            double delay; // s
+            uint8_t channel;
+            std::string name;
+            DelaySetpoint() : state(false), width(0), delay(0), channel(0) {}
+            DelaySetpoint( const char * _name ) : state(false), width(0), delay(0), channel(0), name(_name) {
+            }
+            DelaySetpoint( const DelaySetpoint& t ) : state(t.state), width(t.width)
+                                                    , delay(t.width), channel(t.channel)
+                                                    , name(t.name) {
+            }
+        };
+
+        const std::vector<Channel>& state() const { return states_; };
+
+        void setInterval( double );
+        double interval() const { return interval0_; }
+        bool state0() const { return state0_; }
+
+        bool xsend( const char * data, std::string& );
+        
     private:
         DeviceType deviceType_;
         int fd_;
@@ -87,6 +121,10 @@ namespace dg {
         int deviceRevision_;
         void on_timer( const boost::system::error_code& ec );
         //
+        std::vector<Channel> states_;
+        std::vector< DelaySetpoint > setpts_;
+        double interval0_;
+        bool state0_;
         std::unique_ptr< serialport > usb_;
         std::string idn_;
         std::string inst_full_;

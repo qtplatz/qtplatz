@@ -29,6 +29,7 @@
 #include "dgprotocols.hpp" // handle json
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 #include <array>
 #include <atomic>
 #include <fcntl.h>
@@ -41,9 +42,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-
-//static dgmod_protocol_sequence __sequence; // for httpd debugging on win32
-
 #include <sstream>
 #include <iostream>
 #include <cstdint>
@@ -53,41 +51,12 @@ extern bool __debug_mode__;
 
 namespace dg {
 
-    static const uint32_t MAP_SIZE = 0x20000;
-    static const uint32_t MAP_BASE_ADDR = 0xff200000;
-    static const uint32_t PIO_BASE = 0x10040;
     std::atomic_flag lock = ATOMIC_FLAG_INIT;
-
-    namespace constants {
-
-        enum fsm_state { stop = 0x0000, start = 0x0001, update = 0x0001 };
-
-        enum adddr {
-            addr_machine_state = 0x10100 / sizeof(uint32_t)
-            , addr_submit   = 0x10120 / sizeof(uint32_t)
-            , addr_interval = 0x10180 / sizeof(uint32_t)
-            , addr_revision = 0x100a0 / sizeof(uint32_t)
-        };
-        
-        static std::array< const std::pair<uint32_t, uint32_t>, 6 > const pulse_addrs {
-            std::make_pair(   0x10200u / sizeof(uint32_t)        // CH-0.delay      [0]
-                            , 0x10220u / sizeof(uint32_t) )
-          , std::make_pair(   0x10240u / sizeof(uint32_t)        // CH-1.delay      [1]
-                            , 0x10260u / sizeof(uint32_t) )
-          , std::make_pair(   0x10280u / sizeof(uint32_t)        // CH-2.delay      [2]
-                            , 0x102a0u / sizeof(uint32_t) )
-          , std::make_pair(   0x102c0u / sizeof(uint32_t)        // CH-3(0).delay   [3]
-                            , 0x102e0u / sizeof(uint32_t) )
-          , std::make_pair(   0x103c0u / sizeof(uint32_t)        // CH-3(1).delay   [4]
-                            , 0x103e0u / sizeof(uint32_t) )
-          , std::make_pair(   0x10400u / sizeof(uint32_t)        // CH-4.delay (ADC trigger delay) [5]
-                            , 0x10420u / sizeof(uint32_t) )
-                };
-    }
 
     const uint32_t resolution = 10;
 
     inline uint32_t
+
     seconds_to_device( const double& t ) {
         return static_cast< uint32_t >( ( t * 1.0e9 ) / resolution + 0.5 );
     }
@@ -139,12 +108,6 @@ bnc565::bnc565() : fd_( 0 )
     threads_.push_back( std::thread( [=]{ io_service_.run(); } ) );
 }
 
-bnc565::DeviceType
-bnc565::deviceType() const
-{
-    return deviceType_;
-}
-
 void
 bnc565::on_timer( const boost::system::error_code& ec )
 {
@@ -160,30 +123,6 @@ boost::signals2::connection
 bnc565::register_handler( const tick_handler_t::slot_type & subscriber )
 {
     return handler_.connect( subscriber );
-}
-
-void
-bnc565::setInterval( double t )
-{
-    uint32_t count = seconds_to_device( t );
-}
-
-double
-bnc565::interval() const
-{
-    uint32_t count(0);
-    
-    // if ( 0 ) {
-
-    //     count = mapped_ptr_[ constants::addr_interval ];
-
-    //     if ( __verbose_level__ >= log::INFO ) {        
-    //         log() << boost::format( "actual  T0 [0x%08x] = %8d" )
-    //             % ( constants::addr_interval * sizeof(int32_t) ) % count;
-    //     }
-        
-    // }
-    return device_to_seconds( count );
 }
 
 std::pair<double, double>
@@ -232,26 +171,14 @@ bnc565::setPulse( uint32_t channel, const std::pair<double, double>& t )
 }
 
 void
-bnc565::commit()
+bnc565::commit( const dg::protocols<>& )
 {
-    // if ( mapped_ptr_ ) {
+}
 
-    //     while ( lock.test_and_set( std::memory_order_acquire ) )
-    //         ;
-
-    //     mapped_ptr_[ constants::addr_submit ] = 0;
-    //     mapped_ptr_[ constants::addr_submit ] = 0; // nop
-    //     mapped_ptr_[ constants::addr_submit ] = 1;
-
-    //     lock.clear( std::memory_order_release );
-
-    //     uint32_t state = mapped_ptr_[ constants::addr_submit ];
-
-    //     if ( __verbose_level__ >= log::INFO ) {
-    //         log() << boost::format( " fsm [0x%08x] := 0x%02x" )
-    //             % ( constants::addr_submit * sizeof(int32_t) ) % state;
-    //     }
-    // }
+bool
+bnc565::fetch( dg::protocols<>& ) const
+{
+    return true;
 }
 
 uint32_t
@@ -260,118 +187,254 @@ bnc565::revision_number() const
     return deviceRevision_;
 }
 
-void
-bnc565::activate_trigger()
+const std::string&
+bnc565::serialDevice() const
 {
-    // if ( mapped_ptr_ ) {
-    //     mapped_ptr_[ constants::addr_machine_state ] = constants::start;
-        
-    //     log() << boost::format( " fsm [0x%08x] = 0x%02x" )
-    //         % ( constants::addr_machine_state * sizeof(int32_t) ) % constants::start;
-    // }
+    return ttyname_;
 }
 
-void
-bnc565::deactivate_trigger()
-{
-    // if ( mapped_ptr_ ) {
-    //     mapped_ptr_[ constants::addr_machine_state ] = constants::stop;
-    //     log() << boost::format( " fsm [0x%08x] = %02x" )
-    //         % ( constants::addr_machine_state * sizeof(int32_t) ) % constants::stop;        
-    // }
-}
-
-uint32_t
-bnc565::trigger() const
-{
-	// uint32_t value(0);
-
-    // if ( mapped_ptr_ ) {
-    //     value = mapped_ptr_[ constants::addr_machine_state ];
-
-    //     if ( __verbose_level__ >= log::INFO ) {        
-    //         log() << boost::format( "actual fsm [0x%08x] = %02x" )
-    //             % ( constants::addr_machine_state * sizeof(int32_t) ) % value;
-    //     }
-    // }
-    //return value;
-    return 0;
-}
-
-void
-bnc565::commit( const adio::dg::protocols<>& p )
-{
-    // dgmod_protocol_sequence sequence;
-    // memset( &sequence, 0, sizeof( sequence ) );
-
-    // sequence.size_ = std::min( sizeof( sequence.protocols_ )/sizeof( sequence.protocols_[ 0 ] ), p.size() );
-    // sequence.interval_ = dg::seconds_to_device( p.interval() );
-    // uint32_t protocolIndex(0);
-    // for( const auto& proto: p ) {
-    //     auto& xproto = sequence.protocols_[ protocolIndex++ ];
-    //     if ( proto.replicates() == 0 ) {
-    //         sequence.size_ = protocolIndex - 1;
-    //         break;
-    //     }
-    //     xproto.replicates_ = proto.replicates();
-    //     std::cout << "repl. " << proto.replicates();
-    //     for ( size_t ch = 0; ch < number_of_channels; ++ch ) {
-    //         std::cout << "ch-" << ch << " delay=" << proto.pulses()[ch].first << ", width=" << proto.pulses()[ch].second << std::endl;
-    //         xproto.delay_pulses_[ ch ].delay_ = dg::seconds_to_device( proto.pulses()[ ch ].first );
-    //         xproto.delay_pulses_[ ch ].width_ = dg::seconds_to_device( proto.pulses()[ ch ].second );
-    //     }
-    //     if ( protocolIndex >= sequence.size_ )
-    //         break;
-    // }
-
-    // if ( dgmod_ > 0 ) {
-    //     int errc = ioctl( dgmod_, DGMOD_SET_PROTOCOLS, &sequence );
-    //     if ( !errc )
-    //         log() << boost::format( "DGMOD_SET_PROTOCOLS failed with %d" ) % errc;
-    // }
-
-    // __sequence = sequence;
-
-    // if ( __debug_mode__ )
-    //     print_xprotocol( __sequence, "bnc565::commit( 2 ) " );
-}
-
-#if defined __GNUC__
-# pragma GCC diagnostic ignored "-Wenum-compare"
-#endif
+// bool
+// bnc565::peripheral_initialize()
+// {
+//     for ( int i = 0; i < 4; ++i ) {
+//         std::string devname = ( boost::format( "/dev/ttyUSB%1%" ) % i ).str();
+//         if ( boost::filesystem::exists( devname ) ) {
+//             if ( initialize( devname ) && reset() )
+//                 return true;
+//         }
+//     }
+//     return false;
+// }
 
 bool
-bnc565::fetch( adio::dg::protocols<>& lhs ) const
+bnc565::peripheral_terminate()
 {
-    // dgmod_protocol_sequence sequence;
-    // memset( &sequence, 0, sizeof( sequence ) );
-    
-    // if ( ! dgmod_ && __debug_mode__ )
-    //     sequence = __sequence;
+    if ( usb_ ) {
+        usb_->close();
+        usb_.reset();
+    }
 
-    // if ( dgmod_ && ( ioctl( dgmod_, DGMOD_GET_PROTOCOLS, &sequence ) != 0 ) )
-    //     log( log::ERR ) << "httpd::bnc565 failed to fetch from /dev/dgmod0.";
-    
-    // if ( __debug_mode__ )
-    //     print_xprotocol( sequence, "bnc565::fetch" );
-    
-    // lhs.setInterval( device_to_seconds( sequence.interval_ ) );
-    // lhs.resize( sequence.size_ );
+    io_service_.stop();
 
-    // static_assert( number_of_channels == adio::dg::protocol<>::size, "" );
+    for ( auto& t: threads_ )
+        t.join();
 
-    // for ( size_t protocolIndex = 0; protocolIndex < lhs.size(); ++protocolIndex ) {
-
-    //     const auto& xproto = sequence.protocols_[ protocolIndex ];
-    //     auto it = lhs.begin() + protocolIndex;
-        
-    //     it->setReplicates( xproto.replicates_ );
-
-    //     for ( int ch = 0; ch < number_of_channels; ++ch ) 
-    //         (*it)[ch] = { device_to_seconds( xproto.delay_pulses_[ ch ].delay_ ), device_to_seconds( xproto.delay_pulses_[ ch ].width_ ) };
-
-    // }
+    threads_.clear();
 
     return true;
 }
 
+bool
+bnc565::peripheral_query_device_data()
+{
+    std::lock_guard< std::mutex > lock( xlock_ );
+
+    std::string reply;
+    if ( idn_.empty() ) {
+        if ( _xsend( "*IDN?\r\n", reply ) && reply[0] != '?' )
+            idn_ = reply;
+    }
+    if ( inst_full_.empty() ) {
+        if ( _xsend( "INST:FULL?\r\n", reply ) && reply[0] != '?' )
+            inst_full_ = reply;
+    }
+    
+    // To status (on|off)
+    if ( _xsend( ":PULSE0:STATE?\r\n", reply ) ) {
+        if ( reply[0] != '?' ) {
+            try {
+                int value = boost::lexical_cast<int>(reply);
+                state0_ = value;
+            } catch ( std::exception& ex ) {
+                // Logger( L"%1% line#%2% exception %3% \"%4%\"", 
+                //         EventLog::pri_INFO, L"0x100" ) % __FILE__ % __LINE__ % ex.what() % reply;
+            }
+        }
+    }
+    
+    for ( int i = 0; i < int(states_.size()); ++i ) {
+        const char * loc = "";
+        try {
+            if ( _xsend( ( boost::format( ":PULSE%1%:STATE?\r\n" ) % (i+1) ).str().c_str(), reply ) ) {
+                loc = "STATE";
+                int value = boost::lexical_cast<int>(reply);
+                states_[ i ].state = value;
+            }
+            if ( _xsend( ( boost::format( ":PULSE%1%:WIDTH?\r\n" ) % (i+1) ).str().c_str(), reply ) ) {
+                loc = "WIDTH";
+                double value = boost::lexical_cast<double>(reply);
+                states_[ i ].width = value;
+            }
+            if ( _xsend( ( boost::format( ":PULSE%1%:DELAY?\r\n" ) % (i+1) ).str().c_str(), reply ) ) {
+                loc = "DELAY";
+                double value = boost::lexical_cast<double>(reply);
+                states_[ i ].delay = value;
+            }
+        } catch ( boost::bad_lexical_cast& ex ) {
+            // Logger( L"%1% line#%2% exception %3% \"%4%\" for %5%"
+            //         , EventLog::pri_INFO, L"0x100" ) % __FILE__ % __LINE__ % ex.what() % reply % loc;
+        }
+    }
+
+    return true;
+}
+
+///
+void
+bnc565::handle_receive( const char * data, std::size_t length )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    while ( length-- ) {
+        if ( std::isprint( *data ) ) {
+            receiving_data_ += (*data);
+        } else if ( *data == '\r' ) {
+            ;
+        } else if ( *data == '\n' ) {
+            que_.push_back( receiving_data_ );
+            receiving_data_.clear();
+            cond_.notify_one();
+        }
+        ++data;
+    }
+}
+
+///
+bool
+bnc565::xsend( const char * data, std::string& reply )
+{
+    bool res = _xsend( data, reply );
+
+    std::string text( data );
+    std::size_t pos = text.find_first_of( "\r" );
+    if ( pos != std::string::npos )
+        text.replace( text.begin() + pos, text.end(), "" );
+
+    return res;
+}
+
+bool
+bnc565::_xsend( const char * data, std::string& reply )
+{
+    reply.clear();
+
+    if ( usb_ ) {
+
+        std::unique_lock< std::mutex > lock( mutex_ );
+
+        if ( usb_->write( data, std::strlen( data ), 20000 ) ) { // write with timeout(us)
+            xsend_timeout_c_ = 0;
+
+            if ( cond_.wait_for( lock, std::chrono::microseconds( 200000 ) ) != std::cv_status::timeout ) {
+                reply_timeout_c_ = 0;
+                if ( que_.empty() ) {
+                    //adportable::debug(__FILE__, __LINE__) << "cond.wait return with empty que"; 
+                    return false;
+                }
+
+                reply = que_.front();
+                if ( que_.size() > 1 ) {
+                    //adportable::debug(__FILE__, __LINE__) << "got " << que_.size() << " replies";
+                    //for ( const auto& s: que_ )
+                        //adportable::debug(__FILE__, __LINE__) << "\t" << s;
+                }
+                que_.clear();
+                return true;
+            } else {
+                reply_timeout_c_++;
+            }
+        } else {
+            xsend_timeout_c_++;
+        }
+    }
+    return false;
+}
+
+bool
+bnc565::_xsend( const char * data, std::string& reply, const std::string& expect, size_t ntry )
+{
+    while ( ntry-- ) {
+        if ( _xsend( data, reply ) && reply == expect )
+            return true;
+    }
+    return false;
+}
+
+bool
+bnc565::initialize( const std::string& ttyname )
+{
+    xsend_timeout_c_ = 0;
+    reply_timeout_c_ = 0;
+
+    usb_ = std::make_unique< serialport >( io_service_ );
+
+    if ( ! usb_->open( ttyname.c_str(), 115200 ) ) {
+        return false;
+    }
+
+    ttyname_ = ttyname;
+
+    usb_->async_reader( [=]( const char * send, std::size_t length ){ handle_receive( send, length ); } );
+    usb_->start();
+
+    threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
+
+    std::string reply;
+
+    if ( _xsend( "*IDN?\r\n", reply ) && reply[0] != '?' ) { // identify
+        idn_ = reply;
+    }
+
+    if ( _xsend( ":INST:FULL?\r\n", reply ) && reply[0] != '?' ) {
+        inst_full_ = reply;
+    }
+
+    peripheral_query_device_data();
+
+    return true;
+}
+
+bool
+bnc565::reset()
+{
+    xsend_timeout_c_ = 0;
+    reply_timeout_c_ = 0;
+
+    // adportable::debug(__FILE__, __LINE__) << "BNC555::reset";
+
+    std::string reply;
+
+    if ( _xsend( "*RST\r\n", reply, "ok", 10 ) ) {
+
+        for ( int ch  = 1; ch <= 5; ++ch ) {
+            
+            _xsend( (boost::format(":PULSE%1%:STATE ON\r\n") % ch).str().c_str(), reply, "ok", 10 );
+            _xsend( (boost::format(":PULSE%1%:POL NORM\r\n") % ch).str().c_str(), reply, "ok", 10 );
+
+        }
+        
+        if ( _xsend( ":PULSE5:SYNC CHA\r\n", reply, "ok", 10 ) &&
+             _xsend( ":PULSE5:WIDTH 0.000001\r\n", reply, "ok", 10 ) && // 1us pulse for AP240 TRIG-IN
+             _xsend( ":PULSE0:STATE ON\r\n", reply, "ok", 10 ) ) { // start trigger
+
+             // simulated ion peak pulse
+            _xsend( ":PULSE6:SYNC CHD\r\n", reply, "ok", 10 );
+            _xsend( ":PULSE6:STATE ON\r\n", reply, "ok", 10 );
+            _xsend( ":PULSE6:POL INV\r\n",  reply, "ok", 10 );
+            _xsend( ":PULSE6:WIDTH 4.0E-9\r\n", reply, "ok", 10 ); // 4.0ns
+            _xsend( ":PULSE6:DELAY 1.8E-6\r\n", reply, "ok", 10 ); // EXIT + 1.8us
+            //_xsend( ":PULSE6:OUTP:MODE ADJ\r\n", reply, "ok", 10 ); // Adjustable
+            //_xsend( ":PULSE6:OUTP:AMPL 2.3\r\n", reply, "ok", 10 ); // 2.3V
+            //_xsend( ":SYST:KLOCK ON\r\n", reply, "ok", 10 ); // Locks the keypad
+            _xsend( ":SYST:KLOCK OFF\r\n", reply, "ok", 10 );
+
+            return true;
+        }
+    }
+    return false;
+}
+
+void
+bnc565::setInterval( double )
+{
+}

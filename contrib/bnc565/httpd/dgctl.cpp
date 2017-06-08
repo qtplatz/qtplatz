@@ -81,9 +81,8 @@ dgctl::update()
     for ( auto& pulse: pulses_ )
         pulse = bnc565::instance()->pulse( channel++ );
     
-    pulser_interval_ = bnc565::instance()->interval();
-
-    uint32_t trig = bnc565::instance()->trigger();
+    //pulser_interval_ = bnc565::instance()->interval();
+    //uint32_t trig = bnc565::instance()->trigger();
 }
 
 size_t
@@ -154,13 +153,13 @@ dgctl::commit()
 
     bnc565::instance()->setInterval( pulser_interval_ );
 
-    bnc565::instance()->commit();
+    //bnc565::instance()->commit();
 }
 
 bool
 dgctl::activate_trigger()
 {
-    bnc565::instance()->activate_trigger();
+    //bnc565::instance()->activate_trigger();
     is_active_ = true;
     return true;
 }
@@ -168,7 +167,7 @@ dgctl::activate_trigger()
 bool
 dgctl::deactivate_trigger()
 {
-    bnc565::instance()->deactivate_trigger();
+    //bnc565::instance()->deactivate_trigger();
     is_active_ = false;
     return true;
 }
@@ -186,12 +185,10 @@ dgctl::http_request( const std::string& method, const std::string& request_path,
 
     if ( request_path == "/dg/ctl?status.json" ) {
 
-        adio::dg::protocols<> p;
+        dg::protocols<> p;
         if ( bnc565::instance()->fetch( p ) ) {
-            if ( adio::dg::protocols<>::write_json( o, p ) )
+            if ( dg::protocols<>::write_json( o, p ) )
                 rep += o.str();                
-            // if ( __debug_mode__ )
-            //     std::cout << rep << std::endl;
         }
 
     } else if ( request_path == "/dg/ctl?status" ) {
@@ -233,10 +230,10 @@ dgctl::http_request( const std::string& method, const std::string& request_path,
     } else if ( request_path.compare( 0, 20, "/dg/ctl?commit.json=", 20 ) == 0 ) {
 
         std::stringstream payload( request_path.substr( 20 ) );
-        adio::dg::protocols<> protocols;
+        dg::protocols<> protocols;
         
         try {
-            if ( adio::dg::protocols<>::read_json( payload, protocols ) ) {
+            if ( dg::protocols<>::read_json( payload, protocols ) ) {
 
                 bnc565::instance()->commit( protocols );
                 o << "COMMIT SUCCESS; " << ( is_active() ? "(trigger is active)" : ( "trigger is not active" ) );

@@ -28,60 +28,55 @@
 #include "dgprotocol.hpp"
 #include <vector>
 
-namespace adio {
-    namespace dg {
-
-        template< typename protocol_type = protocol< delay_pulse_count > >
-        class protocols {
-        public:
-            protocols() : interval_( 1.0e-3 )
-                        , protocols_( 1 ) {
-            }
-            
-            protocols( const protocols& t ) : interval_( t.interval_ )
-                                            , protocols_( t.protocols_ ) {
-            }
-
-            static bool read_json( std::istream&, protocols<protocol<> >& );
-            static bool write_json( std::ostream&, const protocols<protocol<> >& );
-            
-            double interval() const {
-                return interval_;
-            }
-
-            void setInterval( double interval ) {
-                interval_ = interval;
-            }
-
-            const protocol_type& operator [] ( int idx ) const {
-                return protocols_[ idx ];
-            }
-            // protocol& operator [] ( int idx );
-
-            const size_t size() const {
-                return protocols_.size();
-            }
-
-            void resize( size_t sz ) {
-                protocols_.resize( sz );
-            }
-
-            typedef typename std::vector< protocol_type >::const_iterator const_iterator;
-            typedef typename std::vector< protocol_type >::iterator iterator;
-
-            const_iterator begin() const { return protocols_.begin(); }
-            const_iterator end() const { return protocols_.end(); }
-
-            iterator begin() { return protocols_.begin(); }
-            iterator end() { return protocols_.end(); }
-
-        private:
-            double interval_;
-            std::vector< protocol_type > protocols_;
-        };
-
-        // bool protocols::read_json( std::istream&, protocols< protocol<> >& );
-        // bool write_json( std::ostream&, const protocols< protocol<> >& );
+namespace dg {
+    
+    template< typename protocol_type = protocol< delay_pulse_count > >
+    class protocols {
+    public:
+        protocols() : interval_( 1.0e-3 )
+                    , protocols_( 1 ) {
+        }
         
-    }
+        protocols( const protocols& t ) : interval_( t.interval_ )
+                                        , protocols_( t.protocols_ ) {
+        }
+        
+        static bool read_json( std::istream&, protocols<protocol<> >& );
+        static bool write_json( std::ostream&, const protocols<protocol<> >& );
+        
+        double interval() const {
+            return interval_;
+        }
+        
+        void setInterval( double interval ) {
+            interval_ = interval;
+        }
+        
+        const protocol_type& operator [] ( int idx ) const {
+            return protocols_[ idx ];
+        }
+        // protocol& operator [] ( int idx );
+        
+        const size_t size() const {
+            return protocols_.size();
+        }
+        
+        void resize( size_t sz ) {
+            protocols_.resize( sz );
+        }
+        
+        typedef typename std::vector< protocol_type >::const_iterator const_iterator;
+        typedef typename std::vector< protocol_type >::iterator iterator;
+
+        const_iterator begin() const { return protocols_.begin(); }
+        const_iterator end() const { return protocols_.end(); }
+
+        iterator begin() { return protocols_.begin(); }
+        iterator end() { return protocols_.end(); }
+
+    private:
+        double interval_;
+        std::vector< protocol_type > protocols_;
+    };
+        
 }
