@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ "$1" = "upgrade" -o "$1" = "remove" ]; then
+    echo removing...
+    kill -HUP `cat /var/run/@PROJECT_NAME@.pid`    
+    update-rc.d -f @PROJECT_NAME@ remove
+fi

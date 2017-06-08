@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='UTF-8'/>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Delay Generator Design Description</title>
+    <style type="text/css" title="Amaya theme">
+      /* Modern style for Amaya Editor Lite */
+      
+      /* default rules for the whole document */
+      body {
+      font-size: 12pt;
+      font-family: Helvetica, Arial, sans-serif;
+      font-weight: normal;
+      font-style: normal;
+      color: black;
+      background-color: white;
+      line-height: 1.2em;
+      margin-left: 4em;
+      margin-right: 2em;
+      }
+      
+      /* paragraphs */
+      p  {
+      padding: 0;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      text-align: left;
+      }
+      
+      /* headings */
+      h1 {
+      font-size: 180%;
+      font-weight: bold;
+      font-style: normal;
+      font-variant: small-caps;
+      text-align: left;
+      padding: 0;
+      margin-top: 1.7em;
+      margin-bottom: 1.7em;
+      }
+      h2 {
+      font-size: 150%;
+      font-weight: bold;
+      font-style: normal;
+      padding: 0;
+      margin-top: 1.5em;
+      margin-bottom: 1.1em;
+      }
+      h3 {
+      font-size: 130%;
+      font-weight: bold;
+      font-style: normal;
+      padding: 0;
+      margin-top: 1.3em;
+      margin-bottom: 1.1em;
+      }
+      h4 {
+      font-size: 110%;
+      font-weight: bold;
+      font-style: normal;
+      padding: 0;
+      margin-top: 1.1em;
+      margin-bottom: 1.1em;
+      }
+      h5 {
+      font-size: 100%;
+      font-weight: bold;
+      font-style: italic;
+      padding: 0;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      }
+      h6 {
+      font-size: 100%;
+      font-weight: normal;
+      font-style: italic;
+      padding: 0;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      }
+      
+      /* divisions */
+      div {
+      padding: 0;
+      margin-top: 0em;
+      margin-bottom: 0em;
+      }
+      
+      /* lists */
+      ul, ol {
+      padding: 0 0 0 3em;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      }
+      ul ul, ol ol, ul ol, ol ul {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      }
+      li {
+      padding: 0;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      text-align: left;
+      }
+      li p {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      }
+      dl {
+      padding: 0;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      margin-left: 1em;
+      }
+      dl dl {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      }
+      dt {
+      padding: 0;
+      font-weight: bold;
+      margin-top: .3em;
+      margin-bottom: .3em;
+      }
+      dd {
+      padding: 0;
+      margin-top: .3em;
+      margin-left: 3em;
+      margin-bottom: .3em;
+      }
+      dl p {
+      margin-top: .3em;
+      margin-bottom: .3em;
+      }
+
+      /* inline */
+      strong {
+      font-weight: bold;
+      }
+      em {
+      font-style: italic;
+      }
+      code {
+      font-family: Courier New, Courier, monospace;
+      }
+      ins {
+      background-color: yellow;
+      text-decoration: underline;
+      }
+      del {
+      text-decoration: line-through;
+      }
+
+      /* anchors */
+      a[href] {
+      color: blue;
+      text-decoration: underline;
+      }
+
+      /* end */
+    </style>
+  </head>
+
+<body>
+<img src="logo-osaka-u.png" alt="Smiley face" height="31" width="280"> <img
+src="logo.png" alt="Smiley face" height="60" width="200"> 
+
+<p><a href="/index.html">"Back to home"></a></p>
+
+<article>
+  <header>
+    <h2>Delay Generator Design Description</h2>
+  </header>
+  <hr>
+
+  <h3>Design Goal</h3>
+  <ol>
+    <li>InfiTOF Pusher, Injection Sector, Gate および Ejection Sector
+      部のタイミング制御のため、4 チャネルのディレイジェネレータデバイ
+      スを設計し、GC/TOFMSなどの時間依存計測環境でのタイムイベントなら
+      びにデータディペンデント測定を可能とする。</li>
+    <li>飛行時間質量分析計のイオン押し出しタイミング T<sub>0</sub> を
+      基点として、T<sub>0</sub>の周期 (interval)および、４チャネルそれ
+      ぞれのパルスの立ち上がりまでのディレイ時間、パルス幅を設定する。
+      </li>
+    <li>ディレイ、パルス幅の設定値を更新する際、T<sub>0</sub>の周期を
+      （イオン押し出しタイミングを一定に）維持することにより、アナライ
+      ザ条件のタイムイベント、あるいはデータディペンデント測定における
+      電源安定性を確保する。</li>
+    <li>デバイスは制御ソフトウエアによるディレイ、パルス幅などのデータ
+      書き込みを保留し、ソフトウエアもしくは外部からのトリガを待った上
+      で、T<sub>0</sub> タイミングでそのデータが有効となるよう補償する。
+      </li>
+    <li>T<sub>0</sub> 信号は、InfiTOF を制御する ARP デジタイザ、もし
+      くは WTI 電源 + Acqiris AP240アベレージャに接続し使用することを
+      想定している。
+      <p>この場合、それぞれのデジタル回路のクロックが非同期であること
+	に伴い、デジタイザによる積算はクロック分解能相当のジッタに伴う
+	ピークの広がりを生ずるが、今回は無視する。</p>
+    </li>
+  </ol>
+
+  <div>
+    <p><strong>タイムイベント</strong>：クロマトグラム測定において、あ
+      らかじめ指定した時間に測定条件や装置制御条件を変更する機能。特定
+      成分を異なる検出条件で測定したり、LC における分取などの応用があ
+      る。</p>
+
+    <p><strong>データディペンデント測定</strong>:測定に伴うリアルタイ
+      ムアルゴリズムなどの適用結果から、たとえば、ベースピークのみを選
+      択するようアナライザの条件を設定し、そのフラグメントを観測するな
+      ど。InfiTOF では、あらかじめ登録された複数のターゲット化合物の候
+      補が検出された場合、そのイオンについて高分解能で測定するなどの応
+      用が考えられる。</p>
+  </div>
+
+  <h3>dg-httpd アプリケーションのインストール/アップデート</h3>
+
+  dg-httpd アプリケーションは、Delay Generator アプリケーションの FPGA
+  との橋渡しを行う Web ベースのソフトウエアであり、Debian パッケージ
+  dg-httpd-&lt;version&gt;-Linux.deb として提供される。このファイルを
+  scp コマンドなどを用いて Helio で作動する Linux にコピーし、以下の要
+  領でインストールする。以下の説明は、Helio 上で Debian Jessie が作動
+  しており、その IP アドレスは、クライアント(Web ブラウザが実行される
+  コンピュータ)の /etc/hosts ファイルに helio として登録されていると仮
+  定している。
+
+  <p><code><pre>
+	scp db-httpd-3.1.4.125-Linux.deb helio:~
+	ssh helio
+	dpkg -i db-httpd-3.1.4.125-Linux.deb</pre></code></p>
+
+  任意のコンピュータのブラウザから、URL "helio/" にアクセスすることで
+  Delay Generator ページが表示される。
+
+  <h3>dg-httpd デバッグ出力のモニタ</h3>
+
+  dg-httpd (httpd) は、syslog に実行状況を出力している。Helio 上で以下
+  のコマンドにより実行状況を監視できる。
+
+  <p><code><pre>
+	sudo tail -f /var/log/syslog</pre></code></p>
+
+  <hr/>
+
+  <h3>Implimentation</h3>
+
+  <a href="http://www.macnica-na.com/heliokit">Mpression Helio View
+  Cyclone V SoC Platform</a> (Helio) を応用し、内部に組み込まれた ARM
+  プロセッサに Debian Linux を搭載しきわめて軽量な httpd サーバを構築
+  することで、開発デバッグ時の GUI開発を軽減し、制御ソフトウエアからも
+  特別なソフトウエアドライバを開発することなく、制御できる環境とする。
+
+  <h3>実行環境の生成</h3>
+
+  <p>すでに、動作可能な SD Cardが手元にある場合、本節は無視してよい。</p>
+
+  <h5>クロスコンパイル環境の生成</h5>
+
+  クロスコンパイル環境には、Debian 8 (Jessie) 以降対応が始まる
+  MultiArch を用いる。筆者は、Windows 7 (64bit 日本語環境, Let's note)
+  上の Oracle VirtualBox Version 4.3.26 (VirtualBox) 上の VM に以下の
+  要領で環境を構築した。 VirtualBox への Debian Jessie は下記リンクの
+  インストールイメージをダウンロードし、VirtualBox Settings の Storage
+  に CD/DVD イメージとしてマウントすることでインストールした。
+
+  <a href="http://cdimage.debian.org/cdimage/jessie_di_rc1/amd64/iso-cd/debian-jessie-DI-rc1-amd64-netinst.iso">debian-jessie-DI-rc1-amd64-netinst.iso<a/>
+
+    インストール手順は省略する。なお、VM 生成の際、ストレージ（ディス
+    ク）容量は 32GB、メモリは 3GB とした。メモリが３GBより小さい場合、
+    Qt (QtWebKit) をクロスコンパイルする際、コンパイラがエラーとなるこ
+    とに留意されたい。
+
+    Debian Jessie をインストールした後、以下のコマンドによりセルフ、ク
+    ロス開発環境をインストール。
+
+  <p><pre><code>
+	sudo apt-get install build-essential
+	sudo dpkg --add-architecture armhf
+	dpkg --print-foreign-architectures
+	sudo -i
+	echo "deb http://emdebian.org/tools/debian/ jessie main" &gt; /etc/apt/sources.list.d/crosstools.list
+	echo "deb http://ftp.debian.org/debian/ unstable main" >> /etc/apt/sources.list
+	exit
+	sudo apt-get install curl
+	curl http://emdebian.org/tools/debian/emdebian-toolchain-archive.key | sudo apt-key add -
+	sudo apt-get update
+	sudo apt-get install crossbuild-essential-armhf</code></pre>
+  </p>
+
+  <h5>Debian Jessie (armhf) rootfs の生成</h5>
+
+  amd64 Linux 上に、
+  <a href="http://olimex.wordpress.com/2014/07/21/how-to-create-bare-minimum-debian-wheezy-rootfs-from-scratch/">"How
+    to create bare minimum Debian Wheezy rootfs from scratch" </a>
+
+  <a href="http://ms-cheminfo.com/?q=node/93">Debian ARM kernel install (Helio SOC FPGA)</a>
+
+  にしたがって、最小構成の Debian 8 (jessie)ルートファイルシステム
+  (rootfs) を構築する。筆者は、targetdir として ~/rootfs を用いた。
+
+     <p><span style="color:#0000ff"><span style="color:#ff0000">passwd
+	   コマンドにて、root
+	   パスワードを忘れず設定すること</span></span></p>
+     
+     <h5>Linux Kernel 3.18.9 の生成</h5>
+     
+     ftp.kernel.org より、本書執筆時点で最新の stable である 3.18.9ソース
+     を取得し、以下の command list により Linux zImageを生成。
+     
+  <p><pre><code>
+	sudo apt-get install bc u-boot-tools libncurses5-dev
+	wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.18.9.tar.xz
+	tar xvf linux-3.18.9.tar.xz
+	cd linux-3.18.9
+	make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 socfpga_defconfig
+  </p>
+
+  <pre>make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig</pre> を実行し、
+
+  Drivers|GPIO Support|General Memory Mapped GPIO controller support
+
+  を有効にする。
+  
+  <p><pre><code>  
+	make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 <del>LOADADDR=0x8000 uImage</del> zImage
+	make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 <del>LOADADDR=0x8000</del> all
+	sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install INSTALL_MOD_path=~/rootfs</code></pre>
+  </p>
+
+  Reference: <a href="http://www.rocketboards.org/foswiki/Documentation/HowUseTftpDebugKernel"><a/>
+
+  <h5>Boot SD Card の作成</h5>
+
+  Macnica America が配布している Ubuntu Linux イメージを 8GB SD Card
+  に書き込む。（uBoot 構築作業を省略するため) SDCard を Debian Jessie
+  (クロスホスト) Linux からマウントし、以下のコマンドシーケンスにより
+  Debian Jessie (armhf) SD Card を生成する。
+
+  Linux が Desktop 環境でインストールされている場合、SD Card が接続さ
+  れると /media 以下にオートマウントされるが、その場合は、umount コマ
+  ンドで /dev/sdb1, /dev/sdb2 をアンマウントしてから操作する。
+
+  (以下のコマンドは、対象デバイスを警告なく完全に初期化するので要注意)
+
+  <p><pre><code>
+	sudo mkdir /a
+	sudo mount /dev/sdb1 /a
+	sudo cp arch/arm/boot/zImage /a
+	sudo cp arch/arm/boot/dts/socfpga_cyclone5_socdk.dts /a/socfpga.dts
+	sudo umount /a
+	sudo mkfs.ext3 /dev/sdb2
+	sudo mount /dev/sdb2 /mnt
+	sudo tar xvf ~/rootfs.tar -C /mnt
+  </code></pre></p>
+
+  上記手順では、SPL, 並びに u-boot は入れ替えない。生成した SD Card を
+  Helio のカードスロットに挿入し、電源投入すると Linux が起動し、
+  login: が表示される。
+
+  <h5>Boost ライブラリのクロスインストール</h5>
+
+  VirtualBox のホスト Linux 上に ~/user-config.jam ファイルを以下の内
+  容で作成する。
+
+    <p><code><pre>
+	  using gcc : arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++11 -fPIC -static-libgcc -static-libstdc++";
+	  using python : 2.7 ;</pre></code></p>
+
+    QtPlatz は bzip2 依存部分があるため、ホスト Linux に bzip2 armhf ファイルをインストールする。
+    
+    <p><code><pre>
+	  sudo apt-get install bzip2:armhf
+	  ./bootstrap.sh --prefix=/usr/local/arm-linux-gnueabihf-rootfs
+	  sudo ./b2 toolset=gcc-arm link=static install
+    </pre></code></p>
+
+  <h5>dg-httpd アプリケーションパッケージの生成</h5>
+
+  <p><code><pre>
+	mkdir ~/src
+	cd ~/src
+	git clone ssh://&lt;username&gt;@multum.jp:61203/var/lib/git/public_git/infitof.git
+	cd infitof/peripheral
+	./helio-cmake.sh
+	cd build-helio
+	make
+	make package</pre></code></p>
+
+  <p>
+    build-helio ディレクトリに dg-httpd-&lt;version&gt;-Linux.deb ファイルが生成される。
+    このファイルを、helio にコピーし、インストールする。
+  </p>
+
+    <p><code><pre>
+	  scp dg-httpd-dg-httpd-&lt;version&gt;-Linux.deb &lt;username&gt;@helio:~/
+	  ssh helio -l &lt;username&gt;
+	  sudo dpkg -i dg-httpd-dg-httpd-&lt;version&gt;-Linux.deb &lt;username&gt;@helio:~/
+	  </pre></code></p>
+
+  <h3>Reference</h3>
+  <nav>
+    <a href="http://www.altera.co.jp/literature/hb/cyclone-v/hps.html">hps</a> |
+    <a href="/index.html">Back to Home</a>
+  </nav>
+</article>
+</body>
+</html>

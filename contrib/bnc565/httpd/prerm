@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [ "$1" = "upgrade" -o "$1" = "remove" ]; then
+    echo removing...
+    update-rc.d -f httpd remove
+fi

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "httpd post installation...."
+
+if [ "$1" = "configure" ]; then
+    mv /etc/init.d/httpd.sh /etc/init.d/httpd
+    chmod 755 /etc/init.d/httpd
+    update-rc.d httpd defaults 81
+    /etc/init.d/httpd restart
+fi

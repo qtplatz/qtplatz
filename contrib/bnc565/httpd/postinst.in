@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "httpd post installation...."
+
+if [ "$1" = "configure" ]; then
+    echo "@CMAKE_INSTALL_PREFIX@/lib" > /etc/ld.so.conf.d/@PROJECT_NAME@.conf
+    ldconfig
+    mv /etc/init.d/@PROJECT_NAME@.sh /etc/init.d/@PROJECT_NAME@
+    chmod 755 /etc/init.d/@PROJECT_NAME@
+    update-rc.d @PROJECT_NAME@ defaults 81
+    /etc/init.d/@PROJECT_NAME@ restart
+fi

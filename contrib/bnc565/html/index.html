@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <title>Delay Generator</title>
+    <script type="text/javascript" src="loadactuals.js"></script>
+    <script type="text/javascript" src="showhint.js"></script>
+    <script type="text/javascript" src="commitchange.js"></script>
+    <script type="text/javascript" src="loadbanner.js"></script>    
+    <script type="text/javascript">
+      function downloadOnload() {
+        var element = document.createElement("script");
+        element.src = "defer.js";
+        document.body.appendChild(element);
+        loadBanner();
+        loadActuals();
+      }
+      if ( window.addEventListener )
+        window.addEventListener("load", downloadOnload);
+      else if ( window.attachEvent)
+        window.attachEvent("load", downloadOnload);
+    </script>
+    <script type="text/javascript">
+      var source = new EventSource( '/dg/ctl?events' );
+      source.addEventListener( 'tick', function( e ) {
+        var ev = document.getElementById( 'tick' );
+        ev.innerHTML = e.data;
+      }, false );
+      source.onmessage = function(e) {
+        var ev = document.getElementById( 'events' );
+        ev.innerHTML = e.data;
+      };
+      source.onerror = function( e ) {
+        console.log( e )
+      };
+      source.onopen = function( e ) {
+        var ev = document.getElementById('events');
+        ev.innerHTML = "open";
+      }
+    </script>
+  </head>
+
+  <body>
+    <img src="logo-osaka-u.png" alt="Smiley face" height="31" width="280">
+    <div id="banner"><h2>Delay Generator $Id: 9c587b6f2f598afd08f87fd13c93002a7bfd783f $</h2></div>
+    <div class="container">
+      Status: 
+      <div id="events" style="display: inline"></div>
+      ; Tick count: 
+      <div id="tick" style="display: inline"></div>
+    </div>
+    <p>
+      <div id="idStatus">n/a</div>
+      <button type="button" onclick="loadActuals()">Update</button>
+    </p>
+
+    <hr/>
+    <form action="" id="idForm"></form>
+    <table id="idPulseTable">
+      <th> </th><th>delay(&mu;s)</th><th>width(&mu;s)</th>
+      <tr>
+	<td>PUSH</td>
+	<td>
+	  <input type="text" id="D0" onkeyup="showHint(this.value, this.id)" value="0" >
+	</td>
+	<td>
+	  <input type="text" id="W0" onkeyup="showHint(this.value, this.id)" value="0" >
+	</td>
+      </tr>
+      <tr>
+	<td>INJ</td>	
+	<td>
+	  <input type="text" id="D1" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W1" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>
+      <tr>
+	<td>EXIT</td>	
+	<td>
+	  <input type="text" id="D2" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W2" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>            
+      <tr>
+	<td>GATE(0)</td>	
+	<td>
+	  <input type="text" id="D3" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W3" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>            
+      <tr>
+	<td>GATE(1)</td>	
+	<td>
+	  <input type="text" id="D4" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W4" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>
+      <tr>
+	<td>ADC delay</td>	
+	<td>
+	  <input type="text" id="D5" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W5" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>            
+      <tr>
+	<td>T<sub>0</sub></td>
+	<td>Push interval(&mu;s)</td>
+	<td>
+	  <input type="text" id="T0" onkeyup="showHint(this.value, this.id)" value="1000">
+	</td>
+      </tr>            
+    </table>
+    <hr/>    
+    <p>Suggestions: <span id="txtHint"></span></p> 
+
+    <p>
+      <button type="submit" onclick="commitChange()">Submit</button>
+      <button type="button" onclick="fsm('start')">Start</button>
+      <button type="button" onclick="fsm('stop')">Stop</button>      
+    </p>
+
+    <p>
+      <a href="document.html">Design description</a>
+    </p>
+    <img src="logo.png" alt="Smiley face" height="60" width="200">
+    
+  </body>
+</html>

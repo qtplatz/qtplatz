@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <section>
+      <div id="protocolIndex"><em>Protocol# 0</em></div>
+      <table id="idProtocol">
+	<th/> <th>Delay(&mu;s)</th><th>Width(&mu;s)</th>
+	<tr>
+	  <td><em>PUSH</em></td>
+	  <td><input type="number" id="PULSE.DELAY.PUSH" min=0 max=1000 step="0.01" onchange="onEdit( this )" value="0" /></td>
+	  <td><input type="number" id="PULSE.WIDTH.PUSH" min=0.01 max=1000 step="0.01" onchange="onEdit( this )" value="0.010" /></td>
+	</tr>
+	<tr>
+	  <td><em>INJECT</em></td>	    
+	  <td><input type="number" id="PULSE.DELAY.INJECT" min=0 max=1000 step="0.01" onchange="onEdit( this )" value="0" /></td>
+	  <td><input type="number" id="PULSE.WIDTH.INJECT" min=0.01 max=1000 step="0.01" onchange="onEdit( this )" value="0.010" /> </td>
+	</tr>
+	<tr>
+	  <td><em>EXIT</em></td>
+	  <td><input type="number" id="PULSE.DELAY.EXIT" min=0 max=1000 step="0.01" onchange="onEdit( this )" value="0" /> </td>
+	  <td><input type="number" id="PULSE.WIDTH.EXIT" min=0.01 max=1000 step="0.01" onchange="onEdit( this )" value="0.010" /> </td>
+	</tr>
+	<tr>
+	  <td><em>GATE (0)</em></td>
+	  <td> <input type="number" id="PULSE.DELAY.GATE0" min=0 max=1000 step="0.01" onchange="onEdit( this )" value="0" /></td>
+	  <td> <input type="number" id="PULSE.WIDTH.GATE0" min=0.01 max=1000 step="0.01" onchange="onEdit( this )" value="0.010" /> </td>
+	</tr>
+	<tr>
+	  <td><em>GATE (1)</em></td>
+	  <td> <input type="number" id="PULSE.DELAY.GATE1" min=0 max=1000 step="0.01" onchange="onEdit( this )" value="0" /> </td>
+	  <td> <input type="number" id="PULSE.WIDTH.GATE1" min=0.01 max=1000 step="0.01" onchange="onEdit( this )" value="0.010" /></td>
+	</tr>
+	<tr>
+	  <td><em>ADC Delay</em></td>
+	  <td> <input type="number" id="PULSE.DELAY.ADC" min=0 max=1000 step="0.01" onchange="onEdit( this )" value="0" /> </td>
+	  <td> <input type="number" id="PULSE.WIDTH.ADC" min=0.01 max=1000 step="0.01" onchange="onEdit( this )" value="0.010" /></td>
+	</tr>
+	<tr>
+	  <td><em>Replicates</em></td>
+	  <td> <input type="number" id="REPLICATES" min=0 max=2000 step="1" onchange="onEdit( this )" value="1" /> </td>
+	  <td> <input type="checkbox" id="ENABLE" data-toggle="toggle" data-on="on" data-off="off" data-size="mini"
+		      checked="true" onchange="onChecked( this )" /></td>
+	</tr>
+      </table>
+    </section>
+  </body>
+</html>

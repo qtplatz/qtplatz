@@ -1,0 +1,36 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          httpd
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: httpd
+# Description:       http daemon
+### END INIT INFO
+
+case "$1" in
+  start)
+        echo -n "Starting delay-generator daemon: @PROJECT_NAME@"
+	@CMAKE_INSTALL_PREFIX@/bin/@PROJECT_NAME@ --port 80 --doc_root @HTML_INSTALL_DIR@/html > /dev/null 2>&1 &
+        echo "."
+	;;
+  stop)
+        echo -n "Stopping delay-generator daemon: @PROJECT_NAME@"
+	kill -HUP `cat /var/run/@PROJECT_NAME@.pid`
+        echo "."
+	;;
+  restart)
+        echo -n "Restarting delay-generator daemon: @PROJECT_NAME@"
+	kill -HUP `cat /var/run/@PROJECT_NAME@.pid`
+	sleep 3
+	@CMAKE_INSTALL_PREFIX@/bin/@PROJECT_NAME@ --port 80 --doc_root @HTML_INSTALL_DIR@/html > /dev/null 2>&1 &
+        echo "."
+        ;;
+
+  *)
+	echo "Usage: /etc/init.d/@PROJECT_NAME@ {start|stop|restart}"
+	exit 1
+esac
+
+exit 0

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body style="font-family:Verdana;font-size:14pt">
+    <table id="idPulseTable">
+      <th> </th><th>delay(&mu;s)</th><th>width(&mu;s)</th>
+      <tr>
+	<td>PUSH</td>
+	<td>
+	  <input type="text" id="D0" onkeyup="showHint(this.value, this.id)" value="0" >
+	</td>
+	<td>
+	  <input type="text" id="W0" onkeyup="showHint(this.value, this.id)" value="0" >
+	</td>
+      </tr>
+      <tr>
+	<td>INJ</td>	
+	<td>
+	  <input type="text" id="D1" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W1" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>
+      <tr>
+	<td>EXIT</td>	
+	<td>
+	  <input type="text" id="D2" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W2" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>            
+      <tr>
+	<td>GATE(0)</td>	
+	<td>
+	  <input type="text" id="D3" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W3" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>            
+      <tr>
+	<td>GATE(1)</td>	
+	<td>
+	  <input type="text" id="D4" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W4" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>
+      <tr>
+	<td>ADC delay</td>	
+	<td>
+	  <input type="text" id="D5" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+	<td>
+	  <input type="text" id="W5" onkeyup="showHint(this.value, this.id)" value="0">
+	</td>
+      </tr>
+      <tr>
+	<td>T<sub>0</sub></td>
+	<td>Push interval(&mu;s)</td>
+	<td>
+	  <input type="text" id="T0" onkeyup="showHint(this.value, this.id)" value="1000">
+	</td>
+      </tr>            
+    </table>
+  </body>
+</html>
