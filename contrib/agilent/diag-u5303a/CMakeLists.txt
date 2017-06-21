@@ -22,19 +22,15 @@ add_executable( ${PROJECT_NAME} main.cpp )
 
 link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplatz )
 
-if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-  set( DL dl )
-else()
-  set( DL )
-endif()
-
 target_link_libraries( ${PROJECT_NAME}
   u5303a
   adcontrols
   acqrscontrols
   dgpio
   ${AgMD2_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${DL} )
+)
 
-
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )

@@ -49,9 +49,9 @@ target_link_libraries( ap240 PUBLIC
   ${platform_libs}
   )
 
-add_executable( test_digitizer main.cpp )
+add_executable( diag-ap240 main.cpp )
 
-target_link_libraries( test_digitizer LINK_PUBLIC
+target_link_libraries( diag-ap240 LINK_PUBLIC
   ${PROJECT_NAME}
   ${Boost_LIBRARIES}
   ${platform_libs}
@@ -61,4 +61,10 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( TARGETS diag-ap240
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT modules
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
   
