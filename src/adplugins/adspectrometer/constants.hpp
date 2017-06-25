@@ -37,7 +37,7 @@ namespace adspectrometer {
     namespace iids {
 
         extern const boost::uuids::uuid uuid_adspectrometer;
-        
+        constexpr const char * const iid_adspectrometer = "{e45d27e0-8478-414c-b33d-246f76cf62ad}";
     }
 
 }
