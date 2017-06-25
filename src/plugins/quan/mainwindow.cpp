@@ -494,7 +494,7 @@ MainWindow::handleOpenQuanMethod()
     if ( ! name.isEmpty() ) {
         boost::filesystem::path path( name.toStdWString() );
         adcontrols::ProcessMethod temp;
-        if ( QuanDocument::load( path, temp ) ) {
+        if ( QuanDocument::instance()->load( path, temp, true ) ) {
             auto qm = temp.find< adcontrols::QuanMethod >();
             if ( !qm ) {
                 temp << adcontrols::QuanMethod();
@@ -514,15 +514,15 @@ void
 MainWindow::handleSaveQuanMethod()
 {
     auto name = QFileDialog::getSaveFileName( this
-                                              , tr( "Save Quantitation Method File" )
+                                              , tr( "Save Quan Method File" )
                                               , QuanDocument::instance()->lastMethodDir()
-                                              , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
+                                              , tr( "Quan Method Files(*.qmth)(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
 
         commit();
 
         boost::filesystem::path path( name.toStdWString() );
-        QuanDocument::save( path, QuanDocument::instance()->pm() );
+        QuanDocument::instance()->save( path, QuanDocument::instance()->pm(), true );
 
         if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
             if ( qm->quanMethodFilename() != path ) {

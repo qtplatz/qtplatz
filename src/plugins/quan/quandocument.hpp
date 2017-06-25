@@ -132,8 +132,8 @@ namespace quan {
         bool load( const boost::filesystem::path&, adcontrols::QuanSequence& );
         bool save( const boost::filesystem::path&, const adcontrols::QuanSequence&, bool updateSettings );
 
-        static bool load( const boost::filesystem::path&, adcontrols::ProcessMethod& );
-        static bool save( const boost::filesystem::path&, const adcontrols::ProcessMethod& );
+        bool load( const boost::filesystem::path&, adcontrols::ProcessMethod&, bool );
+        bool save( const boost::filesystem::path&, const adcontrols::ProcessMethod&, bool );
 
         static bool load( const boost::filesystem::path&, adpublisher::document& );
         static bool save( const boost::filesystem::path&, const adpublisher::document& );

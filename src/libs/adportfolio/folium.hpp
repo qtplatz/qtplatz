@@ -106,11 +106,19 @@ namespace portfolio {
     typedef std::vector< Folium > Folio;
 
     template<class T> T get( Folium& folium ) {
-        return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
+		try {
+			return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
+		} catch ( boost::bad_any_cast& ) {
+            return T(0);
+		}
     }
 
     template<class T> T get( const Folium& folium ) {
-        return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
+        try {
+            return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
+        } catch ( boost::bad_any_cast& ) {
+            return T(0);
+        }
     }
 
     template<class Pred> Folium find_first_of( Folio folio, Pred pred ) {

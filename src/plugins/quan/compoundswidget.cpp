@@ -115,7 +115,7 @@ CompoundsWidget::importCompounds()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
         adcontrols::ProcessMethod m;
-        if ( QuanDocument::load( name.toStdWString(), m ) ) {
+        if ( QuanDocument::instance()->load( name.toStdWString(), m, false ) ) {
             if ( auto ptr = m.find< adcontrols::QuanCompounds >() ) {
                 QuanDocument::instance()->replace_method( *ptr );
             }

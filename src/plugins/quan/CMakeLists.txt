@@ -76,6 +76,8 @@ set( quan_SOURCES
   compoundswidget.hpp
   compoundstable.cpp
   compoundstable.hpp
+  findcompounds.cpp
+  findcompounds.hpp
   quancandidate.cpp
   quancandidate.hpp
   quanconfigform.cpp

@@ -214,9 +214,6 @@ CompoundsTable::onInitialUpdate()
         model.setHeaderData( col, Qt::Horizontal, QString( "amounts [%1]" ).arg( col - c_level_0 + 1 ) );
     
     handleQuanMethod( QuanDocument::instance()->quanMethod() );
-
-    resizeColumnsToContents();
-    resizeRowsToContents();
 }
 
 void
@@ -268,14 +265,12 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
         }
 
     }
+
     if ( index.row() == model_->rowCount() - 1 ) {
         auto data = model_->index( index.row(), c_formula ).data( Qt::EditRole );
         if ( !data.isNull() && !data.toString().isEmpty() )
             model_->insertRow( index.row() + 1 );
     }
-
-    resizeColumnsToContents();
-    resizeRowsToContents();
 }
 
 void
@@ -391,8 +386,6 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
         ++row;
     }
 
-    resizeColumnsToContents();
-    resizeRowsToContents();
     return false;
 }
 

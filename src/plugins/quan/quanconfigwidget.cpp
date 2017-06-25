@@ -125,7 +125,7 @@ QuanConfigWidget::importQuanMethod()
                                                  , tr( "Quan Method Files(*.qmth);;XML Files(*.xml)" ) );
     if ( !name.isEmpty() ) {
         adcontrols::ProcessMethod m;
-        QuanDocument::load( name.toStdWString(), m );
+        QuanDocument::instance()->load( name.toStdWString(), m, false );
         QuanDocument::instance()->replace_method( m );
     }
 }
