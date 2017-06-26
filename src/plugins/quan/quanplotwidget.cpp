@@ -109,6 +109,10 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
             spw->setData( d->filterd, 0, true );
             spw->setData( d->profile, 2, true );
             spw->setData( d->centroid, 1, false );
+        } else if ( d->profiledHist ) {
+            spw->setData( d->profile, 0, true );
+            spw->setData( d->profiledHist, 2, true );
+            spw->setData( d->centroid, 1, false );            
         } else {
             spw->setData( d->profile, 0, true );
             spw->setData( d->centroid, 1, false );

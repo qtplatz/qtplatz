@@ -44,5 +44,6 @@ QuanPlotData::QuanPlotData( const QuanPlotData& t ) : profile( t.profile )
                                                     , pkResult( t.pkResult )
                                                     , sample( t.sample )
                                                     , procmethod( t.procmethod )
+                                                    , profiledHist( t.profiledHist )
 {
 }

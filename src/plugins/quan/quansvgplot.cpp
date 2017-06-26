@@ -86,6 +86,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
 
     auto tCentroid( std::make_shared< adcontrols::MassSpectrum >() );
     auto tProfile( std::make_shared< adcontrols::MassSpectrum >() );
+    std::shared_ptr< adcontrols::MassSpectrum > tProfiledHist;
 
     adcontrols::MSPeakInfoItem pk;
 
@@ -106,11 +107,16 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
                 }
             } else {
                 adcontrols::segment_wrapper<> vec( *data.profile );
-                ADDEBUG() << "################## no-data " << fcn << "#################### " << vec.size();
+                ADDEBUG() << "################## no data found for proto# " << fcn << "#################### " << vec.size();
                 for ( auto& ms: vec ) {
                     ADDEBUG() << "proto = " << ms.protocolId();
                 }
                 *tProfile = *data.profile;
+            }
+
+            if ( data.profiledHist ) {
+                tProfiledHist = std::make_shared< adcontrols::MassSpectrum >();
+                data.profiledHist->trim( *tProfiledHist, range );
             }
             
             if ( auto centroid = data.centroid->findProtocol( fcn ) ) {
@@ -119,7 +125,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
                 }
             } else {
                 adcontrols::segment_wrapper<> vec( *data.centroid );
-                ADDEBUG() << "################## no-data " << fcn << "#################### " << vec.size();
+                ADDEBUG() << "################## no data found for proto# " << fcn << "#################### " << vec.size();
                 *tCentroid = *data.centroid;
             }
         }
@@ -142,8 +148,11 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
     adplot::SpectrumWidget plot;
-    plot.setData( tProfile, 0 );
+    plot.setData( tProfile, 0, false );
+    if ( tProfiledHist )
+        plot.setData( tProfiledHist, 2, false );
     plot.setData( tCentroid, 1, true );
+
     plot.setZoomBase( range, true );
     adplot::PeakMarker marker;
 

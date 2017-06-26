@@ -333,6 +333,7 @@ SpectrumWidget::setZoomBase( const std::pair< double, double >& range, bool hori
         bz.setBottom( range.first );
         bz.setTop( range.second );
     }
+    zoom( bz );
     plot::zoomer()->setZoomBase();
 }
 

@@ -128,8 +128,6 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
     for ( const auto& c: compounds )
         channels |= c.isCounting() ? 1 : 2;
 
-    // ADDEBUG() << "##### Channels = " << channels << " #####";
-
     double tolerance = 0.001;
     if ( auto tm = procmethod_->find< adcontrols::TargetingMethod >() )
         tolerance = tm->tolerance( adcontrols::idToleranceDaltons );
@@ -150,6 +148,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 if ( auto hist = dp->readSpectrumFromTimeCount() )
                     findCompounds.doCentroid( dp, hist, true );
             }
+
             if ( channels & 0x02 ) { // profile
                 if ( auto profile = dp->readCoAddedSpectrum( false ) )
                     findCompounds.doCentroid( dp, profile, false );
@@ -160,11 +159,12 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
             
             if ( channels & 0x01 ) { // counting
                 findCompounds( dp, true );
-                findCompounds.write( writer, stem.wstring(), procmethod_, sample, true );
+                findCompounds.write( writer, stem.wstring(), procmethod_, sample, true, dp );
             }
+
             if ( channels & 0x02 ) { // profile
                 findCompounds( dp, false );
-                findCompounds.write( writer, stem.wstring(), procmethod_, sample, false );
+                findCompounds.write( writer, stem.wstring(), procmethod_, sample, false, dp );
             }
         }
         
@@ -200,8 +200,8 @@ QuanCountingProcessor::fetch( portfolio::Folium& folium )
             if ( att.empty() )
                 fetch( att ); // recursive call make sure for all blongings load up in memory.
         }
+    } catch ( std::bad_cast& ) {
     }
-    catch ( std::bad_cast& ) {}
     return true;
 }
 

@@ -79,6 +79,7 @@ namespace quan {
                     , const std::wstring& name
                     , std::shared_ptr< const adcontrols::ProcessMethod > pm
                     , adcontrols::QuanSample& sample
-                    , bool isCounting );
+                    , bool isCounting
+                    , std::shared_ptr< adprocessor::dataprocessor > dp );
     };
 }

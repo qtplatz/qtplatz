@@ -141,6 +141,10 @@ QuanConnection::fetch( const std::wstring& dataGuid )
                     d->filterd = std::make_shared< adcontrols::MassSpectrum >();
                     att.fetch( *d->filterd );
 
+                } else if ( att.attribute( L"name" ) == dataproc::Constants::F_PROFILED_HISTOGRAM ) {
+
+                    d->profiledHist = std::make_shared< adcontrols::MassSpectrum >();
+                    att.fetch( *d->profiledHist );
                 }
             } else if ( att.dataClass() == adcontrols::MSPeakInfo::dataClass() ) {
 

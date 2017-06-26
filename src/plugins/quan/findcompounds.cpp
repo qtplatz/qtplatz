@@ -35,6 +35,7 @@
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/histogram.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/msfinder.hpp>
@@ -172,31 +173,6 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
     return true;
 }
 
-void
-FindCompounds::write( std::shared_ptr< QuanDataWriter > writer
-                      , const std::wstring& stem
-                      , std::shared_ptr< const adcontrols::ProcessMethod > pm
-                      , adcontrols::QuanSample& sample
-                      , bool isCounting )
-{
-    size_t index = isCounting ? 0 : 1;
-
-    // save instogram on adfs filesystem
-    if ( auto file = writer->write( *profile_[ index ], stem ) ) {
-        
-        for ( auto& resp: responses_ )
-            resp.second.dataGuid_ = file.name(); // dataGuid
-
-        for ( const auto& resp: responses_ )
-            sample << resp.second;
-
-        auto att = writer->attach< adcontrols::MassSpectrum >( file, *centroid_[ index ], dataproc::Constants::F_CENTROID_SPECTRUM );
-        writer->attach< adcontrols::ProcessMethod >( att, *pm, L"ProcessMethod" );
-        writer->attach< adcontrols::MSPeakInfo >( file, *pkinfo_[ index ], dataproc::Constants::F_MSPEAK_INFO );
-        writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
-    }
-}
-
 
 bool
 FindCompounds::doMSLock( const adcontrols::MSLockMethod& m, bool isCounting )
@@ -235,5 +211,38 @@ FindCompounds::doMSLock( const adcontrols::MSLockMethod& m, bool isCounting )
         return true;
     }
     return false;
+}
+
+void
+FindCompounds::write( std::shared_ptr< QuanDataWriter > writer
+                      , const std::wstring& stem
+                      , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                      , adcontrols::QuanSample& sample
+                      , bool isCounting
+                      , std::shared_ptr< adprocessor::dataprocessor > dp )
+{
+    size_t index = isCounting ? 0 : 1;
+
+    // save instogram on adfs filesystem
+    if ( auto file = writer->write( *profile_[ index ], stem ) ) {
+        
+        for ( auto& resp: responses_ )
+            resp.second.dataGuid_ = file.name(); // dataGuid
+
+        for ( const auto& resp: responses_ )
+            sample << resp.second;
+        
+        auto att = writer->attach< adcontrols::MassSpectrum >( file, *centroid_[ index ], dataproc::Constants::F_CENTROID_SPECTRUM );
+        writer->attach< adcontrols::ProcessMethod >( att, *pm, L"ProcessMethod" );
+        writer->attach< adcontrols::MSPeakInfo >( file, *pkinfo_[ index ], dataproc::Constants::F_MSPEAK_INFO );
+        writer->attach< adcontrols::QuanSample >( file, sample, dataproc::Constants::F_QUANSAMPLE );
+
+        if ( isCounting ) {
+            if ( auto sp = dp->massSpectrometer() ) {
+                if ( auto profiled = adcontrols::histogram::make_profile( *profile_[ index ], *sp ) )
+                    writer->attach< adcontrols::MassSpectrum >( file, *profiled, dataproc::Constants::F_PROFILED_HISTOGRAM );
+            }
+        }
+    }
 }
 

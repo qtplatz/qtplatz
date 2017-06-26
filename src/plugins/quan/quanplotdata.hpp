@@ -37,6 +37,7 @@ namespace quan {
         QuanPlotData( const QuanPlotData& );
 
         std::shared_ptr< adcontrols::MassSpectrum > profile;
+        std::shared_ptr< adcontrols::MassSpectrum > profiledHist;
         std::shared_ptr< adcontrols::MassSpectrum > filterd;
         std::shared_ptr< adcontrols::MassSpectrum > centroid;
         std::shared_ptr< adcontrols::MSPeakInfo > pkinfo;
