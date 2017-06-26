@@ -36,12 +36,24 @@ namespace adportable {
 
     class histogram_peakfinder {
     public:
-        histogram_peakfinder( double xInterval = 1.0e-9 );
+        histogram_peakfinder( double xInterval = 1.0e-9, uint32_t width = 3 );
 
         size_t operator()( size_t nbrSamples, const double * pTimes, const double * pCounts );
 
         double xInterval_;
+        uint32_t width_;
         std::vector< peakinfo > results_;
+    };
+
+    class histogram_merger {
+    public:
+        histogram_merger( double xInterval, double threshold );
+
+        size_t operator()( std::vector< peakinfo >&, size_t nbrSamples
+                           , const double * pMasses, const double * pTimes, const double * pCounts );
+
+        const double xInterval_;
+        const double threshold_;
     };
 }
 

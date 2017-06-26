@@ -50,7 +50,7 @@ namespace adportable {
 
     /////////////////////////////////////////////////////
 
-    template<class Fx> class Moment {
+    template<class Fx = massArrayFunctor> class Moment {
         std::function< double( int pos ) > fx_;
         double Xl;
         double Xr;

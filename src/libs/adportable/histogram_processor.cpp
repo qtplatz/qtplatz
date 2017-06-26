@@ -25,6 +25,8 @@
 #include "histogram_processor.hpp"
 #include "moment.hpp"
 #include "debug.hpp"
+#include "float.hpp"
+#include <boost/format.hpp>
 #include <cassert>
 #include <cmath>
 #include <cstring> // for memset()
@@ -118,25 +120,10 @@ namespace adportable {
                 return false;
             }
 
-            bool shift_reduce( const T& c ) {
-                while ( stack_.top().distance() < width_ ) {
-                    // && stack_.top().type() == peakfind::Down ) { // discard narrow 'down' state
+            void clear() {
+                while ( ! stack_.empty() )
                     stack_.pop();
-                    if ( stack_.empty() ) {
-                        stack_.push( c );
-                        return false;
-                    }
-                }
-
-                if ( stack_.top().type() == c.type() )  // marge
-                    stack_.top() += c;  // marge
-
-                // if (Up - Down)|(Down - Up), should push counter and wait for next state
-                if ( stack_.top().type() != c.type() )
-                    stack_.push( c );
-
-                return stack_.size() >= 3;
-            };
+            }
 
             bool process_slope( const T& t ) {
                 if ( stack_.empty() ) {
@@ -145,8 +132,10 @@ namespace adportable {
                 } else if ( stack_.top().type() == t.type() ) {
                     stack_.top()++;
                     return false;
-                } else
-                    return shift_reduce( t );
+                } else {
+                    stack_.push( t );
+                    return stack_.size() >= 3;
+                }
             }
         };
     }
@@ -155,10 +144,10 @@ namespace adportable {
 using namespace adportable;
 using namespace adportable::histogram;
 
-histogram_peakfinder::histogram_peakfinder( double xInterval ) : xInterval_( xInterval )
+histogram_peakfinder::histogram_peakfinder( double xInterval, uint32_t width ) : xInterval_( xInterval )
+                                                                               , width_( width < 3 ? 3 : width | 01 )
 {
 }
-
     
 size_t
 histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, const double * pCounts )
@@ -168,34 +157,102 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
     if ( pTimes == 0 || pCounts == 0 )
         return 0;
 
-    static const int width = 3;
-    static const double slope = 0.0;
+    // static const int width = 3;
+    static const double slope = 0.1;
 
-    slope_state< counter > state( width / 2 );
+    slope_state< counter > state( width_ / 2 );
             
-    bool reduce = false;
     for ( auto it = pCounts + 1; it < pCounts + nbrSamples - 1; ++it ) {
-        double d1 = ( -( it[ -1 ] ) + it[ 1 ] ) / 2;
-        { // debug
-            //double t = pTimes[ std::distance( pCounts, it ) ];
-            //ADDEBUG() << "data: " << std::distance( pCounts, it ) << "\t, " << t << "\t" << *it << "\td1=" << d1;
+
+        bool reduce = false;
+
+        size_t x = std::distance( pCounts, it );           // index of counts array
+        int dt = int ( 0.5 + ( pTimes[ x ] - pTimes[ x - 1 ] ) / xInterval_ ); // sample distance to/from previous
+
+        if ( dt >= 3 ) {
+            state.process_slope( counter( x - 1, None ) );
+            std::pair< counter, counter > peak;
+            while ( state.reduce( peak ) )
+                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0, 0 ) );
+            state.clear();
         }
-        size_t x = std::distance( pCounts, it );
-        if ( d1 >= slope )
+
+        double d1 = ( -( it[ -1 ] ) + it[ 1 ] ) / 2;       // simple 1st delivertive
+
+        int typ( 0 );
+
+        if ( d1 >= slope ) {
+            typ = 1;
             reduce = state.process_slope( counter( x, Up ) );
-        else if ( d1 <= (-slope) )
+        } else if ( d1 <= (-slope) ) { // negative slope
+            typ = 2;
             reduce = state.process_slope( counter( x, Down ) );
+        } else if ( *it > 0 ) {
+            typ = 3;
+            state.stack_.top()++; // extend
+        }
+#if 0
+        { // debug
+            double pt = pTimes[ x - 1 ];
+            if ( x < 50 )  {
+                double t = pTimes[ x ];
+                ADDEBUG() << boost::format( "data: %d\t%.4lf\t%d\t%d\td1=%g\treduce=%d\t%d " )
+                    % x % ( t * 1e6 ) % dt % *it % d1 % reduce % state.stack_.size()
+                          << ( typ == 1 ? "Up" : ( typ == 2 ? "Down" : "Hold" ) )
+                          << ",\t" << ( state.stack_.empty() ? 0 : state.stack_.top().bpos_ );
+            }
+        }
+#endif
         if ( reduce ) {
             std::pair< counter, counter > peak;
             while ( state.reduce( peak ) ) {
-                //ADDEBUG() << "reduce: " << peak.first.bpos_ << ", " << peak.second.tpos_;
-                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+                uint32_t flag = uint32_t( pCounts[ peak.second.tpos_ ] );
+                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0, flag ) );
+#if 0
+                if ( x < 50 )
+                    ADDEBUG() << boost::format( "\treduce: %d\t%d" ) % peak.first.bpos_ % peak.second.tpos_;
+#endif
             }
         }
+
     }
     
     return results_.size();
 }
 
 
+////////////////////////////////////////////////
 
+histogram_merger::histogram_merger( double xInterval, double threshold ) : xInterval_( xInterval )
+                                                                         , threshold_( threshold )
+{
+}
+
+size_t
+histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
+                              , const double * pMasses, const double * pTimes, const double * pCounts )
+{
+    if ( pkinfo.size() < 2 )
+        return pkinfo.size();
+
+    // copy (preserve original) version
+    std::vector< peakinfo > results;
+
+    for ( auto it = pkinfo.begin() + 1; it != pkinfo.end(); ++it ) {
+        
+        size_t x1 = (it - 1)->second;
+        size_t x2 = it->first;
+
+        int dt = int ( ( ( pTimes[ x2 ] - pTimes[ x1 ] ) / xInterval_ ) + 0.5 );
+
+        if ( dt == 1 && pCounts[ x1 ] > 0.5 ) { // concatnate if true
+            results.back().second = it->second; // merge previous
+        } else {
+            results.emplace_back( *it );
+        }
+    }
+
+    pkinfo = results;
+
+    return 0;
+}

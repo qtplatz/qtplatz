@@ -91,6 +91,29 @@ namespace adcontrols {
                 return adcontrols::MSProperty::toSeconds( pos, info );
             }
         };
+
+        struct findMassResolution {
+            double operator ()( const MassSpectrum& hist ) const {
+                const double fSampInterval = hist.getMSProperty().samplingInfo().fSampInterval();
+                for ( int i = 0; i < hist.size() - 1; ++i ) {
+                    if ( ( ( 0.5 + hist.getTime( i + 1 ) - hist.getTime( i ) ) / fSampInterval ) == 1 ) {
+                        return hist.getMass( i + 1 ) - hist.getMass( i );
+                    }
+                }
+            }
+        };
+
+        struct findPeakWidth {
+            std::pair<double, double> operator ()( const CentroidMethod& method, double mass ) const {
+                if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
+                    return std::make_pair( method.rsConstInDa(), 0 );
+                } else if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
+                    return std::make_pair( method.rsPropoInPpm() * mass / 1.0e-6, 0 );
+                } else if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
+                    return std::make_pair( method.rsTofInDa(), method.rsTofAtMz() );
+                }
+            }
+        };
         
     }
 }
@@ -425,14 +448,20 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 void
 CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 {
-    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval() );
+    // const double mzInterval = findMassResolution()( histogram );
+    // const double mzWidth    = findPeakWidth()( method_, histogram.getMass( 0 ) ).first;
+    // const int width = int( mzWidth / mzInterval ) | 01;
+    adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval(), 3 );
+    adportable::histogram_merger merge( histogram.getMSProperty().samplingInfo().fSampInterval(), method_.peakCentroidFraction() );
 
     const double * pCounts = histogram.getIntensityArray();
     const double * pTimes = histogram.getTimeArray();
     const double * pMasses = histogram.getMassArray();
     
     if ( finder( histogram.size(), pTimes, pCounts ) ) {
-        
+
+        merge( finder.results_, histogram.size(), pMasses, pTimes, pCounts );
+
         info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
         info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );
         
@@ -445,17 +474,11 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
             item.height_ = *it;
             size_t idx = std::distance( pCounts, it );
             double threshold = item.height_ * method_.peakCentroidFraction();
-            
-            struct xfunctor {
-                const double * pData_;
-                xfunctor( const double * pData ) : pData_( pData ) {}
-                double operator () ( int pos ) { return pData_[ pos ]; }
-            };
-            
+
             // centroid by mass
             if ( pMasses && pMasses[ 0 ] > 1.0 ) {
-                xfunctor functor( pMasses );
-                adportable::Moment< xfunctor > moment( functor );
+
+                adportable::Moment<> moment( [&]( int pos ){ return pMasses[ pos ]; } );
                 item.mass_ = moment.centreX( pCounts, threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.peak_start_index_ = pk.first;
                 item.peak_end_index_ = pk.second;
@@ -469,8 +492,8 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 
             // centroid by time
             if ( pTimes && ( ( pTimes[ 1 ] - pTimes[ 0 ] ) > 10.0e-12 /* 10ps */ ) ) {
-                xfunctor functor( pTimes );
-                adportable::Moment< xfunctor > moment( functor );
+
+                adportable::Moment<> moment( [&]( int pos ){ return pTimes[ pos ]; } );
                 double time = moment.centreX( pCounts, threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.time_from_time_ = time;
                 item.time_from_mass_ = time; // workaround since no way to compute time from mass, which is descreate
