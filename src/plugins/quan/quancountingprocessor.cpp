@@ -29,7 +29,9 @@
 #include "quanchromatogramsprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
+#include "quanprogress.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
+#include <coreplugin/progressmanager/progressmanager.h>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/centroidmethod.hpp>
@@ -87,13 +89,15 @@ QuanCountingProcessor::~QuanCountingProcessor()
 }
 
 QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
-                                              , std::vector< adcontrols::QuanSample >& samples )
+                                              , std::vector< adcontrols::QuanSample >& samples
+                                              , std::shared_ptr< ProgressHandler > p )
     : raw_( 0 )
     , samples_( samples )
     , procmethod_( processor->procmethod() )
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
-    , progress_( adwidgets::ProgressWnd::instance()->addbar() )
+      //, progress_( adwidgets::ProgressWnd::instance()->addbar() )
+    , progress_( p )
     , progress_current_( 0 )
     , progress_total_( 0 )
 {
@@ -101,7 +105,8 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
         path_ = samples[ 0 ].dataSource();
     progress_current_ = 0;
     progress_total_ = samples.size();
-    progress_->setRange( int( progress_current_ ), int( progress_total_) );
+    // progress_->setRange( int( progress_current_ ), int( progress_total_) );
+    (*progress_)( int( progress_current_ ), int( progress_total_) );
 }
 
 QuanProcessor *
@@ -190,19 +195,3 @@ QuanCountingProcessor::subscribe( const adcontrols::ProcessedDataset& d )
     return true;
 }
 
-#if 0
-bool
-QuanCountingProcessor::fetch( portfolio::Folium& folium )
-{
-    try {
-        folium = datafile_->fetch( folium.id(), folium.dataClass() );
-        portfolio::Folio attachs = folium.attachments();
-        for ( auto att : attachs ) {
-            if ( att.empty() )
-                fetch( att ); // recursive call make sure for all blongings load up in memory.
-        }
-    } catch ( std::bad_cast& ) {
-    }
-    return true;
-}
-#endif

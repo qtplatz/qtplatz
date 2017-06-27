@@ -404,7 +404,10 @@ QuanDocument::execute_counting()
 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
-                    threads_.push_back( std::thread( [que,it,writer] () { QuanCountingProcessor( que.get(), it->second )(writer); } ) );
+                    auto p = std::make_shared< ProgressHandler >();
+                    Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::QUAN_TASK_CALIB );
+                    
+                    threads_.push_back( std::thread( [que,it,writer,p] () { QuanCountingProcessor( que.get(), it->second, p )(writer); } ) );
                 }
 
                 // update result outfile name on sequence for next run
@@ -452,24 +455,21 @@ QuanDocument::handle_processed( QuanProcessor * processor )
         std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
         threads_.clear();
 
-        auto prog1( adwidgets::ProgressWnd::instance()->addbar() );
-        auto prog2( adwidgets::ProgressWnd::instance()->addbar() );
-        prog1->setRange( 0, 100 );
-        prog2->setRange( 0, 100 );
-
+        ProgressHandler p1, p2;
+        Core::ProgressManager::addTask( p1.progress.future(), "Calibrating...", Constants::QUAN_TASK_CALIB );
+        Core::ProgressManager::addTask( p2.progress.future(), "Determinating...", Constants::QUAN_TASK_QUAN );
+        
         auto future = std::async( std::launch::async, [&](){
                 if ( auto sequence = processor->sequence() ) {
                     boost::filesystem::path database( sequence->outfile() );
                     if ( boost::filesystem::exists( database ) ) {
                         adfs::filesystem fs;
                         if ( fs.mount( database.wstring().c_str() ) ) {
-                            processor->doCalibration( fs.db(), [=](size_t _1, size_t _2){
-                                    ADDEBUG() << _1 << "/" << _2;
-                                    return (*prog1)(_1, _2);
+                            processor->doCalibration( fs.db(), [&](size_t _1, size_t _2){
+                                    p1( int(_1), int(_2) ); return false;
                                 } );
-                            processor->doQuantification( fs.db(), [=](size_t _1, size_t _2){
-                                    ADDEBUG() << _1 << "/" << _2;
-                                    return (*prog2)(_1, _2);
+                            processor->doQuantification( fs.db(), [&](size_t _1, size_t _2){
+                                    p2( int(_1), int(_2) ); return false;
                                 } );
                         }
                     }

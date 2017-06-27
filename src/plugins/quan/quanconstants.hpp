@@ -50,6 +50,8 @@ namespace Constants {
     // task
     const char * const QUAN_TASK_OPEN      = "Quan.Task.OpenConn";
     const char * const QUAN_TASK_PROC      = "Quan.Task.SampleProc";
+    const char * const QUAN_TASK_CALIB     = "Quan.Task.Calib";
+    const char * const QUAN_TASK_QUAN      = "Quan.Task.Quan";
 
     const int ICON_SIZE(64);
     

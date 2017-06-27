@@ -131,7 +131,7 @@ void
 QuanResultTable::setQuery( const QSqlQuery& sqlQuery, const std::vector<QString>& hidelist )
 {
     if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
-        model->clear();
+        //model->clear();
         model->setQuery( sqlQuery );
     }
 
