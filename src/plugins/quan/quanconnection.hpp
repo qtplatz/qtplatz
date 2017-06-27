@@ -31,6 +31,9 @@
 #include <boost/variant.hpp>
 #include <adfs/sqlite.hpp>
 #include <adfs/file.hpp>
+#include <QSqlQuery>
+
+class QSqlDatabase;
 
 namespace adfs { class filesystem; class stmt; class sqlite; }
 namespace adcontrols { class QuanMethod; class QuanSequence; class MassSpectrum; class MSPeakInfo; class ProcessMethod; }
@@ -60,12 +63,17 @@ namespace quan {
         const adcontrols::ProcessMethod * processMethod();
         const adcontrols::QuanSequence * quanSequence();
 
+        //---------------
+        QSqlDatabase& sqlDatabase();
+
     private:
         std::wstring filename_;
         std::shared_ptr< adfs::filesystem > fs_;
         std::map< std::wstring, std::shared_ptr< QuanPlotData > > cache_;
         std::shared_ptr< adcontrols::QuanSequence > sequence_;
         std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
+
+        std::unique_ptr< QSqlDatabase > sqldb_;
 
         bool readMethods();
     };

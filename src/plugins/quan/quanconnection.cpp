@@ -51,7 +51,7 @@ QuanConnection::~QuanConnection()
 {
 }
 
-QuanConnection::QuanConnection()
+QuanConnection::QuanConnection() : sqldb_( std::make_unique< QSqlDatabase >( QSqlDatabase::addDatabase( "QSQLITE" ) ) )
 {
 }
 
@@ -59,9 +59,15 @@ bool
 QuanConnection::connect( const std::wstring& database )
 {
     if ( ( fs_ = std::make_shared< adfs::filesystem >() ) ) { // 
+
         if ( fs_->mount( database.c_str() ) ) {
+
             fs_->db().register_error_handler( [=](const char * msg){ QMessageBox::warning(0, "SQLite SQL Error", msg); });
             filename_ = database;
+
+            sqldb_->setDatabaseName( QString::fromStdString( fs_->filename() ) );
+            sqldb_->open();
+
             return true;
         }
     }
@@ -217,4 +223,10 @@ QuanConnection::readMethods()
         } while ( false );
     }
     return true;
+}
+
+QSqlDatabase&
+QuanConnection::sqlDatabase()
+{
+    return *sqldb_;
 }
