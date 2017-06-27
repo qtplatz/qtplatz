@@ -100,7 +100,7 @@ namespace quan {
         void open();
         bool subscribe( const adcontrols::LCMSDataset& d ) override;
         bool subscribe( const adcontrols::ProcessedDataset& d ) override;
-        bool fetch( portfolio::Folium& folium );
+        // bool fetch( portfolio::Folium& folium );
 
         QuanProcessor * quanProcessor();
     public:

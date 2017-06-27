@@ -224,12 +224,14 @@ histogram_merger::histogram_merger( double xInterval, double threshold ) : xInte
 
 size_t
 histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
-                              , const double * pMasses, const double * pTimes, const double * pCounts )
+                              , const double * pTimes, const double * pCounts )
 {
     if ( pkinfo.size() < 2 )
         return pkinfo.size();
 
     std::vector< peakinfo > results;
+
+    results.emplace_back( *pkinfo.begin() );
 
     for ( auto it = pkinfo.begin() + 1; it != pkinfo.end(); ++it ) {
         

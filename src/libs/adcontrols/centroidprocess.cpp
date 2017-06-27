@@ -449,9 +449,6 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 void
 CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
 {
-    // const double mzInterval = findMassResolution()( histogram );
-    // const double mzWidth    = findPeakWidth()( method_, histogram.getMass( 0 ) ).first;
-    // const int width = int( mzWidth / mzInterval ) | 01;
     adportable::histogram_peakfinder finder( histogram.getMSProperty().samplingInfo().fSampInterval(), 3 );
     adportable::histogram_merger merge( histogram.getMSProperty().samplingInfo().fSampInterval(), method_.peakCentroidFraction() );
 
@@ -461,7 +458,7 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
     
     if ( finder( histogram.size(), pTimes, pCounts ) ) {
 
-        merge( finder.results_, histogram.size(), pMasses, pTimes, pCounts );
+        merge( finder.results_, histogram.size(), pTimes, pCounts );
 
         info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
         info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );

@@ -25,6 +25,7 @@
 #ifndef QUANPROCESSOR_HPP
 #define QUANPROCESSOR_HPP
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <vector>
@@ -60,10 +61,10 @@ namespace quan {
         const_iterator end() const;
 
         void complete( const adcontrols::QuanSample * );
-        void doCalibration( adfs::sqlite& db );
-        void doQuantification( adfs::sqlite& db );
-        void doCountingCalibration( adfs::sqlite& db );
-        void doCountingQuantification( adfs::sqlite& db );
+        void doCalibration( adfs::sqlite& db, std::function<bool(size_t,size_t)> progress );
+        void doQuantification( adfs::sqlite& db, std::function<bool(size_t,size_t)> progress );
+        void doCountingCalibration( adfs::sqlite& db, std::function<bool(size_t,size_t)> progress );
+        void doCountingQuantification( adfs::sqlite& db, std::function<bool(size_t,size_t)> progress );
 
     protected:
         std::shared_ptr< adcontrols::QuanSequence > sequence_;

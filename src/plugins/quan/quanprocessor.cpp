@@ -144,14 +144,14 @@ QuanProcessor::complete( const adcontrols::QuanSample * )
 }
 
 void
-QuanProcessor::doCalibration( adfs::sqlite& db )
+QuanProcessor::doCalibration( adfs::sqlite& db, std::function< bool(size_t,size_t)> progress )
 {
     auto qM = procmethod_->find< adcontrols::QuanMethod >();
     if ( !qM )
         return;
 
     if ( qM->isCounting() ) {
-        doCountingCalibration( db );
+        doCountingCalibration( db, progress );
         return;
     }
 
@@ -272,14 +272,14 @@ QuanProcessor::doCalibration( adfs::sqlite& db )
 
 
 void
-QuanProcessor::doQuantification( adfs::sqlite& db )
+QuanProcessor::doQuantification( adfs::sqlite& db, std::function< bool(size_t,size_t)> progress )
 {
     auto qM = procmethod_->find< adcontrols::QuanMethod >();
     if ( !qM )
         return;
 
     if ( qM->isCounting() ) {
-        doCountingQuantification( db );
+        doCountingQuantification( db, progress );
         return;
     }
     
@@ -346,7 +346,7 @@ QuanProcessor::doQuantification( adfs::sqlite& db )
 }
 
 void
-QuanProcessor::doCountingCalibration( adfs::sqlite& db )
+QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_t,size_t)> progress )
 {
     auto qM = procmethod_->find< adcontrols::QuanMethod >();
     if ( !qM )
@@ -358,6 +358,17 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db )
     std::map< uint64_t, adcontrols::QuanCalibration > calibrants;
 
     adfs::stmt sql( db );
+
+    size_t nTotal(0), nProgress(0);
+    sql.prepare( "SELECT COUNT(*) FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+                 " WHERE QuanSample.id = QuanResponse.idSample"
+                 " AND QuanResponse.idCmpd = QuanCompound.uuid"
+                 " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+                 " AND sampleType = 1" );
+    if ( sql.step() == adfs::sqlite_row )
+        nTotal = sql.get_column_value< int64_t >( 0 );
+
+    progress( nProgress, nTotal );
 
     sql.begin();
 
@@ -444,6 +455,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db )
             } catch ( std::bad_cast& ex ) {
                 BOOST_THROW_EXCEPTION( ex );
             }
+            progress( ++nProgress, nTotal );
         }
     }
     
@@ -504,7 +516,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db )
 }
 
 void
-QuanProcessor::doCountingQuantification( adfs::sqlite& db )
+QuanProcessor::doCountingQuantification( adfs::sqlite& db, std::function<bool(size_t,size_t)> progress )
 {
     bool isISTD( false );
 
@@ -512,6 +524,18 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db )
         isISTD = qM->isInternalStandard();
     
     adfs::stmt sql( db );
+
+    size_t nTotal(0), nProgress( 0 );
+    do {
+        sql.prepare( "SELECT COUNT(*) FROM QuanResponse,QuanSample,QuanCompound"
+                     " WHERE QuanResponse.idCmpd = QuanCompound.uuid"
+                     " AND QuanSample.id = QuanResponse.idSample"
+                     " AND QuanSample.sampleType = 0" );
+        if ( sql.step() == adfs::sqlite_row ) {
+            nTotal = sql.get_column_value< int64_t >( 0 );
+            progress( 0, nTotal );
+        }
+    } while (0);
 
     struct unknown {
         uint64_t idSamp;
@@ -538,6 +562,8 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db )
             }
         }
     }
+    nTotal += unknowns.size();
+    progress( 0, nTotal );
     
     std::string query;
     if ( isISTD ) {
@@ -565,7 +591,7 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db )
 
     // unknown values
     if ( sql.prepare( query ) ) {
-        
+
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;
             boost::uuids::uuid idCmpd = sql.get_column_value< boost::uuids::uuid >( row++ );
@@ -585,7 +611,7 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db )
                     u.amount = adportable::polfit::estimate_y( coeffs, u.intensity );
                 }
             }
-            
+            progress( ++nProgress, nTotal );
         }
     }
 
@@ -598,6 +624,7 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db )
             if ( sql.step() != adfs::sqlite_done )
                 ADERROR() << "sql error";
         }
+        progress( ++nProgress, nTotal );
     }
     sql.commit();
 

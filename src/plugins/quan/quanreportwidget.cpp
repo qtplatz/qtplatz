@@ -242,5 +242,5 @@ QuanReportWidget::fileDebug()
 void
 QuanReportWidget::handleConnectionChanged()
 {
-    fileDebug();
+    // fileDebug();
 }

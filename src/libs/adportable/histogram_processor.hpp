@@ -50,7 +50,7 @@ namespace adportable {
         histogram_merger( double xInterval, double threshold );
 
         size_t operator()( std::vector< peakinfo >&, size_t nbrSamples
-                           , const double * pMasses, const double * pTimes, const double * pCounts );
+                           , const double * pTimes, const double * pCounts );
 
         const double xInterval_;
         const double threshold_;

@@ -190,6 +190,7 @@ QuanCountingProcessor::subscribe( const adcontrols::ProcessedDataset& d )
     return true;
 }
 
+#if 0
 bool
 QuanCountingProcessor::fetch( portfolio::Folium& folium )
 {
@@ -204,4 +205,4 @@ QuanCountingProcessor::fetch( portfolio::Folium& folium )
     }
     return true;
 }
-
+#endif

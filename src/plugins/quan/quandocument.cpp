@@ -53,6 +53,7 @@
 #include <adportable/profile.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adpublisher/document.hpp>
+#include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/exception/all.hpp>
@@ -68,8 +69,8 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QFuture>
-
 #include <algorithm>
+#include <future>
 
 namespace quan {
     namespace detail {
@@ -445,33 +446,53 @@ void
 QuanDocument::handle_processed( QuanProcessor * processor )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-
+    
     if ( postCount_ && ( --postCount_ == 0 ) ) {
 
         std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
         threads_.clear();
 
-        if ( auto sequence = processor->sequence() ) {
-            boost::filesystem::path database( sequence->outfile() );
-            if ( boost::filesystem::exists( database ) ) {
-                adfs::filesystem fs;
-                if ( fs.mount( database.wstring().c_str() ) ) {
-                    processor->doCalibration( fs.db() );
-                    processor->doQuantification( fs.db() );
-                }
-            }
-        }
+        auto prog1( adwidgets::ProgressWnd::instance()->addbar() );
+        auto prog2( adwidgets::ProgressWnd::instance()->addbar() );
+        prog1->setRange( 0, 100 );
+        prog2->setRange( 0, 100 );
 
-        if ( auto sequence = processor->sequence() ) {
-            if ( auto connection = std::make_shared< QuanConnection >() ) {
-                if ( connection->connect( sequence->outfile() ) )
-                    setConnection( connection.get() );
-            }
-        }
+        auto future = std::async( std::launch::async, [&](){
+                if ( auto sequence = processor->sequence() ) {
+                    boost::filesystem::path database( sequence->outfile() );
+                    if ( boost::filesystem::exists( database ) ) {
+                        adfs::filesystem fs;
+                        if ( fs.mount( database.wstring().c_str() ) ) {
+                            processor->doCalibration( fs.db(), [=](size_t _1, size_t _2){
+                                    ADDEBUG() << _1 << "/" << _2;
+                                    return (*prog1)(_1, _2);
+                                } );
+                            processor->doQuantification( fs.db(), [=](size_t _1, size_t _2){
+                                    ADDEBUG() << _1 << "/" << _2;
+                                    return (*prog2)(_1, _2);
+                                } );
+                        }
+                    }
+                }
+
+                if ( auto sequence = processor->sequence() ) {
+                    if ( auto connection = std::make_shared< QuanConnection >() ) {
+                        if ( connection->connect( sequence->outfile() ) )
+                            setConnection( connection.get() );
+                    }
+                }
+                
+            } );
+
+        while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+            QCoreApplication::instance()->processEvents();
+        //
+
 
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
 
+        ADDEBUG() << "<------------------- Sequence completed -----------------------";
         emit onSequenceCompleted();
     }
 }
@@ -555,16 +576,17 @@ QuanDocument::setConnection( QuanConnection * conn )
     quanConnection_ = conn->shared_from_this();
 
     ProgressHandler handler( 0, 5 );
-    qtwrapper::waitCursor w;
+    // qtwrapper::waitCursor w;
 
     if ( ( publisher_ = std::make_shared< QuanPublisher >() ) ) {
         
         Core::ProgressManager::addTask( handler.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
-        
-        std::thread work( [&] () { (*publisher_)(conn, handler); } );
-        
-        work.join();
 
+        auto future = std::async( std::launch::async, [&](){ (*publisher_)(conn, handler); } );
+
+        while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+            QCoreApplication::instance()->processEvents();
+        
         emit onConnectionChanged();
     }
 
