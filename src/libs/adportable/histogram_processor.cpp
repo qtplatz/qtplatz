@@ -246,7 +246,8 @@ histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
     }
     
     results.erase( std::remove_if( results.begin(), results.end(), [&]( const peakinfo& a ){
-                return ( a.second - a.first <= 3 );
+                return ( a.second - a.first <= 3 ) ||
+                    std::accumulate( pCounts + a.first, pCounts + a.second + 1, 0.0 ) < 5.0;
             })
         );
 

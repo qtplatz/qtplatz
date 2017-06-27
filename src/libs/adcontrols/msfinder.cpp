@@ -49,12 +49,15 @@ namespace adcontrols {
 
             inline bool unique() const { return std::distance( range_.first, range_.second ) <= 1;  }
             inline size_t first() const { return std::distance( beg_, range_.first ); }
-            inline size_t second() const { return std::distance( beg_, range_.second ); } // CAUTION ! -- second may be points 'end' of the array which does not actually exist
+            inline size_t second() const { return std::distance( beg_, range_.second ); }
                     
             size_t closest( double mass ) {
 
                 if ( range_.first && range_.second ) {
-                    auto it = std::min_element( range_.first, range_.second, [&] ( decltype(*range_.first)& a, decltype(*range_.first)& b ){ return std::abs( a - mass ) < std::abs( b - mass ); } );
+                    auto it = std::min_element( range_.first, range_.second
+                                                , [&] ( decltype(*range_.first)& a, decltype(*range_.first)& b ){
+                                                    return std::abs( a - mass ) < std::abs( b - mass );
+                                                } );
                     return std::distance( it, beg_ );
                 }
 
@@ -63,7 +66,8 @@ namespace adcontrols {
 
             bool operator()( double target_mass ) {
                 
-                if ( target_mass < *beg_ || *(end_ - 1) < target_mass )
+                if ( ( target_mass + tolerance_ ) < *beg_ ||
+                     *(end_ - 1) < ( target_mass - tolerance_ ) )
                     return false;
                 
                 range_.first = std::lower_bound( beg_, end_, target_mass - tolerance_ );
