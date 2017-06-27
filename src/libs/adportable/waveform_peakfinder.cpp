@@ -252,7 +252,7 @@ peakfinder::operator()( std::function< double ( size_t ) > fx
     waveform_peakfinder_i finder( fpeakw_, dbase_, rms_ );
 
     if ( finder.find( fx, pY, beg, end, results ) ) {
-        adportable::Moment< decltype(fx) > moment( fx );
+        adportable::Moment moment( fx );
         for ( auto& pk: results ) {
             auto it = std::max_element( pY + pk.spos, pY + pk.epos );
             pk.tpos = std::distance( pY, it );

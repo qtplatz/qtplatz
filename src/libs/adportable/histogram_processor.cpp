@@ -172,8 +172,9 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
         if ( dt >= 3 ) {
             state.process_slope( counter( x - 1, None ) );
             std::pair< counter, counter > peak;
-            while ( state.reduce( peak ) )
-                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0, 0 ) );
+            while ( state.reduce( peak ) ) {
+                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
+            }
             state.clear();
         }
 
@@ -194,24 +195,17 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
 #if 0
         { // debug
             double pt = pTimes[ x - 1 ];
-            if ( x < 50 )  {
-                double t = pTimes[ x ];
-                ADDEBUG() << boost::format( "data: %d\t%.4lf\t%d\t%d\td1=%g\treduce=%d\t%d " )
-                    % x % ( t * 1e6 ) % dt % *it % d1 % reduce % state.stack_.size()
-                          << ( typ == 1 ? "Up" : ( typ == 2 ? "Down" : "Hold" ) )
-                          << ",\t" << ( state.stack_.empty() ? 0 : state.stack_.top().bpos_ );
-            }
+            double t = pTimes[ x ];
+            ADDEBUG() << boost::format( "data: %d\t%.4lf\t%d\t%d\td1=%g\treduce=%d\t%d " )
+                % x % ( t * 1e6 ) % dt % *it % d1 % reduce % state.stack_.size()
+                      << ( typ == 1 ? "Up" : ( typ == 2 ? "Down" : "Hold" ) )
+                      << ",\t" << ( state.stack_.empty() ? 0 : state.stack_.top().bpos_ );
         }
 #endif
         if ( reduce ) {
             std::pair< counter, counter > peak;
             while ( state.reduce( peak ) ) {
-                uint32_t flag = uint32_t( pCounts[ peak.second.tpos_ ] );
-                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0, flag ) );
-#if 0
-                if ( x < 50 )
-                    ADDEBUG() << boost::format( "\treduce: %d\t%d" ) % peak.first.bpos_ % peak.second.tpos_;
-#endif
+                results_.emplace_back( peakinfo( peak.first.bpos_, peak.second.tpos_, 0 ) );
             }
         }
 
@@ -235,7 +229,6 @@ histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
     if ( pkinfo.size() < 2 )
         return pkinfo.size();
 
-    // copy (preserve original) version
     std::vector< peakinfo > results;
 
     for ( auto it = pkinfo.begin() + 1; it != pkinfo.end(); ++it ) {
@@ -251,8 +244,13 @@ histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
             results.emplace_back( *it );
         }
     }
+    
+    results.erase( std::remove_if( results.begin(), results.end(), [&]( const peakinfo& a ){
+                return ( a.second - a.first <= 3 );
+            })
+        );
 
-    pkinfo = results;
+    pkinfo = std::move( results );
 
     return 0;
 }

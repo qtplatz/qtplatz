@@ -66,9 +66,8 @@ namespace adportable {
         double mass;
         double time;
         double width;
-        uint32_t flag;
-        peakinfo( size_t x1, size_t x2, double _base, uint32_t f = 0 )
-            : first( x1 ), second( x2 ), base( _base ), mass(0), time(0), width(0), flag(f) {}
+        peakinfo( size_t x1, size_t x2, double _base )
+            : first( x1 ), second( x2 ), base( _base ), mass(0), time(0), width(0) {}
     };
 
     class spectrum_peakfinder {

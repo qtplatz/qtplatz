@@ -925,7 +925,7 @@ bool
 peakHelper::tRetention_moment(  const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
-    adportable::Moment< internal::TimeFunctor > moment( functor );
+    adportable::Moment moment( functor );
 
     double h = pk.topHeight() - std::min( pk.startHeight(), pk.endHeight() );
     double threshold = pk.topHeight() - h * 0.5;
@@ -1006,7 +1006,7 @@ bool
 peakHelper::peak_width( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
-    adportable::Moment< internal::TimeFunctor > moment( functor );
+    adportable::Moment moment( functor );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
@@ -1020,7 +1020,7 @@ bool
 peakHelper::asymmetry( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
-    adportable::Moment< internal::TimeFunctor > moment( functor );
+    adportable::Moment moment( functor );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.95;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
@@ -1040,7 +1040,7 @@ bool
 peakHelper::theoreticalplate( const adcontrols::PeakMethod&, const integrator::chromatogram& c, adcontrols::Peak& pk )
 {
     internal::TimeFunctor functor( c );
-    adportable::Moment< internal::TimeFunctor > moment( functor );
+    adportable::Moment moment( functor );
 
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );

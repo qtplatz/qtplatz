@@ -100,6 +100,7 @@ namespace adcontrols {
                         return hist.getMass( i + 1 ) - hist.getMass( i );
                     }
                 }
+                return 0;
             }
         };
 
@@ -109,7 +110,7 @@ namespace adcontrols {
                     return std::make_pair( method.rsConstInDa(), 0 );
                 } else if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
                     return std::make_pair( method.rsPropoInPpm() * mass / 1.0e-6, 0 );
-                } else if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
+                } else { // if ( method.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
                     return std::make_pair( method.rsTofInDa(), method.rsTofAtMz() );
                 }
             }
@@ -275,7 +276,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
         do {
             // centroid by mass
             adportable::massArrayFunctor mass_array( profile.getMassArray(), profile.size() );
-            adportable::Moment< adportable::massArrayFunctor > moment( mass_array );
+            adportable::Moment moment( mass_array );
             double mass = moment.centreX( profile.getIntensityArray(), threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
 
             // if centroid mass is outside of peak start - end, it should not added into result
@@ -315,7 +316,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
                 // centroid by time
                 timeFunctor functor( profile );
-                adportable::Moment< timeFunctor > time_moment( functor );
+                adportable::Moment time_moment( functor );
                 double time = time_moment.centreX( profile.getIntensityArray(), threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.time_from_time_ = time;
                 item.centroid_left_time_ = time_moment.xLeft();
@@ -397,7 +398,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
             
             // centroid by time
             timeFunctor functor( profile );
-            adportable::Moment< timeFunctor > time_moment( functor );
+            adportable::Moment time_moment( functor );
             double time = time_moment.centreX( profile.getIntensityArray(), threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
             item.time_from_time_ = time;
             // workaround
@@ -478,7 +479,7 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
             // centroid by mass
             if ( pMasses && pMasses[ 0 ] > 1.0 ) {
 
-                adportable::Moment<> moment( [&]( int pos ){ return pMasses[ pos ]; } );
+                adportable::Moment moment( [&]( int pos ){ return pMasses[ pos ]; } );
                 item.mass_ = moment.centreX( pCounts, threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.peak_start_index_ = pk.first;
                 item.peak_end_index_ = pk.second;
@@ -493,7 +494,7 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
             // centroid by time
             if ( pTimes && ( ( pTimes[ 1 ] - pTimes[ 0 ] ) > 10.0e-12 /* 10ps */ ) ) {
 
-                adportable::Moment<> moment( [&]( int pos ){ return pTimes[ pos ]; } );
+                adportable::Moment moment( [&]( int pos ){ return pTimes[ pos ]; } );
                 double time = moment.centreX( pCounts, threshold, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.time_from_time_ = time;
                 item.time_from_mass_ = time; // workaround since no way to compute time from mass, which is descreate
