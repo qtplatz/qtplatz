@@ -25,11 +25,15 @@
 #include "quancmpdwidget.hpp"
 #include "quanresulttable.hpp"
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <utils/styledbar.h>
 #include <QBoxLayout>
 #include <QLabel>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QSqlQuery>
+#include <QSqlQueryModel>
+#include <QSqlRecord>
 #include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
@@ -68,17 +72,35 @@ QuanCmpdWidget::QuanCmpdWidget( QWidget * parent ) : QWidget( parent )
 boost::uuids::uuid
 QuanCmpdWidget::uuid( int row )
 {
-    int col = table_->findColumn( "uuid" );
-    if ( col >= 0 ) {
-        QStandardItemModel& model = table_->model();
-        std::string data = model.index( row, col ).data().toString().toStdString();
-        try {
-            return boost::lexical_cast<boost::uuids::uuid>(data);
+    if ( auto model = qobject_cast< QSqlQueryModel * >( table_->model() ) ) {
+        auto data = model->record( row ).value( "uuid" ).toString().toStdString();
+
+        // ADDEBUG() << "uuid(" << row << ") = " << data << ", " << model->record( row ).value( "formula" ).toString().toStdString();
+
+        if ( !data.empty() ) {
+            try {
+                return boost::lexical_cast<boost::uuids::uuid>(data);
+            } catch ( boost::bad_lexical_cast& ex ) {
+                ADDEBUG() << boost::diagnostic_information( ex );
+                QMessageBox::warning( this, "QuanCmpdWidget", QString( "Can't convert to uuid from '%1'" ).arg( data.c_str() ) );
+            }
         }
-        catch ( boost::bad_lexical_cast& ex ) {
-            ADTRACE() << boost::diagnostic_information( ex );
-            QMessageBox::warning( this, "QuanCmpdWidget", QString( "Can't convert to uuid from '%1'" ).arg( data.c_str() ) );
-        }
+        
     }
+#if 0
+    // else {
+    //     int col = table_->findColumn( "uuid" );
+    //     if ( col >= 0 ) {
+    //         auto& model = *table_->model();
+    //         std::string data = model.index( row, col ).data().toString().toStdString();
+    //         try {
+    //             return boost::lexical_cast<boost::uuids::uuid>(data);
+    //         } catch ( boost::bad_lexical_cast& ex ) {
+    //             ADDEBUG() << boost::diagnostic_information( ex );
+    //             QMessageBox::warning( this, "QuanCmpdWidget", QString( "Can't convert to uuid from '%1'" ).arg( data.c_str() ) );
+    //         }
+    //     }
+    // }
+#endif
     return boost::uuids::uuid(); // null 
 }

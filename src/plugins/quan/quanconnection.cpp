@@ -52,6 +52,8 @@ QuanConnection::~QuanConnection()
 }
 
 QuanConnection::QuanConnection() : sqldb_( std::make_unique< QSqlDatabase >( QSqlDatabase::addDatabase( "QSQLITE" ) ) )
+                                 , isISTD_( false )
+                                 , isCounting_( false )
 {
 }
 
@@ -67,6 +69,13 @@ QuanConnection::connect( const std::wstring& database )
 
             sqldb_->setDatabaseName( QString::fromStdString( fs_->filename() ) );
             sqldb_->open();
+
+            adfs::stmt sql( fs_->db() );
+            sql.prepare( "SELECT isCounting, isISTD FROM QuanMethod LIMIT(1)" );
+            while ( sql.step() == adfs::sqlite_row ) {
+                isCounting_ = sql.get_column_value< int64_t >( 0 );
+                isISTD_ = sql.get_column_value< int64_t >( 1 );
+            }
 
             return true;
         }
@@ -229,4 +238,16 @@ QSqlDatabase&
 QuanConnection::sqlDatabase()
 {
     return *sqldb_;
+}
+
+bool
+QuanConnection::isCounting() const
+{
+    return isCounting_;
+}
+
+bool
+QuanConnection::isISTD() const
+{
+    return isISTD_;
 }

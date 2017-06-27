@@ -30,6 +30,9 @@
 #include <qtwrapper/font.hpp>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
+#include <QSqlQuery>
+#include <QSqlQueryModel>
+#include <QSqlRecord>
 #include <QVariant>
 #include <QPainter>
 #include <boost/filesystem.hpp>
@@ -98,7 +101,8 @@ QuanResultTable::~QuanResultTable()
 }
 
 QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                  , model_( new QStandardItemModel )
+                                                    //, model_( new QStandardItemModel )
+                                                  , model_( new QSqlQueryModel )
 {
     setAllowDelete( false );
     setModel( model_.get() );
@@ -110,68 +114,30 @@ QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
 }
 
 void
-QuanResultTable::prepare( const QuanQuery& q )
-{
-    model_->clear();
-    model_->setColumnCount( int( q.column_count() ) );
-
-    for ( int col = 0; col < int( q.column_count() ); ++col  ) {
-        model_->setHeaderData( col, Qt::Horizontal, QuanQuery::column_name_tr( q.column_name( col ) ) );
-        if ( hideColumns_.find( q.column_name( col ).toStdString() ) != hideColumns_.end() )
-            setColumnHidden( col, true );
-    }
-
-    for ( int col = 0; col < int( q.column_count() ); ++col ) {
-        QTextDocument document;
-        // document.setDefaultFont( option.font );
-        document.setHtml( QuanQuery::column_name_tr( q.column_name( col ) ) );
-        QSize size( document.size().width(), document.size().height() );
-        horizontalHeader()->model()->setHeaderData( col, Qt::Horizontal, QVariant( size ), Qt::SizeHintRole );
-    }    
-
-}
-
-void
-QuanResultTable::addRecord( const QuanQuery& q )
-{
-    int row = model_->rowCount();
-
-    if ( model_->insertRow( row ) ) {
-        for ( int col = 0; col < int( q.column_count() ); ++col ) {
-            model_->setData( model_->index( row, col ), q.column_value( col ) );
-            model_->itemFromIndex( model_->index( row, col ) )->setEditable( false );
-        }
-    }
-    resizeColumnsToContents();
-    resizeRowsToContents();
-}
-
-void
-QuanResultTable::setColumnHide( const std::string& hide )
-{
-    hideColumns_.insert( hide );
-}
-
-void
-QuanResultTable::clear()
-{
-    hideColumns_.clear();
-}
-
-void
 QuanResultTable::currentChanged( const QModelIndex& current, const QModelIndex& index )
 {
     scrollTo( index, QAbstractItemView::EnsureVisible );
     emit onCurrentChanged( current );
 }
 
-int
-QuanResultTable::findColumn( const QString& name )
+QAbstractItemModel*
+QuanResultTable::model()
 {
-    int nColumn = model_->columnCount();
-    for ( int col = 0; col < nColumn; ++col ) {
-        if ( model_->headerData( col, Qt::Horizontal, Qt::EditRole ).toString() == name )
-            return col;
+    return model_.get();
+}
+
+/////////////////////
+void
+QuanResultTable::setQuery( const QSqlQuery& sqlQuery, const std::vector<QString>& hidelist )
+{
+    if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
+        model->clear();
+        model->setQuery( sqlQuery );
     }
-    return -1;
+
+    for ( auto& hide: hidelist ) {
+        int col = sqlQuery.record().indexOf( hide );
+        if ( col >= 0 )
+            setColumnHidden( col, true );
+    }
 }

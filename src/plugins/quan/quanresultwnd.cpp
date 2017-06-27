@@ -58,7 +58,8 @@
 #include <QTextEdit>
 #include <QLabel>
 #include <QColor>
-#include <workaround/boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <iomanip>
 #include <sstream>
 
@@ -114,12 +115,16 @@ QuanResultWnd::QuanResultWnd(QWidget *parent) : QWidget(parent)
     layout->setSpacing( 0 );
     layout->addWidget( splitter );
 
-    connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
-    //cmpdWidget_->table().setSelectionMode( QAbstractItemView::MultiSelection );
     cmpdWidget_->table().setSelectionBehavior( QAbstractItemView::SelectRows );
+
+    // QuanCmpdWidget
     connect( &cmpdWidget_->table(), &QuanResultTable::onCurrentChanged, this, &QuanResultWnd::handleCompoundSelected );
     connect( cmpdWidget_->table().selectionModel(), &QItemSelectionModel::selectionChanged, this, &QuanResultWnd::handleCompoundSelectionChanged );
+
+    // QuanResultWidget
     connect( respTable_, &QuanResultWidget::onResponseSelected, this, &QuanResultWnd::handleResponseSelected );
+
+    connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanResultWnd::handleConnectionChanged );
 }
 
 void
@@ -129,6 +134,10 @@ QuanResultWnd::handleConnectionChanged()
         respTable_->setConnection ( connection );
 
         // make compounds table (right bar)
+        QSqlQuery sqlQuery( "SELECT uuid, formula, description FROM QuanCompound", connection->sqlDatabase() );
+        cmpdWidget_->table().setQuery( sqlQuery, { "uuid" } );
+
+#if 0
         if ( auto query = connection->query() ) {
             if ( query->prepare( std::wstring ( L"SELECT uuid, formula, description FROM QuanCompound" ) ) ) {
                 cmpdWidget_->table().setColumnHide( "uuid" );
@@ -138,6 +147,7 @@ QuanResultWnd::handleConnectionChanged()
                 }
             }
         }
+#endif
 
         isCounting_ = isISTD_ = false;
         adfs::stmt sql( connection->db() );
@@ -155,9 +165,12 @@ QuanResultWnd::handleCompoundSelectionChanged( const QItemSelection&, const QIte
 {
     std::set< boost::uuids::uuid> cmpds;
 
+    ADDEBUG() << "CompoundSelectionChanged: ";
+
     QModelIndexList indecies = cmpdWidget_->table().selectionModel()->selectedIndexes();
     for ( auto& index : indecies )
         cmpds.insert( cmpdWidget_->uuid( index.row() ) );
+    
     respTable_->setCompoundSelected( cmpds );
 }
 
@@ -165,6 +178,8 @@ void
 QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 {
     boost::uuids::uuid uuid = cmpdWidget_->uuid( index.row() );
+
+    ADDEBUG() << "CompoundSelected: " << uuid;
 
     auto publisher = QuanDocument::instance()->publisher();
     if ( !publisher ) {

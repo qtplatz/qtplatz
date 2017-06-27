@@ -30,6 +30,7 @@
 #include <set>
 
 class QStandardItemModel;
+class QSqlQuery;
 
 namespace quan {
 
@@ -41,19 +42,20 @@ namespace quan {
         ~QuanResultTable();
         explicit QuanResultTable(QWidget *parent = 0);
 
-        void prepare( const QuanQuery& );
-        void addRecord( const QuanQuery& );
+        // void prepare( const QuanQuery& );
+        // void addRecord( const QuanQuery& );
 
-        // QSize sizeHint() const override { return QSize( 900, 900 ); }
+        // void setColumnHide( const std::string& );
+        // void clear();
+        // int findColumn( const QString& );
 
-        void setColumnHide( const std::string& );
-        void clear();
-        int findColumn( const QString& );
+        QAbstractItemModel * model();
 
-        inline QStandardItemModel& model() { return *model_; }
+        /////////////////////////////
+        void setQuery( const QSqlQuery&, const std::vector<QString>& hide = {} );
 
     private:
-        std::unique_ptr< QStandardItemModel > model_;
+        std::unique_ptr< QAbstractItemModel > model_;
         std::set< std::string > hideColumns_;
 
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;

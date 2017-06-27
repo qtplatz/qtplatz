@@ -53,9 +53,9 @@ QuanQueryWidget::~QuanQueryWidget()
 }
 
 QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
-                                                    , layout_( new QGridLayout )
-                                                    , form_( new QuanQueryForm )
-                                                    , table_( new QuanResultTable )
+                                                  , layout_( new QGridLayout )
+                                                    //, form_( new QuanQueryForm )
+                                                  , table_( new QuanResultTable )
 {
     auto topLayout = new QVBoxLayout( this );
     topLayout->setMargin( 0 );
@@ -63,7 +63,6 @@ QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
     topLayout->addLayout( layout_ );
 
     connect( QuanDocument::instance(), &QuanDocument::onConnectionChanged, this, &QuanQueryWidget::handleConnectionChanged );
-    connect( form_.get(), &QuanQueryForm::triggerQuery, this, &QuanQueryWidget::handleQuery );
     
     if ( auto toolBar = new Utils::StyledBar ) {
 
@@ -84,7 +83,6 @@ QuanQueryWidget::QuanQueryWidget(QWidget *parent) : QWidget(parent)
         toolBarLayout->addWidget( edit );
     } // end toolbar
     
-    layout_->addWidget( form_.get() );
     layout_->addWidget( table_.get() );
     //layout_->setRowStretch( 1, 0 );
     //layout_->setRowStretch( 2, 1 );
@@ -95,46 +93,5 @@ QuanQueryWidget::handleConnectionChanged()
 {
     if ( auto edit = findChild< QLineEdit * >( Constants::editQuanFilename ) )
         edit->setText( QString::fromStdWString( QuanDocument::instance()->connection()->filepath() ) );
-    executeQuery();
 }
 
-void
-QuanQueryWidget::executeQuery()
-{
-    if ( auto connection = QuanDocument::instance()->connection() ) {
-        form_->setSQL(
-            "SELECT dataSource, row, level, formula, mass, intensity, sampleType FROM QuanSample,QuanResponse \
-WHERE QuanSample.id = idSample AND formula like '%' ORDER BY formula" );
-        std::wstring sql = form_->sql().toStdWString();
-        if ( auto query = connection->query() ) {
-            if ( query->prepare( sql ) ) {
-                table_->prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    table_->addRecord( *query );
-                }
-            }
-        }
-    }
-}
-
-void
-QuanQueryWidget::handleQuery( const QString& sql )
-{
-    if ( auto connection = QuanDocument::instance()->connection() ) {
-        if ( auto query = connection->query() ) {
-            
-            qtwrapper::waitCursor wait;
-
-            std::wstring wsql = sql.toStdWString();
-
-            wsql.erase( std::remove( wsql.begin(), wsql.end(), '\\' ) );
-            
-            if ( query->prepare( wsql ) ) {
-                table_->prepare( *query );
-                while ( query->step() == adfs::sqlite_row ) {
-                    table_->addRecord( *query );
-                }
-            }
-        }
-    }
-}

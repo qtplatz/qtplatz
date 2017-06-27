@@ -66,6 +66,10 @@ namespace quan {
         //---------------
         QSqlDatabase& sqlDatabase();
 
+        //----
+        bool isCounting() const;
+        bool isISTD() const;
+
     private:
         std::wstring filename_;
         std::shared_ptr< adfs::filesystem > fs_;
@@ -74,6 +78,8 @@ namespace quan {
         std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
 
         std::unique_ptr< QSqlDatabase > sqldb_;
+        bool isISTD_;
+        bool isCounting_;
 
         bool readMethods();
     };

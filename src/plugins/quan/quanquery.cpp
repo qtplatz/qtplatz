@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,10 +25,13 @@
 #include "quanquery.hpp"
 #include <adfs/sqlite.hpp>
 #include <adfs/sqlite3.h>
+#include <adportable/debug.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
 #include <QObject>
+#include <sstream>
 
 #ifdef _MSC_VER 
 #define strncasecmp _strnicmp
@@ -146,3 +149,221 @@ QuanQuery::column_value( size_t idx ) const
     return QVariant();
 }
 
+bool
+QuanQuery::buildQuery( std::string& query, int idx, bool isCounting, bool isISTD, const std::string& additional )
+{
+    if ( isCounting )
+        return buildCountingQuery( query, idx, isISTD, additional );
+    else
+        return buildQuantifyQuery( query, idx, isISTD, additional );
+}
+
+bool
+QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const std::string& additional )
+{
+    std::string fmtstr;
+
+    if ( isISTD ) {
+        bool hasIsCounting = hasColumn( "isCounting", "QuanCompound" );
+        if ( hasIsCounting ) {
+            fmtstr = 
+                "SELECT t1.uuid as 'uuid'"
+                ", t1.id as id"
+                ", t1.idSample as idSample"
+                ", t1.name as name"
+                ", t1.sampleType as sampletype"
+                ", t1.level as level"
+                ", t1.isCounting as isCounting"
+                ", t1.formula as formula"
+                ", t1.mass as mass"
+                ", t1.error as 'error(mDa)'"
+                ", t1.CountRate as CountRate"
+                ", t2.formula as formula"
+                ", t2.CountRate as CountRate"
+                ", t1.CountRate/t2.CountRate AS 'Ratio'"
+                ", amount"
+                ", trigCounts"
+                ", dataSource"
+                " FROM "
+                "(SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name,idSample"
+                ", sampleType, QuanSample.level, QuanCompound.formula"
+                ", QuanCompound.isCounting"
+                ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
+                ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
+                ", timeCounts * 100.0 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
+                " FROM QuanSample, QuanResponse, QuanCompound"
+                " WHERE QuanSample.id = idSample"
+                " AND QuanResponse.idCmpd = QuanCompound.uuid %1%) t1"
+                " LEFT JOIN"
+                " (SELECT idSample, timeCounts * 100.0 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
+                " FROM QuanResponse,QuanCompound"
+                " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
+                " ON t1.idSample=t2.idSample ORDER BY t1.idSample";
+        } else {
+            fmtstr = 
+                "SELECT t1.uuid as 'uuid'"
+                ", t1.id as id"
+                ", t1.idSample as idSample"
+                ", t1.name as name"
+                ", t1.sampleType as sampletype"
+                ", t1.level as level"
+                ", t1.formula as formula"
+                ", t1.mass as mass"
+                ", t1.error as 'error(mDa)'"
+                ", t1.CountRate"
+                ", t2.formula as formula"
+                ", t2.CountRate as CountRate"
+                ", t1.CountRate/t2.CountRate AS 'Ratio'"
+                ", amount"
+                ", trigCounts,dataSource"
+                " FROM "
+                "(SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name,idSample"
+                ", sampleType, QuanSample.level, QuanCompound.formula"
+                ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
+                ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
+                ", timeCounts * 100.0 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
+                " FROM QuanSample, QuanResponse, QuanCompound"
+                " WHERE QuanSample.id = idSample"
+                " AND QuanResponse.idCmpd = QuanCompound.uuid %1%) t1"
+                " LEFT JOIN"
+                " (SELECT idSample, timeCounts * 100.0 / trigCounts as 'CountRate',QuanResponse.formula,QuanResponse.mass"
+                " FROM QuanResponse,QuanCompound"
+                " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
+                " ON t1.idSample=t2.idSample ORDER BY t1.idSample";
+        }
+    } else {
+        fmtstr =
+            "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+            ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
+            ", QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(Da)'"
+            ", timeCounts * 100.0 / trigCounts as 'CountRate', QuanResponse.amount, QuanCompound.description, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " %1%"
+            " ORDER BY QuanCompound.id";
+    }
+    if ( idx == 0 ) { // All
+        query = ( boost::format( fmtstr ) % additional ).str();
+    } else if ( idx == 1 ) { // Unknown
+        query = ( boost::format( fmtstr ) % (( boost::format( "%1% AND sampleType = 0" ) % additional ).str()) ).str();
+    } else if ( idx == 2 ) { // Standard
+        query = ( boost::format( fmtstr ) % (( boost::format( "%1% AND sampleType = 1" ) % additional ).str()) ).str();
+    } else if ( idx == 3 ) { // QC
+        fmtstr = 
+            "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
+            ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass "
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+            ", timeCounts * 100.0 / trigCounts as 'count rate', QuanSample.level, QuanAmount.amount, QuanCompound.description"
+            ", sampleType, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND sampleType = 2"
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " %1%"
+            " ORDER BY QuanCompound.id, QuanSample.level";
+        query = ( boost::format( fmtstr ) % additional ).str();
+    } else if ( idx == 4 ) { // Blank
+        fmtstr = 
+            "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
+            ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass)*1000 AS 'error(mDa)'"
+            ", timeCounts * 100.0 / trigCounts as 'counts/min', QuanSample.level, QuanAmount.amount, QuanCompound.description"
+            ", sampleType, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND sampleType = 3"
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " %1%"
+            " ORDER BY QuanCompound.id, QuanSample.level";
+        query = ( boost::format( fmtstr ) % additional ).str();
+    }
+    return true;
+}
+
+bool
+QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const std::string& additional )
+{
+    std::string fmtstr;
+    
+    if ( idx == 0 ) { // All
+        
+        fmtstr = "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+            ", sampleType, QuanSample.level, QuanCompound.formula"
+            ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+            ", intensity, QuanResponse.amount, QuanCompound.description, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " %1%"
+            " ORDER BY QuanCompound.id, QuanSample.level";
+
+    } else if ( idx == 1 ) { // Unknown
+        
+        fmtstr = "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+            ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
+            ", QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+            ", intensity, QuanResponse.amount, QuanCompound.description, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND sampleType = 0 "
+            " %1%"            
+            " ORDER BY QuanCompound.id";
+    }
+    else if ( idx == 2 ) { // Standard
+
+        fmtstr = "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
+            ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
+            ", QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+            ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND sampleType = 1 "
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " %1%"
+            " ORDER BY QuanCompound.id, QuanSample.level";
+    }
+    else if ( idx == 3 ) { // QC
+
+        fmtstr = "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
+            ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass "
+            ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
+            ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND sampleType = 2"
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " %1%"
+            " ORDER BY QuanCompound.id, QuanSample.level";
+        
+    } else if ( idx == 4 ) { // Blank
+
+        fmtstr = "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
+            ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
+            ", (QuanCompound.mass - QuanResponse.mass)*1000 AS 'error(mDa)'"
+            ", intensity, QuanSample.level, QuanAmount.amount, QuanCompound.description, sampleType, dataSource"
+            " FROM QuanSample, QuanResponse, QuanCompound, QuanAmount"
+            " WHERE QuanSample.id = QuanResponse.idSample"
+            " AND QuanResponse.idCmpd = QuanCompound.uuid"
+            " AND sampleType = 3"
+            " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
+            " %1%"            
+            " ORDER BY QuanCompound.id, QuanSample.level";
+    }
+
+    if ( fmtstr.empty() )
+        return false;
+
+    query = ( boost::format( fmtstr ) % additional ).str();
+    
+    return true;
+}

@@ -53,6 +53,7 @@ namespace quan {
         void CountingIndexChanged( int );
         void handleIndexChanged( int );
         void handleCurrentChanged( const QModelIndex& );
+        int currentIndex_;
 
     signals:
         void onResponseSelected( int );

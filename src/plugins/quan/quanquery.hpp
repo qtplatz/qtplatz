@@ -49,10 +49,14 @@ namespace quan {
         QVariant column_value( size_t idx ) const;
 
         bool hasColumn( const std::string& column, const std::string& table );
+
+        bool buildQuery( std::string&, int idx, bool isCounting, bool isISTD, const std::string& additionals );
             
     private:
         adfs::sqlite_state state_;
         adfs::stmt sql_;
+        bool buildCountingQuery( std::string&, int idx, bool isISTD, const std::string& );
+        bool buildQuantifyQuery( std::string&, int idx, bool isISTD, const std::string& );
     };
 
 }

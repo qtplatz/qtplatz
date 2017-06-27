@@ -42,10 +42,10 @@ namespace quan {
 
     private:
         QGridLayout * layout_;
-        std::unique_ptr< QuanQueryForm > form_;
+        //std::unique_ptr< QuanQueryForm > form_;
         std::unique_ptr< QuanResultTable > table_;
 
-        void executeQuery();
+        //void executeQuery();
 
     signals:
 
@@ -53,7 +53,7 @@ namespace quan {
         void handleConnectionChanged();
 
     private slots:
-        void handleQuery( const QString& );
+        //void handleQuery( const QString& );
     };
 
 }
