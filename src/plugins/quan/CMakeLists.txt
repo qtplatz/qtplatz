@@ -132,7 +132,6 @@ set( quan_SOURCES
   quantarget.hpp
   sqledit.cpp
   sqledit.hpp
-  quanprogress.hpp
   )
 
 set( quan_RESOURCES quan.qrc )
