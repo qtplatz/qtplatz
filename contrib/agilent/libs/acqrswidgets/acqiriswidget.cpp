@@ -437,16 +437,18 @@ AcqirisWidget::setContents( std::shared_ptr< const acqrscontrols::aqdrv4::acqiri
         setContents( *hor );
 
     int channel(0);
-    if ( auto ver = m->ch1() )
+    if ( auto ver = m->ch1() ) {
         setContents( *ver, channel++ );
-    if ( auto ver = m->ch2() )
+        model_->setData( model_->index( r_ch1, 0 ), ver->enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    }
+    if ( auto ver = m->ch2() ) {
         setContents( *ver, channel++ );
+        model_->setData( model_->index( r_ch2, 0 ), ver->enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    }
+
     if ( auto ver = m->ext() )
         setContents( *ver, channel++ );
 
-    model_->setData( model_->index( r_ch1, 0 ), m->ch1()->enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-    model_->setData( model_->index( r_ch2, 0 ), m->ch2()->enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-    
     tree_->viewport()->update();
 }
 

@@ -214,7 +214,7 @@ acqiris_client::do_read()
                         response_.consume( response_.size() );
 
                     } else {
-                        ADDEBUG() << "OK: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
+                        // ADDEBUG() << "OK: " << acqrscontrols::aqdrv4::preamble::debug( preamble );
                         
                         if ( preamble->length <= response_.size() - sizeof( aqdrv4::preamble ) ) {
 

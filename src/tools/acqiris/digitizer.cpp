@@ -98,15 +98,21 @@ digitizer::checkError( ViSession instId, ViStatus st, const char * text, ViInt32
 bool
 digitizer::initialize()
 {
+    bool simulate( false );
+    if ( const auto p = getenv( "AcqirisOption" ) )
+        simulate = std::strcmp( p, "simulate" ) == 0;
+    
     if ( getenv("AcqirisDxDir") == 0 ) {
         ADDEBUG() << L"AcqirisDxDir environment variable not set.";
-        return false;
+        if ( !simulate )
+            return false;
     }
 
     struct stat st;
     if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
         ADDEBUG() << L"/dev/acqrsPID does not exists";
-        return false;
+        if ( !simulate )
+            return false;
     }
     return true;
 }
