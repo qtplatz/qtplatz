@@ -62,7 +62,7 @@ namespace quan {
 
         QString currentStylesheet() const;
 
-        std::pair< QString, QString> publishTask( adwidgets::ProgressInterface );
+        std::pair< QString, QString> publishTask( const QString& xsl, adwidgets::ProgressInterface );
 
     signals:
 

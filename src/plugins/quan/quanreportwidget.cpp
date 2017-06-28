@@ -103,6 +103,15 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
             adpublisher::transformer::populateStylesheets( list );
             xslt->addItems( list );
             toolBar->addWidget( xslt );
+
+            if ( auto settings = QuanDocument::instance()->settings_ptr() ) {
+                auto lastfile = settings->value( "QuanReport/XSLFILE" ).toString();
+                if ( ! lastfile.isEmpty() ) {
+                    int i = list.indexOf( lastfile );
+                    if ( i >= 0 )
+                        xslt->setCurrentText( lastfile );
+                }
+            }
         }
         layout_->addWidget( toolBar );
 
@@ -147,6 +156,11 @@ QuanReportWidget::filePublish()
 {
     qtwrapper::waitCursor w;
 
+    QString xslfile = currentStylesheet();
+
+    if ( auto settings = QuanDocument::instance()->settings_ptr() )
+        settings->setValue( "QuanReport/XSLFILE", xslfile );
+
     adwidgets::ProgressInterface progress(0, 5);
         
     Core::ProgressManager::addTask( progress.progress.future()
@@ -154,7 +168,7 @@ QuanReportWidget::filePublish()
                                     , Constants::QUAN_TASK_OPEN );
 
     auto future = std::async( std::launch::async, [=](){
-            return publishTask( progress );
+            return publishTask( xslfile, progress );
         } );
 
     while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
@@ -167,7 +181,7 @@ QuanReportWidget::filePublish()
 }
 
 std::pair< QString, QString >
-QuanReportWidget::publishTask( adwidgets::ProgressInterface progress )
+QuanReportWidget::publishTask( const QString& xslfile, adwidgets::ProgressInterface progress )
 {
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
@@ -200,7 +214,6 @@ QuanReportWidget::publishTask( adwidgets::ProgressInterface progress )
                 
         publisher->save_file( path.string().c_str() ); // save publisher document xml
         
-        QString xslfile = currentStylesheet();
         QString output, method;
         adpublisher::document::apply_template( path.string().c_str(), xslfile.toStdString().c_str(), output, method );
         
