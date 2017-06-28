@@ -44,10 +44,6 @@ MD      = $(SH) /c mkdir
 OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj @vcvers@.wixobj bruker.wixobj qtplatz_translations.wixobj \
 	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj
 
-all: $(MSIFILE)
-
-world: qtplatz $(INFITOF_TARGET) $(MALPIX_TARGET) $(MSIFILE)
-
 help:
 	@echo "* QTDIR=       " $(QTDIR)
 	@echo "* VCINSTALLDIR=" $(VCINSTALLDIR)
@@ -58,6 +54,10 @@ help:
 	@echo "*	nmake all	;make .msi from existing binary"
 	@echo "*	nmake clean	;cleans up current dir"
 	@echo "*	nmake veryclean	;CAUTION this cleans all files according to git repository."
+
+all: $(MSIFILE)
+
+world: qtplatz $(INFITOF_TARGET) $(MALPIX_TARGET) $(MSIFILE)
 
 clean:
 	-@$(RM) /S /F /Q
