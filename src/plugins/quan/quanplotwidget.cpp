@@ -126,7 +126,9 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
             double mass = item->mass();
             QRectF rc = spw->zoomer()->zoomRect();
 
-            double width = pkinfo->size() > idx ? item->widthHH() * 5 : 1.0;
+            double width = pkinfo->size() > idx ? item->widthHH() * 5 : 0.1;
+            int magnitude = std::round( std::log10( width ) );
+            width = std::max( std::pow( 10, magnitude ) / 2, 0.050 );
             
             rc.setLeft( mass - width );
             rc.setRight( mass + width );
