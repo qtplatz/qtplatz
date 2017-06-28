@@ -452,7 +452,7 @@ MainWindow::handleSequenceCompleted()
         stop->setEnabled( true );
 
     if ( auto tab = findChild< DoubleTabWidget * >() )
-        tab->setCurrentIndex( -1, 3 );
+        tab->setCurrentIndex( -1, 2 );
 }
 
 void

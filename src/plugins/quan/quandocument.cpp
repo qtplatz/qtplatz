@@ -54,6 +54,7 @@
 #include <adprocessor/dataprocessor.hpp>
 #include <adpublisher/document.hpp>
 #include <adwidgets/progresswnd.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/exception/all.hpp>
@@ -330,6 +331,9 @@ QuanDocument::publisher( std::shared_ptr< QuanPublisher >& ptr )
 void
 QuanDocument::run()
 {
+    if ( postCount_ )
+        return;
+    
     qtwrapper::waitCursor wait;
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
@@ -357,11 +361,11 @@ QuanDocument::run()
                 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
-                    threads_.push_back( std::thread( [que,it,writer] () { QuanSampleProcessor( que.get(), it->second )(writer); } ) );
+                    futures_.emplace_back( std::async( std::launch::async, [que,it,writer]() {
+                                QuanSampleProcessor( que.get(), it->second )(writer);
+                            } )
+                        );
                 }
-                
-                // update result outfile name on sequence for next run
-                notify_update_( idQuanSequence, true );
             }
         }
     }
@@ -402,17 +406,26 @@ QuanDocument::execute_counting()
                 writer->insert_table( *pm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
                 writer->insert_table( *quanSequence_ );  // ibid
 
+                // std::vector< std::future< void > > futures;
+
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
-                    auto p = std::make_shared< ProgressHandler >();
+                    auto p = std::make_shared< adwidgets::ProgressInterface >();
                     Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::QUAN_TASK_CALIB );
-                    
-                    threads_.push_back( std::thread( [que,it,writer,p] () { QuanCountingProcessor( que.get(), it->second, p )(writer); } ) );
+
+                    futures_.emplace_back( std::async( std::launch::async, [que,it,writer,p]() {
+                                QuanCountingProcessor( que.get(), it->second, p )(writer);
+                            } )
+                        );
+                    // threads_.push_back( std::thread( [que,it,writer,p] () { QuanCountingProcessor( que.get(), it->second, p )(writer); } ) );
                 }
 
+                // for ( auto& e: futures ) {
+                //     e.get();
+                // }
+
                 // update result outfile name on sequence for next run
-                notify_update_( idQuanSequence, true );
-                
+                //notify_update_( idQuanSequence, true );
             }
         }
         
@@ -452,10 +465,13 @@ QuanDocument::handle_processed( QuanProcessor * processor )
     
     if ( postCount_ && ( --postCount_ == 0 ) ) {
 
-        std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
-        threads_.clear();
+        std::for_each( futures_.begin(), futures_.end(), []( auto& t ){ t.get(); } );
+        futures_.clear();
 
-        ProgressHandler p1, p2;
+        // std::for_each( threads_.begin(), threads_.end(), [] ( std::thread& t ){ t.join(); } );
+        // threads_.clear();
+
+        adwidgets::ProgressInterface p1, p2;
         Core::ProgressManager::addTask( p1.progress.future(), "Calibrating...", Constants::QUAN_TASK_CALIB );
         Core::ProgressManager::addTask( p2.progress.future(), "Determinating...", Constants::QUAN_TASK_QUAN );
         
@@ -486,14 +502,15 @@ QuanDocument::handle_processed( QuanProcessor * processor )
 
         while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
             QCoreApplication::instance()->processEvents();
-        //
-
 
         auto shp = processor->shared_from_this();
         exec_.erase( std::remove( exec_.begin(), exec_.end(), shp ) );
 
-        ADDEBUG() << "<------------------- Sequence completed -----------------------";
+        // ADDEBUG() << "<------------------- Sequence completed -----------------------";
         emit onSequenceCompleted();
+
+        // update result outfile name on sequence for next run
+        notify_update_( idQuanSequence, true );
     }
 }
 

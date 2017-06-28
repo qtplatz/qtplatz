@@ -25,16 +25,18 @@
 #ifndef QUANDOCUMENT_HPP
 #define QUANDOCUMENT_HPP
 
+#include <boost/signals2/signal.hpp>
 #include <array>
 #include <atomic>
 #include <functional>
+#include <future>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <vector>
 #include <QObject>
-#include <boost/signals2/signal.hpp>
+
 
 namespace adcontrols {
     class QuanMethod; class QuanCompounds;
@@ -148,8 +150,9 @@ namespace quan {
         notify_update_t notify_update_;
 
         std::array< bool, idSize > dirty_flags_;
-        std::vector< std::thread > threads_;
+        // std::vector< std::thread > threads_;
         std::atomic< size_t > postCount_;
+        std::vector< std::future<void > > futures_;
 
         std::shared_ptr< adcontrols::ProcessMethod > pm_;
         std::shared_ptr< adcontrols::QuanSequence > quanSequence_;

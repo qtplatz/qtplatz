@@ -450,7 +450,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
                     ADERROR() << "wrong calibrant data selected";
                 d << std::make_pair( amount, intensity );
 
-                ADDEBUG() << "add calib: " << formula << "\t" << amount << "\t" << intensity;
+                // ADDEBUG() << "add calib: " << formula << "\t" << amount << "\t" << intensity;
 
             } catch ( std::bad_cast& ex ) {
                 BOOST_THROW_EXCEPTION( ex );

@@ -29,7 +29,7 @@
 #include "quanchromatogramsprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
-#include "quanprogress.hpp"
+//#include "quanprogress.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <adcontrols/annotation.hpp>
@@ -72,7 +72,8 @@
 #include <adportable/debug.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adutils/cpio.hpp>
-#include <adwidgets/progresswnd.hpp>
+//#include <adwidgets/progresswnd.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -90,13 +91,12 @@ QuanCountingProcessor::~QuanCountingProcessor()
 
 QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
                                               , std::vector< adcontrols::QuanSample >& samples
-                                              , std::shared_ptr< ProgressHandler > p )
+                                              , std::shared_ptr< adwidgets::ProgressInterface > p )
     : raw_( 0 )
     , samples_( samples )
     , procmethod_( processor->procmethod() )
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
-      //, progress_( adwidgets::ProgressWnd::instance()->addbar() )
     , progress_( p )
     , progress_current_( 0 )
     , progress_total_( 0 )
