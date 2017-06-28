@@ -14,6 +14,7 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/contrib/linux
   ${QTPLATZ_SOURCE_DIR}/src/libs
+  ${AgMD2_INCLUDE_DIR}
   )
 
 set( SOURCES test_u5303a.cpp )
