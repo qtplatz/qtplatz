@@ -36,6 +36,7 @@
 namespace pugi { class xml_document; class xml_node; }
 namespace adcontrols { class MassSpectrum; class MSPeakInfo; }
 namespace adfs { class stmt; }
+namespace adwidgets { class ProgressInterface; }
 
 namespace quan {
 
@@ -95,7 +96,7 @@ namespace quan {
 
         const calib_curve * find_calib_curve( const boost::uuids::uuid& );
         
-        bool appendTraceData( ProgressHandler& progress );
+        bool appendTraceData( adwidgets::ProgressInterface& progress );
 
     private:
         bool bProcessed_;

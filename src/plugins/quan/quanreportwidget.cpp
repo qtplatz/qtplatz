@@ -30,12 +30,12 @@
 #include "quanquery.hpp"
 #include "quanqueryform.hpp"
 #include "quanresulttable.hpp"
-#include "quanprogress.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adpublisher/document.hpp>
 #include <adpublisher/transformer.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
@@ -138,16 +138,6 @@ QuanReportWidget::setupFileActions( QMenu * menu, QToolBar * tb )
         connect(a, &QAction::triggered, this, &QuanReportWidget::filePublish );
         tb->addAction(a);
         menu->addAction( a );
-#if 0
-#ifndef QT_NO_PRINTER
-        a = new QAction( QIcon::fromTheme("exportpdf", QIcon(qrcpath + "/exportpdf.png")), tr("&Export PDF..."), this );
-        a->setPriority(QAction::LowPriority);
-        a->setShortcut(Qt::CTRL + Qt::Key_D);
-        connect(a, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
-        tb->addAction(a);
-        menu->addAction( a );
-#endif
-#endif
     }
 
 }
@@ -155,11 +145,30 @@ QuanReportWidget::setupFileActions( QMenu * menu, QToolBar * tb )
 void
 QuanReportWidget::filePublish()
 {
-    ProgressHandler progress;
     qtwrapper::waitCursor w;
-    
-    Core::ProgressManager::addTask( progress.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
 
+    adwidgets::ProgressInterface progress(0, 5);
+        
+    Core::ProgressManager::addTask( progress.progress.future()
+                                    , "Quan connecting database..."
+                                    , Constants::QUAN_TASK_OPEN );
+
+    auto future = std::async( std::launch::async, [=](){
+            return publishTask( progress );
+        } );
+
+    while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
+        QCoreApplication::instance()->processEvents();
+
+    auto pair = future.get();
+
+    docBrowser_->setHtml( pair.first );
+    QDesktopServices::openUrl( QUrl( pair.second ) );
+}
+
+std::pair< QString, QString >
+QuanReportWidget::publishTask( adwidgets::ProgressInterface progress )
+{
     if ( auto publisher = QuanDocument::instance()->publisher() ) {
 
         try {
@@ -169,10 +178,10 @@ QuanReportWidget::filePublish()
 
         } catch ( boost::exception& ex ) {
             QMessageBox::information( this, "QuanReportWidget", ( boost::diagnostic_information( ex ) + "(1)").c_str() );
-            return;
+            return std::make_pair( "", "" );
         } catch ( ... ) {
             QMessageBox::information( this, "QuanReportWidget", ( boost::current_exception_diagnostic_information() + "(2)").c_str() );
-            return;
+            return std::make_pair( "", "" );
         }
 
         try {
@@ -181,10 +190,10 @@ QuanReportWidget::filePublish()
 
         } catch ( boost::exception& ex ) {
             QMessageBox::information( this, "QuanReportWidget", ( boost::diagnostic_information( ex ) + "(3)").c_str() );
-            return;
+            return std::make_pair( "", "" );
         } catch ( ... ) {
             QMessageBox::information( this, "QuanReportWidget", ( boost::current_exception_diagnostic_information() + "(4)").c_str() );
-            return;
+            return std::make_pair( "", "" );
         }
 
         boost::filesystem::path path = publisher->filepath(); 
@@ -197,8 +206,6 @@ QuanReportWidget::filePublish()
         
         if ( !output.isEmpty() ) {
             
-            docBrowser_->setHtml( output );
-            
             std::string extension =
                 ( method.isEmpty() || method == "xhtml" ) ? ".html"
                 : (QString( ".%1" ).arg( method )).toStdString();
@@ -208,9 +215,10 @@ QuanReportWidget::filePublish()
             boost::filesystem::ofstream o( path );
             o << output.toStdString();
 
-            QDesktopServices::openUrl( QUrl( QString::fromStdWString( path.wstring() ) ) ) ;
+            return std::make_pair( output, QString::fromStdString( path.string() ) );
         }
     }
+    return std::make_pair( "", "" );
 }
 
 QString

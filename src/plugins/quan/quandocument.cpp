@@ -30,7 +30,6 @@
 #include "quandatawriter.hpp"
 #include "quansampleprocessor.hpp"
 #include "quanprocessor.hpp"
-#include "quanprogress.hpp"
 #include "quanpublisher.hpp"
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
@@ -592,7 +591,7 @@ QuanDocument::setConnection( QuanConnection * conn )
 {
     quanConnection_ = conn->shared_from_this();
 
-    ProgressHandler handler( 0, 5 );
+    adwidgets::ProgressInterface handler( 0, 5 );
     // qtwrapper::waitCursor w;
 
     if ( ( publisher_ = std::make_shared< QuanPublisher >() ) ) {

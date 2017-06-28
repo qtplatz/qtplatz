@@ -26,7 +26,6 @@
 #include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanplotdata.hpp"
-#include "quanprogress.hpp"
 #include "quansvgplot.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -47,6 +46,7 @@
 #include <adportable/debug.hpp>
 #include <adpublisher/document.hpp>
 #include <adfs/sqlite3.h>
+#include <adwidgets/progressinterface.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/xmlhelper.hpp>
 #include <boost/filesystem.hpp>
@@ -380,13 +380,13 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 }
 
 bool
-QuanPublisher::appendTraceData( ProgressHandler& progress )
+QuanPublisher::appendTraceData( adwidgets::ProgressInterface& progress )
 {
     if ( bProcessed_ && conn_ ) {
         
         size_t nTask = std::count_if( resp_data_.begin(), resp_data_.end()
                                       , [] ( decltype(*resp_data_.begin())& d ){ return d.second->sampType == 0; } );
-        progress.setProgressRange( 0, int(nTask) );
+        progress.progress.setProgressRange( 0, int(nTask) );
 
 
         if ( auto doc = xmloutput_->select_single_node( "/qtplatz_document" ).node() ) {

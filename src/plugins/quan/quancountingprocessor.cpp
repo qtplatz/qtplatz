@@ -29,7 +29,6 @@
 #include "quanchromatogramsprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
-//#include "quanprogress.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <adcontrols/annotation.hpp>

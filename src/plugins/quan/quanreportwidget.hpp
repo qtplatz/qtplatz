@@ -25,6 +25,7 @@
 #ifndef QUANREPORTWIDGET_HPP
 #define QUANREPORTWIDGET_HPP
 
+#include <adwidgets/progressinterface.hpp>
 #include <QWidget>
 #include <memory>
 
@@ -41,6 +42,7 @@ namespace quan {
     class QuanQueryForm;
     class QuanResultTable;
     class QuanDocument;
+    class ProgressHandler;
 
     class QuanReportWidget : public QWidget  {
         Q_OBJECT
@@ -51,7 +53,7 @@ namespace quan {
 
     private:
         QVBoxLayout * layout_;
-        //std::unique_ptr< adpublisher::docEditor > docEditor_;
+
         std::unique_ptr< QTextBrowser > docBrowser_;
  
         void importDocTemplate();
@@ -59,6 +61,8 @@ namespace quan {
         void setupFileActions( QMenu *, QToolBar * );
 
         QString currentStylesheet() const;
+
+        std::pair< QString, QString> publishTask( adwidgets::ProgressInterface );
 
     signals:
 

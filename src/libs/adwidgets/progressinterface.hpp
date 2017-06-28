@@ -31,9 +31,6 @@ namespace adwidgets {
 
     class ProgressInterface {
 
-        ProgressInterface( const ProgressInterface& ) = delete;
-        ProgressInterface& operator = ( const ProgressInterface& ) = delete;
-
     public:
         QFutureInterface<void> progress;
         int currentValue;
@@ -45,6 +42,10 @@ namespace adwidgets {
         ProgressInterface( int beg = 0, int end = 100 ) {
             progress.setProgressRange( beg, end );
             progress.reportStarted();
+        }
+
+        ProgressInterface( const ProgressInterface& t ) : progress( t.progress )
+                                                        , currentValue( t.currentValue ) {
         }
 
         void operator()( int beg, int end ) {
