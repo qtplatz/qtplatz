@@ -1,0 +1,14 @@
+INSALL irony-server on mac
+Insall llvm
+mkdir ~/src/llvm/build; cd ~/src/llvm/build
+cmake -DCMAKE_INSTALL_PREFIX=/opt/llvm ..
+make && make install
+mkdir ~/src/clang/build; cd ~/src/clang/build
+cmake -DCMAKE_INSTALL_PREFIX=/opt/llvm ..
+make && make install
+
+cmake -DCMAKE_PREFIX_PATH=/opt/llvm -DCMAKE_INSTALL_PREFIX\=/Users/toshi/.emacs.d/irony/ /Users/toshi/.emacs.d/elpa/irony-20170425.1328/server && cmake --build . --use-stderr --config Release --target install
+
+cd ~/.emacs.d/irony/bin
+install_name_tool -change @rpath/libclang.dylib /opt/llvm/lib/libclang.dylib ./irony-server
+
