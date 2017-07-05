@@ -734,21 +734,28 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 
         adcontrols::MassSpectrumPtr centroid;
         adcontrols::TargetingPtr targeting;
+        adcontrols::MSPeakInfoPtr pkinfo;
 
         if ( folder.name() == L"Spectra" ) {
-            
+
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium.data() ) ) {
 
-                if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
-                            return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+                if ( auto f = portfolio::find_first_of( folium.attachments(), []( auto& a ){ return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
 					try {
 						centroid = portfolio::get< adcontrols::MassSpectrumPtr >( f );
 					} catch ( boost::bad_any_cast& ex ) {
 						ADERROR() << boost::diagnostic_information( ex );
 					}
                     
-                    if ( auto t = portfolio::find_first_of( f.attachments(), []( portfolio::Folium& a) {
-                                return a.name() == Constants::F_TARGETING;}) ) {
+                    if ( auto t = portfolio::find_first_of( f.attachments(), []( auto& a){ return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); }) ) {
+                        try {
+                            pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( t );
+                        } catch ( boost::bad_any_cast& ex ) {
+                            ADERROR() << boost::diagnostic_information( ex );
+                        }
+                    }
+                    
+                    if ( auto t = portfolio::find_first_of( f.attachments(), []( auto& a) { return a.name() == Constants::F_TARGETING;}) ) {
                         try {
                             targeting = portfolio::get< adcontrols::TargetingPtr >( t );
                         } catch ( boost::bad_any_cast& ex ) {
@@ -765,11 +772,17 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 				(*it)->raise();
         }
         
-        // set data property to MSPropertyForm
         for ( auto widget: dockWidgets() ) {
             if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
                 pLifeCycle->setContents( boost::any( folium ) );
-                pLifeCycle->setContents( boost::any( centroid ) );
+                if ( centroid && pkinfo ) {
+                    pLifeCycle->setContents( boost::any( pkinfo ) );
+                } else {
+                    if ( centroid )
+                        pLifeCycle->setContents( boost::any( centroid ) );
+                    if ( pkinfo )
+                        pLifeCycle->setContents( boost::any( pkinfo ) );
+                }
                 if ( targeting )
                     pLifeCycle->setContents( boost::any( targeting ) );
             }

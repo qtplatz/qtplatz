@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -44,6 +44,7 @@
 #include <adportable/is_type.hpp>
 #include <QApplication>
 #include <QClipboard>
+#include <QDebug>
 #include <QHeaderView>
 #include <QItemDelegate>
 #include <QKeyEvent>
@@ -71,6 +72,8 @@ namespace adwidgets {
         , c_mspeaktable_mode
         , c_mspeaktable_time
         , c_mspeaktable_protocol
+        , c_mspeaktable_mass_width
+        , c_mspeaktable_time_width
         , c_mspeaktable_description
         , c_mspeaktable_index
         , c_mspeaktable_fcn
@@ -78,14 +81,14 @@ namespace adwidgets {
     };
 
     static QColor colors[] = {
-        { QColor( 0xff, 0x66, 0x44, 0x10 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x20 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x30 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x40 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x50 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x60 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x70 ) }
-        , { QColor( 0xff, 0x66, 0x44, 0x80 ) }
+        { QColor( 0xff, 0x66, 0x44, 0x20 ) }   // 1
+        , { QColor( 0x6d, 0x79, 0x93, 0x20 ) } // 2 Lavendar
+        , { QColor( 0x99, 0x09, 0xa2, 0x20 ) } // 3 Overcast
+        , { QColor( 0xd5, 0xd5, 0xd5, 0x20 ) } // 4    
+        , { QColor( 0xca, 0xeb, 0xf2, 0x40 ) }
+        , { QColor( 0xa9, 0xa9, 0xa9, 0x40 ) }
+        , { QColor( 0xff, 0x38, 0x3f, 0x40 ) } // watermelon
+        , { QColor( 0xef, 0xef, 0xef, 0x40 ) }
         , { QColor( 0xff, 0x66, 0x44, 0x90 ) }
         , { QColor( 0xff, 0x66, 0x44, 0xa0 ) }
         , { QColor( 0xff, 0x66, 0x44, 0xb0 ) }
@@ -105,8 +108,9 @@ namespace adwidgets {
 
         int fcn = index.model()->data( index.model()->index( index.row(), c_mspeaktable_fcn ) ).toInt();
         if ( fcn > 0 ) {
+            size_t cid = ( fcn - 1 ) % (sizeof( colors )/sizeof( colors[ 0 ] ));
             painter->save();
-            painter->fillRect( option.rect, colors[ ( fcn - 1 ) % sizeof( colors ) / sizeof( colors[ 0 ] ) ] );
+            painter->fillRect( option.rect, colors[ cid ] );
             painter->restore();
         }
 
@@ -373,6 +377,9 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_protocol,    Qt::Horizontal, QObject::tr( "protocol" ) );
     model.setHeaderData( c_mspeaktable_formula,     Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_mspeaktable_description, Qt::Horizontal, QObject::tr( "description" ) );
+
+    model.setHeaderData( c_mspeaktable_mass_width,  Qt::Horizontal, QObject::tr( "width(mDa)" ) );
+    model.setHeaderData( c_mspeaktable_time_width,  Qt::Horizontal, QObject::tr( "width(ns)" ) );
     
     setColumnHidden( c_mspeaktable_index, true );
     setColumnHidden( c_mspeaktable_fcn, true );  // a.k.a. protocol id, internally used as an id
@@ -463,6 +470,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
                 model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - exactMass( pk.formula() ) );
             }
 			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdWString( pk.annotation() ) );
+            model.setData( model.index( row, c_mspeaktable_mass_width ), pk.widthHH( false ) * std::milli::den );
+            model.setData( model.index( row, c_mspeaktable_time_width ), pk.widthHH( true ) * std::nano::den );
 
             setRowHidden( row, false );
 
