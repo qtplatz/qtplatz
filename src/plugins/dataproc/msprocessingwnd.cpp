@@ -915,6 +915,12 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
     }
 }
 
+void
+MSProcessingWnd::handleRescaleY( int proto )
+{
+    pImpl_->profileSpectrum_->rescaleY( proto );
+    pImpl_->processedSpectrum_->rescaleY( proto );
+}
 
 void
 MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )

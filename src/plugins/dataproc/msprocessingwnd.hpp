@@ -90,6 +90,7 @@ namespace dataproc {
         void handleLockMass( const QVector< QPair<int, int> >& );
         void handleDataMayChanged();
         void handleScanLawEst( const QVector< QPair< int, int > >& );
+        void handleRescaleY( int idx );
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );

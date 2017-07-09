@@ -89,6 +89,7 @@ namespace adwidgets {
         void formulaChanged( int idx, int fcn );
         void triggerLockMass( const QVector< QPair<int, int> >& );
         void estimateScanLaw( const QVector< QPair<int, int> >& );
+        void rescaleY( int protocol );
 
     public slots:
         void handleCopyToClipboard() override;

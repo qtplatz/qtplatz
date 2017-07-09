@@ -744,6 +744,12 @@ MSPeakTable::showContextMenu( const QPoint& pt )
 
         menu.addAction( "Hide", this, SLOT( hideRows() ) );
         menu.addAction( "Show all", this, SLOT( showRows() ) );
+
+        QString text = QString("Rescale @ protocol %1").arg( model.data( model.index( index.row(), c_mspeaktable_protocol ) ).toString() );
+        menu.addAction( text, this, [&](){
+                int proto = model.data( model.index( index.row(), c_mspeaktable_fcn ) ).toInt();
+                emit rescaleY( proto );
+            });
         
         QModelIndexList list = selectionModel()->selectedIndexes();
         if ( list.size() < 1 )

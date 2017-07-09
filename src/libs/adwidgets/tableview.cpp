@@ -93,7 +93,7 @@ TableView::handleCopyToClipboard()
     indecies.removeFirst();
     for( int i = 0; i < indecies.size(); ++i ) {
         QModelIndex index = indecies.at( i );
-
+        
         if ( !isRowHidden( prev.row() ) ) {
 
             //auto t = prev.data( Qt::EditRole ).type();

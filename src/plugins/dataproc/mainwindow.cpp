@@ -631,6 +631,7 @@ MainWindow::createDockWidgets()
                              , wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
                     connect( pWidget, SIGNAL( estimateScanLaw( const QVector<QPair<int, int>>& ) )
                              , wnd, SLOT( handleScanLawEst( const QVector<QPair<int, int>>& ) ) );
+                    connect( pWidget, SIGNAL( rescaleY( int ) ), wnd, SLOT( handleRescaleY( int ) ) ); // fcn (a.k.a protocol)
                 }
                 connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
 

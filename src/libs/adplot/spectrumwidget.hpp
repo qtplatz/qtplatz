@@ -64,11 +64,13 @@ namespace adplot {
         void yZoom( double xmin, double xmax ) override;
         static QColor index_color( unsigned int idx );
 
+        void rescaleY( int fcn );
+
     private:
         class impl;
         impl * impl_;
 
-        void redraw_all();
+        void redraw_all( bool keepX = false );
         void yScaleHock( QRectF& );
 
 

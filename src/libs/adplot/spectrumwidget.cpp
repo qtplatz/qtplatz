@@ -157,7 +157,7 @@ namespace adplot {
                           , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
             void redraw( plot& plot, SpectrumWidget::HorizontalAxis, QRectF&, QRectF& );
             void setFocusedFcn( int fcn );
-            std::pair<double, double> y_range( double left, double right ) const;
+            std::pair<double, double> y_range( double left, double right, int fcn ) const;
             bool yRight() const { return yRight_; }
             void setAlpha( int alpha );
             void setColor( const QColor& );
@@ -192,6 +192,7 @@ namespace adplot {
                , keepZoomed_( true )
                , haxis_( HorizontalAxisMass )
                , focusedFcn_( -1 ) // no focus
+               , scaleFcn_( -1 )
             {}
         bool autoAnnotation_;
         bool isTimeAxis_;
@@ -203,6 +204,7 @@ namespace adplot {
         std::atomic<bool> keepZoomed_;
         std::atomic<HorizontalAxis> haxis_;
         std::atomic<int> focusedFcn_;
+        int scaleFcn_;
         std::mutex mutex_;
 
         void clear();
@@ -337,7 +339,7 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
 
     for ( const auto& trace: traces_ ) {
         if ( trace ) {
-            std::pair<double, double> y = trace->y_range( rc.left(), rc.right() );
+            std::pair<double, double> y = trace->y_range( rc.left(), rc.right(), scaleFcn_ );
             if ( trace->yRight() ) {
                 hasYRight = true;
                 right = std::make_pair( std::min( y.first, right.first ), std::max( y.second, right.second ) );
@@ -355,21 +357,6 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
 
     if ( hasYRight )
         right.second = right.second + (right.second - right.first) * 0.12;
-
-#if 0
-    if ( hasYLeft && hasYRight ) {
-        if ( ( left.first <= 0 && left.second > 0 ) && ( right.first <= 0 && right.second > 0 ) ) {
-            // adjust zero level
-            double left_base = left.first / ( left.second - left.first );   // should be negative
-            double right_base = right.first / (right.second - right.first); // negative too
-            if ( left_base < right_base ) { // left axis has higher zero position
-                right.first = (right.second - right.first) * left_base;
-            } else {
-                left.first = (left.second - left.first) * right_base;
-            }
-        }
-    }
-#endif
 
     return std::make_pair( hasYLeft, hasYRight );
 }
@@ -506,9 +493,11 @@ SpectrumWidget::removeData( int idx, bool bReplot )
 }
 
 void
-SpectrumWidget::redraw_all()
+SpectrumWidget::redraw_all( bool keepX )
 {
     QRectF rcLeft, rcRight;
+
+    // QRectF z = zoomer()->zoomRect(); // current
 
     for ( auto& trace: impl_->traces_ ) {
         if ( trace )
@@ -516,11 +505,13 @@ SpectrumWidget::redraw_all()
     }
 
     if ( !rcLeft.isNull() ) {
-        setAxisScale( QwtPlot::xBottom, rcLeft.left(), rcLeft.right() );
+        if ( ! keepX )
+            setAxisScale( QwtPlot::xBottom, rcLeft.left(), rcLeft.right() );
         setAxisScale( QwtPlot::yLeft, rcLeft.bottom(), rcLeft.top() );
     }
+    
     if ( !rcRight.isNull() ) {
-        if ( rcLeft.isNull() )
+        if ( ! keepX && rcLeft.isNull() )
             setAxisScale( QwtPlot::xBottom, rcRight.left(), rcRight.right() );
         setAxisScale( QwtPlot::yRight, rcRight.bottom(), rcRight.top() );
     }
@@ -549,6 +540,8 @@ void
 SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, int idx, bool yRight )
 {
     using spectrumwidget::TraceData;
+
+    impl_->scaleFcn_ = (-1);
 
     if ( !ptr && impl_->traces_.size() >= size_t( idx ) ) {
         return;
@@ -617,6 +610,16 @@ SpectrumWidget::setFocusedFcn( int fcn )
         if ( trace )
             trace->setFocusedFcn( fcn );
     }
+    ADDEBUG() << "setFocusedFcn(" << fcn << ")";
+}
+
+void
+SpectrumWidget::rescaleY( int fcn )
+{
+    impl_->scaleFcn_ = fcn;
+    // redraw_all( true );
+    QRectF z = zoomer()->zoomRect(); // current
+    yZoom( z.x(), z.x() + z.width() );
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -810,6 +813,7 @@ TraceData::setFocusedFcn( int fcn )
         focusedFcn_ = fcn;
         if ( auto p = pSpectrum_ ) {
             changeFocus( focusedFcn_ );
+            ADDEBUG() << "changeFocus(" << focusedFcn_ << ")";
         }
     }
 }
@@ -837,7 +841,7 @@ TraceData::setColor( const QColor& color )
 }    
 
 std::pair< double, double >
-TraceData::y_range( double left, double right ) const
+TraceData::y_range( double left, double right, int fcn ) const
 {
     namespace metric = adcontrols::metric;
     double top = std::numeric_limits<double>::lowest();
@@ -848,8 +852,13 @@ TraceData::y_range( double left, double right ) const
     if ( pSpectrum_ ) {
 
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *pSpectrum_ );
+
+        int _fcn(0);
         
         for ( auto& seg: segments ) {
+
+            if ( fcn >= 0 && _fcn++ != fcn )
+                continue;
 
             bool isCentroid = seg.isCentroid();
 
