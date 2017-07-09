@@ -1125,7 +1125,7 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
 
     if ( ! ms.isCentroid() )
         return idx; // error
-
+    
     if ( lMass > hMass ) // just in case
         std::swap( lMass, hMass );
     
@@ -1134,7 +1134,9 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
     segment_wrapper< const MassSpectrum > segments( ms );
     int fcn = 0;
     for ( auto& fms: segments ) {
-        if ( lMass < fms.getMass( 0 ) || hMass < fms.getMass( fms.size() - 1 ) ) {
+        if ( fms.size() &&
+             ( lMass < fms.getMass( fms.size() - 1 ) ) && ( hMass > fms.getMass( 0 ) ) ) {
+            
             const double * intens = fms.getIntensityArray();
             const double * masses = fms.getMassArray();
             auto lIt = std::lower_bound( masses, masses + fms.size(), lMass );
