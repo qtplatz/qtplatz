@@ -228,6 +228,8 @@ namespace adwidgets {
         
         boost::variant< std::weak_ptr< adcontrols::MSPeakInfo >
                         , std::weak_ptr< adcontrols::MassSpectrum > > data_source_;
+
+        std::weak_ptr< adcontrols::MSPeakInfo > pkinfo_;  // it is a pair of data_source_
         
         boost::signals2::signal< callback_t > callback_;
         bool inProgress_;
@@ -317,12 +319,23 @@ bool
 MSPeakTable::setContents( boost::any&& a )
 {
     impl_->callback_.disconnect_all_slots();
+    impl_->pkinfo_.reset();
+
+    typedef std::pair< adcontrols::MassSpectrumPtr, adcontrols::MSPeakInfoPtr > spectrum_peakinfo_type;
+    
+    if ( adportable::a_type< spectrum_peakinfo_type >::is_a( a ) ) {
+        auto pair = boost::any_cast< spectrum_peakinfo_type >( a );
+        impl_->data_source_ = pair.first;
+        impl_->pkinfo_ = pair.second;
+        setPeakInfo( *pair.second );
+        return true;
+    }
 
     if ( adportable::a_type< adcontrols::MSPeakInfoPtr >::is_a( a ) ) {
         std::weak_ptr< adcontrols::MSPeakInfo > wptr = boost::any_cast< adcontrols::MSPeakInfoPtr >( a );
         impl_->data_source_ = wptr;
         if ( auto ptr = wptr.lock() )
-            setPeakInfo( *ptr );            
+            setPeakInfo( *ptr );
         return true;
     }
 
@@ -770,10 +783,12 @@ MSPeakTable::showContextMenu( const QPoint& pt )
         menu.addAction( tr("Copy assigned peaks to clipboard"), this, SLOT( handleCopyAssignedPeaks() ) );
 
         //-- add dataprocessor dependent menu --
-        auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
-        addContextMenu( menu, pt, wptr.lock() );
-
-        menu.addSeparator();
+        if ( impl_->data_source_.which() == 1 ) {        
+            auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
+            addContextMenu( menu, pt, wptr.lock() );
+            menu.addSeparator();
+        }
+        
         //-- add base TableView's menu --
         addActionsToContextMenu( menu, pt );
 

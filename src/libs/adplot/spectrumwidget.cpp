@@ -60,28 +60,6 @@ namespace adplot {
 
     namespace spectrumwidget {
 
-#if 0
-        static Qt::GlobalColor color_table[] = {
-            Qt::blue          // 0
-            , Qt::red           // 1
-            , Qt::darkGreen     // 2
-            , Qt::darkCyan      // 3
-            , Qt::darkMagenta   // 4
-            , Qt::darkYellow    // 5
-            , Qt::darkBlue      // 6
-            , Qt::darkRed       // 7
-            , Qt::green         // 8
-            , Qt::cyan          // 9
-            , Qt::magenta       // 10
-            , Qt::yellow        // 11
-            , Qt::darkGray      // 12
-            , Qt::black         // 13
-            , Qt::lightGray     // 14
-            , Qt::white         // 15
-            , Qt::gray          // 16
-            , Qt::transparent   // 17
-        };
-#endif
         static QColor color_table [] = {
             QColor( 0x00, 0x00, 0xff )    // 0  blue
             , QColor( 0xff, 0x00, 0x00 )  // 1  red

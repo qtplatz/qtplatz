@@ -774,9 +774,8 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         
         for ( auto widget: dockWidgets() ) {
             if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
-                pLifeCycle->setContents( boost::any( folium ) );
                 if ( centroid && pkinfo ) {
-                    pLifeCycle->setContents( boost::any( pkinfo ) );
+                    pLifeCycle->setContents( boost::any( std::make_pair( centroid, pkinfo ) ) );
                 } else {
                     if ( centroid )
                         pLifeCycle->setContents( boost::any( centroid ) );
@@ -785,6 +784,8 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 }
                 if ( targeting )
                     pLifeCycle->setContents( boost::any( targeting ) );
+
+                pLifeCycle->setContents( boost::any( folium ) );
             }
         }
     }
