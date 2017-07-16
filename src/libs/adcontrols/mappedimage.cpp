@@ -226,7 +226,7 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
         }
     }
     
-    impl_->mergeCount_++;
+    impl_->mergeCount_ += map.averageCount();
     return true;
 }
 
@@ -252,8 +252,8 @@ MappedImage::merge( const MappedSpectra& map )
             }
         }
     }
-    
-    impl_->mergeCount_++;
+
+    impl_->mergeCount_ += map.averageCount();    
     return true;
 }
 

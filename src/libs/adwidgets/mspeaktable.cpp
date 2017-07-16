@@ -285,7 +285,9 @@ MSPeakTable::onUpdate( boost::any&& a )
         auto ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( a );
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( wptr.lock() == ptr )
-            setData( *ptr );                        
+            updateData( *ptr );
+        else
+            setData( *ptr );
 
     } else if ( a.type() == typeid(int) ) {
         // dataMayChanged on MainWindow invoke this method over applyCalibration()
@@ -449,6 +451,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
     setUpdatesEnabled( false );
 
+    model.setRowCount( 0 );
     model.setRowCount( static_cast< int >( info.total_size() ) );
 
     typedef adcontrols::MSPeakInfoItem MSPeakInfoItem;
@@ -508,7 +511,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
     for( auto& t: segs )
         total_size += t.size();
-
+    
+    model.setRowCount( 0 );
     model.setRowCount( static_cast< int >( total_size ) );
 
     double maxIntensity = 0;
@@ -549,6 +553,10 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
             model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
 
+            model.setData( model.index( row, c_mspeaktable_mass_width ), QVariant() ); // clear width
+            model.setData( model.index( row, c_mspeaktable_time_width ), QVariant() ); // clear width
+            
+
             auto it = std::find_if( annots.begin(), annots.end(), [idx] ( const adcontrols::annotation& a ){ return a.index() == idx; } );
             while ( it != annots.end() ) {
                 if ( it->dataFormat() == adcontrols::annotation::dataText ) {
@@ -578,6 +586,22 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 void
 MSPeakTable::setData( const adcontrols::MassSpectrum& ms )
 {
+	QStandardItemModel& model = *impl_->model_;
+
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );
+    size_t total_size = 0;
+    for( auto& t: segs )
+        total_size += t.size();
+
+    setPeakInfo( ms );
+    return;
+}
+
+void
+MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
+{
+    // call from lockmass via onUpdate
+    
 	QStandardItemModel& model = *impl_->model_;
 
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( ms );

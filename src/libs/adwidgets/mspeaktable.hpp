@@ -111,6 +111,7 @@ namespace adwidgets {
 		void setPeakInfo( const adcontrols::MassSpectrum& );
         void setPeakInfo( const adcontrols::Targeting& );
 		void setData( const adcontrols::MassSpectrum& );
+        void updateData( const adcontrols::MassSpectrum& );
         void formulaChanged( const QModelIndex& );
         void descriptionChanged( const QModelIndex& );
         static double exactMass( std::string );
