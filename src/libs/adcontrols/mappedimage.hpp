@@ -63,9 +63,9 @@ namespace adcontrols {
         size_t size1() const;  // horizontal pixel count
         size_t size2() const;  // vertical pixel count
 
-        double operator ()( size_t i, size_t j );
+        double& operator ()( size_t i, size_t j );
         const double operator ()( size_t i, size_t j ) const;
-
+        
         bool merge( const boost::numeric::ublas::matrix<uint16_t>&
                     , unsigned int low = 0
                     , unsigned int high = std::numeric_limits<unsigned int>::max() );
@@ -77,6 +77,7 @@ namespace adcontrols {
         operator const boost::numeric::ublas::matrix< double >& () const;
         double max_z() const;
         size_t mergeCount() const;
+        void setMergeCount( size_t );
 
     private:
         class impl;

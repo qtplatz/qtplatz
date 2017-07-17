@@ -30,11 +30,13 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <numeric>
+#include <ratio>
 
 namespace adcontrols {
 
@@ -144,7 +146,7 @@ MappedImage::size2() const
     return impl_->data_.size2();
 }
 
-double
+double&
 MappedImage::operator ()( size_t i, size_t j )
 {
     return (impl_->data_)( i, j );
@@ -171,6 +173,12 @@ size_t
 MappedImage::mergeCount() const
 {
     return impl_->mergeCount_;
+}
+
+void
+MappedImage::setMergeCount( size_t count )
+{
+    impl_->mergeCount_ = count;
 }
 
 bool
@@ -209,15 +217,18 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
         impl_->mergeCount_ = 0;
     }
 
+    double t0 = tof - width / 2;
+    double t1 = tof + width / 2;
+
     for ( size_t i = 0; i < map.size1(); ++i ) {
         for ( size_t j = 0; j < map.size2(); ++j ) {
             
             auto& sp = map( i, j );
-            
+
             if ( sp.size() > 0 ) {
-                auto beg = std::lower_bound( sp.begin(), sp.end(), tof - width / 2, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
+                auto beg = std::lower_bound( sp.begin(), sp.end(), t0, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
                 if ( beg != sp.end() ) {
-                    auto end = std::lower_bound( sp.begin(), sp.end(), tof + width / 2, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
+                    auto end = std::lower_bound( sp.begin(), sp.end(), t1, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
                     size_t d = std::accumulate( beg, end, size_t(0), []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
                     impl_->data_( i, j ) += d;
                     impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
