@@ -69,7 +69,20 @@ dataprocessor::~dataprocessor()
 dataprocessor::dataprocessor() : modified_( false )
                                , rawdata_( 0 )
                                , portfolio_( std::make_unique< portfolio::Portfolio >() )
+                               , mode_( 0 )
 {
+}
+
+void
+dataprocessor::setMode( int id )
+{
+    mode_ = id;
+}
+
+int
+dataprocessor::mode() const
+{
+    return mode_;
 }
 
 void

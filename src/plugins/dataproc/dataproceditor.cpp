@@ -133,7 +133,9 @@ DataprocEditor::eventFilter( QObject * object, QEvent * event )
 {
     if ( object == widget_ ) {
         if ( event->type() == QEvent::ShowToParent ) {
-            Core::ModeManager::activateMode( Core::Id( Constants::C_DATAPROCESSOR ) );
+            int mode(0);
+            if ( processor_ && (mode = processor_->mode() ) )
+                Core::ModeManager::activateMode( Core::Id( mode ) ); // Constants::C_DATAPROCESSOR ) );
         }
     }
     return false;

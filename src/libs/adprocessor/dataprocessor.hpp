@@ -64,6 +64,9 @@ namespace adprocessor {
         dataprocessor();
 
         // dataprocessor
+        virtual void setMode( int id );  // main 
+        virtual int mode() const;
+        
         virtual void setModified( bool );
         
         virtual bool open( const std::wstring&, std::wstring& errmsg );
@@ -111,6 +114,7 @@ namespace adprocessor {
     protected:
         std::unique_ptr< portfolio::Portfolio > portfolio_;
         std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
+        int mode_;
     };
 
 } // mpxcontrols
