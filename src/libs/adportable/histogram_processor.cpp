@@ -192,6 +192,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
             typ = 3;
             state.stack_.top()++; // extend
         }
+
 #if 0
         { // debug
             double pt = pTimes[ x - 1 ];
