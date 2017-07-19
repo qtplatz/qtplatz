@@ -131,7 +131,9 @@ app::main( int argc, char * argv [] )
 
     a.exec();
 
+#if HAVE_AqDrv4 // no AP240/DCnnn hardware driver installed on the compiling host
     future.get();
+#endif
 
     return 0;
 }

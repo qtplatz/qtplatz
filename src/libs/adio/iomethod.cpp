@@ -60,7 +60,7 @@ bool
 method::read_json( std::istream& json, method& m )
 {
     boost::property_tree::ptree pt;
-    
+
     try {
         boost::property_tree::read_json( json, pt );
 
