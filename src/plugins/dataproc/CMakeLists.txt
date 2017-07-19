@@ -55,6 +55,8 @@ link_directories(
 
 add_library( ${PROJECT_NAME} MODULE
   aboutdlg.cpp
+  datafolder.cpp
+  datafolder.hpp
   dataprocplugin.cpp
   mode.cpp
   mainwindow.cpp

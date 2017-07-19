@@ -29,6 +29,7 @@
 #include "sessionmanager.hpp"
 #include "document.hpp"
 #include "qtwidgets_name.hpp"
+#include "datafolder.hpp"
 
 #include <adcontrols/description.hpp>
 #include <adcontrols/datafile.hpp>
@@ -69,54 +70,6 @@
 
 namespace dataproc {
 
-    struct datafolder {
-        int idx;
-        std::wstring display_name; // fileneme::folium.name
-        std::wstring idFolium;
-        std::wstring idCentroid;
-        std::weak_ptr< adcontrols::MassSpectrum > profile;    // usually profile, TBD for histogram data
-        std::weak_ptr< adcontrols::MassSpectrum > centroid;  // centroid
-
-        datafolder( int _0 = 0
-                    , const std::wstring& _1 = std::wstring()
-                    , const std::wstring& _2 = std::wstring()
-                    , const std::wstring& _3 = std::wstring() ) : idx( _0 )
-                                                                , display_name( _1 )
-                                                                , idFolium( _2 )
-                                                                , idCentroid( _3 ) {
-            
-        }
-
-        datafolder( int _idx
-                    , const std::wstring& _display_name
-                    , portfolio::Folium& folium ) : idx( _idx )
-                                                   , display_name( _display_name )
-                                                   , idFolium( folium.id() )  {
-            
-            if ( auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-                profile = ms; // maybe profile or histogram
-            }
-
-            portfolio::Folio atts = folium.attachments();
-            auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
-            if ( itCentroid != atts.end() ) {
-                
-                idCentroid = itCentroid->id();
-                centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-                
-            }
-        }
-
-        datafolder( const datafolder& t ) : idx( t.idx )
-                                          , idFolium( t.idFolium )
-                                          , idCentroid( t.idCentroid )
-                                          , display_name( t.display_name )
-                                          , profile( t.profile )
-                                          , centroid( t.centroid ) {
-        }
-
-    };
-
     class MSSpectraWnd::impl {
     public:
         impl( MSSpectraWnd * p ) : pThis_( p )
@@ -125,7 +78,7 @@ namespace dataproc {
                                  , dirty_( false ) {
             
             for ( size_t i = 0; i < plots_.size(); ++i ) {
-
+                
                 plots_[ i ] = std::make_unique< adplot::SpectrumWidget >();
                 plots_[ i ]->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
                 plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
@@ -269,7 +222,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     }
 
     bool modified = false;
-
+    
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
 
         if ( auto qpks = document::instance()->msQuanTable() )

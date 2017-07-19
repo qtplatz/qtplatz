@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,10 +25,13 @@
 
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
+#include "datafolder.hpp"
 #include "document.hpp"
+#include "mainwindow.hpp"
 #include "sessionmanager.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/datafile.hpp>
 #include <adcontrols/timeutil.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
@@ -39,6 +42,7 @@
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
 #include <adlog/logger.hpp>
+#include <adplot/peakmarker.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
@@ -56,19 +60,58 @@
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 #include <QBoxLayout>
+#include <QFileDialog>
 #include <QMenu>
 #include <QPrinter>
+
+namespace dataproc {
+    class ElementalCompWnd::impl {
+    public:
+
+        impl( ElementalCompWnd * p ) : this_( p )
+                                     , isTimeAxis_( false )
+                                     , dirty_( false ) {
+
+            for ( size_t i = 0; i < plots_.size(); ++i ) {
+                plots_[ i ] = std::make_unique< adplot::SpectrumWidget >();
+                plots_[ i ]->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+                plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
+                markers_[ i ] = std::make_unique< adplot::PeakMarker >();
+            }
+        }
+
+        ~impl() {
+        }
+
+        std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
+
+        std::pair< std::wstring, datafolder > profile_;
+        std::array< std::unique_ptr< adplot::SpectrumWidget >, 3 > plots_; // profile,processed,reference
+        std::array< std::unique_ptr< adplot::PeakMarker >, 3 > markers_;
+        bool isTimeAxis_;
+        bool dirty_;
+
+        enum idSpectrumWidget { idProfile, idProcessed, idReference };
+
+        adplot::SpectrumWidget * spectrumWidget( idSpectrumWidget id ) { return plots_.at( id ).get(); }
+        adplot::SpectrumWidget * referenceWidget() { return plots_.at( idReference ).get(); }
+        adplot::SpectrumWidget * processedWidget() { return plots_.at( idProcessed ).get(); }
+        adplot::SpectrumWidget * profileWidget() { return plots_.at( idProfile ).get(); }
+
+    private:
+        ElementalCompWnd * this_;
+    };
+}
 
 using namespace dataproc;
 
 ElementalCompWnd::~ElementalCompWnd()
 {
+    delete impl_;
 }
 
 ElementalCompWnd::ElementalCompWnd(QWidget *parent) : QWidget(parent)
-                                                    , referenceSpectrum_( 0 )
-                                                    , processedSpectrum_( 0 )
-                                                    , drawIdx_( 0 )
+                                                    , impl_( new impl( this ) )
 {
     init();
 }
@@ -79,26 +122,27 @@ ElementalCompWnd::init()
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
 
     if ( splitter ) {
-        if ( ( processedSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
-            splitter->addWidget( processedSpectrum_ );
-            connect( processedSpectrum_, &adplot::SpectrumWidget::onSelected, this, &ElementalCompWnd::selectedOnProcessed );
+
+        for ( size_t i = 0; i < impl_->plots_.size(); ++i ) {
+            auto& plot = impl_->plots_[ i ];
+            auto& marker = impl_->markers_[ i ];
+
+            connect( plot.get()
+                     , static_cast< void(adplot::SpectrumWidget::*)(const QRectF&)>(&adplot::SpectrumWidget::onSelected)
+                     , [&plot,this]( const QRectF& rc ) { handleSelected( rc, plot.get() ); } );
+
+            plot->enableAxis( QwtPlot::yRight );
+            plot->setMinimumHeight( 80 );
+            marker->attach( plot.get() );
+            marker->visible( true );
+            marker->setYAxis( QwtPlot::yRight );
+
+            if ( i )
+                impl_->plots_[ 0 ]->link( plot.get() );
+
+            splitter->addWidget( plot.get() );
         }
-
-        if ( ( referenceSpectrum_ = new adplot::SpectrumWidget(this) ) )
-            splitter->addWidget( referenceSpectrum_ );
-
-        processedSpectrum_->setMinimumHeight( 80 );
-        referenceSpectrum_->setMinimumHeight( 80 );        
-		processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-		referenceSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-		processedSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-		referenceSpectrum_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-
-        // referenceSpectrum_->setAxisScaleEngine( QwtPlot::yLeft, new QwtLogScaleEngine );
-
-        processedSpectrum_->link( referenceSpectrum_ );
-        //referenceSpectrum_->link( processedSpectrum_ );
-
+        
         splitter->setOrientation( Qt::Vertical );
     }
   
@@ -111,12 +155,14 @@ ElementalCompWnd::init()
 void
 ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    referenceSpectrum_->setData( ptr, 0 );
+    impl_->referenceWidget()->setData( ptr, 0 );
 }
 
 void
-ElementalCompWnd::estimateScanLaw( const QString& model_name, adutils::MassSpectrumPtr& ptr )
+ElementalCompWnd::estimateScanLaw( const QString& model_name )
 {
+    std::shared_ptr< adcontrols::MassSpectrum > ptr;
+    return ;
     auto annots = ptr->get_annotations();
     std::vector< std::pair< int, std::string >  > ids;
     std::for_each( annots.begin(), annots.end(), [&ids] ( const adcontrols::annotation& a ) {
@@ -166,8 +212,8 @@ ElementalCompWnd::handleAxisChanged( unsigned int axis )
 {
     using adplot::SpectrumWidget;
     using namespace adcontrols;
-    referenceSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
-    processedSpectrum_->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    impl_->referenceWidget()->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
+    impl_->processedWidget()->setAxis( axis == hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime, true );
 }
 
 void
@@ -182,38 +228,41 @@ ElementalCompWnd::handleProcessed( Dataprocessor* processor, portfolio::Folium& 
 }
 
 void
-ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
+ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
-    drawIdx_ = 0;
-
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
     if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-        if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-            if ( ptr->size() > 0
-                 && adportable::compare<double>::approximatelyEqual( ptr->getMass( ptr->size() - 1 ), ptr->getMass( 0 ) ) ) {
-                // no mass assigned
-                processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime, false );
-            } else {
-                processedSpectrum_->setAxis( adplot::SpectrumWidget::HorizontalAxisMass, false );
-            }
-            referenceSpectrum_->enableAxis( QwtPlot::yRight, true );            
-            processedSpectrum_->enableAxis( QwtPlot::yRight, true );
-            processedSpectrum_->setData( ptr, 1, true );
-            processedSpectrum_->setAlpha( 1, 0x20 );
-        }
+        std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
 
-        portfolio::Folio attachments = folium.attachments();
-        if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
-                    return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
+        auto xit = impl_->dataIds_.find( folium.id() );
+        datafolder xdata = ( xit == impl_->dataIds_.end() ) ? datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() ) : xit->second;
         
-            if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
-                if ( centroid->isCentroid() ) {
-                    processedSpectrum_->setData( centroid, 0, false );
-                    centroid_ = centroid;
-                }
+        if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
+            
+            xdata.profile = profile;
+                
+            portfolio::Folio atts = folium.attachments();
+            auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+            if ( itCentroid != atts.end() ) {
+                xdata.idCentroid = itCentroid->id();
+                xdata.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
             }
+            impl_->dataIds_[ folium.id() ] = xdata;
+
+            ADDEBUG() << display_name << ", has centroid " << bool( xdata.centroid.lock() );
+        }
+        
+        if ( MainWindow::instance()->curPage() == MainWindow::idSelElementalComp )
+            draw( 0 );
+
+        if ( folium.attribute( L"isChecked" ) == L"false" ) {
+            
+            auto it = impl_->dataIds_.find( folium.id() );
+            if ( it != impl_->dataIds_.end() )
+                impl_->dataIds_.erase( it );
+            
         }
 
     }
@@ -262,9 +311,9 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 	rc.setHeight( drawRect.height() / 4 );
     rc.setWidth( drawRect.width() * 0.6 );
 
-    renderer.render( referenceSpectrum_, &painter, rc );
+    renderer.render( impl_->referenceWidget(), &painter, rc );
     rc.moveTo( rc.left(), rc.bottom() );
-    renderer.render( processedSpectrum_, &painter, rc );    
+    renderer.render( impl_->processedWidget(), &painter, rc );    
 }
 
 void
@@ -322,29 +371,78 @@ ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
     draw1( ms );
 }
 
-//////////////////////////////////////////
 void
-ElementalCompWnd::selectedOnProcessed( const QRectF& rc )
+ElementalCompWnd::draw( int which )
 {
-    QMenu menu;
+    impl_->plots_[ impl::idProfile ]->clear();  // profile
+    impl_->plots_[ impl::idProcessed ]->clear();  // centroid
 
-    std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
+    QString title;
     
-    std::vector< QAction * > actions; // additional 
-    if ( !models.empty() ) {
-        for ( auto model : models )
-            actions.push_back( menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) ) ) );
-        if ( !centroid_.lock() )
-            std::for_each( actions.begin(), actions.end(), []( QAction * a ){ a->setEnabled( false );  } );
-    }
-    
-    auto selected = menu.exec( QCursor::pos() );
-    if ( selected ) {
-        auto it = std::find( actions.begin(), actions.end(), selected );
-        if ( it != actions.end() ) {
-            if ( auto centroid = centroid_.lock() )
-                estimateScanLaw( QString::fromStdWString( models[ std::distance( actions.begin(), it ) ] ), centroid );
+    for ( auto& data: impl_->dataIds_ ) {
+        int idx = data.second.idx;
+        int traceid = idx * 2;
+        
+        if ( title.isEmpty() ) {
+            title = QString::fromStdWString( data.second.display_name );
+        } else {
+            title += " .";
         }
+        
+        QColor color = impl_->plots_[ 0 ]->index_color( idx );
+        
+        if ( auto profile = data.second.profile.lock() ) {
+            impl_->plots_[ impl::idProfile ]->setData( profile, traceid );
+            impl_->plots_[ impl::idProfile ]->setColor( traceid, color );
+        }
+
+        if ( auto centroid = data.second.centroid.lock() ) {
+            impl_->plots_[ impl::idProcessed ]->setData( centroid, traceid + 1, true );
+            impl_->plots_[ impl::idProcessed ]->setColor( traceid + 1, color );
+        }
+        
     }
+    
+    impl_->plots_[ impl::idProfile ]->setTitle( title );
 }
 
+//////////////////////////////////////////
+
+void
+ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
+{
+    auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
+
+    if ( d <= 2 ) {
+
+		QMenu menu;
+        typedef std::pair < QAction *, std::function<void()> > action_type;
+        std::vector < action_type > actions;
+
+        menu.addAction( tr("Copy image to clipboard"), [=](){ adplot::plot::copyToClipboard( plot ); } );
+
+        menu.addAction( tr("Save SVG File"), [=](){
+                QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
+                                                             , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
+                                                             , tr( "SVG (*.svg)" ) );
+                if ( ! name.isEmpty() )
+                    adplot::plot::copyImageToFile( plot, name, "svg" );
+            });
+
+        //--------------
+        std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
+        for ( auto model : models ) {
+            auto a = menu.addAction( QString( "Estimate scan law based on %1" ).arg( QString::fromStdWString( model ) )
+                                     , [=](){
+                                         estimateScanLaw( QString::fromStdWString( model ) );
+                                     } );
+            // if ( !centroid_.lock() )
+            a->setEnabled( false );
+        }
+
+        //-------------------------//
+        
+        menu.exec( QCursor::pos() );
+    }
+    
+}
