@@ -312,7 +312,7 @@ MainWindow::createContents( Core::IMode * mode )
     }
 
 	if ( Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter ) {
-
+        
         QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
         outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
 

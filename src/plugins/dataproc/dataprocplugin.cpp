@@ -64,7 +64,6 @@
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
-#include <adlog/logger.hpp>
 #include <adportable/debug_core.hpp>
 #include <adlog/logger.hpp>
 #include <adlog/logging_handler.hpp>

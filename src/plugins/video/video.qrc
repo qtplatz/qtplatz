@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="/video">
+    <file>mimetype.xml</file>
+    <file>images/camera_web.png</file>
+    <file>images/movie.png</file>
+    <file>images/Desktop.png</file>
+    <file>images/fileopen.png</file>
+    <file>images/filesave.png</file>
+    <file>images/zoomin.png</file>
+    <file>images/zoomout.png</file>
+    <file>images/rotateleft.png</file>
+    <file>images/rotateright.png</file>
+    <file>images/fileprint.png</file>
+  </qresource>
+</RCC>
