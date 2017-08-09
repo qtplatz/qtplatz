@@ -40,6 +40,10 @@ namespace video {
         Recorder();
         ~Recorder();
 
+        const std::string& filename() const { return filename_; };
+
+        bool open( const std::string&, double fps, cv::Size frameSize, bool isColro );
+
         void operator << ( cv::Mat && );
 
     private:

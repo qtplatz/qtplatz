@@ -41,6 +41,8 @@ bool
 Player::loadVideo( const std::string& filename )
 {
     isCamera_ = false;
+    recorder_.reset();
+
     capture_.open( filename );
     
     if ( capture_.isOpened() )    {
@@ -58,10 +60,19 @@ Player::loadCamera( int index )
     if ( capture_.isOpened() )    {
         frameRate_ = capture_.get( CV_CAP_PROP_FPS );
         isCamera_ = true;
-        recorder_ = std::make_unique< Recorder >();
+        if ( recorder_ = std::make_unique< Recorder >() ) {
+
+            cv::Size sz( capture_.get( CV_CAP_PROP_FRAME_WIDTH )
+                         , capture_.get( CV_CAP_PROP_FRAME_HEIGHT ) );
+            
+            recorder_->open( recorder_->filename()
+                             , frameRate_
+                             , sz
+                             , true );
+        }
         return true;
-    } else
-        return false;
+    }
+    return false;
 }
 
 void
