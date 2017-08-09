@@ -78,6 +78,7 @@ namespace video {
         void handleSequenceCompleted();
         // void handleOpen();
         void filePrintPdf();
+        void capturedVideoSaveTo();
 
     signals:
 

@@ -24,44 +24,9 @@
 
 #pragma once
 
-#include <adcontrols/datareader.hpp>
-#include <QWidget>
-#include <memory>
-
-class QGridLayout;
-class QEvent;
-class QLabel;
-
-namespace portfolio { class Folium; }
-namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-
-
 namespace video {
 
-    class ImageWidget;
-    
-    class VideoCaptureWnd : public QWidget {
-        Q_OBJECT
-    public:
-        ~VideoCaptureWnd();
-        explicit VideoCaptureWnd( QWidget *parent = 0 );
-
-    private:
-
-    private:
-        //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< ImageWidget > view_;
-            
-
-    public slots :
-            
-    private slots:
-        void handlePlayer( QImage );
-        void handlePlayerChanged( const QString& );
-
-    signals:
-        
-    };
+    enum PlayerState { StoppedState, PlayingState, PausedState };
 
 }
 

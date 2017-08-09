@@ -70,6 +70,8 @@ namespace video {
 
         Player * player();
 
+        void captureCamera();
+
     public slots:
         
     private:
@@ -77,12 +79,6 @@ namespace video {
         std::unique_ptr< Player > player_;
 
     signals:
-        void currentProcessorChanged();
-        void dataChanged( const portfolio::Folium& );
-        void checkStateChanged( const portfolio::Folium& );
-        void selRangeOnSpectrum( const QRectF& );
-        void enableMapRect( bool );
-        void setEnabled( int id, bool ); // id 0 = Map rect, 1 = tof range (check box on group boxes)
         void playerChanged( const QString& );
     };
 }

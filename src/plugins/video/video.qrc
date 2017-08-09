@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="/video">
     <file>mimetype.xml</file>
+    <file>images/if_webcam_add_64984.png</file> <!-- http://creativecommons.org/licenses/by/3.0/us/, www.iconfinder.com -->
     <file>images/camera_web.png</file>
     <file>images/movie.png</file>
     <file>images/Desktop.png</file>

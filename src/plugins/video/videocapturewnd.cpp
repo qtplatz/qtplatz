@@ -25,7 +25,9 @@
 #include "videocapturewnd.hpp"
 #include "document.hpp"
 #include "constants.hpp"
+#include "imagewidget.hpp"
 #include "player.hpp"
+#include "playercontrols.hpp"
 #include <adcontrols/mappedspectrum.hpp>
 #include <adcontrols/mappedspectra.hpp>
 #include <adcontrols/mappedimage.hpp>
@@ -75,15 +77,17 @@ VideoCaptureWnd::~VideoCaptureWnd()
 }
 
 VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
-                                                    , qlabel_( std::make_unique< QLabel >() )
+                                                      //, qlabel_( std::make_unique< QLabel >() )
+                                                    , view_( std::make_unique< ImageWidget >() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
 
-    qlabel_->setAlignment( Qt::AlignCenter );
+    //qlabel_->setAlignment( Qt::AlignCenter );
 
     if ( auto splitter = new Core::MiniSplitter ) {
 
-        splitter->addWidget( qlabel_.get() );
+        //splitter->addWidget( qlabel_.get() );
+        splitter->addWidget( view_.get() );
         
         auto layout = new QVBoxLayout( this );
         layout->setMargin( 0 );
@@ -106,8 +110,9 @@ void
 VideoCaptureWnd::handlePlayer( QImage img )
 {
     if ( !img.isNull() ) {
-        qlabel_->setAlignment( Qt::AlignCenter );
-        qlabel_->setPixmap( QPixmap::fromImage( img ).scaled( qlabel_->size(), Qt::KeepAspectRatio, Qt::FastTransformation ) );
+        //qlabel_->setAlignment( Qt::AlignCenter );
+        //qlabel_->setPixmap( QPixmap::fromImage( img ).scaled( qlabel_->size(), Qt::KeepAspectRatio, Qt::FastTransformation ) );
+        view_->setImage( img );
     }
     document::instance()->player()->Play();
 }

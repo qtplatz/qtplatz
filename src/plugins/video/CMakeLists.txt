@@ -6,7 +6,7 @@ set( PROVIDER MS-Cheminformatics )
 set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network OpenGL )
+find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets OpenGL Multimedia )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -48,6 +48,7 @@ include_directories(
   ${Qt5Core_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5PrintSupport_INCLUDE_DIRS}
+  ${Qt5Multimedia_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src         # version.h
   ${CMAKE_BINARY_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/src/libs
@@ -73,6 +74,8 @@ add_library( ${PROJECT_NAME} MODULE
   mode.hpp
   player.cpp
   player.hpp
+  playercontrols.cpp
+  playercontrols.hpp
   videoeditor.cpp
   videoeditor.hpp
   videofactory.cpp
@@ -122,6 +125,7 @@ target_link_libraries(
   Qt5::Svg
   Qt5::Widgets
   Qt5::OpenGL
+  Qt5::Multimedia
   )
   
 set_target_properties( ${PROJECT_NAME}

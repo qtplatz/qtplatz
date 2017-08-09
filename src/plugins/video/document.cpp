@@ -127,12 +127,9 @@ document::player()
     return player_.get();
 }
 
-
-
-
-
-
-
-
-
-
+void
+document::captureCamera()
+{
+    player_->loadCamera( 0 );
+    emit playerChanged( QString() );
+}

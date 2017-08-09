@@ -29,8 +29,9 @@
 # if OPENCV
 # include "opencvwnd.hpp"
 # include "imageview.hpp"
+# include "player.hpp"
 # endif
-
+#include "playercontrols.hpp"
 #include "videocapturewnd.hpp"
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -228,22 +229,32 @@ MainWindow::createMidStyledToolbar()
         toolBarLayout->setSpacing( 0 );
 
         if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_PRINT_PDF )->action() ) );
-            toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_FILE_OPEN )->action() ) );
+            //toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_PRINT_PDF )->action() ) );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_CAPTURE )->action() ) );
+            //toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_FILE_SAVE )->action() ) );
         }
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
-
-        // auto combo = new QComboBox();
-        // combo->addItems( QStringList() << tr( "Timed plot" ) << tr( "Vth plot" ) );
-        // toolBarLayout->addWidget( combo );
-        // connect( combo, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int idx ) {
-        //         if ( auto plot = findChild< PlotWnd * >() )
-        //             plot->setPlotStyle( PlotWnd::plotStyle( idx ) );
-        //         if ( auto plot = findChild< DetailsWnd * >() )
-        //             plot->setPlotStyle( DetailsWnd::plotStyle( idx ) );
-        //     } );
         
+        if ( auto edit = new QLineEdit ) {
+            edit->setObjectName( "infilename" );
+            edit->setReadOnly( true );
+            edit->setText( "CAMERA-0" );
+            toolBarLayout->addWidget( edit );
+        }
+        
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+        if ( auto edit = new QLineEdit ) {
+            edit->setObjectName( "outfilename" );
+            toolBarLayout->addWidget( edit );
+
+            //edit->setText( QString::fromStdWString( sampleRun->dataDirectory() ) );
+            edit->setClearButtonEnabled( true );
+            if ( auto action = edit->addAction( QIcon( ":/video/images/filesave.png" ), QLineEdit::ActionPosition::TrailingPosition ) )
+                connect( action, &QAction::triggered, this, &MainWindow::capturedVideoSaveTo );
+        }
+
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
     }
     return toolBar;
@@ -256,6 +267,7 @@ MainWindow::onInitialUpdate()
         if ( auto lifecycle = qobject_cast< adplugin::LifeCycle * >( widget->widget() ) )
             lifecycle->OnInitialUpdate();
     }
+    
 #if defined Q_OS_LINUX
     auto fsize = qtwrapper::font_size()( 9 );
 
@@ -304,21 +316,22 @@ MainWindow::createActions()
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("VIDEO") );
 
-        if ( auto p = new QAction( QIcon( ":/video/images/fileopen.png" ), tr( "Open PNG file..." ), this ) ) {
-
-            am->registerAction( p, Constants::VIDEO_FILE_OPEN, Core::Context( Constants::C_VIDEO_MODE ) );
-            connect( p, &QAction::triggered, this, &MainWindow::handleOpen );
-
-            menu->addAction( am->command( Constants::VIDEO_FILE_OPEN ) );
-            //am->registerAction( p, Core::Constants::OPEN, Core::Context( Constants::C_VIDEO_MODE ) );    // File|Open
-       }
-
-        if ( auto p = new QAction( QIcon( ":/video/images/filesave.png" ), tr( "Print to PDF..." ), this ) ) {
-            am->registerAction( p, Constants::VIDEO_PRINT_PDF, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Malpix|Open SQLite file...
-            connect( p, &QAction::triggered, this, &MainWindow::filePrintPdf );
-            menu->addAction( am->command( Constants::VIDEO_PRINT_PDF ) );
-            am->registerAction( p, Core::Constants::PRINT, Core::Context( Constants::C_VIDEO_MODE ) );    // File|Print
+        if ( auto p = new QAction( QIcon( ":/video/images/if_webcam_add_64984.png" ), tr( "Camera" ), this ) ) {
+            am->registerAction( p, Constants::VIDEO_CAPTURE, Core::Context( Core::Constants::C_GLOBAL ) );
+            connect( p, &QAction::triggered, this, [](){ document::instance()->captureCamera(); } );
+            menu->addAction( am->command( Constants::VIDEO_CAPTURE ) );
         }
+        
+        if ( auto p = new QAction( QIcon( ":/video/images/filesave.png" ), tr( "Save video to..." ), this ) ) {
+            am->registerAction( p, Constants::VIDEO_FILE_SAVE, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Malpix|Open SQLite file...
+            connect( p, &QAction::triggered, this, &MainWindow::capturedVideoSaveTo );
+            menu->addAction( am->command( Constants::VIDEO_FILE_SAVE ) );
+        }
+
+        // am->registerAction( p, Constants::VIDEO_PRINT_PDF, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Malpix|Open SQLite file...
+        // connect( p, &QAction::triggered, this, &MainWindow::filePrintPdf );
+        // menu->addAction( am->command( Constants::VIDEO_PRINT_PDF ) );
+        // am->registerAction( p, Core::Constants::PRINT, Core::Context( Constants::C_VIDEO_MODE ) );    // File|Print
 
         am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
     }
@@ -341,6 +354,14 @@ MainWindow::commit()
 void
 MainWindow::createDockWidgets()
 {
+    if ( auto widget = new PlayerControls() ) {
+        createDockWidget( widget, "Player Controls", "PlayerControls" );
+
+        connect( document::instance(), &document::playerChanged, this, [=]( QString ){
+                widget->setNumberOfFrames( document::instance()->player()->numberOfFrames() );
+            });
+
+    }
 }
 
 QDockWidget *
@@ -363,6 +384,30 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
     addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 
     return dockWidget;
+}
+
+void
+MainWindow::capturedVideoSaveTo()
+{
+    QFileDialog dialog( this, tr("Captured Video Save To") );
+    
+    auto& settings = document::instance()->settings();
+    auto recentFile = settings.value( "RecentFile", "" ).toString();
+
+    if ( recentFile.isEmpty() ) {
+        auto path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+        dialog.setDirectory( path );
+    } else {
+        QDir dir( recentFile );
+        dialog.setDirectory( dir.dirName() );
+    }
+
+    dialog.selectMimeTypeFilter("video/mp4");
+    dialog.setDefaultSuffix("mp4");
+
+    while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {
+        ;
+    }
 }
 
 void

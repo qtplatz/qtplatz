@@ -1,78 +1,65 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with
-** the Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics LLC.
 **
-** GNU Lesser General Public License Usage
-**
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.TXT included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 3 or (at your option) any later version
+** approved by the KDE Free Qt Foundation. The licenses are as published by
+** the Free Software Foundation and appearing in the file LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-3.0.html.
 **
 **************************************************************************/
 
 #include "imagewidget.hpp"
 #include "document.hpp"
-#include <QPixmap>
-#include <QLabel>
+#include <adportable/debug.hpp>
 #include <QBoxLayout>
-#include <QResizeEvent>
+#include <QEvent>
+#include <QGraphicsView>
+#include <QLabel>
+#include <QPainter>
+#include <QRect>
+#include <QStyle>
+#include <QtOpenGL>
+#include <QWheelEvent>
 
-namespace video {
-
-    class AspectRatioPixmapLabel : public QLabel {
-        Q_OBJECT
-    public:
-        explicit AspectRatioPixmapLabel( QWidget *parent = 0 ) : QLabel( parent ) {
-            this->setMinimumSize( 1, 1 );
-        }
-
-        virtual int heightForWidth( int width ) const {
-            return ( (qreal)pix.height()*width ) / pix.width();
-        }
-
-        virtual QSize sizeHint() const {
-            int w = this->width();
-            return QSize( w, heightForWidth( w ) );
-        }
-
-    public slots:
-        void setPixmap( const QPixmap & p ) {
-            pix = p;
-            //QLabel::setPixmap( p );
-            QLabel::setPixmap( pix.scaled( this->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation ) );
-        }
-
-        void resizeEvent( QResizeEvent * ) {
-            QLabel::setPixmap( pix.scaled( this->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation ) );
-        }
-
-    private:
-        QPixmap pix;
-    };
-}
+class QPaintEvent;
 
 using namespace video;
 
 ImageWidget::ImageWidget( QWidget * parent ) : QWidget( parent )
+                                             , matrix_( std::make_unique< QMatrix >() )
 {
-    auto layout = new QHBoxLayout( this );
-    layout->setMargin( 0 );
-    layout->setSpacing( 0 );
-    layout->addWidget( new AspectRatioPixmapLabel );
+    graphicsView_ = new QGraphicsView();
+    graphicsView_->installEventFilter( this );
 
-    // connect( document::instance(), &document::onConnectionChanged, this, &ImageWidget::handleConnectionChanged );
+    matrix_->scale( 1.0, 1.0 );
+
+    graphicsView_->setRenderHint(QPainter::Antialiasing, false);
+    graphicsView_->setDragMode(QGraphicsView::RubberBandDrag);
+    graphicsView_->setOptimizationFlags(QGraphicsView::DontSavePainterState);
+    graphicsView_->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    graphicsView_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+
+    int size = style()->pixelMetric(QStyle::PM_ToolBarIconSize);
+    QSize iconSize(size, size);
+
+    auto layout = new QBoxLayout( QBoxLayout::TopToBottom, this );
+    layout->addWidget( graphicsView_ );
+
+    setupMatrix();
 }
 
 ImageWidget::~ImageWidget()
@@ -80,20 +67,49 @@ ImageWidget::~ImageWidget()
 }
 
 void
-ImageWidget::handleConnectionChanged()
+ImageWidget::setImage( const QImage& image )
 {
-#if 0
-    if ( auto conn = document::instance()->connection() ) {
-        if ( auto ptr = document::instance()->getFile( QString::fromStdWString( conn->filepath() ) ) ) {
-            QPixmap pixmap;
-            if ( !ptr->waveform.empty() )
-                pixmap.loadFromData( reinterpret_cast<const uchar *>( ptr->waveform.data() ), uint( ptr->waveform.size() ) );
-            
-            if ( auto label = findChild < AspectRatioPixmapLabel * >() )
-                label->setPixmap( pixmap );
-        }
-    }
-#endif
+    auto scene = new QGraphicsScene;
+    graphicsView_->setScene( scene );
+    scene->addPixmap( QPixmap::fromImage( image ) );
 }
 
+void
+ImageWidget::zoom( int delta )
+{
+    ADDEBUG() << "zoom(" << delta << ")";
+}
+
+void
+ImageWidget::setupMatrix()
+{
+    QMatrix matrix( *matrix_ );
+    graphicsView_->setMatrix(matrix);
+}
+
+QGraphicsView *
+ImageWidget::graphicsView()
+{
+    return graphicsView_;
+}
+
+bool
+ImageWidget::eventFilter( QObject * object, QEvent * event )
+{
+    if ( object == graphicsView_ ) {
+        if ( event->type() == QEvent::Wheel ) {
+            auto e = static_cast< QWheelEvent * >(event);
+            zoom( e->delta() > 0 ? 6 : -6 );
+            event->accept();
+        }
+    }
+    return false;
+}
+
+
 #include "imagewidget.moc"
+
+
+
+
+

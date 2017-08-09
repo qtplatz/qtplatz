@@ -34,6 +34,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <deque>
+#include <thread>
 
 namespace video {
 
@@ -41,22 +43,21 @@ namespace video {
         Q_OBJECT
 
     private:
+        bool isCamera_;
         bool stop_;
         QMutex mutex_;
         QWaitCondition condition_;
-        cv::Mat frame_;
+        std::deque< cv::Mat > frame_;
         double frameRate_;
         cv::VideoCapture capture_;
         cv::Mat RGBframe_;
         QImage img_;
 
     signals:
-        //Signal to output frame to be displayed
-        void processedImage(const QImage &image);
+        void processedImage( const QImage &image );
         
     protected:
         void run();
-        void msleep(int ms);
         
     public:
         //Constructor
@@ -68,6 +69,8 @@ namespace video {
         //Load a video from memory
         bool loadVideo( const std::string& filename );
 
+        bool loadCamera( int );
+
         //Play the video
         void Play();
 
@@ -78,10 +81,12 @@ namespace video {
         bool isStopped() const;
 
         //
-        size_t currentFrame() const;
         double frameRate() const;
         size_t numberOfFrames() const;
+        size_t currentFrame() const;
+
         void setCurrentFrame( int frameNumber );
+
     };
 
 }

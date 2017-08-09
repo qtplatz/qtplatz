@@ -25,22 +25,38 @@
 **************************************************************************/
 
 #include "player.hpp"
+#include <chrono>
 
 using namespace video;
 
 Player::Player( QObject * parent ) : QThread( parent )
                                    , stop_( true )
                                    , frameRate_( 0 )
+                                   , isCamera_( true )
 {
 }
 
 bool
 Player::loadVideo( const std::string& filename )
 {
+    isCamera_ = false;
     capture_.open( filename );
     
     if ( capture_.isOpened() )    {
         frameRate_ = capture_.get( CV_CAP_PROP_FPS );
+        return true;
+    } else
+        return false;
+}
+
+bool
+Player::loadCamera( int index )
+{
+    capture_.open( index );
+    
+    if ( capture_.isOpened() )    {
+        frameRate_ = capture_.get( CV_CAP_PROP_FPS );
+        isCamera_ = true;
         return true;
     } else
         return false;
@@ -59,21 +75,36 @@ Player::Play()
 void
 Player::run()
 {
-    int delay = int(1000/frameRate_);
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    double delay = 1.0 / frameRate_;
 
-    while( !stop_ ){
-        if ( !capture_.read(frame_) )
+    while( !stop_ ) {
+
+        cv::Mat mat;
+        
+        if ( ! capture_.read( mat ) )
             stop_ = true;
 
-        if ( frame_.channels()== 3 ) {
+        frame_.emplace_back( std::move( mat ) );
 
-            cv::cvtColor(frame_, RGBframe_, CV_BGR2RGB);
+        if ( frame_.back().channels()== 3 ) {
+
+            cv::cvtColor( frame_.back(), RGBframe_, CV_BGR2RGB);
             img_ = QImage(RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888);
+
         } else {
-            img_ = QImage((frame_.data), frame_.cols, frame_.rows, QImage::Format_Indexed8);
+
+            img_ = QImage( frame_.back().data, frame_.back().cols, frame_.back().rows, QImage::Format_Indexed8 );
+
         }
+
         emit processedImage( img_ );
-        this->msleep(delay);
+        
+        std::this_thread::sleep_for( std::chrono::duration<double>( delay ) );
+
+        while ( frame_.size() > 8 )
+            frame_.pop_front();
     }
 }
 
@@ -94,13 +125,6 @@ Player::Stop()
     stop_ = true;
 }
 
-void
-Player::msleep(int ms)
-{
-    struct timespec ts = { ms / 1000, (ms % 1000) * 1000 * 1000 };
-    nanosleep(&ts, NULL);
-}
-
 bool
 Player::isStopped() const
 {
@@ -116,7 +140,10 @@ Player::frameRate() const
 size_t
 Player::numberOfFrames() const
 {
-    return capture_.get( CV_CAP_PROP_FRAME_COUNT );
+    double value(0);
+    if ( ( value = capture_.get( CV_CAP_PROP_FRAME_COUNT ) ) > 0 )
+        return size_t( value );
+    return 1000;
 }
 
 size_t

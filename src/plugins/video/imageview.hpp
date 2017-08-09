@@ -58,6 +58,8 @@ namespace video {
         bool isChecked( const QString& ) const;
         int index() const { return index_; }
         QGraphicsView * graphicsView();
+
+    private:
     
     signals:
         void zValue( ImageView *, int );

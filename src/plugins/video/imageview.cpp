@@ -91,13 +91,13 @@ ImageView::ImageView( int index
     zoomInIcon->setAutoRepeat(true);
     zoomInIcon->setAutoRepeatInterval(33);
     zoomInIcon->setAutoRepeatDelay(0);
-    zoomInIcon->setIcon(QPixmap(":/VIDEO/images/zoomin.png"));
+    zoomInIcon->setIcon(QPixmap(":/video/images/zoomin.png"));
     zoomInIcon->setIconSize(iconSize);
     QToolButton *zoomOutIcon = new QToolButton;
     zoomOutIcon->setAutoRepeat(true);
     zoomOutIcon->setAutoRepeatInterval(33);
     zoomOutIcon->setAutoRepeatDelay(0);
-    zoomOutIcon->setIcon(QPixmap(":/VIDEO/images/zoomout.png"));
+    zoomOutIcon->setIcon(QPixmap(":/video/images/zoomout.png"));
     zoomOutIcon->setIconSize(iconSize);
     zoomSlider_ = new QSlider;
     zoomSlider_->setMinimum(0);
@@ -112,10 +112,10 @@ ImageView::ImageView( int index
     zoomSliderLayout->addWidget(zoomOutIcon);
 
     QToolButton *rotateLeftIcon = new QToolButton;
-    rotateLeftIcon->setIcon(QPixmap(":/VIDEO/images/rotateleft.png"));
+    rotateLeftIcon->setIcon(QPixmap(":/video/images/rotateleft.png"));
     rotateLeftIcon->setIconSize(iconSize);
     QToolButton *rotateRightIcon = new QToolButton;
-    rotateRightIcon->setIcon(QPixmap(":/VIDEO/images/rotateright.png"));
+    rotateRightIcon->setIcon(QPixmap(":/video/images/rotateright.png"));
     rotateRightIcon->setIconSize(iconSize);
 
     rotateSlider_ = new QSlider;
@@ -154,7 +154,7 @@ ImageView::ImageView( int index
         btn->setChecked(true);
     
     printButton_ = new QToolButton;
-    printButton_->setIcon(QIcon(QPixmap(":/VIDEO/images/fileprint.png")));
+    printButton_->setIcon(QIcon(QPixmap(":/video/images/fileprint.png")));
 
     for ( auto name: { "Gray", "Log" } ) {
         if ( auto btn = new QToolButton ) {

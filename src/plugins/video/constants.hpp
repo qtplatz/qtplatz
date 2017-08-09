@@ -33,16 +33,10 @@ namespace video {
 
         const char * const C_VIDEO_MODE         = "video.Mode";
         const char * const VIDEO_FILE_OPEN      = "video.FileOpen";
-        const char * const VIDEO_METHOD_OPEN    = "video.MethodOpen";
-        const char * const VIDEO_METHOD_SAVE    = "video.MethodSave";
-        const char * const VIDEO_SEQUENCE_OPEN  = "video.SequenceOpen";
-        const char * const VIDEO_SEQUENCE_SAVE  = "video.SequenceSave";
+        const char * const VIDEO_FILE_SAVE      = "video.FileSave";
         const char * const VIDEO_RECENTFILES    = "video.RecentFiles";
         const char * const VIDEO_PRINT_PDF      = "video.PrintPDF";
-
-        const char * const PUBLISHER_FILE_MENU  = "video.Publisher.FileMenu";
-        const char * const PUBLISHER_EDIT_MENU  = "video.Publisher.EditMenu";
-        const char * const PUBLISHER_TEXT_MENU  = "video.Publisher.TextMenu";
+        const char * const VIDEO_CAPTURE        = "video.capture";
 
         const int ICON_SIZE( 64 );
         const int ABOVE_HEADING_MARGIN( 10 );
