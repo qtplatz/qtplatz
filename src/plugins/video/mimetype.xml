@@ -9,7 +9,7 @@
     <sub-class-of type="application/octet-stream"/>
     <comment>avi video file</comment>
     <glob pattern="*.avi"/>
-  </mime-type>  
+    </mime-type>
   <mime-type type="image/png">
     <sub-class-of type="application/octet-stream"/>
     <comment>PNG</comment>

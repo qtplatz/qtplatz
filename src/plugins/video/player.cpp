@@ -42,14 +42,14 @@ Player::loadVideo( const std::string& filename )
 {
     isCamera_ = false;
     recorder_.reset();
-
-    capture_.open( filename );
     
-    if ( capture_.isOpened() )    {
-        frameRate_ = capture_.get( CV_CAP_PROP_FPS );
-        return true;
-    } else
-        return false;
+    if ( capture_.open( filename ) ) {
+        if ( capture_.isOpened() )    {
+            frameRate_ = capture_.get( CV_CAP_PROP_FPS );
+            return true;
+        }
+    }
+    return false;
 }
 
 bool

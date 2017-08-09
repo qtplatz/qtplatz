@@ -47,6 +47,7 @@ VideoFactory::VideoFactory( QObject * owner ) : Core::IEditorFactory( owner )
     setDisplayName( tr( "OpenWidth::VIDEO", "VIDEO processor" ) );
 
     addMimeType( "video/mp4" );
+    addMimeType( "video/avi" );
     addMimeType( "image/png" );
 }
 
