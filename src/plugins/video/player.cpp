@@ -87,11 +87,12 @@ Player::run()
             stop_ = true;
 
         frame_.emplace_back( std::move( mat ) );
+        
 
         if ( frame_.back().channels()== 3 ) {
 
             cv::cvtColor( frame_.back(), RGBframe_, CV_BGR2RGB);
-            img_ = QImage(RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888);
+            img_ = QImage( RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888 );
 
         } else {
 

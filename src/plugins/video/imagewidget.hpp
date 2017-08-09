@@ -58,7 +58,7 @@ namespace video {
     
     private:
         QGraphicsView *graphicsView_;
-        std::unique_ptr< QMatrix > matrix_;
+        double scale_;
     };
 }
 

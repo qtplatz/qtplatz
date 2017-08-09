@@ -98,6 +98,8 @@ VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
     connect( document::instance(), &document::playerChanged, this, &VideoCaptureWnd::handlePlayerChanged );
     
     connect( document::instance()->player(), &Player::processedImage, this, &VideoCaptureWnd::handlePlayer );
+
+    setStyleSheet( "background-color:black;");
 }
 
 void
@@ -114,7 +116,6 @@ VideoCaptureWnd::handlePlayer( QImage img )
         //qlabel_->setPixmap( QPixmap::fromImage( img ).scaled( qlabel_->size(), Qt::KeepAspectRatio, Qt::FastTransformation ) );
         view_->setImage( img );
     }
-    document::instance()->player()->Play();
 }
 
 

@@ -40,12 +40,14 @@ class QPaintEvent;
 using namespace video;
 
 ImageWidget::ImageWidget( QWidget * parent ) : QWidget( parent )
-                                             , matrix_( std::make_unique< QMatrix >() )
+                                             , scale_( 1.0 )
 {
     graphicsView_ = new QGraphicsView();
-    graphicsView_->installEventFilter( this );
 
-    matrix_->scale( 1.0, 1.0 );
+    if ( auto scene = new QGraphicsScene )
+        graphicsView_->setScene( scene );
+    
+    graphicsView_->installEventFilter( this );
 
     graphicsView_->setRenderHint(QPainter::Antialiasing, false);
     graphicsView_->setDragMode(QGraphicsView::RubberBandDrag);
@@ -69,21 +71,28 @@ ImageWidget::~ImageWidget()
 void
 ImageWidget::setImage( const QImage& image )
 {
-    auto scene = new QGraphicsScene;
-    graphicsView_->setScene( scene );
-    scene->addPixmap( QPixmap::fromImage( image ) );
+    if ( auto scene = graphicsView_->scene() ) {
+        scene->clear();
+        scene->addPixmap( QPixmap::fromImage( image ) );
+    }
 }
 
 void
 ImageWidget::zoom( int delta )
 {
-    ADDEBUG() << "zoom(" << delta << ")";
+    if ( delta > 0 )
+        scale_ *= 1.1;
+    else
+        scale_ /= 1.1;
+    setupMatrix();
 }
 
 void
 ImageWidget::setupMatrix()
 {
-    QMatrix matrix( *matrix_ );
+    QMatrix matrix;
+    matrix.scale( scale_, scale_ );
+
     graphicsView_->setMatrix(matrix);
 }
 

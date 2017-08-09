@@ -54,7 +54,7 @@ namespace video {
         QImage img_;
 
     signals:
-        void processedImage( const QImage &image );
+        void processedImage( const QImage& image );
         
     protected:
         void run();
