@@ -76,6 +76,8 @@ add_library( ${PROJECT_NAME} MODULE
   player.hpp
   playercontrols.cpp
   playercontrols.hpp
+  recorder.cpp
+  recorder.hpp
   videoeditor.cpp
   videoeditor.hpp
   videofactory.cpp

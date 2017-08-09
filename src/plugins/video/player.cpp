@@ -25,6 +25,7 @@
 **************************************************************************/
 
 #include "player.hpp"
+#include "recorder.hpp"
 #include <chrono>
 
 using namespace video;
@@ -57,6 +58,7 @@ Player::loadCamera( int index )
     if ( capture_.isOpened() )    {
         frameRate_ = capture_.get( CV_CAP_PROP_FPS );
         isCamera_ = true;
+        recorder_ = std::make_unique< Recorder >();
         return true;
     } else
         return false;
@@ -86,26 +88,24 @@ Player::run()
         if ( ! capture_.read( mat ) )
             stop_ = true;
 
-        frame_.emplace_back( std::move( mat ) );
-        
+        if ( mat.channels()== 3 ) {
 
-        if ( frame_.back().channels()== 3 ) {
-
-            cv::cvtColor( frame_.back(), RGBframe_, CV_BGR2RGB);
+            cv::cvtColor( mat, RGBframe_, CV_BGR2RGB );
             img_ = QImage( RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888 );
 
         } else {
 
-            img_ = QImage( frame_.back().data, frame_.back().cols, frame_.back().rows, QImage::Format_Indexed8 );
+            img_ = QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
 
         }
 
         emit processedImage( img_ );
+
+        if ( isCamera_ && recorder_ )
+            (*recorder_) << std::move( mat );
         
         std::this_thread::sleep_for( std::chrono::duration<double>( delay ) );
 
-        while ( frame_.size() > 8 )
-            frame_.pop_front();
     }
 }
 

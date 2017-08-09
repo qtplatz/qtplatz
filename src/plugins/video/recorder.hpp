@@ -27,65 +27,27 @@
 
 #pragma once
 
-#include <QMutex>
-#include <QThread>
-#include <QImage>
-#include <QWaitCondition>
 #include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <condition_variable>
 #include <deque>
 #include <thread>
 
 namespace video {
 
-    class Recorder;
+    class Recorder {
+    public:
+        Recorder();
+        ~Recorder();
 
-    class Player : public QThread {
-        Q_OBJECT
+        void operator << ( cv::Mat && );
 
     private:
-        bool isCamera_;
-        bool stop_;
-        QMutex mutex_;
-        QWaitCondition condition_;
-        double frameRate_;
-        cv::VideoCapture capture_;
-        cv::Mat RGBframe_;
-        QImage img_;
-        std::unique_ptr< Recorder > recorder_;
-
-    signals:
-        void processedImage( const QImage& image );
-        
-    protected:
-        void run();
-        
-    public:
-        Player(QObject *parent = 0);
-        ~Player();
-
-        //Load a video from memory
-        bool loadVideo( const std::string& filename );
-
-        bool loadCamera( int );
-
-        //Play the video
-        void Play();
-
-        //Stop the video
-        void Stop();
-
-        //check if the player has been stopped
-        bool isStopped() const;
-
-        //
-        double frameRate() const;
-        size_t numberOfFrames() const;
-        size_t currentFrame() const;
-
-        void setCurrentFrame( int frameNumber );
-
+        std::mutex mutex_;
+        std::condition_variable cv_;
+        std::deque< cv::Mat > que_;
+        std::string filename_;
+        cv::VideoWriter writer_;
     };
 
 }
