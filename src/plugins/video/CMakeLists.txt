@@ -113,9 +113,6 @@ target_link_libraries(
   adprocessor
   portfolio
   qtwrapper
-  mpxcontrols
-  mpxprocessor
-  mpxwidgets
   ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}

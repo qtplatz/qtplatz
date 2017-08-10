@@ -116,9 +116,6 @@ ImageWidget::eventFilter( QObject * object, QEvent * event )
 }
 
 
-#include "imagewidget.moc"
-
-
 
 
 

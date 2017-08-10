@@ -48,6 +48,7 @@ VideoFactory::VideoFactory( QObject * owner ) : Core::IEditorFactory( owner )
 
     addMimeType( "video/mp4" );
     addMimeType( "video/avi" );
+    addMimeType( "video/webm" );    
     addMimeType( "image/png" );
 }
 
