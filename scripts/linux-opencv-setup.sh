@@ -55,7 +55,7 @@ cd $BUILD_DIR;
 
 if [ -z $cross_target ]; then
     echo "BUILD_DIR : " `pwd`
-    cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules -DENABLE_CXX11=ON -DWITH_JPEG=OFF $source_dir
+    cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules -DENABLE_CXX11=ON $source_dir
     echo "make -j8 # at `pwd`"
     prompt
     export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
