@@ -27,7 +27,9 @@
 #include "constants.hpp"
 #include "imagewidget.hpp"
 #include "player.hpp"
-#include "playercontrols.hpp"
+#include "recordercontrols.hpp"
+#include "mainwindow.hpp"
+#include <utils/styledbar.h>
 #include <adcontrols/mappedspectrum.hpp>
 #include <adcontrols/mappedspectra.hpp>
 #include <adcontrols/mappedimage.hpp>
@@ -56,11 +58,13 @@
 #include <QBoxLayout>
 #include <QCoreApplication>
 #include <QEvent>
+#include <QTime>
 #include <QImage>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QSignalBlocker>
-#include <QTextEdit>
+#include <QLineEdit>
+#include <QToolButton>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
@@ -77,29 +81,42 @@ VideoCaptureWnd::~VideoCaptureWnd()
 }
 
 VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
-                                                      //, qlabel_( std::make_unique< QLabel >() )
                                                     , view_( std::make_unique< ImageWidget >() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
 
-    //qlabel_->setAlignment( Qt::AlignCenter );
-
     if ( auto splitter = new Core::MiniSplitter ) {
 
-        //splitter->addWidget( qlabel_.get() );
         splitter->addWidget( view_.get() );
         
         auto layout = new QVBoxLayout( this );
         layout->setMargin( 0 );
         layout->setSpacing( 0 );
         layout->addWidget( splitter );
+
+        //----------------------------
+        if ( auto toolBar = new Utils::StyledBar ) {
+            auto tbLayout = new QHBoxLayout( toolBar );
+            tbLayout->setMargin( 0 );
+            tbLayout->setSpacing( 0 );
+
+            tbLayout->addWidget( MainWindow::toolButton( Constants::VIDEO_CAPTURE ) );
+
+            if ( auto widget = new RecorderControls() ) {
+                connect( widget, &RecorderControls::pause, this, [&](){ document::instance()->camera()->Stop(); });
+                connect( widget, &RecorderControls::stop, this, [&](){ document::instance()->camera()->Play(); });
+                tbLayout->addWidget( widget );
+            }
+            
+            layout->addWidget( toolBar );
+        }
     }
 
-    connect( document::instance(), &document::playerChanged, this, &VideoCaptureWnd::handlePlayerChanged );
+    connect( document::instance(), &document::cameraChanged, this, &VideoCaptureWnd::handleCameraChanged );
     
-    connect( document::instance()->player(), &Player::processedImage, this, &VideoCaptureWnd::handlePlayer );
-
-    setStyleSheet( "background-color:black;");
+    connect( document::instance()->camera(), &Player::processedImage, this, &VideoCaptureWnd::handlePlayer );
+    
+    // setStyleSheet( "background-color:black;");
 }
 
 void
@@ -109,12 +126,21 @@ VideoCaptureWnd::handlePlayerChanged( const QString& )
 }
 
 void
+VideoCaptureWnd::handleCameraChanged()
+{
+    document::instance()->camera()->Play();
+    if ( auto controls = findChild< RecorderControls * >() )
+        controls->setState( QMediaPlayer::PlayingState );
+}
+
+void
 VideoCaptureWnd::handlePlayer( QImage img )
 {
     if ( !img.isNull() ) {
-        //qlabel_->setAlignment( Qt::AlignCenter );
-        //qlabel_->setPixmap( QPixmap::fromImage( img ).scaled( qlabel_->size(), Qt::KeepAspectRatio, Qt::FastTransformation ) );
         view_->setImage( img );
+        if ( auto controls = findChild< RecorderControls * >() ) {
+            controls->setTime( document::instance()->camera()->currentTime() );
+        }
     }
 }
 

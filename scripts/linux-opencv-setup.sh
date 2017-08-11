@@ -50,16 +50,41 @@ if [ ! -d $extra_dir ]; then
     fi
 fi
 
+CUDA=OFF
+if [ -d /usr/local/cuda ]; then
+    CUDA=ON
+fi
+
 mkdir -p $BUILD_DIR;
 cd $BUILD_DIR;
 
 if [ -z $cross_target ]; then
     echo "BUILD_DIR : " `pwd`
-    cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules -DENABLE_CXX11=ON $source_dir
-    echo "make -j8 # at `pwd`"
+    cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules \
+	  -DCMAKE_BUILD_TYPE=Release \
+	  -DENABLE_CXX11=ON \
+	  -DBUILD_PERF_TESTS=OFF           \
+	  -DWITH_XINE=ON                   \
+	  -DBUILD_TESTS=OFF                \
+	  -DENABLE_PRECOMPILED_HEADERS=OFF \
+	  -DCMAKE_SKIP_RPATH=ON            \
+	  -DBUILD_WITH_DEBUG_INFO=OFF      \
+	  -DCUDA_FAST_MATH=$CUDA           \
+	  -DWITH_CUBLAS=$CUDA              \
+	  $source_dir
+
+    echo "Did you install ffmpeg and turbo-jpeg?"
+    echo "make -j8 # at `pwd`"    
     prompt
-    export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
     make -j8
+#    export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
 #    make test
-    sudo make -j8 install      
+    sudo make -j8 install
+
+    case $(uname -m) in
+	x86_64) ARCH=intel64 ;;
+	*) ARCH=ia32    ;;
+    esac  &&
+	sudo cp -v 3rdparty/ippicv/ippicv_lnx/lib/$ARCH/libippicv.a /usr/local/lib &&
+	unset ARCH    
 fi

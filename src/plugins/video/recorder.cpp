@@ -43,7 +43,7 @@ Recorder::Recorder()
     int no = 0;
     boost::filesystem::path path;
     do {
-        path = dir / ( boost::format( "video_%03d.avi" ) % no++ ).str();
+        path = dir / ( boost::format( "video_%03d.mp4" ) % no++ ).str();
     } while ( boost::filesystem::exists( path ) );
     
     filename_ = path.string();
@@ -65,8 +65,8 @@ Recorder::operator << ( cv::Mat && mat )
 bool
 Recorder::open( const std::string& filename, double fps, cv::Size frameSize, bool isColor )
 {
-    //int fourcc = CV_FOURCC('X','2','6','4');
+    int fourcc = CV_FOURCC('X','2','6','4');
     //int fourcc = CV_FOURCC('X','V','I','C');
-    int fourcc = CV_FOURCC('M','J','P','G');
+    //int fourcc = CV_FOURCC('M','J','P','G');
     return writer_.open( filename, fourcc, fps, frameSize, isColor );
 }

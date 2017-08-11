@@ -11,6 +11,8 @@ default:
 	@echo "make qwt"
 	@echo "make gnuplot"
 	@echo "make rtags"
+	@echo "make ffmpeg"
+	@echo "make jpeg"
 	@echo "make opencv"
 	@echo " -- or make world"
 
@@ -34,6 +36,12 @@ qwt:
 
 gnuplot:
 	./linux-gnuplot-setup.sh
+
+ffmpeg:
+	./linux-ffmpeg-setup.sh
+
+jpeg:
+	./linux-jpeg-setup.sh
 
 opencv:
 	./linux-opencv-setup.sh

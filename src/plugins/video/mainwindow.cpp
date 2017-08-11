@@ -120,14 +120,16 @@ MainWindow::createContents( Core::IMode * mode )
         editorWidget->setLayout( topRightLayout );
 
         topRightLayout->addWidget( createTopStyledToolbar() );
-        if ( auto wnd = new VideoCaptureWnd() ) {
-            stack_->addWidget( wnd );
-        }
+
 
         if ( auto wnd = new OpenCVWnd() ) {
             stack_->addWidget( wnd );
             // connect( document::instance(), &document::dataChanged,        wnd, &OpenCVWnd::handleDataChanged );
         }
+
+        if ( auto wnd = new VideoCaptureWnd() ) {
+            stack_->addWidget( wnd );
+        }        
         
         topRightLayout->addWidget( stack_ );
         
@@ -147,7 +149,7 @@ MainWindow::createContents( Core::IMode * mode )
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
             // ----------------- mid tool bar -------------------
-            centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
+            // centralLayout->addWidget( createMidStyledToolbar() );      // [Middle toolbar]
         }
     }
 
@@ -176,6 +178,8 @@ MainWindow::createContents( Core::IMode * mode )
 
         createDockWidgets();
 
+        // setStyleSheet( "background-color:black;");
+
         return splitter;
     }
     return this;
@@ -194,23 +198,19 @@ MainWindow::createTopStyledToolbar()
         if ( am ) {
             Core::Context globalcontext( (Core::Id( Core::Constants::C_GLOBAL )) );
 
-            if ( auto p = new QAction( tr("Processing"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( 0 ); } );
-                am->registerAction( p, "VIDEO.processing", globalcontext );
-                toolBarLayout->addWidget( toolButton( p ) );
-            }
-
             if ( auto p = new QAction( tr("Manipulation"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( 1 ); } );
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( 0 ); } );
                 am->registerAction( p, "VIDEO.manipulation", globalcontext );
                 toolBarLayout->addWidget( toolButton( p ) );
             }
 
-            // [file open] button
-            //-- separator --
+            if ( auto p = new QAction( tr("Capture"), this ) ) {
+                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( 1 ); } );
+                am->registerAction( p, "VIDEO.capture", globalcontext );
+                toolBarLayout->addWidget( toolButton( p ) );
+            }
+
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //---
-            //toolBarLayout->addWidget( topLineEdit_.get() );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -218,6 +218,7 @@ MainWindow::createTopStyledToolbar()
     return toolBar;
 }
 
+#if 0
 Utils::StyledBar *
 MainWindow::createMidStyledToolbar()
 {
@@ -229,9 +230,7 @@ MainWindow::createMidStyledToolbar()
         toolBarLayout->setSpacing( 0 );
 
         if ( auto am = Core::ActionManager::instance() ) {
-            //toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_PRINT_PDF )->action() ) );
             toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_CAPTURE )->action() ) );
-            //toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_FILE_SAVE )->action() ) );
         }
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -259,6 +258,7 @@ MainWindow::createMidStyledToolbar()
     }
     return toolBar;
 }
+#endif
 
 void
 MainWindow::onInitialUpdate()
@@ -324,7 +324,7 @@ MainWindow::createActions()
         
         if ( auto p = new QAction( QIcon( ":/video/images/filesave.png" ), tr( "Save video to..." ), this ) ) {
             am->registerAction( p, Constants::VIDEO_FILE_SAVE, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Malpix|Open SQLite file...
-            connect( p, &QAction::triggered, this, &MainWindow::capturedVideoSaveTo );
+            //connect( p, &QAction::triggered, this, &MainWindow::capturedVideoSaveTo );
             menu->addAction( am->command( Constants::VIDEO_FILE_SAVE ) );
         }
 
@@ -354,6 +354,7 @@ MainWindow::commit()
 void
 MainWindow::createDockWidgets()
 {
+#if 0
     if ( auto widget = new PlayerControls() ) {
         createDockWidget( widget, "Player Controls", "PlayerControls" );
 
@@ -362,6 +363,7 @@ MainWindow::createDockWidgets()
             });
 
     }
+#endif
 }
 
 QDockWidget *
@@ -384,30 +386,6 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
     addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 
     return dockWidget;
-}
-
-void
-MainWindow::capturedVideoSaveTo()
-{
-    QFileDialog dialog( this, tr("Captured Video Save To") );
-    
-    auto& settings = document::instance()->settings();
-    auto recentFile = settings.value( "RecentFile", "" ).toString();
-
-    if ( recentFile.isEmpty() ) {
-        auto path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
-        dialog.setDirectory( path );
-    } else {
-        QDir dir( recentFile );
-        dialog.setDirectory( dir.dirName() );
-    }
-
-    dialog.selectMimeTypeFilter("video/mp4");
-    dialog.setDefaultSuffix("mp4");
-
-    while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {
-        ;
-    }
 }
 
 void
@@ -436,84 +414,5 @@ MainWindow::filePrintPdf()
             view->print( painter, printer );
     }
 #endif
-}
-
-void
-MainWindow::handleProcessorChanged()
-{
-}
-
-bool
-MainWindow::loadFile(const QString &fileName)
-{
-    QImageReader reader(fileName);
-
-    reader.setAutoTransform(true);
-
-    const QImage newImage = reader.read();
-
-    if (newImage.isNull()) {
-        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-                                 tr("Cannot load %1: %2").arg(QDir::toNativeSeparators(fileName), reader.errorString()));
-        return false;
-    }
-
-    document::instance()->settings().setValue( "RecentFile", fileName );
-#if OPENCV
-    cv::Mat image = cv::imread( fileName.toStdString().c_str(), CV_LOAD_IMAGE_GRAYSCALE );
-    if ( ! image.empty() ) {
-        for ( auto view: findChildren< OpenCVWnd *>() )
-            view->setImage( image );
-    }
-#endif
-    const QString message = tr("Opened \"%1\", %2x%3, Depth: %4")
-        .arg(QDir::toNativeSeparators(fileName)
-             , QString::number( newImage.width() )
-             , QString::number( newImage.height() )
-             , QString::number( newImage.depth()  ) );
-
-    statusBar()->showMessage(message);
-
-    return true;
-}
-
-static void
-initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
-{
-    auto& settings = document::instance()->settings();
-    auto recentFile = settings.value( "RecentFile", "" ).toString();
-
-    if ( recentFile.isEmpty() ) {
-        const QStringList picturesLocations = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
-        dialog.setDirectory(picturesLocations.isEmpty() ? QDir::currentPath() : picturesLocations.last());
-    } else {
-        QDir dir( recentFile );
-        dialog.setDirectory( dir.dirName() );
-    }
-
-    QStringList mimeTypeFilters;
-    const QByteArrayList supportedMimeTypes =
-        acceptMode == QFileDialog::AcceptOpen ? QImageReader::supportedMimeTypes() : QImageWriter::supportedMimeTypes();
-
-    foreach (const QByteArray &mimeTypeName, supportedMimeTypes)
-        mimeTypeFilters.append(mimeTypeName);
-    mimeTypeFilters.sort();
-
-    dialog.setMimeTypeFilters(mimeTypeFilters);
-    dialog.selectMimeTypeFilter("image/jpeg");
-
-    if (acceptMode == QFileDialog::AcceptSave)
-        dialog.setDefaultSuffix("jpg");
-}
-
-void
-MainWindow::handleOpen()
-{
-    QFileDialog dialog( this, tr("Open Image File") );
-    initializeImageFileDialog(dialog, QFileDialog::AcceptOpen);
-
-    while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {
-    }
-    
 }
 

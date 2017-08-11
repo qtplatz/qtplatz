@@ -59,8 +59,10 @@ namespace video {
 
         void getExtensionFactories( iSequenceImpl& );
         void getExtensionFactories( iControllerImpl& );
-        bool loadFile(const QString &fileName);
+        // bool loadFile(const QString &fileName);
 
+        static QToolButton * toolButton( const char * );
+        
     private:
         QStackedWidget * stack_;
 
@@ -70,23 +72,19 @@ namespace video {
         Utils::StyledBar * createTopStyledToolbar();
         Utils::StyledBar * createMidStyledToolbar();
 
-        QToolButton * toolButton( QAction * );
-        QToolButton * toolButton( const char * );
+        static QToolButton * toolButton( QAction * );
 
         void commit();
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
-        // void handleOpen();
         void filePrintPdf();
-        void capturedVideoSaveTo();
 
     signals:
 
     public slots :
 
     private slots :
-        void handleProcessorChanged();
-        void handleOpen();
+
     };
 
 }

@@ -58,6 +58,7 @@ namespace video {
     private slots:
         void handlePlayer( QImage );
         void handlePlayerChanged( const QString& );
+        void handleCameraChanged();
 
     signals:
         

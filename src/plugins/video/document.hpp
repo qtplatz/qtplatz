@@ -69,6 +69,7 @@ namespace video {
         bool openFile( const QString& filename, QString& errorMessage );
 
         Player * player();
+        Player * camera();
 
         void captureCamera();
 
@@ -77,9 +78,11 @@ namespace video {
     private:
         std::unique_ptr< QSettings > settings_;
         std::unique_ptr< Player > player_;
+        std::unique_ptr< Player > camera_;
 
     signals:
-        void playerChanged( const QString& );
+        void fileChanged( const QString& );
+        void cameraChanged();
     };
 }
 

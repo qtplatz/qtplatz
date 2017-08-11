@@ -76,7 +76,7 @@ class PlayerControls : public QWidget {
     Q_OBJECT
 
 public:
-    PlayerControls(QWidget *parent = 0);
+    PlayerControls( QWidget *parent = 0 );
 
     QMediaPlayer::State state() const;
     int volume() const;

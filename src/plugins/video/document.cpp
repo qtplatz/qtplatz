@@ -77,6 +77,7 @@ document::~document()
 
 document::document() : settings_( std::make_unique< QSettings >() )
                      , player_( std::make_unique< Player >() )
+                     , camera_( std::make_unique< Player >() )
 {
 }
 
@@ -113,7 +114,7 @@ bool
 document::openFile( const QString& filename, QString& errorMessage )
 {
     if ( player_->loadVideo( filename.toStdString() ) ) {
-        emit playerChanged( filename );
+        emit fileChanged( filename );
         return true;
     } else {
         errorMessage = QString("File '%1' could not be opened" ).arg( filename );
@@ -127,9 +128,15 @@ document::player()
     return player_.get();
 }
 
+Player *
+document::camera()
+{
+    return camera_.get();
+}
+
 void
 document::captureCamera()
 {
-    player_->loadCamera( 0 );
-    emit playerChanged( QString() );
+    camera_->loadCamera( 0 );
+    emit cameraChanged();
 }

@@ -32,13 +32,14 @@ class QGridLayout;
 class QEvent;
 class QPainter;
 class QPrinter;
-class ImaveView;
 
 namespace portfolio { class Folium; }
 namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-namespace cv { class Mat; }
+namespace adplot { class ChromatogramWidget; }
 
 namespace video {
+
+    class ImageWidget;
     
     class OpenCVWnd : public QWidget {
         Q_OBJECT
@@ -49,28 +50,15 @@ namespace video {
         void setHistogramWindow( double tof, double width );
         void setEnabled( int id, bool enable ); // check/uncheck map rect (0) or tof range(1)
 
-        //void setAxisZMax( int );
-        void setImage( const cv::Mat& );
         void print( QPainter&, QPrinter& );
 
-    private:
-        class impl;
-        impl * impl_;
-        class Drawable;
-
     signals:
-        void nextMappedSpectra( bool );
-        void tofMoved( int );
-        void cellMoved( int hor, int vert );
 
     public slots :
-        void handleDataChanged( const portfolio::Folium& );
-        void handleCheckStateChanged( const portfolio::Folium& );
-        void handleMappedImage();
-
         //
     private:
-
+        std::array< std::unique_ptr< ImageWidget >, 2 > imgWidgets_;
+        std::unique_ptr< adplot::ChromatogramWidget > tplot_;
     };
 
 }

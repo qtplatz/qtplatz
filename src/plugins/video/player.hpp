@@ -83,7 +83,7 @@ namespace video {
         double frameRate() const;
         size_t numberOfFrames() const;
         size_t currentFrame() const;
-
+        double currentTime() const;
         void setCurrentFrame( int frameNumber );
 
     };

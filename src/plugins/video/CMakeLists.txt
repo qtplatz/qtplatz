@@ -66,18 +66,30 @@ set( RESOURCES video.qrc )
 
 add_library( ${PROJECT_NAME} MODULE
   constants.hpp
+  cvmat.cpp
+  cvmat.hpp
   document.cpp
   document.hpp
+  dft2d.cpp
+  dft2d.hpp
+  imagewidget.cpp
+  imagewidget.hpp
+  imageview.cpp
+  imageview.hpp
   mainwindow.cpp
   mainwindow.hpp
   mode.cpp
   mode.hpp
+  opencvwnd.hpp
+  opencvwnd.cpp
   player.cpp
   player.hpp
   playercontrols.cpp
   playercontrols.hpp
   recorder.cpp
   recorder.hpp
+  recordercontrols.cpp
+  recordercontrols.hpp
   videoeditor.cpp
   videoeditor.hpp
   videofactory.cpp
@@ -86,16 +98,6 @@ add_library( ${PROJECT_NAME} MODULE
   videoplugin.hpp
   videocapturewnd.hpp
   videocapturewnd.cpp
-  imagewidget.cpp
-  imagewidget.hpp
-  imageview.cpp
-  imageview.hpp
-  dft2d.cpp
-  dft2d.hpp
-  cvmat.cpp
-  cvmat.hpp
-  opencvwnd.hpp
-  opencvwnd.cpp
   ${RESOURCES}
   )
 

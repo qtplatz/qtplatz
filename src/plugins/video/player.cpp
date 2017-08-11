@@ -170,3 +170,9 @@ Player::setCurrentFrame( int frameNumber )
     capture_.set( CV_CAP_PROP_POS_FRAMES, frameNumber );
 }
 
+double
+Player::currentTime() const
+{
+    return capture_.get( CV_CAP_PROP_POS_MSEC );
+}
+
