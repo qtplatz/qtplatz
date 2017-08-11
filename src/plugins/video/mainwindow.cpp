@@ -218,48 +218,6 @@ MainWindow::createTopStyledToolbar()
     return toolBar;
 }
 
-#if 0
-Utils::StyledBar *
-MainWindow::createMidStyledToolbar()
-{
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
-        toolBar->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
-
-        if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget( toolButton( am->command( Constants::VIDEO_CAPTURE )->action() ) );
-        }
-
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        
-        if ( auto edit = new QLineEdit ) {
-            edit->setObjectName( "infilename" );
-            edit->setReadOnly( true );
-            edit->setText( "CAMERA-0" );
-            toolBarLayout->addWidget( edit );
-        }
-        
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-
-        if ( auto edit = new QLineEdit ) {
-            edit->setObjectName( "outfilename" );
-            toolBarLayout->addWidget( edit );
-
-            //edit->setText( QString::fromStdWString( sampleRun->dataDirectory() ) );
-            edit->setClearButtonEnabled( true );
-            if ( auto action = edit->addAction( QIcon( ":/video/images/filesave.png" ), QLineEdit::ActionPosition::TrailingPosition ) )
-                connect( action, &QAction::triggered, this, &MainWindow::capturedVideoSaveTo );
-        }
-
-        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-    }
-    return toolBar;
-}
-#endif
-
 void
 MainWindow::onInitialUpdate()
 {

@@ -100,11 +100,20 @@ VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
             tbLayout->setMargin( 0 );
             tbLayout->setSpacing( 0 );
 
-            tbLayout->addWidget( MainWindow::toolButton( Constants::VIDEO_CAPTURE ) );
-
             if ( auto widget = new RecorderControls() ) {
-                connect( widget, &RecorderControls::pause, this, [&](){ document::instance()->camera()->Stop(); });
-                connect( widget, &RecorderControls::stop, this, [&](){ document::instance()->camera()->Play(); });
+                // start new .mp4 file
+                connect( widget, &RecorderControls::play, this, [&](){ document::instance()->captureCamera(); });
+
+                connect( widget, &RecorderControls::pause, this, [=](){
+                        document::instance()->camera()->Stop();
+                        widget->setState( QMediaPlayer::PausedState );
+                    });
+                
+                connect( widget, &RecorderControls::stop, this, [=](){
+                        document::instance()->camera()->Stop();
+                        widget->setState( QMediaPlayer::StoppedState );
+                    });
+                
                 tbLayout->addWidget( widget );
             }
             
