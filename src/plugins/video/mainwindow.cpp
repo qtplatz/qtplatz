@@ -26,11 +26,9 @@
 #include "constants.hpp"
 #include "document.hpp"
 #include "imagewidget.hpp"
-# if OPENCV
-# include "opencvwnd.hpp"
-# include "imageview.hpp"
-# include "player.hpp"
-# endif
+#include "videoprocwnd.hpp"
+#include "imageview.hpp"
+#include "player.hpp"
 #include "playercontrols.hpp"
 #include "videocapturewnd.hpp"
 #include <qtwrapper/font.hpp>
@@ -122,13 +120,14 @@ MainWindow::createContents( Core::IMode * mode )
         topRightLayout->addWidget( createTopStyledToolbar() );
 
 
-        if ( auto wnd = new OpenCVWnd() ) {
+        if ( auto wnd = new VideoProcWnd() ) {
             stack_->addWidget( wnd );
-            // connect( document::instance(), &document::dataChanged,        wnd, &OpenCVWnd::handleDataChanged );
+            wnd->setStyleSheet( "background-color:black;");
         }
 
         if ( auto wnd = new VideoCaptureWnd() ) {
             stack_->addWidget( wnd );
+            wnd->setStyleSheet( "background-color:black;");
         }        
         
         topRightLayout->addWidget( stack_ );
@@ -177,8 +176,6 @@ MainWindow::createContents( Core::IMode * mode )
         }
 
         createDockWidgets();
-
-        // setStyleSheet( "background-color:black;");
 
         return splitter;
     }
@@ -349,7 +346,6 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
 void
 MainWindow::filePrintPdf()
 {
-#if OPENCV
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
     printer.setPaperSize( QPrinter::A4 );
@@ -368,9 +364,8 @@ MainWindow::filePrintPdf()
         settings.setValue( "Printer/FileName", printer.outputFileName() );
         
         QPainter painter(&printer);
-        if ( auto view = findChild< OpenCVWnd * >() )
+        if ( auto view = findChild< VideoProcWnd * >() )
             view->print( painter, printer );
     }
-#endif
 }
 

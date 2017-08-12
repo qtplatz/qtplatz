@@ -35,6 +35,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <deque>
+#include <mutex>
 #include <thread>
 
 namespace video {
@@ -47,16 +48,20 @@ namespace video {
     private:
         bool isCamera_;
         bool stop_;
-        QMutex mutex_;
-        QWaitCondition condition_;
+        QMutex mutex;
+        QWaitCondition condition;
         double frameRate_;
         cv::VideoCapture capture_;
         cv::Mat RGBframe_;
         QImage img_;
+        std::mutex mutex_;
+
+        std::deque< cv::Mat > que_;
         std::unique_ptr< Recorder > recorder_;
 
     signals:
         void processedImage( const QImage& image );
+        void dataChanged();
         
     protected:
         void run();
@@ -86,6 +91,9 @@ namespace video {
         double currentTime() const;
         void setCurrentFrame( int frameNumber );
 
+        //
+        bool fetch( cv::Mat& ); // remove from top
+        static QImage toImage( const cv::Mat& );
     };
 
 }

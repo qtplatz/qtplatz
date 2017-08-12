@@ -36,16 +36,17 @@ class QPrinter;
 namespace portfolio { class Folium; }
 namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
 namespace adplot { class ChromatogramWidget; }
+namespace cv { class Mat; }
 
 namespace video {
 
     class ImageWidget;
     
-    class OpenCVWnd : public QWidget {
+    class VideoProcWnd : public QWidget {
         Q_OBJECT
     public:
-        ~OpenCVWnd();
-        explicit OpenCVWnd( QWidget *parent = 0 );
+        ~VideoProcWnd();
+        explicit VideoProcWnd( QWidget *parent = 0 );
 
         void setHistogramWindow( double tof, double width );
         void setEnabled( int id, bool enable ); // check/uncheck map rect (0) or tof range(1)
@@ -55,10 +56,17 @@ namespace video {
     signals:
 
     public slots :
-        //
+
+    private slots:
+        void handleData();
+        void handlePlayer( QImage );
+        void handleFileChanged( const QString& );
+
     private:
         std::array< std::unique_ptr< ImageWidget >, 2 > imgWidgets_;
         std::unique_ptr< adplot::ChromatogramWidget > tplot_;
+        std::unique_ptr< cv::Mat > average_;
+        size_t numAverage_;
     };
 
 }

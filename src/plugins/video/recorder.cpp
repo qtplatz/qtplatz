@@ -58,13 +58,22 @@ void
 Recorder::operator << ( cv::Mat && mat )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    que_.emplace_back( mat );
+    writer_.write( mat );
+}
+
+void
+Recorder::operator << ( const cv::Mat& mat )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
     writer_.write( mat );
 }
 
 bool
 Recorder::open( const std::string& filename, double fps, cv::Size frameSize, bool isColor )
 {
+    filename_ = filename;
+    ADDEBUG() << "##### create file: " << filename << " ######";
+    
     int fourcc = CV_FOURCC('X','2','6','4');
     //int fourcc = CV_FOURCC('X','V','I','C');
     //int fourcc = CV_FOURCC('M','J','P','G');

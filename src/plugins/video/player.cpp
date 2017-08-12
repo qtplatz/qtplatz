@@ -26,6 +26,7 @@
 
 #include "player.hpp"
 #include "recorder.hpp"
+#include <boost/filesystem.hpp>
 #include <chrono>
 
 using namespace video;
@@ -46,6 +47,22 @@ Player::loadVideo( const std::string& filename )
     if ( capture_.open( filename ) ) {
         if ( capture_.isOpened() )    {
             frameRate_ = capture_.get( CV_CAP_PROP_FPS );
+            if ( frameRate_ > 30 )
+                frameRate_ = 30; // workaround for webm that returning 1000 fps
+
+            // save as .mp4 if not exists
+            auto path = boost::filesystem::path( filename );
+            if ( path.extension() != ".mp4" ) {
+                path.replace_extension( ".mp4" );
+                if ( ! boost::filesystem::exists( path ) ) {
+                    if ( recorder_ = std::make_unique< Recorder >() ) {
+                        cv::Size sz( capture_.get( CV_CAP_PROP_FRAME_WIDTH )
+                                     , capture_.get( CV_CAP_PROP_FRAME_HEIGHT ) );
+                        recorder_->open( path.string(), frameRate_, sz, true );
+                    }
+                }
+            }
+            
             return true;
         }
     }
@@ -55,17 +72,19 @@ Player::loadVideo( const std::string& filename )
 bool
 Player::loadCamera( int index )
 {
+    recorder_.reset();
     capture_.open( index );
-    
     if ( capture_.isOpened() )    {
         frameRate_ = capture_.get( CV_CAP_PROP_FPS );
+        if ( frameRate_ > 30 )
+            frameRate_ = 30;
         isCamera_ = true;
         if ( recorder_ = std::make_unique< Recorder >() ) {
 
             cv::Size sz( capture_.get( CV_CAP_PROP_FRAME_WIDTH )
                          , capture_.get( CV_CAP_PROP_FRAME_HEIGHT ) );
             
-            recorder_->open( recorder_->filename()
+            recorder_->open( recorder_->filename() // intenral default name
                              , frameRate_
                              , sz
                              , true );
@@ -88,45 +107,47 @@ Player::Play()
 void
 Player::run()
 {
+    size_t frame_counts = 0;
     auto start = std::chrono::high_resolution_clock::now();
     
     double delay = 1.0 / frameRate_;
 
     while( !stop_ ) {
+        {
+            cv::Mat mat;
+            if ( ! capture_.read( mat ) )
+                stop_ = true;
+            std::lock_guard< std::mutex > lock( mutex_ );
+            que_.emplace_back( std::move( mat ) );
+        }
+        emit dataChanged();
 
-        cv::Mat mat;
-        
-        if ( ! capture_.read( mat ) )
-            stop_ = true;
-
-        if ( mat.channels()== 3 ) {
-
-            cv::cvtColor( mat, RGBframe_, CV_BGR2RGB );
-            img_ = QImage( RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888 );
-
-        } else {
-
-            img_ = QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
-
+        const cv::Mat& mat = que_.back();
+        if ( recorder_ )
+            (*recorder_) << que_.back();
+            
+        if ( isCamera_ ) {
+            if ( mat.channels()== 3 ) {
+                cv::cvtColor( mat, RGBframe_, CV_BGR2RGB );
+                img_ = QImage( RGBframe_.data, RGBframe_.cols, RGBframe_.rows, QImage::Format_RGB888 );
+            } else {
+                img_ = QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
+                }
+            emit processedImage( img_ );                
         }
 
-        emit processedImage( img_ );
-
-        if ( isCamera_ && recorder_ )
-            (*recorder_) << std::move( mat );
-        
-        std::this_thread::sleep_for( std::chrono::duration<double>( delay ) );
-
+        std::this_thread::sleep_until( start + ( ++frame_counts * std::chrono::duration< double >( delay ) ) );
+        // std::this_thread::sleep_for( std::chrono::duration<double>( delay ) );
     }
 }
 
 Player::~Player()
 {
-    mutex_.lock();
+    mutex.lock();
     stop_ = true;
     capture_.release();
-    condition_.wakeOne();
-    mutex_.unlock();
+    condition.wakeOne();
+    mutex.unlock();
 
     wait();
 }
@@ -175,4 +196,36 @@ Player::currentTime() const
 {
     return capture_.get( CV_CAP_PROP_POS_MSEC );
 }
+
+bool
+Player::fetch( cv::Mat& mat )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
+    if ( !que_.empty() ) {
+        mat = std::move( que_.back() );
+        que_.pop_front();
+        return true;
+    }
+    return false;
+}
+
+//static
+QImage
+Player::toImage( const cv::Mat& mat )
+{
+    if ( mat.channels()== 3 ) {
+        cv::Mat rgb;
+        cv::cvtColor( mat, rgb, CV_BGR2RGB );
+        return QImage( rgb.data, rgb.cols, rgb.rows, QImage::Format_RGB888 );
+    } else {
+        return QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
+    }
+}
+
+
+
+
+
+
 

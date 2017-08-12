@@ -43,8 +43,6 @@ RecorderControls::RecorderControls(QWidget *parent)
     , nextButton(0)
     , previousButton(0)
     , muteButton(0)
-      //, volumeSlider(0)
-    , rateBox(0)
     , frameSlider(0)
 {
     playButton = new QToolButton(this);
@@ -73,23 +71,11 @@ RecorderControls::RecorderControls(QWidget *parent)
 
     connect(muteButton, SIGNAL(clicked()), this, SLOT(muteClicked()));
 
-    // volumeSlider = new QSlider(Qt::Horizontal, this);
-    // volumeSlider->setRange(0, 100);
-    //connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(onVolumeSliderValueChanged()));
-
     frameSlider = new QSlider(Qt::Horizontal, this);
     frameSlider->setRange(0, 100);
 
     connect( frameSlider, &QSlider::valueChanged, this, [&]( int value ){ emit changeFrame( value ); });
     
-    // rateBox = new QComboBox(this);
-    // rateBox->addItem("0.5x", QVariant(0.5));
-    // rateBox->addItem("1.0x", QVariant(1.0));
-    // rateBox->addItem("2.0x", QVariant(2.0));
-    // rateBox->setCurrentIndex(1);
-
-    connect(rateBox, SIGNAL(activated(int)), SLOT(updateRate()));
-
     QBoxLayout *layout = new QHBoxLayout;
     layout->setMargin(0);
     layout->addWidget(stopButton);
@@ -97,9 +83,8 @@ RecorderControls::RecorderControls(QWidget *parent)
     layout->addWidget(playButton);
     layout->addWidget(nextButton);
     layout->addWidget(muteButton);
-    //layout->addWidget(volumeSlider);
     layout->addWidget(frameSlider);
-    //layout->addWidget(rateBox);
+
     if ( auto edit = new QLineEdit ) {
         edit->setReadOnly( true );
         edit->setText( QTime( 0, 0 ).toString( "hh:mm:ss" ) );

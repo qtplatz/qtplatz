@@ -26,7 +26,7 @@
 #include "videoeditor.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "opencvwnd.hpp"
+#include <coreplugin/documentmanager.h>
 #include <adportable/debug.hpp>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/idocument.h>
@@ -80,7 +80,11 @@ VideoEditor::eventFilter( QObject * object, QEvent * event )
 bool
 VideoEditor::open( QString* errorMessage, const QString& filename, const QString& )
 {
-    return document::instance()->openFile( filename, *errorMessage );
+    if ( document::instance()->openFile( filename, *errorMessage ) ) {
+        Core::DocumentManager::addToRecentFiles( filename );
+        return true;
+    }
+    return false;
 }
 
 Core::IDocument *

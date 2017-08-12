@@ -80,8 +80,6 @@ add_library( ${PROJECT_NAME} MODULE
   mainwindow.hpp
   mode.cpp
   mode.hpp
-  opencvwnd.hpp
-  opencvwnd.cpp
   player.cpp
   player.hpp
   playercontrols.cpp
@@ -90,14 +88,16 @@ add_library( ${PROJECT_NAME} MODULE
   recorder.hpp
   recordercontrols.cpp
   recordercontrols.hpp
+  videocapturewnd.hpp
+  videocapturewnd.cpp
   videoeditor.cpp
   videoeditor.hpp
   videofactory.cpp
   videofactory.hpp
   videoplugin.cpp
   videoplugin.hpp
-  videocapturewnd.hpp
-  videocapturewnd.cpp
+  videoprocwnd.hpp
+  videoprocwnd.cpp
   ${RESOURCES}
   )
 

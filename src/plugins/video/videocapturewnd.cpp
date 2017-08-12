@@ -125,7 +125,6 @@ VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
     
     connect( document::instance()->camera(), &Player::processedImage, this, &VideoCaptureWnd::handlePlayer );
     
-    // setStyleSheet( "background-color:black;");
 }
 
 void

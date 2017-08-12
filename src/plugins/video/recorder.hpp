@@ -45,11 +45,11 @@ namespace video {
         bool open( const std::string&, double fps, cv::Size frameSize, bool isColro );
 
         void operator << ( cv::Mat && );
+        void operator << ( const cv::Mat& );
 
     private:
         std::mutex mutex_;
         std::condition_variable cv_;
-        std::deque< cv::Mat > que_;
         std::string filename_;
         cv::VideoWriter writer_;
     };

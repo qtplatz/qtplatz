@@ -80,7 +80,6 @@ private:
     QAbstractButton *muteButton;
     //QAbstractSlider *volumeSlider;
     QAbstractSlider *frameSlider;
-    QComboBox *rateBox;
 };
 
 
