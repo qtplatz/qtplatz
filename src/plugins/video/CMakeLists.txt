@@ -35,6 +35,7 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   )
 
 find_package( qwt )
+#find_package( cuda 9 )
 
 add_definitions(  -DVIDEO_LIBRARY  )
 

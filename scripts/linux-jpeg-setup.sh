@@ -11,12 +11,13 @@ if [ ! -d $SRC/libjpeg-turbo-$VERSION ]; then
     if [ ! -d $SRC ]; then
 	mkdir $SRC
     fi
-
+              
     if [ ! -f ~/Downloads/libjpeg-turbo-$VERSION.tar.gz ]; then
 	( cd ~/Downloads;
-	  wget http://downloads.sourceforge.net/libjpeg-turbo/libjpeg-turbo-$VERSION.tar.gz )
+	  wget https://sourceforge.net/projects/libjpeg-turbo/files/$VERSION/libjpeg-turbo-$VERSION.tar.gz/download \
+	       -O libjpeg-turbo-$VERSION.tar.gz )
     fi
-    tar xvf ~/Downloads/http://downloads.sourceforge.net/libjpeg-turbo/libjpeg-turbo-$VERSION.tar.gz -C $SRC
+    tar xvf ~/Downloads/libjpeg-turbo-$VERSION.tar.gz -C $SRC
 fi
 
 cd $SRC/libjpeg-turbo-$VERSION
