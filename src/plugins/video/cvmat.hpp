@@ -27,6 +27,9 @@
 #include <opencv2/core/core.hpp>
 #include <QColor>
 #include <memory>
+#include <type_traits>
+#include <tuple>
+#include <utility>
 
 namespace adcontrols { class MappedImage; }
 

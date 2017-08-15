@@ -40,6 +40,10 @@ namespace cv { class Mat; }
 
 namespace video {
 
+    namespace cv_extension {
+        template<typename T, uint> class mat_t;
+    };
+
     class ImageWidget;
     
     class VideoProcWnd : public QWidget {
@@ -65,7 +69,7 @@ namespace video {
     private:
         std::array< std::unique_ptr< ImageWidget >, 2 > imgWidgets_;
         std::unique_ptr< adplot::ChromatogramWidget > tplot_;
-        std::unique_ptr< cv::Mat > average_;
+        std::unique_ptr< cv_extension::mat_t< float, 1u > > average_;
         size_t numAverage_;
     };
 

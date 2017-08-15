@@ -24,6 +24,7 @@
 
 #include "videoprocwnd.hpp"
 #include "constants.hpp"
+#include "cv_extension.hpp"
 #include "cvmat.hpp"
 #include "dft2d.hpp"
 #include "document.hpp"
@@ -55,8 +56,10 @@
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <algorithm>
 #include <condition_variable>
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <mutex>
 #include <thread>
@@ -173,27 +176,34 @@ VideoProcWnd::handlePlayer( QImage img )
 void
 VideoProcWnd::handleData()
 {
-    cv::Mat mat, avg;
+    typedef cv_extension::mat_t< float, 1 > average_data_t;
+    typedef cv_extension::mat_t< uint8_t, 3 > image_data_t;
 
+    cv::Mat mat;
+    image_data_t avg;
+    
     auto player = document::instance()->player();
     
     if ( player->fetch( mat ) ) {
+        cv::Mat_< uchar > gray;
+        cv::cvtColor( mat, gray, cv::COLOR_BGR2GRAY );
+        
+        average_data_t gs( mat.rows, mat.cols );
 
-        if ( average_ && average_->rows == mat.rows && average_->cols == mat.cols ) {
-            cv::Mat rhs;
-            mat.convertTo( rhs, CV_32FC(3) );
-            (*average_) += rhs;
-            numAverage_++;
-        } else {
-            average_ = std::make_unique< cv::Mat >( mat.rows, mat.cols, CV_32FC(3) );
-            mat.convertTo( *average_, CV_32FC(3) );
+        gray.convertTo( gs, average_data_t::type_value, 1.0/255 );
+
+        if ( !average_ ) {
+            average_ = std::make_unique< average_data_t >( gs );
             numAverage_ = 1;
+        } else {
+            *average_ += gs;
+            numAverage_++;
         }
 
-        ADDEBUG() << numAverage_;
-
         if ( average_ ) {
-            average_->convertTo( avg, CV_8U, 1.0/numAverage_ );
+            average_->convertTo( avg, image_data_t::type_value, 255.0 / numAverage_ );
+            cv::applyColorMap( avg, avg, cv::COLORMAP_JET );
+            //avg = cvColor()( *average_, 8.0/numAverage_ );
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {

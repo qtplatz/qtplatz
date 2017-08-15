@@ -205,7 +205,7 @@ Player::fetch( cv::Mat& mat )
     if ( !que_.empty() ) {
         mat = std::move( que_.back() );
         que_.pop_front();
-        return true;
+        return ! mat.empty();
     }
     return false;
 }
