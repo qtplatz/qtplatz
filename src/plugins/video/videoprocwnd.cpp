@@ -24,6 +24,9 @@
 
 #include "videoprocwnd.hpp"
 #include "constants.hpp"
+#if HAVE_CUDA
+# include "cudacolormap.hpp"
+#endif
 #include "cv_extension.hpp"
 #include "cvmat.hpp"
 #include "dft2d.hpp"
@@ -201,9 +204,13 @@ VideoProcWnd::handleData()
         }
 
         if ( average_ ) {
+            //avg = cvColor()( *average_, 8.0/numAverage_ );
+#if HAVE_CUDA
+            cudaApplyColorMap( *average_, avg, 8.0 / numAverage_ );
+#else
             average_->convertTo( avg, image_data_t::type_value, 255.0 / numAverage_ );
             cv::applyColorMap( avg, avg, cv::COLORMAP_JET );
-            //avg = cvColor()( *average_, 8.0/numAverage_ );
+#endif
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {

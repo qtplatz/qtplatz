@@ -23,6 +23,15 @@ if ( OpenCV_FOUND )
   include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
 endif()
 
+if ( CUDA_FOUND )
+  list( APPEND CUDA_NVCC_FLAGS "-std=c++11;-O2;-DVERBOSE")
+  set ( CUDA_PROPAGATE_HOST_FLAGS OFF )
+  include_directories (
+    ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
+    ${CUDA_INCLUDE_DIRS}
+  )
+endif()
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/../pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
@@ -35,7 +44,6 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
   )
 
 find_package( qwt )
-#find_package( cuda 9 )
 
 add_definitions(  -DVIDEO_LIBRARY  )
 
@@ -65,6 +73,18 @@ link_directories(
   )
 
 set( RESOURCES video.qrc )
+
+cuda_add_library( cudaColorMap SHARED
+  cudacolormap.cu
+  )
+
+target_link_libraries( cudaColorMap ${CUDA_LINK_LIBRARIES_KEYWORD}
+  adportable
+  ${CUDA_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  Qt5::Core
+  )
 
 add_library( ${PROJECT_NAME} MODULE
   constants.hpp
@@ -105,6 +125,7 @@ add_library( ${PROJECT_NAME} MODULE
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
+  cudaColorMap
   adplugin
   adcontrols
   adlog
@@ -117,7 +138,6 @@ target_link_libraries(
   adprocessor
   portfolio
   qtwrapper
-  ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${HDF5_LIBRARIES}
