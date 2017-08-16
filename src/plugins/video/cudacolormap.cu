@@ -32,21 +32,44 @@
 
 namespace cuda {
 
-    struct Color {
-        float r; float g; float b; float v;
-        Color( float _r = 0, float _g = 0, float _b = 0, float _v = 0 ) : r(_r), g(_g), b(_b), v(_v) {}
-        float blue() const { return b; }
-        float green() const { return g; }
-        float red() const { return r; }
-        float value() const { return v; }
+    template<typename T>
+    struct Fun
+    {
+        __device__ T operator()(T t1, T t2)  {
+            auto result = t1+t2;
+            return result;
+        }
     };
 
-    __constant__ float __levels[] = { 0.0, 0.2, 0.4, 0.6, 0.8, 0.97, 1.0 }; // 7 steps
+    int
+    run()
+    {
+        const int N = 100;
+        thrust::device_vector<int> vec(N);
+        thrust::sequence(vec.begin(),vec.end());
+        auto op = Fun<int>();
+        return thrust::reduce(vec.begin(),vec.end(),0,op);
+    }
+
+    struct Color {
+        float r; float g; float b; float v;
+        __host__ __device__ Color( float _r = 0, float _g = 0, float _b = 0, float _v = 0 ) : r(_r), g(_g), b(_b), v(_v) {}
+        __host__ __device__ float blue() const { return b; }
+        __host__ __device__ float green() const { return g; }
+        __host__ __device__ float red() const { return r; }
+        __host__ __device__ float value() const { return v; }
+    };
+
+    template< typename T > struct grater_than {
+        T value_;
+        __host__ __device__ grater_than( T value ) : value_( value ) {}
+        __host__ __device__ bool operator ()( const Color& a ) { return a.v > value_; }
+    };
 
     class ColorMap {
         thrust::device_vector< Color > colors_;
     public:
-        ColorMap() {
+        __host__ __device__ ColorMap() {
             colors_.push_back( Color( 0,     0, 0.0, 0.00 ) );
             colors_.push_back( Color( 0,     0, 0.5, 0.20 ) );
             colors_.push_back( Color( 0,   1.0, 1.0, 0.40 ) ); // cyan
@@ -56,24 +79,18 @@ namespace cuda {
             colors_.push_back( Color( 1.0, 1.0, 1.0, 1.00 ) ); // white
         }
 
-
-        __device__ const Color color( float value ) const {
-
-            thrust::device_vector< Color > results(1);
-            
-            auto it
-                = thrust::lower_bound( colors_.begin(), colors_.end()
-                                       , &value, &value
-                                       , results.begin()
-                                       , []( const Color& c, const float& v )->bool{
-                                           return c.value < v;
-                                       } );
-                                 
+        __host__ __device__ const Color color( float value ) const {
 #if 0
-            thrust::device_vector< Color > results(1);
-            thrust::device_vector< float > values;
-            values.push_back( value );
+            auto it = thrust::find_if( colors_.begin(), colors_.end(), grater_than<float>( value ) );
 
+            if ( it == colors_.end() )
+                return Color( colors_.back() );
+            
+            if ( it == colors_.begin() )
+                return Color( *it );
+#endif
+
+#if 0                
             ColorMap::const_iterator it
                 = thrust::lower_bound( colors_.begin(), colors_.end()
                                        , values.begin(), values.end()
@@ -82,11 +99,6 @@ namespace cuda {
                                            return c.value < v;
                                        } );
 
-            if ( it == colors_.end() )
-                return Color( colors_.back() );
-            
-            if ( it == colors_.begin() )
-                return Color( *it );
 
             thrust::device_reference< const Color > ref = *it;
 
@@ -115,44 +127,26 @@ static thrust::device_ptr< cuda::ColorMap > __colorMap__;
 void
 cudaApplyColorMap( const cv::Mat& src, cv::Mat& dst, float scale )
 {
+#if 0
     static std::once_flag flag;
     std::call_once( flag, [](){ __colorMap__ = thrust::device_new< cuda::ColorMap >(); } );
 
     if ( src.type() != CV_32F )
         return;
-
-    ADDEBUG() << "cudaApplycolormap";
-    
     dst = cv::Mat( src.rows, src.cols, CV_8UC3 );
+
+    auto rptr = thrust::raw_pointer_cast( __colorMap__ );
 
     for ( size_t i = 0; i < src.rows; ++i ) {
         for ( size_t j = 0; j < src.cols; ++j ) {
             float v = src.at< float >( i, j ) * scale;
-            auto c = __colorMap__.color( v );
+            auto c = rptr->color( v );
             dst.at< cv::Vec3b >( i, j )[ 0 ] = c.blue();
             dst.at< cv::Vec3b >( i, j )[ 1 ] = c.green();
             dst.at< cv::Vec3b >( i, j )[ 2 ] = c.red();
         }
     }
+#endif
     return;
-}
-
-template<typename T>
-struct Fun
-{
-    __device__ T operator()(T t1, T t2)  {
-        auto result = t1+t2;
-        return result;
-    }
-};
-
-int
-run()
-{
-    const int N = 100;
-    thrust::device_vector<int> vec(N);
-    thrust::sequence(vec.begin(),vec.end());
-    auto op = Fun<int>();
-    return thrust::reduce(vec.begin(),vec.end(),0,op);
 }
 

@@ -24,6 +24,9 @@
 
 #include "videoprocwnd.hpp"
 #include "constants.hpp"
+#if HAVE_ARRAYFIRE
+# include "afcolormap.hpp"
+#endif
 #if HAVE_CUDA
 # include "cudacolormap.hpp"
 #endif
@@ -205,12 +208,16 @@ VideoProcWnd::handleData()
 
         if ( average_ ) {
             //avg = cvColor()( *average_, 8.0/numAverage_ );
-#if HAVE_CUDA
-            cudaApplyColorMap( *average_, avg, 8.0 / numAverage_ );
-#else
-            average_->convertTo( avg, image_data_t::type_value, 255.0 / numAverage_ );
-            cv::applyColorMap( avg, avg, cv::COLORMAP_JET );
+#if HAVE_ARRAYFIRE
+            afApplyColorMap( *average_, avg, 8.0 / numAverage_ );
+            //afApplyColorMap( mat, avg, 8.0 / numAverage_ );
+            ADDEBUG() << "avg rows,cols=" << avg.rows << ", " << avg.cols << ", channels=" << avg.channels();
 #endif
+#if HAVE_CUDA && 0
+            cudaApplyColorMap( *average_, avg, 8.0 / numAverage_ );
+#endif
+            //average_->convertTo( avg, image_data_t::type_value, 8.0 / numAverage_ );
+            //cv::applyColorMap( avg, avg, cv::COLORMAP_JET );
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {

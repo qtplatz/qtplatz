@@ -32,6 +32,10 @@ if ( CUDA_FOUND )
   )
 endif()
 
+if ( ArrayFire_FOUND )
+  include_directories ( ${ArrayFire_INCLUDE_DIRS} )
+endif()
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/../pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
@@ -76,6 +80,8 @@ set( RESOURCES video.qrc )
 
 cuda_add_library( cudaColorMap SHARED
   cudacolormap.cu
+  afcolormap.cpp
+  afcolormap.hpp
   )
 
 target_link_libraries( cudaColorMap ${CUDA_LINK_LIBRARIES_KEYWORD}
@@ -84,6 +90,7 @@ target_link_libraries( cudaColorMap ${CUDA_LINK_LIBRARIES_KEYWORD}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   Qt5::Core
+  ${ArrayFire_LIBRARIES}
   )
 
 add_library( ${PROJECT_NAME} MODULE

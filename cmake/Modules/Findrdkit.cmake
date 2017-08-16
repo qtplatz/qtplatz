@@ -11,7 +11,7 @@ find_file( rdkit_config_cmake "rdkit-config.cmake" PATHS ${_rdkit_libdirs} )
 
 if ( rdkit_config_cmake )
 
-  message( STATUS "###### rdkit-config.cmake : " ${rdkit_config_cmake} )
+  # message( STATUS "###### rdkit-config.cmake : " ${rdkit_config_cmake} )
 
   include( ${rdkit_config_cmake} )
 

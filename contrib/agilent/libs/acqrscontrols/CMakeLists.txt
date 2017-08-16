@@ -16,7 +16,7 @@ include_directories(
   ${AqDrv4_INCLUDE_DIR}
   )
 
-message( STATUS "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
+# message( STATUS "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
 
 add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
