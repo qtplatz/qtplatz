@@ -78,11 +78,12 @@ link_directories(
 
 set( RESOURCES video.qrc )
 
-cuda_add_library( cudaColorMap SHARED
-  cudacolormap.cu
-  afcolormap.cpp
-  afcolormap.hpp
-  )
+if ( CUDA_FOUND )
+  cuda_add_library( cudaColorMap SHARED
+    cudacolormap.cu
+    afcolormap.cpp
+    afcolormap.hpp
+    )
 
 target_link_libraries( cudaColorMap ${CUDA_LINK_LIBRARIES_KEYWORD}
   adportable
@@ -92,6 +93,8 @@ target_link_libraries( cudaColorMap ${CUDA_LINK_LIBRARIES_KEYWORD}
   Qt5::Core
   ${ArrayFire_LIBRARIES}
   )
+set ( libcuda cudaColorMap )
+endif()
 
 add_library( ${PROJECT_NAME} MODULE
   constants.hpp
@@ -132,7 +135,7 @@ add_library( ${PROJECT_NAME} MODULE
 
 target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
-  cudaColorMap
+  ${libcuda}
   adplugin
   adcontrols
   adlog
