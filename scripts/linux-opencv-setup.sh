@@ -17,12 +17,6 @@ else
     exit 0
 fi
 
-echo "Install dependency"
-sudo apt-get install -y python-dev python-numpy libtbb2 libtbb-dev # libjpeg-dev
-sudo apt-get install -y libpng-dev libtiff-dev
-sudo apt-get install -y libpng12-dev libtiff5-dev
-sudo apt-get install -y libgtk2.0 pkg-config libavcodec-dev libavformat-dev libswscale-dev
-
 echo "$target install"
 
 if [ ! -d $source_dir ]; then
@@ -74,6 +68,9 @@ if [ -z $cross_target ]; then
 	  -DCUDA_FAST_MATH=$CUDA           \
 	  -DWITH_CUBLAS=$CUDA              \
 	  $source_dir
+
+#In case you are in trouble with ippicv, try follwoing on the build directory
+#cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv"
 
     echo "Did you install ffmpeg and turbo-jpeg?"
     echo "make -j8 # at `pwd`"    

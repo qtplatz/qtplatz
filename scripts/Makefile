@@ -14,6 +14,7 @@ default:
 	@echo "make ffmpeg"
 	@echo "make jpeg"
 	@echo "make opencv"
+	@echo "make arrayfire"
 	@echo " -- or make world"
 
 dependency:
@@ -46,10 +47,13 @@ jpeg:
 opencv:
 	./linux-opencv-setup.sh
 
+arrayfire:
+	./linux-arrayfire-setup.sh
+
 rtags:
 	./linux-rtags-setup.sh
 
 cmake:
 	./linux-cmake-setup.sh
 
-world: dependency cross-tools boost boost-armhf cmake rdkit qwt gnuplot opencv rtags
+world: dependency cross-tools boost boost-armhf cmake rdkit qwt gnuplot opencv rtags arrayfire

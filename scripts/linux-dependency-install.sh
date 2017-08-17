@@ -11,7 +11,7 @@ list_dependency+=('lame' 'libtheora-dev' 'libvorbis-dev'
 			'libmp3lame0' 'libmp3lame-dev' )
 #opencv
 list_dependency+=('python-dev' 'python-numpy' 'libtbb2' 'libtbb-dev' 'libpng-dev' 'libtiff-dev'
-		  'libpng12-dev' 'libtiff5-dev' 'libgtk2.0 pkg-config' 'libavcodec-dev'
+		  'libpng12-dev' 'libtiff5-dev' 'libgtk2.0-dev' 'pkg-config' 'libavcodec-dev'
 		  'libavformat-dev' 'libswscale-dev' )
 
 #sudo apt update
