@@ -18,11 +18,14 @@ list_dependency+=('python-dev' 'python-numpy' 'libtbb2' 'libtbb-dev' 'libpng-dev
 
 for arg in "${list_dependency[@]}"; do
     echo sudo apt-get install -y "$arg"
-    sudo apt-get install -y "$arg" || failed_list+="$arg"
+    sudo apt-get install -y "$arg" || failed_list+=("$arg")
 done
 
 if [ ${#failed_list[@]} -gt 0 ]; then
-   echo "Failed for " "${failed_list[@]}"
+   echo "Error: Total " ${#failed_list[@]} packages failed to install.
+   for arg in "${failed_list[@]}"; do
+	echo "	" "$arg"
+   done
 fi
 
 #echo "Install dependency for for ffmpeg"
