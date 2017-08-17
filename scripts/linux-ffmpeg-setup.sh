@@ -22,7 +22,6 @@ fi
 cd $SRC/ffmpeg-$VERSION
 
 sed -i 's/-lflite"/-lflite -lasound"/' configure &&
-
 ./configure --prefix=/usr        \
             --enable-gpl         \
             --enable-version3    \
@@ -41,7 +40,5 @@ sed -i 's/-lflite"/-lflite -lasound"/' configure &&
             --enable-libx264     \
             --enable-libx265     \
             --docdir=/usr/share/doc/ffmpeg-3.3.3 &&
-
 make &&
-
 gcc tools/qt-faststart.c -o tools/qt-faststart
