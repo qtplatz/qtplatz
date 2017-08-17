@@ -207,17 +207,18 @@ VideoProcWnd::handleData()
         }
 
         if ( average_ ) {
-            //avg = cvColor()( *average_, 8.0/numAverage_ );
-#if HAVE_ARRAYFIRE
+#if HAVE_ARRAYFIRE && HAVE_CUDA
             afApplyColorMap( *average_, avg, 8.0 / numAverage_ );
             //afApplyColorMap( mat, avg, 8.0 / numAverage_ );
             ADDEBUG() << "avg rows,cols=" << avg.rows << ", " << avg.cols << ", channels=" << avg.channels();
-#endif
-#if HAVE_CUDA && 0
+# if HAVE_CUDA && 0
             cudaApplyColorMap( *average_, avg, 8.0 / numAverage_ );
-#endif
+# endif
+#else
             //average_->convertTo( avg, image_data_t::type_value, 8.0 / numAverage_ );
             //cv::applyColorMap( avg, avg, cv::COLORMAP_JET );
+            avg = cvColor()( *average_, 8.0/numAverage_ );
+#endif
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {
