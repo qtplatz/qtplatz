@@ -14,6 +14,15 @@ list_dependency+=('python-dev' 'python-numpy' 'libtbb2' 'libtbb-dev' 'libpng-dev
 		  'libpng12-dev' 'libtiff5-dev' 'libgtk2.0-dev' 'pkg-config' 'libavcodec-dev'
 		  'libavformat-dev' 'libswscale-dev' )
 
+#echo "Install dependency"
+list_dependency+=('libfreeimage-dev'
+		  'cmake-curses-gui'
+		  'libopenblas-dev'
+		  'libfftw3-dev'
+		  'liblapacke-dev' # OpenBLAS
+		  'libglfw3-dev'
+		  'libfontconfig1-dev' )
+
 #sudo apt update
 
 for arg in "${list_dependency[@]}"; do

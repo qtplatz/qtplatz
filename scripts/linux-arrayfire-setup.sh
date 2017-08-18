@@ -25,11 +25,6 @@ fi
 
 cmake_args=("-DBOOST_ROOT=$BOOST_ROOT" "-DCMAKE_BUILD_TYPE=Release")
 
-echo "Install dependency"
-sudo apt-get install -y libfreeimage-dev cmake-curses-gui
-sudo apt-get install -y libopenblas-dev libfftw3-dev liblapacke-dev # OpenBLAS
-sudo apt-get install -y libglfw3-dev libfontconfig1-dev
-
 echo "$target install"
 
 if [ ! -d $source_dir ]; then
@@ -52,3 +47,4 @@ cd $BUILD_DIR;
 echo "BUILD_DIR : " `pwd`
 cmake "${cmake_args[@]}" $source_dir
 make -j8
+sudo make install

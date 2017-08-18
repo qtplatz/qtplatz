@@ -40,5 +40,7 @@ sed -i 's/-lflite"/-lflite -lasound"/' configure &&
             --enable-libx264     \
             --enable-libx265     \
             --docdir=/usr/share/doc/ffmpeg-3.3.3 &&
-make &&
-gcc tools/qt-faststart.c -o tools/qt-faststart
+make -j $(nproc --all) &&
+gcc tools/qt-faststart.c -o tools/qt-faststart &&
+sudo make install
+

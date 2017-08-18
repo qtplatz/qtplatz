@@ -75,7 +75,7 @@ if [ -z $cross_target ]; then
     echo "Did you install ffmpeg and turbo-jpeg?"
     echo "make -j8 # at `pwd`"    
     prompt
-    make -j8
+    make -j $(nproc --all)
 #    export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
 #    make test
     sudo make -j8 install

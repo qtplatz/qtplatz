@@ -19,6 +19,7 @@ default:
 
 dependency:
 	./linux-initial-setup.sh
+	./linux-dependency-setup.sh
 
 cross-tools:
 	./armhf/debian-multiarch-setup.sh
