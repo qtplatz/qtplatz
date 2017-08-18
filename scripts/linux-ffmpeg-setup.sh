@@ -22,7 +22,7 @@ fi
 cd $SRC/ffmpeg-$VERSION
 
 sed -i 's/-lflite"/-lflite -lasound"/' configure &&
-./configure --prefix=/usr        \
+./configure --prefix=/usr/local  \
             --enable-gpl         \
             --enable-version3    \
             --enable-nonfree     \

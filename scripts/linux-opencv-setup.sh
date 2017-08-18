@@ -6,13 +6,25 @@ source ./prompt.sh
 cwd=$(pwd)
 arch=`uname`-`arch`
 target=opencv
-
+config=release
 source_dir=$SRC/$target
 contrib_dir=$(dirname $source_dir)/opencv_contrib
 extra_dir=$(dirname $source_dir)/opencv_extra
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+	debug)
+	    config=debug
+	    shift
+	    ;;
+	*)
+	    break
+	    ;;
+    esac
+done
+
 if [ -z $cross_target ]; then
-    BUILD_DIR=$SRC/build-$arch/$target
+    BUILD_DIR=$SRC/build-$arch/$target.$config
 else
     exit 0
 fi
@@ -54,10 +66,16 @@ fi
 mkdir -p $BUILD_DIR;
 cd $BUILD_DIR;
 
+if [ "$config" = "debug" ]; then
+    BUILD_CONFIG="Debug"
+else
+    BUILD_CONFIG="Release"
+fi
+
 if [ -z $cross_target ]; then
     echo "BUILD_DIR : " `pwd`
     cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules \
-	  -DCMAKE_BUILD_TYPE=Release \
+	  -DCMAKE_BUILD_TYPE=$BUILD_CONFIG \
 	  -DENABLE_CXX11=ON \
 	  -DBUILD_PERF_TESTS=OFF           \
 	  -DWITH_XINE=ON                   \

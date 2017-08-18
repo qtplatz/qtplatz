@@ -13,7 +13,7 @@ default:
 	@echo "make rtags"
 	@echo "make ffmpeg"
 	@echo "make jpeg"
-	@echo "make opencv"
+	@echo "make opencv" || "make opencv.debug"
 	@echo "make arrayfire"
 	@echo " -- or make world"
 
@@ -47,6 +47,9 @@ jpeg:
 
 opencv:
 	./linux-opencv-setup.sh
+
+opencv.debug:
+	./linux-opencv-setup.sh debug
 
 arrayfire:
 	./linux-arrayfire-setup.sh

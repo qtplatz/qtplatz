@@ -27,5 +27,5 @@ cd $SRC/libjpeg-turbo-$VERSION
             --with-jpeg8            \
             --disable-static        \
             --docdir=/usr/local/share/doc/libjpeg-turbo-$VERSION &&
-make -j8
-sudo make install
+    make -j $(nproc --all) &&
+    sudo make install
