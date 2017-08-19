@@ -20,3 +20,10 @@ add_subdirectory( formula_parser )
 add_subdirectory( test_ptree )
 #add_subdirectory( isotope )
 #add_subdirectory( test_adfs )
+
+find_package( OpenCV 3 QUIET )
+find_package( ArrayFire QUIET )
+
+if ( OpenCV_FOUND AND ArrayFire_FOUND )
+  add_subdirectory( test_vision )
+endif()

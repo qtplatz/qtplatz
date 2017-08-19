@@ -55,11 +55,6 @@ afApplyColorMap( const cv::Mat& src, cv::Mat& dst, float scale )
         rgb = af::gray2rgb( a * scale );
     } else if ( src.channels() == 3 && src.type() == CV_8UC(3) ) {
         rgb = af::array( src.cols, src.rows, channels, src.ptr< uint8_t >( 0 ) ).T();
-        // af::array ind = af::array( af::seq( channels - 1, channels, w * channels - 1) );
-        // rgb = af::array( h, w, channels );
-        // gfor( af::array k, channels) {
-        //     rgb( af::span, af::span, k ) = t(ind - k, af::span ); //.T();
-        // }
     } else {
         return;
     }
@@ -69,9 +64,13 @@ afApplyColorMap( const cv::Mat& src, cv::Mat& dst, float scale )
     af::array rgb_t = rgb.T();
     (*wnd)(0, 1).image( rgb_t, "rgb_t" );
 
-    wnd->show();
+    auto cv_format_rgb = af::reorder( rgb.T(), 2, 0, 1 ); // 3rd dimention to be the first dimension
     
-    dst = cv::Mat( src.rows, src.cols, CV_8UC(3) ); //  video::cv_extension::mat_t< uint8_t, 3 >::type_value );    
-    rgb_t.as( u8 ).host( dst.ptr< uchar >( 0 ) );
+    wnd->show();
+
+    cv_format_rgb *= 255; // float -> uchar
+
+    dst = cv::Mat( src.rows, src.cols, video::cv_extension::mat_t< uint8_t, 3 >::type_value );
+    cv_format_rgb.as( u8 ).host( dst.ptr< uchar >( 0 ) );
 }
 

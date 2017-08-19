@@ -209,11 +209,6 @@ VideoProcWnd::handleData()
         if ( average_ ) {
 #if HAVE_ARRAYFIRE && HAVE_CUDA
             afApplyColorMap( *average_, avg, 8.0 / numAverage_ );
-            //afApplyColorMap( mat, avg, 8.0 / numAverage_ );
-            ADDEBUG() << "avg rows,cols=" << avg.rows << ", " << avg.cols << ", channels=" << avg.channels();
-# if HAVE_CUDA && 0
-            cudaApplyColorMap( *average_, avg, 8.0 / numAverage_ );
-# endif
 #else
             //average_->convertTo( avg, image_data_t::type_value, 8.0 / numAverage_ );
             //cv::applyColorMap( avg, avg, cv::COLORMAP_JET );

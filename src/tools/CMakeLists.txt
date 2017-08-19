@@ -4,7 +4,7 @@ add_subdirectory (eventtool)
 add_subdirectory (counting)
 
 if ( CUDA_FOUND )
-#  add_subdirectory (cuda)
+  add_subdirectory (cuda)
 endif()
 
 if ( OpenCV_FOUND )
