@@ -10,6 +10,7 @@
 #endif
 #include <boost/format.hpp>
 #include "increment.hpp"
+#include "colormap.hpp"
 
 int
 main(int argc, char * argv[])
@@ -17,8 +18,8 @@ main(int argc, char * argv[])
     (void)argc;
     (void)argv;
 
-    float data[]  = { 0.1, 0.2, 0.3
-                      , 0.4, 0.5, 0.6 };
+    float data[]  = { 0.1, 0.2, 0.33
+                      , 0.44, 0.55, 0.66 };
 
     // mat is the row,col array
     cv::Mat mat = cv::Mat( 2, 3, CV_32FC(1), data );
@@ -40,7 +41,7 @@ main(int argc, char * argv[])
         auto mat2 = cv::Mat( mat.rows, mat.cols, CV_8UC(3) );
         rgb_t.as( u8 ).host( /* reinterpret_cast< void * > */ ( mat2.ptr< uchar >( 0 ) ) );
 
-        std::cout << "Back to cv::Mat : " << mat2 << std::endl;
+        // std::cout << "Back to cv::Mat : " << mat2 << std::endl;
     }
 
     // transposed version
@@ -64,7 +65,7 @@ main(int argc, char * argv[])
         auto mat2 = cv::Mat( mat.rows, mat.cols, CV_8UC(3) );
         cv_format_rgb.as( u8 ).host( /* reinterpret_cast< void * > */ ( mat2.ptr< uchar >( 0 ) ) );
 
-        std::cout << "Back to cv::Mat : " << mat2 << std::endl;
+        // std::cout << "Back to cv::Mat : " << mat2 << std::endl;
     }
 
 
@@ -81,12 +82,14 @@ main(int argc, char * argv[])
         
         af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) );
 
+        auto rgb = colorMap( gray, levels, colors );
+
         //auto max = af::max( af::max( gray ) );
         //af::print( "max of gray", max );
 
-        increment( gray );
+        // increment( gray );
 
-        af::print( "incremented", gray );
+        af::print( "gray -> rgb", rgb );
         
         // for ( int i = 0; i < gray.dims(0); ++i ) {
         //     auto a = af::scan( gray( i, af::span ), 0, AF_BINARY_MUL );

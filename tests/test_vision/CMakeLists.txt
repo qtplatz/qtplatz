@@ -33,7 +33,11 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
 
-cuda_add_executable( test_vision  main.cpp increment.cu )
+cuda_add_executable( test_vision
+  main.cpp
+  increment.cu
+  colormap.cu
+  )
 
 message( STATUS "CUDA_LIBRARIES: " ${CUDA_LIBRARIES} )
 
