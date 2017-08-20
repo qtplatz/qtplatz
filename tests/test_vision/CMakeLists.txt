@@ -33,11 +33,14 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
 
-add_executable( test_vision  main.cpp )
+cuda_add_executable( test_vision  main.cpp increment.cu )
+
+message( STATUS "CUDA_LIBRARIES: " ${CUDA_LIBRARIES} )
 
 target_link_libraries( test_vision ${CUDA_LINK_LIBRARIES_KEYWORD}
-  ${CUDA_LIBRARIES}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${ArrayFire_LIBRARIES}
+  ${ArrayFire_CUDA_LIBRARIES}  
+  ${CUDA_LIBRARIES}
   )

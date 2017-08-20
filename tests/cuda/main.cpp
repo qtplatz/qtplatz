@@ -336,6 +336,7 @@ main(int argc, char *argv[])
     {
         description.add_options()
             ( "help,h",      "Display this help message" )
+            ( "run",         "cuda run test" )
             ;
 
         po::positional_options_description p;
@@ -348,9 +349,12 @@ main(int argc, char *argv[])
         std::cout << description;
         return 0;
     }
+    
+    if ( vm.count( "run" ) ) {
+        std::cout << "Sum [1..100] = " << run() << std::endl;
+        return 0;
+    }
 
     queryDevice();
-
-    return run();
 }
 

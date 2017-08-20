@@ -23,7 +23,12 @@ add_subdirectory( test_ptree )
 
 find_package( OpenCV 3 QUIET )
 find_package( ArrayFire QUIET )
+find_package( CUDA QUIET )
 
 if ( OpenCV_FOUND AND ArrayFire_FOUND )
   add_subdirectory( test_vision )
+endif()
+
+if ( CUDA_FOUND )
+  add_subdirectory( cuda )
 endif()
