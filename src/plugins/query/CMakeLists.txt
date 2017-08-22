@@ -26,7 +26,7 @@ include_directories( ${QWT_INCLUDE_DIRS} )
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
-  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} cvplot )
+  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} advision )
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

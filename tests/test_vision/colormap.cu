@@ -22,9 +22,7 @@
 **
 **************************************************************************/
 
-#include "aftypes.hpp"
-#include <stdio.h>
-
+#include <advision/aftypes.hpp>
 #include <thrust/device_vector.h>
 #include <thrust/reduce.h>
 #include <thrust/sequence.h>
@@ -106,11 +104,11 @@ colorMap( const af::array& gray, const af::array& levels, const af::array& color
 
     const float * d_gray = gray.device< float >();
 
-    using namespace arrayfire;
+    //using namespace arrayfire;
     
     // result array
 
-    af::array rgb = af::constant< rgb_type >( 0, gray.dims(0), gray.dims(1), 3, af_type_value< rgb_type >::value );
+    af::array rgb = af::constant< rgb_type >( 0, gray.dims(0), gray.dims(1), 3, advision::af_type_value< rgb_type >::value );
     rgb_type * d_rgb = rgb.device< rgb_type >();
 
     const float * d_levels = levels.device< float >();
@@ -124,6 +122,9 @@ colorMap( const af::array& gray, const af::array& levels, const af::array& color
     cudaDeviceSynchronize();
 
     rgb.unlock();
+    gray.unlock();
+    levels.unlock();
+    colors.unlock();
 
     return rgb;
 }
