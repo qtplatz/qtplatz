@@ -27,6 +27,7 @@
 #include "aftypes.hpp"
 #include <arrayfire.h>
 #include <opencv2/core/mat.hpp>
+#include <opencv2/opencv.hpp>
 
 using namespace advision;
 
@@ -128,7 +129,37 @@ transform::array( const cv::Mat& m )
             a = af::array( ndims, m.cols, m.rows, m.ptr< cv_type< CV_64F >::type >() );
             break;
         }
-        return af::reorder( a, 1, 2, 0 );
+        return af::reorder( a, 1, 2, 0 ).T();
     }
     return af::array();
 }
+
+namespace advision {
+
+    template<>
+    template<> af::array transform_< af::array >::operator()< cv::Mat >( const cv::Mat& m ) const {
+        return transform::array( m );
+    }
+
+    template<>
+    template<> cv::Mat transform_< cv::Mat >::operator()< af::array >( const af::array& a ) const {
+        return transform::mat( a );
+    }
+
+    template<>
+    af::array transform_< af::array >::bgr2rgb( const af::array& a ) const {
+        af::array b( a );
+        b( af::span, af::span, 2 ) = a( af::span, af::span, 0 );
+        b( af::span, af::span, 0 ) = a( af::span, af::span, 2 );
+        return b;
+    }
+
+    template<>
+    cv::Mat transform_< cv::Mat >::bgr2rgb( const cv::Mat& a ) const {
+        cv::Mat b;
+        cv::cvtColor( a, b, CV_RGB2BGR );
+        return b;
+    }
+    
+}
+

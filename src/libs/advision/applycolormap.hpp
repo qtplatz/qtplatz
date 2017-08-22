@@ -27,28 +27,20 @@
 #include "advision_global.hpp"
 #include <af/array.h>
 #include <opencv2/core/mat.hpp>
+#include <vector>
 
 namespace advision {
     
     class ADVISIONSHARED_EXPORT ApplyColorMap {
-        af::array levels_;
-        af::array colors_;
+        std::vector< float > levels_;
+        std::vector< float > colors_;
     public:
         ApplyColorMap();
         ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
         
         cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, bool gpu = true );
-        af::array operator()( const af::array&, bool gpu = true );
-
-        template< typename T = af::array > T operator()( const cv::Mat&, float scaleFactor = 1.0, bool gpu = true );
-        template< typename T = af::array > T operator()( const af::array&, float scaleFactor = 1.0, bool gpu = true );
+        af::array operator()( const af::array&, float scaleFactor = 1.0, bool gpu = true );
     };
-
-    template<> af::array ApplyColorMap::operator()( const cv::Mat&, float scaleFactor, bool gpu );
-    template<> af::array ApplyColorMap::operator()( const af::array&, float scaleFactor, bool gpu );
-    template<> cv::Mat ApplyColorMap::operator()( const cv::Mat&, float scaleFactor, bool gpu );
-    template<> cv::Mat ApplyColorMap::operator()( const af::array&, float scaleFactor, bool gpu );    
-
 
 } // namespace advision
 

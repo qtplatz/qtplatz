@@ -30,7 +30,8 @@ main( int argc, char * argv[] )
     {
         description.add_options()
             ( "help,h",      "Display this help message" )
-            ( "args",        po::value< std::vector< std::string > >(),  "input files" )
+            ( "cpu",         "Use cpu" )
+            ( "args",        po::value< std::vector< std::string > >(),  "input files (.mp4)" )
             ;
 
         po::positional_options_description p;
@@ -44,6 +45,8 @@ main( int argc, char * argv[] )
         return 0;
     }
 
+    bool useCUDA = !vm.count( "cpu" );
+
     af::Window wnd( 800, 600, "test" );
     wnd.grid( 2, 2 );
 
@@ -54,7 +57,10 @@ main( int argc, char * argv[] )
         
         std::deque< cv::Mat > cv_vec;
         size_t nframes(0);
+
         std::unique_ptr< advision::mat_< float, 1 > > avg;
+
+        advision::ApplyColorMap map;
         
         cv::VideoCapture capture;
         if ( capture.open( file ) && capture.isOpened() ) {
@@ -64,37 +70,39 @@ main( int argc, char * argv[] )
             cv::Mat m;
             while ( capture.read( m ) ) {
 
-                cv::imshow( m );
-                cv::waitKey( 1 );
-                
-                auto a = advision::transform::array( m );
-                wnd( 0, 1 ).image( a, "" );
-                
+                auto a = advision::transform_<af::array>()( m );
+                wnd( 0, 1 ).image( advision::transform_< af::array >().bgr2rgb(a), "Orignal" );
+
+                auto dur = std::chrono::high_resolution_clock::now() - tp;
+                auto us = std::chrono::duration_cast< std::chrono::microseconds >( dur ).count();                
+
                 advision::mat_< float, 1 > gs( m.rows, m.cols );
                 {
                     cv::Mat_< uchar > gray;
                     cv::cvtColor( m, gray, cv::COLOR_BGR2GRAY );
                     gray.convertTo( gs, advision::mat_< float, 1 >::type_value, 1.0/255 );
                 }
-
+                cv_vec.emplace_back( gs );
                 if ( !avg )
                     avg = std::make_unique< advision::mat_< float, 1 > >( gs );
                 else
                     (*avg) += gs;
                 ++nframes;
-
-                cv_vec.emplace_back( gs );
+                auto colored = advision::transform_< af::array >()( map( *avg, 8.0 / nframes, useCUDA ) );
                 
-                // convert to af::arry
-                auto a = af::array( cv_vec.back().cols, cv_vec.back().rows, 1, cv_vec.back().ptr< float >( 0 ) ).T();
+                // convert to af::array
                 auto b = af::array( avg->cols, avg->rows, 1, avg->ptr< float >( 0 ) ).T();
-
-                auto dur = std::chrono::high_resolution_clock::now() - tp;
-                auto us = std::chrono::duration_cast< std::chrono::microseconds >( dur ).count();
-
+                
                 wnd(0,0).image( a, (boost::format( "%g fps" ) % ( double(nframes * 1e6) / us ) ).str().c_str() );
-                wnd(1,0).image( b / nframes, (boost::format( "%1%/%2%" ) % nframes % ( double(us) / nframes ) ).str().c_str() );
 
+                wnd(1,0).image( b * 8 / nframes, (boost::format( "%1%/%2%" ) % nframes % ( double(us) / nframes ) ).str().c_str() );
+
+                wnd(1,1).image( advision::transform_< af::array >().bgr2rgb( colored )
+                                , (boost::format( "%1%/%2% %3%" )
+                                   % nframes
+                                   % ( double(us) / nframes )
+                                   % ( useCUDA ? "CUDA" : "CPU" ) ).str().c_str() );
+                
                 wnd.show();
 
                 while ( cv_vec.size() > 2000 )
@@ -105,8 +113,6 @@ main( int argc, char * argv[] )
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
             std::cout << boost::format( "Data read & display total: %g s, %g fps" ) % s % ( nframes / s ) << std::endl;
         }
-
-        advision::ApplyColorMap map;
 
         do {
             auto tp = std::chrono::high_resolution_clock::now();
@@ -127,7 +133,7 @@ main( int argc, char * argv[] )
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
             std::cout << boost::format( "CPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
         } while ( 0 );
-        
+
     }
 
 	return 0;

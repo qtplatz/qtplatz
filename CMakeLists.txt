@@ -148,7 +148,7 @@ if ( WITH_OPENCV )
   find_package( OpenCV 3 QUIET )
   find_package( HDF5 QUIET )
   if ( OpenCV_FOUND )
-    add_definitions( -DHAVE_OpenCV=1 )
+    add_definitions( -DHAVE_OPENCV=1 )
   endif()
 endif()
 

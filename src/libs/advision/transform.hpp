@@ -31,9 +31,30 @@ namespace cv { class Mat; }
 
 namespace advision {
 
+    // cv::Mat uses BGR format, which does not handle in this transform class
+
     class ADVISIONSHARED_EXPORT transform {
     public:
         static cv::Mat mat( const af::array& );
         static af::array array( const cv::Mat& );
     };
+
+    template< typename T >
+    struct ADVISIONSHARED_EXPORT transform_ {
+        template< typename M > T operator()( const M& ) const;
+        T bgr2rgb( const T& ) const;
+    };
+
 }
+
+
+
+
+
+
+
+
+
+
+
+

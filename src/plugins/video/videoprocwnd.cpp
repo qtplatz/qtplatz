@@ -48,9 +48,6 @@
 #if HAVE_ARRAYFIRE
 # include <advision/aftypes.hpp>
 #endif
-#if HAVE_OPENCV
-# include <advision/cftypes.hpp>
-#endif
 #include <advision/applycolormap.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/font.hpp>
