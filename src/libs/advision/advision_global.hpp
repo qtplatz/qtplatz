@@ -1,5 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -21,15 +22,15 @@
 **
 **************************************************************************/
 
-#ifndef CVPLOT_GLOBAL_HPP
-#define CVPLOT_GLOBAL_HPP
+#ifndef ADVISION_GLOBAL_HPP
+#define ADVISION_GLOBAL_HPP
 
 #include <QtCore/qglobal.h>
 
-#if defined(CVPLOT_LIBRARY)
-#  define CVPLOTSHARED_EXPORT Q_DECL_EXPORT
+#if defined(ADVISION_LIBRARY)
+#  define ADVISIONSHARED_EXPORT Q_DECL_EXPORT
 #else
-#  define CVPLOTSHARED_EXPORT Q_DECL_IMPORT
+#  define ADVISIONSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // CVPLOT_GLOBAL_HPP
+#endif // ADVISION_GLOBAL_HPP

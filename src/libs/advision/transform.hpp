@@ -24,6 +24,16 @@
 
 #pragma once
 
+#include "advision_global.hpp"
+
+namespace af { class array; }
 namespace cv { class Mat; }
 
-void afApplyColorMap( const cv::Mat& src, cv::Mat& dst, float scale = 1.0 );
+namespace advision {
+
+    class ADVISIONSHARED_EXPORT transform {
+    public:
+        static cv::Mat mat( const af::array& );
+        static af::array array( const cv::Mat& );
+    };
+}

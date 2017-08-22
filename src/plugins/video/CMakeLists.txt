@@ -78,24 +78,6 @@ link_directories(
 
 set( RESOURCES video.qrc )
 
-if ( CUDA_FOUND )
-  cuda_add_library( cudaColorMap SHARED
-    cudacolormap.cu
-    afcolormap.cpp
-    afcolormap.hpp
-    )
-
-target_link_libraries( cudaColorMap ${CUDA_LINK_LIBRARIES_KEYWORD}
-  adportable
-  ${CUDA_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  Qt5::Core
-  ${ArrayFire_LIBRARIES}
-  )
-set ( libcuda cudaColorMap )
-endif()
-
 add_library( ${PROJECT_NAME} MODULE
   constants.hpp
   cvmat.cpp
@@ -146,6 +128,7 @@ target_link_libraries(
   adwidgets
   adportable
   adprocessor
+  advision
   portfolio
   qtwrapper
   ${Boost_LIBRARIES}

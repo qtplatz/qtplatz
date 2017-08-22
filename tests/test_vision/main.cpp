@@ -5,107 +5,131 @@
 # include <arrayfire.h>
 # include <af/cuda.h>
 #endif
+
 #if OPENCV
 # include <opencv2/opencv.hpp>
+# include <opencv2/imgproc/imgproc.hpp>
+# include <opencv2/highgui/highgui.hpp>
+# include <advision/cvtypes.hpp>
 #endif
+
+#include <advision/applycolormap.hpp>
+#include <advision/transform.hpp>
 #include <boost/format.hpp>
-#include "increment.hpp"
-#include "colormap.hpp"
+#include <boost/filesystem/path.hpp>
+#include <boost/program_options.hpp>
+#include <chrono>
+
+namespace po = boost::program_options;
 
 int
-main(int argc, char * argv[])
+main( int argc, char * argv[] )
 {
-    (void)argc;
-    (void)argv;
-
-    float data[]  = { 0.1, 0.2, 0.33
-                      , 0.44, 0.55, 0.66 };
-
-    // mat is the row,col array
-    cv::Mat mat = cv::Mat( 2, 3, CV_32FC(1), data );
-    std::cout << "Source cv::Mat : " << mat << std::endl;
-
-    // no transposed version
+    po::variables_map vm;
+    po::options_description description( argv[0] );
     {
-        // array is the col,row array
-        af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) );
-        af::print( "Converted to af::array gray: ", gray );
+        description.add_options()
+            ( "help,h",      "Display this help message" )
+            ( "args",        po::value< std::vector< std::string > >(),  "input files" )
+            ;
 
-        af::array rgb = af::gray2rgb( gray );
-        //af::print( "rgb: ", rgb );
-
-        // https://groups.google.com/forum/#!topic/arrayfire-users/34_AFiXRnKg
-        af::array rgb_t = af::reorder( rgb, 2, 0, 1 ) * 255; // Converts 3rd dimention to be the first dimension
-        //af::print( "rgb_t: ", rgb_t );
-
-        auto mat2 = cv::Mat( mat.rows, mat.cols, CV_8UC(3) );
-        rgb_t.as( u8 ).host( /* reinterpret_cast< void * > */ ( mat2.ptr< uchar >( 0 ) ) );
-
-        // std::cout << "Back to cv::Mat : " << mat2 << std::endl;
+        po::positional_options_description p;
+        p.add( "args",  -1 );
+        po::store( po::command_line_parser( argc, argv ).options( description ).positional(p).run(), vm );
+        po::notify(vm);
     }
 
-    // transposed version
-    {
-        af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) ).T();
-        af::print( "Converted to af::array (transposed) gray: ", gray );
-
-        // rgb as af native format
-        af::array rgb = af::gray2rgb( gray );
-        //af::print( "rgb: ", rgb );
-
-        const int channels = rgb.dims( 2 );
-        af::array rgb_t = rgb.T();
-        //af::print( "rgb_t", rgb_t );
-
-        // https://groups.google.com/forum/#!topic/arrayfire-users/34_AFiXRnKg
-        // Converts 3rd dimention to be the first dimension
-        auto cv_format_rgb = af::reorder( rgb_t, 2, 0, 1 ) * 255; 
-        //af::print( "cv_format_rgb", cv_format_rgb );
-        
-        auto mat2 = cv::Mat( mat.rows, mat.cols, CV_8UC(3) );
-        cv_format_rgb.as( u8 ).host( /* reinterpret_cast< void * > */ ( mat2.ptr< uchar >( 0 ) ) );
-
-        // std::cout << "Back to cv::Mat : " << mat2 << std::endl;
+    if ( vm.count( "help" ) ) {
+        std::cout << description;
+        return 0;
     }
 
+    af::Window wnd( 800, 600, "test" );
+    wnd.grid( 2, 2 );
 
-    {
-        const float __levels [] = { 0.0, 0.2, 0.4, 0.6, 0.8, 0.97, 1.0 };
-        //                          black, navy, cyan, green,yellow,red, white
-        const float __colors [] = {   0.0,  0.0,  0.0,  0.0,  1.0,  1.0, 1.0      // R
-                                    , 0.0,  0.0,  1.0,  1.0,  1.0,  0.0, 1.0      // G
-                                    , 0.0,  0.5,  1.0,  0.0,  0.0,  0.0, 1.0 };   // B
+    for ( auto& file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
-        af::array levels = af::array( sizeof(__levels)/sizeof(__levels[0]), 1, __levels );
-        af::array colors = af::array( 3, sizeof(__colors)/sizeof(__colors[0]) / 3, __colors );
-        // af::print( "colors", colors );
+        boost::filesystem::path path( file );
+        wnd.setTitle( path.filename().string().c_str() );
         
-        af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) );
-
-        auto rgb = colorMap( gray, levels, colors );
-
-        //auto max = af::max( af::max( gray ) );
-        //af::print( "max of gray", max );
-
-        // increment( gray );
-
-        af::print( "gray -> rgb", rgb );
+        std::deque< cv::Mat > cv_vec;
+        size_t nframes(0);
+        std::unique_ptr< advision::mat_< float, 1 > > avg;
         
-        // for ( int i = 0; i < gray.dims(0); ++i ) {
-        //     auto a = af::scan( gray( i, af::span ), 0, AF_BINARY_MUL );
-        //     af::print( (boost::format("a[%1%]") % i).str().c_str(), gray( i, af::span) );
-        //     af::print( (boost::format("a[%1%]") % i).str().c_str(), a );
-            //auto a = af::approx1( gray( i, af::span ), levels );
-            //af::print( "apprix1", a );
-            //auto a = af::constant( 0.3, 2, f32 );
-                //auto intersection = af::setIntersect( gray( i, j ), levels );
-                //float value;
-                //a.host( &value );
-                //std::cout << "gray[" << i << ", " << j << "]=" << value << std::endl;
-        //}
+        cv::VideoCapture capture;
+        if ( capture.open( file ) && capture.isOpened() ) {
+
+            auto tp = std::chrono::high_resolution_clock::now();
+            
+            cv::Mat m;
+            while ( capture.read( m ) ) {
+
+                cv::imshow( m );
+                cv::waitKey( 1 );
+                
+                auto a = advision::transform::array( m );
+                wnd( 0, 1 ).image( a, "" );
+                
+                advision::mat_< float, 1 > gs( m.rows, m.cols );
+                {
+                    cv::Mat_< uchar > gray;
+                    cv::cvtColor( m, gray, cv::COLOR_BGR2GRAY );
+                    gray.convertTo( gs, advision::mat_< float, 1 >::type_value, 1.0/255 );
+                }
+
+                if ( !avg )
+                    avg = std::make_unique< advision::mat_< float, 1 > >( gs );
+                else
+                    (*avg) += gs;
+                ++nframes;
+
+                cv_vec.emplace_back( gs );
+                
+                // convert to af::arry
+                auto a = af::array( cv_vec.back().cols, cv_vec.back().rows, 1, cv_vec.back().ptr< float >( 0 ) ).T();
+                auto b = af::array( avg->cols, avg->rows, 1, avg->ptr< float >( 0 ) ).T();
+
+                auto dur = std::chrono::high_resolution_clock::now() - tp;
+                auto us = std::chrono::duration_cast< std::chrono::microseconds >( dur ).count();
+
+                wnd(0,0).image( a, (boost::format( "%g fps" ) % ( double(nframes * 1e6) / us ) ).str().c_str() );
+                wnd(1,0).image( b / nframes, (boost::format( "%1%/%2%" ) % nframes % ( double(us) / nframes ) ).str().c_str() );
+
+                wnd.show();
+
+                while ( cv_vec.size() > 2000 )
+                    cv_vec.pop_front();
+            }
+
+            using namespace std::chrono;
+            auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
+            std::cout << boost::format( "Data read & display total: %g s, %g fps" ) % s % ( nframes / s ) << std::endl;
+        }
+
+        advision::ApplyColorMap map;
+
+        do {
+            auto tp = std::chrono::high_resolution_clock::now();
+            for ( auto& m: cv_vec ) {
+                map( m );
+            }
+            using namespace std::chrono;        
+            auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
+            std::cout << boost::format( "GPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
+        } while ( 0 );
+
+        do {
+            auto tp = std::chrono::high_resolution_clock::now();
+            for ( auto& m: cv_vec ) {
+                map( m, 1.0, false );
+            }
+            using namespace std::chrono;        
+            auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
+            std::cout << boost::format( "CPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
+        } while ( 0 );
+        
     }
-    
-    
+
 	return 0;
 }
 

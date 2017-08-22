@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
+#include "aftypes.hpp"
 #include <stdio.h>
 
-// For the CUDA runtime routines (prefixed with "cuda_")
 #include <thrust/device_vector.h>
 #include <thrust/reduce.h>
 #include <thrust/sequence.h>
@@ -33,7 +33,7 @@
 
 typedef uint8_t rgb_type;
 
-namespace arrayfire {
+namespace af_extension {
 
     enum RGB { Red = 0, Green = 1, Blue = 2 };
     
@@ -72,7 +72,7 @@ colormap_kernel( const int num, const float * d_x, rgb_type * d_y
     float r(0), g(0), b(0), frac(0);
     int level = 0;
 
-    arrayfire::ColorTable<float> table( nlevels, d_colors );
+    af_extension::ColorTable<float> table( nlevels, d_colors );
 
     if ( id < num ) {
         while ( level < nlevels ) {
@@ -82,9 +82,9 @@ colormap_kernel( const int num, const float * d_x, rgb_type * d_y
         }
         if ( level > 0 ) {
             frac = ( d_x[ id ] - d_levels[ level - 1 ] ) / ( d_levels[ level ] - d_levels[ level - 1 ] );
-            r = table( level, frac, arrayfire::Red  );
-            g = table( level, frac, arrayfire::Green );
-            b = table( level, frac, arrayfire::Blue );
+            r = table( level, frac, af_extension::Red  );
+            g = table( level, frac, af_extension::Green );
+            b = table( level, frac, af_extension::Blue );
         }
 
         d_y[id + num * 0] = r * 255;
@@ -106,8 +106,11 @@ colorMap( const af::array& gray, const af::array& levels, const af::array& color
 
     const float * d_gray = gray.device< float >();
 
+    using namespace arrayfire;
+    
     // result array
-    af::array rgb = af::constant( 0, gray.dims(0), gray.dims(1), 3, u8 );
+
+    af::array rgb = af::constant< rgb_type >( 0, gray.dims(0), gray.dims(1), 3, af_type_value< rgb_type >::value );
     rgb_type * d_rgb = rgb.device< rgb_type >();
 
     const float * d_levels = levels.device< float >();

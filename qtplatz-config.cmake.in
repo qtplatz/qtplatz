@@ -73,6 +73,7 @@ add_library( adorbmgr SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
 add_library( adprot SHARED IMPORTED )
 add_library( adurl  SHARED IMPORTED )
+add_library( advision SHARED IMPORTED )
 add_library( adwidgets SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
@@ -84,7 +85,6 @@ add_library( adportable STATIC IMPORTED )
 add_library( adio STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
-add_library( cvplot SHARED IMPORTED )
 add_library( multumcontrols SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
@@ -149,10 +149,6 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adplot.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adplotd.lib )
 
-  set_target_properties( cvplot PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/cvplot.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/cvplotd.lib )
-
   set_target_properties( adprot PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adprot.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adprotd.lib )
@@ -163,7 +159,11 @@ if (WIN32)
 
   set_target_properties( adurl PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adurl.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adurld.lib )  
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adurld.lib )
+
+  set_target_properties( advision PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )    
   
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
@@ -256,10 +256,6 @@ elseif ( APPLE )
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot_debug.dylib )
 
-  set_target_properties( cvplot PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot_debug.dylib )
-
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot_debug.dylib )
@@ -271,7 +267,11 @@ elseif ( APPLE )
   set_target_properties( adurl PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl_debug.dylib )
-  
+
+  set_target_properties( advision PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision_debug.dylib )
+
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets_debug.dylib )
@@ -341,9 +341,6 @@ else()  #Linux
   set_target_properties( adplot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplot.so )
 
-  set_target_properties( cvplot PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libcvplot.so )  
-
   set_target_properties( adprot PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprot.so )
 
@@ -352,6 +349,9 @@ else()  #Linux
 
   set_target_properties( adurl PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadurl.so )
+
+  set_target_properties( advision PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision.so )
   
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.so )

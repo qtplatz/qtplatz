@@ -25,7 +25,7 @@
 #include "videoprocwnd.hpp"
 #include "constants.hpp"
 #if HAVE_ARRAYFIRE
-# include "afcolormap.hpp"
+# include <advision/afcolormap.hpp>
 #endif
 #if HAVE_CUDA
 # include "cudacolormap.hpp"
@@ -45,6 +45,13 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adplot/chromatogramwidget.hpp>
+#if HAVE_ARRAYFIRE
+# include <advision/aftypes.hpp>
+#endif
+#if HAVE_OPENCV
+# include <advision/cftypes.hpp>
+#endif
+#include <advision/applycolormap.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/progresshandler.hpp>
@@ -196,7 +203,7 @@ VideoProcWnd::handleData()
         
         average_data_t gs( mat.rows, mat.cols );
 
-        gray.convertTo( gs, average_data_t::type_value, 1.0/255 );
+        gray.convertTo( gs, average_data_t::type_value, 1.0/255 ); // 0..1.0 float gray scale
 
         if ( !average_ ) {
             average_ = std::make_unique< average_data_t >( gs );
@@ -207,13 +214,7 @@ VideoProcWnd::handleData()
         }
 
         if ( average_ ) {
-#if HAVE_ARRAYFIRE && HAVE_CUDA
-            afApplyColorMap( *average_, avg, 8.0 / numAverage_ );
-#else
-            //average_->convertTo( avg, image_data_t::type_value, 8.0 / numAverage_ );
-            //cv::applyColorMap( avg, avg, cv::COLORMAP_JET );
-            avg = cvColor()( *average_, 8.0/numAverage_ );
-#endif
+            avg = advision::ApplyColorMap()( *average_, 8.0 / numAverage_ );
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {

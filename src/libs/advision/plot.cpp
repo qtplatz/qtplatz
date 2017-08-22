@@ -22,44 +22,67 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "plot.hpp"
+#include <QPainter>
 
-#include "cvplot_global.hpp"
-#include <QWidget>
-#include <QImage>
-#include <opencv2/opencv.hpp>
-#include <memory>
+using namespace advision;
 
 class QPaintEvent;
 
-namespace adcontrols { class MappedSpectra; class MappedDataFrame; }
+plot::plot( QWidget * parent ) : QWidget( parent )
+                               , mat_( cv::Mat() )
+{
+}
 
-namespace cvplot {
-    
-    class CVPLOTSHARED_EXPORT plot : public QWidget {
+plot::~plot()
+{
+}
 
-        Q_OBJECT
+QSize
+plot::sizeHint() const
+{
+    return qimg_.size();
+}
 
-    public:
-        plot( QWidget * parent = 0 );
-        ~plot();
+QSize
+plot::minimumSizeHint() const
+{
+    return qimg_.size();
+}
 
-        QSize sizeHint() const;
-        QSize minimumSizeHint() const;
+void
+plot::show( const cv::Mat& image )
+{
+    constexpr int Scale = 8;
+    switch( image.type() ) {
+    case CV_8UC1:
+        cv::cvtColor( image, mat_, CV_GRAY2RGB );
+        break;
+    case CV_8UC3:
+        cv::cvtColor( image, mat_, CV_BGR2RGB );
+        break;
+    }
 
-        void setData( const cv::Mat& );
-        // void setData( std::shared_ptr< const adcontrols::MappedSpectra > );
-        // void setData( std::shared_ptr< const adcontrols::MappedDataFrame > );
+    //assert( mat_.isContinuous() );
+    qimg_ = QImage( static_cast< const unsigned char *>(mat_.data), mat_.cols, mat_.rows, mat_.step, QImage::Format_RGB888 );
+    qimg_ = qimg_.scaled( 64 * Scale, 64 * Scale, Qt::KeepAspectRatio );
 
-    public slots:
-        void show( const cv::Mat& image );
+    setFixedSize( image.cols * Scale, image.rows * Scale);
 
-    protected:
-        void paintEvent( QPaintEvent * );
-    
-    private:
-        QImage qimg_;
-        cv::Mat mat_;
-    };
+    repaint();
+}
 
+
+void
+plot::paintEvent( QPaintEvent * )
+{
+    QPainter painter(this);
+    painter.drawImage( QPoint(0,0), qimg_ );
+    painter.end();    
+}
+
+void
+plot::setData( const cv::Mat& m )
+{
+    show( m );
 }
