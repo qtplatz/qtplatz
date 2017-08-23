@@ -14,6 +14,7 @@
 #endif
 
 #include <advision/applycolormap.hpp>
+#include <advision/bgr2rgb.hpp>
 #include <advision/transform.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
@@ -47,8 +48,8 @@ main( int argc, char * argv[] )
 
     bool useCUDA = !vm.count( "cpu" );
 
-    af::Window wnd( 800, 600, "test" );
-    wnd.grid( 2, 2 );
+    af::Window wnd( 1200, 300, "test" );
+    wnd.grid( 1, 3 );
 
     for ( auto& file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
@@ -71,8 +72,7 @@ main( int argc, char * argv[] )
             while ( capture.read( m ) ) {
 
                 auto a = advision::transform_<af::array>()( m );
-                wnd( 0, 1 ).image( advision::transform_< af::array >().bgr2rgb(a), "Orignal" );
-
+                
                 auto dur = std::chrono::high_resolution_clock::now() - tp;
                 auto us = std::chrono::duration_cast< std::chrono::microseconds >( dur ).count();                
 
@@ -83,28 +83,34 @@ main( int argc, char * argv[] )
                     gray.convertTo( gs, advision::mat_< float, 1 >::type_value, 1.0/255 );
                 }
                 cv_vec.emplace_back( gs );
-                if ( !avg )
+                if ( !avg ) {
                     avg = std::make_unique< advision::mat_< float, 1 > >( gs );
-                else
+                } else {
                     (*avg) += gs;
-                ++nframes;
+                }
+
                 auto colored = advision::transform_< af::array >()( map( *avg, 8.0 / nframes, useCUDA ) );
                 
                 // convert to af::array
                 auto b = af::array( avg->cols, avg->rows, 1, avg->ptr< float >( 0 ) ).T();
                 
-                wnd(0,0).image( a, (boost::format( "%g fps" ) % ( double(nframes * 1e6) / us ) ).str().c_str() );
+                wnd(0,0).image( a, (boost::format( "Org. %g fps" ) % ( double(nframes * 1e6) / us ) ).str().c_str() );
 
-                wnd(1,0).image( b * 8 / nframes, (boost::format( "%1%/%2%" ) % nframes % ( double(us) / nframes ) ).str().c_str() );
+                wnd(0,1).image( b * 8 / nframes
+                                , (boost::format( "Gray Scale %1%/%2%" ) % nframes % ( double(us) / nframes ) ).str().c_str() );
 
-                wnd(1,1).image( advision::transform_< af::array >().bgr2rgb( colored )
+                wnd(0,2).image( advision::bgr2rgb_< af::array >()( colored )
                                 , (boost::format( "%1%/%2% %3%" )
+                                   % ( useCUDA ? "CUDA" : "CPU" )
                                    % nframes
                                    % ( double(us) / nframes )
-                                   % ( useCUDA ? "CUDA" : "CPU" ) ).str().c_str() );
+                                    ).str().c_str() );
                 
                 wnd.show();
 
+                if ( nframes++ == 0 )
+                    tp = std::chrono::high_resolution_clock::now();
+                
                 while ( cv_vec.size() > 2000 )
                     cv_vec.pop_front();
             }
