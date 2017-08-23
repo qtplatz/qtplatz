@@ -22,17 +22,17 @@
 **
 **************************************************************************/
 
-#include "afcolormap.hpp"
-#include "aftypes.hpp"
-#include <arrayfire.h>
-#include <af/cuda.h>
+#include "cvcolormap.hpp"
+#include "cvtypes.hpp"
 
-namespace cuda { namespace arrayfire {
+namespace cuda {
+
+    namespace bgr {
 
         enum RGB { Red = 0, Green = 1, Blue = 2 };
     
         template<typename T>
-        struct afColor {
+        struct cvColor {
             const size_t nlevels_;
             const T * colors_;
 
@@ -41,7 +41,7 @@ namespace cuda { namespace arrayfire {
                 U red, green, blue;
             };
             
-            __device__ afColor( size_t num, const T* rgb ) : nlevels_( num ), colors_(rgb) {
+            __device__ cvColor( size_t num, const T* rgb ) : nlevels_( num ), colors_(rgb) {
             }
 
             __device__ inline T R( int level ) const { return colors_[ level ]; }
@@ -59,25 +59,23 @@ namespace cuda { namespace arrayfire {
                                     , ( ( B( level ) - B( prev ) ) * frac + B( prev ) ) );
             }
         };
-
-    }
-}
-
+    } // bgr
+} // namespace cuda
 
 __global__
 void
-af_colormap_kernel( const int num, const float * d_x, uint8_t * d_y
+cv_colormap_kernel( const int num, const float * d_x, uint8_t * d_y
                     , const int nlevels, const float * d_levels, const float * d_colors )
 {
     const int id = blockIdx.x * blockDim.x + threadIdx.x;
 
     if ( id < num ) {
 
-        using namespace cuda::arrayfire;
+        using namespace cuda::bgr;
 
-        afColor<float> afColor( nlevels, d_colors );    
+        cvColor<float> cvColor( nlevels, d_colors );    
         
-        float r( afColor.R(0) ), g( afColor.G(0) ), b( afColor.B( 0 ) );
+        float r( cvColor.R(0) ), g( cvColor.G(0) ), b( cvColor.B( 0 ) );
         float frac(0);
         
         int level = 0;
@@ -90,62 +88,55 @@ af_colormap_kernel( const int num, const float * d_x, uint8_t * d_y
         if ( level > 0 )
             frac = ( d_x[ id ] - d_levels[ level - 1 ] ) / ( d_levels[ level ] - d_levels[ level - 1 ] );
 
-        auto c = afColor( level, frac );
-        
-        d_y[id + num * 0] = c.blue * 255;
-        d_y[id + num * 1] = c.green * 255;
-        d_y[id + num * 2] = c.red * 255;
+        auto c = cvColor( level, frac );
+
+        // BGR packed
+        d_y[(id * 3) + 0] = c.blue * 255;
+        d_y[(id * 3) + 1] = c.green * 255;
+        d_y[(id * 3) + 2] = c.red * 255;
     }
 }
 
 ///////////////////////
 
-cuda::afColorMap::afColorMap( const af::array& levels
-                              , const af::array& colors )
-    : levels_( levels )
-    , colors_( colors )
-    , af_cuda_stream_( afcu::getStream( afcu::getNativeId( af::getDevice() ) ) )
-    , d_levels_( 0 )
-    , d_colors_( 0 )
+cuda::cvColorMap::cvColorMap( const std::vector< float >& levels
+                              , const std::vector< float >& colors )
+    : d_levels_( levels.begin(), levels.end() )
+    , d_colors_( colors.begin(), colors.end() )
 {
-    levels_.eval();
-    colors_.eval();
-    d_levels_ = levels_.device< float >();
-    d_colors_ = colors_.device< float >();
 }
 
-cuda::afColorMap::~afColorMap()
+cuda::cvColorMap::~cvColorMap()
 {
-    levels_.unlock();
-    colors_.unlock();
 }
 
-af::array
-cuda::afColorMap::operator()( const af::array& gray ) const
+cv::Mat
+cuda::cvColorMap::operator()( const cv::Mat& gray ) const
 {
-    // Ensure any JIT kernels have executed
-    gray.eval();
-
-    const int num = gray.dims(0) * gray.dims(1);
-
-    const float * d_gray = gray.device< float >();
-
-    using advision::af_type_value;
-
-    // result array
-    af::array rgb = af::constant< uint8_t >( 0, gray.dims(0), gray.dims(1), 3, af_type_value< uint8_t >::value );
-
-    uint8_t * d_rgb = rgb.device< uint8_t >();
-    
-    const int threads = 128; // 1024; // 512; //256;
+    const int num = gray.cols * gray.rows;
+    const int threads = 64; // 1024; // 512; //256;
     const int blocks = (num / threads) + ((num % threads) ? 1 : 0 );
-
-    af_colormap_kernel <<< blocks, threads, 0, af_cuda_stream_ >>> ( num, d_gray, d_rgb, levels_.dims(0), d_levels_, d_colors_ );
     
-    gray.unlock();
-    rgb.unlock();    
+    const float * p_gray = reinterpret_cast< const float * >( gray.ptr() );
 
+    thrust::device_vector< float > d_gray( p_gray, p_gray + num );
+
+    thrust::device_vector< unsigned char > d_rgb( num * 3 );  // row major array, rgb
+
+    cv_colormap_kernel <<< blocks, threads >>>
+        ( num
+          , thrust::raw_pointer_cast( d_gray.data() )
+          , thrust::raw_pointer_cast( d_rgb.data() )
+          , d_levels_.size()
+          , thrust::raw_pointer_cast( d_levels_.data() )
+          , thrust::raw_pointer_cast( d_colors_.data() )
+            );
+    
+    cv::Mat rgb( gray.rows, gray.cols, CV_8UC(3) ); // BGR
+
+    thrust::copy( d_rgb.begin(), d_rgb.end(), rgb.ptr() );
+    
     cudaDeviceSynchronize();
-    
+
     return rgb;
 }

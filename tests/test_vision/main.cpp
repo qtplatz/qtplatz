@@ -31,7 +31,7 @@ main( int argc, char * argv[] )
     {
         description.add_options()
             ( "help,h",      "Display this help message" )
-            ( "cpu",         "Use cpu" )
+            ( "algo",        po::value< std::string >()->default_value( "cv" ),  "cuda access algo ['cpu'|'af'|'cv']" )
             ( "args",        po::value< std::vector< std::string > >(),  "input files (.mp4)" )
             ;
 
@@ -46,7 +46,12 @@ main( int argc, char * argv[] )
         return 0;
     }
 
-    bool useCUDA = !vm.count( "cpu" );
+    bool useCUDA = vm[ "algo" ].as< std::string >() != "cpu";
+    advision::cuda_algo algo = advision::cuda_none;
+    if ( vm[ "algo" ].as< std::string >() == "cv" )
+        algo = advision::cuda_direct;
+    if ( vm[ "algo" ].as< std::string >() == "af" )
+        algo = advision::cuda_arrayfire;
 
     af::Window wnd( 1200, 300, "test" );
     wnd.grid( 1, 3 );
@@ -89,7 +94,7 @@ main( int argc, char * argv[] )
                     (*avg) += gs;
                 }
 
-                auto colored = advision::transform_< af::array >()( map( *avg, 8.0 / nframes, useCUDA ) );
+                auto colored = advision::transform_< af::array >()( map( *avg, 8.0 / nframes, algo ) );
                 
                 // convert to af::array
                 auto b = af::array( avg->cols, avg->rows, 1, avg->ptr< float >( 0 ) ).T();
@@ -123,7 +128,7 @@ main( int argc, char * argv[] )
         do {
             auto tp = std::chrono::high_resolution_clock::now();
             for ( auto& m: cv_vec ) {
-                map( m );
+                map( m, 1.0, advision::cuda_arrayfire );
             }
             using namespace std::chrono;        
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
@@ -133,7 +138,17 @@ main( int argc, char * argv[] )
         do {
             auto tp = std::chrono::high_resolution_clock::now();
             for ( auto& m: cv_vec ) {
-                map( m, 1.0, false );
+                map( m, 1.0, advision::cuda_direct );
+            }
+            using namespace std::chrono;        
+            auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
+            std::cout << boost::format( "CPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
+        } while ( 0 );
+
+        do {
+            auto tp = std::chrono::high_resolution_clock::now();
+            for ( auto& m: cv_vec ) {
+                map( m, 1.0, advision::cuda_none );
             }
             using namespace std::chrono;        
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();

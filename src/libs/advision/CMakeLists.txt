@@ -59,6 +59,8 @@ set ( SOURCES
 set ( CUDA_SOURCES
   afcolormap.hpp
   afcolormap.cu
+  cvcolormap.hpp
+  cvcolormap.cu
   )
 
 if ( CUDA_FOUND )

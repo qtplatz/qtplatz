@@ -24,6 +24,7 @@
 
 #include "applycolormap.hpp"
 #include "afcolormap.hpp"
+#include "cvcolormap.hpp"
 #include <arrayfire.h>
 #include <algorithm>
 
@@ -85,7 +86,7 @@ namespace advision {
     };
 
 #if HAVE_ARRAYFIRE && HAVE_CUDA
-    namespace gpu {
+    namespace gpu_af {
         class ColorMap : cuda::afColorMap {
             // af::array levels_;
             // af::array colors_;
@@ -97,13 +98,30 @@ namespace advision {
             }
             
             ~ColorMap() {
-                // levels_ = af::array();
-                // colors_ = af::array();
             }
             
             //-------
             inline af::array apply( const af::array& gray ) const {
                 return (*this)( gray ); // afColorMap( gray, levels_, colors_ );
+            }
+        };
+    }
+#endif
+#if HAVE_OPENCV && HAVE_CUDA
+    namespace gpu_cv {
+        class ColorMap : cuda::cvColorMap {
+        public:
+            ColorMap( const std::vector< float >& levels
+                      , const std::vector< float >& colors )
+                : cuda::cvColorMap( levels, colors ) {
+            }
+            
+            ~ColorMap() {
+            }
+            
+            //-------
+            inline cv::Mat apply( const cv::Mat& gray ) const {
+                return (*this)( gray );
             }
         };
     }
@@ -153,10 +171,9 @@ ApplyColorMap::ApplyColorMap( size_t nlevels, const float * levels, const float 
     , cpu_( std::make_unique< cpu::ColorMap >( levels_, colors_ ) )
 #endif
 #if HAVE_CUDA && HAVE_ARRAYFIRE
-    , gpu_( std::make_unique< gpu::ColorMap >( levels_, colors_ ) )
+    , gpu_af_( std::make_unique< gpu_af::ColorMap >( levels_, colors_ ) )
 #endif
 {
-    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;        
 }
 
 ApplyColorMap::ApplyColorMap()
@@ -166,27 +183,30 @@ ApplyColorMap::ApplyColorMap()
     , cpu_( std::make_unique< cpu::ColorMap >( levels_, colors_ ) )
 #endif
 #if HAVE_CUDA && HAVE_ARRAYFIRE
-    , gpu_( std::make_unique< gpu::ColorMap >( levels_, colors_ ) )
+    , gpu_af_( std::make_unique< gpu_af::ColorMap >( levels_, colors_ ) )
 #endif                                 
 {
-    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;    
 }
 
+// must be grayscale 
 cv::Mat
-ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, bool gpu ) // must be grayscale 
+ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo )
 {
     if ( mat.type() != CV_32F )
         return cv::Mat();
 
-// #if HAVE_CUDA && HAVE_ARRAYFIRE
-
-    if ( gpu && gpu_ ) {
+#if HAVE_CUDA
+    if ( algo == cuda_direct ) {
+        return gpu_cv::ColorMap( levels_, colors_ ).apply( mat * scaleFactor );
+    }
+# if HAVE_ARRAYFIRE
+    if ( algo == cuda_arrayfire && gpu_af_ ) {
         // f32 array
         af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) ).T() * scaleFactor;
 
         // apply colorMap in CUDA kernel
         // af::array rgb = gpu::ColorMap( levels_, colors_ ).apply( gray );
-        af::array rgb = gpu_->apply( gray );
+        af::array rgb = gpu_af_->apply( gray );
 
         // make row major, rgb
         af::array cv_format_rgb = af::reorder( rgb.T(), 2, 0, 1 );
@@ -196,18 +216,19 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, bool gpu ) // 
         cv_format_rgb.as( u8 ).host( mat8u.ptr< uchar >( 0 ) );
         return mat8u;        
     }
-// #endif
+# endif
+#endif
     // software color mapping
-    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__
-              << " gpu=" << gpu << ", " << bool( gpu_ ) << "cpu color mapping" << std::endl;
-    
-    return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
+    if ( algo == cuda_none )
+        return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
+
+    return cv::Mat();
 }
 
 #if HAVE_ARRAYFIRE && HAVE_CUDA
 af::array
 ApplyColorMap::operator()( const af::array& gray, float scaleFactor, bool gpu ) // must be grayscale 
 {
-    return gpu::ColorMap( levels_, colors_ ).apply( gray * scaleFactor );
+    return gpu_af::ColorMap( levels_, colors_ ).apply( gray * scaleFactor );
 }
 #endif

@@ -24,45 +24,27 @@
 
 #pragma once
 
-#include "advision_global.hpp"
-#include <af/array.h>
-#include <opencv2/core/mat.hpp>
+#include <driver_types.h> // cudaStream_t
 #include <vector>
-#include <memory>
+#include <thrust/device_vector.h>
 
-namespace advision {
+namespace cv { class Mat; }
 
-    namespace cpu { class ColorMap; }
-    namespace gpu_af { class ColorMap; }
-    namespace gpu_cv { class ColorMap; }
+namespace cuda {
 
-    enum cuda_algo { cuda_none, cuda_arrayfire, cuda_direct };
-    
-    class ADVISIONSHARED_EXPORT ApplyColorMap {
-        std::vector< float > levels_;
-        std::vector< float > colors_;
-        std::unique_ptr< cpu::ColorMap > cpu_;
-        std::unique_ptr< gpu_af::ColorMap > gpu_af_;
+    class cvColorMap {
+
+        cvColorMap( const cvColorMap& ) = delete;
+        cvColorMap& operator = ( const cvColorMap& ) = delete;
+        
+        thrust::device_vector< float > d_levels_;
+        thrust::device_vector< float > d_colors_;
+
     public:
-        ~ApplyColorMap();
-        ApplyColorMap();
-        ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
+        cvColorMap( const std::vector< float >& levels, const std::vector< float >& colors );
+        ~cvColorMap();
         
-        cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_arrayfire );
-        
-        af::array operator()( const af::array&, float scaleFactor = 1.0, bool gpu = true );
+        cv::Mat operator()( const cv::Mat& ) const;
     };
-
-} // namespace advision
-
-
-
-
-
-
-
-
-
-
-
+}
 
