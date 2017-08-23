@@ -22,49 +22,37 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "bgr2rgb.hpp"
+#include "transform.hpp"
+#include <arrayfire.h>
+#include <opencv2/opencv.hpp>
 
-#include "advision_global.hpp"
-
-namespace af { class array; }
-namespace cv { class Mat; }
-class QImage;
 
 namespace advision {
 
-    // cv::Mat uses BGR format, which does not handle in this transform class
-    // use bgr2rgb_ template instead
-
-    class ADVISIONSHARED_EXPORT transform {
-    public:
-        static cv::Mat mat( const af::array& );
-        static af::array array( const cv::Mat& );
-    };
-
-    template< typename T >
-    struct ADVISIONSHARED_EXPORT transform_ {
-        template< typename R > T operator()( const R& ) const;
-    };
+    template<>
+    template<>
+    af::array bgr2rgb_< af::array >::operator()< af::array >( const af::array& a ) const {
+        af::array b( a );
+        b( af::span, af::span, 2 ) = a( af::span, af::span, 0 );
+        b( af::span, af::span, 0 ) = a( af::span, af::span, 2 );
+        return b;
+    }
 
     template<>
-    template< typename R > af::array transform_< af::array >::operator()( const R& ) const;
+    template<>
+    cv::Mat bgr2rgb_< cv::Mat >::operator()< af::array >( const af::array& a ) const {
+        auto t = bgr2rgb_< af::array >()( a );
+        return transform_< cv::Mat >()( t );
+    }
 
     template<>
-    template< typename R > cv::Mat transform_< cv::Mat >::operator()( const R& ) const;
-
     template<>
-    template< typename R > QImage transform_< QImage >::operator()( const R& ) const;        
-
+    cv::Mat bgr2rgb_< cv::Mat >::operator()< cv::Mat >( const cv::Mat& a ) const {
+        cv::Mat b;
+        cv::cvtColor( a, b, CV_RGB2BGR );
+        return b;
+    }
+    
 }
-
-
-
-
-
-
-
-
-
-
-
 

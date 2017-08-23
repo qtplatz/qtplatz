@@ -28,32 +28,15 @@
 
 namespace af { class array; }
 namespace cv { class Mat; }
-class QImage;
 
 namespace advision {
 
-    // cv::Mat uses BGR format, which does not handle in this transform class
-    // use bgr2rgb_ template instead
-
-    class ADVISIONSHARED_EXPORT transform {
-    public:
-        static cv::Mat mat( const af::array& );
-        static af::array array( const cv::Mat& );
-    };
-
     template< typename T >
-    struct ADVISIONSHARED_EXPORT transform_ {
+    struct ADVISIONSHARED_EXPORT bgr2rgb_ {
+        
         template< typename R > T operator()( const R& ) const;
+
     };
-
-    template<>
-    template< typename R > af::array transform_< af::array >::operator()( const R& ) const;
-
-    template<>
-    template< typename R > cv::Mat transform_< cv::Mat >::operator()( const R& ) const;
-
-    template<>
-    template< typename R > QImage transform_< QImage >::operator()( const R& ) const;        
 
 }
 
