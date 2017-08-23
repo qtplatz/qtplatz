@@ -25,5 +25,27 @@
 #pragma once
 
 #include <af/array.h>
+#include <driver_types.h> // cudaStream_t
 
-af::array afColorMap( const af::array& gray, const af::array& levels, const af::array& colors );
+// af::array afColorMap( const af::array& gray, const af::array& levels, const af::array& colors );
+
+namespace cuda {
+
+    class afColorMap {
+        afColorMap( const afColorMap& ) = delete;
+        afColorMap& operator = ( const afColorMap& ) = delete;
+        
+        af::array levels_;
+        af::array colors_;
+        cudaStream_t af_cuda_stream_;
+        const float * d_levels_;
+        const float * d_colors_;
+
+    public:
+        afColorMap( const af::array& levels, const af::array& colors );
+        ~afColorMap();
+
+        af::array operator()( const af::array& gray ) const;
+    };
+    
+}

@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include "afcolormap.hpp"
 #include "aftypes.hpp"
 #include <arrayfire.h>
 #include <af/cuda.h>
@@ -122,18 +123,75 @@ afColorMap( const af::array& gray, const af::array& levels, const af::array& col
     const float * d_levels = levels.device< float >();
     const float * d_colors = colors.device< float >();
 
-    const int threads = 256;
+    // GeForce GTX 750 Ti 's max threads per block is 1024 according to queryDevice in CUDA samples
+    const int threads = 128; // 1024; // 512; //256;
     const int blocks = (num / threads) + ((num % threads) ? 1 : 0 );
 
     af_colormap_kernel <<< blocks, threads, 0, af_cuda_stream >>> ( num, d_gray, d_rgb, levels.dims(0), d_levels, d_colors );
-
-    cudaDeviceSynchronize();
-
+    
     gray.unlock();
     rgb.unlock();    
     levels.unlock();
     colors.unlock();
 
+    cudaDeviceSynchronize();    
     return rgb;
 }
 
+///////////////////////
+
+cuda::afColorMap::afColorMap( const af::array& levels
+                                  , const af::array& colors )
+    : levels_( levels )
+    , colors_( colors )
+    , af_cuda_stream_( afcu::getStream( afcu::getNativeId( af::getDevice() ) ) )
+    , d_levels_( 0 )
+    , d_colors_( 0 )
+{
+    levels_.eval();
+    colors_.eval();
+    d_levels_ = levels_.device< float >();
+    d_colors_ = colors_.device< float >();
+}
+
+cuda::afColorMap::~afColorMap()
+{
+    levels_.unlock();
+    colors_.unlock();
+}
+
+af::array
+cuda::afColorMap::operator()( const af::array& gray ) const
+{
+    // Ensure any JIT kernels have executed
+    gray.eval();
+
+    // Determine ArrayFire's CUDA stream
+
+    const int num = gray.dims(0) * gray.dims(1);
+
+    const float * d_gray = gray.device< float >();
+
+    using advision::af_type_value;
+
+    // result array
+    af::array rgb = af::constant< uint8_t >( 0, gray.dims(0), gray.dims(1), 3, af_type_value< uint8_t >::value );
+
+    uint8_t * d_rgb = rgb.device< uint8_t >();
+    
+    // const float * d_levels = levels_.device< float >();
+    // const float * d_colors = colors_.device< float >();
+
+    // GeForce GTX 750 Ti 's max threads per block is 1024 according to queryDevice in CUDA samples
+    const int threads = 128; // 1024; // 512; //256;
+    const int blocks = (num / threads) + ((num % threads) ? 1 : 0 );
+
+    af_colormap_kernel <<< blocks, threads, 0, af_cuda_stream_ >>> ( num, d_gray, d_rgb, levels_.dims(0), d_levels_, d_colors_ );
+    
+    gray.unlock();
+    rgb.unlock();    
+
+    cudaDeviceSynchronize();
+    
+    return rgb;
+}

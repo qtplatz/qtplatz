@@ -86,24 +86,24 @@ namespace advision {
 
 #if HAVE_ARRAYFIRE && HAVE_CUDA
     namespace gpu {
-        class ColorMap {
-            af::array levels_;
-            af::array colors_;
+        class ColorMap : cuda::afColorMap {
+            // af::array levels_;
+            // af::array colors_;
         public:
             ColorMap( const std::vector< float >& levels
                       , const std::vector< float >& colors )
-                : levels_( levels.size(), 1, levels.data() )
-                , colors_( 3, levels.size(), colors.data() ) {
+                : cuda::afColorMap( af::array( levels.size(), 1, levels.data() )
+                                    , af::array( 3, levels.size(), colors.data() ) ) {
             }
             
             ~ColorMap() {
-                levels_ = af::array();
-                colors_ = af::array();
+                // levels_ = af::array();
+                // colors_ = af::array();
             }
             
             //-------
             inline af::array apply( const af::array& gray ) const {
-                return afColorMap( gray, levels_, colors_ );
+                return (*this)( gray ); // afColorMap( gray, levels_, colors_ );
             }
         };
     }
