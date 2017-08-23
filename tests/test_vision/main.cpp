@@ -132,7 +132,7 @@ main( int argc, char * argv[] )
             }
             using namespace std::chrono;        
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
-            std::cout << boost::format( "GPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
+            std::cout << boost::format( "GPU (arrayfire)  : %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
         } while ( 0 );
 
         do {
@@ -142,7 +142,7 @@ main( int argc, char * argv[] )
             }
             using namespace std::chrono;        
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
-            std::cout << boost::format( "CPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
+            std::cout << boost::format( "GPU (cuda direct): %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
         } while ( 0 );
 
         do {
@@ -152,7 +152,7 @@ main( int argc, char * argv[] )
             }
             using namespace std::chrono;        
             auto s = duration_cast< duration<double> >( high_resolution_clock::now() - tp ).count();
-            std::cout << boost::format( "CPU Total: %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
+            std::cout << boost::format( "CPU              : %g s, %g fps" ) % s % ( cv_vec.size() / s ) << std::endl;
         } while ( 0 );
 
     }

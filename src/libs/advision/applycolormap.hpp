@@ -41,16 +41,15 @@ namespace advision {
     class ADVISIONSHARED_EXPORT ApplyColorMap {
         std::vector< float > levels_;
         std::vector< float > colors_;
-        std::unique_ptr< cpu::ColorMap > cpu_;
-        std::unique_ptr< gpu_af::ColorMap > gpu_af_;
     public:
         ~ApplyColorMap();
         ApplyColorMap();
         ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
         
-        cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_arrayfire );
-        
-        af::array operator()( const af::array&, float scaleFactor = 1.0, bool gpu = true );
+        cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_direct ) const;
+#if HAVE_ARRAYFIRE        
+        af::array operator()( const af::array&, float scaleFactor = 1.0 ) const;
+#endif
     };
 
 } // namespace advision

@@ -161,52 +161,40 @@ using namespace advision;
 
 ApplyColorMap::~ApplyColorMap()
 {
-    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;        
 }
 
 ApplyColorMap::ApplyColorMap( size_t nlevels, const float * levels, const float * colors )
     : levels_( levels, levels + nlevels )
     , colors_( colors, colors + nlevels * 3 )
-#if HAVE_OPENCV
-    , cpu_( std::make_unique< cpu::ColorMap >( levels_, colors_ ) )
-#endif
-#if HAVE_CUDA && HAVE_ARRAYFIRE
-    , gpu_af_( std::make_unique< gpu_af::ColorMap >( levels_, colors_ ) )
-#endif
 {
 }
 
 ApplyColorMap::ApplyColorMap()
     : levels_( __levels )
     , colors_( __colors )
-#if HAVE_OPENCV
-    , cpu_( std::make_unique< cpu::ColorMap >( levels_, colors_ ) )
-#endif
-#if HAVE_CUDA && HAVE_ARRAYFIRE
-    , gpu_af_( std::make_unique< gpu_af::ColorMap >( levels_, colors_ ) )
-#endif                                 
 {
 }
 
 // must be grayscale 
 cv::Mat
-ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo )
+ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo ) const
 {
     if ( mat.type() != CV_32F )
         return cv::Mat();
 
-#if HAVE_CUDA
+#if HAVE_OPENCV && HAVE_CUDA
     if ( algo == cuda_direct ) {
         return gpu_cv::ColorMap( levels_, colors_ ).apply( mat * scaleFactor );
     }
-# if HAVE_ARRAYFIRE
-    if ( algo == cuda_arrayfire && gpu_af_ ) {
+#endif
+
+#if HAVE_ARRAYFIRE && HAVE_CUDA
+    if ( algo == cuda_arrayfire ) {
         // f32 array
         af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) ).T() * scaleFactor;
 
         // apply colorMap in CUDA kernel
-        // af::array rgb = gpu::ColorMap( levels_, colors_ ).apply( gray );
-        af::array rgb = gpu_af_->apply( gray );
+        af::array rgb = gpu_af::ColorMap( levels_, colors_ ).apply( gray );
 
         // make row major, rgb
         af::array cv_format_rgb = af::reorder( rgb.T(), 2, 0, 1 );
@@ -214,20 +202,16 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo
         // convert to cv::Mat (RGB)
         auto mat8u = cv::Mat( mat.rows, mat.cols, CV_8UC(3) );
         cv_format_rgb.as( u8 ).host( mat8u.ptr< uchar >( 0 ) );
-        return mat8u;        
+        return mat8u;
     }
-# endif
 #endif
-    // software color mapping
-    if ( algo == cuda_none )
-        return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
-
-    return cv::Mat();
+    // fallback to software color mapping
+    return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
 }
 
 #if HAVE_ARRAYFIRE && HAVE_CUDA
 af::array
-ApplyColorMap::operator()( const af::array& gray, float scaleFactor, bool gpu ) // must be grayscale 
+ApplyColorMap::operator()( const af::array& gray, float scaleFactor ) const // must be grayscale 
 {
     return gpu_af::ColorMap( levels_, colors_ ).apply( gray * scaleFactor );
 }
