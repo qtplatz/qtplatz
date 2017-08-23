@@ -47,6 +47,8 @@ set ( SOURCES
   aftypes.hpp
   applycolormap.cpp
   applycolormap.hpp
+  bgr2rgb.cpp
+  bgr2rgb.hpp
   cvtypes.hpp  
   plot.cpp
   plot.hpp
