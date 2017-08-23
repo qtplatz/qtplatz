@@ -141,14 +141,35 @@ namespace advision {
 
 using namespace advision;
 
+ApplyColorMap::~ApplyColorMap()
+{
+    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;        
+}
+
 ApplyColorMap::ApplyColorMap( size_t nlevels, const float * levels, const float * colors )
     : levels_( levels, levels + nlevels )
     , colors_( colors, colors + nlevels * 3 )
+#if HAVE_OPENCV
+    , cpu_( std::make_unique< cpu::ColorMap >( levels_, colors_ ) )
+#endif
+#if HAVE_CUDA && HAVE_ARRAYFIRE
+    , gpu_( std::make_unique< gpu::ColorMap >( levels_, colors_ ) )
+#endif
 {
+    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;        
 }
 
-ApplyColorMap::ApplyColorMap() : levels_( __levels ), colors_( __colors )
+ApplyColorMap::ApplyColorMap()
+    : levels_( __levels )
+    , colors_( __colors )
+#if HAVE_OPENCV
+    , cpu_( std::make_unique< cpu::ColorMap >( levels_, colors_ ) )
+#endif
+#if HAVE_CUDA && HAVE_ARRAYFIRE
+    , gpu_( std::make_unique< gpu::ColorMap >( levels_, colors_ ) )
+#endif                                 
 {
+    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;    
 }
 
 cv::Mat
@@ -157,13 +178,15 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, bool gpu ) // 
     if ( mat.type() != CV_32F )
         return cv::Mat();
 
-#if HAVE_CUDA && HAVE_ARRAYFIRE
-    if ( gpu ) {
+// #if HAVE_CUDA && HAVE_ARRAYFIRE
+
+    if ( gpu && gpu_ ) {
         // f32 array
         af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) ).T() * scaleFactor;
 
-        // apply colorMap in CUDA kernel        
-        af::array rgb = gpu::ColorMap( levels_, colors_ ).apply( gray );
+        // apply colorMap in CUDA kernel
+        // af::array rgb = gpu::ColorMap( levels_, colors_ ).apply( gray );
+        af::array rgb = gpu_->apply( gray );
 
         // make row major, rgb
         af::array cv_format_rgb = af::reorder( rgb.T(), 2, 0, 1 );
@@ -173,9 +196,11 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, bool gpu ) // 
         cv_format_rgb.as( u8 ).host( mat8u.ptr< uchar >( 0 ) );
         return mat8u;        
     }
-#endif
-
+// #endif
     // software color mapping
+    std::cerr << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__
+              << " gpu=" << gpu << ", " << bool( gpu_ ) << "cpu color mapping" << std::endl;
+    
     return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
 }
 

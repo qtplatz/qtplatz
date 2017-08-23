@@ -28,13 +28,20 @@
 #include <af/array.h>
 #include <opencv2/core/mat.hpp>
 #include <vector>
+#include <memory>
 
 namespace advision {
+
+    namespace cpu { class ColorMap; }
+    namespace gpu { class ColorMap; }
     
     class ADVISIONSHARED_EXPORT ApplyColorMap {
         std::vector< float > levels_;
         std::vector< float > colors_;
+        std::unique_ptr< cpu::ColorMap > cpu_;
+        std::unique_ptr< gpu::ColorMap > gpu_;
     public:
+        ~ApplyColorMap();
         ApplyColorMap();
         ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
         
