@@ -25,6 +25,7 @@
 #include "applycolormap.hpp"
 #include "afcolormap.hpp"
 #include "cvcolormap.hpp"
+#include <adportable/debug.hpp>
 #include <arrayfire.h>
 #include <algorithm>
 
@@ -179,8 +180,10 @@ ApplyColorMap::ApplyColorMap()
 cv::Mat
 ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo ) const
 {
-    if ( mat.type() != CV_32F )
+    if ( mat.type() != CV_32F ) {
+        ADDEBUG() << "ERROR: Invalid data type";
         return cv::Mat();
+    }
 
 #if HAVE_OPENCV && HAVE_CUDA
     if ( algo == cuda_direct ) {

@@ -26,6 +26,7 @@
 
 #include "player.hpp"
 #include "recorder.hpp"
+#include <advision/transform.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
 
@@ -136,8 +137,8 @@ Player::run()
             emit processedImage( img_ );                
         }
 
+        // no wait
         std::this_thread::sleep_until( start + ( ++frame_counts * std::chrono::duration< double >( delay ) ) );
-        // std::this_thread::sleep_for( std::chrono::duration<double>( delay ) );
     }
 }
 
@@ -214,18 +215,14 @@ Player::fetch( cv::Mat& mat )
 QImage
 Player::toImage( const cv::Mat& mat )
 {
-    if ( mat.channels()== 3 ) {
-        cv::Mat rgb;
-        cv::cvtColor( mat, rgb, CV_BGR2RGB );
-        return QImage( rgb.data, rgb.cols, rgb.rows, QImage::Format_RGB888 );
-    } else {
-        return QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
-    }
+    return advision::transform_< QImage >()( mat );
+    // if ( mat.channels()== 3 ) {
+    //     cv::Mat rgb;
+    //     cv::cvtColor( mat, rgb, CV_BGR2RGB );
+    //     return QImage( rgb.data, rgb.cols, rgb.rows, QImage::Format_RGB888 );
+    // } else {
+    //     return QImage( mat.data, mat.cols, mat.rows, QImage::Format_Indexed8 );
+    // }
 }
-
-
-
-
-
 
 

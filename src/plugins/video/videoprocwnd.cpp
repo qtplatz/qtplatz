@@ -49,6 +49,7 @@
 # include <advision/aftypes.hpp>
 #endif
 #include <advision/applycolormap.hpp>
+#include <advision/cvtypes.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/progresshandler.hpp>
@@ -138,7 +139,6 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
     }
 
     connect( document::instance(), &document::fileChanged, this, &VideoProcWnd::handleFileChanged );
-    // connect( document::instance()->player(), &Player::processedImage, this, &VideoProcWnd::handlePlayer );
     connect( document::instance()->player(), &Player::dataChanged, this, &VideoProcWnd::handleData );
 }
 
@@ -186,27 +186,24 @@ VideoProcWnd::handlePlayer( QImage img )
 void
 VideoProcWnd::handleData()
 {
-    typedef cv_extension::mat_t< float, 1 > average_data_t;
-    typedef cv_extension::mat_t< uint8_t, 3 > image_data_t;
-
     cv::Mat mat;
-    image_data_t avg;
+    cv::Mat avg;
     
     auto player = document::instance()->player();
     
     if ( player->fetch( mat ) ) {
-        cv::Mat_< uchar > gray;
-        cv::cvtColor( mat, gray, cv::COLOR_BGR2GRAY );
+        cv::Mat_< uchar > gray8u;
+        cv::cvtColor( mat, gray8u, cv::COLOR_BGR2GRAY );
         
-        average_data_t gs( mat.rows, mat.cols );
+        cv::Mat_< float > gray32f( mat.rows, mat.cols );
 
-        gray.convertTo( gs, average_data_t::type_value, 1.0/255 ); // 0..1.0 float gray scale
+        gray8u.convertTo( gray32f, CV_32FC(1), 1.0/255 ); // 0..1.0 float gray scale
 
         if ( !average_ ) {
-            average_ = std::make_unique< average_data_t >( gs );
+            average_ = std::make_unique< cv::Mat_< float > >( gray32f );
             numAverage_ = 1;
         } else {
-            *average_ += gs;
+            *average_ += gray32f;
             numAverage_++;
         }
 
