@@ -74,6 +74,7 @@ else()
     ${SOURCES}
     )
   set ( LINK_KEYWORD "LINK_PUBLIC" )
+  set ( CUDA_LIBRARIES )
 endif()
 
 target_link_libraries( ${PROJECT_NAME} ${LINK_KEYWORD}
