@@ -27,8 +27,6 @@
 #include <af/array.h>
 #include <driver_types.h> // cudaStream_t
 
-// af::array afColorMap( const af::array& gray, const af::array& levels, const af::array& colors );
-
 namespace cuda {
 
     class afColorMap {

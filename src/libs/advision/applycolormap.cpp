@@ -23,8 +23,10 @@
 **************************************************************************/
 
 #include "applycolormap.hpp"
-#include "afcolormap.hpp"
-#include "cvcolormap.hpp"
+#if HAVE_CUDA
+# include "afcolormap.hpp"
+# include "cvcolormap.hpp"
+#endif
 #include <adportable/debug.hpp>
 #include <arrayfire.h>
 #include <algorithm>
