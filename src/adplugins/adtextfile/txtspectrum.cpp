@@ -83,15 +83,19 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         }
     }
 
+    auto ignCols = dlg.ignoreColumns();
+
     do {
         std::string line;
         if ( textfile::getline( in, line ) ) {
             tokenizer tokens( line, sep );
             double values[3] = {0};
-            int i = 0;
-            for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 3; ++it, ++i ) {
+            int i(0);
+            int col(0);
+            for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 3; ++it, ++col ) {
                 const std::string& s = *it;
-                values[i] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
+                if ( ! ignCols.contains ( col + 1 ) )
+                    values[i++] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
             }
             if ( i == 2 ) {
                 cols[0].push_back( values[0] ); // (time|mass)

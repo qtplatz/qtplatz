@@ -49,7 +49,8 @@ namespace adcontrols {
         uint32_t mode() const;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
         void setMode( uint32_t );
 
-        void fSampInterval( double );
+        [[ deprecated ("use setSampInterval") ]] void fSampInterval( double );
+        void setSampInterval( double );
         double fSampInterval() const; // (this returns nSamplingDelay_ * fSampInterval_)
         double fSampDelay() const;
         void horPos( double );

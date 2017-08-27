@@ -129,6 +129,7 @@ namespace dataproc {
 
         // from menu
         void frequency_analysis();
+        void zero_filling();
         void save_image_file();
         void make_chromatogram( const adcontrols::DataReader *, std::shared_ptr< const adcontrols::MassSpectrum >, adcontrols::hor_axis, double, double );
         void make_chromatograms_from_peaks( std::shared_ptr< const adcontrols::MassSpectrum >, adcontrols::hor_axis, double, double );

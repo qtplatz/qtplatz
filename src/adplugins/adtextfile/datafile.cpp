@@ -46,6 +46,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/utf.hpp>
@@ -60,6 +61,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/uuid/uuid.hpp>
 
 using namespace adtextfile;
 
@@ -67,7 +69,9 @@ datafile::~datafile()
 {
 }
 
-datafile::datafile()
+datafile::datafile() : accelVoltage_( 0 )
+                     , length_( 0 )
+                     , tDelay_( 0 )
 {
 }
 
@@ -81,6 +85,42 @@ datafile::accept( adcontrols::dataSubscriber& sub )
     // subscribe processed dataset
     if ( processedDataset_ )
         sub.subscribe( *processedDataset_ );
+    
+    if ( auto db = sub.db() ) {
+        if ( ! model_.empty() ) { // has scan law
+            auto models = adcontrols::MassSpectrometer::installed_models();
+            auto it = std::find_if( models.begin(), models.end(), [&]( const std::pair< boost::uuids::uuid, std::string >& t ){
+                    return t.second == model_;
+                });
+            if ( it == models.end() )
+                return; // can't find clsid
+
+            static std::string misc_spectrometer = "9d7afc9f-f4c8-4a2d-a462-23aafde8d99f";
+
+            adfs::stmt sql( *db );
+            sql.prepare( "INSERT OR REPLACE INTO ScanLaw ("
+                         " objuuid, objtext, acclVoltage, tDelay, spectrometer, clsidSpectrometer)"
+                         " VALUES ( ?,?,?,?,?,? )" );
+            sql.bind( 1 ) = boost::uuids::uuid{ 0 };           // master observer
+            sql.bind( 2 ) = std::string( "master.observer" );  // signal observer text name
+            sql.bind( 3 ) = this->accelVoltage_;
+            sql.bind( 4 ) = this->tDelay_;
+            sql.bind( 5 ) = misc_spectrometer; // ScanLaw.spectrometer = Spectrometer.id
+            sql.bind( 6 ) = it->first;  // uuid_massspectrometer;
+
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << "sqlite error";
+            
+            sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
+            sql.bind( 1 ) = misc_spectrometer;  // ScanLaw.spectrometer = Spectrometer.id
+            sql.bind( 2 ) = 0;
+            sql.bind( 3 ) = std::string( "CSV Imported" );
+            sql.bind( 4 ) = this->length_;
+
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << "sqlite error";
+        }
+    }
 }
 
 bool
@@ -105,7 +145,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         double acclVoltage(0), tDelay(0), fLength(0);
         std::string spectrometer;
         if ( time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) )
-            dlg.setScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer );
+            dlg.setScanLaw( acclVoltage, tDelay, fLength, QString::fromStdString( spectrometer ) );
 
     } else {
         dlg.setDataType( Dialog::data_spectrum );
@@ -136,6 +176,13 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     if ( dlg.exec() ) {
 
         QApplication::changeOverrideCursor( Qt::WaitCursor );
+
+        if ( dlg.hasScanLaw() ) {
+            accelVoltage_ = dlg.acceleratorVoltage();
+            length_ = dlg.length();
+            tDelay_ = dlg.tDelay();
+            model_ = dlg.dataInterpreterClsid().toStdString();
+        }
         
         if ( dlg.dataType() == Dialog::data_chromatogram ) {
             adtextfile::TXTChromatogram txt;

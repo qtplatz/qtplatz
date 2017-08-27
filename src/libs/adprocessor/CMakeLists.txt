@@ -37,6 +37,7 @@ add_library( ${PROJECT_NAME} SHARED
 target_link_libraries( adprocessor LINK_PUBLIC
   adcontrols
   adfs
+  adutils
   adwidgets
   portfolio
   ${Boost_LIBRARIES}

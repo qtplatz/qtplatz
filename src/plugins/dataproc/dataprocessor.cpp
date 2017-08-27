@@ -190,9 +190,11 @@ Dataprocessor::save( QString * errorString, const QString& filename, bool /* aut
             return true;
         }
     }
+
+    // save as
     if ( !filename.isEmpty() )
         path = filename.toStdWString();
-
+    
     path.replace_extension( L".adfs" );
     if ( boost::filesystem::exists( path ) ) {
         int id = 1;
@@ -211,14 +213,28 @@ Dataprocessor::save( QString * errorString, const QString& filename, bool /* aut
     }
 
     // save as 'filename
-    std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
+    if ( auto file = adcontrols::datafile::create( path.wstring() ) ) {
 
-    if ( (file && file->saveContents( L"/Processed", *portfolio_, *this->file() )) ) {
+        {
+            auto fs = std::make_unique< adfs::filesystem >();
+            if ( fs->mount( path ) )
+                adutils::v3::AcquiredConf::create_table_v3( *fs->_ptr() );
+        }
 
-        // setFile( std::move( file ) ); <- this will clash app at access portfolio.
-        setModified( false );
+        adfs::stmt sql( *db() );
+        if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
+
+            sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
+            sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
+
+            sql.exec( ( boost::format( "DETACH DATABASE '%1%'" ) % path.string() ).str() );
+        }
+
+        if ( file->saveContents( L"/Processed", *portfolio_, *this->file() ) ) {
+            setModified( false );
+        }
         
-        // for debugging convension
+        // for debugging
 #if 0
         path.replace_extension( ".xml" );
         boost::filesystem::remove( path );
