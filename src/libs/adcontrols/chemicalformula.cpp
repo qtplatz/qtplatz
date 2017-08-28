@@ -336,7 +336,48 @@ namespace adcontrols {
             }
 
         };
-       
+
+        struct compute_mass {
+
+            template< typename char_type >
+            double operator()( const std::basic_string< char_type >& formula ) const {
+
+                // static std::basic_string< char_type > delimiters = "+-";
+
+                using namespace adportable::chem;
+
+                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+                adportable::chem::chemical_formula_parser< iterator_type
+                                                           , adportable::chem::formulaComposition
+                                                           , adportable::chem::icomp_type > cf;
+
+                adportable::chem::icomp_type comp;
+                auto it = formula.begin();
+                double mass(0);
+                int sep(0);
+                
+                //auto prev = it;
+                while ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) ) {
+                    
+                    if ( sep == '-' )
+                        mass -= monoIsotopicMass( comp );
+                    else
+                        mass += monoIsotopicMass( comp );
+
+                    comp = adportable::chem::icomp_type(); // clear
+
+                    // ADDEBUG() << "parse(" << formula.substr( prev - formula.begin(), it - formula.begin() ) << ") " << mass;
+                    // prev = it;
+
+                    if ( it == formula.end() && ( *it != '-' || *it != '+' ) )
+                        break;
+
+                    sep = *it++;
+                }
+                return mass;
+            }
+            
+        };
 
     } // namespace chem
 } // namespace adcontrols
@@ -359,34 +400,13 @@ ChemicalFormula::getElectronMass() const
 double
 ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula ) const
 {
-    using namespace adportable::chem;
-    chemical_formula_parser< std::wstring::const_iterator, formulaComposition, icomp_type > cf;
-
-    std::wstring::const_iterator it = formula.begin();
-    adportable::chem::icomp_type comp;    
-
-    if ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) ) {
-        return chem::monoIsotopicMass( comp );
-    }
-
-    return 0;
+    return chem::compute_mass()( formula );
 }
 
 double
 ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 {
-    using namespace adportable::chem;
-            
-    chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > cf;
-
-    std::string::const_iterator it = formula.begin();
-    adportable::chem::icomp_type comp;
-
-    if ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) ) {
-        return chem::monoIsotopicMass( comp );
-    }
-
-    return 0;
+    return chem::compute_mass()( formula );    
 }
 
 double
