@@ -22,7 +22,10 @@ if ( ArrayFire_FOUND )
 endif()
 
 if ( CUDA_FOUND )
-  list( APPEND CUDA_NVCC_FLAGS "-std=c++11;-O2;-DVERBOSE;-Wno-deprecated-gpu-targets")
+  #list( APPEND CUDA_NVCC_FLAGS "-std=c++11;-O2;-DVERBOSE;-Wno-deprecated-gpu-targets")
+  list( APPEND CUDA_NVCC_FLAGS "-std=c++11;-O2;-DVERBOSE")
+  list( APPEND CUDA_NVCC_FLAGS "-arch=sm_30")
+  list( APPEND CUDA_NVCC_FLAGS "--default-stream per-thread")
   set ( CUDA_PROPAGATE_HOST_FLAGS OFF )
   include_directories (
     ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
