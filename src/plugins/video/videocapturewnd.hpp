@@ -34,12 +34,10 @@ class QLabel;
 
 namespace portfolio { class Folium; }
 namespace adcontrols { class MappedImage; class MappedSpectra; class MassSpectrum; }
-
+namespace advision { class ImageWidget; }
 
 namespace video {
 
-    class ImageWidget;
-    
     class VideoCaptureWnd : public QWidget {
         Q_OBJECT
     public:
@@ -50,7 +48,7 @@ namespace video {
 
     private:
         //std::unique_ptr< QLabel > qlabel_;
-        std::unique_ptr< ImageWidget > view_;
+        std::unique_ptr< advision::ImageWidget > view_;
             
 
     public slots :

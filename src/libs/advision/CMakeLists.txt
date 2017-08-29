@@ -30,10 +30,11 @@ if ( CUDA_FOUND )
   )
 endif()
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets ) #Gui )
+find_package( Qt5 CONFIG REQUIRED Core Widgets OpenGL ) #Gui )
 
 include_directories(
   ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt5OpenGL_INCLUDE_DIRS}
   )
 		     
 add_definitions(-DADVISION_LIBRARY)
@@ -49,7 +50,11 @@ set ( SOURCES
   applycolormap.hpp
   bgr2rgb.cpp
   bgr2rgb.hpp
-  cvtypes.hpp  
+  cvtypes.hpp
+  imagewidget.cpp
+  imagewidget.hpp
+  imfilter.cpp
+  imfilter.hpp
   plot.cpp
   plot.hpp
   transform.cpp
@@ -61,6 +66,8 @@ set ( CUDA_SOURCES
   afcolormap.cu
   cvcolormap.hpp
   cvcolormap.cu
+  colormap.hpp
+  colormap.cu  
   )
 
 if ( CUDA_FOUND )

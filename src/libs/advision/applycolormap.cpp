@@ -28,7 +28,9 @@
 # include "cvcolormap.hpp"
 #endif
 #include <adportable/debug.hpp>
+#include <QImage>
 #include <arrayfire.h>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <algorithm>
 
 namespace advision {
@@ -221,3 +223,23 @@ ApplyColorMap::operator()( const af::array& gray, float scaleFactor ) const // m
     return gpu_af::ColorMap( levels_, colors_ ).apply( gray * scaleFactor );
 }
 #endif
+
+namespace advision {
+
+    template<>
+    QImage
+    ApplyColorMap::operator()<float>( const boost::numeric::ublas::matrix< float >&, float scaleFactor ) const
+    {
+        return QImage();
+    }
+
+    template<>
+    QImage
+    ApplyColorMap::operator()<double>( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
+    {
+        boost::numeric::ublas::matrix< float > f( m.size1(), m.size2() );
+        f = m;
+        return (*this)( f, scaleFactor );
+    }
+
+}

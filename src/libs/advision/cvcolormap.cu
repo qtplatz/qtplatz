@@ -60,6 +60,7 @@ namespace cuda {
             }
         };
     } // bgr
+
 } // namespace cuda
 
 __global__

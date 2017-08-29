@@ -28,7 +28,7 @@
 #include "cvmat.hpp"
 #include "dft2d.hpp"
 #include "document.hpp"
-#include "imagewidget.hpp"
+#include <advision/imagewidget.hpp>
 #include "player.hpp"
 #include "playercontrols.hpp"
 #include <opencv2/core/core.hpp>
@@ -85,7 +85,7 @@ VideoProcWnd::VideoProcWnd( QWidget *parent ) : QWidget( parent )
         if ( auto splitter2 = new Core::MiniSplitter ) {
 
             for ( auto& widget: imgWidgets_ ) {
-                widget = std::make_unique< ImageWidget >( this );
+                widget = std::make_unique< advision::ImageWidget >( this );
                 splitter2->addWidget( widget.get() );
             }
             splitter2->setOrientation( Qt::Horizontal );

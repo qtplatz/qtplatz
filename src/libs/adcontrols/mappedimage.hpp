@@ -74,7 +74,7 @@ namespace adcontrols {
 
         bool merge( const MappedSpectra& );
         
-        operator const boost::numeric::ublas::matrix< double >& () const;
+        const boost::numeric::ublas::matrix< double >& matrix() const;
         double max_z() const;
         size_t mergeCount() const;
         void setMergeCount( size_t );

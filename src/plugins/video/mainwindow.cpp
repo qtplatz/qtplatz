@@ -25,7 +25,7 @@
 #include "mainwindow.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include "imagewidget.hpp"
+#include <advision/imagewidget.hpp>
 #include "videoprocwnd.hpp"
 #include "imageview.hpp"
 #include "player.hpp"

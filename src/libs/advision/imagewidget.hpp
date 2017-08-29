@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "advision_global.hpp"
 #include <QFrame>
 #include <QImage>
 #include <memory>
@@ -32,9 +33,9 @@ class QGraphicsView;
 class QPaintEvent;
 class QImage;
 
-namespace video {
+namespace advision {
 
-    class ImageWidget : public QWidget {
+    class ADVISIONSHARED_EXPORT ImageWidget : public QWidget {
 
         Q_OBJECT
 

@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "imagewidget.hpp"
-#include "document.hpp"
 #include <adportable/debug.hpp>
 #include <QBoxLayout>
 #include <QEvent>
@@ -37,7 +36,7 @@
 
 class QPaintEvent;
 
-using namespace video;
+using namespace advision;
 
 ImageWidget::ImageWidget( QWidget * parent ) : QWidget( parent )
                                              , scale_( 1.0 )

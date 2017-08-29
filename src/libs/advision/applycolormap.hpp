@@ -27,8 +27,11 @@
 #include "advision_global.hpp"
 #include <af/array.h>
 #include <opencv2/core/mat.hpp>
+#include <boost/numeric/ublas/fwd.hpp>
 #include <vector>
 #include <memory>
+
+class QImage;
 
 namespace advision {
 
@@ -45,6 +48,8 @@ namespace advision {
         ~ApplyColorMap();
         ApplyColorMap();
         ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
+        
+        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >&, float scaleFactor = 1.0 ) const;
         
         cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_direct ) const;
 #if HAVE_ARRAYFIRE        

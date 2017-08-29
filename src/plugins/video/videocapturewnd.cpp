@@ -25,7 +25,7 @@
 #include "videocapturewnd.hpp"
 #include "document.hpp"
 #include "constants.hpp"
-#include "imagewidget.hpp"
+#include <advision/imagewidget.hpp>
 #include "player.hpp"
 #include "recordercontrols.hpp"
 #include "mainwindow.hpp"
@@ -81,7 +81,7 @@ VideoCaptureWnd::~VideoCaptureWnd()
 }
 
 VideoCaptureWnd::VideoCaptureWnd( QWidget *parent ) : QWidget( parent )
-                                                    , view_( std::make_unique< ImageWidget >() )
+                                                    , view_( std::make_unique< advision::ImageWidget >() )
 {
     setContextMenuPolicy( Qt::CustomContextMenu );
 

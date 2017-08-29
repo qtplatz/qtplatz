@@ -158,7 +158,8 @@ MappedImage::operator ()( size_t i, size_t j ) const
     return (impl_->data_)( i, j );
 }
 
-MappedImage::operator const boost::numeric::ublas::matrix< double >& () const
+const boost::numeric::ublas::matrix< double >&
+MappedImage::matrix() const
 {
     return impl_->data_;
 }

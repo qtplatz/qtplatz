@@ -86,8 +86,6 @@ add_library( ${PROJECT_NAME} MODULE
   document.hpp
   dft2d.cpp
   dft2d.hpp
-  imagewidget.cpp
-  imagewidget.hpp
   imageview.cpp
   imageview.hpp
   mainwindow.cpp

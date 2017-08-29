@@ -30,6 +30,8 @@
 
 namespace cv { class Mat; }
 
+class QImage;
+
 namespace cuda {
 
     class cvColorMap {
@@ -43,7 +45,7 @@ namespace cuda {
     public:
         cvColorMap( const std::vector< float >& levels, const std::vector< float >& colors );
         ~cvColorMap();
-        
+
         cv::Mat operator()( const cv::Mat& ) const;
     };
 }
