@@ -27,6 +27,7 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QSet>
 #include <adcontrols/metric/prefix.hpp>
 
 namespace Ui {
@@ -51,11 +52,13 @@ namespace adtextfile {
 
         void setAcceleratorVoltage( double );
         void setLength( double );
+        void setTDelay( double );
 
         double acceleratorVoltage() const;
         double length() const;
+        double tDelay() const;
 
-        void setHasDataInterpreer( bool );
+        void setHasDataInterpreter( bool );
         bool hasDataInterpreter() const;
 
         void setDataInterpreterClsids( const QStringList& );
@@ -76,13 +79,19 @@ namespace adtextfile {
         size_t columnCount() const;
         size_t skipLines() const;
 
-        void setScanLaw( const std::string& adfsname
-                         , double acclVoltae, double tDelay, double fLength
-                         , const std::string& spectrometer );
+        void setScanLaw( double acclVoltae, double tDelay, double fLength, const QString& spectrometer );
+
+        const QSet< int >& ignoreColumns() const;
+
+        bool hasScanLaw() const;
 
     private:
         Ui::Dialog *ui;
         QSettings settings_;
+        QSet< int > ignoreColumns_;
+        size_t nColumns_;
+        void setColumnsIgnored( const QSet< int >& );
+        void setActiveColumns( size_t );
     };
 
 }

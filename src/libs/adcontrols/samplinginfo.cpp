@@ -136,6 +136,13 @@ SamplingInfo::SamplingInfo() : nSamplingDelay_( 0 )
 void
 SamplingInfo::fSampInterval( double v )
 {
+    // fsampInterval_ = v;
+    setSampInterval( v );
+}
+
+void
+SamplingInfo::setSampInterval( double v )
+{
     fsampInterval_ = v;
 }
 

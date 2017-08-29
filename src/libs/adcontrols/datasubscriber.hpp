@@ -32,8 +32,9 @@
 
 #include "adcontrols_global.h"
 #include <string>
+#include <memory>
 
-namespace adfs { class file; }
+namespace adfs { class file; class sqlite; }
 
 namespace adcontrols {
 
@@ -52,6 +53,7 @@ namespace adcontrols {
         virtual bool subscribe( const ProcessedDataset& ) { return false; }
 		virtual bool onFileAdded( const std::wstring& /* path */, adfs::file& ) { return false; } 
         virtual void notify( idError, const wchar_t * ) { }
+        virtual std::shared_ptr< adfs::sqlite > db() const { return nullptr; }
     };
 
 }

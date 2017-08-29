@@ -64,6 +64,7 @@ namespace adwidgets {
 
     enum {
         c_mspeaktable_formula
+        , c_mspeaktable_exact_mass
         , c_mspeaktable_mass
         , c_mspeaktable_mass_error
         , c_mspeaktable_delta_mass
@@ -120,8 +121,12 @@ namespace adwidgets {
             drawDisplay( painter, op, option.rect
                          , (boost::format( "%.5lf" ) % scale_to_micro( index.data( Qt::EditRole ).toDouble() )).str().c_str() );
             break;
+        case c_mspeaktable_exact_mass:
+            if ( ! index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() )
+                drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 7 ) );
+            break;
         case c_mspeaktable_mass:
-            drawDisplay( painter, op, option.rect, (boost::format( "%.7lf" ) % index.data( Qt::EditRole ).toDouble()).str().c_str() );
+            drawDisplay( painter, op, option.rect, QString::number( index.data( Qt::EditRole ).toDouble(), 'g', 7 ) );
             break;
         case c_mspeaktable_mass_error:
             if ( !index.model()->data( index.model()->index( index.row(), c_mspeaktable_formula ), Qt::EditRole ).toString().isEmpty() ) {
@@ -383,6 +388,7 @@ MSPeakTable::onInitialUpdate()
     model.setColumnCount( c_mspeaktable_num_columns );
 
     model.setHeaderData( c_mspeaktable_time,        Qt::Horizontal, QObject::tr( "time(&mu;s)" ) );
+    model.setHeaderData( c_mspeaktable_exact_mass,  Qt::Horizontal, QObject::tr( "Exact <i>m/z</i>" ) );
     model.setHeaderData( c_mspeaktable_mass,        Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
     model.setHeaderData( c_mspeaktable_mass_error,  Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mspeaktable_delta_mass,  Qt::Horizontal, QObject::tr( "&delta;Da" ) );
@@ -423,6 +429,7 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
                     return c.idx == uint32_t(idx) && c.fcn == uint32_t(fcn);  } );
         if ( it != candidates.end() ) {
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
+            model.setData( model.index( row, c_mspeaktable_exact_mass ), exactMass( it->formula ) );
             model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
             model.setData( model.index( row, c_mspeaktable_description ), tr( "Target candidate" ) );
 
@@ -481,9 +488,11 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
             model.setData( model.index( row, c_mspeaktable_intensity ), pk.area() );
             model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
-            if ( !pk.formula().empty() ) {
+            if ( ! pk.formula().empty() ) {
+                double mass = exactMass( pk.formula() );
                 model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( pk.formula() ) );
-                model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - exactMass( pk.formula() ) );
+                model.setData( model.index( row, c_mspeaktable_exact_mass ), mass );
+                model.setData( model.index( row, c_mspeaktable_mass_error ), pk.mass() - mass );
             }
 			model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdWString( pk.annotation() ) );
             model.setData( model.index( row, c_mspeaktable_mass_width ), pk.widthHH( false ) * std::milli::den );
@@ -552,6 +561,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
             model.setData( model.index( row, c_mspeaktable_mode ), fms.mode() );
 
             model.setData( model.index( row, c_mspeaktable_formula ), QString() ); // clear formula
+            model.setData( model.index( row, c_mspeaktable_exact_mass ), 0.0 );
 
             model.setData( model.index( row, c_mspeaktable_mass_width ), QVariant() ); // clear width
             model.setData( model.index( row, c_mspeaktable_time_width ), QVariant() ); // clear width
@@ -563,6 +573,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
                     model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );
                 } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                     model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
+                    model.setData( model.index( row, c_mspeaktable_exact_mass ), exactMass( it->text() ) );
                     model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
                     hasFormula = true;
                 } else if ( it->dataFormat() == adcontrols::annotation::dataSmiles ) {
@@ -632,6 +643,7 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
 
             model.setData( model.index( row, c_mspeaktable_description ), QString() );
             model.setData( model.index( row, c_mspeaktable_formula ), QString() );
+            model.setData( model.index( row, c_mspeaktable_exact_mass ), 0.0 );
 
             const adcontrols::annotations& annots = fms.get_annotations();
             auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; } );
@@ -640,6 +652,7 @@ MSPeakTable::updateData( const adcontrols::MassSpectrum& ms )
                     model.setData( model.index( row, c_mspeaktable_description ), QString::fromStdString( it->text() ) );                    
                 } else if ( it->dataFormat() == adcontrols::annotation::dataFormula ) {
                     model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->text() ) );
+                    model.setData( model.index( row, c_mspeaktable_exact_mass ), exactMass( it->text() ) );
                     model.setData( model.index( row, c_mspeaktable_mass_error ), mass - exactMass( it->text() ) );
                 } 
 				it = std::find_if( ++it, annots.end(), [=]( const adcontrols::annotation& a ){ return a.index() == idx; });
@@ -851,6 +864,8 @@ MSPeakTable::formulaChanged( const QModelIndex& index )
 
         std::string formula = index.data( Qt::EditRole ).toString().toStdString();
         double mass = model.index( index.row(), c_mspeaktable_mass ).data( Qt::EditRole ).toDouble();
+
+        model.setData( model.index( index.row(), c_mspeaktable_exact_mass ), exactMass( formula ) );
         model.setData( model.index( index.row(), c_mspeaktable_mass_error ), mass - exactMass( formula ) );
 
         if ( impl_->data_source_.which() == 0 ) {
@@ -928,27 +943,9 @@ MSPeakTable::exactMass( std::string formula )
 {
     if ( formula.empty() )
         return 0;
-#if 0
-    // this is handling adduct/lose but conflict with charge state e.g. [He]2+
-    std::string adduct_lose;
-    std::string::size_type pos = formula.find_first_of( "+-" );
-    int sign = 1;
-    if ( pos != std::wstring::npos ) {
-        sign = formula.at( pos ) == '+' ? 1 : -1;
-        adduct_lose = formula.substr( pos + 1 );
-        formula = formula.substr( 0, pos );
-    }
-#endif
 
     adcontrols::ChemicalFormula formulaParser;
     double exactMass = formulaParser.getMonoIsotopicMass( formula );
-
-#if 0
-    if ( !adduct_lose.empty() ) {
-        double a = formulaParser.getMonoIsotopicMass( adduct_lose );
-        exactMass += a * sign;
-    }
-#endif
     return exactMass;
 }
 
@@ -1086,6 +1083,7 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
         double width = 0;
         switch( col ) {
         case c_mspeaktable_formula:              width = rect.width() / 180 * 30; break;
+        case c_mspeaktable_exact_mass:           width = rect.width() / 180 * 30; break;
         case c_mspeaktable_mass:                 width = rect.width() / 180 * 30; break;
         case c_mspeaktable_mass_error:           width = rect.width() / 180 * 24; break;
         case c_mspeaktable_intensity:            width = rect.width() / 180 * 24; break;
@@ -1109,6 +1107,8 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
         if ( isRowHidden( row ) )
             continue;
 
+        QString formula = model.index( row, c_mspeaktable_formula ).data( Qt::EditRole ).toString();
+
         for ( int col = 0; col < cols; ++col ) {
             auto data = model.index( row, col ).data( Qt::EditRole );
             QString text;
@@ -1117,24 +1117,27 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
                 text = QString::fromStdString( adcontrols::ChemicalFormula::formatFormulae( data.toString().toStdString() ) );
                 render( painter, col, text, "left" );
                 break;
+            case c_mspeaktable_exact_mass:
+                text = formula.isEmpty() ? QString() : QString::number( data.toDouble(), 'g', 7 );
+                break;
             case c_mspeaktable_mass:
-                text = QString::fromStdString( (boost::format( "%.7lf" ) % ( data.toDouble() ) ).str() );
+                text = QString::number( data.toDouble(), 'g', 7 );
                 render( painter, col, text );
                 break;
             case c_mspeaktable_mass_error:
-                text = QString::fromStdString( (boost::format( "%.5lf" ) % ( data.toDouble() * std::milli::den )).str().c_str() );
+                text = QString::number( ( data.toDouble() * std::milli::den ), 'g', 7 );
                 render( painter, col, text );
                 break;
             case c_mspeaktable_intensity:
-                text = QString::fromStdString( (boost::format( "%.1lf" ) % data.toDouble()).str() );
+                text = QString::number( data.toDouble(), 'g', 1 );
                 render( painter, col, text );
                 break;                
             case c_mspeaktable_relative_intensity:
-                text = QString::fromStdString( (boost::format( "%.4lf" ) % data.toDouble()).str() );
+                text = QString::number( data.toDouble(), 'g', 4 );
                 render( painter, col, text );
                 break;                                
             case c_mspeaktable_time:
-                text = QString::fromStdString( (boost::format( "%.4lf" ) % ( data.toDouble() * std::micro::den ) ).str() );
+                text = QString::number( data.toDouble(), 'g', 4 );
                 render( painter, col, text );
                 break;                                                                
             case c_mspeaktable_description:

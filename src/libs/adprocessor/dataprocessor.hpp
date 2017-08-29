@@ -79,7 +79,7 @@ namespace adprocessor {
         
         virtual const adcontrols::LCMSDataset * rawdata();
 
-        std::shared_ptr< adfs::sqlite > db() const;
+        std::shared_ptr< adfs::sqlite > db() const override;
 
         virtual const portfolio::Portfolio& portfolio() const;
         virtual portfolio::Portfolio& portfolio();

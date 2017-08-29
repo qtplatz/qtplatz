@@ -28,6 +28,7 @@
 #include <adportable/debug.hpp>
 #include <ratio>
 #include <app/app_version.h>
+#include <QDebug>
 
 using namespace adtextfile;
 
@@ -37,9 +38,27 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
                                              , QSettings::UserScope
                                              , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                              , QLatin1String( "adtextfile" ) )
+                                , nColumns_( 0 )
 {
     ui->setupUi(this);
     ui->tableView->setModel( new QStandardItemModel );
+
+    connect( ui->radioButton_6, &QRadioButton::toggled, this, [&](bool f){
+            ui->groupBox_3->setEnabled( !f );
+        });
+
+    connect( ui->lineEdit, &QLineEdit::textChanged, this, [&]( const QString& text ){
+            QRegExp sep( "(\\ |\\,|\\t)"); // ' '|','|\t
+            QStringList list = text.split( sep );
+            QSet< int > lines;
+            for ( const auto& str: list ) {
+                bool ok( false );
+                int line = str.toInt( &ok );
+                if ( ok && line > 0 )   // origin one for column
+                    lines << line;
+            }
+            setColumnsIgnored( lines );
+        });
 
     settings_.beginGroup( "Dialog" );
     ui->checkBox->setChecked( settings_.value( "CheckBoxFileCreatedBy", true ).toBool() );
@@ -56,12 +75,15 @@ Dialog::Dialog(QWidget *parent) : QDialog(parent)
 
     ui->comboBox_2->setCurrentIndex( settings_.value( "ComboBoxTimePrefix", 2 ).toInt() ); // microseconds
     ui->spinBox->setValue( settings_.value( "SpinBoxSkipFirst", 0 ).toInt() );
-    // scanlaw tbd
+
+    ui->lineEdit->setText( settings_.value( "ColumnsIgnored", QString() ).toString() );
+    ui->groupBox_2->setChecked( settings_.value( "ScanLawBox", true ).toBool() );
+    ui->doubleSpinBox->setValue( settings_.value( "ScanLaw/Length", 1.0 ).toDouble() );
+    ui->doubleSpinBox_2->setValue( settings_.value( "ScanLaw/Accelerator", 5000 ).toDouble() );
+    ui->doubleSpinBox_3->setValue( settings_.value( "ScanLaw/T0", 0.0 ).toDouble() );
+
     settings_.endGroup();
 
-    connect( ui->radioButton_6, &QRadioButton::toggled, this, [&](bool f){
-            ui->groupBox_3->setEnabled( !f );
-        });
 }
 
 Dialog::~Dialog()
@@ -79,7 +101,16 @@ Dialog::~Dialog()
     settings_.setValue( "CheckBoxInverseData", ui->checkBox_2->isChecked() );
     settings_.setValue( "CheckBoxBaselineCorrection", ui->checkBox_3->isChecked() );
     settings_.setValue( "ComboBoxTimePrefix", ui->comboBox_2->currentIndex() );
-    settings_.value( "SpinBoxSkipFirst", ui->spinBox->value() );
+    settings_.setValue( "SpinBoxSkipFirst", ui->spinBox->value() );
+    QString list;
+    for ( auto& i: ignoreColumns_ )
+        list += QString( ( list.isEmpty() ? "%1" : ", %1" ) ).arg( i );
+    settings_.setValue( "ColumnsIgnored", list );
+
+    settings_.setValue( "ScanLawBox", ui->groupBox_2->isChecked() );
+    settings_.setValue( "ScanLaw/Length", ui->doubleSpinBox->value() );
+    settings_.setValue( "ScanLaw/Accelerator", ui->doubleSpinBox_2->value() );
+    settings_.setValue( "ScanLaw/T0", ui->doubleSpinBox_3->value() );
 
     settings_.endGroup();
     
@@ -106,19 +137,24 @@ Dialog::dataType() const
 }
 
 void
-Dialog::setScanLaw( const std::string& adfsname
-                    , double acclVoltage
+Dialog::setScanLaw( double acclVoltage
                     , double tDelay
                     , double fLength
-                    , const std::string& spectrometer )
+                    , const QString& spectrometer )
 {
     ui->groupBox_2->setEnabled( true );
     ui->groupBox_2->setChecked( true );
-    ui->groupBox_2->setTitle( QString( tr( "Scan Law (%1)" ).arg( QString::fromStdString( spectrometer ) ) ) );
+    ui->groupBox_2->setTitle( QString( tr( "Scan Law (%1)" ).arg( spectrometer ) ) );
 
     ui->doubleSpinBox->setValue( fLength );
     ui->doubleSpinBox_2->setValue( acclVoltage );
     ui->doubleSpinBox_3->setValue( tDelay * std::micro::den );
+}
+
+bool
+Dialog::hasScanLaw() const
+{
+    return ui->groupBox_2->isChecked();
 }
 
 void
@@ -146,7 +182,19 @@ Dialog::length() const
 }
 
 void
-Dialog::setHasDataInterpreer( bool v )
+Dialog::setTDelay( double v )
+{
+    ui->doubleSpinBox_3->setValue( v );
+}
+
+double
+Dialog::tDelay() const
+{
+    return ui->doubleSpinBox_3->value();
+}
+
+void
+Dialog::setHasDataInterpreter( bool v )
 {
     ui->checkBox->setChecked( v );
 }
@@ -217,8 +265,18 @@ Dialog::appendLine( const QStringList& list )
     if ( number_counts != list.size() ) {
         ui->spinBox->setValue( row + 1 );
     }
-    
-    if ( number_counts >= 3 ) {
+
+    nColumns_ = number_counts;
+    if ( ignoreColumns_.size() < nColumns_ )
+        setActiveColumns( number_counts - ignoreColumns_.size() );
+    else
+        setActiveColumns( number_counts );
+}
+
+void
+Dialog::setActiveColumns( size_t nColumns )
+{
+    if ( nColumns >= 3 ) {
         // data has triplets (time, mass, intensity)
         ui->radioButton_3->setEnabled( false );
         ui->radioButton_4->setEnabled( false );
@@ -226,6 +284,13 @@ Dialog::appendLine( const QStringList& list )
         // 
         ui->doubleSpinBox->setEnabled( false );   // flight length
         ui->doubleSpinBox_2->setEnabled( false ); // accelerator voltage
+    } else {
+        ui->radioButton_3->setEnabled( true );
+        ui->radioButton_4->setEnabled( true );
+        ui->radioButton_5->setChecked( false );
+        // 
+        ui->doubleSpinBox->setEnabled( true );   // flight length
+        ui->doubleSpinBox_2->setEnabled( true ); // accelerator voltage        
     }
 }
 
@@ -272,3 +337,18 @@ Dialog::skipLines() const
 {
     return ui->spinBox->value();
 }
+
+void
+Dialog::setColumnsIgnored( const QSet< int >& lines )
+{
+    ignoreColumns_ = lines;
+    if ( nColumns_ > ignoreColumns_.size() )
+        setActiveColumns( nColumns_ - ignoreColumns_.size() );
+}
+
+const QSet< int >&
+Dialog::ignoreColumns() const
+{
+    return ignoreColumns_;
+}
+

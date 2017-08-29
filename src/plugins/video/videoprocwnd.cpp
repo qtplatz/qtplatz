@@ -24,12 +24,6 @@
 
 #include "videoprocwnd.hpp"
 #include "constants.hpp"
-#if HAVE_ARRAYFIRE
-# include <advision/afcolormap.hpp>
-#endif
-#if HAVE_CUDA
-# include "cudacolormap.hpp"
-#endif
 #include "cv_extension.hpp"
 #include "cvmat.hpp"
 #include "dft2d.hpp"

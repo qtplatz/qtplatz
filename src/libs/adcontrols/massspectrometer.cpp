@@ -253,6 +253,12 @@ MassSpectrometer::get_model_names()
     return names;
 }
 
+std::vector< std::pair< boost::uuids::uuid, std::string > >
+MassSpectrometer::installed_models()
+{
+    return MassSpectrometerBroker::installed_uuids();
+}
+
 double
 MassSpectrometer::timeFromMass( double mass, const MassSpectrum& ms ) const
 {
