@@ -29,6 +29,8 @@
 #include <QImage>
 #if HAVE_OPENCV
 # include <opencv2/core/core.hpp>
+# include <opencv2/opencv.hpp>
+# include <opencv2/imgproc/imgproc.hpp>
 #endif
 #include <boost/numeric/ublas/matrix.hpp>
 
@@ -84,35 +86,38 @@ class QPaintEvent;
 
 namespace advision {
 
-// GrayScale
-template<>
-template<>
-QImage
-imfilter< QImage, imGrayScale >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
-{
-    return ublas_to_qimage< imGrayScale >()( m, scaleFactor );
-}
+///// GrayScale
+    template<>
+    template<>
+    QImage
+    imfilter< QImage, imGrayScale >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        return ublas_to_qimage< imGrayScale >()( m, scaleFactor );
+    }
 
-// Blur
-template<>
-template<>
-QImage
-imfilter< QImage, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
-{
-    // return ublas_to_qimage< imBlur >()( m, scaleFactor );
-    cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
-    
-    return QImage();
-}
+////// Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
+        if ( mat.rows < 256 )
+            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
+
+        cv::GaussianBlur( mat, mat, cv::Size( 5, 5 ), 0, 0 );
+
+        return transform_< QImage >()( mat );
+    }
 
 
-// ColorMap matrix<double>
-template<>
-template<>
-QImage
-imfilter< QImage, imColorMap >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
-{
-    return ApplyColorMap_<QImage>()( m, scaleFactor );
-}
+////// ColorMap matrix<double>
+    template<>
+    template<>
+    QImage
+    imfilter< QImage, imColorMap >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        return ApplyColorMap_<QImage>()( m, scaleFactor );
+    }
 
 }
