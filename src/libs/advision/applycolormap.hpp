@@ -40,8 +40,9 @@ namespace advision {
     namespace gpu_cv { class ColorMap; }
 
     enum cuda_algo { cuda_none, cuda_arrayfire, cuda_direct };
-    
+
     class ADVISIONSHARED_EXPORT ApplyColorMap {
+    protected:
         std::vector< float > levels_;
         std::vector< float > colors_;
     public:
@@ -49,14 +50,35 @@ namespace advision {
         ApplyColorMap();
         ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
         
-        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >&, float scaleFactor = 1.0 ) const;
-        
         cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_direct ) const;
-#if HAVE_ARRAYFIRE        
-        af::array operator()( const af::array&, float scaleFactor = 1.0 ) const;
-#endif
     };
 
+    template< typename T >
+    struct ADVISIONSHARED_EXPORT ApplyColorMap_ : public ApplyColorMap {
+        ApplyColorMap_() : ApplyColorMap() {}
+        ApplyColorMap_( size_t nlevels, const float * levels, const float * colors ) : ApplyColorMap( nlevels, levels, colors ) {}
+
+        // [1]
+        template< typename R > T operator()( const boost::numeric::ublas::matrix< R >&, float scaleFactor = 1.0 ) const;
+
+        // [2]
+        template< typename R > T operator()( const R&, float scaleFactor = 1.0 ) const;
+    };
+
+    // specialization [1]
+    template<>
+    template<typename R> QImage ApplyColorMap_<QImage>::operator()( const boost::numeric::ublas::matrix< R >&, float scaleFactor ) const;
+
+#if HAVE_OPENCV
+    // specialization [2]
+    template<>
+    template<typename R> cv::Mat ApplyColorMap_<cv::Mat>::operator()( const R&, float scaleFactor ) const;
+#endif
+
+#if HAVE_ARRAYFIRE
+    template<>
+    template<typename R> af::array ApplyColorMap_<af::array>::operator()( const R&, float scaleFactor ) const;
+#endif    
 } // namespace advision
 
 

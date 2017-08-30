@@ -54,10 +54,13 @@ set ( SOURCES
   bgr2rgb.cpp
   bgr2rgb.hpp
   cvtypes.hpp
+  deviceinfo.cpp
+  deviceinfo.hpp
   imagewidget.cpp
   imagewidget.hpp
   imfilter.cpp
   imfilter.hpp
+  utils.hpp
   plot.cpp
   plot.hpp
   transform.cpp

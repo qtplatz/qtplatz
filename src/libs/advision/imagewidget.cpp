@@ -49,13 +49,17 @@ ImageWidget::ImageWidget( QWidget * parent ) : QWidget( parent )
     graphicsView_->installEventFilter( this );
 
     graphicsView_->setRenderHint(QPainter::Antialiasing, false);
-    graphicsView_->setDragMode(QGraphicsView::RubberBandDrag);
+    //graphicsView_->setDragMode(QGraphicsView::RubberBandDrag);
+    graphicsView_->setDragMode( QGraphicsView::ScrollHandDrag );
     graphicsView_->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     graphicsView_->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     graphicsView_->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
-    int size = style()->pixelMetric(QStyle::PM_ToolBarIconSize);
-    QSize iconSize(size, size);
+    //graphicsView_->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+    //graphicsView_->setVerticalScrollBarPolicy ( Qt::ScrollBarAlwaysOff );
+
+    // int size = style()->pixelMetric(QStyle::PM_ToolBarIconSize);
+    // QSize iconSize(size, size);
 
     auto layout = new QBoxLayout( QBoxLayout::TopToBottom, this );
     layout->addWidget( graphicsView_ );

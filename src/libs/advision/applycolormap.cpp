@@ -23,9 +23,11 @@
 **************************************************************************/
 
 #include "applycolormap.hpp"
+#include "deviceinfo.hpp"
 #if HAVE_CUDA
 # include "afcolormap.hpp"
 # include "cvcolormap.hpp"
+# include "colormap.hpp"
 #endif
 #include <adportable/debug.hpp>
 #include <QImage>
@@ -40,7 +42,7 @@ namespace advision {
                                             // black, navy, cyan, green,yellow,red, white
     static const std::vector< float > __colors { 0.0, 0.0,  0.0,  0.0,  1.0,  1.0, 1.0  // R
                                                , 0.0, 0.0,  1.0,  1.0,  1.0,  0.0, 1.0  // G
-                                               , 0.0, 0.5,  1.0,  0.0,  0.0,  0.0, 1.0  // B
+                                               , 0.0, 1.0,  1.0,  0.0,  0.0,  0.0, 1.0  // B
     };
 
     // static constexpr size_t __nLevels = sizeof( __levels ) / sizeof( __levels[ 0 ] );
@@ -90,48 +92,6 @@ namespace advision {
         }
     };
 
-#if HAVE_ARRAYFIRE && HAVE_CUDA
-    namespace gpu_af {
-        class ColorMap : cuda::afColorMap {
-            // af::array levels_;
-            // af::array colors_;
-        public:
-            ColorMap( const std::vector< float >& levels
-                      , const std::vector< float >& colors )
-                : cuda::afColorMap( af::array( levels.size(), 1, levels.data() )
-                                    , af::array( 3, levels.size(), colors.data() ) ) {
-            }
-            
-            ~ColorMap() {
-            }
-            
-            //-------
-            inline af::array apply( const af::array& gray ) const {
-                return (*this)( gray ); // afColorMap( gray, levels_, colors_ );
-            }
-        };
-    }
-#endif
-#if HAVE_OPENCV && HAVE_CUDA
-    namespace gpu_cv {
-        class ColorMap : cuda::cvColorMap {
-        public:
-            ColorMap( const std::vector< float >& levels
-                      , const std::vector< float >& colors )
-                : cuda::cvColorMap( levels, colors ) {
-            }
-            
-            ~ColorMap() {
-            }
-            
-            //-------
-            inline cv::Mat apply( const cv::Mat& gray ) const {
-                return (*this)( gray );
-            }
-        };
-    }
-#endif
-
     namespace cpu {
         class ColorMap {
             cvColor color_;
@@ -155,7 +115,25 @@ namespace advision {
                 }
                 return x;
             }
+            
             //--
+            template< typename T > inline QImage operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
+
+                QImage x( m.size1(), m.size2(), QImage::Format_RGB888 );
+                unsigned char * p = x.bits();
+                for ( size_t i = 0; i < m.size1(); ++i ) {
+                    for ( size_t j = 0; j < m.size2(); ++j ) {
+                        double v = m( i, j ) * scaleFactor;
+                        auto c = std::move( color_( v ) );
+                        *p++ = c.red * 255;
+                        *p++ = c.green * 255;
+                        *p++ = c.blue * 255;
+                    }
+                }
+                return x;
+            }
+            //--
+            
         };
         
     }
@@ -190,19 +168,19 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo
     }
 
 #if HAVE_OPENCV && HAVE_CUDA
-    if ( algo == cuda_direct ) {
-        return gpu_cv::ColorMap( levels_, colors_ ).apply( mat * scaleFactor );
-    }
+    if ( algo == cuda_direct && deviceInfo::instance()->hasCUDA() )
+        return cuda::cvColorMap( levels_, colors_ )( mat * scaleFactor );
 #endif
 
 #if HAVE_ARRAYFIRE && HAVE_CUDA
-    if ( algo == cuda_arrayfire ) {
+    if ( algo == cuda_arrayfire && deviceInfo::instance()->hasCUDA() ) {
         // f32 array
         af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) ).T() * scaleFactor;
 
         // apply colorMap in CUDA kernel
-        af::array rgb = gpu_af::ColorMap( levels_, colors_ ).apply( gray );
-
+        af::array rgb = cuda::afColorMap( af::array( levels_.size(), 1, levels_.data() )
+                                          , af::array( 3, levels_.size(), colors_.data() ) )( gray );
+        
         // make row major, rgb
         af::array cv_format_rgb = af::reorder( rgb.T(), 2, 0, 1 );
 
@@ -216,30 +194,60 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo
     return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
 }
 
-#if HAVE_ARRAYFIRE && HAVE_CUDA
-af::array
-ApplyColorMap::operator()( const af::array& gray, float scaleFactor ) const // must be grayscale 
-{
-    return gpu_af::ColorMap( levels_, colors_ ).apply( gray * scaleFactor );
-}
-#endif
+/////////////
 
 namespace advision {
 
     template<>
+    template<>
     QImage
-    ApplyColorMap::operator()<float>( const boost::numeric::ublas::matrix< float >&, float scaleFactor ) const
+    ApplyColorMap_<QImage>::operator()<>( const boost::numeric::ublas::matrix< float >& m, float scaleFactor ) const
     {
-        return QImage();
+#if HAVE_CUDA
+        if ( deviceInfo::instance()->hasCUDA() )        
+            return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
+#endif
+        return cpu::ColorMap( levels_, colors_ )( m, scaleFactor );
     }
 
     template<>
+    template<>
     QImage
-    ApplyColorMap::operator()<double>( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
+    ApplyColorMap_<QImage>::operator()<>( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
     {
-        boost::numeric::ublas::matrix< float > f( m.size1(), m.size2() );
-        f = m;
-        return (*this)( f, scaleFactor );
+#if HAVE_CUDA
+        if ( deviceInfo::instance()->hasCUDA() )
+            return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
+#endif
+        return cpu::ColorMap( levels_, colors_ )( m, scaleFactor );        
     }
 
+#if HAVE_OPENCV
+    // specialization [2]
+    template<>
+    template<> cv::Mat ApplyColorMap_<cv::Mat>::operator()( const cv::Mat& mat, float scaleFactor ) const
+    {
+        if ( mat.type() != CV_32F ) {
+            ADDEBUG() << "ERROR: Invalid data type";
+            return cv::Mat();
+        }
+#if HAVE_CUDA
+        if ( deviceInfo::instance()->hasCUDA() )        
+            return cuda::cvColorMap( levels_, colors_ )( mat * scaleFactor );
+#endif
+        return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
+    }
+    
+#endif
+
+#if HAVE_ARRAYFIRE
+    template<>
+    template<> af::array ApplyColorMap_<af::array>::operator()( const af::array& a, float scaleFactor ) const
+    {
+        if ( deviceInfo::instance()->hasCUDA() )        
+            return cuda::afColorMap( af::array( levels_.size(), 1, levels_.data() )
+                                     , af::array( 3, levels_.size(), colors_.data() ) )( a * scaleFactor );        
+    }
+#endif    
+    
 }
