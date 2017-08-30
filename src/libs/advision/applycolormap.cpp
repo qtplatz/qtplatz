@@ -286,9 +286,12 @@ namespace advision {
     template<>
     template<> af::array ApplyColorMap_<af::array>::operator()( const af::array& a, float scaleFactor ) const
     {
+#if HAVE_CUDA        
         if ( deviceInfo::instance()->hasCUDA() )        
             return cuda::afColorMap( af::array( levels_.size(), 1, levels_.data() )
-                                     , af::array( 3, levels_.size(), colors_.data() ) )( a * scaleFactor );        
+                                     , af::array( 3, levels_.size(), colors_.data() ) )( a * scaleFactor );
+#endif
+        return af::array();
     }
 #endif    
     
