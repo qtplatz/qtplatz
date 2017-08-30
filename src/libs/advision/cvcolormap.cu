@@ -115,7 +115,7 @@ cv::Mat
 cuda::cvColorMap::operator()( const cv::Mat& gray ) const
 {
     const int num = gray.cols * gray.rows;
-    const int threads = 64; // 1024; // 512; //256;
+    const int threads = 256; //1024; // 512; //256;
     const int blocks = (num / threads) + ((num % threads) ? 1 : 0 );
     
     const float * p_gray = reinterpret_cast< const float * >( gray.ptr() );
@@ -128,16 +128,7 @@ cuda::cvColorMap::operator()( const cv::Mat& gray ) const
     // thrust::device_vector< unsigned char > d_rgb( num * 3 );  // row major array, rgb
     uint8_t * d_rgb(0);
     cudaMalloc( &d_rgb, num * 3 * sizeof(uint8_t) );
-#if 0
-    cv_colormap_kernel <<< blocks, threads >>>
-        ( num
-          , thrust::raw_pointer_cast( d_gray.data() )
-          , thrust::raw_pointer_cast( d_rgb.data() )
-          , d_levels_.size()
-          , thrust::raw_pointer_cast( d_levels_.data() )
-          , thrust::raw_pointer_cast( d_colors_.data() )
-            );
-#else
+
     cv_colormap_kernel <<< blocks, threads >>>
         ( num
           , d_gray
@@ -146,18 +137,15 @@ cuda::cvColorMap::operator()( const cv::Mat& gray ) const
           , thrust::raw_pointer_cast( d_levels_.data() )
           , thrust::raw_pointer_cast( d_colors_.data() )
             );    
-#endif
-    
+
     cv::Mat rgb( gray.rows, gray.cols, CV_8UC(3) ); // BGR
 
-    // thrust::copy( d_rgb.begin(), d_rgb.end(), rgb.ptr() );
     cudaMemcpyAsync( rgb.ptr(), d_rgb, num * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost );
 
     cudaFree( d_gray );
     cudaFree( d_rgb );
     
-    // cudaDeviceSynchronize();
-    cudaStreamSynchronize( 0 );
+    // cudaStreamSynchronize( 0 );
 
     return rgb;
 }

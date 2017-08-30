@@ -158,7 +158,7 @@ ApplyColorMap::ApplyColorMap()
 {
 }
 
-// must be grayscale 
+// must be grayscale
 cv::Mat
 ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo ) const
 {

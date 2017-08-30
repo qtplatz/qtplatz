@@ -202,7 +202,7 @@ VideoProcWnd::handleData()
         }
 
         if ( average_ ) {
-            avg = advision::ApplyColorMap()( *average_, 8.0 / numAverage_ );
+            avg = advision::ApplyColorMap_< cv::Mat >()( *average_, 8.0 / numAverage_ );
         }
 
         if ( auto controls = findChild< PlayerControls * >() ) {

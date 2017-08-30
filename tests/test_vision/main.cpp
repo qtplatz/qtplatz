@@ -33,6 +33,7 @@ static std::vector< std::string > algo_name = { "CPU", "CUDA/AF", "CUDA" };
 
 void single_thread_test( const std::string& file, af::Window * wnd, advision::cuda_algo );
 void thread_pool_test( const std::string& file, af::Window * wnd, advision::cuda_algo, int );
+void thread_pool_test2( const std::string& file, af::Window * wnd, advision::cuda_algo, int );
 
 int
 main( int argc, char * argv[] )
@@ -59,6 +60,9 @@ main( int argc, char * argv[] )
         return 0;
     }
 
+    // thread_pool_test2( "/home/toshi/Videos/Webcam/2017-08-10-165827.webm", 0, advision::cuda_none, 1 );
+    // exit(0);
+
     advision::cuda_algo algo = advision::cuda_none;
     
     if ( vm[ "algo" ].as< std::string >() == "cv" )
@@ -66,18 +70,19 @@ main( int argc, char * argv[] )
     if ( vm[ "algo" ].as< std::string >() == "af" )
         algo = advision::cuda_arrayfire;
 
-    bool showImage = vm[ "show" ].as< std::string >() == "yes";    
+    bool showImage = vm[ "show" ].as< std::string >() == "yes";
 
     std::unique_ptr< af::Window > wnd;
-    if ( showImage ) {
+    if ( showImage && ( vm.count( "threads" ) == 0 ) ) {
         wnd = std::make_unique< af::Window >( 1200, 300, "test" );
         wnd->grid( 1, 3 );
     }
 
+
     for ( auto& file: vm[ "args" ].as< std::vector< std::string > >() ) {
 
         if ( vm.count( "threads" ) ) {
-            thread_pool_test( file, wnd.get(), algo, vm[ "threads" ].as<int>() );
+            thread_pool_test2( file, wnd.get(), algo, vm[ "threads" ].as<int>() );
         } else {
             single_thread_test( file, wnd.get(), algo );
         }
@@ -326,20 +331,11 @@ thread_pool_test( const std::string& file, af::Window * wnd, advision::cuda_algo
             advision::ApplyColorMap()( gs, 1.0, algo );
         });
 
-#if 1 // cash all data in advance
-    if ( reader.open( file ) ) {
-        while ( reader.read( stream ) )
-            ;
-        io_service.post( [&](){ consumer.consume( stream, io_service, false ); });
-    }
-
-#else
-    
     if ( reader.open( file ) ) {
         io_service.post( [&](){ consumer.consume( stream, io_service, true ); });
         io_service.post( [&](){ reader.read( stream, io_service ); });
     }
-#endif
+
     std::cout << "reader has " << stream.count() << " images." << std::endl;
     
     std::vector< std::thread > threads;
@@ -362,4 +358,125 @@ thread_pool_test( const std::string& file, af::Window * wnd, advision::cuda_algo
               << std::chrono::duration_cast< std::chrono::duration< double > >( duration ).count() << " s\n"
               << consumer.count() / std::chrono::duration_cast< std::chrono::duration< double > >( duration ).count() << " fps"
               << std::endl;
+}
+
+
+class VideoCache : public std::vector< cv::Mat > {
+    std::vector< cv::Mat >::iterator it_;
+    std::mutex mutex_;
+    std::atomic< size_t > count_;
+public:
+    VideoCache() {}
+    
+    void rewind() {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        it_ = begin();
+        count_ = 0;
+    }
+
+    std::vector< cv::Mat >::const_iterator next() {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( it_ != end() )
+            return it_++;
+        return end();
+    }
+
+    bool next( boost::asio::io_service& io_service, advision::cuda_algo algo ) {
+        std::vector< cv::Mat >::iterator it;
+        do {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            it = it_++;
+        } while ( 0 );
+        if ( it != end() ) {
+            io_service.post( [&](){ next( io_service, algo ); } ); // schedule next
+            if ( algo == advision::cuda_direct )
+                advision::ApplyColorMap_< cv::Mat >()( *it, 1.0 );
+            else
+                advision::ApplyColorMap()( *it, 1.0, algo );
+            ++count_;            
+            // if ( ( count_ % 100 ) == 0 )
+            //     std::cout << "\rVideo cache next: " << count_;
+            return true;
+        }
+        io_service.stop();
+        //std::cout << "exitting : " << count_ << " frames processed." << std::endl;
+        return false;
+    }
+
+    size_t count() const {
+        return count_;
+    }
+};
+
+void
+thread_pool_test2( const std::string& file, af::Window * wnd, advision::cuda_algo algo, int nThreads )
+{
+    std::cerr << "thread_pool_test2 loading image form file : " << file << std::endl;
+
+    VideoCache cache;
+    cv::VideoCapture capture;
+    
+    if ( capture.open( file ) && capture.isOpened() ) {
+        auto tp = std::chrono::high_resolution_clock::now();
+        cv::Mat m;
+        while ( capture.read( m ) ) {
+            advision::mat_< float, 1 > gs( m.rows, m.cols );
+            {
+                cv::Mat_< uchar > gray;
+                cv::cvtColor( m, gray, cv::COLOR_BGR2GRAY );
+                gray.convertTo( gs, advision::mat_< float, 1 >::type_value, 1.0/255 );
+            }
+            cache.emplace_back( gs );
+            if ( cache.size() % 100 == 0 )
+                std::cout << ".";
+            if ( cache.size() >= 3000 )
+                break;
+        }
+
+        auto dur = std::chrono::high_resolution_clock::now() - tp;
+        auto seconds = double( std::chrono::duration_cast< std::chrono::microseconds >( dur ).count() ) * 1e-6;
+
+        // std::cout << "\t" << cache.size() << " frames read in " << seconds << " seconds"
+        //           << std::endl;
+    }
+
+    //for ( auto& algo: { advision::cuda_none, advision::cuda_direct, advision::cuda_arrayfire } ) {
+
+        cache.rewind();
+        
+        boost::asio::io_service io_service;
+
+        boost::asio::io_service::work work( io_service );
+
+        std::vector< std::thread > threads;
+        if ( nThreads == 0 )
+            nThreads = 1;
+
+        while ( nThreads-- )
+            threads.emplace_back( [&](){ io_service.run(); } );
+
+        // std::cout << std::endl;
+        // std::cout << "Total: " << threads.size() << " threads to be getting involved" << std::endl;
+        
+        auto tp = std::chrono::high_resolution_clock::now();
+
+        io_service.post( [&](){ cache.next( io_service, algo ); } );
+
+        for ( auto& t: threads )
+            t.join();
+
+        auto duration = std::chrono::high_resolution_clock::now() - tp;        
+
+        io_service.stop();
+        io_service.reset();
+
+        std::cout << cache.count() << " images processed in "
+                  << std::chrono::duration_cast< std::chrono::duration< double > >( duration ).count() << " s\n"
+                  << cache.size() / std::chrono::duration_cast< std::chrono::duration< double > >( duration ).count() << " fps"
+                  << " using " << threads.size() << " threads"
+                  << " using cuda algo: " << algo
+                  << std::endl;
+
+        threads.clear();
+        //}
 }

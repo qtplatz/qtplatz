@@ -36,8 +36,6 @@ class QImage;
 namespace advision {
 
     namespace cpu { class ColorMap; }
-    namespace gpu_af { class ColorMap; }
-    namespace gpu_cv { class ColorMap; }
 
     enum cuda_algo { cuda_none, cuda_arrayfire, cuda_direct };
 
@@ -49,7 +47,7 @@ namespace advision {
         ~ApplyColorMap();
         ApplyColorMap();
         ApplyColorMap( size_t nlevels, const float * levels, const float * colors );
-        
+
         cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_direct ) const;
     };
 
