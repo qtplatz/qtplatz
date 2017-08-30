@@ -93,49 +93,76 @@ namespace advision {
     };
 
     namespace cpu {
-        class ColorMap {
+
+        template< typename T >
+        class ColorMap_ {
             cvColor color_;
         public:
-            ColorMap( const std::vector< float >& levels
-                      , const std::vector< float >& colors ) : color_( levels, colors ) {
+            ColorMap_( const std::vector< float >& levels
+                       , const std::vector< float >& colors ) : color_( levels, colors ) {
             }
-            //
-            inline cv::Mat apply( const cv::Mat& gray, double scaleFactor ) const {
 
-                cv::Mat x( gray.rows, gray.cols, CV_8UC3 );
-                
-                for ( size_t i = 0; i < gray.rows; ++i ) {
-                    for ( size_t j = 0; j < gray.cols; ++j ) {
-                        double v = gray.at< float >( i, j ) * scaleFactor;
-                        auto c = std::move( color_( v ) );
-                        x.at< cv::Vec3b >( i, j )[ 0 ] = c.blue * 255;
-                        x.at< cv::Vec3b >( i, j )[ 1 ] = c.green * 255;
-                        x.at< cv::Vec3b >( i, j )[ 2 ] = c.red * 255;
-                    }
-                }
-                return x;
-            }
-            
-            //--
-            template< typename T > inline QImage operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
-
-                QImage x( m.size1(), m.size2(), QImage::Format_RGB888 );
-                unsigned char * p = x.bits();
-                for ( size_t i = 0; i < m.size1(); ++i ) {
-                    for ( size_t j = 0; j < m.size2(); ++j ) {
-                        double v = m( i, j ) * scaleFactor;
-                        auto c = std::move( color_( v ) );
-                        *p++ = c.red * 255;
-                        *p++ = c.green * 255;
-                        *p++ = c.blue * 255;
-                    }
-                }
-                return x;
-            }
-            //--
-            
+            template< typename R > T operator()( const R&, double scaleFactor ) const;
+            template< typename R > T operator()( const boost::numeric::ublas::matrix< R >&, double scaleFactor ) const;
         };
+            
+        template<>
+        template<>
+        cv::Mat ColorMap_< cv::Mat >::operator()( const cv::Mat& gray, double scaleFactor ) const {
+            
+            cv::Mat x( gray.rows, gray.cols, CV_8UC3 );
+
+            for ( size_t i = 0; i < gray.rows; ++i ) {
+                for ( size_t j = 0; j < gray.cols; ++j ) {
+                    double v = gray.at< float >( i, j ) * scaleFactor;
+                    auto c = std::move( color_( v ) );
+                    x.at< cv::Vec3b >( i, j )[ 0 ] = c.blue * 255;
+                    x.at< cv::Vec3b >( i, j )[ 1 ] = c.green * 255;
+                    x.at< cv::Vec3b >( i, j )[ 2 ] = c.red * 255;
+                }
+            }
+            return x;            
+        }
         
+        //--
+        template<>
+        template< typename R >
+        QImage ColorMap_< QImage >::operator()( const boost::numeric::ublas::matrix< R >& m, double scaleFactor ) const {
+            
+            QImage x( m.size1(), m.size2(), QImage::Format_RGB888 );
+            unsigned char * p = x.bits();
+            for ( size_t i = 0; i < m.size1(); ++i ) {
+                for ( size_t j = 0; j < m.size2(); ++j ) {
+                    double v = m( i, j ) * scaleFactor;
+                    auto c = std::move( color_( v ) );
+                    *p++ = c.red * 255;
+                    *p++ = c.green * 255;
+                    *p++ = c.blue * 255;
+                }
+            }
+            return x;
+        }
+            
+        //--
+        //--
+        template<>
+        template< typename R >
+        cv::Mat ColorMap_< cv::Mat >::operator()( const boost::numeric::ublas::matrix< R >& m, double scaleFactor ) const {
+            
+            cv::Mat x( m.size1(), m.size2(), CV_8UC(3) );
+            unsigned char * p = x.ptr();
+            for ( size_t i = 0; i < m.size1(); ++i ) {
+                for ( size_t j = 0; j < m.size2(); ++j ) {
+                    double v = m( i, j ) * scaleFactor;
+                    auto c = std::move( color_( v ) );
+                    *p++ = c.red * 255;
+                    *p++ = c.green * 255;
+                    *p++ = c.blue * 255;
+                }
+            }
+            return x;
+        }
+        //--
     }
 }
 
@@ -191,7 +218,7 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo
     }
 #endif
     // fallback to software color mapping
-    return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
+    return cpu::ColorMap_< cv::Mat >( levels_, colors_ )( mat, scaleFactor );
 }
 
 /////////////
@@ -207,9 +234,10 @@ namespace advision {
         if ( deviceInfo::instance()->hasCUDA() )        
             return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
 #endif
-        return cpu::ColorMap( levels_, colors_ )( m, scaleFactor );
+        return cpu::ColorMap_< QImage >( levels_, colors_ )( m, scaleFactor );
     }
 
+///////////////////////////
     template<>
     template<>
     QImage
@@ -219,9 +247,24 @@ namespace advision {
         if ( deviceInfo::instance()->hasCUDA() )
             return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
 #endif
-        return cpu::ColorMap( levels_, colors_ )( m, scaleFactor );        
+        return cpu::ColorMap_< QImage >( levels_, colors_ )( m, scaleFactor );        
     }
 
+///////////////////////////
+    
+#if HAVE_OPENCV
+    template<>
+    template<> cv::Mat ApplyColorMap_<cv::Mat>::operator()( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
+    {
+#if HAVE_CUDA
+        if ( deviceInfo::instance()->hasCUDA() )        
+            return cuda::cvColorMap( levels_, colors_ )( m, scaleFactor );
+#endif
+        return cpu::ColorMap_< cv::Mat >( levels_, colors_ )( m, scaleFactor );
+    }
+#endif
+
+    
 #if HAVE_OPENCV
     // specialization [2]
     template<>
@@ -235,9 +278,8 @@ namespace advision {
         if ( deviceInfo::instance()->hasCUDA() )        
             return cuda::cvColorMap( levels_, colors_ )( mat * scaleFactor );
 #endif
-        return cpu::ColorMap( levels_, colors_ ).apply( mat, scaleFactor );
+        return cpu::ColorMap_< cv::Mat >( levels_, colors_ )( mat, scaleFactor );
     }
-    
 #endif
 
 #if HAVE_ARRAYFIRE

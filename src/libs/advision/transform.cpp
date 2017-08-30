@@ -26,6 +26,7 @@
 #include "cvtypes.hpp"
 #include "aftypes.hpp"
 #include <arrayfire.h>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
 #include <QImage>
@@ -210,6 +211,20 @@ namespace advision {
         return QImage( static_cast< const unsigned char *>(t.data), t.cols, t.rows, t.step, QImage::Format_RGB888 );
     }
 #endif
-    
+
+#if HAVE_OPENCV
+    // cv::Mat -> QImage
+    template<>
+    template<>
+    cv::Mat transform_< cv::Mat >::operator()<>( const boost::numeric::ublas::matrix< double >& m ) const {
+
+        cv::Mat mat( m.size1(), m.size2(), CV_32FC(1) );
+        float * ptr = reinterpret_cast< float * >( mat.ptr() );
+        std::copy( m.data().begin(), m.data().end(), ptr );
+
+        return mat;
+    }
+#endif
+
 }
 

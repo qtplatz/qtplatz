@@ -35,8 +35,6 @@ class QImage;
 
 namespace advision {
 
-    namespace cpu { class ColorMap; }
-
     enum cuda_algo { cuda_none, cuda_arrayfire, cuda_direct };
 
     class ADVISIONSHARED_EXPORT ApplyColorMap {

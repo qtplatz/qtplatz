@@ -24,6 +24,7 @@
 
 #include "cvcolormap.hpp"
 #include "cvtypes.hpp"
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace cuda {
 
@@ -63,10 +64,10 @@ namespace cuda {
 
 } // namespace cuda
 
-__global__
-void
-cv_colormap_kernel( const int num, const float * d_x, uint8_t * d_y
-                    , const int nlevels, const float * d_levels, const float * d_colors )
+template< typename T > __global__ void
+cv_colormap_kernel( const int num, const T * d_x, uint8_t * d_y
+                    , const int nlevels, const float * d_levels, const float * d_colors
+                    , float scaleFactor )
 {
     const int id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -80,14 +81,15 @@ cv_colormap_kernel( const int num, const float * d_x, uint8_t * d_y
         float frac(0);
         
         int level = 0;
+        T dx = d_x[ id ] * scaleFactor;
 
         while ( level < nlevels ) {
-            if ( d_x[ id ] < d_levels[ level ] )
+            if ( dx < d_levels[ level ] )
                 break;
             ++level;
         }
         if ( level > 0 )
-            frac = ( d_x[ id ] - d_levels[ level - 1 ] ) / ( d_levels[ level ] - d_levels[ level - 1 ] );
+            frac = ( dx - d_levels[ level - 1 ] ) / ( d_levels[ level ] - d_levels[ level - 1 ] );
 
         auto c = cvColor( level, frac );
 
@@ -112,7 +114,7 @@ cuda::cvColorMap::~cvColorMap()
 }
 
 cv::Mat
-cuda::cvColorMap::operator()( const cv::Mat& gray ) const
+cuda::cvColorMap::operator()( const cv::Mat& gray, float scaleFactor ) const
 {
     const int num = gray.cols * gray.rows;
     const int threads = 256; //1024; // 512; //256;
@@ -120,7 +122,6 @@ cuda::cvColorMap::operator()( const cv::Mat& gray ) const
     
     const float * p_gray = reinterpret_cast< const float * >( gray.ptr() );
 
-    //thrust::device_vector< float > d_gray( p_gray, p_gray + num );    
     float * d_gray(0);
     cudaMalloc( &d_gray, num * sizeof( float ) );
     cudaMemcpyAsync( d_gray, p_gray, num * sizeof( float ), cudaMemcpyHostToDevice );
@@ -136,6 +137,7 @@ cuda::cvColorMap::operator()( const cv::Mat& gray ) const
           , d_levels_.size()
           , thrust::raw_pointer_cast( d_levels_.data() )
           , thrust::raw_pointer_cast( d_colors_.data() )
+          , scaleFactor
             );    
 
     cv::Mat rgb( gray.rows, gray.cols, CV_8UC(3) ); // BGR
@@ -145,7 +147,45 @@ cuda::cvColorMap::operator()( const cv::Mat& gray ) const
     cudaFree( d_gray );
     cudaFree( d_rgb );
     
-    // cudaStreamSynchronize( 0 );
+    cudaStreamSynchronize( 0 );
+
+    return rgb;
+}
+
+cv::Mat
+cuda::cvColorMap::operator()( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
+{
+    const int num = m.size1() * m.size2();
+    const int threads = 256;
+    const int blocks = (num / threads) + ((num % threads) ? 1 : 0 );
+    
+    const double * p_m = m.data().begin();
+
+    double * d_m(0);
+    cudaMalloc( &d_m, num * sizeof( double ) );
+    cudaMemcpyAsync( d_m, p_m, num * sizeof( double ), cudaMemcpyHostToDevice );
+
+    uint8_t * d_rgb(0);
+    cudaMalloc( &d_rgb, num * 3 * sizeof(uint8_t) );
+
+    cv_colormap_kernel <<< blocks, threads >>>
+        ( num
+          , d_m
+          , d_rgb
+          , d_levels_.size()
+          , thrust::raw_pointer_cast( d_levels_.data() )
+          , thrust::raw_pointer_cast( d_colors_.data() )
+          , scaleFactor
+            );    
+
+    cv::Mat rgb( m.size1(), m.size2(), CV_8UC(3) ); // BGR
+
+    cudaMemcpyAsync( rgb.ptr(), d_rgb, num * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost );
+
+    cudaFree( d_m );
+    cudaFree( d_rgb );
+    
+    cudaStreamSynchronize( 0 );
 
     return rgb;
 }

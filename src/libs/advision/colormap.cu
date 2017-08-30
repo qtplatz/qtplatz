@@ -134,7 +134,7 @@ namespace cuda {
             T * d_m(0);
             cudaMalloc( &d_m, num * sizeof( T ) );
             cudaMemcpyAsync( d_m, p_m, num * sizeof( T ), cudaMemcpyHostToDevice );
-
+            
             uint8_t * d_rgb(0);
             cudaMalloc( &d_rgb, num * 3 * sizeof(uint8_t) );
 

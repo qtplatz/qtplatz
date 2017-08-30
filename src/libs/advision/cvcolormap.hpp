@@ -27,6 +27,7 @@
 #include <driver_types.h> // cudaStream_t
 #include <vector>
 #include <thrust/device_vector.h>
+#include <boost/numeric/ublas/fwd.hpp>
 
 namespace cv { class Mat; }
 
@@ -46,7 +47,8 @@ namespace cuda {
         cvColorMap( const std::vector< float >& levels, const std::vector< float >& colors );
         ~cvColorMap();
 
-        cv::Mat operator()( const cv::Mat& ) const;
+        cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0 ) const;
+        cv::Mat operator()( const boost::numeric::ublas::matrix<double>&, float scaleFactor = 1.0 ) const;
     };
 }
 

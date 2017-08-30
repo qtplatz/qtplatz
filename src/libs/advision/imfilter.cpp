@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "imfilter.hpp"
+#include "transform.hpp"
 #include "applycolormap.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
@@ -50,15 +51,17 @@ namespace advision {
 
     template< typename Algo >
     struct ublas_to_qimage {
-        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >& m ) const;
+        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const;
     };
 
     // matrix -> QImage gray scale RGB888
     template<>
     template< typename T > QImage
-    ublas_to_qimage< imGrayScale >::operator()( const boost::numeric::ublas::matrix< T >& m ) const {
+    ublas_to_qimage< imGrayScale >::operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
 
         auto minMax = find_minmax<T>()( m );
+
+        ADDEBUG() << "ublas -> gray";
         
         QImage rgb( m.size1(), m.size2(), QImage::Format_RGB888 );
         auto p = rgb.bits();
@@ -77,7 +80,9 @@ namespace advision {
 
 class QPaintEvent;
 
-using namespace advision;
+//using namespace advision;
+
+namespace advision {
 
 // GrayScale
 template<>
@@ -85,8 +90,21 @@ template<>
 QImage
 imfilter< QImage, imGrayScale >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
 {
-    return ublas_to_qimage< imGrayScale >()( m );
+    return ublas_to_qimage< imGrayScale >()( m, scaleFactor );
 }
+
+// Blur
+template<>
+template<>
+QImage
+imfilter< QImage, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+{
+    // return ublas_to_qimage< imBlur >()( m, scaleFactor );
+    cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
+    
+    return QImage();
+}
+
 
 // ColorMap matrix<double>
 template<>
@@ -97,3 +115,4 @@ imfilter< QImage, imColorMap >::operator()<>( const boost::numeric::ublas::matri
     return ApplyColorMap_<QImage>()( m, scaleFactor );
 }
 
+}
