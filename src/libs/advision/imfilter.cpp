@@ -102,6 +102,7 @@ namespace advision {
     imfilter< QImage, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
+
         if ( mat.rows < 256 )
             cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
 

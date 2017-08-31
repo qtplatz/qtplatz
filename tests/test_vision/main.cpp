@@ -60,9 +60,6 @@ main( int argc, char * argv[] )
         return 0;
     }
 
-    // thread_pool_test2( "/home/toshi/Videos/Webcam/2017-08-10-165827.webm", 0, advision::cuda_none, 1 );
-    // exit(0);
-
     advision::cuda_algo algo = advision::cuda_none;
     
     if ( vm[ "algo" ].as< std::string >() == "cv" )
