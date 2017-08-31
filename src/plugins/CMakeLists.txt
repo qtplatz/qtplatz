@@ -35,3 +35,7 @@ endif()
 if ( QTPLATZ_CONFIG_Query )
   add_subdirectory( query )
 endif()
+
+if ( OpenCV_FOUND )
+  add_subdirectory( video )
+endif()

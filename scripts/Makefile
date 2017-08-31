@@ -11,11 +11,15 @@ default:
 	@echo "make qwt"
 	@echo "make gnuplot"
 	@echo "make rtags"
-	@echo "make opencv"
+	@echo "make ffmpeg"
+	@echo "make jpeg"
+	@echo "make opencv" || "make opencv.debug"
+	@echo "make arrayfire"
 	@echo " -- or make world"
 
 dependency:
 	./linux-initial-setup.sh
+	./linux-dependency-setup.sh
 
 cross-tools:
 	./armhf/debian-multiarch-setup.sh
@@ -35,8 +39,20 @@ qwt:
 gnuplot:
 	./linux-gnuplot-setup.sh
 
+ffmpeg:
+	./linux-ffmpeg-setup.sh
+
+jpeg:
+	./linux-jpeg-setup.sh
+
 opencv:
 	./linux-opencv-setup.sh
+
+opencv.debug:
+	./linux-opencv-setup.sh debug
+
+arrayfire:
+	./linux-arrayfire-setup.sh
 
 rtags:
 	./linux-rtags-setup.sh
@@ -44,4 +60,4 @@ rtags:
 cmake:
 	./linux-cmake-setup.sh
 
-world: dependency cross-tools boost boost-armhf cmake rdkit qwt gnuplot opencv rtags
+world: dependency cross-tools boost boost-armhf cmake rdkit qwt gnuplot opencv rtags arrayfire

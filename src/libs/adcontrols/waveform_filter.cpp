@@ -27,6 +27,7 @@
 #include "msproperty.hpp"
 #include "samplinginfo.hpp"
 #include <adportable/array_wrapper.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/fft.hpp>
 #include <adportable/float.hpp>
 #include <adportable/sgfilter.hpp>
@@ -83,10 +84,27 @@ namespace adcontrols {
                 }
 
                 // low-pass
-                if ( cutoff.second )
+                if ( cutoff.second && a.size() > cutoff.second * 2)
                     std::fill( a.begin() + cutoff.second, a.begin() + ( a.size() - cutoff.second ), 0 );
             }
         };
+
+        struct zerofilling {
+            template< typename T >
+            const std::vector< T > operator()( const std::vector< T >& a, size_t NN ) const {
+                
+                std::vector< T > b( NN );
+                std::fill( b.begin(), b.end(), 0 );
+
+                size_t sz = a.size() / 2;
+
+                std::copy( a.begin(), a.begin() + sz + 1, b.begin() );
+                std::copy( a.begin() + sz + 1, a.begin() + a.size(), b.begin() + ( NN - sz ) );
+
+                return b;
+            }
+        };
+        
 
         struct helper {
 
@@ -120,92 +138,12 @@ bool
 waveform_filter::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 {
     return bandpass_filter( ms, freq, 0 );
-    
-    // if ( ms.isCentroid() || ms.size() < 32 )
-    //     return false;
-
-	// size_t N = 32;
-    // while ( N < ms.size() )
-	// 	N *= 2;
-
-	// const size_t NN = ms.size();
-
-	// double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
-    // if ( sampInterval == 0 )
-    //     sampInterval = ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size();
-
-    // const double T = N * sampInterval;  // time full scale in seconds.  Freq = n/T (Hz)
-
-    // // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
-    // size_t cutoff = size_t( T * freq );
-
-	// adportable::array_wrapper<const double> pIntens( ms.getIntensityArray(), N );
-
-	// std::vector< std::complex<double> > spc( N );
-	// std::vector< std::complex<double> > fft( N );
-	// size_t n;
-	// for ( n = 0; n < N && n < NN; ++n )
-	// 	spc[ n ] = std::complex<double>( pIntens[ n ] );
-
-	// while ( n < N )
-	// 	spc[ n++ ] = pIntens[ NN - 1 ];
-
-	// adportable::fft::fourier_transform( fft, spc, false );
-
-    // // appodization
-    // for ( size_t i = cutoff; i < N - cutoff; ++i )
-    //     fft[ i ] = 0;
-
-	// adportable::fft::fourier_transform( spc, fft, true );
-
-	// std::vector<double> data( N );
-	// for ( size_t i = 0; i < NN; ++i )
-	// 	data[ i ] = spc[i].real();
-
-	// ms.setIntensityArray( &data[0] );
-
-	// return true;
 }
 
 bool
 waveform_filter::fft::lowpass_filter( std::vector<double>& intens, double sampInterval, double freq )
 {
     return bandpass_filter( intens, sampInterval, freq, 0 );
-    
-    // if ( intens.size() < 32 )
-    //     return false;
-
-	// size_t N = 32;
-    // while ( N < intens.size() )
-	// 	N *= 2;
-
-    // const double T = N * sampInterval;  // time full scale in seconds.  Freq = n/T (Hz)
-
-    // const size_t cutoff = size_t( T * freq );
-
-	// std::vector< std::complex<double> > spc( N );
-
-	// std::vector< std::complex<double> > fft( N );
-    
-    // std::copy( intens.begin(), intens.begin() + intens.size(), spc.begin() );
-
-    // std::fill( spc.begin() + intens.size(), spc.end(), intens.back() );
-
-	// adportable::fft::fourier_transform( fft, spc, false );
-
-    // // appodization
-    // std::fill( fft.begin() + cutoff, fft.begin() + ( N - cutoff ), 0 );
-
-	// adportable::fft::fourier_transform( spc, fft, true );
-
-    // auto src = spc.begin();
-    
-    // for ( auto it = intens.begin(); it != intens.end(); ++it ) {
-	// 	*it = src->real();
-    //     ++src;
-    // }
-
-	// return true;
 }
 
 bool
@@ -343,13 +281,15 @@ waveform_filter::fft4c::bandpass_filter( adcontrols::MassSpectrum& ms, double h_
 
         cdft( N * 2, 1, reinterpret_cast<double *>( a.data() ) );
 
-        appodization()( a, helper::cutoffIndex( sampInterval, N, h_freq, l_freq ) );
+        auto cutoff = helper::cutoffIndex( sampInterval, N, h_freq, l_freq );
+
+        appodization()( a, cutoff );
 
         cdft( N * 2, -1, reinterpret_cast<double *>( a.data() ) );
-        
+
         for ( size_t i = 0; i < ms.size(); ++i )
             ms.setIntensity( i, a[ i ].real() * 2.0 / ( N * 2 ) );
-        
+
         return true;
     }
     
@@ -378,6 +318,64 @@ waveform_filter::fft4c::bandpass_filter( size_t size, double * data, double samp
     }
     return false;
 }
+
+bool
+waveform_filter::fft4c::zero_filling( adcontrols::MassSpectrum& ms
+                                      , double freq
+                                      , std::function< double( double ) > assign_mass )
+{
+	double sampInterval = ms.getMSProperty().samplingInfo().fSampInterval(); // seconds
+    if ( sampInterval == 0 )
+        sampInterval = ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size();
+
+	std::vector< std::complex<double> > t;
+    
+    if ( const size_t N = transform()( ms.getIntensityArray(), ms.size(), t ) ) {
+
+        cdft( N * 2, 1, reinterpret_cast<double *>( t.data() ) );
+
+        const double T = t.size() * sampInterval;
+        double nyquist = ( t.size() / 2 ) / T;
+        double dc = t[ 0 ].real();
+        
+        ADDEBUG() << "nyquist = " << nyquist * 1e-6 << "MHz, dc=" << dc;
+
+        size_t fold( 1 );
+        while ( ( nyquist * fold ) < freq && fold < 4 )
+            fold *= 2;
+
+        size_t NN = N * fold;
+        
+        if ( NN > N ) {
+            std::vector< std::complex< double > > a = zerofilling()( t, NN );
+            
+            cdft( NN * 2, -1, reinterpret_cast<double *>( a.data() ) );
+
+            ms.resize( NN );
+            sampInterval /= fold;
+            
+            if ( ms.getMSProperty().samplingInfo().fSampInterval() > 0 ) {
+                auto sampInfo = ms.getMSProperty().samplingInfo();
+                sampInfo.setSampInterval( sampInterval );
+                ms.getMSProperty().setSamplingInfo ( sampInfo );
+            }
+
+            const bool hasTime = ms.getTimeArray();
+            const double t0 = ms.getTime( 0 );
+            
+            for ( size_t i = 0; i < ms.size(); ++i ) {
+                ms.setIntensity( i, a[ i ].real() * 2.0 / ( NN * 2 ) );
+                if ( hasTime )
+                    ms.setTime( i, t0 + i * sampInterval );
+                ms.setMass( i, assign_mass( t0 + i * sampInterval ) );
+            }
+
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /////////////////////
 

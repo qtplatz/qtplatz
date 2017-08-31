@@ -1,5 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -21,15 +22,26 @@
 **
 **************************************************************************/
 
-#ifndef CVPLOT_GLOBAL_HPP
-#define CVPLOT_GLOBAL_HPP
+#ifndef VIDEOMODE_HPP
+#define VIDEOMODE_HPP
 
-#include <QtCore/qglobal.h>
+#include <coreplugin/imode.h>
 
-#if defined(CVPLOT_LIBRARY)
-#  define CVPLOTSHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define CVPLOTSHARED_EXPORT Q_DECL_IMPORT
-#endif
+namespace video {
 
-#endif // CVPLOT_GLOBAL_HPP
+    class Mode : public Core::IMode {
+        Q_OBJECT
+    public:
+        explicit Mode( QObject *parent = 0 );
+        ~Mode();
+
+    signals:
+
+    public slots :
+        void grabEditorManager( Core::IMode *mode );
+
+    };
+
+}
+
+#endif // VIDEOMODE_HPP

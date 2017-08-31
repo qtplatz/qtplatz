@@ -24,42 +24,19 @@
 
 #pragma once
 
-#include "cvplot_global.hpp"
-#include <QWidget>
-#include <QImage>
-#include <opencv2/opencv.hpp>
-#include <memory>
+#include "advision_global.hpp"
+#include <boost/numeric/ublas/matrix.hpp>
 
-class QPaintEvent;
+namespace advision {
 
-namespace adcontrols { class MappedSpectra; class MappedDataFrame; }
-
-namespace cvplot {
-    
-    class CVPLOTSHARED_EXPORT plot : public QWidget {
-
-        Q_OBJECT
-
-    public:
-        plot( QWidget * parent = 0 );
-        ~plot();
-
-        QSize sizeHint() const;
-        QSize minimumSizeHint() const;
-
-        void setData( const cv::Mat& );
-        // void setData( std::shared_ptr< const adcontrols::MappedSpectra > );
-        // void setData( std::shared_ptr< const adcontrols::MappedDataFrame > );
-
-    public slots:
-        void show( const cv::Mat& image );
-
-    protected:
-        void paintEvent( QPaintEvent * );
-    
-    private:
-        QImage qimg_;
-        cv::Mat mat_;
+    template< typename T > struct max_value {
+        inline std::pair< T, T > operator()( const boost::numeric::ublas::matrix< T >& m ) const {
+            T maxValue = { m(0, 0) };
+            for ( int i = 0; i < m.size1(); ++i ) {
+                for ( int j = 0; j < m.size2(); ++j )
+                    maxValue = std::max( mm.first, m( i, j ) );
+            }
+            return maxValue;
+        }
     };
-
 }

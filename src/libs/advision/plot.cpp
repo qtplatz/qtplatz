@@ -23,15 +23,14 @@
 **************************************************************************/
 
 #include "plot.hpp"
-#include <adcontrols/mappeddataframe.hpp>
 #include <QPainter>
 
-using namespace cvplot;
+using namespace advision;
 
 class QPaintEvent;
 
 plot::plot( QWidget * parent ) : QWidget( parent )
-                                   , mat_( cv::Mat() )
+                               , mat_( cv::Mat() )
 {
 }
 
@@ -81,41 +80,6 @@ plot::paintEvent( QPaintEvent * )
     painter.drawImage( QPoint(0,0), qimg_ );
     painter.end();    
 }
-
-// void
-// plot::setData( std::shared_ptr< const adcontrols::MappedSpectra > map )
-// {
-//     cv::Mat m( map->size1(), map->size2(), CV_8UC1 );
-    
-//     adcontrols::MappedImage img;
-//     img.merge( *map );
-
-//     for ( size_t i = 0; i < map->size1(); ++i ) {
-//         for ( size_t j = 0; j < map->size2(); ++j ) {
-//             m.at< unsigned char >( i, j ) = img( i, j ) * 128;
-//         }
-//     }
-//     showImage( m );        
-// }
-
-// void
-// plot::setData( std::shared_ptr< const adcontrols::MappedDataFrame > dframe )
-// {
-//     cv::Mat m( dframe->size1(), dframe->size2(), CV_8UC3 ); // BGR
-//     for ( size_t i = 0; i < dframe->size1(); ++i ) {
-//         //uint8_t * p = m.ptr( i );
-//         for ( size_t j = 0; j < dframe->size2(); ++j ) {
-//             auto t = (*dframe)( i, j );
-//             uint8_t r = ( ( t & 0700 ) >> 6 ) * 255;
-//             uint8_t g = ( ( t & 0070 ) >> 3 ) * 255;
-//             uint8_t b = ( ( t & 0007 ) >> 0 ) * 255;
-//             m.at< cv::Vec3b >( i, j )[0] = r;
-//             m.at< cv::Vec3b >( i, j )[1] = g;
-//             m.at< cv::Vec3b >( i, j )[2] = b;
-//         }
-//     }
-//     showImage( m );        
-// }
 
 void
 plot::setData( const cv::Mat& m )

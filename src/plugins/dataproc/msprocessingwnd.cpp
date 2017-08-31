@@ -1090,6 +1090,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         menu.addAction( tr( "Correct baseline" ),   [this] () { correct_baseline(); draw1(); } );
         menu.addAction( tr( "Copy to clipboard" ),  [this] () { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } );
         menu.addAction( tr( "Frequency analysis" ), [this] () { frequency_analysis(); } );
+        menu.addAction( tr( "Zero filling" ),       [this] () { zero_filling(); } );
         menu.addAction( tr( "Save image file..." ), [this] () { save_image_file(); } );
         menu.addAction( tr( "Auto Y Scale" ),       [this] () { autoYScale( pImpl_->profileSpectrum_ ); } );
         menu.actions()[4]->setCheckable( true );
@@ -1591,6 +1592,26 @@ MSProcessingWnd::frequency_analysis()
     if ( auto ms = pProfileSpectrum_.second.lock() ) {
         auto range = std::make_pair( size_t( 0 ), ms->size() - 1 );
         power_spectrum( *ms, range );
+    }
+}
+
+void
+MSProcessingWnd::zero_filling()
+{
+    if ( auto ms = pProfileSpectrum_.second.lock() ) {
+
+        auto dp = SessionManager::instance()->getActiveDataprocessor();
+        if ( auto spectrometer = dp ? dp->massSpectrometer() : nullptr ) {
+
+            if ( auto law = spectrometer->scanLaw() ) {
+                for ( auto& fms: adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms ) ) {
+                    using adcontrols::waveform_filter;
+                    waveform_filter::fft4c::zero_filling( fms, 100.0e6, [&]( double t ){
+                            return law->getMass( t, fms.mode() );
+                        } );
+                }
+            }
+        }
     }
 }
 

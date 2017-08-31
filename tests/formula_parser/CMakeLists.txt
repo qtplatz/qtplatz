@@ -4,7 +4,7 @@ cmake_policy( SET CMP0042 NEW )
 
 project( formula_parser )
 
-include( "../../qtplatz.cmake" )
+set(CMAKE_CXX_STANDARD 14)
 
 find_package( Boost REQUIRED system )
 

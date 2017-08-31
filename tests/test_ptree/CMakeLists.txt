@@ -3,7 +3,6 @@ cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0042 NEW )
 
 project( test_ptree )
-include( "../../qtplatz.cmake" )
 
 find_package( Boost REQUIRED system filesystem serialization date_time )
 

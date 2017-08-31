@@ -30,8 +30,7 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
-#include <adportfolio/portfolio.hpp>
-#include <memory>
+//#include <adportfolio/portfolio.hpp>
 #include <map>
 
 namespace adcontrols {
@@ -39,6 +38,8 @@ namespace adcontrols {
     class MassSpectrum;
     class ProcessedDataset;
 }
+
+namespace portfolio { class Portfolio; }
 
 namespace adtextfile {
 
@@ -78,6 +79,11 @@ namespace adtextfile {
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::map< std::wstring, adcontrols::MassSpectrumPtr > data_;
         std::map< std::wstring, adcontrols::ChromatogramPtr > chro_;
+        double accelVoltage_;
+        double length_;
+        double tDelay_;
+        std::string model_;
+        
         bool prepare_portfolio( const TXTSpectrum&, const std::wstring&, portfolio::Portfolio& );
         bool prepare_portfolio( const TXTChromatogram&, const std::wstring&, portfolio::Portfolio& );
         bool prepare_portfolio( const time_data_reader&, const std::wstring&, portfolio::Portfolio& );

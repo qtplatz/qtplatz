@@ -86,7 +86,8 @@ daemon::main( int argc, char * argv[] )
         }
         std::ostringstream o;
         o << getpid() << std::endl;
-        write( fd, o.str().c_str(), o.str().size() );
+        ssize_t res = write( fd, o.str().c_str(), o.str().size() );
+        (void)res;
     }
 #endif        
 

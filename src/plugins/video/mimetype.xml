@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+  <mime-type type="video/mp4">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>mp4 video file</comment>
+    <glob pattern="*.mp4"/>
+  </mime-type>
+  <mime-type type="video/avi">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>avi video file</comment>
+    <glob pattern="*.avi"/>
+  </mime-type>
+  <mime-type type="video/webm">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>webm video file</comment>
+    <glob pattern="*.webm"/>
+  </mime-type>  
+  <mime-type type="image/png">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>PNG</comment>
+    <glob pattern="*.png"/>
+  </mime-type>
+</mime-info>

@@ -49,6 +49,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adutils/acquiredconf_v3.hpp>
 
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
@@ -96,21 +97,19 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
 {
     if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename, false ) ) ) {
 
-        file_ = std::move( file );
-        file_->accept( *this );
-
         boost::filesystem::path path( filename );
-        
+
         auto fs = std::make_unique< adfs::filesystem >();
         if ( fs->mount( path ) ) {
             fs_ = std::move( fs );
-        } else {
-            path.replace_extension( ".adfs" );
-            if ( ! boost::filesystem::exists( path ) ) {
-                if ( fs->create( path ) )
-                    fs_ = std::move( fs );
-            }
-        }
+        } else if ( fs->create( ":memory:" ) ) {
+            fs_ = std::move( fs );
+            adutils::v3::AcquiredConf::create_table_v3( *db() );
+        } else
+            return false;
+
+        file_ = std::move( file );
+        file_->accept( *this );  // may access 'db' if file was imported from csv.
 
         if ( auto sp = massSpectrometer() )
             ProcessMediator::instance()->onCreate( sp->objclsid(), this->shared_from_this() );
@@ -201,7 +200,7 @@ dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * )
 std::shared_ptr< adcontrols::MassSpectrometer >
 dataprocessor::massSpectrometer()
 {
-    if ( ! spectrometer_ ) {
+    if ( ! spectrometer_ && this->db() ) {
         
         adfs::stmt sql( *this->db() );
         

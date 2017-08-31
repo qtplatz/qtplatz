@@ -98,6 +98,7 @@ namespace adcontrols {
         // helper methods
         static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
+        static std::vector< std::pair< boost::uuids::uuid, std::string > > installed_models();
 
         static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
         virtual bool estimateScanLaw( const std::vector< std::tuple< double, double, int > >&, double& va, double& t0 ) const;

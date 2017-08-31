@@ -26,6 +26,7 @@
 
 #include "adcontrols_global.h"
 #include <vector>
+#include <functional>
 
 namespace adcontrols {
 
@@ -55,6 +56,9 @@ namespace adcontrols {
 
             static bool bandpass_filter( MassSpectrum&, double hfreq = 100.0e6 /* 100MHz */, double lfreq = 0 );
             static bool bandpass_filter( size_t, double *, double sampInterval /* seconds */, double freq = 100.0e6 /* 100MHz */, double lfreq = 0 );
+
+            static bool zero_filling( MassSpectrum&, double freq, std::function<double(double)> mass_assigner );
+            
 		};
         
         struct ADCONTROLSSHARED_EXPORT sg {
