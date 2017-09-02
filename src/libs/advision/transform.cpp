@@ -25,6 +25,7 @@
 #include "transform.hpp"
 #include "cvtypes.hpp"
 #include "aftypes.hpp"
+#include "device_ptr.hpp"
 #include <arrayfire.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <opencv2/core/mat.hpp>
@@ -223,6 +224,17 @@ namespace advision {
         std::copy( m.data().begin(), m.data().end(), ptr );
 
         return mat;
+    }
+#endif
+
+
+#if HAVE_CUDA
+    template<>
+    template<>
+    QImage transform_< QImage >::operator()<>( const cuda::device_ptr< unsigned char >& t ) const {
+        QImage img( t.rows(), t.cols(), QImage::Format_RGB888 );
+        cudaMemcpyAsync( img.bits(), t.get(), t.rows() * t.cols() * 3 * sizeof( unsigned char ), cudaMemcpyDeviceToHost );
+        return img;
     }
 #endif
 

@@ -29,6 +29,8 @@
 # include "cvcolormap.hpp"
 # include "colormap.hpp"
 #endif
+#include "device_ptr.hpp"
+#include "transform.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
 #include <arrayfire.h>
@@ -232,7 +234,7 @@ namespace advision {
     {
 #if HAVE_CUDA
         if ( deviceInfo::instance()->hasCUDA() )        
-            return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
+            return advision::transform_< QImage >()( cuda::ColorMap( levels_, colors_ )( m, scaleFactor ) );
 #endif
         return cpu::ColorMap_< QImage >( levels_, colors_ )( m, scaleFactor );
     }
@@ -245,7 +247,7 @@ namespace advision {
     {
 #if HAVE_CUDA
         if ( deviceInfo::instance()->hasCUDA() )
-            return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
+            return advision::transform_< QImage >()( cuda::ColorMap( levels_, colors_ )( m, scaleFactor ) );
 #endif
         return cpu::ColorMap_< QImage >( levels_, colors_ )( m, scaleFactor );        
     }

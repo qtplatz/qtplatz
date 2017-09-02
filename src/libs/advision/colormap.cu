@@ -24,9 +24,9 @@
 
 #include "colormap.hpp"
 #include "cvtypes.hpp"
+#include "device_ptr.hpp"
 #include <adportable/debug.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <QImage>
 
 namespace cuda {
 
@@ -122,7 +122,8 @@ namespace cuda {
         }
 
         // matrix<> -> apply colormap --> QImage
-        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
+        template< typename T >
+        cuda::device_ptr< uchar > operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
             
             const int num = m.size1() * m.size2();
             const int threads = 64; // 1024; // 512; //256;
@@ -149,19 +150,19 @@ namespace cuda {
                   , false // isBGR ?
                     );
             //----------
-            QImage rgb( m.size1(), m.size2(), QImage::Format_RGB888 );    
-
-            cudaMemcpyAsync( rgb.bits(), d_rgb, num * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost );
+            //QImage rgb( m.size1(), m.size2(), QImage::Format_RGB888 );    
+            //cudaMemcpyAsync( rgb.bits(), d_rgb, num * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost );
 
             cudaFree( d_m );
-            cudaFree( d_rgb );
+            //cudaFree( d_rgb );
 
-            cudaStreamSynchronize( 0 );    
-            return rgb;                
+            cudaStreamSynchronize( 0 );
+            return cuda::device_ptr<uchar>( d_rgb, m.size1(), m.size2(), 3 );
+            //return rgb;                
         }
 
         // cv::Mat -> apply color map --> QImage
-        QImage operator()( const cv::Mat& gray, double scaleFactor ) const {
+        cuda::device_ptr< uchar > operator()( const cv::Mat& gray, double scaleFactor ) const {
             const int num = gray.cols * gray.rows;
             const int threads = 64; // 1024; // 512; //256;
             const int blocks = (num / threads) + ((num % threads) ? 1 : 0 );
@@ -187,15 +188,14 @@ namespace cuda {
                   , true
                     );    
             //--
-            QImage rgb( gray.rows, gray.cols, QImage::Format_RGB888 );    
-
-            cudaMemcpyAsync( rgb.bits(), d_rgb, num * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost );
+            //QImage rgb( gray.rows, gray.cols, QImage::Format_RGB888 );    
+            //cudaMemcpyAsync( rgb.bits(), d_rgb, num * 3 * sizeof(unsigned char), cudaMemcpyDeviceToHost );
 
             cudaFree( d_gray );
-            cudaFree( d_rgb );
-            
             cudaStreamSynchronize( 0 );
-            return rgb;
+            
+            //cudaFree( d_rgb );
+            return cuda::device_ptr<uchar>( d_rgb, gray.rows, gray.cols, 3 );            
         }
     };
 }
@@ -214,21 +214,22 @@ cuda::ColorMap::~ColorMap()
 }
 
 template<>
-QImage
+cuda::device_ptr< unsigned char >
 cuda::ColorMap::operator()( const boost::numeric::ublas::matrix<float>& m, double scaleFactor ) const
 {
-    return cuda::ColorMapHelper( d_levels_, d_colors_ )( m, scaleFactor );
+    cuda::device_ptr< uchar >&& p = cuda::ColorMapHelper( d_levels_, d_colors_ )( m, scaleFactor );
+    return std::move( p );
 }
 
 template<>
-QImage
+cuda::device_ptr< unsigned char >
 cuda::ColorMap::operator()( const boost::numeric::ublas::matrix<double>& m, double scaleFactor ) const
 {
     return cuda::ColorMapHelper( d_levels_, d_colors_ )( m, scaleFactor );
 }
 
 #if HAVE_OPENCV
-QImage
+cuda::device_ptr< unsigned char >
 cuda::ColorMap::operator()( const cv::Mat& gray, double scaleFactor ) const
 {
     return cuda::ColorMapHelper( d_levels_, d_colors_ )( gray, scaleFactor );
