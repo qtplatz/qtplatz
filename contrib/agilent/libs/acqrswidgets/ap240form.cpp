@@ -34,6 +34,7 @@
 #include <adportable/serializer.hpp>
 #include <adwidgets/thresholdactionform.hpp>
 #include <adwidgets/findslopeform.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
@@ -50,10 +51,12 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                                       , ui( new Ui::ap240form )
 {
     ui->setupUi(this);
+    
 
     // Software TDC (Slope Time Converter) UI
     if ( auto layout = new QVBoxLayout( ui->groupBox_2 ) ) {    
-
+        layout->setSpacing( 0 );
+        layout->setMargin( 0 );
         ///////////// Slope detect ////////////////
         if ( auto tab = new QTabWidget() ) {
             layout->addWidget( tab );
@@ -70,8 +73,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
             }
 
             ////////// Threshold Action ///////////
-            auto form = new adwidgets::ThresholdActionForm();
-            form->setObjectName( "ThresholdActionForm" );
+            auto form = qtwrapper::make_widget< adwidgets::ThresholdActionForm >( "ThresholdActionForm" );
             tab->addTab( form, tr( "Action" ) );
             connect( form, &adwidgets::ThresholdActionForm::valueChanged, [this] () { emit valueChanged( idThresholdAction, 0 ); } );
         }
