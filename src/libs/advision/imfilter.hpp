@@ -26,6 +26,7 @@
 
 #include "advision_global.hpp"
 #include <boost/numeric/ublas/fwd.hpp>
+#include <tuple>
 
 class QImage;
 
@@ -34,12 +35,22 @@ namespace advision {
     struct imGrayScale {};
     struct imRGBColor {};
     struct imColorMap {};
-    struct imBlur {};
+    struct imBlur { int wx, wy; imBlur( int x = 5, int y = 5 ) : wx( x ), wy( y ) {} };
 
-    template< typename T, typename ... Algo >
+    template< typename T, typename ... Algos >
     class ADVISIONSHARED_EXPORT imfilter {
+        size_t size_;
+        std::tuple< Algos... > algos_;
+
     public:
-        imfilter() {}
+        imfilter() : size_( 0 ) {
+        }
+
+        imfilter( Algos... algos )
+            : size_( sizeof...(Algos) )
+            , algos_( std::forward< Algos >( algos )... ) {
+        }
+        
         ~imfilter() {}
 
         template< typename R > T operator()( const R&, double scaleFactor = 1.0 ) const;
