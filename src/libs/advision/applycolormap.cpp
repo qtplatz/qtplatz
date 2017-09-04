@@ -39,9 +39,9 @@
 
 namespace advision {
 
-    static const std::vector< float > __levels { 0.0, 0.2, 0.4, 0.6, 0.8, 0.97, 1.0 };
+    static const std::vector< float > __levels { 0.0, 0.01, 0.4, 0.6, 0.8, 0.97, 1.0 };
 
-                                            // black, navy, cyan, green,yellow,red, white
+                                            // black, blue, cyan, green,yellow,red, white
     static const std::vector< float > __colors { 0.0, 0.0,  0.0,  0.0,  1.0,  1.0, 1.0  // R
                                                , 0.0, 0.0,  1.0,  1.0,  1.0,  0.0, 1.0  // G
                                                , 0.0, 1.0,  1.0,  0.0,  0.0,  0.0, 1.0  // B

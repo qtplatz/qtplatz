@@ -35,7 +35,7 @@ namespace advision {
     struct imGrayScale {};
     struct imRGBColor {};
     struct imColorMap {};
-    struct imBlur { int wx, wy; imBlur( int x = 5, int y = 5 ) : wx( x ), wy( y ) {} };
+    struct imBlur { std::pair<int, int> size; imBlur( int x = 5, int y = 5 ) : size( x, y ) {} };
 
     template< typename T, typename ... Algos >
     class ADVISIONSHARED_EXPORT imfilter {

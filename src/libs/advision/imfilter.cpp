@@ -49,30 +49,9 @@ namespace advision {
         }
     };
 
-    //---------------------
-
-    template< typename Algo >
-    struct ublas_to_qimage {
-        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const;
+    namespace opencv {
+        cv::Size Size( const imBlur& blur ) { return cv::Size( blur.size.first, blur.size.second ); }
     };
-
-    // matrix -> QImage gray scale RGB888
-    template<>
-    template< typename T > QImage
-    ublas_to_qimage< imGrayScale >::operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
-
-        QImage rgb( m.size1(), m.size2(), QImage::Format_RGB888 );
-        auto p = rgb.bits();
-        for ( int i = 0; i < m.size1(); ++i ) {
-            for ( int j = 0; j < m.size2(); ++j ) {
-                unsigned char value = m( i, j ) * scaleFactor;
-                *p++ = value;  // R
-                *p++ = value;  // G
-                *p++ = value;  // B
-            }
-        }
-        return rgb;
-    }
     
 }
 
@@ -88,8 +67,10 @@ namespace advision {
     QImage
     imfilter< QImage, imGrayScale >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
-        ADDEBUG() << "args size: " << size_;        
-        return ublas_to_qimage< imGrayScale >()( m, scaleFactor );
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+
+        return ApplyColorMap_< QImage >(2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
     }
 
 ////// Blur
@@ -98,13 +79,13 @@ namespace advision {
     QImage
     imfilter< QImage, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
-        ADDEBUG() << "args size: " << size_;
-        
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
 
         if ( mat.rows < 256 )
             cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
 
+        cv::Size sz = size_ == 1 ? opencv::Size( std::get<0>( algos_ ) ) : cv::Size( 5, 5 );
+        
         cv::GaussianBlur( mat, mat, cv::Size( 5, 5 ), 0, 0 );
 
         return transform_< QImage >()( mat );
@@ -116,7 +97,6 @@ namespace advision {
     QImage
     imfilter< QImage, imColorMap >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
-        ADDEBUG() << "args size: " << size_;        
         return ApplyColorMap_<QImage>()( m, scaleFactor );
     }
 
@@ -133,14 +113,14 @@ namespace advision {
         const std::vector< float > __levels{ 0.0, 1.0 };
         const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
         
-        ADDEBUG() << "args size: " << size_;
-
-        cv::Mat mat = ApplyColorMap_< cv::Mat >(2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
+        cv::Mat mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
         
         if ( mat.rows < 256 )
             cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
 
-        cv::GaussianBlur( mat, mat, cv::Size( 5, 5 ), 0, 0 );
+        cv::Size sz = size_ == 2 ? opencv::Size( std::get<1>( algos_ ) ) : cv::Size( 5, 5 );
+        
+        cv::GaussianBlur( mat, mat, sz, 0, 0 );
 
         return transform_< QImage >()( mat );
     }
@@ -152,14 +132,14 @@ namespace advision {
               , imColorMap
               , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
-        ADDEBUG() << "args size: " << size_;
-        
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
-
+        
         if ( mat.rows < 256 )
             cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
+        
+        cv::Size sz = size_ == 2 ? opencv::Size( std::get<1>( algos_ ) ) : cv::Size( 5, 5 );
 
-        cv::GaussianBlur( mat, mat, cv::Size( 5, 5 ), 0, 0 );
+        cv::GaussianBlur( mat, mat, sz, 0, 0 );
 
         return transform_< QImage >()( mat );
     }
