@@ -104,6 +104,7 @@ namespace advision {
     //////////////////
     //////////////////
     //////////////////
+    // GrayScale + Blur
     template<>
     template<>
     QImage
@@ -126,6 +127,7 @@ namespace advision {
         return transform_< QImage >()( mat );
     }
 
+    // ColorMap + Blur
     template<>
     template<>
     QImage
@@ -145,7 +147,7 @@ namespace advision {
         return transform_< QImage >()( mat );
     }
 
-    //////// DFT
+    //////// ColorMap + DFT
     template<>
     template<>
     QImage
@@ -159,7 +161,7 @@ namespace advision {
         return ApplyColorMap_< QImage >()( mat, float( scaleFactor ) );
     }
 
-
+    // GrayScale + DFT
     template<>
     template<>
     QImage
