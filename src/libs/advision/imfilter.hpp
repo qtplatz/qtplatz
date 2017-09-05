@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -36,6 +36,7 @@ namespace advision {
     struct imRGBColor {};
     struct imColorMap {};
     struct imBlur { std::pair<int, int> size; imBlur( int x = 5, int y = 5 ) : size( x, y ) {} };
+    struct imDFT {};
 
     template< typename T, typename ... Algos >
     class ADVISIONSHARED_EXPORT imfilter {

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,7 @@
 #include "imfilter.hpp"
 #include "transform.hpp"
 #include "applycolormap.hpp"
+#include "dft2d.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
 #if HAVE_OPENCV
@@ -143,4 +144,96 @@ namespace advision {
 
         return transform_< QImage >()( mat );
     }
+
+    //////// DFT
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imColorMap
+              , imDFT >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+        mat = dft2d().dft( mat );
+
+        return ApplyColorMap_< QImage >()( mat, float( scaleFactor ) );
+    }
+
+
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imGrayScale
+              , imDFT >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+
+        mat = dft2d().dft( mat );
+        
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+
+        return ApplyColorMap_< QImage >( 2, __levels.data(), __colors.data() )( mat, float( scaleFactor ) );
+    }
+
+
+    // ColorMap + DFT + Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imColorMap
+              , imDFT
+              , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        // --> cv::Mat_<float>
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+
+        // --> DFT
+        mat = dft2d().dft( mat );
+
+        // --> ColorMap cv::Mat
+        mat = ApplyColorMap_< cv::Mat >()( mat, float( scaleFactor ) );
+
+        // --> Blur cv::Mat
+        if ( mat.rows < 256 )
+            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
+        cv::Size sz = size_ == 2 ? opencv::Size( std::get<2>( algos_ ) ) : cv::Size( 5, 5 );
+        cv::GaussianBlur( mat, mat, sz, 0, 0 );
+
+        // wrap up
+        return transform_< QImage >()( mat );
+    }
+
+    // GrayScale + DFT + Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imGrayScale
+              , imDFT
+              , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        // --> cv::Mat_<float>
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+
+        // --> DFT
+        mat = dft2d().dft( mat );
+
+        // --> GrayScale cv::Mat
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+        mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( mat, float( scaleFactor ) );
+
+        // --> Blur cv::Mat
+        if ( mat.rows < 256 )
+            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
+        cv::Size sz = size_ == 2 ? opencv::Size( std::get<2>( algos_ ) ) : cv::Size( 5, 5 );
+        cv::GaussianBlur( mat, mat, sz, 0, 0 );
+
+        // wrap up
+        return transform_< QImage >()( mat );
+    }
+    
 }

@@ -73,6 +73,8 @@ set ( SOURCES
   plot.hpp
   transform.cpp
   transform.hpp
+  dft2d.cpp
+  dft2d.hpp
   )
 
 set ( CUDA_SOURCES
