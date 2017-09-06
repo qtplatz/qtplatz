@@ -25,7 +25,9 @@
 #include "transform.hpp"
 #include "cvtypes.hpp"
 #include "aftypes.hpp"
-#include "device_ptr.hpp"
+#if HAVE_CUDA
+# include "device_ptr.hpp"
+#endif
 #include <arrayfire.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <opencv2/core/mat.hpp>

@@ -28,8 +28,8 @@
 # include "afcolormap.hpp"
 # include "cvcolormap.hpp"
 # include "colormap.hpp"
+# include "device_ptr.hpp"
 #endif
-#include "device_ptr.hpp"
 #include "transform.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
