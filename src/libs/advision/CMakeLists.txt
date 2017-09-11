@@ -68,6 +68,8 @@ set ( SOURCES
   imagewidget.hpp
   imfilter.cpp
   imfilter.hpp
+  moments.cpp
+  moments.hpp
   utils.hpp
   plot.cpp
   plot.hpp
@@ -100,6 +102,7 @@ endif()
 
 target_link_libraries( ${PROJECT_NAME} ${LINK_KEYWORD}
   adportable
+  adcontrols
   ${ArrayFire_LIBRARIES}
   ${ArrayFire_CUDA_LIBRARIES}  
   ${Boost_LIBRARIES}

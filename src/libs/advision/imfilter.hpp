@@ -26,7 +26,9 @@
 
 #include "advision_global.hpp"
 #include <boost/numeric/ublas/fwd.hpp>
+#include <adcontrols/contoursmethod.hpp>
 #include <tuple>
+#include <limits>
 
 class QImage;
 
@@ -37,6 +39,10 @@ namespace advision {
     struct imColorMap {};
     struct imBlur { std::pair<int, int> size; imBlur( int x = 5, int y = 5 ) : size( x, y ) {} };
     struct imDFT {};
+    struct imContours : public adcontrols::ContoursMethod {
+        imContours() {}
+        imContours( const adcontrols::ContoursMethod& t ) : adcontrols::ContoursMethod( t ) {}
+    };
 
     template< typename T, typename ... Algos >
     class ADVISIONSHARED_EXPORT imfilter {
@@ -75,4 +81,9 @@ namespace advision {
     template<>
     template<>
     QImage imfilter< QImage, imColorMap, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
+
+    //
+    template<>
+    template<>
+    QImage imfilter< QImage, imContours >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
 }

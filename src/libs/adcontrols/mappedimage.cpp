@@ -44,21 +44,32 @@ namespace adcontrols {
     public:
         ~impl() {}
         impl( size_t i, size_t j ) : data_( i, j )
-                                   , tof_range_( std::make_pair( 0, 0 ) )
+                                   , tof_range_{ 0, 0 }
                                    , z_( std::numeric_limits<double>::min() )
-                                   , mergeCount_( 0 ) {
+                                   , mergeCount_( 0 )
+                                   , trig_range_{ 0, 0 } {
             data_.clear();
         }
         impl( impl& t ) : data_( t.data_ )
                         , tof_range_( std::make_pair( 0, 0 ) )
                         , z_( t.z_ )
-                        , mergeCount_( t.mergeCount_ ) {
-        }            
+                        , mergeCount_( t.mergeCount_ )
+                        , trig_range_( t.trig_range_ ) {
+        }
+
+        impl( boost::numeric::ublas::matrix< double >&& t
+              , std::pair< size_t, size_t>&& trig ) : data_( t )
+                                                    , tof_range_{ 0, 0 }
+                                                    , z_( 0 )
+                                                    , mergeCount_( 1 )
+                                                    , trig_range_( trig ) {
+        }
 
         adcontrols::idAudit ident_;
         boost::numeric::ublas::matrix< double > data_;
         boost::uuids::uuid data_origin_uuid_;
         std::pair< uint32_t, uint32_t > tof_range_;
+        std::pair< size_t, size_t > trig_range_;
         double z_;
         size_t mergeCount_;
 
@@ -117,6 +128,12 @@ MappedImage::MappedImage( size_t i, size_t j ) : impl_( new impl( i, j ) )
 }
 
 MappedImage::MappedImage( const MappedImage& t ) : impl_( new impl( *t.impl_ ) )
+{
+}
+
+MappedImage::MappedImage( boost::numeric::ublas::matrix< double >&& t
+                          , std::pair< size_t, size_t >&& trig ) : impl_( new impl( std::move( t )
+                                                                                    , std::move( trig ) ) )
 {
 }
 
@@ -216,6 +233,7 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
         impl_->data_.resize( map.size1(), map.size2() );
         impl_->data_.clear();
         impl_->mergeCount_ = 0;
+        impl_->trig_range_.first = map.trigIds().first;
     }
 
     double t0 = tof - width / 2;
@@ -227,10 +245,13 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
             auto& sp = map( i, j );
 
             if ( sp.size() > 0 ) {
-                auto beg = std::lower_bound( sp.begin(), sp.end(), t0, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
+                auto beg = std::lower_bound( sp.begin(), sp.end(), t0
+                                             , []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
                 if ( beg != sp.end() ) {
-                    auto end = std::lower_bound( sp.begin(), sp.end(), t1, []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
-                    size_t d = std::accumulate( beg, end, size_t(0), []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
+                    auto end = std::lower_bound( sp.begin(), sp.end(), t1
+                                                 , []( const MappedSpectrum::datum_type& a, double b ){ return a.first < b; } );
+                    size_t d = std::accumulate( beg, end, size_t(0)
+                                                , []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
                     impl_->data_( i, j ) += d;
                     impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
                 }
@@ -239,6 +260,8 @@ MappedImage::merge( const MappedSpectra& map, double tof, double width )
     }
     
     impl_->mergeCount_ += map.averageCount();
+    impl_->trig_range_.second = map.trigIds().second;
+    
     return true;
 }
 
@@ -250,7 +273,10 @@ MappedImage::merge( const MappedSpectra& map )
         impl_->data_.resize( map.size1(), map.size2() );
         impl_->data_.clear();
         impl_->mergeCount_ = 0;
+        impl_->trig_range_.first = map.trigIds().first;
     }
+
+    impl_->trig_range_.second = map.trigIds().second;
 
     for ( size_t i = 0; i < map.size1(); ++i ) {
         for ( size_t j = 0; j < map.size2(); ++j ) {
@@ -258,7 +284,8 @@ MappedImage::merge( const MappedSpectra& map )
             auto& sp = map( i, j );
             
             if ( sp.size() > 0 ) {
-                size_t d = std::accumulate( sp.begin(), sp.end(), size_t(0), []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
+                size_t d = std::accumulate( sp.begin(), sp.end(), size_t(0)
+                                            , []( size_t a, const MappedSpectrum::datum_type& b ){ return a + b.second; } );
                 impl_->data_( i, j ) += d;
                 impl_->z_ = std::max( impl_->z_, impl_->data_( i, j ) );
             }
@@ -269,3 +296,14 @@ MappedImage::merge( const MappedSpectra& map )
     return true;
 }
 
+void
+MappedImage::setTrigRange( size_t beg, size_t end )
+{
+    impl_->trig_range_ = { beg, end };
+}
+
+std::pair< size_t, size_t >
+MappedImage::trigRange() const
+{
+    return impl_->trig_range_;
+}

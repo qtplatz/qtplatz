@@ -237,5 +237,66 @@ namespace advision {
         // wrap up
         return transform_< QImage >()( mat );
     }
+
+    //////////// Contours
+    template<>
+    template<>
+    QImage imfilter< QImage, imContours >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        // --> cv::Mat_<float>
+        auto mat = transform_< cv::Mat >()( m );
+
+        imContours method;
+        if ( size_ >= 1 )
+            method = std::get< 0 >( algos_ );
+
+        if ( method.sizeFactor() > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), method.sizeFactor(), method.sizeFactor(), CV_INTER_LINEAR );
+
+        mat.convertTo( mat, CV_8UC1, 255 );
+
+        if ( method.blurSize() > 0 )
+            cv::blur( mat, mat, cv::Size( method.blurSize(), method.blurSize() ) );
+
+        cv::Canny( mat, mat, method.cannyThreshold(), method.cannyThreshold() * 2, 3 );
+        
+        std::vector< std::vector< cv::Point > > contours;
+        std::vector< cv::Vec4i > hierarchy;
+        cv::findContours( mat, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+
+        cv::Mat drawing = cv::Mat::zeros( mat.size(), CV_8UC3 );
+        int c = 1;
+        for( int i = 0; i< contours.size(); i++ )  {
+            cv::Rect rc = boundingRect( contours[i] );
+            cv::Moments mu = cv::moments( contours[i], false );
+                
+            double cx = ( mu.m10 / mu.m00 ) / method.sizeFactor();
+            double cy = ( mu.m01 / mu.m00 ) / method.sizeFactor();
+            cv::Point centre( mu.m10 / mu.m00, mu.m01 / mu.m00 );
+            double area = cv::contourArea( contours[i] ) / ( method.sizeFactor() * method.sizeFactor() );
+
+            if ( ( rc.width >= method.minSizeThreshold() && rc.height >= method.minSizeThreshold() ) &&
+                 ( rc.width < method.maxSizeThreshold() && rc.height < method.maxSizeThreshold() ) ) {            
+                
+                cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
+                cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+
+                color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );                
+                cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
+
+            } else {
+
+                cv::Scalar color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );
+                cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+
+                color = cv::Scalar( (c&01)*63, ((c&02)/2)*63, ((c&04)/4)*63 );                
+                cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
+
+            }
+            ++c;
+        }
+        return advision::transform_< QImage >()( drawing );
+        
+    }
     
 }

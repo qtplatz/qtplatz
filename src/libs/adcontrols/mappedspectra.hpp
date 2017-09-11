@@ -59,7 +59,7 @@ namespace adcontrols {
 
         MappedSpectrum& operator ()( size_t i, size_t j );
         const MappedSpectrum& operator ()( size_t i, size_t j ) const;
-
+        
         MappedSpectra& average( const boost::numeric::ublas::matrix< uint16_t >& frame
                                 , std::function<double( uint16_t )> binary_to_time );
 
