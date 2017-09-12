@@ -43,6 +43,11 @@ namespace adportable {
         std::string str() const { return o_.str(); }
 
         template<typename T> debug& operator << ( const T& t ) { o_ << t; return *this; }
+
+        template<typename F, typename S> debug& operator << ( const std::pair<F,S>& t ){
+            (*this) << "{" << t.first << ", " << t.second << "}";
+            return *this;
+        }
 		debug& operator << ( const wchar_t *);
 		debug& operator << ( const std::wstring& t );
     };

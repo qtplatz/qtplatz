@@ -37,8 +37,15 @@ namespace advision {
     struct imGrayScale {};
     struct imRGBColor {};
     struct imColorMap {};
-    struct imBlur { std::pair<int, int> size; imBlur( int x = 5, int y = 5 ) : size( x, y ) {} };
     struct imDFT {};
+    struct imBlur {
+        std::pair<int, int> ksize;
+        std::pair<int, int> anchor;
+        int resizeFactor;
+        imBlur( const std::pair<int,int>& ksz = {5,5}, int szFactor = 1, const std::pair<int,int>& a = {-1,-1} )
+            : ksize( ksz ), resizeFactor(szFactor), anchor( a ) {}
+        imBlur( const imBlur& t ) : ksize(t.ksize), resizeFactor( t.resizeFactor ) {}
+    };
     struct imContours : public adcontrols::ContoursMethod {
         imContours() {}
         imContours( const adcontrols::ContoursMethod& t ) : adcontrols::ContoursMethod( t ) {}

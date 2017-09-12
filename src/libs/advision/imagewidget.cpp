@@ -40,6 +40,8 @@ using namespace advision;
 
 ImageWidget::ImageWidget( QWidget * parent ) : QWidget( parent )
                                              , scale_( 1.0 )
+                                             , width_( 0 )
+                                             , height_( 0 )
 {
     graphicsView_ = new QGraphicsView();
 
@@ -74,9 +76,16 @@ ImageWidget::~ImageWidget()
 void
 ImageWidget::setImage( const QImage& image )
 {
-    if ( auto scene = graphicsView_->scene() ) {
-        scene->clear();
-        scene->addPixmap( QPixmap::fromImage( image ) );
+    ADDEBUG() << __FUNCTION__ << " size=" << std::make_pair( image.width(), image.height() );
+
+    if ( image.width() != width_ && image.height() != height_ ) {
+        width_ = image.width();
+        height_ = image.height();
+        
+        if ( auto scene = graphicsView_->scene() ) {
+            scene->clear();
+            scene->addPixmap( QPixmap::fromImage( image ) );
+        }
     }
 }
 
@@ -84,9 +93,9 @@ void
 ImageWidget::zoom( int delta )
 {
     if ( delta > 0 )
-        scale_ *= 1.1;
+        scale_ *= 1.02;
     else
-        scale_ /= 1.1;
+        scale_ /= 1.02;
     setupMatrix();
 }
 

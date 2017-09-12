@@ -211,7 +211,8 @@ namespace advision {
             cv::cvtColor( a, t, CV_BGR2RGB );
             break;
         }
-        return QImage( static_cast< const unsigned char *>(t.data), t.cols, t.rows, t.step, QImage::Format_RGB888 );
+        auto qImage = QImage( static_cast< const unsigned char *>(t.data), t.cols, t.rows, t.step, QImage::Format_RGB888 );
+        return qImage.copy(); // return deep copy
     }
 #endif
 

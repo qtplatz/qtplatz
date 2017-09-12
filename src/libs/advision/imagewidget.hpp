@@ -60,6 +60,8 @@ namespace advision {
     private:
         QGraphicsView *graphicsView_;
         double scale_;
+        size_t width_;
+        size_t height_;
     };
 }
 

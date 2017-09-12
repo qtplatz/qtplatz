@@ -34,6 +34,7 @@
 # include <opencv2/imgproc/imgproc.hpp>
 #endif
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/format.hpp>
 
 namespace advision {
 
@@ -51,7 +52,30 @@ namespace advision {
     };
 
     namespace opencv {
-        cv::Size Size( const imBlur& blur ) { return cv::Size( blur.size.first, blur.size.second ); }
+        inline cv::Size ksize( const imBlur& blur ) { return cv::Size( blur.ksize.first, blur.ksize.second ); }
+        inline cv::Size anchor( const imBlur& blur ) { return cv::Point( blur.anchor.first, blur.anchor.second ); }
+
+        inline bool applyGaussianBlur( const cv::Mat& in, cv::Mat& out, const imBlur& blur ) {
+            cv::Size ksize = cv::Size( blur.ksize.first | 1, blur.ksize.second | 1 ); // make odd values
+            try {
+                cv::GaussianBlur( in, out, ksize, 0, 0 );
+                return true;
+            } catch ( cv::Exception& e ) {
+                ADDEBUG() << "cv::Exception: " << e.what();
+                return false;
+            }
+        }
+        
+        inline bool applyBlur( const cv::Mat& in, cv::Mat& out, const imBlur& blur ) {
+            cv::Size ksize = cv::Size( blur.ksize.first, blur.ksize.second );
+            try {
+                cv::blur( in, out, opencv::ksize(blur), opencv::anchor(blur), cv::BORDER_DEFAULT );
+                return true;
+            } catch ( cv::Exception& e ) {
+                ADDEBUG() << "cv::Exception: " << e.what();
+                return false;
+            }
+        }
     };
     
 }
@@ -82,12 +106,13 @@ namespace advision {
     {
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
 
-        if ( mat.rows < 256 )
-            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
-
-        cv::Size sz = size_ == 1 ? opencv::Size( std::get<0>( algos_ ) ) : cv::Size( 5, 5 );
+        imBlur blur = size_ == 1 ? std::get<0>( algos_ ) : imBlur();
         
-        cv::GaussianBlur( mat, mat, cv::Size( 5, 5 ), 0, 0 );
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
 
         return transform_< QImage >()( mat );
     }
@@ -114,15 +139,16 @@ namespace advision {
     {
         const std::vector< float > __levels{ 0.0, 1.0 };
         const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
-        
-        cv::Mat mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
-        
-        if ( mat.rows < 256 )
-            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
 
-        cv::Size sz = size_ == 2 ? opencv::Size( std::get<1>( algos_ ) ) : cv::Size( 5, 5 );
-        
-        cv::GaussianBlur( mat, mat, sz, 0, 0 );
+        cv::Mat mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
+
+        imBlur blur = ( size_ == 2 ) ? std::get<1>( algos_ ) : imBlur();
+
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
 
         return transform_< QImage >()( mat );
     }
@@ -136,14 +162,23 @@ namespace advision {
               , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
-        
-        if ( mat.rows < 256 )
-            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
-        
-        cv::Size sz = size_ == 2 ? opencv::Size( std::get<1>( algos_ ) ) : cv::Size( 5, 5 );
 
-        cv::GaussianBlur( mat, mat, sz, 0, 0 );
+        imBlur blur = ( size_ == 2 ) ? std::get< 1 >( algos_ ) : imBlur();
 
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
+#if 0
+        static int count = 0;
+        std::string file = ( boost::format("/home/toshi/Pictures/debug%1%.jpg") % ++count ).str();
+        ADDEBUG() << "imwrite(" << file << ")";
+        cv::imwrite( file, mat );
+        auto qImage = transform_< QImage >()( mat );
+        qImage.save( QString("/home/toshi/Pictures/qimage%1.jpg").arg(count) );
+        return qImage;
+#endif
         return transform_< QImage >()( mat );
     }
 
@@ -198,11 +233,13 @@ namespace advision {
         // --> ColorMap cv::Mat
         mat = ApplyColorMap_< cv::Mat >()( mat, float( scaleFactor ) );
 
-        // --> Blur cv::Mat
-        if ( mat.rows < 256 )
-            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
-        cv::Size sz = size_ == 2 ? opencv::Size( std::get<2>( algos_ ) ) : cv::Size( 5, 5 );
-        cv::GaussianBlur( mat, mat, sz, 0, 0 );
+        imBlur blur = ( size_ == 3 ) ? std::get<2>( algos_ ) : imBlur();
+
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );        
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
 
         // wrap up
         return transform_< QImage >()( mat );
@@ -228,11 +265,13 @@ namespace advision {
         const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
         mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( mat, float( scaleFactor ) );
 
-        // --> Blur cv::Mat
-        if ( mat.rows < 256 )
-            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
-        cv::Size sz = size_ == 2 ? opencv::Size( std::get<2>( algos_ ) ) : cv::Size( 5, 5 );
-        cv::GaussianBlur( mat, mat, sz, 0, 0 );
+        imBlur blur = size_ == 3 ? std::get<2>( algos_ ) : imBlur();
+        
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
 
         // wrap up
         return transform_< QImage >()( mat );
@@ -253,10 +292,13 @@ namespace advision {
         if ( method.sizeFactor() > 1 )
             cv::resize( mat, mat, cv::Size(0,0), method.sizeFactor(), method.sizeFactor(), CV_INTER_LINEAR );
 
-        mat.convertTo( mat, CV_8UC1, 255 );
+        mat.convertTo( mat, CV_8UC1, 255 * scaleFactor );
 
-        if ( method.blurSize() > 0 )
-            cv::blur( mat, mat, cv::Size( method.blurSize(), method.blurSize() ) );
+        if ( method.blurSize() > 0 ) {
+            
+            opencv::applyGaussianBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
+            //opencv::applyBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
+        }
 
         cv::Canny( mat, mat, method.cannyThreshold(), method.cannyThreshold() * 2, 3 );
         
