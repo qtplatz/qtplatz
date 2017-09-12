@@ -76,16 +76,14 @@ ImageWidget::~ImageWidget()
 void
 ImageWidget::setImage( const QImage& image )
 {
-    ADDEBUG() << __FUNCTION__ << " size=" << std::make_pair( image.width(), image.height() );
-
     if ( image.width() != width_ && image.height() != height_ ) {
         width_ = image.width();
         height_ = image.height();
-        
-        if ( auto scene = graphicsView_->scene() ) {
-            scene->clear();
-            scene->addPixmap( QPixmap::fromImage( image ) );
-        }
+    }
+    
+    if ( auto scene = graphicsView_->scene() ) {
+        scene->clear();
+        scene->addPixmap( QPixmap::fromImage( image ) );
     }
 }
 
