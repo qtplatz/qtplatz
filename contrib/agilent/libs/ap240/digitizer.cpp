@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -107,10 +107,11 @@ namespace ap240 {
                 return o.str();
             }
 
-            static bool checkError( ViSession instId, ViStatus st, const char * text, ViInt32 arg = 0 ) {
+            static bool checkError( ViSession instId, ViStatus st, const char * text
+                                    , const char * __file__, int __line__, const char * __function__ ) {
 
                 if ( st != VI_SUCCESS )
-                    ADINFO() << error_msg( st, text, instId ) << " #" << arg;
+                    adlog::logger(__file__,__line__,adlog::LOG_WARN) << " " << __function__ << ":" << error_msg( st, text, instId );
 
                 return false;
             }
@@ -157,6 +158,7 @@ namespace ap240 {
             bool simulated_;
             acqrscontrols::ap240::method method_;
             std::atomic_flag acquire_posted_;
+            std::atomic<int> initialize_posted_;
 
             bool c_injection_requested_;
             bool c_acquisition_status_; // true := acq. is active, 
@@ -247,7 +249,7 @@ namespace ap240 {
                 d.method_ = m;
                 auto rcode = AcqrsD1_readData( inst, channel, &readPar, d.d_.data(), &dataDesc, &segDesc );
                 if ( rcode != VI_SUCCESS )
-                    task::checkError( inst, rcode, "readData", __LINE__ );
+                    task::checkError( inst, rcode, "readData", __FILE__,__LINE__,__FUNCTION__);
                 return rcode;
             }
         };
@@ -279,17 +281,13 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_prepare_for_run( const acqrscontrols::ap240::method& m )
 {
-    if ( task::instance()->inst() != ViSession( -1 ) )
-        return task::instance()->prepare_for_run( m );
-    return false;
+    return task::instance()->prepare_for_run( m );
 }
 
 bool
 digitizer::peripheral_prepare_for_run()
 {
-    if ( task::instance()->inst() != ViSession( -1 ) )
-        return task::instance()->prepare_for_run( task::instance()->method() );
-    return false;
+    return task::instance()->prepare_for_run( task::instance()->method() );
 }
 
 bool
@@ -367,6 +365,7 @@ task::task() : work_( io_service_ )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
              , temperature_( 0 )
+             , initialize_posted_( 0 )
                
 {
     acquire_posted_.clear();
@@ -391,8 +390,8 @@ task::instance()
 bool
 task::initialize()
 {
-    ADTRACE() << "ap240 digitizer initializing...";
-
+    ADDEBUG() << "## ap240 digitizer initializing...";
+    initialize_posted_++;
     strand_.post( [&] { handle_initial_setup(); } );
     return true;
 }
@@ -400,7 +399,7 @@ task::initialize()
 bool
 task::prepare_for_run( const acqrscontrols::ap240::method& m )
 {
-    if ( inst_ == ViSession( -1 ) )
+    if ( initialize_posted_.load() == 0 )
         return false;
 
     strand_.post( [this,m] { handle_prepare_for_run(m); } );
@@ -451,6 +450,8 @@ task::handle_initial_setup()
     bool simulation = false;
     ViStatus status;
 
+    ADDEBUG() << " ## " << __FUNCTION__ << " ##";
+    
     if ( getenv("AcqirisDxDir") == 0 ) {
         ADTRACE() << "AcqirisDxDir environment variable not set.";
         reply( "ap240::digitizer::task::handle_initial_setup", "AcqirisDxDir environment variable not set." );
@@ -470,7 +471,8 @@ task::handle_initial_setup()
     }
 #endif
     status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ );
-    ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
+    if ( status )
+        ADTRACE() << error_msg( status, "Acqiris::findDevice()" );
 
     if ( numInstruments_ == 0 && simulation ) {
         if ( Acqrs_setSimulationOptions( "M2M" ) == VI_SUCCESS )
@@ -490,7 +492,7 @@ task::handle_initial_setup()
         inst_ = ( -1 );
         status = Acqrs_init( const_cast<char *>( device_name_.c_str() ), VI_FALSE, VI_FALSE, &inst_ );
         if ( inst_ != ViSession( -1 ) && getInstrumentData() ) {
-            ADTRACE() << "\tfound device on: " << device_name_;
+            // ADTRACE() << "\tfound device on: " << device_name_;
             success = true;
             break;
         } else {
@@ -507,7 +509,7 @@ task::handle_initial_setup()
 
     timer_.expires_from_now( 5s );
     timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
-    
+
 	return success;
 }
 
@@ -522,6 +524,8 @@ task::handle_prepare_for_run( const acqrscontrols::ap240::method m )
 {
     method_ = m;
 
+    ADDEBUG() << __FUNCTION__ << " >>>>>>>> handle_prepare_for_run <<<<<<<";
+    
     device_ap240::initial_setup( *this, method_ );
 
     return true;
@@ -539,7 +543,7 @@ void
 task::handle_timer( const boost::system::error_code& ec )
 {
     using namespace std::chrono_literals;
-    
+
     if ( ec != boost::asio::error::operation_aborted ) {
 
         strand_.post( [&] { handle_temperature(); } );
@@ -728,7 +732,7 @@ device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
                 % trigClass % m.trig_.trigClass % trigPattern % m.trig_.trigPattern << std::endl;
         }
     }
-    task::checkError( inst_, status, "AcqrsD1_configTrigClass", __LINE__  );
+    task::checkError( inst_, status, "AcqrsD1_configTrigClass", __FILE__,__LINE__,__FUNCTION__);
     
     ViInt32 trigChannel = m.trig_.trigPattern & 0x80000000 ? (-1) : m.trig_.trigPattern & 0x3;
     
@@ -738,7 +742,7 @@ device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
                                        , m.trig_.trigSlope //m.ext_trigger_slope // pos(0), neg(1)
                                        , m.trig_.trigLevel1 //m.ext_trigger_level // 500 
                                        , m.trig_.trigLevel2 );
-    task::checkError( inst_, status, "AcqrsD1_configTrigSource", __LINE__  );
+    task::checkError( inst_, status, "AcqrsD1_configTrigSource", __FILE__,__LINE__,__FUNCTION__);
 
     // vertical setup
     const int chlist [] = { -1, 1, 2 };
@@ -759,19 +763,19 @@ device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
                     % fullScale % offset % v.fullScale % v.offset << std::endl;
             }
         } else
-            task::checkError( inst_, status, "configVertical", __LINE__ );
+            task::checkError( inst_, status, "configVertical",__FILE__,__LINE__,__FUNCTION__);
     }
 
     // channels configuration
     if ( m.channels_ == 03 ) { // 2ch simultaneous acquisition
 
         status = AcqrsD1_configChannelCombination( inst_, 1, m.channels_ ); // all channels use 1 converter each
-        task::checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
+        task::checkError( inst_, status, "AcqrsD1_configChannelCombination",__FILE__,__LINE__,__FUNCTION__);
 
     } else {
 
         status = AcqrsD1_configChannelCombination( inst_, 2, m.channels_ ); // half of the channels use 2 converters each
-        task::checkError( inst_, status, "AcqrsD1_configChannelCombination", __LINE__  );
+        task::checkError( inst_, status, "AcqrsD1_configChannelCombination",__FILE__,__LINE__,__FUNCTION__);
 
     }
     if ( status == ACQIRIS_WARN_SETUP_ADAPTED ) {
@@ -784,20 +788,20 @@ device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
 
     if ( m.channels_ & 01 ) {
         status = AcqrsD1_configMultiInput( inst_, 1, 0 ); // channel 1 --> A
-        task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
+        task::checkError( inst_, status, "AcqrsD1_configMultiInput",__FILE__,__LINE__,__FUNCTION__);
     }
     if ( m.channels_ & 02 ) {
         status = AcqrsD1_configMultiInput( inst_, 2, 1 ); // channel 2 --> B
-        task::checkError( inst_, status, "AcqrsD1_configMultiInput", __LINE__  );
+        task::checkError( inst_, status, "AcqrsD1_configMultiInput",__FILE__,__LINE__,__FUNCTION__);
     }
     
     // "IO B" for Acquisition is active
     status = AcqrsD1_configControlIO( inst_, pin_B, 21, 0, 0 );
-    task::checkError( inst_, status, "AcqrsD1_configControlIO(B)", __LINE__  );
+    task::checkError( inst_, status, "AcqrsD1_configControlIO(B)",__FILE__,__LINE__,__FUNCTION__);
     
     // config trigger out
     status = AcqrsD1_configControlIO( inst_, pin_TR, 1610 / 2, 0, 0 );
-    task::checkError( inst_, status, "AcqrsD1_configControlIO(TR)", __LINE__  );
+    task::checkError( inst_, status, "AcqrsD1_configControlIO(TR)",__FILE__,__LINE__,__FUNCTION__);
     
     if ( m.hor_.mode == 0 )
         return digitizer_setup( task, m );
@@ -823,17 +827,17 @@ device_ap240::digitizer_setup( task& task, acqrscontrols::ap240::method& m )
                 % delay % m.hor_.delayTime;
         }
     }
-    task::checkError( inst, status, "AcqrsD1_configHorizontal", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configHorizontal", __FILE__,__LINE__,__FUNCTION__);
 
     if ( (status = AcqrsD1_configMemory( inst, m.hor_.nbrSamples, nbrSegments )) == ACQIRIS_WARN_SETUP_ADAPTED ) {
         ViInt32 nbrSamples, nSegments;
         if ( AcqrsD1_getMemory( inst, &nbrSamples, &nSegments ) == VI_SUCCESS )
             m.hor_.nbrSamples = nbrSamples;
     } else 
-        task::checkError( inst, status, "configMemory", __LINE__ );
+        task::checkError( inst, status, "configMemory",__FILE__,__LINE__,__FUNCTION__);
     
     status = AcqrsD1_configMode( inst, 0, 0, 0 ); // 2 := averaging mode, 0 := normal data acq.
-    task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configMode",__FILE__,__LINE__,__FUNCTION__);
 
     return true;
 }
@@ -848,41 +852,41 @@ device_ap240::averager_setup( task& task, acqrscontrols::ap240::method& m )
     ViStatus status;
 
     status = AcqrsD1_configMode( inst, 2, 0, 0 ); // 2 := averaging mode
-    task::checkError( inst, status, "AcqrsD1_configMode", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configMode",__FILE__,__LINE__,__FUNCTION__);
         
     ViInt32 int32Arg = ViInt32( m.hor_.nbrSamples );
     status = AcqrsD1_configAvgConfig( inst, 0, "NbrSamples", &int32Arg );
-    task::checkError( inst, status, "AcqirisD1_configAvgConfig, NbrSamples", __LINE__ );
+    task::checkError( inst, status, "AcqirisD1_configAvgConfig, NbrSamples",__FILE__,__LINE__,__FUNCTION__);
 
     int32Arg = ViInt32( ( int( m.hor_.delayTime / m.hor_.sampInterval + 0.5 ) + 32 ) & ~0x1f ); // fold of 32, can't be zero
     status = AcqrsD1_configAvgConfig( inst, 0, "StartDelay", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig StartDelay ", __LINE__ );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig StartDelay ", __FILE__,__LINE__,__FUNCTION__);
 
     int32Arg = 0;
     status = AcqrsD1_configAvgConfig( inst, 0, "StopDelay", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig (StopDelay)", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (StopDelay)",__FILE__,__LINE__,__FUNCTION__);
 
     int32Arg = m.hor_.nbrAvgWaveforms;
     status = AcqrsD1_configAvgConfig( inst, 0, "NbrWaveforms", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig NbrWaveforms ", __LINE__ );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig NbrWaveforms ",__FILE__,__LINE__,__FUNCTION__);
         
     int32Arg = 0;
     for ( auto& cmd: { "TrigAlways", "TrigResync", "ThresholdEnable", "TriggerTimeout" } ) {
         status = AcqrsD1_configAvgConfig( inst, 0, cmd, &int32Arg );
-        task::checkError( inst, status, cmd, __LINE__  );
+        task::checkError( inst, status, cmd,__FILE__,__LINE__,__FUNCTION__);
     }
         
     //-----------------------
     int32Arg = 1;
     for ( auto& cmd: { "TimestampClock", "MarkerLatchMode" } ) {
         status = AcqrsD1_configAvgConfig( inst, 0, cmd, &int32Arg);
-        task::checkError( inst, status, cmd, __LINE__  );
+        task::checkError( inst, status, cmd,__FILE__,__LINE__,__FUNCTION__);
     }
         
     do {
         int32Arg = m.ch1_.invertData ? 1 : 0; // invert data for mass spectrum;
         status = AcqrsD1_configAvgConfig( inst, 0, "InvertData", &int32Arg); 
-        task::checkError( inst, status, "AcqrsD1_configAvgConfig (InvertData)", __LINE__  );
+        task::checkError( inst, status, "AcqrsD1_configAvgConfig (InvertData)", __FILE__,__LINE__,__FUNCTION__);
     } while (0);
 
 
@@ -894,32 +898,32 @@ device_ap240::averager_setup( task& task, acqrscontrols::ap240::method& m )
 #endif
     // config "IO B" for Acquisition is active (21)
     status = AcqrsD1_configControlIO( inst, 2, 21, 0, 0 );
-    if ( task::checkError( inst, status, "AcqrsD1_configControlIO(B)", __LINE__  ) )
+    if ( task::checkError( inst, status, "AcqrsD1_configControlIO(B)", __FILE__,__LINE__,__FUNCTION__) );
         return false;
 
     // Configure the front panel trigger out (TR.)
     // The appropriate offset is 1,610 mV.
     status = AcqrsD1_configControlIO( inst, 9, 1610 / 2, 0, 0 );
-    if ( task::checkError( inst, status, "AcqrsD1_configControlIO (2)", __LINE__  ) )
+    if ( task::checkError( inst, status, "AcqrsD1_configControlIO (2)", __FILE__,__LINE__,__FUNCTION__) )
         return false;
 
     // "P2Control" set to average(out) --> disable for debug
     int32Arg = 0;
     status = AcqrsD1_configAvgConfig( inst, 0, "P1Control", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig (P1Control)", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (P1Control)",__FILE__,__LINE__,__FUNCTION__);
 
     // "P2Control" to disable
     int32Arg = 0;
     status = AcqrsD1_configAvgConfig( inst, 0, "P2Control", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig (P2Control)", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (P2Control)",__FILE__,__LINE__,__FUNCTION__);
 
     int32Arg = 0;
     status = AcqrsD1_configAvgConfig( inst, 0, "DitherRange", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig (DitherRange)", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (DitherRange)",__FILE__,__LINE__,__FUNCTION__);
 	
     int32Arg = nbrSegments;
     status = AcqrsD1_configAvgConfig( inst, 0, "NbrSegments", &int32Arg );
-    task::checkError( inst, status, "AcqrsD1_configAvgConfig (NbrSegments)", __LINE__  );
+    task::checkError( inst, status, "AcqrsD1_configAvgConfig (NbrSegments)",__FILE__,__LINE__,__FUNCTION__);
 
     return true;
 }
@@ -936,7 +940,7 @@ device_ap240::acquire( task& task )
     auto rcode = AcqrsD1_acquire( task.inst() );
 
     if ( rcode != VI_SUCCESS ) {
-        task::checkError( task.inst(), rcode, "device_ap240::acquire", __LINE__ );
+        task::checkError( task.inst(), rcode, "device_ap240::acquire",__FILE__,__LINE__,__FUNCTION__);
 
         if ( rcode == ACQIRIS_ERROR_INSTRUMENT_RUNNING )
             AcqrsD1_stopAcquisition( task.inst() );
