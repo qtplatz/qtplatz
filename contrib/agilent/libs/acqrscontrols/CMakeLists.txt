@@ -26,6 +26,8 @@ add_library( ${PROJECT_NAME} SHARED
   waveform_horizontal.hpp
   threshold_result.hpp
   threshold_result.cpp
+  tdcdoc.hpp
+  tdcdoc.cpp
   u5303a/averagedata.hpp
   u5303a/averagedata.cpp
   u5303a/device_method.hpp
