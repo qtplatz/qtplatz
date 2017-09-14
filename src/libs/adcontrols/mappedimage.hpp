@@ -51,6 +51,7 @@ namespace adcontrols {
         ~MappedImage( void );
         MappedImage( void );
         MappedImage( size_t i, size_t j );
+        MappedImage( boost::numeric::ublas::matrix< double >&&, std::pair< size_t, size_t >&& trig );
         MappedImage( const MappedImage & );
         MappedImage & operator = ( const MappedImage & rhs );
         
@@ -78,6 +79,8 @@ namespace adcontrols {
         double max_z() const;
         size_t mergeCount() const;
         void setMergeCount( size_t );
+        void setTrigRange( size_t, size_t );
+        std::pair< size_t, size_t > trigRange() const;
 
     private:
         class impl;

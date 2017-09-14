@@ -24,40 +24,15 @@
 
 #pragma once
 
-#include <driver_types.h> // cudaStream_t
-#include <vector>
-#include <thrust/device_vector.h>
-#include <boost/numeric/ublas/fwd.hpp>
-
 namespace cv { class Mat; }
 
-class QImage;
-
-namespace cuda {
-
-    template< typename T > class device_ptr;
-
-    class ColorMap {
-
-        ColorMap( const ColorMap& ) = delete;
-        ColorMap& operator = ( const ColorMap& ) = delete;
-        
-        thrust::device_vector< float > d_levels_;
-        thrust::device_vector< float > d_colors_;
-        
+namespace advision {
+    
+    class dft2d {
     public:
-        ColorMap( const std::vector< float >& levels, const std::vector< float >& colors );
-        ~ColorMap();
-        
-        template< typename T > device_ptr< unsigned char > operator()( const boost::numeric::ublas::matrix<T>&, double scaleFactor ) const;
-#if HAVE_OPENCV
-        device_ptr< unsigned char > operator()( const cv::Mat&, double scaleFactor ) const;
-#endif
+        cv::Mat dft( const cv::Mat& I );
+        cv::Mat appod( const cv::Mat& I );
+        cv::Mat zerofill( const cv::Mat& I, const int N = 2 );
     };
-
-    using boost::numeric::ublas::matrix;
-
-    template<> device_ptr< unsigned char > ColorMap::operator()<float>( const matrix<float>&, double scaleFactor ) const;
-    template<> device_ptr< unsigned char > ColorMap::operator()<double>( const matrix<double>&, double scaleFactor ) const;
 }
 

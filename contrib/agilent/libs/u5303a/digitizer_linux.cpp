@@ -168,8 +168,6 @@ namespace u5303a {
 using namespace u5303a;
 using namespace u5303a::detail;
 
-//std::unique_ptr< task > task::instance_;
-
 std::mutex task::mutex_;
 
 digitizer::digitizer()

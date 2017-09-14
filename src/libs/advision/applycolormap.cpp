@@ -28,7 +28,9 @@
 # include "afcolormap.hpp"
 # include "cvcolormap.hpp"
 # include "colormap.hpp"
+# include "device_ptr.hpp"
 #endif
+#include "transform.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
 #include <arrayfire.h>
@@ -37,9 +39,9 @@
 
 namespace advision {
 
-    static const std::vector< float > __levels { 0.0, 0.2, 0.4, 0.6, 0.8, 0.97, 1.0 };
+    static const std::vector< float > __levels { 0.00, 0.05, 0.30, 0.60, 0.80, 0.97, 1.0 };
 
-                                            // black, navy, cyan, green,yellow,red, white
+                                            // black, blue, cyan, green,yellow,red, white
     static const std::vector< float > __colors { 0.0, 0.0,  0.0,  0.0,  1.0,  1.0, 1.0  // R
                                                , 0.0, 0.0,  1.0,  1.0,  1.0,  0.0, 1.0  // G
                                                , 0.0, 1.0,  1.0,  0.0,  0.0,  0.0, 1.0  // B
@@ -116,7 +118,7 @@ namespace advision {
                 for ( size_t j = 0; j < gray.cols; ++j ) {
                     double v = gray.at< float >( i, j ) * scaleFactor;
                     auto c = std::move( color_( v ) );
-                    x.at< cv::Vec3b >( i, j )[ 0 ] = c.blue * 255;
+                    x.at< cv::Vec3b >( i, j )[ 0 ] = c.blue * 255; // -> BGR
                     x.at< cv::Vec3b >( i, j )[ 1 ] = c.green * 255;
                     x.at< cv::Vec3b >( i, j )[ 2 ] = c.red * 255;
                 }
@@ -155,14 +157,33 @@ namespace advision {
                 for ( size_t j = 0; j < m.size2(); ++j ) {
                     double v = m( i, j ) * scaleFactor;
                     auto c = std::move( color_( v ) );
+                    *p++ = c.blue * 255;  // -> BGR
+                    *p++ = c.green * 255;
                     *p++ = c.red * 255;
+                }
+            }
+            return x;
+        }
+        //--
+        //--
+        template<>
+        template<>
+        QImage ColorMap_< QImage >::operator()( const cv::Mat& m, double scaleFactor ) const {
+            if ( m.type() != CV_32F )
+                return QImage();
+            QImage x( m.rows, m.cols, QImage::Format_RGB888 );
+            unsigned char * p = x.bits();
+            for ( size_t i = 0; i < m.rows; ++i ) {
+                for ( size_t j = 0; j < m.cols; ++j ) {
+                    double v = m.at<float>( i, j ) * scaleFactor;
+                    auto c = std::move( color_( v ) );
+                    *p++ = c.red * 255;  // <- RGB
                     *p++ = c.green * 255;
                     *p++ = c.blue * 255;
                 }
             }
             return x;
         }
-        //--
     }
 }
 
@@ -232,7 +253,7 @@ namespace advision {
     {
 #if HAVE_CUDA
         if ( deviceInfo::instance()->hasCUDA() )        
-            return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
+            return advision::transform_< QImage >()( cuda::ColorMap( levels_, colors_ )( m, scaleFactor ) );
 #endif
         return cpu::ColorMap_< QImage >( levels_, colors_ )( m, scaleFactor );
     }
@@ -245,7 +266,7 @@ namespace advision {
     {
 #if HAVE_CUDA
         if ( deviceInfo::instance()->hasCUDA() )
-            return cuda::ColorMap( levels_, colors_ )( m, scaleFactor );
+            return advision::transform_< QImage >()( cuda::ColorMap( levels_, colors_ )( m, scaleFactor ) );
 #endif
         return cpu::ColorMap_< QImage >( levels_, colors_ )( m, scaleFactor );        
     }
@@ -293,6 +314,24 @@ namespace advision {
 #endif
         return af::array();
     }
-#endif    
+#endif
+
+#if HAVE_OPENCV
+    // cv::Mat -> QImage
+    template<>
+    template<> QImage ApplyColorMap_<QImage>::operator()( const cv::Mat& mat, float scaleFactor ) const
+    {
+        if ( mat.type() != CV_32F ) {
+            ADDEBUG() << "ERROR: Invalid data type";
+            return QImage();
+        }
+#if HAVE_CUDA
+        if ( deviceInfo::instance()->hasCUDA() )
+            return advision::transform_< QImage >()( cuda::ColorMap( levels_, colors_ )( mat, scaleFactor ) );
+#endif
+        return cpu::ColorMap_< QImage >( levels_, colors_ )( mat, scaleFactor );
+    }
+#endif
+    
     
 }

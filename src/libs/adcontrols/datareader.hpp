@@ -62,7 +62,9 @@ namespace adcontrols {
         int fcn() const;
     };
     
-    class ADCONTROLSSHARED_EXPORT DataReader_iterator : public std::iterator< std::forward_iterator_tag, DataReader_iterator > {
+    class ADCONTROLSSHARED_EXPORT DataReader_iterator
+        : public std::iterator< std::bidirectional_iterator_tag
+                                , DataReader_iterator > {
         std::weak_ptr< const DataReader > reader_;
         DataReader_value_type value_;
         int fcn_;

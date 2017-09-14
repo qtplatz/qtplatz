@@ -35,10 +35,13 @@ TraceAccessor::~TraceAccessor()
 }
 
 TraceAccessor::TraceAccessor() : maxfcn_( 0 )
+                               , injectTime_( 0 )
 {
 }
 
 TraceAccessor::TraceAccessor( const TraceAccessor& t ) : trace_( t.trace_ )
+                                                       , maxfcn_( t.maxfcn_ )
+                                                       , injectTime_( t.injectTime_ )
 {
 }
 
@@ -51,6 +54,8 @@ TraceAccessor::operator += ( const TraceAccessor& t )
         trace_.insert( trace_.end(), t.trace_.begin(), t.trace_.end() );
 	if ( maxfcn_ < t.maxfcn_ )
 		maxfcn_ = t.maxfcn_;
+    if ( injectTime_ < t.injectTime_ )
+        injectTime_ = t.injectTime_;
     return *this;
 }
 
@@ -77,6 +82,7 @@ TraceAccessor::operator >> ( Trace& t ) const
             t.append( d.npos, d.x.seconds, d.y );
             ++n;
         }
+        t.setInjectTime( injectTime_ );
     }
     return n;
 }
@@ -85,8 +91,10 @@ void
 TraceAccessor::copy_to( Trace& trace, int fcn )
 {
     for ( const auto& d: trace_ ) {
-        if ( d.fcn == fcn )
+        if ( d.fcn == fcn ) {
             trace.append( d.npos, d.x.seconds, d.y );
+            trace.setInjectTime( injectTime_ );
+        }
     }
 }
 
@@ -98,8 +106,8 @@ TraceAccessor::copy_to( Chromatogram& c, int fcn )
     
     for ( const auto& d: trace_ ) {
         if ( d.fcn == fcn ) {
-            x.push_back( d.x.seconds - trace_[0].x.seconds );
-            y.push_back( d.y );
+            x.emplace_back( d.x.seconds - trace_[0].x.seconds );
+            y.emplace_back( d.y );
         }
     }
     c.resize( x.size() );
@@ -107,3 +115,8 @@ TraceAccessor::copy_to( Chromatogram& c, int fcn )
     c.setTimeArray( x.data() );
 }
 
+void
+TraceAccessor::setInjectTime( seconds_t t )
+{
+    injectTime_ = t;
+}

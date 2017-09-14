@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +26,9 @@
 
 #include "advision_global.hpp"
 #include <boost/numeric/ublas/fwd.hpp>
+#include <adcontrols/contoursmethod.hpp>
+#include <tuple>
+#include <limits>
 
 class QImage;
 
@@ -34,12 +37,34 @@ namespace advision {
     struct imGrayScale {};
     struct imRGBColor {};
     struct imColorMap {};
-    struct imBlur {};
+    struct imDFT {};
+    struct imBlur {
+        std::pair<int, int> ksize;
+        std::pair<int, int> anchor;
+        int resizeFactor;
+        imBlur( const std::pair<int,int>& ksz = {5,5}, int szFactor = 1, const std::pair<int,int>& a = {-1,-1} )
+            : ksize( ksz ), resizeFactor(szFactor), anchor( a ) {}
+        imBlur( const imBlur& t ) : ksize(t.ksize), resizeFactor( t.resizeFactor ) {}
+    };
+    struct imContours : public adcontrols::ContoursMethod {
+        imContours() {}
+        imContours( const adcontrols::ContoursMethod& t ) : adcontrols::ContoursMethod( t ) {}
+    };
 
-    template< typename T, typename ... Algo >
+    template< typename T, typename ... Algos >
     class ADVISIONSHARED_EXPORT imfilter {
+        size_t size_;
+        std::tuple< Algos... > algos_;
+
     public:
-        imfilter() {}
+        imfilter() : size_( 0 ) {
+        }
+
+        imfilter( Algos... algos )
+            : size_( sizeof...(Algos) )
+            , algos_( std::forward< Algos >( algos )... ) {
+        }
+        
         ~imfilter() {}
 
         template< typename R > T operator()( const R&, double scaleFactor = 1.0 ) const;
@@ -63,4 +88,9 @@ namespace advision {
     template<>
     template<>
     QImage imfilter< QImage, imColorMap, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
+
+    //
+    template<>
+    template<>
+    QImage imfilter< QImage, imContours >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
 }

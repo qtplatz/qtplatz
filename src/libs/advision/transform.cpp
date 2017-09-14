@@ -25,6 +25,9 @@
 #include "transform.hpp"
 #include "cvtypes.hpp"
 #include "aftypes.hpp"
+#if HAVE_CUDA
+# include "device_ptr.hpp"
+#endif
 #include <arrayfire.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <opencv2/core/mat.hpp>
@@ -208,7 +211,8 @@ namespace advision {
             cv::cvtColor( a, t, CV_BGR2RGB );
             break;
         }
-        return QImage( static_cast< const unsigned char *>(t.data), t.cols, t.rows, t.step, QImage::Format_RGB888 );
+        auto qImage = QImage( static_cast< const unsigned char *>(t.data), t.cols, t.rows, t.step, QImage::Format_RGB888 );
+        return qImage.copy(); // return deep copy
     }
 #endif
 
@@ -223,6 +227,17 @@ namespace advision {
         std::copy( m.data().begin(), m.data().end(), ptr );
 
         return mat;
+    }
+#endif
+
+
+#if HAVE_CUDA
+    template<>
+    template<>
+    QImage transform_< QImage >::operator()<>( const cuda::device_ptr< unsigned char >& t ) const {
+        QImage img( t.rows(), t.cols(), QImage::Format_RGB888 );
+        cudaMemcpyAsync( img.bits(), t.get(), t.rows() * t.cols() * 3 * sizeof( unsigned char ), cudaMemcpyDeviceToHost );
+        return img;
     }
 #endif
 

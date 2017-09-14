@@ -35,6 +35,8 @@ add_library( adcontrols SHARED
   chromatogram.hpp
   constants.hpp
   constants.cpp
+  contoursmethod.cpp
+  contoursmethod.hpp
   controlmethod.cpp
   controlmethod.hpp
   controlmethod/timedevent.hpp

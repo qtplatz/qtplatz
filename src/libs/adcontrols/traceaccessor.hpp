@@ -68,16 +68,20 @@ namespace adcontrols {
 
         void clear();
         void push_back( int fcn, uint32_t pos, const seconds_t&, double value, unsigned long events );
+        
         size_t operator >> ( Trace& ) const;
         void copy_to( Trace&, int fcn );
         void copy_to( Chromatogram&, int fcn );
         
         const std::vector< fcnData >& trace() const { return trace_; }
         size_t nfcn() const { return size_t( maxfcn_ ) + 1; }
+        void setInjectTime( seconds_t );
+        seconds_t injectTime() const { return injectTime_; }
 
     private:
 		std::vector< fcnData > trace_;
         int maxfcn_;
+        seconds_t injectTime_; // most recent inject time
     };
 
 }

@@ -16,8 +16,8 @@ make install
 
 AcqirisSoftware=<CD-Rom42c unzip location>
 sudo cp AqDrv4.ini /etc
-sudo mkdir /usr/lib/firmware/acqrs
-sudo cp -p $AcqirisSoftare/*.bit /usr/lib/firmware/acqrs
+sudo mkdir /usr/lib/firmware/aqrs
+sudo cp -p $AcqirisSoftare/*.bit /usr/lib/firmware/aqrs
 
 ========================
  Edit /etc/environment

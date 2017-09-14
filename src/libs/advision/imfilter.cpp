@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,6 +25,7 @@
 #include "imfilter.hpp"
 #include "transform.hpp"
 #include "applycolormap.hpp"
+#include "dft2d.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
 #if HAVE_OPENCV
@@ -33,6 +34,7 @@
 # include <opencv2/imgproc/imgproc.hpp>
 #endif
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/format.hpp>
 
 namespace advision {
 
@@ -49,34 +51,32 @@ namespace advision {
         }
     };
 
-    //---------------------
+    namespace opencv {
+        inline cv::Size ksize( const imBlur& blur ) { return cv::Size( blur.ksize.first, blur.ksize.second ); }
+        inline cv::Size anchor( const imBlur& blur ) { return cv::Point( blur.anchor.first, blur.anchor.second ); }
 
-    template< typename Algo >
-    struct ublas_to_qimage {
-        template< typename T > QImage operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const;
-    };
-
-    // matrix -> QImage gray scale RGB888
-    template<>
-    template< typename T > QImage
-    ublas_to_qimage< imGrayScale >::operator()( const boost::numeric::ublas::matrix< T >& m, double scaleFactor ) const {
-
-        auto minMax = find_minmax<T>()( m );
-
-        ADDEBUG() << "ublas -> gray";
-        
-        QImage rgb( m.size1(), m.size2(), QImage::Format_RGB888 );
-        auto p = rgb.bits();
-        for ( int i = 0; i < m.size1(); ++i ) {
-            for ( int j = 0; j < m.size2(); ++j ) {
-                unsigned char value = m( i, j ) * 255 / minMax.second;
-                *p++ = value;  // R
-                *p++ = value;  // G
-                *p++ = value;  // B
+        inline bool applyGaussianBlur( const cv::Mat& in, cv::Mat& out, const imBlur& blur ) {
+            cv::Size ksize = cv::Size( blur.ksize.first | 1, blur.ksize.second | 1 ); // make odd values
+            try {
+                cv::GaussianBlur( in, out, ksize, 0, 0 );
+                return true;
+            } catch ( cv::Exception& e ) {
+                ADDEBUG() << "cv::Exception: " << e.what();
+                return false;
             }
         }
-        return rgb;
-    }
+        
+        inline bool applyBlur( const cv::Mat& in, cv::Mat& out, const imBlur& blur ) {
+            cv::Size ksize = cv::Size( blur.ksize.first, blur.ksize.second );
+            try {
+                cv::blur( in, out, opencv::ksize(blur), opencv::anchor(blur), cv::BORDER_DEFAULT );
+                return true;
+            } catch ( cv::Exception& e ) {
+                ADDEBUG() << "cv::Exception: " << e.what();
+                return false;
+            }
+        }
+    };
     
 }
 
@@ -92,7 +92,10 @@ namespace advision {
     QImage
     imfilter< QImage, imGrayScale >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
     {
-        return ublas_to_qimage< imGrayScale >()( m, scaleFactor );
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+
+        return ApplyColorMap_< QImage >(2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
     }
 
 ////// Blur
@@ -103,14 +106,16 @@ namespace advision {
     {
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
 
-        if ( mat.rows < 256 )
-            cv::resize( mat, mat, cv::Size(0,0), 256/mat.cols, 256/mat.rows, CV_INTER_LINEAR );
+        imBlur blur = size_ == 1 ? std::get<0>( algos_ ) : imBlur();
+        
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
 
-        cv::GaussianBlur( mat, mat, cv::Size( 5, 5 ), 0, 0 );
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
 
         return transform_< QImage >()( mat );
     }
-
 
 ////// ColorMap matrix<double>
     template<>
@@ -121,4 +126,219 @@ namespace advision {
         return ApplyColorMap_<QImage>()( m, scaleFactor );
     }
 
+    //////////////////
+    //////////////////
+    //////////////////
+    // GrayScale + Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imGrayScale
+              , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+
+        cv::Mat mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( m, float( scaleFactor ) );
+
+        imBlur blur = ( size_ == 2 ) ? std::get<1>( algos_ ) : imBlur();
+
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
+
+        return transform_< QImage >()( mat );
+    }
+
+    // ColorMap + Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imColorMap
+              , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
+
+        imBlur blur = ( size_ == 2 ) ? std::get< 1 >( algos_ ) : imBlur();
+
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
+#if 0
+        static int count = 0;
+        std::string file = ( boost::format("/home/toshi/Pictures/debug%1%.jpg") % ++count ).str();
+        ADDEBUG() << "imwrite(" << file << ")";
+        cv::imwrite( file, mat );
+        auto qImage = transform_< QImage >()( mat );
+        qImage.save( QString("/home/toshi/Pictures/qimage%1.jpg").arg(count) );
+        return qImage;
+#endif
+        return transform_< QImage >()( mat );
+    }
+
+    //////// ColorMap + DFT
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imColorMap
+              , imDFT >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+        mat = dft2d().dft( mat );
+
+        return ApplyColorMap_< QImage >()( mat, float( scaleFactor ) );
+    }
+
+    // GrayScale + DFT
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imGrayScale
+              , imDFT >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+
+        mat = dft2d().dft( mat );
+        
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+
+        return ApplyColorMap_< QImage >( 2, __levels.data(), __colors.data() )( mat, float( scaleFactor ) );
+    }
+
+
+    // ColorMap + DFT + Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imColorMap
+              , imDFT
+              , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        // --> cv::Mat_<float>
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+
+        // --> DFT
+        mat = dft2d().dft( mat );
+
+        // --> ColorMap cv::Mat
+        mat = ApplyColorMap_< cv::Mat >()( mat, float( scaleFactor ) );
+
+        imBlur blur = ( size_ == 3 ) ? std::get<2>( algos_ ) : imBlur();
+
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );        
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
+
+        // wrap up
+        return transform_< QImage >()( mat );
+    }
+
+    // GrayScale + DFT + Blur
+    template<>
+    template<>
+    QImage
+    imfilter< QImage
+              , imGrayScale
+              , imDFT
+              , imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        // --> cv::Mat_<float>
+        auto mat = transform_< cv::Mat >()( m ); // -> float *
+
+        // --> DFT
+        mat = dft2d().dft( mat );
+
+        // --> GrayScale cv::Mat
+        const std::vector< float > __levels{ 0.0, 1.0 };
+        const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
+        mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( mat, float( scaleFactor ) );
+
+        imBlur blur = size_ == 3 ? std::get<2>( algos_ ) : imBlur();
+        
+        if ( blur.resizeFactor > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+
+        opencv::applyGaussianBlur( mat, mat, blur );
+        //opencv::applyBlur( mat, mat, blur );
+
+        // wrap up
+        return transform_< QImage >()( mat );
+    }
+
+    //////////// Contours
+    template<>
+    template<>
+    QImage imfilter< QImage, imContours >::operator()<>( const boost::numeric::ublas::matrix< double >& m, double scaleFactor ) const
+    {
+        // --> cv::Mat_<float>
+        auto mat = transform_< cv::Mat >()( m );
+
+        imContours method;
+        if ( size_ >= 1 )
+            method = std::get< 0 >( algos_ );
+
+        if ( method.sizeFactor() > 1 )
+            cv::resize( mat, mat, cv::Size(0,0), method.sizeFactor(), method.sizeFactor(), CV_INTER_LINEAR );
+
+        mat.convertTo( mat, CV_8UC1, 255 * scaleFactor );
+
+        if ( method.blurSize() > 0 ) {
+            
+            opencv::applyGaussianBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
+            //opencv::applyBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
+        }
+
+        cv::Canny( mat, mat, method.cannyThreshold(), method.cannyThreshold() * 2, 3 );
+        
+        std::vector< std::vector< cv::Point > > contours;
+        std::vector< cv::Vec4i > hierarchy;
+        cv::findContours( mat, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+
+        cv::Mat drawing = cv::Mat::zeros( mat.size(), CV_8UC3 );
+        int c = 1;
+        for( int i = 0; i< contours.size(); i++ )  {
+            cv::Rect rc = boundingRect( contours[i] );
+            cv::Moments mu = cv::moments( contours[i], false );
+                
+            double cx = ( mu.m10 / mu.m00 ) / method.sizeFactor();
+            double cy = ( mu.m01 / mu.m00 ) / method.sizeFactor();
+            cv::Point centre( mu.m10 / mu.m00, mu.m01 / mu.m00 );
+            double area = cv::contourArea( contours[i] ) / ( method.sizeFactor() * method.sizeFactor() );
+
+            if ( ( rc.width >= method.minSizeThreshold() && rc.height >= method.minSizeThreshold() ) &&
+                 ( rc.width < method.maxSizeThreshold() && rc.height < method.maxSizeThreshold() ) ) {            
+                
+                cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
+                cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+
+                color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );                
+                cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
+
+            } else {
+
+                cv::Scalar color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );
+                cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
+
+                color = cv::Scalar( (c&01)*63, ((c&02)/2)*63, ((c&04)/4)*63 );                
+                cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
+
+            }
+            ++c;
+        }
+        return advision::transform_< QImage >()( drawing );
+        
+    }
+    
 }

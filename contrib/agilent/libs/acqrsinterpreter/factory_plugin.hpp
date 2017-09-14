@@ -31,20 +31,9 @@
 
 namespace acqrsinterpreter {
 
-    namespace helper
-    {
-        template <std::size_t... Ts>
-        struct index {};
-    
-        template <std::size_t N, std::size_t... Ts>
-        struct gen_seq : gen_seq<N - 1, N - 1, Ts...> {};
-    
-        template <std::size_t... Ts>
-        struct gen_seq<0, Ts...> : index<Ts...> {};
-    }
-    
     template< typename T, typename _IID >
     class factory_plugin : public adplugin::plugin {
+
 #if _MSC_VER >= 1900
 	public:
 #endif

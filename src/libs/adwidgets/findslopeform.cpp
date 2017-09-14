@@ -26,6 +26,7 @@
 #include "ui_findslopeform.h"
 #include <adcontrols/threshold_method.hpp>
 #include <QSignalBlocker>
+#include <ratio>
 
 using namespace adwidgets;
 
@@ -179,9 +180,9 @@ findSlopeForm::get( adcontrols::threshold_method& m ) const
         m.filter = adcontrols::threshold_method::SG_Filter;
     else 
         m.filter = adcontrols::threshold_method::DFT_Filter;
-    m.sgwidth = ui->spinBox_sg->value() * 1.0e-9;           // ns -> s
-    m.hCutoffHz = ui->spinBox_dft_high->value() * 1.0e6;    // MHz -> Hz
-    m.lCutoffHz = ui->spinBox_dft_low->value() * 1.0e6;     // MHz -> Hz
+    m.sgwidth = ui->spinBox_sg->value() / std::nano::den;        // * 1.0e-9;// ns -> s
+    m.hCutoffHz = ui->spinBox_dft_high->value() * std::mega::num;//1.0e6;    // MHz -> Hz
+    m.lCutoffHz = ui->spinBox_dft_low->value() * std::mega::num; //1.0e6;    // MHz -> Hz
     m.complex_ = ui->checkBox->isChecked();
 }
 

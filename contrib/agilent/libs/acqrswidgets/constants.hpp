@@ -37,6 +37,13 @@ namespace acqrswidgets {
         , idVertical
         , idTrigger
         , idChannels
+        , idAP240StartDelay
+        , idAP240Width
+        , idAP240NbrAverages
+        , idAP240Mode
+        , idAP240SampRate
+        , idAP240NbrSamples
+        , idAP240ExtDelay
 
         //------------------- u5303A ---------------
         , idU5303AAny = 2000

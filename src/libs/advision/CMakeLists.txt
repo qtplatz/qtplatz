@@ -14,11 +14,19 @@ if ( OpenCV_FOUND )
   find_package( OpenCV 3 REQUIRED core imgproc video highgui features2d )
   add_definitions( "-DOPENCV=1" )
   include_directories ( ${OpenCV_INCLUDE_DIRS} )
+  set ( cuda_cv_sources
+    cvcolormap.hpp
+    cvcolormap.cu
+    )  
 endif()
 
 if ( ArrayFire_FOUND )
   add_definitions( "-DARRAYFIRE=1" )
   include_directories ( ${ArrayFire_INCLUDE_DIRS} )
+  set ( cuda_af_sources
+    afcolormap.hpp
+    afcolormap.cu
+    )
 endif()
 
 if ( CUDA_FOUND )
@@ -60,18 +68,20 @@ set ( SOURCES
   imagewidget.hpp
   imfilter.cpp
   imfilter.hpp
+  moments.cpp
+  moments.hpp
   utils.hpp
   plot.cpp
   plot.hpp
   transform.cpp
   transform.hpp
+  dft2d.cpp
+  dft2d.hpp
   )
 
 set ( CUDA_SOURCES
-  afcolormap.hpp
-  afcolormap.cu
-  cvcolormap.hpp
-  cvcolormap.cu
+  ${cuda_af_sources}
+  ${cuda_cv_sources}
   colormap.hpp
   colormap.cu  
   )
@@ -92,6 +102,7 @@ endif()
 
 target_link_libraries( ${PROJECT_NAME} ${LINK_KEYWORD}
   adportable
+  adcontrols
   ${ArrayFire_LIBRARIES}
   ${ArrayFire_CUDA_LIBRARIES}  
   ${Boost_LIBRARIES}

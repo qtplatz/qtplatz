@@ -31,51 +31,6 @@
 
 namespace adextension {
 
-#if 0
-    template< typename Editor>
-    class iEditorFactoryT : public iEditorFactory {
-
-        QString title_;
-        boost::uuids::uuid clsid_;
-        iEditorFactory::METHOD_TYPE mtype_;
-
-    public:
-        
-		iEditorFactoryT( const QString& title
-                         , iEditorFactory::METHOD_TYPE type ) : title_( title )
-                                                              , clsid_( { 0 } )
-                                                              , mtype_( type ) {
-        }
-
-		iEditorFactoryT( const QString& title
-                         , const boost::uuids::uuid& clsid
-                         , iEditorFactory::METHOD_TYPE type ) : title_( title )
-                                                              , clsid_( clsid )
-                                                              , mtype_( type ) {
-        }
-
-		~iEditorFactoryT() {
-        }
-
-        QWidget * createEditor( QWidget * parent = 0 ) const override {
-            return new Editor( parent );
-        }
-
-        QString title() const override {
-            return title_;
-        }
-        
-        iEditorFactory::METHOD_TYPE method_type() const override {
-            return mtype_;
-        }
-
-        const boost::uuids::uuid& clsid() const override {
-            return clsid_;
-        }
-        
-    };
-#endif
-
     namespace helper
     {
         template <std::size_t... Ts>

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,43 +25,23 @@
 #pragma once
 
 #include "advision_global.hpp"
-#include <QFrame>
-#include <QImage>
-#include <memory>
-
-class QGraphicsView;
-class QPaintEvent;
-class QImage;
+#include <boost/numeric/ublas/fwd.hpp>
+#include <limits>
 
 namespace advision {
 
-    class ADVISIONSHARED_EXPORT ImageWidget : public QWidget {
-
-        Q_OBJECT
-
+    class Moments {
+        std::pair< int, int > blurCount_;
+        std::pair< unsigned, unsigned > szThreshold_;
+        int sizeFactor_;
+        int cannyThreshold_;
     public:
-        ImageWidget( QWidget * parent = 0 );
-        ~ImageWidget();
+        Moments( const std::pair<int,int>& blurCount = {0,0}, int sizeFactor = 1, int cannyThreshold = 0
+                 , const std::pair<unsigned, unsigned>& szThreshold = { 0, std::numeric_limits<unsigned>::max()} );
+        Moments( const Moments& );
 
-        void setImage( const QImage& );
-        QGraphicsView * graphicsView();
-
-    protected:
-        bool eventFilter( QObject *, QEvent * event ) override;
-        void zoom( int delta );
-    
-    public slots:
-
-    private slots:
-        void setupMatrix();
-
-    protected:
-    
-    private:
-        QGraphicsView *graphicsView_;
-        double scale_;
-        size_t width_;
-        size_t height_;
+        boost::numeric::ublas::matrix< double > operator()( const boost::numeric::ublas::matrix< double >& ) const;
+        void operator()( boost::numeric::ublas::matrix< double >& moments, const boost::numeric::ublas::matrix< double >& ) const;
     };
-}
 
+}

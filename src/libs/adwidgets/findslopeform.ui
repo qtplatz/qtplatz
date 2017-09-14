@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>463</width>
-    <height>267</height>
+    <height>218</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,6 +35,9 @@
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
         <string>CH1</string>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -259,6 +262,16 @@
            </property>
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout">
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioButton_dft">
+               <property name="layoutDirection">
+                <enum>Qt::RightToLeft</enum>
+               </property>
+               <property name="text">
+                <string>DFT High (MHz)</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
               <widget class="QRadioButton" name="radioButton_sg">
                <property name="layoutDirection">
@@ -272,19 +285,23 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="spinBox_dft_high">
+             <item row="1" column="3">
+              <widget class="QSpinBox" name="spinBox_dft_low">
                <property name="keyboardTracking">
                 <bool>false</bool>
                </property>
-               <property name="minimum">
-                <number>0</number>
-               </property>
                <property name="maximum">
-                <number>2000</number>
+                <number>1000</number>
                </property>
-               <property name="value">
-                <number>200</number>
+              </widget>
+             </item>
+             <item row="1" column="4">
+              <widget class="QCheckBox" name="checkBox">
+               <property name="text">
+                <string>Complex</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -307,43 +324,29 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QRadioButton" name="radioButton_dft">
-               <property name="layoutDirection">
-                <enum>Qt::RightToLeft</enum>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="spinBox_dft_high">
+               <property name="keyboardTracking">
+                <bool>false</bool>
                </property>
-               <property name="text">
-                <string>DFT Hight limit (MHz)</string>
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>2000</number>
+               </property>
+               <property name="value">
+                <number>200</number>
                </property>
               </widget>
              </item>
              <item row="1" column="2">
-              <widget class="QCheckBox" name="checkBox">
-               <property name="text">
-                <string>Complex</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
               <widget class="QLabel" name="label_4">
                <property name="text">
-                <string>Low limit (MHz)</string>
+                <string>Low (MHz)</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QSpinBox" name="spinBox_dft_low">
-               <property name="keyboardTracking">
-                <bool>false</bool>
-               </property>
-               <property name="maximum">
-                <number>1000</number>
                </property>
               </widget>
              </item>
@@ -375,7 +378,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

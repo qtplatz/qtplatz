@@ -21,43 +21,35 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
 #pragma once
 
-#include <driver_types.h> // cudaStream_t
-#include <vector>
-#include <thrust/device_vector.h>
-#include <boost/numeric/ublas/fwd.hpp>
+#include <utility>
 
-namespace cv { class Mat; }
+namespace adcontrols {
 
-class QImage;
-
-namespace cuda {
-
-    template< typename T > class device_ptr;
-
-    class ColorMap {
-
-        ColorMap( const ColorMap& ) = delete;
-        ColorMap& operator = ( const ColorMap& ) = delete;
-        
-        thrust::device_vector< float > d_levels_;
-        thrust::device_vector< float > d_colors_;
-        
+    class ContoursMethod {
     public:
-        ColorMap( const std::vector< float >& levels, const std::vector< float >& colors );
-        ~ColorMap();
-        
-        template< typename T > device_ptr< unsigned char > operator()( const boost::numeric::ublas::matrix<T>&, double scaleFactor ) const;
-#if HAVE_OPENCV
-        device_ptr< unsigned char > operator()( const cv::Mat&, double scaleFactor ) const;
-#endif
+        explicit ContoursMethod();
+        ContoursMethod( const ContoursMethod& );
+        ~ContoursMethod();
+
+        void setSizeFactor( int );
+        void setBlurSize( int );
+        void setCannyThreshold( int );
+        void setMinSizeThreshold( unsigned );
+        void setMaxSizeThreshold( unsigned );
+    
+        int sizeFactor() const;
+        int blurSize() const;
+        int cannyThreshold() const;
+        unsigned minSizeThreshold() const;
+        unsigned maxSizeThreshold() const;
+    
+    private:
+        int resize_;
+        int blurSize_;
+        int cannyThreshold_;
+        std::pair< unsigned, unsigned > szThreshold_;
     };
-
-    using boost::numeric::ublas::matrix;
-
-    template<> device_ptr< unsigned char > ColorMap::operator()<float>( const matrix<float>&, double scaleFactor ) const;
-    template<> device_ptr< unsigned char > ColorMap::operator()<double>( const matrix<double>&, double scaleFactor ) const;
+    
 }
-

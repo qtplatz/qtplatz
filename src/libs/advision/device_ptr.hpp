@@ -25,39 +25,42 @@
 #pragma once
 
 #include <driver_types.h> // cudaStream_t
-#include <vector>
 #include <thrust/device_vector.h>
-#include <boost/numeric/ublas/fwd.hpp>
-
-namespace cv { class Mat; }
-
-class QImage;
 
 namespace cuda {
 
-    template< typename T > class device_ptr;
+    template< typename T >
+    class device_ptr {
+        T * p_;
+        size_t rows_, cols_, channels_;
+        device_ptr( const device_ptr& ) = delete;
+        device_ptr& operator = ( const device_ptr& ) = delete;
 
-    class ColorMap {
-
-        ColorMap( const ColorMap& ) = delete;
-        ColorMap& operator = ( const ColorMap& ) = delete;
-        
-        thrust::device_vector< float > d_levels_;
-        thrust::device_vector< float > d_colors_;
-        
     public:
-        ColorMap( const std::vector< float >& levels, const std::vector< float >& colors );
-        ~ColorMap();
+        device_ptr( device_ptr&& t ) : p_( t.p_ ), rows_( t.rows_ ), cols_( t.cols_ ), channels_( t.channels_ ) {
+            t.p_ = 0; // don't delete
+        }
         
-        template< typename T > device_ptr< unsigned char > operator()( const boost::numeric::ublas::matrix<T>&, double scaleFactor ) const;
-#if HAVE_OPENCV
-        device_ptr< unsigned char > operator()( const cv::Mat&, double scaleFactor ) const;
-#endif
+        device_ptr() : p_( 0 ), rows_( 0 ), cols_( 0 ), channels_( 0 ) {
+        }
+        
+        device_ptr( T * p, size_t rows, size_t cols, size_t channels ) : p_( p )
+                                                                       , rows_( rows )
+                                                                       , cols_( cols )
+                                                                       , channels_( channels ) {
+        }
+        
+        ~device_ptr() {
+            cudaFree( p_ );
+        }
+
+        size_t rows() const { return rows_; }
+        size_t cols() const { return cols_; }
+        size_t channels() const { return channels_; }
+
+        T * get() { return p_; }
+
+        const T * get() const { return p_; }
     };
 
-    using boost::numeric::ublas::matrix;
-
-    template<> device_ptr< unsigned char > ColorMap::operator()<float>( const matrix<float>&, double scaleFactor ) const;
-    template<> device_ptr< unsigned char > ColorMap::operator()<double>( const matrix<double>&, double scaleFactor ) const;
 }
-
