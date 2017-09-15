@@ -25,6 +25,7 @@
 #pragma once
 
 #include "acqrscontrols_global.hpp"
+#include "threshold_result.hpp"
 #include "ap240/tdcdoc.hpp"
 #include "u5303a/tdcdoc.hpp"
 
@@ -71,8 +72,10 @@ namespace acqrscontrols {
         ~tdcdoc_();
         tdcdoc_();
 
-        typedef std::shared_ptr< threshold_result_type< waveform_type > > threshold_result_ptr;
-        typedef std::shared_ptr< const threshold_result_type< waveform_type > > const_threshold_result_ptr;
+        // typedef std::shared_ptr< threshold_result_type< waveform_type > > threshold_result_ptr;
+        // typedef std::shared_ptr< const threshold_result_type< waveform_type > > const_threshold_result_ptr;
+        typedef std::shared_ptr< threshold_result_< waveform_type > > threshold_result_ptr;
+        typedef std::shared_ptr< const threshold_result_< waveform_type > > const_threshold_result_ptr;
         
         static constexpr size_t max_protocol = 4;
 
@@ -90,16 +93,21 @@ namespace acqrscontrols {
             
         void eraseTofChromatogramsMethod();
 
-        std::array< threshold_result_ptr, 2 >
-            processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+        // std::array< threshold_result_ptr, 2 >
+        //     processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> );
+        std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >
+            processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> ) {
+
+            return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
+        }
 
         // find pair of raising,falling
         std::array< threshold_result_ptr, 2 >
-            processThreshold2( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+            processThreshold2( std::array< std::shared_ptr< const waveform_type >, 2> );
 
         // peak detection (on trial)
         std::array< threshold_result_ptr, 2 >
-            processThreshold3( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+            processThreshold3( std::array< std::shared_ptr< const waveform_type >, 2> );
             
         bool accumulate_waveform( std::shared_ptr< const waveform_type > );
 

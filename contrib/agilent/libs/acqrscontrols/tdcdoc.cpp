@@ -107,22 +107,24 @@ namespace acqrscontrols {
         // ap240::tdcdoc::eraseTofChromatogramsMethod();
     }
 
-#if 0     
-    template<> std::array< std::shared_ptr< ap240::threshold_result >, 2 >
-    tdcdoc_< ap240::waveform >::processThreshold( std::array< std::shared_ptr< const ap240::waveform >, 2 > a )
+    template<> std::array< std::shared_ptr< threshold_result_< ap240::waveform> >, 2 >
+    tdcdoc_< ap240::waveform >::processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> )
     {
-        return std::array< std::shared_ptr< ap240::threshold_result >, 2 >();
-        // ap240::tdcdoc::processThreshold( a );
+        return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
     }
 
-    // find pair of raising,falling
-    std::array< threshold_result_ptr, 2 >
-    processThreshold2( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+    template<> std::array< std::shared_ptr< threshold_result_< ap240::waveform > >, 2 >
+    tdcdoc_< ap240::waveform >::processThreshold2( std::array< std::shared_ptr< const waveform_type >, 2 > )
+    {
+        return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};        
+    }
     
     // peak detection (on trial)
-    std::array< threshold_result_ptr, 2 >
-    processThreshold3( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
-#endif
+    template<> std::array< std::shared_ptr< threshold_result_< ap240::waveform > >, 2 >
+    tdcdoc_< ap240::waveform >::processThreshold3( std::array< std::shared_ptr< const waveform_type >, 2> )
+    {
+        return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
+    }
 
     template<> bool
     tdcdoc_< ap240::waveform >::accumulate_waveform( std::shared_ptr< const waveform_type > a )
