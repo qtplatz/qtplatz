@@ -85,17 +85,28 @@ if [ -z $cross_target ]; then
 	  -DBUILD_WITH_DEBUG_INFO=OFF      \
 	  -DCUDA_FAST_MATH=$CUDA           \
 	  -DWITH_CUBLAS=$CUDA              \
+	  -DCUDA_NVCC_FLAGS="--expt-relaxed-constexpr" \
 	  $source_dir
 
-#In case you are in trouble with ippicv, try follwoing on the build directory
-#cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv"
-
+    echo "########################"
+    echo "You may need to add '--expt-relaxed-constexpr' to CUDA_NVCC_FLAGS cache using ccmake"
+    echo In case you got failed with ippicv, try follwoing on the build directory '$BUILD_DIR'
+    echo cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv" .
+    echo 
+    echo "make sure cmake supports openssl"
+    echo
+    echo When you have an error 'nvcuvid.h no such file or directory',
+    echo remove '#include <nvcuvid.h>' from 'opencv/modules/cudacodec/src/cuvid_video_source.hpp'
+    echo
     echo "Did you install ffmpeg and turbo-jpeg?"
+    echo "########################"
     echo "make -j8 # at `pwd`"    
     prompt
     make -j $(nproc --all)
 #    export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
-#    make test
+    #    make test
+    echo "sudo make -j8 install"
+    prompt
     sudo make -j8 install
 
     case $(uname -m) in

@@ -2,6 +2,9 @@
 
 failed_list=()
 
+#cmake+opencv
+list_dependency=('libcurl4-openssl-dev')
+
 #jpeg
 list_dependency=('nasm' 'libass-dev' 'libfdk-aac-dev')
 
