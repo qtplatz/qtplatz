@@ -76,8 +76,9 @@ if [ -z $cross_target ]; then
     echo "BUILD_DIR : " `pwd`
     cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules \
 	  -DCMAKE_BUILD_TYPE=$BUILD_CONFIG \
-	  -DENABLE_CXX11=ON \
+	  -DENABLE_CXX11=ON		   \
 	  -DBUILD_PERF_TESTS=OFF           \
+	  -DWITH_CUDA=OFF		   \
 	  -DWITH_XINE=ON                   \
 	  -DBUILD_TESTS=OFF                \
 	  -DENABLE_PRECOMPILED_HEADERS=OFF \
@@ -96,7 +97,7 @@ if [ -z $cross_target ]; then
     echo "make sure cmake supports openssl"
     echo
     echo When you have an error 'nvcuvid.h no such file or directory',
-    echo remove '#include <nvcuvid.h>' from 'opencv/modules/cudacodec/src/cuvid_video_source.hpp'
+    echo run 'sudo touch /usr/local/cuda/include/nvcuvid.h' as workaround
     echo
     echo "Did you install ffmpeg and turbo-jpeg?"
     echo "########################"

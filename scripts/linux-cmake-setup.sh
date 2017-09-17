@@ -3,7 +3,7 @@
 source ./constants.sh
 source ./prompt.sh
 
-VERSION=3.9.1
+VERSION=3.9.2
 VDIR=v3.9
 
 if type cmake > /dev/null; then
@@ -20,7 +20,8 @@ if [ ! -d $SRC/cmake ]; then
     if [ ! -d $SRC ]; then
 	mkdir $SRC
     fi
-    # git clone https://gitlab.kitware.com/cmake/cmake $SRC/cmake
+    # git clone https://gitlub.com/cmake/cmake $SRC/cmake
+    # git clone https://github.com/Kitware/CMake.git
     if [ ! -f ~/Downloads/cmake-$VERSION.tar.gz ]; then
       ( cd ~/Downloads;
         wget https://cmake.org/files/$VDIR/cmake-$VERSION.tar.gz )
@@ -30,7 +31,8 @@ fi
 
 cd $SRC/cmake-$VERSION
 ./bootstrap
-if make -j4; then
+
+if make -j $(nproc --all); then
     sudo make install
 fi
 

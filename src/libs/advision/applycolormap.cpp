@@ -25,15 +25,18 @@
 #include "applycolormap.hpp"
 #include "deviceinfo.hpp"
 #if HAVE_CUDA
-# include "afcolormap.hpp"
-# include "cvcolormap.hpp"
 # include "colormap.hpp"
 # include "device_ptr.hpp"
+# if HAVE_ARRAYFIRE
+#  include "afcolormap.hpp"
+# endif
+# if HAVE_OPENCV
+#  include "cvcolormap.hpp"
+# endif
 #endif
 #include "transform.hpp"
 #include <adportable/debug.hpp>
 #include <QImage>
-#include <arrayfire.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <algorithm>
 
@@ -220,24 +223,6 @@ ApplyColorMap::operator()( const cv::Mat& mat, float scaleFactor, cuda_algo algo
         return cuda::cvColorMap( levels_, colors_ )( mat * scaleFactor );
 #endif
 
-#if HAVE_ARRAYFIRE && HAVE_CUDA
-    if ( algo == cuda_arrayfire && deviceInfo::instance()->hasCUDA() ) {
-        // f32 array
-        af::array gray = af::array( mat.cols, mat.rows, 1, mat.ptr< float >( 0 ) ).T() * scaleFactor;
-
-        // apply colorMap in CUDA kernel
-        af::array rgb = cuda::afColorMap( af::array( levels_.size(), 1, levels_.data() )
-                                          , af::array( 3, levels_.size(), colors_.data() ) )( gray );
-        
-        // make row major, rgb
-        af::array cv_format_rgb = af::reorder( rgb.T(), 2, 0, 1 );
-
-        // convert to cv::Mat (RGB)
-        auto mat8u = cv::Mat( mat.rows, mat.cols, CV_8UC(3) );
-        cv_format_rgb.as( u8 ).host( mat8u.ptr< uchar >( 0 ) );
-        return mat8u;
-    }
-#endif
     // fallback to software color mapping
     return cpu::ColorMap_< cv::Mat >( levels_, colors_ )( mat, scaleFactor );
 }

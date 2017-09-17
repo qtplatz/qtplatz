@@ -24,12 +24,15 @@
 
 #include "bgr2rgb.hpp"
 #include "transform.hpp"
-#include <arrayfire.h>
+#if HAVE_ARRAYFIRE
+# include <arrayfire.h>
+#endif
 #include <opencv2/opencv.hpp>
 
 
 namespace advision {
 
+#if HAVE_ARRAYFIRE
     template<>
     template<>
     af::array bgr2rgb_< af::array >::operator()< af::array >( const af::array& a ) const {
@@ -45,6 +48,7 @@ namespace advision {
         auto t = bgr2rgb_< af::array >()( a );
         return transform_< cv::Mat >()( t );
     }
+#endif
 
     template<>
     template<>
