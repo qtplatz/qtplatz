@@ -8,6 +8,9 @@ function bzip2_download {
     DOWNLOADS=$2
     if [ ! -d $BZIP2_SOURCE ]; then
 	if [ ! -f ${DOWNLOADS}/bzip2-1.0.6.tar.gz ]; then
+	    if [ ! -d ${DOWNLOADS} ]; then
+		mkdir ${DOWNLOADS}
+	    fi
 	    (cd ${DOWNLOADS}; 
 	     wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz )
 	fi
