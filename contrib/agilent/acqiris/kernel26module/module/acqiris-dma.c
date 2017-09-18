@@ -59,6 +59,7 @@
 #include <linux/types.h>
 #include <linux/sched.h>
 #include <asm/uaccess.h>
+#include <asm/page.h>
 
 #include "acqiris.h"
 
@@ -91,7 +92,11 @@ static void release_user_pages(int nbr_pages, struct page **pages, int set_dirty
         if (set_dirty)
             set_page_dirty_lock(pages[page]);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)        
+        put_page( pages[page] ); // 2017-09-17
+#else
         page_cache_release(pages[page]);
+#endif
 
     }
 
@@ -105,7 +110,8 @@ int acqiris_dma_read(struct acqiris_device* aq_dev, u32 local_addr, void __user 
     char buffer[20];
     long timeToExpire;
 
-    DECLARE_WAITQUEUE(wait, current);
+    //DECLARE_WAITQUEUE(wait, current);
+    DECLARE_WAITQUEUE( wait, get_current() );
 
     dma_addr_t desc_addr = virt_to_phys(aq_dev->dma_desc);
     u32 desc_addr_lo = desc_addr;
@@ -117,8 +123,16 @@ int acqiris_dma_read(struct acqiris_device* aq_dev, u32 local_addr, void __user 
     nbr_pages_needed = (((unsigned long)dest + size - 1) / PAGE_SIZE) - ((unsigned long)dest / PAGE_SIZE) + 1;
 
     down_read(&current->mm->mmap_sem);
-    nbr_pages = get_user_pages(current, current->mm, (unsigned long)dest,
-            nbr_pages_needed, 1, 0, aq_dev->pages, NULL);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+    nbr_pages = get_user_pages((unsigned long)dest, nbr_pages_needed, 0, aq_dev->pages, NULL );
+#else    
+# if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
+    nbr_pages = get_user_pages((unsigned long)dest, nbr_pages_needed, 1, 0, aq_dev->pages, NULL );
+# else  // 2.6
+    nbr_pages = get_user_pages(current, current->mm, (unsigned long)dest, nbr_pages_needed, 1, 0, aq_dev->pages, NULL);
+# endif    
+#endif
+    
     up_read(&current->mm->mmap_sem);
 
     if (nbr_pages < 0)

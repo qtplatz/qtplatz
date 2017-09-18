@@ -78,7 +78,6 @@ if [ -z $cross_target ]; then
 	  -DCMAKE_BUILD_TYPE=$BUILD_CONFIG \
 	  -DENABLE_CXX11=ON		   \
 	  -DBUILD_PERF_TESTS=OFF           \
-	  -DWITH_CUDA=OFF		   \
 	  -DWITH_XINE=ON                   \
 	  -DBUILD_TESTS=OFF                \
 	  -DENABLE_PRECOMPILED_HEADERS=OFF \
@@ -89,6 +88,8 @@ if [ -z $cross_target ]; then
 	  -DCUDA_NVCC_FLAGS="--expt-relaxed-constexpr" \
 	  $source_dir
 
+    cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv" .
+    
     echo "########################"
     echo "You may need to add '--expt-relaxed-constexpr' to CUDA_NVCC_FLAGS cache using ccmake"
     echo In case you got failed with ippicv, try follwoing on the build directory '$BUILD_DIR'

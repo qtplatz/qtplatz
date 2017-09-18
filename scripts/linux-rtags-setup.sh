@@ -3,6 +3,9 @@
 source ./constants.sh
 source ./prompt.sh
 
+target=rtags
+config=release
+
 if type rdm > /dev/null; then
     version=$(rdm --version)
     echo "=========="
@@ -24,12 +27,14 @@ if [ ! -d $SRC/rtags ]; then
       git clone --recursive https://github.com/Andersbakken/rtags.git )
 fi
 
-if [ ! -d $SRC/rtags/build ]; then
-    mkdir -p $SRC/rtags/build
-fi
+source_dir=$SRC/rtags
+build_dir=$SRC/build-$arch/$target.$config
 
-cd $SRC/rtags/build
-cmake ..
+mkdir -p $build_dir
+cd $build_dir
+
+cmake $source_dir
+
 if make -j4; then
     echo "==================================================="
     echo "'sudo make install' at `pwd`"

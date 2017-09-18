@@ -2,6 +2,9 @@
 
 failed_list=()
 
+#rtags 
+list_dependency=('clang-3.9' 'lldb-3.9' 'libclang-3.9-dev')
+
 #cmake+opencv
 list_dependency=('libcurl4-openssl-dev' 'libhdf5-dev')
 
