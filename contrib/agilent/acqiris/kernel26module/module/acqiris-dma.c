@@ -125,12 +125,10 @@ int acqiris_dma_read(struct acqiris_device* aq_dev, u32 local_addr, void __user 
     down_read(&current->mm->mmap_sem);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
     nbr_pages = get_user_pages((unsigned long)dest, nbr_pages_needed, 0, aq_dev->pages, NULL );
-#else    
-# if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
     nbr_pages = get_user_pages((unsigned long)dest, nbr_pages_needed, 1, 0, aq_dev->pages, NULL );
-# else  // 2.6
+#else  // 2.6
     nbr_pages = get_user_pages(current, current->mm, (unsigned long)dest, nbr_pages_needed, 1, 0, aq_dev->pages, NULL);
-# endif    
 #endif
     
     up_read(&current->mm->mmap_sem);

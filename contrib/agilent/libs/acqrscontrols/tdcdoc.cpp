@@ -135,6 +135,8 @@ namespace acqrscontrols {
     template<> bool
     tdcdoc_< ap240::waveform >::accumulate_histogram( tdcdoc_::const_threshold_result_ptr a )
     {
+        ap240::const_threshold_result_ptr x;
+        ap240::tdcdoc::accumulate_histogram( x );
         return false; // return ap240::tdcdoc::accumulate_histogram( a );
     }
     
