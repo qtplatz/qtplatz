@@ -24,11 +24,13 @@
 
 #include "transform.hpp"
 #include "cvtypes.hpp"
+#if HAVE_ARRAYFIRE
 #include "aftypes.hpp"
+#include <arrayfire.h>
+#endif
 #if HAVE_CUDA
 # include "device_ptr.hpp"
 #endif
-#include <arrayfire.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/opencv.hpp>
@@ -37,7 +39,7 @@
 // using namespace advision;
 
 namespace advision {
-
+#if HAVE_ARRAYFIRE
     cv::Mat
     transform::mat( const af::array& a )
     {
@@ -140,6 +142,7 @@ namespace advision {
         }
         return af::array();
     }
+#endif
 } // namespace advision
 
 namespace advision {

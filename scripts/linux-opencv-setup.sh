@@ -76,7 +76,7 @@ if [ -z $cross_target ]; then
     echo "BUILD_DIR : " `pwd`
     cmake -DCMAKE_EXTRA_MODULES_PATH=$contrib_dir/opencv_contrib/modules \
 	  -DCMAKE_BUILD_TYPE=$BUILD_CONFIG \
-	  -DENABLE_CXX11=ON \
+	  -DENABLE_CXX11=ON		   \
 	  -DBUILD_PERF_TESTS=OFF           \
 	  -DWITH_XINE=ON                   \
 	  -DBUILD_TESTS=OFF                \
@@ -85,17 +85,30 @@ if [ -z $cross_target ]; then
 	  -DBUILD_WITH_DEBUG_INFO=OFF      \
 	  -DCUDA_FAST_MATH=$CUDA           \
 	  -DWITH_CUBLAS=$CUDA              \
+	  -DCUDA_NVCC_FLAGS="--expt-relaxed-constexpr" \
 	  $source_dir
 
-#In case you are in trouble with ippicv, try follwoing on the build directory
-#cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv"
-
+    cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv" .
+    
+    echo "########################"
+    echo "You may need to add '--expt-relaxed-constexpr' to CUDA_NVCC_FLAGS cache using ccmake"
+    echo In case you got failed with ippicv, try follwoing on the build directory '$BUILD_DIR'
+    echo cmake -DOPENCV_ICV_URL="http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv" .
+    echo 
+    echo "make sure cmake supports openssl"
+    echo
+    echo When you have an error 'nvcuvid.h no such file or directory',
+    echo run 'sudo touch /usr/local/cuda/include/nvcuvid.h' as workaround
+    echo
     echo "Did you install ffmpeg and turbo-jpeg?"
+    echo "########################"
     echo "make -j8 # at `pwd`"    
     prompt
     make -j $(nproc --all)
 #    export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
-#    make test
+    #    make test
+    echo "sudo make -j8 install"
+    prompt
     sudo make -j8 install
 
     case $(uname -m) in

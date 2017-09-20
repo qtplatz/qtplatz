@@ -10,7 +10,7 @@ fi
 
 function find_QMAKE() {
     local __result=$1
-    local dirs=( $QTDIR "/opt/Qt/5.8/gcc_64" "/opt/Qt/5.7/gcc_64" "/opt/Qt/5.6/gcc_64" )
+    local dirs=( $QTDIR "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" "/opt/Qt/5.8/gcc_64" "/opt/Qt/5.7/gcc_64" "/opt/Qt/5.6/gcc_64" )
     
     if [ -z $QTDIR ]; then
 	if type -P qmake &> /dev/null && qmake --version &> /dev/null; then

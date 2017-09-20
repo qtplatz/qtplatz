@@ -8,6 +8,9 @@ function bzip2_download {
     DOWNLOADS=$2
     if [ ! -d $BZIP2_SOURCE ]; then
 	if [ ! -f ${DOWNLOADS}/bzip2-1.0.6.tar.gz ]; then
+	    if [ ! -d ${DOWNLOADS} ]; then
+		mkdir ${DOWNLOADS}
+	    fi
 	    (cd ${DOWNLOADS}; 
 	     wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz )
 	fi
@@ -50,11 +53,11 @@ function boost_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+      echo ./b2 -j $(nproc --all) address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
       prompt
       
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 -j4 address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+	  ./b2 -j $(nproc --all) address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	echo "*****************************************************"
 	echo "boost has been built on `pwd`";
 	echo "run following command to install"
@@ -62,7 +65,7 @@ function boost_build {
 	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
 	echo "*****************************************************"
 	prompt
-	sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	sudo ./b2 -j $(nproc --all) address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
     )
 }
 
@@ -88,11 +91,11 @@ function boost_cross_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j4 install
+      echo ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $(nproc --all) install
       prompt
       
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j4 install
+	  ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $(nproc --all) install
     )
 }
 

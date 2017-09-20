@@ -25,7 +25,9 @@
 #pragma once
 
 #include "advision_global.hpp"
-#include <af/array.h>
+#if HAVE_ARRAYFIRE
+# include <af/array.h>
+#endif
 #include <opencv2/core/mat.hpp>
 #include <boost/numeric/ublas/fwd.hpp>
 #include <vector>
