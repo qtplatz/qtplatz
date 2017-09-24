@@ -108,7 +108,7 @@ namespace acqrscontrols {
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
             std::shared_ptr< adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
-            std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
+            // std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
             double triggers_per_second() const;
 
             // return as protocol sequence

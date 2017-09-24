@@ -93,6 +93,18 @@ threshold_result::findUp() const
     return findUp_;
 }
 
+std::vector< uint32_t >&
+threshold_result::indecies()
+{
+    return indecies_;
+}
+
+const std::vector< uint32_t >&
+threshold_result::indecies() const
+{
+    return indecies_;    
+}
+
 bool
 threshold_result::deserialize( const int8_t * xdata, size_t dsize )
 {

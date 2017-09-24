@@ -58,7 +58,7 @@ loader::populate( const wchar_t * topdir )
     boost::filesystem::path modules( appdir / pluginDirectory );
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
 
-    ADDEBUG() << "loader populating : " << topdir;
+    // ADDEBUG() << "loader populating : " << topdir;
 
     if ( boost::filesystem::is_directory( modules ) ) {
 

@@ -38,6 +38,10 @@
 
 using namespace acqrscontrols::ap240;
 
+threshold_result::~threshold_result()
+{
+}
+
 threshold_result::threshold_result() : foundIndex_(-1)
                                      , findRange_( 0, 0 )
 {

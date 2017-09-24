@@ -28,7 +28,6 @@
 #include "threshold_result.hpp"
 #include "ap240/tdcdoc.hpp"
 #include "u5303a/tdcdoc.hpp"
-
 #include <acqrscontrols/constants.hpp>
 #include <atomic>
 #include <array>
@@ -39,8 +38,8 @@
 
 namespace adportable { struct threshold_index; }
 
-namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; } }
-namespace acqrscontrols { namespace ap240 { class waveform; class threshold_result; class histogram; } }
+namespace acqrscontrols { namespace u5303a { class waveform; class threshold_result; class histogram; class tdcdoc; } }
+namespace acqrscontrols { namespace ap240 { class waveform; class threshold_result; class histogram; class tdcdoc; } }
 
 namespace adcontrols {
     class threshold_action;
@@ -93,8 +92,7 @@ namespace acqrscontrols {
             
         void eraseTofChromatogramsMethod();
 
-        // std::array< threshold_result_ptr, 2 >
-        //     processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> );
+#if 0
         std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >
             processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> ) {
 
@@ -108,10 +106,12 @@ namespace acqrscontrols {
         // peak detection (on trial)
         std::array< threshold_result_ptr, 2 >
             processThreshold3( std::array< std::shared_ptr< const waveform_type >, 2> );
+#endif
             
         bool accumulate_waveform( std::shared_ptr< const waveform_type > );
 
-        bool accumulate_histogram( const_threshold_result_ptr );
+        // bool accumulate_histogram( const_threshold_result_ptr );
+        bool accumulate_histogram( std::shared_ptr< const ap240::threshold_result > ptr );
 
         size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
 
@@ -120,7 +120,7 @@ namespace acqrscontrols {
         std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
         std::shared_ptr< adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
-        std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
+        std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex ) const;
         double triggers_per_second() const;
 
         // return as protocol sequence
@@ -129,9 +129,9 @@ namespace acqrscontrols {
         // protocol sequence but no order garanteed
         std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > recentHistograms() const;
 
-        enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
-
         typedef std::function< double( double, int ) > mass_assignee_t;
+
+        enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
 
         std::shared_ptr< adcontrols::MassSpectrum >
             recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;
@@ -151,6 +151,7 @@ namespace acqrscontrols {
 
         void clear_histogram();
         std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
+
     };
 
 }

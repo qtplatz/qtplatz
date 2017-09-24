@@ -26,6 +26,7 @@
 
 #include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
+#include <acqrscontrols/tdcbase.hpp>
 #include <atomic>
 #include <array>
 #include <mutex>
@@ -33,7 +34,10 @@
 #include <vector>
 #include <functional>
 
-namespace acqrscontrols { namespace ap240 { class waveform; class threshold_result; class histogram; } }
+namespace acqrscontrols {
+    namespace ap240 { class waveform; class threshold_result; class histogram; }
+    template< typename T > class threshold_result_;
+}
 
 namespace adcontrols { class threshold_action; class threshold_method;
     class MassSpectrum; class TofChromatogramsMethod; class TimeDigitalHistogram; }
@@ -53,7 +57,7 @@ namespace acqrscontrols {
         ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < histogram_type > ;
 #endif
 
-        class ACQRSCONTROLSSHARED_EXPORT tdcdoc { 
+        class ACQRSCONTROLSSHARED_EXPORT tdcdoc : public acqrscontrols::tdcbase { 
         public:
             ~tdcdoc();
             tdcdoc();
@@ -81,14 +85,19 @@ namespace acqrscontrols {
             std::array< threshold_result_ptr, acqrscontrols::ap240::nchannels >
                 processThreshold2( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::ap240::nchannels > );
 
-            // peak detection (on trial)
             std::array< threshold_result_ptr, acqrscontrols::ap240::nchannels >
                 processThreshold3( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::ap240::nchannels > );
+
+            // peak detection (on trial)
+            // std::array< threshold_result_ptr, acqrscontrols::ap240::nchannels >
+            //     processThreshold3( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::ap240::nchannels > );
 
             bool accumulate_waveform( std::shared_ptr< const waveform_type > );
 
             bool accumulate_histogram( const_threshold_result_ptr );
 
+            bool accumulate_histogram( std::shared_ptr< const acqrscontrols::threshold_result_< waveform > > p );
+            
             size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
 
             size_t readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& );
@@ -96,7 +105,7 @@ namespace acqrscontrols {
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
 
             std::shared_ptr< adcontrols::TimeDigitalHistogram > longTermHistogram( int protocolIndex = 0 ) const; 
-            std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex = 0 ) const;
+            // std::shared_ptr< adcontrols::TimeDigitalHistogram > recentHistogram( int protocolIndex ) const;
             double triggers_per_second() const;
 
             // return as protocol sequence

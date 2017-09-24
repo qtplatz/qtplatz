@@ -138,11 +138,11 @@ namespace adextension {
         int module_number() const override { return module_number_; }
 
         void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > f ) override {
-            dataChangedHandler_.push_back( f );
+            dataChangedHandler_.emplace_back( f );
         }
 
         void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > f ) override {
-            dataEventHandler_.push_back( f );
+            dataEventHandler_.emplace_back( f );
         }
 
         void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) override {

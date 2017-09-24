@@ -24,10 +24,12 @@ add_library( ${PROJECT_NAME} SHARED
   find_threshold_peaks.hpp
   resultwriter.hpp
   waveform_horizontal.hpp
-  threshold_result.hpp
-  threshold_result.cpp
+  tdcbase.hpp
+  tdcbase.cpp
   tdcdoc.hpp
   tdcdoc.cpp
+  threshold_result.hpp
+  threshold_result.cpp
   u5303a/averagedata.hpp
   u5303a/averagedata.cpp
   u5303a/device_method.hpp

@@ -41,7 +41,7 @@
 
 namespace acqrscontrols {
 
-    class threshold_result {
+    class threshold_result : public adportable::counting::counting_result {
     public:
         
 # if defined _MSC_VER && _MSC_VER <= 1800
@@ -64,6 +64,9 @@ namespace acqrscontrols {
         bool deserialize( const int8_t * data, size_t dsize );
         
         static void write3( std::ostream&, const threshold_result& );
+
+        std::vector< uint32_t >& indecies();
+        const std::vector< uint32_t >& indecies() const;
         
     private:
         std::vector< uint32_t > indecies_;
@@ -76,8 +79,7 @@ namespace acqrscontrols {
     ////////////////////////////////////////////////////////////////////////////////////////
 
     template< typename waveform_type >
-    class ACQRSCONTROLSSHARED_EXPORT threshold_result_ : public threshold_result
-                                                       , public adportable::counting::counting_result {
+    class ACQRSCONTROLSSHARED_EXPORT threshold_result_ : public threshold_result {
     public:
         threshold_result_() {}
         
