@@ -61,8 +61,8 @@ if [ -z $QTDIR ]; then
     fi
 fi
 
-echo "platform=" $host_system
-echo "config=" $config
+echo "platform="$host_system
+echo "config="$config
 
 if [ -z $cross_target ]; then
     case $arch in
@@ -78,8 +78,6 @@ if [ -z $cross_target ]; then
 	    fi
 	    ;;
 	*)
-#	    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
-#	    build_dirs=("$build_root/build-$arch/boost" "$build_root/build-$arch/qtplatz.$config" )
 	    source_dirs=( "$cwd" )
 	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
 	    if [ "$config" = "debug" ]; then
@@ -92,6 +90,7 @@ if [ -z $cross_target ]; then
 	    ;;
     esac
 else
+    echo "cross_target="$cross_target
     source_dirs=( "$cwd" )
     build_dirs=( "$build_root/build-$cross_target/qtplatz.$config" )
 fi
@@ -127,8 +126,9 @@ for build_dir in ${build_dirs[@]}; do
 	cmake "${cmake_args[@]}" $source_dir
 
     else
-
-	echo "## Cross build for $arch"
+	echo "#######################################"
+	echo "## Cross build for $cross_target"
+	echo "#######################################"	
 	case $cross_target in
 	    armhf|armv7l|arm-linux-gnueabihf|de0-nano-soc|helio)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
