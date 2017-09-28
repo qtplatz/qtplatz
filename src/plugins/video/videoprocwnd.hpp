@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <adcontrols/datareader.hpp>
 #include <QWidget>
 #include <memory>
+#include <array>
 
 class QGridLayout;
 class QEvent;

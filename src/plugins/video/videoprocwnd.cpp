@@ -28,7 +28,6 @@
 #include "cvmat.hpp"
 #include "dft2d.hpp"
 #include "document.hpp"
-#include <advision/imagewidget.hpp>
 #include "player.hpp"
 #include "playercontrols.hpp"
 #include <opencv2/core/core.hpp>
@@ -44,6 +43,7 @@
 #endif
 #include <advision/applycolormap.hpp>
 #include <advision/cvtypes.hpp>
+#include <advision/imagewidget.hpp>
 #include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/font.hpp>
 #include <qtwrapper/progresshandler.hpp>
