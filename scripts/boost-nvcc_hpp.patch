@@ -1,0 +1,8 @@
+22,24c22,24
+< //#if !defined(__CUDACC_VER__) || (__CUDACC_VER__ < 70500)
+< //#   define BOOST_NO_CXX11_VARIADIC_TEMPLATES
+< //#endif
+---
+> #if !defined(__CUDACC_VER__) || (__CUDACC_VER__ < 70500)
+> #   define BOOST_NO_CXX11_VARIADIC_TEMPLATES
+> #endif

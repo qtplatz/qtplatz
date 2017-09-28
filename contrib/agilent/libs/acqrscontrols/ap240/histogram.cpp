@@ -24,6 +24,7 @@
 
 #include "histogram.hpp"
 #include "threshold_result.hpp"
+#include "../threshold_result.hpp"
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
@@ -87,6 +88,48 @@ histogram::append( const acqrscontrols::ap240::threshold_result& result )
 
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;
+
+    return ++trigger_count_;
+}
+
+size_t
+histogram::append( const acqrscontrols::threshold_result_< ap240::waveform >& result )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    if ( reset_requested_ ||
+         meta_.actualPoints != result.data()->meta_.actualPoints ||
+         !adportable::compare<double>::approximatelyEqual( meta_.initialXOffset, result.data()->meta_.initialXOffset ) ||
+         !adportable::compare<double>::approximatelyEqual( meta_.xIncrement, result.data()->meta_.xIncrement ) ) {
+        
+        meta_ = result.data()->meta_;
+        method_ = result.data()->method_; // delay pulse + protocols
+        
+        assert ( meta_.actualPoints );
+
+        data_.resize( meta_.actualPoints );
+        
+        reset_requested_ = false;
+        trigger_count_ = 0;
+        
+        std::fill( data_.begin(), data_.end(), 0 );
+
+        serialnumber_0_ = result.data()->serialnumber_;
+        timeSinceEpoch_0_ = result.data()->timeSinceEpoch_;
+        wellKnownEvents_ = 0;
+    }
+
+    assert( data_.size() );
+
+    if ( method_.protocolIndex() != result.data()->method_.protocolIndex() )
+        ADDEBUG() << "## ERROR protocol index missmatch: " << method_.protocolIndex() << " != " << result.data()->method_.protocolIndex();
+
+    if ( ! result.indecies().empty() )
+        std::for_each( result.indecies().begin(), result.indecies().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
+    
+    serialnumber_ = result.data()->serialnumber_;
+    timeSinceEpoch_ = result.data()->timeSinceEpoch_;
+    wellKnownEvents_ |= result.data()->wellKnownEvents_;
 
     return ++trigger_count_;
 }

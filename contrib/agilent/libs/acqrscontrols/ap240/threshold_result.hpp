@@ -35,6 +35,9 @@
 namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
+
+    template< typename T > class threshold_result_;
+    
     namespace ap240 {
 
         class waveform;
@@ -48,6 +51,11 @@ namespace acqrscontrols {
             std::pair< uint32_t, uint32_t > findRange_;
 
         public:
+            ~threshold_result();
+            threshold_result();            
+            threshold_result( std::shared_ptr< const acqrscontrols::ap240::waveform > d );
+            threshold_result( const threshold_result& t );
+            
             std::shared_ptr< const acqrscontrols::ap240::waveform >& data();
             std::shared_ptr< const acqrscontrols::ap240::waveform > data() const;
 
@@ -63,9 +71,6 @@ namespace acqrscontrols {
 
             bool hasFoundIndex() const { return foundIndex_ != npos; }
 
-            threshold_result();
-            threshold_result( std::shared_ptr< const acqrscontrols::ap240::waveform > d );
-            threshold_result( const threshold_result& t );
             
             bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
 

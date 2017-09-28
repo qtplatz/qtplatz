@@ -10,6 +10,20 @@ build_package=false
 build_root=..
 cmake_args=('-DCMAKE_BUILD_TYPE=Release')
 
+function find_QMAKE() {
+    local __result=$1
+    local dirs=( "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" "/opt/Qt/5.8/gcc_64" "/opt/Qt/5.7/gcc_64" )
+    
+    for dir in "${dirs[@]}"; do
+	if $dir/bin/qmake --version &> /dev/null ; then
+	    eval $__result="'$dir/bin/qmake'"
+	    return 0; #true
+	fi
+    done
+    return 1; #false
+}
+
+
 while [ $# -gt 0 ]; do
     case "$1" in
 	debug)
@@ -40,8 +54,15 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-echo "platform=" $host_system
-echo "config=" $config
+if [ -z $QTDIR ]; then
+    if find_QMAKE QMAKE; then
+	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
+	echo "Using QTDIR="$QTDIR
+    fi
+fi
+
+echo "platform="$host_system
+echo "config="$config
 
 if [ -z $cross_target ]; then
     case $arch in
@@ -57,22 +78,19 @@ if [ -z $cross_target ]; then
 	    fi
 	    ;;
 	*)
-#	    source_dirs=("$cwd/contrib/installer/boost" "$cwd")
-#	    build_dirs=("$build_root/build-$arch/boost" "$build_root/build-$arch/qtplatz.$config" )
 	    source_dirs=( "$cwd" )
 	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
 	    if [ "$config" = "debug" ]; then
 		if [ "$ide" = "eclipse" ]; then
 		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
-		elif [ "$ide" = "codelite" ]; then
+		else [ "$ide" = "codelite" ]
 		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
-		else
-		    cmake_args=('-G' 'CodeBlocks - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug')
 		fi
 	    fi
 	    ;;
     esac
 else
+    echo "cross_target="$cross_target
     source_dirs=( "$cwd" )
     build_dirs=( "$build_root/build-$cross_target/qtplatz.$config" )
 fi
@@ -108,8 +126,9 @@ for build_dir in ${build_dirs[@]}; do
 	cmake "${cmake_args[@]}" $source_dir
 
     else
-
-	echo "## Cross build for $arch"
+	echo "#######################################"
+	echo "## Cross build for $cross_target"
+	echo "#######################################"	
 	case $cross_target in
 	    armhf|armv7l|arm-linux-gnueabihf|de0-nano-soc|helio)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake

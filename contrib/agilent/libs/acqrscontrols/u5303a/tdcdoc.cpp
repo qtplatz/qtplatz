@@ -148,7 +148,8 @@ namespace acqrscontrols {
 
             bool push_averaged_waveform( AverageData& d ) {
                 
-                const bool invertData = d.method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
+                /* const */ bool invertData = d.method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
+                invertData = false;
 
                 auto w = std::make_shared< acqrscontrols::u5303a::waveform >( d.method_
                                                                               , d.meta_

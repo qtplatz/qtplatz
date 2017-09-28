@@ -27,6 +27,8 @@
 #include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <adcontrols/countingmethod.hpp>
+#include "ap240/tdcdoc.hpp"
+#include "u5303a/tdcdoc.hpp"
 #include <atomic>
 #include <array>
 #include <mutex>
@@ -79,26 +81,25 @@ namespace acqrscontrols {
     template<> bool
     tdcdoc_< ap240::waveform >::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& a )
     {
-        return ap240::tdcdoc::setTofChromatogramsMethod( a );
+        return static_cast< tdcbase * >(this)->setTofChromatogramsMethod( a );
     }
     
     template<> std::shared_ptr< const adcontrols::TofChromatogramsMethod >
     tdcdoc_< ap240::waveform >::tofChromatogramsMethod() const
     {
-        return ap240::tdcdoc::tofChromatogramsMethod();
+        return static_cast< const tdcbase * >(this)->tofChromatogramsMethod();
     }
     
     template<> void
     tdcdoc_< ap240::waveform >::setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > a )
     {
-        // ap240::tdcdoc::setCountingMethod( a );
+        ap240::tdcdoc::setCountingMethod( a );
     }
     
     template<> std::shared_ptr< const adcontrols::CountingMethod >
     tdcdoc_< ap240::waveform >::countingMethod() const
     {
-        return std::make_shared< adcontrols::CountingMethod >();
-        // return ap240::tdcdoc::countingMethod();
+        return ap240::tdcdoc::countingMethod();
     }
     
     template<> void
@@ -107,24 +108,27 @@ namespace acqrscontrols {
         // ap240::tdcdoc::eraseTofChromatogramsMethod();
     }
 
+#if 0
     template<> std::array< std::shared_ptr< threshold_result_< ap240::waveform> >, 2 >
-    tdcdoc_< ap240::waveform >::processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> )
+    tdcdoc_< ap240::waveform >::processThreshold( std::array< std::shared_ptr< const waveform_type >, 2> waveforms )
     {
-        return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
+        return ap240::tdcdoc::processThreshold( waveforms );
+        // return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
     }
 
     template<> std::array< std::shared_ptr< threshold_result_< ap240::waveform > >, 2 >
     tdcdoc_< ap240::waveform >::processThreshold2( std::array< std::shared_ptr< const waveform_type >, 2 > )
     {
-        return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};        
+        // return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};        
     }
     
     // peak detection (on trial)
     template<> std::array< std::shared_ptr< threshold_result_< ap240::waveform > >, 2 >
     tdcdoc_< ap240::waveform >::processThreshold3( std::array< std::shared_ptr< const waveform_type >, 2> )
     {
-        return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
+        // return std::array< std::shared_ptr< threshold_result_<waveform_type> >, 2 >{0,0};
     }
+#endif
 
     template<> bool
     tdcdoc_< ap240::waveform >::accumulate_waveform( std::shared_ptr< const waveform_type > a )
@@ -132,25 +136,29 @@ namespace acqrscontrols {
         return ap240::tdcdoc::accumulate_waveform( a );
     }
     
+    // template<> bool
+    // tdcdoc_< ap240::waveform >::accumulate_histogram( std::shared_ptr< const threshold_result_< ap240::waveform > > timecounts )
+    // {
+    //     return ap240::tdcdoc::accumulate_histogram( timecounts );
+    // }
+
     template<> bool
-    tdcdoc_< ap240::waveform >::accumulate_histogram( tdcdoc_::const_threshold_result_ptr a )
+    tdcdoc_< ap240::waveform >::accumulate_histogram( std::shared_ptr< const ap240::threshold_result > timecounts )
     {
-        ap240::const_threshold_result_ptr x;
-        ap240::tdcdoc::accumulate_histogram( x );
-        return false; // return ap240::tdcdoc::accumulate_histogram( a );
-    }
+        return ap240::tdcdoc::accumulate_histogram( timecounts );
+    }    
     
     template<> size_t
     tdcdoc_< ap240::waveform >::readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& a )
     {
-        return 0;
+        return ap240::tdcdoc::readAveragedWaveforms( a );
     }
 
     template<> size_t
     tdcdoc_< ap240::waveform >::readTimeDigitalHistograms(
         std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& a )
     {
-        return 0;
+        return ap240::tdcdoc::readTimeDigitalHistograms( a );
     }
     
     template<> std::shared_ptr< const ap240::waveform >
@@ -163,13 +171,6 @@ namespace acqrscontrols {
     tdcdoc_< ap240::waveform >::longTermHistogram( int protocolIndex ) const
     {
         return ap240::tdcdoc::longTermHistogram( protocolIndex );
-    }
-
-    template<> std::shared_ptr< adcontrols::TimeDigitalHistogram >
-    tdcdoc_< ap240::waveform >::recentHistogram( int protocolIndex ) const
-    {
-        return 0;
-        // return ap240::tdcdoc::recentHistogram( protocolIndex );
     }
 
     template<> double
@@ -196,8 +197,7 @@ namespace acqrscontrols {
                                                 , mass_assignee_t b
                                                 , int protocolIndex ) const
     {
-        return 0;
-        // return ap240::tdcdoc::recentSpectrum( a, b, protocolIndex );
+        return ap240::tdcdoc::recentSpectrum( ap240::tdcdoc::SpectrumType( a ), b, protocolIndex );
     }
 
     template<> bool
@@ -205,7 +205,8 @@ namespace acqrscontrols {
                                                         , const adcontrols::TofChromatogramsMethod& method
                                                         , std::vector< std::pair< uint32_t, double > >& values )
     {
-        return false; //ap240::tdcdoc::makeChromatogramPoints( waveform, method, values );
+        return false;
+        //return ap240::tdcdoc::makeChromatogramPoints( waveform, method, values );
     }
 
     template<> bool
@@ -217,11 +218,10 @@ namespace acqrscontrols {
 
     template<> bool
     tdcdoc_< ap240::waveform >::computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
-                                                  , const adcontrols::CountingMethod& m
-                                                  , std::vector< std::pair< size_t, size_t > >& v )
+                                                  , const adcontrols::CountingMethod& cm
+                                                  , std::vector< std::pair< size_t, size_t > >& rates )
     {
-        return false;
-        // return ap240::tdcdoc::computeCountRate( histogram, m, v );
+        return ap240::tdcdoc::computeCountRate( histogram, cm, rates );
     }
     
     template<> void
@@ -236,3 +236,7 @@ namespace acqrscontrols {
         return ap240::tdcdoc::threshold_action_counts( channel );
     }
 }
+
+/////////////////////////////////
+
+

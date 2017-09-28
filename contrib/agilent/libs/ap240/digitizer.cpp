@@ -463,11 +463,13 @@ task::handle_initial_setup()
     }
     
 #ifdef _LINUX
-    struct stat st;
-    if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
-        ADTRACE() << "/dev/acqrsPID does not exists";
-        reply( "ap240::digitizer::task::handle_initial_setup", "/dev/acqrsPID does ot exists" );
-        return false;
+    if ( ! simulation ) {
+        struct stat st;
+        if ( stat( "/dev/acqrsPCI", &st ) != 0 ) {
+            ADTRACE() << "/dev/acqrsPID does not exists";
+            reply( "ap240::digitizer::task::handle_initial_setup", "/dev/acqrsPID does ot exists" );
+            return false;
+        }
     }
 #endif
     status = AcqrsD1_multiInstrAutoDefine( "cal=0", &numInstruments_ );

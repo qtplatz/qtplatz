@@ -26,6 +26,7 @@
 #include "averagedata.hpp"
 #include <acqrscontrols/ap240/histogram.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
+#include <acqrscontrols/threshold_result.hpp>
 #include <acqrscontrols/threshold_action_finder.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
@@ -56,7 +57,7 @@ namespace acqrscontrols {
             ~impl() {}
             
             impl() : threshold_action_( std::make_shared< adcontrols::threshold_action >() )
-                   , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
+                     //, tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
                    , protocolCount_( 1 ) {
 
                 for ( auto& p: recent_longterm_histograms_ )
@@ -146,7 +147,7 @@ namespace acqrscontrols {
             std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
             std::array< std::pair< uint32_t, uint32_t >, 2 > threshold_action_counts_;
             std::shared_ptr< adcontrols::threshold_action > threshold_action_;
-            std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
+            //std::shared_ptr< adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::ap240::waveform > > accumulated_waveforms_;
 
@@ -208,7 +209,7 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
     if ( ! d.histogram_register_ )
         d.histogram_register_ = std::make_shared< histogram_type >();
     
-    if ( d.histogram_register_->append( *timecounts ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+    if ( d.histogram_register_->append( *timecounts ) >= tofChromatogramsMethod_->numberOfTriggers() ) {
 
         // periodic histograms
         auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
@@ -232,6 +233,48 @@ tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
 }
 
 bool
+tdcdoc::accumulate_histogram( std::shared_ptr< const threshold_result_< ap240::waveform > > timecounts )
+{
+    auto proto = timecounts->data()->method_.protocolIndex();
+    auto count = timecounts->data()->method_.protocols().size();
+
+    if ( count > max_protocol )
+        return false;
+
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    if ( impl_->protocolCount_ != count )
+        impl_->reset_accumulators( count );
+    
+    auto& d = impl_->accumulator_[ proto ];
+    
+    if ( ! d.histogram_register_ )
+        d.histogram_register_ = std::make_shared< histogram_type >();
+    
+    if ( d.histogram_register_->append( *timecounts ) >= tofChromatogramsMethod_->numberOfTriggers() ) {
+
+        // periodic histograms
+        auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
+
+        d.histogram_register_->move( *hgrm );
+        impl_->periodic_histogram_que_.emplace_back( hgrm );
+
+        impl_->trig_per_seconds_ = hgrm->triggers_per_second();
+        
+        // dispatch histograms
+        uint32_t index = hgrm->protocolIndex();
+        
+        // copy recent periodic histogram
+        impl_->recent_periodic_histograms_[ index ] = hgrm;
+
+        // accumulate into long term histogram
+        (*impl_->recent_longterm_histograms_[ index ] ) += *hgrm;
+    }
+    
+    return !impl_->periodic_histogram_que_.empty();
+}
+
+
+bool
 tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::ap240::waveform > waveform )
 {
     auto proto = waveform->method_.protocolIndex();
@@ -249,9 +292,9 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::ap240::wavefo
     impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
 
     size_t nacc = datum.average_waveform( *waveform );
-    size_t avrg = impl_->tofChromatogramsMethod_->numberOfTriggers();
+    size_t avrg = tofChromatogramsMethod_->numberOfTriggers();
 
-    if ( datum.average_waveform( *waveform ) >= impl_->tofChromatogramsMethod_->numberOfTriggers() ) {
+    if ( datum.average_waveform( *waveform ) >= tofChromatogramsMethod_->numberOfTriggers() ) {
 
         impl_->push_averaged_waveform( datum );
 
@@ -276,7 +319,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
     double rms(0), dbase(0);
     double tic = adportable::spectrum_processor::tic( wrap.size(), wrap.begin(), dbase, rms, 7 );
 
-    for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
+    for ( auto& item: (*tofChromatogramsMethod_) ) {
 
         bool found( false );
             
@@ -337,7 +380,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
 bool
 tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram, std::vector< uint32_t >& results )
 {
-    for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
+    for ( auto& item: (*tofChromatogramsMethod_) ) {
 
         double time = item.time();
         double window = item.timeWindow();
@@ -487,6 +530,69 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::ap24
     return results;
 }
 
+// Trial peak detection for infitof
+std::array< threshold_result_ptr, acqrscontrols::ap240::nchannels >
+tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::ap240::waveform >, 2 > waveforms )
+{
+    if ( !waveforms[0] && !waveforms[1] ) // empty
+        return std::array< threshold_result_ptr, 2 >();
+
+    std::array< threshold_result_ptr, 2 > results;
+    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;
+    auto range( countingMethod() );
+
+    std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
+    
+    for ( size_t i = 0; i < waveforms.size(); ++i ) {
+
+        if ( waveforms[ i ] ) {
+            
+            auto& counts = impl_->threshold_action_counts_[ i ];
+#if 0            
+            results[ i ] = std::make_shared< acqrscontrols::ap240::threshold_result >( waveforms[ i ] );
+            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
+            results[ i ]->threshold_level() = methods[ i ]->threshold_level;
+            results[ i ]->algo() = static_cast< enum adportable::counting::counting_result::algo >( methods[ i ]->algo_ );
+            //results[ i ]->time_resolution() = methods[ i ]->time_resolution;
+            
+            const auto idx = waveforms[ i ]->method_.protocolIndex();
+            if ( idx == 0 )
+                counts.second++;
+            
+            if ( methods[ i ] && methods[ i ]->enable ) {
+                
+                if ( methods[ i ]->algo_ == adcontrols::threshold_method::Differential ) {
+                    if  ( methods[ i ]->slope == adcontrols::threshold_method::CrossUp ) {
+                        acqrscontrols::find_threshold_peaks< true, ap240::waveform > find_peaks( *methods[ i ], *range );
+                        find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
+                    } else {
+                        acqrscontrols::find_threshold_peaks< false, ap240::waveform > find_peaks( *methods[ i ], *range );
+                        find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
+                    }
+                } else {
+                    acqrscontrols::find_threshold_timepoints< ap240::waveform > find_threshold( *methods[ i ], *range );
+                    find_threshold( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
+                }
+
+                // copy from vector< adportable::threshold_index > ==> vector< uint32_t > for compatibility
+                results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
+                std::transform( results[ i ]->indecies2().begin()
+                                , results[ i ]->indecies2().end()
+                                , results[ i ]->indecies().begin()
+                                , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
+                bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
+                
+                if ( result )
+                    counts.first++;
+
+            }
+#endif                
+        }
+    }
+
+    return results;
+}
+
 
 bool
 tdcdoc::set_threshold_action( const adcontrols::threshold_action& m )
@@ -530,33 +636,33 @@ tdcdoc::threshold_method( int channel ) const
     return 0;
 }
 
-bool
-tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
-{
-    impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
+// bool
+// tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
+// {
+//     impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
 
-#if 0
-    auto ptr( impl_->tofChromatogramsMethod_ );
-    ADDEBUG() << "ChromatogramMethod: ";
-    for ( size_t fcn = 0; fcn < ptr->size(); ++fcn ) {
-        auto item = ptr->begin() + fcn;
-        ADDEBUG() << "     " << fcn << ": " << item->formula() << ", " << int( item->intensityAlgorithm() );
-    }
-#endif
-    return true;
-}
+// #if 0
+//     auto ptr( impl_->tofChromatogramsMethod_ );
+//     ADDEBUG() << "ChromatogramMethod: ";
+//     for ( size_t fcn = 0; fcn < ptr->size(); ++fcn ) {
+//         auto item = ptr->begin() + fcn;
+//         ADDEBUG() << "     " << fcn << ": " << item->formula() << ", " << int( item->intensityAlgorithm() );
+//     }
+// #endif
+//     return true;
+// }
 
-std::shared_ptr< const adcontrols::TofChromatogramsMethod >
-tdcdoc::tofChromatogramsMethod() const
-{
-    return impl_->tofChromatogramsMethod_;
-}
+// std::shared_ptr< const adcontrols::TofChromatogramsMethod >
+// tdcdoc::tofChromatogramsMethod() const
+// {
+//     return impl_->tofChromatogramsMethod_;
+// }
 
-void
-tdcdoc::eraseTofChromatogramsMethod()
-{
-    impl_->tofChromatogramsMethod_.reset();
-}
+// void
+// tdcdoc::eraseTofChromatogramsMethod()
+// {
+//     impl_->tofChromatogramsMethod_.reset();
+// }
 
 // static
 void
