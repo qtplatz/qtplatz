@@ -360,7 +360,7 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
 
         if ( auto parent = model.item( r_ch1 + nid++, 0 ) ) {
 
-            for ( auto label: { "Full scale", "Offset", "Coupling", "Band width" } )
+            for ( auto label: { "Full scale", "Offset", "Coupling", "Band width", "Invert data" } )
                 parent->appendRow( QList< QStandardItem * >() << new QStandardItem( label ) << new QStandardItem() );
             
             int row(0);
@@ -399,6 +399,13 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
                   << std::make_pair( "200MHZ", 3 )
                   << std::make_pair( " 20MHz", 4 )
                   << std::make_pair( " 35MHz", 5 );
+                model.setData( model.index( row, 1, parent->index() ), t.variant(), Qt::UserRole + 1 );
+                model.setData( model.index( row++, 1, parent->index() ), ver->bandwidth, Qt::EditRole );
+            }
+            {   // bandwidth
+                column_type t;
+                t << std::make_pair( "false", 0 )
+                  << std::make_pair( "true", 1 );
                 model.setData( model.index( row, 1, parent->index() ), t.variant(), Qt::UserRole + 1 );
                 model.setData( model.index( row++, 1, parent->index() ), ver->bandwidth, Qt::EditRole );
             }
@@ -551,6 +558,7 @@ AcqirisWidget::getContents( acqrscontrols::aqdrv4::vertical_method& ver, int cha
         ver.set_offset( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toDouble() );
         ver.set_coupling( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
         ver.set_bandwidth( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
+        ver.set_invertData( model_->index( row++, 1, parent->index() ).data( Qt::EditRole ).toUInt() );
     }
 }
 
@@ -592,6 +600,7 @@ AcqirisWidget::setContents( const acqrscontrols::aqdrv4::vertical_method& ver, i
         model_->setData( model_->index( row++, 1, parent->index() ), ver.offset, Qt::EditRole );
         model_->setData( model_->index( row++, 1, parent->index() ), ver.coupling, Qt::EditRole );
         model_->setData( model_->index( row++, 1, parent->index() ), ver.bandwidth, Qt::EditRole );
+        model_->setData( model_->index( row++, 1, parent->index() ), ver.invertData, Qt::EditRole );
     }
 }
 

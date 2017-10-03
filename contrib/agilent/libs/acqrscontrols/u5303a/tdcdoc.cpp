@@ -23,9 +23,11 @@
  **************************************************************************/
 
 #include "tdcdoc.hpp"
-#include "averagedata.hpp"
+#include "../tdcdoc.hpp"
+#include "../processthreshold.hpp"
 #include "../find_threshold_timepoints.hpp"
 #include "../find_threshold_peaks.hpp"
+#include "averagedata.hpp"
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/threshold_action_finder.hpp>
@@ -148,8 +150,8 @@ namespace acqrscontrols {
 
             bool push_averaged_waveform( AverageData& d ) {
                 
-                /* const */ bool invertData = d.method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
-                invertData = false;
+                // const bool invertData = d.method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer;
+                const bool invertData = d.method_._device_method().invert_signal;
 
                 auto w = std::make_shared< acqrscontrols::u5303a::waveform >( d.method_
                                                                               , d.meta_
@@ -296,7 +298,7 @@ tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
 {
     // TODO:
     // Rewrite this to acqrsccontrols::MakeChromatogramPoints()( waveform, method, values )
-#pragma message( "Rewrite this to acqrsccontrols::MakeChromatogramPoints()( waveform, method, values )")
+    // #pragma message( "Rewrite this to acqrsccontrols::MakeChromatogramPoints()( waveform, method, values )")
     
     typedef acqrscontrols::u5303a::waveform waveform_type;
 
@@ -312,7 +314,7 @@ tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
                 values.emplace_back( trace.id(), a );
             } else if ( trace.intensityAlgorithm() == adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) {
                 double rms(0), dbase(0);
-                double tic = adportable::spectrum_processor::tic( wform.size(), wform.begin(), dbase, rms, 7 );
+                adportable::spectrum_processor::tic( wform.size(), wform.begin(), dbase, rms, 7 );
                 if ( trace.time() < 1.0e-9 ) {
                     // base peak height
                     double v = waveform->toVolts( *std::max_element( wform.begin(), wform.end() ) - dbase ) * 1000; // mV
@@ -532,6 +534,10 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
 std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
 tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms )
 {
+    // This method is almost fully identical to processThreshold_ template class
+    // Consider replace.
+    // TODO: u5303a::threshold_result need to be replaced with threshold_result_< u5303a::waveform >
+    //
     if ( !waveforms[0] && !waveforms[1] ) // empty
         return std::array< threshold_result_ptr, 2 >();
 
@@ -556,10 +562,11 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
             const auto idx = waveforms[ i ]->method_.protocolIndex();
             if ( idx == 0 )
                 counts.second++;
-            
+
             if ( methods[ i ] && methods[ i ]->enable ) {
 
                 if ( methods[ i ]->algo_ == adcontrols::threshold_method::Differential ) {
+                    
                     if  ( methods[ i ]->slope == adcontrols::threshold_method::CrossUp ) {
                         acqrscontrols::find_threshold_peaks< true, u5303a::waveform > find_peaks( *methods[ i ], *range );
                         find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
@@ -568,6 +575,7 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
                         find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
                     }
                 } else {
+                    // Absolute || AverageRelative
                     acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
                     find_threshold( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
                 }

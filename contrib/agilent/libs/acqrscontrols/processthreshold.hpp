@@ -48,12 +48,19 @@ namespace acqrscontrols {
         processThreshold_() {}
 
         template< typename waveform_type, size_t nchannels >
-        std::array< std::shared_ptr< threshold_result_< waveform_type > >
-                    , nchannels > operator()( std::array< std::shared_ptr< const waveform_type >, nchannels > waveforms, tdcbase& t ) const;
+        std::array< std::shared_ptr< threshold_result_< waveform_type > >, nchannels >
+        operator()( std::array< std::shared_ptr< const waveform_type >, nchannels > waveforms, tdcbase& t ) const;
     };
 
+    /////////////////
     template<>
     template<>
     std::array< std::shared_ptr< threshold_result_< ap240::waveform > >, ap240::nchannels >
     processThreshold_<3>::operator()< ap240::waveform >( std::array< std::shared_ptr< const ap240::waveform >, ap240::nchannels > waveforms, tdcbase& t ) const;
+
+    /////////////////
+    template<>
+    template<>
+    std::array< std::shared_ptr< threshold_result_< u5303a::waveform > >, u5303a::nchannels >
+    processThreshold_<3>::operator()< u5303a::waveform >( std::array< std::shared_ptr< const u5303a::waveform >, u5303a::nchannels > waveforms, tdcbase& t ) const;
 }

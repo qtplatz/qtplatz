@@ -123,7 +123,8 @@ namespace acqrscontrols {
 
             bool push_averaged_waveform( AverageData& d ) {
 
-                const bool invertData = d.method_.mode() == acqrscontrols::ap240::method::DigiMode::Digitizer;
+                // const bool invertData = d.method_.mode() == acqrscontrols::ap240::method::DigiMode::Digitizer;
+                const bool invertData = d.method_.ch1_.invertData;
 
                 auto w = std::make_shared< acqrscontrols::ap240::waveform >( d.method_
                                                                              , d.meta_

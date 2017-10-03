@@ -94,6 +94,8 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
         ident_ = std::make_shared< identify >( waveform.ident_ );
                     
     } else {
+        //V = meta_.scaleFactor * d - meta_.scaleOffset;
+        // ADDEBUG() << waveform.meta_.scaleOffset << ", " << waveform.meta_.scaleFactor << " -> " << waveform.meta_.scaleOffset / waveform.meta_.scaleFactor;
 
         if ( ( protocolIndex_ != waveform.method_.protocolIndex() ) ||
              ( protocolCount_ != waveform.method_.protocols().size() ) ) {
@@ -102,7 +104,6 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
             
             return 0;
         }
-             
         wellKnownEvents_ |= waveform.wellKnownEvents_;
         meta_.actualAverages += waveform.meta_.actualAverages == 0 ? 1 : waveform.meta_.actualAverages;
         

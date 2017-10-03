@@ -124,8 +124,6 @@ waveform::waveform( const method& method
     } else {
         std::copy( xdata.get(), xdata.get() + size, p );
     }
-    // for ( size_t i = 0; i < size; ++i )
-    //     ADDEBUG() << boost::format( "%d, %d" ) % xdata[i] % p[i];
 }
 
 size_t
@@ -300,7 +298,7 @@ waveform::toVolts( int32_t d ) const
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d - meta_.scaleOffset;
     else
-        return double( meta_.scaleFactor * d ) / meta_.actualAverages - ( meta_.scaleOffset * meta_.actualAverages );
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages - meta_.scaleOffset;
 }
 
 double
@@ -309,7 +307,7 @@ waveform::toVolts( int64_t d ) const
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d - meta_.scaleOffset;
     else
-        return double( meta_.scaleFactor * d ) / meta_.actualAverages - ( meta_.scaleOffset * meta_.actualAverages );
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages - meta_.scaleOffset;
 }
 
 double

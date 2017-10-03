@@ -456,7 +456,7 @@ waveform::toVolts( int32_t d ) const
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d + meta_.scaleOffset;
     else
-        return double( meta_.scaleFactor * d ) / meta_.actualAverages + ( meta_.scaleOffset * meta_.actualAverages );
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages + meta_.scaleOffset;
 }
 
 double
@@ -465,7 +465,7 @@ waveform::toVolts( int64_t d ) const
     if ( meta_.actualAverages == 0 )
         return meta_.scaleFactor * d + meta_.scaleOffset;
     else
-      return double( meta_.scaleFactor * d ) / meta_.actualAverages + ( meta_.scaleOffset * meta_.actualAverages );
+        return double( meta_.scaleFactor * d ) / meta_.actualAverages + meta_.scaleOffset;
 }
 
 double

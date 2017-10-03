@@ -68,7 +68,7 @@ namespace acqrscontrols {
 
             const bool average( method.algo_ == adcontrols::threshold_method::AverageRelative );
             adportable::stddev stddev;
-            
+
             if ( ranges.enable() ) {
                 
                 using adcontrols::CountingMethod;

@@ -63,8 +63,8 @@ namespace acqrscontrols {
             typedef std::shared_ptr< threshold_result_< waveform_type > > threshold_result_ptr;
 
             typedef typename std::conditional< std::is_same< waveform_type, ap240::waveform >::value
-                                               , ap240_threshold_result
-                                               , u5303a::threshold_result >::type threshold_result_type;
+                                               , threshold_result_< ap240::waveform >
+                                               , threshold_result_< u5303a::waveform > >::type threshold_result_type;
 
             if ( ! waveforms[0] && ! waveforms[1] ) // empty
                 return std::array< threshold_result_ptr, nchannels >();
@@ -134,6 +134,18 @@ namespace acqrscontrols {
     std::array< std::shared_ptr< threshold_result_< ap240::waveform > >, ap240::nchannels >
     processThreshold_<3>::operator()< ap240::waveform >(
         std::array< std::shared_ptr< const ap240::waveform >, ap240::nchannels > waveforms
+        , acqrscontrols::tdcbase& tdc ) const {
+
+        return impl::processThreshold<3>()( waveforms, tdc );
+
+    }
+
+    //////////////////////////////////
+    template<>
+    template<>
+    std::array< std::shared_ptr< threshold_result_< u5303a::waveform > >, u5303a::nchannels >
+    processThreshold_<3>::operator()< u5303a::waveform >(
+        std::array< std::shared_ptr< const u5303a::waveform >, u5303a::nchannels > waveforms
         , acqrscontrols::tdcbase& tdc ) const {
 
         return impl::processThreshold<3>()( waveforms, tdc );
