@@ -39,7 +39,6 @@ namespace acqrscontrols {
     
     namespace ap240 {
 
-        class threshold_result;
         class method;
 
         class ACQRSCONTROLSSHARED_EXPORT histogram {
@@ -52,7 +51,6 @@ namespace acqrscontrols {
 
             void clear();
             void reset();
-            size_t append( const acqrscontrols::ap240::threshold_result& result );
             size_t append( const acqrscontrols::threshold_result_< waveform >& result ); 
             size_t trigger_count() const;
             double triggers_per_sec() const;

@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "tdcdoc.hpp"
+#include "../tdcdoc.hpp"
+#include "../processthreshold.hpp"
 #include "averagedata.hpp"
 #include <acqrscontrols/ap240/histogram.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
@@ -120,20 +122,20 @@ namespace acqrscontrols {
             size_t average_waveform( const acqrscontrols::ap240::waveform& waveform );
 
             bool push_averaged_waveform( AverageData& d ) {
-                
+
                 const bool invertData = d.method_.mode() == acqrscontrols::ap240::method::DigiMode::Digitizer;
                 
                 auto w = std::make_shared< acqrscontrols::ap240::waveform >( d.method_
-                                                                              , d.meta_
-                                                                              , d.serialnumber_
-                                                                              , d.wellKnownEvents_
-                                                                              , d.timeSinceEpoch_
-                                                                              , 0
-                                                                              , d.timeSinceInject_
-                                                                              , d.ident_
-                                                                              , d.waveform_register_->data()
-                                                                              , d.waveform_register_->size()
-                                                                              , invertData );
+                                                                             , d.meta_
+                                                                             , d.serialnumber_
+                                                                             , d.wellKnownEvents_
+                                                                             , d.timeSinceEpoch_
+                                                                             , 0
+                                                                             , d.timeSinceInject_
+                                                                             , d.ident_
+                                                                             , d.waveform_register_->data().get()
+                                                                             , d.waveform_register_->size()
+                                                                             , invertData );
                 d.waveform_register_.reset();
 
                 accumulated_waveforms_.emplace_back( w );
@@ -188,50 +190,6 @@ tdcdoc::~tdcdoc()
     delete impl_;
 }
 
-/*
-  Master entry point from 'task' module
- */
-bool
-tdcdoc::accumulate_histogram( const_threshold_result_ptr timecounts )
-{
-    auto proto = timecounts->data()->method_.protocolIndex();
-    auto count = timecounts->data()->method_.protocols().size();
-
-    if ( count > max_protocol )
-        return false;
-
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    if ( impl_->protocolCount_ != count )
-        impl_->reset_accumulators( count );
-    
-    auto& d = impl_->accumulator_[ proto ];
-    
-    if ( ! d.histogram_register_ )
-        d.histogram_register_ = std::make_shared< histogram_type >();
-    
-    if ( d.histogram_register_->append( *timecounts ) >= tofChromatogramsMethod_->numberOfTriggers() ) {
-
-        // periodic histograms
-        auto hgrm = std::make_shared< adcontrols::TimeDigitalHistogram >();
-
-        d.histogram_register_->move( *hgrm );
-        impl_->periodic_histogram_que_.emplace_back( hgrm );
-
-        impl_->trig_per_seconds_ = hgrm->triggers_per_second();
-        
-        // dispatch histograms
-        uint32_t index = hgrm->protocolIndex();
-        
-        // copy recent periodic histogram
-        impl_->recent_periodic_histograms_[ index ] = hgrm;
-
-        // accumulate into long term histogram
-        (*impl_->recent_longterm_histograms_[ index ] ) += *hgrm;
-    }
-    
-    return !impl_->periodic_histogram_que_.empty();
-}
-
 bool
 tdcdoc::accumulate_histogram( std::shared_ptr< const threshold_result_< ap240::waveform > > timecounts )
 {
@@ -284,26 +242,31 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::ap240::wavefo
         return false;
 
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
     if ( impl_->protocolCount_ != count )
         impl_->reset_accumulators( count );
+
+    impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
     
     auto& datum = impl_->accumulator_[ proto ];
-    
-    impl_->recent_raw_waveforms_[ proto ] = waveform; // data for display
-
-    size_t nacc = datum.average_waveform( *waveform );
-    size_t avrg = tofChromatogramsMethod_->numberOfTriggers();
 
     if ( datum.average_waveform( *waveform ) >= tofChromatogramsMethod_->numberOfTriggers() ) {
-
         impl_->push_averaged_waveform( datum );
-
     }
 
     return ! impl_->accumulated_waveforms_.empty();
 }
 
 
+bool
+tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
+                                , const adcontrols::TofChromatogramsMethod& method
+                                , std::vector< std::pair< uint32_t, double > >& values )
+{
+    return acqrscontrols::MakeChromatogramPoints()( waveform, method, values );
+}
+
+#if 0
 bool
 tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& waveform
                                 , std::vector< std::pair< double, double > >& results )
@@ -376,6 +339,7 @@ tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& wa
     
     return true;
 }
+#endif
 
 bool
 tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram, std::vector< uint32_t >& results )
@@ -509,7 +473,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::ap24
 
             auto& counts = impl_->threshold_action_counts_[ i ];
             
-            results[ i ] = std::make_shared< acqrscontrols::ap240::threshold_result >( waveforms[ i ] );
+            results[ i ] = std::make_shared< acqrscontrols::threshold_result_< ap240::waveform > >( waveforms[ i ] );
 
             const auto idx = waveforms[ i ]->method_.protocolIndex();
             if ( idx == 0 )
@@ -534,63 +498,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::ap24
 std::array< threshold_result_ptr, acqrscontrols::ap240::nchannels >
 tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::ap240::waveform >, 2 > waveforms )
 {
-    if ( !waveforms[0] && !waveforms[1] ) // empty
-        return std::array< threshold_result_ptr, 2 >();
-
-    std::array< threshold_result_ptr, 2 > results;
-    std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > methods = impl_->threshold_methods_;
-    auto range( countingMethod() );
-
-    std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
-    
-    for ( size_t i = 0; i < waveforms.size(); ++i ) {
-
-        if ( waveforms[ i ] ) {
-            
-            auto& counts = impl_->threshold_action_counts_[ i ];
-#if 0            
-            results[ i ] = std::make_shared< acqrscontrols::ap240::threshold_result >( waveforms[ i ] );
-            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
-            results[ i ]->threshold_level() = methods[ i ]->threshold_level;
-            results[ i ]->algo() = static_cast< enum adportable::counting::counting_result::algo >( methods[ i ]->algo_ );
-            //results[ i ]->time_resolution() = methods[ i ]->time_resolution;
-            
-            const auto idx = waveforms[ i ]->method_.protocolIndex();
-            if ( idx == 0 )
-                counts.second++;
-            
-            if ( methods[ i ] && methods[ i ]->enable ) {
-                
-                if ( methods[ i ]->algo_ == adcontrols::threshold_method::Differential ) {
-                    if  ( methods[ i ]->slope == adcontrols::threshold_method::CrossUp ) {
-                        acqrscontrols::find_threshold_peaks< true, ap240::waveform > find_peaks( *methods[ i ], *range );
-                        find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
-                    } else {
-                        acqrscontrols::find_threshold_peaks< false, ap240::waveform > find_peaks( *methods[ i ], *range );
-                        find_peaks( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
-                    }
-                } else {
-                    acqrscontrols::find_threshold_timepoints< ap240::waveform > find_threshold( *methods[ i ], *range );
-                    find_threshold( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
-                }
-
-                // copy from vector< adportable::threshold_index > ==> vector< uint32_t > for compatibility
-                results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
-                std::transform( results[ i ]->indecies2().begin()
-                                , results[ i ]->indecies2().end()
-                                , results[ i ]->indecies().begin()
-                                , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
-                bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
-                
-                if ( result )
-                    counts.first++;
-
-            }
-#endif                
-        }
-    }
-
-    return results;
+    return acqrscontrols::processThreshold_<3>()( waveforms, *this );
 }
 
 
@@ -714,8 +622,14 @@ std::pair< uint32_t, uint32_t >
 tdcdoc::threshold_action_counts( int channel ) const
 {
     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    
     return impl_->threshold_action_counts_[ channel ];
+}
+
+void
+tdcdoc::set_threshold_action_counts( int channel, const std::pair< uint32_t, uint32_t >& t ) const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+    impl_->threshold_action_counts_[ channel ] = t;
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >

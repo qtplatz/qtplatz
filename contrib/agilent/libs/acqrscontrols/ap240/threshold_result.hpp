@@ -25,6 +25,7 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
+#include "../threshold_result.hpp"
 #include <adportable/counting/threshold_index.hpp>
 #include <adportable/counting/counting_result.hpp>
 #include <memory>
@@ -36,13 +37,14 @@ namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
 
-    template< typename T > class threshold_result_;
-    
     namespace ap240 {
 
         class waveform;
 
-        class ACQRSCONTROLSSHARED_EXPORT threshold_result : public adportable::counting::counting_result {
+        // typedef acqrscontrols::threshold_result_< ap240::waveform > threshold_result;
+        
+#if 0
+        class [[deprecated]] /*ACQRSCONTROLSSHARED_EXPORT */ threshold_result : public adportable::counting::counting_result {
 
             std::shared_ptr< const acqrscontrols::ap240::waveform > data_;
             std::vector< uint32_t > indecies_;
@@ -78,7 +80,9 @@ namespace acqrscontrols {
 
         };
 
-        ACQRSCONTROLSSHARED_EXPORT std::ostream& operator << ( std::ostream&, const threshold_result& );
-
+#endif
     }
+
+    typedef threshold_result_< ap240::waveform > ap240_threshold_result;
+    ACQRSCONTROLSSHARED_EXPORT std::ostream& operator << ( std::ostream&, const ap240_threshold_result& );
 }

@@ -94,7 +94,9 @@ namespace acqrscontrols {
                       , uint64_t firstValidPoint
                       , double timeSinceInject
                       , const std::shared_ptr< const identify >& id
-                      , std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
+                      , std::unique_ptr< int32_t [] >&& data
+                      , size_t size
+                      , bool invert ); // software averager support
 
             waveform();
 

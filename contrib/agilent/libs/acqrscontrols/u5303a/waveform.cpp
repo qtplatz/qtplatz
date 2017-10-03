@@ -199,8 +199,7 @@ waveform::waveform() : serialnumber_( 0 )
 }
 
 waveform::waveform( std::shared_ptr< const identify > id
-                    , uint32_t pos, uint32_t events, uint64_t tp ) : ident_( id )
-                                                                   , serialnumber_( pos )
+                    , uint32_t pos, uint32_t events, uint64_t tp ) : serialnumber_( pos )
                                                                    , wellKnownEvents_( events )
                                                                    , timeSinceEpoch_( tp )
                                                                    , firstValidPoint_( 0 )
@@ -209,6 +208,7 @@ waveform::waveform( std::shared_ptr< const identify > id
                                                                    , tic_( 0 )
                                                                    , dbase_( 0 )
                                                                    , rms_( 0 )
+                                                                   , ident_( id )
 {
 }
 
@@ -220,7 +220,7 @@ waveform::waveform( const method& method
                     , uint64_t firstValidPoint
                     , double timeSinceInject
                     , const std::shared_ptr< const identify >& id
-                    , std::unique_ptr< int32_t [] >& data
+                    , std::unique_ptr< int32_t [] >&& xdata
                     , size_t size
                     , bool invert ) : method_( method )
                                     , meta_( meta )
@@ -234,7 +234,7 @@ waveform::waveform( const method& method
                                     , tic_( 0 )
                                     , dbase_( 0 )
                                     , rms_( 0 )
-                                    , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
+                                    , mblock_( std::make_shared< adportable::mblock< int32_t > >( xdata, size ) )
 {
     typedef int32_t value_type;
 

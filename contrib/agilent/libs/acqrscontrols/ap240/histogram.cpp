@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "histogram.hpp"
-#include "threshold_result.hpp"
+//#include "threshold_result.hpp"
 #include "../threshold_result.hpp"
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adportable/debug.hpp>
@@ -54,8 +54,10 @@ histogram::reset()
     reset_requested_ = true;
 }
 
+// deprecated
+#if 0
 size_t
-histogram::append( const acqrscontrols::ap240::threshold_result& result )
+histogram::append( const acqrscontrols::threshold_result_< ap240::waveform>& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
@@ -91,6 +93,7 @@ histogram::append( const acqrscontrols::ap240::threshold_result& result )
 
     return ++trigger_count_;
 }
+#endif
 
 size_t
 histogram::append( const acqrscontrols::threshold_result_< ap240::waveform >& result )

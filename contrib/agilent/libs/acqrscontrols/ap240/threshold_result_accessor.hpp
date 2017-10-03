@@ -25,16 +25,18 @@
 #pragma once
 
 #include "../acqrscontrols_global.hpp"
-#include "threshold_result.hpp"
+#include "../threshold_result.hpp"
 #include <adicontroller/datawriter.hpp>
 #include <vector>
 
 namespace acqrscontrols {
     namespace ap240 {
 
+        class waveform;
+
         class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor : public adicontroller::SignalObserver::DataAccess {
 
-            std::vector< std::shared_ptr< const acqrscontrols::ap240::threshold_result > >::iterator it_;
+            std::vector< std::shared_ptr< const acqrscontrols::threshold_result_< ap240::waveform > > >::iterator it_;
             
         public:
             threshold_result_accessor();
@@ -50,7 +52,7 @@ namespace acqrscontrols {
             size_t xdata( std::string& ) const override;
             size_t xmeta( std::string& ) const override;
             
-            std::vector< std::shared_ptr< const acqrscontrols::ap240::threshold_result > > list;
+            std::vector< std::shared_ptr< const acqrscontrols::threshold_result_< ap240::waveform > > > list;
         };
         
     }

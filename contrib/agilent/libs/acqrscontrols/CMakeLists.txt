@@ -22,6 +22,8 @@ add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
   find_threshold_timepoints.hpp
   find_threshold_peaks.hpp
+  processthreshold.hpp
+  processthreshold.cpp
   resultwriter.hpp
   waveform_horizontal.hpp
   tdcbase.hpp

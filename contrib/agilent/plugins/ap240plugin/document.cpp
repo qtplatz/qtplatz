@@ -173,7 +173,7 @@ namespace ap240 {
         inline ap240::iControllerImpl * iController() { return iControllerImpl_.get(); }
         
     private:
-        typedef std::pair< std::shared_ptr< ap240x::threshold_result >, std::shared_ptr< ap240x::threshold_result > > threshold_result_pair_t;
+        typedef std::pair< std::shared_ptr< acqrscontrols::ap240_threshold_result >, std::shared_ptr< acqrscontrols::ap240_threshold_result > > threshold_result_pair_t;
         
         std::mutex que2_mutex_;
         std::vector< threshold_result_pair_t > que2_;
@@ -268,7 +268,7 @@ namespace ap240 {
 
             if ( pair.first ) {
                 
-                results.first = std::make_shared< ap240x::threshold_result >( pair.first );
+                results.first = std::make_shared< ap240_threshold_result >( pair.first );
 
                 if ( methods[0]->enable ) {
                     
@@ -280,7 +280,7 @@ namespace ap240 {
                 
             if ( pair.second ) {
 
-                results.second = std::make_shared< ap240x::threshold_result >( pair.second );
+                results.second = std::make_shared< ap240_threshold_result >( pair.second );
                 
                 if ( methods[1]->enable ) {
                     

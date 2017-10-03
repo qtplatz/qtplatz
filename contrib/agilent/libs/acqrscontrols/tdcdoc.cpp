@@ -43,7 +43,7 @@ namespace acqrscontrols {
     // typedef std::shared_ptr< const threshold_result_type > const_threshold_result_ptr;
     // typedef acqrscontrols::u5303a::waveform waveform_type;
     // typedef acqrscontrols::u5303a::histogram histogram_type;
-
+#if 0
     template<>
     tdcdoc_< ap240::waveform >::tdcdoc_()
     {
@@ -235,6 +235,7 @@ namespace acqrscontrols {
     {
         return ap240::tdcdoc::threshold_action_counts( channel );
     }
+#endif
 }
 
 /////////////////////////////////

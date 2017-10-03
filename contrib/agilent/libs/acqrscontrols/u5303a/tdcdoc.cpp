@@ -62,8 +62,8 @@ namespace acqrscontrols {
             
             impl() : threshold_action_( std::make_shared< adcontrols::threshold_action >() )
                    , tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
-                   , protocolCount_( 1 )
-                   , trig_per_seconds_( 0 ) {
+                   , trig_per_seconds_( 0 )
+                   , protocolCount_( 1 ) {
 
                 auto cm = std::make_shared< adcontrols::CountingMethod >();
                 cm->setEnable( false );
@@ -159,7 +159,7 @@ namespace acqrscontrols {
                                                                               , 0
                                                                               , d.timeSinceInject_
                                                                               , d.ident_
-                                                                              , d.waveform_register_->data()
+                                                                              , std::move( d.waveform_register_->data() )
                                                                               , d.waveform_register_->size()
                                                                               , invertData );
                 d.waveform_register_.reset();
@@ -294,6 +294,10 @@ tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
                                 , const adcontrols::TofChromatogramsMethod& method
                                 , std::vector< std::pair< uint32_t, double > >& values )
 {
+    // TODO:
+    // Rewrite this to acqrsccontrols::MakeChromatogramPoints()( waveform, method, values )
+#pragma message( "Rewrite this to acqrsccontrols::MakeChromatogramPoints()( waveform, method, values )")
+    
     typedef acqrscontrols::u5303a::waveform waveform_type;
 
     values.clear();
@@ -674,7 +678,15 @@ tdcdoc::clear_histogram()
 std::pair< uint32_t, uint32_t >
 tdcdoc::threshold_action_counts( int channel ) const
 {
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
     return impl_->threshold_action_counts_[ channel ];
+}
+
+void
+tdcdoc::set_threshold_action_counts( int channel, const std::pair< uint32_t, uint32_t >& t ) const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+    impl_->threshold_action_counts_[ channel ] = t;
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >

@@ -207,8 +207,6 @@ if ( WIN32 )
 
 endif()
 
-#install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake DESTINATION / COMPONENT libraries )
-
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_definitions(-DUNICODE -D_UNICODE)

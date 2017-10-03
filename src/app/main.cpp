@@ -312,7 +312,7 @@ int main(int argc, char **argv)
     const int threadCount = QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(qMax(4, 2 * threadCount));
 
-    // setupCrashHandler(); // Display a backtrace once a serious signal is delivered.
+    setupCrashHandler(); // Display a backtrace once a serious signal is delivered.
 
 #ifdef ENABLE_QT_BREAKPAD
     QtSystemExceptionHandler systemExceptionHandler;

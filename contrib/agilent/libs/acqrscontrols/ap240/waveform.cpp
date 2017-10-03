@@ -66,12 +66,12 @@ identify::identify( const identify& t ) : bus_number_( t.bus_number_ )
 }
 
 waveform::waveform( const identify& id
-                    , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : ident_( id )
+                    , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : serialnumber_origin_( pos0 )
                                                                                   , serialnumber_( pos )
-                                                                                  , serialnumber_origin_( pos0 )
                                                                                   , wellKnownEvents_( events )
                                                                                   , firstValidPoint_( 0 )
                                                                                   , timeSinceEpoch_( tp )
+                                                                                  , ident_( id )
 {
 }
 
@@ -84,12 +84,12 @@ waveform::waveform() : serialnumber_( 0 )
 }
 
 waveform::waveform( std::shared_ptr< const identify > id
-                    , uint32_t pos, uint32_t events, uint64_t tp ) : ident_( *id )
-                                                                   , serialnumber_( pos )
+                    , uint32_t pos, uint32_t events, uint64_t tp ) : serialnumber_( pos )
                                                                    , wellKnownEvents_( events )
                                                                    , firstValidPoint_( 0 )
                                                                    , timeSinceEpoch_( tp )
                                                                    , timeSinceInject_( 0.0 )
+                                                                   , ident_( *id )
 {
 }
 
@@ -101,25 +101,28 @@ waveform::waveform( const method& method
                     , uint64_t firstValidPoint
                     , double timeSinceInject
                     , const std::shared_ptr< const identify >& id
-                    , std::unique_ptr< int32_t [] >& data
+                    , const int32_t * xdata
                     , size_t size
                     , bool invert ) : method_( method )
                                     , meta_( meta )
                                     , serialnumber_( serialnumber )
                                     , wellKnownEvents_( wellKnownEvents )
-                                    , timeSinceEpoch_( timeSinceEpoch )
                                     , firstValidPoint_( firstValidPoint )                                      
+                                    , timeSinceEpoch_( timeSinceEpoch )
                                     , timeSinceInject_( timeSinceInject )
                                     , ident_( *id )
-                                      // , mblock_( std::make_shared< adportable::mblock< int32_t > >( data, size ) )
+                                    , d_( size )
 {
     typedef int32_t value_type;
 
     meta_.dataType = sizeof( value_type );
 
+    auto p = this->template data< value_type >();    
     if ( invert ) {
-        auto p = this->template data< value_type >();
-        std::transform( p, p + size, p, std::negate<value_type>() );
+        // std::transform( p, p + size, p, std::negate<value_type>() );
+        std::transform( xdata, xdata + size, p, std::negate<value_type>() );
+    } else {
+        std::copy( xdata, xdata + size, p );
     }
 }
 
@@ -239,11 +242,6 @@ waveform::data()
     if ( meta_.dataType != sizeof(int16_t) )
         throw std::bad_cast();        
     return reinterpret_cast< int16_t* >( d_.data() ) + meta_.indexFirstPoint;
-    // if ( mblock_.which() == 1 ) {
-    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-    //     return mblk->data() + firstValidPoint_;
-    // }
-    throw std::bad_cast();    
 }
 
 template<> const int32_t *
@@ -252,11 +250,6 @@ waveform::data() const
     if ( meta_.dataType != sizeof(int32_t) )
         throw std::bad_cast();        
     return reinterpret_cast< const int32_t* >( d_.data() ) + meta_.indexFirstPoint;
-    // if ( mblock_.which() == 0 ) {
-    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-    //     return mblk->data() + firstValidPoint_;
-    // }
-    // throw std::bad_cast();        
 }
 
 template<> int32_t *
@@ -265,11 +258,6 @@ waveform::data()
     if ( meta_.dataType != sizeof(int32_t) )
         throw std::bad_cast();        
     return reinterpret_cast< int32_t* >( d_.data() ) + meta_.indexFirstPoint;
-    // if ( mblock_.which() == 0 ) {
-    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
-    //     return mblk->data() + firstValidPoint_;
-    // }
-    //throw std::bad_cast();        
 }
 
 int
@@ -281,7 +269,7 @@ waveform::dataType() const
 int64_t
 waveform::operator [] ( size_t idx ) const
 {
-    double time = idx * meta_.xIncrement + meta_.horPos + meta_.initialXOffset;    
+    // double time = idx * meta_.xIncrement + meta_.horPos + meta_.initialXOffset;    
 
     switch( meta_.dataType ) {
     case 1: return *(begin<int8_t>()  + idx);
@@ -504,7 +492,7 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
                 }
             }
         }
-        return std::array< std::shared_ptr< const waveform >, 2 >( { waveforms[ 0 ], waveforms[ 1 ] } );
+        return std::array< std::shared_ptr< const waveform >, 2 >( {{ waveforms[ 0 ], waveforms[ 1 ] }} );
     }
     return std::array< std::shared_ptr< const waveform >, 2 >();
 }
@@ -654,6 +642,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
         double dbase, rms;
         double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int16_t>(), dbase, rms );
+        (void)tic;
 
         if ( scale )
             for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
@@ -666,6 +655,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
         double dbase, rms;
         double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+        (void)tic;
         
         if ( scale )
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
@@ -704,7 +694,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mas
 
 //static
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, int scale )
+waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result_< ap240::waveform >& result, int scale )
 {
     using namespace adcontrols::metric;
 
@@ -730,7 +720,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 }
 
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, mass_assignor_t assign, int scale )
+waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result_< ap240::waveform >& result, mass_assignor_t assign, int scale )
 {
     if ( translate( sp, result, scale ) ) {
 

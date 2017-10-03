@@ -31,15 +31,15 @@
 #include <mutex>
 #include <memory>
 
-namespace acqrscontrols { namespace ap240 { class waveform; class threshold_result; class histogram; } }
+namespace acqrscontrols { template< typename T > class threshold_result_; namespace ap240 { class waveform; class histogram; } }
 namespace adcontrols { class threshold_method; class MassSpectrum; }
 
 namespace ap240 {
 
     class iControllerImpl;
 
-    typedef std::shared_ptr< acqrscontrols::ap240::threshold_result > threshold_result_ptr;
-    typedef std::shared_ptr< const acqrscontrols::ap240::threshold_result > const_threshold_result_ptr;
+    typedef std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > threshold_result_ptr;
+    typedef std::shared_ptr< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > const_threshold_result_ptr;
 
     class tdcdoc : public QObject {
 

@@ -40,7 +40,8 @@ namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
 namespace adportable { template<typename T> class mblock; }
 namespace acqrscontrols {
-    namespace ap240 { class method; class threshold_result; }
+    template< typename T > class threshold_result_;
+    namespace ap240 { class method; }
     namespace aqdrv4 { class waveform; }
 }
 
@@ -100,7 +101,9 @@ namespace acqrscontrols {
                       , uint64_t firstValidPoint
                       , double timeSinceInject
                       , const std::shared_ptr< const identify >& id
-                      , std::unique_ptr< int32_t [] >& data, size_t size, bool invert ); // software averager support
+                      , const int32_t * data
+                      , size_t size
+                      , bool invert ); // software averager support
 
             typedef int32_t value_type; // (internal data holder type) referenced from archiver in WaveformObserver
             
@@ -169,8 +172,8 @@ namespace acqrscontrols {
             
             static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
             static bool translate( adcontrols::MassSpectrum&, const waveform&, mass_assignor_t, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-            static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
+            static bool translate( adcontrols::MassSpectrum&, const threshold_result_< waveform >&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
+            static bool translate( adcontrols::MassSpectrum&, const threshold_result_< waveform >&, mass_assignor_t, int scale = 1000 );
 
         private:
             static bool translate_property( adcontrols::MassSpectrum&, const waveform& );

@@ -34,8 +34,8 @@
 namespace acqrscontrols {
     namespace ap240 {
         class waveform;
-        class threshold_result;
     }
+    template< typename T > class threshold_result_;
 }
 
 namespace adprocessor { class dataprocessor; }
@@ -53,7 +53,7 @@ public:
 
     void tdc( std::shared_ptr< acqrscontrols::ap240::waveform > );
 
-    std::shared_ptr< acqrscontrols::ap240::threshold_result >  processThreshold3(
+    std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >  processThreshold3(
         std::shared_ptr< const acqrscontrols::ap240::waveform > waveform
         , const adcontrols::threshold_method& method );
 

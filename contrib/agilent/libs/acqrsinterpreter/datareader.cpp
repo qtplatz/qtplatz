@@ -29,7 +29,7 @@
 #include "datainterpreter_softavgr.hpp"
 #include "datainterpreter_waveform.hpp"
 #include <acqrscontrols/u5303a/threshold_result.hpp>
-#include <acqrscontrols/ap240/threshold_result.hpp>
+#include <acqrscontrols/threshold_result.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -81,8 +81,8 @@ namespace acqrsinterpreter {
     template<> const std::string TID<waveform::DataInterpreter<acqrscontrols::ap240::waveform> >::display_name = "1.ap240";
     
     // "{4f431f91-b08c-54ba-94f0-e1d13eba29d7}"
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::value = "timecount.1.ap240.ms-cheminfo.com";
-    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::ap240::threshold_result> >::display_name = "timecount[ap240]";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > >::value = "timecount.1.ap240.ms-cheminfo.com";
+    template<> const std::string TID<timecount::DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > >::display_name = "timecount[ap240]";
 
     // shareing objects
     template<> const std::string TID< softavgr::DataInterpreter, 0 >::value = "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
@@ -108,7 +108,7 @@ namespace acqrsinterpreter {
         , TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result > >  // u5303a soft-tdc
         , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform >, 0 >         // ap240  raw waveform
         , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform >, 1 >         // dc122  raw waveform
-        , TID< timecount::DataInterpreter<acqrscontrols::ap240::threshold_result > >   // ap240  soft-tdc
+        , TID< timecount::DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > >   // ap240  soft-tdc
         , TID< histogram::DataInterpreter, 0 >                                         // u5303a, co-added tdc
         , TID< histogram::DataInterpreter, 1 >                                         // ap240,  co-added tdc
         , TID< softavgr::DataInterpreter, 0 >                                          // u5303a  co-added waveform
@@ -154,7 +154,7 @@ namespace acqrsinterpreter {
         return ptr->indecies2().size();
     }
 
-    template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result >& ptr ) const
+    template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >& ptr ) const
     {
         return ptr->indecies().size();
     }
@@ -177,7 +177,7 @@ namespace acqrsinterpreter {
         // TBA
     }
 
-    template<> void coadd_spectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    template<> void coadd_spectrum::operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > const& rhs ) const
     {
         if ( auto hgrm = boost::get< std::shared_ptr< adcontrols::TimeDigitalHistogram > >( waveform ) )
             *rhs >> *hgrm;
@@ -200,7 +200,7 @@ namespace acqrsinterpreter {
         waveform = std::make_shared< acqrscontrols::u5303a::waveform >( *rhs, sizeof( int64_t ) );
     }
 
-    template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    template<> void coadd_initialize::operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > const& rhs ) const
     {
         waveform = std::make_shared< adcontrols::TimeDigitalHistogram >();
         coadd_spectrum visit( waveform );
@@ -224,8 +224,8 @@ namespace acqrsinterpreter {
         ADDEBUG() << "function 'make_massspectrum( acqrscontrols::u5303a::threshold_result )' not supported";
         return false;
     }
-
-    template<> bool make_massspectrum::operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result > const& rhs ) const
+    
+    template<> bool make_massspectrum::operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > const& rhs ) const
     {
         adcontrols::TimeDigitalHistogram hgrm;
         *rhs >> hgrm;
@@ -247,7 +247,7 @@ namespace acqrsinterpreter {
         std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::waveform >& ) const {
             return ( boost::wformat( L"AP240-A" ) ).str();
         }
-        std::wstring operator()( std::shared_ptr< acqrscontrols::ap240::threshold_result> & ) const {
+        std::wstring operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > & ) const {
             return ( boost::wformat( L"AP240-T" ) ).str();
         }        
     };

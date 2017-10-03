@@ -26,6 +26,7 @@
 
 #include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
+#include <acqrscontrols/tdcbase.hpp>
 #include <atomic>
 #include <array>
 #include <mutex>
@@ -62,7 +63,7 @@ namespace acqrscontrols {
         ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < histogram_type > ;
 #endif
 
-        class ACQRSCONTROLSSHARED_EXPORT tdcdoc { 
+        class ACQRSCONTROLSSHARED_EXPORT tdcdoc : public acqrscontrols::tdcbase { 
         public:
             ~tdcdoc();
             tdcdoc();
@@ -72,19 +73,19 @@ namespace acqrscontrols {
             typedef acqrscontrols::u5303a::waveform waveform_type;
             typedef const acqrscontrols::u5303a::waveform const_waveform_type;
 
-            bool set_threshold_action( const adcontrols::threshold_action& );
-            std::shared_ptr< const adcontrols::threshold_action > threshold_action() const;
+            bool set_threshold_action( const adcontrols::threshold_action& ) override;
+            std::shared_ptr< const adcontrols::threshold_action > threshold_action() const override;
 
-            bool set_threshold_method( int channel, const adcontrols::threshold_method& );
-            std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const;
+            bool set_threshold_method( int channel, const adcontrols::threshold_method& ) override;
+            std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const override;
 
-            bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
-            std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
+            bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& ) override;
+            std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const override;
 
-            void setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > );
-            std::shared_ptr< const adcontrols::CountingMethod > countingMethod() const;
+            void setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > ) override;
+            std::shared_ptr< const adcontrols::CountingMethod > countingMethod() const override;
             
-            void eraseTofChromatogramsMethod();
+            void eraseTofChromatogramsMethod() override;
 
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
                 processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
@@ -102,7 +103,7 @@ namespace acqrscontrols {
             bool accumulate_histogram( const_threshold_result_ptr );
 
             size_t readAveragedWaveforms( std::vector< std::shared_ptr< const waveform_type > >& );
-
+            
             size_t readTimeDigitalHistograms( std::vector< std::shared_ptr< const adcontrols::TimeDigitalHistogram > >& );
             
             std::shared_ptr< const waveform_type > averagedWaveform( uint64_t trigNumber );
@@ -117,15 +118,11 @@ namespace acqrscontrols {
             // protocol sequence but no order garanteed
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > recentHistograms() const;
 
-            enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
-
             typedef std::function< double( double, int ) > mass_assignee_t;
 
             std::shared_ptr< adcontrols::MassSpectrum >
                 recentSpectrum( SpectrumType, mass_assignee_t = mass_assignee_t(), int protocolIndex = (-1) ) const;
             
-            // bool makeChromatogramPoints( const std::shared_ptr< const waveform_type >&
-            //                              , std::vector< std::pair<double, double> >& results );
             bool makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
                                          , const adcontrols::TofChromatogramsMethod& method
                                          , std::vector< std::pair< uint32_t, double > >& values );
@@ -137,22 +134,11 @@ namespace acqrscontrols {
                                           , const adcontrols::CountingMethod&
                                           , std::vector< std::pair< size_t, size_t > >& );
 
-            void clear_histogram();
-
-
-            std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const;
-
-            // static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-            //                                        , const adcontrols::threshold_method& method
-            //                                        , std::vector< uint32_t >& elements
-            //                                        , std::vector<double>& processed );
-
-            // // recording peak-apex
-            // static void find_threshold_timepoints( const acqrscontrols::u5303a::waveform& data
-            //                                        , const adcontrols::threshold_method& method
-            //                                        , std::vector< adportable::threshold_index >& elements
-            //                                        , std::vector<double>& processed );
-
+            void clear_histogram() override;
+            
+            std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const override;
+            void set_threshold_action_counts( int channel, const std::pair< uint32_t, uint32_t >& ) const override;
+            
         private:
             class impl;
             impl * impl_;

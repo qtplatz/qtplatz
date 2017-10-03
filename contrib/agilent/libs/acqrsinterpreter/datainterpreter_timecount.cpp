@@ -115,11 +115,11 @@ namespace acqrsinterpreter {
 
         // AP240 interface
         template<> adcontrols::translate_state
-        DataInterpreter<acqrscontrols::ap240::threshold_result>::translate( acqrscontrols::ap240::threshold_result& native
+        DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::translate( acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > & native
                                                                             , const int8_t * data, size_t dsize
                                                                             , const int8_t * meta, size_t msize )
         {
-            return translator1<acqrscontrols::ap240::threshold_result>()( native, data, dsize, meta, msize );
+            return translator1< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >()( native, data, dsize, meta, msize );
         }
         //----------------------------------------------------
         //----------------------------------------------------
@@ -140,15 +140,15 @@ namespace acqrsinterpreter {
         
         // AP240 -> MassSpectrum
         template<> adcontrols::translate_state
-        DataInterpreter<acqrscontrols::ap240::threshold_result>::translate( adcontrols::MassSpectrum& ms
+        DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::translate( adcontrols::MassSpectrum& ms
                                                                             , const char * data, size_t dsize
                                                                             , const char * meta, size_t msize
                                                                             , const adcontrols::MassSpectrometer& spectrometer
                                                                             , size_t idData, const wchar_t * traceId ) const
         {
+            typedef acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > ap240_threshold_result;
             return 
-                translator< acqrscontrols::ap240::threshold_result
-                            , acqrscontrols::ap240::histogram >()( ms, data, dsize, meta, msize, spectrometer );
+                translator< ap240_threshold_result, acqrscontrols::ap240::histogram >()( ms, data, dsize, meta, msize, spectrometer );
         }
 
         /////////////////////

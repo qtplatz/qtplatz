@@ -32,7 +32,8 @@
 #include <string>
 #include <vector>
 
-namespace acqrscontrols { namespace ap240 { class threshold_result; } };
+namespace acqrscontrols { template< typename T > class threshold_result_; namespace ap240 { class waveform; } }
+
 namespace adcontrols { class MassSpectrum; }
 
 namespace ap240 {
@@ -42,7 +43,7 @@ namespace ap240 {
         ResultWriter();
         ~ResultWriter();
 
-        typedef std::array< std::shared_ptr< const acqrscontrols::ap240::threshold_result >, 2 > threshold_result_type;
+        typedef std::array< std::shared_ptr< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >, 2 > threshold_result_type;
         
         ResultWriter& operator << ( threshold_result_type& );
 

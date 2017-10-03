@@ -24,7 +24,7 @@
 
 #include "resultwriter.hpp"
 #include "constants.hpp"
-#include <acqrscontrols/ap240/threshold_result.hpp>
+#include <acqrscontrols/threshold_result.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
@@ -70,7 +70,7 @@ ResultWriter::~ResultWriter()
 }
 
 ResultWriter&
-ResultWriter::operator << ( std::shared_ptr< const acqrscontrols::ap240::threshold_result > rp )
+ResultWriter::operator << ( std::shared_ptr< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > rp )
 {
     if ( rp ) {
         auto wp = rp->data();  // waveform

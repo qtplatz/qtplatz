@@ -27,8 +27,8 @@
 #include "tdcdoc.hpp"
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
-#include <acqrscontrols/ap240/threshold_result.hpp>
 #include <acqrscontrols/ap240/method.hpp>
+#include <acqrscontrols/threshold_result.hpp>
 #include <ap240/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/mappedimage.hpp>
@@ -125,7 +125,7 @@ namespace ap240 {
         uint32_t histogram_clear_cycle_;
         std::condition_variable cv_;
 
-        std::vector< std::array< std::shared_ptr< acqrscontrols::ap240::threshold_result >, 2 > > que_;
+        std::vector< std::array< std::shared_ptr< acqrscontrols::ap240_threshold_result >, acqrscontrols::ap240::nchannels > > que_;
 
         // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > acquireingSamples_;
         // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > processingSamples_;
@@ -137,7 +137,7 @@ namespace ap240 {
         void readData( adicontroller::SignalObserver::Observer *, uint32_t pos );
 
         void handle_ap240_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
-        void handle_ap240_average( const data_status, std::array< std::shared_ptr< acqrscontrols::ap240::threshold_result >, 2 > );
+        void handle_ap240_average( const data_status, std::array< std::shared_ptr< acqrscontrols::ap240_threshold_result >, 2 > );
 
         void resetDeviceData() {
             traceAccessor_->clear();
@@ -281,7 +281,7 @@ task::impl::worker_thread()
             status.tp_plot_handled_ = std::chrono::steady_clock::now();
 
             int channel = 0;
-            std::array< std::shared_ptr< acqrscontrols::ap240::threshold_result >, 2 > threshold_results;
+            std::array< std::shared_ptr< acqrscontrols::ap240_threshold_result >, 2 > threshold_results;
             do {
                 std::lock_guard< std::mutex > lock( mutex_ );
                 threshold_results = que_.back();

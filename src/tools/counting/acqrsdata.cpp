@@ -134,11 +134,11 @@ acqrsdata::processIt( std::function< void( size_t, size_t, const std::string& ) 
     return false;
 }
 
-std::shared_ptr< acqrscontrols::ap240::threshold_result >
+std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >
 acqrsdata::processThreshold3( std::shared_ptr< const acqrscontrols::ap240::waveform > waveform
-                            , const adcontrols::threshold_method& method )
+                              , const adcontrols::threshold_method& method )
 {
-    auto result = std::make_shared< acqrscontrols::ap240::threshold_result >( waveform );
+    auto result = std::make_shared< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >( waveform );
     
     //result->setFindUp( method.slope == adcontrols::threshold_method::CrossUp );
     result->threshold_level() = method.threshold_level;

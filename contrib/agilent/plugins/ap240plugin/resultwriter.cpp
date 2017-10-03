@@ -63,7 +63,7 @@ ResultWriter::commitData()
             cache_.erase( cache_.begin(), it );
         }
     } while ( 0 );
-    
+#if 0    
     if ( !list.empty() ) {
         std::ofstream of( time_datafile_, std::ios_base::out | std::ios_base::app );
         
@@ -77,7 +77,7 @@ ResultWriter::commitData()
                 } );
         }
     }
-
+#endif
 }
 
 void

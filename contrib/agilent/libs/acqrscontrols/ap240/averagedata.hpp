@@ -41,7 +41,6 @@ namespace acqrscontrols {
         class histogram;
         class metadata;
         class method;
-        class threshold_result;
         
         typedef adportable::waveform_averager< int32_t > averager_type;
         typedef waveform waveform_type;

@@ -45,17 +45,31 @@ namespace acqrscontrols {
     public:
         virtual ~tdcbase();
         tdcbase();
+
+        enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
         
         static bool computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
                                       , const adcontrols::CountingMethod&
                                       , std::vector< std::pair< size_t, size_t > >& );
         
-        void setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > );
-        std::shared_ptr< const adcontrols::CountingMethod > countingMethod() const;
+        virtual void setCountingMethod( std::shared_ptr< const adcontrols::CountingMethod > );
+        virtual std::shared_ptr< const adcontrols::CountingMethod > countingMethod() const;
         
-        bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& a );
-        std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
-        void eraseTofChromatogramsMethod();
+        virtual bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& a );
+        virtual std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
+        virtual void eraseTofChromatogramsMethod();
+
+        virtual bool set_threshold_action( const adcontrols::threshold_action& ) = 0;
+        virtual std::shared_ptr< const adcontrols::threshold_action > threshold_action() const = 0;
+
+        virtual bool set_threshold_method( int channel, const adcontrols::threshold_method& ) = 0;
+        virtual std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const = 0;
+
+        virtual std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const = 0;
+        virtual void set_threshold_action_counts( int channel, const std::pair< uint32_t, uint32_t >& ) const = 0;
+        
+        virtual void clear_histogram() = 0;
+
     protected:
         std::shared_ptr< const adcontrols::CountingMethod > countingMethod_;
         std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;

@@ -25,6 +25,7 @@
 #pragma once
 
 #include <cstdint>
+#include <acqrscontrols/threshold_result.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <adcontrols/datainterpreter.hpp>
@@ -41,7 +42,7 @@ namespace adcontrols {
 namespace acqrsinterpreter {
 
     typedef boost::variant< std::shared_ptr< acqrscontrols::u5303a::threshold_result >
-                            , std::shared_ptr< acqrscontrols::ap240::threshold_result >
+                            , std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >
                             , std::shared_ptr< acqrscontrols::u5303a::waveform >
                             , std::shared_ptr< acqrscontrols::ap240::waveform >
                             , std::shared_ptr< adcontrols::TimeDigitalHistogram > // don't move this to first item in this variant (see coadd_spectrum)

@@ -38,6 +38,7 @@
 // this class was derived from both ap240::threshold_result and u5303a::threshold_result
 // for AP240 support on infitof2
 // 2017-SEP-18
+namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
 
@@ -67,9 +68,10 @@ namespace acqrscontrols {
 
         std::vector< uint32_t >& indecies();
         const std::vector< uint32_t >& indecies() const;
-        
-    private:
+
+    protected:
         std::vector< uint32_t > indecies_;
+    private:
         std::vector< double > processed_;
         std::pair< uint32_t, uint32_t > findRange_;
         uint32_t foundIndex_;
@@ -77,7 +79,7 @@ namespace acqrscontrols {
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////
-
+    
     template< typename waveform_type >
     class ACQRSCONTROLSSHARED_EXPORT threshold_result_ : public threshold_result {
     public:
@@ -105,7 +107,15 @@ namespace acqrscontrols {
             return threshold_result::deserialize( xdata, dsize );
         }
 
+        bool operator >> ( adcontrols::TimeDigitalHistogram& x ) const;
+
     private:
         std::shared_ptr< const waveform_type > data_;
     };
+
+    namespace ap240 { class waveform; }
+    namespace u5303a { class waveform; }
+    
+    typedef acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > ap240_threshold_result;
+    typedef acqrscontrols::threshold_result_< acqrscontrols::u5303a::waveform > u5303a_threshold_result;
 }

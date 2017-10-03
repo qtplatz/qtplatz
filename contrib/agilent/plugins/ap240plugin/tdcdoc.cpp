@@ -74,7 +74,7 @@ tdcdoc::handle_waveforms( std::array< std::shared_ptr< const acqrscontrols::ap24
 
         if ( waveforms[ i ] ) {
 
-            results[ i ] = std::make_shared< acqrscontrols::ap240::threshold_result >( waveforms[ i ] );
+            results[ i ] = std::make_shared< acqrscontrols::ap240_threshold_result >( waveforms[ i ] );
 
             if ( methods[ i ] && methods[ i ]->enable ) {
 

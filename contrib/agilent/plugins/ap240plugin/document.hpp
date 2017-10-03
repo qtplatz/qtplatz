@@ -39,9 +39,18 @@ namespace adcontrols {
 }
 
 namespace adextension { class iSequenceImpl; }
-namespace acqrscontrols { namespace ap240 { class method; class waveform; class threshold_result; } }
+namespace acqrscontrols {
+    template< typename T > class threshold_result_;
+    namespace ap240 {
+        class waveform;
+        class method;
+    }
+}
 
 namespace ap240 {
+
+    typedef acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > ap240_threshold_result;
+    typedef std::shared_ptr< ap240_threshold_result > ap240_threshold_result_ptr;
 
     class digitizer;
     class iControllerImpl;
@@ -67,8 +76,7 @@ namespace ap240 {
 
         tdcdoc * tdc();
 
-        typedef std::pair<std::shared_ptr< const acqrscontrols::ap240::threshold_result >
-                          , std::shared_ptr< const acqrscontrols::ap240::threshold_result > > waveforms_t;
+        typedef std::pair< ap240_threshold_result_ptr, ap240_threshold_result_ptr > waveforms_t;
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( int channel, double rs ) const;

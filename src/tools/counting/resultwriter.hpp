@@ -27,7 +27,11 @@
 #include <memory>
 #include <vector>
 
-namespace acqrscontrols { namespace ap240 { class threshold_result; } };
+namespace acqrscontrols {
+    template<typename T> class threshold_result_;
+    namespace ap240 { class waveform; }
+}
+
 namespace adfs { class sqlite; }
 
 class ResultWriter {
@@ -36,11 +40,11 @@ public:
 
     ~ResultWriter();
     
-    ResultWriter& operator << ( std::shared_ptr< const acqrscontrols::ap240::threshold_result > );
+    ResultWriter& operator << ( std::shared_ptr< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > );
     void commitData();
     
 private:
-    std::vector< std::shared_ptr< const acqrscontrols::ap240::threshold_result > > cache_;
+    std::vector< std::shared_ptr< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > > cache_;
     adfs::sqlite& db_;
 };
 
