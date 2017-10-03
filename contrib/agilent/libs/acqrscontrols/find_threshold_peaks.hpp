@@ -56,7 +56,8 @@ namespace acqrscontrols {
             assert ( method.algo_ == adcontrols::threshold_method::Differential );
             assert ( findPositive == ( method.slope == adcontrols::threshold_method::CrossUp ) );
 
-            double level = ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+            double level = ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor;
+
             if ( method.use_filter ) {
                 waveform_type::apply_filter( processed, data, method );
                 level = method.threshold_level;

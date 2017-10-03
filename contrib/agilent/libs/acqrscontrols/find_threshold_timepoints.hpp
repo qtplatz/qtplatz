@@ -58,8 +58,7 @@ namespace acqrscontrols {
                 waveform_type::apply_filter( processed, data, method );
                 level = method.threshold_level;
             } else {
-                size_t nAverages = data.meta_.actualAverages ? data.meta_.actualAverages : 1;
-                level = ( ( method.threshold_level - data.meta_.scaleOffset ) / data.meta_.scaleFactor ) * nAverages;
+                level = int( ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor );
             }
 
             auto& elements = result.indecies2();            

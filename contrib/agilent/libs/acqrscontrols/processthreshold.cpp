@@ -81,8 +81,6 @@ namespace acqrscontrols {
                     auto counts = tdc.threshold_action_counts( i );
                     auto threshold_method = tdc.threshold_method( i );
 
-                    // auto& counts = threshold_action_counts[ i ];
-            
                     results[ i ] = std::make_shared< threshold_result_type >( waveforms[ i ] );
                     results[ i ]->setFindUp( threshold_method->slope == adcontrols::threshold_method::CrossUp );
                     results[ i ]->threshold_level() = threshold_method->threshold_level;
@@ -122,6 +120,7 @@ namespace acqrscontrols {
                     }
                 }
             }
+            
             return results;
         }
         //////////
