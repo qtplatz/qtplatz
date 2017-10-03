@@ -66,7 +66,6 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
     typedef adportable::waveform_wrapper< int16_t, acqrscontrols::ap240::waveform > u16wrap;
     typedef adportable::waveform_wrapper< int32_t, acqrscontrols::ap240::waveform > u32wrap;
 
-
     if ( ! waveform_register_ ) {
 
         protocolIndex_ = waveform.method_.protocolIndex();
@@ -85,6 +84,8 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
             waveform_register_ = std::make_shared< averager_type >( u32wrap( waveform ) );
         
         meta_ = waveform.meta_;
+        if ( meta_.actualAverages == 0 )
+            meta_.actualAverages = 1;
         method_ = waveform.method_;
         wellKnownEvents_ = waveform.wellKnownEvents_;
         serialnumber_ = waveform.serialnumber_;
@@ -103,6 +104,7 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
         }
              
         wellKnownEvents_ |= waveform.wellKnownEvents_;
+        meta_.actualAverages += waveform.meta_.actualAverages == 0 ? 1 : waveform.meta_.actualAverages;
         
         try {
             if ( waveform.dataType() == 1 ) {
@@ -121,9 +123,6 @@ AverageData::average_waveform( const acqrscontrols::ap240::waveform& waveform )
             BOOST_THROW_EXCEPTION(ex);
         }        
     }
-// #ifndef NDEBUG
-//     ADDEBUG() << __FUNCTION__ << " size: " << waveform_register_->size() << ", d[0]=" << waveform_register_->data()[0] << " N=" << waveform_register_->actualAverages();
-// #endif
     return waveform_register_->actualAverages();
 }
 

@@ -124,7 +124,7 @@ namespace acqrscontrols {
             bool push_averaged_waveform( AverageData& d ) {
 
                 const bool invertData = d.method_.mode() == acqrscontrols::ap240::method::DigiMode::Digitizer;
-                
+
                 auto w = std::make_shared< acqrscontrols::ap240::waveform >( d.method_
                                                                              , d.meta_
                                                                              , d.serialnumber_
@@ -133,7 +133,7 @@ namespace acqrscontrols {
                                                                              , 0
                                                                              , d.timeSinceInject_
                                                                              , d.ident_
-                                                                             , d.waveform_register_->data().get()
+                                                                             , std::move( d.waveform_register_->data() )
                                                                              , d.waveform_register_->size()
                                                                              , invertData );
                 d.waveform_register_.reset();
@@ -250,9 +250,8 @@ tdcdoc::accumulate_waveform( std::shared_ptr< const acqrscontrols::ap240::wavefo
     
     auto& datum = impl_->accumulator_[ proto ];
 
-    if ( datum.average_waveform( *waveform ) >= tofChromatogramsMethod_->numberOfTriggers() ) {
+    if ( datum.average_waveform( *waveform ) >= tofChromatogramsMethod_->numberOfTriggers() )
         impl_->push_averaged_waveform( datum );
-    }
 
     return ! impl_->accumulated_waveforms_.empty();
 }
@@ -265,81 +264,6 @@ tdcdoc::makeChromatogramPoints( std::shared_ptr< const waveform_type > waveform
 {
     return acqrscontrols::MakeChromatogramPoints()( waveform, method, values );
 }
-
-#if 0
-bool
-tdcdoc::makeChromatogramPoints( const std::shared_ptr< const waveform_type >& waveform
-                                , std::vector< std::pair< double, double > >& results )
-{
-    typedef acqrscontrols::ap240::waveform waveform_type;
-
-    results.clear();
-
-    const double xIncrement = waveform->meta_.xIncrement;
-
-    auto wrap = adportable::waveform_wrapper< int32_t, waveform_type >( *waveform );
-
-    double rms(0), dbase(0);
-    double tic = adportable::spectrum_processor::tic( wrap.size(), wrap.begin(), dbase, rms, 7 );
-
-    for ( auto& item: (*tofChromatogramsMethod_) ) {
-
-        bool found( false );
-            
-        double time = item.time();
-        double window = item.timeWindow();
-
-        if ( time < 1.0e-9 || window < 1.0e-11 ) { // assume TIC requsted
-
-            auto height = waveform->toVolts( *std::max_element( wrap.begin(), wrap.end() ) - dbase ) * 1000; // mV
-
-            results.emplace_back( std::make_pair( tic, height ) );
-
-        } else {
-
-            double wsta = time - window / 2;
-            double wend = time + window / 2;
-
-            if ( wend < waveform->xy( 0 ).first || wsta > waveform->xy( waveform->size() - 1 ).first ) {
-
-                results.emplace_back(  0, 0 );  // out of range
-
-            } else {
-
-                size_t ista = size_t( wsta < waveform->xy( 0 ).first ? 0 : ( wsta - waveform->xy( 0 ).first ) / xIncrement + 0.5 );
-                size_t iend = size_t( ( wend - waveform->xy( 0 ).first ) / xIncrement + 0.5 ) + 1;
-                if ( iend > waveform->size() )
-                    iend = waveform->size();
-
-                auto it = std::max_element( wrap.begin() + ista, wrap.begin() + iend );
-                auto height = waveform->toVolts( *it - dbase ) * 1000;
-
-                adportable::spectrum_processor::areaFraction fraction;
-
-                fraction.lPos = ista;
-                fraction.uPos = iend;
-                // tbd
-                fraction.lFrac = 0; // ( masses[ frac.lPos ] - lMass ) / ( masses[ frac.lPos ] - masses[ frac.lPos - 1 ] );
-                fraction.uFrac = 0; // ( hMass - masses[ frac.uPos ] ) / ( masses[ frac.uPos + 1 ] - masses[ frac.uPos ] );
-                
-                double a = adportable::spectrum_processor::area( fraction, dbase, wrap.begin(), waveform->size() );
-#if 0
-                size_t n = iend - ibeg + 1;
-                double area = a * waveform->meta_.scaleFactor + ( waveform->meta_.scaleOffset * n );
-                if ( waveform->meta_.actualAverages )
-                    area /= waveform->meta_.actualAverages;
-
-                ADDEBUG() << "a=" << a << ", " << area;
-#endif                
-                results.emplace_back( a, height );
-            }
-            
-        }
-    }
-    
-    return true;
-}
-#endif
 
 bool
 tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram, std::vector< uint32_t >& results )

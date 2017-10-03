@@ -101,7 +101,7 @@ waveform::waveform( const method& method
                     , uint64_t firstValidPoint
                     , double timeSinceInject
                     , const std::shared_ptr< const identify >& id
-                    , const int32_t * xdata
+                    , std::unique_ptr< int32_t [] >&& xdata
                     , size_t size
                     , bool invert ) : method_( method )
                                     , meta_( meta )
@@ -120,10 +120,12 @@ waveform::waveform( const method& method
     auto p = this->template data< value_type >();    
     if ( invert ) {
         // std::transform( p, p + size, p, std::negate<value_type>() );
-        std::transform( xdata, xdata + size, p, std::negate<value_type>() );
+        std::transform( xdata.get(), xdata.get() + size, p, std::negate<value_type>() );
     } else {
-        std::copy( xdata, xdata + size, p );
+        std::copy( xdata.get(), xdata.get() + size, p );
     }
+    // for ( size_t i = 0; i < size; ++i )
+    //     ADDEBUG() << boost::format( "%d, %d" ) % xdata[i] % p[i];
 }
 
 size_t
@@ -630,6 +632,8 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     sp.resize( waveform.size() );
 	int idx = 0;
 
+    // ADDEBUG() << __FUNCTION__ << " offset=" << waveform.meta_.scaleOffset << ", dataType=" << waveform.meta_.dataType << " N=" << waveform.meta_.actualAverages;
+
     if ( waveform.meta_.dataType == 1 ) {
         if ( scale )
             for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
@@ -641,8 +645,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     } else if ( waveform.meta_.dataType == 2 ) {
 
         double dbase, rms;
-        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int16_t>(), dbase, rms );
-        (void)tic;
+        adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int16_t>(), dbase, rms );
 
         if ( scale )
             for ( auto y = waveform.begin<int16_t>(); y != waveform.end<int16_t>(); ++y )
@@ -653,17 +656,16 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     } else {
 
-        double dbase, rms;
-        double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-        (void)tic;
+        // double dbase, rms;
+        // adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+        // dbase = waveform.toVolts( int32_t( dbase ) );
         
         if ( scale )
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, waveform.toVolts( *y - dbase ) * scale );
+                sp.setIntensity( idx++, waveform.toVolts( *y ) * scale );
         else
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
-                sp.setIntensity( idx++, *y - dbase );
-        
+                sp.setIntensity( idx++, *y );
     }
 
     // TBA: mass array, need scanlaw
