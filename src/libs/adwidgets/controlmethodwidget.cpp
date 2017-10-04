@@ -59,8 +59,8 @@ namespace adwidgets {
                     adcontrols::ControlMethod::MethodItem mi;
                     boost::any a( &mi );
                     editor->getContents( a );
-                    mi.isInitialCondition( false );
-                    mi.time( 0 );
+                    mi.setIsInitialCondition( false );
+                    mi.setTime( 0 );
                     table_->append( mi );
                 }
             }

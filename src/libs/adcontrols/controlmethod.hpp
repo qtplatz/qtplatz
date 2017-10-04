@@ -53,33 +53,33 @@ namespace adcontrols {
         public:
             MethodItem();
             MethodItem( const MethodItem& );
-            MethodItem( const boost::uuids::uuid&, const std::string& model, uint32_t unitnumber = 1, uint32_t funcid = 0 );
+            MethodItem( const boost::uuids::uuid&, const std::string& model, uint32_t unitnumber = (-1), uint32_t funcid = 0 );
 
             // uniq( clsid,unitnumber )
             const boost::uuids::uuid& clsid() const;
             void setClsid( const boost::uuids::uuid& );
 
             uint32_t unitnumber() const;
-            void unitnumber( uint32_t );
+            void setUnitnumber( uint32_t );
 
             const std::string& modelname() const; // display name 
             void setModelname( const char * );
             
             bool isInitialCondition() const;
-            void isInitialCondition( bool );
+            void setIsInitialCondition( bool );
 
             const double& time() const;
-            void time( const double& );
+            void setTime( const double& );
 
             uint32_t funcid() const;
-            void funcid( uint32_t );
+            void setFuncid( uint32_t );
 
             const std::string& itemLabel() const; // short description for Table UI
             void setItemLabel( const char * );
 
             const char * data() const;            // serialized data
             size_t size() const;
-            void data( const char * data, size_t size );
+            void setData( const char * data, size_t size );
 
             const std::string& description() const;
             void setDescription( const char * );
@@ -90,7 +90,7 @@ namespace adcontrols {
                                                     , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
                 std::ostringstream o;
                 if ( serialize( o, t ) ) {
-                    mi.data( o.str().data(), o.str().size() );
+                    mi.setData( o.str().data(), o.str().size() );
                     return true;
                 }
                 return false;
@@ -165,7 +165,7 @@ namespace adcontrols {
             template< typename T > iterator append( const T& t
                                                     , const boost::uuids::uuid& clsid = T::clsid()
                                                     , const char * modelname = T::modelClass() // unique name "model,submodel"
-                                                    , int unitnumber = ( -1 )
+                                                    , uint32_t unitnumber = (-1)
                                                     , const char * itemlabel = T::itemLabel()  // display name
                                                     , std::function<bool( std::ostream&, const T& )> serialize = T::archive) {
                 MethodItem mi( clsid, modelname, unitnumber );

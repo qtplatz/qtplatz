@@ -62,7 +62,7 @@ namespace adwidgets {
                 if ( v.canConvert< adcontrols::ControlMethod::MethodItem >() ) {
                     auto mi = v.value< adcontrols::ControlMethod::MethodItem >();
                     if ( index.column() == 0 && !mi.isInitialCondition() )
-                        mi.time( index.data().toDouble() * 60.0 );  // seconds is the internal format
+                        mi.setTime( index.data().toDouble() * 60.0 );  // seconds is the internal format
                     model->setData( model->index( index.row(), 0 ), qVariantFromValue<adcontrols::ControlMethod::MethodItem>( mi ), Qt::UserRole );
                 }
             }
@@ -303,9 +303,9 @@ ControlMethodTable::data( int row ) const
             // time
             double seconds = model_->data( model_->index( row, 0 ) ).toDouble() * 60.0;
             if ( seconds < 0 )
-                mi.isInitialCondition( true );
+                mi.setIsInitialCondition( true );
             else
-                mi.time( seconds );
+                mi.setTime( seconds );
             
             // description
             auto desc = model_->data( model_->index( row, 4 ) ).toString();

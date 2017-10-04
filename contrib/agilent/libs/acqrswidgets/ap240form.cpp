@@ -172,15 +172,10 @@ ap240form::getContents( boost::any& a ) const
         get( m );
         pi->setModelname( "ap240" );
         pi->setItemLabel( "ap240" );
-        pi->unitnumber( 1 );
-        pi->funcid( 1 );
         pi->set<>( *pi, *m ); // serialize
         return true;
     } else if ( adportable::a_type< acqrscontrols::ap240::method >::is_pointer( a ) ) {
         assert( 0 );
-        // auto pm = boost::any_cast<acqrscontrols::ap240::method *>( a );
-        // get( *pm );
-        // return true;
     }
     return false;
 }

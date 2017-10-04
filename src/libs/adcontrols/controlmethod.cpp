@@ -369,10 +369,8 @@ MethodItem::operator == ( const MethodItem& t ) const
 {
     if ( isInitialCondition_ ) {
         return ( clsid_ == t.clsid_ ) && ( unitnumber_ == t.unitnumber_ ) && t.isInitialCondition_;
-        // return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && isInitialCondition();
     } else {
         return ( clsid_ == t.clsid_ ) && ( unitnumber_ == t.unitnumber_ ) && adportable::compare<double>::essentiallyEqual( time_, t.time_ );
-        // return modelname_ == t.modelname() && unitnumber_ == t.unitnumber() && adportable::compare<double>::essentiallyEqual( time_, t.time_ );
     }
 }
 
@@ -395,7 +393,7 @@ MethodItem::unitnumber() const
 }
 
 void
-MethodItem::unitnumber( uint32_t value ) 
+MethodItem::setUnitnumber( uint32_t value ) 
 {
     unitnumber_ = value;
 }
@@ -407,7 +405,7 @@ MethodItem::isInitialCondition() const
 }
 
 void
-MethodItem::isInitialCondition( bool value )
+MethodItem::setIsInitialCondition( bool value )
 {
     isInitialCondition_ = value;
     if ( isInitialCondition_ )
@@ -421,7 +419,7 @@ MethodItem::time() const
 }
 
 void
-MethodItem::time( const double& value )
+MethodItem::setTime( const double& value )
 {
     isInitialCondition_ = false;
     time_ = value;
@@ -434,7 +432,7 @@ MethodItem::funcid() const
 }
 
 void
-MethodItem::funcid( uint32_t value )
+MethodItem::setFuncid( uint32_t value )
 {
     funcid_ = value;
 }
@@ -458,7 +456,7 @@ MethodItem::data() const
 }
 
 void
-MethodItem::data( const char * data, size_t size )
+MethodItem::setData( const char * data, size_t size )
 {
     data_.resize( size );
     std::copy( data, data + size, data_.begin() );

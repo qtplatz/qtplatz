@@ -130,24 +130,17 @@ ap240widget::getContents( boost::any& a ) const
         adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
         
         auto m = std::make_shared< acqrscontrols::ap240::method>();
-        get( m );
-        adcontrols::ControlMethod::MethodItem item( m->clsid(), m->modelClass() );
-        item.setItemLabel( "ap240" );
-        item.set<>( item, *m ); // serialize
-        ptr->insert( item );
-        
+        if ( get( *m ) )
+            ptr->append( *m );
         return true;
         
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         
         auto pi = boost::any_cast<adcontrols::ControlMethod::MethodItem *>( a );
         auto m = std::make_shared< acqrscontrols::ap240::method>();
-        get( m );
-        pi->setModelname( "ap240" );
-        pi->setItemLabel( "ap240" );
-        pi->unitnumber( 1 );
-        pi->funcid( 1 );
-        pi->set<>( *pi, *m ); // serialize
+        if ( get( *m ) )
+            pi->set<>( *pi, *m ); // serialize            
+
         return true;
     } else if ( adportable::a_type< acqrscontrols::ap240::method >::is_pointer( a ) ) {
         assert( 0 );
@@ -218,13 +211,6 @@ ap240widget::get( acqrscontrols::ap240::method& m ) const
 {
     if ( auto w = findChild< AcqirisWidget * >() ) {
         w->getContents( m );
-#ifndef NDEBUG
-        // std::ostringstream o;
-        // o << " Ext. trig. delay: ";
-        // for ( int i = 0; i < m.protocols().size(); ++i )
-        //     o << boost::format("[%1%] %2%; ") % i % m.protocols() [ i ].delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
-        // ADDEBUG() << __FUNCTION__ << o.str();
-#endif        
         return true;
     }
     return false;
@@ -246,6 +232,9 @@ ap240widget::set( const acqrscontrols::ap240::method& m )
             text += QString::fromStdString( d );
         }
         edit->setText( text );
+#ifndef NDEBUG
+        ADDEBUG() << __FUNCTION__ << " Ext. delays: " << text.toStdString();
+#endif
     }
 
     return true;
