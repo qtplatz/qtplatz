@@ -33,6 +33,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/semaphore.hpp>
 #include <boost/asio.hpp>
+#include <boost/exception/all.hpp>
 #include <atomic>
 #include <future>
 #include <memory>
@@ -151,12 +152,19 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 
     if ( ptr ) {
         std::call_once( impl::flag2_, [&] () {
-                impl_->threads_.push_back( adportable::asio::thread( [=]() { impl_->io_service_.run(); } ) );
+                impl_->threads_.emplace_back( adportable::asio::thread( [=]() {
+                            try {
+                                impl_->io_service_.run();
+                            } catch ( std::exception& ex ) {
+                                ADDEBUG() << boost::current_exception_diagnostic_information();
+                                BOOST_THROW_EXCEPTION( ex );
+                            }
+                        } ) );
             });
         
         do {
             std::lock_guard< std::mutex > lock( impl_->mutex() );
-            impl_->clients_.push_back( std::make_pair( ptr, token ) );
+            impl_->clients_.emplace_back( ptr, token );
         } while ( 0 );
 
         impl_->io_service_.post( [this] () { impl_->reply_message( adi::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
@@ -211,8 +219,14 @@ Session::initialize()
 bool
 Session::shutdown()
 {
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    return impl_->digitizer_ && impl_->digitizer_->peripheral_terminate();
+    impl_->digitizer_ && impl_->digitizer_->peripheral_terminate();
+
+    impl_->io_service_.stop();
+
+    for ( auto& t : impl_->threads_ )
+        t.join();
+
+    return true;
 }
 
 bool

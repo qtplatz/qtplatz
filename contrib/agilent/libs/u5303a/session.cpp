@@ -157,15 +157,16 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
                 impl_->threads_.push_back( adportable::asio::thread( [=]() { 
                     try {
                         impl_->io_service_.run();
-                    } catch ( ... ) {
+                    } catch ( std::exception& ex ) {
                         ADDEBUG() << boost::current_exception_diagnostic_information();
+                        BOOST_THROW_EXCEPTION( ex );
                     }
                     } ) );
             });
         
         do {
             std::lock_guard< std::mutex > lock( impl_->mutex() );
-            impl_->clients_.push_back( std::make_pair( ptr, token ) );
+            impl_->clients_.emplace_back( ptr, token );
         } while ( 0 );
 
         impl_->io_service_.post( [this] () { impl_->reply_message( adi::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
