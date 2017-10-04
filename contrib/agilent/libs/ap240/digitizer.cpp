@@ -167,6 +167,7 @@ namespace ap240 {
             bool c_acquisition_status_; // true := acq. is active, 
             
             std::chrono::steady_clock::time_point uptime_;
+            std::chrono::steady_clock::time_point tp_inject_;
             uint32_t data_serialnumber_;
             ViSession inst_;
             ViInt32 numInstruments_;
@@ -360,17 +361,17 @@ task::task() : work_( io_service_ )
              , timer_( io_service_ )
              , simulated_( false )
              , pio_( std::make_unique< dgpio::pio >() )
-             , data_serialnumber_( 0 )
-             , serial_number_( 0 )
-             , inst_( -1 )
-             , numInstruments_( 0 )
-             , uptime_( std::chrono::steady_clock::now() )
-             , ident_( std::make_shared< acqrscontrols::ap240::identify >() )
+             , initialize_posted_( 0 )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
+             , uptime_( std::chrono::steady_clock::now() )
+             , tp_inject_( uptime_ )
+             , data_serialnumber_( 0 )
+             , inst_( -1 )
+             , numInstruments_( 0 )
+             , serial_number_( 0 )
              , temperature_( 0 )
-             , initialize_posted_( 0 )
-               
+             , ident_( std::make_shared< acqrscontrols::ap240::identify >() )
 {
     acquire_posted_.clear();
     pio_->open();
@@ -629,13 +630,15 @@ task::handle_acquire()
                 c_injection_requested_ = false;
                 c_acquisition_status_ = true;
                 ap240_inject_timepoint_ = ( method_.channels_ & 01 ) ? ch1->meta_.initialXTimeSeconds : ch2->meta_.initialXTimeSeconds;
+                if ( ch1 )
+                    ch1->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+                if ( ch2 )
+                    ch2->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
             }
-            for ( auto& w: { ch1, ch2 } ) {
-                if ( w ) {
-                    ap240_inject_timepoint_ = w->meta_.initialXTimeSeconds;
-                    w->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
-                }
-            }
+            if ( ch1 )
+                ch1->timeSinceInject_ = ch1->meta_.initialXTimeSeconds - ap240_inject_timepoint_;
+            if ( ch2 )
+                ch2->timeSinceInject_ = ch2->meta_.initialXTimeSeconds - ap240_inject_timepoint_;
             
             for ( auto& reply: waveform_handlers_ ) {
                 acqrscontrols::ap240::method m;
@@ -647,10 +650,7 @@ task::handle_acquire()
 #if defined _MSC_VER && defined _DEBUG
                 acquire_tp += std::chrono::milliseconds( 200 ); // 5Hz
 #else
-                //acquire_tp += std::chrono::microseconds( 10000 );  // 100Hz
                 acquire_tp += std::chrono::microseconds( 5000 );  // 200Hz
-                //acquire_tp += std::chrono::microseconds( 2000 );  // 500Hz
-                //acquire_tp += std::chrono::microseconds( 1000 );  // 1kHz
 #endif
                 std::this_thread::sleep_until( acquire_tp );
             }
