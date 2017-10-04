@@ -87,14 +87,21 @@ namespace acqrscontrols {
             void operator = ( const waveform& ) = delete;
 
         public:
+            //[0]
             waveform();
-            
-            waveform( const identify& id, uint32_t pos, uint32_t events = 0, uint64_t tp = 0, uint32_t posorg = 0 );
 
-            waveform( std::shared_ptr< const identify > id, uint32_t pos, uint32_t events, uint64_t tp );
+            //[1]
+            waveform( const identify& id
+                      , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 = 0 );
 
+            //[2]
+            waveform( std::shared_ptr< const identify > id
+                      , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 = 0 );
+
+            //[3]
             waveform( const method&
                       , const metadata&
+                      , uint32_t pos0
                       , uint32_t serialnumber
                       , uint32_t wellKnownEvents
                       , uint64_t timeSinceEpoch

@@ -613,15 +613,13 @@ task::handle_acquire()
             
             uint32_t events = 0;
             if ( method_.channels_ & 0x01 ) {
-                ch1 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, events, serialnumber );
-                ch1->serialnumber_ = serialnumber;
+                ch1 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, serialnumber, events, 0 );
                 readData( *ch1, 1 );
                 ch1->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
             }
             
             if ( method_.channels_ & 0x02 ) {
-                ch2 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, events, serialnumber );
-                ch2->serialnumber_ = serialnumber;
+                ch2 = std::make_shared< acqrscontrols::ap240::waveform >( *ident_, serialnumber, events, 0 );
                 readData( *ch2, 2 );
                 ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
             }

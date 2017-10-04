@@ -121,21 +121,6 @@ namespace acqrscontrols {
                     }
                 }
                 return true;
-                // if ( !v.empty() && v[ 0 ] ) {
-
-                //     adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ], assignee );
-
-                //     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
-
-                //         auto sp = std::make_shared< adcontrols::MassSpectrum >();
-
-                //         if ( auto& hgrm = v[ proto ] )
-                //             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
-
-                //         ms << std::move(sp);
-                //     }
-                // }
-                // return true;
             }
 
             void reset_accumulators( size_t count ) {
@@ -155,15 +140,15 @@ namespace acqrscontrols {
 
             bool push_averaged_waveform( AverageData& d ) {
 
-                // const bool invertData = d.method_.mode() == acqrscontrols::ap240::method::DigiMode::Digitizer;
                 const bool invertData = d.method_.ch1_.invertData;
 
                 auto w = std::make_shared< acqrscontrols::ap240::waveform >( d.method_
                                                                              , d.meta_
+                                                                             , d.serialnumber_origin_
                                                                              , d.serialnumber_
                                                                              , d.wellKnownEvents_
                                                                              , d.timeSinceEpoch_
-                                                                             , 0
+                                                                             , 0                         // firstValidPoint
                                                                              , d.timeSinceInject_
                                                                              , d.ident_
                                                                              , std::move( d.waveform_register_->data() )

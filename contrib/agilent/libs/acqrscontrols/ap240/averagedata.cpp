@@ -31,6 +31,7 @@ using namespace acqrscontrols::ap240;
 
 AverageData::AverageData() : protocolIndex_( 0 )
                            , protocolCount_( 1 )
+                           , serialnumber_origin_( 0 )
                            , serialnumber_( 0 )
                            , wellKnownEvents_( 0 )
                            , timeSinceEpoch_( 0 )
@@ -42,6 +43,7 @@ AverageData::AverageData( const AverageData& t ) : protocolIndex_( t.protocolInd
                                                  , protocolCount_( t.protocolCount_ )
                                                  , meta_( t.meta_ )
                                                  , method_( t.method_ )
+                                                 , serialnumber_origin_( t.serialnumber_origin_ )
                                                  , serialnumber_( t.serialnumber_ )
                                                  , wellKnownEvents_( t.wellKnownEvents_ )
                                                  , timeSinceEpoch_( t.timeSinceEpoch_ )

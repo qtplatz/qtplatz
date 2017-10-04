@@ -58,6 +58,7 @@ namespace acqrscontrols {
             uint32_t protocolCount_; // := this->method_.protocols().size()
             metadata meta_;
             method   method_;
+            uint32_t serialnumber_origin_;
             uint32_t serialnumber_;
             uint32_t wellKnownEvents_;
             uint64_t timeSinceEpoch_;

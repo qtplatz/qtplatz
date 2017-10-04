@@ -65,6 +65,17 @@ identify::identify( const identify& t ) : bus_number_( t.bus_number_ )
 {
 }
 
+// [1]
+waveform::waveform() : serialnumber_origin_( 0 )
+                     , serialnumber_( 0 )
+                     , wellKnownEvents_( 0 )
+                     , firstValidPoint_( 0 )
+                     , timeSinceEpoch_( 0 )
+                     , timeSinceInject_( 0.0 )
+{
+}
+
+// [1]
 waveform::waveform( const identify& id
                     , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : serialnumber_origin_( pos0 )
                                                                                   , serialnumber_( pos )
@@ -75,26 +86,21 @@ waveform::waveform( const identify& id
 {
 }
 
-waveform::waveform() : serialnumber_( 0 )
-                     , wellKnownEvents_( 0 )
-                     , firstValidPoint_( 0 )
-                     , timeSinceEpoch_( 0 )
-                     , timeSinceInject_( 0.0 )
-{
-}
 
 waveform::waveform( std::shared_ptr< const identify > id
-                    , uint32_t pos, uint32_t events, uint64_t tp ) : serialnumber_( pos )
-                                                                   , wellKnownEvents_( events )
-                                                                   , firstValidPoint_( 0 )
-                                                                   , timeSinceEpoch_( tp )
-                                                                   , timeSinceInject_( 0.0 )
-                                                                   , ident_( *id )
+                    , uint32_t pos, uint32_t events, uint64_t tp, uint32_t pos0 ) : serialnumber_origin_( pos0 )
+                                                                                  , serialnumber_( pos )
+                                                                                  , wellKnownEvents_( events )
+                                                                                  , firstValidPoint_( 0 )
+                                                                                  , timeSinceEpoch_( tp )
+                                                                                  , timeSinceInject_( 0.0 )
+                                                                                  , ident_( *id )
 {
 }
 
 waveform::waveform( const method& method
                     , const metadata& meta
+                    , uint32_t pos0
                     , uint32_t serialnumber
                     , uint32_t wellKnownEvents
                     , uint64_t timeSinceEpoch
@@ -105,6 +111,7 @@ waveform::waveform( const method& method
                     , size_t size
                     , bool invert ) : method_( method )
                                     , meta_( meta )
+                                    , serialnumber_origin_( pos0 )
                                     , serialnumber_( serialnumber )
                                     , wellKnownEvents_( wellKnownEvents )
                                     , firstValidPoint_( firstValidPoint )                                      
@@ -457,7 +464,7 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
             
             for ( const auto& meta : x.meta_ ) {
                 if ( meta.channel == 1 || meta.channel == 2 ) {
-                    waveforms[ meta.channel - 1 ] = std::make_shared< waveform >( x.ident_, rb->pos(), rb->events(), rb->timepoint() );
+                    waveforms[ meta.channel - 1 ] = std::make_shared< waveform >( x.ident_, rb->pos(), rb->events(), rb->timepoint(), rb->pos() );
                     waveforms[ meta.channel - 1 ]->meta_ = meta;
                     if ( x.method_ )
                         waveforms[ meta.channel - 1 ]->method_ = *x.method_;
@@ -560,8 +567,11 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     prop.setAcceleratorVoltage( 4000 );
     prop.setSamplingInfo( info );
     prop.setTDelay(ext_trig_delay + waveform.meta_.initialXOffset);
-    
+#ifndef NDEBUG
+    ADDEBUG() << waveform.serialnumber_ << ", " << waveform.serialnumber_origin_;
+#endif    
     prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );
+
     prop.setTimeSinceInjection( waveform.timeSinceInject_ ); // meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "ap240" );
