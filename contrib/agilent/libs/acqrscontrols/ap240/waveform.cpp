@@ -568,7 +568,7 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     prop.setSamplingInfo( info );
     prop.setTDelay(ext_trig_delay + waveform.meta_.initialXOffset);
 #ifndef NDEBUG
-    ADDEBUG() << waveform.serialnumber_ << ", " << waveform.serialnumber_origin_;
+    //ADDEBUG() << waveform.serialnumber_ << ", " << waveform.serialnumber_origin_;
 #endif    
     prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );
 
