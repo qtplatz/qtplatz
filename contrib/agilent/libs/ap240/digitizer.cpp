@@ -195,7 +195,7 @@ namespace ap240 {
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::ap240::waveform&, int channel );
-            void set_time_since_inject( acqrscontrols::ap240::waveform& );
+            // void set_time_since_inject( acqrscontrols::ap240::waveform& );
 
             bool getInstrumentData() {
 
@@ -625,9 +625,16 @@ task::handle_acquire()
                 ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
             }
 
+            if ( c_injection_requested_ && ( method_.channels_ & 03 ) ) {
+                c_injection_requested_ = false;
+                c_acquisition_status_ = true;
+                ap240_inject_timepoint_ = ( method_.channels_ & 01 ) ? ch1->meta_.initialXTimeSeconds : ch2->meta_.initialXTimeSeconds;
+            }
             for ( auto& w: { ch1, ch2 } ) {
-                if ( w )
-                    set_time_since_inject( *w );
+                if ( w ) {
+                    ap240_inject_timepoint_ = w->meta_.initialXTimeSeconds;
+                    w->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+                }
             }
             
             for ( auto& reply: waveform_handlers_ ) {
@@ -707,22 +714,6 @@ void
 task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 {
     scanlaw_ = ptr;
-}
-
-void
-task::set_time_since_inject( acqrscontrols::ap240::waveform& waveform )
-{
-    if ( c_injection_requested_ ) {
-        
-        c_injection_requested_ = false;
-        c_acquisition_status_ = true;
-        ap240_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
-        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
-    }
-
-    waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - ap240_inject_timepoint_;
-    if ( c_acquisition_status_ )
-        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_AcqInProgress;
 }
 
 bool
