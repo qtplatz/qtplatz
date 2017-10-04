@@ -433,6 +433,11 @@ AcqirisWidget::initialUpdate( QStandardItemModel& model )
 }
 
 void
+AcqirisWidget::onInitialUpdate()
+{
+}
+
+void
 AcqirisWidget::setContents( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_method > m )
 {
     QSignalBlocker block( model_.get() );
@@ -480,42 +485,58 @@ AcqirisWidget::getContents( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_meth
     m->mutable_ext()->set_enable( ( m->trig()->trigPattern & 0x80000000 ) ? true : false );
 }
 
+////////////////////////////
+bool
+AcqirisWidget::setContents( const acqrscontrols::ap240::method& m )
+{
+    QSignalBlocker block( model_.get() );
+
+    setContents( m.trig_ );
+    setContents( m.hor_ );
+
+    int channel( 0 );
+    setContents( m.ch1_, channel++ );
+    setContents( m.ch2_, channel++ );
+    setContents( m.ext_, channel++ );
+
+    model_->setData( model_->index( r_ch1, 0 ), m.ch1_.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    model_->setData( model_->index( r_ch2, 0 ), m.ch2_.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    
+    tree_->viewport()->update();
+
+    return true;
+}
+
+bool
+AcqirisWidget::getContents( acqrscontrols::ap240::method& m ) const
+{
+    getContents( m.trig_ );
+    getContents( m.hor_ );
+
+    int channel( 0 );    
+    getContents( m.ch1_, channel++ );
+    getContents( m.ch2_, channel++ );
+    getContents( m.ext_, channel++ );
+
+    m.ch1_.set_enable( model_->index( r_ch1, 0 ).data( Qt::CheckStateRole ).toBool() );
+    m.ch2_.set_enable( model_->index( r_ch2, 0 ).data( Qt::CheckStateRole ).toBool() );
+    m.ext_.set_enable( ( m.trig_.trigPattern & 0x80000000 ) ? true : false );
+
+    m.channels_ = ( m.ch1_.enable ? 0x01 : 0 ) | ( m.ch2_.enable ? 0x02 : 0 );
+
+    return true;
+}
 ////////////////////////
 void
 AcqirisWidget::setContents( std::shared_ptr< const acqrscontrols::ap240::method > m )
 {
-    QSignalBlocker block( model_.get() );
-
-    setContents( m->trig_ );
-    setContents( m->hor_ );
-
-    int channel( 0 );
-    setContents( m->ch1_, channel++ );
-    setContents( m->ch2_, channel++ );
-    setContents( m->ext_, channel++ );
-
-    model_->setData( model_->index( r_ch1, 0 ), m->ch1_.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-    model_->setData( model_->index( r_ch2, 0 ), m->ch2_.enable ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-    
-    tree_->viewport()->update();
+    setContents( *m );
 }
 
 void
 AcqirisWidget::getContents( std::shared_ptr< acqrscontrols::ap240::method > m ) const
 {
-    getContents( m->trig_ );
-    getContents( m->hor_ );
-
-    int channel( 0 );    
-    getContents( m->ch1_, channel++ );
-    getContents( m->ch2_, channel++ );
-    getContents( m->ext_, channel++ );
-
-    m->ch1_.set_enable( model_->index( r_ch1, 0 ).data( Qt::CheckStateRole ).toBool() );
-    m->ch2_.set_enable( model_->index( r_ch2, 0 ).data( Qt::CheckStateRole ).toBool() );
-    m->ext_.set_enable( ( m->trig_.trigPattern & 0x80000000 ) ? true : false );
-
-    m->channels_ = ( m->ch1_.enable ? 0x01 : 0 ) | ( m->ch2_.enable ? 0x02 : 0 );
+    getContents( *m );
 }
 
 //////////////////

@@ -441,6 +441,8 @@ task::terminate()
     for ( std::thread& t: threads_ )
         t.join();
     threads_.clear();
+
+    ADDEBUG() << __FUNCTION__ << "##### terminated ######";
 }
 
 bool

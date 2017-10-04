@@ -114,7 +114,7 @@ MainWindow::instance()
 void
 MainWindow::createDockWidgets()
 {
-    if ( auto widget = new acqrswidgets::ThresholdWidget( acqrscontrols::u5303a::method::modelClass(), 1 ) ) {
+    if ( auto widget = new acqrswidgets::ThresholdWidget( "", 1 ) ) {
 
         widget->setObjectName( "ThresholdWidget" );
         createDockWidget( widget, "U5303A", "ThresholdMethod" );

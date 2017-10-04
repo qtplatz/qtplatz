@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,7 +31,6 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-
 
 using namespace acqrscontrols::ap240;
 
@@ -122,7 +121,9 @@ namespace acqrscontrols {
                 }
                 if ( Archive::is_loading::value ) {
                     _.ch1_.set_enable( bool( _.channels_ & 01 ) );
-                    _.ch2_.set_enable( bool( _.channels_ & 02 ) );                    
+                    _.ch2_.set_enable( bool( _.channels_ & 02 ) );
+                    if ( _.protocols_.empty() )
+                        _.protocols_.resize(1);
                 }
             }
 

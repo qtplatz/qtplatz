@@ -44,10 +44,9 @@
 
 using namespace acqrswidgets;
 
-ThresholdWidget::ThresholdWidget( const QString& model
+ThresholdWidget::ThresholdWidget( const QString&
                                   , uint32_t nChannels
                                   , QWidget *parent) : QWidget(parent)
-                                                     , modelClass_( model )
                                                      , nChannels_( nChannels )
 {
     // Software TDC (Slope Time Digital Converter) UI

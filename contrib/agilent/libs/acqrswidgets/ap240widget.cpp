@@ -37,6 +37,7 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QModelIndex>
 #include <QSignalBlocker>
@@ -45,36 +46,36 @@
 #include <QMessageBox>
 #include <QPair>
 #include <boost/exception/all.hpp>
+#include <boost/format.hpp>
 
 using namespace acqrswidgets;
 
 ap240widget::ap240widget( QWidget *parent ) : QWidget( parent )
 {
-    if ( auto topLayout = new QHBoxLayout( this ) ) {
+    if ( auto topLayout = new QVBoxLayout( this ) ) {
         topLayout->setSpacing( 0 );
         topLayout->setMargin( 0 );
 
         if ( auto gbox = qtwrapper::make_widget< QGroupBox >( "GroupBox", "AP240" ) ) {
+            gbox->setStyleSheet( "QGroupBox { margin-top: 2ex; margin-bottom: 0ex; margin-left: 0ex; margin-right: 0ex; }" );
             if ( auto layout = new QVBoxLayout( gbox ) ) {
                 layout->setSpacing( 0 );
                 layout->setMargin( 0 );
                 if ( auto widget = new AcqirisWidget() ) {
                     layout->addWidget( widget );
-                    widget->setStyleSheet( "QTreeView { background: #e8f4fc; }\n"
-                                           "QTreeView::item:open { background-color: #1d3dec; color: white; }" );
-                    connect( widget, &AcqirisWidget::dataChanged, [&]( const AcqirisWidget * w, int cat ){
-                            emit valueChanged( idAP240Any, 0 );
-                        });
-                    connect( widget, &AcqirisWidget::stateChanged, [&]( const QModelIndex& index, bool ){
-                            emit valueChanged( idChannels, index.row() - 2 );
-                        });            
                 }
             }
             topLayout->addWidget( gbox );
         }
+        if ( auto layout = new QHBoxLayout() ) {
+            auto label = qtwrapper::make_widget< QLabel >( "label", "Ext. delays:" );
+            layout->addWidget( label );
+            layout->addWidget( qtwrapper::make_widget< QLineEdit >( "external_delay" ) );
+            topLayout->addLayout( layout );
+        }
     }
     
-    set( std::make_shared< acqrscontrols::ap240::method >() );
+    set( acqrscontrols::ap240::method() );
 }
 
 ap240widget::~ap240widget()
@@ -90,12 +91,30 @@ ap240widget::OnCreate( const adportable::Configuration& )
 void
 ap240widget::OnInitialUpdate()
 {
-    if ( auto form = findChild< adwidgets::ThresholdActionForm * >() )
-        form->OnInitialUpdate();
+    onInitialUpdate();
+}
 
-    // don't response to each key strokes on DoubleSpinBox
-    for ( auto spin : findChildren< QDoubleSpinBox * >() )
-        spin->setKeyboardTracking( false );
+void
+ap240widget::onInitialUpdate()
+{
+    if ( auto w = findChild< AcqirisWidget * >() ) {
+        w->onInitialUpdate();
+        w->setContents( acqrscontrols::ap240::method() );
+
+        w->setStyleSheet( "QTreeView { background: #e8f4fc; }\n"
+                          "QTreeView::item:open { background-color: #1d3dec; color: white; }" );
+
+        connect( w, &AcqirisWidget::dataChanged, [&]( const AcqirisWidget *, int cat ){
+                emit valueChanged( idAP240Any, 0 );
+                emit dataChanged();
+            });
+        connect( w, &AcqirisWidget::stateChanged, [&]( const QModelIndex& index, bool ){
+                emit valueChanged( idChannels, index.row() - 2 );
+                emit dataChanged();
+            });            
+    }
+    if ( auto edit = findChild< QLineEdit * >( "external_delay" ) )
+        edit->setReadOnly( true );
 }
 
 void
@@ -178,11 +197,6 @@ ap240widget::setContents( boost::any&& a )
 }
 
 void
-ap240widget::onInitialUpdate()
-{
-}
-
-void
 ap240widget::onStatus( int )
 {
 }
@@ -190,21 +204,49 @@ ap240widget::onStatus( int )
 void
 ap240widget::get( std::shared_ptr< acqrscontrols::ap240::method > m ) const
 {
-    if ( auto w = findChild< AcqirisWidget * >() ) {
-        w->getContents( m );
-        //get( 0, m->slope1_ );
-        //get( 1, m->slope2_ );
-        //get( m->action_ );
-    }
+    get( *m );
 }
 
 void
 ap240widget::set( std::shared_ptr< const acqrscontrols::ap240::method> m )
 {
+    set( *m );
+}
+
+bool
+ap240widget::get( acqrscontrols::ap240::method& m ) const
+{
+    if ( auto w = findChild< AcqirisWidget * >() ) {
+        w->getContents( m );
+#ifndef NDEBUG
+        // std::ostringstream o;
+        // o << " Ext. trig. delay: ";
+        // for ( int i = 0; i < m.protocols().size(); ++i )
+        //     o << boost::format("[%1%] %2%; ") % i % m.protocols() [ i ].delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+        // ADDEBUG() << __FUNCTION__ << o.str();
+#endif        
+        return true;
+    }
+    return false;
+}
+
+bool
+ap240widget::set( const acqrscontrols::ap240::method& m )
+{
     if ( auto w = findChild< AcqirisWidget * >() ) {
         w->setContents( m );
-        //set( 0, m->slope1_ );
-        //set( 1, m->slope2_ );
-        //set( m->action_ );
-    }    
+    }
+
+    if ( auto edit = findChild< QLineEdit * >( "external_delay" ) ) {
+        QString text;
+        for ( int i = 0; i < m.protocols().size(); ++i ) {
+            auto d = ( boost::format("[%d]: %.2fus; ")
+                       % i
+                       % ( m.protocols()[i].delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first * std::micro::den ) ).str();
+            text += QString::fromStdString( d );
+        }
+        edit->setText( text );
+    }
+
+    return true;
 }

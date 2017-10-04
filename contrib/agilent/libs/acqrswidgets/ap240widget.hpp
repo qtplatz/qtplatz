@@ -57,25 +57,21 @@ namespace acqrswidgets {
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
-    
+
+        // local
         void onInitialUpdate();
         void onStatus( int );
 
         void get( std::shared_ptr< acqrscontrols::ap240::method > ) const;
         void set( std::shared_ptr< const acqrscontrols::ap240::method> );
-
-        // void get( int ch, adcontrols::threshold_method& ) const;    
-        // void set( int ch, const adcontrols::threshold_method& );    
-        // void get( adcontrols::threshold_action& ) const;    
-        // void set( const adcontrols::threshold_action& );
-
-        // void setRemoteAccess( bool, const QString& );
-        // QPair< bool, QString> remoteAccess() const;
+        
+        bool get( acqrscontrols::ap240::method& ) const;
+        bool set( const acqrscontrols::ap240::method& );
 
     signals:
-        void valueChanged( idCategory cat, int ch );
-
-        // void deviceConfigChanged( bool remote_access, const QString& remote_host );
+        void valueChanged( idCategory cat, int channel );
+        void dataChanged();
+        void applyTriggered();
     
     private:
 

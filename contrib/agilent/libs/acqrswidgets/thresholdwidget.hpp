@@ -44,7 +44,7 @@ namespace acqrswidgets {
 
     public:
             
-        explicit ThresholdWidget( const QString& model, uint32_t nChannels = 2, QWidget *parent = 0);
+        explicit ThresholdWidget( const QString&, uint32_t nChannels = 2, QWidget *parent = 0);
         ~ThresholdWidget();
 
         // LifeCycle
@@ -72,7 +72,6 @@ namespace acqrswidgets {
         void valueChanged( idCategory cat, int ch );
         // void valueChanged( int, const QVariant& );
     private:
-        QString modelClass_;
         uint32_t nChannels_; // number of channels to be supported
     };
 }
