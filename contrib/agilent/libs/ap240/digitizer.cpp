@@ -161,12 +161,12 @@ namespace ap240 {
             acqrscontrols::ap240::method method_;
             std::atomic_flag acquire_posted_;
             std::atomic<int> initialize_posted_;
-
+            std::atomic< double > ap240_inject_timepoint_;
+            
             bool c_injection_requested_;
             bool c_acquisition_status_; // true := acq. is active, 
             
             std::chrono::steady_clock::time_point uptime_;
-            uint64_t inject_timepoint_;
             uint32_t data_serialnumber_;
             ViSession inst_;
             ViInt32 numInstruments_;
@@ -175,9 +175,9 @@ namespace ap240 {
             ViInt32 bus_number_;
             ViInt32 slot_number_;
             ViInt32 serial_number_;
-            ViInt32 nbrSamples_;
-            ViInt32 nStartDelay_;
-            ViInt32 nbrWaveforms_;
+            //ViInt32 nbrSamples_;
+            //ViInt32 nStartDelay_;
+            //ViInt32 nbrWaveforms_;
             ViInt32 temperature_;
             
             std::vector< digitizer::command_reply_type > reply_handlers_;
@@ -195,6 +195,7 @@ namespace ap240 {
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::ap240::waveform&, int channel );
+            void set_time_since_inject( acqrscontrols::ap240::waveform& );
 
             bool getInstrumentData() {
 
@@ -624,15 +625,9 @@ task::handle_acquire()
                 ch2->timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp - epoch ).count();
             }
 
-            if ( c_injection_requested_ ) {
-                c_injection_requested_ = false;
-                c_acquisition_status_ = true;
-                for ( auto& w: { ch1, ch2 } ) {
-                    if ( w ) {
-                        inject_timepoint_ = w->meta_.initialXTimeSeconds;
-                        w->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
-                    }
-                }
+            for ( auto& w: { ch1, ch2 } ) {
+                if ( w )
+                    set_time_since_inject( *w );
             }
             
             for ( auto& reply: waveform_handlers_ ) {
@@ -714,6 +709,21 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
     scanlaw_ = ptr;
 }
 
+void
+task::set_time_since_inject( acqrscontrols::ap240::waveform& waveform )
+{
+    if ( c_injection_requested_ ) {
+        
+        c_injection_requested_ = false;
+        c_acquisition_status_ = true;
+        ap240_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
+        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+    }
+
+    waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - ap240_inject_timepoint_;
+    if ( c_acquisition_status_ )
+        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_AcqInProgress;
+}
 
 bool
 device_ap240::initial_setup( task& task, acqrscontrols::ap240::method& m )
@@ -991,8 +1001,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
         if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) == VI_SUCCESS ) {
 
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
-
-            // std::cout << boost::format( "Time: [%x][%x]" ) % segDesc.timeStampHi % segDesc.timeStampLo << std::endl;
+            
             data.meta_.dataType = sizeof( int8_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
             data.meta_.channel = channel;
@@ -1000,9 +1009,11 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
             data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
             data.meta_.initialXOffset = data.method_.hor_.delayTime;
-            double acquire_time = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) * 1.0e-12;  // time since 'acquire' issued
-            data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
-            
+            if ( segDesc.timeStampHi == 0 && segDesc.timeStampLo == 0 ) { // digizer mode returns those values 0
+                data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
+            } else {
+                data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) / std::pico::den; // ps -> s
+            }
             data.meta_.scaleFactor = dataDesc.vGain;     // V = vGain * data - vOffset
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
@@ -1013,21 +1024,26 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
         ViStatus rcode(0);
         if ( ( rcode = readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) == VI_SUCCESS ) {
 
+            data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+            
             data.meta_.dataType = sizeof( int32_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
             data.meta_.channel = channel;            
             data.meta_.actualAverages = segDesc.actualTriggersInSeg;  // number of triggers for average
-            data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; //data.d_.size();
+            data.meta_.actualPoints = dataDesc.returnedSamplesPerSeg; // data.d_.size();
             data.meta_.flags = segDesc.flags; // markers
             data.meta_.initialXOffset = dataDesc.sampTime * data.method_.hor_.delayTime;
             uint64_t tstamp = uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo;
-            data.meta_.initialXTimeSeconds = double( tstamp )* 1.0e-12;
+            data.meta_.initialXTimeSeconds = double( tstamp ) / std::pico::den; // ps -> s
             data.meta_.scaleFactor = dataDesc.vGain;
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
             data.meta_.horPos = segDesc.horPos;
         } else {
             if ( rcode == ACQIRIS_ERROR_READMODE && task::instance()->simulated() ) {
+
+                data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+                
                 data.meta_.dataType = sizeof( int32_t );
                 data.meta_.indexFirstPoint = 0;
                 data.meta_.channel = channel;

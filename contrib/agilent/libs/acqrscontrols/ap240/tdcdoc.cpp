@@ -73,11 +73,14 @@ namespace acqrscontrols {
                 if ( !v.empty() && v[ 0 ] ) {
 
                     waveform::translate( ms, v[ 0 ], assignee );
+                    ms.setProtocol( 0, protocolCount_ );
                     
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();                    
-                        if ( auto& w = v[ proto ] )
+                        if ( auto& w = v[ proto ] ) {
                             waveform::translate( *sp, w, assignee );
+                            sp->setProtocol( proto, protocolCount_ );
+                        }
                         ms << std::move(sp);
                     }
                     return true;
@@ -88,22 +91,51 @@ namespace acqrscontrols {
             bool recentHistogram( adcontrols::MassSpectrum& ms
                                   , const std::array< std::shared_ptr< adcontrols::TimeDigitalHistogram >, max_protocol >& v
                                   , tdcdoc::mass_assignee_t assignee ) const {
-                
                 if ( !v.empty() && v[ 0 ] ) {
 
-                    adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ], assignee );
+                    double resolution( 0 );
+                    if ( auto tm = threshold_methods_.at( 0 ) )
+                        resolution = tm->time_resolution;
+
+                    std::shared_ptr< adcontrols::TimeDigitalHistogram > htop = v[ 0 ];
+                    if ( resolution > v[ 0 ]->xIncrement() )
+                        htop = v[ 0 ]->merge_peaks( resolution );
+
+                    adcontrols::TimeDigitalHistogram::translate( ms, *htop, assignee );
+                    ms.setProtocol( 0, protocolCount_ );
 
                     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
 
                         auto sp = std::make_shared< adcontrols::MassSpectrum >();
 
-                        if ( auto& hgrm = v[ proto ] )
+                        if ( auto hgrm = v[ proto ] ) {
+
+                            if ( resolution > hgrm->xIncrement() )
+                                hgrm = hgrm->merge_peaks( resolution );
+
                             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
+                            sp->setProtocol( proto, protocolCount_ );
+                        }
 
                         ms << std::move(sp);
                     }
                 }
                 return true;
+                // if ( !v.empty() && v[ 0 ] ) {
+
+                //     adcontrols::TimeDigitalHistogram::translate( ms, *v[ 0 ], assignee );
+
+                //     for ( uint32_t proto = 1; proto < protocolCount_; ++proto ) {
+
+                //         auto sp = std::make_shared< adcontrols::MassSpectrum >();
+
+                //         if ( auto& hgrm = v[ proto ] )
+                //             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
+
+                //         ms << std::move(sp);
+                //     }
+                // }
+                // return true;
             }
 
             void reset_accumulators( size_t count ) {

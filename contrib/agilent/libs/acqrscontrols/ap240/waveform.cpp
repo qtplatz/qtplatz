@@ -203,11 +203,6 @@ waveform::data() const
     if ( meta_.dataType != sizeof(int8_t) )
         throw std::bad_cast();        
     return reinterpret_cast< const int8_t* >( d_.data() ) + meta_.indexFirstPoint;
-    // if ( mblock_.which() == 2 ) {
-    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
-    //     return mblk->data() + firstValidPoint_;
-    // }
-    // throw std::bad_cast();
 }
 
 template<> int8_t *
@@ -216,11 +211,6 @@ waveform::data()
     if ( meta_.dataType != sizeof(int8_t) )
         throw std::bad_cast();        
     return reinterpret_cast< int8_t* >( d_.data() ) + meta_.indexFirstPoint;
-    // if ( mblock_.which() == 2 ) {
-    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int8_t> > >( mblock_ );
-    //     return mblk->data() + firstValidPoint_;
-    // }
-    throw std::bad_cast();    
 }
 
 template<> const int16_t *
@@ -229,11 +219,6 @@ waveform::data() const
     if ( meta_.dataType != sizeof(int16_t) )
         throw std::bad_cast();        
     return reinterpret_cast< const int16_t* >( d_.data() ) + meta_.indexFirstPoint;
-    // if ( mblock_.which() == 1 ) {
-    //     auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
-    //     return mblk->data() + firstValidPoint_;
-    // }
-    // throw std::bad_cast();
 }
 
 template<> int16_t *

@@ -44,8 +44,8 @@
 
 using namespace acqrscontrols;
 
-threshold_result::threshold_result() : foundIndex_( npos )
-                                     , findRange_( 0, 0 )
+threshold_result::threshold_result() : findRange_( 0, 0 )
+                                     , foundIndex_( npos )
                                      , findUp_( false )
 {
 }
@@ -53,13 +53,13 @@ threshold_result::threshold_result() : foundIndex_( npos )
 std::vector< double >&
 threshold_result::processed()
 {
-    processed_;
+    return processed_;
 }
     
 const std::vector< double >&
 threshold_result::processed() const
 {
-    processed_;            
+    return processed_;            
 }
 
 const std::pair<uint32_t, uint32_t >&
