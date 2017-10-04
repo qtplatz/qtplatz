@@ -552,17 +552,30 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     using namespace adcontrols::metric;
 
     sp.setCentroid( adcontrols::CentroidNone );
+
+    const auto& method = waveform.method_;
+    const adcontrols::TofProtocol * this_protocol( 0 );
+    double ext_trig_delay( 0 );
+
+    if ( method.protocols().size() > method.protocolIndex() ) {
+        this_protocol = &method.protocols()[ method.protocolIndex() ];
+        ext_trig_delay = this_protocol->delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
+    }
+    int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
+    double delayTime = waveform.meta_.initialXOffset + ext_trig_delay;    
     
     adcontrols::MSProperty prop = sp.getMSProperty();
-    double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
+    // double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
     adcontrols::SamplingInfo info( waveform.meta_.xIncrement
-                                   , waveform.meta_.initialXOffset
-                                   , int32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + zhalf )
+                                   , delayTime // waveform.meta_.initialXOffset
+                                   , int32_t( delayTime / waveform.meta_.xIncrement ) // , int32_t( waveform.meta_.initialXOffset / waveform.meta_.xIncrement + zhalf )
                                    , uint32_t( waveform.size() )
                                    , waveform.meta_.actualAverages
-                                   , 0 /* mode */ );
-    prop.setAcceleratorVoltage( 3000 );
+                                   , mode );
+    prop.setAcceleratorVoltage( 4000 );
     prop.setSamplingInfo( info );
+    prop.setTDelay(ext_trig_delay + waveform.meta_.initialXOffset);
+    
     prop.setTrigNumber( waveform.serialnumber_, waveform.serialnumber_origin_ );
     prop.setTimeSinceInjection( waveform.timeSinceInject_ ); // meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
@@ -574,6 +587,9 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
     prop.setDeviceData( ar.data(), ar.size() );
 
     sp.setMSProperty( prop );
+
+    sp.resize( waveform.size() );
+    sp.setProtocol( waveform.method_.protocolIndex(), waveform.method_.protocols().size() );
 
     return true;
 }
@@ -627,11 +643,8 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     translate_property( sp, waveform );
 
-    sp.resize( waveform.size() );
-	int idx = 0;
-
     // ADDEBUG() << __FUNCTION__ << " offset=" << waveform.meta_.scaleOffset << ", dataType=" << waveform.meta_.dataType << " N=" << waveform.meta_.actualAverages;
-
+	int idx = 0;
     if ( waveform.meta_.dataType == 1 ) {
         if ( scale )
             for ( auto y = waveform.begin<int8_t>(); y != waveform.end<int8_t>(); ++y )
@@ -653,7 +666,6 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
                 sp.setIntensity( idx++, *y - dbase );
 
     } else {
-
         // double dbase, rms;
         // adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
         // dbase = waveform.toVolts( int32_t( dbase ) );
@@ -665,9 +677,6 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
             for ( auto y = waveform.begin<int32_t>(); y != waveform.end<int32_t>(); ++y )
                 sp.setIntensity( idx++, *y );
     }
-
-    // TBA: mass array, need scanlaw
-
 	return true;
 }
 

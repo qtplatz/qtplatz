@@ -686,7 +686,6 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     sp.setCentroid( adcontrols::CentroidNone );
 
-    const auto& method = waveform.method_;
     const adcontrols::TofProtocol * this_protocol( 0 );
 
     double ext_trig_delay( 0 );

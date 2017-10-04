@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "method.hpp"
+#include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -80,7 +81,23 @@ bool
 method::setProtocolIndex( uint32_t value, bool modifyDeviceMethod )
 {
     protocolIndex_ = value;
-    return true;
+    bool dirty( false );
+    if ( modifyDeviceMethod && protocolIndex_ < protocols_.size() ) {
+
+        const auto& proto = protocols_ [ protocolIndex_ ];
+
+        if ( !adportable::compare<double>::essentiallyEqual( hor_.delayTime, proto.digitizerDelayWidth().first ) ) {
+            dirty = true;
+            hor_.delayTime = proto.digitizerDelayWidth().first;
+        }
+
+        auto nbrSamples = uint32_t( proto.digitizerDelayWidth().second * hor_.sampInterval + 0.5 );
+        if ( hor_.nbrSamples != nbrSamples ) {
+            dirty = true;
+            hor_.nbrSamples = nbrSamples;
+        }
+    }
+    return dirty;
 }
 
 std::vector< adcontrols::TofProtocol >&

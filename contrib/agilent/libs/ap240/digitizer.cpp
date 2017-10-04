@@ -38,6 +38,7 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adicontroller/signalobserver.hpp>
+#include <libdgpio/pio.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -156,6 +157,7 @@ namespace ap240 {
             boost::asio::steady_timer timer_;
             
             bool simulated_;
+            std::unique_ptr< dgpio::pio > pio_;
             acqrscontrols::ap240::method method_;
             std::atomic_flag acquire_posted_;
             std::atomic<int> initialize_posted_;
@@ -356,6 +358,7 @@ task::task() : work_( io_service_ )
              , strand_( io_service_ )
              , timer_( io_service_ )
              , simulated_( false )
+             , pio_( std::make_unique< dgpio::pio >() )
              , data_serialnumber_( 0 )
              , serial_number_( 0 )
              , inst_( -1 )
@@ -369,6 +372,8 @@ task::task() : work_( io_service_ )
                
 {
     acquire_posted_.clear();
+    pio_->open();
+    
     threads_.push_back( adportable::asio::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
@@ -595,6 +600,14 @@ task::handle_acquire()
             std::shared_ptr< acqrscontrols::ap240::waveform > ch1, ch2;
             
             auto serialnumber = data_serialnumber_++;
+            int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
+
+            // TODO:
+            // if ( protocolIndex < 0 && simulated_ )
+            //     protocolIndex = simulator::instance()->protocol_number();
+
+            if ( protocolIndex >= 0 ) 
+                method_.setProtocolIndex( protocolIndex, false );
             
             uint32_t events = 0;
             if ( method_.channels_ & 0x01 ) {

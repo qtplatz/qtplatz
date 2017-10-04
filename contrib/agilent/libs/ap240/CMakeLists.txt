@@ -25,6 +25,7 @@ add_library( ap240 SHARED  ${ap240_SOURCES}  )
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
+  ${CMAKE_SOURCE_DIR}/contrib/linux
   ${AqDrv4_INCLUDE_DIR}
   )
 
@@ -45,6 +46,7 @@ target_link_libraries( ap240 PUBLIC
   adcontrols
   acqrscontrols
   AqDrv4
+  dgpio
   ${Boost_LIBRARIES}
   ${platform_libs}
   )
