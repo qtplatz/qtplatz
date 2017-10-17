@@ -96,7 +96,7 @@ else() # Linux
   set( CPACK_INSTALL_PREFIX "/opt/qtplatz" )
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_STANDARD 14 )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
 endif()
