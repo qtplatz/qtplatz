@@ -27,6 +27,7 @@
 #include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/tdcbase.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <atomic>
 #include <array>
 #include <mutex>
@@ -69,7 +70,10 @@ namespace acqrscontrols {
             tdcdoc();
 
             static constexpr size_t max_protocol = 4;
-
+            // static constexpr boost::uuids::uuid timecount_observer = { 0x57, 0xa9, 0xeb, 0x79, 0xa6, 0xa7, 0x5e, 0x83, 0xa7, 0xe9, 0x28, 0x55, 0xf8, 0xcf, 0xb7, 0xe6 };
+            // static constexpr boost::uuids::uuid softavgr_observer  = { 0xf2, 0x6e, 0xd6, 0x45, 0x7e, 0x3f, 0x50, 0x8e, 0xb8, 0x80, 0x83, 0x81, 0x2d, 0xc7, 0x59, 0x4c };
+            // static constexpr boost::uuids::uuid histogram_observer = { 0xdb, 0x7c, 0xbb, 0x6b, 0xcf, 0x0b, 0x58, 0x2e, 0x9f, 0x8f, 0x89, 0x01, 0x92, 0x65, 0x27, 0x1b };
+            
             typedef acqrscontrols::u5303a::waveform waveform_type;
             typedef const acqrscontrols::u5303a::waveform const_waveform_type;
 

@@ -27,6 +27,7 @@
 #include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/tdcbase.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <atomic>
 #include <array>
 #include <mutex>
@@ -66,10 +67,13 @@ namespace acqrscontrols {
             ~tdcdoc();
             tdcdoc();
 
-            static constexpr size_t max_protocol = 4;
-
             typedef acqrscontrols::ap240::waveform waveform_type;
             typedef const acqrscontrols::ap240::waveform const_waveform_type;
+
+            static constexpr size_t max_protocol = 4;
+            // static constexpr boost::uuids::uuid timecount_observer = { 0x4f, 0x43, 0x1f, 0x91, 0xb0, 0x8c, 0x54, 0xba, 0x94, 0xf0, 0xe1, 0xd1, 0x3e, 0xba, 0x29, 0xd7 };
+            // static constexpr boost::uuids::uuid softavgr_observer  = { 0x89, 0xa3, 0x96, 0xe5, 0x2f, 0x58, 0x57, 0x1a, 0x8f, 0x0c, 0x9d, 0xa6, 0x8d, 0xd3, 0x1a, 0xe4 };
+            // static constexpr boost::uuids::uuid histogram_observer = { 0xeb, 0x9d, 0x55, 0x89, 0xa3, 0xa4, 0x58, 0x2c, 0x94, 0xc6, 0xf7, 0xaf, 0xfb, 0xe8, 0x34, 0x8a };
 
             bool set_threshold_action( const adcontrols::threshold_action& );
             std::shared_ptr< const adcontrols::threshold_action > threshold_action() const;

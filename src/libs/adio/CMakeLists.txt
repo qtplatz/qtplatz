@@ -8,8 +8,8 @@ add_library(
   dgprotocol.hpp
   ioconfig.cpp
   ioconfig.hpp
-  iomethod.cpp
-  iomethod.hpp
+  ioeventsequence.cpp
+  ioeventsequence.hpp
   iosequence.cpp
   iosequence.hpp
   )
@@ -19,3 +19,12 @@ target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES
+  dgprotocol.hpp
+  dgprotocols.hpp
+  ioconfig.hpp
+  ioeventsequence.hpp
+  iosequence.hpp
+  DESTINATION include/adio COMPONENT headers
+  )

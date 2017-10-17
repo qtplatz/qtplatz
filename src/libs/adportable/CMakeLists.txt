@@ -56,3 +56,20 @@ target_include_directories( adportable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES
+  debug.hpp
+  DESTINATION include/adportable COMPONENT headers
+  )
+
+#adconv.hpp             configuration.hpp        http_client.hpp               portable_binary_oarchive.hpp  serialport.hpp          uuid.hpp
+#advance.hpp            constants.hpp            is_equal.hpp                  posix_path.hpp                sgfilter.hpp            waveform_averager.hpp
+#array_wrapper.hpp      date_string.hpp          is_type.hpp                   profile.hpp                   singleton.hpp           waveform_peakfinder.hpp
+#average.hpp            debug_core.hpp           lifecycleframe.hpp            protocollifecycle.hpp         spectrum_processor.hpp  waveform_processor.hpp
+#base64.hpp             debug.hpp                mblock.hpp                    safearray.hpp                 split_filename.hpp      waveform_simulator.hpp
+#base85.hpp             fft.hpp                  moment.hpp                    scoped_debug.hpp              string.hpp              waveform_wrapper.hpp
+#binary_search.hpp      float.hpp                mslockref.hpp                 scoped_flag.hpp               textfile.hpp            xml_serializer.hpp
+#binary_serializer.hpp  formula_parser.hpp       pkfinder.hpp                  scope_timer.hpp               timer.hpp
+#bzip2.hpp              gdiostate.hpp            polfit.hpp                    semaphore.hpp                 timesquaredscanlaw.hpp
+#combination.hpp        graycode.hpp             portable_binary_archive.hpp   serialization_shared_ptr.hpp  unique_ptr.hpp
+#configloader.hpp       histogram_processor.hpp  portable_binary_iarchive.hpp  serializer.hpp                utf.hpp

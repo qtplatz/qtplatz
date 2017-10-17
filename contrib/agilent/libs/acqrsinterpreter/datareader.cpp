@@ -320,6 +320,10 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                     fcnCount_ = sql.get_column_value< int64_t >( 0 );
             }
             
+#if ! defined NDEBUG
+            ADDEBUG() << "DataReader::initailze(" << objid << ", " << objtext << ") fcnCount=" << fcnCount_;
+#endif
+            
             // find ScanLaw
             double acclVoltage( 0 ), tDelay( 0 ), fLength;
             boost::uuids::uuid clsid { 0 };
@@ -399,6 +403,10 @@ DataReader::fcnCount() const
 {
     // skip timecount data -- too large to handle in the dataproc
     if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result> >() ) {
+        (void)i;
+        return 0;
+    }
+    if ( auto i = interpreter_->_narrow< timecount::DataInterpreter<acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > > >() ) {
         (void)i;
         return 0;
     }
