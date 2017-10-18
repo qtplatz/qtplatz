@@ -52,9 +52,6 @@ namespace adio {
         const std::string& action() const { return action_; }
         void setAction( const std::string& a ) { action_ = a; }
 
-        //double time() const { return time_; }
-        //void setTime( double t ) { time_ = t; }
-
     private:
         std::string id_;
         std::string action_; // 'disable', 'open/load' 'close/inject', 'pulse'
@@ -70,7 +67,7 @@ namespace adio {
         void setMethodTime( double );
 
         static bool read_json( std::istream&, ioEventSequence& );
-        static bool write_json( std::ostream&, const ioEventSequence& );
+        static bool write_json( std::ostream&, const ioEventSequence&, bool = true );
             
         inline std::vector< row_type >& sequence() { return sequence_; }
         inline const std::vector< row_type >& sequence() const { return sequence_; }

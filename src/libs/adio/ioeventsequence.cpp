@@ -25,6 +25,7 @@
 
 #include "ioconfig.hpp"
 #include "ioeventsequence.hpp"
+#include <adportable/debug.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
@@ -68,8 +69,8 @@ ioEventSequence::read_json( std::istream& json, ioEventSequence& m )
         if ( auto mTime = pt.get_optional< double >( "methodTime" ) )
             m.setMethodTime( mTime.get() );
 
-        if ( auto child = pt.get_child_optional( "ioEventSequence.sequence" ) ) {
-            
+        if ( auto child = pt.get_child_optional( "sequence" ) ) {
+
             for ( const auto& row: child.get() ) {
                 if ( auto time = row.second.get_optional< double >( "time" ) ) {
 
@@ -97,7 +98,7 @@ ioEventSequence::read_json( std::istream& json, ioEventSequence& m )
 }
 
 bool
-ioEventSequence::write_json( std::ostream& json, const ioEventSequence& m )
+ioEventSequence::write_json( std::ostream& json, const ioEventSequence& m, bool pritty_print )
 {
     boost::property_tree::ptree j_seq;
 
@@ -120,7 +121,7 @@ ioEventSequence::write_json( std::ostream& json, const ioEventSequence& m )
     pt.put( "methodTime", m.methodTime() );
     pt.add_child( "sequence", j_seq );
 
-    boost::property_tree::write_json( json, pt );
+    boost::property_tree::write_json( json, pt, pritty_print );
     
     return true;
 }
