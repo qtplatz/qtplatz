@@ -50,8 +50,8 @@ document::~document()
 document::document() : work_( io_service_ )
                      , udpSender_( new acewrapper::udpEventSender( io_service_, "localhost", "7125" ) )
 {
-    threads_.push_back( adportable::asio::thread( [=] {io_service_.run(); } ) );
-    threads_.push_back( adportable::asio::thread( [=] {io_service_.run(); } ) );
+    threads_.emplace_back( std::thread( [=] {io_service_.run(); } ) );
+    threads_.emplace_back( std::thread( [=] {io_service_.run(); } ) );
 }
 
 document *
