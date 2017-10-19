@@ -85,6 +85,7 @@ add_library( adportable STATIC IMPORTED )
 add_library( adio STATIC IMPORTED )
 add_library( adutils STATIC IMPORTED )
 add_library( chromatogr SHARED IMPORTED )
+add_library( eventbroker SHARED IMPORTED )
 add_library( multumcontrols SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
@@ -172,6 +173,10 @@ if (WIN32)
   set_target_properties( chromatogr PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/chromatogr.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/chromatogrd.lib )
+
+  set_target_properties( eventbroker PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/eventbroker.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/eventbrokerd.lib )
   
   set_target_properties( portfolio PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
@@ -279,6 +284,10 @@ elseif ( APPLE )
   set_target_properties( chromatogr PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libchromatogr.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libchromatogr_debug.dylib )
+
+  set_target_properties( eventbroker PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker_debug.dylib )
   
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.dylib
@@ -358,6 +367,9 @@ else()  #Linux
 
   set_target_properties( chromatogr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libchromatogr.so )
+
+  set_target_properties( eventbroker PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker.so )  
   
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.so )
