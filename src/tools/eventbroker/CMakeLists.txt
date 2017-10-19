@@ -31,3 +31,6 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
+install( FILES
+  eventbroker.h
+  DESTINATION include/eventbroker COMPONENT headers )
