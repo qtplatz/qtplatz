@@ -59,6 +59,13 @@ install( TARGETS ${PROJECT_NAME}
 
 install( FILES
   debug.hpp
+  float.hpp
+  fft.hpp
+  formula_parser.hpp
+  graycode.hpp
+  base64.hpp
+  base85.hpp
+  binary_search.hpp
   DESTINATION include/adportable COMPONENT headers
   )
 
