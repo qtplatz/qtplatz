@@ -75,17 +75,12 @@ namespace acqrscontrols {
             // static constexpr boost::uuids::uuid softavgr_observer  = { 0x89, 0xa3, 0x96, 0xe5, 0x2f, 0x58, 0x57, 0x1a, 0x8f, 0x0c, 0x9d, 0xa6, 0x8d, 0xd3, 0x1a, 0xe4 };
             // static constexpr boost::uuids::uuid histogram_observer = { 0xeb, 0x9d, 0x55, 0x89, 0xa3, 0xa4, 0x58, 0x2c, 0x94, 0xc6, 0xf7, 0xaf, 0xfb, 0xe8, 0x34, 0x8a };
 
-            bool set_threshold_action( const adcontrols::threshold_action& );
-            std::shared_ptr< const adcontrols::threshold_action > threshold_action() const;
+            bool set_threshold_action( const adcontrols::threshold_action& ) override;
+            std::shared_ptr< const adcontrols::threshold_action > threshold_action() const override;
 
-            bool set_threshold_method( int channel, const adcontrols::threshold_method& );
-            std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const;
+            bool set_threshold_method( int channel, const adcontrols::threshold_method& ) override;
+            std::shared_ptr< const adcontrols::threshold_method > threshold_method( int channel ) const override;
 
-            // bool setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& );
-            // std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod() const;
-
-            // void eraseTofChromatogramsMethod();
-            
             std::array< threshold_result_ptr, acqrscontrols::ap240::nchannels >
                 processThreshold( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::ap240::nchannels > );
 
@@ -135,7 +130,7 @@ namespace acqrscontrols {
 
             bool makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram&, std::vector< uint32_t >& results );
 
-            void clear_histogram();
+            void clear_histogram() override;
 
             std::pair< uint32_t, uint32_t > threshold_action_counts( int channel ) const override;
             void set_threshold_action_counts( int channel, const std::pair< uint32_t, uint32_t >& ) const override;

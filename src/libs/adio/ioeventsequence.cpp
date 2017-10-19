@@ -30,6 +30,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <array>
 #include <iostream>
 
 using namespace adio;
