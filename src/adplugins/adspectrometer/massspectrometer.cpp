@@ -218,3 +218,17 @@ MassSpectrometer::objclsid() const
     static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
     return uuid;
 }
+
+const char *
+MassSpectrometer::dataInterpreterText() const
+{
+    return nullptr;  // TBD
+}
+
+const boost::uuids::uuid&
+MassSpectrometer::dataInterpreterUuid() const
+{
+    static boost::uuids::uuid __uuid{ 0 }; // TBD
+    return __uuid;
+}
+

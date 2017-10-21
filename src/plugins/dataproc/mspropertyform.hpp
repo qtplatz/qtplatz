@@ -64,6 +64,8 @@ namespace dataproc {
 
         void render( std::ostream&, const portfolio::Folium& );
         void render( std::ostream&, const adcontrols::MassSpectrum& );
+        void make_protocol_text( std::vector< std::pair< std::string, std::string > >& textv
+                                 , const adcontrols::MSProperty& prop ) const;
     };
 
 }

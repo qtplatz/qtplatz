@@ -115,6 +115,6 @@ if [ -z $cross_target ]; then
 	x86_64) ARCH=intel64 ;;
 	*) ARCH=ia32    ;;
     esac  &&
-	sudo cp -v 3rdparty/ippicv/ippicv_lnx/lib/$ARCH/libippicv.a /usr/local/lib &&
+	#sudo cp -v 3rdparty/ippicv/ippicv_lnx/lib/$ARCH/libippicv.a /usr/local/lib &&
 	unset ARCH    
 fi

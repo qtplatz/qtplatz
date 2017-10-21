@@ -316,12 +316,15 @@ bool
 task::findResource()
 {
     // workaround
-    foundResources_.clear();
-    foundResources_.push_back( "PXI3::0::0::INSTR" );
-    foundResources_.push_back( "PXI4::0::0::INSTR" );
-    foundResources_.push_back( "PXI5::0::0::INSTR" );
-    foundResources_.push_back( "PXI0::0::0::INSTR" );
-    foundResources_.push_back( "PXI1::0::0::INSTR" );
+    foundResources_ = { "PXI7::0::0::INSTR"
+                        , "PXI6::0::0::INSTR"
+                        , "PXI5::0::0::INSTR"
+                        , "PXI4::0::0::INSTR"
+                        , "PXI3::0::0::INSTR"
+                        , "PXI2::0::0::INSTR"
+                        , "PXI1::0::0::INSTR"
+                        , "PXI0::0::0::INSTR" };
+
     return true;
 }
 

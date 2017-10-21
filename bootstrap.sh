@@ -12,7 +12,7 @@ cmake_args=('-DCMAKE_BUILD_TYPE=Release')
 
 function find_QMAKE() {
     local __result=$1
-    local dirs=( "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" "/opt/Qt/5.8/gcc_64" "/opt/Qt/5.7/gcc_64" )
+    local dirs=( "/opt/Qt/5.9.2/gcc_64" "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" "/opt/Qt/5.8/gcc_64" "/opt/Qt/5.7/gcc_64" )
     
     for dir in "${dirs[@]}"; do
 	if $dir/bin/qmake --version &> /dev/null ; then

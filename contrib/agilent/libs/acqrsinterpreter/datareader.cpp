@@ -855,8 +855,6 @@ DataReader::readSpectrum( const_iterator& it ) const
     if ( it._fcn() >= 0 )
         return getSpectrum( it->rowid() );
 
-    // ADDEBUG() << "readSpectrum( rowid=" << it->rowid() << " ) " << objid_;
-
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {    
         if ( auto db = db_.lock() ) {
             
@@ -884,7 +882,6 @@ DataReader::readSpectrum( const_iterator& it ) const
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
                     
                     if ( boost::apply_visitor( make_massspectrum( *ptr ), waveform ) ) {
-                    
                         if ( spectrometer_ ) {
                             spectrometer_->assignMasses( *ptr, rowid );
                             const auto& info = ptr->getMSProperty().samplingInfo();
@@ -992,11 +989,11 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
             std::map< int, std::pair< size_t, waveform_types > > coadded;
             auto ptr = std::make_shared< adcontrols::MassSpectrum >();
             
-            size_t n(0);
             while ( sql.step() == adfs::sqlite_row ) {
                 
                 int col = 0;
                 auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+                (void)elapsed_time;
                 auto proto = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
@@ -1045,4 +1042,10 @@ std::shared_ptr< adcontrols::MassSpectrometer >
 DataReader::massSpectrometer() const
 {
     return spectrometer_;
+}
+
+adcontrols::DataInterpreter *
+DataReader::dataInterpreter() const
+{
+    return interpreter_.get();
 }

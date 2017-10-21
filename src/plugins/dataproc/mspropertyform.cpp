@@ -24,15 +24,20 @@
 
 #include "mspropertyform.hpp"
 #include "ui_mspropertyform.h"
+#include "sessionmanager.hpp"
+#include "dataprocessor.hpp"
+#include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <adportable/debug.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportable/is_type.hpp>
@@ -41,6 +46,7 @@
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <sstream>
 #include <iomanip>
 
@@ -129,9 +135,16 @@ MSPropertyForm::render( std::ostream& o, const portfolio::Folium& folium )
 
     if ( folium.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
         try {
-            const adcontrols::MassSpectrumPtr ptr = boost::any_cast<adcontrols::MassSpectrumPtr>( folium.data() );
-            if ( ptr )
+            if ( auto ptr = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() ) )
                 render( o, *ptr );
+            return;
+        } catch ( boost::bad_any_cast& ex ) {
+            ADDEBUG() << boost::diagnostic_information( ex );
+        }
+        try {
+            if ( auto ptr = boost::any_cast< std::shared_ptr< const adcontrols::MassSpectrum > >( folium.data() ) )
+                render( o, *ptr );
+            return;
         } catch ( boost::bad_any_cast& ex ) {
             ADDEBUG() << boost::diagnostic_information( ex );
         }
@@ -189,8 +202,10 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
       << "<th>mode</th>"
       << "<th>classid</th>"
       << "</tr>";
+
     int n = 0;
     for ( auto& m: segments ) {
+        
         const adcontrols::MSCalibration& calib =  m.calibration();
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
@@ -206,6 +221,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
           << "<td>" << info.numberOfTriggers() << "</td>"
           << "<td>" << info.mode() << "</td>"
 		  << "<td>" << prop.dataInterpreterClsid() << "</td>"
+          << "<td>" << m.dataReaderUuid() << "</td>"
           << "</tr>";
 
         if ( ! calib.coeffs().empty() ) {
@@ -235,46 +251,81 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     o << "</table>";
     o << "<hr>";
 
-    try {
-        // device (averager) dependent data (require data interpreter)
-        std::vector < std::pair< std::string, std::string > > textv;
-        auto& prop = ms.getMSProperty();
-        const char * ipClsid = prop.dataInterpreterClsid();
-        if ( ipClsid && (std::strlen( ipClsid )) > 0 ) {
-            if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( prop.dataInterpreterClsid() ) ) {
+    // make_protocol_text( textv, ms.getMSProperty() );
+    std::vector < std::pair< std::string, std::string > > textv;
+    auto& prop = ms.getMSProperty();
+    
+    o << "<table border=\"1\" cellpadding=\"4\">";
+    o << "<caption>Rapid protocol information</caption>";
+    o << "<tr>";
+    o << "<th>#seg</th>";
+    std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
+    o << "</tr>";
+    int seg = 0;
+    for ( auto& m : segments ) {
+        make_protocol_text( textv, m.getMSProperty() );
+        o << "<tr>";
+        o << "<td>" << seg++ << "</td>";
+        std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
+        o << "</tr>";
+    }
+    o << "</table>";
+    o << "<hr>";
+    
+    
+    // device (averager) dependent data (require data interpreter)
+    const char * ipClsid = prop.dataInterpreterClsid();
+    o << "<h2>digitizer device dependent data '" << ( ( ipClsid && ipClsid[0] ) ? ipClsid : "none" ) << "'</h2>" << std::endl;
+    o << "<p>data reader uuid: " << ms.dataReaderUuid() << "</p>" << std::endl;
 
+    if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto spectrometer = dp->massSpectrometer() ) {
+            o << "<pre>"
+              << "Mass spectrometer: " << spectrometer->objtext() << "; " << spectrometer->objclsid() << std::endl
+              << "Data interpreter:  " << spectrometer->dataInterpreterText() << "; " << spectrometer->dataInterpreterUuid() << std::endl
+              << "Property data interpreter: " << ms.getMSProperty().dataInterpreterClsid() << std::endl;
+            o << "</pre>" << std::endl;
+
+            // high level app oriented interpreter
+            if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( spectrometer->dataInterpreterUuid() ) ) {
                 if ( interpreter->make_device_text( textv, ms.getMSProperty() ) ) {
                     o << "<table border=\"1\" cellpadding=\"4\">";
-                    o << "<caption>Averager/digitizer dependent information</caption>";
-                    o << "<tr>";
-                    o << "<th>#seg</th>";
-                    std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<th>" << text.first << "</th>"; } );
-                    o << "</tr>";
-                    int seg = 0;
-                    for ( auto& m : segments ) {
-                        if ( interpreter->make_device_text( textv, m.getMSProperty() ) ) {
-                            o << "<tr>";
-                            o << "<td>" << seg++ << "</td>";
-                            std::for_each( textv.begin(), textv.end(), [&] ( const std::pair< std::string, std::string>& text ) { o << "<td>" << text.second << "</td>"; } );
-                            o << "</tr>";
-                        }
-                    }
+                    std::for_each( textv.begin(), textv.end(), [&]( const auto& text ){
+                            o << "<tr>"
+                              << "<td>" << text.first << "</td><td>" << text.second << "</td>"
+                              << "</tr>";
+                        });
+                    o << "</tr>" << std::endl;
                     o << "</table>";
-                    o << "<hr>";
                 }
             }
-        } else {
-            o << "<hr>No dataInterpreterClsid specifid.</hr>";
-            ADERROR() << "no dataInterpreterClisidSpecified.";
         }
-    }
-    catch ( boost::exception& ex ) {
-        o << "<hr>data exception: " << boost::diagnostic_information( ex ) << "</hr>";
-        ADERROR() << boost::diagnostic_information( ex );
-    }
-    catch ( ... ) {
-        o << "<hr>data exception: " << boost::current_exception_diagnostic_information() << "</hr>";
-        ADERROR() << boost::current_exception_diagnostic_information();
     }
 }
 
+void
+MSPropertyForm::make_protocol_text( std::vector< std::pair< std::string, std::string > >& textv
+                                    , const adcontrols::MSProperty& prop ) const
+{
+    textv.clear();
+
+    if ( const auto protocol = prop.tofProtocol() ) {
+
+        textv.emplace_back( "number_of_triggers", ( boost::format("%1%") % protocol->number_of_triggers() ).str() );
+        textv.emplace_back( "mode", ( boost::format( "%1%") % protocol->mode() ).str() );
+        {
+            std::ostringstream o;
+            for ( auto& formula: protocol->formulae() )
+                o << formula << ";";
+            textv.emplace_back( "formulae", o.str() );
+        }
+        textv.emplace_back( "devicedata", (boost::format("%1% octets") % protocol->devicedata().size()).str() );
+
+        for ( size_t i = 0; i < protocol->delay_pulses().size(); ++i ) {
+            auto& dp = protocol->delay_pulses()[ i ];
+            textv.emplace_back( ( boost::format( "delay/pulse(%1%)" ) % i ).str()
+                                , ( boost::format( "%.3f (%.3f) &mu;s" ) % ( dp.first * std::micro::den ) % ( dp.second * std::micro::den ) ).str() );
+        }
+
+    }
+}

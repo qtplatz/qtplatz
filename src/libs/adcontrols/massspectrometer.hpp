@@ -88,6 +88,8 @@ namespace adcontrols {
         virtual const char * objtext() const = 0;
         virtual const boost::uuids::uuid& objclsid() const = 0;
         virtual const ScanLaw * scanLaw() const = 0;
+        virtual const char * dataInterpreterText() const = 0;
+        virtual const boost::uuids::uuid& dataInterpreterUuid() const = 0;
         // end v3 specific
 
         virtual void setMethod( const ControlMethod::Method& ) { return; };

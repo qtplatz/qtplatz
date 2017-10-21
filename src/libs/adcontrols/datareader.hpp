@@ -158,6 +158,8 @@ namespace adcontrols {
 
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
+        virtual DataInterpreter * dataInterpreter() const { return nullptr; }
+
         virtual const void * _narrow_workaround( const char * /* typename */ ) const { return nullptr; }
 
         template< typename T > T * _narrow() const {

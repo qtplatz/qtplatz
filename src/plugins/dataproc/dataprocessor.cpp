@@ -64,6 +64,7 @@
 #include <adcontrols/spectrogram.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/attributes.hpp>
 #include <adfs/file.hpp>
@@ -873,29 +874,29 @@ Dataprocessor::formulaChanged()
 }
 
 portfolio::Folium
-Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
+Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
     // name from descriptions : exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
-    std::wstring name = src.getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
+    std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
 
     if ( auto folium = folder.findFoliumByName( name ) )
         return folium; // already exists
-    
+
     portfolio::Folium folium = folder.addFolium( name );
-    adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    folium.assign( ms, ms->dataClass() );
+    folium.assign( ptr, ptr->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( doSpectralProcess( ms, folium, this ), *it );
+        boost::apply_visitor( doSpectralProcess( ptr, folium, this ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
+
 	return folium;
 }
 
 portfolio::Folium
-Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum >& ptr, const adcontrols::ProcessMethod& m )
+Dataprocessor::addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum > ptr, const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
 
@@ -1003,11 +1004,12 @@ Dataprocessor::subtract( portfolio::Folium& base, portfolio::Folium& target )
             if ( profile->isCentroid() || background->isCentroid() )
                 return;
 
-            adcontrols::MassSpectrum xms( *profile );
-            for ( size_t i = 0; i < xms.size(); ++i )
-                xms.setIntensity( i, xms.getIntensity( i ) - background->getIntensity( i ) );
+            auto xms = std::make_shared< adcontrols::MassSpectrum >( *profile );
+            // adcontrols::MassSpectrum xms( *profile );
+            for ( size_t i = 0; i < xms->size(); ++i )
+                xms->setIntensity( i, xms->getIntensity( i ) - background->getIntensity( i ) );
 
-			xms.addDescription( adcontrols::description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
+			xms->addDescription( adcontrols::description( L"processed", ( boost::wformat( L"%1% - %2%" ) % target.name() % base.name() ).str() ) );
             addSpectrum( xms, adcontrols::ProcessMethod() );
             setModified( true );
         }

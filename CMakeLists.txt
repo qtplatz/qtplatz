@@ -269,6 +269,8 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   endif()
 endif()
 
+install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake  DESTINATION "." COMPONENT headers )
+
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 #set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )

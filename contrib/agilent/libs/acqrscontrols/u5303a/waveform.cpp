@@ -721,6 +721,18 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
+#ifndef NDEBUG
+    ADDEBUG() << "===== device_data =====\nIdentifier:\t " << waveform.ident_->Identifier()
+              << "\nRevision:\t" << waveform.ident_->Revision()
+              << "\nVendor:\t" << waveform.ident_->Vendor()
+              << "\nDescription:\t" << waveform.ident_->Description()
+              << "\nInstrumentModel:\t" << waveform.ident_->InstrumentModel()
+              << "\nFirmwareRevision:\t" << waveform.ident_->FirmwareRevision()
+              << "\nSerialNumber:\t" << waveform.ident_->SerialNumber()
+              << "\nOptions:\t" << waveform.ident_->Options()
+              << "\nIOVersion\t" << waveform.ident_->IOVersion()
+              << "\nNbrADCBits\t" << waveform.ident_->NbrADCBits();
+#endif
 
     // prop.setDeviceData(); TBA
     sp.setMSProperty( prop );

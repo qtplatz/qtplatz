@@ -25,8 +25,9 @@ link_directories( ${QTPLATZ_SOURCE_DIR}/../build-x86_64/qtplatz.debug/lib/qtplat
 
 target_link_libraries( ${PROJECT_NAME}
   u5303a
-  adcontrols
   acqrscontrols
+  adcontrols
+  adportable
   dgpio
   ${AgMD2_LIBRARIES}
 )

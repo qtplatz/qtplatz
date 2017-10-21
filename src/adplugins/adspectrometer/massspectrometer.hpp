@@ -81,6 +81,10 @@ namespace adspectrometer {
         const boost::uuids::uuid& objclsid() const override;
         const adcontrols::ScanLaw * scanLaw() const override;
 
+        // top level data interpreter
+        const char * dataInterpreterText() const override;
+        const boost::uuids::uuid& dataInterpreterUuid() const override;
+
     private:
         const adcontrols::LCMSDataset* accessor_;
         std::shared_ptr< import_continuum_massarray > continuum_massarray_;

@@ -90,7 +90,7 @@ namespace adcontrols {
         void setNumAverage( uint32_t );
 
         void setTofProtocol( const TofProtocol& );
-        std::shared_ptr< const TofProtocol > tofProtocol();
+        std::shared_ptr< const TofProtocol > tofProtocol() const;
 
         static double toSeconds( size_t idx, const SamplingInfo& info );
         static size_t toIndex( double seconds, const SamplingInfo& info, bool closest = true );

@@ -38,6 +38,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/msqpeaks.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/tofprotocol.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
@@ -411,7 +412,7 @@ void
 document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
     try {
-        adcontrols::MassSpectrum ms;
+        auto ms = std::shared_ptr< adcontrols::MassSpectrum>();
         size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) );
         size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
         double t1 = x1;
@@ -419,9 +420,9 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
         
         int pos = int( pos1 );
 
-        if ( dset->getSpectrum( -1, pos++, ms ) ) {
+        if ( dset->getSpectrum( -1, pos++, *ms ) ) {
             
-            t1 = ms.getMSProperty().timeSinceEpoch(); // adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
+            t1 = ms->getMSProperty().timeSinceEpoch(); // adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
 
             std::wostringstream text;
             if ( pos2 > pos1 ) {
@@ -433,7 +434,7 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
                         progress->setRange( int( pos1 ), int( pos2 ) );
                         adcontrols::MassSpectrum a;
                         while ( pos < int( pos2 ) && dset->getSpectrum( -1, pos++, a ) ) {
-                            adcontrols::segments_helper::add( ms, a );
+                            adcontrols::segments_helper::add( *ms, a );
                             ( *progress )( );
                         }
                         if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
@@ -448,7 +449,7 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
                 text << L"Spectrum @ " << std::fixed << std::setprecision( 3 ) << t1 << "min";
             }
             adcontrols::ProcessMethod m;
-            ms.addDescription( adcontrols::description( L"create", text.str() ) );
+            ms->addDescription( adcontrols::description( L"create", text.str() ) );
             portfolio::Folium folium = dp->addSpectrum( ms, m );
 
             // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
@@ -487,7 +488,7 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
             o << "Spectrum " << reader->display_name() << " (" << std::fixed << std::setprecision( 3 ) << x1 << " - " << x2 << ")min";
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( o.str() ) ) );
-            portfolio::Folium folium = dp->addSpectrum( *ms, m );
+            portfolio::Folium folium = dp->addSpectrum( ms, m );
         }
     }
 }
@@ -500,7 +501,7 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
     if ( auto reader = iterator.dataReader() ) {
 
         if ( auto ms = reader->readSpectrum( iterator ) ) {
-            
+
             std::wostringstream text;
             if ( iterator._fcn() < 0 )
                 text << boost::wformat ( L"%s #%d @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
@@ -514,7 +515,7 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
             ms->addDescription( adcontrols::description( L"create", text.str() ) );
 
 	        if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() )
-                portfolio::Folium folium = dp->addSpectrum( *ms, m );
+                portfolio::Folium folium = dp->addSpectrum( ms, m );
 
         }
 
@@ -529,17 +530,17 @@ document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
-			adcontrols::MassSpectrum ms;
+			auto ms = std::shared_ptr< adcontrols::MassSpectrum >();
             try {
                 std::wostringstream text;
                 // size_t pos = dset->find_scan( index, fcn );
-                if ( dset->getSpectrum( fcn, pos, ms ) ) {
+                if ( dset->getSpectrum( fcn, pos, *ms ) ) {
                     double t = dset->timeFromPos( pos );
-                    if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
-                        t = ms.getMSProperty().timeSinceInjection();
-                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfs" ) % pos % ms.protocolId() % ms.nProtocols() % t;
+                    if ( !adportable::compare<double>::approximatelyEqual( ms->getMSProperty().timeSinceInjection(), 0.0 ) )
+                        t = ms->getMSProperty().timeSinceInjection();
+                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfs" ) % pos % ms->protocolId() % ms->nProtocols() % t;
                     adcontrols::ProcessMethod m;
-                    ms.addDescription( adcontrols::description( L"create", text.str() ) );
+                    ms->addDescription( adcontrols::description( L"create", text.str() ) );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );
                 }
             }

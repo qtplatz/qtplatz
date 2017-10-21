@@ -172,9 +172,17 @@ main( int argc, char * argv [] )
         }
         
         if ( !simulated ) {
-            for ( auto& res : { "PXI5::0::0::INSTR", "PXI4::0::0::INSTR", "PXI3::0::0::INSTR", "PXI2::0::0::INSTR", "PXI1::0::0::INSTR" } ) {
-                std::cout << "Initialize resource: " << res;
-                if ( success = md2->InitWithOptions( res, VI_TRUE, VI_TRUE, strInitOptions ) )
+            for ( auto& res : {
+                    "PXI6::0::0::INSTR"
+                        , "PXI5::0::0::INSTR"
+                        , "PXI4::0::0::INSTR"
+                        , "PXI3::0::0::INSTR"
+                        , "PXI2::0::0::INSTR"
+                        , "PXI1::0::0::INSTR"
+                        } ) {
+
+                std::cerr << "Attempting resource: " << res << std::endl;
+                if ( ( success = md2->InitWithOptions( res, VI_TRUE, VI_TRUE, strInitOptions ) ) )
                     break;
             }
         }

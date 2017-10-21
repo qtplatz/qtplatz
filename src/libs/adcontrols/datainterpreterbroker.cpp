@@ -29,6 +29,7 @@
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <algorithm>
 #include <map>
@@ -76,6 +77,8 @@ DataInterpreterBroker::~DataInterpreterBroker()
 bool
 DataInterpreterBroker::register_factory( std::shared_ptr< DataInterpreterFactory > factory, const boost::uuids::uuid& uuid, const std::string& dataInterpreterClsid )
 {
+    ADDEBUG() << "register_factory(" << uuid << ", " << dataInterpreterClsid << ")";
+    
     if ( uuid == boost::uuids::uuid{ {0} } ) {
         impl::instance().factories_[ name_to_uuid( dataInterpreterClsid ) ] = std::make_pair( dataInterpreterClsid, factory );
     } else {

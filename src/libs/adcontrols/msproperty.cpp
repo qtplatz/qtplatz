@@ -29,6 +29,7 @@
 #include "samplinginfo.hpp"
 #include "tofprotocol.hpp"
 #include <adportable/base64.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/unique_ptr.hpp>
@@ -392,7 +393,7 @@ MSProperty::setTofProtocol( const TofProtocol& proto )
 }
 
 std::shared_ptr< const TofProtocol >
-MSProperty::tofProtocol()
+MSProperty::tofProtocol() const
 {
     return tofProtocol_;
 }
