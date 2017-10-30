@@ -272,7 +272,6 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     o << "</table>";
     o << "<hr>";
     
-    
     // device (averager) dependent data (require data interpreter)
     const char * ipClsid = prop.dataInterpreterClsid();
     o << "<h2>digitizer device dependent data '" << ( ( ipClsid && ipClsid[0] ) ? ipClsid : "none" ) << "'</h2>" << std::endl;

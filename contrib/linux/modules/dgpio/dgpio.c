@@ -37,6 +37,7 @@
 #include <linux/ioport.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/parport.h>
 #include <linux/pci.h>
 #include <linux/proc_fs.h> // create_proc_entry
 #include <linux/seq_file.h>
@@ -56,11 +57,15 @@ module_param( devname, charp, S_IRUGO );
 
 static struct pci_device_id __ids[] = {
     { PCI_DEVICE( 0x9710 , 0x9900 ), }, // MCS9900CV-AA, NetMOS Single Parallel Port Card
-    // { PCI_DEVICE( 0x8086, 0x1e22 ), }, // debug (GBE)
+    { PCI_DEVICE( 0x8086, 0x1e22 ), }, // debug (GBE)
     { 0, }
 };
 
-MODULE_DEVICE_TABLE(pci, __ids);
+struct dgpio_driver {
+    struct resource * resource;
+};
+
+MODULE_DEVICE_TABLE( pci, __ids );
 
 static int __debug_level__ = 0;
 static int __iobase = 0x1008;
@@ -116,8 +121,14 @@ print_pci_information( struct pci_dev * dev )
 static int
 probe( struct pci_dev *dev, const struct pci_device_id *id )
 {
-    printk(KERN_INFO "dgpio probe pci device '%s' [0x%04x:0x%04x] 0x%x\n"
-           , dev->bus->name, dev->vendor, dev->device, dev->class );
+    struct dgpio_device * dgpio = 0;
+    
+    dev_info( &dev->dev, "probe pci device '%s' [0x%04x:0x%04x] 0x%x\n"
+              , dev->bus->name, dev->vendor, dev->device, dev->class );
+
+    dgpio = devm_kzalloc( &dev->dev, sizeof( struct dgpio_driver ), GFP_KERNEL );
+    dev_set_drvdata( &dev->dev, dgpio );
+    
     print_pci_information( dev );
     return 0;
 }
