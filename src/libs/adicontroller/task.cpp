@@ -74,11 +74,10 @@ namespace adicontroller {
 
         std::vector< std::thread > threads_;
     public:
-
         boost::asio::io_service io_service_;
         fsm::controller fsm_;        
-        std::chrono::steady_clock::time_point tp_uptime_;
-        std::chrono::steady_clock::time_point tp_inject_;
+        task::this_clock_t::time_point tp_uptime_;
+        task::this_clock_t::time_point tp_inject_;
         std::unique_ptr< SampleSequence > sequence_;
         std::shared_ptr< MasterObserver > masterObserver_;
 
@@ -87,6 +86,8 @@ namespace adicontroller {
         boost::signals2::signal< fsm_action_t > signalFSMAction_;
         boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
         boost::signals2::signal< periodic_timer_t > signal_periodic_timer_;
+        time_event_handler_t time_event_handler_;
+        
         boost::asio::deadline_timer timer_;
         double methodTime_;
         bool inject_triggered_;
@@ -159,13 +160,19 @@ task::connect_periodic_timer( signal_periodic_timer_t f )
 	return impl_->signal_periodic_timer_.connect( f );
 }
 
-const std::chrono::steady_clock::time_point&
+boost::signals2::connection
+task::register_time_event_handler( const time_event_handler_t::slot_type& subscriber )
+{
+    return impl_->time_event_handler_.connect( subscriber );
+}
+
+const task::this_clock_t::time_point&
 task::tp_uptime() const
 {
     return impl_->tp_uptime_;
 }
 
-const std::chrono::steady_clock::time_point&
+task::this_clock_t::time_point
 task::tp_inject() const
 {
     return impl_->tp_inject_;
@@ -355,6 +362,8 @@ task::impl::fsm_action_inject()
     inject_triggered_ = true;
 
     signalFSMAction_( Instrument::fsmInject );
+
+    // see socfpga/linux/httpd/httpd/evctl.cpp evctl::exec() to execute timed events, fsm.cpp
     
     // for ( auto& sampleprocessor : *sequence_ )
     //     sampleprocessor->set_inject_triggered( true );
@@ -458,4 +467,12 @@ task::impl:: handle_timeout( const boost::system::error_code& ec )
         timer_.expires_from_now( boost::posix_time::millisec( 100 ) );
         timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
     }
+}
+
+void
+task::time_event_trigger( double t
+                          , adcontrols::ControlMethod::const_iterator begin
+                          , adcontrols::ControlMethod::const_iterator end )
+{
+    impl_->time_event_handler_( t, begin, end );
 }
