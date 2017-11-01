@@ -69,6 +69,9 @@ namespace ap240controller {
             bool shell( const std::string& cmdline ) override;
             std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() override;
             bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) override;
+            bool time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                                     , adcontrols::ControlMethod::const_time_event_iterator begin
+                                     , adcontrols::ControlMethod::const_time_event_iterator end ) override;
 
             bool event_out( uint32_t event ) override;
             bool start_run() override;

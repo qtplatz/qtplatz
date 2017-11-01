@@ -26,11 +26,12 @@
 
 #include "adicontroller_global.hpp"
 #include "constants.hpp"
+#include <adcontrols/controlmethod_fwd.hpp>
 #include <memory>
 #include <string>
 #include <boost/any.hpp>
 
-namespace adcontrols { namespace ControlMethod { class Method; } }
+// namespace adcontrols { namespace ControlMethod { class Method; } }
 
 namespace adicontroller {
     
@@ -85,6 +86,10 @@ namespace adicontroller {
             virtual std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() = 0;
 
             virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) = 0;
+
+            virtual bool time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                                             , adcontrols::ControlMethod::const_time_event_iterator begin
+                                             , adcontrols::ControlMethod::const_time_event_iterator end ) = 0;
     
             virtual bool event_out( uint32_t event ) = 0;
             

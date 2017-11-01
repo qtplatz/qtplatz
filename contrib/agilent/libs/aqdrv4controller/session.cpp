@@ -250,7 +250,16 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
     }
     return false;
 }
-    
+
+bool
+Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                             , adcontrols::ControlMethod::const_time_event_iterator begin
+                             , adcontrols::ControlMethod::const_time_event_iterator end )
+{
+    ADDEBUG() << "TODO -- time_event_triger";
+    return true;
+}
+
 bool
 Session::event_out( uint32_t event )
 {
