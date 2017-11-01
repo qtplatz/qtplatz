@@ -27,6 +27,7 @@
 
 #include "adicontroller_global.hpp"
 #include "constants.hpp"
+#include <adcontrols/controlmethod_fwd.hpp>
 #include <boost/signals2.hpp>
 #include <chrono>
 #include <functional>
@@ -34,7 +35,7 @@
 
 namespace boost { namespace asio { class io_service; } namespace uuids { struct uuid; } }
 
-namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
+namespace adcontrols { class SampleRun; }
 
 namespace adicontroller {
 
@@ -64,17 +65,25 @@ namespace adicontroller {
         typedef void( periodic_timer_t )( double elapsed_time );
         typedef std::function< periodic_timer_t > signal_periodic_timer_t;
 
+        typedef std::chrono::steady_clock this_clock_t;
+
+        typedef boost::signals2::signal< void( double elapsed_time
+                                               , adcontrols::ControlMethod::const_iterator 
+                                               , adcontrols::ControlMethod::const_iterator ) > time_event_handler_t;
+        
         boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
         boost::signals2::connection connect_fsm_state( signal_fsm_state_changed_t );
         boost::signals2::connection connect_inst_events( signal_inst_events_t );
         boost::signals2::connection connect_periodic_timer( signal_periodic_timer_t );
+
+        boost::signals2::connection register_time_event_handler( const time_event_handler_t::slot_type& );
         
         void initialize();
         void finalize();
         boost::asio::io_service& io_service();
 
-        const std::chrono::steady_clock::time_point& tp_uptime() const;
-        const std::chrono::steady_clock::time_point& tp_inject() const;
+        const this_clock_t::time_point& tp_uptime() const;
+        this_clock_t::time_point tp_inject() const;
 
         void post( std::shared_ptr< SampleProcessor > );
 
@@ -94,6 +103,10 @@ namespace adicontroller {
 
         adicontroller::Instrument::eInstStatus currentState() const;
 
+        void time_event_trigger( double
+                                 , adcontrols::ControlMethod::const_iterator begin
+                                 , adcontrols::ControlMethod::const_iterator end );
+
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );
 
@@ -102,14 +115,7 @@ namespace adicontroller {
     private:
         friend std::unique_ptr< task >::deleter_type;
         class impl;
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
         std::unique_ptr< impl > impl_;
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
     };
 
 } // namespace adcontroller
