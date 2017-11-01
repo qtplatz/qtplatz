@@ -136,14 +136,8 @@ probe( struct pci_dev *dev, const struct pci_device_id *id )
 static void
 remove(struct pci_dev * dev)
 {
-    // struct knott_device *knott_dev;
-    char name_device[32];
-
-    printk(KERN_INFO "dgpio remove pci device [0x%x:0x%x] 0x%x\n", dev->vendor, dev->device, dev->class );
+    dev_info( &dev->dev, "dgpio remove pci device [0x%x:0x%x] 0x%x\n", dev->vendor, dev->device, dev->class );
     
-    snprintf(name_device, sizeof(name_device), "%04x:%04x, slot %d, bus %d", \
-             dev->vendor, dev->device, PCI_SLOT(dev->devfn), dev->bus->number);
-
     pci_disable_device(dev);
 }
 
