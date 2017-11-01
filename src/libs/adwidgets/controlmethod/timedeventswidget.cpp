@@ -117,15 +117,9 @@ namespace adwidgets {
             auto model = index.model();
             if ( auto modelCap = findModelCap( index ) ) {
                 int currIndex = model->data( model->index( index.row(), TimedEventsWidget::impl::c_item_name ), Qt::UserRole + 1 ).toInt();
-#ifndef NDEBUG
-                ADDEBUG() << "index(" << index.row() << ", " << index.column() << ") = " << currIndex << " / " << modelCap->eventCaps().size();
-#endif
                 if ( currIndex < modelCap->eventCaps().size() )
                     return &modelCap->eventCaps().at( currIndex );
             }
-#ifndef NDEBUG
-            ADDEBUG() << "index(" << index.row() << ", " << index.column() << ") no eventCap found";
-#endif
             return nullptr;
         }
 
@@ -162,10 +156,6 @@ namespace adwidgets {
     template<> void
     TimedEventsWidget_painter::operator()( const adcontrols::ControlMethod::voltage_type& value ) const {
         assert( index_.column() == TimedEventsWidget::impl::c_value );
-#ifndef NDEBUG
-        ADDEBUG() << index_.model()->data( index_.model()->index( index_.row(), TimedEventsWidget::impl::c_item_name ) ).toString().toStdString()
-                  << ", painter voltage_type: " << value.value << ", index.data = " << index_.data( Qt::EditRole ).toString().toStdString();
-#endif
         painter_->drawText( option_.rect
                             , option_.displayAlignment
                             , QString::number( value.value, 'f', 2 /* 0.01V */ ) );
@@ -246,8 +236,6 @@ namespace adwidgets {
                 boost::get< adcontrols::ControlMethod::voltage_type >( value ).value = editor->value();
                 QVariant v;
                 v.setValue<>( value );
-                ADDEBUG() << "set EventCap value: " << editor->value();
-                qDebug() << v;
                 model_->setData( index_, v, Qt::UserRole + 1 );
                 model_->setData( index_, editor->value(), Qt::EditRole );
             }
@@ -670,11 +658,7 @@ TimedEventsWidget::getContents( adcontrols::ControlMethod::TimedEvents& m ) cons
         }
     }
 
-#ifndef NDEBUG
-        for ( auto it = m.begin(); it != m.end(); ++it ) {
-            ADDEBUG() << "get: " << it->time() << ", " << it->item_name() << ", " << it->item_display_name();
-        }
-#endif
+    std::sort( m.begin(), m.end(), []( const auto& a, const auto& b ){ return a.time() < b.time(); } );
     
     return true;
 }
@@ -687,7 +671,7 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
     model.setRowCount( 0 );
     int row = 0;
 
-#ifndef NDEBUG
+#if ! defined NDEBUG && 0
     for ( auto it = m.begin(); it != m.end(); ++it ) {
         ADDEBUG() << "set " << it->time() << ", " << it->item_name() << ", " << it->item_display_name();
     }
@@ -707,8 +691,7 @@ TimedEventsWidget::setContents( const adcontrols::ControlMethod::TimedEvents& m 
                 model.insertRow( row, items );
                 ++row;
             } else {
-                ADDEBUG() << "########################### ERROR ##############################";
-                // assert( 0 );
+                assert(0);
             }
         }
 
@@ -746,9 +729,6 @@ TimedEventsWidget::impl::handleContextMenu( const QPoint& pt )
 void
 TimedEventsWidget::addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& cap )
 {
-#ifndef NDEBUG
-    ADDEBUG() << "################## addModuleCap #################";
-#endif    
     std::for_each( cap.begin(), cap.end(), [&] ( const adcontrols::ControlMethod::ModuleCap& a ) { impl_->capList_ [ a.clsid() ] = a; } );
 }
 

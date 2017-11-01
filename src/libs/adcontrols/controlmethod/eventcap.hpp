@@ -27,6 +27,7 @@
 #include "../adcontrols_global.h"
 #include <boost/variant.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/format.hpp>
 #include <functional>
 #include <map>
 #include <string>
@@ -103,6 +104,8 @@ namespace adcontrols {
             bool edit_any( any_type& a, commit_type f ) const;
             void invalidate_any() const;
             std::string display_value_any( const any_type& a ) const;
+
+            static std::string toString( const value_type& );
 
         private:
             std::string item_name_;             // id

@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "controlmethod_fwd.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <functional>

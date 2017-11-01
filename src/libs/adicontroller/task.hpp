@@ -67,9 +67,9 @@ namespace adicontroller {
 
         typedef std::chrono::steady_clock this_clock_t;
 
-        typedef boost::signals2::signal< void( double elapsed_time
-                                               , adcontrols::ControlMethod::const_iterator 
-                                               , adcontrols::ControlMethod::const_iterator ) > time_event_handler_t;
+        typedef boost::signals2::signal< void( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents >
+                                               , adcontrols::ControlMethod::const_time_event_iterator 
+                                               , adcontrols::ControlMethod::const_time_event_iterator ) > time_event_handler_t;
         
         boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
         boost::signals2::connection connect_fsm_state( signal_fsm_state_changed_t );
@@ -103,9 +103,9 @@ namespace adicontroller {
 
         adicontroller::Instrument::eInstStatus currentState() const;
 
-        void time_event_trigger( double
-                                 , adcontrols::ControlMethod::const_iterator begin
-                                 , adcontrols::ControlMethod::const_iterator end );
+        void time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents >
+                                 , adcontrols::ControlMethod::const_time_event_iterator begin
+                                 , adcontrols::ControlMethod::const_time_event_iterator end );
 
         // prepare next sample strage
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun >&, const adcontrols::ControlMethod::Method& );

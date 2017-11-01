@@ -93,7 +93,6 @@ namespace adportable {
                 min = std::min( int(y), min );
                 max = std::max( int(y), max );
             }
-            ADDEBUG() << "########### max: " << max << ", min: " << min;
         }
 
         template< typename value_type >

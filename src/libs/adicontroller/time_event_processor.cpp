@@ -26,13 +26,14 @@
 #include "time_event_processor.hpp"
 #include "task.hpp"
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/controlmethod/timedevent.hpp>
+#include <adcontrols/controlmethod/timedevents.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 
 using namespace adicontroller;
 
 time_event_processor::time_event_processor() : methodTime_( 60.0 )
-                                             , tpNextStep_( 0 )
                                              , deadline_timer_( task::instance()->io_service() ) {
 }
 
@@ -48,9 +49,36 @@ time_event_processor::methodTime() const
 }
 
 void
-time_event_processor::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method > m )
+time_event_processor::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method > m, double methodTime )
 {
+    ttable_.reset();
+
     method_ = m;
+    methodTime_ = methodTime;
+    
+    auto it = m->find( m->begin(), m->end(), adcontrols::ControlMethod::TimedEvents::clsid() );
+
+    if ( it != m->end() ) {
+        
+        if ( auto tt = std::make_shared< adcontrols::ControlMethod::TimedEvents >() ) {
+            if ( it->get( *it, *tt ) ) {
+                ttable_ = std::move( tt );
+                nextIt_ = ttable_->begin();
+            }
+        }
+    }
+    
+//#ifndef NDEBUG
+    if ( ! ttable_ )
+        ADDEBUG() << "############# No time event table ##############";
+    else {
+        ADDEBUG() << "--------------------- time event table ---------->";
+        std::for_each( ttable_->begin(), ttable_->end(), []( const auto& e ){
+                ADDEBUG() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.item_name() % e.toString( e.value() );
+            });
+        ADDEBUG() << "<-------------------- time event table -----------";
+    }
+//#endif
 }
 
 void
@@ -65,9 +93,8 @@ time_event_processor::action_start()
     deadline_timer_.cancel();
 
     tp_started_ = this_clock::now(); // timer will start based on this tp
-    
-    tpNextStep_ = 0.0;
-    exec_steps();
+
+    preparing_for_run();
 }
 
 void
@@ -84,37 +111,57 @@ time_event_processor::action_inject( const this_clock::time_point& tp )
 }
 
 bool
+time_event_processor::preparing_for_run()
+{
+    if ( ! ttable_ )
+        return false;
+
+    nextIt_ = ttable_->begin();
+
+    if ( ttable_ && ( nextIt_ != ttable_->end() ) ) {
+
+        auto begin = nextIt_;
+
+        while ( nextIt_ != ttable_->end() && nextIt_->time() < 0.0 )
+            ++nextIt_;
+
+        if ( nextIt_ != begin )
+            task::instance()->time_event_trigger( ttable_, begin, nextIt_ );
+    }
+
+#if ! defined NDEBUG && 0
+    ADDEBUG() << "preparing for run next time: " << ( ( ttable_ && nextIt_ != ttable_->end() ) ? nextIt_->time() : -1 );
+#endif
+
+    return true;
+}
+
+bool
 time_event_processor::exec_steps()
 {
     bool hasNext( false );
-    
-    auto it = std::lower_bound( method_->begin(), method_->end(), tpNextStep_
-                                , [&]( const auto& a, const double b ){ return a.time() < b; });
 
-    if ( it != method_->end() ) {
-        auto begin = it;
-        while ( it != method_->end()
-                && adportable::compare<double>::approximatelyEqual( tpNextStep_, it->time() ) )
-            ++it;
+    if ( ttable_ && ( nextIt_ != ttable_->end() ) ) {
+        auto elapsed_time = std::chrono::duration_cast< std::chrono::seconds >( std::chrono::duration<double>( this_clock::now() - tp_inject_ ) ).count();
 
-        task::instance()->time_event_trigger( 0, begin, it );
+        auto begin = nextIt_++;
 
-        if ( it != method_->end() ) {
-            hasNext = true;
-            tpNextStep_ = it->time();
+        while ( nextIt_ != ttable_->end() && nextIt_->time() < elapsed_time )
+            ++nextIt_;
+
+        task::instance()->time_event_trigger( ttable_, begin, nextIt_ );
+
+        if ( nextIt_ != ttable_->end() ) {
+            
+            auto duration = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::duration< double >( nextIt_->time() ) );
+            this_clock::time_point next_time_point = tp_inject_ + duration;
+
+            deadline_timer_.expires_at( next_time_point );
+            deadline_timer_.async_wait( [&]( const boost::system::error_code& ec ){ on_timer( ec ); } );
         }
 
-    } else {
-        hasNext = false;
-        tpNextStep_ = methodTime_;
     }
 
-    auto duration = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::duration< double >( tpNextStep_ ) );
-    this_clock::time_point next_time_point = tp_inject_ + duration;
-
-    deadline_timer_.expires_at( next_time_point );
-    deadline_timer_.async_wait( [&]( const boost::system::error_code& ec ){ on_timer( ec ); } );
-                                                              
     return hasNext;
 }
 
@@ -122,11 +169,8 @@ void
 time_event_processor::on_timer( const boost::system::error_code& ec )
 {
     if ( ! ec ) {
-        if ( tpNextStep_ < methodTime_ ) {
-            ADDEBUG() << "=================== on_timer =================== continue next: " << tpNextStep_;
+        if ( ttable_ && nextIt_ != ttable_->end() ) {
             exec_steps();
-        } else {
-            ADDEBUG() << "=================== on_timer =================== prepare_for_run: ";
         }
     }
 }

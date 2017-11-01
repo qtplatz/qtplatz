@@ -71,6 +71,8 @@ namespace adcontrols {
             const value_type& value() const;
             void setValue( const value_type& );
 
+            static std::string toString( const value_type& );
+
         private:
             boost::uuids::uuid clsid_; // model class id
             std::string module_display_name_;

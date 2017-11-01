@@ -102,4 +102,43 @@ EventCap::display_value_any( const any_type& a ) const
     return "";
 }
 
+namespace adcontrols {
+    namespace ControlMethod {
 
+        struct value_to_string : public boost::static_visitor< std::string > {
+
+            std::string operator()( const voltage_type& t ) const {
+                return ( boost::format("%.2f") % t.value ).str();
+            };
+
+            std::string operator()( const elapsed_time_type& t ) const {
+                return ( boost::format("%.3f") % t.value ).str();
+            };
+            
+            std::string operator()( const switch_type& t ) const {
+                return t.value ? t.choice.first : t.choice.second;
+            };
+            
+            std::string operator()( const choice_type& t ) const {
+                if ( t.choice.size() > t.value )
+                    return t.choice.at( t.value );
+                return "";
+            };
+            
+            std::string operator()( const delay_width_type& t ) const {
+                return ( boost::format("%.3g, %3g") % t.value.first % t.value.second ).str();
+            };
+
+            std::string operator()( const any_type& t ) const {
+                return "any";
+            };            
+        };
+    }
+}
+
+//static
+std::string
+EventCap::toString( const value_type& v )
+{
+    return boost::apply_visitor( value_to_string(), v );
+}

@@ -208,3 +208,9 @@ TimedEvent::setItem_display_name( const std::string& name )
     item_display_name_ = name;
 }
 
+//static
+std::string
+TimedEvent::toString( const value_type& v )
+{
+    return EventCap::toString( v );
+}

@@ -54,7 +54,7 @@ namespace adicontroller {
         time_event_processor();
         ~time_event_processor();
 
-        void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method > );
+        void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method >, double methodTime );
         std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod() const;
         void setMethodTime( double );
         double methodTime() const;
@@ -67,14 +67,17 @@ namespace adicontroller {
         typedef boost::asio::basic_waitable_timer< this_clock > this_timer;
         
         double methodTime_;
-        double tpNextStep_;
 
         this_clock::time_point tp_started_;
         this_clock::time_point tp_inject_;
         this_timer deadline_timer_;
 
         std::shared_ptr< const adcontrols::ControlMethod::Method > method_;
+        std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > ttable_;
+        adcontrols::ControlMethod::const_time_event_iterator nextIt_;
+        
         bool exec_steps();
+        bool preparing_for_run();
         void on_timer( const boost::system::error_code& );
     };
 }

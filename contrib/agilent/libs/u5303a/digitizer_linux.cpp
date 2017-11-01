@@ -379,7 +379,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tinvert_signal: " << m.invert_signal
               << "\tnsa: " << m.nsa;
 #endif
-    // ADDEBUG() << "u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
+    ADDEBUG() << "##### u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
 
     return true;

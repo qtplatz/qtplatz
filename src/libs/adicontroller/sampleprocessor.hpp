@@ -57,6 +57,8 @@ namespace adicontroller {
         
         std::shared_ptr< const adcontrols::SampleRun > sampleRun() const;
 
+        std::shared_ptr< const adcontrols::ControlMethod::Method > controlMethod() const;
+
         const uint64_t& elapsed_time() const;
 
         adfs::filesystem& filesystem() const;

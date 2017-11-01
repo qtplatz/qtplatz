@@ -31,7 +31,9 @@ namespace adcontrols {
     namespace ControlMethod {
         class Method;
         class MethodItem;
-        typedef std::vector< MethodItem >::iterator iterator;
-        typedef std::vector< MethodItem >::const_iterator const_iterator;
+        class TimedEvent;
+        class TimedEvents;
+        typedef std::vector< TimedEvent >::iterator time_event_iterator;
+        typedef std::vector< TimedEvent >::const_iterator const_time_event_iterator;
     }
 }

@@ -26,6 +26,7 @@
 #pragma once
 
 #include "../adcontrols_global.h"
+#include "../controlmethod_fwd.hpp"
 #include <string>
 #include <map>
 #include <memory>
@@ -53,8 +54,8 @@ namespace adcontrols {
             static const char * itemLabel() { return "TimedEvents.1"; }
             static const boost::uuids::uuid& clsid();
 
-            typedef std::vector< TimedEvent >::iterator iterator;
-            typedef std::vector< TimedEvent >::const_iterator const_iterator;
+            typedef time_event_iterator iterator;             // controlmethod_fwd.hpp
+            typedef const_time_event_iterator const_iterator; // controlmethod_fwd.hpp
 
             size_t size() const;
             void clear();

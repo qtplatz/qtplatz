@@ -315,6 +315,12 @@ SampleProcessor::sampleRun() const
     return sampleRun_;
 }
 
+std::shared_ptr< const adcontrols::ControlMethod::Method >
+SampleProcessor::controlMethod() const
+{
+    return ctrl_method_;
+}
+
 bool
 SampleProcessor::inject_triggered() const
 {

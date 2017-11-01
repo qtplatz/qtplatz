@@ -28,6 +28,7 @@
 #include "masterobserver.hpp"
 #include "sampleprocessor.hpp"
 #include "samplesequence.hpp"
+#include "time_event_processor.hpp"
 #include <acewrapper/udpeventreceiver.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -93,6 +94,7 @@ namespace adicontroller {
         bool inject_triggered_;
         uint32_t sequence_warning_count_;
         static Instrument::eInstStatus instStatus( int id_state );
+        std::unique_ptr< time_event_processor > time_event_processor_;
     };
 
     std::unique_ptr< task > task::impl::instance_;
@@ -183,6 +185,12 @@ task::post( std::shared_ptr< SampleProcessor > sp )
 {
     std::lock_guard< std::mutex > lock( impl::mutex_ );
     (*impl_->sequence_) << sp;
+
+    if ( ! impl_->time_event_processor_ )
+        impl_->time_event_processor_ = std::make_unique< time_event_processor >();
+
+    impl_->time_event_processor_->setControlMethod( sp->controlMethod(), sp->sampleRun()->methodTime() );
+    impl_->time_event_processor_->action_start();
 }
 
 std::shared_ptr< SampleProcessor >
@@ -198,12 +206,6 @@ task::sampleSequence() const
     std::lock_guard< std::mutex > lock( impl::mutex_ );
     return impl_->sequence_.get();
 }
-
-// SampleSequence *
-// task::sampleSequence()
-// {
-//     return impl_->sequence_.get();
-// }
 
 MasterObserver *
 task::masterObserver()
@@ -266,7 +268,7 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adicontroll
     if ( impl_->sequence_->size() == 0 && impl_->sequence_warning_count_++ == 0 )
         ADDEBUG() << "handle_write -- no sample processor in sample sequence";
 
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 0
     ADDEBUG() << "handle_write(" << uuid << ")";
 #endif
     
@@ -363,10 +365,9 @@ task::impl::fsm_action_inject()
 
     signalFSMAction_( Instrument::fsmInject );
 
-    // see socfpga/linux/httpd/httpd/evctl.cpp evctl::exec() to execute timed events, fsm.cpp
-    
-    // for ( auto& sampleprocessor : *sequence_ )
-    //     sampleprocessor->set_inject_triggered( true );
+    // starting timed event triggers
+    if ( time_event_processor_ )
+        time_event_processor_->action_inject( tp_inject_ );
 }
 
 void
@@ -470,9 +471,9 @@ task::impl:: handle_timeout( const boost::system::error_code& ec )
 }
 
 void
-task::time_event_trigger( double t
-                          , adcontrols::ControlMethod::const_iterator begin
-                          , adcontrols::ControlMethod::const_iterator end )
+task::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                          , adcontrols::ControlMethod::const_time_event_iterator begin
+                          , adcontrols::ControlMethod::const_time_event_iterator end )
 {
-    impl_->time_event_handler_( t, begin, end );
+    impl_->time_event_handler_( tt, begin, end );
 }
