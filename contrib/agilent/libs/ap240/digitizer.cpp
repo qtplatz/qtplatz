@@ -609,7 +609,7 @@ task::handle_acquire()
             //     protocolIndex = simulator::instance()->protocol_number();
 
             if ( protocolIndex >= 0 ) 
-                method_.setProtocolIndex( protocolIndex, false );
+                method_.setProtocolIndex( protocolIndex & 0x03, false ); // low 2bit 
             
             uint32_t events = 0;
             if ( method_.channels_ & 0x01 ) {
