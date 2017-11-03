@@ -265,7 +265,7 @@ static long dgpio_cdev_ioctl( struct file* file, unsigned int code, unsigned lon
         break;
     case DGPIO_GET_DATA:
         if ( __instance && __instance->port[ 0 ].iomem ) {
-            __last_data = ~inb( __instance->port[ 0 ].res.start + 0 );
+            __last_data = inb( __instance->port[ 0 ].res.start + 0 );
             if ( copy_to_user( (char *)(args), ( const void * )(&__last_data), sizeof( __last_data ) ) )
                 return -EFAULT;
         }
@@ -274,7 +274,7 @@ static long dgpio_cdev_ioctl( struct file* file, unsigned int code, unsigned lon
         if ( copy_from_user( (char *)(&__last_data), (const void *)(args), sizeof( __last_data ) ) )
             return -EFAULT;
         if ( __instance && __instance->port[ 0 ].iomem )
-            outb( ~__last_data, __instance->port[ 0 ].res.start );
+            outb( __last_data, __instance->port[ 0 ].res.start );
         break;                
     }
     return 0;
@@ -288,7 +288,8 @@ dgpio_cdev_read(struct file * file, char __user * data, size_t size, loff_t * f_
         struct dgpio_driver * drv = __instance;
 
         if ( drv->port[ 0 ].iomem ) {
-            uint8_t b = ~inb( drv->port[ 0 ].res.start + 0 );
+
+            uint8_t b = inb( drv->port[ 0 ].res.start + 0 );
 
             if ( copy_to_user( data, ( const void * )(&b), 1 ) )
                 return -EFAULT;
