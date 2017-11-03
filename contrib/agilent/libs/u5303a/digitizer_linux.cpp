@@ -669,12 +669,13 @@ task::handle_acquire()
             if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
                 
                 int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
+                ADDEBUG() << "protocolIndex = " << protocolIndex;
 
                 if ( protocolIndex < 0 && simulated_ )
                 	protocolIndex = simulator::instance()->protocol_number();
 
                 if ( protocolIndex >= 0 ) 
-                    method_.setProtocolIndex( protocolIndex, false );
+                    method_.setProtocolIndex( protocolIndex & 03, false ); // 2bits
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
 
