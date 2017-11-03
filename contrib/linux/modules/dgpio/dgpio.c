@@ -83,6 +83,17 @@ enable_bidirectional_port( struct dgpio_driver * drv )
 {
     if ( drv && drv->port[ 0 ].iomem ) {
         uint8_t cntl = inb( drv->port[ 0 ].res.start + 2 ) | 0x20; // Enable bidirectional
+        printk( KERN_INFO "" MODNAME " enable bidirectiona port control= %x \n", cntl );
+        outb( cntl, drv->port[ 0 ].res.start + 2 );
+    }
+}
+
+static inline void
+disable_bidirectional_port( struct dgpio_driver * drv )
+{
+    if ( drv && drv->port[ 0 ].iomem ) {
+        uint8_t cntl = inb( drv->port[ 0 ].res.start + 2 ) & ~0x20; // Enable bidirectional
+        printk( KERN_INFO "" MODNAME " disable bidirectiona port control= %x \n", cntl );
         outb( cntl, drv->port[ 0 ].res.start + 2 );
     }
 }
@@ -195,7 +206,11 @@ dgpio_proc_write( struct file * filep, const char * user, size_t size, loff_t * 
             __debug_level__ = value;
         
         printk( KERN_INFO "" MODNAME " debug level is %d\n", __debug_level__ );
-        
+
+    } else if ( strncmp( readbuf, "out", 3 ) == 0 ) {
+        disable_bidirectional_port( __instance );
+    } else if ( strncmp( readbuf, "inout", 5 ) == 0 ) {
+        enable_bidirectional_port( __instance );
     } else {
         if ( __debug_level__ > 0 )
             printk( KERN_INFO "" MODNAME " proc write received unknown command[%ld]: %s.\n", size, readbuf );
