@@ -57,79 +57,77 @@ module_param( devname, charp, S_IRUGO );
 
 static struct pci_device_id __ids[] = {
     { PCI_DEVICE( 0x9710 , 0x9900 ), }, // MCS9900CV-AA, NetMOS Single Parallel Port Card
-    { PCI_DEVICE( 0x8086, 0x1e22 ), }, // debug (GBE)
+    // { PCI_DEVICE( 0x8086, 0x1e22 ), }, // debug (GBE)
     { 0, }
-};
-
-struct dgpio_driver {
-    struct resource * resource;
 };
 
 MODULE_DEVICE_TABLE( pci, __ids );
 
+struct dgpio_resource {
+    struct resource res;
+    void * iomem;
+};
+
+struct dgpio_driver {
+    struct dgpio_resource port[2];
+};
+
+static struct dgpio_driver * __instance;
+
 static int __debug_level__ = 0;
-static int __iobase = 0x1008;
-static struct resource * __resource;
-static int __simulated = 0;
+
 static uint8_t __last_data = 0;
 
-static void
-print_pci_information( struct pci_dev * dev )
+static inline void
+enable_bidirectional_port( struct dgpio_driver * drv )
 {
-    int found = 0;
-    
-    for ( int i = 0; i < 6; ++i ) {
-        
-        unsigned long resource_start, resource_end;
-        unsigned long resource_flags;
-        
-        resource_start = pci_resource_start( dev, i );
-        resource_end   = pci_resource_end( dev, i );
-        
-        if ( resource_start && resource_end ) {
-
-            resource_flags = pci_resource_flags( dev, i );
-            
-            if ( resource_flags & IORESOURCE_IO ) {
-                printk( KERN_INFO "\t%d IO port 0x%lx - 0x%lx flags=0x%lx\n"
-                        , i, resource_start, resource_end, resource_flags );
-                
-                if ( !found ) { // pick first resource
-                    found = 1;
-                    if ( __resource && __resource->start != resource_start )
-                        release_region( __resource->start, ( __resource->end - __resource->start + 1 ) );
-                    __resource = request_region( resource_start, resource_end - resource_start + 1, "dgpio" );
-                    __iobase = __resource->start;
-                }
-            }
-
-            if ( resource_flags & IORESOURCE_MEM )
-                printk( KERN_INFO "\t%d Memory %lx, %lx, flags=0x%lx\n"
-                        , i, resource_start, resource_end, resource_flags );
-
-            if ( resource_flags & IORESOURCE_PREFETCH )
-                printk( KERN_INFO "\t%d Prefetchable 0x%lx, 0x%lx, flags=0x%lx\n"
-                        , i, resource_start, resource_end, resource_flags );
-
-            if ( resource_flags & IORESOURCE_READONLY )
-                printk( KERN_INFO "\t%d Read Only 0x%lx, 0x%lx, flags=0x%lx\n"
-                        , i, resource_start, resource_end, resource_flags );
-        }
+    if ( drv && drv->port[ 0 ].iomem ) {
+        uint8_t cntl = inb( drv->port[ 0 ].res.start + 2 ) | 0x20; // Enable bidirectional
+        outb( cntl, drv->port[ 0 ].res.start + 2 );
     }
 }
 
 static int
 probe( struct pci_dev *dev, const struct pci_device_id *id )
 {
-    struct dgpio_device * dgpio = 0;
-    
     dev_info( &dev->dev, "probe pci device '%s' [0x%04x:0x%04x] 0x%x\n"
               , dev->bus->name, dev->vendor, dev->device, dev->class );
 
-    dgpio = devm_kzalloc( &dev->dev, sizeof( struct dgpio_driver ), GFP_KERNEL );
-    dev_set_drvdata( &dev->dev, dgpio );
+    __instance = devm_kzalloc( &dev->dev, sizeof( struct dgpio_driver ), GFP_KERNEL );
+    dev_set_drvdata( &dev->dev, __instance );
+
+    if ( pci_enable_device( dev ) != 0 )
+        dev_info( &dev->dev, "pci_enable_device failed" );
+
+    u32 nio = 0;
+    for ( int bar = 0; bar < 8; ++bar ) {
+
+        u32 flags = pci_resource_flags( dev, bar );
+
+        if ( ( flags & IORESOURCE_IO ) && ( nio < countof( __instance->port ) ) )  {
+            void * port = pci_iomap( dev, bar, 0 );
+            if ( port ) {
+                __instance->port[ nio ].res.start = pci_resource_start( dev, bar );
+                __instance->port[ nio ].res.end = pci_resource_end( dev, bar );
+                __instance->port[ nio ].iomem = port;
+
+                dev_info( &dev->dev, "bar=%d, port[%d] = %p, resource = <%llx, %llx>, %d\n"
+                          , bar
+                          , nio
+                          , port
+                          , __instance->port[ nio ].res.start
+                          , __instance->port[ nio ].res.end
+                          , (int)( __instance->port[ nio ].res.end - __instance->port[ nio ].res.start + 1 ) );
+
+                
+                ++nio;
+            }
+        }
+    }
     
-    print_pci_information( dev );
+    enable_bidirectional_port( __instance );
+    
+    // print_pci_information( dev );
     return 0;
 }
 
@@ -151,11 +149,25 @@ static struct pci_driver __pci_driver = {
 static int
 dgpio_proc_read( struct seq_file * m, void * v )
 {
-    if ( __resource ) {
-        uint8_t data = inb( __iobase );
-        seq_printf( m, "iobase[0x%x]=0x%x\n", __iobase, data );
+    struct dgpio_driver * drv = __instance;
+    if ( drv && drv->port[ 0 ].iomem ) {
+        
+        seq_printf( m, "iobase[0x%llx]: ", drv->port[ 0 ].res.start );
+        for ( int i = 0; i < ( drv->port[ 0 ].res.end - drv->port[ 0 ].res.start + 1 ); ++i ) {
+            uint8_t data = inb( drv->port[ 0 ].res.start + i );
+            seq_printf( m, "0x%02x, ", data );
+        }
+        seq_printf( m, "\n" );
+
+        /* seq_printf( m, "iomem[0x%p]: ", drv->mmap[ 0 ].iomem ); */
+        /* const u32 * p = drv->mmap[ 0 ].iomem; */
+        /* for ( int i = 0; i < 8; ++i ) { */
+        /*     seq_printf( m, ", 0x%08x", *p ); */
+        /* } */
+        /* seq_printf( m, "\n" ); */
+        
     } else {
-        seq_printf( m, "iobase[0x%x] unavilable\n", __iobase );        
+        seq_printf( m, "device unavilable\n" );
     }
     return 0;
 }
@@ -216,7 +228,7 @@ static int dgpio_cdev_open(struct inode *inode, struct file *file)
 
 static int dgpio_cdev_release(struct inode *inode, struct file *file)
 {
-    if ( __debug_level__ )    
+    if ( __debug_level__ ) 
         printk(KERN_INFO "release dgpio char device\n");
 
     return 0;
@@ -233,20 +245,17 @@ static long dgpio_cdev_ioctl( struct file* file, unsigned int code, unsigned lon
             return -EFAULT;        
         break;
     case DGPIO_GET_DATA:
-        if ( !__simulated )
-            __last_data = inb( __iobase );
-        if ( copy_to_user( (char *)(args), ( const void * )(&__last_data), sizeof( __last_data ) ) )
+        if ( __instance && __instance->port[ 0 ].iomem ) {
+            __last_data = inb( __instance->port[ 0 ].res.start + 0 );
+            if ( copy_to_user( (char *)(args), ( const void * )(&__last_data), sizeof( __last_data ) ) )
                 return -EFAULT;
+        }
         break;
     case DGPIO_SET_DATA:
-        do {
-            if ( copy_from_user( (char *)(&__last_data), (const void *)(args), sizeof( __last_data ) ) )
-                return -EFAULT;
-            if ( __debug_level__ >= 5 )
-                printk( KERN_INFO "" MODNAME " ioctl_set_data %x\n", __last_data );
-            if ( !__simulated )
-                outb( __last_data, __iobase );
-        } while ( 0 );
+        if ( copy_from_user( (char *)(&__last_data), (const void *)(args), sizeof( __last_data ) ) )
+            return -EFAULT;
+        if ( __instance && __instance->port[ 0 ].iomem )
+            outb( __last_data, __instance->port[ 0 ].res.start );
         break;                
     }
     return 0;
@@ -255,22 +264,20 @@ static long dgpio_cdev_ioctl( struct file* file, unsigned int code, unsigned lon
 static ssize_t
 dgpio_cdev_read(struct file * file, char __user * data, size_t size, loff_t * f_pos )
 {
-    if ( __resource ) { // && ( *f_pos == 0 ) ) {
+    if ( __instance ) { // && ( *f_pos == 0 ) ) {
 
-        uint8_t b = inb( __iobase );
+        struct dgpio_driver * drv = __instance;
 
-        if ( __simulated && __debug_level__ )
-            b = __last_data;
+        if ( drv->port[ 0 ].iomem ) {
+            uint8_t b = inb( drv->port[ 0 ].res.start + 0 );
 
-        if ( __debug_level__ >= 6 )
-            printk( KERN_INFO "" MODNAME " cdev_read %x, %x\n", b, __simulated );
+            if ( copy_to_user( data, ( const void * )(&b), 1 ) )
+                return -EFAULT;
 
-        if ( copy_to_user( data, ( const void * )(&b), 1 ) )
-            return -EFAULT;
+            (*f_pos)++;
 
-        (*f_pos)++;
-
-        return sizeof(b);
+            return sizeof(b);
+        }
     }
     return 0;
 }
@@ -370,29 +377,12 @@ dgpio_module_init( void )
         printk(KERN_INFO "pci_register_driver success (%d).\n", result );
     } while ( 0 );
 
-    if ( __resource == 0 ) { // dummy ioport for debugging
-
-        printk( KERN_INFO "no pci device found -- installing simulator.\n" );
-        __simulated = 1;
-        __resource = request_region( __iobase, 4, "dgpio" );
-        if ( __resource ) {
-            printk(KERN_INFO "" MODNAME " requested memory resource: %llx, %llx, %s\n"
-                   , __resource->start, __resource->end, __resource->name );
-        }
-    } else {
-        printk(KERN_INFO "" MODNAME " requested memory resource: %llx, %llx, %s\n"
-               , __resource->start, __resource->end, __resource->name );        
-    }
-    
     return 0;
 }
 
 static void
 dgpio_module_exit( void )
 {
-    if ( __resource )
-        release_region( __resource->start, ( __resource->end - __resource->start + 1 ) );
-
     pci_unregister_driver(&__pci_driver);
     
     //---

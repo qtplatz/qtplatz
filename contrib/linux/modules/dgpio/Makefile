@@ -1,7 +1,7 @@
 # Makefile
 KBUILD_CFLAGS += -std=gnu99 -O2
 ARCH := $(shell arch)
-ccflags-y += -std=gnu99 -O2
+ccflags-y += -std=gnu99 -O2  -Wno-declaration-after-statement
 ccflags-y += -DMOD_VERSION=\"${VERSION}\"
 
 ifeq (${VERSION},)
