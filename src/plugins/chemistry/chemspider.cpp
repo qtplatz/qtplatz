@@ -297,7 +297,7 @@ ChemSpider::AsyncSimpleSearch( const std::string& stmt )
 
     boost::asio::io_service io_service;
 
-    adurl::client cs( io_service, "www.chemspider.com", std::move( request ) );
+    adurl::client cs( io_service, std::move( request ), "www.chemspider.com" );
 
     io_service.run();
 
@@ -338,7 +338,7 @@ ChemSpider::GetAsyncSearchStatus( std::string& response )
 
     boost::asio::io_service io_service;
 
-    adurl::client cs( io_service, "www.chemspider.com", std::move( request ) );
+    adurl::client cs( io_service, std::move( request ), "www.chemspider.com" );
 
     io_service.run();
 
@@ -383,7 +383,7 @@ ChemSpider::getAsyncSearchResult( const std::string& rid )
     } while(0);
     
     boost::asio::io_service io_service;
-    adurl::client cs( io_service, "www.chemspider.com", std::move( request ) );
+    adurl::client cs( io_service, std::move( request ), "www.chemspider.com"  );
 
     io_service.run();
 
@@ -425,7 +425,7 @@ ChemSpider::GetCompoundInfo( int csid, std::string& smiles, std::string& InChI, 
     } while(0);
     
     boost::asio::io_service io_service;
-    adurl::client cs( io_service, "www.chemspider.com", std::move( request ) );
+    adurl::client cs( io_service, std::move( request ), "www.chemspider.com" );
 
     io_service.run();
 
@@ -482,7 +482,7 @@ ChemSpider::GetSynonyms( int csid, std::vector< std::string >& synonyms )
     } while(0);
     
     boost::asio::io_service io_service;
-    adurl::client cs( io_service, "www.chemspider.com", std::move( request ) );
+    adurl::client cs( io_service, std::move( request ), "www.chemspider.com" );
 
     io_service.run();
 
