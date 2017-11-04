@@ -49,6 +49,16 @@ namespace adurl {
             return boost::asio::ip::tcp::resolver::query( server, "http" );
         }
     }
+
+    static boost::asio::ip::tcp::resolver::query make_query( const std::string& server, const std::string& port )
+    {
+        auto sep = server.find( ':' );
+        if ( sep != std::string::npos ) {
+            return boost::asio::ip::tcp::resolver::query( server.substr( 0, sep ), port );
+        } else {
+            return boost::asio::ip::tcp::resolver::query( server, port );
+        }
+    }
     
 }
 
@@ -57,15 +67,18 @@ using namespace adurl;
 
 bool client::debug_mode_ = false;
 
-client::client(boost::asio::io_service& io_service
-               , const std::string& server
-               , const std::string& path )  : resolver_(io_service)
-                                            , socket_(io_service)
-                                            , request_( std::make_unique< boost::asio::streambuf >() )
-                                            , status_code_( 0 )
-                                            , error_( NoError )
-                                            , event_stream_( false )
-                                            , server_( server )
+client::client( boost::asio::io_service& io_service
+                , const std::string& path
+                , const std::string& server
+                , const std::string& port )  : resolver_(io_service)
+                                             , socket_(io_service)
+                                             , request_( std::make_unique< boost::asio::streambuf >() )
+                                             , response_( std::make_unique< boost::asio::streambuf >() )
+                                             , status_code_( 0 )
+                                             , error_( NoError )
+                                             , event_stream_( false )
+                                             , server_( server )
+                                               //, port_( port )
 {
     // Form the request. We specify the "Connection: close" header so that the
     // server will close the socket after transmitting the response. This will
@@ -78,8 +91,8 @@ client::client(boost::asio::io_service& io_service
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
 
-    tcp::resolver::query query = make_query( server );
-#if 0
+    tcp::resolver::query query = make_query( server, port );
+#ifdef NDEBUG
     // due to this makes annoy 'new thread' message on debugger
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
@@ -91,15 +104,18 @@ client::client(boost::asio::io_service& io_service
 }
 
 client::client(boost::asio::io_service& io_service
+               , std::unique_ptr< boost::asio::streambuf >&& request
                , const std::string& server
-               , std::unique_ptr< boost::asio::streambuf >&& request )  : resolver_( io_service )
-                                                                        , socket_( io_service )
-                                                                        , request_( std::move( request ) )
-                                                                        , status_code_( 0 )
-                                                                        , error_( NoError )
-                                                                        , server_( server )
+               , const std::string& port )  : resolver_( io_service )
+                                            , socket_( io_service )
+                                            , request_( std::move( request ) )
+                                            , response_( std::make_unique< boost::asio::streambuf >() )
+                                            , status_code_( 0 )
+                                            , error_( NoError )
+                                            , server_( server )
+                                              //, port_( port )
 {
-    tcp::resolver::query query = make_query( server );
+    tcp::resolver::query query = make_query( server, port );
 
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
@@ -122,7 +138,7 @@ client::debug_mode()
 boost::asio::streambuf&
 client::response()
 {
-    return response_;
+    return *response_;
 }
 
 boost::asio::streambuf&
@@ -157,7 +173,7 @@ client::connect( std::function< void( const boost::system::error_code&, boost::a
 
 void
 client::handle_resolve(const boost::system::error_code& err,
-                       tcp::resolver::iterator endpoint_iterator)
+                       tcp::resolver::iterator endpoint_iterator )
 {
     if ( !err )  {
 
@@ -216,7 +232,7 @@ client::handle_write_request(const boost::system::error_code& err)
 
     if (!err) {
         // Read the response status line.
-        boost::asio::async_read_until(socket_, response_, "\r\n"
+        boost::asio::async_read_until(socket_, *response_, "\r\n"
                                       , [&]( const boost::system::error_code& ec, size_t ) {
                                           handle_read_status_line( ec );
                                       });
@@ -237,7 +253,7 @@ client::handle_read_status_line( const boost::system::error_code& err )
     if ( !err )  {
 
         // Check that response is OK.
-        std::istream response_stream(&response_);
+        std::istream response_stream( response_.get() );
         response_stream >> http_version_;
         response_stream >> status_code_;
         std::getline( response_stream, status_message_ );
@@ -255,10 +271,10 @@ client::handle_read_status_line( const boost::system::error_code& err )
         }
         
         // Read the response headers, which are terminated by a blank line.
-        boost::asio::async_read_until(socket_, response_, "\r\n\r\n"
-                                      , [&]( const boost::system::error_code& ec, size_t ) {
-                                          handle_read_headers( ec );
-                                      });        
+        boost::asio::async_read_until( socket_, *response_, "\r\n\r\n"
+                                       , [&]( const boost::system::error_code& ec, size_t ) {
+                                           handle_read_headers( ec );
+                                       });        
     } else  {
 
         error_ = Error;
@@ -272,7 +288,7 @@ client::handle_read_headers(const boost::system::error_code& err)
 {
     if ( !err )  {
         // Process the response headers.
-        std::istream response_stream(&response_);
+        std::istream response_stream( response_.get() );
         std::string header;
 
         std::ostream o( &response_header_ );
@@ -290,13 +306,13 @@ client::handle_read_headers(const boost::system::error_code& err)
         if ( event_stream_ ) {
             // Start reading stream
             boost::asio::async_read_until( socket_
-                                           , response_
+                                           , *response_
                                            , "\r\n\r\n"
                                            , [&]( const boost::system::error_code& ec, size_t ) { handle_read_stream( ec ); });
         } else {
             // Start reading remaining data until EOF.
             boost::asio::async_read( socket_
-                                     , response_
+                                     , *response_
                                      , boost::asio::transfer_at_least(1)
                                      , [&]( const boost::system::error_code& ec, size_t ) { handle_read_content( ec ); });
         }
@@ -317,7 +333,7 @@ client::handle_read_content(const boost::system::error_code& err)
 
         // Continue reading remaining data until EOF.
         boost::asio::async_read( socket_
-                                 , response_
+                                 , *response_
                                  , boost::asio::transfer_at_least(1)
                                  , [&]( const boost::system::error_code& ec, size_t ) { handle_read_content( ec ); });
         
@@ -336,10 +352,10 @@ client::handle_read_stream( const boost::system::error_code& ec )
 
         if ( event_stream_handler_ ) {
 
-            event_stream_handler_( ec, response_ );
+            event_stream_handler_( ec, *response_ );
 
         } else {
-            std::istream response_stream( &response_ );
+            std::istream response_stream( response_.get() );
             std::string data;
             while ( std::getline( response_stream, data ) && data != "\r" ) {
                 if ( debug_mode_ )
@@ -349,7 +365,7 @@ client::handle_read_stream( const boost::system::error_code& ec )
 
         // Continue reading until empty line
         boost::asio::async_read_until( socket_
-                                       , response_
+                                       , *response_
                                        , "\r\n\r\n"
                                        , [&]( const boost::system::error_code& ec, size_t ) { handle_read_stream( ec ); });
         

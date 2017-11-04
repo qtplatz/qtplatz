@@ -54,7 +54,7 @@ dg::start_triggers()
     request_stream << "\r\n";
     
     boost::asio::io_service io_service;
-    adurl::client c( io_service, server_, std::move( request ) );
+    adurl::client c( io_service, std::move( request ), server_ );
 
     io_service.run();
 
@@ -80,7 +80,7 @@ dg::stop_triggers()
     request_stream << "\r\n";
     
     boost::asio::io_service io_service;
-    adurl::client c( io_service, server_, std::move( request ) );
+    adurl::client c( io_service, std::move( request ), server_ );
 
     io_service.run();
 
@@ -103,7 +103,7 @@ dg::fetch( adio::dg::protocols<adio::dg::protocol<> >& p )
 {
     boost::asio::io_service io_service;
 
-    adurl::client c( io_service, server_, "/dg/ctl?status.json" );
+    adurl::client c( io_service, "/dg/ctl?status.json", server_, "http" );
 
     io_service.run();
 
@@ -122,7 +122,7 @@ dg::fetch( std::string& json )
 {
     boost::asio::io_service io_service;
 
-    adurl::client c( io_service, server_, "/dg/ctl?status.json" );
+    adurl::client c( io_service, "/dg/ctl?status.json", server_, "http" );
 
     io_service.run();
 
@@ -159,7 +159,7 @@ dg::commit( const adio::dg::protocols<adio::dg::protocol<> > & p )
     
     boost::asio::io_service io_service;
 
-    adurl::client c( io_service, server_, std::move( request ) );
+    adurl::client c( io_service, std::move( request ), server_ );
     
     io_service.run();
 

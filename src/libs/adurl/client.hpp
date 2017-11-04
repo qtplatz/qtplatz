@@ -40,11 +40,15 @@ using boost::asio::ip::tcp;
 namespace adurl {
 
     class request;
+    class ajax;
 
     class ADURLSHARED_EXPORT client {
     public:
-        client( boost::asio::io_service& io_service, const std::string& server, const std::string& path );
-        client( boost::asio::io_service& io_service, const std::string& server, std::unique_ptr< boost::asio::streambuf >&& request );
+        client( boost::asio::io_service& io_service, const std::string& path
+                , const std::string& server, const std::string& port = "80" );
+
+        client( boost::asio::io_service& io_service, std::unique_ptr< boost::asio::streambuf >&& request
+                , const std::string& server, const std::string& port = "80" );
 
         boost::asio::streambuf& response();
         boost::asio::streambuf& response_header();
@@ -61,6 +65,8 @@ namespace adurl {
         static bool debug_mode();
 
     private:
+        friend class ajax;
+
         void handle_resolve( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator );
         void handle_connect( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator );
         void handle_write_request( const boost::system::error_code& err );
@@ -74,7 +80,7 @@ namespace adurl {
         tcp::resolver resolver_;
         tcp::socket socket_;
         std::unique_ptr< boost::asio::streambuf > request_;
-        boost::asio::streambuf response_;
+        std::unique_ptr< boost::asio::streambuf > response_;
         boost::asio::streambuf response_header_;
         unsigned int status_code_;
         std::string  status_message_;
@@ -84,6 +90,7 @@ namespace adurl {
         bool event_stream_;
         std::function< void( const boost::system::error_code&, boost::asio::streambuf& ) > event_stream_handler_;
         std::string server_;
+        //std::string port_;
     };
     
 }

@@ -44,7 +44,7 @@ namespace adurl {
         impl( std::unique_ptr< boost::asio::streambuf >&& request
               , const std::string& server ) : server_( server )
                                             , work_( io_service_ )
-                                            , client_( io_service_, server, std::move( request ) ) {
+                                            , client_( io_service_, std::move( request ), server_ ) {
 
             client_.connect( [&]( const boost::system::error_code& ec
                                   , boost::asio::streambuf& response ){ handle_event( ec, response ); });

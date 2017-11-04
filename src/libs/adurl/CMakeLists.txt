@@ -3,9 +3,7 @@ cmake_policy( SET CMP0022 NEW )
 
 project( adurl )
 
-if ( NOT WIN32 )
-  set( oslibs "pthread" )
-endif()
+find_package( Threads REQUIRED )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -15,12 +13,22 @@ include_directories(
 add_definitions( -DADURL_LIBRARY )
 
 add_executable( adurltool main.cpp )
-add_library( adurl SHARED client.cpp client.hpp request.cpp request.hpp dg.cpp dg.hpp sse.hpp sse.cpp )
+add_library( adurl SHARED
+  ajax.cpp
+  ajax.hpp
+  client.cpp
+  client.hpp
+  request.cpp
+  request.hpp
+  dg.cpp
+  dg.hpp
+  sse.hpp
+  sse.cpp )
 
 target_link_libraries( adurl LINK_PUBLIC
   adio
   adportable
-  ${oslibs}
+  Threads::Threads
   ${Boost_LIBRARIES}
   )
 
@@ -28,7 +36,7 @@ target_link_libraries( adurltool LINK_PUBLIC
   adurl
   adio
   adportable
-  ${oslibs}
+  Threads::Threads
   ${Boost_LIBRARIES}
   )
   
