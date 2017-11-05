@@ -47,6 +47,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
+#include <QCoreApplication>
 #include <QSettings>
 #include <QMessageBox>
 #include <QLibrary>
@@ -130,18 +131,8 @@ document::document( QObject * parent ) : QObject( parent )
 document *
 document::instance()
 {
-    document * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new document();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static document __instance;
+    return &__instance;
 }
 
 void
@@ -162,17 +153,29 @@ document::finalClose()
 }
 
 #if defined _DEBUG
-const char * libs[] = { "eventbrokerd", "eventbroker", "libeventbrokerd", "libeventbroker" };
+const char * libs[] = {
+    "eventbrokerd", "eventbroker", "libeventbrokerd", "libeventbroker"
+};
 #else
-const char * libs[] = { "eventbroker", "eventbrokerd", "libeventbroker", "libeventbrokerd" };
+const char * libs[] = {
+    "eventbroker", "eventbrokerd", "libeventbroker", "libeventbrokerd"
+};
 #endif
 
 void
 document::inject_event_out()
 {
     static bool load_successed = false;
-    
+
+    auto path = QCoreApplication::applicationDirPath();
+    std::cout << path.toStdString() << std::endl;
+    QStringList list;
     for ( auto name: libs ) {
+        list << name;
+        list << QString("../lib/qtplatz/%1").arg( name );
+    }
+    
+    for ( auto name: list ) {
         QLibrary lib( name );
         if ( lib.load() ) {
             if ( !load_successed ) {
