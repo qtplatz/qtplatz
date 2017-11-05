@@ -28,9 +28,6 @@
 #include <sstream>
 #include "adlog_global.hpp"
 #include <chrono>
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_dll_interface.h>
-
 
 namespace boost { namespace system { class error_code; } }
 
@@ -55,14 +52,11 @@ namespace adlog {
     template<> ADLOGSHARED_EXPORT logger& logger::operator << ( const std::wstring& );
     template<> ADLOGSHARED_EXPORT logger& logger::operator << ( const boost::system::error_code& );
 
-    enum { LOG_TRACE, LOG_INFO, LOG_WARN, LOG_ERROR };
-
+    enum { LOG_EMERG, LOG_ALART, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG };
 }
 
-#include <compiler/diagnostic_pop.h>
-
 # define ADLOG(x)  adlog::logger(__FILE__, __LINE__,(x))
-# define ADTRACE() adlog::logger(__FILE__, __LINE__,adlog::LOG_TRACE)
+# define ADTRACE() adlog::logger(__FILE__, __LINE__,adlog::LOG_DEBUG)
 # define ADINFO()  adlog::logger(__FILE__, __LINE__,adlog::LOG_INFO)
-# define ADWARN()  adlog::logger(__FILE__, __LINE__,adlog::LOG_WARN)
-# define ADERROR() adlog::logger(__FILE__, __LINE__,adlog::LOG_ERROR)
+# define ADWARN()  adlog::logger(__FILE__, __LINE__,adlog::LOG_WARNING)
+# define ADERROR() adlog::logger(__FILE__, __LINE__,adlog::LOG_ERR)

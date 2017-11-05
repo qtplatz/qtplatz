@@ -85,8 +85,11 @@ namespace u5303a { namespace Instrument {
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eStop ); // 9
                     else if ( reply == "Running" )
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
-                } else
-                    ADTRACE() << "Unhandled u5303a reply: " << method << " = " << reply;
+                } else {
+#ifndef NDEBUG
+                    ADTRACE() << "u5303a reply: " << method << " = " << reply;
+#endif
+                }
             }
             
             bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& next ) {
@@ -307,7 +310,9 @@ Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::T
                              , adcontrols::ControlMethod::const_time_event_iterator begin
                              , adcontrols::ControlMethod::const_time_event_iterator end )
 {
+#ifndef NDEBUG
     ADDEBUG() << "TODO -- time_event_triger";
+#endif
     return true;
 }
 

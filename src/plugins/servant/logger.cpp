@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "logger.hpp"
+#include <adlog/logger.hpp>
 #include <qcolor.h>
 #include <boost/format.hpp>
 
@@ -43,12 +44,12 @@ Logger::operator ()( int pri, const std::string& text, const std::string& file, 
 {
     QString loc = (file.empty() ? "" : (boost::format("%s(%4d):") % file % line).str().c_str() );
 
-    if ( pri == 0 ) 
-        emit onLogging( QString("%1\t%2").arg( loc, text.c_str() ), false );
-    else if ( pri == 1 )
-        emit onLogging( QString( "<font color=blue>%1&nbsp;&nbsp;%2</font>" ).arg( loc, text.c_str() ), true );
-    else if ( pri == 2 )
-        emit onLogging( QString( "<span style='background-color: yellow'>%1&nbsp;&nbsp;%2</span>" ).arg( loc, text.c_str() ), true );
-    else
+    if ( pri < adlog::LOG_ERR )
 		emit onLogging( QString( "<font color=red>%1&nbsp;&nbsp;%2</font>" ).arg( loc, text.c_str() ), true );
+    else if ( pri < adlog::LOG_WARNING )
+        emit onLogging( QString( "<span style='background-color: yellow'>%1&nbsp;&nbsp;%2</span>" ).arg( loc, text.c_str() ), true );
+    else if ( pri < adlog::LOG_NOTICE )
+        emit onLogging( QString( "<font color=blue>%1&nbsp;&nbsp;%2</font>" ).arg( loc, text.c_str() ), true );
+    else
+        emit onLogging( QString("%1\t%2").arg( loc, text.c_str() ), false );
 }

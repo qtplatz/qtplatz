@@ -175,7 +175,7 @@ SampleProcessor::write( const boost::uuids::uuid& objId
         if ( ! c_acquisition_active_ ) {
 
             if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
-                ADDEBUG() << boost::format ( "SampleProcessor INJECT TRIGGERD by EVENT 0x%x AT OBJECT %s" ) % writer.events() % boost::lexical_cast<std::string> ( objId );
+                ADINFO() << boost::format ( "SampleProcessor [%s] INJECT TRIGGERD by EVENT 0x%x AT OBJECT " ) % fs_->filename() % writer.events() << objId;
                 if ( !c_acquisition_active_ ) { // protect from chattering
                     ts_inject_trigger_ = writer.epoch_time(); // uptime;
                     c_acquisition_active_ = true;

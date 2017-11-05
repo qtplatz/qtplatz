@@ -28,8 +28,10 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/timedevent.hpp>
 #include <adcontrols/controlmethod/timedevents.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/date_string.hpp>
 
 using namespace adicontroller;
 
@@ -91,7 +93,7 @@ void
 time_event_processor::action_start()
 {
     deadline_timer_.cancel();
-
+    
     tp_started_ = this_clock::now(); // timer will start based on this tp
 
     preparing_for_run();
@@ -108,6 +110,7 @@ time_event_processor::action_inject( const this_clock::time_point& tp )
 {
     tp_inject_ = tp;
     exec_steps();
+    ADINFO() << "### INJECT Triggered";
 }
 
 bool
@@ -124,14 +127,17 @@ time_event_processor::preparing_for_run()
 
         while ( nextIt_ != ttable_->end() && nextIt_->time() < 0.0 )
             ++nextIt_;
-
-        if ( nextIt_ != begin )
+        
+        if ( nextIt_ != begin ) {
             task::instance()->time_event_trigger( ttable_, begin, nextIt_ );
-    }
 
-#if ! defined NDEBUG && 0
-    ADDEBUG() << "preparing for run next time: " << ( ( ttable_ && nextIt_ != ttable_->end() ) ? nextIt_->time() : -1 );
-#endif
+            ADINFO() << "--------------------- preparing ---------->";
+            std::for_each( begin, nextIt_, []( const auto& e ){
+                    ADDEBUG() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.item_name() % e.toString( e.value() );
+                });
+            ADINFO() << "<-------------------- preparing -----------";
+        }
+    }
 
     return true;
 }
@@ -142,20 +148,29 @@ time_event_processor::exec_steps()
     bool hasNext( false );
 
     if ( ttable_ && ( nextIt_ != ttable_->end() ) ) {
-        auto elapsed_time = std::chrono::duration_cast< std::chrono::seconds >( std::chrono::duration<double>( this_clock::now() - tp_inject_ ) ).count();
 
-        auto begin = nextIt_++;
+        auto elapsed_time = std::chrono::duration<double>( this_clock::now() - tp_inject_ ).count();
 
-        while ( nextIt_ != ttable_->end() && nextIt_->time() < elapsed_time )
-            ++nextIt_;
+        if ( nextIt_->time() < elapsed_time ) {
+            auto begin = nextIt_++;
+            while ( nextIt_ != ttable_->end() && nextIt_->time() < elapsed_time )
+                ++nextIt_;
+            
+            task::instance()->time_event_trigger( ttable_, begin, nextIt_ );            
 
-        task::instance()->time_event_trigger( ttable_, begin, nextIt_ );
+            auto round_trip = std::chrono::duration<double>( this_clock::now() - tp_inject_ ).count() - elapsed_time;
+            ADINFO() << "----------- exec_step at " << elapsed_time << " round trip " << ( round_trip * 1000 ) << "ms ---------->";
+            std::for_each( begin, nextIt_, []( const auto& e ){
+                    ADINFO() << "### " << boost::format( "%8.2f\t%s\t%s" ) % e.time() % e.item_name() % e.toString( e.value() );
+                });
+            ADINFO() << "<---------- exec_step at " << elapsed_time << " ----------";
+        }
 
         if ( nextIt_ != ttable_->end() ) {
             
             auto duration = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::duration< double >( nextIt_->time() ) );
             this_clock::time_point next_time_point = tp_inject_ + duration;
-
+            
             deadline_timer_.expires_at( next_time_point );
             deadline_timer_.async_wait( [&]( const boost::system::error_code& ec ){ on_timer( ec ); } );
         }

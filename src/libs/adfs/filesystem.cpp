@@ -80,6 +80,8 @@ filesystem::create( const boost::filesystem::path& filepath, size_t alloc, size_
     db_.reset( new sqlite() );
     if ( db_->open( filepath.c_str() ) ) {
 
+        filename_ = filepath.string();
+
         adfs::stmt sql( *db_ );
 
         sql.exec( "PRAGMA synchronous = OFF" );

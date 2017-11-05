@@ -68,8 +68,6 @@ bool peptideplugin::initialize(const QStringList &arguments, QString *errorStrin
     (void)arguments;
     (void)errorString;
 
-    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-
     mainWindow_->activateWindow();
     mainWindow_->createActions();
 

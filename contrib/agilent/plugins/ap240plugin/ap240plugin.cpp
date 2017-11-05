@@ -65,19 +65,11 @@ ap240Plugin::~ap240Plugin()
     // Delete members
     if ( mode_ )
         removeObject( mode_.get() );
-
-    // if ( auto iExtension = document::instance()->iSequence() )
-    //     removeObject( iExtension );
-
-    // if ( auto iExtension = document::instance()->iController() )
-    //     removeObject( iExtension );
 }
 
 bool
 ap240Plugin::initialize( const QStringList &arguments, QString *errorString )
 {
-    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 

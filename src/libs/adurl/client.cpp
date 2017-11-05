@@ -187,6 +187,8 @@ client::handle_resolve(const boost::system::error_code& err,
     } else {
 
         error_ = Error;
+        status_message_ = err.message();
+        
         if ( debug_mode_ )
             ADDEBUG() << "[" << server_ << "] Error: " << err.message();
 

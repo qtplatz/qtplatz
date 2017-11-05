@@ -157,7 +157,6 @@ manager::instance()
 
 manager::manager(void) : d_( new manager::data() )
 {
-	adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 }
 
 manager::~manager(void)

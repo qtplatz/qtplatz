@@ -151,11 +151,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 {
     Q_UNUSED( arguments );
 
-    do {
-        adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-        portfolio::logging_hook::register_hook( adlog::logging_handler::log );
-    } while(0);
-
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )
         return false;

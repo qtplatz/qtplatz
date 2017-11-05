@@ -44,7 +44,6 @@
 #include <adplugin_manager/manager.hpp>
 #include <adplugin_manager/loader.hpp>
 #include <adplugin/constants.hpp>
-#include <adlog/logging_handler.hpp>
 #include <adcontrols/logging_hook.hpp>
 #include <adportfolio/logging_hook.hpp>
 #include <adportable/debug.hpp>
@@ -54,6 +53,7 @@
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
 
+#include <QCoreApplication>
 #include <QMessageBox>
 #include <QtCore/qplugin.h>
 #include <QtCore>
@@ -92,11 +92,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
 	(void)error_message;
-
-    do {
-        adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
-        adcontrols::logging_hook::register_hook( adlog::logging_handler::log );} while(0);
-
+    
+    adlog::logging_handler::instance()->setpid( ::getpid() );
+        
     if ( ( outputWindow_ = new OutputWindow ) ) {
         addAutoReleasedObject( outputWindow_ );
 
@@ -106,6 +104,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             adlog::logging_handler::instance()->register_handler( std::ref(*logger_) );
         }
     }
+
+    ADLOG(adlog::LOG_INFO) << "Startup " << QCoreApplication::applicationFilePath().toStdString();
 
     ///////////////////////////////////
     Core::Context context;
@@ -143,6 +143,7 @@ ServantPlugin::aboutToShutdown()
     if ( outputWindow_ && logger_ )
         disconnect( logger_, SIGNAL( onLogging( const QString, bool ) ), outputWindow_, SLOT( handleLogging( const QString, bool ) ) );
 
+    ADLOG(adlog::LOG_INFO) << "Shutdown " << QCoreApplication::applicationFilePath().toStdString();    
 	return SynchronousShutdown;
 }
 

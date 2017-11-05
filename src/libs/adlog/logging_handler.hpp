@@ -34,6 +34,7 @@
 
 #include "adlog_global.hpp"
 #include <adportable/debug_core.hpp>
+#include <boost/signals2.hpp>
 
 #if defined _MSC_VER
 # pragma warning(push)
@@ -47,30 +48,27 @@ namespace adlog {
 
     public:
         static logging_handler * instance();
-        static void log( int pri, const std::string& msg, const std::string& file, int line );
+        // static void log( int pri, const std::string& msg, const std::string& file, int line );
 
         // actual handler type
-        typedef std::function<void(int /* pri */
-            , const std::string& /* text */
-            , const std::string& /* file */
-            , int /* line */
-            , const std::chrono::system_clock::time_point& ) > handler_type;
-
-        void register_handler( handler_type );
+        typedef boost::signals2::signal<void(int /* pri */
+                                             , const std::string& /* text */
+                                             , const std::string& /* file */
+                                             , int /* line */
+                                             , const std::chrono::system_clock::time_point& ) > handler_type;
+        
+        boost::signals2::connection register_handler( handler_type::slot_type );
 		typedef std::vector< handler_type >::iterator iterator;
 
         void appendLog( int pri, const std::string& msg, const std::string& file, int line, const std::chrono::system_clock::time_point& );
 		void close();
 
-        iterator begin();
-        iterator end();
-        size_t size() const;
+        void setpid( uint64_t id );
 
     private:
         static std::mutex mutex_;
-        static std::atomic< logging_handler * > instance_;
         std::string logfile_;
-        std::vector< handler_type > loggers_;
+        handler_type logger_;
     };
 
 }

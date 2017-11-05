@@ -124,6 +124,8 @@ ajax::operator()( const std::string& method
     status_code_ = client.status_code();
     status_message_ = std::move( client.status_message_ );
 
+    response_header_ = std::string( (std::istreambuf_iterator<char>(&client.response_header())), std::istreambuf_iterator<char>() );
+
     if ( status_code_ == 200 )
         response_ = std::move( client.response_ );
 
@@ -185,4 +187,5 @@ ajax::response( bool pretty_print ) const
 std::string
 ajax::response_header() const
 {
+    return response_header_;
 }

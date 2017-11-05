@@ -31,84 +31,56 @@
 
 using namespace adlog;
 
-std::atomic<logging_handler * > logging_handler::instance_(0); // = 0
 std::mutex logging_handler::mutex_;
+
+static std::once_flag __flag;
+static uint64_t __pid;
 
 logging_handler::logging_handler()
 {
     boost::filesystem::path logfile( adportable::profile::user_data_dir<char>() );
     logfile /= "qtplatz.log";
     logfile_ = logfile.string();
+    __pid = ::getpid();
 }
 
 logging_handler *
 logging_handler::instance()
 {
-    typedef logging_handler T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static logging_handler __instance;
+    return &__instance;
 }
 
 void
-logging_handler::register_handler( handler_type f )
+logging_handler::setpid( uint64_t pid )
 {
-    loggers_.push_back( f );
+    std::call_once( __flag, [&](){ __pid = pid; } );
 }
 
-logging_handler::iterator
-logging_handler::begin()
+boost::signals2::connection
+logging_handler::register_handler( handler_type::slot_type subscriber )
 {
-    return loggers_.begin();
-}
-
-logging_handler::iterator
-logging_handler::end()
-{
-    return loggers_.end();
-}
-
-size_t
-logging_handler::size() const
-{
-    return loggers_.size();
+    return logger_.connect( subscriber );
 }
 
 void
-logging_handler::appendLog( int pri, const std::string& msg, const std::string& file, int line
+logging_handler::appendLog( int pri
+                            , const std::string& msg
+                            , const std::string& file
+                            , int line
                             , const std::chrono::system_clock::time_point& tp  )
 {
-    for ( auto& client: *this )
-        client( pri, msg, file, line, tp );
+    // forward (for graphical logging display on qtplatz)
+    logger_( pri, msg, file, line, tp );
     
 	std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
-    of << adportable::date_string::logformat( tp ) << ":\t" << file << "(" << line << "): " << msg << std::endl;
+    of << adportable::date_string::logformat( tp ) << ":[" << __pid << "]\t" << msg << std::endl;
 
-    adportable::debug() << adportable::date_string::logformat( tp ) << ":\t" << file << "(" << line << "): " << msg;
+    adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
 }
 
 void
 logging_handler::close()
 {
-	loggers_.clear();
-}
-
-// static -- invoke from adportable::core::debug_core
-void
-logging_handler::log( int pri, const std::string& msg, const std::string& file, int line )
-{
-    auto tp = std::chrono::system_clock::now();
-    for ( auto& client : *logging_handler::instance() )
-        client( pri, msg, file, line, tp );
 }
 

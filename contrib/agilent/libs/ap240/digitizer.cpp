@@ -112,7 +112,7 @@ namespace ap240 {
                                     , const char * __file__, int __line__, const char * __function__ ) {
 
                 if ( st != VI_SUCCESS )
-                    adlog::logger(__file__,__line__,adlog::LOG_WARN) << " " << __function__ << ":" << error_msg( st, text, instId );
+                    ADWARN() << error_msg( st, text, instId );
 
                 return false;
             }

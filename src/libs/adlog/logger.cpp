@@ -33,10 +33,12 @@
 
 using namespace adlog;
 
-logger::logger( const char * file, int line, int pri ) : pri_( pri )
-                                                       , line_(line)
-                                                       , file_(file == 0 ? "" : file)
-                                                       , tp_( std::chrono::system_clock::now() )
+logger::logger( const char * file
+                , int line
+                , int pri ) : pri_( pri )
+                            , line_(line)
+                            , file_(file == 0 ? "" : file)
+                            , tp_( std::chrono::system_clock::now() )
 {
 }
 
