@@ -111,7 +111,7 @@ namespace adcontrols {
                 return ( boost::format("%.2f") % t.value ).str();
             };
 
-            std::string operator()( const elapsed_time_type& t ) const {
+            std::string operator()( const duration_type& t ) const {
                 return ( boost::format("%.3f") % t.value ).str();
             };
             

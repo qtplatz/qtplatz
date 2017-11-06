@@ -162,7 +162,7 @@ namespace adwidgets {
     }
 
     template<> void
-    TimedEventsWidget_painter::operator()( const adcontrols::ControlMethod::elapsed_time_type& value ) const {
+    TimedEventsWidget_painter::operator()( const adcontrols::ControlMethod::duration_type& value ) const {
         assert( index_.column() == TimedEventsWidget::impl::c_value );
         painter_->drawText( option_.rect
                             , option_.displayAlignment
@@ -203,7 +203,7 @@ namespace adwidgets {
     struct TimedEventsWidget_displayValue : boost::static_visitor< QVariant > {
         template< typename T > QVariant operator()( const T& t ) const { return QVariant( t.value ); } // voltage, switch & choice may handle here
     };
-    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::elapsed_time_type& t ) const {
+    template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::duration_type& t ) const {
         return t.value;  // seconds 
     }
     template<> QVariant TimedEventsWidget_displayValue::operator()( const adcontrols::ControlMethod::delay_width_type& t ) const {    
@@ -275,17 +275,17 @@ namespace adwidgets {
     }
 
     template<> void
-    TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::elapsed_time_type& t ) const
+    TimedEventsWidget_setModelData::operator()( const adcontrols::ControlMethod::duration_type& t ) const
     {
         auto value = index_.data( Qt::UserRole + 1 ).value< EventCap::value_type >();
         if ( value.empty() )
             value = t;
         if ( auto editor = qobject_cast<QDoubleSpinBox *>( editor_ ) ) {
-            boost::get< adcontrols::ControlMethod::elapsed_time_type >( value ) = editor->value();
+            boost::get< adcontrols::ControlMethod::duration_type >( value ) = editor->value();
             QVariant v;
             v.setValue<>( value );
             model_->setData( index_, v, Qt::UserRole + 1 );
-            const auto& xvalue = boost::get< adcontrols::ControlMethod::elapsed_time_type >( value );
+            const auto& xvalue = boost::get< adcontrols::ControlMethod::duration_type >( value );
             model_->setData( index_, xvalue.value, Qt::DisplayRole );
         }
     }

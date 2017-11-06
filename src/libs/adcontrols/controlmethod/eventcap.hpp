@@ -46,11 +46,11 @@ namespace adcontrols {
             voltage_type( const voltage_type& t ) : value( t.value ), limits( t.limits ) {}
         };
 
-        struct ADCONTROLSSHARED_EXPORT elapsed_time_type {
+        struct ADCONTROLSSHARED_EXPORT duration_type {
             double value;
             std::pair< double, double > limits;
-            elapsed_time_type( double _1 = 0, std::pair<double, double>&& _2 = { 0,0 } ) : value( _1 ), limits( _2 ) {}
-            elapsed_time_type( const voltage_type& t ) : value( t.value ), limits( t.limits ) {}
+            duration_type( double _1 = 0, std::pair<double, double>&& _2 = { 0,0 } ) : value( _1 ), limits( _2 ) {}
+            duration_type( const duration_type& t ) : value( t.value ), limits( t.limits ) {}
         };
 
         struct ADCONTROLSSHARED_EXPORT switch_type {
@@ -83,7 +83,7 @@ namespace adcontrols {
         
         class ADCONTROLSSHARED_EXPORT EventCap {
         public:
-            typedef boost::variant< elapsed_time_type, voltage_type, switch_type, choice_type, delay_width_type, any_type > value_type;
+            typedef boost::variant< duration_type, voltage_type, switch_type, choice_type, delay_width_type, any_type > value_type;
             typedef std::function< void( const any_type& ) > commit_type;
 
             EventCap();

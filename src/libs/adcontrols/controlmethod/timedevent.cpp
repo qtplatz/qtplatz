@@ -40,7 +40,7 @@ namespace adcontrols {
     namespace ControlMethod {
 
         template<class Archive>
-        void serialize( Archive& ar, adcontrols::ControlMethod::elapsed_time_type& _, const unsigned int ) {
+        void serialize( Archive& ar, adcontrols::ControlMethod::duration_type& _, const unsigned int ) {
             ar & BOOST_SERIALIZATION_NVP( _.value );
             ar & BOOST_SERIALIZATION_NVP( _.limits );
         }
