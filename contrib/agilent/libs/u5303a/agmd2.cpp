@@ -65,8 +65,13 @@ AgMD2::~AgMD2()
 bool
 AgMD2::InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options )
 {
-    return log( AgMD2_InitWithOptions( const_cast< char *>(resource.c_str())
-                                       , idQuery, reset, options.c_str(), &session_ ), __FILE__, __LINE__ );
+    auto rcode = AgMD2_InitWithOptions( const_cast< char *>(resource.c_str())
+                                        , idQuery
+                                        , reset
+                                        , options.c_str()
+                                        , &session_ );
+    // AgMD2_InitWithOptions -- method output some stray on stdout
+    return log( rcode, __FILE__, __LINE__ );
 }
         
 bool

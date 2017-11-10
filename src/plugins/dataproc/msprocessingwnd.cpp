@@ -1642,28 +1642,34 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
     if ( ptr && ptr->isCentroid() ) {
 
         std::shared_ptr< adcontrols::MSPeakInfo > xpkinfo;
-        auto pkinfo = pkinfo_.second.lock();
 
-        for ( const auto& pkseg: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
+        if ( auto pkinfo = pkinfo_.second.lock() ) {
 
-            adcontrols::MSPeakInfo xInfo;
+            for ( const auto& pkseg: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
+
+                adcontrols::MSPeakInfo xInfo;
             
-            auto beg = std::lower_bound( pkseg.begin(), pkseg.end(), left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
-                    return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
-            if ( beg != pkseg.end() ) {
-                auto end = std::lower_bound( pkseg.begin(), pkseg.end(), right, [&]( const adcontrols::MSPeakInfoItem& a, const double& right ) {
-                        return ( axis == adcontrols::hor_axis_mass ) ? right < a.mass() : right < a.time(); });
-                xInfo.setMode( pkseg.mode() );
-                xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
-                std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){ xInfo << a; } );
-                if ( ! xpkinfo )
-                    xpkinfo = std::make_shared< adcontrols::MSPeakInfo >( xInfo );
-                else
-                    xpkinfo->addSegment( xInfo );
+                auto beg = std::lower_bound( pkseg.begin(), pkseg.end(), left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
+                        return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
+
+                if ( beg != pkseg.end() ) {
+                    auto end = std::lower_bound( beg, pkseg.end(), right, [&]( const adcontrols::MSPeakInfoItem& a, const double& right ) {
+                            return ( axis == adcontrols::hor_axis_mass ) ? right < a.mass() : right < a.time(); });
+
+                    xInfo.setMode( pkseg.mode() );
+                    xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
+                    std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){ xInfo << a; } );
+                    if ( ! xpkinfo )
+                        xpkinfo = std::make_shared< adcontrols::MSPeakInfo >( xInfo );
+                    else
+                        xpkinfo->addSegment( xInfo );
+                }
             }
         }
         
         if ( xpkinfo ) {
+            
+
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto file = processor->rawdata() ) {
                     if ( file->dataformat_version() >= 3 ) {
