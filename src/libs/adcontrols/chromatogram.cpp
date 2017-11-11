@@ -698,29 +698,29 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     size_t pos0 = std::distance( pImpl_->timeArray_.begin(), it0 );
     size_t pos1 = std::distance( pImpl_->timeArray_.begin(), it1 );
 
-    pk.startPos( int(pos0), pImpl_->dataArray_.at( pos0 ) );
-    pk.endPos( int(pos1), pImpl_->dataArray_.at( pos1 ) );
+    pk.setStartPos( int(pos0), pImpl_->dataArray_.at( pos0 ) );
+    pk.setEndPos( int(pos1), pImpl_->dataArray_.at( pos1 ) );
 
     double area = std::accumulate( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1, 0.0 );
     double height = *std::max_element( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1 );
     
-    pk.startTime( t0 );
-    pk.endTime( t1 );
-    pk.peakTime( t0 + ( t1 - t0 ) / 2.0 );
-    pk.peakArea( area );
-    pk.peakHeight( height );
-    pk.name( L"added" );
+    pk.setStartTime( t0 );
+    pk.setEndTime( t1 );
+    pk.setPeakTime( t0 + ( t1 - t0 ) / 2.0 );
+    pk.setPeakArea( area );
+    pk.setPeakHeight( height );
+    pk.setName( "added" );
 
-    bs.startHeight( 0 );
-    bs.stopHeight( 0 );
-    bs.startPos( pk.startPos() );
-    bs.stopPos( pk.endPos() );
-    bs.startTime( t0 );
-    bs.stopTime( t1 );
-    bs.manuallyModified( true );
+    bs.setStartHeight( 0 );
+    bs.setStopHeight( 0 );
+    bs.setStartPos( pk.startPos() );
+    bs.setStopPos( pk.endPos() );
+    bs.setStartTime( t0 );
+    bs.setStopTime( t1 );
+    bs.setManuallyModified( true );
 
     int bsid = result.baselines().add( bs );
-    pk.baseId( bsid );
+    pk.setBaseId( bsid );
 
     result.peaks().add( pk );
     

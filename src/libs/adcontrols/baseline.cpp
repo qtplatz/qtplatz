@@ -58,7 +58,7 @@ Baseline::baseId() const
 }
 
 void
-Baseline::baseId( long value )
+Baseline::setBaseId( long value )
 {
     baseId_ = value;
 }
@@ -70,7 +70,7 @@ Baseline::startPos() const
 }
 
 void
-Baseline::startPos( long value )
+Baseline::setStartPos( long value )
 {
     startPos_ = value;
 }
@@ -82,7 +82,7 @@ Baseline::stopPos() const
 }
 
 void
-Baseline::stopPos( long value )
+Baseline::setStopPos( long value )
 {
     stopPos_ = value;
 }
@@ -95,7 +95,7 @@ Baseline::isManuallyModified() const
 }
 
 void
-Baseline::manuallyModified( bool f )
+Baseline::setManuallyModified( bool f )
 {
     manuallyModified_ = f;
 }
@@ -125,25 +125,25 @@ Baseline::stopTime() const
 }
     
 void
-Baseline::startHeight( double value )
+Baseline::setStartHeight( double value )
 {
     startHeight_ = value;
 }
 
 void
-Baseline::stopHeight( double value )
+Baseline::setStopHeight( double value )
 {
     stopHeight_ = value;
 }
 
 void
-Baseline::startTime( const seconds_t& value )
+Baseline::setStartTime( const seconds_t& value )
 {
     startTime_ = value;
 }
 
 void
-Baseline::stopTime( const seconds_t& value )
+Baseline::setStopTime( const seconds_t& value )
 {
     stopTime_ = value;
 }

@@ -206,7 +206,7 @@ PeakTable::add( const adcontrols::Peak& peak )
     model.setRowCount( row + 1 );
     
     model.setData( model.index( row, c_id ), static_cast< int >( peak.peakId() ) );
-    model.setData( model.index( row, c_name ), QString::fromStdWString( peak.name() ) );
+    model.setData( model.index( row, c_name ), QString::fromStdString( peak.name() ) );
     model.setData( model.index( row, c_tr ), static_cast<double>( peak.peakTime() ), Qt::EditRole );
    // model.setData( model.index( row, c_tr ), static_cast<double>( adcontrols::timeutil::toMinutes( peak.peakTime() ) ), Qt::EditRole );
     model.setData( model.index( row, c_area ), peak.peakArea(), Qt::EditRole );
@@ -215,6 +215,7 @@ PeakTable::add( const adcontrols::Peak& peak )
     model.setData( model.index( row, c_ntp ), peak.theoreticalPlate().ntp(), Qt::EditRole );
     model.setData( model.index( row, c_rs ), peak.resolution().resolution(), Qt::EditRole );
     model.setData( model.index( row, c_asymmetry ), peak.asymmetry().asymmetry(), Qt::EditRole );
+    model.setData( model.index( row, c_capacityfactor ), peak.capacityFactor(), Qt::EditRole );
 
     for ( int column = 0; column < model.columnCount(); ++column ) {
         model.itemFromIndex( model.index( row, column ) )->setSelectable( true );

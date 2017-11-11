@@ -47,7 +47,7 @@ Baselines::add( const Baseline& t )
     baselines_.push_back( t );
 
 	Baseline& bs = baselines_.back();
-	bs.baseId( nextId_++ );
+	bs.setBaseId( nextId_++ );
 	return bs.baseId();
 }
 

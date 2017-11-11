@@ -550,9 +550,9 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotatio
     double tR = peak.peakTime();
     
     int pri = 0;
-    std::wstring label = peak.name();
+    std::string label = peak.name();
     if ( label.empty() )
-        label = ( boost::wformat( L"%.4lf" ) % tR ).str();
+        label = ( boost::format( "%.4lf" ) % tR ).str();
 
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
     

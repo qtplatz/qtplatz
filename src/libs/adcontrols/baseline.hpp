@@ -42,26 +42,26 @@ namespace adcontrols {
         Baseline( const Baseline& );
         
         long baseId() const;
-        void baseId( long );
+        void setBaseId( long );
 
         long startPos() const;
-        void startPos( long );
+        void setStartPos( long );
        
         long stopPos() const;
-        void stopPos( long );
+        void setStopPos( long );
 
         bool isManuallyModified() const;
-        void manuallyModified( bool );
+        void setManuallyModified( bool );
 
         double startHeight() const;
         double stopHeight() const;
         seconds_t   startTime() const;
         seconds_t   stopTime() const;
     
-        void startHeight( double );
-        void stopHeight( double );
-        void startTime( const seconds_t& );
-        void stopTime( const seconds_t& );
+        void setStartHeight( double );
+        void setStopHeight( double );
+        void setStartTime( const seconds_t& );
+        void setStopTime( const seconds_t& );
 
         double height(int pos) const;
     private:

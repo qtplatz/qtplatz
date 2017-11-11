@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -44,6 +44,7 @@
 #include <adcontrols/peak.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/baseline.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/moment.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/profile.hpp>
@@ -417,11 +418,13 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
     using adcontrols::Peaks;
     using adcontrols::Peak;
 
+    ADDEBUG() << "updatePeakParameters method t0 = " << method.t0();
+
     long id = 0;
     for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
 
         Peak& pk = *it;
-        pk.peakId( id++ );
+        pk.setPeakId( id++ );
 
         peakHelper::tRetention_lsq( rdata_, pk ) || peakHelper::tRetention_moment( rdata_, pk );
 
@@ -436,7 +439,7 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
 
         // k'
 		if ( method.t0() >= 0.001 )
-			pk.capacityFactor( ( pk.peakTime() - method.t0() ) / method.t0() );
+			pk.setCapacityFactor( ( pk.peakTime() - method.t0() ) / method.t0() );
 	}
 }
 
@@ -676,7 +679,7 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
 
 				if ( boost::numeric::in<int>( pkIt->topPos(), interval ) ) {
 					int id = fixed.add( baselineHelper::baseline( rdata_, pkIt->startPos(), pkIt->endPos() ) );
-					pkIt->baseId( id );
+					pkIt->setBaseId( id );
 				}
 
 			}
@@ -716,13 +719,13 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 					long newId = fixed.add( baselineHelper::baseline(rdata_, (*ppk)->startPos(), bs.stopPos()) );
 
 					// modify current baseline
-					bs.stopPos((*ppk)->startPos());
-					bs.stopTime((*ppk)->startTime());
-					bs.stopHeight((*ppk)->startHeight());
+					bs.setStopPos((*ppk)->startPos());
+					bs.setStopTime((*ppk)->startTime());
+					bs.setStopHeight((*ppk)->startHeight());
 
                     while ( fixup != ppk )
-                        (*fixup++)->baseId(newId);
-					(*fixup++)->baseId( newId ); // := ppk
+                        (*fixup++)->setBaseId(newId);
+					(*fixup++)->setBaseId( newId ); // := ppk
 					res = true;
 				}
 
@@ -740,12 +743,12 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 
 					// modify current baseline
                     while ( fixup != ppk )
-                        (*fixup++)->baseId(newId);
-					(*fixup++)->baseId( newId ); // := ppk
+                        (*fixup++)->setBaseId(newId);
+					(*fixup++)->setBaseId( newId ); // := ppk
 
-					bs.startPos( (*ppk)->endPos() );
-					bs.startTime( (*ppk)->endTime() );
-                    bs.startHeight( (*ppk)->endHeight() );
+					bs.setStartPos( (*ppk)->endPos() );
+					bs.setStartTime( (*ppk)->endTime() );
+                    bs.setStartHeight( (*ppk)->endHeight() );
 
 					res = true; //
 				}
@@ -771,10 +774,10 @@ Integrator::impl::assignBaseline()
         // Baselines::vector_type::iterator pbs = Baseline::findPos( baselines_, pk.topPos() );
         Baselines::vector_type::iterator bsIt = std::find_if( baselines_.begin(), baselines_.end(), boost::bind( &Baseline::startPos, _1 ) >= pk.topPos() );
         if ( bsIt != baselines_.end() && bsIt->stopPos() < pk.topPos() ) {
-			pk.baseId( bsIt->baseId() );
+			pk.setBaseId( bsIt->baseId() );
         } else {
             long id = baselines_.add( baselineHelper::baseline(rdata_, pk.startPos(), pk.endPos()) );
-			pk.baseId(id);
+			pk.setBaseId(id);
 		}
 	}
 }
@@ -803,13 +806,13 @@ Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
         }
         if ( xpos != rpk->endPos() ) {
             // move peak end point
-            rpk->endPos( xpos, rdata_.getIntensity( xpos ) );
-            rpk->endTime( rdata_.getTime( xpos ) );
+            rpk->setEndPos( xpos, rdata_.getIntensity( xpos ) );
+            rpk->setEndTime( rdata_.getTime( xpos ) );
             
             // move baseline stop point
-            bs.stopPos( rpk->endPos() );
-            bs.stopTime( rpk->endTime() );
-            bs.stopHeight( rpk->endHeight() );
+            bs.setStopPos( rpk->endPos() );
+            bs.setStopTime( rpk->endTime() );
+            bs.setStopHeight( rpk->endHeight() );
         }
         
     } else { // up slope, check front side
@@ -830,13 +833,13 @@ Integrator::impl::fixupPenetration( adcontrols::Baseline & bs)
         }
         
         if ( xpos != ipk->startPos() ) {
-            ipk->startPos( xpos, rdata_.getIntensity( xpos ) );
-            ipk->startTime( rdata_.getTime( xpos ) );
+            ipk->setStartPos( xpos, rdata_.getIntensity( xpos ) );
+            ipk->setStartTime( rdata_.getTime( xpos ) );
             
             // move baseline stop point
-            bs.startPos( ipk->endPos() );
-            bs.startTime( ipk->endTime() );
-            bs.startHeight( ipk->endHeight() );
+            bs.setStartPos( ipk->endPos() );
+            bs.setStartTime( ipk->endTime() );
+            bs.setStartHeight( ipk->endHeight() );
         }
     }
 }
@@ -896,7 +899,7 @@ peakHelper::tRetention_lsq(  const integrator::chromatogram& c, adcontrols::Peak
         double b = r[1];
         double c = r[2];
         double tR = (-b) / 2 / c;
-		pk.peakTime( tR );
+		pk.setPeakTime( tR );
         (void)a;
 
         adcontrols::RetentionTime tr;
@@ -931,7 +934,7 @@ peakHelper::tRetention_moment(  const integrator::chromatogram& c, adcontrols::P
     double threshold = pk.topHeight() - h * 0.5;
 
     double cx = moment.centreX( &c.v_[ 0 ], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
-    pk.peakTime( cx );
+    pk.setPeakTime( cx );
 
     adcontrols::RetentionTime tr;
     tr.setAlgorithm( adcontrols::RetentionTime::Moment );
@@ -981,8 +984,8 @@ peakHelper::updateAreaHeight( const integrator::chromatogram& c, const adcontrol
         if ( h >= 0.0 )
             area += h * w;
     }
-    pk.peakArea( area );
-    pk.peakHeight( height );
+    pk.setPeakArea( area );
+    pk.setPeakHeight( height );
 }
 
 adcontrols::Peak
@@ -990,14 +993,14 @@ peakHelper::peak( const chromatogr::integrator::chromatogram& c, int spos, int t
 {
     adcontrols::Peak pk;
 
-    pk.startPos( spos, c.getIntensity( spos ) );
-    pk.topPos( tpos, c.getIntensity( tpos ) );
-    pk.endPos( epos, c.getIntensity( epos ) );
-    pk.peakFlags( flags );
+    pk.setStartPos( spos, c.getIntensity( spos ) );
+    pk.setTopPos( tpos, c.getIntensity( tpos ) );
+    pk.setEndPos( epos, c.getIntensity( epos ) );
+    pk.setPeakFlags( flags );
 
-    pk.startTime( c.getTime( spos ) );
-    pk.peakTime( c.getTime( tpos ) );
-    pk.endTime( c.getTime( epos ) );
+    pk.setStartTime( c.getTime( spos ) );
+    pk.setPeakTime( c.getTime( tpos ) );
+    pk.setEndTime( c.getTime( epos ) );
 
     return pk;
 }
@@ -1011,7 +1014,7 @@ peakHelper::peak_width( const adcontrols::PeakMethod&, const integrator::chromat
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
     double width = moment.width( &c.v_[0], threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     
-    pk.peakWidth( width );
+    pk.setPeakWidth( width );
     
     return true;
 }
@@ -1061,12 +1064,12 @@ baselineHelper::baseline( const chromatogr::integrator::chromatogram& c, int spo
 {
     adcontrols::Baseline bs;
 
-    bs.startPos( spos );
-    bs.stopPos( epos );
-    bs.startTime( c.getTime( spos ) );
-    bs.stopTime( c.getTime( epos ) );
-    bs.startHeight( c.getIntensity( spos ) );
-    bs.stopHeight( c.getIntensity( epos ) ) ;
+    bs.setStartPos( spos );
+    bs.setStopPos( epos );
+    bs.setStartTime( c.getTime( spos ) );
+    bs.setStopTime( c.getTime( epos ) );
+    bs.setStartHeight( c.getIntensity( spos ) );
+    bs.setStopHeight( c.getIntensity( epos ) ) ;
 
     return bs;
 }

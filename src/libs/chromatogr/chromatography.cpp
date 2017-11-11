@@ -169,8 +169,8 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
     peaks_.areaTotal( areaTotal );
 
 	for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
-		it->percentArea(  ( it->peakArea() / areaTotal ) * 100 );
-		it->percentHeight( ( it->peakHeight() / heightTotal ) * 100 );
+		it->setPercentArea(  ( it->peakArea() / areaTotal ) * 100 );
+		it->setPercentHeight( ( it->peakHeight() / heightTotal ) * 100 );
 	}
 
     return true;

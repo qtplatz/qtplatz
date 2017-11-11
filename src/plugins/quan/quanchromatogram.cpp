@@ -118,8 +118,8 @@ QuanChromatogram::identify( const adcontrols::QuanCompounds& cmpds, const std::s
                 break;
         }
         if ( pk->startTime() < refSeconds && refSeconds < pk->endTime() ) {
-            pk->formula( formula.c_str() );
-            pk->name( adc::ChemicalFormula::formatFormula( adportable::utf::to_wstring( pk->formula() ) ) );
+            pk->setFormula( formula.c_str() );
+            pk->setName( adc::ChemicalFormula::formatFormula( pk->formula() ) );
             peakId_ = pk->peakId();
         }
     }

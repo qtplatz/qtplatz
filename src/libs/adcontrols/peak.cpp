@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "peak.hpp"
+#include <adportable/debug.hpp>
+
 using namespace adcontrols;
 
 Peak::~Peak()
@@ -97,7 +99,7 @@ Peak::parentId() const
 }
 
 void
-Peak::parentId(int32_t id)
+Peak::setParentId(int32_t id)
 {
     parentId_ = id;
 }
@@ -109,7 +111,7 @@ Peak::baseId() const
 }
 
 void
-Peak::baseId(int32_t id)
+Peak::setBaseId(int32_t id)
 {
     baseid_ = id;
 }
@@ -121,7 +123,7 @@ Peak::peakId() const
 }
 
 void
-Peak::peakId(int32_t id)
+Peak::setPeakId(int32_t id)
 {
     peakid_ = id;
 }
@@ -130,7 +132,7 @@ Peak::peakId(int32_t id)
 // void UserData(int32_t);
 
 void
-Peak::peakFlags(uint32_t v )
+Peak::setPeakFlags(uint32_t v )
 {
     peak_flags_ = v;
 }
@@ -141,14 +143,14 @@ Peak::peakFlags() const
     return peak_flags_;
 }
 
-const std::wstring&
+const std::string&
 Peak::name() const
 {
     return name_;
 }
 
 void
-Peak::name( const std::wstring& name )
+Peak::setName( const std::string& name )
 {
     name_ = name;
 }
@@ -160,7 +162,7 @@ Peak::formula() const
 }
 
 void
-Peak::formula( const char * formula )
+Peak::setFormula( const char * formula )
 {
     formula_ = formula ? formula : "";
 }
@@ -184,7 +186,7 @@ Peak::appliedFunctions() const
 }
 
 void
-Peak::appliedFunctions( int32_t value )
+Peak::setAppliedFunctions( int32_t value )
 {
     appliedFunctions_ = value;
 }
@@ -208,21 +210,21 @@ Peak::endPos() const
 }
 
 void
-Peak::startPos( int32_t pos, peakheight_t h )
+Peak::setStartPos( int32_t pos, peakheight_t h )
 {
     startPos_ = pos;
     startHeight_ = h;
 }
 
 void
-Peak::topPos(int32_t pos,   peakheight_t h)
+Peak::setTopPos(int32_t pos,   peakheight_t h)
 {
     topPos_ = pos;
     topHeight_ = h;
 }
 
 void
-Peak::endPos(int32_t pos,   peakheight_t h)
+Peak::setEndPos(int32_t pos, peakheight_t h )
 {
     endPos_ = pos;
     endHeight_ = h;
@@ -235,7 +237,7 @@ Peak::startTime() const
 }
 
 void
-Peak::startTime( seconds_t newTime)
+Peak::setStartTime( seconds_t newTime )
 {
     startTime_ = newTime;
 }
@@ -247,7 +249,7 @@ Peak::peakTime() const
 }
 
 void
-Peak::peakTime( seconds_t newTime)
+Peak::setPeakTime( seconds_t newTime )
 {
     peakTime_ = newTime;
 }
@@ -259,7 +261,7 @@ Peak::endTime() const
 }
 
 void
-Peak::endTime( seconds_t newTime)
+Peak::setEndTime( seconds_t newTime )
 {
     endTime_ = newTime;
 }
@@ -289,7 +291,7 @@ Peak::peakArea() const
 }
 
 void
-Peak::peakArea( double value )
+Peak::setPeakArea( double value )
 {
     peakArea_ = value;
 }
@@ -301,7 +303,7 @@ Peak::peakHeight() const
 }
 
 void
-Peak::peakHeight( double value )
+Peak::setPeakHeight( double value )
 {
     peakHeight_ = value;
 }
@@ -313,9 +315,10 @@ Peak::capacityFactor() const
 }
 
 void
-Peak::capacityFactor( double value )
+Peak::setCapacityFactor( double value )
 {
     capacityFactor_ = value;
+    ADDEBUG() << "capacityFactor = " << value;
 }
 
 double
@@ -325,7 +328,7 @@ Peak::peakWidth() const
 }
 
 void
-Peak::peakWidth( double value )
+Peak::setPeakWidth( double value )
 {
     peakWidth_ = value;
 }
@@ -337,7 +340,7 @@ Peak::peakAmount() const
 }
 
 void
-Peak::peakAmount( double value )
+Peak::setPeakAmount( double value )
 {
     peakAmount_ = value;
 }
@@ -349,7 +352,7 @@ Peak::peakEfficiency() const
 }
 
 void
-Peak::peakEfficiency( double value )
+Peak::setPeakEfficiency( double value )
 {
     peakEfficiency_ = value;
 }
@@ -361,7 +364,7 @@ Peak::percentArea() const
 }
 
 void
-Peak::percentArea( double value )
+Peak::setPercentArea( double value )
 {
     percentArea_ = value;
 }
@@ -373,7 +376,7 @@ Peak::percentHeight() const
 }
 
 void
-Peak::percentHeight( double value )
+Peak::setPercentHeight( double value )
 {
     percentHeight_ = value;
 }
@@ -385,7 +388,7 @@ Peak::isManuallyModified() const
 }
 
 void
-Peak::manuallyModified( bool f )
+Peak::setManuallyModified( bool f )
 {
     manuallyModified_ = f;
 }

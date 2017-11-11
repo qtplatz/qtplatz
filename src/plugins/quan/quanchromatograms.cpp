@@ -393,8 +393,8 @@ QuanChromatograms::finalize( std::function<spectra_type(uint32_t)> read )
             auto maxIt = std::max_element( xpeaks.begin(), xpeaks.end()
                                            , []( const adcontrols::Peak * a, const adcontrols::Peak * b ){ return a->peakHeight() < b->peakHeight(); } );
             
-            ( *maxIt )->formula( c->formula().c_str() );
-            ( *maxIt )->name( adcontrols::ChemicalFormula::formatFormula( adportable::utf::to_wstring( c->formula() ) ) );
+            ( *maxIt )->setFormula( c->formula().c_str() );
+            ( *maxIt )->setName( adcontrols::ChemicalFormula::formatFormula( c->formula() ) );
         }
     } // for peaks
 }

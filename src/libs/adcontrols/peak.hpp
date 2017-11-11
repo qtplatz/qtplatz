@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,68 +48,73 @@ namespace adcontrols {
         typedef double peakheight_t;
     public:
         std::int32_t parentId() const;
-        void parentId(std::int32_t id);
+        void setParentId(std::int32_t id);
+        
         std::int32_t baseId() const;
-        void baseId(std::int32_t id);
+        void setBaseId(std::int32_t id);
+        
         std::int32_t peakId() const;
-        void peakId(std::int32_t id);
+        void setPeakId(std::int32_t id);
 
-        void peakFlags(std::uint32_t);
         std::uint32_t peakFlags() const;
+        void setPeakFlags(std::uint32_t);
 
-        const std::wstring& name() const;
-        void  name(const std::wstring& );
+        const std::string& name() const;
+        void  setName(const std::string& );
 
         const char * formula() const;
-        void  formula(const char * );
+        void  setFormula(const char * );
            
         std::int32_t  appliedFunctions() const;
-        void  appliedFunctions( std::int32_t );
+        void  setAppliedFunctions( std::int32_t );
+        
         std::int32_t  startPos() const;
         std::int32_t  topPos() const;
         std::int32_t  endPos() const;
 
-        void  startPos(std::int32_t pos, peakheight_t h);
-        void  topPos(std::int32_t pos,   peakheight_t h);
-        void  endPos(std::int32_t pos,   peakheight_t h);
+        void  setStartPos(std::int32_t pos, peakheight_t h);
+        void  setTopPos(std::int32_t pos,   peakheight_t h);
+        void  setEndPos(std::int32_t pos,   peakheight_t h);
 
         seconds_t startTime() const;
-        void   startTime( seconds_t newTime);
+        void   setStartTime( seconds_t newTime);
+
         seconds_t peakTime() const;
-        void   peakTime( seconds_t newTime);
+        void   setPeakTime( seconds_t newTime );
+        
         seconds_t endTime() const;
-        void   endTime( seconds_t newTime);
+        void   setEndTime( seconds_t newTime);
 
         double startHeight() const;
         double topHeight() const;
         double endHeight() const;
 
         double peakArea() const;
-        void peakArea( double );
+        void setPeakArea( double );
 
         double peakHeight() const;
-        void peakHeight( double );
+        void setPeakHeight( double );
 
         double capacityFactor() const;
-        void capacityFactor( double );
+        void setCapacityFactor( double );
 
         double peakWidth() const;
-        void peakWidth( double );
+        void setPeakWidth( double );
 
         double peakAmount() const;
-        void peakAmount( double );
+        void setPeakAmount( double );
 
         double peakEfficiency() const;
-        void peakEfficiency( double );
+        void setPeakEfficiency( double );
 
         double percentArea() const;
-        void percentArea( double );
+        void setPercentArea( double );
 
         double percentHeight() const;
-        void percentHeight( double );
+        void setPercentHeight( double );
 
         bool isManuallyModified() const;
-        void manuallyModified( bool );
+        void setManuallyModified( bool );
 
         const PeakAsymmetry& asymmetry() const;
         const PeakResolution& resolution() const;
@@ -128,7 +133,7 @@ namespace adcontrols {
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
-        std::wstring name_;
+        std::string name_;          // UTF-8
         std::string formula_;
         std::int32_t parentId_;
         std::int32_t peakid_;
@@ -166,7 +171,12 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
-            ar & BOOST_SERIALIZATION_NVP( name_ );
+            if ( version < 3 ) {
+                std::wstring name;
+                ar & BOOST_SERIALIZATION_NVP( name ); // ignore it
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( name_ );
+            }
             ar & BOOST_SERIALIZATION_NVP( parentId_ );
             ar & BOOST_SERIALIZATION_NVP( peakid_ );
             ar & BOOST_SERIALIZATION_NVP( baseid_ );
@@ -207,4 +217,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::Peak, 2 )
+BOOST_CLASS_VERSION( adcontrols::Peak, 3 )
