@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -42,6 +42,7 @@
 #include <qwt_picker_machine.h>
 #include <qwt_painter.h>
 #include <qwt_plot_item.h>
+#include <qwt_raster_data.h>
 #include <QBrush>
 #include <QEvent>
 #include <QMouseEvent>
@@ -55,10 +56,13 @@ namespace adplot {
         
         class ColorMap: public QwtLinearColorMap {
         public:
-            ColorMap(): QwtLinearColorMap( Qt::darkBlue, Qt::red ) {
-                addColorStop( 0.1, Qt::cyan );
-                addColorStop( 0.7, Qt::green );
-                addColorStop( 0.95, Qt::yellow );
+            ColorMap(): QwtLinearColorMap( QColor(24,0,0), Qt::red ) {
+                addColorStop( 0.00, Qt::darkCyan );
+                addColorStop( 0.05, Qt::blue );
+                addColorStop( 0.35, Qt::cyan );
+                addColorStop( 0.60, Qt::green );
+                addColorStop( 0.75, Qt::yellow );
+                addColorStop( 0.97, Qt::red );
             }
         };
 
@@ -87,13 +91,6 @@ namespace adplot {
 					}
                     painter->restore();
                     
-                } else {
-                    int x0 = xMap.transform( 5.0 );
-                    int x1 = xMap.transform( 5.1 );
-                    int y0 = yMap.transform( 400.0 );
-                    int y1 = yMap.transform( 401.0 );
-                    QRect rc( x0, y0, x1 - x0, y1 - y0 );
-                    painter->fillRect( rc, QColor( 0xff, 0x00, 0x00, 0x80 ) ); 
                 }
             }
             std::weak_ptr< adcontrols::SpectrogramClusters > clusters_;
@@ -132,6 +129,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
 
 	setData( new SpectrogramData() );
     spectrogram_->attach( this );
+
     clusterMarker_->attach( this );
     clusterMarker_->setZ( spectrogram_->z() + 10 );
 
@@ -145,7 +143,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
     enableAxis( QwtPlot::yRight );
 
-    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( tr("Time[min]"), QwtText::RichText ) );
+    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( tr("Time[s]"), QwtText::RichText ) );
     axisWidget( QwtPlot::yLeft )->setTitle( QwtText( tr("<i>m/z</i>"), QwtText::RichText ) );
 
     QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );    

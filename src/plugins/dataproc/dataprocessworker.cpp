@@ -191,7 +191,7 @@ DataprocessWorker::createChromatogramsV2( Dataprocessor * processor
 }
 
 void
-DataprocessWorker::createSpectrogram( Dataprocessor* processor )
+DataprocessWorker::createContour( Dataprocessor* processor )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
@@ -219,7 +219,7 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
 }
 
 void
-DataprocessWorker::clusterSpectrogram( Dataprocessor * processor )
+DataprocessWorker::clusterContour( Dataprocessor * processor )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
 
@@ -624,7 +624,7 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
                 }
             }
         }
-        portfolio::Folium folium = processor->addSpectrogram( spectra );
+        portfolio::Folium folium = processor->addContour( spectra );
         SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }
     
@@ -670,7 +670,7 @@ DataprocessWorker::handleCreateSpectrogram3( Dataprocessor* processor
         }
         using adportable::utf;
         spectra->addDescription( adcontrols::description( L"Create", ( boost::wformat( L"%s,fcn(%d)" ) % utf::to_wstring( reader->display_name() ) % fcn ).str() ) );
-        portfolio::Folium folium = processor->addSpectrogram( spectra );
+        portfolio::Folium folium = processor->addContour( spectra );
         SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
@@ -738,7 +738,7 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
                 return true;
             });
         finder( *ptr, *clusters );
-        processor->addSpectrogramClusters( clusters );
+        processor->addContourClusters( clusters );
         // 
         start = std::chrono::steady_clock::now();
         // heap free checking on microsoft takes long time (more than 30 min for deleting 4000k objects)

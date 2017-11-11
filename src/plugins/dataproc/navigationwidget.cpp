@@ -760,7 +760,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
 
-                    menu.addAction( tr( "Create Spectrogram" ), [processor] () { processor->createSpectrogram(); } );
+                    menu.addAction( tr( "Create Contour" ), [processor] () { processor->createContour(); } );
                     menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) );
                     menu.addSeparator();                    
                 }

@@ -32,15 +32,15 @@ SpectrogramData::~SpectrogramData()
 
 SpectrogramData::SpectrogramData()
 {
-    setInterval( Qt::XAxis, QwtInterval( 0, 10.0 ) );   // time
-    setInterval( Qt::YAxis, QwtInterval( 0, 1000.0 ) ); // m/z
-    setInterval( Qt::ZAxis, QwtInterval( 0.0, 10000.0 ) );
+    setInterval( Qt::XAxis, QwtInterval( 0, 100.0, QwtInterval::ExcludeMaximum ) );   // time
+    setInterval( Qt::YAxis, QwtInterval( 0, 1000.0, QwtInterval::ExcludeMaximum ) ); // m/z
+    setInterval( Qt::ZAxis, QwtInterval( 0.0, 100.0 ) );
 }
 
 double
 SpectrogramData::value( double x, double y ) const
 {
-     return x * 10 + y;
+    return 0; //x < 1.0 ? 0.0 : x - 1.0;
 }
 
 QRectF

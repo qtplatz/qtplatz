@@ -291,7 +291,7 @@ MainWindow::createStyledBarTop()
             }
 #endif
 
-            if ( auto p = new QAction( tr("Spectrogram"), this ) ) {
+            if ( auto p = new QAction( tr("Contour"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
                 am->registerAction( p, "dataproc.selSpectrogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelSpectrogram ) ) );
@@ -454,7 +454,7 @@ MainWindow::createContents( Core::IMode * mode )
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("TOF Peaks") ), wnd.back() ) );
 
         wnd.push_back( new SpectrogramWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectrogram") ), wnd.back() ) );
+        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Contour") ), wnd.back() ) );
 
         wnd.push_back( new MSSpectraWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectra") ), wnd.back() ) );
@@ -725,7 +725,10 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
             if ( stack_->currentIndex() != idSelMSProcess &&
                  stack_->currentIndex() != idSelElementalComp &&  stack_->currentIndex() != idSelSpectra )
                 selPage( idSelMSProcess );
-        } else if ( folder.name() == L"Spectrograms" ) {
+        } else if ( folder.name() == L"Spectrograms" ) { // Contours
+            if ( stack_->currentIndex() != idSelSpectrogram )
+                selPage( idSelSpectrogram );
+        } else if ( folder.name() == L"Contours" ) { // Contours
             if ( stack_->currentIndex() != idSelSpectrogram )
                 selPage( idSelSpectrogram );
         } else if ( folder.name() == L"Chromatograms" ) {
@@ -955,6 +958,9 @@ MainWindow::OnInitialUpdate()
 
     for ( auto tabbar: findChildren< QTabBar * >() )
         tabbar->setStyleSheet( "QTabBar { font-size: 9pt; }" );
+
+    for ( auto table: findChildren< QTableView * >() )
+        table->setStyleSheet( "QTableView { font-size: 9pt; }" );
 #endif
 }
 
@@ -1226,7 +1232,7 @@ void
 MainWindow::actCreateSpectrogram()
 {
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-        processor->createSpectrogram();
+        processor->createContour();
     }
 }
 
@@ -1234,7 +1240,7 @@ void
 MainWindow::actClusterSpectrogram()
 {
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
-        processor->clusterSpectrogram();
+        processor->clusterContour();
 }
 
 QString

@@ -962,7 +962,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                         menu.actions().back()->setEnabled( false );
                     
                     menu.addAction( QString::fromStdString(
-                                        ( boost::format( "Select a spectrum @%.3f min" ) % rect.left() ).str() )
+                                        ( boost::format( "Select a spectrum @%.3f s" ) % rect.left() ).str() )
                                     , [&] () { document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); } );
                 }
             }

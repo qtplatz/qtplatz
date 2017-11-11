@@ -36,13 +36,14 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/spectrogram.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/array_wrapper.hpp>
-#include <adportfolio/folium.hpp>
-#include <adportfolio/folder.hpp>
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/spectrogramdata.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>
+#include <adportable/array_wrapper.hpp>
+#include <adportable/debug.hpp>
+#include <adportfolio/folium.hpp>
+#include <adportfolio/folder.hpp>
 #include <adwidgets/mspeaktable.hpp>
 #include <adwidgets/mslockdialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -120,6 +121,8 @@ SpectrogramWnd::init()
         QBoxLayout * layout = new QVBoxLayout( this );
         layout->addWidget( splitter ); 
     }
+
+    setStyleSheet( "background-color: rgb(24,0,0); color: green;" );
 }
 
 void
@@ -186,7 +189,7 @@ SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& foliu
 {
     portfolio::Folder folder = folium.parentFolder();
 
-    if ( folder && folder.name() == L"Spectrograms" ) {
+    if ( folder && ( ( folder.name() == L"Spectrograms" ) || ( folder.name() == L"Contours" ) ) ) {
         adcontrols::MassSpectraPtr ptr;
         if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
             foliumId_ = folium.id();
@@ -464,12 +467,8 @@ namespace dataproc {
             }
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
-#if 0       // normaize
-            m_ /= ( z_max / 1000.0 );
-            setInterval( Qt::ZAxis, QwtInterval( 0.0, 1000 ) );
-#else
+
             setInterval( Qt::ZAxis, QwtInterval( 0.0, z_max ) );
-#endif
         }
     }
 }

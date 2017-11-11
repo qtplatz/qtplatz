@@ -149,7 +149,7 @@ PeakTable::OnInitialUpdate()
 
     model.setHeaderData( c_id, Qt::Horizontal, QObject::tr("Id") );
     model.setHeaderData( c_name, Qt::Horizontal, QObject::tr("Name") );
-    model.setHeaderData( c_tr, Qt::Horizontal, QObject::tr("t<sub>R</sub>(min)") );
+    model.setHeaderData( c_tr, Qt::Horizontal, QObject::tr("t<sub>R</sub>(s)") );
     model.setHeaderData( c_area, Qt::Horizontal, QObject::tr("Area") );
     model.setHeaderData( c_height, Qt::Horizontal, QObject::tr("Height") );
     model.setHeaderData( c_width, Qt::Horizontal, QObject::tr("Width") );

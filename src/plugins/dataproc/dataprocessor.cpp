@@ -942,15 +942,15 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 }
 
 portfolio::Folium
-Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spectra )
+Dataprocessor::addContour( std::shared_ptr< adcontrols::MassSpectra > spectra )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
+    portfolio::Folder folder = portfolio_->addFolder( L"Contours" );
 
     const auto& desc = spectra->getDescriptions();
     std::wstring name = 
-        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Spectrogram " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text(); } );
+        std::accumulate( desc.begin(), desc.end(), std::wstring { L"Contour " }, [] ( const std::wstring& a, const adcontrols::description& b ) { return a + b.text(); } );
 
-    portfolio::Folium folium = folder.addFolium( name );  // "Spectrograms/Spectrogram"
+    portfolio::Folium folium = folder.addFolium( name );  // "Contours/Contour"
 	folium.assign( spectra, spectra->dataClass() );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
@@ -960,10 +960,10 @@ Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spect
 }
 
 portfolio::Folium
-Dataprocessor::addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramClusters >& clusters )
+Dataprocessor::addContourClusters( std::shared_ptr< adcontrols::SpectrogramClusters > clusters )
 {
-    portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
-    portfolio::Folium folium = folder.findFoliumByName( L"Spectrogram" );  // "Spectrograms/Spectrogram"
+    portfolio::Folder folder = portfolio_->addFolder( L"Contours" );
+    portfolio::Folium folium = folder.findFoliumByName( L"Contour" );  // "Contours/Contour"
     if ( folium ) {
         portfolio::Folium att = folium.addAttachment( L"Clusters" );
         att.assign( clusters, clusters->dataClass() );
@@ -975,16 +975,16 @@ Dataprocessor::addSpectrogramClusters( std::shared_ptr< adcontrols::SpectrogramC
 }
 
 void
-Dataprocessor::createSpectrogram()
+Dataprocessor::createContour()
 {
-	DataprocessWorker::instance()->createSpectrogram( this );
+	DataprocessWorker::instance()->createContour( this );
     setModified( true );
 }
 
 void
-Dataprocessor::clusterSpectrogram()
+Dataprocessor::clusterContour()
 {
-	DataprocessWorker::instance()->clusterSpectrogram( this );
+	DataprocessWorker::instance()->clusterContour( this );
     setModified( true );
 }
 

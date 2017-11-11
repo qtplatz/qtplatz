@@ -129,11 +129,11 @@ MassSpectra::setChromatogram( const Chromatogram& c )
 {
     x_.clear();
     if ( const double * tarray = c.getTimeArray() ) {
-        for ( size_t i = 0; i < c.size(); ++i )
-            x_.push_back( tarray[i] / 60.0 ); //--> min
+        x_.resize( c.size() );
+        std::copy( tarray, tarray + c.size(), x_.begin() ); // seconds
     } else {
         for ( size_t i = 0; i < c.size(); ++i )
-            x_.push_back( c.timeFromSampleIndex( i ) / 60.0 ); // --> min
+            x_.emplace_back( c.timeFromSampleIndex( i ) ); // seconds
     }
 }
 
