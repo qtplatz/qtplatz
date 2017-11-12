@@ -26,6 +26,7 @@
 #define PEAKMARKER_HPP
 
 #include "adplot_global.hpp"
+#include "constants.hpp"
 #include <memory>
 #include <array>
 #include <adcontrols/metric/prefix.hpp>
@@ -59,7 +60,8 @@ namespace adplot {
         void setPeak( const adcontrols::MassSpectrum&, int idx, bool isTime = false, adcontrols::metric::prefix pfx = adcontrols::metric::micro );
 
         // Chromatograpic peak
-        void setPeak( const adcontrols::Peak&, bool isMinutes = true, adcontrols::metric::prefix pfx = adcontrols::metric::base );
+        void setPeak( const adcontrols::Peak&
+                      , adplot::constants::chromatogram_time_spec spec = adplot::constants::default_chromatogram_time );
 
         void visible( bool );
 

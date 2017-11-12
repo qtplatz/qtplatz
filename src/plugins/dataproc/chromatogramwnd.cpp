@@ -78,15 +78,15 @@ namespace dataproc {
         Q_OBJECT
     public:
         ~impl() {
-            marker_.reset();
             delete chroWidget_;
             delete peakTable_;
         }
+        
         impl( ChromatogramWnd * p ) : QObject( p )
                                     , this_( p )
                                     , chroWidget_( new adplot::ChromatogramWidget )
                                     , peakTable_(new adwidgets::PeakTable)
-                                    , marker_( std::make_shared< adplot::PeakMarker >() ) {
+                                    , marker_( std::make_unique< adplot::PeakMarker >() ) {
 
             using adwidgets::PeakTable;
 
@@ -148,7 +148,7 @@ namespace dataproc {
         ChromatogramWnd * this_;
         adplot::ChromatogramWidget * chroWidget_;
         adwidgets::PeakTable * peakTable_;
-        std::shared_ptr< adplot::PeakMarker > marker_;
+        std::unique_ptr< adplot::PeakMarker > marker_;
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
         std::wstring idActiveFolium_;

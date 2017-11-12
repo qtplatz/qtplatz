@@ -923,6 +923,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
     std::wstring name = adcontrols::Chromatogram::make_folder_name( src.getDescriptions() );
+    ADDEBUG() << "addChromatogram: " << name;
 
     portfolio::Folium folium = folder.addFolium( name );
     adutils::ChromatogramPtr c( new adcontrols::Chromatogram( src ) );  // profile, deep copy
@@ -1426,13 +1427,13 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
         adutils::fsio::save_mscalibfile( dbf, calibResult );
     } catch ( std::exception& ex ) {
         QMessageBox::warning( 0, "saveMSCalibration"
-                              , (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
+                              , (boost::format("%1% @%2% L%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
     }
     try {
         adutils::fsio::save_mscalibfile( dbf, calibSpectrum );
     } catch ( std::exception& ex ) {
         QMessageBox::warning( 0, "saveMSCalibration"
-                              , (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
+                              , (boost::format("%1% @%2% L%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
     }
 
     // for debugging convension

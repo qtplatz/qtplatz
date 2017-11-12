@@ -287,7 +287,7 @@ document::load( const QString& filename, adcontrols::ProcessMethod& pm )
                         file.fetch( pm );
                     } catch ( std::exception& ex ) {
                         QMessageBox::information( 0, "dataproc -- Open default process method"
-                                                  , ( boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                                                  , ( boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% L%4%" )
                                                       % filename.toStdString() % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
                         return false;
                     }
@@ -295,7 +295,7 @@ document::load( const QString& filename, adcontrols::ProcessMethod& pm )
                 }
             } catch ( std::exception& ex ) { //boost::archive::archive_exception& ex ) {
                 QMessageBox::information( 0, "dataproc -- Open default process method"
-                                          , ( boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% #%4%" )
+                                          , ( boost::format( "Failed to open last used process method file: %1% by reason of %2% @ %3% L%4%" )
                                               % filename.toStdString() % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
             }
         }
@@ -504,10 +504,10 @@ document::onSelectSpectrum_v3( double /*minutes*/, adcontrols::DataReader_iterat
 
             std::wostringstream text;
             if ( iterator._fcn() < 0 )
-                text << boost::wformat ( L"%s #%d @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
+                text << boost::wformat ( L"%s %d @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
                     % iterator->pos() % ( iterator->time_since_inject() );
             else
-                text << boost::wformat ( L"%s #%d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
+                text << boost::wformat ( L"%s %d fcn[%d/%d] @ %.3lfs" ) % adportable::utf::to_wstring ( reader->display_name() )
                     % iterator->pos() % ms->protocolId() % ms->nProtocols()
                     % ( iterator->time_since_inject() );
 
@@ -538,7 +538,7 @@ document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
                     double t = dset->timeFromPos( pos );
                     if ( !adportable::compare<double>::approximatelyEqual( ms->getMSProperty().timeSinceInjection(), 0.0 ) )
                         t = ms->getMSProperty().timeSinceInjection();
-                    text << boost::wformat( L"Spectrum #%d fcn:%d/%d @ %.3lfs" ) % pos % ms->protocolId() % ms->nProtocols() % t;
+                    text << boost::wformat( L"Spectrum %d fcn:%d/%d @ %.3lfs" ) % pos % ms->protocolId() % ms->nProtocols() % t;
                     adcontrols::ProcessMethod m;
                     ms->addDescription( adcontrols::description( L"create", text.str() ) );
                     portfolio::Folium folium = dp->addSpectrum( ms, m );

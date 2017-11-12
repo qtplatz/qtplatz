@@ -125,7 +125,6 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 
     adcontrols::lockmass::mslock mslock;    
 
-    size_t pos = 0;
     size_t n( 0 );
     
     for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
@@ -391,7 +390,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 ( *it )->pChr_->addDescription(
                     adcontrols::description(
                         L"Create"
-                        , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)#%d" )
+                        , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
                             % utf::to_wstring( display_name ) % pk.mass() % pk.widthHH() % protocol ).str() ) );
             }
             ( *it )->append( uint32_t( pos ), time, y );
@@ -428,12 +427,12 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
             if ( axis == adcontrols::hor_axis_mass ) {
                 ( *it )->pChr_->addDescription( adcontrols::description(
                                                     L"Create"
-                                                    , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)#%d" )
+                                                    , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
                                                         % utf::to_wstring( display_name ) % value % value_width % protocol ).str() ) );
             } else {
                 ( *it )->pChr_->addDescription( adcontrols::description(
                                                     L"Create"
-                                                    , ( boost::wformat( L"%s %.4lfus(W:%.4gns)#%d" )
+                                                    , ( boost::wformat( L"%s %.4lfus(W:%.4gns)_%d" )
                                                         % utf::to_wstring( display_name ) % (value*std::micro::den) % (value_width*std::nano::den) % protocol ).str() ) );
             }
         }
@@ -483,7 +482,6 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
                 for ( size_t i = 0; i < ms.size(); ++i )
                     ms.setIntensity( i, intens[ i ] - base );
             }
-            // filtered.addDescription( adcontrols::description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
             doCentroid( centroid, filtered, *cm );
         } else {
             doCentroid( centroid, *profile, *cm );

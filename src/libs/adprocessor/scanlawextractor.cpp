@@ -60,34 +60,6 @@
 
 using namespace adprocessor::v3;
 
-namespace adprocessor {
-    namespace v3 {
-        bool
-        doMSLock( adcontrols::lockmass::mslock& mslock
-                  , const adcontrols::MassSpectrum& centroid
-                  , const adcontrols::MSLockMethod& m )
-        {
-#if 0
-            // TODO: consider how to handle segmented spectrum -- current impl is always process first 
-            adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
-        
-            for ( auto& msref : msrefs_ ) {
-                size_t idx = find( centroid, msref.second );
-                if ( idx != adcontrols::MSFinder::npos ) 
-                    mslock << adcontrols::lockmass::reference( msref.first, msref.second, centroid.getMass( idx ), centroid.getTime( idx ) );
-            }
-        
-            if ( mslock.fit() ) {
-                // mslock( centroid, true );
-                return true;
-            }
-#endif
-            return false;
-        }
-    }
-}
-
-
 ScanLawExtractor::~ScanLawExtractor()
 {
 }

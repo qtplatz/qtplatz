@@ -50,7 +50,7 @@ namespace adprocessor {
                                                          , pChr_( std::make_shared< adcontrols::Chromatogram >() )  {
                 pChr_->addDescription(
                     adcontrols::description( L"Create"
-                                             , ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s #%d" )
+                                             , ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
                                                  % adportable::utf::to_wstring( target.formula() )
                                                  % target.mass()
                                                  % ( width * 1000 )

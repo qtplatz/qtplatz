@@ -64,8 +64,8 @@ PeakMarker::marker( idAxis id )
 
 PeakMarker::~PeakMarker()
 {
-    for ( auto marker: markers_ )
-        delete marker;
+    // for ( auto marker: markers_ )
+    //     delete marker;
 }
 
 void
@@ -139,14 +139,15 @@ PeakMarker::visible( bool v )
     }
 }
 
+// Chromatographic peak
 void
-PeakMarker::setPeak( const adcontrols::Peak& pk, bool isMinutes, adcontrols::metric::prefix pfx )
+PeakMarker::setPeak( const adcontrols::Peak& pk, adplot::constants::chromatogram_time_spec spec )
 {
-    if ( ! isMinutes ) {
-        markers_[ idPeakCenter ]->setValue( adcontrols::metric::scale_to( pfx, pk.peakTime() ), 0 );
-        markers_[ idPeakLeft ]->setValue( adcontrols::metric::scale_to( pfx, pk.startTime() ), 0 );
-        markers_[ idPeakRight ]->setValue( adcontrols::metric::scale_to( pfx, pk.endTime() ), 0 );
-    } else {
+    if ( spec == constants::chromatogram_time_seconds ) {
+        markers_[ idPeakCenter ]->setValue( pk.peakTime(), 0 );
+        markers_[ idPeakLeft ]->setValue( pk.startTime(), 0 );
+        markers_[ idPeakRight ]->setValue( pk.endTime(), 0 );
+    } else if ( spec == constants::chromatogram_time_minutes ) {
         markers_[ idPeakCenter ]->setValue( adcontrols::timeutil::toMinutes( pk.peakTime() ), 0 );
         markers_[ idPeakLeft ]->setValue( adcontrols::timeutil::toMinutes( pk.startTime() ), 0 );
         markers_[ idPeakRight ]->setValue( adcontrols::timeutil::toMinutes( pk.endTime() ), 0 );
