@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,6 +29,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adplot/constants.hpp>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QMenu>
@@ -199,8 +199,9 @@ CompoundsTable::onInitialUpdate()
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_formula,  Qt::Horizontal, tr( "formula" ) );
     model.setHeaderData( c_mass,  Qt::Horizontal, tr( "<i>m/z</i>" ) );
-    
-    model.setHeaderData( c_tR,  Qt::Horizontal, tr( "t<sub>R</sub>(min)" ) );
+
+    using namespace adplot::constants;
+    model.setHeaderData( c_tR,  Qt::Horizontal, tr( "t<sub>R</sub>(%1)" ).arg( default_chromatogram_time == chromatogram_time_seconds ? "s" : "min" ) );
     model.setHeaderData( c_isCounting,  Qt::Horizontal, tr( "Counting" ) );
     model.setHeaderData( c_isTimeReference,  Qt::Horizontal, tr( "t<sub>R</sub> ref." ) );
     model.setHeaderData( c_isLKMSReference,  Qt::Horizontal, tr( "lock mass" ) );

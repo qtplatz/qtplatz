@@ -42,7 +42,6 @@ namespace quan {
             //, idGroupBox3 // Query
             , idRadioCounting
             , idRadioChromatogram
-            , idRadioInfusion
             , idLabelCalibEq
             , idComboPolynomials
             , idCbxWeighting
@@ -76,7 +75,7 @@ namespace quan {
                     //case idGroupBox3: return ui_->groupBox_8;
                 case idRadioCounting: return ui_->radioButton_3;
                 case idRadioChromatogram: return ui_->radioButton;
-                case idRadioInfusion: return ui_->radioButton_2;
+                    // case idRadioInfusion: return ui_->radioButton_2;
                 case idLabelCalibEq: return ui_->groupBox_6;
                 case idComboPolynomials: return ui_->comboBox;
                 case idCbxWeighting: return ui_->groupBox_5;
@@ -163,37 +162,7 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
                      }
                  });
     }
-    if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioInfusion ) ) ) {
-        connect( radioButton, static_cast< void(QRadioButton::*)(bool) >(&QRadioButton::clicked)
-                 , [&]( bool infusion ){
-                     if ( infusion ) {
-                         ui->groupBox->setEnabled( true );
-                         //ui->groupBox_8->setEnabled( false );
-                         emit onSampleInletChanged( int( adcontrols::QuanSample::Infusion ) );
-                     }
-                 });
-    }
-#if 0
-    if ( QCompleter * completer = new QCompleter( this ) ) {
-        QStringList words;
-        QFile file( ":/query/wordlist.txt" );
-        if ( file.open( QFile::ReadOnly ) ) {
-            while ( !file.atEnd() ) {
-                QByteArray line = file.readLine();
-                if ( ! line.isEmpty() )
-                    words << line.trimmed();
-            }
-        }
-        words.sort( Qt::CaseInsensitive );
-        words.removeDuplicates();
-        
-        completer->setModel( new QStringListModel( words, completer ) );
-        completer->setModelSorting( QCompleter::CaseInsensitivelySortedModel );
-        completer->setCaseSensitivity( Qt::CaseInsensitive );
-        completer->setWrapAround( false );
-        ui->plainTextEdit->setCompleter( completer );
-    }
-#endif
+
 }
 
 QuanConfigForm::~QuanConfigForm()
@@ -244,9 +213,6 @@ QuanConfigForm::setContents( const adcontrols::QuanMethod& m )
             radioButton->setChecked( true );
     } else if ( m.isChromatogram() ) {
         if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioChromatogram ) ) )
-            radioButton->setChecked( true );
-    } else {
-        if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioInfusion ) ) )
             radioButton->setChecked( true );
     }
     if ( auto gbx = qobject_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
@@ -317,16 +283,18 @@ QuanConfigForm::getContents( adcontrols::QuanMethod& m )
         m.set_save_on_datasource( save );
     }
 
-    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioCounting )) )
-        if ( radioButton->isChecked() )
-            m.setIsCounting( true );
-    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioChromatogram )) )
-        if ( radioButton->isChecked() )
-            m.setIsChromatogram( true );
-    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioInfusion )) ) {
-        if ( radioButton->isChecked() )
-            m.setIsChromatogram( false );
+    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioCounting )) ) {
+        m.setIsCounting( radioButton->isChecked() );
     }
+    
+    if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioChromatogram )) ) {
+        m.setIsChromatogram( radioButton->isChecked() );
+    }
+    
+    // if ( auto radioButton = qobject_cast<QRadioButton *>(accessor( idRadioInfusion )) ) {
+    //     m.setIsChromatogram( radioButton->isChecked() );
+    // }
+    
     if ( auto gbx = qobject_cast<QGroupBox *>(accessor( idCbxWeighting )) ) {
         m.setIsWeighting( gbx->isChecked() );
     }

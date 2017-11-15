@@ -55,6 +55,7 @@ link_directories(
 
 add_library( ${PROJECT_NAME} MODULE
   aboutdlg.cpp
+  contourwnd.cpp
   datafolder.cpp
   datafolder.hpp
   dataprocplugin.cpp
@@ -90,7 +91,6 @@ add_library( ${PROJECT_NAME} MODULE
   mspeakswnd.cpp
   mspeaktable.cpp
   mspeaktable.hpp
-  spectrogramwnd.cpp
   ipeptidehandlerimpl.cpp
   aboutdlg.hpp
   dataproc_global.hpp
@@ -132,7 +132,7 @@ add_library( ${PROJECT_NAME} MODULE
   dialogspectrometerchoice.hpp
   filepropertywidget.hpp
   mspeakswnd.hpp
-  spectrogramwnd.hpp
+  contourwnd.hpp
   ipeptidehandlerimpl.hpp
   ${Resources}
   )

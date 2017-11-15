@@ -161,11 +161,13 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
                 adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
+                dlg.setProtocolHidden( true );
                 if ( dlg.exec() == QDialog::Accepted ) {
-                    int fcn = dlg.fcn();
+                    //int fcn = dlg.fcn();
                     if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                        threads_.push_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, fcn, p ); } ) );
+                        threads_.push_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                 }
+
             } else {
                 threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
             }
@@ -381,19 +383,17 @@ DataprocessWorker::handleCreateChromatogramsV2( Dataprocessor* processor
 // data format v3 (read chrmatograms from an fcn)
 void
 DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
-                                                , const adcontrols::MSChromatogramMethod& cm
-                                                , std::shared_ptr< const adcontrols::ProcessMethod > pm
-                                                , std::shared_ptr< const adcontrols::DataReader > reader
-                                                , int fcn                                        
-                                                , std::shared_ptr<adwidgets::Progress> progress )
+                                                 , const adcontrols::MSChromatogramMethod& cm
+                                                 , std::shared_ptr< const adcontrols::ProcessMethod > pm
+                                                 , std::shared_ptr< const adcontrols::DataReader > reader
+                                                 , std::shared_ptr<adwidgets::Progress> progress )
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
 
     if ( auto dset = processor->rawdata() ) {
         adprocessor::v3::MSChromatogramExtractor extract( dset );
 
-        extract.extract_by_mols( vec, *pm, reader, fcn
-                                 , [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
+        extract.extract_by_mols( vec, *pm, reader, [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
 
     }
 

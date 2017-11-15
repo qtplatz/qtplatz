@@ -32,6 +32,7 @@
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adplot/constants.hpp>
 
 namespace chromatogr {
 
@@ -127,7 +128,12 @@ Chromatography::impl::findPeaks( const adcontrols::Chromatogram& c )
     
 	Integrator integrator;
 
-	integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
+    if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
+        integrator.minimum_width( method_.minimumWidth() ); // sec
+    } else {
+        integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
+    }
+
     integrator.slope_sensitivity( method_.slope() );  // uV/sec -> uV/sec
 	integrator.drift( method_.drift() / 60.0 );  // uV/min -> uV/sec
 

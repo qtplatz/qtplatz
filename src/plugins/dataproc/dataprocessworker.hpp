@@ -116,11 +116,10 @@ namespace dataproc {
         
         // for v3 data format
         void handleChromatogramsByMethod3( Dataprocessor *
-                                          , const adcontrols::MSChromatogramMethod&
-                                          , std::shared_ptr< const adcontrols::ProcessMethod >
-                                          , std::shared_ptr< const adcontrols::DataReader >
-                                          , int fcn                                        
-                                          , std::shared_ptr<adwidgets::Progress> );
+                                           , const adcontrols::MSChromatogramMethod&
+                                           , std::shared_ptr< const adcontrols::ProcessMethod >
+                                           , std::shared_ptr< const adcontrols::DataReader >
+                                           , std::shared_ptr<adwidgets::Progress> );
 
         void handleChromatogramByAxisRange3( Dataprocessor *
                                             , std::shared_ptr< const adcontrols::ProcessMethod > pm

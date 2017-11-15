@@ -150,14 +150,16 @@ QuanChromatogramProcessor::process1st( size_t pos, std::shared_ptr< adcontrols::
     correct_baseline( *ms );
 
     if ( mslockm_ && mslock_ ) {
-        bool locked = false;
         if ( auto raw = sampleprocessor.getLCMSDataset() ) {
-            adcontrols::lockmass::mslock lkms;
-            if ( raw->mslocker( lkms ) )
-                locked = lkms( *ms, true );
+            if ( raw->dataformat_version() <= 2 ) {
+                bool locked = false;
+                adcontrols::lockmass::mslock lkms;
+                if ( raw->mslocker( lkms ) )
+                    locked = lkms( *ms, true );
+                if ( !locked )
+                    doMSLock( *ms );
+            }
         }
-        if ( !locked )
-            doMSLock( *ms );
     }
     
     spectra_[ pos ].profile = ms; // keep processed profile spectrum for second phase

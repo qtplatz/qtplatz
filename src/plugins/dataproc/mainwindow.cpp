@@ -43,7 +43,7 @@
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
 #include "sessionmanager.hpp"
-#include "spectrogramwnd.hpp"
+#include "contourwnd.hpp"
 
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -135,7 +135,7 @@
 namespace dataproc {
 
     typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd*, MSCalibSpectraWnd*
-                            , ChromatogramWnd*, MSPeaksWnd*, SpectrogramWnd*, MSSpectraWnd* > wnd_ptr_t;
+                            , ChromatogramWnd*, MSPeaksWnd*, ContourWnd*, MSSpectraWnd* > wnd_ptr_t;
 
     struct wnd_set_title : public boost::static_visitor < QWidget * > {
         const QString& text_;
@@ -208,7 +208,7 @@ namespace dataproc {
     // following 3 classes has no axis change handler
     template<> bool axis_changed_connector::operator()( ChromatogramWnd * ) const { return false; }
     template<> bool axis_changed_connector::operator()( MSPeaksWnd * ) const { return false; }
-    template<> bool axis_changed_connector::operator()( SpectrogramWnd * ) const { return false; }
+    template<> bool axis_changed_connector::operator()( ContourWnd * ) const { return false; }
 }
 
 using namespace dataproc;
@@ -453,7 +453,7 @@ MainWindow::createContents( Core::IMode * mode )
         wnd.push_back( new MSPeaksWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("TOF Peaks") ), wnd.back() ) );
 
-        wnd.push_back( new SpectrogramWnd );
+        wnd.push_back( new ContourWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Contour") ), wnd.back() ) );
 
         wnd.push_back( new MSSpectraWnd );
@@ -953,14 +953,20 @@ MainWindow::OnInitialUpdate()
     currentPageChanged( 0 );
 
 #if defined Q_OS_LINUX
-    for ( auto dock: dockWidgets() )
-        dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
+    for ( auto dock: dockWidgets() ) {
+        dock->widget()->setStyleSheet( "* { font-size: 9pt; }" 
+                                       "QHeaderView::section { font-size: 9pt; }" );
+    }
 
     for ( auto tabbar: findChildren< QTabBar * >() )
         tabbar->setStyleSheet( "QTabBar { font-size: 9pt; }" );
 
-    for ( auto table: findChildren< QTableView * >() )
-        table->setStyleSheet( "QTableView { font-size: 9pt; }" );
+    for ( int i = 0; i < stack_->count(); ++i ) {
+        for ( auto tab: stack_->widget( i )->findChildren< QTableView * >() ) {
+            tab->setStyleSheet( "QTableView { font-size: 9pt; }"
+                                "QHeaderView::section { font-size: 9pt; }" );
+        }
+    }
 #endif
 }
 
