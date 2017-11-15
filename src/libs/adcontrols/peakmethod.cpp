@@ -145,11 +145,11 @@ PeakMethod::~PeakMethod(void)
 {
 }
 
-PeakMethod::PeakMethod(void) : minimumHeight_(10)
-                             , minimumArea_(0)
-							 , minimumWidth_( 0.01 ) // min := 0.6sec
-                             , doubleWidthTime_( 0.0 ) // min
-                             , slope_( 0.005 ) // uV/min
+PeakMethod::PeakMethod(void) : minimumHeight_( 10 )
+                             , minimumArea_( 0 )
+							 , minimumWidth_( 0.6 )
+                             , doubleWidthTime_( 0.0 )
+                             , slope_( 0.005 ) // uV/s
                              , drift_( 0.0 ) // uV/min
                              , t0_( 0 )
                              , pharmacopoeia_( ePHARMACOPOEIA_NotSpcified )

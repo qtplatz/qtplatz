@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +25,7 @@
 
 #include "adcontrols_global.h"
 #include <boost/variant.hpp>
+#include <boost/optional.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -51,6 +51,7 @@ namespace adcontrols {
             std::string synonym_;
             std::string smiles_;
             std::wstring description_;
+            boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
             std::vector < std::pair< std::string, custom_type > > customValues_;
         public:
             bool& enable() { return enable_; }
@@ -72,10 +73,32 @@ namespace adcontrols {
             const char * smiles() const { return smiles_.c_str(); }
             const wchar_t * description() const { return description_.c_str(); }
 
+            bool isMSRef() const;
+            void setIsMSRef( bool on );
+
+            boost::optional< int32_t > protocol() const;
+            void setProtocol( const boost::optional< int32_t >& proto );
+
+            template< typename T > void setCustomeValue( const std::string& key, const T& value ) {
+                auto it = std::find( customValues_.begin(),  customValues_.end(), [&]( auto& t ){ return t.first == key; } );
+                if ( it != customValues_.end() )
+                    customValues_.erase( it );
+                customValues_.emplace_back( key, value );
+            }
+
+            template< typename T > boost::optional< T > customeValue( const std::string& key ) const {
+                auto it = std::find( customValues_.begin(),  customValues_.end(), [&]( auto& t ){ return t.first == key; } );
+                if ( it != customValues_.end() )
+                    return boost::get< const T >( *it );
+                return boost::none;
+            }
+
             std::vector< std::pair< std::string, custom_type > >& customValues();
+            
             const std::vector< std::pair< std::string, custom_type > >& customValues() const;
             
-            value_type() : enable_( true ), flags_(0), mass_( 0 ), abundance_( 1.0 ) {}
+            value_type() : enable_( true ), flags_( 0 ), protocol_( boost::none ), mass_( 0 ), abundance_( 1.0 ) {
+            }
             
             value_type( const value_type& t ) : enable_( t.enable_ )
                 , flags_( t.flags_ )
@@ -86,10 +109,9 @@ namespace adcontrols {
                 , synonym_( t.synonym_ )
                 , smiles_( t.smiles_ )
                 , description_( t.description_ )
+                , protocol_( t.protocol_ )
                 , customValues_( t.customValues_ ) {
             }
-            bool isMSRef() const;
-            void setIsMSRef( bool on );
         };
 
         ~moltable();        

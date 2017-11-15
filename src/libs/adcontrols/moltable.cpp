@@ -28,6 +28,8 @@
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/optional.hpp>
+#include <boost/serialization/variant.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/utility.hpp>
@@ -41,7 +43,7 @@ namespace boost {
         using namespace adcontrols;
 
         template <class Archive >
-        void serialize( Archive& ar, moltable::value_type& p, const unsigned int ) {
+        void serialize( Archive& ar, moltable::value_type& p, const unsigned int version ) {
             ar & BOOST_SERIALIZATION_NVP( p.enable_ );
             ar & BOOST_SERIALIZATION_NVP( p.flags_ );
             ar & BOOST_SERIALIZATION_NVP( p.mass_ );
@@ -51,6 +53,10 @@ namespace boost {
             ar & BOOST_SERIALIZATION_NVP( p.synonym_ );
             ar & BOOST_SERIALIZATION_NVP( p.smiles_ );
             ar & BOOST_SERIALIZATION_NVP( p.description_ );
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
+                ar & BOOST_SERIALIZATION_NVP( p.customValues_ );
+            }
         }
     }
 }
@@ -106,7 +112,7 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::moltable::impl, 1 )
+BOOST_CLASS_VERSION( adcontrols::moltable::impl, 2 )
 
 using namespace adcontrols;
 
@@ -122,6 +128,17 @@ moltable::value_type::setIsMSRef( bool on )
     flags_ = on ? moltable::isMSRef : 0;
 }
 
+boost::optional< int32_t >
+moltable::value_type::protocol() const
+{
+    return protocol_;
+}
+
+void
+moltable::value_type::setProtocol( const boost::optional< int32_t >& proto )
+{
+    protocol_ = proto;
+}
 
 moltable::~moltable()
 {

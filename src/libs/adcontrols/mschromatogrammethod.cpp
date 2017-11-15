@@ -329,7 +329,7 @@ MSChromatogramMethod::lockmass() const
 }
 
 void
-MSChromatogramMethod::lockmass( bool enable )
+MSChromatogramMethod::setLockmass( bool enable )
 {
     impl_->enable_lockmass_ = enable;
 }
@@ -341,7 +341,7 @@ MSChromatogramMethod::tolerance() const
 }
 
 void
-MSChromatogramMethod::tolerance( double value )
+MSChromatogramMethod::setTolerance( double value )
 {
     impl_->tolerance_ = value;
 }

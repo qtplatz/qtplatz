@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,6 +22,7 @@
 **************************************************************************/
 
 #include "quanmethod.hpp"
+#include <adportable/debug.hpp>
 
 using namespace adcontrols;
 
@@ -37,11 +37,11 @@ QuanMethod::QuanMethod() : isCounting_( true )
                          , use_bracketing_( true )
                          , eq_(idCalibLinear)
                          , weighting_( idWeight_C1 )
-                         , bracketing_( idBracketStandard )                           
-                         , polynomialOrder_( 1 )
-                         , debug_level_( 0 )                           
+                         , bracketing_( idBracketStandard )
                          , levels_( 1 )
                          , replicates_( 1 )
+                         , polynomialOrder_( 1 )
+                         , debug_level_( 0 )                           
                          , save_on_datasource_( false )
 {
 }
@@ -100,6 +100,7 @@ void
 QuanMethod::setIsCounting( bool v )
 {
     isCounting_ = v;
+    isChromatogram_ = !isCounting_; // exclusive
 }
 
 bool
@@ -112,6 +113,7 @@ void
 QuanMethod::setIsChromatogram( bool v )
 {
     isChromatogram_ = v;
+    isCounting_ = !isChromatogram_; // exclusive
 }
 
 bool

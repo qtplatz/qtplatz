@@ -67,9 +67,9 @@ namespace adcontrols {
         double width_at_mass( double mass ) const;
 
         bool lockmass() const;
-        void lockmass( bool );
+        void setLockmass( bool );
         double tolerance() const;
-        void tolerance( double );
+        void setTolerance( double );
         
         bool operator == ( const MSChromatogramMethod& ) const;
 
