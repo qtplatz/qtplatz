@@ -191,8 +191,8 @@ MSReferenceTable::setContents( const adcontrols::MSCalibrateMethod& m )
     for ( auto& ref: references )
         addReference( ref, row++ );
 
-    resizeColumnsToContents();
-    resizeRowsToContents();
+    // resizeColumnsToContents();
+    // resizeRowsToContents();
 }
 
 void
@@ -322,6 +322,6 @@ MSReferenceTable::handlePaste()
         }
         
     }
-    resizeRowsToContents();
-    resizeColumnsToContents();
+    // resizeRowsToContents();
+    // resizeColumnsToContents();
 }

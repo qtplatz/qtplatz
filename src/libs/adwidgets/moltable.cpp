@@ -326,9 +326,6 @@ MolTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
-    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
-    horizontalHeader()->setStretchLastSection( true );
-
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_adducts, Qt::Horizontal, QObject::tr( "adduct/lose" ) );
@@ -368,8 +365,8 @@ MolTable::setContents( const adcontrols::moltable& mols )
                         , mol.isMSRef() );
         ++row;
     }
-    resizeRowsToContents();
-    resizeColumnsToContents();
+    // resizeRowsToContents();
+    // resizeColumnsToContents();
 }
 
 void

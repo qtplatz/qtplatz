@@ -44,6 +44,7 @@ namespace adwidgets {
         HtmlHeaderView(Qt::Orientation orientation = Qt::Horizontal, QWidget *parent = 0)
             : QHeaderView( orientation, parent ) {
             setSectionsClickable( true );
+            setObjectName( "HtmlHeaderView" );
         }
 
         void setDefaultStyleSheet( const QString& css ) {

@@ -128,9 +128,9 @@ MSChromatogramForm::getContents( adcontrols::MSChromatogramMethod& m ) const
     m.lower_limit( ui->doubleSpinBox_2->value() );
     m.upper_limit( ui->doubleSpinBox_3->value() );
 
-    m.lockmass( ui->checkBox->isChecked() );
+    m.setLockmass( ui->checkBox->isChecked() );
 
-    m.tolerance( ui->doubleSpinBox_4->value() / 1000.0 );
+    m.setTolerance( ui->doubleSpinBox_4->value() / 1000.0 );
 }
 
 

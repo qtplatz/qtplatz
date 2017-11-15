@@ -122,7 +122,7 @@ PeakTable::~PeakTable()
 PeakTable::PeakTable( QWidget *parent ) : TableView( parent )
                                         , model_( new QStandardItemModel )
 {
-    setHorizontalHeader( new HtmlHeaderView );
+    setHorizontalHeader( new HtmlHeaderView( Qt::Horizontal, this ) );
     setModel( model_ );
 
     if ( auto delegate = new peaktable::ItemDelegate() ) {

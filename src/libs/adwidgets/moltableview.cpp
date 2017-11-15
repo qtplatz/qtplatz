@@ -197,14 +197,20 @@ namespace adwidgets {
                 painter->save();
                 QSvgRenderer renderer( index.data().toByteArray() );
                 painter->translate( option.rect.x(), option.rect.y() );
-                QRectF viewport = painter->viewport();
                 painter->scale( 1.0, 1.0 );
                 QRect target( 0, 0, option.rect.width(), option.rect.height() );
                 renderer.render( painter, target );
                 painter->restore();
             }
+            
         };
 
+        struct paint_f_protocol {
+            void operator()( const ColumnState&, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                painter->drawText( option.rect, option.displayAlignment, index.data().toInt() < 0 ? "*" : index.data().toString() );
+            }
+        };
+        
         /////////////////////////
 
         delegate( impl * p ) : impl_( p ) {
@@ -241,6 +247,10 @@ namespace adwidgets {
 
                 paint_f_svg()( state, painter, opt, index );
 
+            } else if ( field == ColumnState::f_protocol ) {
+                opt.displayAlignment = Qt::AlignCenter | Qt::AlignVCenter;
+                paint_f_protocol()( state, painter, opt, index );
+                
             } else if ( impl_->state( index.column() ).precision && index.data( Qt::EditRole ).canConvert<double>() ) {
 
                 paint_f_precision()( state, painter, opt, index );
@@ -260,6 +270,13 @@ namespace adwidgets {
 					if ( idx >= 0 && idx < state.choice.size() )
 						model->setData( index, impl_->state( index.column() ).choice[ combo->currentIndex() ].second, Qt::EditRole );
 				}
+            } else if ( state.field == ColumnState::f_protocol ) {
+				if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
+					int idx = ( combo->currentIndex() - 1 ); // -1 = none, 0, 1, 2, 3
+                    model->setData( index, combo->currentText(), Qt::DisplayRole );
+                    model->setData( index, idx, Qt::EditRole );
+                }
+                
             } else if ( state.field == ColumnState::f_formula || state.field == ColumnState::f_adducts ) {
                 // protect chemical paser from non-ascii 8-bit input
                 if ( auto edit = qobject_cast< QLineEdit * >( editor ) ) {
@@ -282,6 +299,7 @@ namespace adwidgets {
                 for ( auto& x : state.choice )
                     combo->addItem( x.first );
                 return combo;
+
             } else if ( state.precision && index.data( Qt::EditRole ).canConvert< double >() ) {
 				auto spin = new QDoubleSpinBox( parent );
                 spin->setDecimals( state.precision );
@@ -290,6 +308,15 @@ namespace adwidgets {
                 connect( spin, static_cast< void( QDoubleSpinBox::* )(double) >(&QDoubleSpinBox::valueChanged)
                          , [=]( double value ){ impl_->handleEditorValueChanged( index, value ); });
                 return spin;
+
+            } else if ( state.field == ColumnState::f_protocol ) {
+                auto combo = new QComboBox( parent );
+                combo->addItem( "*" ); // none
+                for ( int proto = 0; proto < 4; ++proto )
+                    combo->addItem( QString::number( proto ) );
+                combo->setCurrentIndex( index.data( Qt::EditRole ).toInt() + 1 );
+                return combo;
+
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );
             }
@@ -359,7 +386,9 @@ MolTableView::~MolTableView()
 void
 MolTableView::onInitialUpdate()
 {
-    horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
+    //horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
+    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
+    horizontalHeader()->setStretchLastSection( true );    
 }
 
 void

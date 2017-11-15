@@ -49,6 +49,7 @@ namespace adwidgets {
         , c_adducts
         , c_mass
         , c_lockmass
+        , c_protocol
         , c_synonym
         , c_memo
         , c_svg
@@ -218,18 +219,21 @@ MSChromatogramWidget::setup( MolTableView * table )
     model_->setHeaderData( c_adducts,  Qt::Horizontal, QObject::tr( "adduct/lose" ) );
     model_->setHeaderData( c_mass,     Qt::Horizontal, QObject::tr( "<i>m/z<i>" ) );
     model_->setHeaderData( c_lockmass, Qt::Horizontal, QObject::tr( "lock mass" ) );
+    model_->setHeaderData( c_protocol, Qt::Horizontal, QObject::tr( "protocol#" ) );
     model_->setHeaderData( c_synonym,  Qt::Horizontal, QObject::tr( "synonym" ) );
     model_->setHeaderData( c_memo,     Qt::Horizontal, QObject::tr( "memo" ) );
     model_->setHeaderData( c_svg,      Qt::Horizontal, QObject::tr( "structure" ) );
     model_->setHeaderData( c_smiles,   Qt::Horizontal, QObject::tr( "SMILES" ) );
 
     table->setModel( model_.get() );
-    
-    table->setColumnField( c_formula, ColumnState::f_formula, true, true );
-    table->setColumnField( c_adducts, ColumnState::f_adducts, true, false );
-    table->setColumnField( c_mass,    ColumnState::f_mass, false, false ); 
-    table->setColumnField( c_synonym, ColumnState::f_synonym, false, false );
+
+    //                                                          editable, checkable
+    table->setColumnField( c_formula, ColumnState::f_formula,     true,  true );
+    table->setColumnField( c_adducts, ColumnState::f_adducts,     true,  false );
+    table->setColumnField( c_mass,    ColumnState::f_mass,        false, false ); 
+    table->setColumnField( c_synonym, ColumnState::f_synonym,     false, false );
     table->setColumnField( c_memo,    ColumnState::f_description, false, false );
+    table->setColumnField( c_protocol, ColumnState::f_protocol,   true,  false );
     table->setColumnField( c_svg,     ColumnState::f_svg );
     table->setColumnField( c_smiles,  ColumnState::f_smiles );
 
@@ -325,7 +329,6 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
         if ( auto item = model.item( row, c_formula ) ) {
             item->setEditable( true );
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            bool enable = mol.enable() && !mol.formula_.empty();
             model.setData( model.index( row, c_formula ), mol.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
         
@@ -339,7 +342,9 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
             model.setData( model.index( row, c_lockmass ), mol.isMSRef() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        
+
+        model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
+                       
         model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );
         model.setData( model.index( row, c_memo ), QString::fromStdWString( mol.description() ) );
     }

@@ -28,8 +28,8 @@
 
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adplot/constants.hpp>
 #include <adportable/configuration.hpp>
-#include <adlog/logger.hpp>
 #include <adportable/is_type.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
@@ -83,6 +83,11 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
                                                   , impl_( new impl( this ) )
 {
     ui->setupUi(this);
+
+    if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
+        ui->label->setText( "Slope[&mu;V/s]" );
+        ui->label_2->setText( "Minimum width[s]" );
+    }
 
     ui->tableView->setModel( impl_->model_.get() );
     ui->tableView->setItemDelegate( new teDelegate( this ) );

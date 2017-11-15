@@ -166,7 +166,7 @@ namespace adwidgets {
 using namespace adwidgets;
 using namespace adwidgets::detail;
 
-MSQuanTable::MSQuanTable( QWidget * parent ) : QTableView( parent )
+MSQuanTable::MSQuanTable( QWidget * parent ) : TableView( parent )
                                              , inProgress_( false )
                                              , model_( new QStandardItemModel )
 

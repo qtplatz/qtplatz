@@ -28,7 +28,7 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
-#include <QTableView>
+#include "tableview.hpp"
 #include <memory>
 #include <adplugin_manager/lifecycle.hpp>
 
@@ -40,7 +40,7 @@ namespace adcontrols { class MSQPeaks; class MSQPeak; }
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT MSQuanTable : public QTableView
+    class ADWIDGETSSHARED_EXPORT MSQuanTable : public TableView
                                              , public adplugin::LifeCycle {
 
         Q_OBJECT

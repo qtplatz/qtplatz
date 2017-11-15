@@ -150,8 +150,9 @@ TargetingTable::onInitialUpdate()
 
     using namespace adwidgets::detail;
 
-    horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Stretch );
-    horizontalHeader()->setStretchLastSection( true );
+    //horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Stretch );
+    //horizontalHeader()->setStretchLastSection( true );
+    horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
 
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_peptide,  Qt::Horizontal, QObject::tr( "peptide" ) );

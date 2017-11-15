@@ -156,6 +156,14 @@ DataReaderChoiceDialog::currentSelection() const
     return 0;
 }
 
+void
+DataReaderChoiceDialog::setProtocolHidden( bool hide )
+{
+    if ( auto table = findChild< QTableView * >() ) {    
+        table->setColumnHidden( c_fcn, hide );
+    }
+}
+
 int
 DataReaderChoiceDialog::fcn() const
 {
