@@ -721,7 +721,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
-#ifndef NDEBUG
+#if ! defined NDEBUG && 0
     ADDEBUG() << "===== device_data =====\nIdentifier:\t " << waveform.ident_->Identifier()
               << "\nRevision:\t" << waveform.ident_->Revision()
               << "\nVendor:\t" << waveform.ident_->Vendor()
