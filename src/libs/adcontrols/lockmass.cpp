@@ -52,22 +52,34 @@ mslock::operator bool () const
 mslock&
 mslock::operator << ( const reference& t )
 {
-#if 0
-    if ( ! references_.empty() ) {
-
-        auto it = std::find_if( references_.begin(), references_.end(), [t]( const reference& a ){
-                return adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() ); });
-
-        if ( it != references_.end() )
-            references_.erase( it );
-
-    }
-#endif
-    
-    references_.push_back( t );
+    auto it = std::find_if( references_.begin(), references_.end(), [t]( const reference& a ){
+            return adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() );
+        });
+    if ( it == references_.end() )
+        references_.emplace_back( t );
+    else 
+        *it = t;
     
 	return *this;
 }
+
+mslock&
+mslock::operator += ( const mslock& rhs )
+{
+    for ( auto a: rhs ) {
+        if ( a.exactMass() > 1.0 ) {
+            auto it = std::find_if( references_.begin(), references_.end(), [&]( const reference& b ){
+                    return adportable::compare<double>::essentiallyEqual( a.exactMass(), b.exactMass() );
+                });
+            if ( it == references_.end() )
+                references_.emplace_back( a );
+            else 
+                *it = a;
+        }
+    }
+    return *this;
+}
+
 
 reference::reference() : exactMass_(0)
                        , matchedMass_(0)

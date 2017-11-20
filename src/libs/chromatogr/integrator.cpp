@@ -418,8 +418,6 @@ Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
     using adcontrols::Peaks;
     using adcontrols::Peak;
 
-    ADDEBUG() << "updatePeakParameters method t0 = " << method.t0();
-
     long id = 0;
     for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
 

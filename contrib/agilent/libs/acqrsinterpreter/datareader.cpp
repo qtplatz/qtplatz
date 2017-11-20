@@ -333,6 +333,11 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 // acclVoltage = 5000.0;
                 if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
                     spectrometer_->initialSetup( *db, { 0 } );
+                else {
+                    adportable::debug debug(__FILE__, __LINE__);
+                    debug << "No mass spectrometer class identifed as " << clsid << " installed";
+                    throw std::runtime_error( debug.str() );
+                }
             }
 
             // workaround for Sep. to Dec., 2015 data file

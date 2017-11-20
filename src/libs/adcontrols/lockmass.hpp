@@ -95,6 +95,7 @@ namespace adcontrols {
             mslock( const mslock& );
             operator bool () const; // true if at least one reference
             mslock& operator << ( const reference& );
+            mslock& operator += ( const mslock& );
             void clear();
             size_t size() const;
             bool empty() const;

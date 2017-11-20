@@ -318,7 +318,6 @@ void
 Peak::setCapacityFactor( double value )
 {
     capacityFactor_ = value;
-    ADDEBUG() << "capacityFactor = " << value;
 }
 
 double
