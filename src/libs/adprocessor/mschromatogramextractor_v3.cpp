@@ -161,8 +161,9 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                     adcontrols::waveform_filter::fft4c::lowpass_filter( *ms, fm->cutoffFreqHz() );
             }
             double base( 0 ), rms( 0 );
-            adportable::spectrum_processor::tic( uint32_t( ms->size() ), ms->intensityArray(), base, rms );
-            for ( size_t i = 0; i < ms.size(); ++i )
+            const double * intens = ms->getIntensityArray();
+            adportable::spectrum_processor::tic( uint32_t( ms->size() ), intens, base, rms );
+            for ( size_t i = 0; i < ms->size(); ++i )
                 ms->setIntensity( i, intens[ i ] - base );
         } // end filter
         
@@ -531,6 +532,7 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
                                              , adcontrols::lockmass::mslock& mslock )
 {
     if ( auto cm = pm.find< adcontrols::CentroidMethod >() ) {
+        adcontrols::MassSpectrum centroid;
         doCentroid( centroid, *profile, *cm );
 
         if ( centroid.size() > 0 )
