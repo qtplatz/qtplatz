@@ -116,7 +116,9 @@ document::fetch()
             }
             rewind();
         }
+        return true;
     }
+    return false;
 }
 
 void

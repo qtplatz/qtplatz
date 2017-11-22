@@ -84,7 +84,7 @@ cvmat::mesh( cv::Mat & m, size_t split, size_t width ) const
     }
     auto it = std::max_element( m.begin< float >(), m.end< float >() );
 
-    if ( it != m.end< float >(), *it > 0 )
+    if ( it != m.end< float >() && *it > 0 )
         m /= *it;
 }
 

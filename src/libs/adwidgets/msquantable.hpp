@@ -78,7 +78,7 @@ namespace adwidgets {
         void formulaChanged( int idx, int fcn );
 
     public: // slots:
-        void handleCopyToClipboard();
+        void handleCopyToClipboard() override;
         void handle_zoomed( const QRectF& );   // zoomer zoomed
 
     private:

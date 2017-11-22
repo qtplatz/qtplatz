@@ -265,5 +265,6 @@ double
 ScanLaw::length( int id ) const
 {
    if ( id < dimension_.size() )
-        return dimension_[ id ];
+       return dimension_[ id ];
+   return 0;
 }

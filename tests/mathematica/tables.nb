@@ -1,0 +1,519 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.4' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     20998,        509]
+NotebookOptionsPosition[     20411,        483]
+NotebookOutlinePosition[     20766,        499]
+CellTagsIndexPosition[     20723,        496]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"Needs", "[", "\"\<DatabaseLink`\>\"", "]"}], ";"}], "\n", 
+ RowBox[{"JDBCDrivers", "[", "\"\<SQLite\>\"", "]"}]}], "Input",
+ CellChangeTimes->{{3.702431313845791*^9, 3.702431313846714*^9}}],
+
+Cell[BoxData[
+ RowBox[{"JDBCDriver", "[", 
+  RowBox[{
+   RowBox[{"\<\"Name\"\>", "\[Rule]", "\<\"SQLite\"\>"}], ",", 
+   RowBox[{"\<\"Driver\"\>", "\[Rule]", "\<\"org.sqlite.JDBC\"\>"}], ",", 
+   RowBox[{"\<\"Protocol\"\>", "\[Rule]", "\<\"jdbc:sqlite:\"\>"}], ",", 
+   RowBox[{"\<\"Version\"\>", "\[Rule]", "3.1`"}], ",", 
+   RowBox[{"\<\"Description\"\>", 
+    "\[Rule]", "\<\"SQLite using Zentus-derived JDBC Driver - Version \
+3.8.11.2\"\>"}], ",", 
+   RowBox[{"\<\"Location\"\>", 
+    "\[Rule]", \
+"\<\"/Applications/Mathematica.app/Contents/SystemFiles/Links/DatabaseLink/\
+DatabaseResources/sqlite.m\"\>"}]}], "]"}]], "Output",
+ CellChangeTimes->{3.702431330869604*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"conn", " ", "=", " ", 
+  RowBox[{"OpenSQLConnection", "[", 
+   RowBox[{"JDBC", "[", 
+    RowBox[{
+    "\"\<SQLite\>\"", ",", 
+     "\"\</Users/toshi/Documents/data/wspc/2017-04-21/RUN_0001.adfs\>\""}], 
+    "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.702431350381836*^9, 3.70243139369558*^9}, {
+  3.702431486279695*^9, 3.702431487687805*^9}, {3.702431661098068*^9, 
+  3.702431662362494*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["SQLConnection",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False}, 
+    PanelBox[
+     PaneSelectorBox[{False->GridBox[{
+        {
+         PaneBox[
+          ButtonBox[
+           
+           DynamicBox[FEPrivate`FrontEndResource[
+            "FEBitmaps", "SquarePlusIconMedium"],
+            ImageSizeCache->{12., {0., 12.}}],
+           Appearance->None,
+           ButtonFunction:>(Typeset`open$$ = True),
+           Evaluator->Automatic,
+           Method->"Preemptive"],
+          Alignment->{Center, Center},
+          
+          ImageSize->
+           Dynamic[{
+            Automatic, 3.5 CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+             Magnification]}]], 
+         GraphicsBox[
+          {Thickness[0.0625], 
+           {FaceForm[{RGBColor[0.5, 0.5, 0.5], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{15.236999999999998`, 15.07}, {
+             11.078, 17.829}, {11.078, 15.975000000000001`}, {1.625, 
+             15.975000000000001`}, {1.625, 14.165000000000001`}, {11.078, 
+             14.165000000000001`}, {11.078, 12.31}, {15.236999999999998`, 
+             15.07}}}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{0., 9.792}, {4.159, 7.033}, {
+             4.159, 8.887}, {13.612, 8.887}, {13.612, 10.697}, {4.159, 
+             10.697}, {4.159, 12.551}, {0., 9.792}}}], 
+            FilledCurveBox[{{{1, 4, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 
+             3, 3}, {1, 3, 3}, {0, 1, 0}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1,
+              3, 3}, {1, 3, 3}, {1, 3, 3}, {0, 1, 0}, {1, 3, 3}, {1, 3, 3}, {
+             1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {0, 1, 0}, {1, 3, 
+             3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {0, 1,
+              0}}}, CompressedData["
+1:eJxdVGtIFFEU3sfsuO7DnV1FpOyp9CREQnpI3E/KwkJFCwmRMimo6EWYWUQR
+ElIhEiIREiZlYYhFREiFiUSWPyzSEFMxk8hSy9VMzV1r7rmz90cDd2e+2Xu/
+c853vjNLCo5nH7CaTCazvtL1ZdFXTeqTiWCnFbsGa6teLp5mH4q/LUu0K7DX
+x+buT55kyf2ZZdePKfjEb74J5ui6fWKTw4bu9qmdg7V+diUl/8u7pSqQtOdp
+musHO/y8sCJGsaN35rz+OMyIrt4hcV+8erFys0vi8pbJFXnlbqzM408jBo7A
+2L1XO9ZdHmWNCy8NZ63XENWwbeBs1BiLUXIi1jzS8CzNZVldOi7xdx4m9rfE
+B6+NnmNJ04yztZzSoG+O7m6fYSa6NOzTs+6Z+cMEr8fgD7C3vKwqN6hsX5Dd
+oMuJkSyeSZBVUAA7dBF0Jf4ywatA273h8esiEx6c5JEt8JU0t9Wkmg0dzfgV
+7NSlsGCO3xLnDF4r7vvfpxdoARZNgtokFnmGSyz65MSL6nkJffFz7E1Rk/4U
+YehmFnqFa6DwzIqtfPu0hgV69P5M1cjXC9qe55CY0m5yS0z1ZGgQ8b2Yn8A7
+5gW1MVaD0Ndn1BuBbGpQJET+TvCupeRHQn+p/2PHWro0ie/wQHEahK8c4G64
+esSDAiJ0guzV5QaFrXQZ711YRARukAzFTgTquDBu0PGv4RJPkM52iclOLSqE
+b92gdBttWM7LyXXhDBWmgLPM1jmN8wrSKbBDYtKzOFxisnmOHVvonGL0PczQ
+xwb+e/OnasRRIXytgruqpDnMmDdV5r+Rt6Haho80Fx7EUt8U3NV3PRzXjD5Z
+Rf96vdhL/rVgFbffaR/E3FlAaR4K6W9CkOvwORJxPZw4wEKYxid6SmLhEz87
+qlfjz45EGxluiIk58qGV+jrAttM5L4iusMOYdw9ofBpamajbIXFI/xAWOllR
+SobpYBeIwAzh5wEm/BBkGaT/ELvF7a7OMkqvzC9x6Hv1//frHzIjGf8=
+             "]], 
+            FilledCurveBox[{{{1, 4, 3}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {1, 
+             3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1,
+              3, 3}, {1, 3, 3}, {1, 3, 3}}, {{1, 4, 3}, {0, 1, 0}, {0, 1, 
+             0}, {0, 1, 0}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3,
+              3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 
+             3}}}, CompressedData["
+1:eJxlUwlIVGEQ3ix1tS03E1ncdfe9XTMrQ4LEImTGLELCUIswCRG7zKIyOuzQ
+EjMxibKwQ5FOC0miItM0wsrMpMITsZQos7I8E++j3sy+fQX9sPv43v9mvplv
+vhFjd0dsmapSqeykn1l+Hot/su98pICvDzy94uHXBRMNiR3eCQLmXKbTBQEZ
+QTHtZwX8PlbQVxfaDb7p7s3vigWkx9DaHri+8lH/RIMJXwz4bDzzfAB2SOl0
+FQIepHSt4xBRYkz7mSXiGz6DoJu2fubCB6J8PwybtJFLH1aJeKjDe5G6cBT8
+Wr0cUhpFrA+NlW7GobifKhKxNERjtyB9Ep5VX5MYReQ0eSq04XnE7mOnYKIN
+L7HHk9K/8aWIXGaiGimqZ5uIuRXCvb1xzjjHISU7eLqIv+qIUINhpy/uck0V
+kOsOn4Hr2vJzK66aFLyE9AgzKtg1tVxi9MRxkidWg0yfZMATxJvmjHFZXUeh
+SI8rMnd+GytQy3F6LDREbV720V7BtvptmNRtyx+Dz4fd7q76pMeEQOemG3sG
+4GuN+cPIpAGll9JNHzzmPj2R3yd3A8t0wYh3qBxtJ/B8L5kUHNNOH/7FrLuv
+gLdYEPn7f/xA6dw3WJDzug8B9+NvkfXsBz0NbIpFju8FJ2qszIzHKY+uE6Sh
+GqJuWvAtz78FyijRKzOq5MM+qrf5oQWSwD+6NENENQvUBD23K1cHhIhItsgO
+roeRZCnxbBEH2W41cv8CnqOyoqvhfh5FCMg86ZVQVCU1kmNSMKkYeMpTwVb/
+6pHTGBshO1ga1BEPrCU547/AXGrgvQ65PK9e6KV6nHTIcjQPK9g2PxsuZyM4
+ynPWyfuisfot0wOp2tIQF6wjnh96DOLBaGVfeyKv0/5Zsg9MCua9bBYUvJ39
+JVp9U6tFXpetZnRjg7jgGlqjxRa5Pw0uJ55cC87nghwVLKkiSWOnYCvvb+Cw
+NAta93D0Pz/8AU7U7cs=
+             "]]}, 
+           {FaceForm[{RGBColor[0.5, 0.5, 0.5], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}}}, {{{11.039, 4.245}, {11.866000000000001`, 
+             4.245}, {11.866000000000001`, 0.998}, {13.842, 0.998}, {13.842, 
+             0.28600000000000003`}, {11.039, 0.28600000000000003`}, {11.039, 
+             4.245}}}]}},
+          AspectRatio->1,
+          Axes->False,
+          Background->GrayLevel[0.93],
+          Frame->True,
+          FrameStyle->Directive[
+            Thickness[Tiny], 
+            GrayLevel[0.7]],
+          FrameTicks->None,
+          ImageSize->{Automatic, 
+            Dynamic[
+            3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+              Magnification])]},
+          PlotRangePadding->4], GridBox[{
+           {
+            RowBox[{
+             TagBox["\<\"Name: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["None",
+              "SummaryItem"]}], 
+            RowBox[{
+             TagBox["\<\"ID: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["3",
+              "SummaryItem"]}]},
+           {
+            RowBox[{
+             TagBox["\<\"Status: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox[
+              StyleBox["\<\"Open\"\>",
+               StripOnInput->False,
+               LineColor->GrayLevel[0],
+               FrontFaceColor->GrayLevel[0],
+               BackFaceColor->GrayLevel[0],
+               GraphicsColor->GrayLevel[0],
+               FontWeight->Bold,
+               FontColor->GrayLevel[0]],
+              "SummaryItem"]}], 
+            RowBox[{
+             TagBox["\<\"Catalog: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"\"\>",
+              "SummaryItem"]}]}
+          },
+          AutoDelete->False,
+          
+          BaseStyle->{
+           ShowStringCharacters -> False, NumberMarks -> False, 
+            PrintPrecision -> 3, ShowSyntaxStyles -> False},
+          GridBoxAlignment->{"Columns" -> {{Left}}, "Rows" -> {{Automatic}}},
+          
+          GridBoxItemSize->{
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+          GridBoxSpacings->{"Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}
+       },
+       AutoDelete->False,
+       BaselinePosition->{1, 1},
+       GridBoxAlignment->{"Rows" -> {{Top}}},
+       GridBoxItemSize->{
+        "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True->
+      GridBox[{
+        {
+         PaneBox[
+          ButtonBox[
+           
+           DynamicBox[FEPrivate`FrontEndResource[
+            "FEBitmaps", "SquareMinusIconMedium"]],
+           Appearance->None,
+           ButtonFunction:>(Typeset`open$$ = False),
+           Evaluator->Automatic,
+           Method->"Preemptive"],
+          Alignment->{Center, Center},
+          
+          ImageSize->
+           Dynamic[{
+            Automatic, 3.5 CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+             Magnification]}]], 
+         GraphicsBox[
+          {Thickness[0.0625], 
+           {FaceForm[{RGBColor[0.5, 0.5, 0.5], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{15.236999999999998`, 15.07}, {
+             11.078, 17.829}, {11.078, 15.975000000000001`}, {1.625, 
+             15.975000000000001`}, {1.625, 14.165000000000001`}, {11.078, 
+             14.165000000000001`}, {11.078, 12.31}, {15.236999999999998`, 
+             15.07}}}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{0., 9.792}, {4.159, 7.033}, {
+             4.159, 8.887}, {13.612, 8.887}, {13.612, 10.697}, {4.159, 
+             10.697}, {4.159, 12.551}, {0., 9.792}}}], 
+            FilledCurveBox[{{{1, 4, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 
+             3, 3}, {1, 3, 3}, {0, 1, 0}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1,
+              3, 3}, {1, 3, 3}, {1, 3, 3}, {0, 1, 0}, {1, 3, 3}, {1, 3, 3}, {
+             1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {0, 1, 0}, {1, 3, 
+             3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {0, 1,
+              0}}}, CompressedData["
+1:eJxdVGtIFFEU3sfsuO7DnV1FpOyp9CREQnpI3E/KwkJFCwmRMimo6EWYWUQR
+ElIhEiIREiZlYYhFREiFiUSWPyzSEFMxk8hSy9VMzV1r7rmz90cDd2e+2Xu/
+c853vjNLCo5nH7CaTCazvtL1ZdFXTeqTiWCnFbsGa6teLp5mH4q/LUu0K7DX
+x+buT55kyf2ZZdePKfjEb74J5ui6fWKTw4bu9qmdg7V+diUl/8u7pSqQtOdp
+musHO/y8sCJGsaN35rz+OMyIrt4hcV+8erFys0vi8pbJFXnlbqzM408jBo7A
+2L1XO9ZdHmWNCy8NZ63XENWwbeBs1BiLUXIi1jzS8CzNZVldOi7xdx4m9rfE
+B6+NnmNJ04yztZzSoG+O7m6fYSa6NOzTs+6Z+cMEr8fgD7C3vKwqN6hsX5Dd
+oMuJkSyeSZBVUAA7dBF0Jf4ywatA273h8esiEx6c5JEt8JU0t9Wkmg0dzfgV
+7NSlsGCO3xLnDF4r7vvfpxdoARZNgtokFnmGSyz65MSL6nkJffFz7E1Rk/4U
+YehmFnqFa6DwzIqtfPu0hgV69P5M1cjXC9qe55CY0m5yS0z1ZGgQ8b2Yn8A7
+5gW1MVaD0Ndn1BuBbGpQJET+TvCupeRHQn+p/2PHWro0ie/wQHEahK8c4G64
+esSDAiJ0guzV5QaFrXQZ711YRARukAzFTgTquDBu0PGv4RJPkM52iclOLSqE
+b92gdBttWM7LyXXhDBWmgLPM1jmN8wrSKbBDYtKzOFxisnmOHVvonGL0PczQ
+xwb+e/OnasRRIXytgruqpDnMmDdV5r+Rt6Haho80Fx7EUt8U3NV3PRzXjD5Z
+Rf96vdhL/rVgFbffaR/E3FlAaR4K6W9CkOvwORJxPZw4wEKYxid6SmLhEz87
+qlfjz45EGxluiIk58qGV+jrAttM5L4iusMOYdw9ofBpamajbIXFI/xAWOllR
+SobpYBeIwAzh5wEm/BBkGaT/ELvF7a7OMkqvzC9x6Hv1//frHzIjGf8=
+             "]], 
+            FilledCurveBox[{{{1, 4, 3}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {1, 
+             3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1,
+              3, 3}, {1, 3, 3}, {1, 3, 3}}, {{1, 4, 3}, {0, 1, 0}, {0, 1, 
+             0}, {0, 1, 0}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3,
+              3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 3}, {1, 3, 
+             3}}}, CompressedData["
+1:eJxlUwlIVGEQ3ix1tS03E1ncdfe9XTMrQ4LEImTGLELCUIswCRG7zKIyOuzQ
+EjMxibKwQ5FOC0miItM0wsrMpMITsZQos7I8E++j3sy+fQX9sPv43v9mvplv
+vhFjd0dsmapSqeykn1l+Hot/su98pICvDzy94uHXBRMNiR3eCQLmXKbTBQEZ
+QTHtZwX8PlbQVxfaDb7p7s3vigWkx9DaHri+8lH/RIMJXwz4bDzzfAB2SOl0
+FQIepHSt4xBRYkz7mSXiGz6DoJu2fubCB6J8PwybtJFLH1aJeKjDe5G6cBT8
+Wr0cUhpFrA+NlW7GobifKhKxNERjtyB9Ep5VX5MYReQ0eSq04XnE7mOnYKIN
+L7HHk9K/8aWIXGaiGimqZ5uIuRXCvb1xzjjHISU7eLqIv+qIUINhpy/uck0V
+kOsOn4Hr2vJzK66aFLyE9AgzKtg1tVxi9MRxkidWg0yfZMATxJvmjHFZXUeh
+SI8rMnd+GytQy3F6LDREbV720V7BtvptmNRtyx+Dz4fd7q76pMeEQOemG3sG
+4GuN+cPIpAGll9JNHzzmPj2R3yd3A8t0wYh3qBxtJ/B8L5kUHNNOH/7FrLuv
+gLdYEPn7f/xA6dw3WJDzug8B9+NvkfXsBz0NbIpFju8FJ2qszIzHKY+uE6Sh
+GqJuWvAtz78FyijRKzOq5MM+qrf5oQWSwD+6NENENQvUBD23K1cHhIhItsgO
+roeRZCnxbBEH2W41cv8CnqOyoqvhfh5FCMg86ZVQVCU1kmNSMKkYeMpTwVb/
+6pHTGBshO1ga1BEPrCU547/AXGrgvQ65PK9e6KV6nHTIcjQPK9g2PxsuZyM4
+ynPWyfuisfot0wOp2tIQF6wjnh96DOLBaGVfeyKv0/5Zsg9MCua9bBYUvJ39
+JVp9U6tFXpetZnRjg7jgGlqjxRa5Pw0uJ55cC87nghwVLKkiSWOnYCvvb+Cw
+NAta93D0Pz/8AU7U7cs=
+             "]]}, 
+           {FaceForm[{RGBColor[0.5, 0.5, 0.5], Opacity[1.]}], 
+            FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 
+             1, 0}, {0, 1, 0}}}, {{{11.039, 4.245}, {11.866000000000001`, 
+             4.245}, {11.866000000000001`, 0.998}, {13.842, 0.998}, {13.842, 
+             0.28600000000000003`}, {11.039, 0.28600000000000003`}, {11.039, 
+             4.245}}}]}},
+          AspectRatio->1,
+          Axes->False,
+          Background->GrayLevel[0.93],
+          Frame->True,
+          FrameStyle->Directive[
+            Thickness[Tiny], 
+            GrayLevel[0.7]],
+          FrameTicks->None,
+          ImageSize->{Automatic, 
+            Dynamic[
+            3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+              Magnification])]},
+          PlotRangePadding->4], GridBox[{
+           {
+            RowBox[{
+             TagBox["\<\"Name: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["None",
+              "SummaryItem"]}], 
+            RowBox[{
+             TagBox["\<\"ID: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["3",
+              "SummaryItem"]}]},
+           {
+            RowBox[{
+             TagBox["\<\"Status: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox[
+              StyleBox["\<\"Open\"\>",
+               StripOnInput->False,
+               LineColor->GrayLevel[0],
+               FrontFaceColor->GrayLevel[0],
+               BackFaceColor->GrayLevel[0],
+               GraphicsColor->GrayLevel[0],
+               FontWeight->Bold,
+               FontColor->GrayLevel[0]],
+              "SummaryItem"]}], 
+            RowBox[{
+             TagBox["\<\"Catalog: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"\"\>",
+              "SummaryItem"]}]},
+           {
+            RowBox[{
+             TagBox["\<\"Description: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"\"\>",
+              "SummaryItem"]}], ""},
+           {
+            RowBox[{
+             TagBox["\<\"Location: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"\"\>",
+              "SummaryItem"]}], ""},
+           {
+            RowBox[{
+             TagBox["\<\"ReadOnly: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["False",
+              "SummaryItem"]}], ""},
+           {
+            RowBox[{
+             TagBox["\<\"RelativePath: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["False",
+              "SummaryItem"]}], ""},
+           {
+            RowBox[{
+             TagBox["\<\"TransactionIsolationLevel: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"Serializable\"\>",
+              "SummaryItem"]}], ""},
+           {
+            RowBox[{
+             TagBox["\<\"UseConnectionPool: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["Automatic",
+              "SummaryItem"]}], ""},
+           {
+            RowBox[{
+             TagBox["\<\"Version: \"\>",
+              "SummaryItemAnnotation"], "\[InvisibleSpace]", 
+             TagBox["\<\"\"\>",
+              "SummaryItem"]}], ""}
+          },
+          AutoDelete->False,
+          
+          BaseStyle->{
+           ShowStringCharacters -> False, NumberMarks -> False, 
+            PrintPrecision -> 3, ShowSyntaxStyles -> False},
+          GridBoxAlignment->{"Columns" -> {{Left}}, "Rows" -> {{Automatic}}},
+          
+          GridBoxItemSize->{
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+          GridBoxSpacings->{"Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}
+       },
+       AutoDelete->False,
+       BaselinePosition->{1, 1},
+       GridBoxAlignment->{"Rows" -> {{Top}}},
+       GridBoxItemSize->{
+        "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, Dynamic[
+      Typeset`open$$],
+      ImageSize->Automatic],
+     BaselinePosition->Baseline],
+    DynamicModuleValues:>{}], "]"}],
+  DatabaseLink`SQLConnection[
+   DatabaseLink`JDBC[
+   "SQLite", "/Users/toshi/Documents/data/wspc/2017-04-21/RUN_0001.adfs"], 
+   JLink`Objects`vm1`JavaObject20473379106586625, 3, "Catalog" -> Automatic, 
+   "Description" -> None, "Location" -> None, "Name" -> None, "Password" -> 
+   None, "Properties" -> {}, "ReadOnly" -> Automatic, "RelativePath" -> False,
+    "TransactionIsolationLevel" -> Automatic, "UseConnectionPool" -> 
+   Automatic, "Username" -> None, "Version" -> None],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{3.702431399635273*^9, 3.702431490918331*^9, 
+  3.702431663242961*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"SQLTables", "[", "conn", "]"}]], "Input",
+ CellChangeTimes->{{3.702431686244969*^9, 3.702431700127186*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"AcquiredConf\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"AcquiredData\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"Calibration\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"MULTUM_ANALYZER_CONFIG\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"MetaData\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"ScanLaw\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"Spectrometer\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"directory\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"file\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"peak\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"sqlite_sequence\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"superblock\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}], ",", 
+   
+   RowBox[{"SQLTable", "[", 
+    RowBox[{"\<\"trigger\"\>", ",", 
+     RowBox[{"\<\"TableType\"\>", "\[Rule]", "\<\"TABLE\"\>"}]}], "]"}]}], 
+  "}"}]], "Output",
+ CellChangeTimes->{3.702431701075942*^9}]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.70243152829076*^9, 3.7024315320185137`*^9}}]
+},
+WindowSize->{808, 751},
+WindowMargins->{{12, Automatic}, {Automatic, 24}},
+FrontEndVersion->"10.4 for Mac OS X x86 (32-bit, 64-bit Kernel) (April 18, \
+2016)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 225, 4, 46, "Input"],
+Cell[808, 28, 676, 14, 80, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1521, 47, 419, 10, 63, "Input"],
+Cell[1943, 59, 16112, 354, 60, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18092, 418, 131, 2, 28, "Input"],
+Cell[18226, 422, 2073, 55, 182, "Output"]
+}, Open  ]],
+Cell[20314, 480, 93, 1, 28, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)
+

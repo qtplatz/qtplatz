@@ -55,6 +55,7 @@ bool
 tdcbase::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
+    return true;
 }
 
 std::shared_ptr< const adcontrols::TofChromatogramsMethod >
