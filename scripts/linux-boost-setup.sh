@@ -1,6 +1,8 @@
 #!/bin/bash
 source ./constants.sh
 source ./prompt.sh
+source ./nproc.sh
+
 arch=`uname`-`arch`
 
 function bzip2_download {
@@ -53,11 +55,11 @@ function boost_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 -j $(nproc --all) address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+      echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
       prompt
       
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 -j $(nproc --all) address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+	  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	echo "*****************************************************"
 	echo "boost has been built on `pwd`";
 	echo "run following command to install"
@@ -65,7 +67,7 @@ function boost_build {
 	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
 	echo "*****************************************************"
 	prompt
-	sudo ./b2 -j $(nproc --all) address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	sudo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
     )
 }
 
@@ -91,11 +93,11 @@ function boost_cross_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $(nproc --all) install
+      echo ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $nproc install
       prompt
       
       ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $(nproc --all) install
+	  ./b2 toolset=gcc-arm -s BZIP2_SOURCE=$BZIP2_SOURCE -j $nproc install
     )
 }
 
@@ -140,6 +142,9 @@ fi
 if [ -d ${BOOST_PREFIX} ]; then
     echo "boost-$BOOST_VERSION already installed in ${BOOST_PREFIX}"
 fi
+
+__nproc nproc
+echo "NPROC=" $nproc
 
 prompt
 
