@@ -2,7 +2,7 @@
 @echo off
 
 setlocal enabledelayedexpansion
-set QTDIR=C:\Qt\5.7\msvc2015_64
+set QTDIR=C:\Qt\5.9.3\msvc2015_64
 set PQTH=%QTDIR%\bin;%PATH%
 set source_dir=%cd%
 set build_root=..
@@ -11,7 +11,7 @@ set build_type=release
 set build_tests=false
 set build_clean=false
 set address_model=64
-set GENERATOR="Visual Studio 14 2015 Win64"
+set GENERATOR="Visual Studio 15 2017 Win64"
 
 echo "Visual Studio Version: " %VisualStudioVersion%
 
@@ -45,6 +45,15 @@ if %VisualStudioVersion% EQU 14.0 (
       set GENERATOR="Visual Studio 14 2015"
    ) else (
       set GENERATOR="Visual Studio 14 2015 Win64"
+   )
+)
+
+if %VisualStudioVersion% EQU 15.0 (
+   set tools=vc15
+   if %address_model% EQU 32 (
+      set GENERATOR="Visual Studio 15 2017"
+   ) else (
+      set GENERATOR="Visual Studio 15 2017 Win64"
    )
 )
 
