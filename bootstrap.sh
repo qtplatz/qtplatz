@@ -10,32 +10,7 @@ build_package=false
 build_root=..
 cmake_args=('-DCMAKE_BUILD_TYPE=Release')
 
-function find_QMAKE() {
-    local __result=$1
-    case "${arch}" in
-	Linux-*)
-	    local dirs=( "/opt/Qt/5.9.3/gcc_64" "/opt/Qt/5.9.2/gcc_64" "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" \
-						  "/opt/Qt/5.8/gcc_64" \
-						  "/opt/Qt/5.7/gcc_64" )
-	    ;;
-	Darwin-*)
-	    local home=~
-	    local dirs=( "${home}/Qt/5.9.3/clang_64" "${home}/Qt/5.9.2/clang_64" "${home}/Qt/5.9.1/clang_64" "${home}/Qt/5.9/clang_64" \
-						     "${home}/Qt/5.8/clang_64" \
-						     "${home}/Qt/5.7/clang_64" )
-	    ;;
-    esac
-
-    for dir in "${dirs[@]}"; do
-	echo ${dir}/bin/qmake
-	if $dir/bin/qmake --version &> /dev/null ; then
-	    eval $__result="'$dir/bin/qmake'"
-	    return 0; #true
-	fi
-    done
-    return 1; #false
-}
-
+source ./scripts/find_qmake.sh
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -69,7 +44,7 @@ done
 
 if [ -z $QTDIR ]; then
     echo "######## Empty QTDIR ##########"
-    if find_QMAKE QMAKE; then
+    if find_qmake QMAKE; then
 	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
 	echo "Qt5 found: QTDIR="$QTDIR
 	export PATH=$QTDIR/bin:$PATH

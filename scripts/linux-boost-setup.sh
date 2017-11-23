@@ -52,22 +52,44 @@ function boost_build {
     
     BOOST_BUILD_DIR=$1
     BZIP2_SOURCE=$2
+
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
       echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
       prompt
+
+      case "${arch}" in
+	  Linux*)
+	      ./bootstrap.sh --prefix=$BOOST_PREFIX &&
+		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+	      ;;
+	  Darwin*)
+	      ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang &&
+		  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++11 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+	      ;;
+	  *)
+	      echo "Unknown arch: " $arch
+      esac
       
-      ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-	  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
-	echo "*****************************************************"
-	echo "boost has been built on `pwd`";
-	echo "run following command to install"
-	echo "cd `pwd`"
-	echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
-	echo "*****************************************************"
-	prompt
-	sudo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+      echo "*****************************************************"
+      echo "boost has been built on `pwd`";
+      echo "run following command to install"
+      echo "cd `pwd`"
+      echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
+      echo "*****************************************************"
+
+      prompt
+      case "${arch}" in
+	  Linux*)
+	      sudo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	      ;;
+	  Darwin*)
+	      sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++11 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	      ;;
+	  *)
+	      echo "Unknown arch: " $arch
+      esac      
     )
 }
 
