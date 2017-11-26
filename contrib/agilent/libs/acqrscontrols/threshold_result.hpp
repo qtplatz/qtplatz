@@ -42,7 +42,7 @@ namespace adcontrols { class TimeDigitalHistogram; }
 
 namespace acqrscontrols {
 
-    class threshold_result : public adportable::counting::counting_result {
+    class ACQRSCONTROLSSHARED_EXPORT threshold_result : public adportable::counting::counting_result {
     public:
         
 # if defined _MSC_VER && _MSC_VER <= 1800
@@ -118,7 +118,4 @@ namespace acqrscontrols {
     
     typedef acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > ap240_threshold_result;
     typedef acqrscontrols::threshold_result_< acqrscontrols::u5303a::waveform > u5303a_threshold_result;
-#if defined _MSC_VER
-	ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform >;
-#endif
 }

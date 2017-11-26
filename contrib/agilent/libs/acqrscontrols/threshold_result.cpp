@@ -42,6 +42,9 @@
 #include <cstdint>
 #include <ostream>
 #include "ap240/threshold_result.hpp"
+#if defined _MSC_VER
+# include "ap240/waveform.hpp"
+#endif
 
 using namespace acqrscontrols;
 
@@ -132,7 +135,12 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize )
     return true;
 }
 
+#if defined _MSC_VER
 ACQRSCONTROLSSHARED_EXPORT std::ostream & operator<<(std::ostream & os, const ap240_threshold_result &)
 {
 	return os;
 }
+
+ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform >;
+
+#endif
