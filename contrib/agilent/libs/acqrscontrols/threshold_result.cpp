@@ -41,6 +41,7 @@
 #include <vector>
 #include <cstdint>
 #include <ostream>
+#include "ap240/threshold_result.hpp"
 
 using namespace acqrscontrols;
 
@@ -120,4 +121,9 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize )
     }
     
     return true;
+}
+
+ACQRSCONTROLSSHARED_EXPORT std::ostream & operator<<(std::ostream & os, const ap240_threshold_result &)
+{
+	return os;
 }

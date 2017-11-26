@@ -38,49 +38,7 @@ namespace adcontrols { class TimeDigitalHistogram; }
 namespace acqrscontrols {
 
     namespace ap240 {
-
         class waveform;
-
-        // typedef acqrscontrols::threshold_result_< ap240::waveform > threshold_result;
-        
-#if 0
-        class [[deprecated]] /*ACQRSCONTROLSSHARED_EXPORT */ threshold_result : public adportable::counting::counting_result {
-
-            std::shared_ptr< const acqrscontrols::ap240::waveform > data_;
-            std::vector< uint32_t > indecies_;
-            std::vector< double > processed_;
-            uint32_t foundIndex_;
-            std::pair< uint32_t, uint32_t > findRange_;
-
-        public:
-            ~threshold_result();
-            threshold_result();            
-            threshold_result( std::shared_ptr< const acqrscontrols::ap240::waveform > d );
-            threshold_result( const threshold_result& t );
-            
-            std::shared_ptr< const acqrscontrols::ap240::waveform >& data();
-            std::shared_ptr< const acqrscontrols::ap240::waveform > data() const;
-
-            std::vector< uint32_t >& indecies();
-            std::vector< double >& processed();
-            const std::vector< uint32_t >& indecies() const;
-            const std::vector< double >& processed() const;
-            const std::pair<uint32_t, uint32_t >& findRange() const;
-            uint32_t foundIndex() const;
-            void setFoundAction( uint32_t index, const std::pair< uint32_t, uint32_t >& );
-
-            static constexpr uint32_t npos = (-1);
-
-            bool hasFoundIndex() const { return foundIndex_ != npos; }
-
-            
-            bool deserialize( const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
-
-            bool operator >> ( adcontrols::TimeDigitalHistogram& x ) const;
-
-        };
-
-#endif
     }
 
     typedef threshold_result_< ap240::waveform > ap240_threshold_result;
