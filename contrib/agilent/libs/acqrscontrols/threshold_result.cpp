@@ -51,6 +51,15 @@ threshold_result::threshold_result() : findRange_( 0, 0 )
 {
 }
 
+threshold_result::threshold_result( const threshold_result& t )
+    : adportable::counting::counting_result( t )
+    , findRange_( t.findRange_ )
+    , foundIndex_( t.foundIndex_ )
+    , findUp_( false )
+{
+}
+
+
 std::vector< double >&
 threshold_result::processed()
 {

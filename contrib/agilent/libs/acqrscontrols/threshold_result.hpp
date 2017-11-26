@@ -89,8 +89,8 @@ namespace acqrscontrols {
             : data_( d ) {
         }
         
-        threshold_result_( const threshold_result_& t ) : threshold_result( t )
-            , adportable::counting::counting_result( t )
+        threshold_result_( const threshold_result_& t )
+            : threshold_result( t )
             , data_( t.data_ ) {
         }
         

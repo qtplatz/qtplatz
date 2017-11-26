@@ -7,7 +7,7 @@ BUILD PROCEDURE
  Prerequisite
 ===============
 
-1. Qt 5.6/5.7
+1. Qt 5.9
 2. QWT
 3. Boost
 4. RDKit
@@ -15,8 +15,15 @@ BUILD PROCEDURE
 Linux platform also require following modules:
 libxml2-dev, libxslt1-dev, mesa-common-dev, bc, libncurses5-dev libgstreamer-plugins-base0.10
 
+------------
+Check Boost serialization version_type
+-----------
+Check <boost-source-dir>/libs/serialization/src/basic_archive.cpp
+find library_version_type returned by BOOST_ARCHIVE_VERSION()
+Current QtPlatz data acquisition is based on 14.
+
 ------
- QWT (Qt 5.6/5.7 should be installed before compile QWT)
+ QWT (Qt 5.9 should be installed before compile QWT)
 ------
 // change nmake rather than make on windows
 
