@@ -24,9 +24,9 @@ call bootstrap.bat
 
 @echo on
 
-b2 -j%nproc% toolset=%msvc% architecture=x86 address-model=64 -s BZIP2_SOURCE=%bzip2_dir% threading=multi runtime-link=shared --build-type=minimal link=static --stagedir=stage/x86_x64 stage
+b2 -j%nproc% toolset=%msvc% architecture=x86 address-model=64 -s BZIP2_SOURCE=%bzip2_dir% threading=multi runtime-link=shared --build-type=minimal link=static --stagedir=stage/x86_64 stage
 
-b2 -j%nproc% toolset=%msvc% architecture=x86 address-model=64 -s BZIP2_SOURCE=%bzip2_dir% threading=multi runtime-link=shared --build-type=minimal link=shared --stagedir=stage/x86_x64 stage install
+b2 -j%nproc% toolset=%msvc% architecture=x86 address-model=64 -s BZIP2_SOURCE=%bzip2_dir% threading=multi runtime-link=shared --build-type=minimal link=shared --stagedir=stage/x86_64 stage install
 
 cd %CWD%
 

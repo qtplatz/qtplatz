@@ -1,8 +1,21 @@
 :#!cmd.exe
 @echo off
 
+if %VisualStudioVersion% EQU 14.0 (
+   set tools=vc14
+   set GENERATOR="Visual Studio 14 2015 Win64"
+   set build_dir=%src_dir%\build-vc14-x86_64
+   set QTDIR=C:\Qt\5.9.3\msvc2015_64
+)
+if %VisualStudioVersion% EQU 15.0 (
+   set tools=vc15
+   set GENERATOR="Visual Studio 15 2017 Win64"
+   set build_dir=%src_dir%\build-vc15-x86_64
+   set QTDIR=C:\Qt\5.9.3\msvc2017_64
+)
+
 setlocal enabledelayedexpansion
-set QTDIR=C:\Qt\5.9.3\msvc2015_64
+
 set PQTH=%QTDIR%\bin;%PATH%
 set source_dir=%cd%
 set build_root=..
@@ -10,8 +23,6 @@ set build_arch=x86_64
 set build_type=release
 set build_tests=false
 set build_clean=false
-set address_model=64
-set GENERATOR="Visual Studio 15 2017 Win64"
 
 echo "Visual Studio Version: " %VisualStudioVersion%
 
@@ -26,38 +37,9 @@ for %%i in (%*) do (
        set build_clean=true
     ) else if %%i==x86 (
       set build_arch=x86
-      set address_model=32
     )
 )
 
-if %VisualStudioVersion% EQU 12.0 (
-   set tools=vc12
-   if %address_model% EQU 32 (
-      set GENERATOR="Visual Studio 12 2013"
-   ) else (
-      set GENERATORr="Visual Studio 12 2013 Win64"
-   )
-)
-
-if %VisualStudioVersion% EQU 14.0 (
-   set tools=vc14
-   if %address_model% EQU 32 (
-      set GENERATOR="Visual Studio 14 2015"
-   ) else (
-      set GENERATOR="Visual Studio 14 2015 Win64"
-   )
-)
-
-if %VisualStudioVersion% EQU 15.0 (
-   set tools=vc15
-   if %address_model% EQU 32 (
-      set GENERATOR="Visual Studio 15 2017"
-   ) else (
-      set GENERATOR="Visual Studio 15 2017 Win64"
-   )
-)
-
-echo -------------- address_model: !address_model!
 echo -------------- arch:          !build_arch!
 echo -------------- tools:         !tools!
 echo -------------- GENERATOR:     !GENERATOR!

@@ -28,6 +28,9 @@
 #include <adportable/debug.hpp>
 #include <boost/filesystem/path.hpp>
 #include <fstream>
+#if defined WIN32
+#include <process.h>
+#endif
 
 using namespace adlog;
 
@@ -41,7 +44,11 @@ logging_handler::logging_handler()
     boost::filesystem::path logfile( adportable::profile::user_data_dir<char>() );
     logfile /= "qtplatz.log";
     logfile_ = logfile.string();
+#if defined WIN32
+	__pid = ::_getpid();
+#else
     __pid = ::getpid();
+#endif
 }
 
 logging_handler *
