@@ -698,7 +698,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mas
 
 //static
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result_< ap240::waveform >& result, int scale )
+waveform::translate( adcontrols::MassSpectrum& sp, const acqrscontrols::threshold_result_< waveform >& result, int scale )
 {
     using namespace adcontrols::metric;
 
@@ -724,7 +724,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result_< ap24
 }
 
 bool
-waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result_< ap240::waveform >& result, mass_assignor_t assign, int scale )
+waveform::translate( adcontrols::MassSpectrum& sp, const acqrscontrols::threshold_result_< waveform >& result, mass_assignor_t assign, int scale )
 {
     if ( translate( sp, result, scale ) ) {
 

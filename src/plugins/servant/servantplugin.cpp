@@ -64,6 +64,9 @@
 #include <boost/exception/all.hpp>
 #include <chrono>
 #include <thread>
+#if defined WIN32
+#include <process.h>
+#endif
 
 using namespace servant;
 using namespace servant::internal;

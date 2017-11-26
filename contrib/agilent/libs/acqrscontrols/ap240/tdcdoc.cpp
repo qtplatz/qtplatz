@@ -209,7 +209,7 @@ tdcdoc::~tdcdoc()
 }
 
 bool
-tdcdoc::accumulate_histogram( std::shared_ptr< const threshold_result_< ap240::waveform > > timecounts )
+tdcdoc::accumulate_histogram( std::shared_ptr< const acqrscontrols::threshold_result_< waveform > > timecounts )
 {
     auto proto = timecounts->data()->method_.protocolIndex();
     auto count = timecounts->data()->method_.protocols().size();

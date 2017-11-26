@@ -31,6 +31,9 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#if defined WIN32
+#include <acqrscontrols/ap240/waveform.hpp>
+#endif
 
 namespace acqrscontrols { template< typename T > class threshold_result_; namespace ap240 { class waveform; } }
 

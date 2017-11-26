@@ -96,7 +96,7 @@ histogram::append( const acqrscontrols::threshold_result_< ap240::waveform>& res
 #endif
 
 size_t
-histogram::append( const acqrscontrols::threshold_result_< ap240::waveform >& result )
+histogram::append( const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform >& result )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
