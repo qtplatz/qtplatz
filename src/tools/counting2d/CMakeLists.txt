@@ -18,7 +18,12 @@ find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
-  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+  include_directories( ${OpenCV_INCLUDE_DIRS} )
+  if ( HDF5 )
+    include_directories( ${HDF5_INCLUDE_DIRS} )
+  else()
+    set( HDF5_LIBRARIES )
+  endif()
 endif()
 
 include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )

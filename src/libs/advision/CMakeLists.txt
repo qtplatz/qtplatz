@@ -12,6 +12,7 @@ set( CMAKE_CXX_STANDARD 14 )
 
 if ( OpenCV_FOUND )
   find_package( OpenCV 3 REQUIRED core imgproc video highgui features2d )
+  message( STATUS "############### " ${OpenCV_LIBRARIES} )
   add_definitions( "-DOPENCV=1" )
   include_directories ( ${OpenCV_INCLUDE_DIRS} )
   set ( cuda_cv_sources

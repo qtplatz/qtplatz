@@ -23,11 +23,13 @@
 **************************************************************************/
 #pragma once
 
+#include "adcontrols_global.h"
+
 #include <utility>
 
 namespace adcontrols {
 
-    class ContoursMethod {
+    class ADCONTROLSSHARED_EXPORT ContoursMethod {
     public:
         explicit ContoursMethod();
         ContoursMethod( const ContoursMethod& );

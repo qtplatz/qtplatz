@@ -1,6 +1,8 @@
 :#!cmd.exe
 @echo off
 
+setlocal enabledelayedexpansion
+
 if %VisualStudioVersion% EQU 14.0 (
    set tools=vc14
    set GENERATOR="Visual Studio 14 2015 Win64"
@@ -13,8 +15,6 @@ if %VisualStudioVersion% EQU 15.0 (
    set build_dir=%src_dir%\build-vc15-x86_64
    set QTDIR=C:\Qt\5.9.3\msvc2017_64
 )
-
-setlocal enabledelayedexpansion
 
 set source_dir=%cd%
 set build_root=..
@@ -69,8 +69,7 @@ if !build_type!==release (
 
 echo %cd%
 :end
-endlocal
 
-
+endlocal & set build_dir=%build_dir% & set source_dir=%source_dir%
 
 

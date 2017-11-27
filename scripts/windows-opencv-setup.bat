@@ -53,12 +53,14 @@ cmake -DCMAKE_EXTRA_MODULES_PATH=%opencv_contrib_dir%\modules ^
 	  -DCUDA_FAST_MATH=%CUDA%           ^
 	  -DWITH_CUBLAS=%CUDA%              ^
 	  -DCUDA_NVCC_FLAGS="--expt-relaxed-constexpr" ^
+	  -DCMAKE_DEBUG_POSTFIX="d" ^
 	  -G %GENERATOR% %opencv_dir%
 
-endlocal
+msbuild OpenCV.sln /t:build /m:%nproc% /p:Configuration=Debug
+msbuild OpenCV.sln /t:build /m:%nproc% /p:Configuration=Release
+msbuild INSTALL.vcxproj /t:build /m:%nproc% /p:Configuration=Debug
+msbuild INSTALL.vcxproj /t:build /m:%nproc% /p:Configuration=Release
 
-:devenv OpenCV.sln
-:msbuild /m:%nproc% /p:Configuration=Debug INSTALL.vcxproj
-msbuild OpenCV.sln /m:%nproc% /p:Configuration=Release /t:build
+endlocal
 
 cd %CWD%

@@ -152,11 +152,20 @@ if ( WITH_OPENCV )
   if ( APPLE )
     list ( APPEND CMAKE_PREFIX_PATH "/usr/local/opt/opencv3/share/OpenCV")
   endif()
+  if ( WIN32 )
+    list ( APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR}/../opencv.release/install "C:/OpenCV")
+    add_definitions( -DNOMINMAX ) # supress max/min macro in windef.h
+  endif()
   find_package( OpenCV 3 QUIET )
-  find_package( HDF5 QUIET )
   if ( OpenCV_FOUND )
     add_definitions( -DHAVE_OPENCV=1 )
   endif()
+  
+  find_package( HDF5 QUIET )
+  if ( HDF5 )
+    add_definitions( -DHAVE_HDF5=1 )
+  endif()
+
 endif()
 
 if ( WITH_AqDrv4 )

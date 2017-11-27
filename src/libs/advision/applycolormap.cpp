@@ -42,7 +42,7 @@
 
 namespace advision {
 
-    static const std::vector< float > __levels { 0.00, 0.05, 0.30, 0.60, 0.80, 0.97, 1.0 };
+    static const std::vector< float > __levels { 0.00f, 0.05f, 0.30f, 0.60f, 0.80f, 0.97f, 1.0f };
 
                                             // black, blue, cyan, green,yellow,red, white
     static const std::vector< float > __colors { 0.0, 0.0,  0.0,  0.0,  1.0,  1.0, 1.0  // R

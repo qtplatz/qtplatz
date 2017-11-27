@@ -20,14 +20,8 @@ if ( WITH_CHARTS )
 endif()
 
 find_package( qwt )
-#list( APPEND _charts_sources qwt/chartview.cpp qwt/chartview.hpp qwt/xyseriesdata.cpp qwt/xyseriesdata.hpp )
-include_directories( ${QWT_INCLUDE_DIRS} )
 
-if ( OpenCV_FOUND )
-  add_definitions( "-DOPENCV=1" )
-  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
-  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} advision )
-endif()
+include_directories( ${QWT_INCLUDE_DIRS} )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)

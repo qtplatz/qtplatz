@@ -16,8 +16,10 @@ set ( CMAKE_CXX_STANDARD 14 )
 
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
-  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
-  set( _opencv_libraries ${OpenCV_LIBRARIES} ${HDF5_LIBRARIES} )
+  include_directories( ${OpenCV_INCLUDE_DIRS} )
+  if ( HDF5 )
+    include_directories( ${HDF5_INCLUDE_DIRS} )
+  endif()
 endif()
 
 include_directories(

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "advision_global.hpp"
 #include <driver_types.h> // cudaStream_t
 #include <vector>
 #include <thrust/device_vector.h>
@@ -35,7 +36,7 @@ class QImage;
 
 namespace cuda {
 
-    class cvColorMap {
+    class ADVISIONSHARED_EXPORT cvColorMap {
 
         cvColorMap( const cvColorMap& ) = delete;
         cvColorMap& operator = ( const cvColorMap& ) = delete;
