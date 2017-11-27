@@ -162,7 +162,7 @@ if ( WITH_OPENCV )
   endif()
   
   find_package( HDF5 QUIET )
-  if ( HDF5 )
+  if ( HDF5_FOUND )
     add_definitions( -DHAVE_HDF5=1 )
   endif()
 

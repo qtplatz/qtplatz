@@ -27,6 +27,7 @@
 #include <opencv2/opencv.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
+#include <algorithm>
 
 using namespace video;
 
@@ -143,7 +144,7 @@ cvColor::operator()( const adcontrols::MappedImage& matrix, int _z ) const
 {
     cv::Mat m( matrix.size1(), matrix.size2(), CV_8UC3 );
 
-    double z = _z == 0 ? std::max( matrix.mergeCount(), 1UL ) : _z;
+    double z = _z == 0 ? std::max( matrix.mergeCount(), size_t(1) ) : _z;
     //double z = matrix.max_z();
 
     for ( size_t i = 0; i < matrix.size1(); ++i ) {

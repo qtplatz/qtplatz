@@ -25,13 +25,14 @@
 #ifndef PLOTPICKER_HPP
 #define PLOTPICKER_HPP
 
+#include "adplot_global.hpp"
 #include <qwt_plot_picker.h>
 
 class QwtPlotCanvas;
 
 namespace adplot {
 
-	class Picker : public QwtPlotPicker {
+	class ADPLOTSHARED_EXPORT Picker : public QwtPlotPicker {
 		Q_OBJECT
 	public:
 		explicit Picker( QWidget * parent = 0 );

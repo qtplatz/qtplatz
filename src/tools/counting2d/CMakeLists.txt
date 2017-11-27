@@ -55,7 +55,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Qt5::Widgets
   Qt5::Svg
   Threads::Threads
-  dl
+  ${CMAKE_DL_LIBS}
   )
 
 install( TARGETS ${PROJECT_NAME}

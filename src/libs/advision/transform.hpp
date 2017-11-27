@@ -47,13 +47,13 @@ namespace advision {
     };
 
     template<>
-    template< typename R > af::array transform_< af::array >::operator()( const R& ) const;
+    template< typename R > af::array ADVISIONSHARED_EXPORT transform_< af::array >::operator()( const R& ) const;
 
     template<>
-    template< typename R > cv::Mat transform_< cv::Mat >::operator()( const R& ) const;
+    template< typename R > cv::Mat ADVISIONSHARED_EXPORT transform_< cv::Mat >::operator()( const R& ) const;
 
     template<>
-    template< typename R > QImage transform_< QImage >::operator()( const R& ) const;        
+    template< typename R > QImage ADVISIONSHARED_EXPORT transform_< QImage >::operator()( const R& ) const;        
 
 }
 

@@ -24,13 +24,14 @@
 
 #pragma once
 
+#include "adwidgets_global.hpp"
 #include <QWidget>
 #include <ostream>
 class QCompleter;
 
 namespace adwidgets {
 
-    class OutputWidget : public QWidget {
+    class ADWIDGETSSHARED_EXPORT OutputWidget : public QWidget {
         Q_OBJECT
     public:
         ~OutputWidget();

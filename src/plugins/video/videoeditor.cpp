@@ -135,11 +135,13 @@ VideoEditor::Document::~Document()
 bool
 VideoEditor::Document::save( QString* errorString, const QString& filename, bool autoSave )
 {
+	return false;
 }
 
 bool
 VideoEditor::Document::reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType )
 {
+	return false;
 }
 
 QString

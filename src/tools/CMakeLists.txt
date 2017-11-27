@@ -2,10 +2,14 @@
 add_subdirectory (eventbroker)
 
 if ( Qt5_FOUND )
-  add_subdirectory (eventtool)
-  add_subdirectory (counting)
 
-  if ( OpenCV_FOUND )
+  add_subdirectory (eventtool)
+
+  if ( HDF5_FOUND )
+    add_subdirectory (counting)
+  endif()
+
+  if ( OpenCV_FOUND AND HDF5_FOUND )
     add_subdirectory (counting2d)
   endif()
   
