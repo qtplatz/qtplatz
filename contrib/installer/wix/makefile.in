@@ -134,6 +134,9 @@ vc120.wixobj: vc120.wxi
 vc140.wixobj: vc140.wxi 
 	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC140.CRT" vc140.wxi
 
+vc141.wixobj: vc141.wxi
+	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT" vc141.wxi
+
 bruker.wixobj: bruker.wxi 
 	$(CANDLE) -dSourceDir="@BDBASE@" bruker.wxi
 
@@ -182,6 +185,11 @@ vc140.wxi: makefile
 	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC140.CRT" \
 	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o vc140.wxi
+
+vc141.wxi: makefile
+	$(HEAT) dir "$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT" \
+	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
+	-t x64transform.xslt -o $@
 
 bruker.wxi: makefile
 	$(HEAT) dir "@BDBASE@" \

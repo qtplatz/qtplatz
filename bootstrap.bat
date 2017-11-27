@@ -16,7 +16,6 @@ if %VisualStudioVersion% EQU 15.0 (
 
 setlocal enabledelayedexpansion
 
-set PQTH=%QTDIR%\bin;%PATH%
 set source_dir=%cd%
 set build_root=..
 set build_arch=x86_64
@@ -60,17 +59,18 @@ cd !build_dir!
 if !build_type!==release (
     echo cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
     cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
+    cd %source_dir%
 ) else if !build_type!==package (
     echo cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
     cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
     cd contrib\installer\wix
     nmake help
-    echo cd !build_dir!\contrib\installer\wix
-    goto end
 )
 
-cd %source_dir%
-
+echo %cd%
 :end
 endlocal
+
+
+
 
