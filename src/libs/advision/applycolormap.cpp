@@ -260,7 +260,7 @@ namespace advision {
     
 #if HAVE_OPENCV
     template<>
-    template<> cv::Mat ApplyColorMap_<cv::Mat>::operator()( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
+    template<> ADVISIONSHARED_EXPORT cv::Mat ApplyColorMap_<cv::Mat>::operator()( const boost::numeric::ublas::matrix< double >& m, float scaleFactor ) const
     {
 #if HAVE_CUDA
         if ( deviceInfo::instance()->hasCUDA() )        
@@ -274,7 +274,7 @@ namespace advision {
 #if HAVE_OPENCV
     // specialization [2]
     template<>
-    template<> cv::Mat ApplyColorMap_<cv::Mat>::operator()( const cv::Mat& mat, float scaleFactor ) const
+    template<> ADVISIONSHARED_EXPORT cv::Mat ApplyColorMap_<cv::Mat>::operator()( const cv::Mat& mat, float scaleFactor ) const
     {
         if ( mat.type() != CV_32F ) {
             ADDEBUG() << "ERROR: Invalid data type";

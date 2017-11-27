@@ -194,7 +194,7 @@ namespace advision {
     // cv::Mat -> QImage
     template<>
     template<>
-    QImage transform_< QImage >::operator()< cv::Mat >( const cv::Mat& a ) const {
+	ADVISIONSHARED_EXPORT QImage transform_< QImage >::operator()< cv::Mat >( const cv::Mat& a ) const {
 
         cv::Mat t( a );  // shallow copy
         
@@ -223,7 +223,7 @@ namespace advision {
     // cv::Mat -> QImage
     template<>
     template<>
-    cv::Mat transform_< cv::Mat >::operator()<>( const boost::numeric::ublas::matrix< double >& m ) const {
+	ADVISIONSHARED_EXPORT cv::Mat transform_< cv::Mat >::operator()<>( const boost::numeric::ublas::matrix< double >& m ) const {
 
         cv::Mat mat( m.size1(), m.size2(), CV_32FC(1) );
         float * ptr = reinterpret_cast< float * >( mat.ptr() );

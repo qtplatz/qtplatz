@@ -317,8 +317,8 @@ namespace advision {
             cv::Point centre( mu.m10 / mu.m00, mu.m01 / mu.m00 );
             double area = cv::contourArea( contours[i] ) / ( method.sizeFactor() * method.sizeFactor() );
 
-            if ( ( rc.width >= method.minSizeThreshold() && rc.height >= method.minSizeThreshold() ) &&
-                 ( rc.width < method.maxSizeThreshold() && rc.height < method.maxSizeThreshold() ) ) {            
+            if ( ( unsigned( rc.width ) >= method.minSizeThreshold() && unsigned( rc.height ) >= method.minSizeThreshold() ) &&
+                 ( unsigned( rc.width ) < method.maxSizeThreshold() && unsigned( rc.height ) < method.maxSizeThreshold() ) ) {            
                 
                 cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
                 cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );

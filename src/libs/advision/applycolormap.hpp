@@ -51,7 +51,8 @@ namespace advision {
         cv::Mat operator()( const cv::Mat&, float scaleFactor = 1.0, cuda_algo algo = cuda_direct ) const;
     };
 
-    template< typename T >
+    //ADVISIONSHARED_TEMPLATE_EXPORT 
+	template< typename T >
     struct ADVISIONSHARED_EXPORT ApplyColorMap_ : public ApplyColorMap {
         ApplyColorMap_() : ApplyColorMap() {}
         ApplyColorMap_( size_t nlevels, const float * levels, const float * colors ) : ApplyColorMap( nlevels, levels, colors ) {}
