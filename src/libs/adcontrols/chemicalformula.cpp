@@ -369,7 +369,7 @@ namespace adcontrols {
                     // ADDEBUG() << "parse(" << formula.substr( prev - formula.begin(), it - formula.begin() ) << ") " << mass;
                     // prev = it;
 
-                    if ( it == formula.end() && ( *it != '-' || *it != '+' ) )
+                    if ( it == formula.end() || ( *it != '-' || *it != '+' ) )
                         break;
 
                     sep = *it++;

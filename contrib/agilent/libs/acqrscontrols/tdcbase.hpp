@@ -41,7 +41,7 @@ namespace adcontrols {
 
 namespace acqrscontrols {
 
-    class tdcbase {
+    class ACQRSCONTROLSSHARED_EXPORT tdcbase {
     public:
         virtual ~tdcbase();
         tdcbase();
