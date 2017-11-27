@@ -33,7 +33,7 @@ cd %rdkit_build_dir%
 @echo on
 ::cmake -DBOOST_LIBRARYDIR=%boost_library_dir% -DBOOST_ROOT=%boost_root% -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DCMAKE_DEBUG_POSTFIX="d" -G "Visual Studio 15 2017 Win64" %rdkit_dir%
 
-cmake -DBOOST_LIBRARYDIR=%boost_library_dir% -DBOOST_ROOT=%boost_root% -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DBoost_USE_STATIC_LIBS=ON -DCMAKE_DEBUG_POSTFIX="d" -G "Visual Studio 15 2017 Win64" %rdkit_dir%
+cmake -DBOOST_LIBRARYDIR=%boost_library_dir% -DBOOST_ROOT=%boost_root% -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_PYTHON_WRAPPERS=OFF -DBoost_USE_STATIC_LIBS=ON -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %rdkit_dir%
 
 :devenv RDKit.sln
 msbuild /m:%nproc% /p:Configuration=Debug INSTALL.vcxproj

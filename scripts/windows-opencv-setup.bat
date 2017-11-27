@@ -1,6 +1,8 @@
 @echo off
 setlocal enableextensions
 
+set src_dir=%HOME%\source
+
 if %VisualStudioVersion% EQU 14.0 (
    set GENERATOR="Visual Studio 14 2015 Win64"
    set build_dir=%src_dir%\build-vc14-x86_64
@@ -12,12 +14,12 @@ if %VisualStudioVersion% EQU 15.0 (
 
 set CWD=%cd%
 set nproc=%NUMBER_OF_PROCESSORS%
-set src_dir=%HOME%\source
 set opencv_dir=%src_dir%\opencv
 set opencv_contrib_dir=%src_dir%\opencv_contrib
 set opencv_extra_dir=%src_dir%\opencv_extra
 set opencv_build_dir=%build_dir%\opencv.release
 set CUDA=OFF
+set BUILD_CONFIG="Release"
 
 if not exist %opencv_dir% (
    cd %src_dir%
@@ -36,26 +38,27 @@ if not exist %opencv_build_dir% (
    mkdir %opencv_build_dir%
 )
 
-
 cd %opencv_build_dir%
-cmake -DCMAKE_EXTRA_MODULES_PATH=%opencv_contrib_dir%\opencv_contrib\modules \
-      	  -DCMAKE_BUILD_TYPE=%BUILD_CONFIG% \
-	  -DENABLE_CXX11=ON		   \
-	  -DBUILD_PERF_TESTS=OFF           \
-	  -DWITH_XINE=ON                   \
-	  -DBUILD_TESTS=OFF                \
-	  -DENABLE_PRECOMPILED_HEADERS=OFF \
-	  -DCMAKE_SKIP_RPATH=ON            \
-	  -DBUILD_WITH_DEBUG_INFO=OFF      \
-	  -DCUDA_FAST_MATH=%CUDA%          \
-	  -DWITH_CUBLAS=%CUDA%             \
-	  -DCUDA_NVCC_FLAGS="--expt-relaxed-constexpr" \
-	  %opencv_dir%
+echo opencv build directory: %cd%
+
+cmake -DCMAKE_EXTRA_MODULES_PATH=%opencv_contrib_dir%\modules ^
+      	  -DCMAKE_BUILD_TYPE=%BUILD_CONFIG% ^
+	  -DENABLE_CXX11=ON		    ^
+	  -DBUILD_PERF_TESTS=OFF            ^
+	  -DWITH_XINE=ON                    ^
+	  -DBUILD_TESTS=OFF                 ^
+	  -DENABLE_PRECOMPILED_HEADERS=OFF  ^
+	  -DCMAKE_SKIP_RPATH=ON             ^
+	  -DBUILD_WITH_DEBUG_INFO=OFF       ^
+	  -DCUDA_FAST_MATH=%CUDA%           ^
+	  -DWITH_CUBLAS=%CUDA%              ^
+	  -DCUDA_NVCC_FLAGS="--expt-relaxed-constexpr" ^
+	  -G %GENERATOR% %opencv_dir%
 
 endlocal
 
-:devenv Opencv.sln
+:devenv OpenCV.sln
 :msbuild /m:%nproc% /p:Configuration=Debug INSTALL.vcxproj
-:msbuild /m:%nproc% /p:Configuration=Release INSTALL.vcxproj
+msbuild OpenCV.sln /m:%nproc% /p:Configuration=Release /t:build
 
 cd %CWD%

@@ -5,7 +5,7 @@ if ( qwt_FOUND )
 endif()
 
 if ( WIN32 )
-  find_path( qwt_DIR NAMES include/qwt.h HINTS C:/Qwt-6.1.3 C:/qwt-6.1.4-svn $ENV{QWT} )
+  find_path( qwt_DIR NAMES include/qwt.h HINTS C:/qwt-6.1.4-svn C:/Qwt-6.1.3 $ENV{QWT} )
 else()
   find_path( qwt_DIR NAMES include/qwt.h HINTS
     /usr/local/qwt-6.1.4-svn
