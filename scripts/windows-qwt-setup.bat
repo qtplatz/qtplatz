@@ -26,7 +26,7 @@ if not exist "qwtconfig.pri.orig" (
    ren qwtconfig.pri qwtconfig.pri.orig
 )
 
-sed 's/\([ \t]*QWT_CONFIG.*QwtDesigner\)/#\1/' qwtconfig.pri.orig > qwtconfig.pri
+sed 's/\([ \t]*QWT_CONFIG.*QwtDesigner\)/#\1/; s/\([ \t]*QWT_CONFIG.*QwtDll\)/#\1/' qwtconfig.pri.orig > qwtconfig.pri
 
 %qmake% qwt.pro
 nmake
