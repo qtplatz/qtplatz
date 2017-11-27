@@ -4,7 +4,8 @@ cmake_policy( SET CMP0042 NEW )
 
 project( test_ptree )
 
-find_package( Boost REQUIRED system filesystem serialization date_time )
+#find_package( Boost REQUIRED system filesystem serialization date_time )
+find_package( Threads REQUIRED )
 
 include_directories(
   ${Boost_INCLUDE_DIRS}
@@ -13,6 +14,6 @@ include_directories(
 
 add_executable( ${PROJECT_NAME} main.cpp )
 
-target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC ${Boost_LIBRARIES} adfs adportable adcontrols pthread dl )
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC ${Boost_LIBRARIES} adfs adportable adcontrols Threads::Threads ${CMAKE_DL_LIBS} )
 
 

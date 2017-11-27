@@ -6,10 +6,7 @@ project( ap240 )
 
 add_definitions(-DAP240_LIBRARY -D_SCL_SECURE_NO_WARNINGS)
 
-set( platform_libs "" )
-
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-  set( platform_libs dl )
   add_definitions( -D_LINUX -D_ACQIRIS )
 endif()
 
@@ -48,7 +45,7 @@ target_link_libraries( ap240 PUBLIC
   AqDrv4
   dgpio
   ${Boost_LIBRARIES}
-  ${platform_libs}
+  ${CMAKE_DL_LIBS}
   )
 
 add_executable( diag-ap240 main.cpp )
@@ -56,7 +53,7 @@ add_executable( diag-ap240 main.cpp )
 target_link_libraries( diag-ap240 LINK_PUBLIC
   ${PROJECT_NAME}
   ${Boost_LIBRARIES}
-  ${platform_libs}
+  ${CMAKE_DL_LIBS}
 )  
 
 install( TARGETS ${PROJECT_NAME}

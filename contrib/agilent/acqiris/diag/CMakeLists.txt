@@ -21,7 +21,7 @@ set( SOURCES diag.cpp )
 
 add_executable( diag diag.cpp )
 
-target_link_libraries( diag dl AqDrv4 )
+target_link_libraries( diag AqDrv4 ${CMAKE_DL_LIBS} )
 
 #install( TARGETS diag RUNTIME DESTINATION bin COMPONENT applications )
 

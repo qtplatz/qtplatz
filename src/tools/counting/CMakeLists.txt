@@ -17,8 +17,10 @@ set ( CMAKE_CXX_STANDARD 14 )
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
-  if ( HDF5 )
+  set( opencv_libraries ${OpenCV_LIBRARIES} )
+  if ( HDF5_FOUND )
     include_directories( ${HDF5_INCLUDE_DIRS} )
+    list( APPEND opencv_libraries ${HDF5_LIBRARIES} )
   endif()
 endif()
 
@@ -47,7 +49,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adprocessor
   acqrscontrols
   ${Boost_LIBRARIES}
-  ${_opencv_libraries}
+  ${opencv_libraries}
   )
 
 install( TARGETS ${PROJECT_NAME}

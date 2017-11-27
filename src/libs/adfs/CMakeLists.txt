@@ -21,7 +21,7 @@ if ( WIN32 )
   set( adfs_SOURCE apiwin32.cpp apiwin32.hpp )
 else()
   set( adfs_SOURCE apiposix.cpp apiposix.hpp )
-  set( oslibs dl Threads::Threads )
+  set( oslibs ${CMAKE_DL_LIBS} Threads::Threads )
 endif()
   
 add_library( ${PROJECT_NAME} SHARED
