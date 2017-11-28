@@ -10,12 +10,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-#find_package( Qt5 REQUIRED Widgets Gui Network Core Script PrintSupport )
 find_package( Qt5 REQUIRED Widgets Gui Network Core PrintSupport )
 
 include_directories(
   ${Qt5Network_INCLUDE_DIRS}
-  ${Qt5Script_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   )
 

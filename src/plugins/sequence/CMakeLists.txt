@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( sequence )
 set( PROVIDER MS-Cheminformatics )
 
-find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Script Network WebKit WebKitWidgets )
+find_package( Qt5 CONFIG REQUIRED Core Svg Sql PrintSupport Widgets Network WebKit WebKitWidgets )
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

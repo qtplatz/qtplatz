@@ -9,7 +9,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-#find_package( Qt5 REQUIRED Script Network Widgets Core Gui PrintSupport )
 find_package( Qt5 REQUIRED Network Widgets Core Gui PrintSupport )
 
 add_definitions(
@@ -76,7 +75,6 @@ target_link_libraries(
   ${PROJECT_NAME} LINK_PUBLIC
   utils
   Qt5::Widgets
-#  Qt5::Script
   Qt5::Core
 )
 

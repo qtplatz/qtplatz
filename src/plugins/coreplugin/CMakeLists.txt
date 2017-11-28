@@ -40,7 +40,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src		# app/app_version.h
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${Qt5PrintSupport_INCLUDE_DIRS}
-  ${Qt5Script_INCLUDE_DIRS}
   ${Qt5Sql_INCLUDE_DIRS}
   ${Qt5Gui_INCLUDE_DIRS}
   ${Qt5Gui_PRIVATE_INCLUDE_DIRS}

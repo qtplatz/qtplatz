@@ -9,6 +9,7 @@ endif()
 if (WIN32)
 
   add_subdirectory( wix )
+  add_subdirectory( opencv )
 
 elseif( APPLE )
 

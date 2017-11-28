@@ -20,6 +20,9 @@ elseif( MSVC_VERSION EQUAL 1800 )
   set( vsvers "vc12" )
 endif()
 
+if ( OpenCV_FOUND )
+  message( STATUS "##### OpenCV WIX: " ${OpenCV_ROOT_DIR} )
+endif()
 
 find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${CMAKE_SOURCE_DIR}/../infitof )
 if ( INFITOF_SOURCE_DIR )

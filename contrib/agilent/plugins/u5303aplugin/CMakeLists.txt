@@ -8,7 +8,7 @@ set( COMPAT_VERSION 3.2.81 )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
 #QT += core svg printsupport widgets
-find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Script Network PrintSupport )
+find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Svg Network PrintSupport )
 find_package( qwt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
