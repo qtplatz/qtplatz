@@ -30,7 +30,7 @@
 
 namespace adtofprocessor {
     
-    class ADPROCESSORSHARED_EXPORT OnCreate {
+    class OnCreate {
     public:
         OnCreate();
         ~OnCreate();

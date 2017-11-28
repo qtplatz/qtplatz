@@ -36,7 +36,7 @@ namespace adtofprocessor {
     class EstimateScanLaw;
     class OnCreate;
     
-    class ADPROCESSORSHARED_EXPORT ProcessReactor {
+    class ProcessReactor {
         ProcessReactor();
         ProcessReactor( const ProcessReactor& ) = delete;
         ProcessReactor& operator = ( const ProcessReactor& ) = delete;

@@ -85,6 +85,7 @@ endif()
 if( WIN32 )
   set( CPACK_INSTALL_PREFIX "C:/QtPlatz" )
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
+  set( CPACK_PACKAGE_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX} )  # WiX does not support this, and raise an error
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "bin" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "bin" )
 elseif ( APPLE )
@@ -238,7 +239,6 @@ include( qtplatz-cpack-config )
 if ( WIN32 )
   
   set( CPACK_GENERATOR "WIX" )
-  #set( CPACK_WIX_UPGRADE_GUID "F8077E17-B0F6-4DDB-A7D9-CD7578199E82" )
   set( CPACK_WIX_UPGRADE_GUID "10E528B2-6F93-4CFB-91CD-493C6B3D5650" )
   set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
   set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" )

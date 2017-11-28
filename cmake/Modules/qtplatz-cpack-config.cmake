@@ -19,13 +19,15 @@ cpack_add_component( modules           DISPLAY_NAME "Modules" GROUP Runtime )
 if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   cpack_add_component( libraries       DISPLAY_NAME "Development libraries"
     DESCRIPTION "Static and import libraries" GROUP Development )
-
   cpack_add_component( headers         DISPLAY_NAME "C++ Headers"
     DESCRIPTION "C++ header files for use with QtPlatz Toolkit" GROUP Development )
 endif()
 
 cpack_add_component_group( Runtime )
-cpack_add_component_group( Development )
+
+if ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+  cpack_add_component_group( Development )
+endif()
 
 set( CPACK_ALL_INSTALL_TYPES Full Developer)
 set( CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES Developer Full )

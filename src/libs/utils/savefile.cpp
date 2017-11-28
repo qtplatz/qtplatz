@@ -101,7 +101,7 @@ bool SaveFile::commit()
         return false;
     }
 #ifdef Q_OS_WIN
-    FlushFileBuffers(reinterpret_cast<HANDLE>(handle()));
+    FlushFileBuffers(HANDLE(reinterpret_cast< void * >(handle())));
 #elif _POSIX_SYNCHRONIZED_IO > 0
     fdatasync(handle());
 #else

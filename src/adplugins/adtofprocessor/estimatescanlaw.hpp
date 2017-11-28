@@ -30,7 +30,7 @@
 
 namespace adtofprocessor {
     
-    class ADPROCESSORSHARED_EXPORT EstimateScanLaw {
+    class EstimateScanLaw {
     public:
         EstimateScanLaw();
 

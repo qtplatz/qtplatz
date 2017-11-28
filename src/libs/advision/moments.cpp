@@ -108,8 +108,8 @@ Moments::operator()( boost::numeric::ublas::matrix< double >& out, const boost::
     for( int i = 0; i< contours.size(); i++ )  {
 
         cv::Rect rc = cv::boundingRect( contours[i] );
-        if ( ( rc.width >= szThreshold_.first && rc.height >= szThreshold_.first ) &&
-             ( rc.width < szThreshold_.second && rc.height < szThreshold_.second ) ) {
+        if ( ( unsigned(rc.width) >= szThreshold_.first && unsigned(rc.height) >= szThreshold_.first ) &&
+             ( unsigned(rc.width) < szThreshold_.second && unsigned(rc.height) < szThreshold_.second ) ) {
             
             cv::Moments mu = cv::moments( contours[i], false );
             unsigned cx = unsigned( ( mu.m10 / mu.m00 ) / sizeFactor_ );

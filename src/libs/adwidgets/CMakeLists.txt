@@ -163,7 +163,11 @@ set( ${PROJECT_NAME}_HEADERS
   controlmethod/timedeventswidget.hpp
   controlmethod/timedtableview.hpp
   countingwidget.hpp
-)
+  )
+
+if ( WIN32 )
+  set_source_files_properties( moldraw.cpp PROPERTIES COMPILE_FLAGS -wd4305 )
+endif()
 
 add_library( ${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS} )
 

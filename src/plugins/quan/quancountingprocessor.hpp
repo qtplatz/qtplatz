@@ -62,7 +62,7 @@ namespace quan {
     class QuanChromatogram;
     class ProgressHandler;
     ////////////////////
-    class FindCompounds;
+    struct FindCompounds;
 
     ///////////////////////////////////
 

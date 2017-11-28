@@ -210,7 +210,9 @@ rawdata::loadCalibrations()
 std::shared_ptr< adcontrols::MassSpectrometer >
 rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid ) const
 {
-    return const_cast<rawdata *>(this)->getSpectrometer( objid, dataInterpreterClsid );
+	assert(0);
+	return nullptr;
+    //return const_cast<rawdata *>(this)->getSpectrometer( objid, dataInterpreterClsid );
 }
 
 size_t

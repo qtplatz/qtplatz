@@ -914,7 +914,7 @@ device_ap240::averager_setup( task& task, acqrscontrols::ap240::method& m )
 #endif
     // config "IO B" for Acquisition is active (21)
     status = AcqrsD1_configControlIO( inst, 2, 21, 0, 0 );
-    if ( task::checkError( inst, status, "AcqrsD1_configControlIO(B)", __FILE__,__LINE__,__FUNCTION__) );
+    if ( task::checkError( inst, status, "AcqrsD1_configControlIO(B)", __FILE__,__LINE__,__FUNCTION__) )
         return false;
 
     // Configure the front panel trigger out (TR.)

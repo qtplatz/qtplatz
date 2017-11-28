@@ -79,6 +79,11 @@ set ( SOURCES
   dft2d.hpp
   )
 
+if ( WIN32 )
+  set_source_files_properties( applycolormap.cpp imfilter.cpp PROPERTIES COMPILE_FLAGS -wd5037 )
+  set_source_files_properties( applycolormap.cpp imfilter.cpp PROPERTIES COMPILE_FLAGS -wd5037 )
+endif()
+
 set ( CUDA_SOURCES
   ${cuda_af_sources}
   ${cuda_cv_sources}

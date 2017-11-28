@@ -159,7 +159,7 @@ ajax::get_response( boost::property_tree::ptree& pt ) const
             std::istream is( response_.get() );
             boost::property_tree::read_json( is, pt );
             return true;
-        } catch ( boost::property_tree::json_parser::json_parser_error& ex ) {            
+        } catch ( boost::property_tree::json_parser::json_parser_error& ) {            
         } 
      }
     return false;
@@ -178,7 +178,7 @@ ajax::response( bool pretty_print ) const
             boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > out( inserter );
             boost::property_tree::write_json( out, pt, pretty_print );
             return resp;
-        } catch ( boost::property_tree::json_parser::json_parser_error& ex ) {
+        } catch ( boost::property_tree::json_parser::json_parser_error& ) {
         }
     }
     return std::string();

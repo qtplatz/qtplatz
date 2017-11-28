@@ -118,6 +118,9 @@ set( utils_SOURCES
 )
 
 set( utils_RESOURCES utils.qrc )
+if ( WIN32 )
+  set_source_files_properties( savefile.cpp PROPERTIES COMPILE_FLAGS -wd4312 )
+endif()
 
 add_library(
   utils SHARED
