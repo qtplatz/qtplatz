@@ -18,8 +18,6 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 if ( OpenCV_FOUND )
-  find_package( OpenCV 3 REQUIRED core imgproc video highgui features2d )
-  add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
 endif()
 
