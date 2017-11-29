@@ -226,7 +226,7 @@ include( qtplatz-cpack-config )
 if ( WIN32 )
   
   set( CPACK_GENERATOR "WIX" )
-  set( CPACK_WIX_UPGRADE_GUID "10E528B2-6F93-4CFB-91CD-493C6B3D5650" )
+  set( CPACK_WIX_UPGRADE_GUID "F51A5CFA-AB54-4FAE-BBDC-32C42F4C039A" )
   set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
   set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" )
   include( boost-cpack )
