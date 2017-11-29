@@ -31,7 +31,7 @@ endif()
 option( WITH_ARRAYFIRE     "ArrayFire"                  OFF )
 
 if ( WIN32 )
-  set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
+  set( CMAKE_INSTALL_PREFIX "/QtPlatz" )
 elseif( APPLE )
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 else()
@@ -61,11 +61,9 @@ if ( APPLE )
 else()
 
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY         ${CMAKE_BINARY_DIR}/lib ) # static libs, dll's import lib/exp
-
   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/lib/qtplatz ) #plugins
   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )  # .exe | .dll
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
@@ -83,9 +81,9 @@ else()
 endif()
 
 if( WIN32 )
-  set( CPACK_INSTALL_PREFIX "C:/QtPlatz" )
+  set( CPACK_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} )
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
-  set( CPACK_PACKAGE_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX} )  # WiX does not support this, and raise an error
+  set( CPACK_PACKAGE_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX} )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "bin" )
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "bin" )
 elseif ( APPLE )
@@ -197,14 +195,6 @@ if ( WITH_ARRAYFIRE )
   endif()
 endif()
 
-configure_file(
-  ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
-  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
-
-configure_file(
-  ${QTPLATZ_SOURCE_DIR}/doxyfile.in
-  ${QTPLATZ_BINARY_DIR}/Doxyfile )
-
 if ( WIN32 )
   set( SOLUTION_FILE "qtplatz" )  
   configure_file(
@@ -243,13 +233,15 @@ if ( WIN32 )
   set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
   set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" )
   include( boost-cpack )
-  include( qt5-cpack )  
-
+  include( qt5-cpack )
+  if ( OpenCV_FOUND )
+    include( opencv-cpack )
+  endif()
 elseif( APPLE )
 
   SET( MACOSX_BUNDLE_STARTUP_COMMAND qtplatz)
   set( CPACK_BINARY_DRAGNDROP ON )
-  include( qtplatz-cpack-config )
+
   include( boost-cpack )
   include( qt5-cpack )
   include( rdkit-cpack )
@@ -279,11 +271,18 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   endif()
 endif()
 
-install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake  DESTINATION "." COMPONENT headers )
-
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
-#set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
+
+configure_file(
+  ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
+  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
+
+configure_file(
+  ${QTPLATZ_SOURCE_DIR}/doxyfile.in
+  ${QTPLATZ_BINARY_DIR}/Doxyfile )
+
+install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake  DESTINATION "." COMPONENT headers )
 
 include( CPack )
 
@@ -324,8 +323,8 @@ if ( rdkit_FOUND )
   endif()
 endif()
 if ( WITH_CUDA )
-  message( STATUS "# CUDA VERSION          : "  ${CUDA_VERSION} )
   if ( CUDA_FOUND )
+    message( STATUS "# CUDA VERSION          : "  ${CUDA_VERSION} )
     message( STATUS "\t# CUDA Libraries   : ${CUDA_CUDA_LIBRARY};${CUDA_CUDART_LIBRARY}")
     message( STATUS "\t# CUDA Include     : ${CUDA_INCLUDE_DIRS}")
   else()

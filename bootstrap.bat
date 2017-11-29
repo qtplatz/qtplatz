@@ -63,8 +63,8 @@ if !build_type!==release (
 ) else if !build_type!==package (
     echo cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
     cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
-    cd contrib\installer\wix
-    nmake help
+::    cd contrib\installer\wix
+::    nmake help
 )
 
 echo %cd%

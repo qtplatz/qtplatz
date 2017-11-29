@@ -5,7 +5,9 @@ include( "soname" )
 
 find_package( Qt5
   REQUIRED
-  Core DBus Gui
+  Core
+  DBus
+  Gui
   Multimedia
   MultimediaWidgets
   Network
@@ -24,8 +26,6 @@ if ( "${Qt5_VERSION}" VERSION_LESS "5.6" )
   find_package( Qt5 REQUIRED WebKit WebKitWidgets WebEngineWidgets )
   set( _webkits Qt5::WebKit Qt5::WebKitWidgets )
 endif()
-
-# message( STATUS "Qt5 Version: " ${Qt5_VERSION} "\t" ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR})
 
 get_target_property( _loc Qt5::Core LOCATION )
 get_filename_component( _dir ${_loc} DIRECTORY )
@@ -75,14 +75,21 @@ endforeach()
 
 if ( QT_INSTALL_PLUGINS )
   file( GLOB _plugins RELATIVE ${QT_INSTALL_PLUGINS} "${QT_INSTALL_PLUGINS}/*" )
-  list( REMOVE_ITEM _plugins audio bearer designer qml1tooling qmltooling xchglintegrations )
+  list( REMOVE_ITEM _plugins audio bearer canbus designer gamepads qml1tooling qmltooling xchglintegrations )
 else()
   message( FATAL_ERROR "plugins: " ${QT_INSTALL_PLUGINS} )
 endif()
 
 foreach( plugin ${_plugins} )
   #message( STATUS "## qt5-cpack install: " ${QT_INSTALL_PLUGINS}/${plugin} )
-  install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}" USE_SOURCE_PERMISSIONS DESTINATION plugins COMPONENT plugins )
+  install( DIRECTORY "${QT_INSTALL_PLUGINS}/${plugin}"
+    USE_SOURCE_PERMISSIONS
+    DESTINATION plugins
+    COMPONENT plugins
+    FILES_MATCHING
+    PATTERN "*d.${SO}" EXCLUDE
+    PATTERN "*.${SO}"
+    )
 endforeach()
 
 file( WRITE ${CMAKE_BINARY_DIR}/qt.conf "[Paths]\nPrefix=..\n" )
