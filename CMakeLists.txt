@@ -81,6 +81,9 @@ endif()
 
 if( WIN32 )
   set( CPACK_SET_DESTDIR OFF )  # WiX does not support this, and raise an error
+  set( CPACK_WIX_UPGRADE_GUID "F51A5CFA-AB54-4FAE-BBDC-32C42F4C039A" )
+  set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
+  set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" ) # HLM\Software\Kitware\CMake\Packages\QtPlatz
   set( CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_INSTALL_PREFIX}" )
   set( CPACK_WIX_SKIP_PROGRAM_FOLDER ON )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "bin" )
@@ -228,9 +231,6 @@ include( qtplatz-cpack-config )
 if ( WIN32 )
   
   set( CPACK_GENERATOR "WIX" )
-  set( CPACK_WIX_UPGRADE_GUID "F51A5CFA-AB54-4FAE-BBDC-32C42F4C039A" )
-  set( CPACK_WIX_PROGRAM_MENU_FOLDER "QtPlatz Mass Spectrometry" )
-  set( CPACK_WIX_CMAKE_PACKAGE_REGISTRY "QtPlatz" ) # HLM\Software\Kitware\CMake\Packages\QtPlatz
   include( msvc-cpack )
   include( boost-cpack )
   include( qt5-cpack )
