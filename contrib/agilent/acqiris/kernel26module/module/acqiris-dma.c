@@ -109,8 +109,8 @@ int acqiris_dma_read(struct acqiris_device* aq_dev, u32 local_addr, void __user 
     char buffer[20];
     long timeToExpire;
 
-    //DECLARE_WAITQUEUE(wait, current);
-    DECLARE_WAITQUEUE( wait, get_current() );
+    DECLARE_WAITQUEUE(wait, current);
+    // DECLARE_WAITQUEUE( wait, get_current() );
 
     dma_addr_t desc_addr = virt_to_phys(aq_dev->dma_desc);
     u32 desc_addr_lo = desc_addr;

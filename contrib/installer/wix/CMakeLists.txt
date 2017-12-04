@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 3.7)
 project( wix_installer )
 
+#-------------------------
+# configure_file(  "${PROJECT_SOURCE_DIR}/installdir.xml.in"  "${CMAKE_BINARY_DIR}/installdir.xml"  @ONLY  )
+#-------------------------
+
 set ( BDBASE "C:/Program Files (x86)/Bruker Daltonik/CompassXtract/3.2.201 (64 bit)" )
 set ( INFITOF_TARGET "" )
 set ( MALPIX_TARGET "" )
