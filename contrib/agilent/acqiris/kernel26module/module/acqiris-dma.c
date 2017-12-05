@@ -92,12 +92,11 @@ static void release_user_pages(int nbr_pages, struct page **pages, int set_dirty
         if (set_dirty)
             set_page_dirty_lock(pages[page]);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)        
-        put_page( pages[page] ); // 2017-09-17
-#else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,6,1)
         page_cache_release(pages[page]);
+#else
+        put_page(pages[page]);
 #endif
-
     }
 
 }
@@ -110,8 +109,8 @@ int acqiris_dma_read(struct acqiris_device* aq_dev, u32 local_addr, void __user 
     char buffer[20];
     long timeToExpire;
 
-    //DECLARE_WAITQUEUE(wait, current);
-    DECLARE_WAITQUEUE( wait, get_current() );
+    DECLARE_WAITQUEUE(wait, current);
+    // DECLARE_WAITQUEUE( wait, get_current() );
 
     dma_addr_t desc_addr = virt_to_phys(aq_dev->dma_desc);
     u32 desc_addr_lo = desc_addr;
@@ -123,6 +122,7 @@ int acqiris_dma_read(struct acqiris_device* aq_dev, u32 local_addr, void __user 
     nbr_pages_needed = (((unsigned long)dest + size - 1) / PAGE_SIZE) - ((unsigned long)dest / PAGE_SIZE) + 1;
 
     down_read(&current->mm->mmap_sem);
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
     nbr_pages = get_user_pages((unsigned long)dest, nbr_pages_needed, 0, aq_dev->pages, NULL );
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
@@ -374,6 +374,10 @@ int free_dma_desc_dev_0(struct acqiris_device* aq_dev, char *desc_base, int nbr_
         dma_unmap_page(&aq_dev->pci_dev->dev, dma_addr, dma_size, PCI_DMA_FROMDEVICE);
 
     }
+    
+    //---->
+    dma_unmap_single(&aq_dev->pci_dev->dev, aq_dev->desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+    //<----    
 
     return result;
 }
@@ -388,6 +392,12 @@ int make_dma_desc_dev_0(struct acqiris_device* aq_dev, char *desc_base, u32 loca
     struct dma_desc_dev_0 *dma_desc = (struct dma_desc_dev_0 *)desc_base;
     dma_addr_t desc_addr = virt_to_phys(desc_base);
 
+    //----------->
+    desc_addr = dma_map_single(&aq_dev->pci_dev->dev, dma_desc, PAGE_SIZE, DMA_TO_DEVICE);
+    dma_sync_single_for_cpu(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+    aq_dev->desc_addr = desc_addr;
+    //<----------
+    
     offset = (unsigned long)dest % PAGE_SIZE;
     length = size;
 
@@ -428,6 +438,12 @@ int make_dma_desc_dev_0(struct acqiris_device* aq_dev, char *desc_base, u32 loca
         {
             dma_desc[page].next = 0x0f;
             if(dbgl&DDMA) printk(ACQRS_WARNING "<1>Acqiris: DMA Page descriptor limit reached.\n");
+
+            //--->
+            dma_unmap_single(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+            dma_sync_single_for_device(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+            //<---
+
             return 0;
         }
 
@@ -451,6 +467,8 @@ int make_dma_desc_dev_0(struct acqiris_device* aq_dev, char *desc_base, u32 loca
                    page, dma_desc[page].dest, dma_desc[page].size, dma_desc[page].next);
 
     }
+
+    dma_sync_single_for_device(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
 
     return result;
 }
@@ -487,7 +505,9 @@ int free_dma_desc_dev_1(struct acqiris_device* aq_dev, char *desc_base, int nbr_
         dma_unmap_page(&aq_dev->pci_dev->dev, dma_addr, dmaSize, PCI_DMA_FROMDEVICE);
 
     }
-
+    //---->
+    dma_unmap_single(&aq_dev->pci_dev->dev, aq_dev->desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+    //<----
     return result;
 }
 
@@ -503,6 +523,12 @@ int make_dma_desc_dev_1(struct acqiris_device* aq_dev, char *desc_base, u32 loca
 
     offset = (unsigned long)dest % PAGE_SIZE;
     length = size;
+
+    //-->
+    desc_addr = dma_map_single(&aq_dev->pci_dev->dev, dma_desc, PAGE_SIZE, DMA_TO_DEVICE);
+    dma_sync_single_for_cpu(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+    aq_dev->desc_addr = desc_addr;
+    //<--
 
     /* For device 1, local addr is not stored in descriptor. Write it to register. */
     WRITE_REG32(aq_dev->res.controlBase, DMA0MODE_OFFSET + 0x8, local_addr);
@@ -536,6 +562,8 @@ int make_dma_desc_dev_1(struct acqiris_device* aq_dev, char *desc_base, u32 loca
         {
             dma_desc[page].next = 0x01;
             if(dbgl&DDMA) printk(ACQRS_WARNING "DMA Page descriptor limit reached \n");
+            
+            dma_sync_single_for_device(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
             return 0;
         }
 
@@ -559,6 +587,8 @@ int make_dma_desc_dev_1(struct acqiris_device* aq_dev, char *desc_base, u32 loca
                    page, dma_desc[page].destHi, dma_desc[page].destLo, dma_desc[page].size, dma_desc[page].next);
 
     }
+
+    dma_sync_single_for_device(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
 
     return result;
 }
@@ -598,6 +628,10 @@ int free_dma_desc_dev_2(struct acqiris_device* aq_dev, char *desc_base, int nbr_
 
     }
 
+    //---->
+    dma_unmap_single(&aq_dev->pci_dev->dev, aq_dev->desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+    //<----
+    
     return result;
 }
 
@@ -614,6 +648,12 @@ int make_dma_desc_dev_2(struct acqiris_device* aq_dev, char *desc_base, u32 loca
     offset = (unsigned long)dest % PAGE_SIZE;
     length = size;
 
+    //-->
+    desc_addr = dma_map_single(&aq_dev->pci_dev->dev, dma_desc, PAGE_SIZE, DMA_TO_DEVICE);
+    dma_sync_single_for_cpu(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);
+    aq_dev->desc_addr = desc_addr;
+    //<--
+    
     /* For device 2, local addr is not stored in descriptor. Write it to register. */
     WRITE_REG32(aq_dev->res.controlBase, DMA0MODE_OFFSET + 0x8, local_addr);
 
@@ -652,6 +692,8 @@ int make_dma_desc_dev_2(struct acqiris_device* aq_dev, char *desc_base, u32 loca
             dma_desc[page].nextLo = 0x01;
             dma_desc[page].nextHi = 0x00;
             if(dbgl&DDMA) printk(ACQRS_WARNING "DMA Page descriptor limit reached \n");
+            
+            dma_sync_single_for_device(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);                
             return 0;
         }
 
@@ -676,6 +718,8 @@ int make_dma_desc_dev_2(struct acqiris_device* aq_dev, char *desc_base, u32 loca
                     dma_desc[page].destLo, dma_desc[page].size, dma_desc[page].nextHi, dma_desc[page].nextLo);
 
     }
+
+    dma_sync_single_for_device(&aq_dev->pci_dev->dev, desc_addr, PAGE_SIZE, DMA_TO_DEVICE);    
 
     return result;
 }

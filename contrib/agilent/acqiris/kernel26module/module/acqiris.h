@@ -109,7 +109,7 @@ struct acqiris_device
     wait_queue_head_t	wait_proc;
 
     u32 mask_int;
-
+    dma_addr_t desc_addr; // 2017-12-04 added
 };
 
 

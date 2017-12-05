@@ -2,6 +2,7 @@
 
 source ./constants.sh
 source ./prompt.sh
+arch=`arch`
 
 target=rtags
 config=release

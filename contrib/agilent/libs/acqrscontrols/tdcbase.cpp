@@ -31,7 +31,7 @@
 
 using namespace acqrscontrols;
 
-tdcbase::tdcbase()
+tdcbase::tdcbase() : tofChromatogramsMethod_( std::make_shared< adcontrols::TofChromatogramsMethod >() )
 {
 }
 
