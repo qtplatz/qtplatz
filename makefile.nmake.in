@@ -1,10 +1,11 @@
 #!nmake
 
 MSBUILD=msbuild
-CONFIG=Debug
+CONFIG=Release
 CONFIG_DEBUG=Debug
 CONFIG_RELEASE=Release
 CONFIG_PACKAGE=PACKAGE
+CONFIG_INSTALL=INSTALL
 BUILD_TARGET=Build
 SOLUTION_FILE=@SOLUTION_FILE@
 
@@ -18,8 +19,8 @@ release:
 	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG_RELEASE)
 
 package:
-	$(MSBUILD) PACKAGE.vcxproj /m /p:Configuration=$(CONFIG_RELEASE)
+	$(MSBUILD) /m /p:Configuration=$(CONFIG_RELEASE) PACKAGE.vcxproj 
 
 install:
-	$(MSBUILD) INSTALL.vcxproj /m /p:Configuration=$(CONFIG_RELEASE)
+	$(MSBUILD) /m /p:Configuration=$(CONFIG_RELEASE) INSTALL.vcxproj 
 
