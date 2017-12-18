@@ -58,6 +58,8 @@ namespace acqrscontrols {
                     ar & BOOST_SERIALIZATION_NVP( _.dataType );
                 if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP( _.protocolIndex );
+                if ( version >= 4 )
+                    ar & BOOST_SERIALIZATION_NVP( _.channelId );
             }
         };
 
@@ -93,9 +95,10 @@ metadata::metadata() : initialXTimeSeconds( 0 )
                      , initialXOffset( 0 )
                      , xIncrement( 0 )
                      , scaleFactor( 0 )
-                     , scaleOffset(0)
+                     , scaleOffset( 0 )
                      , dataType( 0 )
-                     , protocolIndex(0)
+                     , protocolIndex( 0 )
+                     , channelId( 0 )
 {
 }
 

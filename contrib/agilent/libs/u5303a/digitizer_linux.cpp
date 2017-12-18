@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -149,6 +149,10 @@ namespace u5303a {
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::u5303a::waveform& );
+
+            // PKD+AVG read Channel1+Channel2
+            bool readDataPkdAvg( acqrscontrols::u5303a::waveform&, acqrscontrols::u5303a::waveform& );
+
             void set_time_since_inject( acqrscontrols::u5303a::waveform& );
         };
 
@@ -532,7 +536,7 @@ task::handle_initial_setup()
     if ( !simulated ) {
         for ( auto& res : foundResources_ ) {
             ADTRACE() << "Initialize resource: " << res;
-            if ( success = spDriver_->InitWithOptions( res.c_str(), VI_TRUE, VI_TRUE, strInitOptions ) )
+            if ( ( success = spDriver_->InitWithOptions( res.c_str(), VI_TRUE, VI_TRUE, strInitOptions ) ) )
                 break;
         }
     }
@@ -681,37 +685,42 @@ task::handle_acquire()
                 // read multiple waveform using mblock
                 digitizer::readData( *spDriver(), method_, vec );
 
-                // for debug
-                // if ( auto wp = std::make_shared< acqrscontrols::u5303a::waveform >( spDriver()->Identify(), spDriver()->dataSerialNumber() ) ) {
-                //     digitizer::readData16( *spDriver(), method_, *wp );
-                //     vec.emplace_back( wp );
-                // }
-
                 if ( simulated_ )
                     simulator::instance()->touchup( vec, method_ );
 
                 for ( auto& waveform: vec ) {
-                    // ==> set elapsed time for debugging 
-                    set_time_since_inject( *waveform );
-                    // <==
-
+                    set_time_since_inject( *waveform ); // ==> set elapsed time for debugging 
                     acqrscontrols::u5303a::method m;
                     for ( auto& reply: waveform_handlers_ ) {
                         if ( reply( waveform.get(), nullptr, m ) )
                             handle_protocol( m );
                     }
                 }
+                
             } else { // average
                 uint32_t events( 0 );
-                auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
-                if ( readData( *waveform ) ) {
-                    // ==> set elapsed time for debugging 
-                    set_time_since_inject( *waveform );
-                    // <==
-                    acqrscontrols::u5303a::method m;
-                    for ( auto& reply : waveform_handlers_ ) {
-                        if ( reply( waveform.get(), nullptr, m ) )
-                            handle_protocol( m );
+                if ( method_._device_method().pkd_enabled ) {
+                    // PKD+AVG
+                    auto pkd = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+                    auto avg = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+                    if ( readDataPkdAvg( *pkd, *avg ) ) {
+                        acqrscontrols::u5303a::method m;
+                        for ( auto& reply : waveform_handlers_ ) {
+                            if ( reply( avg.get(), pkd.get(), m ) )
+                                handle_protocol( m );
+                        }
+                    }
+                    
+                } else {
+                    // AVERAGE
+                    auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
+                    if ( readData( *waveform ) ) {
+                        set_time_since_inject( *waveform ); // ==> set elapsed time for debugging 
+                        acqrscontrols::u5303a::method m;
+                        for ( auto& reply : waveform_handlers_ ) {
+                            if ( reply( waveform.get(), nullptr, m ) )
+                                handle_protocol( m );
+                        }
                     }
                 }
             }
@@ -754,21 +763,38 @@ task::waitForEndOfAcquisition( int timeout )
 }
 
 bool
+task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303a::waveform& avg )
+{
+    pkd.serialnumber_ = spDriver()->dataSerialNumber();
+    avg.serialnumber_ = spDriver()->dataSerialNumber();
+
+    if ( simulated_ ) {
+        simulator::instance()->readDataPkdAvg( pkd, avg );
+        pkd.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+        avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
+        set_time_since_inject( pkd );
+        set_time_since_inject( avg );
+        return true;
+    }
+                                                                    
+    digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
+    digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
+
+    return true;
+}
+
+bool
 task::readData( acqrscontrols::u5303a::waveform& data )
 {
     data.serialnumber_ = spDriver()->dataSerialNumber();
 
-#if 0
     if ( simulated_ ) {
         if ( simulator::instance()->readData( data ) ) {
             data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
-            // ==> set elapsed time for debugging 
-            set_time_since_inject( data );
-            // <==
+            set_time_since_inject( data ); // ==> set elapsed time for debugging 
             return true;
         }
     }
-#endif
     //-------------------
 
     bool result( false );
@@ -777,9 +803,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     } else {
         result = digitizer::readData32( *spDriver(), method_, data );
     }
-    // ==> set elapsed time for debugging 
-    set_time_since_inject( data );
-    // <==
+    set_time_since_inject( data ); // ==> set elapsed time for debugging 
     return result;
 }
 
@@ -825,7 +849,7 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 bool
 device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
-#if defined _MSC_VER
+#if defined _MSC_VER <= 1900
     ViInt32 const coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;
 #else
     ViInt32 constexpr coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;    
@@ -843,9 +867,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );
     task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
     task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
-    //task.spDriver()->setTriggerDelay( m._device_method().digitizer_delay_to_first_sample );
     task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
-    // task.spDriver()->setTriggerHoldOff( 1.0e-6 ); // 1us
 
     bool success = false;
     
@@ -877,8 +899,34 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
         // ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
+
+        // PKD - POC
+        if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
+            task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
+
+            // Enable the Peak Detection mode 	
+            task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
+            
+            // Configure the peak detection on channel 1
+            // Configure the data inversion mode - VI_FALSE (no data inversion) by default
+            task.spDriver()->setAttributeViBoolean( "Channel1"
+                                                    , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
+                                                    , m._device_method().invert_signal ? VI_TRUE : VI_FALSE ); // duplicate
+            
+            // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
+            task.spDriver()->setAttributeViBoolean( "Channel1"
+                                                    , AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
+                                                    , m._device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE );
+            
+            // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
+            // considered as rising/falling edge in the peak detection algorithm.
+            task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta );
+            
+            task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta );
+        }
+
         task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? true : false );
-        //task.spDriver()->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
+
         task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
         task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
         task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
@@ -1060,7 +1108,8 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
 }
 
 bool
-digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data )
+digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data
+                       , const char * channel )
 {
 #if defined _MSC_VER
     ViInt64 const numRecords = 1;
@@ -1086,7 +1135,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
         
         if ( AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( md2.session()
-                                                              , "Channel1"
+                                                              , channel // "Channel1"
                                                               , 0
                                                               , 1
                                                               , 0

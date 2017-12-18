@@ -100,7 +100,7 @@ namespace u5303a {
         static bool readData( AgMD2&, const acqrscontrols::u5303a::method&
                               , std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
         static bool readData16( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );
-        static bool readData32( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );            
+        static bool readData32( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform&, const char * channel = "Channel1" );
     };
 }
 

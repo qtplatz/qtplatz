@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -59,7 +59,10 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <codecvt>
+#include <locale>
 #include <numeric>
+#include <string>
 
 using namespace adprocessor;
 
@@ -109,7 +112,13 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
             return false;
 
         file_ = std::move( file );
-        file_->accept( *this );  // may access 'db' if file was imported from csv.
+        try {
+            file_->accept( *this );  // may access 'db' if file was imported from csv.
+        } catch ( std::exception& ex ) {
+            std::wstring_convert< std::codecvt_utf8_utf16< wchar_t > > converter;
+            error_message = converter.from_bytes( ex.what() );
+            return false;
+        }
 
         if ( auto sp = massSpectrometer() )
             ProcessMediator::instance()->onCreate( sp->objclsid(), this->shared_from_this() );

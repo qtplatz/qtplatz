@@ -130,6 +130,10 @@ namespace u5303a {
         boost::tribool isMeasuring() const;
         boost::tribool isWaitingForArm() const;
         boost::tribool isWaitingForTrigger() const;
-        
+
+        // for PKD+AVG POC purpose
+        bool setAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt32 AttributeValue );
+        bool setAttributeViInt64( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt64 AttributeValue );
+        bool setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID, ViBoolean AttributeValue );
     }; 
 }

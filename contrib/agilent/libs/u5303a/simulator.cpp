@@ -194,6 +194,64 @@ simulator::waitForEndOfAcquisition()
 }
 
 bool
+simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303a::waveform& avg )
+{
+    std::shared_ptr< adicontroller::waveform_simulator > ptr;
+
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( !waveforms_.empty() ) {
+            ptr = waveforms_.front();
+            waveforms_.erase( waveforms_.begin() );
+        }
+    } while(0);
+    
+    if ( ptr ) {
+		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
+        auto dp = mblk->data();
+        std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
+        avg.method_ = *method_;
+        avg.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
+        avg.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        avg.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+
+        avg.meta_.initialXTimeSeconds = ptr->timestamp();
+        avg.wellKnownEvents_ = 0;
+        avg.meta_.actualPoints = ptr->nbrSamples();
+        avg.meta_.xIncrement = sampInterval_;
+        avg.meta_.initialXOffset = startDelay_;
+        avg.meta_.actualAverages = int32_t( nbrWaveforms_ );
+        avg.meta_.scaleFactor = 1.0;
+        avg.meta_.scaleOffset = 0.0;
+        avg.setData( mblk, 0 );
+    }
+    if ( ptr ) {
+		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
+        auto dp = mblk->data();
+        //std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
+        size_t step = ptr->nbrSamples() / 10;
+        for ( size_t i = step; i < ptr->nbrSamples(); i += step )
+            dp[ i ] = step * 1000 / 10;
+        pkd.method_ = *method_;
+        pkd.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
+        pkd.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
+        pkd.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
+
+        pkd.meta_.initialXTimeSeconds = ptr->timestamp();
+        pkd.wellKnownEvents_ = 0;
+        pkd.meta_.actualPoints = ptr->nbrSamples();
+        pkd.meta_.xIncrement = sampInterval_;
+        pkd.meta_.initialXOffset = startDelay_;
+        pkd.meta_.actualAverages = int32_t( nbrWaveforms_ );
+        pkd.meta_.scaleFactor = 1.0;
+        pkd.meta_.scaleOffset = 0.0;
+        pkd.setData( mblk, 0 );
+        return true;        
+    }
+    return false;
+}
+
+bool
 simulator::readData( acqrscontrols::u5303a::waveform& data )
 {
     // readData simulation for average mode (md2 driver is capable for digitizer mode)

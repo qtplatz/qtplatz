@@ -500,13 +500,14 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
             auto& counts = impl_->threshold_action_counts_[ i ];
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
-            results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );                
-
+            
             const auto idx = waveforms[ i ]->method_.protocolIndex();
             if ( idx == 0 )
                 counts.second++;
             
             if ( methods[ i ] && methods[ i ]->enable ) {
+
+                results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );                
 
                 acqrscontrols::find_threshold_timepoints< u5303a::waveform > find_threshold( *methods[ i ], *range );
 

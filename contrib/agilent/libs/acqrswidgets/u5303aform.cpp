@@ -135,6 +135,7 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     ui->spinBox->setValue( m._device_method().nbr_of_averages );
 
     ui->checkBox_Avg->setChecked( !( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) );
+    ui->checkBox_pkd->setChecked( m._device_method().pkd_enabled );
 
     ui->spinBox_2->setValue( m._device_method().nbr_records );
 
