@@ -1549,13 +1549,13 @@ MSProcessingWnd::power_spectrum( const adcontrols::Chromatogram& c )
 {
     const size_t size = c.size();
     if ( size >= 8 ) {
-        size_t n = 1;
+        uint32_t n = 1;
         while ( size >> n )
             ++n;
-        size_t N = 1 << ( n - 1 );
+        uint32_t N = 1 << ( n - 1 );
 
         std::vector< std::complex< double > > spc(N), fft(N);
-        int idx( 0 );
+        unsigned idx( 0 );
         for ( auto it = c.begin(); it != c.end() && idx < N; ++it )
             spc[ idx++ ] = std::complex< double >( it.intensity() );
 

@@ -338,7 +338,45 @@ namespace advision {
             ++c;
         }
         return advision::transform_< QImage >()( drawing );
-        
     }
     
+#ifdef WIN32
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale >::imfilter() : size_( 1 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale >::~imfilter() {}
+
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap >::imfilter() : size_( 1 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap >::~imfilter() {}
+
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imBlur >::imfilter() : size_( 2 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imBlur >::imfilter( imGrayScale a, imBlur b ) : size_( 2 ), algos_( a, b ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imBlur >::~imfilter() {}
+
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT >::imfilter() : size_( 2 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT >::imfilter( imGrayScale a, imDFT b ) : size_( 2 ), algos_( a, b ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT >::~imfilter() {}
+    
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imBlur >::imfilter() : size_( 2 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imBlur >::imfilter( imColorMap a, imBlur b ) : size_( 2 ), algos_( a, b ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imBlur >::~imfilter() {}
+
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imDFT >::imfilter() : size_( 2 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imDFT >::imfilter( imColorMap a, imDFT b ) : size_( 2 ), algos_( a, b ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imDFT >::~imfilter() {}
+
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imDFT, imBlur >::imfilter() : size_( 3 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imDFT, imBlur >::imfilter( imColorMap a, imDFT b, imBlur c )
+        : size_( 3 ), algos_( a, b, c ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imDFT, imBlur >::~imfilter() {}
+
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT, imBlur >::imfilter() : size_( 3 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT, imBlur >::imfilter( imGrayScale a, imDFT b, imBlur c )
+        : size_( 3 ), algos_( a, b, c ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT, imBlur >::~imfilter() {}
+    
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imContours >::imfilter() : size_( 1 ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imContours >::imfilter( imContours a ) : size_( 1 ), algos_( a ) {}
+    template<> ADVISIONSHARED_EXPORT imfilter< QImage, imContours >::~imfilter() {}
+    
+#endif
+
 }

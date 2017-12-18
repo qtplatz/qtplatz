@@ -67,7 +67,7 @@ namespace advision {
         
         ~imfilter() {}
 
-        template< typename R > T operator()( const R&, double scaleFactor = 1.0 ) const;
+		template< typename R > T operator()(const R&, double scaleFactor = 1.0) const { return T(); }
     };
 
     // Ex: 
@@ -76,21 +76,24 @@ namespace advision {
     // convert ublas::matrix to 8bit gray scale
     template<>
     template<>
-    //QImage imfilter< QImage, imGrayScale >::operator()< matrix< double > >( const matrix< double >& ) const;
+    ADVISIONSHARED_EXPORT 
     QImage imfilter< QImage, imGrayScale >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
 
     // convert ublas::matrix apply colormap
     template<>
     template<>
+    ADVISIONSHARED_EXPORT 
     QImage imfilter< QImage, imColorMap >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
 
     // convert ublas::matrix apply colormap
     template<>
     template<>
+    ADVISIONSHARED_EXPORT 
     QImage imfilter< QImage, imColorMap, imBlur >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
 
     //
     template<>
     template<>
+    ADVISIONSHARED_EXPORT 
     QImage imfilter< QImage, imContours >::operator()<>( const boost::numeric::ublas::matrix< double >&, double ) const;
 }

@@ -52,8 +52,6 @@ include_directories(
 
 # Link order caution: adportable should be linked after adfs for utf::to_utf8 reference
 
-#  LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
-
 set( sequence_SOURCES
   sequenceplugin.cpp
   sequenceeditor.cpp

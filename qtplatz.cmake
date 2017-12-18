@@ -31,7 +31,14 @@ if( WIN32 )
   else()
     set( BOOST_LIBRARYDIR "C:/Boost/lib" )    
   endif()
+
+  # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )
+
+  if ( NOT Boost_USE_STATIC_LIBS )
+    add_definitions( -DBOOST_ALL_DYN_LINK )
+    add_definitions( -wd4141 ) # dllexport more than once
+  endif()
 
 else()
 

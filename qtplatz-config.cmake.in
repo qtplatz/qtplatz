@@ -74,7 +74,11 @@ add_library( adorbmgr SHARED IMPORTED )
 add_library( adplot SHARED IMPORTED )
 add_library( adprot SHARED IMPORTED )
 add_library( adurl  SHARED IMPORTED )
-add_library( advision SHARED IMPORTED )
+#if ( WIN32 )
+#  add_library( advision STATIC IMPORTED )
+#else()
+  add_library( advision SHARED IMPORTED )
+#endif()
 add_library( adwidgets SHARED IMPORTED )
 add_library( adsequence SHARED IMPORTED )
 add_library( ap240 SHARED IMPORTED )
@@ -164,6 +168,8 @@ if (WIN32)
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adurld.lib )
 
   set_target_properties( advision PROPERTIES
+#    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
+#    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )    
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )    
   
