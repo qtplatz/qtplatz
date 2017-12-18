@@ -37,7 +37,7 @@ namespace acqrscontrols {
         class ACQRSCONTROLSSHARED_EXPORT device_method {
         public:
             device_method();
-
+            // no copy ctor necessary since all members are POD
             double front_end_range;
             double front_end_offset;
             double ext_trigger_level;
@@ -46,7 +46,7 @@ namespace acqrscontrols {
             int32_t nbr_of_averages;
             double delay_to_first_sample_;
             int32_t invert_signal;
-            int32_t nsa;
+            uint32_t nsa_threshold;
 
             // CLASS VERSION 3
             double digitizer_delay_to_first_sample; // actual delay set to u5303a
@@ -58,6 +58,12 @@ namespace acqrscontrols {
             // CLASS VERSION 5; 2015-NOV-02
             bool TSR_enabled;     // Triggered simultaneous acquisition and readout
 
+            // CLASS VERSION 6; 2017-DEC-18
+            bool nsa_enabled;
+            bool pkd_enabled;
+            int32_t pkd_raising_delta;
+            int32_t pkd_falling_delta;
+            bool pkd_amplitude_accumulation_enabled;
         private:
 
             friend class boost::serialization::access;
@@ -68,4 +74,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_method, 5 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::device_method, 6 )

@@ -56,6 +56,7 @@ namespace acqrswidgets {
         , idNbrRecords
         , idTSREnable
         , idU5303AExtDelay
+        , idPKDEnable
     };
     
 }

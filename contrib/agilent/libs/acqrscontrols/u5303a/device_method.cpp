@@ -52,7 +52,7 @@ namespace acqrscontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.nbr_of_averages );
                 ar & BOOST_SERIALIZATION_NVP( _.delay_to_first_sample_ );
                 ar & BOOST_SERIALIZATION_NVP( _.invert_signal );
-                ar & BOOST_SERIALIZATION_NVP( _.nsa );
+                ar & BOOST_SERIALIZATION_NVP( _.nsa_threshold );
                 if ( version >= 3 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.digitizer_delay_to_first_sample );
                     ar & BOOST_SERIALIZATION_NVP( _.digitizer_nbr_of_s_to_acquire );
@@ -63,6 +63,15 @@ namespace acqrscontrols {
                 if ( version >= 5 ) {
                     ar & BOOST_SERIALIZATION_NVP( _.TSR_enabled );
                 }
+                if ( version >= 6 ) {
+                    ar & BOOST_SERIALIZATION_NVP( _.nsa_enabled );
+                    ar & BOOST_SERIALIZATION_NVP( _.pkd_enabled );
+                    ar & BOOST_SERIALIZATION_NVP( _.pkd_raising_delta );
+                    ar & BOOST_SERIALIZATION_NVP( _.pkd_falling_delta );
+                    ar & BOOST_SERIALIZATION_NVP( _.pkd_amplitude_accumulation_enabled );
+                }
+                if ( Archive::is_loading::value && version < 6 )
+                    _.nsa_enabled = _.nsa_threshold & 0x80000000;
             }
 
         };
@@ -100,11 +109,16 @@ device_method::device_method() : front_end_range( 2.0 )          // 1V,2V range
                                , nbr_of_averages( 512 )		     // number of averages minus one. >From 0 to 519,999 averages in steps of 8. For instance 0,7,15
                                , delay_to_first_sample_( 0 )     // delay from trigger (seconds)
                                , invert_signal( 0 )              // 0-> no inversion , 1-> signal inverted
-                               , nsa( 0x0 )
+                               , nsa_threshold( 0x0 )
                                , digitizer_delay_to_first_sample( 0 )    // device set value
                                , digitizer_nbr_of_s_to_acquire( 100000 ) // device set value
                                , nbr_records( 1 )                // MultiRecord Acquisition
                                , TSR_enabled( false )
+                               , nsa_enabled( false )
+                               , pkd_enabled( false )
+                               , pkd_raising_delta( 0 )
+                               , pkd_falling_delta( 0 )
+                               , pkd_amplitude_accumulation_enabled( false )
 {
 }
 

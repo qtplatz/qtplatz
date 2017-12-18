@@ -378,6 +378,9 @@ else()  #Linux
   set_target_properties( ap240 PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libap240.so )
 
+  set_target_properties( u5303a PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libu5303a.so )
+  
   set_target_properties( acqrswidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrswidgets.so )  
 

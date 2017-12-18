@@ -83,7 +83,7 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
     // mode
     connect( ui->checkBox_Avg, &QCheckBox::toggled, [this] ( bool flag ) {
             ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: #ff6347; }" );
-            if ( flag && ui->checkBox->isChecked() ) // exclusive w/ TSR
+            if ( flag && ui->checkBox->isChecked() ) // exclusive to TSR
                 ui->checkBox->setChecked( false );
             emit valueChanged( idU5303AMode, 0, QVariant( flag ) ); // Digitizer | Averager ==> disable ion counting
         } );
@@ -95,6 +95,12 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
                 ui->checkBox_Avg->setChecked( false );
             // emit valueChanged( idTSREnable, 0, QVariant( flag ) ); }
         });
+
+    // PKD
+    connect( ui->checkBox_pkd, &QCheckBox::toggled, [this] ( bool flag ) {
+            ui->checkBox_pkd->setStyleSheet( "QCheckBox { color: #ff6347; }" );
+            emit valueChanged( idPKDEnable, 0, QVariant( flag ) );
+        } );
 }
 
 u5303AForm::~u5303AForm()
@@ -140,6 +146,7 @@ u5303AForm::setContents( const acqrscontrols::u5303a::method& m )
     ui->spinBox_2->setStyleSheet( "QSpinBox { color: black; }" );
     ui->checkBox->setStyleSheet( "QCheckBox { color: black; }" );
     ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: black; }" );
+    ui->checkBox_pkd->setStyleSheet( "QCheckBox { color: black; }" );
 }
 
 void
@@ -163,12 +170,16 @@ u5303AForm::getContents( acqrscontrols::u5303a::method& m )
 
     m._device_method().TSR_enabled = ui->checkBox->isChecked();
 
+    m._device_method().pkd_enabled = ui->checkBox_pkd->isChecked();
+
     for ( auto w : { ui->doubleSpinBox_1, ui->doubleSpinBox_2 } )
         w->setStyleSheet( "QDoubleSpinBox { color: black; }" );
+
     ui->spinBox->setStyleSheet( "QSpinBox { color: black; }" );
     ui->spinBox_2->setStyleSheet( "QSpinBox { color: black; }" );
     ui->checkBox->setStyleSheet( "QCheckBox { color: black; }" );
     ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: black; }" );
+    ui->checkBox_pkd->setStyleSheet( "QCheckBox { color: black; }" );
 }
 
 void
@@ -215,6 +226,7 @@ u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )
     case idNbrRecords:
     case idTSREnable:
     case idU5303AExtDelay:
+    case idPKDEnable:
         break;
     }
 }

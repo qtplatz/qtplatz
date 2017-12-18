@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,13 +26,16 @@
 #include "constants.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <qtwrapper/font.hpp>
+#include <QBrush>
+#include <QColor>
+#include <QComboBox>
+#include <QHeaderView>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-#include <QHeaderView>
 #include <QTextDocument>
-#include <QComboBox>
 #include <QSignalBlocker>
 #include <QSpinBox>
+#include <QDebug>
 
 namespace acqrswidgets {
 
@@ -46,15 +49,26 @@ namespace acqrswidgets {
            , number_of_average
            , delay_to_first_sample
            , invert_signal
-           , nsa
+           , pkd_raising_delta
+           , pkd_falling_delta
+           , pkd_amplitude_accumulation_enabled
+           , nsa_enabled
+           , nsa_threshold
+           , number_of_rows
     };
-    
+
     class u5303ATable::MyDelegate : public QStyledItemDelegate {
 
         u5303ATable * pThis_;
 
     public:
         MyDelegate( u5303ATable * p ) : pThis_( p ) {}
+
+        void setDescription( QAbstractItemModel * model, const QModelIndex& index ) const {
+            double range = model->index( r_front_end_range, 1 ).data().toDouble();
+            int delta = index.data().toInt();
+            model->setData( model->index( index.row(), 2 ), QString("PKD (%1mV)").arg( 1000 * delta * ( range / 4096 ) ) );
+        }
         
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             return QStyledItemDelegate::paint( painter, option, index );
@@ -68,6 +82,14 @@ namespace acqrswidgets {
                     model->setData( index, value, Qt::EditRole );
                     emit pThis_->valueChanged( idU5303ASampRate, 0, value );
                 }
+            } else if ( index.row() == r_front_end_range ) {
+                if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
+                    int idx = combo->currentIndex();
+                    double value = ( idx == 0 ) ? 1.0 : 2.0;
+                    model->setData( index, value, Qt::EditRole );
+                    setDescription( model, model->index( pkd_raising_delta, 1 ) );
+                    setDescription( model, model->index( pkd_falling_delta, 1 ) );
+                }
 
             } else if ( index.row() == number_of_average ) {
                 if ( auto spin = qobject_cast<QSpinBox *>( editor ) ) {
@@ -80,6 +102,9 @@ namespace acqrswidgets {
             } else if ( index.row() == number_of_samples ) {
                 QStyledItemDelegate::setModelData( editor, model, index );
                 emit pThis_->valueChanged( idU5303ANbrSamples, 0, index.data( Qt::EditRole ).toInt() );
+            } else if ( index.row() == pkd_raising_delta || index.row() == pkd_falling_delta ) {
+                QStyledItemDelegate::setModelData( editor, model, index );
+                setDescription( model, index );
             } else {
                 return QStyledItemDelegate::setModelData( editor, model, index );
             }
@@ -90,7 +115,15 @@ namespace acqrswidgets {
             if ( index.row() == r_sampling_rate ) {
                 auto combo = new QComboBox( parent );
                 combo->addItems( QStringList() << "3.2GS/s" << "1.0GS/s" );
+                if ( index.data().toDouble() <= ( 1.0e9 + std::numeric_limits< double >::epsilon() ) )
+                    combo->setCurrentIndex( 1 );
                 return combo;
+            } else if ( index.row() == r_front_end_range ) {
+                auto combo = new QComboBox( parent );
+                combo->addItems( QStringList() << "1V" << "2V" );
+                if ( index.data().toDouble() >= ( 2.0 - std::numeric_limits< double >::epsilon() ) )
+                    combo->setCurrentIndex( 1 );                
+                return combo;                
             } else {
                 return QStyledItemDelegate::createEditor( parent, option, index );
             }
@@ -112,6 +145,8 @@ u5303ATable::u5303ATable(QWidget *parent) : adwidgets::TableView(parent)
 {
     setModel( model_ );
 	setItemDelegate( new MyDelegate( this ) );
+    model_->setColumnCount( 3 );
+    model_->setRowCount( number_of_rows );
 }
 
 void
@@ -120,7 +155,7 @@ u5303ATable::onInitialUpdate()
     QStandardItemModel& model = *model_;
 
     model.setColumnCount( 3 );
-    model.setRowCount( 8 );
+    model.setRowCount( number_of_rows );
     
     model.setHeaderData( 0, Qt::Horizontal, QObject::tr( "parameter" ) );
     model.setHeaderData( 1, Qt::Horizontal, QObject::tr( "value" ) );
@@ -161,9 +196,26 @@ u5303ATable::onInitialUpdate()
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     model.setData( model.index( row, 2 ), "inversion" );
     ++row;
+    model.setData( model.index( row, 0 ), "Rising Delta" );
+    model.setData( model.index( row, 1 ), m.pkd_raising_delta );
+    model.setData( model.index( row, 2 ), "PKD" );
+    ++row;
+    model.setData( model.index( row, 0 ), "Falling Delta" );
+    model.setData( model.index( row, 1 ), m.pkd_falling_delta );
+    model.setData( model.index( row, 2 ), "PKD" );
+    ++row;
+    model.setData( model.index( row, 0 ), "Amplitude accumulation" );
+    model.setData( model.index( row, 1 ), m.pkd_amplitude_accumulation_enabled ? true : false );
+    model.setData( model.index( row, 2 ), "PKD" );
+    ++row;
     model.setData( model.index( row, 0 ), "nsa" );
-    model.setData( model.index( row, 1 ), m.nsa );
+    model.setData( model.index( row, 1 ), m.nsa_enabled ? true : false );
     model.setData( model.index( row, 2 ), "bit[31]->enable, bit[11:0]->threshold" );
+    ++row;
+    model.setData( model.index( row, 0 ), "nsa threshold" );
+    model.setData( model.index( row, 1 ), m.nsa_threshold );
+    model.setData( model.index( row, 2 ), "bit[31]->enable, bit[11:0]->threshold" );
+    ++row;
 
     resizeColumnsToContents();
 	resizeRowsToContents();
@@ -206,7 +258,20 @@ u5303ATable::setContents( const acqrscontrols::u5303a::device_method& m )
     ++row;
     model.setData( model.index( row, 1 ), m.invert_signal ? true : false );
     ++row;
-    model.setData( model.index( row, 1 ), m.nsa );
+    model.setData( model.index( row, 1 ), m.pkd_raising_delta );
+    ++row;
+    model.setData( model.index( row, 1 ), m.pkd_falling_delta );
+    ++row;
+    model.setData( model.index( row, 1 ), m.pkd_amplitude_accumulation_enabled );        
+    ++row;
+    model.setData( model.index( row, 1 ), m.nsa_enabled );
+    ++row;
+    model.setData( model.index( row, 1 ), m.nsa_threshold );
+
+    for ( int row = pkd_raising_delta; row <= pkd_amplitude_accumulation_enabled; ++row ) {
+        if ( auto item = model.item( row, 0 ) )
+            item->setForeground( m.pkd_enabled ? QColor( Qt::black ) : QColor( Qt::gray ) );
+    }
 
 	return true;
 }
@@ -232,8 +297,20 @@ u5303ATable::getContents( acqrscontrols::u5303a::device_method& m )
     m.delay_to_first_sample_ = model.index( row, 1 ).data().toDouble(); // seconds
     ++row;
     m.invert_signal = model.index( row, 1 ).data().toBool() ? 1 : 0;
+
+    // PKD
     ++row;
-    m.nsa = model.index( row, 1 ).data().toInt();
+    m.pkd_raising_delta = model.index( row, 1 ).data().toInt();
+    ++row;
+    m.pkd_falling_delta = model.index( row, 1 ).data().toInt();
+    ++row;
+    m.pkd_amplitude_accumulation_enabled = model.index( row, 1 ).data().toBool();
+    ++row;
+
+    // NSA
+    m.nsa_enabled = model.index( row, 1 ).data().toBool();
+    ++row;
+    m.nsa_threshold = model.index( row, 1 ).data().toInt();
 
     // digitizer_<...> will be override -- due to u5303a require self calibration for following two parameter change.
     // It takes one to two seconds so that is not acceptable for multi-turn protocol acquisition.
@@ -271,6 +348,12 @@ u5303ATable::onHandleValue( idCategory id, int channel, const QVariant& value )
     case idNbrAverages:
         if ( model_ ) {
             model_->setData( model_->index( number_of_average, c_item_value ), value );
+        }
+        break;
+    case idPKDEnable:
+        if ( model_ ) {
+            for ( int row = pkd_raising_delta; row <= pkd_amplitude_accumulation_enabled; ++row )
+                model_->item( row, 0 )->setForeground( value.toBool() ? QColor( Qt::black ) : QColor( Qt::gray ) );
         }
         break;
     }

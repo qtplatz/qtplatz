@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>214</width>
-    <height>300</height>
+    <width>264</width>
+    <height>302</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,9 +34,16 @@
         <string>U5303A Horizontal</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton">
+          <property name="text">
+           <string>Apply</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
-          <item row="6" column="1">
+          <item row="7" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -107,27 +114,20 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QCheckBox" name="checkBox">
-            <property name="text">
-             <string>TSR</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
              <string>MultiRecord</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="4" column="1">
            <widget class="QSpinBox" name="spinBox_2">
             <property name="minimum">
              <number>1</number>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="6" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
              <string>Ext. Trig. delay(&amp;mu;s)</string>
@@ -137,21 +137,28 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox">
             <property name="maximum">
              <double>1000.000000000000000</double>
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkBox_pkd">
+            <property name="text">
+             <string>PKD</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="checkBox">
+            <property name="text">
+             <string>TSR</string>
+            </property>
+           </widget>
+          </item>
          </layout>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="pushButton">
-          <property name="text">
-           <string>Apply</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>

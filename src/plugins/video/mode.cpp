@@ -38,7 +38,7 @@ Mode::Mode(QObject *parent) : Core::IMode(parent)
     setDisplayName( tr( "VIDEO" ) );
     // http://findicons.com/icon/203157/camera_web#
     setIcon(QIcon(":/video/images/camera_web.png"));
-    setPriority( 50 );
+    setPriority( 40 );
     
     connect( dynamic_cast<const Core::ModeManager *>(Core::ModeManager::instance())
              , &Core::ModeManager::currentModeChanged, this, &Mode::grabEditorManager );
