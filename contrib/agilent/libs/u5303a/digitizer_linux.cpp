@@ -516,10 +516,8 @@ task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
 bool
 task::handle_initial_setup()
 {
-    spDriver_ = std::make_shared< AgMD2 >();
+    spDriver_ = std::make_shared< AgMD2 >();     // spDriver creation in the thread
 
-    ViBoolean idQuery = VI_TRUE;
-    ViBoolean reset   = VI_TRUE;
     bool simulated = false;
     bool success = false;
 

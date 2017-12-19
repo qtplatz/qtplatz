@@ -47,11 +47,9 @@ namespace acqrscontrols {
             double scaleFactor;
             double scaleOffset;
             // CLASS VERSION 2
-            int32_t dataType;  // 2(int16_t)|4(int32_t)|8(int64_t)|-8(double)
+            int32_t dataType;     // 2(int16_t)|4(int32_t)|8(int64_t)|-8(double)
             // CLASS VERSION 3
             int32_t protocolIndex;
-            // CLASS VERSION 4
-            uint32_t channelId;
 
         private:
             friend class boost::serialization::access;
@@ -60,4 +58,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 4 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 3 )
