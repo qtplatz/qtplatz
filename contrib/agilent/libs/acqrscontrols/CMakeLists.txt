@@ -20,6 +20,8 @@ include_directories(
 
 add_library( ${PROJECT_NAME} SHARED
   acqrscontrols_global.hpp
+  counting_data_writer.hpp
+  counting_data_writer.cpp
   find_threshold_timepoints.hpp
   find_threshold_peaks.hpp
   processthreshold.hpp
@@ -32,6 +34,8 @@ add_library( ${PROJECT_NAME} SHARED
   tdcdoc.cpp
   threshold_result.hpp
   threshold_result.cpp
+  threshold_result_accessor.hpp
+  threshold_result_accessor.cpp
   u5303a/averagedata.hpp
   u5303a/averagedata.cpp
   u5303a/device_method.hpp
