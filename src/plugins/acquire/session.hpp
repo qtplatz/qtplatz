@@ -25,13 +25,13 @@
 
 #pragma once
 
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/signalobserver.hpp>
-#include <adicontroller/constants.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/signalobserver.hpp>
+#include <adacquire/constants.hpp>
 
 namespace acquire {
 
-    class session : public adicontroller::Instrument::Session {
+    class session : public adacquire::Instrument::Session {
     public:
         ~session();
         session();
@@ -41,11 +41,11 @@ namespace acquire {
         bool setConfiguration( const std::string& xml ) override;
         bool configComplete() override;
         
-        bool connect( adicontroller::Receiver * , const std::string& token ) override;
-        bool disconnect( adicontroller::Receiver * ) override;
+        bool connect( adacquire::Receiver * , const std::string& token ) override;
+        bool disconnect( adacquire::Receiver * ) override;
 
         uint32_t get_status() override;
-        adicontroller::SignalObserver::Observer * getObserver(void) override;
+        adacquire::SignalObserver::Observer * getObserver(void) override;
         
         bool initialize() override;
         

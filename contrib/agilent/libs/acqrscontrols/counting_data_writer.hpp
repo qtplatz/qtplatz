@@ -23,11 +23,11 @@
 **************************************************************************/
 
 #include "threshold_result_accessor.hpp"
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 
 namespace acqrscontrols {
 
-    class counting_data_writer : public adicontroller::SignalObserver::DataWriter {
+    class counting_data_writer : public adacquire::SignalObserver::DataWriter {
     public:
         counting_data_writer( std::shared_ptr< threshold_result_accessor > a ) : DataWriter( a ) {
         }
@@ -39,7 +39,7 @@ namespace acqrscontrols {
     // T := acqrscontrols::ap240::threshold_result
 
     template< typename T >
-    class counting_data_writer_ : public adicontroller::SignalObserver::DataWriter {
+    class counting_data_writer_ : public adacquire::SignalObserver::DataWriter {
     public:
         typedef threshold_result_accessor_< T > threshold_result_accessor_type;
         counting_data_writer_( std::shared_ptr< threshold_result_accessor_type > a ) : DataWriter( a ) {

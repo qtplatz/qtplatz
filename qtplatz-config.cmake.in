@@ -65,7 +65,7 @@ add_library( acewrapper STATIC IMPORTED )
 add_library( adchem SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
 add_library( adextension SHARED IMPORTED )
-add_library( adicontroller SHARED IMPORTED )
+add_library( adacquire SHARED IMPORTED )
 add_library( adlog SHARED IMPORTED )
 add_library( adplugin SHARED IMPORTED )
 add_library( adplugin_manager SHARED IMPORTED )
@@ -127,9 +127,9 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
   
-  set_target_properties( adicontroller PROPERTIES
-    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adicontroller.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adicontrollerd.lib )
+  set_target_properties( adacquire PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adacquire.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adacquired.lib )
   
   set_target_properties( adlog PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adlog.lib
@@ -240,9 +240,9 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs_debug.dylib )
   
-  set_target_properties( adicontroller PROPERTIES
-    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadicontroller.dylib
-    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadicontroller_debug.dylib )
+  set_target_properties( adacquire PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadacquire.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadacquire_debug.dylib )
   
   set_target_properties( adlog PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadlog.dylib
@@ -336,8 +336,8 @@ else()  #Linux
   set_target_properties( adfs PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs.so )
 
-  set_target_properties( adicontroller PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadicontroller.so )
+  set_target_properties( adacquire PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadacquire.so )
   
   set_target_properties( adlog PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadlog.so )

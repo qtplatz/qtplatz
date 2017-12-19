@@ -25,7 +25,7 @@
 #include "icontrollerimpl.hpp"
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
-#include <adicontroller/manager.hpp>
+#include <adacquire/manager.hpp>
 
 using namespace u5303a;
 
@@ -42,7 +42,7 @@ iControllerImpl::connect()
 {
     if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "u5303a", QStringList() ) ) {
 
-        if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
+        if ( auto manager = plugin->query_interface< adacquire::manager >() ) {
             if ( auto session = manager->session( "u5303a::icontrollerimpl" ) ) {
                 adextension::iControllerImpl::connect( session, "u5303a::iControllerImpl" );
                 return true;

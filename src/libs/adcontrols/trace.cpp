@@ -25,7 +25,7 @@
 
 #include <compiler/disable_dll_interface.h>
 #include "trace.hpp"
-#include <adicontroller/constants.hpp>
+#include <adacquire/constants.hpp>
 #include <iostream>
 #include <algorithm>
 #include <numeric>

@@ -24,14 +24,14 @@
 
 #pragma once
 
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <string>
 
 namespace acquire {
 
-    namespace so = adicontroller::SignalObserver;
+    namespace so = adacquire::SignalObserver;
 
-    class MasterObserver : public adicontroller::SignalObserver::Observer {
+    class MasterObserver : public adacquire::SignalObserver::Observer {
 
         class impl;
         impl * impl_;
@@ -56,10 +56,10 @@ namespace acquire {
         const char * dataInterpreterClsid() const override             { return ""; }
 
         int32_t posFromTime( uint64_t usec ) const override            { return 0; }
-        bool prepareStorage( adicontroller::SampleProcessor& ) const override { return false; }
-        bool closingStorage( adicontroller::SampleProcessor& ) const override { return false; }
+        bool prepareStorage( adacquire::SampleProcessor& ) const override { return false; }
+        bool closingStorage( adacquire::SampleProcessor& ) const override { return false; }
 
         // local impl
-        void dataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );
+        void dataChanged( adacquire::SignalObserver::Observer *, uint32_t pos );
     };
 }

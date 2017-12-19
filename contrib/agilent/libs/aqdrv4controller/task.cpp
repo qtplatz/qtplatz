@@ -23,11 +23,11 @@
 
 #include "task.hpp"
 #include "waveformobserver.hpp"
-#include <adicontroller/masterobserver.hpp>
+#include <adacquire/masterobserver.hpp>
 #include <acqrscontrols/acqiris_client.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_waveform.hpp>
-#include <adicontroller/receiver.hpp>
+#include <adacquire/receiver.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
 
@@ -39,7 +39,7 @@ task::~task()
 
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
-             , masterObserver_( std::make_shared< adicontroller::MasterObserver >( "master.aqdrv4.ms-cheminfo.com" ) )
+             , masterObserver_( std::make_shared< adacquire::MasterObserver >( "master.aqdrv4.ms-cheminfo.com" ) )
              , waveformObserver_( std::make_shared< WaveformObserver >() )
 {
     masterObserver_->addSibling( waveformObserver_.get() );
@@ -118,7 +118,7 @@ task::connect( const std::string& server, const std::string& port )
     
     initialize();
 
-    reply_message( adicontroller::Receiver::STATE_CHANGED, adicontroller::Instrument::eStandBy );
+    reply_message( adacquire::Receiver::STATE_CHANGED, adacquire::Instrument::eStandBy );
 }    
     
 void
@@ -184,21 +184,21 @@ void
 task::push( std::shared_ptr< acqrscontrols::aqdrv4::acqiris_method > m )
 {
     ADDEBUG() << "##### TODO Got method (adapted) from device --> reply data to client";
-    reply_message( adicontroller::Receiver::METHOD_RECEIVED, receivers_.size() );    
+    reply_message( adacquire::Receiver::METHOD_RECEIVED, receivers_.size() );    
 }
 
 void
-task::connect_client( std::shared_ptr< adicontroller::Receiver > receiver, const std::string& token )
+task::connect_client( std::shared_ptr< adacquire::Receiver > receiver, const std::string& token )
 {
     {
         std::lock_guard< std::mutex > lock( mutex_ );
         receivers_.emplace_back( receiver, token );
     }
-    reply_message( adicontroller::Receiver::CLIENT_ATTACHED, receivers_.size() );
+    reply_message( adacquire::Receiver::CLIENT_ATTACHED, receivers_.size() );
 }
 
 void
-task::disconnect_client( std::shared_ptr< adicontroller::Receiver > receiver )
+task::disconnect_client( std::shared_ptr< adacquire::Receiver > receiver )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     auto it = std::remove_if( receivers_.begin(), receivers_.end(), [&]( receiver_pair_t& a ){ return a.first == receiver; } );
@@ -211,7 +211,7 @@ task::reply_message( int msg, int value )
     io_service_.post( [&](){
             std::lock_guard< std::mutex > lock( mutex_ );
             for ( auto& receiver: receivers_ )
-                receiver.first->message( adicontroller::Receiver::eINSTEVENT( msg ), value );
+                receiver.first->message( adacquire::Receiver::eINSTEVENT( msg ), value );
         });
 }
 

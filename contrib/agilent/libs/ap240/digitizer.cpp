@@ -37,7 +37,7 @@
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/metric/prefix.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <libdgpio/pio.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -629,9 +629,9 @@ task::handle_acquire()
                 c_acquisition_status_ = true;
                 ap240_inject_timepoint_ = ( method_.channels_ & 01 ) ? ch1->meta_.initialXTimeSeconds : ch2->meta_.initialXTimeSeconds;
                 if ( ch1 )
-                    ch1->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+                    ch1->wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
                 if ( ch2 )
-                    ch2->wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+                    ch2->wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
             }
             if ( ch1 )
                 ch1->timeSinceInject_ = ch1->meta_.initialXTimeSeconds - ap240_inject_timepoint_;

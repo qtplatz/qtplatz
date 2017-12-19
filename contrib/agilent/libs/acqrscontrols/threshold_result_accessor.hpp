@@ -26,12 +26,12 @@
 
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
-#include <adicontroller/datawriter.hpp>
+#include <adacquire/datawriter.hpp>
 #include <vector>
 
 namespace acqrscontrols {
 
-    class threshold_result_accessor : public adicontroller::SignalObserver::DataAccess {
+    class threshold_result_accessor : public adacquire::SignalObserver::DataAccess {
 
     public:
         threshold_result_accessor();
@@ -62,7 +62,7 @@ namespace acqrscontrols {
     // T := const acqrscontrols::ap240::threshold_result
 
     template< typename T >
-    class threshold_result_accessor_ : public adicontroller::SignalObserver::DataAccess {
+    class threshold_result_accessor_ : public adacquire::SignalObserver::DataAccess {
 
     public:
         threshold_result_accessor_() {}

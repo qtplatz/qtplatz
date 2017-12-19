@@ -26,8 +26,8 @@
 #include "waveformobserver.hpp"
 #include <u5303a/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adicontroller/masterobserver.hpp>
-#include <adicontroller/receiver.hpp>
+#include <adacquire/masterobserver.hpp>
+#include <adacquire/receiver.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/utf.hpp>
@@ -40,14 +40,14 @@
 #include <memory>
 #include <sstream>
 
-namespace adi = adicontroller;
+namespace adi = adacquire;
 
 namespace u5303a { namespace Instrument {
 
         struct Session::impl {
 
             impl() : work_( io_service_ )
-                   , masterObserver_( std::make_shared< adicontroller::MasterObserver >( "u5303a.master.observer.ms-cheminfo.com" ) )
+                   , masterObserver_( std::make_shared< adacquire::MasterObserver >( "u5303a.master.observer.ms-cheminfo.com" ) )
                    , waveformObserver_( std::make_shared< WaveformObserver >() ) {
 
                 masterObserver_->addSibling( waveformObserver_.get() );
@@ -67,7 +67,7 @@ namespace u5303a { namespace Instrument {
             inline std::mutex& mutex() { return mutex_; }
 
             std::shared_ptr< u5303a::digitizer > digitizer_;
-            std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
+            std::shared_ptr< adacquire::MasterObserver > masterObserver_;
             std::shared_ptr< WaveformObserver > waveformObserver_;
             
             void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
@@ -180,7 +180,7 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 }
 
 bool
-Session::disconnect( adicontroller::Receiver * receiver )
+Session::disconnect( adacquire::Receiver * receiver )
 {
     auto self( receiver->shared_from_this() );
     
@@ -202,7 +202,7 @@ Session::get_status()
     return 0;
 }
 
-adicontroller::SignalObserver::Observer *
+adacquire::SignalObserver::Observer *
 Session::getObserver()
 {
     return impl_->masterObserver_.get();
@@ -249,7 +249,7 @@ Session::shell( const std::string& cmdline )
 std::shared_ptr< const adcontrols::ControlMethod::Method >
 Session::getControlMethod()
 {
-    return 0; // adicontroller::ControlMethod::Method();
+    return 0; // adacquire::ControlMethod::Method();
 }
 
 bool

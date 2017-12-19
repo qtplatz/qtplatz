@@ -1,9 +1,9 @@
 # adtoolkit 
 
 add_subdirectory (acewrapper)
+add_subdirectory (adacquire)
 add_subdirectory (adcontrols)
 add_subdirectory (adfs)
-add_subdirectory (adicontroller)
 add_subdirectory (adio)
 add_subdirectory (adlog)
 add_subdirectory (adportable)

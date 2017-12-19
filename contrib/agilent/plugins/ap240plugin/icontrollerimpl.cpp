@@ -25,7 +25,7 @@
 #include "icontrollerimpl.hpp"
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
-#include <adicontroller/manager.hpp>
+#include <adacquire/manager.hpp>
 
 using namespace ap240;
 
@@ -42,7 +42,7 @@ iControllerImpl::connect()
 {
     if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "ap240controller", QStringList() ) ) {
 
-        if ( auto manager = plugin->query_interface< adicontroller::manager >() ) {
+        if ( auto manager = plugin->query_interface< adacquire::manager >() ) {
             if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {
                 adextension::iControllerImpl::connect( session, "ap240::iControllerImpl" );
                 return true;

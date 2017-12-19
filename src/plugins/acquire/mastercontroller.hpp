@@ -29,7 +29,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace adicontroller { namespace Instrument { class Session; } }
+namespace adacquire { namespace Instrument { class Session; } }
 
 namespace acquire {
 

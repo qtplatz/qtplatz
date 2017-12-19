@@ -95,7 +95,7 @@ target_link_libraries(
   Query LINK_PUBLIC
   adplugin
   adcontrols
-  adicontroller
+  adacquire
   adlog
   adutils
   portfolio

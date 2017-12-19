@@ -29,7 +29,7 @@ target_include_directories( ${PROJECT_NAME} PUBLIC
   ${CMAKE_SORUCE_DIR}/src/libs )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  adicontroller
+  adacquire
   adplugin
   ap240
   acqrscontrols

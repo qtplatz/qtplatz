@@ -45,7 +45,7 @@
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
-#include <adicontroller/constants.hpp>
+#include <adacquire/constants.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
@@ -662,7 +662,7 @@ MainWindow::handleModulesFailed( const QStringList& list )
 void
 MainWindow::handleInstState( int status )
 {
-    if ( status <= adicontroller::Instrument::eNotConnected ) {
+    if ( status <= adacquire::Instrument::eNotConnected ) {
 
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( true  );
@@ -672,7 +672,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( false );
         }
 
-    } else if ( status == adicontroller::Instrument::eStandBy ) {
+    } else if ( status == adacquire::Instrument::eStandBy ) {
 
         if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( false );
@@ -687,8 +687,8 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( pair.second );
         }        
 
-    } else if ( status == adicontroller::Instrument::ePreparingForRun ||
-                status == adicontroller::Instrument::eReadyForRun ) {
+    } else if ( status == adacquire::Instrument::ePreparingForRun ||
+                status == adacquire::Instrument::eReadyForRun ) {
 
         for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
                     , std::make_pair( Constants::ACTION_STOP, true )
@@ -700,7 +700,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( pair.second );
         }        
 
-    } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
+    } else if ( status == adacquire::Instrument::eWaitingForContactClosure ) {
 
         for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
                     , std::make_pair( Constants::ACTION_STOP, true )
@@ -712,7 +712,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( pair.second );
         }        
 
-    } else if ( status == adicontroller::Instrument::eRunning ) {
+    } else if ( status == adacquire::Instrument::eRunning ) {
 
         for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
                     , std::make_pair( Constants::ACTION_STOP, true )
@@ -724,7 +724,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( pair.second );
         }        
         
-    } else if ( status == adicontroller::Instrument::eStop ) {
+    } else if ( status == adacquire::Instrument::eStop ) {
         for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
                     , std::make_pair( Constants::ACTION_STOP, false )
                     , std::make_pair( Constants::ACTION_REC, false )
@@ -736,7 +736,7 @@ MainWindow::handleInstState( int status )
         }        
     }
 #if 0
-    if ( status <= adicontroller::Instrument::eNotConnected ) {
+    if ( status <= adacquire::Instrument::eNotConnected ) {
 
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( true  );
@@ -746,7 +746,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( false );
         }
 
-    } else if ( status == adicontroller::Instrument::eStandBy ) {
+    } else if ( status == adacquire::Instrument::eStandBy ) {
 
         if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( false );
@@ -760,10 +760,10 @@ MainWindow::handleInstState( int status )
         if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
             action->setChecked( true );
         
-    } else if ( status == adicontroller::Instrument::ePreparingForRun ||
-                status == adicontroller::Instrument::eReadyForRun ||
-                status == adicontroller::Instrument::eWaitingForContactClosure ||
-                status == adicontroller::Instrument::eRunning ) {
+    } else if ( status == adacquire::Instrument::ePreparingForRun ||
+                status == adacquire::Instrument::eReadyForRun ||
+                status == adacquire::Instrument::eWaitingForContactClosure ||
+                status == adacquire::Instrument::eRunning ) {
         // All enable
         for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT, Constants::ACTION_SYNC } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
@@ -771,7 +771,7 @@ MainWindow::handleInstState( int status )
         }
         // RUN during 'Running' is possible := simply create new data file
         
-    } else if ( status == adicontroller::Instrument::eStop ) {
+    } else if ( status == adacquire::Instrument::eStop ) {
         // Disable
         for ( auto id : { Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SYNC } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )

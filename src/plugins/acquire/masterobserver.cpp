@@ -41,11 +41,11 @@ namespace acquire {
         
         const char * objtext__ = "acquire.ms-cheminfo.com";
 
-        const boost::uuids::uuid objid_ = boost::uuids::name_generator( adicontroller::SignalObserver::Observer::base_uuid() )( objtext__ );
+        const boost::uuids::uuid objid_ = boost::uuids::name_generator( adacquire::SignalObserver::Observer::base_uuid() )( objtext__ );
         std::mutex mutex_;
-        typedef std::tuple< adicontroller::SignalObserver::ObserverEvents *
+        typedef std::tuple< adacquire::SignalObserver::ObserverEvents *
                             , std::string
-                            , adicontroller::SignalObserver::eUpdateFrequency
+                            , adacquire::SignalObserver::eUpdateFrequency
                             , bool > client_type;
         
         std::vector< client_type > clients_;
@@ -77,9 +77,9 @@ MasterObserver::~MasterObserver()
 bool
 MasterObserver::addSibling( Observer * observer )
 {
-    observer->connect( impl_->masterObserverEvents(), adicontroller::SignalObserver::Realtime, "acquire::MasterObserver" );
+    observer->connect( impl_->masterObserverEvents(), adacquire::SignalObserver::Realtime, "acquire::MasterObserver" );
 
-    return adicontroller::SignalObserver::Observer::addSibling( observer );
+    return adacquire::SignalObserver::Observer::addSibling( observer );
 }
 
 const boost::uuids::uuid&
@@ -122,7 +122,7 @@ MasterObserver::disconnect( so::ObserverEvents * cb )
 }
 
 void
-MasterObserver::dataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
+MasterObserver::dataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     if ( so ) {
         std::lock_guard< std::mutex > lock( impl_->mutex_ );

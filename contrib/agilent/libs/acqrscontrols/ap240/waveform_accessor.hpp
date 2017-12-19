@@ -26,13 +26,13 @@
 
 #include "../acqrscontrols_global.hpp"
 #include "threshold_result.hpp"
-#include <adicontroller/datawriter.hpp>
+#include <adacquire/datawriter.hpp>
 #include <vector>
 
 namespace acqrscontrols {
     namespace ap240 {
 
-        class ACQRSCONTROLSSHARED_EXPORT waveform_accessor : public adicontroller::SignalObserver::DataAccess {
+        class ACQRSCONTROLSSHARED_EXPORT waveform_accessor : public adacquire::SignalObserver::DataAccess {
 
             std::vector< std::shared_ptr< const acqrscontrols::ap240::waveform > >::iterator it_;
             

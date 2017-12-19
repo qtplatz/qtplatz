@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "rawdata_v3.hpp"
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>

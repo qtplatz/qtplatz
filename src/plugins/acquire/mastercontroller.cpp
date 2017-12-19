@@ -30,13 +30,13 @@
 #include "task.hpp"
 #include <adplugin/plugin.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/receiver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/scoped_debug.hpp>
 #include <adportable/serializer.hpp>
-#include <adicontroller/manager.hpp>
+#include <adacquire/manager.hpp>
 #include <QLibrary>
 #include <QVariant>
 #include <atomic>

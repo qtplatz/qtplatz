@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <acqrscontrols/ap240/method.hpp>
@@ -38,7 +38,7 @@ namespace acqrscontrols {
 
 namespace aqdrv4controller {
 
-    namespace so = adicontroller::SignalObserver;
+    namespace so = adacquire::SignalObserver;
     
     class WaveformObserver : public so::Observer {
         WaveformObserver( const WaveformObserver& ) = delete;
@@ -56,8 +56,8 @@ namespace aqdrv4controller {
 
         const char * dataInterpreterClsid() const override { return "ap240.digi"; }
         int32_t posFromTime( uint64_t usec ) const override;
-        bool prepareStorage( adicontroller::SampleProcessor& ) const override { return false; }
-        bool closingStorage( adicontroller::SampleProcessor& ) const override { return false; }
+        bool prepareStorage( adacquire::SampleProcessor& ) const override { return false; }
+        bool closingStorage( adacquire::SampleProcessor& ) const override { return false; }
         
         // WaveformObserver
         typedef std::pair< std::shared_ptr< acqrscontrols::ap240::waveform >, std::shared_ptr< acqrscontrols::ap240::waveform > > waveform_pair_t;

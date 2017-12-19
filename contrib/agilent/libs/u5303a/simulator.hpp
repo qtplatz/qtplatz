@@ -31,7 +31,7 @@
 #include <vector>
 
 namespace boost { namespace asio { class io_service; } }
-namespace adicontroller { class waveform_simulator;  }
+namespace adacquire { class waveform_simulator;  }
 namespace acqrscontrols { namespace u5303a { class waveform; class method; } }
 namespace dgpio { class pio; }
 
@@ -67,7 +67,7 @@ namespace u5303a {
         std::vector< std::pair< double, double > > ions_; // pair<mass, intensity>
         std::atomic<bool> hasWaveform_;
         std::atomic_flag acqTriggered_;
-        std::vector< std::shared_ptr< adicontroller::waveform_simulator > > waveforms_;
+        std::vector< std::shared_ptr< adacquire::waveform_simulator > > waveforms_;
         std::unique_ptr< dgpio::pio > pio_;
         double sampInterval_;
         double startDelay_;
@@ -79,7 +79,7 @@ namespace u5303a {
         int32_t protocolIndex_;
         int32_t protocolReplicates_;
 
-		void post( std::shared_ptr< adicontroller::waveform_simulator >& );
+		void post( std::shared_ptr< adacquire::waveform_simulator >& );
         void next_protocol();
     };
 

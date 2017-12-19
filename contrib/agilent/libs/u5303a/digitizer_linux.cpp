@@ -28,7 +28,7 @@
 #include "automaton.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <adlog/logger.hpp>
-#include <adicontroller/constants.hpp>
+#include <adacquire/constants.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/mblock.hpp>
@@ -505,12 +505,12 @@ task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
         c_injection_requested_ = false;
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
-        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_INJECT;
+        waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
     }
 
     waveform.timeSinceInject_ = waveform.meta_.initialXTimeSeconds - u5303_inject_timepoint_;
     if ( c_acquisition_status_ )
-        waveform.wellKnownEvents_ |= adicontroller::SignalObserver::wkEvent_AcqInProgress;
+        waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_AcqInProgress;
 }
 
 bool

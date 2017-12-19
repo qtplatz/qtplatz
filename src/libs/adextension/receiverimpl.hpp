@@ -26,9 +26,9 @@
 
 #include "adextension_global.hpp"
 #include <adextension/icontroller.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/receiver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <cassert>
 #include <chrono>
 #include <condition_variable>
@@ -42,7 +42,7 @@ namespace adextension {
     /*
      *  Receiver -- implementation helper
      */
-    class ADEXTENSIONSHARED_EXPORT ReceiverImpl : public adicontroller::Receiver {
+    class ADEXTENSIONSHARED_EXPORT ReceiverImpl : public adacquire::Receiver {
 
         std::weak_ptr< iController > controller_;
 
@@ -51,7 +51,7 @@ namespace adextension {
         ReceiverImpl( iController * p );
         void message( eINSTEVENT msg, uint32_t value ) override;
             
-        void log( const adicontroller::EventLog::LogMessage& log ) override;
+        void log( const adacquire::EventLog::LogMessage& log ) override;
 
         void shutdown() override;
             

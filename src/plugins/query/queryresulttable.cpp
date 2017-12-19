@@ -27,7 +27,7 @@
 #include <acqrscontrols/constants.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/scanlaw.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <adportable/debug.hpp>
 #include <adwidgets/delegatehelper.hpp>
 #include <adwidgets/htmlheaderview.hpp>
@@ -50,7 +50,7 @@
 
 namespace query {
 
-    namespace so = adicontroller::SignalObserver;
+    namespace so = adacquire::SignalObserver;
     using namespace acqrscontrols;
 
     static std::map< boost::uuids::uuid, std::string > __uuid_db__ = {

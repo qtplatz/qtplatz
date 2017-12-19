@@ -40,7 +40,7 @@
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/waveform_wrapper.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>
@@ -448,7 +448,7 @@ namespace boost { namespace serialization {
 
 //static
 std::array< std::shared_ptr< const waveform >, 2 >
-waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb )
+waveform::deserialize( const adacquire::SignalObserver::DataReadBuffer * rb )
 {
     if ( rb ) {
         std::array< std::shared_ptr< waveform >, 2 > waveforms;
@@ -491,7 +491,7 @@ waveform::deserialize( const adicontroller::SignalObserver::DataReadBuffer * rb 
 
 //static
 bool
-waveform::serialize( adicontroller::SignalObserver::DataReadBuffer& rb
+waveform::serialize( adacquire::SignalObserver::DataReadBuffer& rb
                      , std::shared_ptr< const waveform > ch1
                      , std::shared_ptr< const waveform > ch2 )
 {

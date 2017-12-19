@@ -29,7 +29,7 @@
 
 class QRect;
 
-namespace adicontroller {
+namespace adacquire {
     namespace SignalObserver { class Observer; }
     namespace Instrument { class Session; }
 }
@@ -48,10 +48,10 @@ namespace ap240 {
         bool initialize();
         bool finalize();
 
-        void onDataChanged( adicontroller::SignalObserver::Observer *, uint32_t pos );
-        void instInitialize( adicontroller::Instrument::Session * session );
+        void onDataChanged( adacquire::SignalObserver::Observer *, uint32_t pos );
+        void instInitialize( adacquire::Instrument::Session * session );
         void post( std::vector< std::future<bool> >& futures );
-        void prepare_next_sample( adicontroller::SignalObserver::Observer *
+        void prepare_next_sample( adacquire::SignalObserver::Observer *
                                   , std::shared_ptr< adcontrols::SampleRun >, const adcontrols::ControlMethod::Method& );
 
         void clear_histogram();

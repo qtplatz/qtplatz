@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <adicontroller/signalobserver.hpp>
-#include <adicontroller/constants.hpp>
+#include <adacquire/signalobserver.hpp>
+#include <adacquire/constants.hpp>
 #include <memory>
 
 namespace adextension { class iController; }
@@ -38,7 +38,7 @@ namespace acquire {
      *  ObserverEvents -- implementation helper
      */
 
-    class MasterObserverEvents : public adicontroller::SignalObserver::ObserverEvents {
+    class MasterObserverEvents : public adacquire::SignalObserver::ObserverEvents {
         // ObserverEvents
         std::weak_ptr< adextension::iController > controller_;
 
@@ -47,7 +47,7 @@ namespace acquire {
 
         MasterObserverEvents( MasterController * );
             
-        void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status );
+        void OnConfigChanged( uint32_t objId, adacquire::SignalObserver::eConfigStatus status );
             
         void OnUpdateData( uint32_t objId, long pos );
             
@@ -55,7 +55,7 @@ namespace acquire {
             
         void OnEvent( uint32_t objId, uint32_t event, long pos );
             
-        void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) override;
+        void onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos ) override;
     };
 
 }

@@ -40,7 +40,7 @@
 #include <compiler/pragma_warning.hpp>
 
 namespace adcontrols { class MassSpectrum; class ScanLaw; }
-namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
+namespace adacquire { namespace SignalObserver { class DataReadBuffer; } }
 namespace acqrscontrols { namespace u5303a { class method; class threshold_result; } }
 
 namespace adportable { template<typename T> class mblock; }

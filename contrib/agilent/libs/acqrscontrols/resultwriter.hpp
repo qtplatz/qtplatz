@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <adicontroller/task.hpp>
+#include <adacquire/task.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <memory>
 #include <mutex>
@@ -60,8 +60,8 @@ namespace acqrscontrols {
             } while ( 0 );
 
             if ( !accessor->list.empty() ) {
-                auto dataWriter = std::make_shared< adicontroller::SignalObserver::DataWriter >( accessor );
-                adicontroller::task::instance()->handle_write( uuid_, dataWriter );
+                auto dataWriter = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
+                adacquire::task::instance()->handle_write( uuid_, dataWriter );
             }
         }
 

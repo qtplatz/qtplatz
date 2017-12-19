@@ -75,9 +75,9 @@
 #include <adcontrols/timeutil.hpp>
 #include <adextension/imonitorfactory.hpp>
 #include <adextension/icontroller.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/receiver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -296,7 +296,7 @@ orb_i::actionConnect()
                     connect( this, &orb_i::onReceiverMessage, this, &orb_i::handle_controller_message );
                         
                     if ( session_->connect( receiver_i_->_this(), "acquire" ) ) {
-                        MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );
+                        MainWindow::instance()->handleInstState( adacquire::Instrument::eStandBy );
                     }
                         
                     if ( session_->status() <= ControlServer::eConfigured )
@@ -343,7 +343,7 @@ orb_i::actionConnect()
     }
 
     if ( ! CORBA::is_nil( session_ ) ) {
-        MainWindow::instance()->handleInstState( adicontroller::Instrument::eStandBy );        
+        MainWindow::instance()->handleInstState( adacquire::Instrument::eStandBy );        
         document::instance()->fsmStop();
     }
 }

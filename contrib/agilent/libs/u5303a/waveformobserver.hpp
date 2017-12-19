@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <workaround/boost/uuid/uuid.hpp>
 #include <deque>
 #include <acqrscontrols/u5303a/waveform.hpp>
@@ -34,7 +34,7 @@ namespace acqrscontrols { namespace u5303a { class waveform; } }
 
 namespace u5303a {
 
-    namespace so = adicontroller::SignalObserver;
+    namespace so = adacquire::SignalObserver;
     
     class WaveformObserver : public so::Observer {
         WaveformObserver( const WaveformObserver& ) = delete;
@@ -52,8 +52,8 @@ namespace u5303a {
 
         const char * dataInterpreterClsid() const override { return "u5303a.digi"; }
         int32_t posFromTime( uint64_t usec ) const override;
-        bool prepareStorage( adicontroller::SampleProcessor& ) const override { return false; }
-        bool closingStorage( adicontroller::SampleProcessor& ) const override { return false; }
+        bool prepareStorage( adacquire::SampleProcessor& ) const override { return false; }
+        bool closingStorage( adacquire::SampleProcessor& ) const override { return false; }
         
         // WaveformObserver
         typedef std::pair< std::shared_ptr< acqrscontrols::u5303a::waveform >, std::shared_ptr< acqrscontrols::u5303a::waveform > > waveform_pair_t;

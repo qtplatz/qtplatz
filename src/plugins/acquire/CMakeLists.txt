@@ -127,7 +127,7 @@ target_link_libraries(
   adfs
   adutils
   adcontrols
-  adicontroller
+  adacquire
   adplot
   adwidgets
   acewrapper

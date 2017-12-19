@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "insttreeview.hpp"
-#include <adicontroller/constants.hpp>
+#include <adacquire/constants.hpp>
 #include <adlog/logger.hpp>
 #include <QHeaderView>
 #include <QKeyEvent>
@@ -79,14 +79,14 @@ namespace adwidgets {
         void setObserver( QStandardItem& parent, int row, const Observer& );
         
         struct Observer {
-            Observer() : trace_method( adicontroller::SignalObserver::eTRACE_TRACE )
+            Observer() : trace_method( adacquire::SignalObserver::eTRACE_TRACE )
                 {}
             
             Observer( const Observer& t ) : objtext( t.objtext )
                                           , objid( t.objid )
                                           , trace_id( t.trace_id )
                                           , trace_display_name( t.trace_display_name )
-                                          , trace_method( adicontroller::SignalObserver::eTRACE_TRACE )
+                                          , trace_method( adacquire::SignalObserver::eTRACE_TRACE )
                                           , siblings( t.siblings ) {
             }
             
@@ -94,7 +94,7 @@ namespace adwidgets {
             QString objid;
             QString trace_id;
             QString trace_display_name;
-            adicontroller::SignalObserver::eTRACE_METHOD trace_method;
+            adacquire::SignalObserver::eTRACE_METHOD trace_method;
             std::vector< Observer > siblings;
             
             void operator()( const boost::property_tree::ptree& pt ) {
@@ -112,7 +112,7 @@ namespace adwidgets {
                     trace_display_name = QString::fromStdString( value.get() );
 
                 if ( auto value = pt.get_optional< int >( "observer.desc.trace_method" ) )
-                    trace_method = static_cast<adicontroller::SignalObserver::eTRACE_METHOD>( value.get() );
+                    trace_method = static_cast<adacquire::SignalObserver::eTRACE_METHOD>( value.get() );
 
                 if ( auto childs = pt.get_child_optional("siblings") ) {
                     for ( const boost::property_tree::ptree::value_type& child : pt.get_child( "siblings" ) ) {

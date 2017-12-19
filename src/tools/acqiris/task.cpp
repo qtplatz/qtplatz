@@ -30,7 +30,7 @@
 #include <acqrscontrols/acqiris_waveform.hpp>
 #include <acqrscontrols/acqiris_method.hpp>
 #include <acqrscontrols/acqiris_protocol.hpp>
-#include <adicontroller/constants.hpp>
+#include <adacquire/constants.hpp>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <iostream>
@@ -137,7 +137,7 @@ task::prepare_for_run( std::shared_ptr< const acqrscontrols::aqdrv4::acqiris_met
 void
 task::event_out( uint32_t events )
 {
-    if ( events == adicontroller::Instrument::instEventInjectOut )
+    if ( events == adacquire::Instrument::instEventInjectOut )
         strand_.post( [=] { inject_requested_ = true; });
 }
 
@@ -180,7 +180,7 @@ task::acquire()
 
             d->serialNumber() = serialCounter_++;
             if ( inject_requested_ ) {
-                d->wellKnownEvents() |= adicontroller::SignalObserver::wkEvent_INJECT;
+                d->wellKnownEvents() |= adacquire::SignalObserver::wkEvent_INJECT;
                 inject_timepoint_    = d->timeStamp(); // ps
                 inject_serialnumber_ = d->serialNumber();
                 inject_requested_    = false;

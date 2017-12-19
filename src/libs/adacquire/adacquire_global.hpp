@@ -1,8 +1,9 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@qtplatz.com
+** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
@@ -22,20 +23,14 @@
 **
 **************************************************************************/
 
-#include "instrument.hpp"
+#pragma once
 
-namespace adicontroller {
-    
-    namespace Instrument {
+#include <compiler/decl_export.h>
 
-        Session::Session()
-        {
-        }
-        
-        Session::~Session()
-        {
-        }
-
-    } // namespace Instrument
-} // namespace adicontroler
-
+#if defined(ADICONTROLLER_LIBRARY)
+#  define ADACQUIRESHARED_EXPORT DECL_EXPORT
+#  define ADACQUIRESHARED_TEMPLATE_EXPORT
+#else
+#  define ADACQUIRESHARED_EXPORT DECL_IMPORT
+#  define ADACQUIRESHARED_TEMPLATE_EXPORT extern
+#endif

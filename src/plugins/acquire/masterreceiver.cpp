@@ -43,7 +43,7 @@ MasterReceiver::message( eINSTEVENT msg, uint32_t value )
 }
             
 void
-MasterReceiver::log( const adicontroller::EventLog::LogMessage& log )
+MasterReceiver::log( const adacquire::EventLog::LogMessage& log )
 {
 }
             

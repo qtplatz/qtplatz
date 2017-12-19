@@ -111,7 +111,7 @@ task::task() : impl_(new impl( this ))
 {
 }
 
-adicontroller::SignalObserver::Observer *
+adacquire::SignalObserver::Observer *
 task::masterObserver()
 {
     return impl_->masterObserver_.get();
@@ -276,7 +276,7 @@ task::handle_observer_update_events( unsigned long parentId, unsigned long objId
 }
 
 
-adicontroller::SignalObserver::Observer *
+adacquire::SignalObserver::Observer *
 task::getObserver()
 {
     return 0; // return master observer

@@ -26,8 +26,8 @@
 #include "waveformobserver.hpp"
 #include <ap240/digitizer.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adicontroller/masterobserver.hpp>
-#include <adicontroller/receiver.hpp>
+#include <adacquire/masterobserver.hpp>
+#include <adacquire/receiver.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
@@ -39,14 +39,14 @@
 #include <memory>
 #include <sstream>
 
-namespace adi = adicontroller;
+namespace adi = adacquire;
 
 namespace ap240controller { namespace Instrument {
 
         struct Session::impl {
             
             impl() : work_( io_service_ )
-                   , masterObserver_( std::make_shared< adicontroller::MasterObserver >( "master.ap240.ms-cheminfo.com" ) )
+                   , masterObserver_( std::make_shared< adacquire::MasterObserver >( "master.ap240.ms-cheminfo.com" ) )
                    , waveformObserver_( std::make_shared< WaveformObserver >() ) {
                 
                 // {5df0f451-4b42-597f-b223-4378f92baa48}
@@ -67,7 +67,7 @@ namespace ap240controller { namespace Instrument {
             inline std::mutex& mutex() { return mutex_; }
 
             std::shared_ptr< ap240::digitizer > digitizer_;
-            std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
+            std::shared_ptr< adacquire::MasterObserver > masterObserver_;
             std::shared_ptr< WaveformObserver > waveformObserver_;
             
             void reply_message( adi::Receiver::eINSTEVENT msg, uint32_t value ) {
@@ -80,7 +80,7 @@ namespace ap240controller { namespace Instrument {
                 if ( method == "InitialSetup" ) {
                     reply_message( adi::Receiver::STATE_CHANGED, ( reply == "success" ) ? adi::Instrument::eStandBy : adi::Instrument::eOff );
                 } else {
-                    adicontroller::EventLog::LogMessage mlog( "%1%", method, "AP240" );
+                    adacquire::EventLog::LogMessage mlog( "%1%", method, "AP240" );
                     mlog << reply;
                     for ( auto& r: clients_ )
                         r.first->log( mlog );
@@ -175,7 +175,7 @@ Session::connect( adi::Receiver * receiver, const std::string& token )
 }
 
 bool
-Session::disconnect( adicontroller::Receiver * receiver )
+Session::disconnect( adacquire::Receiver * receiver )
 {
     auto self( receiver->shared_from_this() );
     
@@ -197,7 +197,7 @@ Session::get_status()
     return 0;
 }
 
-adicontroller::SignalObserver::Observer *
+adacquire::SignalObserver::Observer *
 Session::getObserver()
 {
     return impl_->masterObserver_.get();
@@ -244,7 +244,7 @@ Session::shell( const std::string& cmdline )
 std::shared_ptr< const adcontrols::ControlMethod::Method >
 Session::getControlMethod()
 {
-    return 0; // adicontroller::ControlMethod::Method();
+    return 0; // adacquire::ControlMethod::Method();
 }
 
 bool
@@ -264,7 +264,7 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
 bool
 Session::event_out( uint32_t event )
 {
-    if ( event == adicontroller::Instrument::instEventInjectOut )
+    if ( event == adacquire::Instrument::instEventInjectOut )
         return impl_->digitizer_->peripheral_trigger_inject();
     return false;
 }

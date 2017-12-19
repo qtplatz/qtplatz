@@ -25,8 +25,8 @@
 #include "simulator.hpp"
 #include "digitizer.hpp"
 #include <libdgpio/pio.hpp>
-#include <adicontroller/waveform_simulator_manager.hpp>
-#include <adicontroller/waveform_simulator.hpp>
+#include <adacquire/waveform_simulator_manager.hpp>
+#include <adacquire/waveform_simulator.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/mblock.hpp>
 #include <adportable/waveform_simulator.hpp>
@@ -50,7 +50,7 @@ namespace u5303a {
     static const std::vector< std::pair<double, double> >
     peak_list = { { 4.0e-6, 0.1 }, { 5.0e-6, 0.05 }, { 6.0e-6, 0.030 } };
 
-    class waveform_simulator : public adicontroller::waveform_simulator {
+    class waveform_simulator : public adacquire::waveform_simulator {
     public:
 
         waveform_simulator( double sampInterval = 1.0e-9
@@ -80,7 +80,7 @@ namespace u5303a {
 
         double sampInterval() const  override { return sampInterval_; }
 
-        static std::shared_ptr< adicontroller::waveform_simulator >  create( double sampInterval
+        static std::shared_ptr< adacquire::waveform_simulator >  create( double sampInterval
                                                                            , double startDelay
                                                                            , uint32_t nbrSamples
                                                                            , uint32_t nbrWaveforms ) {
@@ -117,10 +117,10 @@ simulator::simulator() : hasWaveform_( false )
 
     pio_->open();
 
-    if ( ! adicontroller::waveform_simulator_manager::instance().waveform_simulator( 0, 0, 0, 0 ) ) {
+    if ( ! adacquire::waveform_simulator_manager::instance().waveform_simulator( 0, 0, 0, 0 ) ) {
 
         // No external simulator found, install local simulator
-        adicontroller::waveform_simulator_manager::instance().install_factory( [](double _1, double _2, uint32_t _3, uint32_t _4){
+        adacquire::waveform_simulator_manager::instance().install_factory( [](double _1, double _2, uint32_t _3, uint32_t _4){
                 return std::make_shared< waveform_simulator >(_1, _2, _3, _4);
             });
 
@@ -165,7 +165,7 @@ simulator::acquire()
 
     if ( ! acqTriggered_.test_and_set() ) {
 
-		if ( auto generator = adicontroller::waveform_simulator_manager::instance().waveform_simulator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
+		if ( auto generator = adacquire::waveform_simulator_manager::instance().waveform_simulator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
                 
 			generator->addIons( ions_ );
 			generator->onTriggered();
@@ -196,7 +196,7 @@ simulator::waitForEndOfAcquisition()
 bool
 simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303a::waveform& avg )
 {
-    std::shared_ptr< adicontroller::waveform_simulator > ptr;
+    std::shared_ptr< adacquire::waveform_simulator > ptr;
 
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -258,7 +258,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
 {
     // readData simulation for average mode (md2 driver is capable for digitizer mode)
     
-    std::shared_ptr< adicontroller::waveform_simulator > ptr;
+    std::shared_ptr< adacquire::waveform_simulator > ptr;
 
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -295,7 +295,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
 }
 
 void
-simulator::post( std::shared_ptr< adicontroller::waveform_simulator >& generator )
+simulator::post( std::shared_ptr< adacquire::waveform_simulator >& generator )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     waveforms_.push_back( generator );

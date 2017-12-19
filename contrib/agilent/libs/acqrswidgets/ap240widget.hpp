@@ -35,7 +35,7 @@ namespace acqrscontrols { namespace ap240 { class method; } }
 
 // ap240widget was derived from ap240form class
 // this is the subset of ap240form where the threshold_method and threshold_action is removed for
-// simple 'time-of-flight' data acquisition as a part of adicontroller archetecture of qtplatz.
+// simple 'time-of-flight' data acquisition as a part of adacquire archetecture of qtplatz.
 
 namespace acqrswidgets {
     

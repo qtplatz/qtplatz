@@ -23,14 +23,14 @@
 **************************************************************************/
 
 #include "constants.hpp"
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <QMetaType>
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 
-namespace so = adicontroller::SignalObserver;
+namespace so = adacquire::SignalObserver;
 
 namespace acquire {
 

@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "session.hpp"
-#include <adicontroller/manager.hpp>
+#include <adacquire/manager.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
 #include <atomic>
@@ -39,7 +39,7 @@ extern "C" {
 namespace ap240controller {
 
     class factory : public adplugin::plugin
-                  , public adicontroller::manager {
+                  , public adacquire::manager {
 
         static std::once_flag flag;
         static std::shared_ptr<factory> instance_;
@@ -51,8 +51,8 @@ namespace ap240controller {
             return instance_.get();
         }
 
-        // adicontroller::manager impl
-        adicontroller::Instrument::Session * session( const char * token ) override {
+        // adacquire::manager impl
+        adacquire::Instrument::Session * session( const char * token ) override {
             return ap240controller::Instrument::Session::instance();
         }
 
@@ -62,8 +62,8 @@ namespace ap240controller {
 
         // Linux may fail with dynamic_cast<> when shared library was dlopen'nd
         void * query_interface_workaround( const char * typenam ) override {
-            if ( std::strcmp( typenam, typeid( adicontroller::manager ).name() ) == 0 )
-                return static_cast< adicontroller::manager *>(this);
+            if ( std::strcmp( typenam, typeid( adacquire::manager ).name() ) == 0 )
+                return static_cast< adacquire::manager *>(this);
             return 0;
         }
         

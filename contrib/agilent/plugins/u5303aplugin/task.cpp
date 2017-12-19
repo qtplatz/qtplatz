@@ -46,11 +46,11 @@
 #include <adportable/is_type.hpp>
 #include <adportable/semaphore.hpp>
 #include <adportable/binary_serializer.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/signalobserver.hpp>
-#include <adicontroller/sampleprocessor.hpp>
-#include <adicontroller/task.hpp>
-#include <adicontroller/timedigital_histogram_accessor.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/signalobserver.hpp>
+#include <adacquire/sampleprocessor.hpp>
+#include <adacquire/task.hpp>
+#include <adacquire/timedigital_histogram_accessor.hpp>
 #include <adlog/logger.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -154,11 +154,11 @@ namespace u5303a {
 
         void worker_thread();
         bool finalize();
-        void readData( adicontroller::SignalObserver::Observer *, uint32_t pos );
+        void readData( adacquire::SignalObserver::Observer *, uint32_t pos );
 
-        void handle_u5303a_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
+        void handle_u5303a_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
         void handle_u5303a_average( const data_status, std::array< threshold_result_ptr, 2 > );
-        void handle_ap240_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
+        void handle_ap240_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
         void handle_ap240_average( const data_status, std::array< threshold_result_ptr, 2 > );
         void handle_histograms();
 
@@ -236,7 +236,7 @@ task::impl::finalize()
 }
 
 void
-task::instInitialize( adicontroller::Instrument::Session * session )
+task::instInitialize( adacquire::Instrument::Session * session )
 {
     auto self( session->shared_from_this() );
     if ( self ) {
@@ -245,7 +245,7 @@ task::instInitialize( adicontroller::Instrument::Session * session )
 }
 
 void
-task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
+task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
 
@@ -362,7 +362,7 @@ task::impl::worker_thread()
 }
 
 void
-task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos )
+task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     if ( so ) {
 
@@ -386,7 +386,7 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 }
 
 void
-task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
+task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
 {
     typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >
                        , std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
@@ -458,7 +458,7 @@ void
 task::sample_stopped()
 {
     ADDEBUG() << "=====> sample_stopped()";
-    if ( auto sampleProcessor = adicontroller::task::instance()->deque() ) { // ::task::instance()->sampleSequence()->deque() ) {
+    if ( auto sampleProcessor = adacquire::task::instance()->deque() ) { // ::task::instance()->sampleSequence()->deque() ) {
         // todo: post process
         ADDEBUG() << "=====> sample_stopped: " << sampleProcessor->sampleRun()->filePrefix();
     }
@@ -491,7 +491,7 @@ task::setHistogramClearCycle( uint32_t value )
 }
 
 void
-task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
+task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
 {
 }
 
@@ -521,7 +521,7 @@ task::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 void
 task::impl::handle_histograms()
 {
-    auto accessor = std::make_shared< adicontroller::timedigital_histogram_accessor >();
+    auto accessor = std::make_shared< adacquire::timedigital_histogram_accessor >();
 
     size_t ndata(0);
     do {
@@ -532,8 +532,8 @@ task::impl::handle_histograms()
     if ( ndata ) {
         // ============= write Time digital countgram to .adfs file ====================
         // do {
-        //     auto tmp = std::make_shared< adicontroller::SignalObserver::DataWriter >( accessor );
-        //     io_service_.post( [=](){ adicontroller::task::instance()->handle_write( histogram_observer, tmp ); } );
+        //     auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
+        //     io_service_.post( [=](){ adacquire::task::instance()->handle_write( histogram_observer, tmp ); } );
         // } while (0 );
         // <============================================================================
 
@@ -554,7 +554,7 @@ uint64_t
 task::injectTimeSinceEpoch() const
 {
     using std::chrono::nanoseconds;
-    using adicontroller::task;
+    using adacquire::task;
     return std::chrono::duration_cast< nanoseconds >( task::instance()->tp_inject().time_since_epoch() ).count();
 }
 

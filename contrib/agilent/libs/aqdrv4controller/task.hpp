@@ -46,7 +46,7 @@ namespace acqrscontrols {
     }
 }
 
-namespace adicontroller {
+namespace adacquire {
     class Receiver;
     class MasterObserver;
 }
@@ -83,10 +83,10 @@ namespace aqdrv4controller {
         ///
         void connect( const std::string& server, const std::string& port );
 
-        void connect_client( std::shared_ptr< adicontroller::Receiver >, const std::string& );
-        void disconnect_client( std::shared_ptr< adicontroller::Receiver > );
+        void connect_client( std::shared_ptr< adacquire::Receiver >, const std::string& );
+        void disconnect_client( std::shared_ptr< adacquire::Receiver > );
 
-        inline adicontroller::MasterObserver * masterObserver() { return masterObserver_.get(); }
+        inline adacquire::MasterObserver * masterObserver() { return masterObserver_.get(); }
         
     private:
         boost::asio::io_service io_service_;
@@ -97,9 +97,9 @@ namespace aqdrv4controller {
         std::vector< std::thread > threads_;
         std::unique_ptr< acqrscontrols::aqdrv4::acqiris_client > client_;
 
-        typedef std::pair< std::shared_ptr< adicontroller::Receiver >, std::string > receiver_pair_t;
+        typedef std::pair< std::shared_ptr< adacquire::Receiver >, std::string > receiver_pair_t;
         std::vector< receiver_pair_t > receivers_;
-        std::shared_ptr< adicontroller::MasterObserver > masterObserver_;
+        std::shared_ptr< adacquire::MasterObserver > masterObserver_;
         std::shared_ptr< WaveformObserver > waveformObserver_;
         void reply_message( int, int );
     };

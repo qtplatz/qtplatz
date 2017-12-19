@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/constants.hpp>
+#include <adacquire/receiver.hpp>
+#include <adacquire/constants.hpp>
 #include <memory>
 
 namespace adextension { class iController; }
@@ -34,7 +34,7 @@ namespace acquire {
 
     class MasterController;
 
-    class MasterReceiver : public adicontroller::Receiver {
+    class MasterReceiver : public adacquire::Receiver {
 
         std::weak_ptr< adextension::iController > controller_;
 
@@ -45,7 +45,7 @@ namespace acquire {
             
         void message( eINSTEVENT msg, uint32_t value ) override;
             
-        void log( const adicontroller::EventLog::LogMessage& log ) override;
+        void log( const adacquire::EventLog::LogMessage& log ) override;
             
         void shutdown() override;
             

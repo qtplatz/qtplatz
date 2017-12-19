@@ -26,9 +26,9 @@
 
 #include "receiverimpl.hpp"
 #include <adextension/icontroller.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/receiver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <cassert>
 #include <chrono>
 #include <condition_variable>
@@ -42,13 +42,13 @@ namespace adextension {
     /*
      *  ObserverEvents -- implementation helper
      */
-    class ObserverEventsImpl : public adicontroller::SignalObserver::ObserverEvents {
+    class ObserverEventsImpl : public adacquire::SignalObserver::ObserverEvents {
         // ObserverEvents
         std::weak_ptr< iController > controller_;
     public:
         ObserverEventsImpl( iController * p ) : controller_( p->pThis() ) {}
             
-        void OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status ) { }
+        void OnConfigChanged( uint32_t objId, adacquire::SignalObserver::eConfigStatus status ) { }
             
         void OnUpdateData( uint32_t objId, long pos ) { }
             
@@ -57,7 +57,7 @@ namespace adextension {
         void OnEvent( uint32_t objId, uint32_t event, long pos ) {
         }
             
-        void onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos ) override {
+        void onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos ) override {
             if ( auto p = controller_.lock() )
                 p->invokeDataChanged( so, pos );
         }
@@ -86,14 +86,14 @@ namespace adextension {
 
         // connect() should be implemented specific to own instance
 
-        void connect( adicontroller::Instrument::Session * session, const char * token ) {
+        void connect( adacquire::Instrument::Session * session, const char * token ) {
             if ( !isInitialized_ && ( session_ = session->pThis() ) ) {
                 setInitialized( true );
                 if ( ( receiver_ = std::make_shared< ReceiverImpl >( this ) ) ) {
                     session_->connect( receiver_.get(), token );
                     if ( auto observer = session_->getObserver() ) {
                         if ( ( observerEvents_ = std::make_shared< ObserverEventsImpl >( this ) ) )
-                            observer->connect( observerEvents_.get(), adicontroller::SignalObserver::Realtime, token );
+                            observer->connect( observerEvents_.get(), adacquire::SignalObserver::Realtime, token );
                     }
                     emit connected( this );
                 }
@@ -129,7 +129,7 @@ namespace adextension {
             return cv_.wait_for( lock, timeout, [this](){ return isInitialized_; }  );
         }
 
-        adicontroller::Instrument::Session * getInstrumentSession() override {
+        adacquire::Instrument::Session * getInstrumentSession() override {
             return session_.get();
         }
 
@@ -137,20 +137,20 @@ namespace adextension {
 
         int module_number() const override { return module_number_; }
 
-        void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > f ) override {
+        void dataChangedHandler( std::function< void( adacquire::SignalObserver::Observer *, unsigned int pos ) > f ) override {
             dataChangedHandler_.emplace_back( f );
         }
 
-        void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > f ) override {
+        void dataEventHandler( std::function< void( adacquire::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > f ) override {
             dataEventHandler_.emplace_back( f );
         }
 
-        void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) override {
+        void invokeDataChanged( adacquire::SignalObserver::Observer * o, unsigned int pos ) override {
             for ( auto& dataChanged : dataChangedHandler_ )
                 dataChanged( o, pos );
         }
 
-        void invokeDataEvent( adicontroller::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) override {
+        void invokeDataEvent( adacquire::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) override {
             for ( auto& dataEvent : dataEventHandler_ )
                 dataEvent( o, events, pos );
         }
@@ -159,13 +159,13 @@ namespace adextension {
         bool isInitialized_;
         std::mutex mutex_;
         std::condition_variable cv_;
-        std::shared_ptr< adicontroller::Instrument::Session > session_;
+        std::shared_ptr< adacquire::Instrument::Session > session_;
         std::shared_ptr< ReceiverImpl > receiver_;
         std::shared_ptr< ObserverEventsImpl > observerEvents_;
         QString module_name_;
         int module_number_;
-        std::vector< std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > > dataChangedHandler_;
-        std::vector< std::function< void( adicontroller::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > > dataEventHandler_;
+        std::vector< std::function< void( adacquire::SignalObserver::Observer *, unsigned int pos ) > > dataChangedHandler_;
+        std::vector< std::function< void( adacquire::SignalObserver::Observer *, unsigned int ev, unsigned int pos ) > > dataEventHandler_;
     };
 
 }

@@ -32,9 +32,9 @@
 #include <adextension/icontroller.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/receiver.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/receiver.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplugin/constants.hpp>
@@ -414,7 +414,7 @@ MainWindow::handleControlMethod()
 
 struct observer2ptree {
 
-    void operator()( adicontroller::SignalObserver::Observer * observer, boost::property_tree::ptree& pt ) {
+    void operator()( adacquire::SignalObserver::Observer * observer, boost::property_tree::ptree& pt ) {
 
         const auto& desc = observer->description();
 
@@ -481,7 +481,7 @@ MainWindow::iControllerMessage( adextension::iController * p, uint32_t msg, uint
     };
 
     if ( auto tree = findChild< adwidgets::InstTreeView * >() ) {
-        if ( msg == adicontroller::Receiver::STATE_CHANGED && value < sizeof(state_names)/sizeof(state_names[0]) ) {
+        if ( msg == adacquire::Receiver::STATE_CHANGED && value < sizeof(state_names)/sizeof(state_names[0]) ) {
             tree->setInstState( p->module_name(), state_names[ value ] );
         }
     }
@@ -800,7 +800,7 @@ MainWindow::hideDock( bool hide )
 void
 MainWindow::handleInstState( int status )
 {
-    if ( status <= adicontroller::Instrument::eNotConnected ) {
+    if ( status <= adacquire::Instrument::eNotConnected ) {
 
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( true  );
@@ -810,7 +810,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( false );
         }
 
-    } else if ( status == adicontroller::Instrument::eStandBy ) {
+    } else if ( status == adacquire::Instrument::eStandBy ) {
 
         if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( false );
@@ -821,7 +821,7 @@ MainWindow::handleInstState( int status )
                 action->setEnabled( true );
         }
 
-    } else if ( status == adicontroller::Instrument::eWaitingForContactClosure ) {
+    } else if ( status == adacquire::Instrument::eWaitingForContactClosure ) {
 
         for ( auto id : { Constants::ACTION_INJECT, Constants::ACTION_STOP, Constants::ACTION_SNAPSHOT } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
@@ -830,19 +830,19 @@ MainWindow::handleInstState( int status )
         if ( auto action = Core::ActionManager::command( Constants::ACTION_RUN )->action() )
             action->setEnabled( false );
 
-    } else if ( status == adicontroller::Instrument::ePreparingForRun ) {
+    } else if ( status == adacquire::Instrument::ePreparingForRun ) {
 
         if ( auto action = Core::ActionManager::command( Constants::ACTION_STOP )->action() )
             action->setEnabled( false );        
 
-    } else if ( status == adicontroller::Instrument::eReadyForRun ) {
+    } else if ( status == adacquire::Instrument::eReadyForRun ) {
 
         if ( auto action = Core::ActionManager::command( Constants::ACTION_STOP )->action() )
             action->setEnabled( false );
         if ( auto action = Core::ActionManager::command( Constants::ACTION_RUN )->action() )
             action->setEnabled( true );                
         
-    } else if ( status == adicontroller::Instrument::eRunning ) {
+    } else if ( status == adacquire::Instrument::eRunning ) {
         if ( auto action = Core::ActionManager::command( Constants::ACTION_STOP )->action() )
             action->setEnabled( true );
         if ( auto action = Core::ActionManager::command( Constants::ACTION_INJECT )->action() )
@@ -850,7 +850,7 @@ MainWindow::handleInstState( int status )
         if ( auto action = Core::ActionManager::command( Constants::ACTION_RUN )->action() )
             action->setEnabled( false );
         
-    } else if ( status == adicontroller::Instrument::eStop ) {
+    } else if ( status == adacquire::Instrument::eStop ) {
         // Disable
         // for ( auto id : { Constants::ACTION_STOP } ) {
         //     if ( auto action = Core::ActionManager::command( id )->action() )

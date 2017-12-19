@@ -52,9 +52,9 @@
 #include <adextension/isnapshothandler.hpp>
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
-#include <adicontroller/sampleprocessor.hpp>
-#include <adicontroller/masterobserver.hpp>
-#include <adicontroller/task.hpp>
+#include <adacquire/sampleprocessor.hpp>
+#include <adacquire/masterobserver.hpp>
+#include <adacquire/task.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/binary_serializer.hpp>
@@ -111,7 +111,7 @@ namespace u5303a {
         }
     };
 
-    namespace so = adicontroller::SignalObserver;
+    namespace so = adacquire::SignalObserver;
 
     struct ObserverData {
         const char * objtext;
@@ -175,7 +175,7 @@ namespace u5303a {
     struct exec_fsm_ready {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
             // // make immediate inject 
-            // adicontroller::task::instance()->fsmInject();
+            // adacquire::task::instance()->fsmInject();
         }
     };
 
@@ -184,15 +184,15 @@ namespace u5303a {
             task::instance()->sample_injected();
             for ( auto& iController : iControllers ) {
                 if ( auto session = iController->getInstrumentSession() )
-                    session->event_out( adicontroller::Instrument::instEventInjectOut ); // loopback to peripherals
+                    session->event_out( adacquire::Instrument::instEventInjectOut ); // loopback to peripherals
             }
         }
     };
 
     struct exec_fsm_complete {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
-            adicontroller::task::instance()->fsmStart();
-            adicontroller::task::instance()->fsmReady();
+            adacquire::task::instance()->fsmStart();
+            adacquire::task::instance()->fsmReady();
         }
     };
 
@@ -212,7 +212,7 @@ namespace u5303a {
         std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
-        std::map< boost::uuids::uuid, std::shared_ptr< adicontroller::SignalObserver::Observer > > observers_;
+        std::map< boost::uuids::uuid, std::shared_ptr< adacquire::SignalObserver::Observer > > observers_;
         bool isMethodDirty_;
 
         std::deque< std::shared_ptr< const acqrscontrols::u5303a::waveform > > que_;
@@ -261,39 +261,39 @@ namespace u5303a {
         void addInstController( std::shared_ptr< adextension::iController > p );
         void handleConnected( adextension::iController * controller );
         void handleLog( adextension::iController *, const QString& );
-        void handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
+        void handleDataEvent( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void setControllerState( const QString&, bool enable );
         void loadControllerState();
         void takeSnapshot();
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( double resolution ) const;
 
-        bool prepareStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& sp ) const;
-        bool closingStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& sp ) const;
+        bool prepareStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
+        bool closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
 
-        void handle_fsm_state_changed( bool enter, int id_state, adicontroller::Instrument::eInstStatus st ) {
+        void handle_fsm_state_changed( bool enter, int id_state, adacquire::Instrument::eInstStatus st ) {
             if ( enter )
                 emit document::instance()->instStateChanged( st );
         }
         
-        void handle_fsm_action( adicontroller::Instrument::idFSMAction a ) {
+        void handle_fsm_action( adacquire::Instrument::idFSMAction a ) {
 
             typedef boost::mpl::vector< exec_fsm_stop, exec_fsm_start, exec_fsm_ready, exec_fsm_inject, exec_fsm_complete > actions;
             
             switch( a ) {
-            case adicontroller::Instrument::fsmStop:
-                boost::mpl::at_c<actions, adicontroller::Instrument::fsmStop>::type()( iControllers_ );
+            case adacquire::Instrument::fsmStop:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmStop>::type()( iControllers_ );
                 break;
-            case adicontroller::Instrument::fsmStart:
-                boost::mpl::at_c<actions, adicontroller::Instrument::fsmStart>::type()( iControllers_ );
+            case adacquire::Instrument::fsmStart:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmStart>::type()( iControllers_ );
                 break;                
-            case adicontroller::Instrument::fsmReady:
-                boost::mpl::at_c<actions, adicontroller::Instrument::fsmReady>::type()( iControllers_ );
+            case adacquire::Instrument::fsmReady:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmReady>::type()( iControllers_ );
                 break;                                
-            case adicontroller::Instrument::fsmInject:
-                boost::mpl::at_c<actions, adicontroller::Instrument::fsmInject>::type()( iControllers_ );
+            case adacquire::Instrument::fsmInject:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmInject>::type()( iControllers_ );
                 break;                                                
-            case adicontroller::Instrument::fsmComplete:
-                boost::mpl::at_c<actions, adicontroller::Instrument::fsmComplete>::type()( iControllers_ );
+            case adacquire::Instrument::fsmComplete:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmComplete>::type()( iControllers_ );
                 break;                                                                
             }
         }
@@ -379,13 +379,13 @@ document::actionConnect()
         }
 
         // setup observer hiralchey
-        if ( auto masterObserver = adicontroller::task::instance()->masterObserver() ) {
+        if ( auto masterObserver = adacquire::task::instance()->masterObserver() ) {
 
-            masterObserver->setPrepareStorage( [&]( adicontroller::SampleProcessor& sp ) {
+            masterObserver->setPrepareStorage( [&]( adacquire::SampleProcessor& sp ) {
                     return impl_->prepareStorage( boost::uuids::uuid{ 0 }, sp );
                 } );
             
-            masterObserver->setClosingStorage( [&]( adicontroller::SampleProcessor& sp ) {
+            masterObserver->setClosingStorage( [&]( adacquire::SampleProcessor& sp ) {
                     return impl_->closingStorage( boost::uuids::uuid{ 0 }, sp );
                 } );
             
@@ -398,14 +398,14 @@ document::actionConnect()
         }
 
         // FSM Action
-        adicontroller::task::instance()->connect_fsm_action( std::bind( &impl::handle_fsm_action, impl_, std::placeholders::_1 ) );
+        adacquire::task::instance()->connect_fsm_action( std::bind( &impl::handle_fsm_action, impl_, std::placeholders::_1 ) );
 
         // FSM State
-        adicontroller::task::instance()->connect_fsm_state(
+        adacquire::task::instance()->connect_fsm_state(
             std::bind( &impl::handle_fsm_state_changed, impl_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
         
-        adicontroller::task::instance()->fsmStart();
-        adicontroller::task::instance()->fsmReady();
+        adacquire::task::instance()->fsmStart();
+        adacquire::task::instance()->fsmReady();
     }
 }
 
@@ -413,7 +413,7 @@ void
 document::actionInject()
 {
     ADDEBUG() << "\t#### Action INJECT IN ####";
-    adicontroller::task::instance()->fsmInject();
+    adacquire::task::instance()->fsmInject();
 }
 
 void
@@ -439,13 +439,13 @@ document::actionRun()
     auto cm = MainWindow::instance()->getControlMethod();
     setControlMethod( cm, QString() );
     
-    adicontroller::task::instance()->fsmStart();
+    adacquire::task::instance()->fsmStart();
 }
 
 void
 document::actionStop()
 {
-    adicontroller::task::instance()->fsmStop();
+    adacquire::task::instance()->fsmStop();
 }
 
 void
@@ -469,7 +469,7 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
 {
 
     using adextension::iController;
-    using adicontroller::SignalObserver::Observer;
+    using adacquire::SignalObserver::Observer;
 
     if ( p->module_name() == "u5303a" ) { // handle only this device
 
@@ -496,14 +496,14 @@ void
 document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm )
 {
     // make empty que
-    while( auto sample = adicontroller::task::instance()->deque() )
+    while( auto sample = adacquire::task::instance()->deque() )
         ;
 
     // push new sample
-    adicontroller::task::instance()->prepare_next_sample( run, cm );
+    adacquire::task::instance()->prepare_next_sample( run, cm );
 
     // set INJECTION WAITING
-    adicontroller::task::instance()->fsmReady();
+    adacquire::task::instance()->fsmReady();
 
     boost::filesystem::path dir( run->dataDirectory() );
     boost::filesystem::path stem( run->filePrefix() );
@@ -644,7 +644,7 @@ document::initialSetup()
 
                 // replace directory name to 'today'
                 run->setDataDirectory( impl_->nextSampleRun_->dataDirectory() ); // reset data directory to ctor default
-                adicontroller::SampleProcessor::prepare_sample_run( *run, false );
+                adacquire::SampleProcessor::prepare_sample_run( *run, false );
 
                 MainWindow::instance()->setSampleRun( *run );
                 document::setSampleRun( run );
@@ -663,7 +663,7 @@ document::finalClose()
         iController->disconnect( true );
 
     // make empty que
-    while( auto sample = adicontroller::task::instance()->deque() )
+    while( auto sample = adacquire::task::instance()->deque() )
         ;
 
     task::instance()->finalize();
@@ -990,13 +990,13 @@ document::impl::handleConnected( adextension::iController * controller )
 void
 document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t value )
 {
-    if ( code == adicontroller::Receiver::CLIENT_ATTACHED ) {
+    if ( code == adacquire::Receiver::CLIENT_ATTACHED ) {
 
         // do nothing
         
-    } else if ( code == adicontroller::Receiver::STATE_CHANGED ) {
+    } else if ( code == adacquire::Receiver::STATE_CHANGED ) {
 
-        if ( value & adicontroller::Instrument::eErrorFlag ) {
+        if ( value & adacquire::Instrument::eErrorFlag ) {
             QMessageBox::warning( MainWindow::instance(), "U5303A Error"
                                   , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
         }
@@ -1009,7 +1009,7 @@ document::impl::handleLog( adextension::iController *, const QString& )
 }
 
 void
-document::impl::handleDataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos )
+document::impl::handleDataEvent( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos )
 {
 }
 
@@ -1180,7 +1180,7 @@ document::isControllerEnabled( const QString& module ) const
 }
 
 bool
-document::impl::prepareStorage( const boost::uuids::uuid& uuid, adicontroller::SampleProcessor& sp ) const
+document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
 {
 #if 0
     // todo
@@ -1225,7 +1225,7 @@ INSERT OR REPLACE INTO ScanLaw ( objuuid, objtext, acclVoltage, tDelay, spectrom
 }
 
 bool
-document::impl::closingStorage( const boost::uuids::uuid&, adicontroller::SampleProcessor& ) const
+document::impl::closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& ) const
 {
     return true;
 }

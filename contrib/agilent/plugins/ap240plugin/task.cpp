@@ -43,9 +43,9 @@
 #include <adportable/debug.hpp>
 #include <adportable/semaphore.hpp>
 #include <adportable/binary_serializer.hpp>
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/signalobserver.hpp>
-#include <adicontroller/sampleprocessor.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/signalobserver.hpp>
+#include <adacquire/sampleprocessor.hpp>
 #include <adlog/logger.hpp>
 #include <workaround/boost/asio.hpp>
 #include <boost/serialization/shared_ptr.hpp>
@@ -127,16 +127,16 @@ namespace ap240 {
 
         std::vector< std::array< std::shared_ptr< acqrscontrols::ap240_threshold_result >, acqrscontrols::ap240::nchannels > > que_;
 
-        // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > acquireingSamples_;
-        // std::deque < std::shared_ptr< adicontroller::SampleProcessor > > processingSamples_;
+        // std::deque < std::shared_ptr< adacquire::SampleProcessor > > acquireingSamples_;
+        // std::deque < std::shared_ptr< adacquire::SampleProcessor > > processingSamples_;
         acqrscontrols::ap240::metadata metadata_;
         uint32_t device_delay_count_;
 
         void worker_thread();
         bool finalize();
-        void readData( adicontroller::SignalObserver::Observer *, uint32_t pos );
+        void readData( adacquire::SignalObserver::Observer *, uint32_t pos );
 
-        void handle_ap240_data( data_status&, std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb );
+        void handle_ap240_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
         void handle_ap240_average( const data_status, std::array< std::shared_ptr< acqrscontrols::ap240_threshold_result >, 2 > );
 
         void resetDeviceData() {
@@ -217,7 +217,7 @@ task::impl::finalize()
 }
 
 void
-task::instInitialize( adicontroller::Instrument::Session * session )
+task::instInitialize( adacquire::Instrument::Session * session )
 {
     ADDEBUG() << "===== instInitialize =====";
 
@@ -228,7 +228,7 @@ task::instInitialize( adicontroller::Instrument::Session * session )
 }
 
 void
-task::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
+task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // on SignalObserver::Observer masharing (sync with device data-reading thread)
     impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
@@ -314,7 +314,7 @@ task::impl::worker_thread()
 
 // strand::wrap
 void
-task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos )
+task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     if ( so ) {
 
@@ -328,7 +328,7 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
     
         if ( so->objid() == ap240_observer ) {
 
-            std::shared_ptr< adicontroller::SignalObserver::DataReadBuffer > rb;
+            std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb;
             if ( ( rb = so->readData( status.pos_ ) ) ) {
                 status.pos_++;
                 handle_ap240_data( status, rb );
@@ -343,7 +343,7 @@ task::impl::readData( adicontroller::SignalObserver::Observer * so, uint32_t pos
 }
 
 void
-task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adicontroller::SignalObserver::DataReadBuffer> rb )
+task::impl::handle_ap240_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
 {
 
     auto waveforms = acqrscontrols::ap240::waveform::deserialize( rb.get() );
@@ -390,11 +390,11 @@ task::impl::handle_ap240_average( const data_status status, std::array< threshol
 }
 
 void
-task::prepare_next_sample( adicontroller::SignalObserver::Observer * masterObserver
+task::prepare_next_sample( adacquire::SignalObserver::Observer * masterObserver
                            , std::shared_ptr< adcontrols::SampleRun > srun, const adcontrols::ControlMethod::Method& cm )
 {
     auto method = std::make_shared< adcontrols::ControlMethod::Method >( cm );
-    if ( auto proc = std::make_shared< adicontroller::SampleProcessor >( srun, method ) ) {
+    if ( auto proc = std::make_shared< adacquire::SampleProcessor >( srun, method ) ) {
 
         proc->prepare_storage( masterObserver );
         emit document::instance()->sampleRunChanged();

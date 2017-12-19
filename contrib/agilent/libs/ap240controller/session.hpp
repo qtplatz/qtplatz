@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <adicontroller/instrument.hpp>
-#include <adicontroller/signalobserver.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/signalobserver.hpp>
 
 //namespace mpxcontrols { class ControlMethod; }
 namespace ap240 { class method; class digitizer; }
@@ -37,7 +37,7 @@ namespace ap240controller {
         // Session class define here is psude singletion by a manager class
         // which is only the class make Session instance.
         
-        class Session : public adicontroller::Instrument::Session {
+        class Session : public adacquire::Instrument::Session {
             Session( const Session& ) = delete;
             Session& operator = ( const Session& ) = delete;
             struct impl;
@@ -56,11 +56,11 @@ namespace ap240controller {
             bool setConfiguration( const std::string& xml ) override;
             bool configComplete() override;
             
-            bool connect( adicontroller::Receiver * receiver, const std::string& token ) override;
-            bool disconnect( adicontroller::Receiver * receiver ) override;
+            bool connect( adacquire::Receiver * receiver, const std::string& token ) override;
+            bool disconnect( adacquire::Receiver * receiver ) override;
       
             uint32_t get_status() override;
-            adicontroller::SignalObserver::Observer * getObserver() override;
+            adacquire::SignalObserver::Observer * getObserver() override;
       
             bool initialize() override;
 

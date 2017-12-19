@@ -34,7 +34,7 @@ namespace adcontrols {
     namespace ControlMethod { class Method; }
 }
 
-namespace adicontroller {
+namespace adacquire {
     namespace Instrument { class Session; }
     namespace SignalObserver { class Observer; class ObserverEvents; }
 }
@@ -63,7 +63,7 @@ namespace adextension {
         /*
          * api below this line was defined for pure c++ instrument controller interface -- ported from CORBA api
          */
-        virtual adicontroller::Instrument::Session * getInstrumentSession() = 0; // can be nullptr
+        virtual adacquire::Instrument::Session * getInstrumentSession() = 0; // can be nullptr
 
         /* module_name identify the instrument/peripheral model name
          * which match up with the name on control method item filed
@@ -75,21 +75,21 @@ namespace adextension {
          */
         virtual int module_number() const = 0;
 
-        virtual void dataChangedHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int pos ) > ) = 0;
+        virtual void dataChangedHandler( std::function< void( adacquire::SignalObserver::Observer *, unsigned int pos ) > ) = 0;
 
-        virtual void dataEventHandler( std::function< void( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos ) > ) = 0;
+        virtual void dataEventHandler( std::function< void( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos ) > ) = 0;
 
         /* call backs */
-        virtual void invokeDataChanged( adicontroller::SignalObserver::Observer * o, unsigned int pos ) { emit dataChanged( o, pos ); }
-        virtual void invokeDataEvent( adicontroller::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) { emit dataEvent( o, events, pos ); }
+        virtual void invokeDataChanged( adacquire::SignalObserver::Observer * o, unsigned int pos ) { emit dataChanged( o, pos ); }
+        virtual void invokeDataEvent( adacquire::SignalObserver::Observer * o, unsigned int events, unsigned int pos ) { emit dataEvent( o, events, pos ); }
 
     signals:
         void onControlMethodChanged();
         void connected( iController * self );
         void message( iController * self, unsigned int code, unsigned int value );
         void log( iController * self, const QString& xml );
-        void dataChanged( adicontroller::SignalObserver::Observer *, unsigned int pos );
-        void dataEvent( adicontroller::SignalObserver::Observer *, unsigned int events, unsigned int pos );
+        void dataChanged( adacquire::SignalObserver::Observer *, unsigned int pos );
+        void dataEvent( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void notifyError( iController * self, const QString& what, const QString& file, int line );
     };
 

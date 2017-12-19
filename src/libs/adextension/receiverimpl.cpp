@@ -47,7 +47,7 @@ ReceiverImpl::message( eINSTEVENT msg, uint32_t value )
 }
             
 void
-ReceiverImpl::log( const adicontroller::EventLog::LogMessage& log )
+ReceiverImpl::log( const adacquire::EventLog::LogMessage& log )
 {
     if ( auto p = controller_.lock() ) {
         

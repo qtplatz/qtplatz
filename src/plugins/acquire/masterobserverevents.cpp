@@ -46,7 +46,7 @@ MasterObserverEvents::~MasterObserverEvents()
 
 
 void
-MasterObserverEvents::OnConfigChanged( uint32_t objId, adicontroller::SignalObserver::eConfigStatus status )
+MasterObserverEvents::OnConfigChanged( uint32_t objId, adacquire::SignalObserver::eConfigStatus status )
 {
 }
     
@@ -66,7 +66,7 @@ MasterObserverEvents::OnEvent( uint32_t objId, uint32_t event, long pos )
 }
     
 void
-MasterObserverEvents::onDataChanged( adicontroller::SignalObserver::Observer * so, uint32_t pos )
+MasterObserverEvents::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
 #if defined _DEBUG
     static std::map< std::string, std::chrono::steady_clock::time_point > __last;

@@ -41,7 +41,7 @@
 namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
 namespace adcontrols { namespace ControlMethod { class Method; } class SampleRun; }
-namespace adicontroller { namespace SignalObserver { class Observer; } }
+namespace adacquire { namespace SignalObserver { class Observer; } }
 namespace acewrapper { class udpEventReceiver; }
 
 namespace acquire {
@@ -68,7 +68,7 @@ namespace acquire {
     public:
         static task * instance();
 
-        adicontroller::SignalObserver::Observer * masterObserver();
+        adacquire::SignalObserver::Observer * masterObserver();
         
         bool open();
         void close();
@@ -98,7 +98,7 @@ namespace acquire {
         void register_failed( receiver_vector_type::iterator& );
         void commit_failed();
 	
-        adicontroller::SignalObserver::Observer * getObserver();
+        adacquire::SignalObserver::Observer * getObserver();
         
     private:
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );

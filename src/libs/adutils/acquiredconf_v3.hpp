@@ -34,7 +34,7 @@ namespace adfs { class sqlite; }
 
 namespace adutils {
 
-    // data created by adicontroller namespace class
+    // data created by adacquire namespace class
     
     namespace v3 {
 

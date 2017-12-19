@@ -85,7 +85,7 @@ add_library( ${PROJECT_NAME} SHARED
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  adicontroller
+  adacquire
   adplugin
   adportable
   adcontrols

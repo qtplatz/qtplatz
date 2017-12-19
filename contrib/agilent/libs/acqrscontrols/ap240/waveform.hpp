@@ -36,7 +36,7 @@
 #include <memory>
 
 namespace adcontrols { class MassSpectrum; }
-namespace adicontroller { namespace SignalObserver { class DataReadBuffer; } }
+namespace adacquire { namespace SignalObserver { class DataReadBuffer; } }
 namespace ap240 { namespace detail { struct device_ap240; } }
 namespace adportable { template<typename T> class mblock; }
 namespace acqrscontrols {
@@ -166,10 +166,10 @@ namespace acqrscontrols {
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
             
             static std::array< std::shared_ptr< const waveform >, 2 >
-                deserialize( const adicontroller::SignalObserver::DataReadBuffer * );
+                deserialize( const adacquire::SignalObserver::DataReadBuffer * );
 
             static bool
-                serialize( adicontroller::SignalObserver::DataReadBuffer&
+                serialize( adacquire::SignalObserver::DataReadBuffer&
                            , std::shared_ptr< const waveform >, std::shared_ptr< const waveform > );
 
             typedef double( mass_assign_t )( double time, int mode );

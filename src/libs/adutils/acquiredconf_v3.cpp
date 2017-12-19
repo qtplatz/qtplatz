@@ -154,10 +154,10 @@ AcquiredConf::insert( adfs::sqlite& dbf
         sql.bind( col++ ) = int64_t( spectrometer );
         sql.bind( col++ ) = trace_id;
         sql.bind( col++ ) = trace_display_name;
-        sql.bind( col++ ) = axis_label_x;    // std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisX ) );
-        sql.bind( col++ ) = axis_label_y;    // std::wstring( d.axis_label( adicontroller::SignalObserver::Description::axisY ) );
-        sql.bind( col++ ) = axis_decimals_x; // d.axis_decimals( adicontroller::SignalObserver::Description::axisX );
-        sql.bind( col++ ) = axis_decimals_y; // d.axis_decimals( adicontroller::SignalObserver::Description::axisY );
+        sql.bind( col++ ) = axis_label_x;    // std::wstring( d.axis_label( adacquire::SignalObserver::Description::axisX ) );
+        sql.bind( col++ ) = axis_label_y;    // std::wstring( d.axis_label( adacquire::SignalObserver::Description::axisY ) );
+        sql.bind( col++ ) = axis_decimals_x; // d.axis_decimals( adacquire::SignalObserver::Description::axisX );
+        sql.bind( col++ ) = axis_decimals_y; // d.axis_decimals( adacquire::SignalObserver::Description::axisY );
 
         if ( sql.step() == adfs::sqlite_done )
             return true;

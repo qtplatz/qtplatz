@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC
@@ -23,40 +22,43 @@
 **
 **************************************************************************/
 
-#include "adicontroller_global.hpp"
-#include "waveform_simulator_manager.hpp"
-#include <functional>
+#include <compiler/decl_export.h>
 
-using namespace adicontroller;
+#include <adplugin/plugin.hpp>
+#include <adplugin/visitor.hpp>
+#include <atomic>
+#include <mutex>
 
-waveform_simulator_manager::waveform_simulator_manager()
-{
+extern "C" {
+    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
-waveform_simulator_manager::~waveform_simulator_manager()
+namespace adacquire {
+
+    class factory : public adplugin::plugin {
+        static std::once_flag flag;
+        static std::shared_ptr<factory > instance_;
+
+    public:
+        static adplugin::plugin * instance() {
+            std::call_once( flag, [&] () { instance_ = std::make_shared< factory >(); } );
+            return instance_.get();
+        }
+
+        const char * iid() const { return "com.ms-cheminfo.qtplatz.adplugins.adacquire"; }
+
+        void accept( adplugin::visitor& v, const char * adplugin ) {
+            // do nothing
+        }
+    };
+
+    std::shared_ptr< factory > factory::instance_( 0 );
+    std::once_flag factory::flag;
+};
+
+adplugin::plugin *
+adplugin_plugin_instance()
 {
+    return adacquire::factory::instance();
 }
 
-waveform_simulator_manager&
-waveform_simulator_manager::instance()
-{
-    static waveform_simulator_manager __instance__;
-    return __instance__;
-}
-
-void
-waveform_simulator_manager::install_factory( factory_type f )
-{
-    factory_ = f;
-}
-
-std::shared_ptr< adicontroller::waveform_simulator >
-waveform_simulator_manager::waveform_simulator( double sampInterval
-                                                , double startDelay
-                                                , uint32_t nbrSamples
-                                                , uint32_t nbrWavefoms ) const
-{
-    if ( factory_ )
-        return factory_( sampInterval, startDelay, nbrSamples, nbrWavefoms );
-    return 0;
-}

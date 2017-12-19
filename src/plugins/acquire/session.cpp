@@ -54,13 +54,13 @@ session::software_revision() const
 }
 
 bool
-session::connect( adicontroller::Receiver * receiver, const std::string& token )
+session::connect( adacquire::Receiver * receiver, const std::string& token )
 {
     return true;
 }
 
 bool
-session::disconnect( adicontroller::Receiver *receiver )
+session::disconnect( adacquire::Receiver *receiver )
 {
     return false;
 }
@@ -90,10 +90,10 @@ session::shutdown()
     return true;
 }
 
-uint32_t // constadicontroller::Instrument::eInstStatus
+uint32_t // constadacquire::Instrument::eInstStatus
 session::get_status()
 {
-    return adicontroller::Instrument::eNothing; // iTask::instance()->getStatusCurrent();
+    return adacquire::Instrument::eNothing; // iTask::instance()->getStatusCurrent();
 }
 
 bool
@@ -179,7 +179,7 @@ session::event_out( uint32_t value )
 //    return false;
 //}
 
-adicontroller::SignalObserver::Observer *
+adacquire::SignalObserver::Observer *
 session::getObserver (void)
 {
     // Should not return any observer from 'MasterController'; Otherwise it makes cyclic link.
