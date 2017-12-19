@@ -682,12 +682,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 bool
 waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int scale )
 {
-    using namespace adcontrols::metric;
-
     sp.setCentroid( adcontrols::CentroidNone );
 
     const adcontrols::TofProtocol * this_protocol( 0 );
-
     double ext_trig_delay( 0 );
     if ( waveform.method_.protocols().size() > waveform.method_.protocolIndex() ) {
         this_protocol = &waveform.method_.protocols() [ waveform.method_.protocolIndex() ];
@@ -741,28 +738,35 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     // waveform_copy
     // normalize waveform to volts/millivolts scale with respect to actual number of average
-    
-	if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
 
-		if ( waveform.meta_.dataType == 2 ) {
+    if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
+		switch( waveform.meta_.dataType ) {
+        case 2:
 			waveform_copy<int16_t>()( sp, waveform, scale );
-        } else if ( waveform.meta_.dataType == 4 ) {            
+            break;
+        case 4:
             waveform_copy<int32_t>()( sp, waveform, scale );
-        } else if ( waveform.meta_.dataType == 8 ) {
+            break;
+        case 8:
 			waveform_copy<int64_t>()( sp, waveform, scale );
+            break;
+        default:
+            assert(0);
 		}
-
     } else {
-
-        double dbase(0); // dbase should already subtracted during waveform += operator
-        
-		if ( waveform.meta_.dataType == 4 ) {
+        double dbase(0), rms(0);
+		adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+        switch( waveform.meta_.dataType ) {
+        case 4:
             waveform_copy<int32_t>()( sp, waveform, scale, dbase );
-        } else if ( waveform.meta_.dataType == 8 ) {
+            break;
+        case 8:
             waveform_copy<int64_t>()( sp, waveform, scale, dbase );
+            break;
+        default:
+            assert(0);
         }
     }
-
 	return true;
 }
 
@@ -770,72 +774,24 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 bool
 waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& result, int scale )
 {
-    using namespace adcontrols::metric;
-
     if ( result.data() == nullptr )
     	return false;
 
     sp.setCentroid( adcontrols::CentroidNone );
     const waveform& waveform = *result.data();
 
-    auto nproto = waveform.method_.protocols().size();
-    auto index = waveform.method_.protocolIndex();
-    if ( index >= nproto ) {
-    	ADDEBUG() << "Error: protocol number missmatch";
-        return false;
-    }
+    translate( sp, waveform, scale );
 
-    const adcontrols::TofProtocol& this_protocol = waveform.method_.protocols().at( index );
-    double ext_adc_delay = this_protocol.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
-    
-    adcontrols::MSProperty prop = sp.getMSProperty();
-    double zHalf = ( waveform.meta_.initialXOffset + ext_adc_delay ) < 0 ? -0.5 : 0.5;
-    adcontrols::SamplingInfo info(
-        waveform.meta_.xIncrement
-        , waveform.meta_.initialXOffset + ext_adc_delay
-        , int32_t( ( waveform.meta_.initialXOffset + ext_adc_delay ) / waveform.meta_.xIncrement + zHalf )
-        , uint32_t( waveform.size() )
-        , waveform.meta_.actualAverages
-        , this_protocol.mode() );
-
-    prop.setAcceleratorVoltage( 3000 );
-    prop.setSamplingInfo( info );
-    
-    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
-    prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
-    prop.setDataInterpreterClsid( "u5303a" );
-
-    prop.setTofProtocol( this_protocol );
-
-    const device_data data( *waveform.ident_, waveform.meta_ );
-    std::string ar;
-    adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size() );
-
-    // prop.setDeviceData(); TBA
-    sp.setMSProperty( prop );
-    sp.resize( waveform.size() );
 	int idx = 0;
-
     if ( result.processed().size() == waveform.size() ) { // has filterd waveform
+        // overwrite intensity array
         if ( scale <= 1 )
             sp.setIntensityArray( result.processed().data() );
         else
             for ( auto it = result.processed().begin(); it != result.processed().end(); ++it )
                 sp.setIntensity( idx++, *it * scale ); // Volts -> mV (where scale = 1000)
-        
-    } else if ( waveform.meta_.actualAverages == 0 ) { // digitizer mode data
-		if ( waveform.meta_.dataType == 2 ) {
-			waveform_copy<int16_t>()( sp, waveform, scale );
-		} else {
-			waveform_copy<int32_t>()( sp, waveform, scale );
-		}
-    } else {
-        double dbase, rms;
-		double tic = adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-		waveform_copy<int32_t>()( sp, waveform, scale, dbase );
     }
-    
+
 	return true;
 }
 
