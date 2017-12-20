@@ -27,6 +27,8 @@ add_library( ${PROJECT_NAME} SHARED
   processthreshold.hpp
   processthreshold.cpp
   resultwriter.hpp
+  waveform_accessor.hpp
+  waveform_accessor.cpp
   waveform_horizontal.hpp
   tdcbase.hpp
   tdcbase.cpp
