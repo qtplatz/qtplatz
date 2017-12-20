@@ -72,6 +72,11 @@ namespace acqrsinterpreter {
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::value = "1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform > >::display_name = "1.u5303a";
 
+    // u5303a pkd
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform >, 1 >::value = "pkd.1.u5303a.ms-cheminfo.com";
+    template<> const std::string TID< waveform::DataInterpreter< acqrscontrols::u5303a::waveform >, 1 >::display_name = "pkd.1.u5303a";
+
+    // soft counting
     template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::value = "timecount.1.u5303a.ms-cheminfo.com";
     template<> const std::string TID< timecount::DataInterpreter< acqrscontrols::u5303a::threshold_result > >::display_name = "timecount[u5303a]";
 
@@ -105,6 +110,7 @@ namespace acqrsinterpreter {
 
     typedef boost::mpl::vector<
         TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform> >              // u5303a raw waveform
+        , TID< waveform::DataInterpreter<acqrscontrols::u5303a::waveform>, 1 >         // u5303a raw waveform (PKD)
         , TID< timecount::DataInterpreter<acqrscontrols::u5303a::threshold_result > >  // u5303a soft-tdc
         , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform >, 0 >         // ap240  raw waveform
         , TID< waveform::DataInterpreter<acqrscontrols::ap240::waveform >, 1 >         // dc122  raw waveform
