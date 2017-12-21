@@ -1118,7 +1118,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
     ViInt64 arraySize(0);
 
     if ( AgMD2::log(
-             AgMD2_QueryMinWaveformMemory( md2.session(), 32, 1, 0, recordSize, &arraySize )
+             AgMD2_QueryMinWaveformMemory( md2.session(), 32, numRecords, 0, recordSize, &arraySize )
              , __FILE__, __LINE__ ) ) {
 
         ViInt32 actualAverages(0);
@@ -1127,7 +1127,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         ViReal64 initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
         ViInt32 flags[numRecords];
-        auto mblk = std::make_shared< adportable::mblock<int32_t> >( arraySize );
+        auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
 
         const auto& tp = task::instance()->tp_acquire();
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
@@ -1135,7 +1135,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         if ( AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( md2.session()
                                                               , channel // "Channel1"
                                                               , 0
-                                                              , 1
+                                                              , numRecords // 1
                                                               , 0
                                                               , recordSize
                                                               , arraySize
@@ -1160,10 +1160,10 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.initialXOffset = initialXOffset;
             data.meta_.scaleFactor = scaleFactor;
             data.meta_.scaleOffset = scaleOffset;
-            data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
-            data.meta_.dataType  = 4;
-            data.meta_.protocolIndex = 0;
+            data.meta_.protocolIndex = m.protocolIndex();
+            data.meta_.dataType = 4;
             data.firstValidPoint_ = firstValidPoint[0];
+            data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
             data.setData( mblk, firstValidPoint[0] );
             
             return true;

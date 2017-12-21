@@ -39,7 +39,7 @@ namespace adportable {
         
     public:
 
-        mblock( size_t size = 8192 ) : pData_( new value_type[ size ] )
+        mblock( size_t size = 8192 ) : pData_( std::make_unique< value_type [] >( size ) ) // new value_type[ size ] )
                                      , size_( size ) {
         }
 
