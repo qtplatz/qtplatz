@@ -1161,6 +1161,8 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.scaleFactor = scaleFactor;
             data.meta_.scaleOffset = scaleOffset;
             data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
+            data.meta_.dataType  = 4;
+            data.meta_.protocolIndex = 0;
             data.firstValidPoint_ = firstValidPoint[0];
             data.setData( mblk, firstValidPoint[0] );
             
