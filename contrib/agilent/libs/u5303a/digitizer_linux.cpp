@@ -774,7 +774,7 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
         set_time_since_inject( avg );
         return true;
     }
-                                                                    
+
     digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
     digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
 
@@ -898,18 +898,34 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         // ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
 
+        ADDEBUG() << "################ Average Mode ##########################";
+
         // PKD - POC
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
+            ADDEBUG() << "################ PKD ON ################################";
+            
             task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
 
             // Enable the Peak Detection mode 	
-            task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
-            
-            // Configure the peak detection on channel 1
+            // task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
+            // Enable the Peak Detection mode
+            task.spDriver()->log(
+                AgMD2_SetAttributeViInt32( task.spDriver()->session()
+                                           , "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION )
+                , __FILE__, __LINE__);
+
             // Configure the data inversion mode - VI_FALSE (no data inversion) by default
             task.spDriver()->setAttributeViBoolean( "Channel1"
                                                     , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
-                                                    , m._device_method().invert_signal ? VI_TRUE : VI_FALSE ); // duplicate
+                                                    , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
+
+            // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
+            task.spDriver()->log(
+                AgMD2_SetAttributeViBoolean( task.spDriver()->session()
+                                             , "Channel1", AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED, VI_FALSE ), __FILE__, __LINE__ );
+            
+            //checkApiCall( AgMD2_SetAttributeViInt32( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, risingDelta ) );
+            //checkApiCall( AgMD2_SetAttributeViInt32( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, fallingDelta ) );
             
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
             task.spDriver()->setAttributeViBoolean( "Channel1"
@@ -921,16 +937,22 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta );
             
             task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta );
+
+            task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+            task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
+            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );            
+
+        } else {
+
+            task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? true : false );
+
+            task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+            task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
+            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
+
+            // It looks like this command should be issued as last
+            task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
         }
-
-        task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? true : false );
-
-        task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-        task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-        task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
-
-        // It looks like this command should be issued as last
-        task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
     }
 
     // ADTRACE() << "##### ACQUISITION_MODE : " << task.spDriver()->AcquisitionMode();
@@ -1131,7 +1153,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
 
         const auto& tp = task::instance()->tp_acquire();
         uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
-        
+
         if ( AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( md2.session()
                                                               , channel // "Channel1"
                                                               , 0
@@ -1151,6 +1173,12 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                               , &scaleFactor
                                                               , &scaleOffset, flags )
                          , __FILE__, __LINE__, [](){ return "FetchAccumulatedWaveformInt32()"; } ) ) {
+#if 0
+            ADDEBUG() << channel;
+            int32_t * pdata = reinterpret_cast<ViInt32*>( mblk->data() );
+            for ( int i = 0; i < 4; ++i )
+                ADDEBUG() << pdata[i];
+#endif
 
             data.method_ = m;
             data.meta_.actualAverages = actualAverages;
