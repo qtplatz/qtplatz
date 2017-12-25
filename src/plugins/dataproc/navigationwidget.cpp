@@ -560,8 +560,8 @@ namespace dataproc {
 				//const adcontrols::MassSpectrum& ms = segments[ n ];
 				for ( size_t n = 0; n < ms.size(); ++n ) {
 					o << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
-                      << std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
-                      << std::scientific << std::setprecision(7) << ms.getIntensity( n ) << std::endl;
+                      << std::fixed << std::setprecision( 15 ) << ms.getMass( n ) << ",\t"
+                      << std::scientific << std::setprecision(15) << ms.getIntensity( n ) << std::endl;
 				}
 			}
 			return true;

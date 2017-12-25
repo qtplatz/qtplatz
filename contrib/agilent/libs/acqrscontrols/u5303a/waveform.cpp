@@ -755,12 +755,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 		}
     } else {
         double dbase(0), rms(0);
-		adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
         switch( waveform.meta_.dataType ) {
         case 4:
+            adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
             waveform_copy<int32_t>()( sp, waveform, scale, dbase );
             break;
         case 8:
+            adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
             waveform_copy<int64_t>()( sp, waveform, scale, dbase );
             break;
         default:
