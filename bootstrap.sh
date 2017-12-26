@@ -32,6 +32,10 @@ while [ $# -gt 0 ]; do
 	    ide=xcode
 	    shift
 	    ;;
+	vscode)
+	    ide=vscode
+	    shift
+	    ;;
 	clean)
 	    build_clean=true
 	    shift
@@ -60,22 +64,24 @@ if [ -z $cross_target ]; then
 	    source_dirs=("$cwd")
 	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )
 	    if [ "$config" = "debug" ]; then
-		if [ "$ide" = "xcode" ]; then
+			if [ "$ide" = "xcode" ]; then
 		    cmake_args=('-G' 'Xcode' '-DCMAKE_BUILD_TYPE=Debug')
-		else
-		    cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
-		fi
+			else
+				cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
+			fi
 	    fi
 	    ;;
 	*)
 	    source_dirs=( "$cwd" )
 	    build_dirs=( "$build_root/build-$arch/qtplatz.$config" )	    
 	    if [ "$config" = "debug" ]; then
-		if [ "$ide" = "eclipse" ]; then
-		    cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
-		else [ "$ide" = "codelite" ]
-		    cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
-		fi
+			cmake_args=('-DCMAKE_BUILD_TYPE=Debug')
+			if [ "$ide" = "eclipse" ]; then
+				cmake_args=('-G' 'Eclipse CDT4 - Unix Makefiles' '-DCMAKE_ECLIPSE_VERSION=4.5' '-DCMAKE_BUILD_TYPE=Debug')
+			fi
+			if [ "$ide" = "codelite" ]; then
+				cmake_args=('-G' 'CodeLite - Unix Makefiles' '-DCMAKE_BUILD_TYPE=Debug' '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
+			fi
 	    fi
 	    ;;
     esac

@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "null",
+            "includePath": [],
+            "defines": [],
+            "compileCommands": "${workspaceRoot}/../build-Linux-x86_64/qtplatz.debug/compile_commands.json",
+            "browse": {
+                "path": [],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ]
+}
