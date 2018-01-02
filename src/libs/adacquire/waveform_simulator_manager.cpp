@@ -54,9 +54,9 @@ std::shared_ptr< adacquire::waveform_simulator >
 waveform_simulator_manager::waveform_simulator( double sampInterval
                                                 , double startDelay
                                                 , uint32_t nbrSamples
-                                                , uint32_t nbrWavefoms ) const
+                                                , uint32_t nbrWaveforms ) const
 {
     if ( factory_ )
-        return factory_( sampInterval, startDelay, nbrSamples, nbrWavefoms );
+        return factory_( sampInterval, startDelay, nbrSamples, nbrWaveforms );
     return 0;
 }

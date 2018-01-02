@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/../build-Linux-x86_64/qtplatz.vscode/bin/qtplatz",
+            "program": "${workspaceFolder}/../build-Linux-x86_64/qtplatz.debug/bin/qtplatz",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

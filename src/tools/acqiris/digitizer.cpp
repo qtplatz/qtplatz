@@ -328,7 +328,7 @@ bool
 digitizer::acquire()
 {
     auto status = AcqrsD1_acquire( inst_ );
-    checkError( inst_, status, "AcqrsD1_acquie", __LINE__ );
+    checkError( inst_, status, "AcqrsD1_acquire", __LINE__ );
     return status == VI_SUCCESS;
 }
 

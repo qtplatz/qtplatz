@@ -74,6 +74,21 @@ namespace acqrscontrols {
         ACQRSCONTROLSSHARED_TEMPLATE_EXPORT template class ACQRSCONTROLSSHARED_EXPORT std::weak_ptr < waveform > ;
 #endif
 
+        //  Digitizer or soft averaged data to volts
+        template< typename T, method::DigiMode = method::DigiMode::Digitizer > struct toVolts_ {
+            inline double operator()( const metadata& meta, T d ) const {
+                int actualAverages = meta.actualAverages == 0 ? 1 : meta.actualAverages;
+                return double( meta.scaleFactor * d ) / actualAverages + meta.scaleOffset;
+            }
+        };
+
+        //  Averaged data to volts
+        template< typename T > struct toVolts_<T, method::DigiMode::Averager > {
+            inline double operator()( const metadata& meta, T d ) const {
+                return d * meta.scaleFactor + meta.scaleOffset;
+            }
+        };
+
         /////////////////////////////
         template< typename T > class waveform_xmeta_archive;
         template< typename T > class waveform_xdata_archive;

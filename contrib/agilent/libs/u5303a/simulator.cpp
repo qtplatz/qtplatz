@@ -48,7 +48,7 @@ namespace u5303a {
     static std::chrono::high_resolution_clock::time_point __last__;
     static uint32_t __serialNumber__;
     static const std::vector< std::pair<double, double> >
-    peak_list = { { 4.0e-6, 0.1 }, { 5.0e-6, 0.05 }, { 6.0e-6, 0.030 } };
+    peak_list = { { 4.0e-6, 0.01 }, { 5.0e-6, 0.005 }, { 6.0e-6, 0.0030 } };
 
     class waveform_simulator : public adacquire::waveform_simulator {
     public:
@@ -125,13 +125,6 @@ simulator::simulator() : hasWaveform_( false )
             });
 
     }
-
-    // for InfiTOF simulator compatibility
-    const double total = 60000;
-    ions_.push_back( std::make_pair( 18.0105646, 1000.0 ) ); // H2O
-    ions_.push_back( std::make_pair( 28.006148,  0.7809 * total ) ); // N2
-    ions_.push_back( std::make_pair( 31.9898292, 0.2095 * total ) ); // O2
-    ions_.push_back( std::make_pair( 39.9623831, 0.0093 * total ) ); // Ar
 }
 
 simulator::~simulator()
@@ -205,10 +198,15 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
             waveforms_.erase( waveforms_.begin() );
         }
     } while(0);
+
+    bool invert = method_->_device_method().invert_signal;
+    int32_t offset = method_->_device_method().front_end_offset;
     
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
+
+
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
         avg.method_ = *method_;
         avg.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
@@ -222,8 +220,8 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         avg.meta_.xIncrement = sampInterval_;
         avg.meta_.initialXOffset = startDelay_;
         avg.meta_.actualAverages = int32_t( nbrWaveforms_ );
-        avg.meta_.scaleFactor = 1.0;
-        avg.meta_.scaleOffset = 0.0;
+        avg.meta_.scaleFactor = 1; // method_->_device_method().front_end_range / 4096 / method_->_device_method().nbr_of_averages;
+        avg.meta_.scaleOffset = 0;
         avg.setData( mblk, 0 );
     }
     if ( ptr ) {
@@ -394,6 +392,7 @@ waveform_simulator::onTriggered()
 
     waveform_.resize( nbrSamples_ );
 
+    int32_t maxy = 0;
     size_t idx = 0;
     for ( int32_t& d: waveform_ ) {
         
@@ -401,11 +400,14 @@ waveform_simulator::onTriggered()
 
         double y = 0;
         for ( auto& peak : peak_list ) {
-            boost::math::normal_distribution< double > nd( peak.first /* mean */, 5.0e-9 /* sd */);
+            boost::math::normal_distribution< double > nd( peak.first /* time */, 5.0e-9 /* width */);
             y += boost::math::pdf( nd, t ) * peak.second; // + __noise__();
         }
         d = int32_t( int32_t( y ) + __noise__() );
+        if ( d > maxy )
+            maxy = d;
     }
+    ADDEBUG() << maxy;
 }
 
 

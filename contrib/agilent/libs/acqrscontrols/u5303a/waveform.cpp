@@ -70,17 +70,28 @@ namespace acqrscontrols {
 
             void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale ) const {
                 int idx = 0;
-                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
-                    sp.setIntensity( idx++, scale ? ( w.toVolts( *it ) * scale ) : *it );
-                }         
+                if ( w.method_.mode() == method::DigiMode::Digitizer ) {
+                    for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it )
+                        sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.meta_, *it ) * scale ) : *it );
+                } else {
+                    for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it )
+                        sp.setIntensity( idx++, scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.meta_, *it ) * scale ) : *it );
+                }
             }
 
             void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale, double dbase ) const {
-                int idx = 0;                
-                for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
-					double d = scale ? ( w.toVolts(*it - dbase) * scale  ) : *it - dbase;
-					sp.setIntensity( idx++, d );
-                }         
+                int idx = 0;
+                if ( w.method_.mode() == method::DigiMode::Digitizer ) {
+                    for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
+                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.meta_, (*it - dbase)) * scale  ) : *it - dbase;
+                        sp.setIntensity( idx++, d );
+                    }
+                } else {
+                    for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
+                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.meta_, (*it - dbase)) * scale  ) : *it - dbase;
+                        sp.setIntensity( idx++, d );
+                    }
+                }
             }
 
         };
@@ -453,28 +464,28 @@ waveform::time( size_t idx ) const
 double
 waveform::toVolts( int32_t d ) const
 {
-    if ( meta_.actualAverages == 0 )
-        return meta_.scaleFactor * d + meta_.scaleOffset;
+    if ( method_.mode() == method::DigiMode::Digitizer )
+        return toVolts_<int32_t,method::DigiMode::Digitizer>()( meta_, d );
     else
-        return double( meta_.scaleFactor * d ) / meta_.actualAverages + meta_.scaleOffset;
+        return toVolts_<int32_t,method::DigiMode::Averager>()( meta_, d );
 }
 
 double
 waveform::toVolts( int64_t d ) const
 {
-    if ( meta_.actualAverages == 0 )
-        return meta_.scaleFactor * d + meta_.scaleOffset;
+    if ( method_.mode() == method::DigiMode::Digitizer )
+        return toVolts_<int64_t,method::DigiMode::Digitizer>()( meta_, d );
     else
-        return double( meta_.scaleFactor * d ) / meta_.actualAverages + meta_.scaleOffset;
+        return toVolts_<int64_t,method::DigiMode::Averager>()( meta_, d );
 }
 
 double
 waveform::toVolts( double d ) const
 {
-    if ( meta_.actualAverages == 0 )
-        return meta_.scaleFactor * d + meta_.scaleOffset;
+    if ( method_.mode() == method::DigiMode::Digitizer )
+        return toVolts_<double,method::DigiMode::Digitizer>()( meta_, d );
     else
-        return d * meta_.scaleFactor / meta_.actualAverages + ( meta_.scaleOffset * meta_.actualAverages );
+        return toVolts_<double,method::DigiMode::Averager>()( meta_, d );
 }
 
 size_t

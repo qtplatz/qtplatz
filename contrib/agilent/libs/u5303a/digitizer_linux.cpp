@@ -50,6 +50,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <exception>
 #include <mutex>
 #include <thread>
 
@@ -748,10 +749,11 @@ bool
 task::waitForEndOfAcquisition( int timeout )
 {
     if ( simulated_ ) {
+        using namespace std::chrono_literals;
 #if defined _MSC_VER && defined _DEBUG
-        std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+        std::this_thread::sleep_for( 100ms );
 #else
-        std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
+        std::this_thread::sleep_for( 10ms );
 #endif
         if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager )
             return simulator::instance()->waitForEndOfAcquisition();
@@ -907,26 +909,13 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
 
             // Enable the Peak Detection mode 	
-            // task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
-            // Enable the Peak Detection mode
-            task.spDriver()->log(
-                AgMD2_SetAttributeViInt32( task.spDriver()->session()
-                                           , "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION )
-                , __FILE__, __LINE__);
+            task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
 
             // Configure the data inversion mode - VI_FALSE (no data inversion) by default
             task.spDriver()->setAttributeViBoolean( "Channel1"
                                                     , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
                                                     , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
 
-            // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-            task.spDriver()->log(
-                AgMD2_SetAttributeViBoolean( task.spDriver()->session()
-                                             , "Channel1", AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED, VI_FALSE ), __FILE__, __LINE__ );
-            
-            //checkApiCall( AgMD2_SetAttributeViInt32( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, risingDelta ) );
-            //checkApiCall( AgMD2_SetAttributeViInt32( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, fallingDelta ) );
-            
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
             task.spDriver()->setAttributeViBoolean( "Channel1"
                                                     , AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
@@ -990,11 +979,6 @@ device::waitForEndOfAcquisition( task& task, int timeout )
             return false;
     }
     return true;
-
-#if 0
-    long const timeoutInMs = 3000;
-    return task.spDriver()->AcquisitionWaitForAcquisitionComplete(timeoutInMs);
-#endif
 }
 
 /////////////
@@ -1131,11 +1115,7 @@ bool
 digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrscontrols::u5303a::waveform& data
                        , const char * channel )
 {
-#if defined _MSC_VER
-    ViInt64 const numRecords = 1;
-#else
     ViInt64 constexpr numRecords = 1;
-#endif
     const int64_t recordSize = m._device_method().digitizer_nbr_of_s_to_acquire;
     ViInt64 arraySize(0);
 

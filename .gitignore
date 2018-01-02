@@ -171,3 +171,4 @@ build/adtoolkit.opensdf
 build/contrib/shrader/lrpviewer/dump.txt
 build/src/libs/adpublisher/share/qtplatz/xslt
 qtplatz-config.cmake
+/.vscode/.cmaketools.json
