@@ -104,7 +104,7 @@ ioEventSequence::write_json( std::ostream& json, const ioEventSequence& m, bool 
     boost::property_tree::ptree j_seq;
 
     for ( const auto& line: m.sequence() ) {
-
+        
         boost::property_tree::ptree j_item, j_events;
         j_item.put( "time", line.first );
 
