@@ -93,13 +93,11 @@ namespace adcontrols {
                 using boost::filesystem::directory_iterator;
                 for ( directory_iterator it( dir ); it != directory_iterator(); ++it ) {
                     boost::filesystem::path fname = (*it);
-                    ADDEBUG() << "findLastRunNumber(" << fname << ")";
                     if ( fname.extension().string() == ".adfs" || fname.extension().string() == ".adfs~" ) {
                         lastRunNumber = std::max( int(lastRunNumber), adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
                     }
                 }
             }
-            ADDEBUG() << __FUNCTION__ << " lastRunNumber: " << lastRunNumber;
             return lastRunNumber;
         }
 
