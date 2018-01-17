@@ -59,8 +59,6 @@ namespace adcontrols {
 
         impl() : methodTime_( 60.0 )
                , replicates_( 999 )
-               , dataDirectory_( adportable::profile::user_data_dir<wchar_t>() + L"/data/"
-                                 + adportable::date_string::wstring( boost::posix_time::second_clock::local_time().date() ) )
                , filePrefix_( L"RUN_0001" )
                , runCount_( 0 )
                , runNumber_( 0 ) {
@@ -71,10 +69,8 @@ namespace adcontrols {
             os << "<p>Created: " << ident_.dateCreated() << "</p>"
                << "<p>Computer: <i>'" << adportable::utf::to_utf8( ident_.idComputer() ) << "'</i></p>"
                << "<p>by <i>" << adportable::utf::to_utf8( ident_.nameCreatedBy() ) << "</i></p>" << std::endl;
-
+            
             description_ = os.str();
-            runNumber_ = findLastRunNumber();
-            filePrefix_ = make_name( runNumber_ );
         }
 
         impl( const impl& t ) : ident_( t.ident_ )
@@ -97,11 +93,13 @@ namespace adcontrols {
                 using boost::filesystem::directory_iterator;
                 for ( directory_iterator it( dir ); it != directory_iterator(); ++it ) {
                     boost::filesystem::path fname = (*it);
+                    ADDEBUG() << "findLastRunNumber(" << fname << ")";
                     if ( fname.extension().string() == ".adfs" || fname.extension().string() == ".adfs~" ) {
                         lastRunNumber = std::max( int(lastRunNumber), adportable::split_filename::trailer_number_int( fname.stem().wstring() ) );
                     }
                 }
             }
+            ADDEBUG() << __FUNCTION__ << " lastRunNumber: " << lastRunNumber;
             return lastRunNumber;
         }
 
@@ -174,6 +172,8 @@ SampleRun::~SampleRun()
 
 SampleRun::SampleRun() : impl_( new impl() )
 {
+    setDataDirectory( adportable::profile::user_data_dir<wchar_t>() + L"/data/"
+                      + adportable::date_string::wstring( boost::posix_time::second_clock::local_time().date() ) );
 }
 
 SampleRun::SampleRun( const SampleRun& t ) : impl_( new impl( *t.impl_ ) )
@@ -217,9 +217,9 @@ SampleRun::dataDirectory() const
 }
 
 void
-SampleRun::dataDirectory( const wchar_t * v )
+SampleRun::dataDirectory( const wchar_t * dir )
 {
-    setDataDirectory( v ? v : L"" );
+    setDataDirectory( dir ? dir : L"" );
 }
 
 void

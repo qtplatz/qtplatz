@@ -134,12 +134,13 @@ boost::filesystem::path
 SampleProcessor::prepare_sample_run( adcontrols::SampleRun& run, bool createDirectory )
 {
     boost::filesystem::path path( run.dataDirectory() );
-
+    
     if ( !boost::filesystem::exists( path ) ) {
         if ( !createDirectory )
             return boost::filesystem::path();
         boost::filesystem::create_directories( path );
     }
+
     return run.filename( L".adfs~" );
 }
 
