@@ -1003,6 +1003,9 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
             } else {
                 data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) / std::pico::den; // ps -> s
             }
+
+            ADDEBUG() << "--------------> " << data.meta_.initialXTimeSeconds;
+            
             data.meta_.scaleFactor = dataDesc.vGain;     // V = vGain * data - vOffset
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
@@ -1047,6 +1050,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
                 data.meta_.horPos = 0.0;
             }
         }
+        ADDEBUG() << "--------------> " << data.meta_.initialXTimeSeconds;        
     }
     return true;
 }
