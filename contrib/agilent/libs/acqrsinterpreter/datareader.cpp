@@ -653,11 +653,11 @@ DataReader::loadCachedTICs()
             
         adfs::stmt sql( *db );                
 
-        sql.prepare( "SELECT AcquiredData.rowid,npos,fcn,(elapsed_time-(SELECT min(elapsed_time) FROM AcquiredData)),intensity"
+        sql.prepare( "SELECT AcquiredData.rowid,npos,fcn,(epoch_time-(SELECT min(epoch_time) FROM AcquiredData)),intensity"
                      " FROM AcquiredData,TIC WHERE objuuid = ? AND TIC.id=AcquiredData.rowid"
                      " ORDER BY AcquiredData.rowid" );
         sql.bind( 1 ) = objid_;
-        
+    
         while ( sql.step() == adfs::sqlite_row ) {
             
             int col = 0;
@@ -666,6 +666,7 @@ DataReader::loadCachedTICs()
             auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
             auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
             auto d = sql.get_column_value< double >( col++ );
+            // ADDEBUG() << "elaplsed_time: " << elapsed_time << ", " << double(elapsed_time)/std::nano::den << "s";
             
             indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
             
@@ -686,7 +687,6 @@ DataReader::loadCachedTICs()
                     pChro->addDescription( adcontrols::description( L"title", title.c_str() ) );
                 }
             }
-            
             ( *pChro ) << std::make_pair( double( elapsed_time ) / std::nano::den, d );
         }
         
