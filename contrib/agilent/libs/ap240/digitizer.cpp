@@ -998,14 +998,9 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
             data.meta_.actualPoints   = dataDesc.returnedSamplesPerSeg; //data.d_.size();
             data.meta_.flags = 0;         // segDesc.flags; // markers not in digitizer
             data.meta_.initialXOffset = data.method_.hor_.delayTime;
-            if ( segDesc.timeStampHi == 0 && segDesc.timeStampLo == 0 ) { // digizer mode returns those values 0
-                data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
-            } else {
-                data.meta_.initialXTimeSeconds = double( uint64_t(segDesc.timeStampHi) << 32 | segDesc.timeStampLo ) / std::pico::den; // ps -> s
-            }
+            // digitizer mode return time since triggered. 
+            data.meta_.initialXTimeSeconds = task::instance()->timestamp(); // computer's uptime
 
-            ADDEBUG() << "--------------> " << data.meta_.initialXTimeSeconds;
-            
             data.meta_.scaleFactor = dataDesc.vGain;     // V = vGain * data - vOffset
             data.meta_.scaleOffset = dataDesc.vOffset;
             data.meta_.xIncrement = dataDesc.sampTime;
