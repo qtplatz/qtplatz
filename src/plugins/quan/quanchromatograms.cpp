@@ -130,8 +130,8 @@ QuanChromatograms::QuanChromatograms( const std::string& formula
 void
 QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> ms, const std::string& reader_objtext )
 {
-    if ( reader_objtext != reader_objtext_ )
-        ADDEBUG() << reader_objtext  << " != " << reader_objtext_;
+    //if ( reader_objtext != reader_objtext_ )
+    //    ADDEBUG() << reader_objtext  << " != " << reader_objtext_;
     
     adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( *ms );
 
@@ -171,7 +171,7 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
                     qchro_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, m.exactMass, m.matchedMass, std::make_pair( lMass, uMass ) ) );
                     chro = qchro_.end() - 1;
                 }
-                ADDEBUG() << "append_to_chromatogram fcn=" << (*chro)->fcn() << ", " << (*chro)->formula() << " (time,y) = " << time << ", " << y << " (" << (void *)(ms.get() ) << ")";
+                // ADDEBUG() << "append_to_chromatogram fcn=" << (*chro)->fcn() << ", " << (*chro)->formula() << " (time,y) = " << time << ", " << y << " (" << (void *)(ms.get() ) << ")";
                 ( *chro )->append( uint32_t( pos ), time, y );
             }
                         

@@ -151,7 +151,7 @@ QuanPlotWidget::setChromatogram( const QuanPlotData * d, size_t idx, int fcn, co
     if ( auto pw = dynamic_cast<adplot::ChromatogramWidget *>( dplot_.get() ) ) {
 
         pw->setTitle( dataSource + L", " + d->chromatogram->getDescriptions().toString() );
-        pw->setData( d->chromatogram, 0, true );
+        pw->setData( d->chromatogram, 0, false );
 
         if ( d->pkResult ) {
             pw->setData( *d->pkResult );
