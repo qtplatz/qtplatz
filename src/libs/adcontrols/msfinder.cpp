@@ -66,6 +66,9 @@ namespace adcontrols {
 
             bool operator()( double target_mass ) {
                 
+                if ( beg_ == nullptr )
+                    return false;
+                
                 if ( ( target_mass + tolerance_ ) < *beg_ ||
                      *(end_ - 1) < ( target_mass - tolerance_ ) )
                     return false;
