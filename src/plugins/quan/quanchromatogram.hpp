@@ -76,7 +76,7 @@ namespace quan {
 
         const std::string& formula() { return formula_; }
 
-        void append( uint32_t pos, double time, double value );
+        void append( int64_t rowid, double time, double value );
 
         /** identify
          *  \brief identify peak that matches retention time for given formula listed in QuanCompounds
@@ -112,7 +112,7 @@ namespace quan {
         std::string formula_;
         double exactMass_;
         double matchedMass_;
-        std::vector< uint32_t > indecies_; // adfs 'pos' - bin# map
+        std::vector< int64_t > indecies_; // adfs 'pos' - bin# map
         std::shared_ptr< adcontrols::MSPeakInfo > mspeaks_;
         std::pair< double, double > msrange_;
         uint32_t count_;

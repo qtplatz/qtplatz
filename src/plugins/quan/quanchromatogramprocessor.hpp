@@ -44,7 +44,7 @@ namespace quan {
     public:
         QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm );
 
-        void process1st( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
+        void process1st( int64_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
 
         void doit( QuanSampleProcessor&, adcontrols::QuanSample&
                    , std::shared_ptr< QuanDataWriter >

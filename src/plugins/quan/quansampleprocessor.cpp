@@ -25,7 +25,7 @@
 #include "quansampleprocessor.hpp"
 #include "quanprocessor.hpp"
 #include "quanchromatograms.hpp"
-#include "quanchromatogramsprocessor.hpp"
+#include "quanchromatogramprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
@@ -167,12 +167,12 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 if ( raw_->dataformat_version() >= 3 ) {
 
                     for ( auto reader: raw_->dataReaders() ) {
-
+                        
                         auto chromatogram_processor = std::make_shared< QuanChromatogramProcessor >( procmethod_ );
                         
                         for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
                             auto ms = reader->readSpectrum( it );
-                            // ADDEBUG() << reader->display_name() << " rowid: " << it->rowid() << ", " << it->fcn() << ", " << reader->objtext();
+                            //ADDEBUG() << reader->display_name() << " rowid: " << it->rowid() << ", " << it->fcn() << ", " << reader->objtext();
                             chromatogram_processor->process1st( it->rowid(), ms, *this );
                             if ( ( *progress_ )() ) {
                                 ADDEBUG() << "QuanSampleProcessor cancel requested";

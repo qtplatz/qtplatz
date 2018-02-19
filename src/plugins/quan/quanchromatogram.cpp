@@ -73,12 +73,9 @@ QuanChromatogram::QuanChromatogram( uint32_t fcn
 }
         
 void
-QuanChromatogram::append( uint32_t pos, double time, double value )
+QuanChromatogram::append( int64_t rowid, double time, double value )
 {
-    if ( count_++ == 0 && pos > 0 )
-        return;  // ignore first data after chromatogram condition change
-    
-    indecies_.push_back( pos );
+    indecies_.emplace_back( rowid );
     ( *chromatogram_ ) << std::make_pair( time, value );
 }
 

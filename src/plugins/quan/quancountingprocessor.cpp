@@ -26,7 +26,7 @@
 #include "findcompounds.hpp"
 #include "quanprocessor.hpp"
 #include "quanchromatograms.hpp"
-#include "quanchromatogramsprocessor.hpp"
+#include "quanchromatogramprocessor.hpp"
 #include "quandatawriter.hpp"
 #include "quandocument.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
