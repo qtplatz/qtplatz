@@ -167,6 +167,9 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 if ( raw_->dataformat_version() >= 3 ) {
 
                     for ( auto reader: raw_->dataReaders() ) {
+
+                        if ( reader->objtext().find( "histogram" ) != std::string::npos ) // skip counting data
+                            continue;
                         
                         auto chromatogram_processor = std::make_shared< QuanChromatogramProcessor >( procmethod_ );
                         
