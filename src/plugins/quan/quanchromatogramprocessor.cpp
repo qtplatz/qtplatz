@@ -343,7 +343,7 @@ QuanChromatogramProcessor::doCountingChromatogram( QuanSampleProcessor& processo
     do { // first phase
         double mass_width = 0.010; // 10mDa default
         if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
-            mass_width = targeting_method->tolerance( targeting_method->toleranceMethod() ) * 4; // experimental 
+            mass_width = targeting_method->tolerance( targeting_method->toleranceMethod() ) * 2.5; // experimental 
         }
 
         double tolerance = 0; // tolerance = 0 ==> single chromatogram per target (no parallel)
@@ -351,7 +351,6 @@ QuanChromatogramProcessor::doCountingChromatogram( QuanSampleProcessor& processo
         find_parallel_chromatograms( qcrms_v1, targets, reader_objtext, mass_width, tolerance );  
 
         for ( auto& qcrms : qcrms_v1 ) {
-            ADDEBUG() << "############ saving counting chromatogram";
             save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(counting)" );
         }
 

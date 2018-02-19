@@ -72,7 +72,7 @@ namespace quan {
 
         QuanChromatograms( const std::string& formula, const QuanCandidate& );
 
-        void append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum>, const std::string& reader_objtext );
+        void append_to_chromatogram( int64_t pos, std::shared_ptr<const adcontrols::MassSpectrum>, const std::string& reader_objtext );
 
         void process_chromatograms( std::shared_ptr< const adcontrols::ProcessMethod > pm );
 
