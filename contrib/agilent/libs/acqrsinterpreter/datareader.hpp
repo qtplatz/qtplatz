@@ -82,7 +82,7 @@ namespace acqrsinterpreter {
         adcontrols::DataInterpreter * dataInterpreter() const override;
         
     private:
-        void make_indecies();
+        void make_indices();
         void loadTICs();
         void loadCachedTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
@@ -101,7 +101,7 @@ namespace acqrsinterpreter {
             index( int64_t _0 = 0, int64_t _1 = 0, int64_t _2 = 0, int _3 = 0 ) : rowid( _0 ), pos( _1 ), elapsed_time( _2 ), fcn( _3 ) {}
         };
 
-        std::vector< index > indecies_;
+        std::vector< index > indices_;
     };
 
 }

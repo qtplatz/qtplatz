@@ -49,8 +49,8 @@ namespace acqrscontrols {
 
             std::shared_ptr< const waveform >& data();
 
-            [[deprecated]] std::vector< uint32_t >& indecies();
-            [[deprecated]] const std::vector< uint32_t >& indecies() const;
+            [[deprecated]] std::vector< uint32_t >& indices();
+            [[deprecated]] const std::vector< uint32_t >& indices() const;
 
             std::vector< double >& processed();
             const std::vector< double >& processed() const;
@@ -74,7 +74,7 @@ namespace acqrscontrols {
 
         private:
             std::shared_ptr< const waveform > data_;
-            std::vector< uint32_t > indecies_;
+            std::vector< uint32_t > indices_;
             std::vector< double > processed_;
             std::pair< uint32_t, uint32_t > findRange_;
             uint32_t foundIndex_;

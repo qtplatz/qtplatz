@@ -38,7 +38,7 @@ namespace acqrscontrols {
         if ( auto accessor = dynamic_cast< threshold_result_accessor * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
                 
-                // if ( rp->indecies2().size() > 128 )
+                // if ( rp->indices2().size() > 128 )
                 //     return false; // save data using xmeta/xdata serializer mechanism
                 
                 auto wp = rp->data();  // waveform
@@ -63,7 +63,7 @@ namespace acqrscontrols {
 
                 do {
                     adfs::stmt sql( fs.db() );
-                    for ( auto& idx : rp->indecies2() ) {
+                    for ( auto& idx : rp->indices2() ) {
 
                         sql.prepare( "INSERT INTO peak"
                                      " (idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )"
@@ -119,7 +119,7 @@ namespace acqrscontrols {
 
                 do {
                     adfs::stmt sql( fs.db() );
-                    for ( auto& idx : rp->indecies2() ) {
+                    for ( auto& idx : rp->indices2() ) {
 
                         sql.prepare( "INSERT INTO peak"
                                      " (idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )"

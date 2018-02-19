@@ -43,15 +43,15 @@ namespace adportable {
             
             counting_result( const counting_result& t ) : algo_( t.algo_ )
                                                         , threshold_level_( t.threshold_level_ )
-                                                        , indecies2_( t.indecies2_ ){
+                                                        , indices2_( t.indices2_ ){
             }
 
-            inline std::vector< adportable::counting::threshold_index >& indecies2() {
-                return indecies2_;
+            inline std::vector< adportable::counting::threshold_index >& indices2() {
+                return indices2_;
             }
 
-            inline const std::vector< adportable::counting::threshold_index >& indecies2() const {
-                return indecies2_;
+            inline const std::vector< adportable::counting::threshold_index >& indices2() const {
+                return indices2_;
             }
 
             inline enum algo& algo() {
@@ -73,14 +73,14 @@ namespace adportable {
         protected:
             enum algo algo_;
             double threshold_level_;
-            std::vector< adportable::counting::threshold_index > indecies2_;
+            std::vector< adportable::counting::threshold_index > indices2_;
         private:
             friend class boost::serialization::access;
             template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
                 ar & BOOST_SERIALIZATION_NVP( algo_ );
                 ar & BOOST_SERIALIZATION_NVP( threshold_level_ );
-                ar & BOOST_SERIALIZATION_NVP( indecies2_ );
+                ar & BOOST_SERIALIZATION_NVP( indices2_ );
             }
         };
     }

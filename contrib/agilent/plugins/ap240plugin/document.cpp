@@ -272,7 +272,7 @@ namespace ap240 {
 
                 if ( methods[0]->enable ) {
                     
-                    tdcdoc::find_threshold_timepoints( *pair.first, *methods[0], results.first->indecies(), results.first->processed() );
+                    tdcdoc::find_threshold_timepoints( *pair.first, *methods[0], results.first->indices(), results.first->processed() );
                     histograms_[0]->append( *results.first );
 
                 }
@@ -284,7 +284,7 @@ namespace ap240 {
                 
                 if ( methods[1]->enable ) {
                     
-                    tdcdoc::find_threshold_timepoints( *pair.second, *methods[1], results.second->indecies(), results.second->processed() );
+                    tdcdoc::find_threshold_timepoints( *pair.second, *methods[1], results.second->indices(), results.second->processed() );
                     histograms_[1]->append( *results.second );
                 }
                 

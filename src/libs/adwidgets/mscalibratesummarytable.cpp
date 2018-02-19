@@ -301,19 +301,19 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
 }
 
 bool
-MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int > >& indecies )
+MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int > >& indices )
 {
     QStandardItemModel& model = *pModel_;
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
 
     model.removeRows( 0, model.rowCount() );
-    model.insertRows( 0, static_cast<int>(indecies.size()) );
+    model.insertRows( 0, static_cast<int>(indices.size()) );
 
     adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
 
     int row = 0;
-    for ( auto idx : indecies ) {
+    for ( auto idx : indices ) {
 
         adcontrols::MassSpectrum& ms = segments[ idx.first ];
 
@@ -359,7 +359,7 @@ MSCalibrateSummaryTable::setEditable( int row, bool )
 }
 
 bool
-MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int > >& indecies )
+MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int > >& indices )
 {
     QStandardItemModel& model = *pModel_;
 
@@ -371,10 +371,10 @@ MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int
         int fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
         int idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
 
-        auto it = std::find_if( indecies.begin(), indecies.end(), [=]( const std::pair< int, int >& a ){
+        auto it = std::find_if( indices.begin(), indices.end(), [=]( const std::pair< int, int >& a ){
                 return a.first == fcn &&  a.second == idx;});
         
-        if ( it == indecies.end() )
+        if ( it == indices.end() )
             return false;
 
         adcontrols::MassSpectrum& ms = segments[ it->first ];
@@ -405,7 +405,7 @@ MSCalibrateSummaryTable::setData( const adcontrols::MSCalibrateResult& res, cons
     if ( ! ms.isCentroid() )
         return;
 
-    std::vector< std::pair< int, int > > indecies;
+    std::vector< std::pair< int, int > > indices;
     *pCalibrantSpectrum_ = ms;
     *pCalibResult_ = res;
 
@@ -416,12 +416,12 @@ MSCalibrateSummaryTable::setData( const adcontrols::MSCalibrateResult& res, cons
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
 		for ( int idx = 0; idx < signed(fms.size()); ++idx ) {
 			if ( fms.getIntensity( idx ) > threshold )
-				indecies.push_back( std::make_pair( fcn, idx ) );
+				indices.push_back( std::make_pair( fcn, idx ) );
 		}
 	}
     
-    if ( ! ( ( model.rowCount() == int(indecies.size()) ) && modifyModelData( indecies ) ) )
-        createModelData( indecies );
+    if ( ! ( ( model.rowCount() == int(indices.size()) ) && modifyModelData( indices ) ) )
+        createModelData( indices );
 }
 
 void

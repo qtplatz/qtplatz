@@ -48,7 +48,7 @@ namespace adportable {
             // find only one of raising or falling index per peak
             template< typename const_iterator >
             void operator()( const_iterator&& begin, const_iterator&& end
-                             , std::vector< uint32_t >& indecies
+                             , std::vector< uint32_t >& indices
                              , typename std::iterator_traits< const_iterator >::value_type level
                              , size_t offset = 0 ) {
                 bool flag;
@@ -57,17 +57,17 @@ namespace adportable {
                 while ( it != end ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                         if ( flag == findUp )                        
-                            indecies.emplace_back( uint32_t( std::distance( begin, it ) ) );
+                            indices.emplace_back( uint32_t( std::distance( begin, it ) ) );
                         adportable::advance( it, nskip, end );
                     }
                 }
             }
 
             
-            // find both raising,falling indecies
+            // find both raising,falling indices
             template< typename const_iterator, typename index_type >
             void operator()( const_iterator&& begin, const_iterator&& end
-                             , std::vector< index_type >& indecies
+                             , std::vector< index_type >& indices
                              , typename std::iterator_traits< const_iterator >::value_type level
                              , size_t offset = 0 ) {
                 size_t count = 0;
@@ -77,19 +77,19 @@ namespace adportable {
                 while ( it != end ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
                         if ( flag == findUp ) {
-                            indecies.emplace_back( uint32_t( std::distance( begin, it ) ), uint32_t(0), 0 ); // front
+                            indices.emplace_back( uint32_t( std::distance( begin, it ) ), uint32_t(0), 0 ); // front
                             workprogress = true;
                             if ( count_limit < count++ )
                                 return;
                         } else {
                             if ( workprogress ) {
                                 workprogress = false;
-                                auto bIt = begin + indecies.back().first;
+                                auto bIt = begin + indices.back().first;
                                 auto aIt = findUp ? std::max_element( bIt, it + 1 ) : std::min_element( bIt, it + 1 );
-                                indecies.back().second = uint32_t( std::distance( begin, it ) );
-                                indecies.back().apex   = uint32_t( std::distance( begin, aIt ) );
-                                indecies.back().value  = *aIt;
-                                indecies.back().level = level;
+                                indices.back().second = uint32_t( std::distance( begin, it ) );
+                                indices.back().apex   = uint32_t( std::distance( begin, aIt ) );
+                                indices.back().value  = *aIt;
+                                indices.back().level = level;
                             }
                         }
                     }

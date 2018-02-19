@@ -157,12 +157,12 @@ namespace acqrsinterpreter {
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::u5303a::threshold_result >& ptr ) const
     {
-        return ptr->indecies2().size();
+        return ptr->indices2().size();
     }
 
     template<> double total_ion_count::operator()( std::shared_ptr< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >& ptr ) const
     {
-        return ptr->indecies().size();
+        return ptr->indices().size();
     }
 
 
@@ -273,7 +273,7 @@ using namespace acqrsinterpreter;
 
 DataReader::~DataReader()
 {
-    indecies_.clear();
+    indices_.clear();
     tics_.clear();
     interpreter_.reset();
 }
@@ -326,7 +326,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                     fcnCount_ = sql.get_column_value< int64_t >( 0 );
             }
 
-            make_indecies();
+            make_indices();
             
 #if ! defined NDEBUG
             ADDEBUG() << "DataReader::initailze(" << objid << ", " << objtext << ") fcnCount=" << fcnCount_;
@@ -543,9 +543,9 @@ DataReader::TIC( int fcn ) const
 }
 
 void
-DataReader::make_indecies()
+DataReader::make_indices()
 {
-    indecies_.clear();
+    indices_.clear();
     
     if ( auto db = db_.lock() ) {
         adfs::stmt sql( *db );                
@@ -562,7 +562,7 @@ DataReader::make_indecies()
             auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
             auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
             
-            indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
+            indices_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
         }
 
         sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData");
@@ -578,9 +578,9 @@ DataReader::loadTICs()
 
         if ( auto db = db_.lock() ) {
 
-            ADDEBUG() << "loadTICs: " << objid_ << " indecies: " << indecies_.size();
+            ADDEBUG() << "loadTICs: " << objid_ << " indices: " << indices_.size();
             
-            indecies_.clear();
+            indices_.clear();
 
             {
                 adfs::stmt sql( *db );
@@ -628,7 +628,7 @@ DataReader::loadTICs()
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
                 
-                indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
+                indices_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
                 
                 if ( tics.find( fcn ) == tics.end() ) {
                     tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
@@ -699,7 +699,7 @@ DataReader::loadCachedTICs()
             auto d = sql.get_column_value< double >( col++ );
             // ADDEBUG() << "elaplsed_time: " << elapsed_time << ", " << double(elapsed_time)/std::nano::den << "s";
             
-            indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
+            indices_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
             
             if ( tics.find( fcn ) == tics.end() ) {
                 tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
@@ -729,10 +729,10 @@ DataReader::loadCachedTICs()
 int64_t
 DataReader::next( int64_t rowid ) const
 {
-    if ( ! indecies_.empty() ) {
+    if ( ! indices_.empty() ) {
 
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-        if ( it != indecies_.end() && ++it != indecies_.end() ) {
+        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indices_.end() && ++it != indices_.end() ) {
             assert( rowid < it->rowid );
             return it->rowid;
         }
@@ -758,10 +758,10 @@ DataReader::next( int64_t rowid, int fcn ) const
         fcn = 0;  // find next primary spectrum
         //return next( rowid );
 
-    if ( ! indecies_.empty() ) {
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [&] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-        if ( it != indecies_.end() ) { //
-            while ( ++it != indecies_.end() ) {
+    if ( ! indices_.empty() ) {
+        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [&] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indices_.end() ) { //
+            while ( ++it != indices_.end() ) {
                 if ( it->fcn == fcn )
                     return it->rowid;
             }
@@ -784,11 +784,11 @@ DataReader::next( int64_t rowid, int fcn ) const
 int64_t
 DataReader::pos( int64_t rowid ) const
 {
-    if ( indecies_.empty() )
-        const_cast< DataReader * >(this)->make_indecies();
+    if ( indices_.empty() )
+        const_cast< DataReader * >(this)->make_indices();
     
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-    if ( it != indecies_.end() )
+    auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+    if ( it != indices_.end() )
         return it->pos;
     return -1;
 }
@@ -796,12 +796,12 @@ DataReader::pos( int64_t rowid ) const
 int64_t
 DataReader::elapsed_time( int64_t rowid ) const
 {
-    if ( indecies_.empty() )
-        const_cast< DataReader * >(this)->make_indecies();
+    if ( indices_.empty() )
+        const_cast< DataReader * >(this)->make_indices();
     
-    if ( ! indecies_.empty() ) {        
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-        if ( it != indecies_.end() )
+    if ( ! indices_.empty() ) {        
+        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indices_.end() )
             return it->elapsed_time;
     }
     return -1;    
@@ -810,13 +810,13 @@ DataReader::elapsed_time( int64_t rowid ) const
 double
 DataReader::time_since_inject( int64_t rowid ) const
 {
-    if ( indecies_.empty() )
-        const_cast< DataReader * >(this)->make_indecies();
+    if ( indices_.empty() )
+        const_cast< DataReader * >(this)->make_indices();
 
-    if ( ! indecies_.empty() ) {    
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-        if ( it != indecies_.end() )
-            return double( it->elapsed_time - indecies_.front().elapsed_time ) * 1.0e-9;
+    if ( ! indices_.empty() ) {    
+        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indices_.end() )
+            return double( it->elapsed_time - indices_.front().elapsed_time ) * 1.0e-9;
     }
     return -1;
 }
@@ -824,12 +824,12 @@ DataReader::time_since_inject( int64_t rowid ) const
 int
 DataReader::fcn( int64_t rowid ) const
 {
-    if ( indecies_.empty() )
-        const_cast< DataReader * >(this)->make_indecies();
+    if ( indices_.empty() )
+        const_cast< DataReader * >(this)->make_indices();
 
-    if ( ! indecies_.empty() ) {
-        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-        if ( it != indecies_.end() )
+    if ( ! indices_.empty() ) {
+        auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indices_.end() )
             return it->fcn;
     }
     return -1;    

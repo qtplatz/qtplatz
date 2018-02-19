@@ -89,8 +89,8 @@ histogram::append( const threshold_result& result )
     if ( method_.protocolIndex() != result.data()->method_.protocolIndex() )
         ADDEBUG() << "## ERROR protocol index missmatch: " << method_.protocolIndex() << " != " << result.data()->method_.protocolIndex();
 
-    if ( ! result.indecies().empty() )
-        std::for_each( result.indecies().begin(), result.indecies().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
+    if ( ! result.indices().empty() )
+        std::for_each( result.indices().begin(), result.indices().end(), [&] ( uint32_t idx ) {  data_[ idx ] ++; });
     
     serialnumber_ = result.data()->serialnumber_;
     timeSinceEpoch_ = result.data()->timeSinceEpoch_;

@@ -167,8 +167,8 @@ QuanResultWnd::handleCompoundSelectionChanged( const QItemSelection&, const QIte
 
     ADDEBUG() << "CompoundSelectionChanged: ";
 
-    QModelIndexList indecies = cmpdWidget_->table().selectionModel()->selectedIndexes();
-    for ( auto& index : indecies )
+    QModelIndexList indices = cmpdWidget_->table().selectionModel()->selectedIndexes();
+    for ( auto& index : indices )
         cmpds.insert( cmpdWidget_->uuid( index.row() ) );
     
     respTable_->setCompoundSelected( cmpds );

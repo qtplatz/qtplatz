@@ -94,14 +94,14 @@ namespace adplot {
             }
 
             size_t size() const override { 
-                if ( ! indecies_.empty() )
-                    return indecies_.size();
+                if ( ! indices_.empty() )
+                    return indices_.size();
                 return ms_.size();
             }
 
             QPointF sample( size_t idx ) const override {
-                if ( ! indecies_.empty() && idx < indecies_.size() ) // if colored
-                    idx = indecies_[ idx ];
+                if ( ! indices_.empty() && idx < indices_.size() ) // if colored
+                    idx = indices_[ idx ];
                 using namespace adcontrols::metric;
                 if ( axisTime_ )
                     return QPointF( scale_to<double, micro>( ms_.getTime( idx  )), ms_.getIntensity( idx ) );
@@ -117,15 +117,15 @@ namespace adplot {
                 const unsigned char * colors = ms_.getColorArray();
                 for ( size_t i = 0; i < ms_.size(); ++i ) {
                     if ( color == colors[i] )
-                        indecies_.push_back( i );
+                        indices_.push_back( i );
                 }
-                return indecies_.size();
+                return indices_.size();
             }
 
         private:
             QRectF rect_;
             const adcontrols::MassSpectrum& ms_;
-            std::vector< size_t > indecies_; // if centroid with color, 
+            std::vector< size_t > indices_; // if centroid with color, 
             bool axisTime_;
         };
 	

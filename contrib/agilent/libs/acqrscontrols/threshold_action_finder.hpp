@@ -35,7 +35,7 @@ namespace acqrscontrols {
         bool operator()( threshold_result_ptr result, std::shared_ptr< const adcontrols::threshold_action > action ) const {
 
             // Action for detected slope
-            if ( !result->indecies().empty() && action->enable ) {
+            if ( !result->indices().empty() && action->enable ) {
 
                 const auto& meta = result->data()->meta_;
                 const auto& proto = result->data()->method_.protocols()[ result->data()->method_.protocolIndex() ];
@@ -46,8 +46,8 @@ namespace acqrscontrols {
                     uint32_t beg = uint32_t( ( action->delay - action->width - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
                     uint32_t end = uint32_t( ( action->delay + action->width - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
 
-                    auto it = std::lower_bound( result->indecies().begin(), result->indecies().end(), beg );
-                    if ( it != result->indecies().end() ) {
+                    auto it = std::lower_bound( result->indices().begin(), result->indices().end(), beg );
+                    if ( it != result->indices().end() ) {
                         if ( *it < end ) {
                             result->setFoundAction( *it, std::make_pair( beg, end ) );
                             return true;
@@ -58,7 +58,7 @@ namespace acqrscontrols {
                 } else {
 
                     // no time range specified
-                    result->setFoundAction( *result->indecies().begin(), std::make_pair( 0, uint32_t( result->indecies().size() - 1 ) ) );
+                    result->setFoundAction( *result->indices().begin(), std::make_pair( 0, uint32_t( result->indices().size() - 1 ) ) );
 
                     return true;
 

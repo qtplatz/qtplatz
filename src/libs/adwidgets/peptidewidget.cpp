@@ -149,13 +149,13 @@ PeptideWidget::showContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
-    QModelIndexList indecies = table_->selectionModel()->selectedIndexes();
-    qSort( indecies );
-    if ( indecies.size() < 1 )
+    QModelIndexList indices = table_->selectionModel()->selectedIndexes();
+    qSort( indices );
+    if ( indices.size() < 1 )
         return;
 
     std::set< int > rows;
-    for ( auto& index: indecies )
+    for ( auto& index: indices )
         rows.insert( index.row() );
 
     QStandardItemModel& model = table_->model();

@@ -75,7 +75,7 @@ QuanChromatogram::QuanChromatogram( uint32_t fcn
 void
 QuanChromatogram::append( int64_t rowid, double time, double value )
 {
-    indecies_.emplace_back( rowid );
+    indices_.emplace_back( rowid );
     ( *chromatogram_ ) << std::make_pair( time, value );
 }
 
@@ -161,9 +161,9 @@ QuanChromatogram::peaks()
 uint32_t
 QuanChromatogram::pos_from_peak( const adcontrols::Peak& pk ) const
 {
-    if ( pk.topPos() < indecies_.size() ) {
+    if ( pk.topPos() < indices_.size() ) {
         
-        return indecies_[ pk.topPos() ];
+        return indices_[ pk.topPos() ];
         
     }
     return (-1);

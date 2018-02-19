@@ -241,11 +241,11 @@ ContourWnd::handleSelected( const QRectF& rect )
         if ( const adcontrols::MassSpectrumPtr ms = ptr->find( rect.left() ) ) {
             sp_->setData( ms, 0 );
             sp_->setTitle( (boost::format("Spectrum @ %.3fmin") % rect.left()).str() );
-            MainWindow::instance()->selectionChanged( ms, [ms,this] ( int event, const QVector< QPair<int, int > >& indecies ) {
+            MainWindow::instance()->selectionChanged( ms, [ms,this] ( int event, const QVector< QPair<int, int > >& indices ) {
                     if ( event == adwidgets::MSPeakTable::formula_changed )
                         sp_->setData( ms, 0 );
                     else if ( event == adwidgets::MSPeakTable::lockmass_triggered )
-                        mslock( ms, indecies );
+                        mslock( ms, indices );
                 } );
         }
 
@@ -328,10 +328,10 @@ ContourWnd::mslock()
 }
 
 bool
-ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVector< QPair<int, int> >& indecies )
+ContourWnd::mslock( std::shared_ptr< adcontrols::MassSpectrum > ref, const QVector< QPair<int, int> >& indices )
 {
     adcontrols::lockmass::mslock lkms;
-    for ( auto& index : indecies ) 
+    for ( auto& index : indices ) 
         adcontrols::lockmass::mslock::findReferences( lkms, *ref, index.first, index.second );
     double mserr( 0.010 );
     for ( auto m : lkms ) 

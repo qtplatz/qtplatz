@@ -61,7 +61,7 @@ namespace acqrscontrols {
                 level = int( ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor );
             }
 
-            auto& elements = result.indecies2();            
+            auto& elements = result.indices2();            
 
             adportable::counting::threshold_finder finder( findUp, nfilter );
 

@@ -513,11 +513,11 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
 
                 find_threshold( *waveforms[ i ], *results[ i ], results[ i ]->processed() );
 
-                results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
+                results[ i ]->indices().resize( results[ i ]->indices2().size() );
 
                 // copy from vector< adportable::threshold_index > ==> vector< uint32_t >
-                std::transform( results[ i ]->indecies2().begin(), results[ i ]->indecies2().end()
-                                , results[ i ]->indecies().begin()
+                std::transform( results[ i ]->indices2().begin(), results[ i ]->indices2().end()
+                                , results[ i ]->indices().begin()
                                 , []( const adportable::counting::threshold_index& a ){ return a.first; } );
                 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
@@ -582,10 +582,10 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
                 }
 
                 // copy from vector< adportable::threshold_index > ==> vector< uint32_t > for compatibility
-                results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
-                std::transform( results[ i ]->indecies2().begin()
-                                , results[ i ]->indecies2().end()
-                                , results[ i ]->indecies().begin()
+                results[ i ]->indices().resize( results[ i ]->indices2().size() );
+                std::transform( results[ i ]->indices2().begin()
+                                , results[ i ]->indices2().end()
+                                , results[ i ]->indices().begin()
                                 , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
                 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );

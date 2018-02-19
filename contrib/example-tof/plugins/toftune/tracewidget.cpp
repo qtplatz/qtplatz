@@ -374,15 +374,15 @@ TraceWidgetImpl::update_annotations( Dataplot& plot
     size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
     size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
 
-    std::vector< size_t > indecies;
+    std::vector< size_t > indices;
     for ( size_t idx = beg; idx <= end; ++idx )
-        indecies.push_back( idx );
+        indices.push_back( idx );
 
-    std::sort( indecies.begin(), indecies.end(), compare_priority( ms.getIntensityArray(), ms.getColorArray() ) );
+    std::sort( indices.begin(), indices.end(), compare_priority( ms.getIntensityArray(), ms.getColorArray() ) );
 
     Annotations annots(plot, annotations_);
     size_t n = 0;
-    for ( std::vector<size_t>::const_iterator it = indecies.begin(); it != indecies.end() && n <= 5; ++it, ++n ) {
+    for ( std::vector<size_t>::const_iterator it = indices.begin(); it != indices.end() && n <= 5; ++it, ++n ) {
         std::wstring label = ( boost::wformat( L"%.4lf" ) % ms.getMass( *it ) ).str();
         Annotation anno = annots.add( ms.getMass( *it ), ms.getIntensity( *it ), label );
         anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );

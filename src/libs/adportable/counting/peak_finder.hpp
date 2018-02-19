@@ -56,7 +56,7 @@ namespace adportable {
             template< typename const_iterator, typename index_type >
             void operator()( const_iterator&& begin
                              , const_iterator&& end
-                             , std::vector< index_type >& indecies
+                             , std::vector< index_type >& indices
                              , typename std::iterator_traits< const_iterator >::value_type level
                              , size_t offset = 0 ) {
 
@@ -71,7 +71,7 @@ namespace adportable {
                         apex = find_peak< findPositive >()( it, end );
 
                         if ( apex != end )
-                            indecies.emplace_back( std::distance( begin, it0 )
+                            indices.emplace_back( std::distance( begin, it0 )
                                                    , std::distance( begin, it )
                                                    , std::distance( begin, apex )
                                                    , *apex, *it ); // first,second,apex,value,base(last value)

@@ -95,10 +95,10 @@ threshold_result_accessor::xdata( std::string& ar ) const
     boost::iostreams::back_insert_device< std::string > inserter( ar );
     boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
 
-    auto& indecies = ( *it_ )->indecies2();
+    auto& indices = ( *it_ )->indices2();
     try {
         portable_binary_oarchive a( device );
-        a << indecies;
+        a << indices;
     } catch ( std::exception& ex ) {
         ADDEBUG() << "exception : " << ex.what();
     }
@@ -157,10 +157,10 @@ namespace acqrscontrols {
         boost::iostreams::back_insert_device< std::string > inserter( ar );
         boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
 
-        auto& indecies = ( *it_ )->indecies2();
+        auto& indices = ( *it_ )->indices2();
         try {
             portable_binary_oarchive a( device );
-            a << indecies;
+            a << indices;
         } catch ( std::exception& ex ) {
             ADDEBUG() << "exception : " << ex.what();
         }

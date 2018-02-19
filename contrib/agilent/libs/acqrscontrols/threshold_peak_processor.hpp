@@ -31,29 +31,29 @@
 namespace acqrscontrols {
 
     // threshold: 0,0,0,0,1,1,0,0,0
-    // indecies:  4,5
+    // indices:  4,5
 
     struct threshold_peak_processor {
         
         template< typename threshold_result_ptr >
         size_t accumulate( threshold_result_ptr result, double tof, double window ) const {
 
-            if ( !result->indecies().empty() ) {
+            if ( !result->indices().empty() ) {
                 
                 // tof equals zero
 				if ( std::abs( tof ) <= std::numeric_limits<double>::epsilon() )
-                    return result->indecies().size(); // return total ion count
+                    return result->indices().size(); // return total ion count
 
                 const auto& meta = result->data()->meta_;
                 
                 uint32_t beg = uint32_t( ( ( tof - window / 2 ) - meta.initialXOffset ) / meta.xIncrement );
                 uint32_t end = uint32_t( ( ( tof + window / 2 ) - meta.initialXOffset ) / meta.xIncrement );
                 
-                auto lower = std::lower_bound( result->indecies().begin(), result->indecies().end(), beg );
+                auto lower = std::lower_bound( result->indices().begin(), result->indices().end(), beg );
 
-                if ( lower != result->indecies().end() ) {
+                if ( lower != result->indices().end() ) {
 
-                    auto upper = std::upper_bound( result->indecies().begin(), result->indecies().end(), end );
+                    auto upper = std::upper_bound( result->indices().begin(), result->indices().end(), end );
                     return std::distance( lower, upper );
                 }
 

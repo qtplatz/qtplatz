@@ -423,7 +423,7 @@ tdcdoc::processThreshold( std::array< std::shared_ptr< const acqrscontrols::ap24
             
             if ( methods[ i ] && methods[ i ]->enable ) {
                 
-                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indecies(), results[ i ]->processed() );
+                find_threshold_timepoints( *waveforms[ i ], *methods[ i ], results[ i ]->indices(), results[ i ]->processed() );
 
                 bool result = acqrscontrols::threshold_action_finder()( results[i], impl_->threshold_action_ );
                 

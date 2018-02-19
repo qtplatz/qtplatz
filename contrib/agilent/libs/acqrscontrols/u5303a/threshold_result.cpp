@@ -55,7 +55,7 @@ threshold_result::threshold_result( std::shared_ptr< const waveform > d ) : data
 
 threshold_result::threshold_result( const threshold_result& t ) : adportable::counting::counting_result( t )
                                                                 , data_( t.data_ )
-                                                                , indecies_( t.indecies_ )
+                                                                , indices_( t.indices_ )
                                                                 , processed_( t.processed_ )
                                                                 , foundIndex_( t.foundIndex_ )
                                                                 , findRange_( t.findRange_ )
@@ -70,15 +70,15 @@ threshold_result::data()
 }
 
 std::vector< uint32_t >&
-threshold_result::indecies()
+threshold_result::indices()
 {
-     return indecies_;
+     return indices_;
 }
 
 const std::vector< uint32_t >&
-threshold_result::indecies() const
+threshold_result::indices() const
 {
-    return indecies_;
+    return indices_;
 }
 
 std::vector< double >&
@@ -130,13 +130,13 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t 
 
     data_ = data;
 
-    // restore indecies
+    // restore indices
     boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char *>(xdata), dsize );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
 
     try {
         portable_binary_iarchive ar( st );
-        ar >> indecies_;
+        ar >> indices_;
     } catch ( std::exception& ) {
         return false;
     }
@@ -175,8 +175,8 @@ threshold_result::write3( std::ostream& os, const threshold_result& t )
             % ( t.threshold_level() * std::milli::den )
             % t.algo();
         
-        if ( ! t.indecies2().empty() ) {
-            for ( auto& idx : t.indecies2() ) {
+        if ( ! t.indices2().empty() ) {
+            for ( auto& idx : t.indices2() ) {
                 
                 auto apex  = data->xy( idx.apex );
 
@@ -211,8 +211,8 @@ namespace acqrscontrols {
                    << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
                    << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
                 
-                if ( ! t.indecies2().empty() ) {
-                    for ( auto& idx : t.indecies2() ) {
+                if ( ! t.indices2().empty() ) {
+                    for ( auto& idx : t.indices2() ) {
                         auto v = data->xy( idx.first );
                         os << boost::format( ",\t%.14le, %d, %d, %d, %.6f" )
                             % v.first % idx.first % idx.second % idx.apex
@@ -220,7 +220,7 @@ namespace acqrscontrols {
                     }
                     
                 } else {
-                    for ( auto& idx : t.indecies() ) {
+                    for ( auto& idx : t.indices() ) {
                         auto v = data->xy( idx );
                         os << boost::format( ", %.14le, %d" ) % v.first % v.second;
                     }

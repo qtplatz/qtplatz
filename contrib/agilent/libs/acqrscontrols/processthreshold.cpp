@@ -106,10 +106,10 @@ namespace acqrscontrols {
                         }
                         
                         // copy from vector< adportable::threshold_index > ==> vector< uint32_t > for compatibility
-                        results[ i ]->indecies().resize( results[ i ]->indecies2().size() );
-                        std::transform( results[ i ]->indecies2().begin()
-                                        , results[ i ]->indecies2().end()
-                                        , results[ i ]->indecies().begin()
+                        results[ i ]->indices().resize( results[ i ]->indices2().size() );
+                        std::transform( results[ i ]->indices2().begin()
+                                        , results[ i ]->indices2().end()
+                                        , results[ i ]->indices().begin()
                                         , []( const adportable::counting::threshold_index& a ){ return a.apex; } ); // <-- apex
                         
                         bool result = acqrscontrols::threshold_action_finder()( results[i], threshold_action );

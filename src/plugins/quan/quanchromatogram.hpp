@@ -114,7 +114,7 @@ namespace quan {
         std::string formula_;
         double exactMass_;
         double matchedMass_;
-        std::vector< int64_t > indecies_; // adfs 'pos' - bin# map
+        std::vector< int64_t > indices_; // adfs 'pos' - bin# map
         std::shared_ptr< adcontrols::MSPeakInfo > mspeaks_;
         std::pair< double, double > msrange_;
         uint32_t count_;

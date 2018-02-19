@@ -95,7 +95,7 @@ ResultWriter::operator << ( std::shared_ptr< const acqrscontrols::threshold_resu
         
         do {
             adfs::stmt sql( db_ );
-            for ( auto& idx : rp->indecies2() ) {
+            for ( auto& idx : rp->indices2() ) {
                 
                 sql.prepare( "INSERT INTO peak"
                              " (idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )"

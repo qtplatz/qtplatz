@@ -76,11 +76,11 @@ namespace acqrscontrols {
                         if ( offs.second ) {
                             size_t eoffs = offs.first + offs.second;
                             if ( method.use_filter ) {
-                                finder( processed.begin(), processed.begin() + eoffs, result.indecies2(), level, offs.first  );
+                                finder( processed.begin(), processed.begin() + eoffs, result.indices2(), level, offs.first  );
                             } else if ( data.meta_.dataType == 2 ) {
-                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, result.indecies2(), level, offs.first );
+                                finder( data.template begin<int16_t>(), data.template begin< int16_t >() + eoffs, result.indices2(), level, offs.first );
                             } else if ( data.meta_.dataType == 4 ) {
-                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, result.indecies2(), level, offs.first );
+                                finder( data.template begin<int32_t>(), data.template begin<int32_t>() + eoffs, result.indices2(), level, offs.first );
                             }
                         }
                     }
@@ -88,11 +88,11 @@ namespace acqrscontrols {
 
             } else {
                 if ( method.use_filter ) 
-                    finder( processed.begin(), processed.end(), result.indecies2(), level );        
+                    finder( processed.begin(), processed.end(), result.indices2(), level );        
                 else if ( data.meta_.dataType == 2 )
-                    finder( data.template begin<int16_t>(), data.template end<int16_t>(), result.indecies2(), level );
+                    finder( data.template begin<int16_t>(), data.template end<int16_t>(), result.indices2(), level );
                 else if ( data.meta_.dataType == 4 )
-                    finder( data.template begin<int32_t>(), data.template end<int32_t>(), result.indecies2(), level );
+                    finder( data.template begin<int32_t>(), data.template end<int32_t>(), result.indices2(), level );
             }
         }
     };

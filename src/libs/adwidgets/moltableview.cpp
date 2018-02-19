@@ -519,25 +519,25 @@ MolTableView::dropEvent( QDropEvent * event )
 void
 MolTableView::handleCopyToClipboard()
 {
-	QModelIndexList indecies = selectionModel()->selectedIndexes();
+	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    qSort( indecies );
-    if ( indecies.size() < 1 )
+    qSort( indices );
+    if ( indices.size() < 1 )
         return;
 
     adcontrols::moltable molecules;
     
     QString selected_text;
-    QModelIndex prev = indecies.first();
-    QModelIndex last = indecies.last();
+    QModelIndex prev = indices.first();
+    QModelIndex last = indices.last();
 
-    indecies.removeFirst();
+    indices.removeFirst();
 
     adcontrols::moltable::value_type mol;
 
-    for( int i = 0; i < indecies.size(); ++i ) {
+    for( int i = 0; i < indices.size(); ++i ) {
         
-        QModelIndex index = indecies.at( i );
+        QModelIndex index = indices.at( i );
 
         if ( !isRowHidden( prev.row() ) ) {
 

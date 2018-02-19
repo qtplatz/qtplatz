@@ -95,10 +95,10 @@ threshold_result_accessor::xdata( std::string& ar ) const
 {
     std::ostringstream o;
     
-    auto& indecies = ( *it_ )->indecies();
+    auto& indices = ( *it_ )->indices();
     try {
         portable_binary_oarchive a( o );
-        a << indecies;
+        a << indices;
         adportable::bzip2::compress( ar, o.str().data(), o.str().size() );
     } catch ( std::exception& ex ) {
         ADDEBUG() << "exception : " << ex.what();

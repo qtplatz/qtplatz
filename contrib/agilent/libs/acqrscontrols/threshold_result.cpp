@@ -107,27 +107,27 @@ threshold_result::findUp() const
 }
 
 std::vector< uint32_t >&
-threshold_result::indecies()
+threshold_result::indices()
 {
-    return indecies_;
+    return indices_;
 }
 
 const std::vector< uint32_t >&
-threshold_result::indecies() const
+threshold_result::indices() const
 {
-    return indecies_;    
+    return indices_;    
 }
 
 bool
 threshold_result::deserialize( const int8_t * xdata, size_t dsize )
 {
-    // restore indecies
+    // restore indices
     boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char *>(xdata), dsize );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
     
     try {
         portable_binary_iarchive ar( st );
-        ar >> indecies_;
+        ar >> indices_;
     } catch ( std::exception& ) {
         return false;
     }

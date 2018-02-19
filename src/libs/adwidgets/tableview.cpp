@@ -80,19 +80,19 @@ TableView::handlePaste()
 void
 TableView::handleCopyToClipboard()
 {
-	QModelIndexList indecies = selectionModel()->selectedIndexes();
+	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    qSort( indecies );
-    if ( indecies.size() < 1 )
+    qSort( indices );
+    if ( indices.size() < 1 )
         return;
 
     QString selected_text;
-    QModelIndex prev = indecies.first();
-    QModelIndex last = indecies.last();
+    QModelIndex prev = indices.first();
+    QModelIndex last = indices.last();
 
-    indecies.removeFirst();
-    for( int i = 0; i < indecies.size(); ++i ) {
-        QModelIndex index = indecies.at( i );
+    indices.removeFirst();
+    for( int i = 0; i < indices.size(); ++i ) {
+        QModelIndex index = indices.at( i );
         
         if ( !isRowHidden( prev.row() ) ) {
 
@@ -123,15 +123,15 @@ TableView::handleCopyToClipboard()
 void
 TableView::handleDeleteSelection()
 {
-	QModelIndexList indecies = selectionModel()->selectedIndexes();
+	QModelIndexList indices = selectionModel()->selectedIndexes();
 
-    qSort( indecies );
-    if ( indecies.size() < 1 )
+    qSort( indices );
+    if ( indices.size() < 1 )
         return;
 
 	std::set< int > rows;
-    for( int i = 0; i < indecies.size(); ++i ) {
-        QModelIndex index = indecies.at( i );
+    for( int i = 0; i < indices.size(); ++i ) {
+        QModelIndex index = indices.at( i );
 		rows.insert( index.row() );
 	}
 	std::vector< std::pair< int, int > > ranges;

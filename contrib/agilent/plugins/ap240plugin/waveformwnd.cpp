@@ -278,10 +278,10 @@ WaveformWnd::handle_waveform()
             if ( o.str().empty() )
                 o << boost::format( "%ddegC Time: %.3lf" ) % temperature_ % waveform->meta_.initialXTimeSeconds;
 
-            if ( !result->indecies().empty() ) {
+            if ( !result->indices().empty() ) {
                 o << boost::format( " CH%d level: [%.0fmV]= " )  % ( channel + 1 ) % levels_mV[ channel ];
-                for ( int i = 0; i < 5 && i < result->indecies().size(); ++i ) {
-                    double t0 = sp->getTime( result->indecies()[i] ) * 1.0e6;
+                for ( int i = 0; i < 5 && i < result->indices().size(); ++i ) {
+                    double t0 = sp->getTime( result->indices()[i] ) * 1.0e6;
                     o << boost::format( "(%.4lf)" )  % t0;
                 }
             }

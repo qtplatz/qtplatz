@@ -66,11 +66,11 @@ namespace acqrscontrols {
         
         static void write3( std::ostream&, const threshold_result& );
 
-        std::vector< uint32_t >& indecies();
-        const std::vector< uint32_t >& indecies() const;
+        std::vector< uint32_t >& indices();
+        const std::vector< uint32_t >& indices() const;
 
     protected:
-        std::vector< uint32_t > indecies_;
+        std::vector< uint32_t > indices_;
     private:
         std::vector< double > processed_;
         std::pair< uint32_t, uint32_t > findRange_;

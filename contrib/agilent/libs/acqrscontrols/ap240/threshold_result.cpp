@@ -54,7 +54,7 @@ threshold_result::threshold_result( std::shared_ptr< const acqrscontrols::ap240:
 {
 }
 
-threshold_result::threshold_result( const threshold_result& t ) : indecies_( t.indecies_ )
+threshold_result::threshold_result( const threshold_result& t ) : indices_( t.indices_ )
                                                                 , data_( t.data_ )
                                                                 , processed_( t.processed_ )
                                                                 , foundIndex_( t.foundIndex_ )
@@ -69,9 +69,9 @@ threshold_result::data()
 }
 
 std::vector< uint32_t >&
-threshold_result::indecies()
+threshold_result::indices()
 {
-    return indecies_;
+    return indices_;
 }
 
 std::vector< double >&
@@ -87,9 +87,9 @@ threshold_result::data() const
 }
 
 const std::vector< uint32_t >&
-threshold_result::indecies() const
+threshold_result::indices() const
 {
-    return indecies_;
+    return indices_;
 }
 
 const std::vector< double >&
@@ -127,13 +127,13 @@ threshold_result::deserialize( const int8_t * xdata, size_t dsize, const int8_t 
 
     data_ = data;
 
-    // restore indecies
+    // restore indices
     boost::iostreams::basic_array_source< char > device( reinterpret_cast< const char *>(xdata), dsize );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
 
     try {
         portable_binary_iarchive ar( st );
-        ar >> indecies_;
+        ar >> indices_;
     } catch ( std::exception& ) {
         return false;
     }
@@ -185,19 +185,19 @@ namespace acqrscontrols {
 
         x.trigger_count()++;
     
-        if ( indecies_.empty() )
+        if ( indices_.empty() )
             return true;
     
         if ( hgrm.empty() ) {
 
-            std::for_each( indecies().begin(), indecies().end(), [&] ( uint32_t idx ) {
+            std::for_each( indices().begin(), indices().end(), [&] ( uint32_t idx ) {
                     x.histogram().emplace_back( to_time( idx ), 1 );
                 } );
             return true;        
 
         } else {
 
-            for ( const auto& index: indecies_ ) {
+            for ( const auto& index: indices_ ) {
             
                 double t = to_time( index );
                 auto it = std::lower_bound( hgrm.begin(), hgrm.end(), t, [&]( std::pair< double, uint32_t >& a, const double& b ) {
@@ -223,7 +223,7 @@ namespace acqrscontrols {
                 << boost::format( ", %.8e, %.8e" ) % t.data()->meta_.scaleFactor % t.data()->meta_.scaleOffset
                 << boost::format( ", %.8e" ) % t.data()->meta_.initialXOffset;
 
-            for ( auto& idx : t.indecies() ) {
+            for ( auto& idx : t.indices() ) {
                 auto v = t.data()->xy( idx );
                 os << boost::format( ", %.14le, %d" ) % v.first % v.second;
             }

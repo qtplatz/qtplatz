@@ -42,8 +42,8 @@ namespace adportable {
                    << boost::format( ", %.8e, %.8e" ) % data->meta_.scaleFactor % data->meta_.scaleOffset
                    << boost::format( ", %.8e" ) % data->meta_.initialXOffset;
                 
-                if ( ! t.indecies2().empty() ) {
-                    for ( auto& idx : t.indecies2() ) {
+                if ( ! t.indices2().empty() ) {
+                    for ( auto& idx : t.indices2() ) {
                         auto v = data->xy( idx.first );
                         os << boost::format( ",\t%.14le, %d, %d, %d, %d, %d" )
                             % v.first
@@ -55,7 +55,7 @@ namespace adportable {
                     }
                     
                 } else {
-                    for ( auto& idx : t.indecies() ) {
+                    for ( auto& idx : t.indices() ) {
                         auto v = data->xy( idx );
                         os << boost::format( ", %.14le, %d" ) % v.first % v.second;
                     }

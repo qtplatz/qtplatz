@@ -122,7 +122,7 @@ acqrsdata::processIt( std::function< void( size_t, size_t, const std::string& ) 
                         if ( auto rp = processThreshold3( ptr, method ) ) {
 
                             writer << rp;
-                            progress( idx++, size, ( boost::format("\t%d peaks found") % rp->indecies2().size() ).str() );
+                            progress( idx++, size, ( boost::format("\t%d peaks found") % rp->indices2().size() ).str() );
                             
                         }
                     }
