@@ -198,3 +198,9 @@ QuanChromatogram::setReader_objtext( const std::string& t )
 {
     reader_objtext_ = t;
 }
+
+const std::pair< double, double >&
+QuanChromatogram::msrange() const
+{
+    return msrange_;
+}

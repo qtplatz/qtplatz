@@ -84,11 +84,11 @@ using namespace quan;
 
 // static
 std::wstring
-QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::string& formula, int fcn, double error, const wchar_t * trailer )
+QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::string& formula, int fcn, double width, const wchar_t * trailer )
 {
     boost::filesystem::path path( dataSource );
 
-    std::wstring title = ( boost::wformat( L"%s, %s#%d %.4f" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % fcn % error ).str();
+    std::wstring title = ( boost::wformat( L"%s, %s#%d W(%.1f)mDa" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % fcn % (width*1000) ).str();
 
     title += trailer;  //L" (1st phase)";
 
@@ -217,7 +217,8 @@ QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDa
     for ( auto & chro : *chromatograms ) {
                 
         std::string formula = chro->formula();
-        std::wstring title = make_title( dataSource, formula, chro->fcn(), chro->matchedMass() - chro->exactMass(), title_trailer );
+        auto range = chro->msrange();
+        std::wstring title = make_title( dataSource, formula, chro->fcn(), range.second - range.first, title_trailer );
                 
         if ( chro ) {
 
@@ -375,9 +376,9 @@ QuanChromatogramProcessor::doProfileChromatogram( QuanSampleProcessor& processor
                 targets.emplace_back( std::make_shared< QuanTarget >( formula ) );
         }
     }
-    
+
+    double mass_width = 0.005; // 5mDa default
     do { // first phase
-        double mass_width = 0.005; // 5mDa default
         if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
             mass_width = targeting_method->tolerance( targeting_method->toleranceMethod() );
         }
@@ -414,7 +415,7 @@ QuanChromatogramProcessor::doProfileChromatogram( QuanSampleProcessor& processor
     // process based on found mass -- QuanChromatograms now point single chromatogram
     std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v;
     for ( auto& candidate : candidates ) {
-        qcrms_v.push_back( std::make_shared< QuanChromatograms >( candidate.formula(), candidate ) );
+        qcrms_v.emplace_back( std::make_shared< QuanChromatograms >( candidate.formula(), candidate, mass_width ) );
     }
 
     // re-generate chromatograms

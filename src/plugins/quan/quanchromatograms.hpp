@@ -70,7 +70,7 @@ namespace quan {
                            , const std::vector< QuanTarget::target_value >& target_values
                            , const std::string& reader_objtext );
 
-        QuanChromatograms( const std::string& formula, const QuanCandidate& );
+        QuanChromatograms( const std::string& formula, const QuanCandidate&, double mass_width );
 
         void append_to_chromatogram( int64_t pos, std::shared_ptr<const adcontrols::MassSpectrum>, const std::string& reader_objtext );
 

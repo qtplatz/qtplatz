@@ -120,10 +120,11 @@ QuanChromatograms::QuanChromatograms( const std::string& formula
 }
 
 QuanChromatograms::QuanChromatograms( const std::string& formula
-                                      , const QuanCandidate& c ) : formula_( formula )
-                                                                 , target_values_( { QuanTarget::target_value( c.formula(), c.exactMass(), 1, c.matchedMass(), c.width() ) } )
-                                                                 , candidate_( std::make_shared< QuanCandidate >( c ) )
-                                                                 , identified_( false )
+                                      , const QuanCandidate& c
+                                      , double mass_width ) : formula_( formula )
+                                                            , target_values_( { QuanTarget::target_value( c.formula(), c.exactMass(), 1, c.matchedMass(), mass_width ) } )
+                                                            , candidate_( std::make_shared< QuanCandidate >( c ) )
+                                                            , identified_( false )
 {
 }
 

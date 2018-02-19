@@ -100,6 +100,8 @@ namespace quan {
         const std::string& reader_objtext() const;
         void setReader_objtext( const std::string& );
 
+        const std::pair< double, double >& msrange() const;
+
     private:
         std::shared_ptr< adcontrols::Chromatogram > chromatogram_;
         std::shared_ptr< adcontrols::PeakResult> peakinfo_;
