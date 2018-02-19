@@ -139,7 +139,7 @@ QuanConfigForm::QuanConfigForm(QWidget *parent) : QWidget(parent)
     }
     if ( QComboBox * combo = dynamic_cast<QComboBox *>(accessor( idComboDebugLevel )) ) {
         combo->clear();
-        combo->insertItems( 0, QStringList() << tr("None") << tr("2nd phase") << tr("1st phase") );
+        combo->insertItems( 0, QStringList() << tr("None") << tr("2nd phase") << tr("1st phase") << tr("1st&2nd phases"));
     }
 
     if ( auto radioButton = qobject_cast< QRadioButton * >( accessor( idRadioCounting ) ) ) {

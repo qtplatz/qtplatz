@@ -140,8 +140,6 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
     for ( auto& fms: segments ) {
         
         double time = fms.getMSProperty().timeSinceInjection();
-        if ( time > 6000 )
-            long x = 0;
 
         uint32_t candidate_index = 0; //  index to masses_
 

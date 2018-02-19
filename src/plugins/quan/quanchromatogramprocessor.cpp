@@ -109,6 +109,8 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const QuanCan
 
 QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
     : procm_( pm )
+    , debug_level_( 0 )
+    , save_on_datasource_( false )
 {
     
     if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
@@ -203,8 +205,6 @@ QuanChromatogramProcessor::find_parallel_chromatograms( std::vector< std::shared
         qchro->process_chromatograms( procm_ );
         if ( pCompounds )
             qchro->identify( pCompounds, procm_ );
-        //if ( qchro->identify( pCompounds, procm_ ) )
-        ; //qchro->refactor(); <- remove if not identified
     }
 }
 
@@ -305,34 +305,52 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
                                  , const std::string& reader_objtext
                                  , std::shared_ptr< adwidgets::Progress > progress )
 {
-    uint32_t debug_level = 0;
     bool save_on_datasource = false;
 
     if ( auto qm = procm_->find< adcontrols::QuanMethod >() ) {
-        debug_level = qm->debug_level();
-        save_on_datasource = qm->save_on_datasource();
+        debug_level_ = qm->debug_level();
+        save_on_datasource_ = qm->save_on_datasource();
     }
 
-    auto reader_name = reader_objtext.find( "histogram" ) != std::string::npos ? "histogram"
-        : reader_objtext.find( "tdcdoc.waveform" ) != std::string::npos ? "waveform"
-        : reader_objtext;
+    if ( reader_objtext.find( "histogram" ) != std::string::npos ) {
+        // counting data reader specified
+        doCountingChromatogram( processor, sample, writer, reader_objtext, progress );
+        
+    } else {
+        // profile data reader specified
+        doProfileChromatogram( processor, sample, writer, reader_objtext, progress );
+    }
+}
 
+void
+QuanChromatogramProcessor::doCountingChromatogram( QuanSampleProcessor& processor
+                                                   , adcontrols::QuanSample& sample
+                                                   , std::shared_ptr< QuanDataWriter > writer
+                                                   , const std::string& reader_objtext
+                                                   , std::shared_ptr< adwidgets::Progress > progress )
+{
+}
+
+
+void
+QuanChromatogramProcessor::doProfileChromatogram( QuanSampleProcessor& processor
+                                                  , adcontrols::QuanSample& sample
+                                                  , std::shared_ptr< QuanDataWriter > writer
+                                                  , const std::string& reader_objtext
+                                                  , std::shared_ptr< adwidgets::Progress > progress )
+{
+    std::vector< std::shared_ptr< QuanTarget > > targets;
     std::vector< QuanCandidate > candidates;
     
-    do { // first phase
-        std::vector< std::shared_ptr< QuanTarget > > targets;
-
-        if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
-
-            for ( auto& comp : *compounds ) {
-
-                std::string formula( comp.formula() );
-                if ( !formula.empty() ) {
-                    targets.push_back( std::make_shared< QuanTarget >( formula ) );
-                }
-            }
+    if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
+        for ( auto& comp : *compounds ) {
+            std::string formula( comp.formula() );
+            if ( !formula.empty() && !comp.isCounting() )
+                targets.emplace_back( std::make_shared< QuanTarget >( formula ) );
         }
-
+    }
+    
+    do { // first phase
         double mass_width = 0.005; // 5mDa default
         if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
             mass_width = targeting_method->tolerance( targeting_method->toleranceMethod() );
@@ -344,8 +362,8 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
         std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v1; // array of enum of chromatogram
         find_parallel_chromatograms( qcrms_v1, targets, reader_objtext, mass_width, tolerance );  
 
-        if ( debug_level >= 4 ) {
-            std::wstring trailer = L"(1st phase)," + adportable::utf::to_wstring( reader_name );
+        if ( debug_level_ == 4 || debug_level_ >= 6 ) { // 4 || 6
+            std::wstring trailer = L"(1st phase),waveform";
             for ( auto& qcrms : qcrms_v1 )
                 save_candidate_chromatograms( writer, sample.dataSource(), qcrms, trailer.c_str() );
         }
@@ -357,9 +375,9 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
                 });
         }
 
-        if ( debug_level >= 2 ) {
+        if ( debug_level_ == 2 || debug_level_ >= 6 ) {
             for ( auto& qcrms : qcrms_v1 ) {
-                std::wstring trailer = L"(2nd phase)," + adportable::utf::to_wstring( reader_name );
+                std::wstring trailer = L"(2nd phase),waveform";
                 save_candidate_chromatograms( writer, sample.dataSource(), qcrms, trailer.c_str() );
             }
         }
@@ -419,7 +437,7 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
     // identify all
 	if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
         for ( auto& qchro: qcrms_v ) {
-            std::wstring trailer = L"(final)," + adportable::utf::to_wstring( reader_name );
+            std::wstring trailer = L"(final),waveform";
             save_candidate_chromatograms( writer, sample.dataSource(), qchro, trailer.c_str() );
 
             std::for_each( qchro->begin(), qchro->end(), [&] ( std::shared_ptr<QuanChromatogram> c ) {
@@ -461,7 +479,7 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
             writer->insert_table( c->dataGuid(), c->referenceDataGuids() );
     }
     
-    if ( save_on_datasource ) {
+    if ( save_on_datasource_ ) {
         if ( auto source = std::make_shared< QuanDataWriter >( sample.dataSource() ) ) {
             if ( source->open() ) {
 

@@ -81,7 +81,19 @@ namespace quan {
         std::wstring save_spectrum( std::shared_ptr< QuanDataWriter > writer
                                     , const QuanCandidate&
                                     , const std::wstring& title );
-        
+
+        void doCountingChromatogram( QuanSampleProcessor&, adcontrols::QuanSample&
+                                     , std::shared_ptr< QuanDataWriter >
+                                     , const std::string& reader_objtext
+                                     , std::shared_ptr< adwidgets::Progress > );
+
+        void doProfileChromatogram( QuanSampleProcessor&, adcontrols::QuanSample&
+                                    , std::shared_ptr< QuanDataWriter >
+                                    , const std::string& reader_objtext
+                                    , std::shared_ptr< adwidgets::Progress > );
+
+        int debug_level_;
+        bool save_on_datasource_;
         std::map< size_t, QuanChromatograms::spectra_type > spectra_;
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
         std::shared_ptr< adcontrols::lockmass::mslock > mslock_;
