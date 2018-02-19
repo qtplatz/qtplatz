@@ -148,6 +148,8 @@ QuanChromatogramProcessor::process1st( int64_t rowid
                                        , std::shared_ptr< adcontrols::MassSpectrum > ms
                                        , QuanSampleProcessor& sampleprocessor )
 {
+    ADDEBUG() << __FUNCTION__ << " time: " << ms->getMSProperty().timeSinceInjection() << ", " << ms->dataReaderUuid();
+    
     correct_baseline( *ms );
 
     if ( mslockm_ && mslock_ ) {

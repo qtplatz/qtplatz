@@ -325,6 +325,8 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 if ( sql.step() == adfs::sqlite_row )
                     fcnCount_ = sql.get_column_value< int64_t >( 0 );
             }
+
+            make_indecies();
             
 #if ! defined NDEBUG
             ADDEBUG() << "DataReader::initailze(" << objid << ", " << objtext << ") fcnCount=" << fcnCount_;
