@@ -97,12 +97,16 @@ namespace quan {
         std::shared_ptr< adcontrols::Chromatogram > chromatogram() { return chromatogram_; }
         std::shared_ptr< adcontrols::PeakResult> peakResult()      { return peakinfo_; }
 
+        const std::string& reader_objtext() const;
+        void setReader_objtext( const std::string& );
+
     private:
         std::shared_ptr< adcontrols::Chromatogram > chromatogram_;
         std::shared_ptr< adcontrols::PeakResult> peakinfo_;
         
         std::wstring dataGuid_;
         std::vector< std::tuple< std::wstring, uint32_t, uint32_t> > dataGuids_;  // reference spectra (guid,idx,fcn)
+        std::string reader_objtext_;
         uint32_t fcn_;
         uint32_t candidate_index_;
         std::string formula_;

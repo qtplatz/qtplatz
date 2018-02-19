@@ -67,11 +67,12 @@ namespace quan {
         ~QuanChromatograms();
 
         QuanChromatograms( const std::string& formula /* master formula -> developped to many by possible adducts|charge */
-                           , const std::vector< QuanTarget::target_value >& target_values );
+                           , const std::vector< QuanTarget::target_value >& target_values
+                           , const std::string& reader_objtext );
 
         QuanChromatograms( const std::string& formula, const QuanCandidate& );
 
-        void append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> );
+        void append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum>, const std::string& reader_objtext );
 
         void process_chromatograms( std::shared_ptr< const adcontrols::ProcessMethod > pm );
 
@@ -99,7 +100,7 @@ namespace quan {
             
         };
 
-        void refine_chromatograms( std::vector< QuanCandidate >& refined, std::function<spectra_type( uint32_t pos )> reader );
+        void refine_chromatograms( const std::string& reader_objtext, std::vector< QuanCandidate >& refined, std::function<spectra_type( uint32_t pos )> reader );
 
         void finalize( std::function<spectra_type( uint32_t pos )> reader );
         
@@ -115,6 +116,7 @@ namespace quan {
         void refactor();
 
     private:
+        std::string reader_objtext_;
         std::string formula_;
         std::vector< QuanTarget::target_value > target_values_; // exact, matched, width
         std::vector< std::shared_ptr< QuanChromatogram > > qchro_;

@@ -165,11 +165,15 @@ namespace adcontrols {
         
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
+
         Peaks& peaks();
         const Peaks& peaks() const;
 
         Baselines& baselines();
         const Baselines& baselines() const;
+        
+        void setBaselines( const Baselines& );
+        void setPeaks( const Peaks& );
     
     private:
         friend class boost::serialization::access;

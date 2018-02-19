@@ -229,6 +229,7 @@ rawdata::getSpectrumCount( int fcn ) const
 bool
 rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
+    assert( 0 );
     std::vector< boost::uuids::uuid > uuids;
 
     adfs::stmt sql( dbf_.db() );

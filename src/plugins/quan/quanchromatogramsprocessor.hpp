@@ -47,7 +47,9 @@ namespace quan {
         void process1st( size_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
 
         void doit( QuanSampleProcessor&, adcontrols::QuanSample&
-                   , std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::Progress > );
+                   , std::shared_ptr< QuanDataWriter >
+                   , const std::string& reader_objtext
+                   , std::shared_ptr< adwidgets::Progress > );
 
         enum { idFormula, idExactMass };
         typedef std::tuple< std::string, double > target_type;        
@@ -57,9 +59,12 @@ namespace quan {
         void correct_baseline( adcontrols::MassSpectrum& profile );
 
         void find_parallel_chromatograms( std::vector< std::shared_ptr< QuanChromatograms > >&
-                                          , const std::vector< std::shared_ptr< QuanTarget > >& targets );
+                                          , const std::vector< std::shared_ptr< QuanTarget > >& targets
+                                          , const std::string& reader_objtext
+                                          , double mspeak_width = 0.002
+                                          , double tolerance = 0.010 );
 
-        static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double error, const wchar_t * trailer = L"" );
+        static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, int fcn, double error, const wchar_t * trailer = L"" );
         static std::wstring make_title( const wchar_t * dataSource, const QuanCandidate&, const wchar_t * trailer = L"" );        
 
         static bool doCentroid( const adcontrols::MassSpectrum& profile

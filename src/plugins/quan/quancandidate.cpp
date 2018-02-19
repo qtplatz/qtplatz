@@ -34,6 +34,7 @@
 using namespace quan;
 
 QuanCandidate::QuanCandidate( const std::string& formula
+                              , const std::string& reader_objtext
                               , double exactMass
                               , double matchedMass
                               , std::pair< double, double > fwhm_range
@@ -54,6 +55,7 @@ QuanCandidate::QuanCandidate( const std::string& formula
                                                                                      , centroid_( centroid )
                                                                                      , filtered_( filtered )
                                                                                      , mspkinfo_( mspkinfo )
+                                                                                     , reader_objtext_( reader_objtext )
 
 {
 }
@@ -69,6 +71,7 @@ QuanCandidate::QuanCandidate( const QuanCandidate& t ) : exactMass_( t.exactMass
                                                        , centroid_( t.centroid_ )
                                                        , filtered_( t.filtered_ )
                                                        , mspkinfo_( t.mspkinfo_ )
+                                                       , reader_objtext_( t.reader_objtext_ )
 {
 }
 
@@ -86,7 +89,7 @@ QuanCandidate::operator = ( const QuanCandidate& t )
     centroid_ = t.centroid_;
     filtered_ = t.filtered_;
     mspkinfo_ = t.mspkinfo_;
-
+    reader_objtext_ = t.reader_objtext_;
     return *this;
 }
 

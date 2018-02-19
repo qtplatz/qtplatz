@@ -241,6 +241,18 @@ Chromatogram::baselines() const
     return pImpl_->baselines_;
 }
 
+void
+Chromatogram::setBaselines( const Baselines& baselines )
+{
+    pImpl_->baselines_ = baselines;
+}
+
+void
+Chromatogram::setPeaks( const Peaks& peaks )
+{
+    pImpl_->peaks_ = peaks;
+}
+
 bool
 Chromatogram::isConstantSampledData() const
 {

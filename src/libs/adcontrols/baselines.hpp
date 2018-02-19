@@ -42,6 +42,7 @@ namespace adcontrols {
         virtual ~Baselines();
         Baselines();
         Baselines( const Baselines& );
+        Baselines& operator = ( const Baselines& );
 
         typedef Baseline value_type;
         typedef std::vector< value_type > vector_type;

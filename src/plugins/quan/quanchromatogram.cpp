@@ -189,3 +189,15 @@ QuanChromatogram::dataGuid() const
 {
     return dataGuid_;
 }
+
+const std::string&
+QuanChromatogram::reader_objtext() const
+{
+    return reader_objtext_;
+}
+
+void
+QuanChromatogram::setReader_objtext( const std::string& t )
+{
+    reader_objtext_ = t;
+}

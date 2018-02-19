@@ -42,6 +42,13 @@ Peaks::Peaks( const Peaks& t ) : peaks_( t.peaks_ )
 {
 }
 
+Peaks&
+Peaks::operator = ( const Peaks& t )
+{
+    peaks_ = t.peaks_;
+    return *this;
+}
+
 void
 Peaks::add( const Peak& pk )
 {

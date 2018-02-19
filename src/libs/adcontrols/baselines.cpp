@@ -41,6 +41,14 @@ Baselines::Baselines( const Baselines& t ) : nextId_( t.nextId_ )
 {
 }
 
+Baselines&
+Baselines::operator = ( const Baselines& t )
+{
+    nextId_ = t.nextId_;
+    baselines_ = t.baselines_;
+    return *this;
+}
+
 int
 Baselines::add( const Baseline& t )
 {

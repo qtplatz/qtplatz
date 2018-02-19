@@ -82,6 +82,7 @@ namespace acqrsinterpreter {
         adcontrols::DataInterpreter * dataInterpreter() const override;
         
     private:
+        void make_indecies();
         void loadTICs();
         void loadCachedTICs();
         std::unique_ptr< adcontrols::DataInterpreter > interpreter_;

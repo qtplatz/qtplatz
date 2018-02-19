@@ -43,6 +43,7 @@ namespace adcontrols {
         ~Peaks();
         Peaks();
         Peaks( const Peaks& );
+        Peaks& operator = ( const Peaks& );
 
         typedef Peak value_type;
         typedef std::vector< Peak > vector_type;

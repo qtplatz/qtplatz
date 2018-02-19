@@ -111,9 +111,11 @@ QuanChromatograms::~QuanChromatograms()
 }
 
 QuanChromatograms::QuanChromatograms( const std::string& formula
-                                      , const std::vector< QuanTarget::target_value >& values ) : formula_( formula )
-                                                                                                , target_values_( values )
-                                                                                                , identified_( false )
+                                      , const std::vector< QuanTarget::target_value >& values
+                                      , const std::string& reader_objtext ) : reader_objtext_( reader_objtext )
+                                                                            , formula_( formula )
+                                                                            , target_values_( values )
+                                                                            , identified_( false )
 {
 }
 
@@ -126,12 +128,15 @@ QuanChromatograms::QuanChromatograms( const std::string& formula
 }
 
 void
-QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> ms )
+QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adcontrols::MassSpectrum> ms, const std::string& reader_objtext )
 {
+    if ( reader_objtext != reader_objtext_ )
+        ADDEBUG() << reader_objtext  << " != " << reader_objtext_;
+    
     adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( *ms );
 
     uint32_t fcn = 0;
-
+    
     for ( auto& fms: segments ) {
         
         double time = fms.getMSProperty().timeSinceInjection();
@@ -143,7 +148,9 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
             double lMass = m.matchedMass - m.width / 2;
             double uMass = m.matchedMass + m.width / 2;
 
-            if ( fms.getMass( 0 ) <= lMass && uMass < fms.getMass( fms.size() - 1 ) ) {
+            auto range = fms.getAcquisitionMassRange();
+            if ( range.first <= lMass && uMass < range.second ) {
+
                 double y( 0 );
                 if ( fms.isCentroid() ) {
                     y = accumulate<const double *>( fms.getMassArray(), fms.getIntensityArray(), fms.size() )( lMass, uMass );
@@ -162,6 +169,7 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
                     qchro_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, m.exactMass, m.matchedMass, std::make_pair( lMass, uMass ) ) );
                     chro = qchro_.end() - 1;
                 }
+                ADDEBUG() << "append fcn=" << (*chro)->fcn() << ", " << (*chro)->formula() << " time:" << time << ", width: " << m.width;
                 ( *chro )->append( uint32_t( pos ), time, y );
             }
                         
@@ -222,7 +230,8 @@ QuanChromatograms::refactor()
 
 
 void
-QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, std::function<spectra_type(uint32_t)> read )
+QuanChromatograms::refine_chromatograms( const std::string& reader_objtext
+                                         , std::vector< QuanCandidate >& refined, std::function<spectra_type(uint32_t)> read )
 {
     if ( qchro_.empty() )
         return;
@@ -313,6 +322,7 @@ QuanChromatograms::refine_chromatograms( std::vector< QuanCandidate >& refined, 
                         fms.get_annotations() << anno;
 
                         auto qc = std::make_shared< QuanCandidate >( ( *itChro )->formula()
+                                                                     , reader_objtext_
                                                                      , ( *itChro )->exactMass()
                                                                      , mspk->mass()
                                                                      , std::make_pair( mspk->centroid_left(), mspk->centroid_right() )

@@ -1,6 +1,6 @@
 /**************************************************************************
- ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
- ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
  *
  ** Contact: toshi.hondo@qtplatz.com
  **
@@ -541,6 +541,35 @@ DataReader::TIC( int fcn ) const
 }
 
 void
+DataReader::make_indecies()
+{
+    indecies_.clear();
+    
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );                
+        
+        sql.prepare( "SELECT rowid,npos,fcn,(elapsed_time-(SELECT min(elapsed_time) FROM AcquiredData))"
+                     " FROM AcquiredData WHERE objuuid = ? ORDER BY rowid" );
+        sql.bind( 1 ) = objid_;
+            
+        while ( sql.step() == adfs::sqlite_row ) {
+                
+            int col = 0;
+            auto rowid = sql.get_column_value< int64_t >( col++ );
+            auto pos = sql.get_column_value< int64_t >( col++ );
+            auto fcn = int( sql.get_column_value< int64_t >( col++ ) );
+            auto elapsed_time = sql.get_column_value< int64_t >( col++ ); // ns
+            
+            indecies_.emplace_back( rowid, pos, elapsed_time, fcn ); // <-- struct index
+        }
+
+        sql.prepare( "SELECT min(elapsed_time) FROM AcquiredData");
+        while ( sql.step() == adfs::sqlite_row )
+            elapsed_time_origin_ = sql.get_column_value< int64_t >( 0 );
+    }
+}
+
+void
 DataReader::loadTICs()
 {
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
@@ -709,7 +738,7 @@ DataReader::next( int64_t rowid ) const
     } else {
         if ( auto db = db_.lock() ) {
             adfs::stmt sql( *db );
-            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND rowid > ?) LIMIT 1" );
+            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND rowid > ? LIMIT 1" );
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = rowid;
             if ( sql.step() == adfs::sqlite_row )
@@ -724,7 +753,8 @@ int64_t
 DataReader::next( int64_t rowid, int fcn ) const
 {
     if ( fcn == ( -1 ) )
-        return next( rowid );
+        fcn = 0;  // find next primary spectrum
+        //return next( rowid );
 
     if ( ! indecies_.empty() ) {
         auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [&] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
@@ -752,6 +782,9 @@ DataReader::next( int64_t rowid, int fcn ) const
 int64_t
 DataReader::pos( int64_t rowid ) const
 {
+    if ( indecies_.empty() )
+        const_cast< DataReader * >(this)->make_indecies();
+    
     auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
     if ( it != indecies_.end() )
         return it->pos;
@@ -761,27 +794,42 @@ DataReader::pos( int64_t rowid ) const
 int64_t
 DataReader::elapsed_time( int64_t rowid ) const
 {
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-    if ( it != indecies_.end() )
-        return it->elapsed_time;
+    if ( indecies_.empty() )
+        const_cast< DataReader * >(this)->make_indecies();
+    
+    if ( ! indecies_.empty() ) {        
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indecies_.end() )
+            return it->elapsed_time;
+    }
     return -1;    
 }
 
 double
 DataReader::time_since_inject( int64_t rowid ) const
 {
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-    if ( it != indecies_.end() )
-        return double( it->elapsed_time - indecies_.front().elapsed_time ) * 1.0e-9;
-    return -1;        
+    if ( indecies_.empty() )
+        const_cast< DataReader * >(this)->make_indecies();
+
+    if ( ! indecies_.empty() ) {    
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indecies_.end() )
+            return double( it->elapsed_time - indecies_.front().elapsed_time ) * 1.0e-9;
+    }
+    return -1;
 }
 
 int
 DataReader::fcn( int64_t rowid ) const
 {
-    auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
-    if ( it != indecies_.end() )
-        return it->fcn;
+    if ( indecies_.empty() )
+        const_cast< DataReader * >(this)->make_indecies();
+
+    if ( ! indecies_.empty() ) {
+        auto it = std::lower_bound( indecies_.begin(), indecies_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
+        if ( it != indecies_.end() )
+            return it->fcn;
+    }
     return -1;    
 }
 
@@ -872,7 +920,7 @@ DataReader::readSpectrum( const_iterator& it ) const
             adfs::stmt sql( *db );
             // In case protocol replicates set 100,200,2 for 3 protocols, possiblly 3rd protocol has smallest pos though it might be larger rowid
             // so that following query always read order of spectrum was stored (not npos order)
-            sql.prepare( "SELECT min(rowid),fcn,data,meta FROM AcquiredData WHERE objuuid = ? AND rowid >= ? GROUP BY fcn" );
+            sql.prepare( "SELECT min(rowid),fcn,data,meta,elapsed_time FROM AcquiredData WHERE objuuid = ? AND rowid >= ? GROUP BY fcn" );
             sql.bind( 1 ) = objid_;
             sql.bind( 2 ) = it->rowid(); // Use rowid instead of pos()
             
@@ -885,6 +933,7 @@ DataReader::readSpectrum( const_iterator& it ) const
                 auto proto = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
+                auto elapsed_time = double( sql.get_column_value< int64_t >( col++ ) - elapsed_time_origin_ ) / std::nano::den;
 
                 // ADDEBUG() << "\t---> readSpectrum( rowid=" << rowid << ", proto=" << proto << " )";
                 
@@ -904,7 +953,8 @@ DataReader::readSpectrum( const_iterator& it ) const
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                         ptr->setDataReaderUuid( objid_ );
                         ptr->setRowid( rowid );
-
+                        
+                        ptr->getMSProperty().setTimeSinceInjection( elapsed_time ); // override elapsed_time (a.k.a. retention time)
                     } else {
                         ADDEBUG() << "# Error: failed to translate spectrum( rowid=" << rowid << ", proto=" << proto << " ) " << objid_;
                     }

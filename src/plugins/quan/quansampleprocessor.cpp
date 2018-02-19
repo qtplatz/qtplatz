@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -36,6 +36,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -61,6 +62,7 @@
 #include <adcontrols/waveform_filter.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
+#include <adprocessor/mschromatogramextractor.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
@@ -72,6 +74,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <chromatogr/chromatography.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <algorithm>
@@ -160,20 +163,44 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         case adcontrols::QuanSample::GenerateChromatogram:
 
             if ( raw_ ) {
-                auto chromatogram_processor = std::make_shared< QuanChromatogramProcessor >( procmethod_ );
-                
-                size_t pos = 0;
-                do {
-                    auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                    if ( ( pos = read_raw_spectrum( pos, raw_, *ms ) ) ) {
-                        chromatogram_processor->process1st( pos - 1, ms, *this );
-                        if ( ( *progress_ )( ) )
-                            return false;
+
+                if ( raw_->dataformat_version() >= 3 ) {
+
+                    for ( auto reader: raw_->dataReaders() ) {
+
+                        auto chromatogram_processor = std::make_shared< QuanChromatogramProcessor >( procmethod_ );
+                        
+                        for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
+                            auto ms = reader->readSpectrum( it );
+                            // ADDEBUG() << reader->display_name() << " rowid: " << it->rowid() << ", " << it->fcn() << ", " << reader->objtext();
+                            chromatogram_processor->process1st( it->rowid(), ms, *this );
+                            if ( ( *progress_ )() ) {
+                                ADDEBUG() << "QuanSampleProcessor cancel requested";
+                                return false;
+                            }
+                        }
+                        chromatogram_processor->doit( *this, sample, writer, reader->objtext(), progress_ );
+                        writer->insert_table( sample ); // once per sample
+                        (*progress_)();
                     }
-                } while ( pos );
-                chromatogram_processor->doit( *this, sample, writer, progress_ );
-                writer->insert_table( sample ); // once per sample
-                (*progress_)();
+                    
+                } else {
+                    auto chromatogram_processor = std::make_shared< QuanChromatogramProcessor >( procmethod_ );
+                    size_t pos = 0;
+                    do {
+                        auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                        if ( ( pos = read_raw_spectrum( pos, raw_, *ms ) ) ) {
+                            chromatogram_processor->process1st( pos - 1, ms, *this );
+                            if ( ( *progress_ )() ) {
+                                ADDEBUG() << "QuanSampleProcessor cancel requested";
+                                return false;
+                            }
+                        }
+                    } while ( pos );
+                    chromatogram_processor->doit( *this, sample, writer, "", progress_ );
+                    writer->insert_table( sample ); // once per sample
+                    (*progress_)();
+                }
             }
             break; // ignore for this version
 

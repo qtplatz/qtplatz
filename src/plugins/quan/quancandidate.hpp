@@ -48,6 +48,7 @@ namespace quan {
         QuanCandidate& operator = ( const QuanCandidate& );
 
         QuanCandidate( const std::string& formula
+                       , const std::string& reader_objtext
                        , double exactMass
                        , double matchedMass
                        , std::pair< double, double > fwhm_range
@@ -96,6 +97,7 @@ namespace quan {
         std::shared_ptr< adcontrols::MSPeakInfo > mspkinfo_;
         std::shared_ptr< QuanChromatogram > qcrms_;
         std::wstring dataGuid_;
+        std::string reader_objtext_;
     };
 
 }
