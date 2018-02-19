@@ -153,7 +153,9 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
 
                 double y( 0 );
                 if ( fms.isCentroid() ) {
+                    
                     y = accumulate<const double *>( fms.getMassArray(), fms.getIntensityArray(), fms.size() )( lMass, uMass );
+                    
                 } else {
                     double base, rms;
                     double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
@@ -169,8 +171,10 @@ QuanChromatograms::append_to_chromatogram( size_t pos, std::shared_ptr<const adc
                     qchro_.push_back( std::make_shared< QuanChromatogram >( fcn, candidate_index, formula_, m.exactMass, m.matchedMass, std::make_pair( lMass, uMass ) ) );
                     chro = qchro_.end() - 1;
                 }
-                // ADDEBUG() << "append_to_chromatogram fcn=" << (*chro)->fcn() << ", " << (*chro)->formula() << " (time,y) = " << time << ", " << y << " (" << (void *)(ms.get() ) << ")";
                 ( *chro )->append( uint32_t( pos ), time, y );
+
+                if ( fms.isCentroid() )
+                    ADDEBUG() << "append_to_chromatogram fcn=" << (*chro)->fcn() << ", " << (*chro)->formula() << " (time,y) = " << time << ", " << y;
             }
                         
             candidate_index++;

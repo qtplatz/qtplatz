@@ -329,6 +329,33 @@ QuanChromatogramProcessor::doCountingChromatogram( QuanSampleProcessor& processo
                                                    , const std::string& reader_objtext
                                                    , std::shared_ptr< adwidgets::Progress > progress )
 {
+    std::vector< std::shared_ptr< QuanTarget > > targets;
+    std::vector< QuanCandidate > candidates;
+    
+    if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
+        for ( auto& comp : *compounds ) {
+            std::string formula( comp.formula() );
+            if ( !formula.empty() && comp.isCounting() )
+                targets.emplace_back( std::make_shared< QuanTarget >( formula ) );
+        }
+    }
+    
+    do { // first phase
+        double mass_width = 0.010; // 10mDa default
+        if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
+            mass_width = targeting_method->tolerance( targeting_method->toleranceMethod() ) * 4; // experimental 
+        }
+
+        double tolerance = 0; // tolerance = 0 ==> single chromatogram per target (no parallel)
+        std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v1; // array of enum of chromatogram
+        find_parallel_chromatograms( qcrms_v1, targets, reader_objtext, mass_width, tolerance );  
+
+        for ( auto& qcrms : qcrms_v1 ) {
+            ADDEBUG() << "############ saving counting chromatogram";
+            save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(counting)" );
+        }
+
+    } while ( 0 );
 }
 
 
