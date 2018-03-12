@@ -75,10 +75,12 @@ namespace query {
             if ( computed_mass_column_ == index.column() && ( role == Qt::EditRole || role == Qt::DisplayRole ) ) {
                 if ( index.isValid() ) {
                     // don't call record( row ), it will recurse data() and stack overflow; use query().record() instead
-                    auto rec = query().record();
-                    int proto = rec.value( "protocol" ).toInt();
-                    double t = rec.value( "time" ).toDouble();
-                    return spectrometer_->scanLaw()->getMass( t, spectrometer_->mode( proto ) );
+                    if ( spectrometer_ ) {
+                        auto rec = query().record();
+                        int proto = rec.value( "protocol" ).toInt();
+                        double t = rec.value( "time" ).toDouble();
+                        return spectrometer_->scanLaw()->getMass( t, spectrometer_->mode( proto ) );
+                    }
                 }
             }
             return QSqlQueryModel::data( index, role );
