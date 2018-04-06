@@ -416,6 +416,12 @@ waveform::size() const
     return meta_.actualPoints;
 }
 
+void
+waveform::set_events( uint32_t e )
+{
+    wellKnownEvents_ |= e;
+}
+
 int
 waveform::dataType() const
 {
