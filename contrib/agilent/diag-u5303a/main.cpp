@@ -105,8 +105,8 @@ static void sigint(int num )
 
 #endif
 
-void pkd_main( std::shared_ptr< u5303a::AgMD2 >, const acqrscontrols::u5303a::method& );
-int pkd_main( const acqrscontrols::u5303a::method& );
+int pkd_main( std::shared_ptr< u5303a::AgMD2 >, const acqrscontrols::u5303a::method& );
+
 int
 main( int argc, char * argv [] )
 {
@@ -190,9 +190,6 @@ main( int argc, char * argv [] )
     signal( SIGKILL, &sigint );
 #endif
 
-    if ( vm.count( "pkd" ) )
-        return pkd_main( method );
-
     execStatistics::instance().rate_ = vm[ "rate" ].as<double>() * 1.0e-3 * 1.2; // milliseconds -> seconds + 20%
 
     ppio pp;
@@ -202,7 +199,7 @@ main( int argc, char * argv [] )
         std::cerr << "dgpio open failed -- ignored." << std::endl;
 
     if ( auto md2 = std::make_shared< u5303a::AgMD2 >() ) {
-
+        
         const char * strInitOptions = "Simulate=false, DriverSetup= Model=U5303A";
 
         if ( auto p = getenv( "AcqirisOption" ) ) {
@@ -224,7 +221,7 @@ main( int argc, char * argv [] )
                         } ) {
 
                 std::cerr << "Attempting resource: " << res << std::endl;
-                if ( ( success = md2->InitWithOptions( res, VI_TRUE, VI_TRUE, strInitOptions ) ) )
+                if ( ( success = md2->InitWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) ) )
                     break;
             }
         }
@@ -263,6 +260,9 @@ main( int argc, char * argv [] )
                         std::cout << "\t" << result << std::endl;
                 }
             }
+
+            if ( vm.count( "pkd" ) )
+                return pkd_main( md2, method );
             
             if ( ident->Options().find( "INT" ) != std::string::npos ) // Interleave ON
                 md2->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
@@ -405,59 +405,90 @@ ViReal64 const trigLevel = 0.0;			// trigger level. External trigger configured 
 ViInt32 const risingDelta = 0x100;		// Rising Delta: from 1 to 8192 LSB
 ViInt32 const fallingDelta = 0x100;		// Falling Delta: from 1 to 8192 LSB
 
-void
+
+int
 pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::method& m )
 {
     using u5303a::AgMD2;
     
-    AgMD2::log( md2->setTSREnabled( false ), __FILE__, __LINE__ );
+    std::cout << "PeakDetection + Averager POC\n\n";
 
-    AgMD2::log( md2->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages ), __FILE__, __LINE__ ); // 150
+    ViBoolean const idQuery = VI_FALSE;
+    ViBoolean const reset   = VI_TRUE;
 
-    AgMD2::log( md2->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ), __FILE__, __LINE__ ); // 145
+    char resource[] = "PXI5::0::0::INSTR";
+    char options[] = "Simulate=false, DriverSetup= Model=U5303A";
 
-    // Enable the Peak Detection mode 	
-    AgMD2::log( md2->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__, __LINE__); // 153
+    std::cout << "Driver initialized \n";
     
+    // Check the instrument contains the required PKD module option.
+    ViChar str[128] = {'\0'};
+    AgMD2::log( AgMD2_GetAttributeViString( md2->session(), "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS, sizeof( str ), str ), __FILE__,__LINE__ );
+    if ( std::string( str ).find( "PKD" ) == std::string::npos )    {
+        std::cout << "The required PKD module option is missing from the instrument.";
+        return -1;
+    }
 
-    // Configure the data inversion mode - VI_FALSE (no data inversion) by default
-    AgMD2::log( md2->setAttributeViBoolean( "Channel1"
-                                            , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
-                                            , m._device_method().invert_signal ? VI_TRUE : VI_FALSE ), __FILE__,__LINE__);  // 157
-    
-    // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-    AgMD2::log( md2->setAttributeViBoolean( "Channel1"
-                                            , AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
-                                            , m._device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE ), __FILE__,__LINE__); // 160
+    // Configure the acquisition.
+    ViInt32 const coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;
+    std::cout << "Configuring acquisition\n";
+	// Configure channel 1
+    std::cout << "Range:              " << range << '\n';
+    std::cout << "Offset:             " << offset << '\n';
+    std::cout << "Coupling:           " << ( coupling?"DC":"AC" ) << '\n';
+    AgMD2::log( AgMD2_ConfigureChannel( md2->session(), "Channel1"
+                                        , m._device_method().front_end_range
+                                        , m._device_method().front_end_offset, coupling, VI_TRUE ), __FILE__,__LINE__ );
 
-    // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
-    // considered as rising/falling edge in the peak detection algorithm.
-    AgMD2::log( md2->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta ), __FILE__,__LINE__ ); // 163
-    
-    AgMD2::log( md2->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta ), __FILE__,__LINE__); // 164
-    
-    AgMD2::log( md2->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__);
-    AgMD2::log( md2->setAcquisitionNumRecordsToAcquire( 1 ), __FILE__,__LINE__);
-    AgMD2::log( md2->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages ), __FILE__, __LINE__ );
+	// Configure the number of records (only 1 record is supported in AVG+PKD) and record size (in number of samples)
+    std::cout << "Number of records:  " << numRecords << '\n';
+    std::cout << "Record size:        " << recordSize << '\n';
+    AgMD2::log( md2->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords ), __FILE__,__LINE__ );
+    AgMD2::log( md2->setAttributeViInt64( "", AGMD2_ATTR_RECORD_SIZE, recordSize ), __FILE__,__LINE__ );
+
+	// Configure the number of accumulation
+    std::cout << "Number of averages: " << numAverages << "\n\n";
+    AgMD2::log( md2->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
+ 
+	// Enable the Peak Detection mode 	
+    AgMD2::log( md2->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
+
+	// Configure the peak detection on channel 1
+	// Configure the data inversion mode - VI_FALSE (no data inversion) by default
+    AgMD2::log( md2->setAttributeViBoolean( "Channel1", AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED, VI_FALSE ), __FILE__,__LINE__ );
+
+	// Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
+	AgMD2::log( md2->setAttributeViBoolean( "Channel1", AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED, VI_FALSE ), __FILE__,__LINE__ );
+	
+	// Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be considered as rising/falling edge in the peak detection algorithm.
+	AgMD2::log( md2->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, risingDelta ), __FILE__,__LINE__ );
+    AgMD2::log( md2->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, fallingDelta ), __FILE__,__LINE__ );
+
+    // Configure the trigger.
+    std::cout << "Configuring trigger\n";
+    md2->setActiveTriggerSource( "External1" );
+    md2->setTriggerLevel( "External1", m._device_method().ext_trigger_level ); // 1V
+    // AgMD2::log( AgMD2_SetAttributeViString( md2->session(), "", AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE, "External1" ), __FILE__,__LINE__ );
+    // AgMD2::log( AgMD2_SetAttributeViReal64( md2->session(), "External1", AGMD2_ATTR_TRIGGER_LEVEL, trigLevel ), __FILE__,__LINE__ );
+    // Calibrate the instrument.
 
     std::cout << "Performing self-calibration\n";
-    AgMD2::log( md2->CalibrationSelfCalibrate(), __FILE__,__LINE__ );
+    //AgMD2::log( AgMD2_SelfCalibrate( md2->session() ), __FILE__,__LINE__ );
+    md2->CalibrationSelfCalibrate();
 
-    ViInt64 arraySize = 0;
-    
-    u5303a::AgMD2::log( AgMD2_QueryMinWaveformMemory( md2->session(), 16, numRecords, 0, recordSize, &arraySize ), __FILE__, __LINE__ );
-    
     // Perform the acquisition.
     ViInt32 const timeoutInMs = 2000;
     std::cout << "Performing acquisition\n";
 
     AgMD2::log( md2->AcquisitionInitiate(), __FILE__,__LINE__);
-    
+    //AgMD2::log( AgMD2_InitiateAcquisition( md2->session() ), __FILE__,__LINE__ );
     AgMD2::log( md2->AcquisitionWaitForAcquisitionComplete( 3000 ), __FILE__,__LINE__ );
-
-    // u5303a::digitizer::readData( *md2, m, vec );
-    
+    // AgMD2::log( AgMD2_WaitForAcquisitionComplete( md2->session(), timeoutInMs ), __FILE__,__LINE__ );
     std::cout << "Acquisition completed\n";
+
+    // Fetch the acquired data in array.
+    ViInt64 arraySize = 0;
+    AgMD2::log( AgMD2_QueryMinWaveformMemory( md2->session(), 32, numRecords, 0, recordSize, &arraySize ), __FILE__,__LINE__ );
 
     struct data {
         ViInt32 actualAverages;
@@ -507,182 +538,10 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
     }
 
     std::cout << "\nProcessing completed\n";
-}
 
-int
-pkd_main( const acqrscontrols::u5303a::method& )
-{
-    using u5303a::AgMD2;
-    
-    std::cout << "PeakDetection + Averager POC\n\n";
-    ViSession session = 0;
-    ViBoolean const idQuery = VI_FALSE;
-    ViBoolean const reset   = VI_TRUE;
-    FILE *pFile;
-    pFile = fopen("data.txt", "w");
+    /////////////////////////
 
-    char resource[] = "PXI5::0::0::INSTR";
-    char options[] = "Simulate=false, DriverSetup= Model=U5303A";
-
-    // Initialize the driver. See driver help topic "Initializing the IVI-C Driver" for additional information.
-    AgMD2::log( AgMD2_InitWithOptions( resource, idQuery, reset, options, &session ), __FILE__,__LINE__ );
-
-    std::cout << "Driver initialized \n";
-    
-    // Abort execution if instrument is still in simulated mode.
-    ViBoolean simulate;
-    AgMD2::log( AgMD2_GetAttributeViBoolean( session, "", AGMD2_ATTR_SIMULATE, &simulate ), __FILE__,__LINE__ );
-
-    if ( simulate == VI_TRUE )
-    {
-        std::cout << "The PeakDetection features are not supported in simulated mode.";
-        std::cout << "\nPlease update the resource string (resource[]) to match your configuration, and update the init options string (options[]) to disable simulation.";
-        
-        return -1;
-    }
-
-    // Check the instrument contains the required PKD module option.
-    ViChar str[128] = {'\0'};
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS, sizeof( str ), str ), __FILE__,__LINE__ );
-    if ( std::string( str ).find( "PKD" ) == std::string::npos )
-    {
-        std::cout << "The required PKD module option is missing from the instrument.";
-        return -1;
-    }
-
-    // Read and output a few attributes.
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_SPECIFIC_DRIVER_PREFIX, sizeof( str ), str ), __FILE__,__LINE__ );
-    std::cout << "Driver prefix:      " << str << '\n';
-    fprintf(pFile, "Driver prefix:      %s\n", str);
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_SPECIFIC_DRIVER_REVISION, sizeof( str), str ), __FILE__,__LINE__ );
-    std::cout << "Driver revision:    " << str << '\n';
-    fprintf(pFile, "Driver revision:    %s\n", str);
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_SPECIFIC_DRIVER_VENDOR, sizeof( str ), str ), __FILE__,__LINE__ );
-    std::cout << "Driver vendor:      " << str << '\n';
-    fprintf(pFile, "Driver revision:    %s\n", str);
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_SPECIFIC_DRIVER_DESCRIPTION, sizeof( str ), str ), __FILE__,__LINE__ );
-    std::cout << "Driver description: " << str << '\n';
-    fprintf(pFile, "Driver description: %s\n", str);
-   AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_INSTRUMENT_MODEL,                     sizeof(str), str), __FILE__,__LINE__ );
-    std::cout << "Instrument model:   " << str << "\n";
-    fprintf(pFile, "Instrument model:   %s\n", str);
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS,              sizeof(str), str), __FILE__,__LINE__ );
-    std::cout << "Instrument options: " << str << '\n';
-    fprintf(pFile, "Instrument options: %s\n", str);
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_INSTRUMENT_FIRMWARE_REVISION,         sizeof(str), str ), __FILE__,__LINE__ );
-    std::cout << "Firmware revision:  " << str << "\n";
-    fprintf(pFile, "Firmware revision:  %s\n", str);
-    AgMD2::log( AgMD2_GetAttributeViString( session, "", AGMD2_ATTR_INSTRUMENT_INFO_SERIAL_NUMBER_STRING, sizeof(str), str ), __FILE__,__LINE__ );
-    std::cout << "Serial number:      " << str << "\n";
-    fprintf(pFile, "Serial number:      %s\n", str);
- 
-    std::cout << "\nSimulate:           " << ( simulate?"True":"False" ) << '\n';
-
-    // Configure the acquisition.
-     ViInt32 const coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;
-    std::cout << "Configuring acquisition\n";
-	// Configure channel 1
-    std::cout << "Range:              " << range << '\n';
-    std::cout << "Offset:             " << offset << '\n';
-    std::cout << "Coupling:           " << ( coupling?"DC":"AC" ) << '\n';
-    AgMD2::log( AgMD2_ConfigureChannel( session, "Channel1", range, offset, coupling, VI_TRUE ), __FILE__,__LINE__ );
-
-	// Configure the number of records (only 1 record is supported in AVG+PKD) and record size (in number of samples)
-    std::cout << "Number of records:  " << numRecords << '\n';
-    std::cout << "Record size:        " << recordSize << '\n';
-    AgMD2::log( AgMD2_SetAttributeViInt64( session, "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords ), __FILE__,__LINE__ );
-    AgMD2::log( AgMD2_SetAttributeViInt64( session, "", AGMD2_ATTR_RECORD_SIZE, recordSize ), __FILE__,__LINE__ );
-
-	// Configure the number of accumulation
-    std::cout << "Number of averages: " << numAverages << "\n\n";
-    AgMD2::log( AgMD2_SetAttributeViInt32( session, "", AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, numAverages ), __FILE__,__LINE__ );
- 
-	// Enable the Peak Detection mode 	
-    AgMD2::log( AgMD2_SetAttributeViInt32( session, "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
-
-	// Configure the peak detection on channel 1
-	// Configure the data inversion mode - VI_FALSE (no data inversion) by default
-    AgMD2::log( AgMD2_SetAttributeViBoolean( session, "Channel1", AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED, VI_FALSE ), __FILE__,__LINE__ );
-
-	// Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-	AgMD2::log( AgMD2_SetAttributeViBoolean( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED, VI_FALSE ), __FILE__,__LINE__ );
-	
-	// Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be considered as rising/falling edge in the peak detection algorithm.
-	AgMD2::log( AgMD2_SetAttributeViInt32( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, risingDelta ), __FILE__,__LINE__ );
-    AgMD2::log( AgMD2_SetAttributeViInt32( session, "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, fallingDelta ), __FILE__,__LINE__ );
-
-    // Configure the trigger.
-    std::cout << "Configuring trigger\n";
-    AgMD2::log( AgMD2_SetAttributeViString( session, "", AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE, "External1" ), __FILE__,__LINE__ );
-    AgMD2::log( AgMD2_SetAttributeViReal64( session, "External1", AGMD2_ATTR_TRIGGER_LEVEL, trigLevel ), __FILE__,__LINE__ );
-    // Calibrate the instrument.
-    std::cout << "Performing self-calibration\n";
-    AgMD2::log( AgMD2_SelfCalibrate( session ), __FILE__,__LINE__ );
- 
-    // Perform the acquisition.
-    ViInt32 const timeoutInMs = 2000;
-    std::cout << "Performing acquisition\n";
-    AgMD2::log( AgMD2_InitiateAcquisition( session ), __FILE__,__LINE__ );
-    AgMD2::log( AgMD2_WaitForAcquisitionComplete( session, timeoutInMs ), __FILE__,__LINE__ );
-    std::cout << "Acquisition completed\n";
-
-    // Fetch the acquired data in array.
-    ViInt64 arraySize = 0;
-    AgMD2::log( AgMD2_QueryMinWaveformMemory( session, 32, numRecords, 0, recordSize, &arraySize ), __FILE__,__LINE__ );
-
-    std::vector<ViInt32> dataArray( arraySize );
-    ViInt32 actualAverages = 0;
-    ViInt64 actualRecords = 0, waveformArrayActualSize = 0;
-    ViInt64 actualPoints[numRecords], firstValidPoint[numRecords];
-    ViReal64 initialXOffset, initialXTimeSeconds[numRecords], initialXTimeFraction[numRecords];
-    ViReal64 xIncrement = 0.0, scaleFactor = 0.0, scaleOffset = 0.0;
-    ViInt32 flags[numRecords];
-
-	// Read the peaks on Channel 1 in INT32.
-	AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( session, "Channel1",
-                                                     0, numRecords, 0, recordSize, arraySize, &dataArray[0],
-                                                     &actualAverages, &actualRecords, actualPoints, firstValidPoint,
-                                                     &initialXOffset, initialXTimeSeconds, initialXTimeFraction,
-                                                     &xIncrement, &scaleFactor, &scaleOffset, flags ), __FILE__,__LINE__ );
-
-    std::cout << "\nactualAverages: " << actualAverages;
-    fprintf(pFile, "\nactualAverages: %d", actualAverages);
-
-    // Read the peaks values on Channel 1 
-    std::cout << "\nProcessing data\n";
-    fprintf(pFile, "\nPeaks values ");
-    for ( int currentRecord = 0; currentRecord < actualRecords; ++currentRecord )
-    {
-        for ( int currentPoint = 0; currentPoint < actualPoints[currentRecord]; ++currentPoint )
-        {
-            ViInt32 valuePKD = dataArray[firstValidPoint[currentRecord] + currentPoint];
- 	        fprintf(pFile, "\n%d", valuePKD);
-       }
-    }
-
-
-   // Read the averaged waveform on Channel 2 in INT32.
-    AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( session, "Channel2",
-                                                     0, numRecords, 0, recordSize, arraySize, &dataArray[0],
-                                                     &actualAverages, &actualRecords, actualPoints, firstValidPoint,
-                                                     &initialXOffset, initialXTimeSeconds, initialXTimeFraction,
-                                                     &xIncrement, &scaleFactor, &scaleOffset, flags ), __FILE__,__LINE__ );
-
-   fprintf(pFile, "\nAveraged data in LSB");
-   for ( int currentRecord = 0; currentRecord < actualRecords; ++currentRecord )
-   {
-        for ( int currentPoint = 0; currentPoint < actualPoints[currentRecord]; ++currentPoint )
-        {
-           ViInt32 valueAVG = dataArray[firstValidPoint[currentRecord] + currentPoint];
-  		   fprintf(pFile, "\n%d", valueAVG);
-        }
-   }
-
-    std::cout << "\nProcessing completed\n";
-
-    fclose (pFile);
-     // Close the driver.
-    AgMD2::log( AgMD2_close( session ), __FILE__,__LINE__ );
+    md2.reset();
     std::cout << "Driver closed\n";
 
     return 0;
