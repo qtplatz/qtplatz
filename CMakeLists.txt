@@ -33,6 +33,12 @@ option( WITH_ARRAYFIRE     "ArrayFire"                  OFF )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
+if ( WITH_QT5 )
+  if ( QTDIR STREQUAL "" AND DEFINED $ENV{QTDIR} )
+    set( QTDIR $ENV{QTDIR} )
+  endif()    
+endif()
+
 include (qtplatz.cmake)
 include (version)
 

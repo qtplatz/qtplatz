@@ -63,8 +63,7 @@ endif()
 #
 
 if ( WITH_QT5 )
-
-  find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" "$ENV{QTDIR}/bin" )
+  find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" )
 
   if ( QMAKE ) 
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
@@ -74,7 +73,7 @@ if ( WITH_QT5 )
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-  message( STATUS "### QMAKE = " ${QMAKE} )
+  find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
   message( STATUS "### Qt5 = " ${Qt5} )
     
   if ( Qt5_FOUND )

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 arch=`uname`-`arch`
-cwd=`pwd`
+cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 config=release
 source_dir=`pwd`
 host_system=`uname`
@@ -10,7 +10,8 @@ build_package=false
 build_root=..
 cmake_args=('-DCMAKE_BUILD_TYPE=Release')
 
-source ./scripts/find_qmake.sh
+source ${cwd}/scripts/find_qmake.sh
+source ${cwd}/scripts/prompt.sh
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -47,11 +48,11 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z $QTDIR ]; then
-    echo "######## Empty QTDIR ##########"
     if find_qmake QMAKE; then
-	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
-	echo "Qt5 found: QTDIR="$QTDIR
-	export PATH=$QTDIR/bin:$PATH
+		QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
+		echo "qmake found in "$QTDIR " (qmake="${QMAKE}")"
+		prompt
+		export PATH=$QTDIR/bin:$PATH
     fi
 fi
 

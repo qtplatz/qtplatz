@@ -6,15 +6,17 @@ function find_qmake() {
 
     case "${__arch}" in
 	Linux*)
-	    local dirs=( "/opt/Qt/5.9.3/gcc_64" "/opt/Qt/5.9.2/gcc_64" "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" \
-					  "/opt/Qt/5.8/gcc_64" \
-					  "/opt/Qt/5.7/gcc_64" )
+	    local dirs=( "/opt/Qt/5.10.1/gcc_64" \
+						 "/opt/Qt/5.9.3/gcc_64" "/opt/Qt/5.9.2/gcc_64" "/opt/Qt/5.9.1/gcc_64" "/opt/Qt/5.9/gcc_64" \
+						 "/opt/Qt/5.8/gcc_64" \
+						 "/opt/Qt/5.7/gcc_64" )
 	    ;;
 	Darwin*)
 	    local home=~
-	    local dirs=( "${home}/Qt/5.9.3/clang_64" "${home}/Qt/5.9.2/clang_64" "${home}/Qt/5.9.1/clang_64" "${home}/Qt/5.9/clang_64" \
-					       "${home}/Qt/5.8/clang_64" \
-					       "${home}/Qt/5.7/clang_64" )
+	    local dirs=( "${home}/Qt/5.9.3/clang_64" \
+						 "${home}/Qt/5.9.3/clang_64" "${home}/Qt/5.9.2/clang_64" "${home}/Qt/5.9.1/clang_64" "${home}/Qt/5.9/clang_64" \
+					     "${home}/Qt/5.8/clang_64" \
+					     "${home}/Qt/5.7/clang_64" )
 	    ;;
 	*)
 	    echo "######## unknown arch: " $__arch

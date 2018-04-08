@@ -2,7 +2,10 @@
     "configurations": [
         {
             "name": "null",
-            "includePath": [ "/usr/include", "/usr/include/c++/6" ],
+            "includePath": [
+                "/usr/include",
+                "/usr/include/c++/6"
+            ],
             "defines": [],
             "compileCommands": "${workspaceRoot}/../build-Linux-x86_64/qtplatz.debug/compile_commands.json",
             "browse": {
@@ -10,7 +13,9 @@
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             },
-            "intelliSenseMode": "clang-x64"
+            "intelliSenseMode": "clang-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
         }
     ],
     "version": 3
