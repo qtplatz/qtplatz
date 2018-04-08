@@ -528,14 +528,14 @@ task::handle_initial_setup()
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
             strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
             simulated = true;
-            success = spDriver_->InitWithOptions( "PXI40::0::0::INSTR", VI_TRUE, VI_TRUE, strInitOptions );
+            success = spDriver_->InitWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions );
         }
     }
 
     if ( !simulated ) {
         for ( auto& res : foundResources_ ) {
             ADTRACE() << "Initialize resource: " << res;
-            if ( ( success = spDriver_->InitWithOptions( res.c_str(), VI_TRUE, VI_TRUE, strInitOptions ) ) )
+            if ( ( success = spDriver_->InitWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) ) )
                 break;
         }
     }
@@ -855,7 +855,15 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     ViInt32 constexpr coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;    
 #endif
 
-    if ( options.find( "INT" ) != options.npos ) {
+    if ( m._device_method().pkd_enabled ) {
+
+        if ( options.find( "PKD" ) != options.npos ) {
+            AgMD2::log( AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1"
+                                                , m._device_method().front_end_range
+                                                , m._device_method().front_end_offset, coupling, VI_TRUE ), __FILE__,__LINE__ );
+        }
+        
+    } else if ( options.find( "INT" ) != options.npos ) {
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
     }
 
@@ -924,7 +932,6 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
             task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta );
-            
             task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta );
 
             task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
