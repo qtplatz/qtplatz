@@ -864,7 +864,9 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         }
         
     } else if ( options.find( "INT" ) != options.npos ) {
+#if defined PKD_WORKAROUND
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
+#endif
     }
 
     task.spDriver()->log(
