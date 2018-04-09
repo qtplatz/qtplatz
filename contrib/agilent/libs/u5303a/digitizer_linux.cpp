@@ -534,9 +534,10 @@ task::handle_initial_setup()
 
     if ( !simulated ) {
         for ( auto& res : foundResources_ ) {
-            ADTRACE() << "Initialize resource: " << res;
-            if ( ( success = spDriver_->InitWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) ) )
+            if ( ( success = spDriver_->InitWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) ) ) {
+                ADTRACE() << "Initialize resource: " << res;
                 break;
+            }
         }
     }
 
@@ -774,6 +775,8 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
         avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
         set_time_since_inject( pkd );
         set_time_since_inject( avg );
+        pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
+        avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
         return true;
     }
 
@@ -781,7 +784,7 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
     pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
 
     digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
-    pkd.meta_.channelMode = acqrscontrols::u5303a::AVG;
+    avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
 
     return true;
 }

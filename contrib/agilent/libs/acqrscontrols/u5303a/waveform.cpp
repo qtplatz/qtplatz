@@ -710,7 +710,6 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 
     adcontrols::MSProperty prop = sp.getMSProperty();
     int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
-    //double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
 
     double delayTime = waveform.meta_.initialXOffset + ext_trig_delay;
 
@@ -735,6 +734,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
+
 #if ! defined NDEBUG && 0
     ADDEBUG() << "===== device_data =====\nIdentifier:\t " << waveform.ident_->Identifier()
               << "\nRevision:\t" << waveform.ident_->Revision()
@@ -768,12 +768,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 			waveform_copy<int64_t>()( sp, waveform, scale );
             break;
         default:
-            assert(0);
+            ADDEBUG() << "ERROR: Unexpected data type in waveform";
 		}
     } else {
-        double dbase(0), rms(0);
+
         if ( waveform.meta_.channelMode == acqrscontrols::u5303a::PKD ) {
             size_t idx(0);
+            std::pair< int32_t, int32_t > mm = std::make_pair( 0, 0 );
             switch( waveform.meta_.dataType ) {
             case 4:
                 for ( auto it = waveform.begin< int32_t >(); it != waveform.end< int32_t >(); ++it )
@@ -787,6 +788,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
                 ADDEBUG() << "ERROR: Unexpected data type in waveform";
             }
         } else {
+            double dbase(0), rms(0);
             switch( waveform.meta_.dataType ) {
             case 4:
                 adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
