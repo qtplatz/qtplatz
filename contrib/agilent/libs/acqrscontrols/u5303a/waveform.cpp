@@ -472,7 +472,7 @@ waveform::toVolts( int32_t d ) const
 {
     if ( method_.mode() == method::DigiMode::Digitizer )
         return toVolts_<int32_t,method::DigiMode::Digitizer>()( meta_, d );
-    else
+    else 
         return toVolts_<int32_t,method::DigiMode::Averager>()( meta_, d );
 }
 
@@ -707,7 +707,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
         this_protocol = &waveform.method_.protocols() [ waveform.method_.protocolIndex() ];
         ext_trig_delay = this_protocol->delay_pulses() [ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
     }
-    
+
     adcontrols::MSProperty prop = sp.getMSProperty();
     int mode = ( this_protocol == nullptr ) ? 0 : this_protocol->mode();
     //double zhalf = waveform.meta_.initialXOffset < 0 ? (-0.5) : 0.5;
@@ -772,17 +772,33 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
 		}
     } else {
         double dbase(0), rms(0);
-        switch( waveform.meta_.dataType ) {
-        case 4:
-            adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
-            waveform_copy<int32_t>()( sp, waveform, scale, dbase );
-            break;
-        case 8:
-            adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
-            waveform_copy<int64_t>()( sp, waveform, scale, dbase );
-            break;
-        default:
-            assert(0);
+        if ( waveform.meta_.channelMode == acqrscontrols::u5303a::PKD ) {
+            size_t idx(0);
+            switch( waveform.meta_.dataType ) {
+            case 4:
+                for ( auto it = waveform.begin< int32_t >(); it != waveform.end< int32_t >(); ++it )
+                    sp.setIntensity( idx++, *it );
+                break;
+            case 8:
+                for ( auto it = waveform.begin< int64_t >(); it != waveform.end< int64_t >(); ++it )
+                    sp.setIntensity( idx++, *it );                
+                break;
+            default:
+                ADDEBUG() << "ERROR: Unexpected data type in waveform";
+            }
+        } else {
+            switch( waveform.meta_.dataType ) {
+            case 4:
+                adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int32_t>(), dbase, rms );
+                waveform_copy<int32_t>()( sp, waveform, scale, dbase );
+                break;
+            case 8:
+                adportable::spectrum_processor::tic( waveform.size(), waveform.begin<int64_t>(), dbase, rms );
+                waveform_copy<int64_t>()( sp, waveform, scale, dbase );
+                break;
+            default:
+                ADDEBUG() << "ERROR: Unexpected data type in waveform";
+            }
         }
     }
 	return true;

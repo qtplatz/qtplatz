@@ -778,7 +778,10 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
     }
 
     digitizer::readData32( *spDriver(), method_, pkd, "Channel1" );
+    pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
+
     digitizer::readData32( *spDriver(), method_, avg, "Channel2" );
+    pkd.meta_.channelMode = acqrscontrols::u5303a::AVG;
 
     return true;
 }

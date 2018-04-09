@@ -33,6 +33,8 @@ namespace boost { namespace serialization { class access; } }
 namespace acqrscontrols {
     namespace u5303a {
 
+        enum ChannelMode : uint32_t { None, AVG, PKD };
+
         class ACQRSCONTROLSSHARED_EXPORT metadata {
         public:
             metadata();
@@ -50,6 +52,8 @@ namespace acqrscontrols {
             int32_t dataType;     // 2(int16_t)|4(int32_t)|8(int64_t)|-8(double)
             // CLASS VERSION 3
             int32_t protocolIndex;
+            // CLASS VERSION 4
+            ChannelMode channelMode;
 
         private:
             friend class boost::serialization::access;
@@ -58,4 +62,4 @@ namespace acqrscontrols {
     }
 }
 
-BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 3 )
+BOOST_CLASS_VERSION( acqrscontrols::u5303a::metadata, 4 )

@@ -46,7 +46,6 @@ namespace u5303a {
     
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
     static std::chrono::high_resolution_clock::time_point __last__;
-    static uint32_t __serialNumber__;
     static const std::vector< std::pair<double, double> >
     peak_list = { { 4.0e-6, 0.01 }, { 5.0e-6, 0.005 }, { 6.0e-6, 0.0030 } };
 
@@ -222,6 +221,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         avg.meta_.actualAverages = int32_t( nbrWaveforms_ );
         avg.meta_.scaleFactor = 1; // method_->_device_method().front_end_range / 4096 / method_->_device_method().nbr_of_averages;
         avg.meta_.scaleOffset = 0;
+        pkd.meta_.channelMode = acqrscontrols::u5303a::AVG;
         avg.setData( mblk, 0 );
     }
     if ( ptr ) {
@@ -229,8 +229,10 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         auto dp = mblk->data();
         std::fill( dp, dp + ptr->nbrSamples(), 0 );
         int step = ptr->nbrSamples() / 10;
+
         for ( size_t i = step; i < ptr->nbrSamples(); i += step )
             dp[ i ] = int32_t( i );
+        
         pkd.method_ = *method_;
         pkd.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
         pkd.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
@@ -245,6 +247,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         pkd.meta_.actualAverages = int32_t( nbrWaveforms_ );
         pkd.meta_.scaleFactor = 1.0;
         pkd.meta_.scaleOffset = 0.0;
+        pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
         pkd.setData( mblk, 0 );
         return true;        
     }
@@ -382,12 +385,8 @@ waveform_simulator::onTriggered()
 {
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();    
     timeStamp_ = std::chrono::duration< double >( now - __uptime__ ).count(); // s
+    static std::chrono::high_resolution_clock::time_point __last_handled;
 
-    double seconds = timeStamp_;
-    double hf = ( std::sin( seconds / 10.0 ) + 1.20 ) / 2.20;
-
-	static int counter;
-    
 	__last__ = now;
 
     waveform_.resize( nbrSamples_ );
@@ -407,7 +406,11 @@ waveform_simulator::onTriggered()
         if ( d > maxy )
             maxy = d;
     }
-    ADDEBUG() << maxy;
+    
+    if ( std::chrono::duration_cast< std::chrono::seconds >( now - __last_handled ).count() >= 1000 ) {
+        __last_handled = now;
+        ADDEBUG() << maxy;
+    }
 }
 
 
