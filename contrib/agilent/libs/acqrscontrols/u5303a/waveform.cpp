@@ -368,12 +368,30 @@ waveform::accumulate( double tof, double window ) const
 {
     double tic(0), dbase(0), rms(0);
     if ( ! hasTic_ ) {
-        if ( meta_.dataType == 2 ) {
-            tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
-        } else if ( meta_.dataType == 4 ) {
-            tic = adportable::spectrum_processor::tic( size(), begin<int32_t>(), dbase, rms, 5 );
-        } else if ( meta_.dataType == 8 ) {
-            tic = adportable::spectrum_processor::tic( size(), begin<int64_t>(), dbase, rms, 5 );
+        if ( meta_.channelMode == PKD ) {
+            switch ( meta_.dataType ) {
+            case 2:
+                tic = std::accumulate( begin<int16_t>(), end< int16_t >(), 0.0 );
+                break;
+            case 4:
+                tic = std::accumulate( begin<int32_t>(), end< int32_t >(), 0.0 );
+                break;
+            case 8:
+                tic = std::accumulate( begin<int64_t>(), end< int64_t >(), 0.0 );
+                break;
+            }
+        } else {
+            switch( meta_.dataType ) {
+            case 2:
+                tic = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
+                break;
+            case 4:
+                tic = adportable::spectrum_processor::tic( size(), begin<int32_t>(), dbase, rms, 5 );
+                break;
+            case 8:
+                tic = adportable::spectrum_processor::tic( size(), begin<int64_t>(), dbase, rms, 5 );
+                break;
+            }
         }
         const_cast< waveform& >(*this).hasTic_ = true;
         const_cast< waveform& >(*this).dbase_ = dbase;
@@ -386,27 +404,40 @@ waveform::accumulate( double tof, double window ) const
         return tic_;
 
     } else {
-
         const adcontrols::TofProtocol& this_protocol = method_.protocols() [ method_.protocolIndex() ];
         double ext_adc_delay = this_protocol.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
-
+        
         auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
         auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
-        adportable::spectrum_processor::areaFraction frac;
         x1 = std::max( 0.0, x1 );
         x2 = std::max( 0.0, x2 );
-        frac.lPos = size_t( std::ceil( x1 ) );
-        frac.uPos = size_t( std::floor( x2 ) );
-        if ( frac.lPos > 0 )
-            frac.lFrac = x1 - double( frac.lPos - 1 );
-        frac.uFrac = x2 - double( frac.uPos );
-
-        if ( meta_.dataType == 2 ) {
-            return adportable::spectrum_processor::area( frac, dbase_, begin<int16_t>(), size() );
-        } else if ( meta_.dataType == 4 ) {
-            return adportable::spectrum_processor::area( frac, dbase_, begin<int32_t>(), size() );
-        } else if ( meta_.dataType == 8 ) {
-            return adportable::spectrum_processor::area( frac, dbase_, begin<int64_t>(), size() );            
+        
+        if ( meta_.channelMode == PKD ) {
+            size_t l = size_t( floor( x1 ) );
+            size_t u = size_t( ceil( x2 ) );
+            switch ( meta_.dataType ) {
+            case 2:
+                return std::accumulate( begin<int16_t>() + l, end< int16_t >() + u, 0.0 );
+            case 4:
+                return std::accumulate( begin<int32_t>() + l, end< int32_t >() + u, 0.0 );
+            case 8:
+                return std::accumulate( begin<int64_t>() + l, end< int64_t >() + u, 0.0 );
+            }
+        } else {
+            adportable::spectrum_processor::areaFraction frac;
+            frac.lPos = size_t( std::ceil( x1 ) );
+            frac.uPos = size_t( std::floor( x2 ) );
+            if ( frac.lPos > 0 )
+                frac.lFrac = x1 - double( frac.lPos - 1 );
+            frac.uFrac = x2 - double( frac.uPos );
+            switch ( meta_.dataType ) {
+            case 2:
+                return adportable::spectrum_processor::area( frac, dbase_, begin<int16_t>(), size() );
+            case 4:
+                return adportable::spectrum_processor::area( frac, dbase_, begin<int32_t>(), size() );
+            case 8:
+                return adportable::spectrum_processor::area( frac, dbase_, begin<int64_t>(), size() );            
+            }
         }
     }
     return 0;
@@ -416,12 +447,6 @@ size_t
 waveform::size() const
 {
     return meta_.actualPoints;
-}
-
-void
-waveform::set_events( uint32_t e )
-{
-    wellKnownEvents_ |= e;
 }
 
 int

@@ -861,23 +861,19 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     ViInt32 constexpr coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;    
 #endif
 
-    if ( m._device_method().pkd_enabled ) {
+    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) ) {
 
-        if ( options.find( "PKD" ) != options.npos ) {
-            AgMD2::log( AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1"
-                                                , m._device_method().front_end_range
-                                                , m._device_method().front_end_offset, coupling, VI_TRUE ), __FILE__,__LINE__ );
-        }
+        task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
         
     } else if ( options.find( "INT" ) != options.npos ) {
-#if defined PKD_WORKAROUND
+
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
-#endif
+
     }
 
-    task.spDriver()->log(
-        AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1", m._device_method().front_end_range, m._device_method().front_end_offset, coupling, VI_TRUE )
-        , __FILE__, __LINE__ );
+    AgMD2::log( AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1"
+                                        , m._device_method().front_end_range
+                                        , m._device_method().front_end_offset, coupling, VI_TRUE ), __FILE__, __LINE__ );
 
     task.spDriver()->setActiveTriggerSource( "External1" );
     task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );

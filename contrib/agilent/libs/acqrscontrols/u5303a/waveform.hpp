@@ -144,7 +144,6 @@ namespace acqrscontrols {
             double toVolts( double ) const;
             double time( size_t idx ) const;
             bool isDEAD() const;
-            void set_events( uint32_t );
             
             const identify* ident() const { return ident_.get(); }
 
