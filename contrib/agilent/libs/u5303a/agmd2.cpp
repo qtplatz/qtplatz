@@ -71,7 +71,10 @@ AgMD2::InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolea
                                         , options.c_str()
                                         , &session_ );
     // AgMD2_InitWithOptions -- method output some stray on stdout
-    return log( rcode, __FILE__, __LINE__ );
+#ifndef NDEBUG
+    log( rcode, __FILE__, __LINE__ );
+#endif
+    return rcode == VI_SUCCESS;    
 }
         
 bool
