@@ -51,11 +51,11 @@ namespace acqrswidgets {
         void onHandleValue( idCategory, int, const QVariant& );
 
         void setEnabled( const QString&, bool );
-
+        
     private:
         class MyDelegate;
         QStandardItemModel * model_;
-
+        bool pkd_enabled_;
     signals:
         void valueChanged( idCategory, int channel, const QVariant& );
 

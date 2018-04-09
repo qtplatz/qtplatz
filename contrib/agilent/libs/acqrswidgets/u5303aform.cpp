@@ -85,6 +85,8 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
             ui->checkBox_Avg->setStyleSheet( "QCheckBox { color: #ff6347; }" );
             if ( flag && ui->checkBox->isChecked() ) // exclusive to TSR
                 ui->checkBox->setChecked( false );
+            if ( !flag && ui->checkBox_pkd->isChecked() )
+                ui->checkBox_pkd->setChecked( false );
             emit valueChanged( idU5303AMode, 0, QVariant( flag ) ); // Digitizer | Averager ==> disable ion counting
         } );
 
@@ -99,6 +101,8 @@ u5303AForm::u5303AForm( QWidget *parent ) : QWidget( parent )
     // PKD
     connect( ui->checkBox_pkd, &QCheckBox::toggled, [this] ( bool flag ) {
             ui->checkBox_pkd->setStyleSheet( "QCheckBox { color: #ff6347; }" );
+            if ( flag && !ui->checkBox_Avg->isChecked() )
+                ui->checkBox_Avg->setChecked( true );
             emit valueChanged( idPKDEnable, 0, QVariant( flag ) );
         } );
 }

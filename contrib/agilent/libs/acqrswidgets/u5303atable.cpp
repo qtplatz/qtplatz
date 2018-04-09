@@ -25,6 +25,8 @@
 #include "u5303atable.hpp"
 #include "constants.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <qtwrapper/font.hpp>
 #include <QBrush>
 #include <QColor>
@@ -36,6 +38,7 @@
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QDebug>
+#include <limits>
 
 namespace acqrswidgets {
 
@@ -141,7 +144,8 @@ u5303ATable::~u5303ATable()
 }
 
 u5303ATable::u5303ATable(QWidget *parent) : adwidgets::TableView(parent)
-                                          , model_( new QStandardItemModel )
+    , model_( new QStandardItemModel )
+    , pkd_enabled_( false )
 {
     setModel( model_ );
 	setItemDelegate( new MyDelegate( this ) );
@@ -240,6 +244,8 @@ u5303ATable::setContents( const acqrscontrols::u5303a::device_method& m )
     QStandardItemModel& model = *model_;
 
     QSignalBlocker block( this );
+
+    pkd_enabled_ = m.pkd_enabled;
 
     int row = 0;
     model.setData( model.index( row, 1 ), m.front_end_range );
@@ -352,6 +358,21 @@ u5303ATable::onHandleValue( idCategory id, int channel, const QVariant& value )
         break;
     case idPKDEnable:
         if ( model_ ) {
+            pkd_enabled_ = value.toBool();
+            auto rate = model_->index( r_sampling_rate, c_item_value ).data( Qt::EditRole ).toDouble();
+            double next_rate(0);
+
+            if ( pkd_enabled_ && adportable::compare< double >::essentiallyEqual( 3.2e+9, rate ) )
+                next_rate = 1.6e+9;
+            else if ( !pkd_enabled_ && adportable::compare< double >::essentiallyEqual( 1.6e+9, rate ) )
+                next_rate = 3.2e+9;
+
+            if ( adportable::compare< double >::definitelyGreaterThan( next_rate, 0 ) ) {
+                model_->setData( model_->index( r_sampling_rate, c_item_value ), next_rate );
+                double width = model_->index( number_of_samples, c_item_value ).data( Qt::EditRole).toInt() / rate;
+                model_->setData( model_->index( number_of_samples, c_item_value ), int( width * next_rate + 0.5 ) );
+            }
+
             for ( int row = pkd_raising_delta; row <= pkd_amplitude_accumulation_enabled; ++row )
                 model_->item( row, 0 )->setForeground( value.toBool() ? QColor( Qt::black ) : QColor( Qt::gray ) );
         }
