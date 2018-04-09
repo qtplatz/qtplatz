@@ -82,13 +82,15 @@ namespace acqrscontrols {
             void operator ()( adcontrols::MassSpectrum& sp, const waveform& w, int scale, double dbase ) const {
                 int idx = 0;
                 if ( w.method_.mode() == method::DigiMode::Digitizer ) {
+                    double vb = toVolts_< data_type, method::DigiMode::Digitizer >()( w.meta_, dbase );
                     for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
-                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.meta_, (*it - dbase)) * scale  ) : *it - dbase;
+                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Digitizer >()( w.meta_, *it ) - vb ) * scale : *it - dbase;
                         sp.setIntensity( idx++, d );
                     }
                 } else {
+                    double vb = toVolts_< data_type, method::DigiMode::Averager >()( w.meta_, dbase );
                     for ( auto it = w.begin<data_type>(); it != w.end<data_type>(); ++it ) {
-                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.meta_, (*it - dbase)) * scale  ) : *it - dbase;
+                        double d = scale ? ( toVolts_< data_type, method::DigiMode::Averager >()( w.meta_, *it ) - vb ) * scale : *it - dbase;
                         sp.setIntensity( idx++, d );
                     }
                 }
