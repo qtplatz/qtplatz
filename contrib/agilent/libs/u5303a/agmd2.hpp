@@ -27,6 +27,7 @@
 #include "u5303a_global.hpp"
 #include <AgMD2.h>
 #include <boost/logic/tribool.hpp>
+#include <boost/optional.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -65,56 +66,14 @@ namespace u5303a {
 
         bool isSimulate() const;
 
-        // bool setSampleRate( double sampleRate );
-
-        // double SampleRate() const;
-
-        // bool setActiveTriggerSource( const std::string& trigSource );
-        
-        // bool setTriggerCoupling( const std::string& trigSoruce, int32_t );
-        // int32_t TriggerCoupling( const std::string& trigSoruce ) const;
-        
-        // bool setTriggerDelay( double );
-        // double TriggerDelay();
-
-        // bool setTriggerLevel( const std::string& trigSource, double );
-        // double TriggerLevel( const std::string& trigSource ) const;
-        
-        // bool setTriggerSlope( const std::string& trigSource, int32_t slope );
-        // int32_t TriggerSlope( const std::string& trigSource ) const;  // 0:NEGATIVE, 1:POSITIvE
-        
-        // bool setDataInversionEnabled( const std::string&, bool );
-
-        // bool setAcquisitionRecordSize( uint32_t );
-
-        // bool setAcquisitionNumberOfAverages( uint32_t );
-
-        // bool setAcquisitionNumRecordsToAcquire( uint32_t ); // MultiRecord
-
-        // bool setAcquisitionMode( int );
-        // int AcquisitionMode() const;
-
         bool CalibrationSelfCalibrate();
 
         bool AcquisitionInitiate();
 
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
-        bool isAcquisitionIdle() const;
-
-        // bool setTSREnabled( bool );
-        // bool TSREnabled();
-
-        boost::tribool isTSRAcquisitionComplete() const;
-        
-        boost::tribool TSRMemoryOverflowOccured() const;
 
         bool TSRContinue();
-
         bool abort();
-
-        bool setTriggerHoldOff( double seconds );
-
-        double TriggerHoldOff() const;
 
         boost::tribool isIdle() const;
         boost::tribool isMeasuring() const;
@@ -155,27 +114,48 @@ namespace u5303a {
     struct trigger_level                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_LEVEL;                  typedef ViReal64 value_type; };
     struct trigger_slope                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_SLOPE;                  typedef ViInt32 value_type; };
     struct tsr_enabled                    { static constexpr ViAttr id = AGMD2_ATTR_TSR_ENABLED;                    typedef bool value_type; };
-    
+    struct trigger_holdoff                { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_HOLDOFF;                typedef ViReal64 value_type; };
+    struct tsr_memory_overflow_occurred   { static constexpr ViAttr id = AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED;   typedef bool value_type; };
+    struct tsr_is_acquisition_complete    { static constexpr ViAttr id = AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE;    typedef bool value_type; };
+    struct is_idle                        { static constexpr ViAttr id = AGMD2_ATTR_IS_IDLE;                        typedef ViInt32 value_type; };
+
+
     //////////////////////////////////////////////////////
+    struct agmd2_exception : std::exception { ViStatus rcode; agmd2_exception( ViStatus t ) : rcode( t ) {} };
+
     template< typename attribute_type > struct attribute {
-        template< typename T > static ViStatus set( AgMD2& _, const T& value ) {
-            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 2 type missmatch"  );
-            return _.setAttribute( "", attribute_type::id, value );
+
+        static ViStatus set( AgMD2& a, typename attribute_type::value_type const& value ) {
+            return a.setAttribute( "", attribute_type::id, value );
         }
         
-        template< typename T > static ViStatus get( AgMD2& _, T& value ) {
-            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 2 type missmatch"  );
-            return _.getAttribute( "", attribute_type::id, value );
+        template< typename T > static ViStatus get( AgMD2& a, T& value ) {
+            return a.getAttribute( "", attribute_type::id, value );
         }
 
-        template< typename T > static ViStatus set( AgMD2& _, ViConstString RepCapIdentifier, const T& value ) {
-            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 3 type missmatch"  );
-            return _.setAttribute( RepCapIdentifier, attribute_type::id, value );
+        static ViStatus set( AgMD2& a, ViConstString RepCapIdentifier, typename attribute_type::value_type const& value ) {
+            return a.setAttribute( RepCapIdentifier, attribute_type::id, value );
         }
         
-        template< typename T > static ViStatus get( AgMD2& _, ViConstString RepCapIdentifier, T& value ) {
-            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 3 type missmatch"  );
-            return _.getAttribute( RepCapIdentifier, attribute_type::id, value );
+        static ViStatus get( AgMD2& a, ViConstString RepCapIdentifier, typename attribute_type::value_type& value ) {
+            return a.getAttribute( RepCapIdentifier, attribute_type::id, value );
+        }
+
+        static boost::optional< typename attribute_type::value_type >
+        value( AgMD2& a, ViStatus& rcode, ViConstString RepCapIdentifier = "" ) {
+            typename attribute_type::value_type d;
+            if ( ( rcode = a.getAttribute( RepCapIdentifier, attribute_type::id, d ) ) == VI_SUCCESS )
+                return d;
+            return boost::none;
+        }        
+
+        static typename attribute_type::value_type
+        value( AgMD2& a, ViConstString RepCapIdentifier = "" ) {
+            ViStatus rcode(0);
+            typename attribute_type::value_type d;
+            if ( ( rcode = a.getAttribute( RepCapIdentifier, attribute_type::id, d ) ) == VI_SUCCESS )
+                return d;
+            throw agmd2_exception( rcode );
         }        
     };
     

@@ -271,6 +271,10 @@ main( int argc, char * argv [] )
             int32_t count(0);
             AgMD2::log( u5303a::attribute< u5303a::control_io_count >::get(*md2, "ControlIO", count ), __FILE__,__LINE__ );
 
+            if ( auto p = attribute< u5303a::control_io_count >::value( *md2, rcode, "ControlIO" ) ) {
+                std::cout << p.get() << " == " << count << "\t" << (count == p.get() ) << std::endl;
+            }
+
             ViChar name [ 256 ];
             for ( int i = 1; i <= count; ++i ) {
                 AgMD2::log( AgMD2_GetControlIOName( md2->session(), i, 256, name ), __FILE__,__LINE__ );
@@ -347,14 +351,25 @@ main( int argc, char * argv [] )
                 md2->AcquisitionInitiate();
                 
                 while ( replicates > execStatistics::instance().dataCount_ ) {
-                    
-                    if ( md2->TSRMemoryOverflowOccured() ) {
-                        std::cout << "***** Memory Overflow" << std::endl;
-                        break;
-                    }
 
-                    while ( !md2->isTSRAcquisitionComplete() )
-                        std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
+                    do {
+                        boost::optional< u5303a::tsr_memory_overflow_occurred::value_type > p;
+                        if ( p = attribute< u5303a::tsr_memory_overflow_occurred >::value( *md2 ) && p.get() ) {
+                            std::cout << "***** Memory Overflow" << std::endl;
+                            break;
+                        }
+                    } while ( 0 );
+                    // if ( md2->TSRMemoryOverflowOccured() ) {
+                    //     std::cout << "***** Memory Overflow" << std::endl;
+                    //     break;
+                    // }
+                    do {
+                        boost::optional< u5303a::tsr_is_acquisition_complete::value_type > p;
+                        while ( p = attribute< u5303a::tsr_is_acquisition_complete >::value( *md2 ) && !p.get() )
+                            std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
+                        //while ( !md2->isTSRAcquisitionComplete() )
+                        //    std::this_thread::sleep_for( std::chrono::microseconds( 100 ) ); // assume 1ms trig. interval
+                    } while ( 0 );
                     
                     u5303a::digitizer::readData( *md2, method, vec );
                     md2->TSRContinue();

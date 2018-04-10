@@ -164,13 +164,6 @@ namespace u5303a {
             result = str;
         return rcode;
     }
-
-    // template<> template<> ViStatus attribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >::set( AgMD2& _, const std::string& value ) {
-    //     return _.setAttribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >( "", value );
-    // }
-    // template<> template<> ViStatus attribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >::get( AgMD2& _, std::string& value ) const {
-    //     return _.getAttribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >( "", value );
-    // }
 }
 
 using namespace u5303a;
@@ -291,13 +284,6 @@ AgMD2::ConfigureTimeInterleavedChannelList( const std::string& channelName, cons
     return log( AgMD2_ConfigureTimeInterleavedChannelList( session_, channelName.c_str(), channelList.c_str() ), __FILE__, __LINE__ );
 }
 
-// bool
-// AgMD2::isSimulate() const
-// {
-//     ViBoolean simulate(false);
-//     return log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_SIMULATE, &simulate ), __FILE__, __LINE__ );
-// }
-
 // Added for PKD+AVG POC quick test
 ViStatus
 AgMD2::setAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt32 AttributeValue )
@@ -316,6 +302,13 @@ AgMD2::setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID
 {
     return AgMD2_SetAttributeViBoolean( session_, RepCapIdentifier, AttributeID, AttributeValue );
 }
+
+// bool
+// AgMD2::isSimulate() const
+// {
+//     ViBoolean simulate(false);
+//     return log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_SIMULATE, &simulate ), __FILE__, __LINE__ );
+// }
 
 // ViStatus
 // AgMD2::setSampleRate( double sampleRate )
@@ -439,6 +432,85 @@ AgMD2::setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID
 //     return (-1);
 // }
 
+// bool
+// AgMD2::setTSREnabled( bool enable )
+// {
+//     ViBoolean value = enable ? VI_TRUE : VI_FALSE;
+//     return log( AgMD2_SetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, value ), __FILE__, __LINE__ );
+// }
+
+// bool
+// AgMD2::TSREnabled()
+// {
+//     ViBoolean value( VI_FALSE );
+//     log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, &value ), __FILE__, __LINE__ );
+//     return value == VI_FALSE ? false : true;
+// }
+
+
+// bool
+// AgMD2::isAcquisitionIdle() const
+// {
+//     ViInt32 idle( AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE );
+    
+//     log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_IS_IDLE, &idle ), __FILE__, __LINE__, [=]{ return ( boost::format("isIdle") ).str(); } );
+
+//     return idle == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE;
+// }
+
+// boost::tribool
+// AgMD2::isTSRAcquisitionComplete() const
+// {
+//     ViBoolean value( VI_FALSE );
+//     if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ) 
+//               , __FILE__, __LINE__, [](){ return "isTSRAcquisitionComplete()"; } ) ) {
+//         return value != VI_FALSE;
+//     }
+//     return boost::indeterminate;
+// }
+
+// boost::tribool
+// AgMD2::TSRMemoryOverflowOccured() const
+// {
+//     ViBoolean value( VI_FALSE );
+//     ViStatus rcode;
+
+//     if ( log( ( rcode = AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ) )
+//               , __FILE__, __LINE__, [](){ return "TSRMemoryOverflowOccured()"; } ) )
+//         return value == VI_FALSE ? false : true;
+    
+//     return boost::indeterminate;
+// }
+
+bool
+AgMD2::TSRContinue()
+{
+    ViBoolean value( VI_FALSE );
+    return log( AgMD2_TSRContinue( session_ ), __FILE__, __LINE__ ) ;
+}
+
+bool
+AgMD2::abort()
+{
+    ViBoolean value( VI_FALSE );
+    return log( AgMD2_Abort( session_ ), __FILE__, __LINE__, [](){ return "Abort"; } ) ;
+}
+
+// bool
+// AgMD2::setTriggerHoldOff( double seconds )
+// {
+//     return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_HOLDOFF, seconds ), __FILE__, __LINE__ ) ;
+// }
+
+// double
+// AgMD2::TriggerHoldOff() const
+// {
+//     double seconds(0);
+//     if ( log( AgMD2_GetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_HOLDOFF, &seconds ), __FILE__, __LINE__ ) )
+//         return seconds;
+//     return -9999;
+// }
+
 bool
 AgMD2::CalibrationSelfCalibrate()
 {
@@ -456,84 +528,6 @@ AgMD2::AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds )
 {
     return log( AgMD2_WaitForAcquisitionComplete( session_, milliseconds ), __FILE__, __LINE__
                 , [=]{ return ( boost::format("AcquisitionWaitForComplete(%1%)") % milliseconds ).str() ; } );
-}
-
-bool
-AgMD2::isAcquisitionIdle() const
-{
-    ViInt32 idle( AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE );
-    
-    log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_IS_IDLE, &idle ), __FILE__, __LINE__, [=]{ return ( boost::format("isIdle") ).str(); } );
-
-    return idle == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE;
-}
-
-// bool
-// AgMD2::setTSREnabled( bool enable )
-// {
-//     ViBoolean value = enable ? VI_TRUE : VI_FALSE;
-//     return log( AgMD2_SetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, value ), __FILE__, __LINE__ );
-// }
-
-// bool
-// AgMD2::TSREnabled()
-// {
-//     ViBoolean value( VI_FALSE );
-//     log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, &value ), __FILE__, __LINE__ );
-//     return value == VI_FALSE ? false : true;
-// }
-
-boost::tribool
-AgMD2::isTSRAcquisitionComplete() const
-{
-    ViBoolean value( VI_FALSE );
-    if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ) 
-              , __FILE__, __LINE__, [](){ return "isTSRAcquisitionComplete()"; } ) ) {
-        return value != VI_FALSE;
-    }
-    return boost::indeterminate;
-}
-
-boost::tribool
-AgMD2::TSRMemoryOverflowOccured() const
-{
-    ViBoolean value( VI_FALSE );
-    ViStatus rcode;
-
-    if ( log( ( rcode = AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ) )
-              , __FILE__, __LINE__, [](){ return "TSRMemoryOverflowOccured()"; } ) )
-        return value == VI_FALSE ? false : true;
-    
-    return boost::indeterminate;
-}
-
-bool
-AgMD2::TSRContinue()
-{
-    ViBoolean value( VI_FALSE );
-    return log( AgMD2_TSRContinue( session_ ), __FILE__, __LINE__ ) ;
-}
-
-bool
-AgMD2::abort()
-{
-    ViBoolean value( VI_FALSE );
-    return log( AgMD2_Abort( session_ ), __FILE__, __LINE__, [](){ return "Abort"; } ) ;
-}
-
-bool
-AgMD2::setTriggerHoldOff( double seconds )
-{
-    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_HOLDOFF, seconds ), __FILE__, __LINE__ ) ;
-}
-
-double
-AgMD2::TriggerHoldOff() const
-{
-    double seconds(0);
-    if ( log( AgMD2_GetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_HOLDOFF, &seconds ), __FILE__, __LINE__ ) )
-        return seconds;
-    return -9999;
 }
 
 boost::tribool

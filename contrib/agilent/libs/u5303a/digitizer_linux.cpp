@@ -598,10 +598,15 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     device::initial_setup( *this, m, ident().Options() );
 
     if ( /* m.mode_ && */ simulated_ ) {
+        ViStatus rcode;
         acqrscontrols::u5303a::method a( m );
         double rate;
-        if ( AgMD2::log( attribute< u5303a::sample_rate >::get( *spDriver(), rate ), __FILE__,__LINE__ ) )
-            a._device_method().samp_rate = rate;
+        if ( auto p = attribute< u5303a::sample_rate >::value( *spDriver(), rcode ) ) {
+            a._device_method().samp_rate = p.get();
+        } else {
+            ADDEBUG() << "################ sample_rate failed";
+        }
+
         simulator::instance()->setup( a );
     }
 
@@ -633,18 +638,28 @@ task::handle_TSR_acquire()
 {
     acquire_posted_.clear();
     fsm_.process_event( fsm::Continue() );
+    ViStatus rcode;
     
-    if ( spDriver()->TSRMemoryOverflowOccured() )
-        ADTRACE() << "Memory Overflow";
+    if ( auto p = attribute< tsr_memory_overflow_occurred >::value( *spDriver(), rcode ) ) {
+        if ( p.get() )
+            ADTRACE() << "Memory Overflow";
+    }
 
     auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( 1000 ); // wait for max 1 second
 
-    boost::tribool complete;
+    boost::optional< tsr_is_acquisition_complete::value_type > complete;
+
+    while ( ( complete = attribute< tsr_is_acquisition_complete >::value( *spDriver(), rcode ) ) && !complete.get()
+            && ( std::chrono::steady_clock::now() < tp ) ) {
+        std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) ); // assume 1ms trig. interval
+    }
+#if 0
     while ( ! ( complete = spDriver()->isTSRAcquisitionComplete() ) && ( std::chrono::steady_clock::now() < tp ) ) {
         std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) ); // assume 1ms trig. interval
     }
+#endif
 
-    if ( !complete )
+    if ( !complete || !complete.get() )
         return false;
     
     std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
@@ -1035,10 +1050,16 @@ device::waitForEndOfAcquisition( task& task, int timeout )
 {
     auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( timeout );
 
-    while( ! task.spDriver()->isAcquisitionIdle() ) {
+    boost::optional< is_idle::value_type > idle;
+    //auto idle = attribute< is_idle >::value( *task.spDriver() );
+    while ( idle = attribute< is_idle >::value( *task.spDriver() ) && !idle.get() ) {
         if ( tp < std::chrono::steady_clock::now() )
             return false;
     }
+    // while( ! task.spDriver()->isAcquisitionIdle() ) {
+    //     if ( tp < std::chrono::steady_clock::now() )
+    //         return false;
+    // }
     return true;
 }
 
