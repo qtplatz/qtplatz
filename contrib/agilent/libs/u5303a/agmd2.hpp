@@ -101,9 +101,9 @@ namespace u5303a {
     struct channel_data_inversion_enabled { static constexpr ViAttr id = AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED; typedef bool value_type; };
     struct control_io_count               { static constexpr ViAttr id = AGMD2_ATTR_CONTROL_IO_COUNT;               typedef ViInt32 value_type; };
     struct instrument_info_nbr_adc_bits   { static constexpr ViAttr id = AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS;   typedef ViInt32 value_type; };
+    struct is_idle                        { static constexpr ViAttr id = AGMD2_ATTR_IS_IDLE;                        typedef ViInt32 value_type; };
     struct num_records_to_acquire         { static constexpr ViAttr id = AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE;         typedef ViInt64 value_type; };
-    struct peak_detection_amplitude_accumulation_enabled {
-        static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED; typedef bool value_type; };
+    struct peak_detection_amplitude_accumulation_enabled { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED; typedef bool value_type; };
     struct peak_detection_falling_delta   { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA;   typedef ViInt32 value_type; };
     struct peak_detection_rising_delta    { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA;    typedef ViInt32 value_type; };
     struct record_size                    { static constexpr ViAttr id = AGMD2_ATTR_RECORD_SIZE;                    typedef ViInt32 value_type; };
@@ -111,14 +111,12 @@ namespace u5303a {
     struct simulate                       { static constexpr ViAttr id = AGMD2_ATTR_SIMULATE;                       typedef bool value_type; };
     struct trigger_coupling               { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_COUPLING;               typedef ViInt32 value_type;  };
     struct trigger_delay                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_DELAY;                  typedef ViReal64 value_type; };
+    struct trigger_holdoff                { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_HOLDOFF;                typedef ViReal64 value_type; };
     struct trigger_level                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_LEVEL;                  typedef ViReal64 value_type; };
     struct trigger_slope                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_SLOPE;                  typedef ViInt32 value_type; };
     struct tsr_enabled                    { static constexpr ViAttr id = AGMD2_ATTR_TSR_ENABLED;                    typedef bool value_type; };
-    struct trigger_holdoff                { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_HOLDOFF;                typedef ViReal64 value_type; };
-    struct tsr_memory_overflow_occurred   { static constexpr ViAttr id = AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED;   typedef bool value_type; };
     struct tsr_is_acquisition_complete    { static constexpr ViAttr id = AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE;    typedef bool value_type; };
-    struct is_idle                        { static constexpr ViAttr id = AGMD2_ATTR_IS_IDLE;                        typedef ViInt32 value_type; };
-
+    struct tsr_memory_overflow_occurred   { static constexpr ViAttr id = AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED;   typedef bool value_type; };
 
     //////////////////////////////////////////////////////
     struct agmd2_exception : std::exception { ViStatus rcode; agmd2_exception( ViStatus t ) : rcode( t ) {} };
