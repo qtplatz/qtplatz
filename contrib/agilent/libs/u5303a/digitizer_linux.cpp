@@ -456,9 +456,13 @@ task::fsm_action_TSR_stop()
 void
 task::fsm_action_prepare()
 {
-
-    if ( spDriver_->TSREnabled() )
-        spDriver_->abort();
+    bool enable;
+    if ( AgMD2::log( attribute< tsr_enabled >::get( *spDriver_, "", enable ), __FILE__,__LINE__ ) ) {
+        if ( enable )
+            spDriver_->abort();
+    }
+    // if ( spDriver_->TSREnabled() )
+    //    spDriver_->abort();
 }
 
 void
@@ -596,7 +600,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     if ( /* m.mode_ && */ simulated_ ) {
         acqrscontrols::u5303a::method a( m );
         double rate;
-        if ( AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::get( *spDriver(), rate ), __FILE__,__LINE__ ) )
+        if ( AgMD2::log( attribute< u5303a::sample_rate >::get( *spDriver(), rate ), __FILE__,__LINE__ ) )
             a._device_method().samp_rate = rate;
         simulator::instance()->setup( a );
     }
@@ -886,37 +890,53 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
                                         , m._device_method().front_end_range
                                         , m._device_method().front_end_offset, AGMD2_VAL_VERTICAL_COUPLING_DC, VI_TRUE ), __FILE__, __LINE__ );
 
-    task.spDriver()->setActiveTriggerSource( "External1" );
-    task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );
-    task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
-    task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
-    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
+    attribute< active_trigger_source >::set( *task.spDriver(), std::string( "External1" ) );
+    // task.spDriver()->setActiveTriggerSource( "External1" );
+
+    attribute< trigger_level >::set( *task.spDriver(), "External1", m._device_method().ext_trigger_level );
+    // task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );
+
+    attribute< trigger_slope >::set( *task.spDriver(), "External1", AGMD2_VAL_POSITIVE );
+    // task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
+
+    attribute< trigger_coupling >::set( *task.spDriver(), "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
+    // task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
+
+    attribute< trigger_delay >::set( *task.spDriver(), m._device_method().delay_to_first_sample_ );
+    // task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
     
     bool success = false;
             
     double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
 
-    if ( AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
+    if ( AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
         // if ( ! task.spDriver()->setSampleRate( samp_rate ) ) {
         uint32_t rate = static_cast< uint32_t >( max_rate );
         while ( rate > samp_rate )
             rate /= 2;
-        AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::set( *task.spDriver(), double( rate ) ), __FILE__,__LINE__ );
+        AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), double( rate ) ), __FILE__,__LINE__ );
         // task.spDriver()->setSampleRate( double( rate ) );
     }
         
     if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer 
         // ADDEBUG() << "Normal Mode";
-        task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
-        task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
-        //task.spDriver()->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
-        task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-        task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
+        attribute< tsr_enabled >::set( *task.spDriver(), m._device_method().TSR_enabled );
+        // task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
+
+        attribute< acquisition_mode >::set( *task.spDriver(), AGMD2_VAL_ACQUISITION_MODE_NORMAL );
+        // task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
+
+        attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ );
+        // task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+
+        attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( m._device_method().nbr_records ) );
+        // task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
 
     } else { // Averager
 
         // ADDEBUG() << "Averager Mode";
-        task.spDriver()->setTSREnabled( false );
+        attribute< tsr_enabled >::set( *task.spDriver(), false );
+        // task.spDriver()->setTSREnabled( false );
 
         ADDEBUG() << "################ Average Mode ##########################";
 
@@ -925,51 +945,58 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             ADDEBUG() << "################ PKD ON ################################";
             
             // task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
-            AgMD2::log( attribute< AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
+            AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 
             // Enable the Peak Detection mode 	
             // task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
-            AgMD2::log( attribute< AGMD2_ATTR_ACQUISITION_MODE >::set( *task.spDriver(), int32_t( 1 ) ), __FILE__,__LINE__ );
+            AgMD2::log( attribute< acquisition_mode >::set( *task.spDriver(), int32_t( 1 ) ), __FILE__,__LINE__ );
 
             // Configure the data inversion mode - VI_FALSE (no data inversion) by default
-            AgMD2::log( attribute< AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED >::set( *task.spDriver()
-                                                                                     , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
+            AgMD2::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
+                                                                          , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
             // task.spDriver()->setAttributeViBoolean( "Channel1"
             //                                         , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
             //                                         , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
 
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-            AgMD2::log(
-                attribute< AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED >::set(
-                    *task.spDriver(), "Channel1", bool( m._device_method().pkd_amplitude_accumulation_enabled ) ), __FILE__,__LINE__ );
+            AgMD2::log( attribute< peak_detection_amplitude_accumulation_enabled >::set(
+                            *task.spDriver(), "Channel1", m._device_method().pkd_amplitude_accumulation_enabled )
+                        , __FILE__,__LINE__ );
             
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
-            AgMD2::log(
-                attribute< AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA >::set( *task.spDriver(), "Channel1", int32_t( m._device_method().pkd_raising_delta ) )
-                , __FILE__,__LINE__ );
-
-            AgMD2::log(
-                attribute< AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA >::set( *task.spDriver(), "Channel1", int32_t( m._device_method().pkd_falling_delta ) )
-                , __FILE__,__LINE__ );
+            AgMD2::log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_raising_delta )
+                        , __FILE__,__LINE__ );
+            
+            AgMD2::log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_falling_delta )
+                        , __FILE__,__LINE__ );
 
             // AgMD2::log( task.spDriver()->setAttribute( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA
             //                                            , int32_t( m._device_method().pkd_falling_delta ) ), __FILE__,__LINE__ );
 
-            task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );            
+            AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+            // task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+
+            AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
+            // task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 ); // AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE
+
+            AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
+            // task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );            
 
         } else {
-
-            task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
+            AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+            // task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+            AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
+            // task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
 
             // It looks like this command should be issued as last
-            task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
-            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
+            AgMD2::log( attribute< acquisition_mode >::set( *task.spDriver(), AGMD2_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
+            // task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
+            AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
+            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
 
-            task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
+            AgMD2::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver(), bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
+            // task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
         }
     }
 
@@ -985,9 +1012,14 @@ device::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
     // Don't forget environment variable: 'AGMD2_SKIP_CAL_REQUIRED_CHECKS=1'
 
-    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );    
-    task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-    task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
+    attribute< trigger_delay >::set( *task.spDriver(), m._device_method().delay_to_first_sample_ );
+    // task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );    
+
+    attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ );
+    // task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+
+    attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( m._device_method().nbr_records ) );
+    //task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
 
     return true;
 }

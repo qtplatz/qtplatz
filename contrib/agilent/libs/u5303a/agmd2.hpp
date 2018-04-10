@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,6 +31,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <type_traits>
 
 namespace acqrscontrols { namespace u5303a { class identify; class waveform; } }
 
@@ -38,14 +39,7 @@ namespace u5303a {
 
     class U5303ASHARED_EXPORT AgMD2 {
         class impl;
-#if defined _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
-#endif
         std::unique_ptr< impl > impl_;
-#if defined _MSC_VER
-#pragma warning(pop)
-#endif
         ViSession session_;
 
         AgMD2( const AgMD2& ) = delete;
@@ -75,30 +69,30 @@ namespace u5303a {
 
         // double SampleRate() const;
 
-        bool setActiveTriggerSource( const std::string& trigSource );
+        // bool setActiveTriggerSource( const std::string& trigSource );
         
-        bool setTriggerCoupling( const std::string& trigSoruce, int32_t );
-        int32_t TriggerCoupling( const std::string& trigSoruce ) const;
+        // bool setTriggerCoupling( const std::string& trigSoruce, int32_t );
+        // int32_t TriggerCoupling( const std::string& trigSoruce ) const;
         
-        bool setTriggerDelay( double );
-        double TriggerDelay();
+        // bool setTriggerDelay( double );
+        // double TriggerDelay();
 
-        bool setTriggerLevel( const std::string& trigSource, double );
-        double TriggerLevel( const std::string& trigSource ) const;
+        // bool setTriggerLevel( const std::string& trigSource, double );
+        // double TriggerLevel( const std::string& trigSource ) const;
         
-        bool setTriggerSlope( const std::string& trigSource, int32_t slope );
-        int32_t TriggerSlope( const std::string& trigSource ) const;  // 0:NEGATIVE, 1:POSITIvE
+        // bool setTriggerSlope( const std::string& trigSource, int32_t slope );
+        // int32_t TriggerSlope( const std::string& trigSource ) const;  // 0:NEGATIVE, 1:POSITIvE
         
-        bool setDataInversionEnabled( const std::string&, bool );
+        // bool setDataInversionEnabled( const std::string&, bool );
 
-        bool setAcquisitionRecordSize( uint32_t );
+        // bool setAcquisitionRecordSize( uint32_t );
 
-        bool setAcquisitionNumberOfAverages( uint32_t );
+        // bool setAcquisitionNumberOfAverages( uint32_t );
 
-        bool setAcquisitionNumRecordsToAcquire( uint32_t ); // MultiRecord
+        // bool setAcquisitionNumRecordsToAcquire( uint32_t ); // MultiRecord
 
-        bool setAcquisitionMode( int );
-        int AcquisitionMode() const;
+        // bool setAcquisitionMode( int );
+        // int AcquisitionMode() const;
 
         bool CalibrationSelfCalibrate();
 
@@ -107,8 +101,8 @@ namespace u5303a {
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
         bool isAcquisitionIdle() const;
 
-        bool setTSREnabled( bool );
-        bool TSREnabled();
+        // bool setTSREnabled( bool );
+        // bool TSREnabled();
 
         boost::tribool isTSRAcquisitionComplete() const;
         
@@ -139,20 +133,50 @@ namespace u5303a {
         
         template< typename T > ViStatus setAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T value );
         template< typename T > ViStatus getAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T& value ) const;
-        template< typename T > ViStatus setAttribute( ViAttr AttributeID, T value )        { return setAttribute( "", AttributeID, value ); }
-        template< typename T > ViStatus getAttribute( ViAttr AttributeID, T& value ) const { return getAttribute( "", AttributeID, value ); }
     };
+    
+    // AGMD2_ATTR_SAMPLE_RATE
+    struct acquisition_mode               { static constexpr ViAttr id = AGMD2_ATTR_ACQUISITION_MODE;               typedef ViInt32 value_type; };
+    struct acquisition_number_of_averages { static constexpr ViAttr id = AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES; typedef ViInt32 value_type; };
+    struct active_trigger_source          { static constexpr ViAttr id = AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE;          typedef std::string value_type; };
+    struct channel_data_inversion_enabled { static constexpr ViAttr id = AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED; typedef bool value_type; };
+    struct control_io_count               { static constexpr ViAttr id = AGMD2_ATTR_CONTROL_IO_COUNT;               typedef ViInt32 value_type; };
+    struct instrument_info_nbr_adc_bits   { static constexpr ViAttr id = AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS;   typedef ViInt32 value_type; };
+    struct num_records_to_acquire         { static constexpr ViAttr id = AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE;         typedef ViInt64 value_type; };
+    struct peak_detection_amplitude_accumulation_enabled {
+        static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED; typedef bool value_type; };
+    struct peak_detection_falling_delta   { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA;   typedef ViInt32 value_type; };
+    struct peak_detection_rising_delta    { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA;    typedef ViInt32 value_type; };
+    struct record_size                    { static constexpr ViAttr id = AGMD2_ATTR_RECORD_SIZE;                    typedef ViInt32 value_type; };
+    struct sample_rate                    { static constexpr ViAttr id = AGMD2_ATTR_SAMPLE_RATE;                    typedef ViReal64 value_type; };
+    struct simulate                       { static constexpr ViAttr id = AGMD2_ATTR_SIMULATE;                       typedef bool value_type; };
+    struct trigger_coupling               { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_COUPLING;               typedef ViInt32 value_type;  };
+    struct trigger_delay                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_DELAY;                  typedef ViReal64 value_type; };
+    struct trigger_level                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_LEVEL;                  typedef ViReal64 value_type; };
+    struct trigger_slope                  { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_SLOPE;                  typedef ViInt32 value_type; };
+    struct tsr_enabled                    { static constexpr ViAttr id = AGMD2_ATTR_TSR_ENABLED;                    typedef bool value_type; };
+    
+    //////////////////////////////////////////////////////
+    template< typename attribute_type > struct attribute {
+        template< typename T > static ViStatus set( AgMD2& _, const T& value ) {
+            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 2 type missmatch"  );
+            return _.setAttribute( "", attribute_type::id, value );
+        }
+        
+        template< typename T > static ViStatus get( AgMD2& _, T& value ) {
+            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 2 type missmatch"  );
+            return _.getAttribute( "", attribute_type::id, value );
+        }
 
-    template< ViAttr attr > struct attribute {
-        AgMD2& _;
-        attribute( AgMD2& t ) : _( t ) {}
-        template< typename T > ViStatus set( const T& value ) { return _.setAttribute( attr, value ); }
-        template< typename T > ViStatus get( T& value ) const { return _.getAttribute( attr, value ); }
-        template< typename T > ViStatus set( ViConstString RepCapIdentifier, const T& value ) { return _.setAttribute( RepCapIdentifier, attr, value ); }
-        template< typename T > ViStatus get( ViConstString RepCapIdentifier, T& value ) const { return _.getAttribute( RepCapIdentifier, attr, value ); }
-        template< typename T > static ViStatus set( AgMD2& _, const T& value ) { return _.setAttribute( attr, value ); }
-        template< typename T > static ViStatus get( AgMD2& _, T& value ) { return _.getAttribute( attr, value ); }
-        template< typename T > static ViStatus set( AgMD2& _, ViConstString RepCapIdentifier, const T& value ) { return _.setAttribute( RepCapIdentifier, attr, value ); }
-        template< typename T > static ViStatus get( AgMD2& _, ViConstString RepCapIdentifier, T& value ) { return _.getAttribute( RepCapIdentifier, attr, value ); }
+        template< typename T > static ViStatus set( AgMD2& _, ViConstString RepCapIdentifier, const T& value ) {
+            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 3 type missmatch"  );
+            return _.setAttribute( RepCapIdentifier, attribute_type::id, value );
+        }
+        
+        template< typename T > static ViStatus get( AgMD2& _, ViConstString RepCapIdentifier, T& value ) {
+            static_assert( std::is_same< T, typename attribute_type::value_type>::value, "argument 3 type missmatch"  );
+            return _.getAttribute( RepCapIdentifier, attribute_type::id, value );
+        }        
     };
+    
 }

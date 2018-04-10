@@ -266,9 +266,10 @@ main( int argc, char * argv [] )
             std::string result;
 
             using u5303a::AgMD2;
+            using u5303a::attribute;
 
             int32_t count(0);
-            AgMD2::log( u5303a::attribute<AGMD2_ATTR_CONTROL_IO_COUNT>(*md2).get( "ControlIO", count ), __FILE__,__LINE__ );
+            AgMD2::log( u5303a::attribute< u5303a::control_io_count >::get(*md2, "ControlIO", count ), __FILE__,__LINE__ );
 
             ViChar name [ 256 ];
             for ( int i = 1; i <= count; ++i ) {
@@ -281,11 +282,18 @@ main( int argc, char * argv [] )
                 }
             }
 
-            md2->setActiveTriggerSource( "External1" );
-            md2->setTriggerLevel( "External1", method._device_method().ext_trigger_level ); // 1V
-            std::cout << "TriggerLevel: " << md2->TriggerLevel( "External1" ) << std::endl;
-            md2->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
-            std::cout << "TriggerSlope: " << md2->TriggerSlope( "External1" ) << std::endl;
+            attribute< u5303a::active_trigger_source >::set( *md2, std::string( "External1" ) );
+            // md2->setActiveTriggerSource( "External1" );
+
+            attribute< u5303a::trigger_level >::set( *md2, "External1", method._device_method().ext_trigger_level );
+            // md2->setTriggerLevel( "External1", method._device_method().ext_trigger_level ); // 1V
+
+            attribute< u5303a::trigger_level >::set( *md2, "External1", method._device_method().ext_trigger_level );
+            // std::cout << "TriggerLevel: " << md2->TriggerLevel( "External1" ) << std::endl;
+
+            attribute< u5303a::trigger_slope >::set( *md2, "External1", AGMD2_VAL_POSITIVE );
+            // md2->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
+            // std::cout << "TriggerSlope: " << md2->TriggerSlope( "External1" ) << std::endl;
 
             if ( vm.count( "pkd" ) && ident->Options().find( "PKD" ) != std::string::npos )
                 return pkd_main( md2, method, replicates );
@@ -301,21 +309,28 @@ main( int argc, char * argv [] )
             }
 
             using u5303a::attribute;
-            AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::set( *md2, max_rate ), __FILE__,__LINE__ );
+            AgMD2::log( attribute< u5303a::sample_rate >::set( *md2, max_rate ), __FILE__,__LINE__ );
             // md2->setSampleRate( max_rate );
 
-            AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::get( *md2, method._device_method().samp_rate ), __FILE__,__LINE__ );
+            AgMD2::log( attribute< u5303a::sample_rate >::get( *md2, method._device_method().samp_rate ), __FILE__,__LINE__ );
             //method._device_method().samp_rate = md2->SampleRate();
 
             std::cout << "SampleRate: " << method._device_method().samp_rate << std::endl;            
 
-            md2->setAcquisitionRecordSize( method._device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
-            md2->setTriggerDelay( method._device_method().digitizer_delay_to_first_sample );
+            attribute< u5303a::record_size >::set( *md2, method._device_method().nbr_of_s_to_acquire_ );
+            // md2->setAcquisitionRecordSize( method._device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s
 
-            md2->setAcquisitionNumRecordsToAcquire( method._device_method().nbr_records );
-            md2->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
+            attribute< u5303a::trigger_delay >::set( *md2, method._device_method().delay_to_first_sample_ );
+            // md2->setTriggerDelay( method._device_method().digitizer_delay_to_first_sample );
 
-            md2->setTSREnabled( method._device_method().TSR_enabled );
+            attribute< u5303a::num_records_to_acquire >::set( *md2, int64_t( method._device_method().nbr_records ) );
+            // md2->setAcquisitionNumRecordsToAcquire( method._device_method().nbr_records );
+
+            attribute< u5303a::acquisition_mode >::set( *md2, AGMD2_VAL_ACQUISITION_MODE_NORMAL );
+            // md2->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL ); // Digitizer mode
+
+            attribute< u5303a::tsr_enabled >::set( *md2, method._device_method().TSR_enabled );
+            // md2->setTSREnabled( method._device_method().TSR_enabled );
 
             md2->CalibrationSelfCalibrate();
             
@@ -324,8 +339,10 @@ main( int argc, char * argv [] )
             std::cout << "Replicates: " << replicates << std::endl;
 
             std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();            
-            
-            if ( md2->TSREnabled() ) {
+
+            bool tsrEnabled;
+            if ( AgMD2::log( attribute< u5303a::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {
+                // if ( md2->TSREnabled() ) {
                 
                 md2->AcquisitionInitiate();
                 
@@ -433,8 +450,13 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
     std::cout << "Record size:        " << m._device_method().digitizer_nbr_of_s_to_acquire << '\n';
     md2->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords );
 
-    md2->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
-    md2->setTriggerDelay( m._device_method().digitizer_delay_to_first_sample );
+    using u5303a::attribute;
+    
+    attribute< u5303a::record_size >::set( *md2, int32_t( m._device_method().digitizer_nbr_of_s_to_acquire ) );
+    // md2->setAcquisitionRecordSize( m._device_method().digitizer_nbr_of_s_to_acquire );
+
+    attribute< u5303a::trigger_delay >::set( *md2, m._device_method().digitizer_delay_to_first_sample );
+    // md2->setTriggerDelay( m._device_method().digitizer_delay_to_first_sample );
 
 	// Configure the number of accumulation
     std::cout << "Number of averages: " << m._device_method().nbr_of_averages << "\n\n";
@@ -459,8 +481,11 @@ pkd_main( std::shared_ptr< u5303a::AgMD2 > md2, const acqrscontrols::u5303a::met
 
     // Configure the trigger.
     std::cout << "Configuring trigger\n";
-    md2->setActiveTriggerSource( "External1" );
-    md2->setTriggerLevel( "External1", m._device_method().ext_trigger_level ); // 1V
+    attribute< u5303a::active_trigger_source >::set( *md2, std::string( "External1" ) );
+    // md2->setActiveTriggerSource( "External1" );
+
+    attribute< u5303a::trigger_level >::set( *md2, "External1", m._device_method().ext_trigger_level );
+    // md2->setTriggerLevel( "External1", m._device_method().ext_trigger_level ); // 1V
 
     std::cout << "Performing self-calibration\n";
     md2->CalibrationSelfCalibrate();

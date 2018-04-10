@@ -47,11 +47,16 @@ namespace u5303a {
             return dataSerialNumber_++;
         }
     };
+
+    enum AgMD2ATTRIBUTES {
+    };
     
 }
 
 namespace u5303a {
 
+    //////////////////////////////////////////////////////////////////////////
+    // ViReal64
     template<>
     ViStatus
     AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViReal64 value )
@@ -65,39 +70,84 @@ namespace u5303a {
     {
         return AgMD2_GetAttributeViReal64( session_, _1, _2, &result );
     }
-    
 
-    template<>
-    ViStatus
-    AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViInt32 value )
-    {
-        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
-    }
-
+    //////////////////////////////////////////////////////////////////////////
+    // ViInt64
     template<>
     ViStatus
     AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViInt64 value )
     {
-        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
+        return AgMD2_SetAttributeViInt64( session_, _1, _2, value );
     }
 
     template<>
     ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, ViInt64& value ) const
+    {
+        return AgMD2_GetAttributeViInt64( session_, _1, _2, &value );
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // ViInt32
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViInt32 value )
+    {
+        return AgMD2_SetAttributeViInt32( session_, _1, _2, value );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, ViInt32& result ) const
+    {
+        return AgMD2_GetAttributeViInt32( session_, _1, _2, &result );
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // bool
+    template<>
+    ViStatus
     AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViBoolean value )
     {
-        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
+        return AgMD2_SetAttributeViBoolean( session_, _1, _2, value );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, ViBoolean& value ) const
+    {
+        return AgMD2_GetAttributeViBoolean( session_, _1, _2, &value );
     }
 
     template<>
     ViStatus
     AgMD2::setAttribute( ViConstString _1, ViAttr _2, bool value )
     {
-        return AgMD2_SetAttributeViReal64( session_, _1, _2, value ? VI_TRUE : VI_FALSE );
+        return AgMD2_SetAttributeViBoolean( session_, _1, _2, value ? VI_TRUE : VI_FALSE );
     }
 
     template<>
     ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, bool& value ) const
+    {
+        ViBoolean tmp;
+        auto rcode = AgMD2_GetAttributeViBoolean( session_, _1, _2, &tmp );
+        value = tmp ? true : false;
+        return rcode;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // std::string
+    template<>
+    ViStatus
     AgMD2::setAttribute( ViConstString _1, ViAttr _2, const std::string& value )
+    {
+        return AgMD2_SetAttributeViString( session_, _1, _2, value.c_str() );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, std::string value )
     {
         return AgMD2_SetAttributeViString( session_, _1, _2, value.c_str() );
     }
@@ -112,23 +162,6 @@ namespace u5303a {
         auto rcode = AgMD2_GetAttributeViString( session_, _1, _2, sizeof( str ), str );
         if ( rcode == VI_SUCCESS )
             result = str;
-        return rcode;
-    }
-
-    template<>
-    ViStatus
-    AgMD2::getAttribute( ViConstString _1, ViAttr _2, int32_t& result ) const
-    {
-        return AgMD2_GetAttributeViInt32( session_, _1, _2, reinterpret_cast< ViInt32 * >( &result ) );
-    }
-
-    template<>
-    ViStatus
-    AgMD2::getAttribute( ViConstString _1, ViAttr _2, bool& result ) const
-    {
-        ViBoolean value( false );
-        auto rcode = AgMD2_GetAttributeViBoolean( session_, _1, _2, &value );
-        result = value;
         return rcode;
     }
 
@@ -231,7 +264,7 @@ AgMD2::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
         ident->IOVersion() = str;
 
     int32_t nbrADCBits(0);
-    if ( log( attribute< AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS >(*this).get( nbrADCBits ), __FILE__,__LINE__ ) )
+    if ( log( getAttribute( "", AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS, nbrADCBits ), __FILE__,__LINE__ ) )
         // if ( log( getAttribute< AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS >( "", nbrADCBits ), __FILE__,__LINE__) )
         ident->NbrADCBits() = nbrADCBits;
 
@@ -258,12 +291,12 @@ AgMD2::ConfigureTimeInterleavedChannelList( const std::string& channelName, cons
     return log( AgMD2_ConfigureTimeInterleavedChannelList( session_, channelName.c_str(), channelList.c_str() ), __FILE__, __LINE__ );
 }
 
-bool
-AgMD2::isSimulate() const
-{
-    ViBoolean simulate(false);
-    return log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_SIMULATE, &simulate ), __FILE__, __LINE__ );
-}
+// bool
+// AgMD2::isSimulate() const
+// {
+//     ViBoolean simulate(false);
+//     return log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_SIMULATE, &simulate ), __FILE__, __LINE__ );
+// }
 
 // Added for PKD+AVG POC quick test
 ViStatus
@@ -299,112 +332,112 @@ AgMD2::setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID
 //     return 0;
 // }
 
-bool
-AgMD2::setActiveTriggerSource( const std::string& trigSource )
-{
-    return log( AgMD2_SetAttributeViString( session_, "", AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE, trigSource.c_str() ), __FILE__, __LINE__ );
-}
+// bool
+// AgMD2::setActiveTriggerSource( const std::string& trigSource )
+// {
+//     return log( AgMD2_SetAttributeViString( session_, "", AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE, trigSource.c_str() ), __FILE__, __LINE__ );
+// }
 
-bool
-AgMD2::setTriggerDelay( double delay )
-{
-    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_DELAY, delay ), __FILE__, __LINE__
-                , [=](){ return (boost::format("setTriggerDelay( %g )") % delay).str();} );
-}
+// bool
+// AgMD2::setTriggerDelay( double delay )
+// {
+//     return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_TRIGGER_DELAY, delay ), __FILE__, __LINE__
+//                 , [=](){ return (boost::format("setTriggerDelay( %g )") % delay).str();} );
+// }
 
-bool
-AgMD2::setTriggerCoupling( const std::string& trigSource, int32_t coupling )
-{
-    return log( AgMD2_SetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, coupling ), __FILE__, __LINE__ );
-}
+// bool
+// AgMD2::setTriggerCoupling( const std::string& trigSource, int32_t coupling )
+// {
+//     return log( AgMD2_SetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, coupling ), __FILE__, __LINE__ );
+// }
 
-int32_t
-AgMD2::TriggerCoupling( const std::string& trigSource ) const
-{
-    ViInt32 coupling(0);
-    if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, &coupling ), __FILE__, __LINE__ ) )
-        return coupling;
-    return (-1);
-}
+// int32_t
+// AgMD2::TriggerCoupling( const std::string& trigSource ) const
+// {
+//     ViInt32 coupling(0);
+//     if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_COUPLING, &coupling ), __FILE__, __LINE__ ) )
+//         return coupling;
+//     return (-1);
+// }
 
-bool
-AgMD2::setTriggerLevel( const std::string& trigSource,  double level )
-{
-    return log( AgMD2_SetAttributeViReal64( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_LEVEL, level ), __FILE__, __LINE__ );
-}
+// bool
+// AgMD2::setTriggerLevel( const std::string& trigSource,  double level )
+// {
+//     return log( AgMD2_SetAttributeViReal64( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_LEVEL, level ), __FILE__, __LINE__ );
+// }
 
-double
-AgMD2::TriggerLevel( const std::string& trigSource ) const
-{
-    double level(0);
+// double
+// AgMD2::TriggerLevel( const std::string& trigSource ) const
+// {
+//     double level(0);
 
-    if ( log( AgMD2_GetAttributeViReal64( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_LEVEL, &level ), __FILE__, __LINE__ ) )
-        return level;
+//     if ( log( AgMD2_GetAttributeViReal64( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_LEVEL, &level ), __FILE__, __LINE__ ) )
+//         return level;
 
-    return -9999;
-}
-
-
-bool
-AgMD2::setTriggerSlope( const std::string& trigSource, int32_t slope )
-{
-    return log( AgMD2_SetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_SLOPE, slope ), __FILE__, __LINE__ );
-}
-
-int32_t
-AgMD2::TriggerSlope( const std::string& trigSource ) const
-{
-    int32_t slope(0);  // NEGATIVE = 0, POSITIVE = 1
-
-    if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_SLOPE, reinterpret_cast<ViInt32*>(&slope) ), __FILE__, __LINE__ ) )
-        return slope;
-
-    return 0;
-}
+//     return -9999;
+// }
 
 
-bool
-AgMD2::setDataInversionEnabled( const std::string& channel, bool enable )
-{
-    ViBoolean value = enable ? VI_TRUE : VI_FALSE;
-    return log( AgMD2_SetAttributeViBoolean( session_, channel.c_str(), AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED, value ), __FILE__, __LINE__ );
-}
+// bool
+// AgMD2::setTriggerSlope( const std::string& trigSource, int32_t slope )
+// {
+//     return log( AgMD2_SetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_SLOPE, slope ), __FILE__, __LINE__ );
+// }
 
-bool
-AgMD2::setAcquisitionRecordSize( uint32_t nbrSamples )
-{
-    // waveform length
-    return log( AgMD2_SetAttributeViInt64( session_, "", AGMD2_ATTR_RECORD_SIZE, nbrSamples ), __FILE__, __LINE__ );
-}
+// int32_t
+// AgMD2::TriggerSlope( const std::string& trigSource ) const
+// {
+//     int32_t slope(0);  // NEGATIVE = 0, POSITIVE = 1
 
-bool
-AgMD2::setAcquisitionNumberOfAverages( uint32_t numAverages )
-{
-    return log( AgMD2_SetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, numAverages ), __FILE__, __LINE__ );
-}
+//     if ( log( AgMD2_GetAttributeViInt32( session_, trigSource.c_str(), AGMD2_ATTR_TRIGGER_SLOPE, reinterpret_cast<ViInt32*>(&slope) ), __FILE__, __LINE__ ) )
+//         return slope;
 
-bool
-AgMD2::setAcquisitionNumRecordsToAcquire( uint32_t numRecords ) // MultiRecord
-{
-    // number of waveforms
-    return log( AgMD2_SetAttributeViInt64( session_, "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords ), __FILE__, __LINE__ );
-}
+//     return 0;
+// }
 
-bool
-AgMD2::setAcquisitionMode( int mode )
-{
-    return log( AgMD2_SetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_MODE, mode /* AGMD2_VAL_ACQUISITION_MODE_AVERAGER */ ), __FILE__, __LINE__ );
 
-}
+// bool
+// AgMD2::setDataInversionEnabled( const std::string& channel, bool enable )
+// {
+//     ViBoolean value = enable ? VI_TRUE : VI_FALSE;
+//     return log( AgMD2_SetAttributeViBoolean( session_, channel.c_str(), AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED, value ), __FILE__, __LINE__ );
+// }
 
-int
-AgMD2::AcquisitionMode() const
-{
-    ViInt32 mode( 0 );
-    if ( log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_MODE, &mode ), __FILE__, __LINE__ ) )
-        return mode;
-    return (-1);
-}
+// bool
+// AgMD2::setAcquisitionRecordSize( uint32_t nbrSamples )
+// {
+//     // waveform length
+//     return log( AgMD2_SetAttributeViInt64( session_, "", AGMD2_ATTR_RECORD_SIZE, nbrSamples ), __FILE__, __LINE__ );
+// }
+
+// bool
+// AgMD2::setAcquisitionNumberOfAverages( uint32_t numAverages )
+// {
+//     return log( AgMD2_SetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES, numAverages ), __FILE__, __LINE__ );
+// }
+
+// bool
+// AgMD2::setAcquisitionNumRecordsToAcquire( uint32_t numRecords ) // MultiRecord
+// {
+//     // number of waveforms
+//     return log( AgMD2_SetAttributeViInt64( session_, "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, numRecords ), __FILE__, __LINE__ );
+// }
+
+// bool
+// AgMD2::setAcquisitionMode( int mode )
+// {
+//     return log( AgMD2_SetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_MODE, mode /* AGMD2_VAL_ACQUISITION_MODE_AVERAGER */ ), __FILE__, __LINE__ );
+
+// }
+
+// int
+// AgMD2::AcquisitionMode() const
+// {
+//     ViInt32 mode( 0 );
+//     if ( log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_ACQUISITION_MODE, &mode ), __FILE__, __LINE__ ) )
+//         return mode;
+//     return (-1);
+// }
 
 bool
 AgMD2::CalibrationSelfCalibrate()
@@ -435,20 +468,20 @@ AgMD2::isAcquisitionIdle() const
     return idle == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE;
 }
 
-bool
-AgMD2::setTSREnabled( bool enable )
-{
-    ViBoolean value = enable ? VI_TRUE : VI_FALSE;
-    return log( AgMD2_SetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, value ), __FILE__, __LINE__ );
-}
+// bool
+// AgMD2::setTSREnabled( bool enable )
+// {
+//     ViBoolean value = enable ? VI_TRUE : VI_FALSE;
+//     return log( AgMD2_SetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, value ), __FILE__, __LINE__ );
+// }
 
-bool
-AgMD2::TSREnabled()
-{
-    ViBoolean value( VI_FALSE );
-    log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, &value ), __FILE__, __LINE__ );
-    return value == VI_FALSE ? false : true;
-}
+// bool
+// AgMD2::TSREnabled()
+// {
+//     ViBoolean value( VI_FALSE );
+//     log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_ENABLED, &value ), __FILE__, __LINE__ );
+//     return value == VI_FALSE ? false : true;
+// }
 
 boost::tribool
 AgMD2::isTSRAcquisitionComplete() const
