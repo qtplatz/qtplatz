@@ -224,7 +224,7 @@ main( int argc, char * argv [] )
             if ( p && std::strcmp( p, "simulate" ) == 0 ) {
                 strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
                 simulated = true;
-                success = md2->InitWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions );
+                success = ( md2->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
             }
         }
         
@@ -239,7 +239,7 @@ main( int argc, char * argv [] )
                         } ) {
 
                 std::cerr << "Attempting resource: " << res << std::endl;
-                if ( ( success = md2->InitWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) ) )
+                if ( ( success = ( md2->initWithOptions( res, VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) )
                     break;
             }
         }
@@ -265,16 +265,18 @@ main( int argc, char * argv [] )
             ViStatus rcode;
             std::string result;
 
+            using u5303a::AgMD2;
+
             int32_t count(0);
-            md2->GetAttributeViInt32( rcode, "ControlIO", AGMD2_ATTR_CONTROL_IO_COUNT, count );
+            AgMD2::log( u5303a::attribute<AGMD2_ATTR_CONTROL_IO_COUNT>(*md2).get( "ControlIO", count ), __FILE__,__LINE__ );
 
             ViChar name [ 256 ];
             for ( int i = 1; i <= count; ++i ) {
-                rcode = AgMD2_GetControlIOName( md2->session(), i, 256, name );
+                AgMD2::log( AgMD2_GetControlIOName( md2->session(), i, 256, name ), __FILE__,__LINE__ );
                 if ( rcode == 0 ) {
-                    md2->GetAttributeViString( rcode, name, AGMD2_ATTR_CONTROL_IO_SIGNAL, result );
+                    AgMD2::log( md2->getAttribute<>( name, AGMD2_ATTR_CONTROL_IO_SIGNAL, result ), __FILE__,__LINE__ );
                     std::cout << name << "\t" << result << std::endl;
-                    if ( md2->GetAttributeViString( rcode, name, AGMD2_ATTR_CONTROL_IO_AVAILABLE_SIGNALS, result ) )
+                    if ( AgMD2::log( md2->getAttribute( name, AGMD2_ATTR_CONTROL_IO_AVAILABLE_SIGNALS, result ), __FILE__,__LINE__ ) )
                         std::cout << "\t" << result << std::endl;
                 }
             }
@@ -297,9 +299,14 @@ main( int argc, char * argv [] )
             } else if ( ident->Options().find( "SR2" ) != std::string::npos ) {
                 max_rate = ( ident->Options().find( "INT" ) != std::string::npos ) ? 3.2e9 : 1.6e9;
             }
-            
-            md2->setSampleRate( max_rate );
-            method._device_method().samp_rate = md2->SampleRate();
+
+            using u5303a::attribute;
+            AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::set( *md2, max_rate ), __FILE__,__LINE__ );
+            // md2->setSampleRate( max_rate );
+
+            AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::get( *md2, method._device_method().samp_rate ), __FILE__,__LINE__ );
+            //method._device_method().samp_rate = md2->SampleRate();
+
             std::cout << "SampleRate: " << method._device_method().samp_rate << std::endl;            
 
             md2->setAcquisitionRecordSize( method._device_method().digitizer_nbr_of_s_to_acquire );  // 100us @ 3.2GS/s

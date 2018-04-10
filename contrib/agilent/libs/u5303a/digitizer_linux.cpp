@@ -528,13 +528,13 @@ task::handle_initial_setup()
         if ( p && std::strcmp( p, "simulate" ) == 0 ) {
             strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
             simulated = true;
-            success = spDriver_->InitWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions );
+            success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
         }
     }
 
     if ( !simulated ) {
         for ( auto& res : foundResources_ ) {
-            if ( ( success = spDriver_->InitWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) ) ) {
+            if ( ( success = ( spDriver_->initWithOptions( res.c_str(), VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS ) ) ) {
                 ADTRACE() << "Initialize resource: " << res;
                 break;
             }
@@ -595,7 +595,9 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
 
     if ( /* m.mode_ && */ simulated_ ) {
         acqrscontrols::u5303a::method a( m );
-        a._device_method().samp_rate = spDriver()->SampleRate();
+        double rate;
+        if ( AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::get( *spDriver(), rate ), __FILE__,__LINE__ ) )
+            a._device_method().samp_rate = rate;
         simulator::instance()->setup( a );
     }
 
@@ -893,12 +895,14 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     bool success = false;
             
     double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
-    
-    if ( ! task.spDriver()->setSampleRate( samp_rate ) ) {
+
+    if ( AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
+        // if ( ! task.spDriver()->setSampleRate( samp_rate ) ) {
         uint32_t rate = static_cast< uint32_t >( max_rate );
         while ( rate > samp_rate )
             rate /= 2;
-        task.spDriver()->setSampleRate( double( rate ) );
+        AgMD2::log( attribute< AGMD2_ATTR_SAMPLE_RATE >::set( *task.spDriver(), double( rate ) ), __FILE__,__LINE__ );
+        // task.spDriver()->setSampleRate( double( rate ) );
     }
         
     if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer 
@@ -920,25 +924,37 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
             ADDEBUG() << "################ PKD ON ################################";
             
-            task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
+            // task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
+            AgMD2::log( attribute< AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 
             // Enable the Peak Detection mode 	
-            task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
+            // task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
+            AgMD2::log( attribute< AGMD2_ATTR_ACQUISITION_MODE >::set( *task.spDriver(), int32_t( 1 ) ), __FILE__,__LINE__ );
 
             // Configure the data inversion mode - VI_FALSE (no data inversion) by default
-            task.spDriver()->setAttributeViBoolean( "Channel1"
-                                                    , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
-                                                    , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
+            AgMD2::log( attribute< AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED >::set( *task.spDriver()
+                                                                                     , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
+            // task.spDriver()->setAttributeViBoolean( "Channel1"
+            //                                         , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
+            //                                         , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
 
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
-            task.spDriver()->setAttributeViBoolean( "Channel1"
-                                                    , AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
-                                                    , m._device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE );
+            AgMD2::log(
+                attribute< AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED >::set(
+                    *task.spDriver(), "Channel1", bool( m._device_method().pkd_amplitude_accumulation_enabled ) ), __FILE__,__LINE__ );
             
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
-            task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta );
-            task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta );
+            AgMD2::log(
+                attribute< AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA >::set( *task.spDriver(), "Channel1", int32_t( m._device_method().pkd_raising_delta ) )
+                , __FILE__,__LINE__ );
+
+            AgMD2::log(
+                attribute< AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA >::set( *task.spDriver(), "Channel1", int32_t( m._device_method().pkd_falling_delta ) )
+                , __FILE__,__LINE__ );
+
+            // AgMD2::log( task.spDriver()->setAttribute( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA
+            //                                            , int32_t( m._device_method().pkd_falling_delta ) ), __FILE__,__LINE__ );
 
             task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
             task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );

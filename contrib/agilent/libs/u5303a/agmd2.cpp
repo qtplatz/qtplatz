@@ -50,6 +50,96 @@ namespace u5303a {
     
 }
 
+namespace u5303a {
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViReal64 value )
+    {
+        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, ViReal64& result ) const
+    {
+        return AgMD2_GetAttributeViReal64( session_, _1, _2, &result );
+    }
+    
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViInt32 value )
+    {
+        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViInt64 value )
+    {
+        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, ViBoolean value )
+    {
+        return AgMD2_SetAttributeViReal64( session_, _1, _2, value );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, bool value )
+    {
+        return AgMD2_SetAttributeViReal64( session_, _1, _2, value ? VI_TRUE : VI_FALSE );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::setAttribute( ViConstString _1, ViAttr _2, const std::string& value )
+    {
+        return AgMD2_SetAttributeViString( session_, _1, _2, value.c_str() );
+    }
+    
+
+    template<>
+    ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, std::string& result ) const
+    {
+        ViChar str[128];
+        result.clear();
+        auto rcode = AgMD2_GetAttributeViString( session_, _1, _2, sizeof( str ), str );
+        if ( rcode == VI_SUCCESS )
+            result = str;
+        return rcode;
+    }
+
+    template<>
+    ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, int32_t& result ) const
+    {
+        return AgMD2_GetAttributeViInt32( session_, _1, _2, reinterpret_cast< ViInt32 * >( &result ) );
+    }
+
+    template<>
+    ViStatus
+    AgMD2::getAttribute( ViConstString _1, ViAttr _2, bool& result ) const
+    {
+        ViBoolean value( false );
+        auto rcode = AgMD2_GetAttributeViBoolean( session_, _1, _2, &value );
+        result = value;
+        return rcode;
+    }
+
+    // template<> template<> ViStatus attribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >::set( AgMD2& _, const std::string& value ) {
+    //     return _.setAttribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >( "", value );
+    // }
+    // template<> template<> ViStatus attribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >::get( AgMD2& _, std::string& value ) const {
+    //     return _.getAttribute< AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE >( "", value );
+    // }
+}
+
 using namespace u5303a;
 
 AgMD2::AgMD2() : session_( 0 )
@@ -62,21 +152,6 @@ AgMD2::~AgMD2()
     //AgMD2_close( session_ );
 }
 
-bool
-AgMD2::InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options )
-{
-    auto rcode = AgMD2_InitWithOptions( const_cast< char *>(resource.c_str())
-                                        , idQuery
-                                        , reset
-                                        , options.c_str()
-                                        , &session_ );
-    // AgMD2_InitWithOptions -- method output some stray on stdout
-#ifndef NDEBUG
-    log( rcode, __FILE__, __LINE__ );
-#endif
-    return rcode == VI_SUCCESS;    
-}
-        
 bool
 AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< std::string()> describe )
 {
@@ -97,29 +172,26 @@ AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< st
     return rcode == VI_SUCCESS;
 }
 
-bool
-AgMD2::GetAttributeViString ( ViStatus& rcode, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result )
+ViStatus
+AgMD2::initWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options )
 {
-    ViChar str[128];
-
-    result.clear();
-    if ( ( rcode = AgMD2_GetAttributeViString( session_, RepCapIdentifier, AttributeID, sizeof( str ), str ) ) == VI_SUCCESS ) {
-        result = str;
-        return true;
-    }
-
-    log( rcode, __FILE__, __LINE__ );
-    return rcode == VI_SUCCESS;
+    return AgMD2_InitWithOptions( const_cast< char *>(resource.c_str())
+                                  , idQuery
+                                  , reset
+                                  , options.c_str()
+                                  , &session_ );
+}
+        
+ViStatus
+AgMD2::getAttributeViString ( ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result ) const
+{
+    return getAttribute<>( RepCapIdentifier, AttributeID, result );
 }
 
-bool
-AgMD2::GetAttributeViInt32 ( ViStatus& rcode, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result )
+ViStatus
+AgMD2::getAttributeViInt32 ( ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result ) const
 {
-    if ( ( rcode = AgMD2_GetAttributeViInt32( session_, RepCapIdentifier, AttributeID, reinterpret_cast<ViInt32 *>( &result ) ) ) == VI_SUCCESS )
-         return true;
-
-    log( rcode, __FILE__, __LINE__ );
-    return rcode == VI_SUCCESS;
+    return getAttribute<>( RepCapIdentifier, AttributeID, result );
 }
 
 bool
@@ -131,35 +203,36 @@ AgMD2::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
     ViStatus rcode(0);
     std::string str;
 
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_PREFIX, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_SPECIFIC_DRIVER_PREFIX, str ), __FILE__,__LINE__ ) )
         ident->Identifier() = str;
 
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_REVISION, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_SPECIFIC_DRIVER_REVISION, str ), __FILE__,__LINE__ ) )
         ident->Revision() = str;
 
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_VENDOR, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_SPECIFIC_DRIVER_VENDOR, str ), __FILE__,__LINE__ ) )
         ident->Vendor() = str;
             
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_DESCRIPTION, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_SPECIFIC_DRIVER_DESCRIPTION, str ), __FILE__,__LINE__ ) )
         ident->Description() = str;
             
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_MODEL, str) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_INSTRUMENT_MODEL, str), __FILE__,__LINE__ ) )
         ident->InstrumentModel() = str;
 
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS, str) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS, str ), __FILE__,__LINE__ ) )
         ident->Options() = str;
         
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_FIRMWARE_REVISION, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_INSTRUMENT_FIRMWARE_REVISION, str ), __FILE__,__LINE__ ) )
         ident->FirmwareRevision() = str;
                  
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_SERIAL_NUMBER_STRING, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_INSTRUMENT_INFO_SERIAL_NUMBER_STRING, str ), __FILE__,__LINE__ ) )
         ident->SerialNumber() = str;
             
-    if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_IO_VERSION, str ) )
+    if ( log( getAttributeViString( "", AGMD2_ATTR_INSTRUMENT_INFO_IO_VERSION, str ), __FILE__,__LINE__ ) )
         ident->IOVersion() = str;
 
     int32_t nbrADCBits(0);
-    if ( AgMD2_GetAttributeViInt32( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS, reinterpret_cast<ViInt32 *>(&nbrADCBits) ) )
+    if ( log( attribute< AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS >(*this).get( nbrADCBits ), __FILE__,__LINE__ ) )
+        // if ( log( getAttribute< AGMD2_ATTR_INSTRUMENT_INFO_NBR_ADC_BITS >( "", nbrADCBits ), __FILE__,__LINE__) )
         ident->NbrADCBits() = nbrADCBits;
 
     impl_->ident_ = ident;
@@ -193,39 +266,38 @@ AgMD2::isSimulate() const
 }
 
 // Added for PKD+AVG POC quick test
-bool
+ViStatus
 AgMD2::setAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt32 AttributeValue )
 {
-    return log( AgMD2_SetAttributeViInt32( session_, RepCapIdentifier, AttributeID, AttributeValue ), __FILE__, __LINE__ );
+    return AgMD2_SetAttributeViInt32( session_, RepCapIdentifier, AttributeID, AttributeValue );
 }
 
-bool
+ViStatus
 AgMD2::setAttributeViInt64( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt64 AttributeValue )
 {
-    return log( AgMD2_SetAttributeViInt32( session_, RepCapIdentifier, AttributeID, AttributeValue ), __FILE__, __LINE__ );
+    return AgMD2_SetAttributeViInt32( session_, RepCapIdentifier, AttributeID, AttributeValue );
 }
 
-bool
+ViStatus
 AgMD2::setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID, ViBoolean AttributeValue )
 {
-    return log( AgMD2_SetAttributeViBoolean( session_, RepCapIdentifier, AttributeID, AttributeValue ), __FILE__, __LINE__ );
+    return AgMD2_SetAttributeViBoolean( session_, RepCapIdentifier, AttributeID, AttributeValue );
 }
 
-bool
-AgMD2::setSampleRate( double sampleRate )
-{
-    return log( AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_SAMPLE_RATE, sampleRate ), __FILE__, __LINE__
-                , [=](){ return (boost::format("setSampleRate( %g )") % sampleRate).str();} );
-}
+// ViStatus
+// AgMD2::setSampleRate( double sampleRate )
+// {
+//     return AgMD2_SetAttributeViReal64( session_, "", AGMD2_ATTR_SAMPLE_RATE, sampleRate );
+// }
 
-double
-AgMD2::SampleRate() const
-{
-    double sampleRate(0);
-    if ( log( AgMD2_GetAttributeViReal64( session_, "", AGMD2_ATTR_SAMPLE_RATE, &sampleRate ), __FILE__, __LINE__ ) )
-        return sampleRate;
-    return 0;
-}
+// double
+// AgMD2::SampleRate() const
+// {
+//     double sampleRate(0);
+//     if ( log( AgMD2_GetAttributeViReal64( session_, "", AGMD2_ATTR_SAMPLE_RATE, &sampleRate ), __FILE__, __LINE__ ) )
+//         return sampleRate;
+//     return 0;
+// }
 
 bool
 AgMD2::setActiveTriggerSource( const std::string& trigSource )

@@ -62,11 +62,7 @@ namespace u5303a {
 
         uint32_t dataSerialNumber();
         
-        bool InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
-
-        bool GetAttributeViString ( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
-
-        bool GetAttributeViInt32( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result );
+        ViStatus initWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
 
         bool Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& );
         std::shared_ptr< acqrscontrols::u5303a::identify > Identify();
@@ -75,9 +71,9 @@ namespace u5303a {
 
         bool isSimulate() const;
 
-        bool setSampleRate( double sampleRate );
+        // bool setSampleRate( double sampleRate );
 
-        double SampleRate() const;
+        // double SampleRate() const;
 
         bool setActiveTriggerSource( const std::string& trigSource );
         
@@ -132,8 +128,31 @@ namespace u5303a {
         boost::tribool isWaitingForTrigger() const;
 
         // for PKD+AVG POC purpose
-        bool setAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt32 AttributeValue );
-        bool setAttributeViInt64( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt64 AttributeValue );
-        bool setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID, ViBoolean AttributeValue );
-    }; 
+        ViStatus setAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt32 AttributeValue );
+        ViStatus getAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result ) const;
+        
+        ViStatus setAttributeViInt64( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt64 AttributeValue );
+
+        ViStatus setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID, ViBoolean AttributeValue );
+
+        ViStatus getAttributeViString ( ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result ) const ;
+        
+        template< typename T > ViStatus setAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T value );
+        template< typename T > ViStatus getAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T& value ) const;
+        template< typename T > ViStatus setAttribute( ViAttr AttributeID, T value )        { return setAttribute( "", AttributeID, value ); }
+        template< typename T > ViStatus getAttribute( ViAttr AttributeID, T& value ) const { return getAttribute( "", AttributeID, value ); }
+    };
+
+    template< ViAttr attr > struct attribute {
+        AgMD2& _;
+        attribute( AgMD2& t ) : _( t ) {}
+        template< typename T > ViStatus set( const T& value ) { return _.setAttribute( attr, value ); }
+        template< typename T > ViStatus get( T& value ) const { return _.getAttribute( attr, value ); }
+        template< typename T > ViStatus set( ViConstString RepCapIdentifier, const T& value ) { return _.setAttribute( RepCapIdentifier, attr, value ); }
+        template< typename T > ViStatus get( ViConstString RepCapIdentifier, T& value ) const { return _.getAttribute( RepCapIdentifier, attr, value ); }
+        template< typename T > static ViStatus set( AgMD2& _, const T& value ) { return _.setAttribute( attr, value ); }
+        template< typename T > static ViStatus get( AgMD2& _, T& value ) { return _.getAttribute( attr, value ); }
+        template< typename T > static ViStatus set( AgMD2& _, ViConstString RepCapIdentifier, const T& value ) { return _.setAttribute( RepCapIdentifier, attr, value ); }
+        template< typename T > static ViStatus get( AgMD2& _, ViConstString RepCapIdentifier, T& value ) { return _.getAttribute( RepCapIdentifier, attr, value ); }
+    };
 }
