@@ -855,17 +855,26 @@ task::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw >& ptr )
 bool
 device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const std::string& options )
 {
-#if defined _MSC_VER <= 1900
-    ViInt32 const coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;
-#else
-    ViInt32 constexpr coupling = AGMD2_VAL_VERTICAL_COUPLING_DC;    
-#endif
+    constexpr std::array< std::pair< const char *, double >, 4 >
+        input_specs = { {{"SR0", 0.5e9}, {"SR1", 1.0e9}, {"SR2", 1.6e9}, {"SR3", 2.0e9 }} };
+
+    auto it = std::find_if( input_specs.begin(), input_specs.end(), [&]( auto& a ) { return options.find( a.first ) != options.npos; } );
+    if ( it == input_specs.end() ) // no input specification found
+        return false;
+    
+    const uint32_t input_rate = it->second;
+    uint32_t max_rate = ( options.find("INT") != options.npos ) ? input_rate * 2 : input_rate;
+
+    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) == options.npos ) ) {
+        adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
+    }
 
     if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) ) {
 
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
+        max_rate = input_rate;
         
-    } else if ( options.find( "INT" ) != options.npos ) {
+    } else if ( m._device_method().samp_rate > input_rate && options.find( "INT" ) != options.npos ) {
 
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
 
@@ -873,30 +882,23 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
     AgMD2::log( AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1"
                                         , m._device_method().front_end_range
-                                        , m._device_method().front_end_offset, coupling, VI_TRUE ), __FILE__, __LINE__ );
+                                        , m._device_method().front_end_offset, AGMD2_VAL_VERTICAL_COUPLING_DC, VI_TRUE ), __FILE__, __LINE__ );
 
     task.spDriver()->setActiveTriggerSource( "External1" );
     task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );
     task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
     task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
     task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
-
+    
     bool success = false;
+            
+    double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
     
-    double max_rate = 3.2e9;
-    if ( options.find( "SR1" ) != options.npos ) {
-        max_rate = 1.0e9;
-        if ( options.find( "INT" ) != options.npos )
-            max_rate = 2.0e9;
-    } else if ( options.find( "SR2" ) != options.npos ) {
-        max_rate = 1.6e9;
-        if ( options.find( "INT" ) != options.npos )
-            max_rate = 3.2e9;
-    }
-    
-    for ( auto samp_rate : { m._device_method().samp_rate, max_rate } ) {
-        if ( success = task.spDriver()->setSampleRate( samp_rate ) )
-            break;
+    if ( ! task.spDriver()->setSampleRate( samp_rate ) ) {
+        uint32_t rate = static_cast< uint32_t >( max_rate );
+        while ( rate > samp_rate )
+            rate /= 2;
+        task.spDriver()->setSampleRate( double( rate ) );
     }
         
     if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer 
@@ -944,14 +946,14 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
         } else {
 
-            task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? true : false );
-
             task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
             task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
 
             // It looks like this command should be issued as last
             task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
+            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
+
+            task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
         }
     }
 
