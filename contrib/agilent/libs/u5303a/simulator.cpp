@@ -224,14 +224,17 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         pkd.meta_.channelMode = acqrscontrols::u5303a::AVG;
         avg.setData( mblk, 0 );
     }
+    
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
         std::fill( dp, dp + ptr->nbrSamples(), 0 );
-        int step = ptr->nbrSamples() / 10;
 
-        for ( size_t i = step; i < ptr->nbrSamples(); i += step )
-            dp[ i ] = int32_t( i );
+        for ( const auto& peak: peak_list ) {
+            size_t idx = ( peak.first - startDelay_ ) / sampInterval_;
+            if ( idx < nbrSamples_ )
+                dp[ idx ] = peak.second * 10000 + __noise__();
+        }
         
         pkd.method_ = *method_;
         pkd.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
