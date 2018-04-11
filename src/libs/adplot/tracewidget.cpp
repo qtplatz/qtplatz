@@ -23,12 +23,12 @@
 **
 **************************************************************************/
 
-#include "tracewidget.hpp"
-#include "zoomer.hpp"
-#include "picker.hpp"
-#include "plotcurve.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
+#include "picker.hpp"
+#include "plotcurve.hpp"
+#include "tracewidget.hpp"
+#include "zoomer.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/font.hpp>
 #include <qwt_plot_picker.h>
@@ -245,21 +245,14 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
     TraceData& trace = impl_->traces_[ idx ];
     trace.setData( *this, n, px, py, axisRight, idx );
 
-    adportable::array_wrapper< const double > pY( py, n );
-#if defined __linux__ || defined __APPLE__
-    double minimum = *std::min_element( pY.begin(), pY.end() );
-    double maximum = *std::max_element( pY.begin(), pY.end() );
-#else
-    std::pair<const double *, const double *> minmax = std::minmax_element( pY.begin(), pY.end() );
+    auto minmax = std::minmax_element( py, py + n );
     double minimum = *minmax.first;
     double maximum = *minmax.second;
-#endif
 
     setAxisScale( QwtPlot::xBottom, px[ 0 ], px[ n - 1 ] );
-    if ( axisRight ) {
-        enableAxis( QwtPlot::yRight );
+    if ( axisRight )
         setAxisScale( QwtPlot::yRight, minimum, maximum );
-    } else
+    else 
         setAxisScale( QwtPlot::yLeft, minimum, maximum );
 
     QRectF z = zoomer()->zoomRect();

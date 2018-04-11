@@ -134,8 +134,8 @@ namespace adplot {
 
             QPointF sample( size_t idx ) const override {
                 auto y = t_->range_y();
-                double v = 1000 * ( t_->y( idx ) - y.first ) / ( y.second - y.first );  // Relative
-                return QPointF( t_->x(idx) - t_->injectTime(), v );
+                // double v = 1000 * ( t_->y( idx ) - y.first ) / ( y.second - y.first );  // Relative
+                return QPointF( t_->x(idx) - t_->injectTime(), t_->y( idx ) );
             }
             
             virtual QRectF boundingRect() const override {
@@ -172,12 +172,12 @@ namespace adplot {
 
                 double x0 = trace->x( 0 ) - trace->injectTime();
                 double x1 = trace->x( trace->size() - 1 ) - trace->injectTime();
-
-                // ADDEBUG() << "time: " << d_trace->sample( 0 ).x() << " - " << trace->injectTime() << " ==> " << x0;
-                
-                rect_ = QRectF( QPointF( x0, -10.0 ), QPointF( x1, 1010.0 ) );
+                auto range_y = trace->range_y();
+                // double height = range_y.second - range_y.first;
+                rect_ = QRectF( QPointF( x0, range_y.first ), QPointF( x1, range_y.second ) );
                 
                 d_trace->setBoundingRect( rect_ );
+
                 curve_.p()->setData( d_trace );
             }
         }
@@ -440,6 +440,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
                     rc |= rect;
             }
         }
+
         for ( auto& trace: impl_->traces_ ) {
             if ( ! boost::apply_visitor( isNull(), trace ) && ( boost::apply_visitor( yAxis_visitor(), trace ) != yAxis ) ) {
                 QRectF rect( boost::apply_visitor( boundingRect_visitor(), trace ) );
@@ -452,7 +453,8 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
             rc.setHeight( 1.0 );
 
         setAxisScale( QwtPlot::xBottom, rc.left(), rc.right() + rc.width() / 20.0 );
-        setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale 
+
+        setAxisScale( yAxis, rc.top(), rc.bottom() ); // flipped y-scale
 
         zoomer()->setZoomBase();
     }

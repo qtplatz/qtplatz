@@ -46,6 +46,8 @@ namespace u5303a {
     
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
     static std::chrono::high_resolution_clock::time_point __last__;
+    static size_t __counter__;
+    
     static const std::vector< std::pair<double, double> >
     peak_list = { { 4.0e-6, 0.01 }, { 5.0e-6, 0.005 }, { 6.0e-6, 0.0030 } };
 
@@ -205,7 +207,6 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
 
-
         std::copy( ptr->waveform(), ptr->waveform() + ptr->nbrSamples(), dp );
         avg.method_ = *method_;
         avg.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
@@ -226,6 +227,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
     }
     
     if ( ptr ) {
+
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
         std::fill( dp, dp + ptr->nbrSamples(), 0 );
@@ -233,8 +235,9 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         for ( const auto& peak: peak_list ) {
             size_t idx = ( peak.first - startDelay_ ) / sampInterval_;
             if ( idx < nbrSamples_ )
-                dp[ idx ] = peak.second * 10000 + __noise__();
+                dp[ idx ] = peak.second * 10000 + __noise__() + __counter__;
         }
+        __counter__ ++;
         
         pkd.method_ = *method_;
         pkd.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
