@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -72,7 +72,6 @@ namespace adcontrols {
         size_t runCount() const;
         size_t operator ++();
 
-        //std::pair< std::wstring, size_t > findNextRunName() const;
         std::wstring runname() const;
         std::wstring filename( const wchar_t * extention = L".adfs" ) const;
 
