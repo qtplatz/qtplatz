@@ -247,7 +247,7 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_trigger_inject()
 {
-    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
+    // ADDEBUG() << "##### " << __FUNCTION__ << " #####";
     return task::instance()->trigger_inject_out();
 }
 
@@ -408,7 +408,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
-    ADDEBUG() << "##### task::" << __FUNCTION__ << " #####";
+    // ADDEBUG() << "##### task::" << __FUNCTION__ << " #####";
     c_injection_requested_ = true;
     return true;
 }
@@ -506,9 +506,7 @@ void
 task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
 {
     if ( c_injection_requested_ ) {
-        ADDEBUG() << "########################################################";
-        ADDEBUG() << "#################### INJECTION on U5303A ###############";
-        ADDEBUG() << "########################################################";
+        // ADDEBUG() << "## INJECTION on U5303A ##";
         c_injection_requested_ = false;
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
@@ -908,8 +906,8 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             
     const double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
 
-    ADDEBUG() << "##### max rate:    " << max_rate;
-    ADDEBUG() << "##### sample rate: " << samp_rate;
+    //ADDEBUG() << "##### max rate:    " << max_rate;
+    //ADDEBUG() << "##### sample rate: " << samp_rate;
 
     if ( ! AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
         AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );
