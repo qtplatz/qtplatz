@@ -32,7 +32,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <type_traits>
 
 namespace acqrscontrols { namespace u5303a { class identify; class waveform; } }
 
@@ -40,7 +39,14 @@ namespace u5303a {
 
     class U5303ASHARED_EXPORT AgMD2 {
         class impl;
+#if defined _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
         std::unique_ptr< impl > impl_;
+#if defined _MSC_VER
+#pragma warning(pop)
+#endif
         ViSession session_;
 
         AgMD2( const AgMD2& ) = delete;
@@ -55,25 +61,78 @@ namespace u5303a {
         static bool log( ViStatus rcode, const char * const file, int line
                          , std::function< std::string()> details = std::function<std::string()>() );
 
-        uint32_t dataSerialNumber();
-        
+        //<------------------------  refactord code --------------------------
         ViStatus initWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
 
+        //------------------------  refactord code -------------------------->
+
+        uint32_t dataSerialNumber();
+
         bool Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& );
+
         std::shared_ptr< acqrscontrols::u5303a::identify > Identify();
+        
+        [[deprecated("replace with initWithOptions")]]
+            bool InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolean reset, const std::string& options );
+
+        bool GetAttributeViString ( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result );
+        bool GetAttributeViInt32( ViStatus&, ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result );
 
         bool ConfigureTimeInterleavedChannelList( const std::string& channelName, const std::string& channelList );
 
         bool isSimulate() const;
+
+        bool setSampleRate( double sampleRate );
+
+        double SampleRate() const;
+
+        bool setActiveTriggerSource( const std::string& trigSource );
+        
+        bool setTriggerCoupling( const std::string& trigSoruce, int32_t );
+        int32_t TriggerCoupling( const std::string& trigSoruce ) const;
+        
+        bool setTriggerDelay( double );
+        double TriggerDelay();
+
+        bool setTriggerLevel( const std::string& trigSource, double );
+        double TriggerLevel( const std::string& trigSource ) const;
+        
+        bool setTriggerSlope( const std::string& trigSource, int32_t slope );
+        int32_t TriggerSlope( const std::string& trigSource ) const;  // 0:NEGATIVE, 1:POSITIvE
+
+        [[deprecated("use attribute< data_inversion_enabled >::set")]] 
+            bool setDataInversionEnabled( const std::string&, bool );
+
+        [[deprecated("use attribute< record_size >::set")]] bool setAcquisitionRecordSize( uint32_t );
+
+        bool setAcquisitionNumberOfAverages( uint32_t );
+
+        bool setAcquisitionNumRecordsToAcquire( uint32_t ); // MultiRecord
+
+        bool setAcquisitionMode( int );
+        int AcquisitionMode() const;
 
         bool CalibrationSelfCalibrate();
 
         bool AcquisitionInitiate();
 
         bool AcquisitionWaitForAcquisitionComplete( uint32_t milliseconds );
+        bool isAcquisitionIdle() const;
+
+        bool setTSREnabled( bool );
+        bool TSREnabled();
+
+        boost::tribool isTSRAcquisitionComplete() const;
+        
+        boost::tribool TSRMemoryOverflowOccured() const;
 
         bool TSRContinue();
+
         bool abort();
+
+        bool setTriggerHoldOff( double seconds );
+
+        double TriggerHoldOff() const;
 
         boost::tribool isIdle() const;
         boost::tribool isMeasuring() const;
@@ -83,18 +142,15 @@ namespace u5303a {
         // for PKD+AVG POC purpose
         ViStatus setAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt32 AttributeValue );
         ViStatus getAttributeViInt32( ViConstString RepCapIdentifier, ViAttr AttributeID, int32_t& result ) const;
-        
         ViStatus setAttributeViInt64( ViConstString RepCapIdentifier, ViAttr AttributeID, ViInt64 AttributeValue );
-
         ViStatus setAttributeViBoolean( ViConstString RepCapIdentifier, ViAttr AttributeID, ViBoolean AttributeValue );
-
-        ViStatus getAttributeViString ( ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result ) const ;
+        ViStatus getAttributeViString( ViConstString RepCapIdentifier, ViAttr AttributeID, std::string& result ) const ;
         
         template< typename T > ViStatus setAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T value );
         template< typename T > ViStatus getAttribute( ViConstString RepCapIdentifier, ViAttr AttributeID, T& value ) const;
     };
-    
-    // AGMD2_ATTR_SAMPLE_RATE
+
+        // AGMD2_ATTR_SAMPLE_RATE
     struct acquisition_mode               { static constexpr ViAttr id = AGMD2_ATTR_ACQUISITION_MODE;               typedef ViInt32 value_type; };
     struct acquisition_number_of_averages { static constexpr ViAttr id = AGMD2_ATTR_ACQUISITION_NUMBER_OF_AVERAGES; typedef ViInt32 value_type; };
     struct active_trigger_source          { static constexpr ViAttr id = AGMD2_ATTR_ACTIVE_TRIGGER_SOURCE;          typedef std::string value_type; };
@@ -106,7 +162,7 @@ namespace u5303a {
     struct peak_detection_amplitude_accumulation_enabled { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED; typedef bool value_type; };
     struct peak_detection_falling_delta   { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA;   typedef ViInt32 value_type; };
     struct peak_detection_rising_delta    { static constexpr ViAttr id = AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA;    typedef ViInt32 value_type; };
-    struct record_size                    { static constexpr ViAttr id = AGMD2_ATTR_RECORD_SIZE;                    typedef ViInt32 value_type; };
+    struct record_size                    { static constexpr ViAttr id = AGMD2_ATTR_RECORD_SIZE;                    typedef ViInt64 value_type; };
     struct sample_rate                    { static constexpr ViAttr id = AGMD2_ATTR_SAMPLE_RATE;                    typedef ViReal64 value_type; };
     struct simulate                       { static constexpr ViAttr id = AGMD2_ATTR_SIMULATE;                       typedef bool value_type; };
     struct trigger_coupling               { static constexpr ViAttr id = AGMD2_ATTR_TRIGGER_COUPLING;               typedef ViInt32 value_type;  };
@@ -156,5 +212,5 @@ namespace u5303a {
             throw agmd2_exception( rcode );
         }        
     };
-    
+
 }
