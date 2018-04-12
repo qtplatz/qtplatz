@@ -247,6 +247,7 @@ digitizer::peripheral_terminate()
 bool
 digitizer::peripheral_trigger_inject()
 {
+    ADDEBUG() << "##### " << __FUNCTION__ << " #####";
     return task::instance()->trigger_inject_out();
 }
 
@@ -407,6 +408,7 @@ task::stop()
 bool
 task::trigger_inject_out()
 {
+    ADDEBUG() << "##### task::" << __FUNCTION__ << " #####";
     c_injection_requested_ = true;
     return true;
 }
@@ -504,7 +506,9 @@ void
 task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
 {
     if ( c_injection_requested_ ) {
-        
+        ADDEBUG() << "########################################################";
+        ADDEBUG() << "#################### INJECTION on U5303A ###############";
+        ADDEBUG() << "########################################################";
         c_injection_requested_ = false;
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
@@ -770,13 +774,13 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
 {
     pkd.serialnumber_ = spDriver()->dataSerialNumber();
     avg.serialnumber_ = spDriver()->dataSerialNumber();
+    set_time_since_inject( pkd );
+    set_time_since_inject( avg );
 
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
         pkd.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
         avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
-        set_time_since_inject( pkd );
-        set_time_since_inject( avg );
         pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
         avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
         return true;

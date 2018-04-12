@@ -269,6 +269,7 @@ Session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Meth
 bool
 Session::event_out( uint32_t event )
 {
+    ADDEBUG() << "##### Session::event_out( " << event << " )";
     return impl_->digitizer_->peripheral_trigger_inject();    
 }
 
