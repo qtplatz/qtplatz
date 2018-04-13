@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Author: Toshinobu Hondo, Ph.D.
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,25 +29,15 @@ namespace acqrscontrols {
 
     template< typename T > class ACQRSCONTROLSSHARED_EXPORT waveform_accessor_;
 
-    class counting_data_writer : public adacquire::SignalObserver::DataWriter {
+    class pkd_counting_data_writer : public adacquire::SignalObserver::DataWriter {
     public:
-        counting_data_writer( std::shared_ptr< threshold_result_accessor > a ) : DataWriter( a ) {
-        }
-        
+        pkd_counting_data_writer( std::shared_ptr< acqrscontrols::waveform_accessor_< acqrscontrols::u5303a::waveform > > a );
         bool write( adfs::filesystem& fs ) const override;
-    };
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // T := acqrscontrols::ap240::threshold_result
-
-    template< typename T >
-    class counting_data_writer_ : public adacquire::SignalObserver::DataWriter {
-    public:
-        typedef threshold_result_accessor_< T > threshold_result_accessor_type;
-        counting_data_writer_( std::shared_ptr< threshold_result_accessor_type > a ) : DataWriter( a ) {
-        }
-        
-        bool write( adfs::filesystem& fs ) const override;
+        //
+        static bool prepare_storage( adfs::filesystem& fs );
+    private:
+        bool write( adfs::filesystem& fs, const acqrscontrols::u5303a::waveform& ) const;
     };
 
 }

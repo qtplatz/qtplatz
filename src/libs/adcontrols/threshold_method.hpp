@@ -41,7 +41,7 @@ namespace adcontrols {
     public:
         enum FilterAlgo { SG_Filter, DFT_Filter };
         enum Slope { CrossUp, CrossDown };
-        enum ThresholdAlgo { Absolute, AverageRelative, Differential };
+        enum ThresholdAlgo { Absolute, AverageRelative, Differential, AcqirisPKD };
 
         static const char * modelClass() { return "threshold_method"; }
         static const boost::uuids::uuid& clsid();

@@ -70,7 +70,7 @@ namespace acqrswidgets {
         void setDescription( QAbstractItemModel * model, const QModelIndex& index ) const {
             double range = model->index( r_front_end_range, 1 ).data().toDouble();
             int delta = index.data().toInt();
-            model->setData( model->index( index.row(), 2 ), QString("PKD (%1mV)").arg( 1000 * delta * ( range / 4096 ) ) );
+            model->setData( model->index( index.row(), 2 ), QString("PKD (%1mV)").arg( 1000 * delta * ( range / 8191 ) ) );
         }
         
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
@@ -107,7 +107,8 @@ namespace acqrswidgets {
                 emit pThis_->valueChanged( idU5303ANbrSamples, 0, index.data( Qt::EditRole ).toInt() );
             } else if ( index.row() == pkd_raising_delta || index.row() == pkd_falling_delta ) {
                 QStyledItemDelegate::setModelData( editor, model, index );
-                setDescription( model, index );
+                setDescription( model, model->index( pkd_raising_delta, 1 ) );
+                setDescription( model, model->index( pkd_falling_delta, 1 ) );
             } else {
                 return QStyledItemDelegate::setModelData( editor, model, index );
             }

@@ -19,43 +19,6 @@ include_directories(
 # message( STATUS "### AqDrv4_INCLUDE_DIR: " ${AqDrv4_INCLUDE_DIR} )
 
 add_library( ${PROJECT_NAME} SHARED
-  acqrscontrols_global.hpp
-  counting_data_writer.hpp
-  counting_data_writer.cpp
-  find_threshold_timepoints.hpp
-  find_threshold_peaks.hpp
-  processthreshold.hpp
-  processthreshold.cpp
-  resultwriter.hpp
-  waveform_accessor.hpp
-  waveform_accessor.cpp
-  waveform_horizontal.hpp
-  tdcbase.hpp
-  tdcbase.cpp
-  tdcdoc.hpp
-  tdcdoc.cpp
-  threshold_result.hpp
-  threshold_result.cpp
-  threshold_result_accessor.hpp
-  threshold_result_accessor.cpp
-  u5303a/averagedata.hpp
-  u5303a/averagedata.cpp
-  u5303a/device_method.hpp
-  u5303a/device_method.cpp
-  u5303a/identify.hpp
-  u5303a/identify.cpp
-  u5303a/metadata.hpp
-  u5303a/metadata.cpp
-  u5303a/method.hpp
-  u5303a/method.cpp
-  u5303a/tdcdoc.cpp
-  u5303a/tdcdoc.hpp
-  u5303a/threshold_result.hpp
-  u5303a/threshold_result.cpp
-  u5303a/histogram.hpp
-  u5303a/histogram.cpp
-  u5303a/waveform.hpp
-  u5303a/waveform.cpp
   acqiris_client.cpp
   acqiris_client.hpp
   acqiris_method.cpp
@@ -64,8 +27,9 @@ add_library( ${PROJECT_NAME} SHARED
   acqiris_protocol.hpp
   acqiris_waveform.cpp
   acqiris_waveform.hpp
-  ap240/averagedata.hpp
+  acqrscontrols_global.hpp
   ap240/averagedata.cpp
+  ap240/averagedata.hpp
   ap240/datainterpreter.cpp
   ap240/datainterpreter.hpp
   ap240/histogram.cpp
@@ -84,6 +48,44 @@ add_library( ${PROJECT_NAME} SHARED
   ap240/waveform.hpp
   ap240/waveform_accessor.cpp
   ap240/waveform_accessor.hpp
+  counting_data_writer.cpp
+  counting_data_writer.hpp
+  find_threshold_peaks.hpp
+  find_threshold_timepoints.hpp
+  pkd_counting_data_writer.cpp  
+  pkd_counting_data_writer.hpp
+  processthreshold.cpp
+  processthreshold.hpp
+  resultwriter.hpp
+  tdcbase.cpp
+  tdcbase.hpp
+  tdcdoc.cpp
+  tdcdoc.hpp
+  threshold_result.cpp
+  threshold_result.hpp
+  threshold_result_accessor.cpp
+  threshold_result_accessor.hpp
+  u5303a/averagedata.cpp
+  u5303a/averagedata.hpp
+  u5303a/device_method.cpp
+  u5303a/device_method.hpp
+  u5303a/histogram.cpp
+  u5303a/histogram.hpp
+  u5303a/identify.cpp
+  u5303a/identify.hpp
+  u5303a/metadata.cpp
+  u5303a/metadata.hpp
+  u5303a/method.cpp
+  u5303a/method.hpp
+  u5303a/tdcdoc.cpp
+  u5303a/tdcdoc.hpp
+  u5303a/threshold_result.cpp
+  u5303a/threshold_result.hpp
+  u5303a/waveform.cpp
+  u5303a/waveform.hpp
+  waveform_accessor.cpp
+  waveform_accessor.hpp
+  waveform_horizontal.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
