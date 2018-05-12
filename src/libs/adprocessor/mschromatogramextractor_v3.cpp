@@ -153,8 +153,9 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 
     for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
         
-        auto ms = reader->getSpectrum( it->rowid() );
-
+        auto ms = reader->readSpectrum( it );
+#if 0
+        // todo: filtering process should be a part of centroid process
         { // filter spectrum
             if ( auto fm = pm->find< adcontrols::CentroidMethod >() ) {
                 if ( fm->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter )
@@ -166,6 +167,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
             for ( size_t i = 0; i < ms->size(); ++i )
                 ms->setIntensity( i, intens[ i ] - base );
         } // end filter
+#endif
         
         if ( doLock )
             impl_->apply_mslock( ms, *pm, mslock );
@@ -388,10 +390,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
     
     adcontrols::segment_wrapper<const adcontrols::MassSpectrum> segments( ms );
 
-    double width = cm.width( cm.widthMethod() );
-    (void)(width);
-
-    const int protocol = ms.protocolId();        
+    // const int protocol = ms.protocolId();        
     double time = ms.getMSProperty().timeSinceInjection();
     
     int cid(0); // chromatogram identifier in the given protocol
@@ -399,6 +398,12 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
         
         if ( ! m.enable() )
             continue;
+
+        int protocol( -1 );
+        if ( auto p = m.protocol() )
+            protocol = p.get();
+
+        ADDEBUG() << "protocol: " << protocol << ", " << m.formula();
         
         double width = cm.width_at_mass( m.mass() ); // cm.width( cm.widthMethod() );
         double lMass = m.mass() - width / 2;
@@ -535,8 +540,7 @@ MSChromatogramExtractor::impl::apply_mslock( std::shared_ptr< adcontrols::MassSp
         adcontrols::MassSpectrum centroid;
         doCentroid( centroid, *profile, *cm );
 
-        if ( centroid.size() > 0 )
-            doMSLock( mslock, centroid, *lockm_ );
+        doMSLock( mslock, centroid, *lockm_ );
     }
     
     if ( mslock )
@@ -578,11 +582,25 @@ MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass::mslock& mslock
     // TODO: consider how to handle segmented spectrum -- current impl is always process first 
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
 
+    int mode = (-1);  // TODO: lock mass does not support rapid protocol 
+    
     for ( auto& msref : msrefs_ ) {
-        size_t idx = find( centroid, msref.second );
-        if ( idx != adcontrols::MSFinder::npos ) {
-            mslock << adcontrols::lockmass::reference( msref.first, msref.second, centroid.getMass( idx ), centroid.getTime( idx ) );
-            ADDEBUG() << "found ref: " << msref;
+        size_t proto = 0;
+        for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( centroid ) ) {
+            size_t idx = find( fms, msref.second );
+            if ( idx != adcontrols::MSFinder::npos ) {
+                if ( mode < 0 )
+                    mode = fms.mode();
+                if ( mode == fms.mode() ) {
+                    mslock << adcontrols::lockmass::reference( msref.first, msref.second, fms.getMass( idx ), fms.getTime( idx ) );
+                    // ADDEBUG() << "found ref: " << msref << "@ mode=" << mode << " proto=" << proto;
+                } else {
+                    ADDEBUG() << "found ref: " << msref << " but mode does not match.";
+                }
+            } else {
+                // ADDEBUG() << "msref " << msref << " not found.";
+            }
+            ++proto;
         }
     }
 

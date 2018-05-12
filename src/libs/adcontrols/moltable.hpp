@@ -24,6 +24,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
 #include <memory>
@@ -145,3 +146,4 @@ namespace adcontrols {
 
 }
 
+BOOST_CLASS_VERSION( adcontrols::moltable::value_type, 2 )
