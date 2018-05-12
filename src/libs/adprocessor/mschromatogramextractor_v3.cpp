@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,14 +34,14 @@
 #include "descriptions.hpp"
 #include "lcmsdataset.hpp"
 #include "lockmass.hpp"
-#include "massspectrum.hpp"
-#include "moltable.hpp"
-#include "mschromatogrammethod.hpp"
-#include "msfinder.hpp"
-#include "mslockmethod.hpp"
-#include "msproperty.hpp"
-#include "processmethod.hpp"
-#include "waveform_filter.hpp"
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/moltable.hpp>
+#include <adcontrols/mschromatogrammethod.hpp>
+#include <adcontrols/msfinder.hpp>
+#include <adcontrols/mslockmethod.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/waveform_filter.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/mspeakinfo.hpp>
@@ -104,13 +104,39 @@ namespace adprocessor {
             } else { // optional is none
                 
                 for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-                    ADDEBUG() << sp.size() << ": " << sp.getMass( 0 ) << ", " << sp.getMass( sp.size() - 1 ) << " mol: " << mol.formula();
-                    if (  sp.getMass( 0 ) < lMass && uMass < sp.getMass( sp.size() - 1 ) )
+                    if (  sp.getMass( 0 ) < lMass && uMass < sp.getMass( sp.size() - 1 ) ) {
+                        ADDEBUG() << "found protocol " << std::make_pair( sp.getMass( 0 ), sp.getMass( sp.size() - 1 ) )
+                                  << " " << mol.formula() << "@ proto=" << sp.protocolId();
                         return sp.protocolId();
+                    }
                 }
                 
             }
             return boost::none;
+        }
+    };
+
+    struct cXtractor {
+        double width;
+        double lMass;
+        double uMass;
+        int32_t proto;
+        std::shared_ptr< adcontrols::Chromatogram > pChr;
+        
+        cXtractor( double _w
+                   , double _l
+                   , double _u
+                   , int32_t _p
+                   , const std::wstring& desc = L"" ) : width( _w )
+                                                      , lMass( _l )
+                                                      , uMass( _u )
+                                                      , proto( _p )
+                                                      , pChr( std::make_shared< adcontrols::Chromatogram >() ) {
+            pChr->addDescription( { L"Create", desc } );
+        }
+        
+        inline void append( uint32_t pos, double time, double y ) {
+            (*pChr) << std::make_pair( time, y );
         }
     };
 }
@@ -171,15 +197,16 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
         
         if ( doLock )
             impl_->apply_mslock( ms, *pm, mslock );
-        
+
+#ifndef NDEBUG
         std::ostringstream o;
         for ( auto ref: mslock )
             o << ref.formula() << ", ";
         for ( auto a: mslock.coeffs() )
             o << a << ", ";
-        
-        ADDEBUG() << "proto: " << it->fcn() << "/" << fcn << " time: " << it->time_since_inject()
+        ADDEBUG() << "mslock: proto=" << it->fcn() << "/" << fcn << " time: " << it->time_since_inject()
                   << " pos: " << it->pos() << ", " << it->rowid() << ", " << o.str();
+#endif
         
         impl_->spectra_[ it->pos() ] = ms; // (:= pos sort order) keep mass locked spectral series
         
@@ -192,6 +219,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 ///////////////////////////////////////////////////////////////////
 ////// [0] Create chromatograms by a list of molecules    /////////
 ///////////////////////////////////////////////////////////////////
+
 bool
 MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                           , const adcontrols::ProcessMethod& pm
@@ -205,39 +233,57 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
-        std::set< int > protocols;
-        adcontrols::moltable mols;
+        std::vector< cXtractor > temp;
+        
         auto it = reader->begin( -1 );
         
         if ( auto sp = reader->readSpectrum( it ) ) {
+
+            size_t cid(0);
             for ( auto& mol: cm->molecules().data() ) {
                 if ( auto proto = protocol_finder()( sp, mol, cm->width_at_mass( mol.mass() ) ) )  {
-                    if ( mol.enable() )
-                        protocols.emplace( proto.get() );
-                    mols << mol;
-                    mols.data().back().setProtocol( proto );
+                    if ( proto && mol.enable() ) {
+                        double width = cm->width_at_mass( mol.mass() );
+                        double lMass = mol.mass() - width / 2;
+                        double uMass = mol.mass() + width / 2;
+                        std::wstring desc = ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
+                                              % adportable::utf::to_wstring( mol.formula() )
+                                              % mol.mass()
+                                              % ( width * 1000 )
+                                              % adportable::utf::to_wstring( reader->display_name() )
+                                              % proto.get() ).str();
+
+                        temp.emplace_back( width, lMass, uMass, proto.get(), desc );
+
+                        ADDEBUG() << "enable=" << mol.enable() << ", protocol=" << ( mol.protocol() ? mol.protocol().get() : -1 ) << ", " << mol.formula();
+                    }
                 }
             }
         }
-        
-        if ( protocols.empty() || mols.data().empty() )
-            return false;
-        
-        if ( loadSpectra( &pm, reader, protocols.size() == 1 ? *protocols.begin() : -1, progress ) ) {
 
+        if ( temp.empty() )
+            return false;
+
+        if ( loadSpectra( &pm, reader, -1, progress ) ) {
+            
             for ( auto& ms : impl_->spectra_ ) {
-                // [0]
-                impl_->append_to_chromatogram( ms.first /*pos */, *ms.second, *cm, reader->display_name() );
+                for (auto& xc: temp ) {
+                    auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms.second )[ xc.proto ];
+                    double time = t.getMSProperty().timeSinceInjection();
+                    double y(0);
+                    computeIntensity( y, t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
+                    xc.append( ms.first /* pos */, time, y );
+                }
             }
             
             std::pair< double, double > time_range =
                 std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
                                 , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
             
-            for ( auto& r : impl_->results_ ) {
-                r->pChr_->minimumTime( time_range.first );
-                r->pChr_->maximumTime( time_range.second );
-                vec.push_back( r->pChr_ );
+            for ( auto& xc : temp ) {
+                xc.pChr->minimumTime( time_range.first );
+                xc.pChr->maximumTime( time_range.second );
+                vec.emplace_back( std::move( xc.pChr ) );
             }
             return true;
         }
@@ -403,7 +449,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
         if ( auto p = m.protocol() )
             protocol = p.get();
 
-        ADDEBUG() << "protocol: " << protocol << ", " << m.formula();
+        // ADDEBUG() << "protocol: " << protocol << ", " << m.formula();
         
         double width = cm.width_at_mass( m.mass() ); // cm.width( cm.widthMethod() );
         double lMass = m.mass() - width / 2;

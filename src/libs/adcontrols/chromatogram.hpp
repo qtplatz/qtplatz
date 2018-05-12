@@ -153,6 +153,7 @@ namespace adcontrols {
         void tubingDelayTime( const seconds_t& ); // min
 
         void addDescription( const description& );
+        void addDescription( description&& );
         const descriptions& getDescriptions() const;
 
         const std::wstring& axisLabelHorizontal() const;

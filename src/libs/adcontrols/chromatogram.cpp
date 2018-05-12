@@ -433,6 +433,12 @@ Chromatogram::addDescription( const adcontrols::description& desc )
     pImpl_->addDescription( desc );
 }
 
+void
+Chromatogram::addDescription( adcontrols::description&& desc )
+{
+    pImpl_->descriptions_.append( desc );
+}
+
 const descriptions&
 Chromatogram::getDescriptions() const
 {
