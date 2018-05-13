@@ -24,13 +24,13 @@
 
 #include "quanchromatogramprocessor.hpp"
 #include "quancandidate.hpp"
-#include "quanchromatograms.hpp"
 #include "quanchromatogram.hpp"
+#include "quanchromatograms.hpp"
 #include "quandatawriter.hpp"
+#include "quandocument.hpp"
 #include "quanprocessor.hpp"
 #include "quansampleprocessor.hpp"
 #include "quantarget.hpp"
-#include "quandocument.hpp"
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -39,42 +39,43 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
-#include <adcontrols/msfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msfinder.hpp>
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/peak.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
-#include <adcontrols/peak.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quanresponse.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
-#include <adportable/spectrum_processor.hpp>
-#include <adportable/debug.hpp>
 #include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/file.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
-#include <adfs/file.hpp>
-#include <adfs/cpio.hpp>
 #include <adlog/logger.hpp>
-#include <adutils/cpio.hpp>
-#include <adwidgets/progresswnd.hpp>
-#include <adportfolio/portfolio.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adutils/cpio.hpp>
+#include <adwidgets/progresswnd.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
@@ -112,6 +113,10 @@ QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adc
     , debug_level_( 0 )
     , save_on_datasource_( false )
 {
+    if ( auto qm = procm_->find< adcontrols::QuanMethod >() ) {
+        debug_level_ = qm->debug_level();
+        save_on_datasource_ = qm->save_on_datasource();
+    }
     
     if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
         if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
@@ -297,6 +302,56 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
         }
     }
     return false;
+}
+
+bool
+QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
+                                       , adcontrols::QuanSample& sample
+                                       , std::shared_ptr< QuanDataWriter > writer
+                                       , std::shared_ptr< adwidgets::Progress > progress )
+{
+    if ( auto raw = processor.getLCMSDataset() ) {
+
+        if ( raw->dataformat_version() < 3 )  // no support for old (before 2014) data
+            return false;
+
+        std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers;
+
+        for ( auto reader: raw->dataReaders() ) {
+
+            ADDEBUG() << reader->objtext() << ", " << reader->display_name();
+
+            if ( reader->objtext().find( "waveform" ) != std::string::npos )
+                readers[ 0 ] = reader;
+            if ( reader->objtext().find( "histogram" ) != std::string::npos )
+                readers[ 1 ] = reader;
+        }
+
+        if ( readers[ 0 ] ) {
+            auto reader = readers.at( 0 );
+            for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
+                auto ms = reader->readSpectrum( it );
+                process1st( it->rowid(), ms, processor );
+                if ( ( *progress )() ) {
+                    ADDEBUG() << "QuanSampleProcessor cancel requested";
+                    return false;
+                }
+            }
+            doProfileChromatogram( processor, sample, writer, reader->objtext(), progress );
+        }
+        if ( readers[ 1 ] ) {
+            auto reader = readers.at( 1 );
+            for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
+                auto ms = reader->readSpectrum( it );
+                process1st( it->rowid(), ms, processor );
+                if ( ( *progress )() ) {
+                    ADDEBUG() << "QuanSampleProcessor cancel requested";
+                    return false;
+                }
+            }
+            doCountingChromatogram( processor, sample, writer, reader->objtext(), progress );            
+        }
+    }
 }
 
 void

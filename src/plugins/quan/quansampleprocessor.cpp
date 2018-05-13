@@ -166,25 +166,29 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
                 if ( raw_->dataformat_version() >= 3 ) {
 
-                    for ( auto reader: raw_->dataReaders() ) {
-                        
-                        auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
-                            
-                        for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
-                            auto ms = reader->readSpectrum( it );
-                            chromatogram_processor->process1st( it->rowid(), ms, *this );
-                            if ( ( *progress_ )() ) {
-                                ADDEBUG() << "QuanSampleProcessor cancel requested";
-                                return false;
-                            }
+                    //for ( auto reader: raw_->dataReaders() ) {
+
+                    auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
+                    (*chromatogram_processor)( *this, sample, writer, progress_ );
+#if 0                        
+                    for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
+                        auto ms = reader->readSpectrum( it );
+                        chromatogram_processor->process1st( it->rowid(), ms, *this );
+                        if ( ( *progress_ )() ) {
+                            ADDEBUG() << "QuanSampleProcessor cancel requested";
+                            return false;
                         }
-                        
-                        chromatogram_processor->doit( *this, sample, writer, reader->objtext(), progress_ );
-                        writer->insert_table( sample ); // once per sample
-                        (*progress_)();
                     }
+                        
+                    chromatogram_processor->doit( *this, sample, writer, reader->objtext(), progress_ );
+                    writer->insert_table( sample ); // once per sample
+                    (*progress_)();
+#endif
+                    writer->insert_table( sample ); // once per sample
+                    //}
                     
                 } else {
+
                     auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
                     size_t pos = 0;
                     do {

@@ -58,7 +58,8 @@ namespace adcontrols {
                , isTimeRef_( false )
                , idISTD_( -1 )
                , criteria_( std::make_pair( 0, 0 ) )
-               , isCounting_( true ) {
+               , isCounting_( true )
+               , protocol_( -1 ) {
         }
 
         impl( const boost::uuids::uuid& uuid ) : uuid_( uuid )
@@ -71,7 +72,8 @@ namespace adcontrols {
                                                , isTimeRef_( false )
                                                , idISTD_( -1 )
                                                , criteria_( std::make_pair( 0, 0 ) )
-                                               , isCounting_( true ) {
+                                               , isCounting_( true )
+                                               , protocol_( -1 ) {
         }
 
         impl( const impl& t ) : uuid_( t.uuid_ )
@@ -87,7 +89,8 @@ namespace adcontrols {
                               , isTimeRef_( t.isTimeRef_ )
                               , idISTD_( t.idISTD_ )
                               , criteria_( t.criteria_ )
-                              , isCounting_( t.isCounting_ ) {
+                              , isCounting_( t.isCounting_ )
+                              , protocol_( t.protocol_ ) {
         }
 
     public:
@@ -105,6 +108,7 @@ namespace adcontrols {
         int32_t idISTD_;  // index for internal standad (referenced from non-istd
         std::pair< double, double > criteria_;  // pass/fail criteria
         bool isCounting_; // use counting data channel if true
+        int32_t protocol_;  // a.k.a. data channel 
 
     //private:
         friend class boost::serialization::access;
@@ -127,12 +131,15 @@ namespace adcontrols {
             if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( isCounting_ );
             }
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( protocol_ );
+            }
         }
         
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanCompound::impl, 3 )
+BOOST_CLASS_VERSION( adcontrols::QuanCompound::impl, 4 )
 
 namespace adcontrols {
 
@@ -381,3 +388,14 @@ QuanCompound::setCriteria( double v, bool second )
         impl_->criteria_.first = v;
 }
 
+void
+QuanCompound::setProtocol( int32_t proto )
+{
+    impl_->protocol_ = proto;
+}
+
+int32_t
+QuanCompound::protocol() const
+{
+    return impl_->protocol_;
+}

@@ -314,8 +314,6 @@ MSChromatogramWidget::helper::readRow( int row, adcontrols::moltable::value_type
     mol.smiles()  = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
     int protocol = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
     mol.setProtocol( protocol >= 0 ? boost::optional< int32_t >( protocol ) : boost::none );
-
-    ADDEBUG() << "protocol=" << protocol;
 }
 
 bool
@@ -347,8 +345,6 @@ MSChromatogramWidget::helper::setRow( int row, const adcontrols::moltable::value
 
         model.setData( model.index( row, c_protocol ), mol.protocol() ? mol.protocol().get() : -1 );
 
-        ADDEBUG() << "setdata protocol=" << ( mol.protocol() ? mol.protocol().get() : -1 );
-                       
         model.setData( model.index( row, c_synonym ), QString::fromStdString( mol.synonym() ) );
         model.setData( model.index( row, c_memo ), QString::fromStdWString( mol.description() ) );
     }

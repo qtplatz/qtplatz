@@ -23,13 +23,14 @@
 
 #include "compoundstable.hpp"
 #include "quandocument.hpp"
-#include <adwidgets/delegatehelper.hpp>
-#include <adwidgets/htmlheaderview.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adplot/constants.hpp>
+#include <adwidgets/delegatehelper.hpp>
+#include <adwidgets/htmlheaderview.hpp>
+#include <QComboBox>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QMenu>
@@ -38,8 +39,8 @@
 #include <QStyledItemDelegate>
 #include <QTextDocument>
 #include <boost/format.hpp>
-#include <sstream>
 #include <functional>
+#include <sstream>
 
 
 namespace quan {
@@ -47,6 +48,7 @@ namespace quan {
 
         enum {
             c_formula
+            , c_protocol
             , c_mass
             , c_tR
             , c_isCounting
@@ -99,9 +101,14 @@ namespace quan {
                 initStyleOption( &opt, index );
 
                 if ( index.column() == c_formula ) {
-
+                    
                     std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
                     adwidgets::DelegateHelper::render_html2( painter, opt, QString::fromStdString( formula ) );
+
+                } else if ( index.column() == c_protocol ) {
+
+                    opt.displayAlignment = Qt::AlignCenter | Qt::AlignVCenter;
+                    painter->drawText( opt.rect, opt.displayAlignment, index.data().toInt() < 0 ? "*" : index.data().toString() );
 
                 } else if ( index.column() == c_mass ) {
 
@@ -129,7 +136,15 @@ namespace quan {
             }
 
             void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& index ) const override {
-                QStyledItemDelegate::setModelData( editor, model, index );
+                if ( index.column() == c_protocol ) {
+                    if ( auto combo = qobject_cast< QComboBox *>( editor ) ) {
+                        int idx = ( combo->currentIndex() - 1 ); // -1 = none, 0, 1, 2, 3
+                        model->setData( index, combo->currentText(), Qt::DisplayRole );
+                        model->setData( index, idx, Qt::EditRole );
+                    }
+                } else {
+                    QStyledItemDelegate::setModelData( editor, model, index );
+                }
                 if ( valueChanged_ )
                     valueChanged_( index );
             }
@@ -139,6 +154,13 @@ namespace quan {
                     QLineEdit * edit = new QLineEdit( parent );
                     edit->setText( QString::fromStdString( (boost::format( "%g" ) % index.data().toDouble() ).str() ) );
                     return edit;
+                } else if ( index.column() == c_protocol ) {
+                    auto combo = new QComboBox( parent );
+                    combo->addItem( "*" ); // none
+                    for ( int proto = 0; proto < 4; ++proto )
+                        combo->addItem( QString::number( proto ) );
+                    combo->setCurrentIndex( index.data( Qt::EditRole ).toInt() + 1 );
+                    return combo;
                 } else {
                     return QStyledItemDelegate::createEditor( parent, option, index );
                 }
@@ -198,6 +220,7 @@ CompoundsTable::onInitialUpdate()
 
     model.setColumnCount( nbrColums );
     model.setHeaderData( c_formula,  Qt::Horizontal, tr( "formula" ) );
+    model.setHeaderData( c_protocol,  Qt::Horizontal, tr( "protocol#" ) );
     model.setHeaderData( c_mass,  Qt::Horizontal, tr( "<i>m/z</i>" ) );
 
     using namespace adplot::constants;
@@ -306,6 +329,7 @@ CompoundsTable::getContents( adcontrols::QuanCompounds& c )
         a.setFormula( model.index( row, c_formula ).data().toString().toStdString().c_str() );
         if ( std::string( a.formula() ).empty() )
             continue;
+        a.setProtocol( model.index( row, c_protocol ).data().toInt() );
         a.setDescription( model.index( row, c_description ).data().toString().toStdWString().c_str() );
         a.setMass( model.index( row, c_mass ).data().toDouble() );
         a.set_tR( model.index( row, c_tR ).data().toDouble() ); // sec
@@ -343,6 +367,7 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
     for ( auto& comp: c ) {
         std::string formula = comp.formula();
         model.setData( model.index( row, c_formula ), QString::fromStdString( formula ) );
+        model.setData( model.index( row, c_protocol), comp.protocol() );
         model.setData( model.index( row, c_mass ), comp.mass() );
         model.setData( model.index( row, c_tR ), comp.tR() ); // sec
         model.setData( model.index( row, c_description ), QString::fromStdWString( comp.description() ) );

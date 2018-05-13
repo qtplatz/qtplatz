@@ -90,6 +90,9 @@ namespace adcontrols {
         void setIsCounting( bool );
         bool isCounting() const;
 
+        void setProtocol( int );
+        int32_t protocol() const;
+
     private:
 
 #   if  defined _MSC_VER

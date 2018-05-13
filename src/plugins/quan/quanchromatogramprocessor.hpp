@@ -46,11 +46,13 @@ namespace quan {
 
         void process1st( int64_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
 
-        void doit( QuanSampleProcessor&, adcontrols::QuanSample&
-                   , std::shared_ptr< QuanDataWriter >
-                   , const std::string& reader_objtext
-                   , std::shared_ptr< adwidgets::Progress > );
+        [[deprecated]] void doit( QuanSampleProcessor&, adcontrols::QuanSample&
+                                  , std::shared_ptr< QuanDataWriter >
+                                  , const std::string& reader_objtext
+                                  , std::shared_ptr< adwidgets::Progress > );
 
+        bool operator()( QuanSampleProcessor&, adcontrols::QuanSample&, std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::Progress > );
+        
         enum { idFormula, idExactMass };
         typedef std::tuple< std::string, double > target_type;        
 
