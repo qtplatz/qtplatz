@@ -94,21 +94,20 @@ namespace adprocessor {
             double lMass = mol.mass() - width / 2;
             double uMass = mol.mass() + width / 2;
             size_t nProto = ms->nProtocols();
-            
+
             if ( mol.protocol() && ( nProto > mol.protocol().get() ) ) {
 
                 auto& sp = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms )[ mol.protocol().get() ];
-                if (  sp.getMass( 0 ) < lMass && uMass < sp.getMass( sp.size() - 1 ) )
+                auto range = sp.getAcquisitionMassRange();
+                if (  range.first < lMass && uMass < range.second )
                     return sp.protocolId();
 
             } else { // optional is none
                 
                 for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-                    if (  sp.getMass( 0 ) < lMass && uMass < sp.getMass( sp.size() - 1 ) ) {
-                        ADDEBUG() << "found protocol " << std::make_pair( sp.getMass( 0 ), sp.getMass( sp.size() - 1 ) )
-                                  << " " << mol.formula() << "@ proto=" << sp.protocolId();
+                    auto range = sp.getAcquisitionMassRange();
+                    if (  range.first < lMass && uMass < range.second )
                         return sp.protocolId();
-                    }
                 }
                 
             }
