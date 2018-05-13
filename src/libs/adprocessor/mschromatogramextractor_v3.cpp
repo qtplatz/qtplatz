@@ -106,8 +106,11 @@ namespace adprocessor {
                 
                 for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
                     auto range = sp.getAcquisitionMassRange();
-                    if (  range.first < lMass && uMass < range.second )
+                    ADDEBUG() << "find poto: " << range << ", " << mol.formula() << " proto=" << sp.protocolId();
+                    if (  range.first < lMass && uMass < range.second ) {
+                        ADDEBUG() << "\tfound: " << sp.protocolId();
                         return sp.protocolId();
+                    }
                 }
                 
             }
@@ -179,21 +182,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
     for ( auto it = reader->begin( fcn ); it != reader->end(); ++it ) {
         
         auto ms = reader->readSpectrum( it );
-#if 0
-        // todo: filtering process should be a part of centroid process
-        { // filter spectrum
-            if ( auto fm = pm->find< adcontrols::CentroidMethod >() ) {
-                if ( fm->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter )
-                    adcontrols::waveform_filter::fft4c::lowpass_filter( *ms, fm->cutoffFreqHz() );
-            }
-            double base( 0 ), rms( 0 );
-            const double * intens = ms->getIntensityArray();
-            adportable::spectrum_processor::tic( uint32_t( ms->size() ), intens, base, rms );
-            for ( size_t i = 0; i < ms->size(); ++i )
-                ms->setIntensity( i, intens[ i ] - base );
-        } // end filter
-#endif
-        
+
         if ( doLock )
             impl_->apply_mslock( ms, *pm, mslock );
 
@@ -238,7 +227,6 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         
         if ( auto sp = reader->readSpectrum( it ) ) {
 
-            size_t cid(0);
             for ( auto& mol: cm->molecules().data() ) {
                 if ( auto proto = protocol_finder()( sp, mol, cm->width_at_mass( mol.mass() ) ) )  {
                     if ( proto && mol.enable() ) {
@@ -254,7 +242,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
                         temp.emplace_back( width, lMass, uMass, proto.get(), desc );
 
-                        ADDEBUG() << "enable=" << mol.enable() << ", protocol=" << ( mol.protocol() ? mol.protocol().get() : -1 ) << ", " << mol.formula();
+                        ADDEBUG() << "enable=" << mol.enable() << ", protocol=" << ( mol.protocol() ? mol.protocol().get() : -1 ) << "->" << proto.get() << " " << mol.formula();
                     }
                 }
             }
