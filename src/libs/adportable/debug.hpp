@@ -27,7 +27,13 @@
 
 #include <sstream>
 
-namespace boost { namespace system { class error_code; } }
+namespace boost {
+    namespace system { class error_code; }
+    namespace property_tree {
+        template< class Key, class Data, class KeyCompare > class basic_ptree;
+        typedef basic_ptree< std::string, std::string, std::less< std::string > > ptree;
+    }    
+}
 
 namespace adportable {
 
@@ -54,6 +60,7 @@ namespace adportable {
     
     template<> debug& debug::operator << ( const std::wstring& t );
     template<> debug& debug::operator << ( const boost::system::error_code& );
+    template<> debug& debug::operator << ( const boost::property_tree::ptree& );
 
     inline std::string where( const char * file, const int line ) { 
         debug x( file, line );

@@ -181,9 +181,15 @@ QuanDocument::save_default_methods()
 
     if ( docTemplate_ )
         save( dir / "QuanDocTemplate.xml", *docTemplate_ );
+    
+    save( dir / "QuanSequence.xml", *quanSequence_, false ) && save( dir / "QuanMethod.xml", *procm_, false );
 
-    return
-        save( dir / "QuanSequence.xml", *quanSequence_, false ) && save( dir / "QuanMethod.xml", *procm_, false );
+    // check if method file in user file space
+    QString name = recentFile( Constants::GRP_METHOD_FILES, Constants::KEY_FILES );
+    if ( ! name.isEmpty() ) {
+        boost::filesystem::path filepath( name.toStdWString() );
+        save( filepath, *procm_, false );
+    }
 }
 
 bool
@@ -837,14 +843,13 @@ namespace quan {
         return procm_.get();
     }
     
-    
     template<> void
     QuanDocument::setm< adcontrols::QuanMethod >( const adcontrols::QuanMethod& t )
     {
         *procm_ *= t;
 
         dirty_flags_[ idQuanMethod ] = true;
-        notify_update_( idQuanMethod, false );        
+        notify_update_( idQuanMethod, false );
     }
 
     template<> void

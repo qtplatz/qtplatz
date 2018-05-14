@@ -280,11 +280,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         temp.back().pChr->setGeneratorProperty( pt );
 
 #if !defined NDEBUG // && 0
-                        std::ostringstream o;
-                        boost::property_tree::json_parser::write_json( o, pt );
-                        ADDEBUG() << o.str();
+                        ADDEBUG() << pt;
 #endif
-                        // ADDEBUG() << "enable=" << mol.enable() << ", protocol=" << ( mol.protocol() ? mol.protocol().get() : -1 ) << "->" << proto.get() << " " << mol.formula();
                     }
                 }
             }

@@ -361,7 +361,7 @@ MainWindow::commit()
     if ( stack_ ) {
         for ( int idx = 0; idx < stack_->count(); ++idx ) {
             QWidget * widget = stack_->widget( idx );
-            if ( auto panels = dynamic_cast< PanelsWidget * >( widget ) )
+            if ( auto panels = qobject_cast< PanelsWidget * >( widget ) )
                 panels->commit();
         }
     }
