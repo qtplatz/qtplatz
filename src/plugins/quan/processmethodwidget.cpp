@@ -30,6 +30,7 @@
 #include <adwidgets/mslockform.hpp>
 #include <adwidgets/peakmethodform.hpp>
 
+#include <QDialogButtonBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -49,7 +50,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     topLayout->setMargin( 0 );
     topLayout->setSpacing( 0 );
     topLayout->addLayout( layout_ );
-    topLayout->addStretch( 1 );
+    //topLayout->addStretch( 1 );
 
     // ----------------------------------------
     // |             | Lock mass  | PeakFind  |
@@ -75,6 +76,10 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
 
     auto peakmethodform = new adwidgets::PeakMethodForm;
     layout_->addWidget( peakmethodform, 0, 2 ); // row = 0, column = 2; Chromatography peak method column
+    if ( auto bb = peakmethodform->findChild< QDialogButtonBox * >() )
+        bb->hide();
+
+    layout_->setColumnStretch( 2, 1 );
         
     //tLayout->addStretch( 1 );
     centroidform->OnInitialUpdate();

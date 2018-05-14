@@ -55,6 +55,8 @@ namespace adwidgets {
 		explicit PeakMethodForm(QWidget *parent = 0);
 		~PeakMethodForm();
 
+        void hideApplyButton( bool );
+
         // adplugin::LifeCycle
 		virtual void OnCreate( const adportable::Configuration& ) override;
 		virtual void OnInitialUpdate() override;

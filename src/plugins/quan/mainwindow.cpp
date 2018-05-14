@@ -147,7 +147,8 @@ MainWindow::createContents( Core::IMode * )
     }
 
     // [Compounds & Protocols] double tab
-    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {    
+    if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
+
         if ( auto widget = new CompoundsWidget ) {
             auto data = std::make_shared< PanelData >( tr("Compounds")
                                                        , QIcon( QLatin1String( ":/quan/images/unconfigured.png" ) )
