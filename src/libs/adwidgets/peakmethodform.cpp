@@ -33,17 +33,19 @@
 #include <adportable/is_type.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#include <QAbstractButton>
 #include <QComboBox>
+#include <QDebug>
+#include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QEvent>
+#include <QKeyEvent>
+#include <QPainter>
+#include <QSignalBlocker>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
-#include <QSignalBlocker>
 #include <QTextDocument>
 #include <QTreeView>
-#include <QPainter>
-#include <QKeyEvent>
-#include <QEvent>
-#include <QDebug>
 
 using namespace adcontrols::chromatography;
 
@@ -84,6 +86,9 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
 {
     ui->setupUi(this);
 
+    ui->horizontalLayout->setStretch( 0, 0 );
+    ui->horizontalLayout->setStretch( 1, 1 );
+
     if ( adplot::constants::default_chromatogram_time == adplot::constants::chromatogram_time_seconds ) {
         ui->label->setText( "Slope[&mu;V/s]" );
         ui->label_2->setText( "Minimum width[s]" );
@@ -92,6 +97,8 @@ PeakMethodForm::PeakMethodForm( QWidget *parent ) : QWidget( parent )
     ui->tableView->setModel( impl_->model_.get() );
     ui->tableView->setItemDelegate( new teDelegate( this ) );
     ui->tableView->verticalHeader()->setDefaultSectionSize( 18 );
+
+    connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess( "PeakFind" ); } );
 }
 
 PeakMethodForm::~PeakMethodForm()

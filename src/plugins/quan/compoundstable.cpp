@@ -236,8 +236,9 @@ CompoundsTable::onInitialUpdate()
 
     for ( int col = c_level_0; col < c_level_last; ++col )
         model.setHeaderData( col, Qt::Horizontal, QString( "amounts [%1]" ).arg( col - c_level_0 + 1 ) );
-    
-    handleQuanMethod( QuanDocument::instance()->quanMethod() );
+
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
+        handleQuanMethod( *qm );
 }
 
 void
@@ -252,6 +253,9 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
         adcontrols::ChemicalFormula cformula;
         double exactMass = cformula.getMonoIsotopicMass( formula );
         model_->setData( model_->index( index.row(), c_mass ), exactMass );
+
+        if ( model_->index( index.row(), c_protocol ).data( Qt::EditRole ).isNull() )
+            model_->setData( model_->index( index.row(), c_protocol ), -1 );
 
         // set default values for amounts (avoid zero value in the table)
         for ( int col = c_level_0; col < int(c_level_0 + levels_); ++col ) {
@@ -292,8 +296,10 @@ CompoundsTable::handleValueChanged( const QModelIndex& index )
 
     if ( index.row() == model_->rowCount() - 1 ) {
         auto data = model_->index( index.row(), c_formula ).data( Qt::EditRole );
-        if ( !data.isNull() && !data.toString().isEmpty() )
+        if ( !data.isNull() && !data.toString().isEmpty() ) {
             model_->insertRow( index.row() + 1 );
+            model_->setData( model_->index( index.row() + 1, c_protocol ), -1 );
+        }
     }
 }
 
@@ -357,11 +363,9 @@ CompoundsTable::setContents( const adcontrols::QuanCompounds& c )
     QStandardItemModel& model = *model_;
     model.setRowCount( int( c.size() ) + 1 ); // add last empty line
 
-    //const adcontrols::QuanMethod& qm = QuanDocument::instance()->quanMethod();
-    const adcontrols::ProcessMethod& pm = QuanDocument::instance()->procMethod();
-
-    if ( auto lkms = pm.find< adcontrols::MSLockMethod >() )
+    if ( auto lkms = QuanDocument::instance()->getm< adcontrols::MSLockMethod >() ) {
         setColumnHidden( c_isLKMSReference, !lkms->enabled() );
+    }
 
     int row = 0;
     for ( auto& comp: c ) {

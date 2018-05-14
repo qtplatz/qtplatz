@@ -67,7 +67,6 @@ namespace quan {
     private:
         ~QuanDocument();
         QuanDocument();
-        static std::atomic< QuanDocument * > instance_;
         static std::mutex mutex_;
     public:
         static QuanDocument * instance();
@@ -76,12 +75,18 @@ namespace quan {
         PanelData * findPanel( int idx, int subIdx, int pos );
 
         void setMethodFilename( int idx, const std::wstring& filename );
+        
+        template< typename T >  const T* getm() const;
+        template< typename T >  void setm( const T& t );
 
-        const adcontrols::QuanMethod& quanMethod() const;
-        void quanMethod( const adcontrols::QuanMethod & );
+        // const adcontrols::QuanMethod& quanMethod() const;
+        // void quanMethod( const adcontrols::QuanMethod & );
 
-        const adcontrols::QuanCompounds& quanCompounds() const;
-        void quanCompounds( const adcontrols::QuanCompounds& );
+        // const adcontrols::QuanCompounds& quanCompounds() const;
+        // void quanCompounds( const adcontrols::QuanCompounds& );
+
+        //const adcontrols::ProcessMethod& procMethod() const;
+        //void setProcMethod( adcontrols::ProcessMethod& );
 
         void quanSequence( std::shared_ptr< adcontrols::QuanSequence >& );
         std::shared_ptr< adcontrols::QuanSequence > quanSequence();
@@ -89,11 +94,8 @@ namespace quan {
         void publisher( std::shared_ptr< QuanPublisher >& );
         std::shared_ptr< QuanPublisher > publisher() const;
 
-        const adcontrols::ProcessMethod& pm() const;
-        adcontrols::ProcessMethod& pm();
-
-        const adcontrols::ProcessMethod& procMethod() const;
-        void setProcMethod( adcontrols::ProcessMethod& );
+        // const adcontrols::ProcessMethod& pm() const;
+        // adcontrols::ProcessMethod& pm();
 
         std::shared_ptr< adpublisher::document > docTemplate() const;
         void docTemplate( std::shared_ptr< adpublisher::document >& );
@@ -146,16 +148,14 @@ namespace quan {
         std::map< int, chapter_type > book_;
         std::shared_ptr< QSettings > settings_;
         std::shared_ptr< QuanConnection > quanConnection_;
-
+        std::unique_ptr< adcontrols::ProcessMethod > procm_;
+        std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
         notify_update_t notify_update_;
 
         std::array< bool, idSize > dirty_flags_;
-        // std::vector< std::thread > threads_;
+
         std::atomic< size_t > postCount_;
         std::vector< std::future<void > > futures_;
-
-        std::shared_ptr< adcontrols::ProcessMethod > pm_;
-        std::shared_ptr< adcontrols::QuanSequence > quanSequence_;
 
         std::shared_ptr< QuanPublisher > publisher_;
         std::shared_ptr< adpublisher::document > docTemplate_;

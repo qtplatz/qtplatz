@@ -225,11 +225,10 @@ DataSequenceTable::DataSequenceTable(QWidget *parent) : adwidgets::TableView(par
     setItemDelegate( delegate );
     setModel( model_.get() );
     
-    auto& qm = QuanDocument::instance()->quanMethod();
-    delegate->levels( qm.levels() );
-    delegate->replicates( qm.replicates() );
-
-    // delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+        delegate->levels( qm->levels() );
+        delegate->replicates( qm->replicates() );
+    }
 
     onInitialUpdate();
 }

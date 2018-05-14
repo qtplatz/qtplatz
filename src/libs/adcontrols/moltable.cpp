@@ -33,6 +33,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 
 #include <array>
 #include <adportable/float.hpp>
@@ -55,7 +57,7 @@ namespace boost {
             ar & BOOST_SERIALIZATION_NVP( p.description_ );
             if ( version >= 2 ) {
                 ar & BOOST_SERIALIZATION_NVP( p.protocol_ );
-                ar & BOOST_SERIALIZATION_NVP( p.customValues_ );
+                ar & BOOST_SERIALIZATION_NVP( p.properties_ );
             }
         }
     }

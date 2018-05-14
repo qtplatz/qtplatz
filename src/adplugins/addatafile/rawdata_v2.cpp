@@ -127,7 +127,7 @@ rawdata::loadAcquiredConf()
                                 std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
                                 cptr->addDescription( adcontrols::description( L"create", conf.trace_display_name ) );
                                 accessor.copy_to( *cptr, fcn );
-                                cptr->setFcn( fcn );
+                                cptr->setProtocol( fcn );
                                 tic_.push_back( cptr );
                                 if ( const double * times = cptr->getTimeArray() ) {
                                     for ( size_t i = 0; i < cptr->size(); ++i )
@@ -447,7 +447,7 @@ rawdata::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 {
     if ( tic_.size() > unsigned( fcn ) ) {
         c = *tic_[ fcn ];
-        c.setFcn( fcn );
+        c.setProtocol( fcn );
         return true;
     }
     return false;

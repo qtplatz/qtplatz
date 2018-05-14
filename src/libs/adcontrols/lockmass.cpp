@@ -299,6 +299,11 @@ fitter::fitter( std::vector< double >&& a )
     coeffs_ = std::move( a );
 }
 
+fitter::fitter( const std::vector< double >& a )
+{
+    coeffs_ = a;
+}
+
 fitter&
 fitter::operator = ( std::vector< double >&& a )
 {

@@ -290,11 +290,12 @@ DataSequenceWidget::handleDataChanged( int id, bool fnChanged )
         datasequence_type().setContents( stack_->currentWidget(), *QuanDocument::instance()->quanSequence() );
     }
     if ( id == idQuanMethod ) {
-        auto& qm = QuanDocument::instance()->quanMethod();
-        levels_ = qm.levels();
-        replicates_ = qm.replicates();
-        datasequence_type().handleLevelChanged( stack_->currentWidget(), qm.levels() );
-        datasequence_type().handleReplicatesChanged( stack_->currentWidget(), qm.replicates() );
+        if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+            levels_ = qm->levels();
+            replicates_ = qm->replicates();
+            datasequence_type().handleLevelChanged( stack_->currentWidget(), qm->levels() );
+            datasequence_type().handleReplicatesChanged( stack_->currentWidget(), qm->replicates() );
+        }
     }
 }
 

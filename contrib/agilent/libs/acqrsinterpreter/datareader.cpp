@@ -633,7 +633,7 @@ DataReader::loadTICs()
                 if ( tics.find( fcn ) == tics.end() ) {
                     tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
                     tics [ fcn ]->setDataReaderUuid( objid_ );
-                    tics [ fcn ]->setFcn( fcn );
+                    tics [ fcn ]->setProtocol( fcn );
                 }
                 
                 auto pChro = tics[ fcn ];
@@ -704,7 +704,7 @@ DataReader::loadCachedTICs()
             if ( tics.find( fcn ) == tics.end() ) {
                 tics [ fcn ] = std::make_shared< adcontrols::Chromatogram >();
                 tics [ fcn ]->setDataReaderUuid( objid_ );
-                tics [ fcn ]->setFcn( fcn );
+                tics [ fcn ]->setProtocol( fcn );
             }
             
             auto pChro = tics[ fcn ];

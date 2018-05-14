@@ -45,6 +45,8 @@ namespace adcontrols {
 //    template class ADCONTROLSSHARED_EXPORT std::vector < QuanCompound > ;
 #endif
 
+    class moltable;
+
     class ADCONTROLSSHARED_EXPORT QuanCompounds  {
     public:
         ~QuanCompounds();
@@ -70,6 +72,9 @@ namespace adcontrols {
 
         static bool xml_archive( std::wostream& ostream, const QuanCompounds& );
         static bool xml_restore( std::wistream& istream, QuanCompounds& );
+
+        void convertTo( moltable& ) const;
+        void convert_if( moltable&, std::function<bool( const value_type& )> ) const;
 
     private:
 

@@ -305,9 +305,10 @@ DataSequenceTree::DataSequenceTree(QWidget *parent) : QTreeView(parent)
 {
     auto delegate = new ItemDelegate;
     delegate->register_valueChanged( [=] ( const QModelIndex& idx ){ handleValueChanged( idx ); } );
-    auto& qm = QuanDocument::instance()->quanMethod();
-    delegate->levels( qm.levels() );
-    delegate->replicates( qm.replicates() );
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
+        delegate->levels( qm->levels() );
+        delegate->replicates( qm->replicates() );
+    }
 
     setItemDelegate( delegate );
     setModel( model_.get() );

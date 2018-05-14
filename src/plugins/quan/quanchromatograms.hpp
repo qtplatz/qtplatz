@@ -65,7 +65,7 @@ namespace quan {
         
     public:
         ~QuanChromatograms();
-
+        
         QuanChromatograms( const std::string& formula /* master formula -> developped to many by possible adducts|charge */
                            , const std::vector< QuanTarget::target_value >& target_values
                            , const std::string& reader_objtext );

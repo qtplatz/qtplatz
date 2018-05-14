@@ -61,7 +61,6 @@ namespace adprocessor {
             bool extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
                                   , const adcontrols::ProcessMethod&
                                   , std::shared_ptr< const adcontrols::DataReader >
-                                  //, int fcn
                                   , std::function<bool( size_t, size_t )> progress );
 
             // [1] Chromatograms from centroid result
@@ -90,6 +89,8 @@ namespace adprocessor {
 
             class impl;
             impl * impl_;
+            
+            std::vector< std::pair< double, std::vector<double> > > lkms_;  // time, coeffs
         };
     }
 }

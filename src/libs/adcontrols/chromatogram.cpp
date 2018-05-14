@@ -24,28 +24,27 @@
 **************************************************************************/
 
 #include "chromatogram.hpp"
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 
-#include "baselines.hpp"
 #include "baseline.hpp"
+#include "baselines.hpp"
 #include "descriptions.hpp"
-#include "peaks.hpp"
 #include "peak.hpp"
 #include "peakresult.hpp"
+#include "peaks.hpp"
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_serialize.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ptree_serialization.hpp>
+#include <boost/serialization/base_object.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/serialization/base_object.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-
-#include <compiler/diagnostic_pop.h>
+#include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
@@ -97,7 +96,6 @@ namespace adcontrols {
             void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
             size_t dataDelayPoints() const { return dataDelayPoints_; }
 	   
-	    // private:
             friend class Chromatogram;
             static std::wstring empty_string_;  // for error return as reference
             bool isConstantSampling_;
@@ -114,8 +112,10 @@ namespace adcontrols {
             double samplingInterval_;
             std::wstring axisLabelHorizontal_;
             std::wstring axisLabelVertical_;
-            int32_t fcn_;
+            int32_t proto_;
             boost::uuids::uuid dataReaderUuid_;
+            boost::uuids::uuid dataGuid_;
+            boost::property_tree::ptree ptree_;
 	   
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -134,16 +134,19 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(peaks_) 
                     ;
                 if ( version >= 2 ) 
-                    ar & BOOST_SERIALIZATION_NVP( fcn_ );
-
+                    ar & BOOST_SERIALIZATION_NVP( proto_ );
                 if ( version >= 3 ) 
                     ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+                if ( version >= 4 ) {
+                    ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
+                    ar & BOOST_SERIALIZATION_NVP( ptree_ );
+                }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 3 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 4 )
 
 ///////////////////////////////////////////
 
@@ -154,22 +157,22 @@ Chromatogram::~Chromatogram()
 
 Chromatogram::Chromatogram() : pImpl_(0)
 {
-  pImpl_ = new ChromatogramImpl;
+    pImpl_ = new ChromatogramImpl;
 }
 
 Chromatogram::Chromatogram( const Chromatogram& c ) : pImpl_(0)
 {
-  pImpl_ = new ChromatogramImpl( *c.pImpl_ );
+    pImpl_ = new ChromatogramImpl( *c.pImpl_ );
 }
 
 Chromatogram&
 Chromatogram::operator =( const Chromatogram& t )
 {
     if ( t.pImpl_ != pImpl_ ) { // can't assign
-      delete pImpl_;
-      pImpl_ = new ChromatogramImpl( *t.pImpl_ );
-  }
-  return *this;
+        delete pImpl_;
+        pImpl_ = new ChromatogramImpl( *t.pImpl_ );
+    }
+    return *this;
 }
 
 /////////  static functions
@@ -194,15 +197,15 @@ Chromatogram::toMinutes( const std::pair<seconds_t, seconds_t>& pair )
 /////////////////
 
 void
-Chromatogram::setFcn( int fcn )
+Chromatogram::setProtocol( int fcn )
 {
-    pImpl_->fcn_ = fcn;
+    pImpl_->proto_ = fcn;
 }
 
 int
-Chromatogram::fcn() const
+Chromatogram::protocol() const
 {
-    return pImpl_->fcn_;
+    return pImpl_->proto_;
 }
 
 size_t
@@ -591,8 +594,9 @@ ChromatogramImpl::~ChromatogramImpl()
 ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true) 
                                      , dataDelayPoints_(0)
                                      , samplingInterval_(0)
-                                     , fcn_(0)
+                                     , proto_(0)
                                      , dataReaderUuid_( { {0} } )
+                                     , dataGuid_( boost::uuids::random_generator()() ) // random generator
 {
 }
 
@@ -607,8 +611,10 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , samplingInterval_( t.samplingInterval_ )
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
-                                                                , fcn_( t.fcn_ )
+                                                                , proto_( t.proto_ )
                                                                 , dataReaderUuid_( t.dataReaderUuid_ )
+                                                                , dataGuid_( t.dataGuid_ )
+                                                                , ptree_( t.ptree_ )
 {
     descriptions_ = t.descriptions_;
 }
@@ -699,6 +705,36 @@ const boost::uuids::uuid&
 Chromatogram::dataReaderUuid() const
 {
     return pImpl_->dataReaderUuid_;
+}
+
+void
+Chromatogram::setGeneratorProperty( const boost::property_tree::ptree& pt )
+{
+    pImpl_->ptree_ = pt;
+}
+
+void
+Chromatogram::setDataGuid( const boost::uuids::uuid& uuid )
+{
+    pImpl_->dataGuid_ = uuid;
+}
+
+const boost::uuids::uuid&
+Chromatogram::dataGuid() const
+{
+    return pImpl_->dataGuid_;
+}
+
+boost::property_tree::ptree&
+Chromatogram::ptree()
+{
+    return pImpl_->ptree_;
+}
+
+const boost::property_tree::ptree&
+Chromatogram::ptree() const
+{
+    return pImpl_->ptree_;    
 }
 
 bool

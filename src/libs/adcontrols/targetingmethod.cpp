@@ -45,7 +45,8 @@ namespace adcontrols {
                             , isLowMassLimitEnabled_( false ) // auto
                             , isHighMassLimitEnabled_( false )
                             , lowMassLimit_( 1 )
-                            , highMassLimit_( 1000 ) {
+                            , highMassLimit_( 1000 )
+                            , tolerance_( 0 ) /* not in use */ {
             // reference,
             // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
 

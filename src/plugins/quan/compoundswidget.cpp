@@ -91,18 +91,20 @@ CompoundsWidget::commit()
 {
     adcontrols::QuanCompounds c; // uuid is bing updated.
     table_->getContents( c );
-    QuanDocument::instance()->quanCompounds( c );
+    QuanDocument::instance()->setm( c );
 }
 
 void
 CompoundsWidget::handleDataChanged( int id, bool )
 {
     if ( id == idQuanMethod ) {
-        auto& method = QuanDocument::instance()->quanMethod();
-        table_->handleQuanMethod( method );
-    }
-    else if ( id == idQuanCompounds ) {
-        table_->setContents( QuanDocument::instance()->quanCompounds() );
+        if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
+            table_->handleQuanMethod( *qm );
+    } else if ( id == idQuanCompounds ) {
+        if ( auto qc = QuanDocument::instance()->getm< adcontrols::QuanCompounds >() )
+            table_->setContents( *qc );
+        else
+            commit();
     }
 }
 

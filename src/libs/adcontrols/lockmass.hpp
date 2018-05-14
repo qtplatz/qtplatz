@@ -71,6 +71,7 @@ namespace adcontrols {
             fitter();
             fitter( const fitter& );
             fitter( std::vector< double >&& );
+            fitter( const std::vector< double >& );
             fitter& operator = ( std::vector< double >&& );
             bool operator()( MassSpectrum& ) const; // correct mass array
             bool operator()( MSPeakInfo& ) const;

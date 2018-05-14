@@ -28,6 +28,7 @@
 
 namespace adcontrols {
     class ProcessMethod; class MSFinder;
+    class PeakMethod;    class MSChromatogramMethod;
     namespace lockmass { class mslock; }
 }
 namespace adwidgets { class Progress; }
@@ -39,7 +40,6 @@ namespace quan {
     class QuanTarget;
 
     class QuanChromatogramProcessor {
-        std::shared_ptr< const adcontrols::ProcessMethod > procm_;
 
     public:
         QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm );
@@ -54,7 +54,10 @@ namespace quan {
         bool operator()( QuanSampleProcessor&, adcontrols::QuanSample&, std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::Progress > );
         
         enum { idFormula, idExactMass };
-        typedef std::tuple< std::string, double > target_type;        
+        typedef std::tuple< std::string, double > target_type;
+        
+        static bool findPeaks( adcontrols::PeakResult& res, const adcontrols::Chromatogram&, const adcontrols::PeakMethod& );
+        static bool identify( adcontrols::PeakResult&, const adcontrols::QuanCompounds&, const adcontrols::Chromatogram& );
 
     private:
         bool doMSLock( adcontrols::MassSpectrum& profile );
@@ -75,11 +78,16 @@ namespace quan {
                                 , std::shared_ptr< adcontrols::MassSpectrum >& centroid
                                 , std::shared_ptr< adcontrols::MassSpectrum >& filtered );
         
+        void save_chromatograms( std::shared_ptr< QuanDataWriter > writer
+                                 , const wchar_t * dataSource
+                                 , const std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> > >&
+                                 , const wchar_t * title_trailer = L"" );
+
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
                                            , std::shared_ptr< const QuanChromatograms >
                                            , const wchar_t * title_trailer = L"" );
-        
+
         std::wstring save_spectrum( std::shared_ptr< QuanDataWriter > writer
                                     , const QuanCandidate&
                                     , const std::wstring& title );
@@ -96,6 +104,8 @@ namespace quan {
 
         int debug_level_;
         bool save_on_datasource_;
+        std::shared_ptr< adcontrols::ProcessMethod > procm_; // copy for average process
+        std::array< std::unique_ptr< adcontrols::MSChromatogramMethod >, 2 > cXmethods_;
         std::map< size_t, QuanChromatograms::spectra_type > spectra_;
         std::shared_ptr< adcontrols::MSLockMethod > mslockm_;
         std::shared_ptr< adcontrols::lockmass::mslock > mslock_;

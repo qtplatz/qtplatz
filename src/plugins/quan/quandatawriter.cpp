@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -35,6 +35,7 @@
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adportable/debug.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -133,6 +134,26 @@ QuanDataWriter::write( const adcontrols::Chromatogram& c, const std::wstring& ti
                 file.commit();
 
             return file;
+        }
+    }
+    return adfs::file();
+}
+
+adfs::file
+QuanDataWriter::write( const adcontrols::Chromatogram& c, const wchar_t * dataSource, const std::wstring& title )
+{
+    if ( auto top = fs_.addFolder( L"/Processed/Chromatograms" ) ) {    
+
+        boost::filesystem::path path = boost::filesystem::path( L"/Processed/Chromatograms" ) / boost::filesystem::path( dataSource ).stem();
+        ADDEBUG() << path.string();
+
+        if ( adfs::folder folder = fs_.addFolder( path.wstring() ) ) {
+            if ( adfs::file file = folder.addFile( adfs::create_uuid(), title ) ) {
+                file.dataClass( c.dataClass() );
+                if ( file.save( c ) )
+                    file.commit();
+                return file;
+            }
         }
     }
     return adfs::file();

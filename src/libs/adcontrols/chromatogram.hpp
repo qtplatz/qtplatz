@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include <boost/any.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <string>
 #include <memory>
 
@@ -58,6 +59,7 @@ namespace adcontrols {
     class Baselines;
     class PeakResult;
     class Chromatogram_iterator;
+    class moltable;
 
     enum Chromaogram_HAxis : uint32_t { Minutes, Seconds, Hours, Litter };
     enum Chromaogram_VAxis : uint32_t { Arbitrary, Counts, Volts, AU, RIU };
@@ -119,8 +121,8 @@ namespace adcontrols {
         size_t eventsCount() const;
         const Event& getEvent( size_t idx ) const;
 
-        void setFcn( int );
-        int fcn() const;
+        void setProtocol( int );
+        int protocol() const;
 
         double time( size_t idx ) const;
         double intensity( size_t idx ) const;
@@ -163,14 +165,21 @@ namespace adcontrols {
 
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
+
+        void setGeneratorProperty( const boost::property_tree::ptree& );
+
+        void setDataGuid( const boost::uuids::uuid& );
+        const boost::uuids::uuid& dataGuid() const;
+
+        boost::property_tree::ptree& ptree();
+        const boost::property_tree::ptree& ptree() const;
         
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
-
-        Peaks& peaks();
+        [[deprecated]] Peaks& peaks();
         const Peaks& peaks() const;
 
-        Baselines& baselines();
+        [[deprecated]] Baselines& baselines();
         const Baselines& baselines() const;
         
         void setBaselines( const Baselines& );

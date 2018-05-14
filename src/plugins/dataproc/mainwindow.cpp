@@ -807,10 +807,12 @@ MainWindow::selectionChanged( std::shared_ptr< adcontrols::MassSpectrum > centro
 void
 MainWindow::handleProcess( const QString& origin )
 {
+    auto pm = std::make_shared< adcontrols::ProcessMethod >();
+    getProcessMethod( *pm );
+    document::instance()->setProcessMethod( *pm );
+
     if ( origin == "MSChromatogramWidget" ) {
         // generate chromatograms
-        auto pm = std::make_shared< adcontrols::ProcessMethod >();
-        getProcessMethod( *pm );
         if ( auto cm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( ! cm->molecules().data().empty() ) {
                 if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
@@ -818,8 +820,6 @@ MainWindow::handleProcess( const QString& origin )
             }
         }
     } else if ( origin == "MSSimulatorWidget" ) {
-        auto pm = std::make_shared< adcontrols::ProcessMethod >();
-        getProcessMethod( *pm );
         if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
             if ( auto wnd = findChild< ElementalCompWnd * >() ) {
                 wnd->simulate( *m );
@@ -828,17 +828,15 @@ MainWindow::handleProcess( const QString& origin )
         }
     } else if ( origin == "MSCalibrateWidget" ) {
         // peak identification, and then compute calibration equation
-        auto pm = std::make_shared< adcontrols::ProcessMethod >();
-        getProcessMethod( *pm );
-        document::instance()->setProcessMethod( *pm );
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
             processor->applyCalibration( *pm );
     } else if ( origin == "TargetingWidget" ) {
-        auto pm = std::make_shared< adcontrols::ProcessMethod >();
-        getProcessMethod( *pm );
-        document::instance()->setProcessMethod( *pm );
         if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
             processor->applyProcess( *pm, TargetingProcess );
+    } else if ( origin == "PeakFind" ) {
+        if ( auto processor = SessionManager::instance()->getActiveDataprocessor() ) {
+            processor->applyProcess( *pm, PeakFindProcess );
+        }
     }
 }
 

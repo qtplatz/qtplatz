@@ -27,6 +27,8 @@
 #include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <boost/optional.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
@@ -39,7 +41,7 @@ namespace adcontrols {
     public:
         enum molflags { isMSRef = 0x80000000 };
 
-        typedef boost::variant< bool, uint32_t, double, std::string > custom_type;
+        typedef boost::variant< bool, uint32_t, double, std::string, boost::uuids::uuid > custom_type;
         
         class ADCONTROLSSHARED_EXPORT value_type {
         public:
@@ -53,7 +55,7 @@ namespace adcontrols {
             std::string smiles_;
             std::wstring description_;
             boost::optional< int32_t > protocol_; // data source for mass chromatogram generation
-            std::vector < std::pair< std::string, custom_type > > customValues_;
+            std::vector < std::pair< std::string, custom_type > > properties_;
         public:
             bool& enable() { return enable_; }
             uint32_t& flags() { return flags_; }
@@ -80,23 +82,25 @@ namespace adcontrols {
             boost::optional< int32_t > protocol() const;
             void setProtocol( const boost::optional< int32_t >& proto );
 
-            template< typename T > void setCustomeValue( const std::string& key, const T& value ) {
-                auto it = std::find( customValues_.begin(),  customValues_.end(), [&]( auto& t ){ return t.first == key; } );
-                if ( it != customValues_.end() )
-                    customValues_.erase( it );
-                customValues_.emplace_back( key, value );
+            template< typename T > void setProperty( const std::string& key, const T& value ) {
+                auto it = std::find_if( properties_.begin(),  properties_.end(), [&]( auto& t ){ return t.first == key; } );
+                if ( it != properties_.end() )
+                    properties_.erase( it );
+                properties_.emplace_back( key, value );
             }
 
-            template< typename T > boost::optional< T > customeValue( const std::string& key ) const {
-                auto it = std::find( customValues_.begin(),  customValues_.end(), [&]( auto& t ){ return t.first == key; } );
-                if ( it != customValues_.end() )
-                    return boost::get< const T >( *it );
+            template< typename T > boost::optional< T > property( const std::string& key ) const {
+                auto it = std::find_if( properties_.begin(), properties_.end(), [&]( auto& t ){ return t.first == key; } );
+                if ( it != properties_.end() ) {
+                    if ( auto t = boost::get< const T >( &(it->second) ) )
+                        return *t;
+                }
                 return boost::none;
             }
 
-            std::vector< std::pair< std::string, custom_type > >& customValues();
+            std::vector< std::pair< std::string, custom_type > >& properties() { return properties_; }
             
-            const std::vector< std::pair< std::string, custom_type > >& customValues() const;
+            const std::vector< std::pair< std::string, custom_type > >& properties() const  { return properties_; }
             
             value_type() : enable_( true ), flags_( 0 ), protocol_( boost::none ), mass_( 0 ), abundance_( 1.0 ) {
             }
@@ -111,7 +115,7 @@ namespace adcontrols {
                 , smiles_( t.smiles_ )
                 , description_( t.description_ )
                 , protocol_( t.protocol_ )
-                , customValues_( t.customValues_ ) {
+                , properties_( t.properties_ ) {
             }
         };
 

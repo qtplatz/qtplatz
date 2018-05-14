@@ -25,16 +25,17 @@
 #ifndef PEAKRESULT_HPP
 #define PEAKRESULT_HPP
 
-#include <compiler/disable_dll_interface.h>
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
+#include <memory>
 
 namespace adcontrols {
 
     class Peaks;
 	class Baselines;
+
+    template< typename T > class PeakResult_archive;
 
     class ADCONTROLSSHARED_EXPORT PeakResult {
 	public:
@@ -55,16 +56,16 @@ namespace adcontrols {
         void clear();
 
 	private:
-        boost::scoped_ptr< Baselines > baselines_;
-		boost::scoped_ptr< Peaks > peaks_;
+        std::shared_ptr< Baselines > baselines_;
+        std::shared_ptr< Peaks > peaks_;
+        //boost::scoped_ptr< Baselines > baselines_;
+		//boost::scoped_ptr< Peaks > peaks_;
 
         friend class boost::serialization::access;
 		template<class Archive>
-        void serialize(Archive& ar, const unsigned int ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(baselines_);
-            ar & BOOST_SERIALIZATION_NVP(peaks_);
-        }
+        void serialize(Archive& ar, const unsigned int version );
+        friend class PeakResult_archive< PeakResult >;
+        friend class PeakResult_archive< const PeakResult >;
 	public:
 		static bool archive( std::ostream&, const PeakResult& );
 		static bool restore( std::istream&, PeakResult& );
@@ -73,6 +74,6 @@ namespace adcontrols {
 	typedef std::shared_ptr<PeakResult> PeakResultPtr;
 }
 
-//BOOST_CLASS_VERSION( adcontrols::PeakResult, 1 )
+BOOST_CLASS_VERSION( adcontrols::PeakResult, 1 )
 
 #endif // PEAKRESULT_HPP

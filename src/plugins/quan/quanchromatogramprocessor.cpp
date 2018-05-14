@@ -34,6 +34,8 @@
 #include "../plugins/dataproc/dataprocconstants.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/baselines.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -74,10 +76,14 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adprocessor/mschromatogramextractor.hpp>
 #include <adutils/cpio.hpp>
 #include <adwidgets/progresswnd.hpp>
+#include <chromatogr/chromatography.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/format.hpp>
 #include <algorithm>
 
@@ -89,7 +95,9 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::st
 {
     boost::filesystem::path path( dataSource );
 
-    std::wstring title = ( boost::wformat( L"%s, %s#%d W(%.1f)mDa" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % fcn % (width*1000) ).str();
+    // std::wstring title = ( boost::wformat( L"%s/%s#%d W(%.1f)mDa" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % fcn % (width*1000) ).str();
+    //std::wstring title = ( boost::wformat( L"%s/#%d/%s W(%.1fmDa)" ) % path.stem().wstring() % fcn % adportable::utf::to_wstring( formula ) % (width*1000) ).str();
+    std::wstring title = ( boost::wformat( L"%s W(%.1fmDa) %s/p%d" ) % adportable::utf::to_wstring( formula ) % (width*1000) % path.stem().wstring() % fcn ).str();
 
     title += trailer;  //L" (1st phase)";
 
@@ -109,47 +117,39 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const QuanCan
 
 
 QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
-    : procm_( pm )
+    : procm_( std::make_shared< adcontrols::ProcessMethod >( *pm ) )
+    , cXmethods_{ std::make_unique< adcontrols::MSChromatogramMethod >(), std::make_unique< adcontrols::MSChromatogramMethod >() }
     , debug_level_( 0 )
     , save_on_datasource_( false )
 {
-    if ( auto qm = procm_->find< adcontrols::QuanMethod >() ) {
+    if ( auto qm = pm->find< adcontrols::QuanMethod >() ) {
         debug_level_ = qm->debug_level();
         save_on_datasource_ = qm->save_on_datasource();
     }
     
-    if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
-        if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
+    if ( auto pCompounds = pm->find< adcontrols::QuanCompounds >() ) {
 
-            if ( lkm->enabled() ) {
-                
-                mslockm_ = std::make_shared< adcontrols::MSLockMethod >( *lkm );
-                mslock_ = std::make_shared< adcontrols::lockmass::mslock >();
+        // mass chromatograms extraction method 
+        pCompounds->convert_if( cXmethods_[ 0 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return !comp.isCounting();} );
+        pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
 
-            }
-        }
-    }
-    
-    if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
-        
-        adcontrols::ChemicalFormula parser;
-        
-        for ( auto& comp : *compounds ) {
-            
-            std::string formula( comp.formula() );
-            double exactMass = parser.getMonoIsotopicMass( formula );
-            
-            if ( ! formula.empty() ) {
-
-                if ( comp.isLKMSRef() )
-                    references_.push_back( exactMass );
-                
+        if ( auto lkm = pm->find< adcontrols::MSLockMethod >() ) {
+            ADDEBUG() << "******** lock mass " << (lkm->enabled() ? " enabled " : " disabled ") << " tolerance=" << lkm->tolerance( lkm->toleranceMethod() ) << " *******";
+            for ( auto& cm: cXmethods_ ) {
+                cm->setLockmass( lkm->enabled() );
+                cm->setLockmass( lkm->enabled() );
             }
         }
 
+        if ( auto targeting_method = pm->find< adcontrols::TargetingMethod >() ) {
+            ADDEBUG() << "******** tolerance (a.k.a width): " << targeting_method->tolerance( targeting_method->toleranceMethod() );
+            for ( auto& cm: cXmethods_ )
+                cm->width( targeting_method->tolerance( targeting_method->toleranceMethod() ), adcontrols::MSChromatogramMethod::widthInDa );
+        }
     }
 }
 
+#if 0
 void
 QuanChromatogramProcessor::process1st( int64_t rowid
                                        , std::shared_ptr< adcontrols::MassSpectrum > ms
@@ -184,6 +184,7 @@ QuanChromatogramProcessor::process1st( int64_t rowid
     }
 
 }
+#endif
 
 void
 QuanChromatogramProcessor::find_parallel_chromatograms( std::vector< std::shared_ptr< QuanChromatograms > >& vec
@@ -211,6 +212,58 @@ QuanChromatogramProcessor::find_parallel_chromatograms( std::vector< std::shared
         if ( pCompounds )
             qchro->identify( pCompounds, procm_ );
     }
+}
+
+void
+QuanChromatogramProcessor::save_chromatograms( std::shared_ptr< QuanDataWriter > writer
+                                               , const wchar_t * dataSource
+                                               , const std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult > > >& vec
+                                               , const wchar_t * title_trailer )
+{
+    for ( auto & pair : vec ) {
+        std::wstring title;
+
+        if ( auto child = pair.first->ptree().get_child_optional( "generator.extract_by_mols" ) ) {
+            auto uuid = child.get().get_optional< boost::uuids::uuid >( "molid" );
+
+            if ( auto mol = child.get().get_child_optional( "moltable" ) ) {
+                auto formula = mol.get().get_optional< std::string >( "formula" );
+                auto width = mol.get().get_optional< double >( "width" );
+                auto protocol = mol.get().get_optional< int32_t >( "protocol" );
+                title = make_title( dataSource, formula ? formula.get() : "", protocol ? protocol.get() : -1, width ? width.get() : 0, title_trailer );
+            } else {
+                title = make_title( dataSource, "", pair.first->protocol(), 0, title_trailer );                
+            }
+        } else {
+            title = make_title( dataSource, "", pair.first->protocol(), 0, title_trailer );
+        }
+        
+        if ( adfs::file file = writer->write( *pair.first, title ) ) {
+            auto afile = writer->attach< adcontrols::PeakResult >( file, *pair.second, pair.second->dataClass() );
+            writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
+        }
+    }
+        
+#if 0                
+        std::string formula = chro->formula();
+        auto range = chro->msrange();
+        std::wstring title = make_title( dataSource, formula, chro->fcn(), range.second - range.first, title_trailer );
+                
+        if ( chro ) {
+
+            if ( adfs::file file = writer->write( *chro->chromatogram(), title ) ) {
+
+                chro->setDataGuid( file.name() ); // dataGuid for Chromatogarm on adfs
+                
+                if ( auto pkinfo = chro->peakResult() ) {
+
+                    auto afile = writer->attach< adcontrols::PeakResult >( file, *pkinfo, pkinfo->dataClass() );
+                    writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
+
+                }
+            }
+        }
+#endif
 }
 
 void
@@ -304,52 +357,61 @@ QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
     return false;
 }
 
+
+// new interface as of 2018-MAY
 bool
 QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                        , adcontrols::QuanSample& sample
                                        , std::shared_ptr< QuanDataWriter > writer
                                        , std::shared_ptr< adwidgets::Progress > progress )
 {
+    
     if ( auto raw = processor.getLCMSDataset() ) {
 
         if ( raw->dataformat_version() < 3 )  // no support for old (before 2014) data
             return false;
 
+        auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw );
+
         std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers;
 
         for ( auto reader: raw->dataReaders() ) {
-
-            ADDEBUG() << reader->objtext() << ", " << reader->display_name();
-
             if ( reader->objtext().find( "waveform" ) != std::string::npos )
                 readers[ 0 ] = reader;
             if ( reader->objtext().find( "histogram" ) != std::string::npos )
                 readers[ 1 ] = reader;
         }
 
-        if ( readers[ 0 ] ) {
-            auto reader = readers.at( 0 );
-            for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
-                auto ms = reader->readSpectrum( it );
-                process1st( it->rowid(), ms, processor );
-                if ( ( *progress )() ) {
-                    ADDEBUG() << "QuanSampleProcessor cancel requested";
-                    return false;
+        size_t idx = 0;
+        for ( auto reader: readers ) {
+            if ( reader ) {
+                std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >
+                                        , std::shared_ptr< adcontrols::PeakResult > > > rlist;
+                do {
+                    adcontrols::ProcessMethod pm( *procm_ );
+                    pm *= (*cXmethods_[ idx ]);
+                    std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
+                    extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ (*progress)(); } );
+                    std::transform( clist.begin(), clist.end(), std::back_inserter( rlist ), []( auto p ){ return std::make_pair( std::move( p ), std::make_shared< adcontrols::PeakResult >() ); });
+                } while (0);
+
+                if ( auto peakm = procm_->find< adcontrols::PeakMethod >() ) {
+                    for ( auto& pair: rlist ) {
+                        if ( findPeaks( *pair.second, *pair.first, *peakm ) ) {
+                            if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() )
+                                identify( *pair.second, *pCompounds, *pair.first );
+                        }
+                    }
                 }
+                save_chromatograms( writer, sample.dataSource(), rlist, (idx == 0 ? L"(profile)" : L"(histogram)" ) );
+#if 0
+                if ( idx == 0 )
+                    doProfileChromatogram( processor, sample, writer, reader->objtext(), progress );
+                else
+                    doCountingChromatogram( processor, sample, writer, reader->objtext(), progress );
+#endif
+                ++idx;
             }
-            doProfileChromatogram( processor, sample, writer, reader->objtext(), progress );
-        }
-        if ( readers[ 1 ] ) {
-            auto reader = readers.at( 1 );
-            for ( auto it = reader->begin( -1 ); it != reader->end(); ++it ) {
-                auto ms = reader->readSpectrum( it );
-                process1st( it->rowid(), ms, processor );
-                if ( ( *progress )() ) {
-                    ADDEBUG() << "QuanSampleProcessor cancel requested";
-                    return false;
-                }
-            }
-            doCountingChromatogram( processor, sample, writer, reader->objtext(), progress );            
         }
     }
 }
@@ -375,6 +437,31 @@ QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
     } else {
         // profile data reader specified
         doProfileChromatogram( processor, sample, writer, reader_objtext, progress );
+    }
+}
+
+// static
+bool
+QuanChromatogramProcessor::findPeaks( adcontrols::PeakResult& res, const adcontrols::Chromatogram& chr, const adcontrols::PeakMethod& pm )
+{
+    chromatogr::Chromatography peakfinder( pm );
+    if ( peakfinder( chr ) ) {
+        res.baselines() = peakfinder.getBaselines();
+        res.peaks() = peakfinder.getPeaks();
+        return true;
+    }
+    return false;
+}
+
+// static
+bool
+QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontrols::QuanCompounds& compounds, const adcontrols::Chromatogram& chr )
+{
+    if ( auto molid = chr.ptree().get_optional< boost::uuids::uuid >("generator.extract_by_mols.molid") ) {
+        // ADDEBUG() << molid.get();
+        if ( auto formula = chr.ptree().get_optional< std::string >("generator.extract_by_mols.formula") ) {
+            // ADDEBUG() << formula.get();
+        }
     }
 }
 

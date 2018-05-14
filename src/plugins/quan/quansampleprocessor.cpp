@@ -86,15 +86,15 @@ QuanSampleProcessor::~QuanSampleProcessor()
 }
 
 QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
-                                        , std::vector< adcontrols::QuanSample >& samples )
-                                        : raw_( 0 )
-                                        , samples_( samples )
-                                        , procmethod_( processor->procmethod() )
-                                        , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
-                                        , processor_( processor->shared_from_this() )
-                                        , progress_( adwidgets::ProgressWnd::instance()->addbar() )
-                                        , progress_current_( 0 )
-                                        , progress_total_( 0 )
+                                          , std::vector< adcontrols::QuanSample >& samples )
+    : raw_( 0 )
+    , samples_( samples )
+    , procmethod_( processor->procmethod() )
+    , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
+    , processor_( processor->shared_from_this() )
+    , progress_( adwidgets::ProgressWnd::instance()->addbar() )
+    , progress_current_( 0 )
+    , progress_total_( 0 )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
@@ -188,7 +188,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     //}
                     
                 } else {
-
+#if 0
                     auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
                     size_t pos = 0;
                     do {
@@ -204,6 +204,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     chromatogram_processor->doit( *this, sample, writer, "", progress_ );
                     writer->insert_table( sample ); // once per sample
                     (*progress_)();
+#endif
                 }
             }
             break; // ignore for this version

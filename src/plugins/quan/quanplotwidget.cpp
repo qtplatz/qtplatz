@@ -80,10 +80,9 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
 void
 QuanPlotWidget::handleDataChanged( int id, bool )
 {
-    if ( id == idQuanMethod ) {
-        auto& method = QuanDocument::instance()->quanMethod();
-        (void)method;
-    }
+    // if ( id == idQuanMethod ) {
+    //     auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >();
+    // }
 }
 
 void

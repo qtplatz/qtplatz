@@ -54,6 +54,7 @@ namespace quan {
         adfs::file write( const adcontrols::QuanSequence& );
         adfs::file write( const adcontrols::QuanSample& );
         adfs::file write( const adcontrols::Chromatogram&, const std::wstring& title );
+        adfs::file write( const adcontrols::Chromatogram&, const wchar_t * dataSource, const std::wstring& title );
         
         // bool write( std::shared_ptr< QuanChromatograms > chro, const std::wstring& title, std::vector< std::wstring >& );
 

@@ -228,7 +228,7 @@ MainWindow::onInitialUpdate()
     if ( auto rw = findChild< QuanReportWidget * >() )
         rw->onInitialUpdate( QuanDocument::instance() );
 
-    if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
         boost::filesystem::path path = qm->quanMethodFilename();
         if ( !path.empty() ) {
             auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
@@ -372,7 +372,7 @@ MainWindow::run()
     commit();
     bool isCounting(false);
 
-    if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
 
         if ( qm->levels() == 1 && qm->replicates() == 1 ) {
             if ( qm->equation() != adcontrols::QuanMethod::idCalibOnePoint ) {
@@ -522,18 +522,20 @@ MainWindow::handleSaveQuanMethod()
         commit();
 
         boost::filesystem::path path( name.toStdWString() );
-        QuanDocument::instance()->save( path, QuanDocument::instance()->pm(), true );
 
-        if ( auto qm = QuanDocument::instance()->pm().find< adcontrols::QuanMethod >() ) {
+        if ( auto pm = QuanDocument::instance()->getm< adcontrols::ProcessMethod >() ) 
+            QuanDocument::instance()->save( path, *pm, true );
+
+        if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {
             if ( qm->quanMethodFilename() != path ) {
-                // update filename on method
-                qm->quanMethodFilename( path.generic_wstring().c_str() );
+                auto t( *qm );
+                t.quanMethodFilename( path.wstring().c_str() );
+                QuanDocument::instance()->setm( t );
 
                 // update filename on UI
                 auto list = findChildren< QLineEdit * >( Constants::editQuanMethodName );
                 for ( auto& edit : list )
                     edit->setText( QString::fromStdWString( path.wstring() ) );
-
             }
         }
 

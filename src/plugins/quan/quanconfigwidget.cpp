@@ -97,7 +97,12 @@ QuanConfigWidget::QuanConfigWidget(QWidget *parent) : QWidget(parent)
     QuanDocument::instance()->connectDataChanged( [this]( int id, bool fnChanged ){ handleDataChanged( id, fnChanged ); });
     const int row = layout_->rowCount();
     layout_->addWidget( form_.get(), row, 0 );
-    form_->setContents( QuanDocument::instance()->quanMethod() );
+
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
+        form_->setContents( *qm );
+    else
+        commit();
+    
     connect( form_.get(), &QuanConfigForm::onSampleInletChanged, [this] ( int t ) { emit onSampleInletChanged( t ); } );
 }
 
@@ -106,14 +111,14 @@ QuanConfigWidget::commit()
 {
     adcontrols::QuanMethod m;
     form_->getContents( m );
-    QuanDocument::instance()->quanMethod( m );
+    QuanDocument::instance()->setm( m );
 }
 
 void
 QuanConfigWidget::handleDataChanged( int id, bool )
 {
-    if ( id == idQuanMethod ) 
-        form_->setContents( QuanDocument::instance()->quanMethod() );
+    if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() )
+        form_->setContents( *qm );
 }
 
 void

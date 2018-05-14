@@ -199,7 +199,7 @@ namespace dataproc {
                         if ( std::abs( t - s ) > std::abs( times[ idx ] - s ) ) {
                             traceId = chro.first;
                             index = idx;
-                            fcn = pchr->fcn();
+                            fcn = pchr->protocol();
                             t = times[ idx ];
                         }
                     }
@@ -634,7 +634,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
             pImpl_->ticPlot_->clear();
             if ( portfolio::is_type< adcontrols::ChromatogramPtr >( folium ) ) {
                 if ( auto ptr = portfolio::get< adcontrols::ChromatogramPtr > ( folium ) ) {
-                    draw( ptr, ptr->fcn() );
+                    draw( ptr, ptr->protocol() );
                     idActiveFolium_ = folium.id();
                     idChromatogramFolium( folium.id() );
                     if ( auto f = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& a ){
@@ -651,7 +651,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 						processor->fetch(folium);
                         if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
                             pImpl_->setCheckedChromatogram( cptr, idx );
-                            pImpl_->ticPlot_->setData( cptr, cptr->fcn() );
+                            pImpl_->ticPlot_->setData( cptr, cptr->protocol() );
                         }
                     }
                     ++idx;
