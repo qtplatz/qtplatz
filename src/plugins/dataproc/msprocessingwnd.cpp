@@ -342,7 +342,6 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
         draw_profile( folium.id(), hist );
         return;
     }
-
     pImpl_->hasHistogram_ = true;
 
     std::shared_ptr< adcontrols::MassSpectrum > profile;
@@ -572,11 +571,15 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
+#if !defined NDEBUG
+                    ADDEBUG() << "handleSelectionChanged(" << folium.name() << ")->MassSpectrum isCentroid=" << ptr->isCentroid();
+#endif                
+                    
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
 
-                    if ( ptr->isCentroid() )
-                        draw_histogram( folium, ptr );
+                    if ( ptr->isCentroid() && folium.name() != adcontrols::constants::F_CENTROID_SPECTRUM ) 
+                        draw_histogram( folium, ptr ); // draw counting histogram 
                     else
                         draw_profile( folium.id(), ptr );
 

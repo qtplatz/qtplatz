@@ -187,7 +187,7 @@ QuanCompounds::xml_restore( std::wistream& is, QuanCompounds& t )
 }
 
 void
-QuanCompounds::convertTo( moltable& mols ) const
+QuanCompounds::convert( moltable& mols ) const
 {
     mols.data().clear();
     for ( auto& comp: impl_->compounds_ ) {

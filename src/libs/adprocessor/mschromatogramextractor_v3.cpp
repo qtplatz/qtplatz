@@ -157,6 +157,16 @@ MSChromatogramExtractor::MSChromatogramExtractor( const adcontrols::LCMSDataset 
 {
 }
 
+std::shared_ptr< const adcontrols::MassSpectrum >
+MSChromatogramExtractor::getMassSpectrum( double tR ) const
+{
+    // depend on the timing of this call, either waveform or histogram will be returned
+    auto it = std::lower_bound( impl_->spectra_.begin(), impl_->spectra_.end(), tR
+                                , [&]( const auto& pair, double t ){ return pair.second->getMSProperty().timeSinceInjection() < t; });
+    if ( it == impl_->spectra_.end() )
+        return nullptr;
+    return it->second;
+}
 
 bool
 MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
@@ -201,13 +211,6 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                         adcontrols::lockmass::fitter fitter( lb->second );
                         for ( auto& t: adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms ) )
                             fitter( t );
-#if 0
-                        std::ostringstream o;
-                        o << "found fit: " << std::distance( lkms_.begin(), lb ) << " ";
-                        for ( auto c: lb->second )
-                            o << c << ", ";
-                        ADDEBUG() << o.str();
-#endif
                     }
                 }
             }

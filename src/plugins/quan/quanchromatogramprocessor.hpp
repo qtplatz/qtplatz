@@ -25,6 +25,7 @@
 #pragma once
 
 #include "quanchromatograms.hpp"
+#include <boost/uuid/uuid.hpp>
 
 namespace adcontrols {
     class ProcessMethod; class MSFinder;
@@ -83,6 +84,10 @@ namespace quan {
                                  , const std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> > >&
                                  , const wchar_t * title_trailer = L"" );
 
+        boost::uuids::uuid save_spectrum( std::shared_ptr< QuanDataWriter > writer
+                                          , const wchar_t * dataSource
+                                          , std::shared_ptr< const adcontrols::MassSpectrum >, const std::wstring& );
+            
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
                                            , std::shared_ptr< const QuanChromatograms >

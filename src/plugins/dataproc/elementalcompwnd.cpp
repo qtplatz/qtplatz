@@ -250,8 +250,9 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
                 xdata.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
             }
             impl_->dataIds_[ folium.id() ] = xdata;
-
+#if !defined NDEBUG
             ADDEBUG() << display_name << ", has centroid " << bool( xdata.centroid.lock() );
+#endif
         }
         
         if ( MainWindow::instance()->curPage() == MainWindow::idSelElementalComp )

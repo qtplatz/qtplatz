@@ -80,6 +80,8 @@ namespace adprocessor {
                                         , std::function<bool( size_t, size_t )> progress );
 
             static bool computeIntensity( double& y, const adcontrols::MassSpectrum&, adcontrols::hor_axis, const std::pair< double, double >& );
+
+            std::shared_ptr< const adcontrols::MassSpectrum > getMassSpectrum( double tR ) const;
             
         private:
             bool loadSpectra( const adcontrols::ProcessMethod *
