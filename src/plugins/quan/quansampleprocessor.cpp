@@ -134,7 +134,7 @@ QuanSampleProcessor::dryrun()
         case adcontrols::QuanSample::GenerateChromatogram:
             if ( procmethod_ ) {
                 if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
-                    progress_total_ = int( nSpectra_ ) * 2;
+                    progress_total_ = int( nSpectra_ );
                 }
                 if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
                     progress_total_ += int( pCompounds->size() );

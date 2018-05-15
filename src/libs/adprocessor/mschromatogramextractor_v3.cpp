@@ -282,7 +282,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         temp.emplace_back( width, lMass, uMass, (proto ? proto.get() : -1), desc );
                         temp.back().pChr->setGeneratorProperty( pt );
 
-#if !defined NDEBUG // && 0
+#if !defined NDEBUG && 0
                         ADDEBUG() << pt;
 #endif
                     }

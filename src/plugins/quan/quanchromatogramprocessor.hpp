@@ -45,7 +45,7 @@ namespace quan {
     public:
         QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm );
 
-        void process1st( int64_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
+        [[deprecated]] void process1st( int64_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
 
         [[deprecated]] void doit( QuanSampleProcessor&, adcontrols::QuanSample&
                                   , std::shared_ptr< QuanDataWriter >
@@ -61,6 +61,13 @@ namespace quan {
         static bool identify( adcontrols::PeakResult&, const adcontrols::QuanCompounds&, const adcontrols::Chromatogram& );
 
     private:
+        //////////////  2018-MAY ///////
+        // void save_chromatograms( std::shared_ptr< QuanDataWriter > writer
+        //                          , const wchar_t * dataSource
+        //                          , const std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> > >&
+        //                          , const wchar_t * title_trailer = L"" );
+        ///////////
+
         bool doMSLock( adcontrols::MassSpectrum& profile );
         void correct_baseline( adcontrols::MassSpectrum& profile );
 
@@ -79,15 +86,6 @@ namespace quan {
                                 , std::shared_ptr< adcontrols::MassSpectrum >& centroid
                                 , std::shared_ptr< adcontrols::MassSpectrum >& filtered );
         
-        void save_chromatograms( std::shared_ptr< QuanDataWriter > writer
-                                 , const wchar_t * dataSource
-                                 , const std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult> > >&
-                                 , const wchar_t * title_trailer = L"" );
-
-        boost::uuids::uuid save_spectrum( std::shared_ptr< QuanDataWriter > writer
-                                          , const wchar_t * dataSource
-                                          , std::shared_ptr< const adcontrols::MassSpectrum >, const std::wstring& );
-            
         void save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
                                            , const wchar_t * dataSource
                                            , std::shared_ptr< const QuanChromatograms >

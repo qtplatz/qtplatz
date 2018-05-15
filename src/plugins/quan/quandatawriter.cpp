@@ -353,30 +353,30 @@ CREATE TABLE QuanCalib (\
 
     result &= sql.exec("CREATE TABLE QuanDataGuids( dataGuid TEXT, refDataGuid TEXT, idx INTEGER, fcn INTEGER )" );
 
-    result &= sql.exec("\
-CREATE TABLE cpeak (\
- id INTEGER PRIMARY KEY \
-,dataGuid      UUID \
-,name          TEXT \
-,formula       TEXT \
-,startTime     REAL \
-,peakTime      REAL \
-,endTime       REAL \
-,startHeight   REAL \
-,topHeight     REAL \
-,endHeight     REAL \
-,peakArea      REAL \
-,peakHeight    REAL \
-,asymmetry     REAL \
-,resolution    REAL \
-,ntp           REAL \
-,capacityfactor REAL \
-,peakwidth     REAL \
-,tR            REAL \
-,tR_algo       INTEGER \
-,tR_a REAL, tR_b REAL, tR_c REAL \
-,FOREIGN KEY ( dataGuid ) REFERENCES directory ( name ) \
-)" );
+    result &= sql.exec(
+"CREATE TABLE cpeak ("
+" id INTEGER PRIMARY KEY "
+",dataGuid      UUID "  // <- unique with directory.name
+",name          TEXT "
+",formula       TEXT "
+",startTime     REAL "
+",peakTime      REAL "
+",endTime       REAL "
+",startHeight   REAL "
+",topHeight     REAL "
+",endHeight     REAL "
+",peakArea      REAL "
+",peakHeight    REAL "
+",asymmetry     REAL "
+",resolution    REAL "
+",ntp           REAL "
+",capacityfactor REAL "
+",peakwidth     REAL "
+",tR            REAL "
+",tR_algo       INTEGER "
+",tR_a REAL, tR_b REAL, tR_c REAL"
+//",FOREIGN KEY ( parent_id, dataGuid ) REFERENCES directory ( parent_id, name ) "
+")" );
     
     return result;
 }
@@ -641,6 +641,8 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
     adfs::stmt sql( fs_.db() );
 
     sql.begin();
+
+    ADDEBUG() << "inserting QuanResponse table size=" << t.results().size();
 
     for ( auto& result: t.results() ) {
 
