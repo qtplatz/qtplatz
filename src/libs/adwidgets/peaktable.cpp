@@ -29,6 +29,7 @@
 #include <QItemDelegate>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/baseline.hpp>
@@ -75,6 +76,9 @@ namespace adwidgets {
                 switch( index.column() ) {
                 case c_tr:
                     drawDisplay( painter, op, op.rect, QString::number( index.data().toDouble(), 'f', 4 ) );
+                    break;
+                case c_name:
+                    DelegateHelper::render_html2( painter, option, index.data().toString() );
                     break;
                 case c_area:
                     drawDisplay( painter, op, op.rect, QString::number( index.data().toDouble(), 'e', 5 ) );
@@ -156,7 +160,7 @@ PeakTable::OnInitialUpdate()
     model.setHeaderData( c_ntp, Qt::Horizontal, QObject::tr("NTP") );
     model.setHeaderData( c_rs, Qt::Horizontal, QObject::tr("<i>Rs</i>") );
     model.setHeaderData( c_asymmetry, Qt::Horizontal, QObject::tr("Asymmetry") );
-    model.setHeaderData( c_capacityfactor, Qt::Horizontal, QObject::tr("k'") );
+    model.setHeaderData( c_capacityfactor, Qt::Horizontal, QObject::tr("<i>k'<i>") );
 
     setColumnHidden( c_id, true );
     // resizeColumnsToContents();

@@ -25,7 +25,7 @@
 #include <string>
 #include <memory>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class Chromatogram; }
 namespace portfolio { class Folium; }
 
 namespace dataproc {
@@ -35,8 +35,9 @@ namespace dataproc {
         std::wstring display_name; // fileneme::folium.name
         std::wstring idFolium;
         std::wstring idCentroid;
-        std::weak_ptr< adcontrols::MassSpectrum > profile;    // usually profile, TBD for histogram data
+        std::weak_ptr< adcontrols::MassSpectrum > profile;   // usually profile, TBD for histogram data
         std::weak_ptr< adcontrols::MassSpectrum > centroid;  // centroid
+        std::weak_ptr< adcontrols::Chromatogram > chromatogram;
 
         datafolder( int _0 = 0
                     , const std::wstring& _1 = std::wstring()

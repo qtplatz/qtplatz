@@ -74,6 +74,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
+#include <adportable/is_same.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/xml_serializer.hpp>
@@ -411,27 +412,24 @@ namespace dataproc {
     };
 
     // dispatch method
+    // // dispatch method
     struct doChromatogramProcess : public boost::static_visitor<bool> {
-
-        const adutils::ChromatogramPtr& ptr_;
+        std::shared_ptr< adcontrols::Chromatogram > ptr_;
         portfolio::Folium& folium;
         Dataprocessor * dataprocessor_;
-
-        doChromatogramProcess( const adutils::ChromatogramPtr& p
+        
+        doChromatogramProcess( std::shared_ptr< adcontrols::Chromatogram > p
                                , portfolio::Folium& f
                                , Dataprocessor * dp ) : ptr_(p), folium(f), dataprocessor_( dp ) {
         }
-
         template<typename T> bool operator () ( T& ) const {
-            // ADTRACE() << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
             return false;
         }
-
+        
         bool operator () ( const adcontrols::PeakMethod& m ) const {
             return DataprocessorImpl::applyMethod( dataprocessor_, folium, m, *ptr_ );
         }
     };
-
 
     // dispatch data type
     struct processIt : public boost::static_visitor<bool> {
@@ -926,14 +924,26 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     ADDEBUG() << "addChromatogram: " << name;
 
     portfolio::Folium folium = folder.addFolium( name );
-    adutils::ChromatogramPtr c( new adcontrols::Chromatogram( src ) );  // profile, deep copy
+    adutils::ChromatogramPtr c = std::make_shared< adcontrols::Chromatogram >( src );  // profile, deep copy
 	folium.assign( c, c->dataClass() );
     
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
 		boost::apply_visitor( doChromatogramProcess( c, folium, this ), *it );
 
-    if ( checked )
-        folium.setAttribute( L"isChecked", L"true" );
+    // copy peak result into chromatogram (for annotation)
+    portfolio::Folio attachments = folium.attachments();
+    for ( auto& a: attachments ) {
+        auto data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( a ) );
+        if ( boost::apply_visitor( adportable::is_same< std::shared_ptr< adcontrols::PeakResult > >(), data ) ) {
+            if ( auto pkres = boost::get< std::shared_ptr< adcontrols::PeakResult > >( data ) ) {
+                c->setBaselines( pkres->baselines() );
+                c->setPeaks( pkres->peaks() );
+            }
+        }
+    }
+
+    // if ( checked )
+    //     folium.setAttribute( L"isChecked", L"true" );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 

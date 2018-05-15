@@ -97,9 +97,8 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::st
 
     // std::wstring title = ( boost::wformat( L"%s/%s#%d W(%.1f)mDa" ) % path.stem().wstring() % adportable::utf::to_wstring( formula ) % fcn % (width*1000) ).str();
     //std::wstring title = ( boost::wformat( L"%s/#%d/%s W(%.1fmDa)" ) % path.stem().wstring() % fcn % adportable::utf::to_wstring( formula ) % (width*1000) ).str();
-    std::wstring title = ( boost::wformat( L"%s W(%.1fmDa) %s/p%d" ) % adportable::utf::to_wstring( formula ) % (width*1000) % path.stem().wstring() % fcn ).str();
-
-    title += trailer;  //L" (1st phase)";
+    std::wstring title = ( boost::wformat( L"%s #%d W(%.1fmDa) '%s'" ) % adportable::utf::to_wstring( formula ) % fcn % (width*1000) % path.stem().wstring() ).str();
+    title += trailer;
 
     return title;
 }
@@ -401,6 +400,8 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                             if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() )
                                 identify( *pair.second, *pCompounds, *pair.first );
                         }
+                        pair.first->setBaselines( pair.second->baselines() );
+                        pair.first->setPeaks( pair.second->peaks() );
                     }
                 }
                 save_chromatograms( writer, sample.dataSource(), rlist, (idx == 0 ? L"(profile)" : L"(histogram)" ) );
@@ -457,10 +458,23 @@ QuanChromatogramProcessor::findPeaks( adcontrols::PeakResult& res, const adcontr
 bool
 QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontrols::QuanCompounds& compounds, const adcontrols::Chromatogram& chr )
 {
-    if ( auto molid = chr.ptree().get_optional< boost::uuids::uuid >("generator.extract_by_mols.molid") ) {
-        // ADDEBUG() << molid.get();
-        if ( auto formula = chr.ptree().get_optional< std::string >("generator.extract_by_mols.formula") ) {
-            // ADDEBUG() << formula.get();
+    if ( auto child = chr.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
+        auto uuid = child.get().get_optional< boost::uuids::uuid >( "molid" );
+        if ( auto mol = child.get().get_child_optional( "moltable" ) ) {
+            auto formula = mol.get().get_optional< std::string >( "formula" );
+
+            auto cmpd = std::find_if( compounds.begin(), compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
+            while ( cmpd != compounds.end() ) {
+
+                auto pk = std::find_if( res.peaks().begin(), res.peaks().end(), [&]( const auto& p ){ return p.startTime() < cmpd->tR() && cmpd->tR() < p.endTime(); } );
+
+                pk->setFormula( formula.get().c_str() );
+                pk->setName( adcontrols::ChemicalFormula::formatFormula( pk->formula() ) );
+                
+                // next candidate
+                std::advance( cmpd, 1 );
+                cmpd = std::find_if( cmpd, compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
+            }
         }
     }
 }

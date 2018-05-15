@@ -504,7 +504,6 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
         }
     }
 
-
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft
                   , rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );

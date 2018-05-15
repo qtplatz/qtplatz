@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,12 +24,12 @@
 **************************************************************************/
 
 #include "chromatogramwnd.hpp"
-#include "dataprocessor.hpp"
+#include "datafolder.hpp"
 #include "dataprocconstants.hpp"
+#include "dataprocessor.hpp"
 #include "mainwindow.hpp"
-#include "selchanged.hpp"
-#include "sessionmanager.hpp"
 #include "qtwidgets_name.hpp"
+#include "sessionmanager.hpp"
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/datafile.hpp>
@@ -45,6 +45,8 @@
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/is_same.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwidgets/peaktable.hpp>
 #include <adportfolio/folder.hpp>
@@ -69,6 +71,8 @@
 #include <QMenu>
 #include <QPrinter>
 #include <QSvgGenerator>
+#include <deque>
+#include <memory>
 
 using namespace dataproc;
 
@@ -78,24 +82,29 @@ namespace dataproc {
         Q_OBJECT
     public:
         ~impl() {
-            delete chroWidget_;
             delete peakTable_;
         }
         
         impl( ChromatogramWnd * p ) : QObject( p )
                                     , this_( p )
-                                    , chroWidget_( new adplot::ChromatogramWidget )
-                                    , peakTable_(new adwidgets::PeakTable)
+                                    , peakTable_( new adwidgets::PeakTable )
                                     , marker_( std::make_unique< adplot::PeakMarker >() ) {
 
             using adwidgets::PeakTable;
 
+            std::for_each( plots_.begin(), plots_.end(), [&]( auto& plot ){
+                    plot = std::make_unique< adplot::ChromatogramWidget >();
+                    plot->setMinimumHeight( 80 );
+                });
+
+            plots_[ 0 ]->link( plots_[ 1 ].get() );
+
             auto shortcut = new QShortcut( QKeySequence::Copy, p );
             connect( shortcut, &QShortcut::activatedAmbiguously, this, &impl::copy );
             connect( peakTable_, static_cast<void(PeakTable::*)(int)>(&PeakTable::currentChanged), this, &impl::handleCurrentChanged );
-            connect( chroWidget_, static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram );
+            connect( plots_[0].get(), static_cast< void( adplot::ChromatogramWidget::*)( const QRectF& ) >(&adplot::ChromatogramWidget::onSelected), this, &impl::selectedOnChromatogram );
 
-            marker_->attach( chroWidget_ );
+            marker_->attach( plots_[ 0 ].get() );
             marker_->visible( true );
             marker_->setYAxis( QwtPlot::yLeft );
             
@@ -103,11 +112,10 @@ namespace dataproc {
 
         void setData( adcontrols::ChromatogramPtr& ptr ) {
             data_ = ptr;
-            chroWidget_->clear();
-            chroWidget_->setData( ptr );
-            std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
-            if ( !name.empty() )
-                chroWidget_->setTitle( QString::fromStdWString( name ) );
+            plots_[ 0 ]->clear();
+            plots_[ 0 ]->setData( ptr );
+            auto title = adcontrols::Chromatogram::make_folder_name( ptr->getDescriptions() );
+            plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
             peakResult_.reset();
             if ( ptr->peaks().size() )
                 peakResult_ = std::make_shared< adcontrols::PeakResult >( ptr->baselines(), ptr->peaks() );
@@ -115,7 +123,7 @@ namespace dataproc {
 
         void setData( adcontrols::PeakResultPtr& ptr ) {
             peakResult_ = ptr;
-            chroWidget_->setData( *ptr );
+            plots_[ 0 ]->setData( *ptr );
             peakTable_->setData( *ptr );
         }
 
@@ -128,7 +136,7 @@ namespace dataproc {
                     } );
                 if ( it != peaks.end() ) {
                     marker_->setPeak( *it );
-                    chroWidget_->replot();
+                    plots_[ 0 ]->replot();
                 }
             }
         }
@@ -139,19 +147,20 @@ namespace dataproc {
 
             if ( data_ && data_->add_manual_peak( *peakResult_, t1, t2 ) ) {
                 setData( peakResult_ );
-                chroWidget_->update();
+                plots_[ 0 ]->update();
             }
         }
 
         void selectedOnChromatogram( const QRectF& );
 
         ChromatogramWnd * this_;
-        adplot::ChromatogramWidget * chroWidget_;
+        std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > plots_;
         adwidgets::PeakTable * peakTable_;
         std::unique_ptr< adplot::PeakMarker > marker_;
         adcontrols::ChromatogramPtr data_;
         adcontrols::PeakResultPtr peakResult_;
         std::wstring idActiveFolium_;
+        std::deque< datafolder > overlays_;
     public slots:
         void copy() {
             peakTable_->handleCopyToClipboard();
@@ -160,20 +169,25 @@ namespace dataproc {
 
     //----------------------------//
     template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-        template<typename T> void operator ()( T& ) const {
-        }
-        void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-            wnd_.draw2( ptr );
-        }
-        void operator () ( adutils::ChromatogramPtr& ptr ) const {
-            wnd_.draw( ptr );
-        }
-        void operator () ( adutils::PeakResultPtr& ptr ) const {
-            wnd_.draw( ptr );
-        }
         Wnd& wnd_;
+        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+        template<typename T> void operator ()( T& ) const { }
+        void operator () ( adutils::PeakResultPtr& ptr ) const {  wnd_.draw( ptr );   }
+        void operator () ( adutils::ChromatogramPtr& ptr ) const {  wnd_.draw( ptr );   }
     };
+
+    // template<class Wnd> class selChanged : public boost::static_visitor<bool> {
+    //     Wnd& wnd_;
+    // public:
+    //     selChanged( Wnd& wnd ) : wnd_(wnd) { }
+    //     template< typename T >
+    //     bool operator()( T& ) { return false; };
+    // };
+    
+    // template< typename T > struct is_same : public boost::static_visitor< bool > {
+    //     template<typename U> bool operator()( U& ) const { return false; };
+    //     bool operator()( T& ) const { return true; };
+    // };
 
 }
 
@@ -188,9 +202,11 @@ ChromatogramWnd::ChromatogramWnd( QWidget *parent ) : QWidget(parent)
 
     if ( splitter ) {
 
-        splitter->addWidget( impl_->chroWidget_ );
+        splitter->addWidget( impl_->plots_[ 0 ].get() );
+        splitter->addWidget( impl_->plots_[ 1 ].get() );
         splitter->addWidget( impl_->peakTable_ );
         splitter->setOrientation( Qt::Vertical );
+        impl_->plots_[ 1 ]->hide();
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
@@ -215,33 +231,17 @@ void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
     impl_->setData( ptr );
-    // impl_->chroWidget_->setData( ptr );
-    // impl_->peakTable_->setData( adcontrols::PeakResult( ptr->baselines(), ptr->peaks() ) );
 }
 
 void
 ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 {
     impl_->setData( ptr );
-	// impl_->chroWidget_->setData( *ptr );
-    // impl_->peakTable_->setData( *ptr );
 }
 
 void
 ChromatogramWnd::handleSessionAdded( Dataprocessor * )
 {
-	/*
-    adcontrols::datafile& file = processor->file();
-    QString filename( qtwrapper::qstring::copy( file.filename() ) );
-    const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
-    if ( dset ) {
-        adcontrols::Chromatogram c;
-        if ( dset->getTIC( 0, c ) ) {
-            c.addDescription( adcontrols::Description( L"filename", file.filename() ) );
-            //impl_->setData( c, filename );
-        }
-    }
-	*/
 }
 
 void
@@ -253,7 +253,7 @@ void
 ChromatogramWnd::handleProcessed( Dataprocessor* , portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( selChanged<ChromatogramWnd>(*this), data );
+    boost::apply_visitor( selProcessed<ChromatogramWnd>(*this), data );
 
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
@@ -267,16 +267,55 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
-    if ( boost::apply_visitor( selChanged<ChromatogramWnd>(*this), data ) )
-        impl_->idActiveFolium_ = folium.id();
+    if ( ! boost::apply_visitor( adportable::is_same< adutils::ChromatogramPtr >(), data ) )
+        return;
 
-    portfolio::Folio attachments = folium.attachments();
+    if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
 
-    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
+        impl_->idActiveFolium_ = folium.id();        
+        impl_->plots_[ 0 ]->setData( chr, 0 ); // draw current selection with attached data at id=0
+
+        auto title = adcontrols::Chromatogram::make_folder_name( chr->getDescriptions() );
+        impl_->plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
+        
+        portfolio::Folio attachments = folium.attachments();
+        for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+            adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+            boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
+        }
+
+        auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium; } );
+        
+        if ( it != impl_->overlays_.end() ) {
+            if ( folium.attribute( L"isChecked" ) == L"false" )
+                impl_->overlays_.erase( it );
+            else
+                std::rotate( impl_->overlays_.begin(), it, it + 1 );
+        } else {
+            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                auto title = adcontrols::Chromatogram::make_folder_name( chr->getDescriptions() );
+                impl_->overlays_.emplace_front( 0, title, folium.id() );
+                impl_->overlays_.front().chromatogram = chr;
+            }
+        }
     }
 
+    impl_->plots_[ 1 ]->clear();
+    
+    if ( impl_->overlays_.empty() ) {
+        impl_->plots_[ 1 ]->hide();
+    } else {
+        impl_->plots_[ 1 ]->show();
+        size_t idx(1);
+        QString titles;
+        std::for_each( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& d ){
+                if ( auto pchr = d.chromatogram.lock() ) {
+                    titles += QString::fromStdWString( d.display_name ) + "; ";
+                    impl_->plots_[ 1 ]->setData( pchr, idx++ );
+                }
+            });
+        impl_->plots_[ 1 ]->setTitle( titles );
+    }
 }
 
 void
@@ -323,7 +362,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 	drawRect.setTop( boundingRect.bottom() );
 	drawRect.setHeight( size.height() );
 	drawRect.setWidth( size.width() );
-	renderer.render( impl_->chroWidget_, &painter, drawRect );
+	renderer.render( impl_->plots_[ 0 ].get(), &painter, drawRect );
 
 	QString formattedMethod;
 
@@ -354,8 +393,8 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 void
 ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
 {
-    double x0 = chroWidget_->transform( QwtPlot::xBottom, rect.left() );
-	double x1 = chroWidget_->transform( QwtPlot::xBottom, rect.right() );
+    double x0 = plots_[ 0 ]->transform( QwtPlot::xBottom, rect.left() );
+	double x1 = plots_[ 0 ]->transform( QwtPlot::xBottom, rect.right() );
 
     typedef std::pair < QAction *, std::function<void()> > action_type; 
 
@@ -370,7 +409,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
     }
 
     actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [&] () {
-                adplot::plot::copyToClipboard( this->chroWidget_ );
+                adplot::plot::copyToClipboard( this->plots_[ 0 ].get() );
             } ) );
     
     actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
@@ -379,7 +418,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
                                                              , MainWindow::makePrintFilename( idActiveFolium_, L"_" )
                                                              , tr( "SVG (*.svg)" ) );
                 if ( ! name.isEmpty() )
-                    adplot::plot::copyImageToFile( chroWidget_, name, "svg" );
+                    adplot::plot::copyImageToFile( plots_[ 0 ].get(), name, "svg" );
             }) );
     
     

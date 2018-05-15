@@ -63,16 +63,16 @@ namespace adutils {
             Nothing() {}
         };
 
-        typedef boost::variant< Nothing
-                                , MassSpectrumPtr
-                                , ChromatogramPtr
-                                , ProcessMethodPtr
-                                , ElementalCompositionCollectionPtr 
-                                , MSCalibrateResultPtr 
-                                , PeakResultPtr 
-                                , MSPeakInfoPtr
-                                , MassSpectraPtr
-                                , SpectrogramClustersPtr
+        typedef boost::variant< Nothing                                // 0
+                                , MassSpectrumPtr                      // 1
+                                , ChromatogramPtr                      // 2
+                                , ProcessMethodPtr                     // 3
+                                , ElementalCompositionCollectionPtr    // 4
+                                , MSCalibrateResultPtr                 // 5
+                                , PeakResultPtr                        // 6
+                                , MSPeakInfoPtr                        // 7
+                                , MassSpectraPtr                       // 8
+                                , SpectrogramClustersPtr               // 9
                               > value_type;
 
         static value_type toVariant( boost::any& );
