@@ -305,6 +305,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         xc.append( ms.first /* pos */, time, y );
                     } catch ( std::exception& ex ) {
                         ADDEBUG() << ex.what();
+                        return false;
                     }
                 }
             }

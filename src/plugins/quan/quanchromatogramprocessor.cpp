@@ -79,7 +79,8 @@
 #include <adprocessor/dataprocessor.hpp>
 #include <adprocessor/mschromatogramextractor.hpp>
 #include <adutils/cpio.hpp>
-#include <adwidgets/progresswnd.hpp>
+//#include <adwidgets/progresswnd.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <chromatogr/chromatography.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
@@ -335,7 +336,7 @@ bool
 QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                        , adcontrols::QuanSample& sample
                                        , std::shared_ptr< QuanDataWriter > writer
-                                       , std::shared_ptr< adwidgets::Progress > progress )
+                                       , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
     
     if ( auto raw = processor.getLCMSDataset() ) {
@@ -548,9 +549,10 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
             while ( cmpd != compounds.end() ) {
 
                 auto pk = std::find_if( res.peaks().begin(), res.peaks().end(), [&]( const auto& p ){ return p.startTime() < cmpd->tR() && cmpd->tR() < p.endTime(); } );
-
-                pk->setFormula( formula.get().c_str() );
-                pk->setName( adcontrols::ChemicalFormula::formatFormula( pk->formula() ) );
+                if ( pk != res.peaks().end() ) {
+                    pk->setFormula( formula.get().c_str() );
+                    pk->setName( adcontrols::ChemicalFormula::formatFormula( pk->formula() ) );
+                }
                 
                 // next candidate
                 std::advance( cmpd, 1 );
@@ -565,7 +567,7 @@ QuanChromatogramProcessor::doCountingChromatogram( QuanSampleProcessor& processo
                                                    , adcontrols::QuanSample& sample
                                                    , std::shared_ptr< QuanDataWriter > writer
                                                    , const std::string& reader_objtext
-                                                   , std::shared_ptr< adwidgets::Progress > progress )
+                                                   , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
     std::vector< std::shared_ptr< QuanTarget > > targets;
     std::vector< QuanCandidate > candidates;

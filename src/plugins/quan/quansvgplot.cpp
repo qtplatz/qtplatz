@@ -90,43 +90,54 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
 
     adcontrols::MSPeakInfoItem pk;
 
-    if ( auto pkinfo = data.pkinfo->findProtocol( fcn ) ) {
-
-        auto pkIt = pkinfo->size() >= idx ? pkinfo->begin() + idx : pkinfo->end();
+    if ( ! data.pkinfo )
+        return false;
+    if ( ! data.profile )
+        return false;
+    
+    if ( data.pkinfo ) {
         
-        if ( pkIt == pkinfo->end() )
-            return false;
+        if ( auto pkinfo = data.pkinfo.get()->findProtocol( fcn ) ) {
 
-        pk = *pkIt;
-        double mass = pkIt->mass();
-
-        if ( range.first < mass && mass < range.second ) {
-            if ( auto profile = data.profile->findProtocol( fcn ) ) {
-                if ( !profile->trim( *tProfile, range ) ) {
-                    *tProfile = *profile;
-                }
-            } else {
-                adcontrols::segment_wrapper<> vec( *data.profile );
-                ADDEBUG() << "################## no data found for proto# " << fcn << "#################### " << vec.size();
-                for ( auto& ms: vec ) {
-                    ADDEBUG() << "proto = " << ms.protocolId();
-                }
-                *tProfile = *data.profile;
-            }
-
-            if ( data.profiledHist ) {
-                tProfiledHist = std::make_shared< adcontrols::MassSpectrum >();
-                data.profiledHist->trim( *tProfiledHist, range );
-            }
+            auto pkIt = data.pkinfo.get()->size() >= idx ? data.pkinfo.get()->begin() + idx : pkinfo->end();
             
-            if ( auto centroid = data.centroid->findProtocol( fcn ) ) {
-                if ( !centroid->trim( *tCentroid, range ) ) {
-                    *tCentroid = *centroid;
+            if ( pkIt == data.pkinfo.get()->end() )
+                return false;
+
+            pk = *pkIt;
+            double mass = pkIt->mass();
+
+            if ( range.first < mass && mass < range.second ) {
+                if ( auto profile = data.profile.get()->findProtocol( fcn ) ) {
+                    if ( !profile->trim( *tProfile, range ) ) {
+                        *tProfile = *(data.profile.get());
+                    }
+                } else {
+                    adcontrols::segment_wrapper<> vec( *(data.profile.get()) );
+                    ADDEBUG() << "################## no data found for proto# " << fcn << "#################### " << vec.size();
+                    for ( auto& ms: vec ) {
+                        ADDEBUG() << "proto = " << ms.protocolId();
+                    }
+                    *tProfile = *(data.profile.get());
                 }
-            } else {
-                adcontrols::segment_wrapper<> vec( *data.centroid );
-                ADDEBUG() << "################## no data found for proto# " << fcn << "#################### " << vec.size();
-                *tCentroid = *data.centroid;
+                
+                if ( data.profiledHist ) {
+                    tProfiledHist = std::make_shared< adcontrols::MassSpectrum >();
+                    data.profiledHist.get()->trim( *tProfiledHist, range );
+                }
+
+                if ( data.centroid ) {
+                    if ( auto centroid = data.centroid.get()->findProtocol( fcn ) ) {
+                        if ( !centroid->trim( *tCentroid, range ) )
+                            *tCentroid = *data.centroid.get();
+                    }
+                } else {
+                    if ( data.centroid ) {
+                        ADDEBUG() << "################## no data found for proto# " << fcn << "#################### "
+                                  << adcontrols::segment_wrapper<> (*data.centroid.get() ).size();
+                        *tCentroid = *data.centroid.get();
+                    }
+                }
             }
         }
     }
@@ -164,7 +175,8 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
     marker.setPeak( pk );
     marker.visible(true);
 
-    plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.centroid->getDescriptions().toString() ) );
+    if ( data.centroid )
+        plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.centroid.get()->getDescriptions().toString() ) );
     plot.setFooter( (boost::format( "FWHM=%.1fmDa (%.2fns)" ) % (pk.widthHH( false ) * 1000) % adcontrols::metric::scale_to_nano( pk.widthHH( true ) )).str() );
 
     QPainter painter;
@@ -200,27 +212,31 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
     adplot::ChromatogramWidget plot;
-    plot.setData( data.chromatogram, 0 );
-    plot.setData( *data.pkResult );
+    if ( data.chromatogram )
+        plot.setData( data.chromatogram.get(), 0 );
+    if ( data.pkResult )
+        plot.setData( *data.pkResult.get() );
 
     adplot::PeakMarker marker;
-    
-    if ( idx < data.pkResult->peaks().size() ) {
-
-        // set color etc.
-        for ( int id = 0; id < adplot::PeakMarker::numMarkers; ++id )
-            marker.marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
+    if ( data.pkResult ) {
+        if ( idx < data.pkResult.get()->peaks().size() ) {
+            
+            // set color etc.
+            for ( int id = 0; id < adplot::PeakMarker::numMarkers; ++id )
+                marker.marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
         
-        auto item = data.pkResult->peaks().begin() + idx;
-        marker.setPeak( *item );
-        plot.drawPeakParameter( *item );
+            auto item = data.pkResult.get()->peaks().begin() + idx;
+            marker.setPeak( *item );
+            plot.drawPeakParameter( *item );
 
-        marker.attach( &plot );
-        marker.visible(true);
+            marker.attach( &plot );
+            marker.visible(true);
+        }
     }
-    
-    plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.chromatogram->getDescriptions().toString() ) );
-        //plot.setFooter( (boost::format( "FWHM=%.1fmDa (%.2fns)" ) % (pk.widthHH( false ) * 1000) % adcontrols::metric::scale_to_nano( pk.widthHH( true ) )).str() );
+
+    if ( data.chromatogram )
+        plot.setTitle( dataSource + ", " + adportable::utf::to_utf8( data.chromatogram.get()->getDescriptions().toString() ) );
+    //plot.setFooter( (boost::format( "FWHM=%.1fmDa (%.2fns)" ) % (pk.widthHH( false ) * 1000) % adcontrols::metric::scale_to_nano( pk.widthHH( true ) )).str() );
 
     QPainter painter;
     painter.begin( &generator );

@@ -482,7 +482,7 @@ MainWindow::handleOpenQuanResult()
             }
 
             if ( auto tab = findChild< DoubleTabWidget * >() )
-                tab->setCurrentIndex( -1, 3 );
+                tab->setCurrentIndex( -1, 2 );
             Core::ModeManager::activateMode( Core::Id( Constants::C_QUAN_MODE ) );
         }
     }

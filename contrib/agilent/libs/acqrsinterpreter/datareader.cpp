@@ -577,9 +577,9 @@ DataReader::loadTICs()
     if ( auto interpreter = interpreter_->_narrow< acqrsinterpreter::DataInterpreter >() ) {
 
         if ( auto db = db_.lock() ) {
-
+#if ! defined NDEBUG
             ADDEBUG() << "loadTICs: " << objid_ << " indices: " << indices_.size();
-            
+#endif            
             indices_.clear();
 
             {
@@ -601,8 +601,6 @@ DataReader::loadTICs()
             if ( sql.step() == adfs::sqlite_row ) {
                 auto s1 = sql.get_column_value< int64_t >( 0 );
                 auto s2 = sql.get_column_value< int64_t >( 1 );
-
-                ADDEBUG() << "size = " << s1 << ", " << s2;
 
                 if ( sql.get_column_value< int64_t >( 0 ) == sql.get_column_value<int64_t>( 1 ) )
                     return loadCachedTICs();

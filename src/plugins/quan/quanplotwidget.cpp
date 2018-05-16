@@ -101,45 +101,56 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
         
         spw->enableAxis( QwtPlot::yRight );
-        
-        spw->setTitle( dataSource + L", " + d->centroid->getDescriptions().toString() );
+
+        if ( d->centroid )
+            spw->setTitle( dataSource + L", " + d->centroid.get()->getDescriptions().toString() );
         
         if ( d->filterd ) {
-            spw->setData( d->filterd, 0, true );
-            spw->setData( d->profile, 2, true );
-            spw->setData( d->centroid, 1, false );
+            spw->setData( d->filterd.get(), 0, true );
+            if ( d->profile )
+                spw->setData( d->profile.get(), 2, true );
+            if ( d->centroid )
+                spw->setData( d->centroid.get(), 1, false );
         } else if ( d->profiledHist ) {
-            spw->setData( d->profile, 0, true );
-            spw->setData( d->profiledHist, 2, true );
-            spw->setData( d->centroid, 1, false );            
+            if ( d->profile )
+                spw->setData( d->profile.get(), 0, true );
+            if ( d->profiledHist )
+                spw->setData( d->profiledHist.get(), 2, true );
+            if ( d->centroid )
+                spw->setData( d->centroid.get(), 1, false );            
         } else {
-            spw->setData( d->profile, 0, true );
-            spw->setData( d->centroid, 1, false );
+            if ( d->profile )
+                spw->setData( d->profile.get(), 0, true );
+            if ( d->centroid )
+                spw->setData( d->centroid.get(), 1, false );
         }
 
-        auto pkinfo = d->pkinfo->findProtocol( fcn );
+        if ( d->pkinfo ) {
 
-        if ( pkinfo && pkinfo->size() > idx ) {
-            auto item = pkinfo->begin() + idx;
+            auto pkinfo = d->pkinfo.get()->findProtocol( fcn );
 
-            double mass = item->mass();
-            QRectF rc = spw->zoomer()->zoomRect();
-
-            double width = pkinfo->size() > idx ? item->widthHH() * 5 : 0.1;
-            int magnitude = std::round( std::log10( width ) );
-            width = std::max( std::pow( 10, magnitude ) / 2, 0.050 );
-            
-            rc.setLeft( mass - width );
-            rc.setRight( mass + width );
-            spw->zoomer()->zoom( rc );
-
-            marker_->setYAxis( QwtPlot::yRight );
-            marker_->setPeak( *item );
-            marker_->visible( true );
-            
-            spw->setFooter( ( boost::format( "W=%.2fmDa (%.2fns)" )
-                              % ( item->widthHH( false ) * 1000 )
-                              % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
+            if ( pkinfo && pkinfo->size() > idx ) {
+                auto item = pkinfo->begin() + idx;
+                
+                double mass = item->mass();
+                QRectF rc = spw->zoomer()->zoomRect();
+                
+                double width = pkinfo->size() > idx ? item->widthHH() * 5 : 0.1;
+                int magnitude = std::round( std::log10( width ) );
+                width = std::max( std::pow( 10, magnitude ) / 2, 0.050 );
+                
+                rc.setLeft( mass - width );
+                rc.setRight( mass + width );
+                spw->zoomer()->zoom( rc );
+                
+                marker_->setYAxis( QwtPlot::yRight );
+                marker_->setPeak( *item );
+                marker_->visible( true );
+                
+                spw->setFooter( ( boost::format( "W=%.2fmDa (%.2fns)" )
+                                  % ( item->widthHH( false ) * 1000 )
+                                  % adcontrols::metric::scale_to_nano( item->widthHH( true ) ) ).str() );
+            }
         }
     }
 }
@@ -149,19 +160,20 @@ QuanPlotWidget::setChromatogram( const QuanPlotData * d, size_t idx, int fcn, co
 {
     if ( auto pw = dynamic_cast<adplot::ChromatogramWidget *>( dplot_.get() ) ) {
 
-        pw->setTitle( dataSource + L", " + d->chromatogram->getDescriptions().toString() );
-        pw->setData( d->chromatogram, 0, false );
+        if ( d->chromatogram ) {
+            pw->setTitle( dataSource + L", " + d->chromatogram.get()->getDescriptions().toString() );
+            pw->setData( d->chromatogram.get(), 0, false );
 
-        if ( d->pkResult ) {
-            pw->setData( *d->pkResult );
+            if ( d->pkResult ) {
+                pw->setData( *d->pkResult.get() );
             
-            if ( idx < d->pkResult->peaks().size() ) {
-                auto item = d->pkResult->peaks().begin() + idx;
-                marker_->setPeak( *item );
-                marker_->visible( true );
-                pw->drawPeakParameter( *item );
+                if ( idx < d->pkResult.get()->peaks().size() ) {
+                    auto item = d->pkResult.get()->peaks().begin() + idx;
+                    marker_->setPeak( *item );
+                    marker_->visible( true );
+                    pw->drawPeakParameter( *item );
+                }
             }
-
         }
         
     }

@@ -40,7 +40,7 @@ TableView::TableView(QWidget *parent) : QTableView(parent)
                                       , allowDelete_( true )
 {
     verticalHeader()->setDefaultSectionSize( 18 );
-    verticalHeader()->setFixedWidth( 18 );
+    verticalHeader()->setFixedWidth( 24 );
 }
 
 void

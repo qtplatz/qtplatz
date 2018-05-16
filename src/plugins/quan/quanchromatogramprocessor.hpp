@@ -32,7 +32,7 @@ namespace adcontrols {
     class PeakMethod;    class MSChromatogramMethod;
     namespace lockmass { class mslock; }
 }
-namespace adwidgets { class Progress; }
+namespace adwidgets { class ProgressInterface; }
 
 namespace quan {
 
@@ -45,14 +45,14 @@ namespace quan {
     public:
         QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm );
 
-        [[deprecated]] void process1st( int64_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
+        //[[deprecated]] void process1st( int64_t pos, std::shared_ptr< adcontrols::MassSpectrum > ms, QuanSampleProcessor& sampleprocessor );
 
-        [[deprecated]] void doit( QuanSampleProcessor&, adcontrols::QuanSample&
-                                  , std::shared_ptr< QuanDataWriter >
-                                  , const std::string& reader_objtext
-                                  , std::shared_ptr< adwidgets::Progress > );
+        // [[deprecated]] void doit( QuanSampleProcessor&, adcontrols::QuanSample&
+        //                           , std::shared_ptr< QuanDataWriter >
+        //                           , const std::string& reader_objtext
+        //                           , std::shared_ptr< adwidgets::ProgressInterface > );
 
-        bool operator()( QuanSampleProcessor&, adcontrols::QuanSample&, std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::Progress > );
+        bool operator()( QuanSampleProcessor&, adcontrols::QuanSample&, std::shared_ptr< QuanDataWriter >, std::shared_ptr< adwidgets::ProgressInterface > );
         
         enum { idFormula, idExactMass };
         typedef std::tuple< std::string, double > target_type;
@@ -98,12 +98,12 @@ namespace quan {
         void doCountingChromatogram( QuanSampleProcessor&, adcontrols::QuanSample&
                                      , std::shared_ptr< QuanDataWriter >
                                      , const std::string& reader_objtext
-                                     , std::shared_ptr< adwidgets::Progress > );
+                                     , std::shared_ptr< adwidgets::ProgressInterface > );
 
-        void doProfileChromatogram( QuanSampleProcessor&, adcontrols::QuanSample&
-                                    , std::shared_ptr< QuanDataWriter >
-                                    , const std::string& reader_objtext
-                                    , std::shared_ptr< adwidgets::Progress > );
+        // void doProfileChromatogram( QuanSampleProcessor&, adcontrols::QuanSample&
+        //                             , std::shared_ptr< QuanDataWriter >
+        //                             , const std::string& reader_objtext
+        //                             , std::shared_ptr< adwidgets::Progress > );
 
         int debug_level_;
         bool save_on_datasource_;

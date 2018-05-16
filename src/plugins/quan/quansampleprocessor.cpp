@@ -70,7 +70,8 @@
 #include <adfs/cpio.hpp>
 #include <adlog/logger.hpp>
 #include <adutils/cpio.hpp>
-#include <adwidgets/progresswnd.hpp>
+//#include <adwidgets/progresswnd.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -86,15 +87,16 @@ QuanSampleProcessor::~QuanSampleProcessor()
 }
 
 QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
-                                          , std::vector< adcontrols::QuanSample >& samples )
+                                          , std::vector< adcontrols::QuanSample >& samples
+                                          , std::shared_ptr< adwidgets::ProgressInterface > p )
     : raw_( 0 )
     , samples_( samples )
     , procmethod_( processor->procmethod() )
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
-    , progress_( adwidgets::ProgressWnd::instance()->addbar() )
     , progress_current_( 0 )
     , progress_total_( 0 )
+    , progress_( p )
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
@@ -118,45 +120,56 @@ QuanSampleProcessor::dryrun()
         nSpectra_ = tic.size();
     }
 
-    for ( auto& sample : samples_ ) {
-        switch ( sample.dataGeneration() ) {
-        case adcontrols::QuanSample::GenerateSpectrum:
-            if ( nFcn_ && sample.scan_range_first() == 0 && sample.scan_range_second() == static_cast< unsigned int>(-1) )
-                progress_total_ += int( nSpectra_ / nFcn_ );
-            progress_total_++;
-            break;
-        case adcontrols::QuanSample::ProcessRawSpectra:
-            progress_total_ += int( nSpectra_ );
-            break;
-        case adcontrols::QuanSample::ASIS:
-            progress_total_++;
-            break;
-        case adcontrols::QuanSample::GenerateChromatogram:
-            if ( procmethod_ ) {
-                if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
-                    progress_total_ = int( nSpectra_ );
-                }
-                if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
-                    progress_total_ += int( pCompounds->size() );
-                }
-                progress_total_++;                
+    if ( samples_.empty() )
+        return;
+    const auto& sample = samples_[ 0 ];
+    path_ = sample.dataSource();
+    open();
+
+    // for ( auto& sample : samples_ ) {
+
+    switch ( sample.dataGeneration() ) {
+    case adcontrols::QuanSample::GenerateSpectrum:
+        if ( nFcn_ && sample.scan_range_first() == 0 && sample.scan_range_second() == static_cast< unsigned int>(-1) )
+            progress_total_ += int( nSpectra_ / nFcn_ );
+        progress_total_++;
+        break;
+    case adcontrols::QuanSample::ProcessRawSpectra:
+        progress_total_ += int( nSpectra_ );
+        break;
+    case adcontrols::QuanSample::ASIS:
+        progress_total_++;
+        break;
+    case adcontrols::QuanSample::GenerateChromatogram:
+        if ( procmethod_ ) {
+            if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
+                progress_total_ = int( nSpectra_ );
             }
-            
-            break;
+            if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
+                progress_total_ += int( pCompounds->size() );
+            }
+            progress_total_++;                
         }
+            
+        break;
     }
+    ADDEBUG() << sample.dataSource() << ", progress_total_ = " << progress_total_ * samples_.size();
+
     progress_current_ = 0;
-    progress_->setRange( int( progress_current_ ), int( progress_total_ ) );
+    // progress_->setRange( int( progress_current_ ), int( progress_total_ ) );
+    (*progress_)( int( progress_current_ ), int( progress_total_) );
 }
 
 bool
 QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
-    open();
     dryrun();
 
     for ( auto& sample : samples_ ) {
 
+        path_ = sample.dataSource();
+        open();
+        
         switch ( sample.dataGeneration() ) {
 
         case adcontrols::QuanSample::GenerateChromatogram:

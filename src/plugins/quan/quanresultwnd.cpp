@@ -277,10 +277,6 @@ QuanResultWnd::handleResponseSelected( int respId )
             }
         }
 
-        ADDEBUG() << "dataSource: " << dataSource
-                  << " dataGuid: " << dataGuid
-                  << " idx: " << idx << " proto: " << fcn;
-        
         if ( !dataGuid.empty() ) {
             if ( auto d = conn->fetch( dataGuid ) ) {
                 dplot_->setData( d, idx, fcn, dataSource );
@@ -294,9 +290,9 @@ QuanResultWnd::handleResponseSelected( int respId )
                     auto idx = sql.get_column_value< uint64_t >( 1 );
                     auto fcn = sql.get_column_value< uint64_t >( 2 );
                     if ( auto d = conn->fetch( refDataGuid ) ) {
-
-                        ADDEBUG() << "setData 2( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
-
+#if ! defined NDEBUG
+                        ADDEBUG() << "set reference data ( idx=" << idx << ", fcn=" << fcn << ")";
+#endif
                         dplot_->setData( d, idx, fcn, dataSource );
                         cplot_->setData( d, idx, fcn, dataSource );
                     }

@@ -48,7 +48,7 @@ namespace adcontrols {
 }
 
 namespace portfolio { class Portfolio; class Folium;  }
-namespace adwidgets { class Progress; }
+namespace adwidgets { class Progress; class ProgressInterface; }
 
 namespace quan {
 
@@ -62,7 +62,7 @@ namespace quan {
     public:
         ~QuanSampleProcessor();
 
-        QuanSampleProcessor( QuanProcessor *, std::vector< adcontrols::QuanSample >& );
+        QuanSampleProcessor( QuanProcessor *, std::vector< adcontrols::QuanSample >&, std::shared_ptr< adwidgets::ProgressInterface > p );
         bool operator()( std::shared_ptr< QuanDataWriter > writer );
         QuanProcessor * processor();
         const adcontrols::LCMSDataset * getLCMSDataset() const { return raw_; }
@@ -79,7 +79,7 @@ namespace quan {
         const std::shared_ptr< adcontrols::ProcessMethod > procmethod_;
         std::shared_ptr< adcontrols::ChemicalFormula > cformula_;
         std::shared_ptr< QuanProcessor > processor_;
-        std::shared_ptr< adwidgets::Progress > progress_;
+        std::shared_ptr< adwidgets::ProgressInterface > progress_;
         size_t nFcn_;
         size_t nSpectra_;
         int progress_current_;

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -33,16 +33,16 @@
 #include "quanpublisher.hpp"
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
-#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
-#include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancalibration.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/scanlaw.hpp>
@@ -50,10 +50,11 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/semaphore.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <adpublisher/document.hpp>
-#include <adwidgets/progresswnd.hpp>
 #include <adwidgets/progressinterface.hpp>
+#include <adwidgets/progresswnd.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <boost/exception/all.hpp>
@@ -125,6 +126,7 @@ QuanDocument::QuanDocument() : settings_( std::make_shared< QSettings >(QSetting
                              , postCount_( 0 )
                              , procm_( std::make_unique< adcontrols::ProcessMethod >())
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
+                             , semaphore_( 16 )
 {
     method_list::create( *procm_ );
 
@@ -330,7 +332,10 @@ QuanDocument::run()
                 
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *procm_ );
-                auto que = std::make_shared< QuanProcessor >( quanSequence_, dup );
+
+                unsigned int concurrency = std::max( std::thread::hardware_concurrency(), 4u );
+                auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, concurrency );
+                //auto que = std::make_shared< QuanProcessor >( quanSequence_, dup  );
                 exec_.push_back( que );
                 
                 writer->write( *quanSequence_ );         // save into global space in a result file
@@ -342,8 +347,10 @@ QuanDocument::run()
                 
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
-                    futures_.emplace_back( std::async( std::launch::async, [que,it,writer]() {
-                                QuanSampleProcessor( que.get(), it->second )(writer);
+                    auto p = std::make_shared< adwidgets::ProgressInterface >();
+                    Core::ProgressManager::addTask( p->progress.future(), "Processing...", Constants::QUAN_TASK_CALIB );
+                    futures_.emplace_back( std::async( std::launch::async, [que,it,writer,p]() {
+                                QuanSampleProcessor( que.get(), it->second, p )(writer);
                             } )
                         );
                 }
@@ -432,6 +439,8 @@ void
 QuanDocument::handle_processed( QuanProcessor * processor )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
+
+    ADDEBUG() << "handle_processed(" << postCount_ << ")";
     
     if ( postCount_ && ( --postCount_ == 0 ) ) {
 

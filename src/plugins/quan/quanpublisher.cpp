@@ -298,7 +298,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 
         if ( data->chromatogram ) {
 
-            detail::append_class()( dst, data->chromatogram->getDescriptions(), "class adcontrols::descriptions" );
+            detail::append_class()( dst, data->chromatogram.get()->getDescriptions(), "class adcontrols::descriptions" );
             QuanSvgPlot svg;
 
             if ( svg.plot( *data, idx, fcn, response.select_single_node( "column[@name='dataSource']" ).node().text().as_string() ) ) {
@@ -326,7 +326,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
             
         } else if ( data->profile ) {
 
-            detail::append_class()( dst, data->profile->getDescriptions(), "class adcontrols::descriptions" );
+            detail::append_class()( dst, data->profile.get()->getDescriptions(), "class adcontrols::descriptions" );
 
             QuanSvgPlot svg;
 
@@ -360,7 +360,7 @@ QuanPublisher::appendTraceData( pugi::xml_node dst, const pugi::xml_node& respon
 
             if ( data->profile ) {
 
-                detail::append_class()( dst, data->profile->getDescriptions(), "class adcontrols::descriptions" );
+                detail::append_class()( dst, data->profile.get()->getDescriptions(), "class adcontrols::descriptions" );
 
                 QuanSvgPlot svg;
                 

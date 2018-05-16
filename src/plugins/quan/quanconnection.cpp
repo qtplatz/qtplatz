@@ -121,9 +121,11 @@ QuanConnection::fetch( const std::wstring& dataGuid )
         auto d = std::make_shared< QuanPlotData >();
 
         if ( file.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
-            d->profile = std::make_shared< adcontrols::MassSpectrum >();
+            auto profile = std::make_shared< adcontrols::MassSpectrum >();
             try {
-                if ( ! file.fetch( *d->profile ) )
+                if ( file.fetch( *profile ) )
+                    d->setProfile( profile );                    
+                else
                     return 0;
             } catch ( std::exception& ex ) {
                 ADERROR() << boost::diagnostic_information( ex );
@@ -131,9 +133,11 @@ QuanConnection::fetch( const std::wstring& dataGuid )
             }
 
         } else if ( file.dataClass() == adcontrols::Chromatogram::dataClass() ) {
-            d->chromatogram = std::make_shared< adcontrols::Chromatogram >();
+            auto chromatogram = std::make_shared< adcontrols::Chromatogram >();
             try {
-                if ( ! file.fetch( *d->chromatogram ) )
+                if ( file.fetch( *chromatogram ) )
+                    d->setChromatogram( chromatogram );
+                else
                     return 0;
             } catch ( std::exception& ex ) {
                 ADERROR() << boost::diagnostic_information( ex );
@@ -148,39 +152,39 @@ QuanConnection::fetch( const std::wstring& dataGuid )
             if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
                 if ( att.attribute( L"name" ) == dataproc::Constants::F_CENTROID_SPECTRUM ) {
 
-                    d->centroid = std::make_shared< adcontrols::MassSpectrum >();
-                    att.fetch( *d->centroid );
-
+                    auto p = std::make_shared< adcontrols::MassSpectrum >();
+                    if ( att.fetch( *p ) )
+                        d->setCentroid ( p );
                 } else if ( att.attribute( L"name" ) == dataproc::Constants::F_DFT_FILTERD ) {
-
-                    d->filterd = std::make_shared< adcontrols::MassSpectrum >();
-                    att.fetch( *d->filterd );
-
+                    auto p = std::make_shared< adcontrols::MassSpectrum >();
+                    if ( att.fetch( *p ) )
+                        d->setFilterd( p );
                 } else if ( att.attribute( L"name" ) == dataproc::Constants::F_PROFILED_HISTOGRAM ) {
-
-                    d->profiledHist = std::make_shared< adcontrols::MassSpectrum >();
-                    att.fetch( *d->profiledHist );
+                    auto p = std::make_shared< adcontrols::MassSpectrum >();
+                    if ( att.fetch( *p ) )
+                        d->setProfiledHist( p );
                 }
             } else if ( att.dataClass() == adcontrols::MSPeakInfo::dataClass() ) {
 
-                d->pkinfo = std::make_shared< adcontrols::MSPeakInfo >();
-                att.fetch( *d->pkinfo );
+                auto pkinfo = std::make_shared< adcontrols::MSPeakInfo >();
+                if ( att.fetch( *pkinfo ) )
+                    d->setPkinfo( pkinfo );
 
             } else if ( att.dataClass() == adcontrols::PeakResult::dataClass() ) {
-
-                d->pkResult = std::make_shared< adcontrols::PeakResult >();
-                att.fetch( *d->pkResult );
+                auto pkres = std::make_shared< adcontrols::PeakResult >();
+                if ( att.fetch( *pkres ) )
+                    d->setPkResult( pkres );
 
             } else if ( att.dataClass() == adcontrols::QuanSample::dataClass() ) {
-
-                d->sample = std::make_shared< adcontrols::QuanSample >();
-                att.fetch( *d->sample );
+                auto p = std::make_shared< adcontrols::QuanSample >();
+                if ( att.fetch( *p ) )
+                    d->setSample( p );
+                
 
             } else if ( att.dataClass() == adcontrols::ProcessMethod::dataClass() ) {
-
-                d->procmethod = std::make_shared< adcontrols::ProcessMethod >();
-                att.fetch( *d->procmethod );                
-
+                auto p = std::make_shared< adcontrols::ProcessMethod >();
+                if ( att.fetch( *p ) )
+                    d->setProcmethod( p );
             }
         }
         cache_[ dataGuid ] = d;

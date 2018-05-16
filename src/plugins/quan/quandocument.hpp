@@ -25,6 +25,7 @@
 #ifndef QUANDOCUMENT_HPP
 #define QUANDOCUMENT_HPP
 
+#include <adportable/semaphore.hpp>
 #include <boost/signals2/signal.hpp>
 #include <array>
 #include <atomic>
@@ -79,23 +80,11 @@ namespace quan {
         template< typename T >  const T* getm() const;
         template< typename T >  void setm( const T& t );
 
-        // const adcontrols::QuanMethod& quanMethod() const;
-        // void quanMethod( const adcontrols::QuanMethod & );
-
-        // const adcontrols::QuanCompounds& quanCompounds() const;
-        // void quanCompounds( const adcontrols::QuanCompounds& );
-
-        //const adcontrols::ProcessMethod& procMethod() const;
-        //void setProcMethod( adcontrols::ProcessMethod& );
-
         void quanSequence( std::shared_ptr< adcontrols::QuanSequence >& );
         std::shared_ptr< adcontrols::QuanSequence > quanSequence();
 
         void publisher( std::shared_ptr< QuanPublisher >& );
         std::shared_ptr< QuanPublisher > publisher() const;
-
-        // const adcontrols::ProcessMethod& pm() const;
-        // adcontrols::ProcessMethod& pm();
 
         std::shared_ptr< adpublisher::document > docTemplate() const;
         void docTemplate( std::shared_ptr< adpublisher::document >& );
@@ -161,6 +150,7 @@ namespace quan {
         std::shared_ptr< adpublisher::document > docTemplate_;
 
         std::vector< std::shared_ptr< QuanProcessor > > exec_;
+        adportable::semaphore semaphore_;
         
         bool processed( adcontrols::QuanSample& );
 

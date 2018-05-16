@@ -72,7 +72,10 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
 {
     // combine per dataSource
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it )
-        que_[ it->dataSource() ].push_back( *it );
+        que_[ it->dataSource() ].emplace_back( *it );
+
+    ADDEBUG() << "QuanProcessor nThreads=" << que_.size();
+    
     progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
     progress_->setRange( 0, progress_total_ );
 }
@@ -85,11 +88,13 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence > s
                                                   , progress_total_(0)
                                                   , progress_count_(0)
 {
+    ADDEBUG() << "QuanProcessor nThreads=" << nThreads;
+
     // combine per number-of-threads
     size_t n(0);
     for ( auto it = sequence_->begin(); it != sequence_->end(); ++it ) {
         auto ident = ( boost::wformat( L"processor_%d" ) % ( n++ % nThreads ) ).str();
-        que_[ ident ].push_back( *it );
+        que_[ ident ].emplace_back( *it );
     }
     progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
     progress_->setRange( 0, progress_total_ );
