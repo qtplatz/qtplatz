@@ -232,7 +232,7 @@ ap240widget::set( const acqrscontrols::ap240::method& m )
             text += QString::fromStdString( d );
         }
         edit->setText( text );
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
         ADDEBUG() << __FUNCTION__ << " Ext. delays: " << text.toStdString();
 #endif
     }

@@ -674,6 +674,26 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 }
 
 bool
+QuanDataWriter::insert_reference( const boost::uuids::uuid& dataGuid, const boost::uuids::uuid& refGuid, int32_t idx, int32_t proto )
+{
+    adfs::stmt sql( fs_.db() );
+    
+    if ( sql.prepare( "INSERT INTO QuanDataGuids (dataGuid,refDataGuid,idx,fcn) VALUES (?,?,?,?)" ) ) {
+        
+        sql.bind( 1 ) = dataGuid;
+        sql.bind( 2 ) = refGuid;
+        sql.bind( 3 ) = idx;
+        sql.bind( 4 ) = proto;
+        
+        if ( sql.step() == adfs::sqlite_done )
+            return true;
+        
+        ADTRACE() << "sql error";
+    }
+    return false;
+}
+
+bool
 QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t > >& dataGuids )
 {
     if ( !dataGuid.empty() ) {

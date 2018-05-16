@@ -179,7 +179,10 @@ namespace quan {
                         adcontrols::MSPeakInfo pkinfo;
                         adcontrols::MassSpectrum centroid;
                         if ( adprocessor::dataprocessor::doCentroid( pkinfo, centroid, *ms, *cm ) ) {
+
                             centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
+                            writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO );
+
                             if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
                                 if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
                                     adcontrols::Targeting targeting( *tm );                            
@@ -210,10 +213,9 @@ namespace quan {
 
             auto& ptree = pair.first->ptree();
             ADDEBUG() << "************ " << ptree;
-            
+                        
             auto matchedMass = ptree.get_optional< double >( "targeting.matchedMass" );
             auto dataGuid = ptree.get_optional< boost::uuids::uuid >( "folder.dataGuid" );
-            auto msGuid = ptree.get_optional< boost::uuids::uuid >( "folder.msGuid" );
             
             if ( auto child = pair.first->ptree().get_child_optional( "generator.extract_by_mols" ) ) {
                 
@@ -378,10 +380,10 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                 
                 for ( auto& pair: rlist ) {
                     boost::uuids::uuid msGuid{ 0 }, dataGuid{ 0 };
-                    auto& ptree = pair.first->ptree();
+                    auto& chr = pair.first;
+                    auto& ptree = chr->ptree();
                     for ( auto& pk: pair.second->peaks() ) {
                         if ( !pk.name().empty() ) {
-                            auto& chr = pair.first;
                             if ( auto ms = extractor->getMassSpectrum( pk.peakTime() ) ) {
                                 auto title = save_spectrum::make_title( sample.dataSource(), pk.formula(), pk.peakTime(), (idx == 0 ? L" (profile)" : L" (histogram)" ) );
                                 msGuid = save_spectrum::save( writer, sample.dataSource(), ms, title, procm_, pk.formula(), chr->protocol(), chr->ptree() );
@@ -389,9 +391,9 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                         }
                     }
                     dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, procm_, idx );
-                    ptree.put( "folder.dataGuid", dataGuid );
-                    ptree.put( "folder.msGuid", msGuid );
                     response_builder::add( processor, sample, pair, *pCompounds );
+                    auto index = ptree.get_optional< int32_t >( "targeting.idx" );
+                    writer->insert_reference( dataGuid, msGuid, index ? index.get() : (-1), chr->protocol() );
                 }
                 ++idx;
             }
@@ -630,7 +632,6 @@ QuanChromatogramProcessor::doMSLock( adcontrols::MassSpectrum& profile )
                 peak_detector.getCentroidSpectrum( *cseg );
                 *centroid << std::move( cseg ); 
             }
-
         }
     }
     

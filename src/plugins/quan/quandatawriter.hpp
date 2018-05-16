@@ -34,7 +34,13 @@
 #include <functional>
 #include <tuple>
 
-namespace adcontrols { class Chromatogram; class MassSpectrum; class PeakResult; class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds; class QuanMethod; class idAudit; }
+namespace boost { namespace uuids { class uuid; } }
+namespace adcontrols {
+    class Chromatogram; class MassSpectrum; class PeakResult;
+    class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds;
+    class QuanMethod; class idAudit;
+}
+
 namespace adfs { class stmt; }
 
 namespace quan {
@@ -66,7 +72,8 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSequence& );
         bool insert_table( const adcontrols::QuanCompounds& );
         bool insert_table( const adcontrols::QuanSample& );
-        bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t> >& dataGuids );
+        [[deprecated]] bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t> >& dataGuids );
+        bool insert_reference( const boost::uuids::uuid& dataGuid, const boost::uuids::uuid& refGuid, int32_t idx, int32_t proto );
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 
