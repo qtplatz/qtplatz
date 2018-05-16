@@ -227,7 +227,7 @@ namespace quan {
                             resp.uuid_cmpd( cmpdGuid.get() );  // compound id (uuid) identify each molecule(formula) and protocol
                             resp.uuid_cmpd_table( compounds.uuid() );
                             if ( dataGuid )
-                                resp.dataGuid_ = boost::lexical_cast< std::wstring >( dataGuid.get() );   // corresponding chromatogram data on output adfs file
+                                resp.setDataGuid( dataGuid.get() );   // corresponding chromatogram data on output adfs file
                             resp.mass_ = matchedMass ? matchedMass.get() : 0;
                             resp.idx_ = (-1);
                             auto it = std::find_if( pair.second->peaks().begin(), pair.second->peaks().end(), [&](auto& p){ return p.formula() == formula.get(); } );

@@ -28,8 +28,8 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -56,7 +56,7 @@ namespace adcontrols {
         int32_t idx_;                    // index on centroid spectrum
         boost::uuids::uuid idTable_;     // foreign key reference to QuanCompounds (a file of molecles)
         boost::uuids::uuid idCompound_;  // foreign key reference to QuanCompound (a molecule)
-        std::wstring dataGuid_;          // reference to spectrum|chromatogram data on 'adfs' file system
+        boost::uuids::uuid dataGuid_;          // reference to spectrum|chromatogram data on 'adfs' file system
         int32_t fcn_;                    // function (protocol) id on centroid spectrum
         double intensity_;               // area | height from chromatogram/spectrum
         double amounts_;                 // result
@@ -68,7 +68,7 @@ namespace adcontrols {
         int32_t peakIndex() const;
         const boost::uuids::uuid& idTable() const;
         const boost::uuids::uuid& idCompound() const;
-        const std::wstring& dataGuid() const;
+        const boost::uuids::uuid& dataGuid() const;
         int32_t fcn() const;
         double intensity() const;
         double amounts() const;
@@ -81,6 +81,7 @@ namespace adcontrols {
         boost::uuids::uuid& idTable();
         boost::uuids::uuid& idCompound();
         void setDataGuid( const std::wstring& );
+        void setDataGuid( const boost::uuids::uuid& );
         void setFcn( int32_t );
         void setIntensity( double );
         void setAmounts( double );
@@ -95,26 +96,44 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            if ( version >= 1 )
+            if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP(  dataGuid_ );
-            ar & BOOST_SERIALIZATION_NVP(  idCompound_ );
-            ar & BOOST_SERIALIZATION_NVP( idTable_ );
-            ar & BOOST_SERIALIZATION_NVP( formula_ );
-            ar & BOOST_SERIALIZATION_NVP( idx_ );
-            ar & BOOST_SERIALIZATION_NVP( fcn_ );
-            ar & BOOST_SERIALIZATION_NVP( intensity_ );
-            ar & BOOST_SERIALIZATION_NVP( amounts_ );
-            ar & BOOST_SERIALIZATION_NVP( mass_ );
-            ar & BOOST_SERIALIZATION_NVP( tR_ );
-            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(  idCompound_ );
+                ar & BOOST_SERIALIZATION_NVP( idTable_ );
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( idx_ );
+                ar & BOOST_SERIALIZATION_NVP( fcn_ );
+                ar & BOOST_SERIALIZATION_NVP( intensity_ );
+                ar & BOOST_SERIALIZATION_NVP( amounts_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_ );
+                ar & BOOST_SERIALIZATION_NVP( tR_ );
                 ar & BOOST_SERIALIZATION_NVP( countTimeCounts_ );
                 ar & BOOST_SERIALIZATION_NVP( countTriggers_ );
+            } else {
+                std::wstring dataGuid;
+                if ( version >= 1 )
+                    ar & BOOST_SERIALIZATION_NVP( dataGuid );
+                ar & BOOST_SERIALIZATION_NVP(  idCompound_ );
+                ar & BOOST_SERIALIZATION_NVP( idTable_ );
+                ar & BOOST_SERIALIZATION_NVP( formula_ );
+                ar & BOOST_SERIALIZATION_NVP( idx_ );
+                ar & BOOST_SERIALIZATION_NVP( fcn_ );
+                ar & BOOST_SERIALIZATION_NVP( intensity_ );
+                ar & BOOST_SERIALIZATION_NVP( amounts_ );
+                ar & BOOST_SERIALIZATION_NVP( mass_ );
+                ar & BOOST_SERIALIZATION_NVP( tR_ );
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP( countTimeCounts_ );
+                    ar & BOOST_SERIALIZATION_NVP( countTriggers_ );
+                }
+                if ( ! Archive::is_saving::value )
+                    setDataGuid( dataGuid );
             }
-        }            
+        }
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::QuanResponse, 2 )
+BOOST_CLASS_VERSION( adcontrols::QuanResponse, 3 )
 
 #endif // QUANRESPONSE_HPP

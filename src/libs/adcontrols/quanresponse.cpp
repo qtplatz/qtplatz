@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "quanresponse.hpp"
+#include <boost/uuid/string_generator.hpp>
 
 using namespace adcontrols;
 
@@ -74,7 +75,7 @@ QuanResponse::idCompound() const
     return idCompound_;
 }
 
-const std::wstring&
+const boost::uuids::uuid&
 QuanResponse::dataGuid() const
 {
     return dataGuid_;
@@ -143,6 +144,12 @@ QuanResponse::idCompound()
 
 void
 QuanResponse::setDataGuid( const std::wstring& d )
+{
+    dataGuid_ = boost::uuids::string_generator()( d );
+}
+
+void
+QuanResponse::setDataGuid( const boost::uuids::uuid& d )
 {
     dataGuid_ = d;
 }

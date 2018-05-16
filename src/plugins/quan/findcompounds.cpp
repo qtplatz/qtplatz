@@ -227,7 +227,7 @@ FindCompounds::write( std::shared_ptr< QuanDataWriter > writer
     if ( auto file = writer->write( *profile_[ index ], stem ) ) {
         
         for ( auto& resp: responses_ )
-            resp.second.dataGuid_ = file.name(); // dataGuid
+            resp.second.setDataGuid( file.name() ); // dataGuid
 
         for ( const auto& resp: responses_ )
             sample << resp.second;

@@ -457,7 +457,7 @@ QuanSampleProcessor::processIt( adcontrols::QuanSample& sample
                 if ( adfs::file file = writer->write( *pProfile, sample.name() ) ) {
 
                     for ( auto& resp: sample.results() )
-                        resp.dataGuid_ = file.name();
+                        resp.setDataGuid( file.name() );
                     
                     if ( pFiltered )
                         writer->attach<adcontrols::MassSpectrum>( file, *pFiltered, dataproc::Constants::F_DFT_FILTERD );
