@@ -101,7 +101,6 @@ QuanResultTable::~QuanResultTable()
 }
 
 QuanResultTable::QuanResultTable(QWidget *parent) : adwidgets::TableView(parent)
-                                                    //, model_( new QStandardItemModel )
                                                   , model_( new QSqlQueryModel )
 {
     setAllowDelete( false );

@@ -246,6 +246,11 @@ MainWindow::onInitialUpdate()
     for ( auto e : findChildren<QLineEdit*>() )
         e->setStyleSheet(QString( "* {font-size: %1pt;}" ).arg( fsize ) );
 
+    for ( auto table: findChildren< QTableView * >() ) {
+        table->setStyleSheet( "QTableView { font-size: 9pt; }"
+                              "QHeaderView::section { font-size: 9pt; }" );
+    }
+
     if ( auto p = findChild< CompoundsWidget * >() ) {
         p->setStyleSheet( QString("* { font-size: %1pt; }"
                                   "QHeaderView::section {"

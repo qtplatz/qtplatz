@@ -164,9 +164,9 @@ void
 QuanResultWnd::handleCompoundSelectionChanged( const QItemSelection&, const QItemSelection& )
 {
     std::set< boost::uuids::uuid> cmpds;
-
+#if !defined NDEBUG
     ADDEBUG() << "CompoundSelectionChanged: ";
-
+#endif
     QModelIndexList indices = cmpdWidget_->table().selectionModel()->selectedIndexes();
     for ( auto& index : indices )
         cmpds.insert( cmpdWidget_->uuid( index.row() ) );
@@ -179,8 +179,9 @@ QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 {
     boost::uuids::uuid uuid = cmpdWidget_->uuid( index.row() );
 
+#if !defined NDEBUG    
     ADDEBUG() << "CompoundSelected: " << uuid;
-
+#endif
     auto publisher = QuanDocument::instance()->publisher();
     if ( !publisher ) {
         if ( ( publisher = std::make_shared< QuanPublisher >() ) ) {
@@ -201,6 +202,9 @@ QuanResultWnd::handleCompoundSelected( const QModelIndex& index )
 void
 QuanResultWnd::handleResponseSelected( int respId )
 {
+#if !defined NDEBUG    
+    ADDEBUG() << __FUNCTION__ << " (" << respId << ")";
+#endif    
     if ( auto conn = QuanDocument::instance()->connection() ) {
 
         auto publisher = QuanDocument::instance()->publisher();
@@ -256,6 +260,7 @@ QuanResultWnd::handleResponseSelected( int respId )
 
             }
         }
+        
         std::wstring dataGuid;
         std::wstring dataSource;
         size_t idx;
@@ -271,13 +276,17 @@ QuanResultWnd::handleResponseSelected( int respId )
                 dataSource = sql.get_column_value< std::wstring >( 3 );
             }
         }
+
+        ADDEBUG() << "dataSource: " << dataSource
+                  << " dataGuid: " << dataGuid
+                  << " idx: " << idx << " proto: " << fcn;
         
         if ( !dataGuid.empty() ) {
             if ( auto d = conn->fetch( dataGuid ) ) {
-                //ADDEBUG() << "setData 1( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
                 dplot_->setData( d, idx, fcn, dataSource );
                 cplot_->setData( d, idx, fcn, dataSource );
             }
+            
             if ( sql.prepare( "SELECT refDataGuid,idx,fcn FROM QuanDataGuids WHERE dataGuid = ?" ) ) {
                 sql.bind( 1 ) = dataGuid;
                 while ( sql.step() == adfs::sqlite_row ) {
@@ -285,7 +294,9 @@ QuanResultWnd::handleResponseSelected( int respId )
                     auto idx = sql.get_column_value< uint64_t >( 1 );
                     auto fcn = sql.get_column_value< uint64_t >( 2 );
                     if ( auto d = conn->fetch( refDataGuid ) ) {
-                        //ADDEBUG() << "setData 2( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
+
+                        ADDEBUG() << "setData 2( idx=" << idx << ", fcn=" << fcn << ", dataSource=" << dataSource;
+
                         dplot_->setData( d, idx, fcn, dataSource );
                         cplot_->setData( d, idx, fcn, dataSource );
                     }
