@@ -139,6 +139,37 @@ Targeting::operator()( const MassSpectrum& ms )
     return true;
 }
 
+bool
+Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32_t fcn )
+{
+    candidates_.clear();
+
+    if ( !ms.isCentroid() )
+        return false;
+    if ( ms.size() == 0 )
+        return false;
+
+    double mass = ChemicalFormula().getMonoIsotopicMass( formula );
+
+    int proto( 0 );
+    for ( auto& fms: segment_wrapper< const adcontrols::MassSpectrum >( ms ) ) {
+        if ( proto == fcn ) {
+            double width = method_->tolerance( idToleranceDaltons );
+            do {
+                adcontrols::MSFinder finder( width, idFindClosest );
+                size_t pos = finder( fms, mass );
+                if ( pos != MassSpectrum::npos ) {
+                    candidates_.emplace_back( pos, proto, /*charge*/ 1, fms.getMass( pos ) - mass, formula );
+                    return true;
+                }
+                width += width;
+            } while ( width < 1.0 );
+        }
+        ++proto;
+    }
+    return false;
+}
+
 void
 Targeting::setup( const TargetingMethod& m )
 {

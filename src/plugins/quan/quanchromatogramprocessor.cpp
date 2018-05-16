@@ -189,6 +189,9 @@ namespace quan {
                                     if ( targeting( centroid ) ) {
                                         target_result_finder::find( targeting, formula, proto, centroid, ptree );
                                         writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
+                                    } else if ( targeting.force_find( centroid, formula, proto ) ) {
+                                        target_result_finder::find( targeting, formula, proto, centroid, ptree );
+                                        writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
                                     }
                                 }
                             }

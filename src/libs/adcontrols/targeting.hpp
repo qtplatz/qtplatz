@@ -53,6 +53,8 @@ namespace adcontrols {
         Targeting( const TargetingMethod& );
 
         bool operator ()( const MassSpectrum& );
+        bool force_find( const MassSpectrum&, const std::string& formula, int32_t fcn );
+        
         const std::vector< Candidate >& candidates() const { return candidates_; }
 
         struct Candidate {
