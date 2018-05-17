@@ -42,39 +42,39 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
-#include <adcontrols/msfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msfinder.hpp>
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/peak.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
-#include <adcontrols/peak.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
+#include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quanresponse.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
-#include <adportable/spectrum_processor.hpp>
-#include <adportable/debug.hpp>
-#include <adprocessor/mschromatogramextractor.hpp>
 #include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/file.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
-#include <adfs/file.hpp>
-#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
-#include <adutils/cpio.hpp>
-//#include <adwidgets/progresswnd.hpp>
-#include <adwidgets/progressinterface.hpp>
-#include <adportfolio/portfolio.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
+#include <adprocessor/mschromatogramextractor.hpp>
+#include <adutils/cpio.hpp>
+#include <adwidgets/progressinterface.hpp>
 #include <chromatogr/chromatography.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
@@ -100,6 +100,7 @@ QuanSampleProcessor::QuanSampleProcessor( QuanProcessor * processor
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
+    progress_total_ = samples.size();
 }
 
 QuanProcessor *
@@ -111,52 +112,31 @@ QuanSampleProcessor::processor()
 void
 QuanSampleProcessor::dryrun()
 {
-    nFcn_ = 0;
-    nSpectra_ = 0;
-    adcontrols::Chromatogram tic;
-    if ( raw_ ) {
-        nFcn_ = raw_->getFunctionCount();
-        raw_->getTIC( 0, tic );
-        nSpectra_ = tic.size();
-    }
+    size_t n_spectra = 0;
 
-    if ( samples_.empty() )
-        return;
-    const auto& sample = samples_[ 0 ];
-    path_ = sample.dataSource();
-    open();
+    for ( const auto& sample: samples_ ) {
+        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( sample.dataSource(), /* read-only */ true ) );
+        if ( file ) {
+            struct subscriber : adcontrols::dataSubscriber {
+                const adcontrols::LCMSDataset * raw;
+                subscriber() : raw( 0 ) {}
+                bool subscribe( const adcontrols::LCMSDataset& d ) { raw = &d; return true; }
+            } subscribe;
 
-    // for ( auto& sample : samples_ ) {
+            file->accept( subscribe );
 
-    switch ( sample.dataGeneration() ) {
-    case adcontrols::QuanSample::GenerateSpectrum:
-        if ( nFcn_ && sample.scan_range_first() == 0 && sample.scan_range_second() == static_cast< unsigned int>(-1) )
-            progress_total_ += int( nSpectra_ / nFcn_ );
-        progress_total_++;
-        break;
-    case adcontrols::QuanSample::ProcessRawSpectra:
-        progress_total_ += int( nSpectra_ );
-        break;
-    case adcontrols::QuanSample::ASIS:
-        progress_total_++;
-        break;
-    case adcontrols::QuanSample::GenerateChromatogram:
-        if ( procmethod_ ) {
-            if ( auto qm = procmethod_->find< adcontrols::QuanMethod >() ) {
-                progress_total_ = int( nSpectra_ );
+            size_t n = 0;            
+            if ( subscribe.raw && subscribe.raw->db() ) {
+                adfs::stmt sql( *subscribe.raw->db() );
+                sql.prepare( "SELECT COUNT(*) FROM AcquiredData GROUP BY fcn" );
+                while ( sql.step() == adfs::sqlite_row )
+                    n = std::max( n, sql.get_column_value< uint64_t >( 0 ) );
+                n_spectra += n;
             }
-            if ( auto pCompounds = procmethod_->find< adcontrols::QuanCompounds >() ) {
-                progress_total_ += int( pCompounds->size() );
-            }
-            progress_total_++;                
         }
-            
-        break;
     }
-    ADDEBUG() << sample.dataSource() << ", progress_total_ = " << progress_total_ * samples_.size();
-
     progress_current_ = 0;
-    // progress_->setRange( int( progress_current_ ), int( progress_total_ ) );
+    progress_total_ = ( n_spectra > std::numeric_limits< decltype( progress_total_ ) >::max() ) ? std::numeric_limits< decltype( progress_total_ ) >::max() : n_spectra;
     (*progress_)( int( progress_current_ ), int( progress_total_) );
 }
 
@@ -183,23 +163,7 @@ QuanSampleProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                     writer->insert_table( sample ); // once per sample
                     
                 } else {
-#if 0
-                    auto chromatogram_processor = std::make_unique< QuanChromatogramProcessor >( procmethod_ );
-                    size_t pos = 0;
-                    do {
-                        auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                        if ( ( pos = read_raw_spectrum( pos, raw_, *ms ) ) ) {
-                            chromatogram_processor->process1st( pos - 1, ms, *this );
-                            if ( ( *progress_ )() ) {
-                                ADDEBUG() << "QuanSampleProcessor cancel requested";
-                                return false;
-                            }
-                        }
-                    } while ( pos );
-                    chromatogram_processor->doit( *this, sample, writer, "", progress_ );
-                    writer->insert_table( sample ); // once per sample
-                    (*progress_)();
-#endif
+                    ADDEBUG() << "data file version 2 or earlier versions not supported";
                 }
             }
             break; // ignore for this version
