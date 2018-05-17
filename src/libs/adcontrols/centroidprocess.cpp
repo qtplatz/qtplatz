@@ -458,7 +458,7 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
     
     if ( finder( histogram.size(), pTimes, pCounts ) ) {
 
-        merge( finder.results_, histogram.size(), pTimes, pCounts );
+        // merge( finder.results_, histogram.size(), pTimes, pCounts );
 
         info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
         info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );

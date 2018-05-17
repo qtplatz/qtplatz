@@ -193,7 +193,7 @@ histogram_peakfinder::operator()( size_t nbrSamples, const double * pTimes, cons
             state.stack_.top()++; // extend
         }
 
-#if 0
+#if !defined NDEBUG
         { // debug
             double pt = pTimes[ x - 1 ];
             double t = pTimes[ x ];
@@ -236,8 +236,8 @@ histogram_merger::operator()( std::vector< peakinfo >& pkinfo, size_t nbrSamples
 
     for ( auto it = pkinfo.begin() + 1; it != pkinfo.end(); ++it ) {
         
-        size_t x1 = (it - 1)->second;
-        size_t x2 = it->first;
+        size_t x1 = (it - 1)->second;  // peak end of 1st peak
+        size_t x2 = it->first;         // peak start of 2nd peak
 
         int dt = int ( ( ( pTimes[ x2 ] - pTimes[ x1 ] ) / xInterval_ ) + 0.5 );
 
