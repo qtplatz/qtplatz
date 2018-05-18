@@ -1,7 +1,7 @@
 @echo off
 setlocal enableextensions
 
-set src_dir=%HOME%\source
+set src_dir=%USERPROFILE%\source
 
 if %VisualStudioVersion% EQU 14.0 (
    set GENERATOR="Visual Studio 14 2015 Win64"

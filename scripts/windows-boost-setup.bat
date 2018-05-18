@@ -1,5 +1,5 @@
 @echo off
-set BOOST=boost_1_65_1
+set BOOST=boost_1_67_0
 set SRC=%USERPROFILE%\source
 set CWD=%cd%
 

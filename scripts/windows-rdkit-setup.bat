@@ -1,7 +1,7 @@
 @echo off
 
 setlocal enableextensions
-set src_dir=%HOME%\source
+set src_dir=%userprofile%\source
 
 if %VisualStudioVersion% EQU 14.0 (
    set GENERATOR="Visual Studio 14 2015 Win64"
@@ -14,9 +14,9 @@ if %VisualStudioVersion% EQU 15.0 (
 
 set CWD=%cd%
 set nproc=%NUMBER_OF_PROCESSORS%
-set src_dir=%HOME%\source
+set src_dir=%USERPROFILE%\source
 set rdkit_dir=%src_dir%\rdkit
-set boost_root=C:\boost\include\boost-1_65_1
+set boost_root=C:\boost\include\boost-1_67_1
 set boost_library_dir=C:\boost\x86_64\lib
 set rdkit_build_dir=%build_dir%\rdkit.release
 

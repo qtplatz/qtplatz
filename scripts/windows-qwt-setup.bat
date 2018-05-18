@@ -13,7 +13,7 @@ if %VisualStudioVersion% EQU 15.0 (
 
 set CWD=%cd%
 set nproc=%NUMBER_OF_PROCESSORS%
-set src_dir=%HOME%\source
+set src_dir=%USERPROFILE%\source
 set qwt_dir=%src_dir%\qwt-6.1
 
 if not exist %qwt_dir% (
