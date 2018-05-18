@@ -25,19 +25,20 @@
 #include "quanconnection.hpp"
 #include "quanplotdata.hpp"
 #include "quanquery.hpp"
-#include <adfs/cpio.hpp>
-#include <adfs/filesystem.hpp>
-#include <adfs/folder.hpp>
-#include <adfs/file.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
-#include <adcontrols/quansequence.hpp>
-#include <adcontrols/chromatogram.hpp>
-#include <adcontrols/peakresult.hpp>
 #include <adcontrols/quansample.hpp>
+#include <adcontrols/quansequence.hpp>
+#include <adcontrols/targeting.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/file.hpp>
+#include <adfs/filesystem.hpp>
+#include <adfs/folder.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <dataproc/dataprocconstants.hpp>
@@ -151,10 +152,16 @@ QuanConnection::fetch( const std::wstring& dataGuid )
 
             if ( att.dataClass() == adcontrols::MassSpectrum::dataClass() ) {
                 if ( att.attribute( L"name" ) == dataproc::Constants::F_CENTROID_SPECTRUM ) {
-
                     auto p = std::make_shared< adcontrols::MassSpectrum >();
                     if ( att.fetch( *p ) )
                         d->setCentroid ( p );
+                    for ( auto& a2: att.attachments() ) {
+                        if ( a2.dataClass() == adcontrols::Targeting::dataClass() ) {
+                            auto targeting = std::make_shared< adcontrols::Targeting >();
+                            a2.fetch( *targeting );
+                            d->setTargeting( targeting );
+                        }
+                    }
                 } else if ( att.attribute( L"name" ) == dataproc::Constants::F_DFT_FILTERD ) {
                     auto p = std::make_shared< adcontrols::MassSpectrum >();
                     if ( att.fetch( *p ) )
@@ -171,17 +178,19 @@ QuanConnection::fetch( const std::wstring& dataGuid )
                     d->setPkinfo( pkinfo );
 
             } else if ( att.dataClass() == adcontrols::PeakResult::dataClass() ) {
+
                 auto pkres = std::make_shared< adcontrols::PeakResult >();
                 if ( att.fetch( *pkres ) )
                     d->setPkResult( pkres );
 
             } else if ( att.dataClass() == adcontrols::QuanSample::dataClass() ) {
+
                 auto p = std::make_shared< adcontrols::QuanSample >();
                 if ( att.fetch( *p ) )
                     d->setSample( p );
-                
 
             } else if ( att.dataClass() == adcontrols::ProcessMethod::dataClass() ) {
+
                 auto p = std::make_shared< adcontrols::ProcessMethod >();
                 if ( att.fetch( *p ) )
                     d->setProcmethod( p );

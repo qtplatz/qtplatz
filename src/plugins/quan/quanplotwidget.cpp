@@ -28,12 +28,14 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mschromatogrammethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 
 #include <adplot/chromatogramwidget.hpp>
@@ -95,6 +97,15 @@ QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std:
 void
 QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const std::wstring& dataSource )
 {
+    const adcontrols::MSChromatogramMethod * mchro = 0;
+    if ( auto p = d->parent ? d->parent.get() : nullptr ) {
+        if ( p->procmethod ) {
+            if ( mchro = p->procmethod.get()->find< adcontrols::MSChromatogramMethod >() ) {
+                ADDEBUG() << "find MSChromatogramMethod " << mchro->width( mchro->widthMethod() );
+            }
+        }
+    }
+    
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
         
         spw->enableAxis( QwtPlot::yRight );

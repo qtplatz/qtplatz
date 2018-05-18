@@ -28,36 +28,43 @@
 #include <boost/optional.hpp>
 #include <memory>
 
-namespace adcontrols { class MassSpectrum; class MSPeakInfo; class Chromatogram; class PeakResult; class QuanSample; class ProcessMethod; }
+namespace adcontrols {
+    class MassSpectrum; class MSPeakInfo; class Chromatogram;
+    class PeakResult; class QuanSample; class ProcessMethod; class Targeting;
+}
 
 namespace quan {
 
     class QuanPlotData {
     public:
-    public:
         ~QuanPlotData();
         QuanPlotData();
         QuanPlotData( const QuanPlotData& );
         
+        void setCentroid( std::shared_ptr< adcontrols::MassSpectrum > d )     {  centroid = d;    }
+        void setChromatogram( std::shared_ptr< adcontrols::Chromatogram > d ) {  chromatogram = d;}
+        void setFilterd( std::shared_ptr< adcontrols::MassSpectrum > d )      {  filterd = d;     }
+        void setPkResult( std::shared_ptr< adcontrols::PeakResult > d )       {  pkResult = d;    }
+        void setPkinfo( std::shared_ptr< adcontrols::MSPeakInfo > d )         {  pkinfo = d;      }
+        void setProcmethod( std::shared_ptr< adcontrols::ProcessMethod > d )  {  procmethod = d ; }
         void setProfile( std::shared_ptr< adcontrols::MassSpectrum > d )      {  profile = d;     }
         void setProfiledHist( std::shared_ptr< adcontrols::MassSpectrum > d ) {  profiledHist = d;}
-        void setFilterd( std::shared_ptr< adcontrols::MassSpectrum > d )      {  filterd = d;     }
-        void setCentroid( std::shared_ptr< adcontrols::MassSpectrum > d )     {  centroid = d;    }
-        void setPkinfo( std::shared_ptr< adcontrols::MSPeakInfo > d )         {  pkinfo = d;      }
-        void setChromatogram( std::shared_ptr< adcontrols::Chromatogram > d ) {  chromatogram = d;}
-        void setPkResult( std::shared_ptr< adcontrols::PeakResult > d )       {  pkResult = d;    }
         void setSample( std::shared_ptr< adcontrols::QuanSample > d )         {  sample = d;      }
-        void setProcmethod( std::shared_ptr< adcontrols::ProcessMethod > d )  {  procmethod = d ; }
+        void setTargeting( std::shared_ptr< adcontrols::Targeting > d )       {  targeting = d ; }
+        void setParent( const QuanPlotData * p ) { parent = p; };
 
+        boost::optional< std::shared_ptr< adcontrols::Chromatogram > > chromatogram;
+        boost::optional< std::shared_ptr< adcontrols::MSPeakInfo > > pkinfo;
+        boost::optional< std::shared_ptr< adcontrols::MassSpectrum > > centroid;
+        boost::optional< std::shared_ptr< adcontrols::MassSpectrum > > filterd;
         boost::optional< std::shared_ptr< adcontrols::MassSpectrum > > profile;
         boost::optional< std::shared_ptr< adcontrols::MassSpectrum > > profiledHist;
-        boost::optional< std::shared_ptr< adcontrols::MassSpectrum > > filterd;
-        boost::optional< std::shared_ptr< adcontrols::MassSpectrum > > centroid;
-        boost::optional< std::shared_ptr< adcontrols::MSPeakInfo > > pkinfo;
-        boost::optional< std::shared_ptr< adcontrols::Chromatogram > > chromatogram;
         boost::optional< std::shared_ptr< adcontrols::PeakResult > > pkResult;
-        boost::optional< std::shared_ptr< adcontrols::QuanSample > > sample;
         boost::optional< std::shared_ptr< adcontrols::ProcessMethod > > procmethod;
+        boost::optional< std::shared_ptr< adcontrols::QuanSample > > sample;
+        boost::optional< std::shared_ptr< adcontrols::Targeting > > targeting;
+
+        boost::optional< const QuanPlotData * > parent;
     };
 
 }

@@ -153,14 +153,14 @@ namespace quan {
         static boost::uuids::uuid
         save( std::shared_ptr< QuanDataWriter > writer, const wchar_t * dataSource
               , std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult > >& pair
-              , std::shared_ptr< const adcontrols::ProcessMethod > procm, size_t idx )   {
+              , const adcontrols::ProcessMethod& procm, size_t idx )   {
 
             auto title = make_title( dataSource, pair.first->ptree() );
             if ( adfs::file file = writer->write( *pair.first, title ) ) {
                 auto fGuid = boost::uuids::string_generator()( file.name() );
                 pair.first->ptree().put( "folder.dataGuid", fGuid );
                 auto afile = writer->attach< adcontrols::PeakResult >( file, *pair.second, pair.second->dataClass() );
-                writer->attach< adcontrols::ProcessMethod >( afile, *procm, L"ProcessMethod" );
+                writer->attach< adcontrols::ProcessMethod >( file, procm, L"Process Method" );
                 return fGuid;
             }
             return { 0 };
@@ -203,9 +203,8 @@ namespace quan {
                         }
 
                         if ( auto att = writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO ) ) {
-                            // F_MSPEAK_INFO is attached to top level spectrum for display peak detection validation data
                         }
-                        if ( auto att = writer->attach< adcontrols::ProcessMethod ( file, procm, L"Process Method" ) ) {
+                        if ( auto att = writer->attach< adcontrols::ProcessMethod >( file, *procm, L"Process Method" ) ) {
                         }
                         if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
                             if ( targeting )
@@ -331,10 +330,8 @@ QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adc
         pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
 
         if ( auto lkm = pm->find< adcontrols::MSLockMethod >() ) {
-            for ( auto& cm: cXmethods_ ) {
+            for ( auto& cm: cXmethods_ )
                 cm->setLockmass( lkm->enabled() );
-                cm->setLockmass( lkm->enabled() );
-            }
         }
 
         if ( auto targeting_method = pm->find< adcontrols::TargetingMethod >() ) {
@@ -384,9 +381,10 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
             if ( reader ) {
                 std::vector< std::pair< std::shared_ptr< adcontrols::Chromatogram >
                                         , std::shared_ptr< adcontrols::PeakResult > > > rlist;
+
+                adcontrols::ProcessMethod pm( *procm_ );
+                pm *= (*cXmethods_[ idx ]);
                 do {
-                    adcontrols::ProcessMethod pm( *procm_ );
-                    pm *= (*cXmethods_[ idx ]);
                     std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
                     extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ (*progress)(); } );
                     std::transform( clist.begin(), clist.end(), std::back_inserter( rlist )
@@ -414,7 +412,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                             }
                         }
                     }
-                    dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, procm_, idx );
+                    dataGuid = save_chromatogram::save( writer, sample.dataSource(), pair, pm, idx );
                     response_builder::add( processor, sample, pair, *pCompounds );
                     auto index = ptree.get_optional< int32_t >( "targeting.idx" );
                     writer->insert_reference( dataGuid, msGuid, index ? index.get() : (-1), chr->protocol() );

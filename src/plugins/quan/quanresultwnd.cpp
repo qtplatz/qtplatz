@@ -27,6 +27,7 @@
 #include "quanconnection.hpp"
 #include "quandocument.hpp"
 #include "quanplot.hpp"
+#include "quanplotdata.hpp"
 #include "quanplotwidget.hpp"
 #include "quanpublisher.hpp"
 #include "quanquery.hpp"
@@ -279,22 +280,24 @@ QuanResultWnd::handleResponseSelected( int respId )
 
         if ( !dataGuid.empty() ) {
             if ( auto d = conn->fetch( dataGuid ) ) {
+
                 dplot_->setData( d, idx, fcn, dataSource );
                 cplot_->setData( d, idx, fcn, dataSource );
-            }
-            
-            if ( sql.prepare( "SELECT refDataGuid,idx,fcn FROM QuanDataGuids WHERE dataGuid = ?" ) ) {
-                sql.bind( 1 ) = dataGuid;
-                while ( sql.step() == adfs::sqlite_row ) {
-                    auto refDataGuid = sql.get_column_value< std::wstring >( 0 );
-                    auto idx = sql.get_column_value< uint64_t >( 1 );
-                    auto fcn = sql.get_column_value< uint64_t >( 2 );
-                    if ( auto d = conn->fetch( refDataGuid ) ) {
+
+                if ( sql.prepare( "SELECT refDataGuid,idx,fcn FROM QuanDataGuids WHERE dataGuid = ?" ) ) {
+                    sql.bind( 1 ) = dataGuid;
+                    while ( sql.step() == adfs::sqlite_row ) {
+                        auto refDataGuid = sql.get_column_value< std::wstring >( 0 );
+                        auto idx = sql.get_column_value< uint64_t >( 1 );
+                        auto fcn = sql.get_column_value< uint64_t >( 2 );
+                        if ( auto r = conn->fetch( refDataGuid ) ) {
+                            r->setParent( d );
 #if ! defined NDEBUG
-                        ADDEBUG() << "set reference data ( idx=" << idx << ", fcn=" << fcn << ")";
+                            ADDEBUG() << "set reference data ( idx=" << idx << ", fcn=" << fcn << ") procm=" << bool(r->procmethod);
 #endif
-                        dplot_->setData( d, idx, fcn, dataSource );
-                        cplot_->setData( d, idx, fcn, dataSource );
+                            dplot_->setData( r, idx, fcn, dataSource );
+                            cplot_->setData( r, idx, fcn, dataSource );
+                        }
                     }
                 }
             }
