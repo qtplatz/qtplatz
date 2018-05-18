@@ -313,6 +313,18 @@ MassSpectrum::isCentroid() const
     return pImpl_->isCentroid();
 }
 
+bool
+MassSpectrum::isHistogram() const
+{
+    return pImpl_->getCentroidAlgorithm() == CentroidHistogram;
+}
+
+CentroidAlgorithm
+MassSpectrum::centroidAlgorithm() const
+{
+    return pImpl_->getCentroidAlgorithm();
+}
+
 void
 MassSpectrum::setCentroid( CentroidAlgorithm algo )
 {

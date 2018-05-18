@@ -36,8 +36,10 @@ namespace adcontrols {
     class ADCONTROLSSHARED_EXPORT histogram {
     public:
         static std::shared_ptr< MassSpectrum > make_profile( const MassSpectrum&, const MassSpectrometer& );
+        static std::shared_ptr< MassSpectrum > make_profile( const MassSpectrum& );
     private:
         static void histogram_to_profile( MassSpectrum&, const MassSpectrometer& );
+        static void histogram_to_profile( MassSpectrum& );
     };
 
 }

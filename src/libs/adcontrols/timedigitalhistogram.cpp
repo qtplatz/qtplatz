@@ -384,7 +384,7 @@ bool
 TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
                                  , const TimeDigitalHistogram& hgrm )
 {
-    sp.setCentroid( adcontrols::CentroidNative );
+    sp.setCentroid( adcontrols::CentroidHistogram );
 
     using namespace adcontrols::metric;
 

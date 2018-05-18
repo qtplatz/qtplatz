@@ -45,6 +45,7 @@
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
+#include <adcontrols/histogram.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -175,30 +176,35 @@ namespace quan {
               , boost::property_tree::ptree& ptree )  {
             
             if ( auto file = writer->write( *ms, title ) ) {
-                if ( !ms->isCentroid() ) {
-                    if ( auto cm = procm->find< adcontrols::CentroidMethod >() ) {
-                        adcontrols::MSPeakInfo pkinfo;
-                        adcontrols::MassSpectrum centroid;
-                        if ( adprocessor::dataprocessor::doCentroid( pkinfo, centroid, *ms, *cm ) ) {
+                if ( auto cm = procm->find< adcontrols::CentroidMethod >() ) {
+                    adcontrols::MSPeakInfo pkinfo;
+                    adcontrols::MassSpectrum centroid;
 
-                            centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
-                            writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO );
+                    if ( adprocessor::dataprocessor::doCentroid( pkinfo, centroid, *ms, *cm ) ) {
 
-                            if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
-                                if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
-                                    adcontrols::Targeting targeting( *tm );                            
-                                    if ( targeting( centroid ) ) {
-                                        target_result_finder::find( targeting, formula, proto, centroid, ptree );
-                                        writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
-                                    } else if ( targeting.force_find( centroid, formula, proto ) ) {
-                                        target_result_finder::find( targeting, formula, proto, centroid, ptree );
-                                        writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
-                                    }
+                        centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
+                        writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO );
+                        
+                        if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
+                            if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
+                                adcontrols::Targeting targeting( *tm );                            
+                                if ( targeting( centroid ) ) {
+                                    target_result_finder::find( targeting, formula, proto, centroid, ptree );
+                                    writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
+                                } else if ( targeting.force_find( centroid, formula, proto ) ) {
+                                    target_result_finder::find( targeting, formula, proto, centroid, ptree );
+                                    writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
                                 }
                             }
                         }
                     }
                 }
+                
+                if ( ms->isHistogram() ) {
+                    if ( auto hist = adcontrols::histogram::make_profile( *ms ) )
+                        writer->attach< adcontrols::MassSpectrum >( file, *hist, adcontrols::constants::F_PROFILED_HISTOGRAM );
+                }
+                
                 return boost::uuids::string_generator()( file.name() );
             }
             return { 0 };
@@ -405,124 +411,6 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
     }
 }
 
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-void
-QuanChromatogramProcessor::save_candidate_chromatograms( std::shared_ptr< QuanDataWriter > writer
-                                                         , const wchar_t * dataSource
-                                                         , std::shared_ptr< const QuanChromatograms > chromatograms
-                                                         , const wchar_t * title_trailer )
-{
-    for ( auto & chro : *chromatograms ) {
-                
-        std::string formula = chro->formula();
-        auto range = chro->msrange();
-        std::wstring title = make_title( dataSource, formula, chro->fcn(), range.second - range.first, title_trailer );
-                
-        if ( chro ) {
-
-            if ( adfs::file file = writer->write( *chro->chromatogram(), title ) ) {
-
-                chro->setDataGuid( file.name() ); // dataGuid for Chromatogarm on adfs
-                
-                if ( auto pkinfo = chro->peakResult() ) {
-                    
-                    auto afile = writer->attach< adcontrols::PeakResult >( file, *pkinfo, pkinfo->dataClass() );
-                    writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
-
-                }
-            }
-        }
-
-    }
-}
-
-std::wstring
-QuanChromatogramProcessor::save_spectrum( std::shared_ptr< QuanDataWriter > writer
-                                          , const QuanCandidate& candidate
-                                          , const std::wstring& title )
-{
-    std::wstring dataGuid;
-        
-    if ( auto profile = candidate.profile() ) {
-
-        writer->remove( title, L"/Processed/Spectra" );
-
-        if ( adfs::file file = writer->write( *profile, title ) ) {
-            if ( auto filtered = candidate.filtered() ) {
-                writer->attach< adcontrols::MassSpectrum >( file, *filtered, dataproc::Constants::F_DFT_FILTERD );
-            }
-            if ( auto centroid = candidate.centroid() ) {
-                auto afile = writer->attach< adcontrols::MassSpectrum >( file, *centroid, dataproc::Constants::F_CENTROID_SPECTRUM );
-                writer->attach< adcontrols::ProcessMethod >( afile, *procm_, L"ProcessMethod" );
-            }
-            if ( auto pkinfo = candidate.mspkinfo() ) {
-                writer->attach< adcontrols::MSPeakInfo >( file, *pkinfo, dataproc::Constants::F_MSPEAK_INFO );
-            }
-            dataGuid = file.name();
-        }
-    }
-    return dataGuid;
-}
-        
-//static
-bool
-QuanChromatogramProcessor::doCentroid( const adcontrols::MassSpectrum& profile
-                        , const adcontrols::ProcessMethod& pm
-                        , std::shared_ptr< adcontrols::MSPeakInfo >& pkInfo
-                        , std::shared_ptr< adcontrols::MassSpectrum >& centroid
-                        , std::shared_ptr< adcontrols::MassSpectrum >& filtered )
-{
-    pkInfo = std::make_shared< adcontrols::MSPeakInfo >();
-    centroid = std::make_shared< adcontrols::MassSpectrum >();
-    filtered.reset();
-
-    if ( auto pCentroidMethod = pm.find< adcontrols::CentroidMethod >() ) {
-
-        if ( pCentroidMethod->noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
-
-            auto filtered = std::make_shared< adcontrols::MassSpectrum >();
-            filtered->clone( profile, true );
-
-            for ( auto& ms : adcontrols::segment_wrapper<>( *filtered ) ) {
-                adcontrols::waveform_filter::fft4c::lowpass_filter( ms, pCentroidMethod->cutoffFreqHz() );
-            }
-
-            filtered->addDescription( adcontrols::description( L"process", dataproc::Constants::F_DFT_FILTERD ) );
-            return QuanSampleProcessor::doCentroid( *pkInfo, *centroid, *filtered, *pCentroidMethod );
-
-        } else {
-            return QuanSampleProcessor::doCentroid( *pkInfo, *centroid, profile, *pCentroidMethod );
-        }
-    }
-    return false;
-}
-
-// void
-// QuanChromatogramProcessor::doit( QuanSampleProcessor& processor
-//                                  , adcontrols::QuanSample& sample
-//                                  , std::shared_ptr< QuanDataWriter > writer
-//                                  , const std::string& reader_objtext
-//                                  , std::shared_ptr< adwidgets::Progress > progress )
-// {
-//     bool save_on_datasource = false;
-
-//     if ( auto qm = procm_->find< adcontrols::QuanMethod >() ) {
-//         debug_level_ = qm->debug_level();
-//         save_on_datasource_ = qm->save_on_datasource();
-//     }
-
-//     if ( reader_objtext.find( "histogram" ) != std::string::npos ) {
-//         // counting data reader specified
-//         doCountingChromatogram( processor, sample, writer, reader_objtext, progress );
-        
-//     } else {
-//         // profile data reader specified
-//         doProfileChromatogram( processor, sample, writer, reader_objtext, progress );
-//     }
-// }
-
 // static
 bool
 QuanChromatogramProcessor::findPeaks( adcontrols::PeakResult& res, const adcontrols::Chromatogram& chr, const adcontrols::PeakMethod& pm )
@@ -559,144 +447,6 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
                 cmpd = std::find_if( cmpd, compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
             }
         }
-    }
-}
-
-void
-QuanChromatogramProcessor::doCountingChromatogram( QuanSampleProcessor& processor
-                                                   , adcontrols::QuanSample& sample
-                                                   , std::shared_ptr< QuanDataWriter > writer
-                                                   , const std::string& reader_objtext
-                                                   , std::shared_ptr< adwidgets::ProgressInterface > progress )
-{
-    std::vector< std::shared_ptr< QuanTarget > > targets;
-    std::vector< QuanCandidate > candidates;
-    
-    if ( auto compounds = procm_->find< adcontrols::QuanCompounds >() ) {
-        for ( auto& comp : *compounds ) {
-            std::string formula( comp.formula() );
-            if ( !formula.empty() && comp.isCounting() )
-                targets.emplace_back( std::make_shared< QuanTarget >( formula ) );
-        }
-    }
-    
-    do { // first phase
-        double mass_width = 0.010; // 10mDa default
-        if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
-            mass_width = targeting_method->tolerance( targeting_method->toleranceMethod() ) * 2.5; // experimental 
-        }
-
-        double tolerance = 0; // tolerance = 0 ==> single chromatogram per target (no parallel)
-        std::vector< std::shared_ptr< QuanChromatograms > > qcrms_v1; // array of enum of chromatogram
-        find_parallel_chromatograms( qcrms_v1, targets, reader_objtext, mass_width, tolerance );  
-
-        for ( auto& qcrms : qcrms_v1 ) {
-            save_candidate_chromatograms( writer, sample.dataSource(), qcrms, L"(counting)" );
-        }
-
-    } while ( 0 );
-}
-
-void
-QuanChromatogramProcessor::correct_baseline( adcontrols::MassSpectrum& profile )
-{
-    if ( profile.isCentroid() )
-        return;
-    adcontrols::segment_wrapper<> segments( profile );
-
-    for ( auto& ms: segments ) {
-        double dbase(0), rms(0), tic(0);
-        const double * data = ms.getIntensityArray();
-        tic = adportable::spectrum_processor::tic( static_cast< unsigned int >( ms.size() ), data, dbase, rms );
-
-        for ( size_t idx = 0; idx < ms.size(); ++idx )
-            ms.setIntensity( idx, data[ idx ] - dbase );
-    }
-}
-
-bool
-QuanChromatogramProcessor::doMSLock( adcontrols::MassSpectrum& profile )
-{
-    //--------- centroid --------
-    auto centroid = std::make_shared< adcontrols::MassSpectrum >();
-
-    if ( auto m = procm_->find< adcontrols::CentroidMethod >() ) {
-
-        adcontrols::CentroidProcess peak_detector;
-
-        adcontrols::segment_wrapper<> segments( profile );
-        
-        centroid->clone( profile, false );
-
-        if ( peak_detector( *m, profile ) ) {
-            peak_detector.getCentroidSpectrum( *centroid );
-
-            for ( auto fcn = 0; fcn < profile.numSegments(); ++fcn ) {
-                auto cseg = std::make_shared< adcontrols::MassSpectrum >();
-                peak_detector( profile.getSegment( fcn ) );
-                peak_detector.getCentroidSpectrum( *cseg );
-                *centroid << std::move( cseg ); 
-            }
-        }
-    }
-    
-    //--------- lockmass --------
-    // this does not find reference from segments attached to 'centroid'
-    if ( centroid ) {
-        
-        adcontrols::MSFinder find( mslockm_->tolerance( mslockm_->toleranceMethod() ), mslockm_->algorithm(), mslockm_->toleranceMethod() );
-
-        adcontrols::segment_wrapper<> segments( *centroid );
-        
-        if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
-            for ( auto& compound: *pCompounds ) {
-
-                if ( compound.isLKMSRef() ) {
-                    double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( compound.formula() );                    
-
-                    for ( auto& fms: segments ) {
-                        if ( fms.getMass( 0 ) < exactMass && exactMass < fms.getMass( fms.size() - 1 ) ) {
-                            auto idx = find( fms, exactMass );
-                            if ( idx != adcontrols::MSFinder::npos ) {
-                                *mslock_ << adcontrols::lockmass::reference( compound.formula(), exactMass, fms.getMass( idx ), fms.getTime( idx ) );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    if ( mslock_ )
-        mslock_->fit();
-    ( *mslock_ )( profile, true );
-    return true;
-}
-
-void
-QuanChromatogramProcessor::find_parallel_chromatograms( std::vector< std::shared_ptr< QuanChromatograms > >& vec
-                                                        , const std::vector< std::shared_ptr< QuanTarget > >& targets
-                                                        , const std::string& reader_objtext
-                                                        , double mspeak_width  // 0.002
-                                                        , double tolerance )   // 0.010
-                                                        
-{
-    for ( auto& t: targets ) {
-        std::vector < QuanTarget::target_value > developped_target_values;
-        t->compute_candidate_masses( mspeak_width, tolerance, developped_target_values );
-        vec.emplace_back( std::make_shared< QuanChromatograms >( t->formula(), developped_target_values, reader_objtext ) );
-    }
-
-    for ( auto& sp : spectra_ ) {
-        for ( auto& candidate: vec )
-            candidate->append_to_chromatogram( sp.first, sp.second.profile, reader_objtext );
-    }
-
-    auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
-
-    for ( auto& qchro: vec ) {
-        qchro->process_chromatograms( procm_ );
-        if ( pCompounds )
-            qchro->identify( pCompounds, procm_ );
     }
 }
 

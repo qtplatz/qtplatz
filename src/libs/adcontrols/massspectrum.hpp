@@ -65,7 +65,8 @@ namespace adcontrols {
                              , CentroidPeakAreaWaitedMass
                              , CentroidPeakMoment
                              , CentroidIsotopeSimulation
-                             , CentroidNative // instrument manufacturer's native algorithm 
+                             , CentroidNative      // instrument manufacturer's native algorithm
+                             , CentroidHistogram   // histogram based on counting (added 2018-MAY)
     };
 
     namespace internal {
@@ -120,7 +121,9 @@ namespace adcontrols {
         void setTimeArray( const double * );
 		void setColorArray( const unsigned char * );
         bool isCentroid() const;
+        bool isHistogram() const;
         void setCentroid( CentroidAlgorithm );
+        CentroidAlgorithm centroidAlgorithm() const;
 
         void setIntensityArray( std::vector< double >&& );
         void setMassArray( std::vector< double >&& );
@@ -210,7 +213,7 @@ namespace adcontrols {
         const_iterator begin() const;
         const_iterator end() const;
         iterator erase( const_iterator first, const_iterator last );
-        
+
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);

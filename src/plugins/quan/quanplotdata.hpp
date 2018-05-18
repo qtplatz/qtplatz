@@ -58,34 +58,7 @@ namespace quan {
         boost::optional< std::shared_ptr< adcontrols::PeakResult > > pkResult;
         boost::optional< std::shared_ptr< adcontrols::QuanSample > > sample;
         boost::optional< std::shared_ptr< adcontrols::ProcessMethod > > procmethod;
-
-        // boost::optional< std::shared_ptr< const adcontrols::MassSpectrum > > profile() const;
-        // boost::optional< std::shared_ptr< const adcontrols::MassSpectrum > > profiledHist() const;
-        // boost::optional< std::shared_ptr< const adcontrols::MassSpectrum > > filterd() const;
-        // boost::optional< std::shared_ptr< const adcontrols::MassSpectrum > > centroid() const;
-        // boost::optional< std::shared_ptr< const adcontrols::MSPeakInfo > > pkinfo() const;
-        // boost::optional< std::shared_ptr< const adcontrols::Chromatogram > > chromatogram() const;
-        // boost::optional< std::shared_ptr< const adcontrols::PeakResult > > pkResult() const;
-        // boost::optional< std::shared_ptr< const adcontrols::QuanSample > > sample() const;
-        // boost::optional< std::shared_ptr< const adcontrols::ProcessMethod > > procmethod() const;
     };
-
-    // class QuanPlotData {
-    // public:
-    //     ~QuanPlotData();
-    //     QuanPlotData();
-    //     QuanPlotData( const QuanPlotData& );
-
-    //     std::shared_ptr< adcontrols::MassSpectrum > profile;
-    //     std::shared_ptr< adcontrols::MassSpectrum > profiledHist;
-    //     std::shared_ptr< adcontrols::MassSpectrum > filterd;
-    //     std::shared_ptr< adcontrols::MassSpectrum > centroid;
-    //     std::shared_ptr< adcontrols::MSPeakInfo > pkinfo;
-    //     std::shared_ptr< adcontrols::Chromatogram > chromatogram;
-    //     std::shared_ptr< adcontrols::PeakResult > pkResult;
-    //     std::shared_ptr< adcontrols::QuanSample > sample;
-    //     std::shared_ptr< adcontrols::ProcessMethod > procmethod;
-    // };
 
 }
 

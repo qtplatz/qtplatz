@@ -101,29 +101,29 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
         
         spw->enableAxis( QwtPlot::yRight );
+        spw->clear();
 
-        if ( d->centroid )
+        if ( d->centroid ) {
             spw->setTitle( dataSource + L", " + d->centroid.get()->getDescriptions().toString() );
+            spw->setData( d->centroid.get(), 0, false );
+        }
         
         if ( d->filterd ) {
-            spw->setData( d->filterd.get(), 0, true );
-            if ( d->profile )
+            spw->setData( d->filterd.get(), 1, true );
+            if ( d->profile ) {
                 spw->setData( d->profile.get(), 2, true );
-            if ( d->centroid )
-                spw->setData( d->centroid.get(), 1, false );
+            }
         } else if ( d->profiledHist ) {
-            if ( d->profile )
-                spw->setData( d->profile.get(), 0, true );
             if ( d->profiledHist )
-                spw->setData( d->profiledHist.get(), 2, true );
-            if ( d->centroid )
-                spw->setData( d->centroid.get(), 1, false );            
+                spw->setData( d->profiledHist.get(), 1, true );
+            if ( d->profile )  // this must be a histogram
+                spw->setData( d->profile.get(), 2, true );
         } else {
             if ( d->profile )
-                spw->setData( d->profile.get(), 0, true );
-            if ( d->centroid )
-                spw->setData( d->centroid.get(), 1, false );
+                spw->setData( d->profile.get(), 1, true );
         }
+        spw->setAlpha( 1, 0x40 );
+        spw->setAlpha( 2, 0x40 );
 
         if ( d->pkinfo ) {
 
