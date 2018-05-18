@@ -205,6 +205,8 @@ namespace quan {
                         if ( auto att = writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO ) ) {
                             // F_MSPEAK_INFO is attached to top level spectrum for display peak detection validation data
                         }
+                        if ( auto att = writer->attach< adcontrols::ProcessMethod ( file, procm, L"Process Method" ) ) {
+                        }
                         if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
                             if ( targeting )
                                 writer->attach< adcontrols::Targeting >( att, targeting.get(), adcontrols::constants::F_TARGETING );

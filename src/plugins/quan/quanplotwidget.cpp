@@ -80,16 +80,12 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
 void
 QuanPlotWidget::handleDataChanged( int id, bool )
 {
-    // if ( id == idQuanMethod ) {
-    //     auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >();
-    // }
 }
 
 void
 QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std::wstring& dataSource )
 {
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
-        ADDEBUG() << "plot spectrum: " << dataSource << ", " << bool( d->centroid ) << ", " << bool( d->profile );
         setSpectrum( d, idx, fcn, dataSource );
     } else if ( d->chromatogram ) {
         setChromatogram( d, idx, fcn, dataSource );        
@@ -132,6 +128,12 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
         spw->setAlpha( 2, 0x40 );
 
         if ( d->pkinfo ) {
+
+            if ( d->procmethod ) {
+                ADDEBUG() << "has process method";
+            } else {
+                ADDEBUG() << "no process method";
+            }
 
             auto pkinfo = d->pkinfo.get()->findProtocol( fcn );
 
