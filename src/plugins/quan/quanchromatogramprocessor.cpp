@@ -117,6 +117,15 @@ namespace quan {
         }
     };
 
+    struct annotation {
+        static void add( adcontrols::MassSpectrum& centroid, int idx, int proto, const std::string& formula ) {
+            if ( auto tms = centroid.findProtocol( proto ) ) {
+                // todo: erase if peak already has the annotation
+                tms->get_annotations() << adcontrols::annotation( formula, tms->getMass( idx ), tms->getIntensity( idx ), idx, 0, adcontrols::annotation::dataFormula );
+            }
+        }
+    };
+
     // new interface as of 2018-MAY
     struct save_chromatogram {
         
@@ -179,23 +188,26 @@ namespace quan {
                 if ( auto cm = procm->find< adcontrols::CentroidMethod >() ) {
                     adcontrols::MSPeakInfo pkinfo;
                     adcontrols::MassSpectrum centroid;
+                    boost::optional< adcontrols::Targeting > targeting;
 
                     if ( adprocessor::dataprocessor::doCentroid( pkinfo, centroid, *ms, *cm ) ) {
 
                         centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
-                        writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO );
                         
-                        if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
-                            if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
-                                adcontrols::Targeting targeting( *tm );                            
-                                if ( targeting( centroid ) ) {
-                                    target_result_finder::find( targeting, formula, proto, centroid, ptree );
-                                    writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
-                                } else if ( targeting.force_find( centroid, formula, proto ) ) {
-                                    target_result_finder::find( targeting, formula, proto, centroid, ptree );
-                                    writer->attach< adcontrols::Targeting >( att, targeting, adcontrols::constants::F_TARGETING );
-                                }
+                        if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
+                            targeting = adcontrols::Targeting( *tm );                            
+                            if ( targeting.get()( centroid ) || targeting->force_find( centroid, formula, proto ) ) {
+                                if ( target_result_finder::find( targeting.get(), formula, proto, centroid, ptree ) )
+                                    annotation::add( centroid, ptree.get_optional< int >("targeting.idx").get(), proto, formula );
                             }
+                        }
+
+                        if ( auto att = writer->attach< adcontrols::MSPeakInfo >( file, pkinfo, dataproc::Constants::F_MSPEAK_INFO ) ) {
+                            // F_MSPEAK_INFO is attached to top level spectrum for display peak detection validation data
+                        }
+                        if ( auto att = writer->attach< adcontrols::MassSpectrum >( file, centroid, adcontrols::constants::F_CENTROID_SPECTRUM ) ) {
+                            if ( targeting )
+                                writer->attach< adcontrols::Targeting >( att, targeting.get(), adcontrols::constants::F_TARGETING );
                         }
                     }
                 }
