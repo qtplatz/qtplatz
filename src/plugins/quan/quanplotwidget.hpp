@@ -48,8 +48,10 @@ namespace quan {
         void setData( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );
         adplot::plot * dataplot() { return dplot_.get(); }
         void dataplot( adplot::plot * p ) { dplot_.reset( p ); }
-
+        void clear();
+        
         static std::string toSVG( const QuanPlotData&, size_t idx, int fcn );
+
 
     private:
         void setSpectrum( const QuanPlotData *, size_t idx, int fcn, const std::wstring& dataSource );

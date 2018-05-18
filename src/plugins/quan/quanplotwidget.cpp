@@ -88,7 +88,8 @@ QuanPlotWidget::handleDataChanged( int id, bool )
 void
 QuanPlotWidget::setData( const QuanPlotData * d, size_t idx, int fcn, const std::wstring& dataSource )
 {
-    if ( d->profile ) {
+    if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
+        ADDEBUG() << "plot spectrum: " << dataSource << ", " << bool( d->centroid ) << ", " << bool( d->profile );
         setSpectrum( d, idx, fcn, dataSource );
     } else if ( d->chromatogram ) {
         setChromatogram( d, idx, fcn, dataSource );        
@@ -106,6 +107,11 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
         if ( d->centroid ) {
             spw->setTitle( dataSource + L", " + d->centroid.get()->getDescriptions().toString() );
             spw->setData( d->centroid.get(), 0, false );
+        } else {
+            spw->setTitle( L"" );
+            spw->setData( 0, 0, false );
+            spw->setData( 0, 1, false );
+            spw->setData( 0, 2, false );
         }
         
         if ( d->filterd ) {
