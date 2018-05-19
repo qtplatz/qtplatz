@@ -10,8 +10,8 @@ if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/rdkit
     export RDBASE=$SRC/rdkit
     if [ -z $BOOST_ROOT ]; then
-	if [ -d /usr/local/boost-1_63 ]; then
-	    BOOST_ROOT=/usr/local/boost-1_63
+	if [ -d /usr/local/boost-1_67 ]; then
+	    BOOST_ROOT=/usr/local/boost-1_67
 	elif [ -d /usr/local/boost-1_62 ]; then
 	    BOOST_ROOT=/usr/local/boost-1_62
 	fi
@@ -22,8 +22,8 @@ else
     export RDBASE=$CROSS_ROOT/usr/local/rdkit
     TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
     if [ -z $BOOST_ROOT ]; then
-	if [ -d $CROSS_ROOT/usr/local/boost-1_63 ]; then
-	    BOOST_ROOT=/usr/local/boost-1_63
+	if [ -d $CROSS_ROOT/usr/local/boost-1_67 ]; then
+	    BOOST_ROOT=/usr/local/boost-1_67
 	elif [ -d $CROSS_ROOT/usr/local/boost-1_62 ]; then
 	    BOOST_ROOT=/usr/local/boost-1_62
 	fi
