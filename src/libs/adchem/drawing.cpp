@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -29,14 +29,14 @@
 
 #include <GraphMol/Depictor/RDDepictor.h>
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_sign_compare.h>
+#include <RDGeneral/versions.h>
 
-#include <GraphMol/MolDrawing/MolDrawing.h>
-#include <compiler/disable_unused_variable.h>
-#include <GraphMol/MolDrawing/DrawingToSVG.h>
-
-#include <compiler/diagnostic_pop.h>
+#if (RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 1))
+# include <GraphMol/MolDrawing/MolDrawing.h>
+# include <GraphMol/MolDrawing/DrawingToSVG.h>
+#else
+# include <GraphMol/MolDraw2D/MolDraw2DSVG.h>
+#endif
 
 using namespace adchem;
 
@@ -48,6 +48,16 @@ drawing::drawing()
 std::string
 drawing::toSVG( const RDKit::ROMol& mol )
 {
+#if (RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 2))
     std::vector< int > drawing = RDKit::Drawing::MolToDrawing( mol );
     return RDKit::Drawing::DrawingToSVG( drawing );
+#else // tried with 2018,9,1
+    RDKit::ROMol mol1( mol );
+    RDDepict::compute2DCoords( mol1 );
+    std::ostringstream o;
+    RDKit::MolDraw2DSVG svg_drawer( 300, 300, o );
+    svg_drawer.drawMolecule( mol1 );
+    svg_drawer.finishDrawing();
+    return o.str();
+#endif    
 }

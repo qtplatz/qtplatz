@@ -10,11 +10,11 @@ if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/rdkit
     export RDBASE=$SRC/rdkit
     if [ -z $BOOST_ROOT ]; then
-	if [ -d /usr/local/boost-1_67 ]; then
-	    BOOST_ROOT=/usr/local/boost-1_67
-	elif [ -d /usr/local/boost-1_62 ]; then
-	    BOOST_ROOT=/usr/local/boost-1_62
-	fi
+		if [ -d /usr/local/boost-1_67 ]; then
+			BOOST_ROOT=/usr/local/boost-1_67
+		elif [ -d /usr/local/boost-1_62 ]; then
+			BOOST_ROOT=/usr/local/boost-1_62
+		fi
     fi
 else
     BUILD_DIR=$SRC/build-$cross_target/rdkit
@@ -22,11 +22,11 @@ else
     export RDBASE=$CROSS_ROOT/usr/local/rdkit
     TOOLCHAIN=$(dirname $cwd)/toolchain-arm-linux-gnueabihf.cmake
     if [ -z $BOOST_ROOT ]; then
-	if [ -d $CROSS_ROOT/usr/local/boost-1_67 ]; then
-	    BOOST_ROOT=/usr/local/boost-1_67
-	elif [ -d $CROSS_ROOT/usr/local/boost-1_62 ]; then
-	    BOOST_ROOT=/usr/local/boost-1_62
-	fi
+		if [ -d $CROSS_ROOT/usr/local/boost-1_67 ]; then
+			BOOST_ROOT=/usr/local/boost-1_67
+		elif [ -d $CROSS_ROOT/usr/local/boost-1_62 ]; then
+			BOOST_ROOT=/usr/local/boost-1_62
+		fi
     fi
 fi
 
@@ -36,13 +36,14 @@ if [ `uname` == "Darwin" ]; then
 fi
 if [ ! -z $cross_target ]; then
     cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" "-DRDK_OPTIMIZE_NATIVE=OFF" )
+	sudo apt install libeigen3-dev
 fi
 
 echo "RDKit install on $RDBASE"
 
 if [ ! -d $RDBASE ]; then
     if [ ! -d $(dirname $RDBASE) ]; then
-	mkdir -p $(dirname $RDBASE)
+		mkdir -p $(dirname $RDBASE)
     fi
     git clone https://github.com/rdkit/rdkit $RDBASE
 fi

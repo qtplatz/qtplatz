@@ -3,7 +3,7 @@
 source ./constants.sh
 source ./prompt.sh
 
-VERSION=3.9.2
+VERSION=3.11.2
 VDIR=v3.9
 
 if type cmake > /dev/null; then
