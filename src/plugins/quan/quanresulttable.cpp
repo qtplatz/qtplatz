@@ -30,6 +30,8 @@
 #include <qtwrapper/font.hpp>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
+#include <QDebug>
+#include <QSqlField>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QSqlRecord>
@@ -44,12 +46,29 @@ namespace quan {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 QStyleOptionViewItem op( option );
+
+                if ( auto sqlModel = qobject_cast< const QSqlQueryModel * >( index.model() ) ) {
+                    auto field = sqlModel->record().field( index.column() );
+
+                    if ( ( field.name() == "error(mDa)" ) && ( index.data().toDouble() > 1.0 ) ) {
+                        auto mass = sqlModel->record().value( "mass" ).toDouble();
+                        if ( mass < std::numeric_limits< double >::epsilon() ) {
+                            painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("n/a") );
+                            return;
+                        }
+                    }
+                    if ( ( field.name() == "mass" ) && ( index.data().toDouble() <= 0.5 ) ) {
+                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString("n/a") );
+                        return;
+                    }
+                }
+                
                 if ( index.data().type() == QVariant::Double ) {
                     double value = index.data().toDouble();
-                    if ( value < 0.01 )
-                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'e', 5 ) );
-                    else
+                    if ( ( value <= std::numeric_limits< double >::epsilon() ) || value >= 0.01 )
                         painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'f', 5 ) );
+                    else
+                        painter->drawText( op.rect, Qt::AlignRight | Qt::AlignVCenter, QString::number( index.data().toDouble(), 'e', 5 ) );
                 } else if ( index.data().type() == QVariant::String ) {
                     std::string formula = adcontrols::ChemicalFormula::formatFormula( index.data().toString().toStdString() );
                     if ( !formula.empty() )
@@ -130,7 +149,6 @@ void
 QuanResultTable::setQuery( const QSqlQuery& sqlQuery, const std::vector<QString>& hidelist )
 {
     if ( auto model = qobject_cast< QSqlQueryModel * >( model_.get() ) ) {
-        //model->clear();
         model->setQuery( sqlQuery );
     }
 

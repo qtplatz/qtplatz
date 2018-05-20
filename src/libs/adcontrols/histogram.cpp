@@ -28,7 +28,9 @@
 #include "msproperty.hpp"
 #include "samplinginfo.hpp"
 #include "scanlaw.hpp"
+#if !defined NDEBUG
 #include <adportable/debug.hpp>
+#endif
 #include <boost/format.hpp>
 #include <cmath>
 
@@ -126,15 +128,20 @@ histogram::histogram_to_profile( MassSpectrum& ms )
     
     for ( size_t i = 0; i < ms.size(); ++i ) {
 
-        if ( ( i + 1 ) != ( ms.size() - 1 ) )
+        if ( i < ( ms.size() - 1 ) )
             deltaMass = ( ms.getMass( i + 1 ) - ms.getMass( i ) ) / ( ( ms.getTime( i + 1 ) - ms.getTime( i ) ) / info.fSampInterval() );
 
         double tc = ms.getTime( i );
+
         if ( ( tc - tp ) >= td ) {
-            counts.emplace_back( 0 );
-            times.emplace_back( tp + info.fSampInterval() );   // insert at the end of previous data
-            masses.emplace_back( ms.getMass( i == 0 ? 0 : i - 1 ) + deltaMass );
-            
+            // end previous peak
+            if ( ! counts.empty() ) {
+                counts.emplace_back( 0 );
+                times.emplace_back( tp + info.fSampInterval() );   // insert at the end of previous data
+                masses.emplace_back( ms.getMass( i == 0 ? 0 : i - 1 ) + deltaMass );
+            }
+
+            // start this peak
             counts.emplace_back( 0 );
             times.emplace_back( tc - info.fSampInterval() );    // insert before next peak start
             masses.emplace_back( ms.getMass( i ) - deltaMass );
