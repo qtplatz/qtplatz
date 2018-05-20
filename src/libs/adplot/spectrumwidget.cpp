@@ -610,7 +610,7 @@ SpectrumWidget::setFocusedFcn( int fcn )
         if ( trace )
             trace->setFocusedFcn( fcn );
     }
-    ADDEBUG() << "setFocusedFcn(" << fcn << ")";
+    //ADDEBUG() << "setFocusedFcn(" << fcn << ")";
 }
 
 void
@@ -813,7 +813,7 @@ TraceData::setFocusedFcn( int fcn )
         focusedFcn_ = fcn;
         if ( auto p = pSpectrum_ ) {
             changeFocus( focusedFcn_ );
-            ADDEBUG() << "changeFocus(" << focusedFcn_ << ")";
+            //ADDEBUG() << "changeFocus(" << focusedFcn_ << ")";
         }
     }
 }
@@ -927,8 +927,6 @@ SpectrumWidget::impl::update_annotations( plot& plot
     // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "update_annotateion:";
     plot.setUpdatesEnabled( false );
 
-	// QRectF zrc = plot.zoomRect();
-
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
 
@@ -1023,7 +1021,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
             QwtText text( QString::fromStdString(a.text()), QwtText::RichText);
             text.setColor( Qt::darkGreen );
             text.setFont( Annotation::font() );
-            annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+            bool added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
         }
         
         QColor color = Qt::darkGreen;
@@ -1037,7 +1035,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
             QwtText text( QString::fromStdString(a.text()), QwtText::RichText );
             text.setColor( color );
             text.setFont( font );
-			annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+			auto added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
         }
     }
     plot.setUpdatesEnabled( true );

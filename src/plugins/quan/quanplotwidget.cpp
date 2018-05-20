@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -40,6 +40,7 @@
 
 #include <adplot/chromatogramwidget.hpp>
 #include <adplot/peakmarker.hpp>
+#include <adplot/rangemarker.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/zoomer.hpp>
 #include <adportable/debug.hpp>
@@ -47,6 +48,7 @@
 #include <qwt_plot_marker.h>
 #include <QBoxLayout>
 #include <boost/format.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 using namespace quan;
 
@@ -77,6 +79,12 @@ QuanPlotWidget::QuanPlotWidget( QWidget * parent, bool isChromatogram ) : QWidge
         marker_->marker( adplot::PeakMarker::idAxis(id) )->setLinePen( QColor(0xff, 0, 0, 0x80), 0, Qt::DashLine );
 
     marker_->visible( true );
+
+    if ( !isChromatogram ) {
+        range_ = std::make_unique< adplot::RangeMarker >( QColor( 0, 255, 127, 0x30 ) /*Spring green*/ );
+        range_->setVisible( false );
+        range_->attach( dplot_.get() );
+    }
 }
 
 void
@@ -99,11 +107,21 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
 {
     const adcontrols::MSChromatogramMethod * mchro = 0;
     if ( auto p = d->parent ? d->parent.get() : nullptr ) {
-        if ( p->procmethod ) {
-            if ( mchro = p->procmethod.get()->find< adcontrols::MSChromatogramMethod >() ) {
-                ADDEBUG() << "find MSChromatogramMethod " << mchro->width( mchro->widthMethod() );
+        if ( p->procmethod && p->chromatogram ) {
+            auto& ptree = p->chromatogram.get()->ptree();
+            auto mass = ptree.get_optional< double >( "generator.extract_by_mols.moltable.mass" );
+            auto width = ptree.get_optional< double >( "generator.extract_by_mols.moltable.width" );
+            if ( range_ && mass && width ) {
+                double lMass = mass.get() - ( width.get() / 2 );
+                double uMass = mass.get() + ( width.get() / 2 );
+                range_->setValue( lMass, uMass );
+                range_->setVisible( true );
+            } else {
+                range_->setVisible( false );
             }
         }
+    } else {
+        range_->setVisible( false );
     }
     
     if ( auto spw = dynamic_cast<adplot::SpectrumWidget *>( dplot_.get() ) ) {
@@ -111,10 +129,7 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
         spw->enableAxis( QwtPlot::yRight );
         spw->clear();
 
-        if ( d->centroid ) {
-            spw->setTitle( dataSource + L", " + d->centroid.get()->getDescriptions().toString() );
-            spw->setData( d->centroid.get(), 0, false );
-        } else {
+        if ( ! d->centroid ) {
             spw->setTitle( L"" );
             spw->setData( 0, 0, false );
             spw->setData( 0, 1, false );
@@ -135,16 +150,15 @@ QuanPlotWidget::setSpectrum( const QuanPlotData * d, size_t idx, int fcn, const 
             if ( d->profile )
                 spw->setData( d->profile.get(), 1, true );
         }
-        spw->setAlpha( 1, 0x40 );
-        spw->setAlpha( 2, 0x40 );
+        spw->setAlpha( 1, 0x60 );
+        spw->setAlpha( 2, 0x60 );
+        if ( d->centroid ) {
+            // this must be last to make sure annotation will be drawn
+            spw->setTitle( dataSource + L", " + d->centroid.get()->getDescriptions().toString() );
+            spw->setData( d->centroid.get(), 0, false );
+        }
 
         if ( d->pkinfo ) {
-
-            if ( d->procmethod ) {
-                ADDEBUG() << "has process method";
-            } else {
-                ADDEBUG() << "no process method";
-            }
 
             auto pkinfo = d->pkinfo.get()->findProtocol( fcn );
 

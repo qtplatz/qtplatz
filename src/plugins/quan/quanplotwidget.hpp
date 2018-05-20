@@ -30,8 +30,7 @@
 
 #include <adplot/plot.hpp>
 
-namespace adplot { class PeakMarker; }
-
+namespace adplot { class PeakMarker; class RangeMarker; }
 
 namespace quan {
 
@@ -59,6 +58,7 @@ namespace quan {
         bool isChromatogram_;
         std::unique_ptr< adplot::plot > dplot_;
         std::unique_ptr< adplot::PeakMarker > marker_;
+        std::unique_ptr< adplot::RangeMarker > range_;
         void handleDataChanged( int id, bool f );
     };
 
