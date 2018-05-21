@@ -1,57 +1,66 @@
 @echo off
+set BOOST_VERSION=
+set QMAKE=
+set BUILD_ROOT=
+set SOURCE_ROOT=
+set GENERATOR=
+set CWD="%~dp0"
 
 setlocal enableextensions
-set src_dir=%userprofile%\source
 
-if %VisualStudioVersion% EQU 14.0 (
-   set GENERATOR="Visual Studio 14 2015 Win64"
-   set build_dir=%src_dir%\build-vc14-x86_64
+call %CWD%\constants.bat BOOST_VERSION QMAKE SOURCE_ROOT BUILD_ROOT GENERATOR
+set RDBASE=%SOURCE_ROOT%\rdkit
+set RDKIT_BUILD_DIR=%BUILD_ROOT%\rdkit.release
+
+set eigen_dir=%SOURCE_ROOT%\eigen
+
+if not exist %eigen_dir% (
+   git clone https://github.com/eigenteam/eigen-git-mirror %eigen_dir%
 )
-if %VisualStudioVersion% EQU 15.0 (
-   set GENERATOR="Visual Studio 15 2017 Win64"
-   set build_dir=%src_dir%\build-vc15-x86_64
-)
 
-set CWD=%cd%
-set nproc=%NUMBER_OF_PROCESSORS%
-set src_dir=%USERPROFILE%\source
-set rdkit_dir=%src_dir%\rdkit
-set boost_root=C:\boost\include\boost-1_67_1
-set boost_library_dir=C:\boost\x86_64\lib
-set rdkit_build_dir=%build_dir%\rdkit.release
+echo SOURCE_ROOT=%SOURCE_ROOT%
+echo BUILD_ROOT=%BUILD_ROOT%
+echo RDBASE=%RDBASE%
+echo GENERATOR=%GENERATOR%
 
-if not exist %rdkit_dir% (
-   cd %src_dir%
-   git clone https://github.com/rdkit/rdkit
+if not exist %RDBASE% (
+   git clone https://github.com/rdkit/rdkit %SOURCE_ROOT%/rdkit
+   git checkout Release_2018_03_1
 ) else (
-  cd %rdkit_dir%
+  pushd %RDBASE%
   git pull
+  git checkout Release_2018_03_1
+  popd
 )
 
-echo mkdir %rdkit_build_dir%
-mkdir %rdkit_build_dir%
+echo mkdir %RDKIT_BUILD_DIR%
+mkdir %RDKIT_BUILD_DIR%
 
-if not exist %rdkit_build_dir% (
-   echo No build directory %rdkit_build_dir%
-   goto :EOF
-)
+if not exist %RDKIT_BUILD_DIR% (
 
-cd %rdkit_build_dir%
-@echo on
+   echo No build directory %RDKIT_BUILD_DIR%
+
+) else (
+
+  @echo on
+  pushd %RDKIT_BUILD_DIR%
 
 :: Due to boost::archive template class in qtplatz libraries, it is impossible to link with shared object (dll)
-:: on windows.  No such restriction on Linux and Mac OSX
+:: on windows.  No such restriction on Linux and OSX
 
-cmake -DBOOST_LIBRARYDIR=%boost_library_dir% ^
-      -DBOOST_ROOT=%boost_root% ^
-      -DBoost_USE_STATIC_LIBS=ON ^
-      -DRDK_BUILD_INCHI_SUPPORT=ON ^
-      -DRDK_BUILD_PYTHON_WRAPPERS=OFF ^
-      -DRDK_BUILD_SWIG_JAVA_WRAPPER=OFF ^
-      -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %rdkit_dir%
+   cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARY_DIR% ^
+   	 -DBOOST_ROOT=%BOOST_ROOT% ^
+      	 -DBoost_USE_STATIC_LIBS=ON ^
+      	 -DRDK_BUILD_INCHI_SUPPORT=ON ^
+      	 -DRDK_BUILD_PYTHON_WRAPPERS=OFF ^
+      	 -DRDK_BUILD_SWIG_JAVA_WRAPPER=OFF ^
+      	 -DRDK_INSTALL_STATIC_LIBS=ON ^
+      	 -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %RDBASE%
 
-::devenv RDKit.sln
-msbuild /m:%nproc% /p:Configuration=Debug INSTALL.vcxproj
-msbuild /m:%nproc% /p:Configuration=Release INSTALL.vcxproj
+    msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj
+    msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj
+)
+
 endlocal
+
 cd %CWD%

@@ -31,7 +31,7 @@
 
 #include <RDGeneral/versions.h>
 
-#if (RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 1))
+#if RDKIT_VERSION <= RDKIT_VERSION_CHECK(2015, 9, 1)
 # include <GraphMol/MolDrawing/MolDrawing.h>
 # include <GraphMol/MolDrawing/DrawingToSVG.h>
 #else

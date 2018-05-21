@@ -2,17 +2,12 @@
 @echo off
 
 setlocal enabledelayedexpansion
-
-if %VisualStudioVersion% EQU 14.0 (
-   set tools=vc14
-   set GENERATOR="Visual Studio 14 2015 Win64"
-   set QTDIR=C:\Qt\5.9.3\msvc2015_64
-)
+call %~dp0%\constants.bat
 
 if %VisualStudioVersion% EQU 15.0 (
-   set tools=vc15
    set GENERATOR="Visual Studio 15 2017 Win64"
-   set QTDIR=C:\Qt\5.9.3\msvc2017_64
+) else (
+  echo "Not supported compiler version"
 )
 
 set source_dir="%~dp0"
@@ -23,6 +18,7 @@ set build_tests=false
 set build_clean=false
 set query_build_dir=false
 set exec_build=false
+set tools=%VisualStudioVersion%
 
 for %%i in (%*) do (
     if %%i==release (
@@ -63,6 +59,7 @@ echo -------------- tools:         !tools!
 echo -------------- GENERATOR:     !GENERATOR!
 
 echo "############ bootstrap building qtplatz using "!tools!" #############"
+pause
 
 if %build_clean%==true (
   echo rmdir !build_dir! /s /q
