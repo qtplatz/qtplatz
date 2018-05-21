@@ -18,10 +18,10 @@ set BOOST_LIBRARY_DIR=C:\Boost\lib
 set BOOST_BUILD_DIR=%SOURCE_ROOT%\boost_%BOOST_VERSION%
 set BZIP2_SOURCE_DIR=%SOURCE_ROOT%\bzip2-1.0.6
 
-echo BOOST_VERSION=%BOOST_VERSION%
-echo BOOST_ROOT=%BOOST_ROOT%
-echo BOOST_BUILD_DIR=%BOOST_BUILD_DIR%
-echo BZIP2_SOURCE_DIR=%BZIP2_SOURCE_DIR%
+echo "Installing BOOST: BOOST_VERSION=%BOOST_VERSION%"
+echo "Install to      : BOOST_ROOT=%BOOST_ROOT%"
+echo "Buld in         : BOOST_BUILD_DIR=%BOOST_BUILD_DIR%"
+echo "Additional      : BZIP2_SOURCE_DIR=%BZIP2_SOURCE_DIR%"
 
 if %VisualStudioVersion% EQU 14.0 ( set msvc=msvc-14.0 )
 if %VisualStudioVersion% EQU 15.0 ( set msvc=msvc-14.1 )
@@ -29,9 +29,10 @@ if %VisualStudioVersion% EQU 15.0 ( set msvc=msvc-14.1 )
 :Expecting git-bash installed, and enable tools from windows command prompt
 
 if NOT EXIST %BZIP2_SOURCE_DIR% (
+   echo "%BZIP2_SOURCE_DIR% does not exist."
    set tarball=bzip2-1.0.6.tar.gz
-   echo "downloading http://www.bzip.org/1.0.6/%tarball%"
    if NOT EXIST %SOURCE_ROOT%/%tarball% (
+      echo "downloading http://www.bzip.org/1.0.6/%tarball%"
       curl -L -o %SOURCE_ROOT%/%tarball% http://www.bzip.org/1.0.6/%tarball%
       pushd %SOURCE_ROOT%
       tar xvf %tarball%
@@ -71,8 +72,8 @@ b2 -j%nproc% toolset=%msvc% architecture=x86 address-model=64 -s BZIP2_SOURCE=%b
 goto end
 
 :simple
-b2 -j%nproc% address-model=64 -s BZIP2_SOURCE=%bzip2_dir% link=static --stagedir=stage/x86_64 stage
-b2 -j%nproc% address-model=64 -s BZIP2_SOURCE=%bzip2_dir% link=shared --stagedir=stage/x86_64 stage install
+b2 -j%NUMBER_OF_PROCESSORS% address-model=64 -s BZIP2_SOURCE=%bzip2_dir% link=static --stagedir=stage/x64-static stage install
+b2 -j%NUMBER_OF_PROCESSORS% address-model=64 -s BZIP2_SOURCE=%bzip2_dir% link=shared --stagedir=stage/x64-shared stage install
 
 :end
 
