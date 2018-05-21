@@ -30,7 +30,6 @@
 #include <memory>
 #include <vector>
 
-namespace boost { namespace asio { class io_service; } }
 namespace adacquire { class waveform_simulator;  }
 namespace acqrscontrols { namespace u5303a { class waveform; class method; } }
 namespace dgpio { class pio; }

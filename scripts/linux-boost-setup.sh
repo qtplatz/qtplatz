@@ -1,7 +1,9 @@
 #!/bin/bash
-source ./constants.sh
-source ./prompt.sh
-source ./nproc.sh
+
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/constants.sh
+source ${cwd}/prompt.sh
+source ${cwd}/nproc.sh
 
 arch=`uname`-`arch`
 
@@ -9,17 +11,16 @@ function bzip2_download {
     BZIP2_SOURCE=$1
     DOWNLOADS=$2
     if [ ! -d $BZIP2_SOURCE ]; then
-	if [ ! -f ${DOWNLOADS}/bzip2-1.0.6.tar.gz ]; then
-	    if [ ! -d ${DOWNLOADS} ]; then
-		mkdir ${DOWNLOADS}
-	    fi
-	    (cd ${DOWNLOADS}; 
-	     wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz )
-	fi
-	if [ ! -f $(dirname $BZIP2_SOURCE) ]; then
-	    mkdir -p $(dirname $BZIP2_SOURCE)
-	fi
-	tar xvf ${DOWNLOADS}/bzip2-1.0.6.tar.gz -C $(dirname $BZIP2_SOURCE)
+		if [ ! -f ${DOWNLOADS}/bzip2-1.0.6.tar.gz ]; then
+			if [ ! -d ${DOWNLOADS} ]; then
+				mkdir ${DOWNLOADS}
+			fi
+			curl -L -o ${DOWNLOADS}/bzip2-1.0.6.tar.gz http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+		fi
+		if [ ! -f $(dirname $BZIP2_SOURCE) ]; then
+			mkdir -p $(dirname $BZIP2_SOURCE)
+		fi
+		tar xvf ${DOWNLOADS}/bzip2-1.0.6.tar.gz -C $(dirname $BZIP2_SOURCE)
     fi
 }
 
@@ -29,20 +30,15 @@ function boost_download {
     BOOST_BUILD_DIR=$3
 
     if [ ! -f ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 ]; then
-	echo "=============================="
-	VERSION=$(echo $BOOST_VERSION | tr _ .)    
-	echo wget https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
-	if [ -f download ]; then
-	    echo "Clean previoud download file"
-	    rm -f download
+		echo "=============================="
+		VERSION=$(echo $BOOST_VERSION | tr _ .)    
+		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
+		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 	fi
-	wget https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
-	mv download ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2
-    fi
-    if [ -f ${BOOST_BUILD_DIR} ]; then
-	rm -rf ${BOOST_BUILD_DIR}
-    fi
-    tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname $BOOST_BUILD_DIR)	
+	if [ -f ${BOOST_BUILD_DIR} ]; then
+		rm -rf ${BOOST_BUILD_DIR}
+	fi
+	tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
 }
 
 function boost_build {
@@ -56,17 +52,17 @@ function boost_build {
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
       echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+      echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
       prompt
 
       case "${arch}" in
 	  Linux*)
 	      ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++11" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	      ;;
 	  Darwin*)
 	      ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang &&
-		  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++11 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+		  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++14 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	      ;;
 	  *)
 	      echo "Unknown arch: " $arch
@@ -76,16 +72,16 @@ function boost_build {
       echo "boost has been built on `pwd`";
       echo "run following command to install"
       echo "cd `pwd`"
-      echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
+      echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++14"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
       echo "*****************************************************"
 
       prompt
       case "${arch}" in
 	  Linux*)
-	      sudo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++11"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++14"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
 	      ;;
 	  Darwin*)
-	      sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++11 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	      sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++14 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
 	      ;;
 	  *)
 	      echo "Unknown arch: " $arch
@@ -95,21 +91,20 @@ function boost_build {
 
 function boost_cross_build {
     echo "=============================="
-    echo "   BOOST install for $cross_target "
+    echo "   BOOST cross install for $cross_target "
     echo "=============================="
-    prompt
     
     BOOST_BUILD_DIR=$1
     BZIP2_SOURCE=$2    
     if [ ! -d $(dirname $BOOST_PREFIX) ]; then
-	if ! mkdir -p $(dirname $BOOST_PREFIX) ; then
-	    echo "mkdir -p $(dirname BOOST_PREFIX) -- command faild. Check for your access permission"
-	    exit
-	fi
+		if ! mkdir -p $(dirname $BOOST_PREFIX) ; then
+			echo "mkdir -p $(dirname BOOST_PREFIX) -- command faild. Check for your access permission"
+			exit
+		fi
     fi
 
     if [ ! -w $(dirname $BOOST_PREFIX) ]; then
-	echo "Make $(dirname $BOOST_PREFIX) writable."
+		echo "Make $(dirname $BOOST_PREFIX) writable."
     fi
 
     ( cd $BOOST_BUILD_DIR;
@@ -124,7 +119,7 @@ function boost_cross_build {
 }
 
 if [ -z $BOOST_VERSION ]; then
-    BOOST_VERSION=1_62_0
+    BOOST_VERSION=1_67_0
 fi
 
 if [ -z $PREFIX ]; then
@@ -167,6 +162,7 @@ fi
 
 __nproc nproc
 echo "NPROC=" $nproc
+echo "CWD=" $cwd
 
 prompt
 
@@ -183,6 +179,9 @@ boost_download ${BOOST_VERSION} ${BUILD_ROOT} ${BOOST_BUILD_DIR}
 
 if [ -z $cross_target ]; then
 
+	if [ -f ~/user-config.jam ]; then
+		mv ~/user-config.jam ~/user-config.jam.orig
+	fi
     boost_build $BOOST_BUILD_DIR ${BZIP2_SOURCE}
 
 else
@@ -206,13 +205,12 @@ else
     fi
 
     if [ ! -f ~/user-config.jam ]; then
-	echo "# Creating ~/user-config.jam..."
+		echo "# Creating ~/user-config.jam..."
 	cat <<EOF>~/user-config.jam
 using gcc : arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
 using python : 2.7 ;
 EOF
     fi
-
     boost_cross_build ${BOOST_BUILD_DIR} ${BZIP2_SOURCE}
 fi
 

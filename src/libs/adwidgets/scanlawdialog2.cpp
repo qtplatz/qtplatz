@@ -49,6 +49,7 @@
 #include <workaround/boost/archive/xml_woarchive.hpp>
 #include <workaround/boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <cmath>
 #include <ratio>
 
 Q_DECLARE_METATYPE( boost::uuids::uuid )

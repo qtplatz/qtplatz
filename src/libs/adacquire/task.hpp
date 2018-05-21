@@ -32,8 +32,9 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <workaround/boost/asio/io_service_fwd.hpp>
 
-namespace boost { namespace asio { class io_service; } namespace uuids { struct uuid; } }
+namespace boost { namespace uuids { struct uuid; } }
 
 namespace adcontrols { class SampleRun; }
 
@@ -80,7 +81,7 @@ namespace adacquire {
         
         void initialize();
         void finalize();
-        boost::asio::io_service& io_service();
+        boost::asio::io_service_type& io_service();
 
         const this_clock_t::time_point& tp_uptime() const;
         this_clock_t::time_point tp_inject() const;

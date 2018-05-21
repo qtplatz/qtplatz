@@ -30,7 +30,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/mblock.hpp>
 #include <adportable/waveform_simulator.hpp>
-#include <workaround/boost/asio.hpp>
+#include <boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/random.hpp>

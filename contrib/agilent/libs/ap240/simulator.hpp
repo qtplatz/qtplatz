@@ -30,8 +30,9 @@
 #include <vector>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <acqrscontrols/ap240/method.hpp>
+#include <workaround/boost/asio/io_service_fwd.hpp>
 
-namespace boost { namespace asio { class io_service; } }
+// namespace boost { namespace asio { class io_service; } }
 namespace adinterface { class waveform_generator;  }
 
 namespace ap240 {
@@ -41,7 +42,7 @@ namespace ap240 {
         ~simulator();
         simulator();
 
-        bool acquire( boost::asio::io_service& );
+        bool acquire( boost::asio::io_service_type& );
         bool waitForEndOfAcquisition();
         bool readData( acqrscontrols::ap240::waveform& );
         void setup( const acqrscontrols::ap240::method& );
