@@ -17,7 +17,8 @@ set( Boost_ADDITIONAL_VERSIONS
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_65_1" # V15 'libs/serialization/src/basic_archive.cpp library_version_type(15)
+    "C:/Boost/include/boost-1_67"   # V16 'libs/serialization/src/basic_archive.cpp library_version_type(15)
+    # "C:/Boost/include/boost-1_65_1" # V15 'libs/serialization/src/basic_archive.cpp library_version_type(15)
     "C:/Boost/include/boost-1_63"   # V14 
     "C:/Boost/include/boost-1_62"   # V14 
     "C:/Boost/include/boost-1_59"   # V13 
@@ -26,11 +27,7 @@ if( WIN32 )
 
   set( BOOST_ROOT ${_boost} )
   set( BOOST_INCLUDEDIR ${_boost} )
-  if ( RTC_ARCH_X64 )
-    set( BOOST_LIBRARYDIR "c:/Boost/x86_64/lib" )
-  else()
-    set( BOOST_LIBRARYDIR "C:/Boost/lib" )    
-  endif()
+  set( BOOST_LIBRARYDIR "C:/Boost/lib" )    
 
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )
