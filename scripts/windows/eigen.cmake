@@ -18,7 +18,7 @@ add_custom_command(
 
 add_custom_target( eigen
   DEPENDS ${EIGEN_SOURCE_DIR} ${EIGEN_BUILD_DIR}
-  COMMAND cmake ${EIGEN_SOURCE_DIR}
+  COMMAND cmake -DCMAKE_CXX_FLAGS="/MP" ${EIGEN_SOURCE_DIR}
   COMMAND cmake --build . --config Release
   COMMAND cmake --build . --target install
   WORKING_DIRECTORY ${EIGEN_BUILD_DIR}

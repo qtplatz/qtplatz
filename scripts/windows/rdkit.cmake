@@ -57,7 +57,7 @@ add_custom_target( rdkit
   -DRDK_BUILD_SWIG_JAVA_WRAPPER=OFF
   -DRDK_INSTALL_STATIC_LIBS=ON
   -DRDK_INSTALL_DYNAMIC_LIBS=OFF
-  -DCMAKE_DEBUG_POSTFIX="d" -G ${GENERATOR} ${RDBASE} ${RDKIT_SOURCE_DIR}
+  -DCMAKE_DEBUG_POSTFIX="d" -G ${GENERATOR} -DCMAKE_CXX_FLAGS="/MP" ${RDBASE} ${RDKIT_SOURCE_DIR}
   COMMAND cmake --build . --config Debug
   COMMAND cmake --build . --config Release
   COMMAND cmake --build . --target install
