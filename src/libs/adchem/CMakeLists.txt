@@ -11,10 +11,12 @@ endif()
 
 add_definitions( -DADCHEM_LIBRARY )
 
-# include_directories( ${RDKit_INCLUDE_DIRS} )
-#foreach( a ${RDKit_LIBRARIES} )
-#  message( STATUS "-----------> " ${a} )
-#endforeach()
+include_directories( ${RDKit_INCLUDE_DIRS} )
+#[[
+foreach( a ${RDKit_LIBRARIES} )
+  message( STATUS "-----------> " ${a} )
+endforeach()
+]]
 
 set( adchem_SOURCES
   adchem.cpp
