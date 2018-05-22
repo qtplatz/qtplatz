@@ -1,16 +1,6 @@
 :#!cmd.exe
 @echo off
 
-setlocal enabledelayedexpansion
-call %~dp0%\constants.bat
-
-if %VisualStudioVersion% EQU 15.0 (
-   set GENERATOR="Visual Studio 15 2017 Win64"
-) else (
-  echo "Not supported compiler version"
-  goto end
-)
-
 set source_dir="%~dp0"
 set build_root="%~dp0.."
 set build_arch=x86_64
@@ -20,6 +10,16 @@ set build_clean=false
 set query_build_dir=false
 set exec_build=false
 set tools=%VisualStudioVersion%
+
+setlocal enabledelayedexpansion
+call %~dp0%\constants.bat
+
+if %VisualStudioVersion% EQU 15.0 (
+   set GENERATOR="Visual Studio 15 2017 Win64"
+) else (
+  echo "Not supported compiler version"
+  goto end
+)
 
 for %%i in (%*) do (
     if %%i==release (
@@ -49,6 +49,9 @@ for %%i in (%*) do (
 )
 
 set build_dir=!build_root!\build-!tools!-!build_arch!\qtplatz.!build_target!
+pushd !build_dir!
+build_dir=%CD%
+popd
 
 if %query_build_dir%==true (
    @echo %build_dir%
@@ -60,7 +63,6 @@ echo -------------- tools:         !tools!
 echo -------------- GENERATOR:     !GENERATOR!
 
 echo "############ bootstrap building qtplatz using "!tools!" #############"
-pause
 
 if %build_clean%==true (
   echo rmdir !build_dir! /s /q
@@ -89,4 +91,11 @@ if "%exec_build%"=="true" (
 
 :end
 
-endlocal
+endlocal && set build_dir=%build_dir%
+
+pushd %build_dir%
+echo --
+echo -- You are in the %build_dir%
+echo -- 'popd' command take you back to source directory.
+echo --
+

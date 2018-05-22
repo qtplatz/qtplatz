@@ -9,7 +9,15 @@ endif()
 
 add_custom_command(
   OUTPUT ${RDKIT_SOURCE_DIR}
-  COMMAND git clone https://github.com/rdkit/rdkit ${RDKIT_SOURCE_DIR}
+  COMMAND git clone https://github.com/rdkit/rdkit ${RDKIT_SOURCE_DIR}  
+  )
+
+add_custom_command(
+  DEPENDS ${RDKIT_SOURCE_DIR}
+  COMMAND git checkout -b Release_2018_03_1
+  COMMAND ${CMAKE_COMMAND} -E touch "${RDKIT_RELEASE}.date"
+  OUTPUT "${RDKIT_RELEASE}.date"
+  WORKING_DIRECTORY ${RDKIT_SOURCE_DIR}
   )
 
 add_custom_command(
@@ -39,7 +47,7 @@ find_package( Boost 1.57 REQUIRED COMPONENTS
   wserialization )
 
 add_custom_target( rdkit
-  DEPENDS ${RDKIT_SOURCE_DIR} ${RDKIT_BUILD_DIR}
+  DEPENDS ${RDKIT_SOURCE_DIR} ${RDKIT_BUILD_DIR} "${RDKIT_RELEASE}.date"
   COMMAND cmake
   -DBOOST_LIBRARYDIR="C:/Boost/lib"
   -DBOOST_ROOT=${BOOST_ROOT}
