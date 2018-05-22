@@ -8,6 +8,7 @@ if %VisualStudioVersion% EQU 15.0 (
    set GENERATOR="Visual Studio 15 2017 Win64"
 ) else (
   echo "Not supported compiler version"
+  goto end
 )
 
 set source_dir="%~dp0"

@@ -6,7 +6,7 @@ set QMAKE=C:\Qt\5.10.1\msvc2017_64\bin\qmake.exe
 pushd %CWD%\..\..
 set SOURCE_ROOT=%CD%
 popd
-set BUILD_ROOT=%SOURCE_ROOT%\build-%VisualStudioVersion%-x86_64
+set BUILD_ROOT=%SOURCE_ROOT%\build-vc%VisualStudioVersion%-x86_64
 
 if %VisualStudioVersion% EQU 14.0 ( set GENERATOR="Visual Studio 14 2015 Win64" )
 if %VisualStudioVersion% EQU 15.0 ( set GENERATOR="Visual Studio 15 2017 Win64" )
