@@ -3,7 +3,7 @@
 cwd="$( cd "$( dirname "$0" )" && pwd )"
 
 if [ -z $BOOST_VERSION ]; then
-    BOOST_VERSION=1_67_0
+    BOOST_VERSION=1_62_0
 fi
 if [ -z $BOOST_ROOT ]; then
 	a=(${BOOST_VERSION//_/ })
