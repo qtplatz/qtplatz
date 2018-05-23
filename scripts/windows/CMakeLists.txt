@@ -44,18 +44,13 @@ if ( QMAKE )
   message( STATUS "QTDIR               = " ${QTDIR} )
 endif()
 
+###########################################################
+### qwt 
 include ( qwt.cmake )
 
+### boost
 file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/boost.bat.in
-  ${CMAKE_CURRENT_BINARY_DIR}/boost.bat
-  )
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/boost-build.bat.in
-  ${BOOST_SOURCE_DIR}/build.bat
-  )
 add_custom_target( boost
   COMMAND ${CMAKE_COMMAND}
   -DBOOST_VERSION=${BOOST_VERSION}
@@ -65,7 +60,17 @@ add_custom_target( boost
   -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
   COMMENT "Run boost.bat"
   )
+# -- configure_file needs to be after the add_custom_target that prevent skip tar xvf ...
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/boost.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/boost.bat
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/boost-build.bat.in
+  ${BOOST_SOURCE_DIR}/build.bat
+  )
 
+### eigen
 add_custom_target( eigen
   COMMAND ${CMAKE_COMMAND}
   -DEIGEN_SOURCE_DIR=${EIGEN_SOURCE_DIR}
@@ -75,6 +80,7 @@ add_custom_target( eigen
   COMMENT "Run eigen.bat"
   )
 
+### rdkit
 add_custom_target( rdkit 
   COMMAND ${CMAKE_COMMAND}
   -DRDBASE=${RDBASE}

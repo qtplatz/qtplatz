@@ -421,6 +421,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
             }
         }
     }
+	return true;
 }
 
 // static
@@ -459,6 +460,8 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
                 cmpd = std::find_if( cmpd, compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
             }
         }
+		return true;
     }
+	return false;
 }
 

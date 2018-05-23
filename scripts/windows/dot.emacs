@@ -1,30 +1,7 @@
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(ansi-color-names-vector
-   ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
- '(custom-enabled-themes (quote (tsdh-dark)))
- '(inhibit-startup-screen t)
- '(package-selected-packages
-   (quote
-    (modern-cpp-font-lock egg git gnuplot-mode dts-mode cuda-mode mozc-im langtool flycheck-rtags company-rtags ac-mozc))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:family "Noto Mono" :foundry "monotype" :slant normal :weight normal :height 90 :width normal)))))
-;;;;;;;;;;;;;;;;;;;
 (require 'package)
-(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-			 ("marmalade" . "https://marmalade-repo.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")))
-
 (package-initialize)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 
 (add-hook 'c-mode-common-hook
           '(lambda ()
@@ -40,24 +17,79 @@
              (setq tab-width 4)
 	     (setq indent-tabs-mode nil)))
 
-(add-hook 'sh-mode-hook
-          '(lambda ()
-             (setq tab-width 4)
-             (setq indent-tabs-mode t)))
-
 (setq split-height-threshold 0)
 (setq split-width-threshold 0)
+
+;;;;;
+;(add-to-list 'load-path "~/.emacs.d/")
+(require 'auto-complete-config)
+(add-to-list 'ac-dictionary-directories "~/.emacs.d//ac-dict")
+(ac-config-default)
+
+;;;
+(set-face-attribute 'default nil :height 100)
+
+;;;;;;;; CEDET config ;;;;;;;;;;;
+;; select which submodes we want to activate
+
+;;(global-ede-mode 1)
+;;(semantic-mode 1)
+;(global-srecode-minor-mode 1)
+;;(ede-enable-generic-projects)
+;;(require 'semantic/ia)
+
+;;(global-semanticdb-minor-mode 1)
+;;(global-semantic-idle-scheduler-mode 1)
+;;(global-semantic-idle-completions-mode 1)
+;;(global-semantic-idle-summary-mode 1)
+
+;;(global-semantic-stickyfunc-mode 1)
+;;;(global-cedet-m3-minor-mode 1)
+;;(global-semantic-highlight-func-mode 1)
+;;(global-semantic-mru-bookmark-mode 1)
+;;(global-cedit-m3-minor-mode 1)
+
+;;(semanticdb-enable-gnu-global-databases 'c-mode t)
+;;(semanticdb-enable-gnu-global-databases 'c++-mode t)
+
+;;(defun my-semantic-hook ()
+;;  (imenu-add-to-menubar "TAGS"))
+;;(add-hook 'semantic-init-hooks 'my-semantic-hook)
+
+;;(setq boost-base-dir "C:/Boost/include/boost-1_54/boost")
+;;(setq qt5-base-dir "C:/Qt/Qt5.1.1/5.1.1/msvc2012/include")
+
+;;(semantic-add-system-include boost-base-dir 'c++-mode)
+;;(semantic-add-system-include qt5-base-dir 'c++-mode)
+;;(semantic-add-system-include (concat qt5-base-dir "/QtWidget" 'c++-mode)
+;;(semantic-add-system-include (concat qt5-base-dir "/QtGui" 'c++-mode)
+;;(semantic-add-system-include (concat qt5-base-dir "/QtCore" 'c++-mode)
+
+;(define-key 'c++-mode "." 'semantic-complete-self-insert)
+
+;semantic-speedbar-analysis
+
+(add-to-list 'default-frame-alist '(background-color . "#f0ffff"))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(inhibit-startup-screen t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:family "Consolas" :foundry "outline" :slant normal :weight normal :height 98 :width normal)))))
+
+;; wl
+(autoload 'wl "wl" "Wanderlust" t)
+(autoload 'wl-draft "wl" "Write draft with Wanderlust." t)
+
 ;;
-;;(require 'rtags)
-;;(require 'company)
-;;(require 'company-rtags)
-;;(setq rtags-autostart-diagnostics t)
-;;(rtags-diagnostics)
-;;(setq rtags-completions-enabled t)
-;;(push 'company-rtags company-backends)
-;;(global-company-mode)
-;;(rtags-enable-standard-keybindings)
-;;(define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(modern-c++-font-lock-global-mode t)
+(setq browse-url-browser-function 'browse-url-generic)
+(setq browse-url-generic-program 
+      (if (file-exists-p "/usr/bin/chromium")
+          "/usr/bin/chromium" "/usr/bin/google-chrome"))
 

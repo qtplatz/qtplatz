@@ -2,7 +2,9 @@
 @echo off
 
 set source_dir="%~dp0"
-set build_root="%~dp0.."
+pushd "%~dp0.."
+set build_root=%CD%
+popd
 set build_arch=x86_64
 set build_target=release
 set build_tests=false
