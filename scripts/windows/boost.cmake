@@ -44,8 +44,11 @@ if ( NOT EXISTS ${DOWNLOADS}/${BZIP2_TARBALL} )
   file( DOWNLOAD ${BZIP2_DOWNLOAD_URL} ${DOWNLOADS}/${BZIP2_TARBALL} SHOW_PROGRESS )
 endif()
 
-if ( NOT EXISTS ${BOOST_SOURCE_DIR} )
+if ( NOT EXISTS ${BOOST_SOURCE_DIR}/bootstrap.bat )
+  message( STATUS "boost source dir ${BOOST_SOURCE_DIR} not exit" )
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent} )
+else()
+  message( STATUS "boost source dir ${BOOST_SOURCE_DIR} exit" )
 endif()
 
 if ( NOT EXISTS ${BZIP2_SOURCE_DIR} )
