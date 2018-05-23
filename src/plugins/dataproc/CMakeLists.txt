@@ -137,6 +137,10 @@ add_library( ${PROJECT_NAME} MODULE
   ${Resources}
   )
 
+if ( WIN32 )
+  set( BCRYPT "bcrypt" )
+endif()
+
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adextension
@@ -160,6 +164,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   Core
   Qt5::Core
   ${Boost_LIBRARIES}
+  ${BCRYPT}
 )
 
 set_target_properties( ${PROJECT_NAME}

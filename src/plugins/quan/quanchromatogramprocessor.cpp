@@ -386,7 +386,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                 pm *= (*cXmethods_[ idx ]);
                 do {
                     std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
-                    extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ (*progress)(); } );
+                    extractor->extract_by_mols( clist, pm, reader, [progress]( size_t, size_t )->bool{ return (*progress)(); } );
                     std::transform( clist.begin(), clist.end(), std::back_inserter( rlist )
                                     , []( auto p ){ return std::make_pair( std::move( p ), std::make_shared< adcontrols::PeakResult >() ); });
                 } while (0);

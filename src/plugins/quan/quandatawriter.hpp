@@ -34,7 +34,7 @@
 #include <functional>
 #include <tuple>
 
-namespace boost { namespace uuids { class uuid; } }
+namespace boost { namespace uuids { struct uuid; } }
 namespace adcontrols {
     class Chromatogram; class MassSpectrum; class PeakResult;
     class ProcessMethod; class QuanSequence; class QuanSample; class QuanCompounds;
