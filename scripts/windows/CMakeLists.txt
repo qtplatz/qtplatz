@@ -11,6 +11,7 @@ set ( RDBASE ${SOURCE_ROOT}/rdkit )  # <- RDKit source & install directory
 set ( RDKIT_RELEASE "Release_2018_03_1" )
 set ( RDKIT_BINARY_DIR "${BUILD_ROOT}/rdkit" )
 set ( RDKIT_SOURCE_DIR "${RDBASE}" )
+set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
 file( STRINGS ${CMAKE_SOURCE_DIR}/../constants.bat configs )
 
@@ -45,11 +46,16 @@ endif()
 
 include ( qwt.cmake )
 
+file ( TO_NATIVE_PATH ${BZIP2_SOURCE_DIR} BZIP2_SOURCE_PATH )
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/boost.bat.in
   ${CMAKE_CURRENT_BINARY_DIR}/boost.bat
   )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/boost-build.bat.in
+  ${BOOST_SOURCE_DIR}/build.bat
+  )
 add_custom_target( boost
   COMMAND ${CMAKE_COMMAND}
   -DBOOST_VERSION=${BOOST_VERSION}
