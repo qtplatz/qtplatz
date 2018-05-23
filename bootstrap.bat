@@ -48,7 +48,7 @@ for %%i in (%*) do (
     )      
 )
 
-set build_dir=!build_root!\build-!tools!-!build_arch!\qtplatz.!build_target!
+set build_dir=!build_root!\build-!build_arch!\qtplatz.!build_target!
 pushd !build_dir!
 build_dir=%CD%
 popd

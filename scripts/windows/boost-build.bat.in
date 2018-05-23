@@ -1,0 +1,3 @@
+
+b2 -j@NUMBER_OF_PROCESSORS@ address-model=64 -s BZIP2_SOURCE=@BZIP2_SOURCE_PATH@ link=static --stagedir=stage\x64-static stage install
+::b2 -j@NUMBER_OF_PROCESSORS@ address-model=64 -s BZIP2_SOURCE=@BZIP2_SOURCE_PATH@ link=shared --stagedir=stage\x64-shared stage install
