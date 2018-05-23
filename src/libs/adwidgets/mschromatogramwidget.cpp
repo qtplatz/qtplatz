@@ -314,6 +314,7 @@ MSChromatogramWidget::helper::readRow( int row, adcontrols::moltable::value_type
     mol.smiles()  = model.index( row, c_smiles ).data( Qt::EditRole ).toString().toStdString();
     int protocol = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
     mol.setProtocol( protocol >= 0 ? boost::optional< int32_t >( protocol ) : boost::none );
+	return true;
 }
 
 bool

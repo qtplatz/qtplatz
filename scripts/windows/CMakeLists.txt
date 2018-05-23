@@ -25,6 +25,13 @@ foreach( i ${configs} )
   endif()
 endforeach()
 
+if ( NOT BOOST_VERSION )
+  message( FATAL_ERROR "Empty BOOST_VERSION" )
+endif()
+
+set ( BOOST_SOURCE_DIR ${BUILD_ROOT}/boost_${BOOST_VERSION} )
+set ( BZIP2_SOURCE_DIR ${BUILD_ROOT}/bzip2-1.0.6 )
+
 if ( $ENV{VisualStudioVersion} VERSION_LESS "15.0" )
   message( FATAL_ERROR "Visual Studio Version $ENV{VisualStudioVersion} too old" )
 else()
@@ -36,13 +43,25 @@ if ( QMAKE )
   message( STATUS "QTDIR               = " ${QTDIR} )
 endif()
 
-include ( boost.cmake )
 include ( qwt.cmake )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/boost.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/boost.bat
+  )
+
+add_custom_target( boost
+  COMMAND ${CMAKE_COMMAND}
+  -DBOOST_VERSION=${BOOST_VERSION}
+  -DBOOST_SOURCE_DIR=${BOOST_SOURCE_DIR}
+  -DBZIP2_SOURCE_DIR=${BZIP2_SOURCE_DIR}
+  -DDOWNLOADS=$ENV{HOME}/Downloads
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
+  COMMENT "Run boost.bat"
+  )
 
 add_custom_target( eigen
   COMMAND ${CMAKE_COMMAND}
-  -DSOURCE_ROOT=${SOURCE_ROOT}
-  -DBUILD_ROOT=${BUILD_ROOT}
   -DEIGEN_SOURCE_DIR=${EIGEN_SOURCE_DIR}
   -DEIGEN_BINARY_DIR=${EIGEN_BINARY_DIR}
   -DGENERATOR=${GENERATOR}

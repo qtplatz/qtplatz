@@ -121,12 +121,14 @@ find_package( Boost 1.57 REQUIRED COMPONENTS
   filesystem
   iostreams
   locale
+  log
   program_options
   regex
   serialization
   system
   thread
-  wserialization )
+  wserialization
+  )
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
@@ -205,9 +207,10 @@ if ( WIN32 )
   set( SOLUTION_FILE "qtplatz" )  
   configure_file(
     ${QTPLATZ_SOURCE_DIR}/makefile.nmake.in
-    ${CMAKE_BINARY_DIR}/makefile @ONLY )
-
-  file( WRITE "${CMAKE_BINARY_DIR}/build-package.bat" "msbuild /m:4 /p:Configuration=Release PACKAGE.vcxproj" )
+    ${CMAKE_BINARY_DIR}/makefile @ONLY
+    )
+  
+  file( WRITE "${CMAKE_BINARY_DIR}/build-package.bat" "msbuild /m /p:Configuration=Release PACKAGE.vcxproj" )
 
   if ( DEBUG_SYMBOL )
     set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DEBUG" )
