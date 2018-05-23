@@ -1,28 +1,20 @@
 ######
 ## Eigen3 install on Windows
 ##
-set ( EIGEN_BUILD_DIR ${BUILD_ROOT}/eigen.build )
-if ( NOT EXISTS ${EIGEN_BUILD_DIR} )
-  file( MAKE_DIRECTORY ${EIGEN_BUILD_DIR} )
+
+message( STATUS "EIGEN_SOURCE_DIR = " ${EIGEN_SOURCE_DIR} )
+message( STATUS "EIGEN_BINARY_DIR = " ${EIGEN_BINARY_DIR} )
+
+execute_process( COMMAND git clone https://github.com/eigenteam/eigen-git-mirror ${EIGEN_SOURCE_DIR} )
+
+if ( EIGEN_RELEASE )
+  execute_process( 
+    COMMAND git checkout -b ${EIGEN_RELEASE}
+    WORKING_DIRECTORY ${EIGEN_SOURCE_DIR}
+    )
 endif()
 
-add_custom_command(
-  OUTPUT ${EIGEN_SOURCE_DIR}
-  COMMAND git clone https://github.com/eigenteam/eigen-git-mirror ${EIGEN_SOURCE_DIR}
-  )
-
-add_custom_command(
-  OUTPUT ${EIGEN_BUILD_DIR}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${EIGEN_BUILD_DIR}
-  )
-
-add_custom_target( eigen
-  DEPENDS ${EIGEN_SOURCE_DIR} ${EIGEN_BUILD_DIR}
-  COMMAND cmake -DCMAKE_CXX_FLAGS="/MP" ${EIGEN_SOURCE_DIR}
-  COMMAND cmake --build . --config Release
-  COMMAND cmake --build . --target install
-  WORKING_DIRECTORY ${EIGEN_BUILD_DIR}
-  )
-## End Eigen3 install.
-######
+if ( NOT EXISTS ${EIGEN_BINARY_DIR} )
+  file( MAKE_DIRECTORY ${EIGEN_BINARY_DIR} )
+endif()
 
