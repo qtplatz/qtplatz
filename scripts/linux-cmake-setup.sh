@@ -4,7 +4,7 @@ source ./constants.sh
 source ./prompt.sh
 
 VERSION=3.11.2
-VDIR=v3.9
+VDIR=v3.11
 
 if type cmake > /dev/null; then
     version=$(cmake --version | grep version)
