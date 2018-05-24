@@ -15,6 +15,8 @@ if ( WIN32 )
     add_library( AqDrv4 SHARED IMPORTED )
     set_target_properties( AqDrv4 PROPERTIES IMPORTED_IMPLIB "${_lib}" IMPORTED_LOCATION "${_dll}")
     set( AqDrv4_LIBRARIES AqDrv4 )
+  else()
+    find_path( AqDrv4_INCLUDE_DIR NAMES AcqirisImport.h PATHS ${CMAKE_SOURCE_DIR}/contrib/agilent/include )
   endif()
 
 elseif( APPLE )
