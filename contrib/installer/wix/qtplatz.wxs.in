@@ -18,7 +18,8 @@
 
         <Feature Id="ProductFeature" Title="QtPlatz Mass Spectrometry Software" Level="1">
             <ComponentGroupRef Id="LicenseComponents" />
-            <ComponentGroupRef Id="RDKitComponents" />
+            <ComponentGroupRef Id="RDKitLicenseComponents" />
+	    <ComponentGroupRef Id="RDKitComponents" />
             <ComponentGroupRef Id="QtComponents" />
             <ComponentGroupRef Id="QtTranslations" />
             <ComponentGroupRef Id="QtPluginsComponents" />       <!-- Qt plugins, -->
@@ -27,12 +28,7 @@
             <ComponentGroupRef Id="QtPlatzTranslations" />
             <ComponentGroupRef Id="QtPlatzXSLT" />
             <ComponentGroupRef Id="XSDComponents" />
-	    <?if "$(var.CORBA_SUPPORT)" = "ON" ?>	    
-            <ComponentGroupRef Id="TAOComponents" />
-	    <?endif?>	    
             <ComponentGroupRef Id="MicrosoftComponents" />
-            <ComponentGroupRef Id="EZUSBComponentGroup" />
-            <ComponentGroupRef Id="BrukerComponents" />
             <ComponentGroupRef Id="ApplicationProgramsFolder" />
             <ComponentGroupRef Id="DesktopShortcutFolder" />
         </Feature>
@@ -58,8 +54,7 @@
                             </Directory>
                         </Directory>
                     </Directory>
-                    <Directory Id="LIB_RDKIT" Name="rdkit" />
-                    <Directory Id="LIB_BRUKER" Name="Bruker" />
+                    <Directory Id="LIB_RDKIT_LICENSE" Name="rdkit" />
                     <Directory Id="PLUGINS" Name="plugins"/>
                 </Directory>
             </Directory>
@@ -78,11 +73,8 @@
 
     <!-- <?define TOP = "../../.." ?> -->
     <!-- <?define InfiTOFDir   = "$(var.TOP)/../infitof" ?> -->
-    <?define EZUSBDir     = "$(var.InfiTOFDir)/libusb-win32/usbdriver" ?>
     <?define InMSCheminfo = "$(var.TOP)/lib/qtplatz/plugins/MS-Cheminformatics" ?>
     <?define InQt         = "@QTDIR@" ?>
-    <?define InTAOLib     = "@ACE_ROOT@/lib" ?>
-    <?define InTAOBin     = "@ACE_ROOT@/bin" ?>
     <Fragment>
         <ComponentGroup Id="LicenseComponents" Directory="INSTALLFOLDER">
             <Component Id="license.txt" Guid="85B42502-7D63-4FCF-9737-3660138FA88B" Win64="yes">
@@ -96,12 +88,7 @@
                 <File Id="config.xsd" Source="$(var.TOP)/src/plugins/xsd/config.xsd" ProcessorArchitecture="x64" />
             </Component>
         </ComponentGroup>
-	<?if "$(var.CORBA_SUPPORT)" = "ON" ?>
-        <?include tao_components.wxi ?>
-	<?endif?>
     </Fragment>
-
-    <?include $(var.InfiTOFDir)/libusb-win32/ezusb_components.wxi ?>
 
     <!-- If you got an error during Light process at around lines below, check fileid for qtplatz.exe in qtpaltz_bin.wxi hervest generated file -->
     <Fragment>

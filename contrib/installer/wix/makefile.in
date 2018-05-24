@@ -26,24 +26,30 @@ CORBA_SUPPORT = @QTPLATZ_SUPPORT_CORBA@
 
 STAGEDIR = @STAGEDIR@
 OPENCVDIR = @OPENCVDIR@
+RDBASE = @RDBASE@
 
 CANDLE = "$(WIX)bin\Candle.exe"
-LIGHT = "$(WIX)\bin\Light.exe"
-LIT = "$(WIX)\bin\Lit.exe"
-DARK = "$(WIX)\bin\Dark.exe"
-HEAT = "$(WIX)\bin\Heat.exe"
-MELT = "$(WIX)\bin\Melt.exe"
-TORCH = "$(WIX)\bin\Torch.exe"
-SMOKE = "$(WIX)\bin\Smoke.exe"
-PYRO = "$(WIX)\bin\Pyro.exe"
+LIGHT  = "$(WIX)\bin\Light.exe"
+LIT    = "$(WIX)\bin\Lit.exe"
+DARK   = "$(WIX)\bin\Dark.exe"
+HEAT   = "$(WIX)\bin\Heat.exe"
+MELT   = "$(WIX)\bin\Melt.exe"
+TORCH  = "$(WIX)\bin\Torch.exe"
+SMOKE  = "$(WIX)\bin\Smoke.exe"
+PYRO   = "$(WIX)\bin\Pyro.exe"
+
+#VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT"
+VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.14.26405\x64\Microsoft.VC141.CRT"
 
 ## following 3 commands are workaround where if PATH for cygwin/bin kind exists
 RM	= $(SH) /c del
 CP	= $(SH) /c copy
 MD      = $(SH) /c mkdir
 
-OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj @vcvers@.wixobj bruker.wixobj qtplatz_translations.wixobj \
-	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj
+#bruker.wixobj
+
+OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj @vcvers@.wixobj qtplatz_translations.wixobj \
+	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj rdkit.wixobj
 
 help:
 	@echo "* QTDIR=       " $(QTDIR)
@@ -106,7 +112,7 @@ sign:
 	signtool sign /t http://timestamp.digicert.com /a $(MSIFILE)
 
 qtplatz.wixobj: version.wxi qtplatz.wxs
-	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) -dTOP=$(QTPLATZ_SOURCE_DIR) -dCORBA_SUPPORT=$(CORBA_SUPPORT) qtplatz.wxs
+	$(CANDLE) -dInfiTOFDir=$(INFITOF_SOURCE_DIR) -dTOP=$(QTPLATZ_SOURCE_DIR) -dBRUKER_SUPPORT=OFF qtplatz.wxs
 
 qtplatz_plugins.wixobj: qtplatz_plugins.wxi
 	$(CANDLE) -dSourceDir=$(QTPLATZ_BINARY_DIR)\lib\qtplatz\plugins qtplatz_plugins.wxi
@@ -129,17 +135,11 @@ plugins.wixobj: plugins.wxi
 qt.wixobj: qt.wxi
 	$(CANDLE) -dQtBinDir=$(QTDIR)\bin qt.wxi
 
-vc120.wixobj: vc120.wxi 
-	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC120.CRT" vc120.wxi
-
-vc140.wixobj: vc140.wxi 
-	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)\redist\x64\Microsoft.VC140.CRT" vc140.wxi
+rdkit.wixobj: rdkit.wxi
+	$(CANDLE) -dRDKitLibDir="@RDBASE@\lib" rdkit.wxi
 
 vc141.wixobj: vc141.wxi
-	$(CANDLE) -dSourceDir="$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT" vc141.wxi
-
-bruker.wixobj: bruker.wxi 
-	$(CANDLE) -dSourceDir="@BDBASE@" bruker.wxi
+	$(CANDLE) -dSourceDir=$(VC141CRT_DIR) vc141.wxi
 
 #harvest: qt plugins translations qtplatz_translations bruker
 
@@ -177,29 +177,16 @@ qt.wxi: makefile
 	$(HEAT) dir $(QTDIR)\bin \
 	-dr BIN -cg QtComponents -sfrag -gg -g1 -sf -srd -var "var.QtBinDir" -t qt.xslt -o qt.wxi
 
+rdkit.wxi: makefile
+	$(HEAT) dir $(RDBASE)\lib \
+	-dr BIN -cg RDKitComponents -sfrag -gg -g1 -sf -srd -var "var.RDKitLibDir" -t rdkit.xslt -o rdkit.wxi
+
 opencv.wxi: makefile
 	$(HEAT) dir $(OPENCVDIR)\bin \
 	-dr BIN -cg OpenCVComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o $@
 
-vc120.wxi: makefile
-	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC120.CRT" \
-	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
-	-t x64transform.xslt -o $@
-
-vc140.wxi: makefile
-	$(HEAT) dir "$(VCINSTALLDIR)redist\x64\Microsoft.VC140.CRT" \
-	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
-	-t x64transform.xslt -o $@
-
 vc141.wxi: makefile
-	$(HEAT) dir "$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT" \
+	$(HEAT) dir $(VC141CRT_DIR) \
 	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o $@
-
-bruker.wxi: makefile
-	$(HEAT) dir "@BDBASE@" \
-	-dr LIB_BRUKER -cg BrukerComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
-	-t x64transform.xslt -o bruker.wxi
-
-
