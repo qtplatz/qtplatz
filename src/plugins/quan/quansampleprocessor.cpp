@@ -130,7 +130,7 @@ QuanSampleProcessor::dryrun()
                 adfs::stmt sql( *subscribe.raw->db() );
                 sql.prepare( "SELECT COUNT(*) FROM AcquiredData GROUP BY fcn" );
                 while ( sql.step() == adfs::sqlite_row )
-                    n = std::max( n, sql.get_column_value< uint64_t >( 0 ) );
+                    n = std::max( uint64_t( n ), sql.get_column_value< uint64_t >( 0 ) );
                 n_spectra += n;
             }
         }
