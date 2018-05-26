@@ -38,9 +38,7 @@ TORCH  = "$(WIX)\bin\Torch.exe"
 SMOKE  = "$(WIX)\bin\Smoke.exe"
 PYRO   = "$(WIX)\bin\Pyro.exe"
 
-#VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT"
-#VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.14.26405\x64\Microsoft.VC141.CRT"
-VC141CRT_DIR  = "$(VCTOOLSREDISTDIR)"
+REDISTDIR  = "$(VCTOOLSREDISTDIR)\"   # <-- I don't understand why, but this works!!
 
 ## following 3 commands are workaround where if PATH for cygwin/bin kind exists
 RM	= $(SH) /c del
@@ -55,7 +53,7 @@ OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj @vcvers@.wixo
 help:
 	@echo "* QTDIR            = " $(QTDIR)
 	@echo "* VCINSTALLDIR     = " $(VCINSTALLDIR)
-	@echo "* VC141CRT_DIR     = " $(VC141CRT_DIR)
+	@echo "* REDISTDIR     = " $(REDISTDIR)
 	@echo "* BINARY_DIR  =" $(QTPLATZ_BINARY_DIR)
 	@echo "*	nmake help	;show this message"
 	@echo "*	nmake cmake	;regenerate make and project files"
@@ -141,7 +139,7 @@ rdkit.wixobj: rdkit.wxi
 	$(CANDLE) -dRDKitLibDir="@RDBASE@\lib" rdkit.wxi
 
 vc141.wixobj: vc141.wxi
-	$(CANDLE) -dSourceDir=$(VC141CRT_DIR) vc141.wxi
+	$(CANDLE) -dSourceDir=$(REDISTDIR) vc141.wxi
 
 #harvest: qt plugins translations qtplatz_translations bruker
 
@@ -189,6 +187,6 @@ opencv.wxi: makefile
 	-t x64transform.xslt -o $@
 
 vc141.wxi: makefile
-	$(HEAT) dir $(VC141CRT_DIR) \
+	$(HEAT) dir $(REDISTDIR) \
 	-dr BIN -cg MicrosoftComponents -sfrag -gg -g1 -sf -srd -var "var.SourceDir" \
 	-t x64transform.xslt -o $@
