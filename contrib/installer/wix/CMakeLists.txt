@@ -27,7 +27,7 @@ endif()
 find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${CMAKE_SOURCE_DIR}/../infitof )
 if ( INFITOF_SOURCE_DIR )
   set( INFITOF_TARGET "infitof" )
-  set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../${INFITOF_TARGET}.package_${vsvers}" )
+  set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../${INFITOF_TARGET}.package" )
 endif()
 
 find_path( MALPIX_SOURCE_DIR NAMES "src/plugins/malpixacquire" HINTS ${CMAKE_SOURCE_DIR}/../malpix/malpix )
@@ -58,7 +58,6 @@ string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
 
 string( REGEX REPLACE "/" "\\\\" QTDIR ${QTDIR} )
 
-  
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
   "${PROJECT_BINARY_DIR}/makefile"

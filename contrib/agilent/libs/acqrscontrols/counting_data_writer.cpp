@@ -90,7 +90,7 @@ namespace acqrscontrols {
 
     //////////////////////////////////////////////////////////////////////////////////////////////
 
-    template<>    
+    template<> ACQRSCONTROLSSHARED_EXPORT
     bool
     counting_data_writer_< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >::write( adfs::filesystem& fs ) const
     {

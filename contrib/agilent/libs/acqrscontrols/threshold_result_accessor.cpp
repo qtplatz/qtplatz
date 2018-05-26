@@ -114,6 +114,12 @@ threshold_result_accessor::xmeta( std::string& ar ) const
 ///////////////////////////////////////////////////////////
 namespace acqrscontrols {
 
+    // template ctor for dll must be placed in .cpp file due to Windows dll require explicit export
+    template<> ACQRSCONTROLSSHARED_EXPORT 
+    threshold_result_accessor_< acqrscontrols::ap240_threshold_result >::threshold_result_accessor_()
+    {
+    }
+    
     template<>
     uint64_t
     threshold_result_accessor_< acqrscontrols::ap240_threshold_result >::elapsed_time() const
@@ -128,7 +134,7 @@ namespace acqrscontrols {
         return (*it_)->data()->timeSinceEpoch_;
     }
 
-    template<>
+    template<> 
     uint64_t
     threshold_result_accessor_< acqrscontrols::ap240_threshold_result >::pos() const
     {

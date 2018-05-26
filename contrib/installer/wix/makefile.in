@@ -39,7 +39,8 @@ SMOKE  = "$(WIX)\bin\Smoke.exe"
 PYRO   = "$(WIX)\bin\Pyro.exe"
 
 #VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.11.25325\x64\Microsoft.VC141.CRT"
-VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.14.26405\x64\Microsoft.VC141.CRT"
+#VC141CRT_DIR = "$(VCINSTALLDIR)Redist\MSVC\14.14.26405\x64\Microsoft.VC141.CRT"
+VC141CRT_DIR  = "$(VCTOOLSREDISTDIR)"
 
 ## following 3 commands are workaround where if PATH for cygwin/bin kind exists
 RM	= $(SH) /c del
@@ -52,8 +53,9 @@ OBJS = qtplatz.wixobj translations.wixobj plugins.wixobj qt.wixobj @vcvers@.wixo
 	qtplatz_xslt.wixobj qtplatz_plugins.wixobj qtplatz_bin.wixobj rdkit.wixobj
 
 help:
-	@echo "* QTDIR=       " $(QTDIR)
-	@echo "* VCINSTALLDIR=" $(VCINSTALLDIR)
+	@echo "* QTDIR            = " $(QTDIR)
+	@echo "* VCINSTALLDIR     = " $(VCINSTALLDIR)
+	@echo "* VC141CRT_DIR     = " $(VC141CRT_DIR)
 	@echo "* BINARY_DIR  =" $(QTPLATZ_BINARY_DIR)
 	@echo "*	nmake help	;show this message"
 	@echo "*	nmake cmake	;regenerate make and project files"
