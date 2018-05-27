@@ -15,13 +15,9 @@ if ( MSVC_VERSION GREATER_EQUAL 1910 )
   set( vcvers "vc141" )
   set( vsvers "vc15" )
 elseif ( MSVC_VERSION EQUAL 1900 )
-  set( Generator "Visual Studio 14 Win64" )
-  set( vcvers "vc140" )
-  set( vsvers "vc14" )
+  message( FATAL_ERROR "VISUAL STUDIO VERSION NOT SUPPORTED" )
 elseif( MSVC_VERSION EQUAL 1800 )
-  set( Generator "Visual Studio 12 Win64" )
-  set( vcvers "vc120" )
-  set( vsvers "vc12" )
+  message( FATAL_ERROR "VISUAL STUDIO VERSION NOT SUPPORTED" )
 endif()
 
 if ( OpenCV_FOUND )
@@ -31,7 +27,7 @@ endif()
 find_path( INFITOF_SOURCE_DIR NAMES "infitof-config.cmake" HINTS ${CMAKE_SOURCE_DIR}/../infitof )
 if ( INFITOF_SOURCE_DIR )
   set( INFITOF_TARGET "infitof" )
-  set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../${INFITOF_TARGET}.package_${vsvers}" )
+  set( INFITOF_BINARY_DIR "${CMAKE_BINARY_DIR}/../${INFITOF_TARGET}.package" )
 endif()
 
 find_path( MALPIX_SOURCE_DIR NAMES "src/plugins/malpixacquire" HINTS ${CMAKE_SOURCE_DIR}/../malpix/malpix )
@@ -62,7 +58,6 @@ string( REGEX REPLACE "/" "\\\\" STAGEDIR ${STAGEDIR} )
 
 string( REGEX REPLACE "/" "\\\\" QTDIR ${QTDIR} )
 
-  
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
   "${PROJECT_BINARY_DIR}/makefile"

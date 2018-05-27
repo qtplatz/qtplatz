@@ -42,22 +42,27 @@ while [ $# -gt 0 ]; do
 	    shift
 	    ;;
 	*)
-	    break
+	    echo "unknown option $1"
+	    exit 1
 	    ;;
     esac
 done
 
-if [ -z $QTDIR ]; then
+if [ -z "$QTDIR" ]; then
     if find_qmake QMAKE; then
-		QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
-		echo "qmake found in "$QTDIR " (qmake="${QMAKE}")"
-		prompt
-		export PATH=$QTDIR/bin:$PATH
+	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
+	echo "qmake found in "$QTDIR " (qmake="${QMAKE}")"
+	prompt
+	export PATH=$QTDIR/bin:$PATH
+    else
+	echo "## Error: QMAKE cannot be found"
+	exit 1
     fi
 fi
 
 echo "platform="$host_system
 echo "config="$config
+echo "QTDIR="$QTDIR
 
 if [ -z $cross_target ]; then
     case $arch in

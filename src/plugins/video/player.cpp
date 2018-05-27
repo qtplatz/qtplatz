@@ -56,7 +56,7 @@ Player::loadVideo( const std::string& filename )
             if ( path.extension() != ".mp4" ) {
                 path.replace_extension( ".mp4" );
                 if ( ! boost::filesystem::exists( path ) ) {
-                    if ( recorder_ = std::make_unique< Recorder >() ) {
+                    if ( ( recorder_ = std::make_unique< Recorder >() ) ) {
                         cv::Size sz( capture_.get( CV_CAP_PROP_FRAME_WIDTH )
                                      , capture_.get( CV_CAP_PROP_FRAME_HEIGHT ) );
                         recorder_->open( path.string(), frameRate_, sz, true );
@@ -80,7 +80,7 @@ Player::loadCamera( int index )
         if ( frameRate_ > 30 )
             frameRate_ = 30;
         isCamera_ = true;
-        if ( recorder_ = std::make_unique< Recorder >() ) {
+        if ( ( recorder_ = std::make_unique< Recorder >() ) ) {
 
             cv::Size sz( capture_.get( CV_CAP_PROP_FRAME_WIDTH )
                          , capture_.get( CV_CAP_PROP_FRAME_HEIGHT ) );

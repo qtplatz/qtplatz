@@ -42,11 +42,6 @@ for %%i in (%*) do (
       goto end
     ) else if "%%i"=="--query-build_dir" (
       set query_build_dir=true
-    ) else if "%%i"=="--build" (
-      set exec_build=true
-    ) else if "%%i"=="--package" (
-      set exec_build=true
-      set build_target=package
     )      
 )
 
@@ -79,16 +74,13 @@ if not exist !build_dir! (
 cd !build_dir!
 
 if !build_target!==release (
-    echo cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
-    cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
+    echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
+    cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
     cd %source_dir%
 ) else if !build_target!==package (
-    echo cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
-    cmake -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
-)
-
-if "%exec_build%"=="true" (
-   nmake -C !build_dir! !build_target!
+    echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
+    cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
+    set build_dir=!build_dir!/contrib/installer/wix
 )
 
 :end

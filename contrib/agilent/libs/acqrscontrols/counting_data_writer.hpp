@@ -29,7 +29,7 @@ namespace acqrscontrols {
 
     template< typename T > class ACQRSCONTROLSSHARED_EXPORT waveform_accessor_;
 
-    class counting_data_writer : public adacquire::SignalObserver::DataWriter {
+    class ACQRSCONTROLSSHARED_EXPORT counting_data_writer : public adacquire::SignalObserver::DataWriter {
     public:
         counting_data_writer( std::shared_ptr< threshold_result_accessor > a ) : DataWriter( a ) {
         }

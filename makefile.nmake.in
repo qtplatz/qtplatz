@@ -10,7 +10,7 @@ BUILD_TARGET=Build
 SOLUTION_FILE=@SOLUTION_FILE@
 
 default: .phony
-	cmake --build . --config Release --target Build -- /MP
+	cmake --build . --config Release
 
 all:
 	$(MSBUILD) $(SOLUTION_FILE).sln /m /t:$(BUILD_TARGET) /p:Configuration=$(CONFIG)

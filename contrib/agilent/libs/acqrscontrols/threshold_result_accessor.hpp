@@ -31,7 +31,7 @@
 
 namespace acqrscontrols {
 
-    class threshold_result_accessor : public adacquire::SignalObserver::DataAccess {
+    class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor : public adacquire::SignalObserver::DataAccess {
 
     public:
         threshold_result_accessor();
@@ -62,10 +62,10 @@ namespace acqrscontrols {
     // T := const acqrscontrols::ap240::threshold_result
 
     template< typename T >
-    class threshold_result_accessor_ : public adacquire::SignalObserver::DataAccess {
+    class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_ : public adacquire::SignalObserver::DataAccess {
 
     public:
-        threshold_result_accessor_() {}
+        threshold_result_accessor_();
 
         size_t ndata() const override { return list.size(); }
 
@@ -88,6 +88,7 @@ namespace acqrscontrols {
         typename std::vector< std::shared_ptr< const T > >::iterator it_;
     };
 
-    template<> class threshold_result_accessor_< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >;
-    template<> class threshold_result_accessor_< const acqrscontrols::u5303a::threshold_result >;
+    template<> class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >;
+    
+    template<> class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_< const acqrscontrols::u5303a::threshold_result >;
 }

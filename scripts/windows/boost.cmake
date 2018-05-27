@@ -32,9 +32,7 @@ set ( BZIP2_TARBALL bzip2-1.0.6.tar.gz )
 set ( BZIP2_DOWNLOAD_URL "http://www.bzip.org/1.0.6/${BZIP2_TARBALL}" )
 
 get_filename_component( __boost_parent ${BOOST_SOURCE_DIR} DIRECTORY )
-message( STATUS "tar xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent}" )
 get_filename_component( __bzip2_parent ${BZIP2_SOURCE_DIR} DIRECTORY )
-message( STATUS "tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent}" )
 
 if ( NOT EXISTS ${DOWNLOADS}/${BOOST_TARBALL} )
   file( DOWNLOAD ${BOOST_DOWNLOAD_URL} ${DOWNLOADS}/${BOOST_TARBALL} SHOW_PROGRESS )
@@ -44,14 +42,13 @@ if ( NOT EXISTS ${DOWNLOADS}/${BZIP2_TARBALL} )
   file( DOWNLOAD ${BZIP2_DOWNLOAD_URL} ${DOWNLOADS}/${BZIP2_TARBALL} SHOW_PROGRESS )
 endif()
 
-if ( NOT EXISTS ${BOOST_SOURCE_DIR}/bootstrap.bat )
-  message( STATUS "boost source dir ${BOOST_SOURCE_DIR} not exit" )
+if ( NOT EXISTS ${BOOST_SOURCE_DIR}/boost )
+  message( STATUS "tar xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent}" )
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BOOST_TARBALL} -C ${__boost_parent} )
-else()
-  message( STATUS "boost source dir ${BOOST_SOURCE_DIR} exit" )
 endif()
 
 if ( NOT EXISTS ${BZIP2_SOURCE_DIR} )
+  message( STATUS "tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent}" )
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xvf ${DOWNLOADS}/${BZIP2_TARBALL} -C ${__bzip2_parent} )
 endif()
 

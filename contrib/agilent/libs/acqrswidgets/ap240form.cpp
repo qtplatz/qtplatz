@@ -38,11 +38,12 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
+#include <QMessageBox>
+#include <QModelIndex>
+#include <QPair>
 #include <QSignalBlocker>
 #include <QTabWidget>
 #include <QVBoxLayout>
-#include <QMessageBox>
-#include <QPair>
 #include <boost/exception/all.hpp>
 
 using namespace acqrswidgets;
