@@ -1,6 +1,6 @@
 ::
 @echo off
-set BOOST_VERSION=1_67_0
+set BOOST_VERSION=1_62_0
 set QMAKE=C:\Qt\5.10.1\msvc2017_64\bin\qmake.exe
 
 pushd %CWD%\..\..

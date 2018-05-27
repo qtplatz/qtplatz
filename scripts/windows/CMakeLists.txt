@@ -58,7 +58,7 @@ add_custom_target( boost
   -DBZIP2_SOURCE_DIR=${BZIP2_SOURCE_DIR}
   -DDOWNLOADS=$ENV{HOME}/Downloads
   -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
-  COMMENT "Run boost.bat"
+  COMMAND cmd /c "boost.bat"
   )
 # -- configure_file needs to be after the add_custom_target that prevent skip tar xvf ...
 configure_file(
@@ -78,6 +78,8 @@ add_custom_target( eigen
   -DGENERATOR=${GENERATOR}
   -P "${CMAKE_CURRENT_SOURCE_DIR}/eigen.cmake"
   COMMENT "Run eigen.bat"
+  COMMAND cmd /c "eigen.bat"
+  WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
   )
 
 ### rdkit
@@ -90,6 +92,8 @@ add_custom_target( rdkit
   -DGENERATOR=${GENERATOR}
   -P "${CMAKE_CURRENT_SOURCE_DIR}/rdkit.cmake"
   COMMENT "Run rdkit.bat"
+  COMMAND cmd /c "rdkit.bat"
+  WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
   )
 
 configure_file(

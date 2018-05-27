@@ -11,7 +11,9 @@ if ( NOT RDKIT_BINARY_DIR )
   mseeage( FATAL_ERROR "RDKIT_BINARY_DIR=")
 endif()
 
-execute_process( COMMAND git clone https://github.com/rdkit/rdkit ${RDBASE} )
+if ( NOT EXISTS ${RDBASE} )
+  execute_process( COMMAND git clone https://github.com/rdkit/rdkit ${RDBASE} )
+endif()
 
 if ( RDKIT_REVISION )
   execute_process( 
