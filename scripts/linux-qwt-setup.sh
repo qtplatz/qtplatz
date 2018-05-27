@@ -5,7 +5,7 @@ source ./prompt.sh
 
 QWT_BUILD_DIR=${SRC}/qwt-6.1
 
-if ! find_QMAKE QMAKE; then
+if ! find_qmake QMAKE; then
     echo "qmake command not found."
     exit
 fi
@@ -27,11 +27,12 @@ svn update
 
 cp -p qwtconfig.pri qwtconfig.pri.orig
 
-sed -i '/QwtDll/s/^/#/' qwtconfig.pri
-sed -i '/QwtMathML/s/^/#/' qwtconfig.pri
-sed -i '/QwtDesigner/s/^/#/' qwtconfig.pri
-sed -i '/QwtExamples/s/^/#/' qwtconfig.pri
-sed -i '/QwtPlayground/s/^/#/' qwtconfig.pri
+cat qwtconfig.pri.orig | \
+	sed '/QwtDll/s/^/#/' | \
+	sed '/QwtMathML/s/^/#/' | \
+	sed '/QwtDesigner/s/^/#/' | \
+	sed '/QwtExamples/s/^/#/' | \
+	sed '/QwtPlayground/s/^/#/' > qwtconfig.pri
 
 $QMAKE -r qwt.pro
 make -j4
