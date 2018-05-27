@@ -1,10 +1,13 @@
 #!/bin/bash
 
-source ./constants.sh
-source ./prompt.sh
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/constants.sh
+source ${cwd}/prompt.sh
+source ${cwd}/nproc.sh
 
 cwd=$(pwd)
 arch=`uname`-`arch`
+__nproc nproc
 
 if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/rdkit.release
@@ -30,7 +33,13 @@ else
     fi
 fi
 
-cmake_args=("-DBOOST_ROOT=$BOOST_ROOT" "-DRDK_BUILD_INCHI_SUPPORT=ON" "-DRDK_BUILD_PYTHON_WRAPPERS=OFF")
+cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
+			 "-DRDK_BUILD_INCHI_SUPPORT=ON"
+			 "-DRDK_BUILD_PYTHON_WRAPPERS=OFF"
+			 "-DRDK_INSTALL_INTREE=ON"
+			 "-DRDK_INSTALL_STATIC_LIBS=ON"
+			 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
+		   )
 if [ `uname` == "Darwin" ]; then
     cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
 fi
@@ -51,24 +60,13 @@ fi
 mkdir -p $BUILD_DIR;
 cd $BUILD_DIR;
 
-if [ -z $cross_target ]; then
-    echo "RDBASE    : " $RDBASE
-    echo "BUILD_DIR : " `pwd`        
-    echo cmake "${cmake_args[@]}" $RDBASE
-    prompt
-    cmake "${cmake_args[@]}" $RDBASE
-    make -j8
-    make test
-    make install      
-else
-    echo "RDBASE    : " $RDBASE
-    echo "BUILD_DIR : " `pwd`    
-    echo cmake "${cmake_args[@]}" $RDBASE
-    prompt
-    cmake "${cmake_args[@]}" $RDBASE
-    make -j8
-    if [ $? -eq 0 ]; then
+echo "RDBASE    : " $RDBASE
+echo "BUILD_DIR : " `pwd`        
+echo cmake "${cmake_args[@]}" $RDBASE
+prompt
+cmake "${cmake_args[@]}" $RDBASE
+make -j${nproc}
+if [ $? -eq 0 ]; then
 	make test
 	make install
-    fi
 fi
