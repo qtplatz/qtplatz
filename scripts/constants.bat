@@ -1,7 +1,9 @@
 ::
 @echo off
-set BOOST_VERSION=1_62_0
-set QMAKE=C:\Qt\5.10.1\msvc2017_64\bin\qmake.exe
+
+set BOOST_VERSION=1_67_0
+::set QMAKE=C:\Qt\5.10.1\msvc2017_64\bin\qmake.exe
+set QMAKE=C:\Qt\5.11.0\msvc2017_64\bin\qmake.exe
 
 pushd %CWD%\..\..
 set SOURCE_ROOT=%CD%

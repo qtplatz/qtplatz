@@ -2,6 +2,10 @@ cmake_minimum_required( VERSION 3.11 )
 
 project( qtplatz-windows-dependency )
 
+if ( NOT WIN32 )
+  message( FATAL_ERROR "This cmake script is targetted for win32")
+endif()
+
 get_filename_component( SOURCE_ROOT "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
 set ( BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR} )
 set ( EIGEN_SOURCE_DIR ${SOURCE_ROOT}/eigen )
@@ -13,8 +17,10 @@ set ( RDKIT_BINARY_DIR "${BUILD_ROOT}/rdkit" )
 set ( RDKIT_SOURCE_DIR "${RDBASE}" )
 set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
-file( STRINGS ${CMAKE_SOURCE_DIR}/../constants.bat configs )
+include( ${CMAKE_SOURCE_DIR}/../constants.cmake )
 
+#[[
+file( STRINGS ${CMAKE_SOURCE_DIR}/../constants.bat configs )
 foreach( i ${configs} )
   string( REGEX MATCHALL "^set[ \t]+[^=]+=.+$" config ${i} )
   if ( config )
@@ -25,6 +31,7 @@ foreach( i ${configs} )
     endif()
   endif()
 endforeach()
+]]
 
 if ( NOT BOOST_VERSION )
   message( FATAL_ERROR "Empty BOOST_VERSION" )
@@ -106,6 +113,7 @@ message( STATUS "BUILD_ROOT          = " ${BUILD_ROOT} )
 message( STATUS "EIGEN_SOURCE_DIR    = " ${EIGEN_SOURCE_DIR} )
 message( STATUS "RDKIT_REVISION      = " ${RDKIT_REVISION} )
 message( STATUS "RDKIT_BINARY_DIR    = " ${RDKIT_BINARY_DIR} )
+message( STATUS "BOOST_VERSION       = " ${BOOST_VERSION} )
 message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )
 message( STATUS )
