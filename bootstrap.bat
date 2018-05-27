@@ -14,7 +14,7 @@ set exec_build=false
 set tools=%VisualStudioVersion%
 
 setlocal enabledelayedexpansion
-call %~dp0%\constants.bat
+::call %~dp0%\constants.bat
 
 if %VisualStudioVersion% EQU 15.0 (
    set GENERATOR="Visual Studio 15 2017 Win64"

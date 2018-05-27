@@ -10,12 +10,8 @@ find_package( arch )
 # boost setup
 #
 set( Boost_NO_SYSTEM_PATHS ON )
-set( Boost_ADDITIONAL_VERSIONS
-  "1.63.0" "1.63"
-  "1.62.0" "1.62" )
 
 if( WIN32 )
-
   find_path( _boost NAMES boost HINTS
     "C:/Boost/include/boost-1_62"   # V14 <-- prefereed version
     "C:/Boost/include/boost-1_67"   # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
@@ -61,7 +57,19 @@ endif()
 #
 
 if ( WITH_QT5 )
-  find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" )
+  if ( WIN32 )
+    set ( __qmake_hints
+      "C:/Qt/5.11.0/msvc2017_64/bin"
+      "C:/Qt/5.10.1/msvc2017_64/bin"
+      "C:/Qt/5.9.2/msvc2017_64/bin"
+      )
+  endif()
+
+  if ( QTDIR )
+    find_program( QMAKE NAMES qmake HINTS "${QTDIR}/bin" )
+  else()
+    find_program( QMAKE NAMES qmake HINTS ${__qmake_hints} )
+  endif()
 
   if ( QMAKE ) 
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )

@@ -7,6 +7,10 @@ endif()
 set ( rdkit "rdkit-NOTFOUND" )
 set ( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib" "${CMAKE_SOURCE_DIR}/../rdkit/lib" )
 
+if ( WIN32 )
+  list ( APPEND _rdkit_libdirs "$ENV{PROGRAMFILES}/RDKit/lib" )
+endif()
+
 find_file( rdkit_config_cmake "rdkit-config.cmake" PATHS ${_rdkit_libdirs} )
 
 if ( rdkit_config_cmake )
