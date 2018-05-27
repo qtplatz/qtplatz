@@ -17,10 +17,10 @@ set( Boost_ADDITIONAL_VERSIONS
 if( WIN32 )
 
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_67"   # V16 'libs/serialization/src/basic_archive.cpp library_version_type(16)
-    #"C:/Boost/include/boost-1_65_1" # V15 'libs/serialization/src/basic_archive.cpp library_version_type(15)
-    "C:/Boost/include/boost-1_63"   # V14 
-    "C:/Boost/include/boost-1_62"   # V14 
+    "C:/Boost/include/boost-1_62"   # V14 <-- prefereed version
+    "C:/Boost/include/boost-1_67"   # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
+    #"C:/Boost/include/boost-1_65_1"# V15 'libs/serialization/src/basic_archive.cpp library_version_type(15)
+    #"C:/Boost/include/boost-1_63"  # V14 
     "C:/Boost/include/boost-1_59"   # V13 
     "C:/Boost/include/boost-1_58"   # V12
     "C:/Boost/include/boost-1_57" )
@@ -40,10 +40,10 @@ if( WIN32 )
 else()
 
   find_path( _boost NAMES include/boost HINTS
-    "/usr/local/boost-1_67"        # V16 'libs/serialization/src/basic_archive.cpp library_version_type(16)
-    # "/usr/local/boost-1_65_1"    # V15 <-- don't support
-    "/usr/local/boost-1_63"        # V14
-    "/usr/local/boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 choose this (debian9 default)
+    "/usr/local/boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 (debian9 default)
+    "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
+    #"/usr/local/boost-1_65_1"     # V15 <-- not released with this version 
+    #"/usr/local/boost-1_63"       # V14 <-- not released with this version
     "/usr/local/boost-1_59"        # V13
     "/usr/local/boost-1_58"        # V12
     "/usr/local/boost-1_57"
