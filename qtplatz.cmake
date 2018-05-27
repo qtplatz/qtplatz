@@ -57,12 +57,20 @@ endif()
 #
 
 if ( WITH_QT5 )
+  set ( __qt5_versions "5.11.0" "5.10.1" "5.9.2" )
   if ( WIN32 )
-    set ( __qmake_hints
-      "C:/Qt/5.11.0/msvc2017_64/bin"
-      "C:/Qt/5.10.1/msvc2017_64/bin"
-      "C:/Qt/5.9.2/msvc2017_64/bin"
-      )
+    foreach( v ${__qt5_versions} )
+      list ( APPEND __qmake_hints "C:/Qt/${v}/msvc2017_64/bin" )
+    endforeach()
+  elseif( APPLE )
+    foreach( v ${__qt5_versions} )
+      list ( APPEND __qmake_hints "$ENV{HOME}/Qt/${v}/clang_64/bin" )
+      list ( APPEND __qmake_hints "/opt/Qt/${v}/clang_64/bin" )
+    endforeach()
+  else()
+    foreach( v ${__qt5_versions} )
+      list ( APPEND __qmake_hints "/opt/Qt/${v}/gcc_64/bin" )
+    endforeach()
   endif()
 
   if ( QTDIR )
