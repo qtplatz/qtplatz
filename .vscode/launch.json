@@ -25,6 +25,14 @@
             ]
         }
         , {
+            "name": "(lldb) Launch"
+            , "type": "lldb"
+            , "request": "launch"
+            , "program": "${workspaceFolder}/../build-Darwin-i386/qtplatz.debug/bin/qtplatz.app/Contents/MacOS/qtplatz"
+            , "args": []
+            , "cwd": "${workspaceFolder}"
+        }
+        , {
             "name": "test_dataprocessor",
             "type": "cppdbg",
             "request": "launch",

@@ -55,7 +55,7 @@ namespace adcontrols {
     public:
 
         DataInterpreter(void);
-        ~DataInterpreter(void);
+        virtual ~DataInterpreter(void);
 
         virtual translate_state
             translate( MassSpectrum&
