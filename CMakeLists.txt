@@ -113,7 +113,8 @@ if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
 endif()
 
-find_package( Boost 1.57 REQUIRED COMPONENTS
+# adplugin now uses boost_dll, which require 1.61
+find_package( Boost 1.62 REQUIRED COMPONENTS
   atomic
   bzip2
   chrono

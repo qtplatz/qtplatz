@@ -4,14 +4,6 @@ cmake_policy( SET CMP0042 NEW )
 
 project( test_dataprocessor )
 
-find_package( Boost REQUIRED COMPONENTS
-  filesystem
-  serialization
-  system
-  unit_test_framework
-  wserialization
-  )
-
 include_directories(
   ${Boost_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src/libs

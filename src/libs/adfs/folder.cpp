@@ -99,16 +99,18 @@ folder::selectFile( const std::wstring& id )
     return file;
 }
 
-template<> const std::basic_string< char >
-folder::name() const
-{
-    return adportable::utf::to_utf8( name_ );
-}
-
-template<> const std::basic_string< wchar_t >
-folder::name() const
-{
-    return name_;
+namespace adfs {
+    template<> const std::basic_string< char >
+    folder::name() const
+    {
+        return adportable::utf::to_utf8( name_ );
+    }
+    
+    template<> const std::basic_string< wchar_t >
+    folder::name() const
+    {
+        return name_;
+    }
 }
 
 /////////////////////////

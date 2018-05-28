@@ -8,12 +8,12 @@ set(CMAKE_CXX_STANDARD 14)
 
 #add_definitions( -DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN )
 
-find_package( Boost REQUIRED COMPONENTS
-  serialization
-  system
-  unit_test_framework
-  wserialization
-  )
+#find_package( Boost REQUIRED COMPONENTS
+#  serialization
+#  system
+#  unit_test_framework
+#  wserialization
+#  )
 
 include_directories(
   ${Boost_INCLUDE_DIRS}

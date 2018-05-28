@@ -38,6 +38,21 @@
 #include <boost/exception/all.hpp>
 #include "sqlite.hpp"
 
+
+namespace adfs {
+    template<> std::wstring
+    attributes::name< wchar_t >() const
+    {
+        return attribute( L"name" );
+    }
+
+    template<> std::string
+    attributes::name< char >() const
+    {
+        return adportable::utf::to_utf8( attribute( L"name" ) );
+    }
+}
+
 using namespace adfs;
 
 attributes::attributes() : dirty_( false )
@@ -54,18 +69,6 @@ attributes::operator bool () const
     return static_cast<sqlite *>(&db()) != 0 && rowid() != 0;
 }
 
-template<> std::wstring
-attributes::name< wchar_t >() const
-{
-    return attribute( L"name" );
-}
-
-template<> std::string
-attributes::name< char >() const
-{
-    return adportable::utf::to_utf8( attribute( L"name" ) );
-}
-
 std::wstring
 attributes::name() const
 {
@@ -78,16 +81,18 @@ attributes::name( const std::wstring& value )
     setAttribute( L"name", value );
 }
 
-template<> std::wstring
-attributes::id< wchar_t >() const
-{
-    return attribute( L"dataId" );
-}
+namespace adfs {
+    template<> std::wstring
+    attributes::id< wchar_t >() const
+    {
+        return attribute( L"dataId" );
+    }
 
-template<> std::string
-attributes::id< char >() const
-{
-    return adportable::utf::to_utf8( attribute( L"dataId" ) );
+    template<> std::string
+    attributes::id< char >() const
+    {
+        return adportable::utf::to_utf8( attribute( L"dataId" ) );
+    }
 }
 
 std::wstring

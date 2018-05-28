@@ -70,16 +70,18 @@ file::file( sqlite& db
     fileid_ = internal::fs::rowid_from_fileid( *db_, rowid_ );
 }
 
-template<> const std::basic_string< char >
-file::name() const
-{
-    return adportable::utf::to_utf8( name_ );
-}
+namespace adfs {
+    template<> const std::basic_string< char >
+    file::name() const
+    {
+        return adportable::utf::to_utf8( name_ );
+    }
 
-template<> const std::basic_string< wchar_t >
-file::name() const
-{
-    return name_;
+    template<> const std::basic_string< wchar_t >
+    file::name() const
+    {
+        return name_;
+    }
 }
 
 files

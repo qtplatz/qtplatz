@@ -34,6 +34,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adplugin
   Qt5::Core
   ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
   )
 
 install( TARGETS ${PROJECT_NAME}
