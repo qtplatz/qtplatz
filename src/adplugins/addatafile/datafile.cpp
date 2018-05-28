@@ -60,7 +60,7 @@
 #include <adutils/fsio.hpp>
 #include <algorithm>
 #include <iostream>
-#include <compiler/make_unique.hpp>
+#include <memory>
 
 /////////////////
 namespace addatafile { namespace detail {
@@ -152,17 +152,15 @@ void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
     if ( mounted_ ) {
-
         // handle acquired raw data
-        
         if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 ) {
-            rawdata_ = std::unique_ptr< v2::rawdata >( new v2::rawdata( dbf_, *this ) );
+            rawdata_ = std::make_unique< v2::rawdata >( dbf_, *this );
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
-            rawdata_ = std::unique_ptr< v3::rawdata >( new v3::rawdata( dbf_, *this ) );
+            rawdata_ = std::make_unique< v3::rawdata >( dbf_, *this );
         }
 
         if ( boost::apply_visitor( detail::is_valid_rawdata(), rawdata_ ) ) {
-            
+
             boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
 
             auto undefined_spectrometers = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
@@ -173,10 +171,9 @@ datafile::accept( adcontrols::dataSubscriber& sub )
                     o << t << L"\r";
                 sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );
             }
+
         }
-    }
-    
-    do {
+
         // publish processed dataset
         portfolio::Portfolio portfolio;
         if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
@@ -189,8 +186,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
             processedDataset_->xml( portfolio.xml() );
             sub.subscribe( *processedDataset_ );
         }
-        
-    } while (0);
+    }
 }
 
 

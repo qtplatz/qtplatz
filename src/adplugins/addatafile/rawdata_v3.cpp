@@ -85,9 +85,7 @@ rawdata::loadAcquiredConf()
 {
     if ( configLoaded_ )
         return true;
-
     if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
-
         for ( const auto& conf: conf_ ) {
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
                 if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) 
@@ -101,7 +99,6 @@ rawdata::loadAcquiredConf()
             fcnCount_ += reader.second; // fcnCount
         return true;
     }
-    
     return false;
 }
 

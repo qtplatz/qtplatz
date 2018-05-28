@@ -25,28 +25,26 @@
 #include <compiler/disable_unused_parameter.h>
 #include "manager.hpp"
 #include "loader.hpp"
+#include <acewrapper/constants.hpp>
 #include <adcontrols/datafile_factory.hpp>
 #include <adcontrols/datafilebroker.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adlog/logger.hpp>
+#include <adlog/logging_handler.hpp>
 #include <adplugin/adplugin.hpp>
-#include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
+#include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>
 #include <adplugin/visitor.hpp>
-#include "loader.hpp"
-#include <adportable/configuration.hpp>
-#include <acewrapper/constants.hpp>
 #include <adportable/configloader.hpp>
+#include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/debug_core.hpp>
-#include <adlog/logger.hpp>
-#include <adlog/logging_handler.hpp>
 #include <adportable/string.hpp>
-#include <qtwrapper/qstring.hpp>
-#include <QCoreApplication>
 #include <QLibrary>
+#include <boost/dll.hpp>
 #include <fstream>
 #include <map>
 #include <mutex>
@@ -349,11 +347,14 @@ manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
 void
 manager::standalone_initialize()
 {
-    auto apath = QCoreApplication::instance()->applicationDirPath().toStdWString();
-    auto tpath = boost::filesystem::canonical( boost::filesystem::path( apath ) / "../" );
+    auto apath = boost::filesystem::canonical( boost::dll::program_location() ).parent_path();
+    auto tpath = apath.parent_path();
+    
+    // ADDEBUG() << "apath: " << boost::filesystem::path( apath ).string();
+    // ADDEBUG() << "tpath: " << tpath.string();
 
     adplugin::loader::populate( tpath.wstring().c_str() );
-
+    
     // spectrometers
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
