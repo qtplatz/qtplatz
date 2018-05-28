@@ -82,8 +82,9 @@ datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
     visitor.visit( this, adplugin );
 
     adcontrols::DataReader::register_factory(
-        [] ( const char * traceid ) {  return std::make_shared< DataReader >( traceid ); }
-        , typeid( DataReader ).name() );
+        [] ( const char * traceid ) {
+            return std::make_shared< DataReader >( traceid );
+        }, typeid( DataReader ).name() );
 
     // register all supported 'traceid' by name
     for ( const auto& traceid: DataReader::traceid_list() )

@@ -5,9 +5,6 @@ cmake_policy( SET CMP0042 NEW )
 project( tests )
 
 find_package( Boost 1.62 REQUIRED COMPONENTS
-  atomic
-  bzip2
-  chrono
   date_time
   filesystem
   iostreams

@@ -40,7 +40,7 @@ namespace acqrsinterpreter {
     class DataReader : public adcontrols::DataReader {
 
     public:
-        ~DataReader( void );
+        virtual ~DataReader( void );
         DataReader( const char * traceid );
         
         static std::vector< std::string > traceid_list();        
