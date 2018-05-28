@@ -18,6 +18,7 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   serialization
   system
   thread
+  timer
   wserialization
   unit_test_framework    
   )
