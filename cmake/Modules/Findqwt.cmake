@@ -24,7 +24,7 @@ if ( qwt_DIR )
   set( QWT_DEBUG_LIB "QWT_DEBUG_LIB-NOTFOUND" )
 
   find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
-  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )    
+#  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )    
   if ( QWT_LIB )
     add_library( Qwt STATIC IMPORTED )
     set ( QWT_LIBRARIES Qwt )

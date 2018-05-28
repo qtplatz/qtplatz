@@ -4,36 +4,9 @@ cmake_policy( SET CMP0042 NEW )
 
 project( tests )
 
-set ( QTPLATZ_BUILD_DIR ${QTPLATZ_BUILD_DIR} CACHE STRING "destination directory" )
-set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-
-find_path( qtplatz_config_DIR NAMES "qtplatz-config.cmake" PATHS
-  "${QTPLATZ_BUILD_DIR}"
-  "${CMAKE_SOURCE_DIR}/../../build-Linux-x86_64/qtplatz.debug" )
-
-if ( NOT qtplatz_config_DIR )
-  message( FATAL_ERROR "qtplatz-config.cmake not find." )
-endif()
-
-include ( ${qtplatz_config_DIR}/qtplatz-config.cmake )
-
 #add_subdirectory( filename_splitter )
 add_subdirectory( formula_parser )
 add_subdirectory( test_ptree )
+add_subdirectory( test_serializer )
 #add_subdirectory( isotope )
-#add_subdirectory( test_adfs )
-
-find_package( OpenCV 3 QUIET )
-find_package( ArrayFire QUIET )
-find_package( CUDA QUIET )
-if ( QTDIR )
-  find_package( Qt5 OPTIONAL_COMPONENTS Core Widgets QUIET PATHS ${QTDIR} )
-endif()
-
-if ( OpenCV_FOUND AND ArrayFire_FOUND )
-  add_subdirectory( test_vision )
-endif()
-
-if ( CUDA_FOUND )
-  add_subdirectory( cuda )
-endif()
+add_subdirectory( test_adfs )

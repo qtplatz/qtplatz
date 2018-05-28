@@ -26,6 +26,7 @@
 #include "folder.hpp"
 #include "file.hpp"
 #include "fs.hpp"
+#include <adportable/utf.hpp>
 
 using namespace adfs;
 
@@ -96,6 +97,18 @@ folder::selectFile( const std::wstring& id )
         internal::fs::select_file( *db_, rowid_, id, file );
     }
     return file;
+}
+
+template<> const std::basic_string< char >
+folder::name() const
+{
+    return adportable::utf::to_utf8( name_ );
+}
+
+template<> const std::basic_string< wchar_t >
+folder::name() const
+{
+    return name_;
 }
 
 /////////////////////////

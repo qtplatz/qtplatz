@@ -192,6 +192,7 @@ QuanDocument::save_default_methods()
         boost::filesystem::path filepath( name.toStdWString() );
         save( filepath, *procm_, false );
     }
+    return true;
 }
 
 bool

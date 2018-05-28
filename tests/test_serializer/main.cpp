@@ -1,13 +1,38 @@
+/**************************************************************************
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+*
+** Contact: info@ms-cheminfo.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 
-#include <adcontrols/chromatogram.hpp>
+#include "test_process_method.hpp"
+#include "test_massspectrum.hpp"
+
+#if 0
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/idaudit.hpp>
-#include <adcontrols/msreference.hpp>
-#include <adcontrols/msreferences.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
-#include <adcontrols/processmethod.hpp>
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
@@ -17,20 +42,23 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adinterface/method.hpp>
 
-#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
-
-#include <adportable/debug.hpp>
-#include <adportable/binary_serializer.hpp>
-#include <adportable/xml_serializer.hpp>
-
+#include <boost/unit_test.hpp>
 #include "test_binary_archive.hpp"
 #include "test_xml_archive.hpp"
-
 #include <boost/variant.hpp>
-#include <functional>
-#include <fstream>
 
+#endif
+
+#include <boost/test/execution_monitor.hpp>
+#include <fstream>
+#include <functional>
+#include <iostream>
+
+#include <boost/test/unit_test.hpp>
+using boost::unit_test_framework::test_suite;
+
+#if 0
 namespace test {
 
     template<class T> struct target {
@@ -149,42 +177,6 @@ namespace test {
         return false;
     }
 
-}
-
-adcontrols::MSReferences&
-make_msreferences( adcontrols::MSReferences& refs )
-{
-    using namespace adcontrols;
-    refs << MSReference( L"H2O(C2H4)2", true, L"+H" )
-         << MSReference( L"H2O(C2H4)3", true, L"+H" )
-         << MSReference( L"H2O(C2H4)4", true, L"+H" )
-         << MSReference( L"H2O(C2H4)5", true, L"+H" );
-    return refs;
-}
-
-void
-make_process_method( adcontrols::ProcessMethod& m )
-{
-    using namespace adcontrols;
-
-    MSReferences refs;
-    make_msreferences( refs );
-
-    m << CentroidMethod();
-    m << ElementalCompositionMethod();
-    m << IsotopeMethod();
-
-    auto m3 = MSCalibrateMethod();
-    m3.references( refs );
-    m << m3;
-
-    m << MSChromatogramMethod();
-    m << MSLockMethod();
-    m << PeakMethod();
-    m << QuanCompounds();
-    m << QuanMethod();
-    m << TargetingMethod();
-    m << CentroidMethod();
 }
 
 void
@@ -445,3 +437,33 @@ main()
     test_adinterface_method();
     test_chromatogram();
 }
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+#endif
+
+// Boost.Test
+#include <boost/test/unit_test.hpp>
+using namespace boost::unit_test;
+
+//____________________________________________________________________________//
+
+// // this test case is automatically registered
+BOOST_AUTO_TEST_CASE( process_method )
+{
+    // unit test framework can catch operating system signals
+    BOOST_TEST_CHECKPOINT("About to serialize process method!");
+    BOOST_CHECK( test::process_method::test() == true );
+}
+
+// // this test case is automatically registered
+BOOST_AUTO_TEST_CASE( massspectrum )
+{
+    // unit test framework can catch operating system signals
+    BOOST_TEST_CHECKPOINT("About to serialize massspectrum!");
+    BOOST_CHECK( test::massspectrum::test() == true );
+}
+
+//____________________________________________________________________________//
+
+// EOF

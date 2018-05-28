@@ -34,6 +34,7 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <boost/exception/all.hpp>
 #include "sqlite.hpp"
 
@@ -53,6 +54,18 @@ attributes::operator bool () const
     return static_cast<sqlite *>(&db()) != 0 && rowid() != 0;
 }
 
+template<> std::wstring
+attributes::name< wchar_t >() const
+{
+    return attribute( L"name" );
+}
+
+template<> std::string
+attributes::name< char >() const
+{
+    return adportable::utf::to_utf8( attribute( L"name" ) );
+}
+
 std::wstring
 attributes::name() const
 {
@@ -63,6 +76,18 @@ void
 attributes::name( const std::wstring& value )
 {
     setAttribute( L"name", value );
+}
+
+template<> std::wstring
+attributes::id< wchar_t >() const
+{
+    return attribute( L"dataId" );
+}
+
+template<> std::string
+attributes::id< char >() const
+{
+    return adportable::utf::to_utf8( attribute( L"dataId" ) );
 }
 
 std::wstring

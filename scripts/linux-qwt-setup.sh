@@ -32,6 +32,7 @@ cat qwtconfig.pri.orig | \
 	sed '/QwtMathML/s/^/#/' | \
 	sed '/QwtDesigner/s/^/#/' | \
 	sed '/QwtExamples/s/^/#/' | \
+	sed '/QwtFramework/s/^/#/' | \
 	sed '/QwtPlayground/s/^/#/' > qwtconfig.pri
 
 $QMAKE -r qwt.pro

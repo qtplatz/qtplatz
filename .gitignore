@@ -145,16 +145,6 @@ contrib/installer/wix/qtplatz_plugins.wxi
 contrib/installer/wix/qtplatz_xslt.wxi
 tests/tests.opensdf
 tests/tests.pro.user.3.2-pre1
-tests/test_serializer/Chromatogram.bin
-tests/test_serializer/MSCalibrateResult.bin
-tests/test_serializer/MSCalibrateResult.xml
-tests/test_serializer/ProcessMethod.bin
-tests/test_serializer/ProcessMethod.xml
-tests/test_serializer/QuanCompounds.xml
-tests/test_serializer/QuanSequence.bin
-tests/test_serializer/QuanSequence.xml
-tests/test_serializer/descriptions.xml
-tests/test_serializer/idAudit.xml
 .acqiris*
 .tmp_versions
 *.ko

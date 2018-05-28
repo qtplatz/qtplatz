@@ -1,7 +1,6 @@
-// -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,33 +23,16 @@
 **************************************************************************/
 
 #pragma once
-#include "adfs_global.h"
-#include <adfs/filesystem.hpp>
-#include <adfs/folder.hpp>
-#include <adfs/file.hpp>
-#include <adfs/attributes.hpp>
-#include <exception>
-#include <compiler/pragma_warning.hpp>
 
-namespace adfs {
-
-    class /* ADFSSHARED_EXPORT */ exception : public std::exception {
-    public:
-        exception( const std::string& msg, const char * cat ) : message_(msg), category_(cat) {}
-
-        const std::string& message() const { return message_; }
-        const std::string& category() const { return category_; }
-
-    private:
-        pragma_msvc_warning_push_disable_4251
-        std::string message_;
-        std::string category_;
-        pragma_msvc_warning_pop
-    };
-
-    ADFSSHARED_EXPORT const char * null_safe( const char * s );
-
-    ADFSSHARED_EXPORT std::wstring create_uuid();
+namespace adcontrols {
+    class MassSpectrum;
 }
 
-
+namespace test_adfs {
+    struct massspectrum {
+        static bool test();
+        static bool test_create();
+        static bool test_read();
+        static bool test_read( const char * adfs_file );
+    };
+}

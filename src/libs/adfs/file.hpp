@@ -67,7 +67,9 @@ namespace adfs {
         // --- create/modify
         file addAttachment( const std::wstring& name );
         inline sqlite& db() const { return *db_; }
-        inline const std::wstring& name() const { return name_; }
+        // inline const std::wstring& name() const { return name_; }
+        template< typename T = wchar_t > const std::basic_string< T > name() const;
+            
         inline int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
 
         template<typename data_type> bool fetch( data_type& t, std::function<bool( std::istream&, data_type& )> deserializer = &data_type::restore ) {

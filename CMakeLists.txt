@@ -223,11 +223,12 @@ endif()
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 add_definitions(-DUNICODE -D_UNICODE)
-add_subdirectory (src)
-add_subdirectory (contrib)
+add_subdirectory ( src )
+add_subdirectory ( contrib )
 if ( Qt5_FOUND )
-  add_subdirectory (share)
+  add_subdirectory ( share )
 endif()
+add_subdirectory( tests )
 
 ########### CPack ########
 #message( STATUS "------------ cpack ----------------" )

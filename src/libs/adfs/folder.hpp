@@ -52,7 +52,9 @@ namespace adfs {
         file addFile( const std::wstring& id, const std::wstring& title = L"" );
 
         inline boost::int64_t rowid() const { return rowid_; }
-        inline const std::wstring& name() const { return name_; }
+        // inline const std::wstring& name() const { return name_; }
+        template< typename T = wchar_t > const std::basic_string< T > name() const;
+
         inline sqlite& db() const { return *db_; }
     private:
         sqlite * db_;

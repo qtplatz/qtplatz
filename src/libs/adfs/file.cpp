@@ -28,8 +28,9 @@
 #include "filesystem.hpp"
 #include "fs.hpp"
 #include "sqlite.hpp"
-#include <adportable/debug.hpp>
 #include "attributes.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 
 using namespace adfs;
 
@@ -69,6 +70,17 @@ file::file( sqlite& db
     fileid_ = internal::fs::rowid_from_fileid( *db_, rowid_ );
 }
 
+template<> const std::basic_string< char >
+file::name() const
+{
+    return adportable::utf::to_utf8( name_ );
+}
+
+template<> const std::basic_string< wchar_t >
+file::name() const
+{
+    return name_;
+}
 
 files
 file::attachments()

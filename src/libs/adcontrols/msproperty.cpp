@@ -92,7 +92,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( _.instTDelay_ );
                 ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.first );
                 ar & BOOST_SERIALIZATION_NVP( _.instMassRange_.second );
-                ar & BOOST_SERIALIZATION_NVP( *_.samplingData_ );
+                ar & boost::serialization::make_nvp( "_.samplingData_", *_.samplingData_ );
                 ar & BOOST_SERIALIZATION_NVP( _.dataInterpreterClsid_ );
                 if ( Archive::is_saving::value ) {
                     auto data = base64_encode( reinterpret_cast< const unsigned char * >(_.deviceData_.data()), _.deviceData_.size() );

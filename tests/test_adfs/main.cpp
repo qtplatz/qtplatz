@@ -22,54 +22,51 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 
-#include <adfs/adfs.hpp>
-#include <adfs/cpio.hpp>
-#include <adfs/sqlite.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <portfolio/portfolio.hpp>
-#include <boost/filesystem.hpp>
+#include "test_massspectrum.hpp"
+// #include <adfs/adfs.hpp>
+// #include <adfs/cpio.hpp>
+// #include <adfs/sqlite.hpp>
+// #include <adcontrols/massspectrum.hpp>
+// #include <adportfolio/portfolio.hpp>
+// #include <boost/filesystem.hpp>
+// #include <boost/test/execution_monitor.hpp>
+#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_parameters.hpp>
+// #include <fstream>
+// #include <functional>
+// #include <iostream>
 
-std::wstring path( L"test.adfs" );
+using boost::unit_test_framework::test_suite;
+using namespace boost::unit_test;
 
-bool
-test_create()
+BOOST_AUTO_TEST_CASE( adfs_massspectrum_create )
 {
-    adfs::filesystem fs;
-    adcontrols::MassSpectrum ms;
-    ms.resize( 1000 );
-
-	if ( ! boost::filesystem::exists( path ) ) {
-		if ( ! fs.create( path.c_str() ) )
-			return false;
-	} else {
-		if ( ! fs.mount( path.c_str() ) )
-			return false;
-	}
-	adfs::folder folder = fs.addFolder( L"/Processed/Spectra" );
-
-    if ( folder ) {
-		adfs::file file = folder.addFile( adfs::create_uuid(), L"title" );
-        if ( file ) {
-            file.dataClass( ms.dataClass() );
-            auto id = file.id();
-            if ( file.save( ms ) ) //adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
-				file.commit();
-        }
-	}
-    return true;
+    boost::unit_test::unit_test_log.set_threshold_level( log_messages );
+    // unit test framework can catch operating system signals
+    BOOST_TEST_CHECKPOINT("About to create adfs massspectrum file!");
+    BOOST_CHECK( test_adfs::massspectrum::test_create() == true );
 }
 
-
-int
-main(int argc, char *argv[])
+BOOST_AUTO_TEST_CASE( adfs_massspectrum_read )
 {
-    (void)(argc);
-    (void)(argv);
-    std::cout << "sizeof( int ) = " << sizeof(int) << std::endl;    
-    std::cout << "sizeof( long ) = " << sizeof(long) << std::endl;
-    std::cout << "sizeof( long long ) = " << sizeof(long long) << std::endl;
-    std::cout << "sizeof( uint64_t ) = " << sizeof(uint64_t) << std::endl;        
+    // unit test framework can catch operating system signals
+    BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
+    BOOST_CHECK( test_adfs::massspectrum::test_read() == true );
+}
 
-    test_create();
+BOOST_AUTO_TEST_CASE( adfs_massspectrum_read_1 )
+{
+    // unit test framework can catch operating system signals
+    BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
+    BOOST_CHECK( test_adfs::massspectrum::test_read( "waveform.adfs" ) == true );
+}
+
+BOOST_AUTO_TEST_CASE( adfs_massspectrum_read_2 )
+{
+    // unit test framework can catch operating system signals
+    BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
+    BOOST_CHECK( test_adfs::massspectrum::test_read( "waveform2.adfs" ) == true );
 }
