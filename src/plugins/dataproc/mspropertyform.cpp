@@ -50,6 +50,14 @@
 #include <sstream>
 #include <iomanip>
 
+namespace dataproc {
+    struct safe_string {
+        const char * operator()( const char * p ) const {
+            return p ? p : "(null)";
+        }
+    };
+}
+
 using namespace dataproc;
 
 MSPropertyForm::MSPropertyForm(QWidget *parent) :
@@ -279,10 +287,11 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
 
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         if ( auto spectrometer = dp->massSpectrometer() ) {
+
             o << "<pre>"
-              << "Mass spectrometer: " << spectrometer->objtext() << "; " << spectrometer->objclsid() << std::endl
-              << "Data interpreter:  " << spectrometer->dataInterpreterText() << "; " << spectrometer->dataInterpreterUuid() << std::endl
-              << "Property data interpreter: " << ms.getMSProperty().dataInterpreterClsid() << std::endl;
+              << "Mass spectrometer: " << safe_string()( spectrometer->objtext() ) << "; " << spectrometer->objclsid() << std::endl
+              << "Data interpreter:  " << safe_string()( spectrometer->dataInterpreterText() ) << "; " << spectrometer->dataInterpreterUuid() << std::endl
+              << "Property data interpreter: " << safe_string()( ms.getMSProperty().dataInterpreterClsid() ) << std::endl;
             o << "</pre>" << std::endl;
 
             // high level app oriented interpreter
