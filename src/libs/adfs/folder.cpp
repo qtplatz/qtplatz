@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,6 +27,7 @@
 #include "file.hpp"
 #include "fs.hpp"
 #include <adportable/utf.hpp>
+#include "adfs.hpp"
 
 using namespace adfs;
 
@@ -121,6 +122,21 @@ folder::addFile( const std::wstring& id, const std::wstring& title )
 		adfs::file file = internal::fs::add_file( *this, id );
 	    if ( file ) {
 			file.id( id );
+			if ( ! title.empty() )
+				static_cast< attributes& >(file).name( title );
+			return file;
+		}
+	}
+    return file();
+}
+
+file
+folder::addFile( const boost::uuids::uuid& id, const std::wstring& title )
+{
+    if ( db_ && rowid_ ) {
+		adfs::file file = internal::fs::add_file( *this, id );
+	    if ( file ) {
+			file.id( adfs::to_string< wchar_t >( id ) );
 			if ( ! title.empty() )
 				static_cast< attributes& >(file).name( title );
 			return file;

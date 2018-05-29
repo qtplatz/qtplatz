@@ -28,21 +28,17 @@
 #define BOOST_TEST_MAIN
 
 #include "test_massspectrum.hpp"
+#include <adportable/debug.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_parameters.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 
 using boost::unit_test_framework::test_suite;
 using namespace boost::unit_test;
 
 namespace test_adfs {
-#ifdef WIN32
     constexpr const char * const __datapath1 = "waveform.adfs";
     constexpr const char * const __datapath2 = "waveform2.adfs";    
-#else
-    constexpr const char * const __datapath1 = "data/waveform.adfs";
-    constexpr const char * const __datapath2 = "data/waveform2.adfs";
-#endif
 }
 
 BOOST_AUTO_TEST_CASE( adfs_massspectrum_create )
@@ -63,19 +59,27 @@ BOOST_AUTO_TEST_CASE( adfs_massspectrum_read )
 BOOST_AUTO_TEST_CASE( adfs_massspectrum_read_1 )
 {
     // unit test framework can catch operating system signals
-    BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
-
-    auto data = boost::filesystem::path( getenv( "DATAPATH" ) ) / test_adfs::__datapath1;
+    if ( auto p = getenv( "DATAPATH" ) ) {
+        auto data = boost::filesystem::path( p ) / test_adfs::__datapath1;
     
-    BOOST_CHECK( test_adfs::massspectrum::test_read( data.string().c_str() ) == true );
+        if ( boost::filesystem::exists( data ) ) {
+            BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
+            BOOST_CHECK( test_adfs::massspectrum::test_read( data.string().c_str() ) == true );
+        }
+    }
 }
+
 
 BOOST_AUTO_TEST_CASE( adfs_massspectrum_read_2 )
 {
     // unit test framework can catch operating system signals
-    BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
 
-    auto data = boost::filesystem::path( getenv( "DATAPATH" ) ) / test_adfs::__datapath2;
-    
-    BOOST_CHECK( test_adfs::massspectrum::test_read( data.string().c_str() ) == true );
+    if ( auto p = getenv( "DATAPATH" ) ) {
+        auto data = boost::filesystem::path( p ) / test_adfs::__datapath2;
+
+        if ( boost::filesystem::exists( data ) ) {
+            BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
+            BOOST_CHECK( test_adfs::massspectrum::test_read( data.string().c_str() ) == true );
+        }
+    }
 }

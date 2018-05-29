@@ -35,6 +35,8 @@
 #include <boost/iostreams/device/back_inserter.hpp>
 #include "attributes.hpp"
 
+namespace boost { namespace uuids { struct uuid; } }
+    
 namespace adfs {
 
     class folder;
@@ -51,6 +53,7 @@ namespace adfs {
         file();
         file( const file& );
         file( sqlite&, boost::int64_t rowid, const std::wstring& name, bool is_attachment = false );
+        file( sqlite&, boost::int64_t rowid, const boost::uuids::uuid& name, bool is_attachment = false );
 
     public:
         bool empty() const;
@@ -66,6 +69,8 @@ namespace adfs {
 
         // --- create/modify
         file addAttachment( const std::wstring& name );
+        file addAttachment( const boost::uuids::uuid& uuid );
+        
         inline sqlite& db() const { return *db_; }
         // inline const std::wstring& name() const { return name_; }
         template< typename T = wchar_t > const std::basic_string< T > name() const;

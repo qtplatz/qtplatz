@@ -33,24 +33,29 @@
 #include <compiler/disable_unused_parameter.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <compiler/diagnostic_pop.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/lexical_cast.hpp>
 
-#if defined WIN32
-# include "apiwin32.hpp"
-typedef adfs::detail::win32api impl;
-#else
-# include "apiposix.hpp"
-typedef adfs::detail::posixapi impl;
-#endif
+namespace adfs {
 
-std::wstring
-adfs::create_uuid()
-{
-    return impl::create_uuid();
-}
+    boost::uuids::uuid
+    create_uuid()
+    {
+        return boost::uuids::random_generator()();
+    }
 
-const char * 
-adfs::null_safe( const char * s )
-{
-    return ( s ? s : "" );
+    template<> ADFSSHARED_EXPORT std::wstring
+    to_string( const boost::uuids::uuid & uuid )
+    {
+        return boost::lexical_cast< std::wstring >( uuid );
+    }
+
+    template<> ADFSSHARED_EXPORT std::string
+    to_string( const boost::uuids::uuid & uuid )
+    {
+        return boost::lexical_cast< std::string >( uuid );
+    }
 }
 ////////////////////

@@ -61,7 +61,9 @@ namespace adfs {
             static folder find_folder( adfs::sqlite& db, const std::wstring& fullpath ); // full path required
             static folder get_parent_folder( adfs::sqlite& db, int64_t rowid );
             static file add_file( const folder&, const std::wstring& name );
+            static file add_file( const folder&, const boost::uuids::uuid& uuid );
             static file add_attachment( const file&, const std::wstring& name );
+            static file add_attachment( const file&, const boost::uuids::uuid& uuid );
             
             static bool select_folders( adfs::sqlite& db, int64_t parent_id, std::vector<folder>& );
             static bool select_file( adfs::sqlite&, int64_t parent_id, const std::wstring& id, file& );

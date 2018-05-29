@@ -29,6 +29,8 @@
 #include <boost/cstdint.hpp>
 #include "attributes.hpp"
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace adfs {
 
     class file;
@@ -49,7 +51,8 @@ namespace adfs {
         file selectFile( const std::wstring& );
 
         // --- add/modify features
-        file addFile( const std::wstring& id, const std::wstring& title = L"" );
+        [[deprecated]] file addFile( const std::wstring& id, const std::wstring& title = L"" );
+        file addFile( const boost::uuids::uuid& id, const std::wstring& title = L"" );
 
         inline boost::int64_t rowid() const { return rowid_; }
         // inline const std::wstring& name() const { return name_; }

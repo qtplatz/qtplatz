@@ -262,9 +262,21 @@ fs::add_file( const folder& folder, const std::wstring& name )
 }
 
 adfs::file
+fs::add_file( const folder& folder, const boost::uuids::uuid& name )
+{
+    return dml::insert_file( folder.db(), type_file, folder.rowid(), adfs::to_string< wchar_t >( name ) );
+}
+
+adfs::file
 fs::add_attachment( const file& parent, const std::wstring& name )
 {
     return dml::insert_file( parent.db(), type_attachment, parent.rowid(), name );
+}
+
+adfs::file
+fs::add_attachment( const file& parent, const boost::uuids::uuid& uuid )
+{
+    return dml::insert_file( parent.db(), type_attachment, parent.rowid(), adfs::to_string< wchar_t >( uuid ) );
 }
 
 folder

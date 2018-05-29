@@ -233,7 +233,6 @@ QuanResultWnd::handleResponseSelected( int respId )
 
         adfs::stmt sql( conn->db() );
         if ( sql.prepare( query ) ) {
-
             sql.bind( 1 ) = respId;
             while ( sql.step() == adfs::sqlite_row ) {
                 int row = 0;
@@ -244,9 +243,8 @@ QuanResultWnd::handleResponseSelected( int respId )
                     if ( !sql.is_null_column( row ) )
                         amount = sql.get_column_value< double >( row );
                     ++row;
-
                     if ( auto calib = publisher->find_calib_curve( uuid ) ) {
-
+                        
                         QuanPlot plot( curves_, markers_ );
 
                         if ( uuid_plot_ != uuid ) {
@@ -270,11 +268,17 @@ QuanResultWnd::handleResponseSelected( int respId )
                           "FROM QuanSample, QuanResponse "
                           "WHERE QuanResponse.id = ? AND QuanSample.id = QuanResponse.idSample" ) ) {
             sql.bind( 1 ) = respId;
+
             if ( sql.step() == adfs::sqlite_row ) {
                 dataGuid = sql.get_column_value< std::wstring >( 0 );
                 idx = size_t( sql.get_column_value< uint64_t >( 1 ) );
                 fcn = int( sql.get_column_value< int64_t >( 2 ) );
                 dataSource = sql.get_column_value< std::wstring >( 3 );
+#if !defined NDEBUG
+                ADDEBUG() << "dataGuid=" << dataGuid << "\n\t\t\tidx=" << idx << "\tfcn=" << fcn << "\t" << dataSource;
+#endif
+            } else {
+                ADDEBUG() << "no row selected: " << sql.expanded_sql();
             }
         }
 
@@ -286,6 +290,9 @@ QuanResultWnd::handleResponseSelected( int respId )
 
                 if ( sql.prepare( "SELECT refDataGuid,idx,fcn FROM QuanDataGuids WHERE dataGuid = ?" ) ) {
                     sql.bind( 1 ) = dataGuid;
+#if ! defined NDEBUG
+                    ADDEBUG() << "SQL(for plot): " << sql.expanded_sql();
+#endif
                     while ( sql.step() == adfs::sqlite_row ) {
                         auto refDataGuid = sql.get_column_value< std::wstring >( 0 );
                         auto idx = sql.get_column_value< uint64_t >( 1 );

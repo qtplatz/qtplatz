@@ -30,7 +30,7 @@
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
 #include <exception>
-#include <compiler/pragma_warning.hpp>
+#include <boost/uuid/uuid.hpp>
 
 namespace adfs {
 
@@ -48,9 +48,11 @@ namespace adfs {
         pragma_msvc_warning_pop
     };
 
-    ADFSSHARED_EXPORT const char * null_safe( const char * s );
+    ADFSSHARED_EXPORT inline const char * null_safe( const char * s ) { return ( s ? s : "" ); }
 
-    ADFSSHARED_EXPORT std::wstring create_uuid();
+    boost::uuids::uuid create_uuid();
+
+    template< typename T > ADFSSHARED_EXPORT std::basic_string< T > to_string( const boost::uuids::uuid& );
 }
 
 

@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include "adfs.hpp"
 #include "file.hpp"
 #include "folder.hpp"
 #include "filesystem.hpp"
@@ -84,6 +85,21 @@ file::file( sqlite& db
     fileid_ = internal::fs::rowid_from_fileid( *db_, rowid_ );
 }
 
+file::file( sqlite& db
+            , boost::int64_t rowid
+            , const boost::uuids::uuid& name
+            , bool is_attachment ) : db_( &db )
+                                   , name_( adfs::to_string< wchar_t >( name ) )  
+                                   , rowid_( rowid )
+                                   , fileid_( 0 )
+                                   , is_attachment_( is_attachment ) 
+{
+    attributes::fetch();
+	if ( attributes::id() != name_ )
+		attributes::id( name_ );
+    fileid_ = internal::fs::rowid_from_fileid( *db_, rowid_ );
+}
+
 files
 file::attachments()
 {
@@ -111,6 +127,12 @@ file
 file::addAttachment( const std::wstring& name )
 {
     return internal::fs::add_attachment( *this, name );
+}
+
+file
+file::addAttachment( const boost::uuids::uuid& uuid )
+{
+    return internal::fs::add_attachment( *this, uuid );
 }
 
 folder

@@ -87,8 +87,8 @@ namespace acqrscontrols {
     private:
         typename std::vector< std::shared_ptr< const T > >::iterator it_;
     };
-
-    template<> class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >;
-    
-    template<> class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_< const acqrscontrols::u5303a::threshold_result >;
+    template<> class threshold_result_accessor_< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >;
+    template<> class threshold_result_accessor_< const acqrscontrols::u5303a::threshold_result >;
+    // template<> class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_< const acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >;
+    // template<> class ACQRSCONTROLSSHARED_EXPORT threshold_result_accessor_< const acqrscontrols::u5303a::threshold_result >;
 }

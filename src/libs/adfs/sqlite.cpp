@@ -343,6 +343,23 @@ stmt::data_count() const
     return sqlite3_data_count( stmt_ );
 }
 
+const char *
+stmt::sql() const
+{
+    return sqlite3_sql( stmt_ );
+}
+
+std::string
+stmt::expanded_sql() const
+{
+    std::string sql;
+    if ( char * p = sqlite3_expanded_sql( stmt_ ) ) {
+        sql = p;
+        sqlite3_free( p );
+    }
+    return sql;
+}
+
 namespace adfs {
 
     template<> ADFSSHARED_EXPORT bool

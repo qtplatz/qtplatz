@@ -53,12 +53,12 @@ namespace adfs {
             return adportable::string::convert( pw->pw_name );
         }
         
-        std::wstring
-        posixapi::create_uuid()
-        {
-            const boost::uuids::uuid id = boost::uuids::random_generator()();
-            return boost::lexical_cast<std::wstring>(id);
-        }
+        // std::wstring
+        // posixapi::create_uuid()
+        // {
+        //     const boost::uuids::uuid id = boost::uuids::random_generator()();
+        //     return boost::lexical_cast<std::wstring>(id);
+        // }
 
     };
 };
