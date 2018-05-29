@@ -13,8 +13,8 @@ set( Boost_NO_SYSTEM_PATHS ON )
 
 if( WIN32 )
   find_path( _boost NAMES boost HINTS
-    "C:/Boost/include/boost-1_62"   # V14 <-- prefereed version
     "C:/Boost/include/boost-1_67"   # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
+    "C:/Boost/include/boost-1_62"   # V14 <-- prefereed version (but it may not be able to comple due to std::auto_ptr)
     #"C:/Boost/include/boost-1_65_1"# V15 'libs/serialization/src/basic_archive.cpp library_version_type(15)
     #"C:/Boost/include/boost-1_63"  # V14 
     "C:/Boost/include/boost-1_59"   # V13 

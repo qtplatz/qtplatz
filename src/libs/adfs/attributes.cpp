@@ -40,18 +40,31 @@
 
 
 namespace adfs {
-    template<> std::wstring
+    template<> ADFSSHARED_EXPORT std::wstring
     attributes::name< wchar_t >() const
     {
         return attribute( L"name" );
     }
 
-    template<> std::string
+    template<> ADFSSHARED_EXPORT std::string
     attributes::name< char >() const
     {
         return adportable::utf::to_utf8( attribute( L"name" ) );
     }
+
+    template<> ADFSSHARED_EXPORT std::wstring
+    attributes::id< wchar_t >() const
+    {
+        return attribute( L"dataId" );
+    }
+
+    template<> ADFSSHARED_EXPORT std::string
+    attributes::id< char >() const
+    {
+        return adportable::utf::to_utf8( attribute( L"dataId" ) );
+    }
 }
+
 
 using namespace adfs;
 
@@ -69,36 +82,10 @@ attributes::operator bool () const
     return static_cast<sqlite *>(&db()) != 0 && rowid() != 0;
 }
 
-std::wstring
-attributes::name() const
-{
-    return attribute( L"name" );
-}
-
 void
 attributes::name( const std::wstring& value )
 {
     setAttribute( L"name", value );
-}
-
-namespace adfs {
-    template<> std::wstring
-    attributes::id< wchar_t >() const
-    {
-        return attribute( L"dataId" );
-    }
-
-    template<> std::string
-    attributes::id< char >() const
-    {
-        return adportable::utf::to_utf8( attribute( L"dataId" ) );
-    }
-}
-
-std::wstring
-attributes::id() const
-{
-    return attribute( L"dataId" );
 }
 
 void

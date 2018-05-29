@@ -20,6 +20,10 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   unit_test_framework    
   )
 
+if ( Boost_USE_STATIC_LIBS)
+  add_definitions( -DBoost_USE_STATIC_LIBS=1 )
+endif()
+
 #add_subdirectory( filename_splitter )
 add_subdirectory( formula_parser )
 add_subdirectory( test_ptree )

@@ -50,11 +50,11 @@ namespace adfs {
 
         // std::wstring name() const;
                 
-        std::wstring name() const;
+        // std::wstring name() const;
         template< typename T = wchar_t > std::basic_string< T > name() const;
         void name( const std::wstring& name );
 
-        std::wstring id() const;
+        // std::wstring id() const;
         template< typename T = wchar_t > std::basic_string< T > id() const;
         void id( const std::wstring& );
 

@@ -32,6 +32,20 @@
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 
+namespace adfs {
+    template<> ADFSSHARED_EXPORT const std::basic_string< char >
+    file::name() const
+    {
+        return adportable::utf::to_utf8( name_ );
+    }
+
+    template<> ADFSSHARED_EXPORT const std::basic_string< wchar_t >
+    file::name() const
+    {
+        return name_;
+    }
+}
+
 using namespace adfs;
 
 file::~file()
@@ -68,20 +82,6 @@ file::file( sqlite& db
 	if ( attributes::id() != name_ )
 		attributes::id( name_ );
     fileid_ = internal::fs::rowid_from_fileid( *db_, rowid_ );
-}
-
-namespace adfs {
-    template<> const std::basic_string< char >
-    file::name() const
-    {
-        return adportable::utf::to_utf8( name_ );
-    }
-
-    template<> const std::basic_string< wchar_t >
-    file::name() const
-    {
-        return name_;
-    }
 }
 
 files

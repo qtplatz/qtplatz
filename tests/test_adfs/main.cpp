@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
 ** Copyright (C) MS-Cheminformatics LLC / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,25 +22,28 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#define BOOST_TEST_DYN_LINK
+#if ! Boost_USE_STATIC_LIBS
+# define BOOST_TEST_DYN_LINK
+#endif
 #define BOOST_TEST_MAIN
 
 #include "test_massspectrum.hpp"
-// #include <adfs/adfs.hpp>
-// #include <adfs/cpio.hpp>
-// #include <adfs/sqlite.hpp>
-// #include <adcontrols/massspectrum.hpp>
-// #include <adportfolio/portfolio.hpp>
-// #include <boost/filesystem.hpp>
-// #include <boost/test/execution_monitor.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_parameters.hpp>
-// #include <fstream>
-// #include <functional>
-// #include <iostream>
+#include <boost/filesystem/path.hpp>
 
 using boost::unit_test_framework::test_suite;
 using namespace boost::unit_test;
+
+namespace test_adfs {
+#ifdef WIN32
+    constexpr const char * const __datapath1 = "waveform.adfs";
+    constexpr const char * const __datapath2 = "waveform2.adfs";    
+#else
+    constexpr const char * const __datapath1 = "data/waveform.adfs";
+    constexpr const char * const __datapath2 = "data/waveform2.adfs";
+#endif
+}
 
 BOOST_AUTO_TEST_CASE( adfs_massspectrum_create )
 {
@@ -61,12 +64,18 @@ BOOST_AUTO_TEST_CASE( adfs_massspectrum_read_1 )
 {
     // unit test framework can catch operating system signals
     BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
-    BOOST_CHECK( test_adfs::massspectrum::test_read( "waveform.adfs" ) == true );
+
+    auto data = boost::filesystem::path( getenv( "DATAPATH" ) ) / test_adfs::__datapath1;
+    
+    BOOST_CHECK( test_adfs::massspectrum::test_read( data.string().c_str() ) == true );
 }
 
 BOOST_AUTO_TEST_CASE( adfs_massspectrum_read_2 )
 {
     // unit test framework can catch operating system signals
     BOOST_TEST_CHECKPOINT("About to read massspectrum file!");
-    BOOST_CHECK( test_adfs::massspectrum::test_read( "waveform2.adfs" ) == true );
+
+    auto data = boost::filesystem::path( getenv( "DATAPATH" ) ) / test_adfs::__datapath2;
+    
+    BOOST_CHECK( test_adfs::massspectrum::test_read( data.string().c_str() ) == true );
 }

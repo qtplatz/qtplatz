@@ -22,7 +22,9 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#define BOOST_TEST_DYN_LINK
+#if ! Boost_USE_STATIC_LIBS
+# define BOOST_TEST_DYN_LINK
+#endif
 #define BOOST_TEST_MAIN
 
 #include "dataprocessor.hpp"
@@ -33,15 +35,22 @@ using boost::unit_test_framework::test_suite;
 using namespace boost::unit_test;
 
 namespace test_dataprocessor {
+#ifdef WIN32
+    constexpr const char * const __datapath = "100ppmN2O_CO2_50ul_0001.adfs";
+    constexpr const char * const __datapath_nofile = "100ppmN2O_CO2_50ul_0001xxx.adfs";
+    constexpr const char * const __ENV = "DATAPATH";
+#else
     constexpr const char * const __datapath = "data/mouse/100ppmN2O_CO2_50ul_0001.adfs";
     constexpr const char * const __datapath_nofile = "data/mouse/100ppmN2O_CO2_50ul_0001xxx.adfs";
+    constexpr const char * const __ENV = "HOME";
+#endif
 }
 
 BOOST_AUTO_TEST_CASE( data_open0 )
 {
     BOOST_CHECK( test_dataprocessor::dataprocessor::init() == true );
     
-    boost::filesystem::path dpath = boost::filesystem::path( getenv( "HOME" ) ) / test_dataprocessor::__datapath;
+    boost::filesystem::path dpath = boost::filesystem::path( getenv( test_dataprocessor::__ENV ) ) / test_dataprocessor::__datapath;
     
     // unit test framework can catch operating system signals
     BOOST_TEST_CHECKPOINT("About to read data file!");
@@ -52,7 +61,7 @@ BOOST_AUTO_TEST_CASE( data_open1 )
 {
     BOOST_CHECK( test_dataprocessor::dataprocessor::init() == true );
     
-    boost::filesystem::path dpath = boost::filesystem::path( getenv( "HOME" ) ) / test_dataprocessor::__datapath;
+    boost::filesystem::path dpath = boost::filesystem::path( getenv( test_dataprocessor::__ENV ) ) / test_dataprocessor::__datapath;
     
     // unit test framework can catch operating system signals
     BOOST_TEST_CHECKPOINT("About to read data file!");
@@ -62,7 +71,7 @@ BOOST_AUTO_TEST_CASE( data_open1 )
 #if 0
 BOOST_AUTO_TEST_CASE( data_open2 )
 {
-    boost::filesystem::path dpath = boost::filesystem::path( getenv( "HOME" ) ) / test_dataprocessor::__datapath;
+    boost::filesystem::path dpath = boost::filesystem::path( getenv( test_dataprocessor::__ENV ) ) / test_dataprocessor::__datapath;
     
     // unit test framework can catch operating system signals
     BOOST_TEST_CHECKPOINT("About to read data file!");

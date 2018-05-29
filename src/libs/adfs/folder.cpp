@@ -100,13 +100,13 @@ folder::selectFile( const std::wstring& id )
 }
 
 namespace adfs {
-    template<> const std::basic_string< char >
+    template<> ADFSSHARED_EXPORT const std::basic_string< char >
     folder::name() const
     {
         return adportable::utf::to_utf8( name_ );
     }
     
-    template<> const std::basic_string< wchar_t >
+    template<> ADFSSHARED_EXPORT const std::basic_string< wchar_t >
     folder::name() const
     {
         return name_;
