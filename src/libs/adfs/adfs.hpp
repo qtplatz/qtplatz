@@ -34,7 +34,7 @@
 
 namespace adfs {
 
-    class /* ADFSSHARED_EXPORT */ exception : public std::exception {
+    class exception : public std::exception {
     public:
         exception( const std::string& msg, const char * cat ) : message_(msg), category_(cat) {}
 
@@ -48,11 +48,9 @@ namespace adfs {
         pragma_msvc_warning_pop
     };
 
-    ADFSSHARED_EXPORT inline const char * null_safe( const char * s ) { return ( s ? s : "" ); }
+    inline const char * null_safe( const char * s ) { return ( s ? s : "" ); }
 
-    boost::uuids::uuid create_uuid();
+    ADFSSHARED_EXPORT boost::uuids::uuid create_uuid();
 
     template< typename T > ADFSSHARED_EXPORT std::basic_string< T > to_string( const boost::uuids::uuid& );
 }
-
-

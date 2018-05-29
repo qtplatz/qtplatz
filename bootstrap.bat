@@ -80,7 +80,6 @@ if !build_target!==release (
 ) else if !build_target!==package (
     echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
     cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
-    set build_dir=!build_dir!/contrib/installer/wix
 )
 
 :end

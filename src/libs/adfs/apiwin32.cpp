@@ -92,18 +92,18 @@ win32api::get_login_name()
     return std::wstring();
 }
 
-boost::uuids::uuid // std::wstring
-win32api::create_uuid()
-{
-    return boost::uuids::random_generator()();
-    // std::wstring guidString;
-    // GUID guid;
-    // if ( CoCreateGuid( &guid ) == S_OK ) {
-    //     LPOLESTR psz;
-    //     if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
-    //         guidString = psz;
-    //         CoTaskMemFree( psz );
-    //     }
-    // }
-    // return guidString;
-}
+// boost::uuids::uuid // std::wstring
+// win32api::create_uuid()
+// {
+//     return boost::uuids::random_generator()();
+//     // std::wstring guidString;
+//     // GUID guid;
+//     // if ( CoCreateGuid( &guid ) == S_OK ) {
+//     //     LPOLESTR psz;
+//     //     if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
+//     //         guidString = psz;
+//     //         CoTaskMemFree( psz );
+//     //     }
+//     // }
+//     // return guidString;
+// }
