@@ -240,13 +240,12 @@ DataReader::impl::make_reader( const char * traceid ) const
 {
     auto it = reader_map_.find( traceid );
     if ( it != reader_map_.end() ) {
-        ADDEBUG() << "make_reader(" << traceid << ") found.";
         const auto& clsid = it->second;
         auto factory = reader_factories_.find( clsid );
         if ( factory != reader_factories_.end() )
             return factory->second( traceid );
     }
-    ADDEBUG() << "make_reader(" << traceid << ") not installed.";
+    ADDEBUG() << "requested DataReader for '" << traceid << "' is not installed.";
     return nullptr;
 }
 

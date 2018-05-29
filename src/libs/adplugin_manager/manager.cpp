@@ -374,7 +374,9 @@ manager::standalone_initialize()
         std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
                 adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
                 if ( factory ) {
-                    ADDEBUG() << "installing " << factory->name() << "...";
+#ifndef NDEBUG
+                    ADDEBUG() << "installing '" << factory->name() << "', clsid=" << d->clsid();
+#endif
                     adcontrols::datafileBroker::register_factory( factory, d->clsid() );
                     if ( factory->mimeTypes() )
                         mime.push_back( factory->mimeTypes() );
