@@ -5,16 +5,15 @@ set source_dir="%~dp0"
 pushd "%~dp0.."
 set build_root=%CD%
 popd
+
 set build_arch=x86_64
 set build_target=release
-set build_tests=false
-set build_clean=false
-set query_build_dir=false
-set exec_build=false
+set build_package=
+set build_clean=
 set tools=%VisualStudioVersion%
+set debug_symbol="ON"
 
 setlocal enabledelayedexpansion
-::call %~dp0%\constants.bat
 
 if %VisualStudioVersion% EQU 15.0 (
    set GENERATOR="Visual Studio 15 2017 Win64"
@@ -24,66 +23,45 @@ if %VisualStudioVersion% EQU 15.0 (
 )
 
 for %%i in (%*) do (
-    if %%i==release (
-       set build_target=release
-    ) else if %%i==package (
-       set build_target=package
-    ) else if %%i==tests (
-       set build_tests=true
+    if %%i==package (
+       set build_package=y
+       set build_clean=y
+       set debug_symbol="OFF"
     ) else if %%i==clean (
-       set build_clean=true
-    ) else if %%i==x86 (
-      set build_arch=x86
-    ) else if "%%i"=="--query-source_dir" (
-      @echo %source_dir%
-      goto end
-    ) else if "%%i"=="--query-build_root" (
-      @echo %build_root%
-      goto end
-    ) else if "%%i"=="--query-build_dir" (
-      set query_build_dir=true
+       set build_clean=y
     )      
 )
 
-set build_dir=!build_root!\build-!build_arch!\qtplatz.!build_target!
+set build_dir=!build_root!\build-!build_arch!\qtplatz.release
 pushd !build_dir!
 build_dir=%CD%
 popd
 
-if %query_build_dir%==true (
-   @echo %build_dir%
-   goto end
-)
+echo -- arch:      !build_arch!
+echo -- tools:     !tools!
+echo -- GENERATOR: !GENERATOR!
+echo -- BUILD DIR: !build_dir!
+echo -- PACKAGE  : !build_package!
 
-echo -------------- arch:          !build_arch!
-echo -------------- tools:         !tools!
-echo -------------- GENERATOR:     !GENERATOR!
-
-echo "############ bootstrap building qtplatz using "!tools!" #############"
-
-if %build_clean%==true (
-  echo rmdir !build_dir! /s /q
-  rmdir !build_dir! /s /q
-  goto end
+if defined build_clean (
+   echo "============ cleaning build dir =============="
+   echo rmdir !build_dir! /s /q
+   rmdir !build_dir! /s /q
+   if not defined build_package ( goto end )
 )
 
 if not exist !build_dir! (
+   echo "============ making build dir =============="
    mkdir !build_dir!
 )
 
 cd !build_dir!
+echo "============ %CD% =============="
 
-if !build_target!==release (
-    echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
-    cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=ON %source_dir%
-    cd %source_dir%
-) else if !build_target!==package (
-    echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
-    cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=OFF %source_dir%
-)
+echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
-:end
-
+echo "============ endlocal =============="
 endlocal && set build_dir=%build_dir%
 
 pushd %build_dir%
@@ -92,3 +70,4 @@ echo -- You are in the %build_dir%
 echo -- 'popd' command take you back to source directory.
 echo --
 
+:end

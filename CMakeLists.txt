@@ -241,6 +241,7 @@ if ( WIN32 )
   
   set( CPACK_GENERATOR "WIX" )
   include( msvc-cpack )
+  include( rdkit-cpack )
   include( boost-cpack )
   include( qt5-cpack )
   if ( OpenCV_FOUND )
