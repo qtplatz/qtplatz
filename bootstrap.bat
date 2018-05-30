@@ -1,10 +1,17 @@
-:#!cmd.exe
+::#!cmd.exe
 @echo off
 
-set source_dir="%~dp0"
+set "source_dir=%~dp0"
 pushd "%~dp0.."
 set build_root=%CD%
 popd
+
+if not defined QTDIR (
+   set QMAKE=
+   call "%source_dir%scripts\find_qmake.bat" QMAKE
+   if not defined QMAKE ( echo "************ No QMAKE found." & goto end )
+   echo "********** QMAKE=%QMAKE%"
+)
 
 set build_arch=x86_64
 set build_target=release
@@ -32,36 +39,37 @@ for %%i in (%*) do (
     )      
 )
 
-set build_dir=!build_root!\build-!build_arch!\qtplatz.release
-pushd !build_dir!
+set build_dir=%build_root%\build-%build_arch%\qtplatz.release
+pushd %build_dir%
 build_dir=%CD%
 popd
 
-echo -- arch:      !build_arch!
-echo -- tools:     !tools!
-echo -- GENERATOR: !GENERATOR!
-echo -- BUILD DIR: !build_dir!
-echo -- PACKAGE  : !build_package!
+echo -- arch:      %build_arch%
+echo -- tools:     %tools%
+echo -- GENERATOR: %GENERATOR%
+echo -- BUILD DIR: %build_dir%
+echo -- PACKAGE  : %build_package%
+echo -- CLEAN    : %build_clean%
+echo -- QMAKE    : %QMAKE%
+
+set /p Yes=Proceed (y/n)?
+if /i Yes neq "y" goto end
 
 if defined build_clean (
-   echo "============ cleaning build dir =============="
-   echo rmdir !build_dir! /s /q
-   rmdir !build_dir! /s /q
+   echo rmdir %build_dir% /s /q
+   rmdir %build_dir% /s /q
    if not defined build_package ( goto end )
 )
 
-if not exist !build_dir! (
-   echo "============ making build dir =============="
-   mkdir !build_dir!
-)
+if not exist %build_dir% ( mkdir %build_dir% )
+cd %build_dir%
 
-cd !build_dir!
-echo "============ %CD% =============="
+echo cmake -DQTDIR=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
-echo cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
-cmake -DQTDIR=%QTDIR% -G !GENERATOR! -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+cmake -DQTDIR=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
 echo "============ endlocal =============="
+
 endlocal && set build_dir=%build_dir%
 
 pushd %build_dir%
