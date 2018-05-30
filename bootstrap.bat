@@ -39,7 +39,7 @@ for %%i in (%*) do (
     )      
 )
 
-set "build_dir=%build_root%\build-%build_arch%\%build_target"
+set "build_dir=%build_root%\build-%build_arch%\%build_target%"
 
 echo -- GENERATOR: %GENERATOR%
 echo -- BUILD DIR: %build_dir%
