@@ -31,18 +31,16 @@ if %VisualStudioVersion% EQU 15.0 (
 
 for %%i in (%*) do (
     if %%i==package (
-       set build_package=y
-       set build_clean=y
+       set build_package=yes
+       set build_clean=yes
        set debug_symbol="OFF"
     ) else if %%i==clean (
-       set build_clean=y
+       set build_clean=yes
     )      
 )
 
 set "build_dir=%build_root%\build-%build_arch%\%build_target"
 
-echo -- arch:      %build_arch%
-echo -- tools:     %tools%
 echo -- GENERATOR: %GENERATOR%
 echo -- BUILD DIR: %build_dir%
 echo -- PACKAGE  : %build_package%
