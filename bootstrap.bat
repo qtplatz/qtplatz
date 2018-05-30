@@ -9,12 +9,12 @@ popd
 if not defined QTDIR (
    set QMAKE=
    call "%source_dir%scripts\find_qmake.bat" QMAKE
-   if not defined QMAKE ( echo "************ No QMAKE found." & goto end )
-   echo "********** QMAKE=%QMAKE%"
+   if not defined QMAKE ( echo "## No QMAKE found." & goto end )
+   for /f "tokens=*" %%a in ( '%QMAKE% -query QT_INSTALL_PREFIX' ) do ( set "QTDIR=%%a" )
 )
 
 set build_arch=x86_64
-set build_target=release
+set build_target=qtplatz.release
 set build_package=
 set build_clean=
 set tools=%VisualStudioVersion%
@@ -39,10 +39,7 @@ for %%i in (%*) do (
     )      
 )
 
-set build_dir=%build_root%\build-%build_arch%\qtplatz.release
-pushd %build_dir%
-build_dir=%CD%
-popd
+set "build_dir=%build_root%\build-%build_arch%\%build_target"
 
 echo -- arch:      %build_arch%
 echo -- tools:     %tools%
@@ -51,13 +48,18 @@ echo -- BUILD DIR: %build_dir%
 echo -- PACKAGE  : %build_package%
 echo -- CLEAN    : %build_clean%
 echo -- QMAKE    : %QMAKE%
+echo -- QTDIR    : %QTDIR%
 
 set /p Yes=Proceed (y/n)?
-if /i Yes neq "y" goto end
+if /i "%Yes%" neq "y" goto end
 
 if defined build_clean (
-   echo rmdir %build_dir% /s /q
-   rmdir %build_dir% /s /q
+   if exist %build_dir% (
+      echo removing %build_dir%
+      rmdir %build_dir% /s /q
+   ) else (
+     echo "Nothing to be done for clean"
+   )
    if not defined build_package ( goto end )
 )
 
@@ -68,12 +70,12 @@ echo cmake -DQTDIR=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYM
 
 cmake -DQTDIR=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
-echo "============ endlocal =============="
+echo "============ endlocal ==============" %build_dir%
 
 endlocal && set build_dir=%build_dir%
 
 pushd %build_dir%
-echo --
+echo -- %build_dir% --
 echo -- You are in the %build_dir%
 echo -- 'popd' command take you back to source directory.
 echo --
