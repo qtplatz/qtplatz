@@ -48,21 +48,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-if [ -z "$QTDIR" ]; then
-    if find_qmake QMAKE; then
-	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
-	echo "qmake found in "$QTDIR " (qmake="${QMAKE}")"
-	prompt
-	export PATH=$QTDIR/bin:$PATH
-    else
-	echo "## Error: QMAKE cannot be found"
-	exit 1
-    fi
-fi
-
-echo "platform="$host_system
-echo "config="$config
-echo "QTDIR="$QTDIR
+echo -e "$0: platform=\t"$host_system
+echo -e "$0: config  =\t"$config
 
 if [ -z $cross_target ]; then
     case $arch in
@@ -103,6 +90,18 @@ if [ $build_clean = true ]; then
 	echo rm -rf $build_dir; rm -rf $build_dir
     done
     exit
+fi
+
+if [ -z "$QTDIR" ]; then
+    if find_qmake QMAKE; then
+	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
+	echo "$0: qmake found in "$QTDIR " (qmake="${QMAKE}")"
+	prompt
+	export PATH=$QTDIR/bin:$PATH
+    else
+	echo "$0: ## Error: QMAKE cannot be found"
+	exit 1
+    fi
 fi
 
 echo "build_dirs: ${build_dirs[*]}"
