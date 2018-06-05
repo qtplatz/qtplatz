@@ -45,6 +45,7 @@ namespace adurl {
         ajax( const std::string& server = "localhost", const std::string& port = "http" );
 
         bool operator()( const std::string& method, const std::string& url, const std::string& mimeType = "application/json" );
+        bool operator()( const std::string& method, const std::string& url, const std::string& body, const std::string& mimeType = "application/json" );
 
         bool get_response( boost::property_tree::ptree& ) const;
         std::string response( bool pretty_print = true ) const;

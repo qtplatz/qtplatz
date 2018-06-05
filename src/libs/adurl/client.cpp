@@ -78,7 +78,6 @@ client::client( boost::asio::io_service& io_service
                                              , error_( NoError )
                                              , event_stream_( false )
                                              , server_( server )
-                                               //, port_( port )
 {
     // Form the request. We specify the "Connection: close" header so that the
     // server will close the socket after transmitting the response. This will
@@ -91,16 +90,14 @@ client::client( boost::asio::io_service& io_service
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
 
+    ADDEBUG() << "make_query(" << server << ", " << port << ")";
+
     tcp::resolver::query query = make_query( server, port );
-#ifdef NDEBUG
-    // due to this makes annoy 'new thread' message on debugger
+
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
                                  handle_resolve( err, endpoint_iterator );
                              });
-#else
-    handle_resolve( boost::system::error_code(), resolver_.resolve( query ) );
-#endif
 }
 
 client::client(boost::asio::io_service& io_service
@@ -113,9 +110,10 @@ client::client(boost::asio::io_service& io_service
                                             , status_code_( 0 )
                                             , error_( NoError )
                                             , server_( server )
-                                              //, port_( port )
 {
     tcp::resolver::query query = make_query( server, port );
+
+    ADDEBUG() << "make_query(" << server << ", " << port << ")";
 
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){

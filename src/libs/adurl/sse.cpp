@@ -42,9 +42,10 @@ namespace adurl {
     public:
 
         impl( std::unique_ptr< boost::asio::streambuf >&& request
-              , const std::string& server ) : server_( server )
-                                            , work_( io_service_ )
-                                            , client_( io_service_, std::move( request ), server_ ) {
+              , const std::string& server
+              , const std::string& port ) : server_( server )
+                                          , work_( io_service_ )
+                                          , client_( io_service_, std::move( request ), server_, port ) {
 
             client_.connect( [&]( const boost::system::error_code& ec
                                   , boost::asio::streambuf& response ){ handle_event( ec, response ); });
@@ -96,7 +97,7 @@ sse::~sse()
 }
 
 
-sse::sse( const char * server, const char * path ) // : impl_( new impl( server, path ) )
+sse::sse( const char * server, const char * path, const char * port ) // : impl_( new impl( server, path ) )
 {
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
@@ -108,7 +109,7 @@ sse::sse( const char * server, const char * path ) // : impl_( new impl( server,
     request_stream << "Content-Type: application/text\r\n";    
     request_stream << "\r\n";
     
-    impl_ = new impl( std::move( request ), server );
+    impl_ = new impl( std::move( request ), server, port );
 }
 
 void

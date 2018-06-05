@@ -39,7 +39,7 @@ namespace adurl {
         class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
         ~sse();
-        sse( const char * server = "dg-httpd", const char * path = "/dg/ctl?events" );
+        sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
         
         void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
         void stop();

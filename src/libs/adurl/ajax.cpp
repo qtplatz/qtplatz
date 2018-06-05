@@ -85,7 +85,17 @@ namespace adurl {
         boost::spirit::qi::rule< Iterator, url_type() > start;
     };
 }
-#endif        
+#endif
+
+namespace adurl {
+    std::string server_port_string( const std::string& server, const std::string& port ) {
+        if ( ! port.empty() ) {
+            if ( port != "80" && port != "http" )
+                return server + ":" + port;
+        }
+        return server;
+    }
+}
 
 using namespace adurl;
 
@@ -110,11 +120,52 @@ ajax::operator()( const std::string& method
     std::ostream request_stream ( request.get() );
 
     request_stream << method << " " << request::url_encode( url ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server_ << "\r\n";
+    request_stream << "Host: " << server_port_string( server_, port_ ) << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n";
     request_stream << "Content-Type: " << mimeType << "\r\n";  //"Content-Type: application/json\r\n";
     request_stream << "\r\n";
+
+    boost::asio::io_service io_service;
+    adurl::client client( io_service, std::move( request ), server_, port_ );
+
+    io_service.run();
+
+    status_code_ = client.status_code();
+    status_message_ = std::move( client.status_message_ );
+
+    response_header_ = std::string( (std::istreambuf_iterator<char>(&client.response_header())), std::istreambuf_iterator<char>() );
+
+    if ( status_code_ == 200 )
+        response_ = std::move( client.response_ );
+
+    if ( adurl::client::debug_mode() ) {
+        std::cerr << "-----------------------------------" << std::endl;
+        std::cerr << &client.response_header();
+        std::cerr << "status_code: " << status_code_ << ", " << status_message_ << std::endl;
+        std::cerr << "-----------------------------------" << std::endl;
+    }
+
+    return client.error() == adurl::client::NoError && client.status_code() == 200;
+}
+
+bool
+ajax::operator()( const std::string& method
+                  , const std::string& url
+                  , const std::string& body 
+                  , const std::string& mimeType )
+{
+    auto request = std::make_unique< boost::asio::streambuf >();
+    std::ostream request_stream ( request.get() );
+
+    request_stream << method << " " << request::url_encode( url ) << " HTTP/1.0\r\n";
+    request_stream << "Host: " << server_port_string( server_, port_ ) << "\r\n";    
+    request_stream << "Accept: */*\r\n";
+    request_stream << "Connection: close\r\n";
+    request_stream << "Content-Type: " << mimeType << "\r\n";  //"Content-Type: application/json\r\n";
+    request_stream << "Content-Length: " << body.size() << "\r\n";
+    request_stream << "\r\n";
+    request_stream << body << "\r\n";
 
     boost::asio::io_service io_service;
     adurl::client client( io_service, std::move( request ), server_, port_ );
