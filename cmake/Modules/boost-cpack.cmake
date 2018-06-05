@@ -15,6 +15,7 @@ if ( Boost_FOUND )
     filesystem
     iostreams
     locale
+    log
     program_options
     regex
     serialization
