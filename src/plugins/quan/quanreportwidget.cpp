@@ -91,13 +91,10 @@ QuanReportWidget::QuanReportWidget(QWidget *parent) : QWidget(parent)
                                                     , docBrowser_( new QTextBrowser )
 {
     if ( auto toolBar = new QToolBar ) {
-        toolBar->setObjectName( "publisherToolBar" );
-        auto tbLayout = new QHBoxLayout( toolBar );
-        tbLayout->setMargin( 0 );
-        tbLayout->setSpacing( 0 );
-        tbLayout->addWidget( new Utils::StyledSeparator );
 
-        if ( auto xslt = new QComboBox( toolBar ) ) {
+        toolBar->setObjectName( "publisherToolBar" );
+
+        if ( auto xslt = new QComboBox() ) {
             xslt->setObjectName( "stylesCombo" );
             QStringList list;
             adpublisher::transformer::populateStylesheets( list );

@@ -186,7 +186,7 @@ MainWindow::createContents( Core::IMode * )
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
-            widget->setMaximumHeight( std::numeric_limits<int>::max() );
+            // widget->setMaximumHeight( 16777215 ); 
         }
 
         stack_->addWidget( panelsWidget );
