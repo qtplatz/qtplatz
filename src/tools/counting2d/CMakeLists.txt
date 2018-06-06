@@ -12,8 +12,6 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-set ( CMAKE_CXX_STANDARD 14 )
-
 find_package( Qt5 CONFIG REQUIRED Widgets Gui Svg Sql PrintSupport )
 
 if ( OpenCV_FOUND )

@@ -15,7 +15,6 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-set ( CMAKE_CXX_STANDARD 14 )
 set ( USING_CHARTS OFF )
 
 if ( STANDALONE )

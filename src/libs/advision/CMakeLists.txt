@@ -8,8 +8,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-set( CMAKE_CXX_STANDARD 14 )
-
 if ( OpenCV_FOUND )
   include_directories ( ${OpenCV_INCLUDE_DIRS} )
   set ( cuda_cv_sources

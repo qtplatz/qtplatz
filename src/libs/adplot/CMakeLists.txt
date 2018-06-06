@@ -78,7 +78,6 @@ set( adplot_SOURCES
 )
 
 add_library( adplot SHARED ${adplot_SOURCES} )
-set_property( TARGET adplot PROPERTY CXX_STANDARD 14 )  # for std::make_unique on Mac
 
 target_link_libraries( adplot LINK_PUBLIC
   adcontrols

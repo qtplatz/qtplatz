@@ -248,8 +248,6 @@ add_library( adcontrols SHARED
   waveform_filter.hpp
   )
 
-set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14 )
-
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries( adcontrols LINK_PUBLIC adportable ${Boost_LIBRARIES} )
 
