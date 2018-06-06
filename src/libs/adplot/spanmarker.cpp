@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010- Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -92,10 +92,47 @@ SpanMarker::setValue( double lower_value, double upper_value )
 }
 
 void
+SpanMarker::setXValue( fence id, double x )
+{
+    markers_[ id ]->setXValue( x );
+}
+
+void
+SpanMarker::setXValue( double lower_value, double upper_value )
+{
+    markers_[ 0 ]->setXValue( lower_value );
+    markers_[ 1 ]->setXValue( upper_value );
+}
+
+void
 SpanMarker::visible( bool v )
+{
+    setVisible( v );
+}
+
+void
+SpanMarker::setVisible( bool v )
 {
     for ( auto marker : markers_ )
         marker->setVisible( v );
+}
+
+bool
+SpanMarker::isVisible() const
+{
+    return markers_[ 0 ]->isVisible();
+}
+
+double
+SpanMarker::xValue( fence id ) const
+{
+    return markers_[ id ]->xValue();
+}
+
+std::pair< double, double >
+SpanMarker::xValue() const
+{
+    return { markers_[ lower ]->xValue(), markers_[ upper ]->xValue() };
 }
 
 void

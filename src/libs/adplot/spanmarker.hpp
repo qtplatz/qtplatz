@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010- Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -53,10 +53,17 @@ namespace adplot {
         void detach();
         
         void setYAxis( int );
-        void setValue( fence, double value );
-        void setValue( double lower_value, double upper_value );
+        [[deplicated]] void setValue( fence, double value );
+        [[deplicated]] void setValue( double lower_value, double upper_value );
+        void setXValue( fence, double value );
+        void setXValue( double lower_value, double upper_value );
+        double xValue( fence ) const;
+        std::pair< double, double > xValue() const;
 
-        void visible( bool );
+        [[deprecated]] void visible( bool );
+        void setVisible( bool );
+        bool isVisible() const;
+        
         void replot();
 
         QwtPlotMarker * marker( fence idx );

@@ -90,8 +90,6 @@ client::client( boost::asio::io_service& io_service
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n\r\n";
 
-    ADDEBUG() << "make_query(" << server << ", " << port << ")";
-
     tcp::resolver::query query = make_query( server, port );
 
     resolver_.async_resolve( query
@@ -112,8 +110,6 @@ client::client(boost::asio::io_service& io_service
                                             , server_( server )
 {
     tcp::resolver::query query = make_query( server, port );
-
-    ADDEBUG() << "make_query(" << server << ", " << port << ")";
 
     resolver_.async_resolve( query
                              , [&]( const boost::system::error_code& err, tcp::resolver::iterator endpoint_iterator ){
