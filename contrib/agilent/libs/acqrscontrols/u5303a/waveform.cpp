@@ -417,11 +417,11 @@ waveform::accumulate( double tof, double window ) const
             size_t u = size_t( ceil( x2 ) );
             switch ( meta_.dataType ) {
             case 2:
-                return std::accumulate( begin<int16_t>() + l, end< int16_t >() + u, 0.0 );
+                return std::accumulate( begin<int16_t>() + l, begin< int16_t >() + u, 0.0 );
             case 4:
-                return std::accumulate( begin<int32_t>() + l, end< int32_t >() + u, 0.0 );
+                return std::accumulate( begin<int32_t>() + l, begin< int32_t >() + u, 0.0 );
             case 8:
-                return std::accumulate( begin<int64_t>() + l, end< int64_t >() + u, 0.0 );
+                return std::accumulate( begin<int64_t>() + l, begin< int64_t >() + u, 0.0 );
             }
         } else {
             adportable::spectrum_processor::areaFraction frac;

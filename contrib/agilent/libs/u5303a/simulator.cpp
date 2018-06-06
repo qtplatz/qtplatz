@@ -235,7 +235,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         for ( const auto& peak: peak_list ) {
             size_t idx = ( peak.first - startDelay_ ) / sampInterval_;
             if ( idx < nbrSamples_ )
-                dp[ idx ] = peak.second * 10000 + __noise__() + __counter__;
+                dp[ idx ] = peak.second * 10000 + __noise__();// + __counter__;
         }
         __counter__ ++;
         

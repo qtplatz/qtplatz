@@ -1,6 +1,6 @@
 /**************************************************************************
- ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
- ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
  *
  ** Contact: toshi.hondo@qtplatz.com
  **
@@ -50,6 +50,7 @@
 #include <adportable/waveform_peakfinder.hpp>
 #include <adportable/waveform_processor.hpp>
 #include <adportable/waveform_wrapper.hpp>
+#include <boost/format.hpp>
 #include <deque>
 
 namespace acqrscontrols {
@@ -496,8 +497,10 @@ tdcdoc::processThreshold2( std::array< std::shared_ptr< const acqrscontrols::u53
     for ( size_t i = 0; i < waveforms.size(); ++i ) {
 
         if ( waveforms[ i ] ) {
-
+            
             auto& counts = impl_->threshold_action_counts_[ i ];
+
+            // ADDEBUG() << __FUNCTION__ << "counts[" << i << "]" << counts;
             
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
             
@@ -599,6 +602,30 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
     return results;
 }
 
+
+// this is called from u5303aplugin, trial for raising,falling pair lookup
+bool
+tdcdoc::processPKD( std::shared_ptr< const acqrscontrols::u5303a::waveform > pkd )
+{
+    if ( ! pkd || pkd->meta_.channelMode != acqrscontrols::u5303a::PKD )
+        return false;
+
+    auto am = impl_->threshold_action_;
+    std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
+
+    // ADDEBUG() << __FUNCTION__ << "\tcount "
+    //           << pkd->accumulate( am->delay, am->width ) << "/"
+    //           << pkd->meta_.actualAverages
+    //           << boost::format( "\t%x" ) % pkd.get();
+                   
+    auto& counts = impl_->threshold_action_counts_[ 0 ];
+    
+    counts.second += pkd->meta_.actualAverages;  // trigger count
+    if ( am->enable ) {
+        counts.first += uint32_t( pkd->accumulate( am->delay, am->width ) + 0.5 );
+    }
+    return true;
+}
 
 bool
 tdcdoc::set_threshold_action( const adcontrols::threshold_action& m )

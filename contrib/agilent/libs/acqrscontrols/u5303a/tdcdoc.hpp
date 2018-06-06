@@ -101,6 +101,9 @@ namespace acqrscontrols {
             // peak detection (on trial)
             std::array< threshold_result_ptr, acqrscontrols::u5303a::nchannels >
                 processThreshold3( std::array< std::shared_ptr< const waveform_type >, acqrscontrols::u5303a::nchannels > );
+
+            // find count rate, generate histogram
+            bool processPKD( std::shared_ptr< const waveform_type > );
             
             bool accumulate_waveform( std::shared_ptr< const waveform_type > );
 

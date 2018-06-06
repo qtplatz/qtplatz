@@ -13,7 +13,7 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [ { "name": "AcqirisOption", "value": "xsimulate" } ],
+            "environment": [ { "name": "AcqirisOption", "value": "simulate" } ],
             "externalConsole": true,
             "MIMode": "gdb",
             "setupCommands": [
