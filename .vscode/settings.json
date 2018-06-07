@@ -2,6 +2,6 @@
     "cmake.buildDirectory": "${workspaceRoot}/../build-Linux-x86_64/qtplatz.debug"
     , "cmake.configureSettings": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-        , "QTDIR": "/opt/Qt/5.9.3/gcc_64"
+        , "QTDIR": "/opt/Qt/5.11.0/gcc_64"
     }
 }

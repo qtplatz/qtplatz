@@ -46,7 +46,7 @@ namespace acqrscontrols {
         virtual ~tdcbase();
         tdcbase();
 
-        enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram };
+        enum SpectrumType { Raw, Profile, PeriodicHistogram, LongTermHistogram, LongTermPkdWaveform };
         
         static bool computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
                                       , const adcontrols::CountingMethod&

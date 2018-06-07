@@ -182,6 +182,9 @@ namespace acqrscontrols {
             std::atomic< double > trig_per_seconds_;
             std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > accumulated_waveforms_;
             std::shared_ptr< const adcontrols::CountingMethod > counting_method_;
+
+            // pkd
+            std::shared_ptr< acqrscontrols::u5303a::waveform > accumulated_pkd_waveform_;
             
             // periodic histograms (primary que) [time array] := (proto 0, proto 1, ...), (proto 0, proto 1, ...),...
             std::vector< std::shared_ptr< adcontrols::TimeDigitalHistogram > > periodic_histogram_que_;
@@ -613,16 +616,22 @@ tdcdoc::processPKD( std::shared_ptr< const acqrscontrols::u5303a::waveform > pkd
     auto am = impl_->threshold_action_;
     std::lock_guard< std::mutex > lock( this->impl_->mutex_ );
 
-    // ADDEBUG() << __FUNCTION__ << "\tcount "
-    //           << pkd->accumulate( am->delay, am->width ) << "/"
-    //           << pkd->meta_.actualAverages
-    //           << boost::format( "\t%x" ) % pkd.get();
-                   
     auto& counts = impl_->threshold_action_counts_[ 0 ];
     
     counts.second += pkd->meta_.actualAverages;  // trigger count
-    if ( am->enable ) {
-        counts.first += uint32_t( pkd->accumulate( am->delay, am->width ) + 0.5 );
+    counts.first += uint32_t( pkd->accumulate( am->delay, am->width ) + 0.5 );    
+
+    // if ( am->enable ) {
+    if ( ! impl_->tofChromatogramsMethod_->refreshHistogram() ) {
+        if ( !impl_->accumulated_pkd_waveform_ )
+            impl_->accumulated_pkd_waveform_ = std::make_shared< acqrscontrols::u5303a::waveform >( *pkd, sizeof( uint32_t ) );
+        else {
+            try {
+                *impl_->accumulated_pkd_waveform_ += *pkd;
+            } catch ( std::exception& bad_cast ) {
+                impl_->accumulated_pkd_waveform_.reset();
+            }
+        }
     }
     return true;
 }
@@ -709,6 +718,8 @@ tdcdoc::clear_histogram()
 
     for ( auto& p: impl_->recent_longterm_histograms_ )
         p = std::make_shared< adcontrols::TimeDigitalHistogram >();
+
+    impl_->accumulated_pkd_waveform_.reset();
 }
 
 std::pair< uint32_t, uint32_t >
@@ -744,6 +755,13 @@ tdcdoc::recentSpectrum( SpectrumType choice, mass_assignee_t assignee, int proto
     } else if ( choice == LongTermHistogram ) {
         if ( impl_->recentHistogram( *ms, impl_->recent_longterm_histograms_, assignee ) )
             return ms;
+    } else if ( choice == LongTermPkdWaveform ) {
+        if ( impl_->accumulated_pkd_waveform_ ) {
+            if ( acqrscontrols::u5303a::waveform::translate( *ms, *impl_->accumulated_pkd_waveform_ ) ) {
+                //ms->setCentroid( adcontrols::CentroidHistogram );
+                return ms;
+            }
+        }
     }
     return nullptr;
 }

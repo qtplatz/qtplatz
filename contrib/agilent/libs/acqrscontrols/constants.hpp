@@ -57,6 +57,8 @@ namespace acqrscontrols {
         //522a83e8-b1b9-4341-8b0f-cac66d6d1e67	module_hv_httpd
         //34945677-4ad7-4d0f-b51d-4743f53514d4	module_dg_httpd
         //381d7d88-1bf5-4bfa-9d27-16e702b74640	module_protocol
+        // u5303a pkd soft added
+        constexpr boost::uuids::uuid pkd_coadd_spectrum  = {{ 0x70, 0xe5, 0x60, 0x56, 0x96, 0x85, 0x48, 0xf7, 0x97, 0x1f, 0x88, 0x61, 0x2e, 0xb0, 0xd1, 0xee }};
 
         enum { nchannels = 2 };
     }
