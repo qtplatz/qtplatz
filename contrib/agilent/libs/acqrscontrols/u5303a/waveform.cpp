@@ -98,6 +98,29 @@ namespace acqrscontrols {
 
         };
 
+        template< typename value_type > 
+        struct pkd_waveform_copy {
+            bool operator()( adcontrols::MassSpectrum& sp, const waveform& w ) const {
+                if ( w.meta_.channelMode == u5303a::PKD ) {
+                    size_t sz = std::accumulate( w.begin< value_type >(), w.end< value_type >(), size_t(0)
+                                                  , []( size_t a, const value_type& b ) { return a + ( b > 0 ? 1 : 0 ); });
+                    sp.resize( sz );
+                    size_t idx(0);
+                    for ( auto it = w.begin< value_type >(); it != w.end< value_type >(); ++it ) {
+                        if ( *it > 0 ) {
+                            sp.setIntensity( idx, *it );
+                            sp.setTime( idx, w.time( std::distance( w.begin< value_type >(), it ) ) );
+                            ++idx;
+                        }
+                    }
+                    sp.setCentroid( adcontrols::CentroidHistogram );
+                    return true;
+                }
+                return false;
+            }
+        };
+        
+
         template<typename T = waveform >
         class waveform_xmeta_archive {
             T& _;
@@ -798,18 +821,34 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
             ADDEBUG() << "ERROR: Unexpected data type in waveform";
 		}
     } else {
-
+        
         if ( waveform.meta_.channelMode == acqrscontrols::u5303a::PKD ) {
-            size_t idx(0);
-            std::pair< int32_t, int32_t > mm = std::make_pair( 0, 0 );
+            size_t idx = 0;
+            
             switch( waveform.meta_.dataType ) {
             case 4:
-                for ( auto it = waveform.begin< int32_t >(); it != waveform.end< int32_t >(); ++it )
-                    sp.setIntensity( idx++, *it );
+                pkd_waveform_copy< int32_t >()( sp, waveform );
+                // do {
+                //     typedef int32_t value_type;
+                //     for ( auto it = waveform.begin< value_type >(); it != waveform.end< value_type >(); ++it ) {
+                //         if ( *it > 0 ) {
+                //             double time = waveform.time( std::distance( waveform.begin< value_type >(), it ) );
+                //             sp.setIntensity( idx, *it );
+                //             sp.setTime( idx, time );
+                //             ++idx;
+                //         }
+                //     }
+                //     sp.resize( idx );
+                //     sp.setCentroid( adcontrols::CentroidHistogram );
+                // } while ( 0 );
                 break;
             case 8:
-                for ( auto it = waveform.begin< int64_t >(); it != waveform.end< int64_t >(); ++it )
-                    sp.setIntensity( idx++, *it );                
+                pkd_waveform_copy< int64_t >()( sp, waveform );
+                // do {
+                //     for ( auto it = waveform.begin< int64_t >(); it != waveform.end< int64_t >(); ++it ) {
+                //         sp.setIntensity( idx++, *it );
+                //     }
+                // } while ( 0 );
                 break;
             default:
                 ADDEBUG() << "ERROR: Unexpected data type in waveform";

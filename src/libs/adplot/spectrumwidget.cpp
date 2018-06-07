@@ -705,7 +705,10 @@ TraceData::setCentroidData( plot& plot, const adcontrols::MassSpectrum& _ms, con
 
             int cid = ( idx_ ) % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) );
             QColor color( color_table[ cid ] );
-            color.setAlpha( 255 - ( idx_ * 16 ) );
+            if ( alpha_ == 255 )
+                color.setAlpha( 255 - ( idx_ * 16 ) ); // if user not specified alpha, graduation by trace id
+            else
+                color.setAlpha( alpha_ ); // if user speicified, set it (modified at 2018-06-8)
             curve->setPen( QPen( color ) );
             curve->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
             curve->setStyle( QwtPlotCurve::Sticks );
