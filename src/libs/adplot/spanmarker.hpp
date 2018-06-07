@@ -53,8 +53,8 @@ namespace adplot {
         void detach();
         
         void setYAxis( int );
-        [[deplicated]] void setValue( fence, double value );
-        [[deplicated]] void setValue( double lower_value, double upper_value );
+        [[deprecated]] void setValue( fence, double value );
+        [[deprecated]] void setValue( double lower_value, double upper_value );
         void setXValue( fence, double value );
         void setXValue( double lower_value, double upper_value );
         double xValue( fence ) const;
