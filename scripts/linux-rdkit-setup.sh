@@ -38,7 +38,7 @@ cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
 			 "-DRDK_BUILD_PYTHON_WRAPPERS=OFF"
 			 "-DRDK_INSTALL_INTREE=ON"
 			 "-DRDK_INSTALL_STATIC_LIBS=ON"
-			 "-DRDK_INSTALL_DYNAMIC_LIBS=OFF"
+			 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
 		   )
 if [ `uname` == "Darwin" ]; then
     cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")

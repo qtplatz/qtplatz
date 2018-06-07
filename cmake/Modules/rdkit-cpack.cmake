@@ -17,8 +17,10 @@ if ( rdkit_FOUND )
 
       get_filename_component( _name ${_lib} NAME_WE )
       get_filename_component( _path ${_lib} DIRECTORY )
-      
-      file( GLOB files "${_path}/${_name}.${SO}.*" )
+
+      file( GLOB files "${_path}/${_name}.${SO}*" )
+
+      #message( STATUS ${_path} " / " ${_name} " ==> " ${files} )
       install( PROGRAMS ${files} DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
 
     endif()
