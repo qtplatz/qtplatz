@@ -125,6 +125,7 @@ namespace acqrscontrols {
     uint32_t
     waveform_accessor_< acqrscontrols::u5303a::waveform >::events() const
     {
+        // ADDEBUG() << "u5303a waveform events: " << (*it_)->wellKnownEvents_;
         return (*it_)->wellKnownEvents_;
     }
 

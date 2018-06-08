@@ -215,7 +215,8 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 
         avg.meta_.dataType = 4;
         avg.meta_.initialXTimeSeconds = ptr->timestamp();
-        avg.wellKnownEvents_ = 0;
+        avg.wellKnownEvents_ |= avg.wellKnownEvents_;
+        // ADDEBUG() << "avg.wellKnwonEvents: " << avg.wellKnownEvents_;
         avg.meta_.actualPoints = ptr->nbrSamples();
         avg.meta_.xIncrement = sampInterval_;
         avg.meta_.initialXOffset = startDelay_;
@@ -246,7 +247,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 
         pkd.meta_.dataType = 4;
         pkd.meta_.initialXTimeSeconds = ptr->timestamp();
-        pkd.wellKnownEvents_ = 0;
+        pkd.wellKnownEvents_ |= pkd.wellKnownEvents_;
         pkd.meta_.actualPoints = ptr->nbrSamples();
         pkd.meta_.xIncrement = sampInterval_;
         pkd.meta_.initialXOffset = startDelay_;
@@ -286,7 +287,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
         data.method_._device_method().digitizer_nbr_of_s_to_acquire = int32_t( nbrSamples_ );
 
         data.meta_.initialXTimeSeconds = ptr->timestamp();
-        data.wellKnownEvents_ = 0;
+        // data.wellKnownEvents_ = 0;
         data.meta_.actualPoints = ptr->nbrSamples();
         data.meta_.xIncrement = sampInterval_;
         data.meta_.initialXOffset = startDelay_;

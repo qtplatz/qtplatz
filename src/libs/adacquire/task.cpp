@@ -234,6 +234,7 @@ task::fsmReady()
 void
 task::fsmInject()
 {
+    ADDEBUG() << "############### fsmInject #############";
     impl_->fsm_.process_event( fsm::Inject() );
 }
 

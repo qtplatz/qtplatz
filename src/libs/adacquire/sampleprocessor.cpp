@@ -170,6 +170,11 @@ void
 SampleProcessor::write( const boost::uuids::uuid& objId
                         , SignalObserver::DataWriter& writer )
 {
+#ifndef NDEBUG
+    int wcount = 0;
+    // ADDEBUG() << "SampleProcessor::write(" << objId << ") active: " << c_acquisition_active_;
+#endif
+    
     writer.rewind();
     do {
 
@@ -185,7 +190,10 @@ SampleProcessor::write( const boost::uuids::uuid& objId
         }
 
         if ( c_acquisition_active_ ) {
-              
+#if !defined NDEBUG && 0
+            if ( wcount++ == 0 )
+                ADDEBUG() << "SampleProcessor::write(" << objId << ") writer.write.";
+#endif
             if ( ! writer.write ( *fs_ ) ) {
                 
                 std::string xdata, xmeta;
@@ -200,6 +208,8 @@ SampleProcessor::write( const boost::uuids::uuid& objId
                                                     , writer.events()
                                                     , xdata
                                                     , xmeta );
+            } else {
+                // ADDEBUG() << "writer.write failed";
             }
         }
         
@@ -265,7 +275,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent, adfs:
     auto vec = parent->siblings();
 
     for ( auto observer : vec ) {
-
+        
         if ( auto clsid = observer->dataInterpreterClsid() ) {
             (void)clsid;
 
@@ -331,7 +341,9 @@ SampleProcessor::inject_triggered() const
 void
 SampleProcessor::set_inject_triggered( bool f )
 {
-    // inProgress_ = f;
+    // ADDEBUG() << "### workaround apply: SampleProcessor::set_inject_triggered(" << f << ")";
+    // c_acquisition_active_ = f;
+    // ADDEBUG() << "### end workaround";
 }
 
 const uint64_t&
