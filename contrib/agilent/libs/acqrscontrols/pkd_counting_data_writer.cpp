@@ -66,7 +66,7 @@ namespace acqrscontrols {
 
         // todo: investigate how to determines serialnumber -- this is step of two (maybe due to avg and pkd was separately counted)
 
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
         ADDEBUG() << "found PKD waveform " << w.serialnumber_ << ", " << w.timeSinceEpoch_ << ", " << double((w.timeSinceEpoch_ - tp)/1000000)
                   << ", pkd : " << w.method_._device_method().pkd_raising_delta
                   << ", " << w.method_._device_method().pkd_falling_delta
@@ -114,7 +114,7 @@ namespace acqrscontrols {
 
                     // ADDEBUG() << "histogram: idx = " << idx << " count = " << count << " time = " << time;
 
-                    sql.prepare( "INSERT INTO peak"
+                    sql.prepare( "INSERT INTO pkd_peak"
                                  " (idTrigger,peak_time,peak_counts) VALUES (?,?,?)" );
                     sql.bind( 1 ) = w.serialnumber_;                                   // idTrigger
                     sql.bind( 2 ) = time;
@@ -152,11 +152,22 @@ namespace acqrscontrols {
             ", falling_delta INTEGER"
             ", front_end_range REAL"
             " )" );
+
+        // table for PKD results as counting results
+        sql.exec(
+            "CREATE TABLE pkd_peak ("
+            " idTrigger INTEGER"
+            ", peak_time REAL"
+            ", peak_counts INTEGER"
+            ", FOREIGN KEY( idTrigger ) REFERENCES trigger( id ))" );
+
+        // CAUTION: duplicated with infitof/src/plubins/infitofs/document.cpp
+        // table for threshold counting 
         sql.exec(
             "CREATE TABLE peak ("
             " idTrigger INTEGER"
             ", peak_time REAL"
-            ", peak_counts INTEGER"
+            ", peak_intensity REAL, front_offset INTEGER, front_intensity REAL, back_offset INTEGER, back_intensity REAL" // <- workaround: see plugins/infitof2/document.cpp
             ", FOREIGN KEY( idTrigger ) REFERENCES trigger( id ))" );
 
         return true;
