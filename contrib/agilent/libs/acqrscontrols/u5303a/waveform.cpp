@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010- Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -821,34 +821,13 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
             ADDEBUG() << "ERROR: Unexpected data type in waveform";
 		}
     } else {
-        
         if ( waveform.meta_.channelMode == acqrscontrols::u5303a::PKD ) {
-            size_t idx = 0;
-            
             switch( waveform.meta_.dataType ) {
             case 4:
                 pkd_waveform_copy< int32_t >()( sp, waveform );
-                // do {
-                //     typedef int32_t value_type;
-                //     for ( auto it = waveform.begin< value_type >(); it != waveform.end< value_type >(); ++it ) {
-                //         if ( *it > 0 ) {
-                //             double time = waveform.time( std::distance( waveform.begin< value_type >(), it ) );
-                //             sp.setIntensity( idx, *it );
-                //             sp.setTime( idx, time );
-                //             ++idx;
-                //         }
-                //     }
-                //     sp.resize( idx );
-                //     sp.setCentroid( adcontrols::CentroidHistogram );
-                // } while ( 0 );
                 break;
             case 8:
                 pkd_waveform_copy< int64_t >()( sp, waveform );
-                // do {
-                //     for ( auto it = waveform.begin< int64_t >(); it != waveform.end< int64_t >(); ++it ) {
-                //         sp.setIntensity( idx++, *it );
-                //     }
-                // } while ( 0 );
                 break;
             default:
                 ADDEBUG() << "ERROR: Unexpected data type in waveform";

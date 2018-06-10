@@ -12,7 +12,6 @@ include_directories(
 
 add_definitions( -DADURL_LIBRARY )
 
-add_executable( adurltool main.cpp )
 add_library( adurl SHARED
   ajax.cpp
   ajax.hpp
@@ -31,16 +30,6 @@ target_link_libraries( adurl LINK_PUBLIC
   Threads::Threads
   ${Boost_LIBRARIES}
   )
-
-target_link_libraries( adurltool LINK_PUBLIC
-  adurl
-  adio
-  adportable
-  Threads::Threads
-  ${Boost_LIBRARIES}
-  )
-  
-install( TARGETS adurltool RUNTIME DESTINATION bin COMPONENT applications )
 
 install( TARGETS adurl 
   RUNTIME DESTINATION bin COMPONENT applications

@@ -128,6 +128,7 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   system
   thread
   wserialization
+  unit_test_framework    
   )
 
 if ( Boost_FOUND )

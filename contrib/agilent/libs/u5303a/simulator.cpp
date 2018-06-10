@@ -49,7 +49,7 @@ namespace u5303a {
     static size_t __counter__;
     
     static const std::vector< std::pair<double, double> >
-    peak_list = { { 4.0e-6, 0.01 }, { 5.0e-6, 0.005 }, { 6.0e-6, 0.0030 } };
+    peak_list = { { 104.0e-6, 0.01 }, { 105.0e-6, 0.005 }, { 106.0e-6, 0.0030 } };
 
     class waveform_simulator : public adacquire::waveform_simulator {
     public:

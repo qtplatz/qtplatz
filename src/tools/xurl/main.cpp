@@ -1,7 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016 MS-Cheminformatics LLC
+** Copyright (C) 2016-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,9 +21,9 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#include "client.hpp"
-#include "dg.hpp"
-#include "sse.hpp"
+#include <adurl/client.hpp>
+#include <adurl/dg.hpp>
+#include <adurl/sse.hpp>
 #include <adio/dgprotocols.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -66,11 +65,11 @@ main( int argc, char* argv[] )
     description.add_options()
         ( "commit",    po::value< std::string >(), "commit json file to server" )
         ( "help,h",    "Display this help message" )
-        ( "status",    "read status from server" )
-        ( "json",      "use json format for status" )
-        ( "start",     "fsm-start" )
-        ( "stop",      "fsm-stop" )
-        ( "sse",       "sse debug" )
+        ( "dg.status", "read delay/pulse generagor status" )
+        ( "dg.json",   "use json format for status" )
+        ( "dg.start",  "fsm-start" )
+        ( "dg.stop",   "fsm-stop" )
+        ( "sse",        po::value< std::string >()->default_value("/dg/ctl?events"), "sse dg|evbox|hv|(any url string)" )
         ( "args",       po::value< std::vector< std::string > >(),  "host" )
         ;
     
@@ -91,7 +90,7 @@ main( int argc, char* argv[] )
 
         adurl::dg dg( host.c_str() );
 
-        if ( vm.count( "status" ) ) {
+        if ( vm.count( "dg.status" ) ) {
 
             if ( vm.count( "json" ) ) {
                 std::string json;
@@ -114,9 +113,10 @@ main( int argc, char* argv[] )
                 }
             }
         }
-        if ( vm.count( "commit" ) ) {
 
-            std::ifstream json( vm[ "commit" ].as< std::string >() );
+        if ( vm.count( "dg.commit" ) ) {
+
+            std::ifstream json( vm[ "dg.commit" ].as< std::string >() );
             adio::dg::protocols< adio::dg::protocol<> > protocols;
             try {
                 if ( protocols.read_json( json, protocols ) ) {
@@ -127,17 +127,26 @@ main( int argc, char* argv[] )
             }
         }
 
-        if ( vm.count( "start" ) ) {
+        if ( vm.count( "dg.start" ) ) {
             dg.start_triggers();
         }
 
-        if ( vm.count( "stop" ) ) {
+        if ( vm.count( "dg.stop" ) ) {
             dg.stop_triggers();
         }        
 
         if ( vm.count( "sse" ) ) {
+            std::string url = vm[ "sse" ].as< std::string >();
+            if ( url == "dg" )
+                url = "/dg/ctl?events";
+            if ( url == "hv" )
+                url = "/hv/api$events";
+            if ( url == "evbox" )
+                url = "/evbox/api$events";
 
-            adurl::sse sse( host.c_str(), "/dg/ctl?events" );
+            std::cout << url << std::endl;
+            
+            adurl::sse sse( host.c_str(), url );
 
             sse.exec( [] ( const char * event, const char * data ) {
                     std::cout << "event: " << event << "\t" << "data: " << data << std::endl;

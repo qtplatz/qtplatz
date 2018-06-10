@@ -25,5 +25,5 @@ if ( WITH_QT5 )
   add_subdirectory( plugins )
 endif()
 
-# message( STATUS "------------ src/tools --------------------" )
+message( STATUS "------------ src/tools --------------------" )
 add_subdirectory( tools )
