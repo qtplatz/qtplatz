@@ -378,7 +378,7 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 {
     auto& m = method._device_method();
 
-#if 0
+#if !defined NDEBUG
     ADDEBUG() << "u5303a::task::prepare_for_run";
     ADDEBUG() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
               << "\text_trigger_level: " << m.ext_trigger_level
@@ -386,8 +386,8 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tnbr_of_samples: " << m.nbr_of_s_to_acquire_ << "; " << m.digitizer_nbr_of_s_to_acquire
               << "\tnbr_of_average: " << m.nbr_of_averages
               << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
-              << "\tinvert_signal: " << m.invert_signal
-              << "\tnsa: " << m.nsa;
+              << "\tinvert_signal: " << m.invert_signal;
+        // << "\tnsa: " << m.nsa;
 #endif
     ADDEBUG() << "##### u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );

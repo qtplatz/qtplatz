@@ -141,8 +141,10 @@ acqrsdata::processThreshold3( std::shared_ptr< const acqrscontrols::ap240::wavef
     auto result = std::make_shared< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >( waveform );
     
     //result->setFindUp( method.slope == adcontrols::threshold_method::CrossUp );
-    result->threshold_level() = method.threshold_level;
-    result->algo() = static_cast< enum adportable::counting::counting_result::algo >( method.algo_ );
+    result->setThreshold_level( method.threshold_level );
+    result->setAlgo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
+
+    ADDEBUG() << "Threshold_level: " << result->threshold_level();
 
     adcontrols::CountingMethod range;
     range.setEnable( false );

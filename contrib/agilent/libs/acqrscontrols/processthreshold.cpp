@@ -83,8 +83,10 @@ namespace acqrscontrols {
 
                     results[ i ] = std::make_shared< threshold_result_type >( waveforms[ i ] );
                     results[ i ]->setFindUp( threshold_method->slope == adcontrols::threshold_method::CrossUp );
-                    results[ i ]->threshold_level() = threshold_method->threshold_level;
-                    results[ i ]->algo() = static_cast< enum adportable::counting::counting_result::algo >( threshold_method->algo_ );
+                    results[ i ]->setThreshold_level( threshold_method->threshold_level );
+                    results[ i ]->setAlgo( static_cast< enum adportable::counting::counting_result::algo >( threshold_method->algo_ ) );
+
+                    ADDEBUG() << "Threshold_level: " << threshold_method->threshold_level;
             
                     const auto idx = waveforms[ i ]->method_.protocolIndex();
                     if ( idx == 0 )

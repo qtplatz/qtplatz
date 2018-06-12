@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -53,17 +53,17 @@ namespace adportable {
             inline const std::vector< adportable::counting::threshold_index >& indices2() const {
                 return indices2_;
             }
-
-            inline enum algo& algo() {
-                return algo_;
+            
+            inline void setAlgo( algo d ) {
+                algo_ = d;
             }
             
             inline const enum algo& algo() const {
                 return algo_;
             }
-            
-            inline double& threshold_level() {
-                return threshold_level_;
+
+            inline void setThreshold_level( double d ) {
+                threshold_level_ = d;
             }
 
             inline const double& threshold_level() const {

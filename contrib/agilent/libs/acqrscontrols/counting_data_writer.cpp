@@ -32,15 +32,43 @@
 
 namespace acqrscontrols {
 
+    // static
+    bool
+    counting_data_writer::prepare_storage( adfs::filesystem& fs )
+    {
+        adfs::stmt sql( fs.db() );
+        
+        sql.exec(
+            "CREATE TABLE trigger ("
+            " id INTEGER PRIMARY KEY"
+            ", protocol INTEGER"
+            ", timeSinceEpoch INTEGER"
+            ", elapsedTime REAL"
+            ", events INTEGER"
+            ", threshold REAL"
+            ", algo INTEGER )" );
+        
+        sql.exec(
+            "CREATE TABLE peak ("
+            " idTrigger INTEGER"
+            ", peak_time REAL"
+            ", peak_intensity REAL"
+            ", front_offset INTEGER"
+            ", front_intensity REAL"
+            ", back_offset INTEGER"
+            ", back_intensity REAL"
+            ", FOREIGN KEY( idTrigger ) REFERENCES trigger( id ))" );
+        
+        return true;
+    }
+    
+
     bool
     counting_data_writer::write( adfs::filesystem& fs ) const
     {
         if ( auto accessor = dynamic_cast< threshold_result_accessor * >( accessor_.get() ) ) {
             if ( auto rp = accessor->data() ) { // std::shared_ptr< const acqrscontrols::u5303a::threshold_result >
-                
-                // if ( rp->indices2().size() > 128 )
-                //     return false; // save data using xmeta/xdata serializer mechanism
-                
+
                 auto wp = rp->data();  // waveform
                 
                 do {

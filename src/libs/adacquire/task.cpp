@@ -278,8 +278,8 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
 
         sampleprocessor->write( uuid, *dw );
-
         impl_->sequence_warning_count_ = 0;
+
     }
     
 }

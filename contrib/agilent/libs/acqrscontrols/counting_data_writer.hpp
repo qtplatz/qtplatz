@@ -35,6 +35,7 @@ namespace acqrscontrols {
         }
         
         bool write( adfs::filesystem& fs ) const override;
+        static bool prepare_storage( adfs::filesystem& fs );
     };
 
     ///////////////////////////////////////////////////////////////////////////////
