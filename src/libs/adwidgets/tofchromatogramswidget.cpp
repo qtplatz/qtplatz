@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010- Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -61,7 +61,7 @@ namespace adwidgets {
             model_->setHeaderData( c_mass,       Qt::Horizontal, QObject::tr( "<i>m/z</i>" ) );
             model_->setHeaderData( c_masswindow, Qt::Horizontal, QObject::tr( "Window(Da)" ) );
             model_->setHeaderData( c_time,       Qt::Horizontal, QObject::tr( "Time(&mu;s)" ) );
-            model_->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Window(ns)" ) );
+            model_->setHeaderData( c_timewindow, Qt::Horizontal, QObject::tr( "Window(&mu;s)" ) );
             model_->setHeaderData( c_algo,       Qt::Horizontal, QObject::tr( "Method" ) );
             model_->setHeaderData( c_protocol,   Qt::Horizontal, QObject::tr( "Protocol#" ) );
         }
@@ -76,8 +76,6 @@ namespace adwidgets {
                 if ( exactMass > 0.7 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );
                     model_->setData( model_->index( row, c_masswindow ), 0.005 );
-                    model_->setData( model_->index( row, c_time ), 0.0 );
-                    model_->setData( model_->index( row, c_timewindow ), 10.0 );
                 } else {
                     for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
                         model_->setData( model_->index( row, id ), QVariant() );
@@ -122,7 +120,8 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
 
         table->setColumnField( impl::c_formula, ColumnState::f_any, true, true );
         table->setPrecision( impl::c_mass, 4 );
-
+        table->setPrecision( impl::c_time, 3 );
+        table->setPrecision( impl::c_timewindow, 3 );
         {
             std::vector< std::pair< QString, QVariant > > choice;
             choice.emplace_back( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) );
@@ -140,8 +139,12 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         }
         
         table->setColumnHidden( impl::c_id, true );
-        table->setColumnHidden( impl::c_time, true );
-        table->setColumnHidden( impl::c_timewindow, true );
+
+        connect( table, &MolTableView::valueChanged, [&]( const QModelIndex& index, double value ){
+                if ( index.column() == impl::c_time || index.column() == impl::c_timewindow )
+                    value /= std::micro::den;  // us -> s
+                emit editorValueChanged( index, value );
+            });
     }
 
     if ( auto form = findChild< TofChromatogramsForm * >() )  {
@@ -232,18 +235,12 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
         item.setMass( model.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble() );
         item.setMassWindow( model.index( row, impl::c_masswindow ).data( Qt::EditRole ).toDouble() );
 		item.setTime( model.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setTimeWindow( model.index( row, impl::c_timewindow ).data( Qt::EditRole ).toDouble() / std::nano::den );
+        item.setTimeWindow( model.index( row, impl::c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den );
         item.setIntensityAlgorithm( TofChromatogramMethod::eIntensityAlgorishm(  model.index( row, impl::c_algo ).data( Qt::EditRole ).toInt() ) );
         item.setProtocol( model.index( row, impl::c_protocol ).data( Qt::EditRole ).toInt() );
         m << item;
     }
 
-    // int row(0);
-    // for ( auto& i: m ) {
-    //     ADDEBUG() << "row[" << row << "] formula: " << i.formula() << " enable: " << i.enable();
-    //     ++row;
-    // }
-    
     return true;
 }
 
@@ -268,13 +265,19 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
         model.setData( model.index( row, impl::c_mass ), trace.mass() );
         model.setData( model.index( row, impl::c_masswindow ), trace.massWindow() );
         model.setData( model.index( row, impl::c_time ), trace.time() * std::micro::den );
-        model.setData( model.index( row, impl::c_timewindow ), trace.timeWindow() * std::nano::den );
+        model.setData( model.index( row, impl::c_timewindow ), trace.timeWindow() * std::micro::den );
         model.setData( model.index( row, impl::c_algo ), trace.intensityAlgorithm() );
         model.setData( model.index( row, impl::c_protocol ), trace.protocol() );
         ++row;
     }
     return true;
 
+}
+
+MolTableView *
+TofChromatogramsWidget::molTableView()
+{
+    return findChild< MolTableView * >();
 }
 
 void

@@ -55,6 +55,9 @@
 #include <QSvgRenderer>
 #include <QUrl>
 #include <sstream>
+#ifndef NDEBUG
+# include <QDebug>
+#endif
 
 #if defined HAVE_RDKit && HAVE_RDKit
 #if defined _MSC_VER
@@ -217,7 +220,7 @@ namespace adwidgets {
         }
         
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
-            
+
             QStyleOptionViewItem opt(option);
             initStyleOption( &opt, index );
             opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
@@ -248,6 +251,7 @@ namespace adwidgets {
                 paint_f_svg()( state, painter, opt, index );
 
             } else if ( field == ColumnState::f_protocol ) {
+
                 opt.displayAlignment = Qt::AlignCenter | Qt::AlignVCenter;
                 paint_f_protocol()( state, painter, opt, index );
                 
@@ -305,6 +309,7 @@ namespace adwidgets {
                 spin->setDecimals( state.precision );
                 spin->setMaximum( 100000 );
 				spin->setSingleStep( std::pow( 10, -state.precision ) );
+                spin->setKeyboardTracking( false );
                 connect( spin, static_cast< void( QDoubleSpinBox::* )(double) >(&QDoubleSpinBox::valueChanged)
                          , [=]( double value ){ impl_->handleEditorValueChanged( index, value ); });
                 return spin;

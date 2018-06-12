@@ -60,6 +60,7 @@ namespace adplot {
         void update_annotation( bool replot = true );
         void setKeepZoomed( bool );
         void setZoomBase( const std::pair< double, double >& range, bool horizontal = true );
+        void setZoomStack( const QRectF& );
         void setVectorCompression( int ) override;
         void yZoom( double xmin, double xmax ) override;
         static QColor index_color( unsigned int idx );

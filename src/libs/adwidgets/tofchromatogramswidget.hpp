@@ -36,6 +36,8 @@ namespace adcontrols { class TofChromatogramsMethod; class MassSpectrometer; }
 
 namespace adwidgets {
 
+    class MolTableView;
+
     class ADWIDGETSSHARED_EXPORT TofChromatogramsWidget : public QWidget
                                                         , public adplugin::LifeCycle {
         
@@ -59,15 +61,19 @@ namespace adwidgets {
         //
         void setDigitizerMode( bool ); // true for soft accumulate, false for hard averaged
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
+
+        MolTableView * molTableView();
         
     private:
         void handleContextMenu( QMenu&, const QPoint& );
+
         class impl;
         std::unique_ptr< impl > impl_;
         
     signals:
         void valueChanged();
         void applyTriggered();
+        void editorValueChanged( const QModelIndex&, double );
 
     public slots:
         void handleScanLawChanged();

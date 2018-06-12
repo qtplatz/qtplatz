@@ -71,9 +71,9 @@ namespace adacquire {
         enum wkEvent {
             wkEvent_Error           = 0x80000000
             , wkEvent_Warning         = 0x40000000  // instrument is warning state
-            , wkEvent_Marker          = 0x20000000  // wireing to 'marker trigger in'
-            , wkEvent_INJECT          = 0x10000000  // wireing to 'inject trigger in'
-            , wkEvent_MethodStart     = 0x08000000  // wireing to 'method start in'
+            , wkEvent_Marker          = 0x20000000  // wiring to 'marker trigger in'
+            , wkEvent_INJECT          = 0x10000000  // wiring to 'inject trigger in'
+            , wkEvent_MethodStart     = 0x08000000  // wiring to 'method start in'
             , wkEvent_DataWarning     = 0x04000000  // data waring such as input over range.
             , wkEvent_DarkInProgress  = 0x02000000  // dark signal acquiring
             , wkEvent_AcqInProgress   = 0x01000000  // Data storing, INJ trigger disarmed

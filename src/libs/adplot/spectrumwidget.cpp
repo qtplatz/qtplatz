@@ -318,6 +318,18 @@ SpectrumWidget::setZoomBase( const std::pair< double, double >& range, bool hori
 }
 
 void
+SpectrumWidget::setZoomStack( const QRectF& rc )
+{
+    zoom( rc );
+    plot::zoomer()->setZoomBase();
+    QStack< QRectF > zstack;
+    zstack.push_back( rc );
+    zstack.push_back( rc );
+    QSignalBlocker block( zoomer() );
+    zoomer()->setZoomStack( zstack );
+}
+
+void
 SpectrumWidget::setVectorCompression( int compression )
 {
     plot::setVectorCompression( compression );
@@ -459,7 +471,8 @@ SpectrumWidget::setAxis( HorizontalAxis axis, bool replot
     QRectF zRect;
 
     if ( zoomer()->zoomRectIndex() > 0 && axisConverter ) {
-        auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end(), [&]( std::unique_ptr< spectrumwidget::TraceData >& trace ){ return trace && trace->pSpectrum_; } );
+        auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end()
+                                , [&]( std::unique_ptr< spectrumwidget::TraceData >& trace ){ return trace && trace->pSpectrum_; } );
         if ( it != impl_->traces_.end() ) {
             auto ms( (*it)->pSpectrum_ );
             if ( it != impl_->traces_.end() )
@@ -543,10 +556,8 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 
     impl_->scaleFcn_ = (-1);
 
-    if ( !ptr && impl_->traces_.size() >= size_t( idx ) ) {
+    if ( !ptr && impl_->traces_.size() >= size_t( idx ) )
         return;
-        // if ptr == nullptr, traces_[ idx ] need to be removed
-    }
 
     if ( impl_->traces_.size() <= idx )
         impl_->traces_.resize( idx + 1 );
@@ -564,16 +575,13 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 
     auto rectIndex = zoomer()->zoomRectIndex();
     
-    if ( !yRight && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
+    if ( ( yRight == false ) && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
         
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
-        
         setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
-        
         zoomer()->setZoomBase();
 
     } else {
-
         QRectF z = zoomer()->zoomRect(); // current
 
         std::pair<double, double> left, right;
@@ -603,6 +611,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     replot();
 }
 
+
 void
 SpectrumWidget::setFocusedFcn( int fcn )
 {
@@ -610,7 +619,6 @@ SpectrumWidget::setFocusedFcn( int fcn )
         if ( trace )
             trace->setFocusedFcn( fcn );
     }
-    //ADDEBUG() << "setFocusedFcn(" << fcn << ")";
 }
 
 void
@@ -816,7 +824,6 @@ TraceData::setFocusedFcn( int fcn )
         focusedFcn_ = fcn;
         if ( auto p = pSpectrum_ ) {
             changeFocus( focusedFcn_ );
-            //ADDEBUG() << "changeFocus(" << focusedFcn_ << ")";
         }
     }
 }
@@ -981,9 +988,11 @@ SpectrumWidget::impl::update_annotations( plot& plot
                 }
                 for ( auto& a : marge ) {
                     // if more than two annotations attached to an index, formula is a priority on spectrum
-                    auto it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula; } );
+                    auto it = std::find_if( a.second.begin(), a.second.end()
+                                            , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataFormula; } );
                     if ( it == a.second.end() )
-                        it = std::find_if( a.second.begin(), a.second.end(), [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText; } );
+                        it = std::find_if( a.second.begin(), a.second.end()
+                                           , [] ( const adcontrols::annotation& x ) { return x.dataFormat() == adcontrols::annotation::dataText; } );
                     if ( it != a.second.end() )
                         annotations << *it;
                 }
