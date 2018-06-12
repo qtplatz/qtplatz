@@ -66,11 +66,13 @@ namespace adplot {
         static QColor index_color( unsigned int idx );
 
         void rescaleY( int fcn );
+        void setViewId( uint32_t id );
+        uint32_t viewId() const;
 
     private:
         class impl;
         impl * impl_;
-
+        uint32_t viewid_;
         void redraw_all( bool keepX = false );
         void yScaleHock( QRectF& );
 

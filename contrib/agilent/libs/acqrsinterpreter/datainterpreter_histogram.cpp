@@ -62,9 +62,10 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
 
         	// workaround for old (Sep. to Dec. 2015) data
         	if ( !this->op_.empty() ) {
-        		auto& proto = histogram.this_protocol();
+        		auto proto = histogram.this_protocol();
         		proto.setMode( op_[0].first ); // mode
         		proto.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first = op_[0].second;
+                histogram.setThis_protocol( proto );
         	}
             // end workaround
 

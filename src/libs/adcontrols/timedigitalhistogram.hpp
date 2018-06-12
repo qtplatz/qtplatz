@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2015-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2015-2016 MS-Cheminformatics LLC
+** Copyright (C) 2015-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -62,7 +61,7 @@ namespace adcontrols {
         iterator end();
         const_iterator begin() const;
         const_iterator end() const;
-        
+#if 0        
         double& initialXTimeSeconds();                    // digitizer time stamp, since acquisition started
         double& initialXOffset();                         // digitizer acquisition start offset ( delay )
         double& xIncrement();                             // digitizer sampling interval
@@ -71,6 +70,15 @@ namespace adcontrols {
         uint32_t& wellKnownEvents();
         std::pair< uint64_t, uint64_t >& serialnumber();
         std::pair< uint64_t, uint64_t >& timeSinceEpoch();
+#endif
+        void setInitialXTimeSeconds( double );                    // digitizer time stamp, since acquisition started
+        void setInitialXOffset( double );                         // digitizer acquisition start offset ( delay )
+        void setXIncrement( double );                             // digitizer sampling interval
+        void setActualPoints( uint64_t );                         // digitizer waveform length (for spectrum display)
+        void setTrigger_count( uint64_t );
+        void setWellKnownEvents( uint32_t );
+        void setSerialnumber( const std::pair< uint64_t, uint64_t >& );
+        void setTimeSinceEpoch( const std::pair< uint64_t, uint64_t >& );
 
         double initialXTimeSeconds() const;
         double initialXOffset() const;
@@ -84,7 +92,7 @@ namespace adcontrols {
         vector_type& histogram();
         const vector_type& histogram() const;
 
-        TofProtocol& this_protocol();
+        void setThis_protocol( const TofProtocol& );
         const TofProtocol& this_protocol() const;
 
         uint32_t protocolIndex() const;

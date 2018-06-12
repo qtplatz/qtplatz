@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -198,7 +198,6 @@ namespace adplot {
         bool isTimeAxis_;
         std::weak_ptr< const adcontrols::MassSpectrum > centroid_;  // for annotation
         std::vector< Annotation > annotations_;
-        //std::vector< spectrumwidget::TraceData > traces_;
         std::vector< std::unique_ptr< spectrumwidget::TraceData > > traces_;
 
         std::atomic<bool> keepZoomed_;
@@ -237,6 +236,7 @@ SpectrumWidget::~SpectrumWidget()
 
 SpectrumWidget::SpectrumWidget(QWidget *parent) : plot(parent)
                                                 , impl_( new SpectrumWidget::impl )
+                                                , viewid_( 0 )
 {
     if ( auto zoomer = plot::zoomer() ) {
 
@@ -498,7 +498,7 @@ void
 SpectrumWidget::removeData( int idx, bool bReplot )
 {
     if ( idx < int(impl_->traces_.size()) ) {
-        impl_->traces_[ idx ] = std::make_unique< spectrumwidget::TraceData >( idx );
+        impl_->traces_[ idx ].reset();
         impl_->clear_annotations();
         if ( bReplot )
             replot();
@@ -509,8 +509,6 @@ void
 SpectrumWidget::redraw_all( bool keepX )
 {
     QRectF rcLeft, rcRight;
-
-    // QRectF z = zoomer()->zoomRect(); // current
 
     for ( auto& trace: impl_->traces_ ) {
         if ( trace )
@@ -556,8 +554,10 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
 
     impl_->scaleFcn_ = (-1);
 
-    if ( !ptr && impl_->traces_.size() >= size_t( idx ) )
+    if ( !ptr || ptr->size() == 0 ) {
+        removeData( idx );
         return;
+    }
 
     if ( impl_->traces_.size() <= idx )
         impl_->traces_.resize( idx + 1 );
@@ -566,7 +566,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         impl_->traces_[ idx ] = std::make_unique< TraceData >( idx );
 
     auto& trace = impl_->traces_[ idx ];
-	
+
     QRectF rect;
     trace->setData( *this, ptr, rect, impl_->haxis_, yRight ); // clear canvas if ptr == nullptr
 
@@ -1091,5 +1091,17 @@ SpectrumWidget::impl::tracker2( const QPointF& p1, const QPointF& pos )
         else
             return QwtText( (boost::format( "<i>m/z=</i>%.4f (&delta;=%gDa)" ) % pos.x() % d).str().c_str(), QwtText::RichText );
     }
+}
+
+void
+SpectrumWidget::setViewId( uint32_t id )
+{
+    viewid_ = id;
+}
+
+uint32_t
+SpectrumWidget::viewId() const
+{
+    return viewid_;
 }
 

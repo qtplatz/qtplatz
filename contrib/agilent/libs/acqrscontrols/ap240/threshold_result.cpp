@@ -171,19 +171,22 @@ namespace acqrscontrols {
     
         if ( x.trigger_count() == 0 ) {
         
-            x.initialXTimeSeconds() = this->data()->meta_.initialXTimeSeconds;
-            x.initialXOffset()      = this->data()->meta_.initialXOffset;
-            x.xIncrement()          = this->data()->meta_.xIncrement;
-            x.actualPoints()        = this->data()->meta_.actualPoints;
-            x.serialnumber()        = std::make_pair( this->data()->serialnumber_, this->data()->serialnumber_ );
-            x.timeSinceEpoch()      = std::make_pair( this->data()->timeSinceEpoch_, this->data()->timeSinceEpoch_ );
-            x.wellKnownEvents()     = this->data()->wellKnownEvents_;
-            x.this_protocol()       = this->data()->method_.protocols() [ this->data()->method_.protocolIndex() ];
+            x.setInitialXTimeSeconds( this->data()->meta_.initialXTimeSeconds );
+            x.setInitialXOffset( this->data()->meta_.initialXOffset );
+
+            ADDEBUG() << "x.setInitialXOffset(" << this->data()->meta_.initialXOffset;
+            
+            x.setXIncrement( this->data()->meta_.xIncrement );
+            x.setActualPoints( this->data()->meta_.actualPoints );
+            x.setSerialnumber( { this->data()->serialnumber_, this->data()->serialnumber_ } );
+            x.setTimeSinceEpoch( { this->data()->timeSinceEpoch_, this->data()->timeSinceEpoch_ } );
+            x.setWellKnownEvents( this->data()->wellKnownEvents_ );
+            x.setThis_protocol( this->data()->method_.protocols() [ this->data()->method_.protocolIndex() ] );
             x.setProtocolIndex( this->data()->method_.protocolIndex()
                                 , uint32_t( this->data()->method_.protocols().size() ) );
         }
 
-        x.trigger_count()++;
+        x.setTrigger_count( x.trigger_count() + 1 );
     
         if ( indices_.empty() )
             return true;

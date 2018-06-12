@@ -118,15 +118,15 @@ histogram::move( adcontrols::TimeDigitalHistogram& x, bool reset )
 
     x.histogram().clear();
     
-    x.initialXTimeSeconds() = meta_.initialXTimeSeconds;
-    x.initialXOffset()      = meta_.initialXOffset;
-    x.xIncrement()          = meta_.xIncrement;
-    x.actualPoints()        = meta_.actualPoints;
-    x.trigger_count()       = trigger_count_;
-    x.serialnumber()        = std::make_pair( serialnumber_0_, serialnumber_ );
-    x.timeSinceEpoch()      = std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ );
-    x.wellKnownEvents()     = wellKnownEvents_;
-    x.this_protocol()       = method_.protocols() [ method_.protocolIndex() ];
+    x.setInitialXTimeSeconds( meta_.initialXTimeSeconds );
+    x.setInitialXOffset( meta_.initialXOffset );
+    x.setXIncrement( meta_.xIncrement );
+    x.setActualPoints( meta_.actualPoints );
+    x.setTrigger_count( trigger_count_ );
+    x.setSerialnumber( std::make_pair( serialnumber_0_, serialnumber_ ) );
+    x.setTimeSinceEpoch( std::make_pair( timeSinceEpoch_0_, timeSinceEpoch_ ) );
+    x.setWellKnownEvents( wellKnownEvents_ );
+    x.setThis_protocol( method_.protocols() [ method_.protocolIndex() ] );
     x.setProtocolIndex( method_.protocolIndex(), uint32_t( method_.protocols().size() ) );
 
     double ext_trig_delay = x.this_protocol().delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;

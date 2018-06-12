@@ -71,6 +71,7 @@ namespace acqrscontrols {
                                                 , double resolution, std::vector< std::pair< double, uint32_t > >&);
 
             const u5303a::method& method() const { return method_; }
+            const metadata& meta() const { return meta_; }
 
         private:
             // metadata for initial trigger in this histogram

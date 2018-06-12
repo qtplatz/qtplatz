@@ -175,41 +175,89 @@ TimeDigitalHistogram::merge_peaks( double resolution ) const
     return t;
 }
 
-double&
-TimeDigitalHistogram::initialXTimeSeconds()
+void
+TimeDigitalHistogram::setInitialXTimeSeconds( double d )
 {
-    return initialXTimeSeconds_;
+    initialXTimeSeconds_ = d;
 }
 
-double&
-TimeDigitalHistogram::initialXOffset()
+void
+TimeDigitalHistogram::setInitialXOffset( double d )
 {
-    return initialXOffset_;
+    initialXOffset_ = d;
 }
 
-double&
-TimeDigitalHistogram::xIncrement()
+void
+TimeDigitalHistogram::setXIncrement( double d )
 {
-    return xIncrement_;
+    xIncrement_ = d;
 }
 
-uint64_t&
-TimeDigitalHistogram::actualPoints()
+void
+TimeDigitalHistogram::setActualPoints( uint64_t d )
 {
-    return actualPoints_;
+    actualPoints_ = d;
 }
 
-uint64_t&
-TimeDigitalHistogram::trigger_count()
+void
+TimeDigitalHistogram::setTrigger_count( uint64_t d )
 {
-    return trigger_count_;
+    trigger_count_ = d;
 }
 
-uint32_t&
-TimeDigitalHistogram::wellKnownEvents()
+void
+TimeDigitalHistogram::setWellKnownEvents( uint32_t d )
 {
-    return wellKnownEvents_;
+    wellKnownEvents_ = d;
 }
+
+void
+TimeDigitalHistogram::setSerialnumber( const std::pair< uint64_t, uint64_t >& d )
+{
+    serialnumber_ = d;
+}
+
+void
+TimeDigitalHistogram::setTimeSinceEpoch( const std::pair< uint64_t, uint64_t >& d )
+{
+    timeSinceEpoch_ = d;
+}
+ 
+// double&
+// TimeDigitalHistogram::initialXTimeSeconds()
+// {
+//     return initialXTimeSeconds_;
+// }
+
+// double&
+// TimeDigitalHistogram::initialXOffset()
+// {
+//     return initialXOffset_;
+// }
+
+// double&
+// TimeDigitalHistogram::xIncrement()
+// {
+//     return xIncrement_;
+// }
+
+// uint64_t&
+// TimeDigitalHistogram::actualPoints()
+// {
+//     return actualPoints_;
+// }
+
+// uint64_t&
+// TimeDigitalHistogram::trigger_count()
+// {
+//     return trigger_count_;
+// }
+
+// uint32_t&
+// TimeDigitalHistogram::wellKnownEvents()
+// {
+//     return wellKnownEvents_;
+// }
 
 double
 TimeDigitalHistogram::initialXTimeSeconds() const
@@ -247,17 +295,17 @@ TimeDigitalHistogram::wellKnownEvents() const
     return wellKnownEvents_;
 }
 
-std::pair< uint64_t, uint64_t >&
-TimeDigitalHistogram::serialnumber()
-{
-    return serialnumber_;
-}
+// std::pair< uint64_t, uint64_t >&
+// TimeDigitalHistogram::serialnumber()
+// {
+//     return serialnumber_;
+// }
 
-std::pair< uint64_t, uint64_t >&
-TimeDigitalHistogram::timeSinceEpoch()
-{
-    return timeSinceEpoch_;
-}
+// std::pair< uint64_t, uint64_t >&
+// TimeDigitalHistogram::timeSinceEpoch()
+// {
+//     return timeSinceEpoch_;
+// }
 
 const std::pair< uint64_t, uint64_t >&
 TimeDigitalHistogram::serialnumber() const
@@ -283,10 +331,10 @@ TimeDigitalHistogram::histogram() const
     return histogram_;
 }
 
-TofProtocol&
-TimeDigitalHistogram::this_protocol()
+void 
+TimeDigitalHistogram::setThis_protocol( const TofProtocol& d )
 {
-    return this_protocol_;
+    this_protocol_ = d;
 }
 
 const TofProtocol&
@@ -391,7 +439,7 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     // ext_trig_delay should be managed before came here.  (ex. histogram::move())
 
     double ext_trig_delay = hgrm.this_protocol_.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
-    
+
     adcontrols::MSProperty prop;
     adcontrols::SamplingInfo info( hgrm.xIncrement()
                                    , hgrm.initialXOffset() + ext_trig_delay
@@ -399,11 +447,11 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
                                    , uint32_t( hgrm.actualPoints() ) // this is for acq. time range calculation
                                    , uint32_t( hgrm.trigger_count() )
                                    , hgrm.this_protocol_.mode() /* mode */);
-    
+
     prop.setAcceleratorVoltage( 0 ); // empty
 
     prop.setSamplingInfo( info );
-        
+
     prop.setTimeSinceInjection( hgrm.initialXTimeSeconds() );
     prop.setTimeSinceEpoch( hgrm.timeSinceEpoch().first );
     prop.setNumAverage( uint32_t( hgrm.trigger_count() ) );
@@ -427,7 +475,7 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
         sp.setTime( idx, it->first );
         sp.setIntensity( idx, it->second ); // return raw count values
     }
-    
+
     return true;
 }
 
