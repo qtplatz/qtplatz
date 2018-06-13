@@ -165,6 +165,7 @@ namespace acqrscontrols {
             bool deserialize( const char * xdata, size_t dsize, const char * xmeta, size_t msize );
 
             double accumulate( double tof, double window ) const;
+            double height( double tof, double window ) const;
 
             static bool apply_filter( std::vector<double>&, const waveform&, const adcontrols::threshold_method& );
 

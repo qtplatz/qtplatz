@@ -387,6 +387,42 @@ waveform::operator += ( const waveform& t )
 }
 
 double
+waveform::height( double tof, double window ) const
+{
+    double val = 0;
+    if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
+        switch ( meta_.dataType ) {
+        case 2: val = *std::max_element( begin<int16_t>(), end< int16_t >() ); break;
+        case 4: val = *std::max_element( begin<int32_t>(), end< int32_t >() ); break;
+        case 8: val = *std::max_element( begin<int64_t>(), end< int64_t >() ); break;
+        }
+    } else {
+        const adcontrols::TofProtocol& this_protocol = method_.protocols() [ method_.protocolIndex() ];
+        double ext_adc_delay = this_protocol.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
+        
+        auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
+        auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
+        x1 = std::max( 0.0, x1 );
+        x2 = std::max( 0.0, x2 );
+        size_t l = size_t( floor( x1 ) );
+        size_t u = size_t( ceil( x2 ) );
+        switch ( meta_.dataType ) {
+        case 2: val = *std::max_element( begin<int16_t>() + l, begin< int16_t >() + u ); break;
+        case 4: val = *std::max_element( begin<int32_t>() + l, begin< int32_t >() + u ); break;
+        case 8: val = *std::max_element( begin<int64_t>() + l, begin< int64_t >() + u ); break;
+        }
+    }
+
+    if ( meta_.channelMode == PKD ) {
+        return val;
+    } else {
+        double dbase(0), rms(0);
+        adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
+        return val - dbase;
+    }
+}
+
+double
 waveform::accumulate( double tof, double window ) const
 {
     double tic(0), dbase(0), rms(0);
