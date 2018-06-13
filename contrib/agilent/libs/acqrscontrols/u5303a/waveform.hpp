@@ -144,6 +144,7 @@ namespace acqrscontrols {
             double toVolts( double ) const;
             double time( size_t idx ) const;
             bool isDEAD() const;
+            uint32_t serialnumber() const { return serialnumber_; };
             
             const identify* ident() const { return ident_.get(); }
 
