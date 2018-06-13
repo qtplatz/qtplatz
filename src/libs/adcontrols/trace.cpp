@@ -217,3 +217,15 @@ Trace::injectTime() const
 {
     return injectTime_;
 }
+
+const std::string&
+Trace::legend() const
+{
+    return legend_;
+}
+
+void
+Trace::setLegend( const std::string& legend )
+{
+    legend_ = legend;
+}

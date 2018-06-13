@@ -138,6 +138,10 @@ namespace acqrscontrols {
                                                  , std::vector< uint32_t >& results );
 
             static bool computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
+                                          , const adcontrols::TofChromatogramsMethod&
+                                          , std::vector< std::pair< size_t, size_t > >& );
+
+            static bool computeCountRate( const adcontrols::TimeDigitalHistogram& histogram
                                           , const adcontrols::CountingMethod&
                                           , std::vector< std::pair< size_t, size_t > >& );
 

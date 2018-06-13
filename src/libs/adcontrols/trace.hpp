@@ -76,6 +76,9 @@ namespace adcontrols {
         void setInjectTime( double );
         double injectTime() const;
 
+        const std::string& legend() const;
+        void setLegend( const std::string& );
+
     private:
 		int fcn_;
         double minY_;
@@ -83,6 +86,7 @@ namespace adcontrols {
         bool isCountingTrace_;
         bool enable_;
         double injectTime_;
+        std::string legend_;
 
         enum { data_number, x_value, y_value, event_flags };
         typedef std::tuple< size_t, double, double, uint32_t > value_type;
