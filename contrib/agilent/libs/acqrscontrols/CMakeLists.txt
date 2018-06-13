@@ -57,6 +57,8 @@ add_library( ${PROJECT_NAME} SHARED
   processthreshold.cpp
   processthreshold.hpp
   resultwriter.hpp
+  softaveraged_waveform_accessor.cpp
+  softaveraged_waveform_accessor.hpp
   tdcbase.cpp
   tdcbase.hpp
   tdcdoc.cpp

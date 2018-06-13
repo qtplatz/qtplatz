@@ -3,5 +3,8 @@
     , "cmake.configureSettings": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
         , "QTDIR": "/opt/Qt/5.11.0/gcc_64"
+    },
+    "files.associations": {
+        "*.ipp": "cpp"
     }
 }

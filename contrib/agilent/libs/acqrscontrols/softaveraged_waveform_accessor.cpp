@@ -22,7 +22,8 @@
 **
 **************************************************************************/
 
-#include "timedigital_histogram_accessor.hpp"
+#include "softaveraged_waveform_accessor.hpp"
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
@@ -31,77 +32,68 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-using namespace adacquire;
+using namespace acqrscontrols;
 
-timedigital_histogram_accessor::timedigital_histogram_accessor()
+softaveraged_waveform_accessor::softaveraged_waveform_accessor()
 {
 }
         
 size_t
-timedigital_histogram_accessor::ndata() const
+softaveraged_waveform_accessor::ndata() const
 {
-    return vec.size();
+    return avgd.size();
 }     // number of data in the buffer
 
 void
-timedigital_histogram_accessor::rewind() 
+softaveraged_waveform_accessor::rewind() 
 { 
-    it_ = vec.begin();
+    it_ = avgd.begin();
 }
         
 bool
-timedigital_histogram_accessor::next()
+softaveraged_waveform_accessor::next()
 {
-    return ++it_ != vec.end();
+    return ++it_ != avgd.end();
 }
 
 uint64_t
-timedigital_histogram_accessor::elapsed_time() const
+softaveraged_waveform_accessor::elapsed_time() const
 {
-    return uint64_t( (*it_)->initialXTimeSeconds() * 1.0e9 );
+    return uint64_t( (*it_)->meta_.initialXTimeSeconds * 1.0e9 );
 }
         
 uint64_t
-timedigital_histogram_accessor::epoch_time() const
+softaveraged_waveform_accessor::epoch_time() const
 {
-    return (*it_)->timeSinceEpoch().first;
+    return (*it_)->timeSinceEpoch_;
 }
         
 uint64_t
-timedigital_histogram_accessor::pos() const
+softaveraged_waveform_accessor::pos() const
 {
-    return (*it_)->serialnumber().first;
+    return (*it_)->serialnumber_;
 }
         
 uint32_t
-timedigital_histogram_accessor::fcn() const
+softaveraged_waveform_accessor::fcn() const
 {
-    return (*it_)->protocolIndex();
+    return ( *it_ )->method_.protocolIndex();
 }
         
 uint32_t
-timedigital_histogram_accessor::events() const
+softaveraged_waveform_accessor::events() const
 {
-    return (*it_)->wellKnownEvents();
+    return (*it_)->wellKnownEvents_;
 }
         
 size_t
-timedigital_histogram_accessor::xdata( std::string& ar ) const
+softaveraged_waveform_accessor::xdata( std::string& ar ) const
 {
-    boost::iostreams::back_insert_device< std::string > inserter( ar );
-    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-    try {
-        portable_binary_oarchive a( device );
-        a & *(*it_ );
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << "exception : " << ex.what();
-    }
-	return ar.size();
-    // return T::archive( device, t );
+    return (*it_)->serialize_xdata( ar );
  }
         
 size_t
-timedigital_histogram_accessor::xmeta( std::string& ) const
+softaveraged_waveform_accessor::xmeta( std::string& ar ) const
 {
-    return 0;
+    return (*it_)->serialize_xmeta( ar );    
 }

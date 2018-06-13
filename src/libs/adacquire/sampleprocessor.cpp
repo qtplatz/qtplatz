@@ -170,9 +170,8 @@ void
 SampleProcessor::write( const boost::uuids::uuid& objId
                         , SignalObserver::DataWriter& writer )
 {
-#ifndef NDEBUG
+#if !defined NDEBUG
     int wcount = 0;
-    // ADDEBUG() << "SampleProcessor::write(" << objId << ") active: " << c_acquisition_active_;
 #endif
     
     writer.rewind();
@@ -190,26 +189,26 @@ SampleProcessor::write( const boost::uuids::uuid& objId
         }
 
         if ( c_acquisition_active_ ) {
-#if !defined NDEBUG && 0
+#if !defined NDEBUG
             if ( wcount++ == 0 )
                 ADDEBUG() << "SampleProcessor::write(" << objId << ") writer.write.";
 #endif
-            if ( ! writer.write ( *fs_ ) ) {
-                
+            if ( ! writer.write ( *fs_ ) ) { // check if specific data writer implemented
+                // in case no specific data writer handled, write data into AcqruidData table
                 std::string xdata, xmeta;
                 writer.xdata ( xdata );
                 writer.xmeta ( xmeta );
-                adutils::v3::AcquiredData::insert ( fs_->db(), objId
-                                                    , writer.elapsed_time()
-                                                    , writer.epoch_time()
-                                                    , writer.pos()
-                                                    , writer.fcn()
-                                                    , writer.ndata()
-                                                    , writer.events()
-                                                    , xdata
-                                                    , xmeta );
-            } else {
-                // ADDEBUG() << "writer.write failed";
+                if ( ! adutils::v3::AcquiredData::insert ( fs_->db(), objId
+                                                           , writer.elapsed_time()
+                                                           , writer.epoch_time()
+                                                           , writer.pos()
+                                                           , writer.fcn()
+                                                           , writer.ndata()
+                                                           , writer.events()
+                                                           , xdata
+                                                           , xmeta )  ) {
+                    ADDEBUG() << "AcquiredData::insert failed";
+                }
             }
         }
         
