@@ -100,7 +100,7 @@ namespace adcontrols {
             }
             return lastRunNumber;
         }
-
+        
         std::wstring make_name( size_t n ) {
             boost::filesystem::path prefix = adportable::split_filename::prefix<wchar_t>( filePrefix_ );
             std::wostringstream o;
@@ -271,15 +271,18 @@ SampleRun::filename( const wchar_t * extension ) const
 size_t
 SampleRun::operator ++ ()
 {
-    impl_->runNumber_++;
+    uint32_t prev = impl_->runNumber_++;
+    ADDEBUG() << "##### increment sample run number : " << prev << " --> " << impl_->runNumber_ << " ####################";
 
     boost::filesystem::path dir( impl_->dataDirectory_ );
     
     bool exists( false );
     do {
         boost::filesystem::path path = dir / ( impl_->make_name( impl_->runNumber_ ) + L".adfs" );
-        if ( ( exists = boost::filesystem::exists( path ) ) )
+        if ( ( exists = boost::filesystem::exists( path ) ) ) {
+            ADDEBUG() << "##### run# " << impl_->runNumber_ << " exists ####################";
             impl_->runNumber_++;
+        }
     } while ( exists );
 
     impl_->filePrefix_ = impl_->make_name( impl_->runNumber_ );

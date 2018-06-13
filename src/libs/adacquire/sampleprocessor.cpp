@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -189,7 +189,7 @@ SampleProcessor::write( const boost::uuids::uuid& objId
         }
 
         if ( c_acquisition_active_ ) {
-#if !defined NDEBUG
+#if !defined NDEBUG && 0
             if ( wcount++ == 0 )
                 ADDEBUG() << "SampleProcessor::write(" << objId << ") writer.write.";
 #endif

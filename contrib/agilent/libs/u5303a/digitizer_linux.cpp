@@ -930,7 +930,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         // ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
 
-        ADDEBUG() << "################ Average Mode ##########################";
+        // ADDEBUG() << "################ Average Mode ##########################";
 
         // PKD - POC
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {

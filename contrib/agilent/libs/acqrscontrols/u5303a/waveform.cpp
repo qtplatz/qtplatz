@@ -416,9 +416,14 @@ waveform::height( double tof, double window ) const
     if ( meta_.channelMode == PKD ) {
         return val;
     } else {
-        double dbase(0), rms(0);
-        adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
-        return val - dbase;
+        if ( ! hasTic_ ) {
+            double dbase(0), rms(0);
+            const_cast< waveform& >(*this).tic_  = adportable::spectrum_processor::tic( size(), begin<int16_t>(), dbase, rms, 5 );
+            const_cast< waveform& >(*this).dbase_ = dbase;
+            const_cast< waveform& >(*this).rms_ = rms;
+            const_cast< waveform& >(*this).hasTic_ = true;
+        }
+        return val - dbase_;
     }
 }
 
