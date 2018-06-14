@@ -129,7 +129,6 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   thread
   timer
   wserialization
-  unit_test_framework    
   )
 
 if ( Boost_FOUND )

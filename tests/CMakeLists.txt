@@ -8,6 +8,25 @@ if ( Boost_USE_STATIC_LIBS)
   add_definitions( -DBoost_USE_STATIC_LIBS=1 )
 endif()
 
+find_package( Boost 1.62 REQUIRED COMPONENTS
+  atomic
+  bzip2
+  chrono
+  date_time
+  filesystem
+  iostreams
+  locale
+  log
+  program_options
+  regex
+  serialization
+  system
+  thread
+  timer
+  wserialization
+  unit_test_framework    
+  )
+
 #add_subdirectory( filename_splitter )
 add_subdirectory( formula_parser )
 add_subdirectory( test_ptree )
