@@ -21,4 +21,5 @@ target_link_libraries( dgpio_test dgpio )
 install( TARGETS dgpio
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries
+  )

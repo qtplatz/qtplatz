@@ -19,4 +19,5 @@ add_library( acewrapper
            
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib COMPONENT libraries
+  )
