@@ -287,15 +287,16 @@ endif()
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
-configure_file(
-  ${QTPLATZ_SOURCE_DIR}/qtplatz-config.cmake.in
-  ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake @ONLY )
+include (config_qtplatz_config)
+
+config_qtplatz_config( "TRUE" )
+config_qtplatz_config( "FALSE" )
+
+install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
 configure_file(
   ${QTPLATZ_SOURCE_DIR}/doxyfile.in
   ${QTPLATZ_BINARY_DIR}/Doxyfile )
-
-install( FILES ${QTPLATZ_BINARY_DIR}/qtplatz-config.cmake  DESTINATION "." COMPONENT headers )
 
 include( CPack )
 
