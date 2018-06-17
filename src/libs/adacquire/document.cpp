@@ -187,10 +187,10 @@ document::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProce
 {
     // document::instance()->progress( 0.0, sp.sampleRun() ); // show data name on top of waveformwnd
 
-    if ( initStorage( uuid, sp.filesystem().db() ) && uuid == boost::uuids::uuid{ 0 } ) {
+    if ( initStorage( uuid, sp.filesystem().db() ) && uuid == boost::uuids::uuid{{ 0 }} ) {
         
         // counting peaks
-        if ( uuid == boost::uuids::uuid{ 0 } ) {
+        if ( uuid == boost::uuids::uuid{{ 0 }} ) {
             
             adfs::stmt sql( sp.filesystem().db() );
             
