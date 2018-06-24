@@ -95,7 +95,7 @@ namespace acqrscontrols {
             sql.bind( id++ ) = w.method_._device_method().pkd_falling_delta;
             sql.bind( id++ ) = w.method_._device_method().front_end_range;
             if ( sql.step() != adfs::sqlite_done ) {
-                ADDEBUG() << "sql error";
+                ADDEBUG() << "sql error: " << sql.errmsg();
                 return true;
             }
         } while ( 0 );

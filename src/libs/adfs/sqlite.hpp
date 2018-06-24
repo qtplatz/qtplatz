@@ -110,7 +110,8 @@ namespace adfs {
         bool prepare( const std::string& );
         bool prepare( const std::wstring& );
         bool reset();
-        int errcode();
+        int errcode() const;
+        std::string errmsg() const;
 
         sqlite_state step();
 

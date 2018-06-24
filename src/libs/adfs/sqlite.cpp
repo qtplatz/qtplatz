@@ -280,9 +280,15 @@ stmt::reset()
 }
 
 int
-stmt::errcode()
+stmt::errcode() const
 {
     return sqlite3_errcode( sqlite_ );
+}
+
+std::string
+stmt::errmsg() const
+{
+    return std::string( sqlite3_errmsg( sqlite_ ) );
 }
 
 sqlite_state
