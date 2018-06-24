@@ -514,7 +514,7 @@ task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
         waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
-
+        
         ADDEBUG() << "## INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
     }
 
@@ -698,7 +698,7 @@ task::handle_acquire()
                     simulator::instance()->touchup( vec, method_ );
 
                 for ( auto& waveform: vec ) {
-                    set_time_since_inject( *waveform ); // ==> set elapsed time for debugging 
+                    set_time_since_inject( *waveform );         // <---------- INJECTION event set ------------
                     acqrscontrols::u5303a::method m;
                     for ( auto& reply: waveform_handlers_ ) {
                         if ( reply( waveform.get(), nullptr, m ) )
@@ -713,6 +713,8 @@ task::handle_acquire()
                     auto pkd = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
                     auto avg = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
                     if ( readDataPkdAvg( *pkd, *avg ) ) {
+                        set_time_since_inject( *pkd );          // <---------- INJECTION event set ------------
+                        set_time_since_inject( *avg );          // <---------- INJECTION event set ------------
                         acqrscontrols::u5303a::method m;
                         for ( auto& reply : waveform_handlers_ ) {
                             if ( reply( avg.get(), pkd.get(), m ) )
@@ -724,7 +726,7 @@ task::handle_acquire()
                     // AVERAGE
                     auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
                     if ( readData( *waveform ) ) {
-                        set_time_since_inject( *waveform ); // ==> set elapsed time for debugging 
+                        set_time_since_inject( *waveform );     // <---------- INJECTION event set ------------
                         acqrscontrols::u5303a::method m;
                         for ( auto& reply : waveform_handlers_ ) {
                             if ( reply( waveform.get(), nullptr, m ) )

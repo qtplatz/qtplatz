@@ -816,8 +816,9 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setAcceleratorVoltage( 3000 );
     prop.setSamplingInfo( info );
     prop.setTDelay(ext_trig_delay + waveform.meta_.initialXOffset);
-    
-    prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
+
+    //prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
+    prop.setTimeSinceInjection( waveform.timeSinceInject_ );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
     

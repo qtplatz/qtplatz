@@ -760,8 +760,7 @@ tdcdoc::recentSpectrum( SpectrumType choice, mass_assignee_t assignee, int proto
     } else if ( choice == LongTermPkdWaveform ) {
         if ( impl_->accumulated_pkd_waveform_ ) {
             if ( acqrscontrols::u5303a::waveform::translate( *ms, *impl_->accumulated_pkd_waveform_ ) ) {
-                //ms->setCentroid( adcontrols::CentroidHistogram );
-                return ms;
+                return ms; // <- adcontrols::CentroidHistogram, see waveform::translate pkd_waveform_copy
             }
         }
     }
