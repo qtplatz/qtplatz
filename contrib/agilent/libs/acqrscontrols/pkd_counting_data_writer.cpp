@@ -104,7 +104,7 @@ namespace acqrscontrols {
             adfs::stmt sql( fs.db() );
 
             if ( w.meta_.dataType != 4 )
-                return true; // true for avoid raw data write to file
+                return true; // return handled (:= true)
 
             size_t idx( 0 );
             for ( auto it = w.begin< int32_t >(); it != w.end< int32_t >(); ++it ) {

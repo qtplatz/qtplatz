@@ -317,72 +317,74 @@ waveform::waveform( const waveform& t, int dataType ) : method_( t.method_ )
 waveform&
 waveform::operator += ( const waveform& t )
 {
-    if ( adportable::compare<double>::essentiallyEqual( meta_.xIncrement, t.meta_.xIncrement )
-         && ( meta_.actualPoints <= t.meta_.actualPoints ) ) {
+    if ( ! is_equivalent( meta_, t.meta_ ) )
+        throw std::bad_cast();        
+    
+    meta_.actualAverages += ( t.meta_.actualAverages == 0 ) ? 1 : t.meta_.actualAverages;
+    wellKnownEvents_ |= t.wellKnownEvents_;
 
-        meta_.actualAverages += ( t.meta_.actualAverages == 0 ) ? 1 : t.meta_.actualAverages;
-        wellKnownEvents_ |= t.wellKnownEvents_;
-
-        double tic(0), dbase(0), rms(0);
-
-        if ( t.meta_.dataType == 2 ) {
-            tic = adportable::spectrum_processor::tic( t.size(), t.begin<int16_t>(), dbase, rms, 5 );
-        } else if ( t.meta_.dataType == 4 ) {
-            tic = adportable::spectrum_processor::tic( t.size(), t.begin<int32_t>(), dbase, rms, 5 );
-        } else if ( t.meta_.dataType == 8 ) {
-            tic = adportable::spectrum_processor::tic( t.size(), t.begin<int64_t>(), dbase, rms, 5 );            
-        } else
-            throw std::bad_cast();
-
-        if ( t.meta_.dataType == 2 ) {
-            typedef int16_t rvalue_t;
-            switch( meta_.dataType ) {
-            case 2:
-                add< int16_t, rvalue_t >( t, dbase );
-                break;
-            case 4:
-                add< int32_t, rvalue_t >( t, dbase );
-                break;
-            case 8:
-                add< int64_t, rvalue_t >( t, dbase );
-                break;
-            }
-        } else if ( t.meta_.dataType == 4 ) {
-            typedef int32_t rvalue_t;
-            switch( meta_.dataType ) {
-            case 2:
-                throw std::bad_cast();                
-                break;
-            case 4:
-                add< int32_t, rvalue_t >( t, dbase );
-                break;
-            case 8:
-                add< int64_t, rvalue_t >( t, dbase );
-                break;
-            }
-        } else if ( t.meta_.dataType == 8 ) {
-            typedef int64_t rvalue_t;
-            switch( meta_.dataType ) {
-            case 2:
-            case 4:
-                throw std::bad_cast();
-                break;
-            case 8:
-                add< int64_t, rvalue_t >( t, dbase );
-                break;
-            }
+    double dbase(0);
+    if ( meta_.channelMode != PKD ) {
+        switch( t.meta_.dataType ) {
+        case 2:
+            std::tie( std::ignore, dbase, std::ignore ) = adportable::spectrum_processor::tic( t.size(), t.begin<int16_t>(), 5 );
+            break;
+        case 4:
+            std::tie( std::ignore, dbase, std::ignore ) = adportable::spectrum_processor::tic( t.size(), t.begin<int32_t>(), 5 );
+            break;
+        case 8:
+            std::tie( std::ignore, dbase, std::ignore ) = adportable::spectrum_processor::tic( t.size(), t.begin<int64_t>(), 5 );
+            break;
         }
-
-#if 0
-        /// debug
-        if ( t.meta_.dataType == 4 ) {
-            auto pair = std::minmax_element( t.begin< int32_t >(), t.begin< int32_t >() + t.size() );
-            auto a = (*this)[ std::distance( t.begin< int32_t >(), pair.second ) ];
-            ADDEBUG() << boost::format( "t=%d[%4d] (max,min)= (%-9d, %-9d), sum = %-9d" ) % meta_.dataType % meta_.actualAverages % *pair.second % *pair.first % a;
-        }
-        // end debug
-#endif
     }
+    
+    if ( t.meta_.dataType == 2 ) {
+        typedef int16_t rvalue_t;
+        switch( meta_.dataType ) {
+        case 2:
+            add< int16_t, rvalue_t >( t, dbase );
+            break;
+        case 4:
+            add< int32_t, rvalue_t >( t, dbase );
+            break;
+        case 8:
+            add< int64_t, rvalue_t >( t, dbase );
+            break;
+        }
+    } else if ( t.meta_.dataType == 4 ) {
+        typedef int32_t rvalue_t;
+        switch( meta_.dataType ) {
+        case 2:
+            throw std::bad_cast();                
+            break;
+        case 4:
+            add< int32_t, rvalue_t >( t, dbase );
+            break;
+        case 8:
+            add< int64_t, rvalue_t >( t, dbase );
+            break;
+        }
+    } else if ( t.meta_.dataType == 8 ) {
+        typedef int64_t rvalue_t;
+        switch( meta_.dataType ) {
+        case 2:
+        case 4:
+            throw std::bad_cast();
+            break;
+        case 8:
+            add< int64_t, rvalue_t >( t, dbase );
+            break;
+        }
+    }
+#if 0
+    /// debug
+    if ( t.meta_.dataType == 4 ) {
+        auto pair = std::minmax_element( t.begin< int32_t >(), t.begin< int32_t >() + t.size() );
+        auto a = (*this)[ std::distance( t.begin< int32_t >(), pair.second ) ];
+        ADDEBUG() << boost::format( "t=%d[%4d] (max,min)= (%-9d, %-9d), sum = %-9d" ) % meta_.dataType % meta_.actualAverages % *pair.second % *pair.first % a;
+    }
+    // end debug
+#endif
     return *this;
 }
 

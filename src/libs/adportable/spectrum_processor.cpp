@@ -150,10 +150,11 @@ namespace adportable {
 
     struct tic_calculator {
 
-        template<typename T> double operator () ( size_t nbrSamples, const T * praw, double& dbase, double& rms, size_t N ) {
-
+        template<typename T>
+        std::tuple<double, double, double> operator () ( size_t nbrSamples, const T * praw, size_t N ) {
+            
             if ( nbrSamples < N )
-                return 0.0;
+                return std::make_tuple(0.0, 0.0, 0.0);
 
             averager base;
             int cnt = 1;
@@ -167,12 +168,12 @@ namespace adportable {
                 }
             } while (0);
 
-            dbase = base.average();
-            rms = base.rms();
+            double dbase = base.average();
+            double rms = base.rms();
             double ax = 0;
             for ( size_t i = 0; i < nbrSamples; ++i )
                 ax += praw[ i ] - dbase;
-            return ax; //avgr.average() - dbase;
+            return std::make_tuple( ax, dbase, rms );
         }
 
         template< typename _fy > double
@@ -201,34 +202,75 @@ namespace adportable {
 
 }
 
+namespace adportable {
+    template<>
+    std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int8_t * praw, size_t N )
+    {
+        return tic_calculator()( nbrSamples, praw, N );
+    }
+
+    template<>
+    std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, size_t N )
+    {
+        return tic_calculator()( nbrSamples, praw, N );
+    }
+
+    template<>
+    std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, size_t N )
+    {
+        return tic_calculator()( nbrSamples, praw, N );
+    }
+
+    template<>
+    std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, size_t N )
+    {
+        return tic_calculator()( nbrSamples, praw, N );
+    }
+}
+
+/////////////////////
 double
 spectrum_processor::tic( size_t nbrSamples, const int8_t * praw, double& dbase, double& rms, size_t N )
 {
-    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+    double ax;
+    std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
+    return ax;
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const int16_t * praw, double& dbase, double& rms, size_t N )
 {
-    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+    double ax;
+    std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
+    return ax;    
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
 {
-    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+    double ax;
+    std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
+    return ax;        
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const int64_t * praw, double& dbase, double& rms, size_t N )
 {
-    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+    double ax;
+    std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
+    return ax;    
 }
 
 double
 spectrum_processor::tic( size_t nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
-    return tic_calculator()( nbrSamples, praw, dbase, rms, N );
+    double ax;
+    std::tie( ax, dbase, rms ) = tic_calculator()( nbrSamples, praw, N );
+    return ax;    
 }
 
 void

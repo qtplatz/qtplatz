@@ -31,6 +31,7 @@
 #include <acqrscontrols/u5303a/histogram.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
 #include <acqrscontrols/threshold_action_finder.hpp>
+#include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/countingmethod.hpp>
@@ -111,7 +112,7 @@ namespace acqrscontrols {
                     std::shared_ptr< adcontrols::TimeDigitalHistogram > htop = v[ 0 ];
                     if ( resolution > v[ 0 ]->xIncrement() )
                         htop = v[ 0 ]->merge_peaks( resolution );
-
+                    
                     adcontrols::TimeDigitalHistogram::translate( ms, *htop, assignee );
                     ms.setProtocol( 0, protocolCount_ );
 
@@ -123,7 +124,7 @@ namespace acqrscontrols {
 
                             if ( resolution > hgrm->xIncrement() )
                                 hgrm = hgrm->merge_peaks( resolution );
-
+                            
                             adcontrols::TimeDigitalHistogram::translate( *sp, *hgrm, assignee );
                             sp->setProtocol( proto, protocolCount_ );
                         }
@@ -607,7 +608,6 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
 }
 
 
-// this is called from u5303aplugin, trial for raising,falling pair lookup
 bool
 tdcdoc::processPKD( std::shared_ptr< const acqrscontrols::u5303a::waveform > pkd )
 {
@@ -620,18 +620,19 @@ tdcdoc::processPKD( std::shared_ptr< const acqrscontrols::u5303a::waveform > pkd
     auto& counts = impl_->threshold_action_counts_[ 0 ];
     
     counts.second += pkd->meta_.actualAverages;  // trigger count
-    counts.first += uint32_t( pkd->accumulate( am->delay, am->width ) + 0.5 );    
+    counts.first += uint32_t( pkd->accumulate( am->delay, am->width ) + 0.5 );
 
-    // if ( am->enable ) {
-    if ( ! impl_->tofChromatogramsMethod_->refreshHistogram() ) {
-        if ( !impl_->accumulated_pkd_waveform_ )
+    if ( ( !impl_->accumulated_pkd_waveform_ ) ||
+         ( pkd->wellKnownEvents_ & adacquire::SignalObserver::wkEvent_INJECT ) ||
+         ! acqrscontrols::u5303a::waveform::is_equivalent( impl_->accumulated_pkd_waveform_->meta_, pkd->meta_ ) ) {
+        ADDEBUG() << "### renew average ### events = " << boost::format( "0x%x" ) % pkd->wellKnownEvents_;
+        impl_->accumulated_pkd_waveform_ = std::make_shared< acqrscontrols::u5303a::waveform >( *pkd, sizeof( uint32_t ) );
+        return true;
+    } else {
+        try {
+            *impl_->accumulated_pkd_waveform_ += *pkd;
+        } catch ( std::exception& bad_cast ) {
             impl_->accumulated_pkd_waveform_ = std::make_shared< acqrscontrols::u5303a::waveform >( *pkd, sizeof( uint32_t ) );
-        else {
-            try {
-                *impl_->accumulated_pkd_waveform_ += *pkd;
-            } catch ( std::exception& bad_cast ) {
-                impl_->accumulated_pkd_waveform_.reset();
-            }
         }
     }
     return true;

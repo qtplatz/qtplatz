@@ -42,3 +42,7 @@ if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
 
 endif()
 
+install( FILES
+  compiler/decl_export.h
+  DESTINATION include/compiler COMPONENT headers
+  )

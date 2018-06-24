@@ -29,6 +29,7 @@
 #include "identify.hpp"
 #include "metadata.hpp"
 #include <adcontrols/tofprotocol.hpp>
+#include <adportable/float.hpp>
 #include <boost/variant.hpp>
 #include <boost/serialization/version.hpp>
 #include <array>
@@ -180,6 +181,11 @@ namespace acqrscontrols {
 
             static bool translate( adcontrols::MassSpectrum&, const waveform&, mass_assignor_t, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
+
+            static inline bool is_equivalent( const metadata& a, const metadata& b ) {
+                return ( ( adportable::compare<double>::essentiallyEqual( a.xIncrement, b.xIncrement )
+                           && adportable::compare<double>::essentiallyEqual( a.initialXOffset, b.initialXOffset ) ) );
+            }
             
         private:
             friend class waveform_xmeta_archive< waveform >;
