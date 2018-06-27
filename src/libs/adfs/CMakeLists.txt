@@ -57,3 +57,20 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+
+install( FILES
+  adfs_global.h
+  adfs.hpp
+  apiposix.hpp
+  apiwin32.hpp
+  attributes.hpp
+  CMakeLists.txt
+  cpio.hpp
+  file.hpp
+  filesystem.hpp
+  folder.hpp
+  fs.hpp
+  sqlite3ext.h
+  sqlite3.h
+  sqlite.hpp  
+  DESTINATION include/adfs COMPONENT headers )

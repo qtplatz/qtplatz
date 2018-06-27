@@ -26,8 +26,6 @@
 #pragma once
 
 #include "adfs_global.h"
-#include <compiler/workaround.h>
-#include <compiler/pragma_warning.hpp>
 #include <string>
 #include <cstdint>
 #include <functional>
@@ -50,9 +48,7 @@ namespace adfs {
         sqlite& operator = ( const sqlite& ) = delete;
 
         sqlite3 * db_;
-        pragma_msvc_warning_push_disable_4251
         std::function< void( const char *) > error_handler_;
-        pragma_msvc_warning_pop
         static uuid_format uuid_format_;
         uint32_t fs_format_version_;
     public:

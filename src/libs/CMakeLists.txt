@@ -44,5 +44,6 @@ endif()
 
 install( FILES
   compiler/decl_export.h
+  compiler/pragma_warning.hpp
   DESTINATION include/compiler COMPONENT headers
   )
