@@ -33,7 +33,7 @@
 #include "tofprotocol.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
-
+#include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -814,7 +814,12 @@ MassSpectrum::getSegment( size_t fcn )
 {
     if ( pImpl_->vec_.size() > fcn )
         return *pImpl_->vec_[ fcn ];
-    throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
+
+    throw std::out_of_range(
+        ( boost::format(
+            "MassSpectrum protocols subscript out of range -- attempt to get %d but %d protocols" )
+          % fcn
+          % pImpl_->vec_.size() ).str() );
 }
 
 const MassSpectrum&

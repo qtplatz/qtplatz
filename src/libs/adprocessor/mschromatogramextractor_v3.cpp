@@ -100,18 +100,17 @@ namespace adprocessor {
             if ( mol.protocol() && ( nProto > mol.protocol().get() ) ) {
 
                 auto& sp = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms )[ mol.protocol().get() ];
-                auto range = sp.getAcquisitionMassRange();
+                auto range = sp.getMSProperty().instMassRange(); // don't use getAcquisitionmassrange() that is full acq. range
                 if (  range.first < lMass && uMass < range.second )
                     return sp.protocolId();
 
             } else { // optional is none
                 
                 for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-                    //auto range = sp.getAcquisitionMassRange();
-                    auto range = sp.getMSProperty().instMassRange();
-                    ADDEBUG() << "find poto: " << range << ", " << mol.formula() << " proto=" << sp.protocolId();
+                    auto range = sp.getMSProperty().instMassRange(); // don't use getAcquisitionmassrange() that is full acq. range
+                    //ADDEBUG() << "find poto: " << range << ", " << mol.formula() << " proto=" << sp.protocolId();
                     if (  range.first < lMass && uMass < range.second ) {
-                        ADDEBUG() << "\tfound: " << sp.protocolId();
+                        //ADDEBUG() << "\tfound: " << sp.protocolId();
                         return sp.protocolId();
                     }
                 }
@@ -272,8 +271,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         if ( auto molid = mol.property< boost::uuids::uuid >( "molid" ) )
                             pt.put( "generator.extract_by_mols.molid", molid.get() );
                         pt.put( "generator.extract_by_mols.wform_type", (sp->isCentroid() ? "centroid" : "profile") );
-                        if ( auto proto = mol.protocol() )
-                            pt.put( "generator.extract_by_mols.moltable.protocol", proto.get() );                        
+                        pt.put( "generator.extract_by_mols.moltable.protocol", proto.get() );
                         pt.put( "generator.extract_by_mols.moltable.mass", mol.mass() );
                         pt.put( "generator.extract_by_mols.moltable.width", width );
                         pt.put( "generator.extract_by_mols.moltable.formula", mol.formula() );
@@ -304,6 +302,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         double y(0);
                         computeIntensity( y, t, adcontrols::hor_axis_mass, std::make_pair( xc.lMass, xc.uMass ) );
                         xc.append( ms.first /* pos */, time, y );
+                    } catch ( std::out_of_range& ex ) {
+                        ADDEBUG() << ex.what() << "\t-- skip this data point"; // ignore and continue (no chromatogram data added)
                     } catch ( std::exception& ex ) {
                         ADDEBUG() << ex.what();
                         return false;
