@@ -892,6 +892,7 @@ DataReader::getSpectrum( int64_t rowid ) const
                             double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
                             ptr->setAcquisitionMassRange( lMass, uMass );
+                            ptr->getMSProperty().setInstMassRange( std::make_pair( lMass, uMass ) );
                         }
                         // override elapsed_time (a.k.a. retention time)
                         ptr->getMSProperty().setTimeSinceInjection( elapsed_time );
@@ -947,7 +948,7 @@ DataReader::readSpectrum( const_iterator& it ) const
                             const auto& info = ptr->getMSProperty().samplingInfo();
                             double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
-                            ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
+                            // ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
                             ptr->setAcquisitionMassRange( lMass, uMass ); // <- maybe override by full acquisition range
                             ptr->getMSProperty().setInstMassRange( std::make_pair( lMass, uMass ) );
                         }
