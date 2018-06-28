@@ -76,7 +76,7 @@ AboutDlg::AboutDlg(QWidget *parent) : QDialog(parent)
                , Core::ICore::buildCompatibilityString()
                , QLatin1String(__DATE__), QLatin1String(__TIME__)
                , ideRev
-               , QLatin1String( "2016" )
+               , QLatin1String( "2018" )
                , QLatin1String( "MS-Cheminformatics LLC" ));
 
     QLabel *copyRightLabel = new QLabel(description);

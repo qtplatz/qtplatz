@@ -827,7 +827,12 @@ MassSpectrum::getSegment( size_t fcn ) const
 {
     if ( pImpl_->vec_.size() > fcn )
         return *pImpl_->vec_[ fcn ];
-    throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
+
+    throw std::out_of_range(
+        ( boost::format(
+            "MassSpectrum protocols subscript out of range -- attempt to get %d but %d protocols" )
+          % fcn
+          % pImpl_->vec_.size() ).str() );
 }
 
 size_t
