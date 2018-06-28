@@ -107,10 +107,11 @@ namespace adprocessor {
             } else { // optional is none
                 
                 for ( auto& sp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
-                    auto range = sp.getAcquisitionMassRange();
-                    //ADDEBUG() << "find poto: " << range << ", " << mol.formula() << " proto=" << sp.protocolId();
+                    //auto range = sp.getAcquisitionMassRange();
+                    auto range = sp.getMSProperty().instMassRange();
+                    ADDEBUG() << "find poto: " << range << ", " << mol.formula() << " proto=" << sp.protocolId();
                     if (  range.first < lMass && uMass < range.second ) {
-                        //ADDEBUG() << "\tfound: " << sp.protocolId();
+                        ADDEBUG() << "\tfound: " << sp.protocolId();
                         return sp.protocolId();
                     }
                 }
@@ -214,7 +215,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                     }
                 }
             }
-#if 0 // ndef NDEBUG
+#if ! defined NDEBUG && 0
         std::ostringstream o;
         for ( auto ref: mslock )
             o << ref.formula() << ", ";
@@ -282,7 +283,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         temp.emplace_back( width, lMass, uMass, (proto ? proto.get() : -1), desc );
                         temp.back().pChr->setGeneratorProperty( pt );
 
-#if !defined NDEBUG && 0
+#if !defined NDEBUG //&& 0
                         ADDEBUG() << pt;
 #endif
                     }

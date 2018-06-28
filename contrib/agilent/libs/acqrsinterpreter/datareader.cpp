@@ -947,8 +947,9 @@ DataReader::readSpectrum( const_iterator& it ) const
                             const auto& info = ptr->getMSProperty().samplingInfo();
                             double lMass = spectrometer_->scanLaw()->getMass( info.fSampDelay(), int( info.mode() ) );
                             double uMass = spectrometer_->scanLaw()->getMass( info.fSampDelay() + info.nSamples() * info.fSampInterval(), int( info.mode() ) );
-                            // ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
-                            ptr->setAcquisitionMassRange( lMass, uMass );
+                            ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
+                            ptr->setAcquisitionMassRange( lMass, uMass ); // <- maybe override by full acquisition range
+                            ptr->getMSProperty().setInstMassRange( std::make_pair( lMass, uMass ) );
                         }
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                         ptr->setDataReaderUuid( objid_ );

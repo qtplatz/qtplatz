@@ -754,11 +754,12 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mas
 {
     if ( translate( sp, waveform, scale ) ) {
 
-        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        adcontrols::MSProperty& prop = sp.getMSProperty();
         const auto& sinfo = prop.samplingInfo();
 
         double lMass = assign( sinfo.fSampDelay(), prop.mode() );
         double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+        prop.setInstMassRange( std::make_pair( lMass, hMass ) );
 
         sp.setAcquisitionMassRange( lMass, hMass );
         
@@ -773,12 +774,12 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 {
     if ( translate( sp, result, scale ) ) {
 
-        const adcontrols::MSProperty& prop = sp.getMSProperty();
+        adcontrols::MSProperty& prop = sp.getMSProperty();
         const auto& sinfo = prop.samplingInfo();
         
         double lMass = assign( sinfo.fSampDelay(), prop.mode() );
         double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
-        
+        prop.setInstMassRange( std::make_pair( lMass, hMass ) );
         sp.setAcquisitionMassRange( lMass, hMass );
 
         return sp.assign_masses( assign );
