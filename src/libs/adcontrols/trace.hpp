@@ -28,6 +28,7 @@
 #include <adcontrols/timeutil.hpp>
 #include <cstdint>
 #include <mutex>
+#include <string>
 #include <vector>
 #include "adcontrols_global.h"
 
