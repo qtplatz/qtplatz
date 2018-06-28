@@ -57,7 +57,7 @@ namespace adextension {
 		iEditorFactoryT( const QString& title
                          , iEditorFactory::METHOD_TYPE type
                          , Args&&... args ) : title_( title )
-                                            , clsid_( {0})
+                                            , clsid_( {{0}})
                                             , mtype_( type )
                                             , args_( std::make_tuple(std::forward<Args>(args)...) ) {
         }
