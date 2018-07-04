@@ -21,16 +21,20 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#include <adio/dgprotocols.hpp>
+#include <adportable/debug.hpp>
+#include <adurl/blob.hpp>
 #include <adurl/client.hpp>
 #include <adurl/dg.hpp>
 #include <adurl/sse.hpp>
-#include <adio/dgprotocols.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include <chrono>
 #include <cstring>
@@ -69,6 +73,7 @@ main( int argc, char* argv[] )
         ( "dg.json",   "use json format for status" )
         ( "dg.start",  "fsm-start" )
         ( "dg.stop",   "fsm-stop" )
+        ( "blob",       po::value< std::string >(), "blob /dataStorage" )
         ( "sse",        po::value< std::string >()->default_value("/dg/ctl?events"), "sse dg|evbox|hv|(any url string)" )
         ( "args",       po::value< std::vector< std::string > >(),  "host" )
         ;
@@ -133,7 +138,39 @@ main( int argc, char* argv[] )
 
         if ( vm.count( "dg.stop" ) ) {
             dg.stop_triggers();
-        }        
+        }
+
+        if ( vm.count( "blob" ) ) {
+            std::string url = vm[ "blob" ].as< std::string >();
+            std::cout << url << std::endl;
+#if 0            
+            adurl::blob blob( host.c_str(), url.c_str() );
+            blob.exec( [] ( const char * event, const char * data ) {
+                    std::cout << "event: " << event << "\t" << "data: " << data << std::endl;
+                });
+            
+            std::this_thread::sleep_for( std::chrono::seconds( 10 ) );
+            blob.stop();
+#else
+            boost::asio::io_service io_context;
+            adurl::blob blob( io_context );
+
+            blob.register_blob_handler( []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob ){
+                    ADDEBUG() << "handle blob";
+                    for ( const auto& header: headers )
+                        ADDEBUG() << header;
+                    ADDEBUG() << "blob size=" << blob.size() << " \tblob: " << blob;
+                });
+            
+            auto pos = host.find_first_of( ':' );
+            if ( pos != std::string::npos )
+                blob.connect( url, host.substr( 0, pos ), host.substr( pos + 1 ) );
+            else
+                blob.connect( url, host );
+            io_context.run();
+#endif
+            return 0;
+        }
 
         if ( vm.count( "sse" ) ) {
             std::string url = vm[ "sse" ].as< std::string >();

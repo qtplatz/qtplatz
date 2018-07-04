@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8.11)
 cmake_policy( SET CMP0022 NEW )
 
-project( xurl )
+project( adurlx )
 
 find_package( Threads REQUIRED )
 
@@ -10,7 +10,7 @@ include_directories(
   ${QTPLATZ_SOURCE_DIR}/src/libs
   )
 
-add_executable( xurl main.cpp )
+add_executable( ${PROJECT_NAME} main.cpp )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adurl

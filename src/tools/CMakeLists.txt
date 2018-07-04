@@ -1,6 +1,6 @@
 
 add_subdirectory (eventbroker)
-add_subdirectory (xurl)
+add_subdirectory (adurlx)
 
 if ( Qt5_FOUND )
 

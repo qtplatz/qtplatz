@@ -44,11 +44,15 @@ namespace adurl {
 
     class ADURLSHARED_EXPORT client {
     public:
-        client( boost::asio::io_service& io_service, const std::string& path
-                , const std::string& server, const std::string& port = "80" );
+        client( boost::asio::io_service& io_service
+                , const std::string& path
+                , const std::string& server
+                , const std::string& port = "http" );
 
-        client( boost::asio::io_service& io_service, std::unique_ptr< boost::asio::streambuf >&& request
-                , const std::string& server, const std::string& port = "80" );
+        client( boost::asio::io_service& io_service
+                , std::unique_ptr< boost::asio::streambuf >&& request
+                , const std::string& server
+                , const std::string& port = "http" );
 
         boost::asio::streambuf& response();
         boost::asio::streambuf& response_header();

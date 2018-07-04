@@ -245,6 +245,8 @@ void
 client::handle_read_status_line( const boost::system::error_code& err )
 {
     error_code_ = err;
+
+    ADDEBUG() << "handle_read_status_line: " << err;
     
     if ( !err )  {
 
@@ -291,9 +293,11 @@ client::handle_read_headers(const boost::system::error_code& err)
 
         while ( std::getline(response_stream, header) && header != "\r" ) {
             o << header << "\r\n";
-            if ( header.find( "Content-Type:" ) != std::string::npos &&
-                 header.find( "text/event-stream" ) != std::string::npos ) {
-                event_stream_ = true;
+            if ( header.find( "Content-Type:" ) != std::string::npos ) {
+                if ( ( header.find( "text/event-stream" ) != std::string::npos ) ||
+                     ( header.find( "blob/event-stream" ) != std::string::npos ) ) {
+                    event_stream_ = true;
+                }
             }
             if ( debug_mode_ )
                 ADDEBUG() << "[" << server_ << "] " << header;

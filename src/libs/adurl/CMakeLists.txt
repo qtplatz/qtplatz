@@ -15,6 +15,8 @@ add_definitions( -DADURL_LIBRARY )
 add_library( adurl SHARED
   ajax.cpp
   ajax.hpp
+  blob.cpp
+  blob.hpp
   client.cpp
   client.hpp
   request.cpp
@@ -22,16 +24,17 @@ add_library( adurl SHARED
   dg.cpp
   dg.hpp
   sse.hpp
-  sse.cpp )
+  sse.cpp
+  )
 
-target_link_libraries( adurl LINK_PUBLIC
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adio
   adportable
   Threads::Threads
   ${Boost_LIBRARIES}
   )
 
-install( TARGETS adurl 
+install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
   ARCHIVE DESTINATION lib COMPONENT libraries )
