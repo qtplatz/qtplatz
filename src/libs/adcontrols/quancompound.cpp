@@ -28,18 +28,18 @@
 #include "quancompound.hpp"
 #include "serializer.hpp"
 #include <adportable/uuid.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/utility.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 
 #include <array>
+#include <cstdint>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 namespace adcontrols {
     

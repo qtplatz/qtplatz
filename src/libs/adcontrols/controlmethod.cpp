@@ -24,25 +24,25 @@
 **************************************************************************/
 
 #include "controlmethod.hpp"
-#include "serializer.hpp"
 #include "idaudit.hpp"
-#include <adportable/float.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
+#include "serializer.hpp"
 #include <adportable/base64.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/float.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/any.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
-#include <boost/any.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/string.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
 
 namespace adcontrols {

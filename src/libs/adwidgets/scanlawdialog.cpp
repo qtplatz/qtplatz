@@ -24,22 +24,22 @@
 
 #include "scanlawdialog.hpp"
 #include "ui_scanlawdialog.h"
-#include <adportable/polfit.hpp>
-#include <adportable/timesquaredscanlaw.hpp>
-#include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/scanlaw.hpp>
-#include <adcontrols/massspectrometer.hpp>
-#include <adcontrols/metric/prefix.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <workaround/boost/archive/xml_woarchive.hpp>
-#include <workaround/boost/archive/xml_wiarchive.hpp>
 #include <QApplication>
 #include <QClipboard>
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
 #include <QSignalBlocker>
+#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/scanlaw.hpp>
+#include <adportable/polfit.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
+#include <archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
 #include <cmath>
 #include <sstream>
 

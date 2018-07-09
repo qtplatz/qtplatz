@@ -28,11 +28,11 @@
 #include "adcontrols_global.h"
 #include "quanresponses.hpp"
 #include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <compiler/disable_dll_interface.h>
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include <compiler/disable_dll_interface.h>
-#include <workaround/boost/uuid/uuid.hpp>
 
 namespace adcontrols {
 

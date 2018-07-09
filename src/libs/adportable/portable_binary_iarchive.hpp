@@ -22,17 +22,17 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
-#include <istream>
-#include <boost/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/item_version_type.hpp>
+#include "portable_binary_archive.hpp"
 #include <boost/archive/archive_exception.hpp>
 #include <boost/archive/basic_binary_iprimitive.hpp>
-#include <workaround/boost/archive/detail/common_iarchive.hpp>
+#include <boost/archive/detail/common_iarchive.hpp>
 #include <boost/archive/detail/register_archive.hpp>
+#include <boost/serialization/item_version_type.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/version.hpp>
 #include <compiler/deprecated_register.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include "portable_binary_archive.hpp"
+#include <istream>
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // exception to be thrown if integer read from archive doesn't fit

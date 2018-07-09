@@ -23,14 +23,14 @@
 **************************************************************************/
 
 #pragma once
+
 #include "adacquire_global.hpp"
+#include <boost/filesystem.hpp>
+#include <boost/asio.hpp>
 #include <string>
 #include <memory>
-#include <boost/filesystem.hpp>
-#include <workaround/boost/asio.hpp>
 #include <atomic>
 #include <chrono>
-#include <compiler/pragma_warning.hpp>
 
 namespace adfs { class filesystem; class file; class sqlite; }
 namespace adcontrols { class SampleRun; namespace ControlMethod { class Method; } }
@@ -78,7 +78,6 @@ namespace adacquire {
         static void populate_descriptions( SignalObserver::Observer *, adfs::sqlite& );
         static void populate_calibration( SignalObserver::Observer *, adfs::sqlite& );
 
-        pragma_msvc_warning_push_disable_4251
         boost::filesystem::path storage_name_;
         std::unique_ptr< adfs::filesystem > fs_;
         bool c_acquisition_active_;
@@ -90,7 +89,6 @@ namespace adacquire {
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
         std::chrono::steady_clock::time_point tp_inject_trigger_;
         std::weak_ptr< adacquire::SignalObserver::Observer > masterObserver_;
-        pragma_msvc_warning_pop
             
         uint64_t ts_inject_trigger_;
         uint64_t elapsed_time_;

@@ -24,10 +24,10 @@
 
 #pragma once
 
+#include <boost/asio.hpp>
+#include <boost/signals2.hpp>
 #include <functional>
 #include <memory>
-#include <boost/signals2.hpp>
-#include <workaround/boost/asio.hpp>
 
 namespace acewrapper {
 

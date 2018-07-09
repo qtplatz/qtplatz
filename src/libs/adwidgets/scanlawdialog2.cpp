@@ -22,32 +22,32 @@
 **
 **************************************************************************/
 
+#include "moltableview.hpp"
 #include "scanlawdialog2.hpp"
 #include "scanlawform.hpp"
-#include "moltableview.hpp"
-#include <adportable/timesquaredscanlaw.hpp>
-#include <adcontrols/mspeak.hpp>
-#include <adcontrols/mspeaks.hpp>
-#include <adcontrols/massspectrometer.hpp>
-#include <adcontrols/massspectrometerbroker.hpp>
-#include <adcontrols/scanlaw.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/polfit.hpp>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QClipboard>
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QMenu>
+#include <QMetaType>
 #include <QMimeData>
 #include <QPushButton>
 #include <QSplitter>
 #include <QStandardItemModel>
-#include <QMetaType>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/mspeak.hpp>
+#include <adcontrols/mspeaks.hpp>
+#include <adcontrols/scanlaw.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/polfit.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <workaround/boost/archive/xml_woarchive.hpp>
-#include <workaround/boost/archive/xml_wiarchive.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cmath>
 #include <ratio>

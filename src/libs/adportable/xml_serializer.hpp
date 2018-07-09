@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include <workaround/boost/archive/xml_woarchive.hpp>
-#include <workaround/boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>

@@ -26,16 +26,16 @@
 #define QUANCOMPOUNDS_HPP
 
 #include "adcontrols_global.h"
-#include "quancompound.hpp"
 #include "idaudit.hpp"
+#include "quancompound.hpp"
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <workaround/boost/uuid/uuid_io.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <string>
 #include <vector>
 

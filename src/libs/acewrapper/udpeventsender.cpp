@@ -23,12 +23,12 @@
 **************************************************************************/
 
 #include "udpeventsender.hpp"
+#include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
-#include <workaround/boost/asio.hpp>
-#include <mutex>
-#include <string>
 #include <chrono>
 #include <iostream>
+#include <mutex>
+#include <string>
 
 using namespace acewrapper;
 using boost::asio::ip::udp;

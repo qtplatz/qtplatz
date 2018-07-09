@@ -21,29 +21,22 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#if defined _MSC_VER
-# pragma warning(disable:4996)
-#endif
 
+#include "idaudit.hpp"
+#include "quansample.hpp"
 #include "quansequence.hpp"
 #include "serializer.hpp"
-#include "quansample.hpp"
-#include "idaudit.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/uuid.hpp>
-#include <workaround/boost/uuid/uuid_io.hpp>
+#include <boost/serialization/base_object.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/serialization/base_object.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-
-#if defined _MSC_VER
-# pragma warning(default:4669)
-#endif
+#include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 
 namespace adcontrols {
     

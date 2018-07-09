@@ -66,6 +66,9 @@ install( FILES
   base64.hpp
   base85.hpp
   binary_search.hpp
+  portable_binary_archive.hpp
+  portable_binary_iarchive.hpp
+  portable_binary_oarchive.hpp
   DESTINATION include/adportable COMPONENT headers
   )
 

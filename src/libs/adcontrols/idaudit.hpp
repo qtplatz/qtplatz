@@ -29,10 +29,9 @@
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <compiler/deprecated_register.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <workaround/boost/uuid/uuid_io.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 #include <string>
 
 namespace adcontrols {

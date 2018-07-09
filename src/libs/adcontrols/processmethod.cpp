@@ -21,41 +21,29 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#include <compiler/workaround.h>
-#include <compiler/disable_unused_parameter.h>
-#if defined _MSC_VER
-#pragma warning(disable:4996)
-#endif
 
-#include "processmethod.hpp"
 #include "centroidmethod.hpp"
-#include "isotopemethod.hpp"
 #include "elementalcompositionmethod.hpp"
+#include "isotopemethod.hpp"
 #include "mscalibratemethod.hpp"
-#include "msreferences.hpp"
 #include "msreference.hpp"
+#include "msreferences.hpp"
 #include "peakmethod.hpp"
+#include "processmethod.hpp"
 #include "serializer.hpp"
 #include "targetingmethod.hpp"
-
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/serialization/base_object.hpp>
 #include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/serialization/variant.hpp>
 #include <boost/serialization/vector.hpp>
-
+#include <boost/serialization/version.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <compiler/diagnostic_pop.h>
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_local_typedefs.h>
-
-#include <boost/serialization/variant.hpp>
-#include <compiler/diagnostic_pop.h>
-
-#include <boost/serialization/base_object.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#if defined _MSC_VER
-#pragma warning(default:4996)
-#endif
 
 using namespace adcontrols;
 

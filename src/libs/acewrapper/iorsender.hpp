@@ -25,9 +25,9 @@
 #ifndef IORSENDER_HPP
 #define IORSENDER_HPP
 
-#include <boost/noncopyable.hpp>
-#include <workaround/boost/asio.hpp>
 #include <adportable/asio/thread.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/asio.hpp>
 #include <boost/array.hpp>
 
 #include <mutex>

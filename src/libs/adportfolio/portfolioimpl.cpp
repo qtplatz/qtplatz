@@ -25,19 +25,15 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4996 )
 #endif
-#include "portfolioimpl.hpp"
 #include "folder.hpp"
 #include "folium.hpp"
+#include "portfolioimpl.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 #include <boost/lexical_cast.hpp>
-#include <compiler/diagnostic_pop.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 using namespace portfolio;
 using namespace portfolio::internal;

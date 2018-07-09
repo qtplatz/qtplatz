@@ -22,14 +22,12 @@
 **
 **************************************************************************/
 
-#include <workaround/boost/asio.hpp>
-
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-
+#include <boost/asio.hpp>
 #include <boost/function.hpp>
+#include <condition_variable>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #pragma once
 

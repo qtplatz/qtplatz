@@ -9,8 +9,8 @@ add_library( acewrapper
   input_buffer.cpp
   ifconfig.cpp
   ifconfig_windows.cpp
-  iorsender.cpp
-  iorquery.cpp
+#  iorsender.cpp
+#  iorquery.cpp
   udpeventreceiver.cpp
   udpeventreceiver.hpp
   udpeventsender.cpp

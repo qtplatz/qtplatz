@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <workaround/boost/asio.hpp>
+#include <boost/asio.hpp>
 #include <condition_variable>
 #include <thread>
 #include <mutex>

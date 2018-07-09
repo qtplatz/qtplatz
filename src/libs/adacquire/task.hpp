@@ -28,11 +28,11 @@
 #include "adacquire_global.hpp"
 #include "constants.hpp"
 #include <adcontrols/controlmethod_fwd.hpp>
+#include <compiler/boost/asio/io_service_fwd.hpp>
 #include <boost/signals2.hpp>
 #include <chrono>
 #include <functional>
 #include <memory>
-#include <workaround/boost/asio/io_service_fwd.hpp>
 
 namespace boost { namespace uuids { struct uuid; } }
 

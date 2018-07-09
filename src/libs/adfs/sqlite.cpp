@@ -23,23 +23,20 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_4996.h>
-#include <compiler/disable_unused_variable.h>
-
+#include "adfs.hpp"
 #include "sqlite.hpp"
 #include "sqlite3.h"
-#include "adfs.hpp"
+#include <adportable/debug.hpp>
 #include <adportable/string.hpp>
 #include <adportable/utf.hpp>
-#include <adportable/debug.hpp>
-#include <iostream>
 #include <boost/exception/all.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <iostream>
 #include <locale>
 
 namespace adfs {

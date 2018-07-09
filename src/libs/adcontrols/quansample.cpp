@@ -24,17 +24,15 @@
 
 #include "quansample.hpp"
 #include "serializer.hpp"
-#include <algorithm>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
-
-// #include <boost/serialization/base_object.hpp>
-#include <workaround/boost/uuid/uuid_serialize.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/uuid.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <algorithm>
 
 namespace adcontrols {
 

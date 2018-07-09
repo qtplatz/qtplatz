@@ -24,7 +24,7 @@
 
 #include "udpeventreceiver.hpp"
 #include <adportable/debug.hpp>
-#include <workaround/boost/asio.hpp>
+#include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/signals2.hpp>
 #include <condition_variable>

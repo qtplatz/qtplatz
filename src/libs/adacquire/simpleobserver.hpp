@@ -25,9 +25,9 @@
 #pragma once
 
 #include "adacquire_global.hpp"
-#include "simpleobserver.hpp"
 #include "signalobserver.hpp"
-#include <workaround/boost/uuid/uuid.hpp>
+#include "simpleobserver.hpp"
+#include <boost/uuid/uuid.hpp>
 #include <functional>
 
 namespace adacquire {

@@ -23,16 +23,16 @@
 **
 **************************************************************************/
 
-#include "mscalibration.hpp"
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
-#include <sstream>
-#include <boost/format.hpp>
+#include "mscalibration.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <workaround/boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <sstream>
 
 using namespace adcontrols;
 

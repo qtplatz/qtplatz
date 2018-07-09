@@ -25,13 +25,13 @@
 #pragma once
 
 #include <adportable/debug.hpp>
-#include <boost/exception/all.hpp>
-#include <workaround/boost/archive/xml_woarchive.hpp>
-#include <workaround/boost/archive/xml_wiarchive.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
-#include <memory>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/exception/all.hpp>
 #include <iostream>
+#include <memory>
 
 namespace adcontrols {
 
