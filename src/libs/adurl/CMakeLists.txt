@@ -38,3 +38,9 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
   ARCHIVE DESTINATION lib COMPONENT libraries )
+
+install( FILES
+  adurl_global.h
+  ajax.hpp
+  blob.hpp
+  DESTINATION include/adurl COMPONENT headers )
