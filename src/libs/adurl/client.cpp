@@ -246,8 +246,6 @@ client::handle_read_status_line( const boost::system::error_code& err )
 {
     error_code_ = err;
 
-    ADDEBUG() << "handle_read_status_line: " << err;
-    
     if ( !err )  {
 
         // Check that response is OK.
