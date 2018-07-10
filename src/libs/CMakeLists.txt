@@ -47,3 +47,8 @@ install( FILES
   compiler/pragma_warning.hpp
   DESTINATION include/compiler COMPONENT headers
   )
+
+install( FILES
+  date/date.h
+  DESTINATION include/date COMPONENT headers
+  )
