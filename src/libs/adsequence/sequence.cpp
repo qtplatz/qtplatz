@@ -22,20 +22,13 @@
 **
 **************************************************************************/
 
-#include "sequence.hpp"
 #include "schema.hpp"
-#include <boost/serialization/nvp.hpp>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-
-#include <compiler/diagnostic_pop.h>
-
-#include <adportable/portable_binary_oarchive.hpp>
+#include "sequence.hpp"
 #include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/nvp.hpp>
 
 using namespace adsequence;
 

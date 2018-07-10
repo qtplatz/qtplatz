@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_unused_parameter.h>
-#include "manager.hpp"
 #include "loader.hpp"
+#include "manager.hpp"
+#include <QLibrary>
 #include <acewrapper/constants.hpp>
 #include <adcontrols/datafile_factory.hpp>
 #include <adcontrols/datafilebroker.hpp>
@@ -43,19 +43,14 @@
 #include <adportable/debug.hpp>
 #include <adportable/debug_core.hpp>
 #include <adportable/string.hpp>
-#include <QLibrary>
+#include <boost/cast.hpp>
 #include <boost/dll.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <fstream>
 #include <map>
 #include <mutex>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_variable.h>
-#include <boost/filesystem.hpp>
-#include <compiler/diagnostic_pop.h>
-#include <boost/cast.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem/fstream.hpp>
 
 #if defined _MSC_VER // std::regex on VS2012 got clash due to no instance of _CType.table depend on the timing
 #define BOOST_REGEX

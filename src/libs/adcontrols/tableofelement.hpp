@@ -32,7 +32,6 @@
 #include <string>
 #include <map>
 #include <mutex>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

@@ -22,13 +22,10 @@
 **
 **************************************************************************/
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
 #include "polfit.hpp"
 #include <boost/variant.hpp>
-#include <compiler/diagnostic_pop.h>
 #include "moment.hpp"
 #include "sgfilter.hpp"
 

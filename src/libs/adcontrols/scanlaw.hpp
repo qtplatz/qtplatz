@@ -30,7 +30,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

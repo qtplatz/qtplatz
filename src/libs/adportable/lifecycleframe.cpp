@@ -22,10 +22,7 @@
 **
 **************************************************************************/
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 #include "lifecycleframe.hpp"
-#include <compiler/diagnostic_pop.h>
 
 using namespace adportable;
 

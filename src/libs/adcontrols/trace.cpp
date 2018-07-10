@@ -23,7 +23,6 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_dll_interface.h>
 #include "trace.hpp"
 #include <adacquire/constants.hpp>
 #include <iostream>

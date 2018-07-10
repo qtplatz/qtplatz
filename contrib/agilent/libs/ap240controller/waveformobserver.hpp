@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <adacquire/signalobserver.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <deque>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <acqrscontrols/ap240/method.hpp>
+#include <adacquire/signalobserver.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <deque>
 
 namespace acqrscontrols { namespace ap240 { class waveform; } }
 namespace ap240x = acqrscontrols::ap240;

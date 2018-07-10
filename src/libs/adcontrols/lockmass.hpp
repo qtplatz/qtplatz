@@ -25,12 +25,11 @@
 
 #pragma once
 #include "adcontrols_global.h"
-#include <string>
-#include <vector>
-#include <cstdint>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <compiler/diagnostic_push.h>
+#include <cstdint>
+#include <string>
+#include <vector>
 
 namespace adcontrols {
 

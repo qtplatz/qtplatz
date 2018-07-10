@@ -29,7 +29,6 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
-#include <compiler/disable_dll_interface.h>
 #include <cstdint>
 #include <functional>
 #include <string>

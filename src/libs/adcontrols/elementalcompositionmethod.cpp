@@ -24,16 +24,11 @@
 
 #include "elementalcompositionmethod.hpp"
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
-
-#include <compiler/diagnostic_pop.h>
 
 using namespace adcontrols;
 

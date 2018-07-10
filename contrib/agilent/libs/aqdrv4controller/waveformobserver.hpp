@@ -25,9 +25,9 @@
 #pragma once
 
 #include <adacquire/signalobserver.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
 #include <acqrscontrols/ap240/method.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <deque>
 
 namespace acqrscontrols {

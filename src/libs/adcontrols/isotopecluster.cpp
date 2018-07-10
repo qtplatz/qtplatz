@@ -23,7 +23,6 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_unused_parameter.h>
 #include "chemicalformula.hpp"
 #include "element.hpp"
 #include "isotopecluster.hpp"

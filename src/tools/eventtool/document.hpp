@@ -24,15 +24,12 @@
 
 #pragma once
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_4996.h>
 #include <QObject>
 #include <boost/numeric/ublas/fwd.hpp>
 #if ! defined Q_MOC_RUN
 #include <boost/msm/back/state_machine.hpp>
 #endif
 #include <boost/asio.hpp>
-
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -74,4 +71,3 @@ namespace eventtool {
     };
 }
 
-#include <compiler/diagnostic_pop.h>

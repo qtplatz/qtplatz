@@ -41,9 +41,6 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid_serialize.hpp>
-#include <compiler/diagnostic_pop.h>
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_local_typedefs.h>
 
 using namespace adcontrols;
 

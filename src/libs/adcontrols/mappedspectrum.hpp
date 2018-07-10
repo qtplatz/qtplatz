@@ -25,7 +25,6 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <compiler/disable_dll_interface.h>
 #include <boost/serialization/version.hpp>
 #include <vector>
 #include <cstdint>

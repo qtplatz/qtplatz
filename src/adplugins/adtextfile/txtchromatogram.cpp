@@ -25,13 +25,13 @@
 #include "txtchromatogram.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/textfile.hpp>
-#include <algorithm>
-#include <fstream>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
-#include <workaround/boost/numeric/interval.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/numeric/interval.hpp>
+#include <boost/tokenizer.hpp>
+#include <algorithm>
+#include <fstream>
 
 using namespace adtextfile;
 

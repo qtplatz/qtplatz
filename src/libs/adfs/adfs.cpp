@@ -29,10 +29,7 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <compiler/diagnostic_pop.h>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>

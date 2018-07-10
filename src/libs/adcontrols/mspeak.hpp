@@ -30,7 +30,6 @@
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <string>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

@@ -34,8 +34,6 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
 
-#include <compiler/disable_dll_interface.h>
-
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSAssignedMass {

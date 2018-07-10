@@ -28,18 +28,12 @@
 #include "adsequence_global.hpp"
 #include "schema.hpp"
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-
-#include <compiler/workaround.h>
 #include <boost/variant.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
-
-#include <compiler/diagnostic_pop.h>
 
 #include <string>
 #include <vector>

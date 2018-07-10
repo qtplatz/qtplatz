@@ -26,17 +26,14 @@
 #include "attributes.hpp"
 #include "cpio.hpp"
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-#include <compiler/diagnostic_pop.h>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/utf.hpp>
-#include <boost/exception/all.hpp>
 #include "sqlite.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/utf.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/exception/all.hpp>
 
 
 namespace adfs {

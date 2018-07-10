@@ -23,8 +23,6 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_unused_parameter.h>
-
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
 #include <adplugin/plugin.hpp>

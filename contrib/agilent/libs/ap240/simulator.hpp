@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include <condition_variable>
+#include <acqrscontrols/ap240/method.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
+#include <compiler/boost/asio/io_service_fwd.hpp>
 #include <atomic>
+#include <condition_variable>
 #include <memory>
 #include <vector>
-#include <acqrscontrols/ap240/waveform.hpp>
-#include <acqrscontrols/ap240/method.hpp>
-#include <workaround/boost/asio/io_service_fwd.hpp>
 
 // namespace boost { namespace asio { class io_service; } }
 namespace adinterface { class waveform_generator;  }

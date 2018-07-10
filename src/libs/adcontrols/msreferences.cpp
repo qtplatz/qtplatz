@@ -29,7 +29,6 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

@@ -28,7 +28,6 @@
 #include "adprot_global.hpp"
 #include <string>
 #include <vector>
-#include <compiler/disable_dll_interface.h>
 
 namespace adprot {
 

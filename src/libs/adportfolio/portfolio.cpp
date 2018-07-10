@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_unused_parameter.h>
-
 #include "portfolio.hpp"
 #include "portfolioimpl.hpp"
 #include "folder.hpp"

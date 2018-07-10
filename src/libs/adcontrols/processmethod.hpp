@@ -43,8 +43,6 @@
 #include <vector>
 
 
-#include <compiler/disable_dll_interface.h>
-
 namespace boost { namespace serialization { class access; } }
 
 

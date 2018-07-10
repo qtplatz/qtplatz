@@ -26,7 +26,6 @@
 #define AMINOACID_HPP
 
 #include "adprot_global.hpp"
-#include <compiler/disable_dll_interface.h>
 #include <string>
 
 namespace adprot {

@@ -22,10 +22,6 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_4251.h>
-#if defined _MSC_VER
-#pragma warning(disable:4800 4503)
-#endif
 #include "document.hpp"
 #include "eventtoolconstants.hpp"
 #include "../eventbroker/eventbroker.h"

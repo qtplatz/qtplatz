@@ -31,7 +31,6 @@
 #include <boost/serialization/string.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/version.hpp>
-#include <compiler/deprecated_register.hpp>
 #include <istream>
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8

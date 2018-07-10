@@ -28,7 +28,6 @@
 #include "portfolio_global.h"
 #include <vector>
 #include <memory>
-#include <compiler/disable_dll_interface.h>
 
 namespace boost { namespace uuids { struct uuid; } }
 

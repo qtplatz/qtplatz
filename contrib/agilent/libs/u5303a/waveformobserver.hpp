@@ -25,10 +25,10 @@
 #pragma once
 
 #include <adacquire/signalobserver.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
-#include <deque>
 #include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <deque>
 
 namespace acqrscontrols { namespace u5303a { class waveform; } }
 

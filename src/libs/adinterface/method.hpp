@@ -26,9 +26,7 @@
 
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
-#include <compiler/disable_unused_local_typedefs.h>
 #include <boost/serialization/variant.hpp>
-#include <boost/noncopyable.hpp>
 
 namespace adinterface {
 

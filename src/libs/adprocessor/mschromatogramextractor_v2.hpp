@@ -25,13 +25,12 @@
 #pragma once
 
 #include "adprocessor_global.hpp"
-#include <compiler/disable_dll_interface.h>
 #include <adcontrols/constants.hpp>
-#include <string>
-#include <vector>
+#include <functional>
 #include <map>
 #include <memory>
-#include <functional>
+#include <string>
+#include <vector>
 
 namespace adcontrols {
     class datafile;

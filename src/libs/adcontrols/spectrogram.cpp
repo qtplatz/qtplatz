@@ -22,25 +22,17 @@
 **
 **************************************************************************/
 
-#include "spectrogram.hpp"
+#include "chromatogram.hpp"
 #include "massspectra.hpp"
 #include "massspectrum.hpp"
-#include "chromatogram.hpp"
+#include "spectrogram.hpp"
 #include <adportable/array_wrapper.hpp>
-#include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <compiler/disable_unused_function.h>
-#include <compiler/disable_unused_local_typedefs.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <compiler/diagnostic_pop.h>
-
-#include <algorithm>
-
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/spectrum_processor.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <algorithm>
 
 using namespace adcontrols;
 

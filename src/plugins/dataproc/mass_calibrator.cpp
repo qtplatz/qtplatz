@@ -33,15 +33,15 @@
 #include <adcontrols/msproperty.hpp>
 #include <adportable/polfit.hpp>
 
-#include <workaround/boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <vector>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <chrono>
 #include <cmath>
 #include <sstream>
-#include <chrono>
+#include <vector>
 
 using namespace dataproc;
 

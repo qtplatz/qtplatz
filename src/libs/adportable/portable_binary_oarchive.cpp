@@ -10,7 +10,6 @@
 
 #include <ostream>
 #include <boost/detail/endian.hpp>
-#include <compiler/disable_unused_parameter.h>
 #include "portable_binary_oarchive.hpp"
 #include "utf.hpp"
 #include <iostream>

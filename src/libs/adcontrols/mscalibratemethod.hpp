@@ -31,7 +31,6 @@
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
 #include <memory>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

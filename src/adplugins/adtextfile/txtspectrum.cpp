@@ -23,30 +23,28 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_unused_parameter.h>
-
+#include "dialog.hpp"
 #include "txtspectrum.hpp"
+#include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/string.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/string.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
-#include <fstream>
-#include <algorithm>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
-#include <workaround/boost/numeric/interval.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <adcontrols/massspectrometer.hpp>
-#include <adcontrols/datainterpreter.hpp>
-#include "dialog.hpp"
+#include <boost/lexical_cast.hpp>
+#include <boost/numeric/interval.hpp>
+#include <boost/tokenizer.hpp>
+#include <algorithm>
+#include <fstream>
 
 using namespace adportable;
 using namespace adcontrols;

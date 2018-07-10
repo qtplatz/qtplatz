@@ -24,11 +24,11 @@
 
 #pragma once
 
+#include <boost/filesystem.hpp>
+#include <boost/asio.hpp>
+#include <atomic>
 #include <string>
 #include <memory>
-#include <boost/filesystem.hpp>
-#include <workaround/boost/asio.hpp>
-#include <atomic>
 
 namespace adfs { class filesystem; class file; }
 

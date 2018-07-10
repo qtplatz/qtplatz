@@ -27,7 +27,6 @@
 
 #include "adcontrols_global.h"
 #include <string>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

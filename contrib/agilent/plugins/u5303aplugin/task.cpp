@@ -52,7 +52,7 @@
 #include <adacquire/task.hpp>
 #include <adacquire/timedigital_histogram_accessor.hpp>
 #include <adlog/logger.hpp>
-#include <workaround/boost/asio.hpp>
+#include <boost/asio.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/numeric/ublas/fwd.hpp> // matrix forward decl

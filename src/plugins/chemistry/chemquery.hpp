@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <memory>
 #include <adfs/sqlite.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <QString>
 #include <QVariant>
+#include <memory>
 
 namespace RDKit { class ROMol; }
 

@@ -39,7 +39,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adacquire/signalobserver.hpp>
 #include <libdgpio/pio.hpp>
-#include <workaround/boost/asio.hpp>
+#include <boost/asio.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/asio/basic_waitable_timer.hpp>

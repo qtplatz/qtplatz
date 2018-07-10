@@ -5,8 +5,6 @@
 #pragma warning(disable:4100)
 #endif
 
-#include <compiler/workaround.h>
-#include <compiler/disable_unused_parameter.h>
 #include <adportable/formula_parser.hpp>
 #include <boost/format.hpp>
 #include <sstream>

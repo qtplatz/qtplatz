@@ -24,15 +24,13 @@
 **************************************************************************/
 
 #include "apiposix.hpp"
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <cstdlib>
 #include <adportable/string.hpp>
-#include <pwd.h>
-
-#include <compiler/disable_unused_parameter.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <cstdlib>
+#include <pwd.h>
 
 namespace adfs {
     namespace detail {

@@ -23,9 +23,6 @@
 **
 **************************************************************************/
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-
 #include "centroidprocess.hpp"
 #include "centroidmethod.hpp"
 #include "description.hpp"
@@ -35,21 +32,19 @@
 #include "mspeakinfo.hpp"
 #include "samplinginfo.hpp"
 #include "waveform_filter.hpp"
-#include <adportable/histogram_processor.hpp>
-#include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/moment.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
-#include <boost/archive/xml_oarchive.hpp>
+#include <adportable/histogram_processor.hpp>
+#include <adportable/moment.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <boost/archive/xml_iarchive.hpp>
-
-#include <compiler/diagnostic_pop.h>
-#include <vector>
+#include <boost/archive/xml_oarchive.hpp>
 #include <algorithm>
-#include <sstream>
 #include <cmath>
 #include <memory>
+#include <sstream>
+#include <vector>
 
 using namespace adcontrols;
 

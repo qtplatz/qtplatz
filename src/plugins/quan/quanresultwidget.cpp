@@ -41,7 +41,7 @@
 #include <QSqlQueryModel>
 #include <QSqlRecord>
 #include <boost/lexical_cast.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/format.hpp>
 

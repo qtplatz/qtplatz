@@ -21,15 +21,17 @@
 **
 **************************************************************************/
 
-#include "task.hpp"
 #include "constants.hpp"
 #include "document.hpp"
+#include "task.hpp"
 #include "tdcdoc.hpp"
-#include <acqrscontrols/constants.hpp>
-#include <acqrscontrols/ap240/waveform.hpp>
 #include <acqrscontrols/ap240/method.hpp>
+#include <acqrscontrols/ap240/waveform.hpp>
+#include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/threshold_result.hpp>
-#include <ap240/digitizer.hpp>
+#include <adacquire/instrument.hpp>
+#include <adacquire/sampleprocessor.hpp>
+#include <adacquire/signalobserver.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/mappedimage.hpp>
 #include <adcontrols/mappedspectra.hpp>
@@ -39,22 +41,21 @@
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/asio/thread.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/semaphore.hpp>
-#include <adportable/binary_serializer.hpp>
-#include <adacquire/instrument.hpp>
-#include <adacquire/signalobserver.hpp>
-#include <adacquire/sampleprocessor.hpp>
-#include <adlog/logger.hpp>
-#include <workaround/boost/asio.hpp>
+#include <ap240/digitizer.hpp>
+
+#include <QRect>
+#include <boost/asio.hpp>
+#include <boost/numeric/ublas/fwd.hpp> // matrix forward decl
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/numeric/ublas/fwd.hpp> // matrix forward decl
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/variant.hpp>
-#include <QRect>
 #include <algorithm>
 #include <atomic>
 #include <chrono>

@@ -30,8 +30,6 @@
 #include <string>
 #include <vector>
 #include <boost/uuid/uuid.hpp>
-#include <compiler/disable_dll_interface.h>
-
 
 namespace portfolio {
 

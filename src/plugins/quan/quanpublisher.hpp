@@ -26,8 +26,7 @@
 #define QUANPUBLISHER_HPP
 
 #include <boost/filesystem/path.hpp>
-#include <compiler/deprecated_register.hpp>
-#include <workaround/boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <map>
 #include <memory>
 #include <functional>

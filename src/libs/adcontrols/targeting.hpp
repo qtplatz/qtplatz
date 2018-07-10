@@ -35,7 +35,6 @@
 #include <boost/serialization/utility.hpp>
 #include <tuple>
 #include <memory>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

@@ -25,12 +25,12 @@
 #ifndef DATAPROCESSWORKER_HPP
 #define DATAPROCESSWORKER_HPP
 
-#include <workaround/boost/asio.hpp>
 #include <adportable/asio/thread.hpp>
 #include <mutex>
 #include <memory>
 #include <thread>
 #include <vector>
+#include <boost/asio.hpp>
 
 namespace adcontrols {
     enum hor_axis: unsigned int;

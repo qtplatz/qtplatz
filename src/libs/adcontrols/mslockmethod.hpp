@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include <compiler/disable_dll_interface.h>
 #include "adcontrols_global.h"
 #include <boost/serialization/version.hpp>
 #include <string>

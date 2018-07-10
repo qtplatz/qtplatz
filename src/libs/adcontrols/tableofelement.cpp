@@ -23,23 +23,18 @@
  **
  **************************************************************************/
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
 #include "adcontrols.hpp"
-#include "tableofelement.hpp"
 #include "element.hpp"
 #include "isotopes.hpp" // iterator
-#include <algorithm>
-#include <boost/noncopyable.hpp>
+#include "tableofelement.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/float.hpp>
-
-#include <compiler/diagnostic_pop.h>
-
-#include <mutex>
-#include <sstream>
-#include <numeric>
+#include <boost/noncopyable.hpp>
+#include <algorithm>
 #include <cassert>
+#include <mutex>
+#include <numeric>
+#include <sstream>
 
 using namespace adcontrols;
 using namespace adcontrols::detail;

@@ -28,8 +28,6 @@
 #include "adcontrols_global.h"
 #include "metric/prefix.hpp"
 #include <functional>
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -47,7 +45,5 @@ namespace adcontrols {
     };
 
 }
-
-#include <compiler/diagnostic_pop.h>
 
 #endif // PROFILE_TIME_ARRAY_HPP

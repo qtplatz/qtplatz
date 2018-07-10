@@ -33,18 +33,12 @@
 #include <adprot/aminoacid.hpp>
 #include <adwidgets/moltableview.hpp>
 
-#include <compiler/diagnostic_push.h>
-#if defined _MSC_VER
-# pragma warning(disable:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
-#endif
-#include <compiler/disable_deprecated.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
-#include <compiler/diagnostic_pop.h>
 
 #include <adchem/drawing.hpp>
 #include <QApplication>

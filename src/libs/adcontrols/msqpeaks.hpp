@@ -28,7 +28,6 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
-#include <compiler/disable_dll_interface.h>
 #include <memory>
 #include <map>
 

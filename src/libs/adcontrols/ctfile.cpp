@@ -24,16 +24,9 @@
 
 #include "ctfile.hpp"
 #include "ctable.hpp"
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-
+#include <adportable/string.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
-
-#include <compiler/diagnostic_pop.h>
-
-#include <adportable/string.hpp>
 
 using namespace adcontrols;
 

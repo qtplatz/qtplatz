@@ -23,9 +23,6 @@
 **
 **************************************************************************/
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/workaround.h>
-#include <compiler/disable_unused_parameter.h>
 #include "chemicalformula.hpp"
 #include "tableofelement.hpp"
 #include "ctable.hpp"
@@ -41,8 +38,6 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/tokenizer.hpp>
-#include <compiler/diagnostic_pop.h>
-
 #include <sstream>
 #include <string>
 #include <vector>
