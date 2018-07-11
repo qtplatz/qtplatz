@@ -25,6 +25,7 @@ add_library( adurl SHARED
   dg.hpp
   sse.hpp
   sse.cpp
+  sse2.cpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

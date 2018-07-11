@@ -26,11 +26,16 @@
 #pragma once
 
 #include "adurl_global.h"
+#include <boost/asio/io_service.hpp>
 #include <functional>
+#include <vector>
+#include <string>
 
 // SSE client for socfpga/dg-httpd server
 
 namespace adurl {
+
+    class client;
 
     class ADURLSHARED_EXPORT sse {
     public:
@@ -38,16 +43,46 @@ namespace adurl {
         class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
         class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
-        ~sse();
-        sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
+        typedef std::function< void( const std::vector< std::pair< std::string, std::string > >&, const std::string ) > callback_type;
         
-        void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
-        void stop();
-
+        ~sse();
+        sse( boost::asio::io_service& );
+        
+        void register_sse_handler( callback_type );
+    
+        bool connect( const std::string& url, const std::string& server, const std::string& port = "http" );
+    
     private:
-        class impl;
-        impl * impl_;
+        boost::asio::io_service& io_context_;  // still using boost-1.62 on armhf based linux
+        std::string server_;
+        std::string port_;
+        std::string url_;
+        std::unique_ptr< client > client_;
+        callback_type callback_;
+        std::vector< std::pair< std::string, std::string > > headers_;
+        bool header_complete_; // when empty line detects
+        size_t content_length_;
     };
+    
+
+    namespace old {
+        class ADURLSHARED_EXPORT sse {
+        public:
+
+            class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
+            class ADURLSHARED_EXPORT error_reply : public std::exception {};
+
+            ~sse();
+            sse( const char * server /* = "dg-httpd"*/, const char * path /* = "/dg/ctl?events" */, const char * port = "80" );
+        
+            void exec( std::function< void( const char * /* event */, const char * /* data */ ) > callback );
+            void stop();
+
+        private:
+            class impl;
+            impl * impl_;
+        };
+    }
     
 }
 

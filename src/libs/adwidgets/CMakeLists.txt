@@ -51,6 +51,10 @@ set( ${PROJECT_NAME}_SOURCES
   delegatehelper.cpp
   doublespinbox.cpp
   dualspinslider.cpp
+  dgwidget.cpp
+  dgwidget.hpp
+  dgprotocolform.cpp
+  dgprotocolform.hpp
   filedialog.cpp
   findslopeform.cpp
   htmlheaderview.hpp
@@ -194,5 +198,6 @@ target_link_libraries( adwidgets LINK_PUBLIC
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+  )
 

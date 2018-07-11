@@ -183,7 +183,7 @@ main( int argc, char* argv[] )
 
             std::cout << url << std::endl;
             
-            adurl::sse sse( host.c_str(), url.c_str() );
+            adurl::old::sse sse( host.c_str(), url.c_str() );
 
             sse.exec( [] ( const char * event, const char * data ) {
                     std::cout << "event: " << event << "\t" << "data: " << data << std::endl;

@@ -27,7 +27,6 @@
 
 #include "adurl_global.h"
 #include <boost/asio/io_service.hpp>
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>

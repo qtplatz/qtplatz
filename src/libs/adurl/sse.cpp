@@ -35,98 +35,96 @@
 #include <string>
 #include <thread>
 
-namespace adurl {
+namespace adurl { namespace old {
 
-    class sse::impl {
+        class sse::impl {
 
-    public:
+        public:
 
-        impl( std::unique_ptr< boost::asio::streambuf >&& request
-              , const std::string& server
-              , const std::string& port ) : server_( server )
-                                          , work_( io_service_ )
-                                          , client_( io_service_, std::move( request ), server_, port ) {
+            impl( std::unique_ptr< boost::asio::streambuf >&& request
+                  , const std::string& server
+                  , const std::string& port ) : server_( server )
+                                              , work_( io_service_ )
+                                              , client_( io_service_, std::move( request ), server_, port ) {
 
-            client_.connect( [&]( const boost::system::error_code& ec
-                                  , boost::asio::streambuf& response ){ handle_event( ec, response ); });
+                client_.connect( [&]( const boost::system::error_code& ec
+                                      , boost::asio::streambuf& response ){ handle_event( ec, response ); });
 
-        }
-
-        inline static void copy_value( const std::string& data, std::string::size_type pos, std::string& out ) {
-            std::move( data.begin() + data.find_first_not_of( " \t", pos )
-                       , data.begin() + data.find_first_of( "\r\n", pos ), std::back_inserter( out ) );
-        }
-
-        void handle_event( const boost::system::error_code& ec, boost::asio::streambuf& response ) {
-
-            std::pair< std::string, std::string > event_data;
-            
-            std::istream response_stream( &response );
-            std::string data;
-
-            while ( std::getline( response_stream, data ) && data != "\r" ) {
-                std::string::size_type pos;
-                if ( ( pos = data.find( "event:" ) ) != std::string::npos ) {
-                    copy_value( data, pos, event_data.first );
-                } else if ( ( pos = data.find( "data:" ) ) != std::string::npos ) {
-                    copy_value( data, pos, event_data.second );
-                }
             }
-            callback_( event_data.first.c_str(), event_data.second.c_str() );
+
+            inline static void copy_value( const std::string& data, std::string::size_type pos, std::string& out ) {
+                std::move( data.begin() + data.find_first_not_of( " \t", pos )
+                           , data.begin() + data.find_first_of( "\r\n", pos ), std::back_inserter( out ) );
+            }
+
+            void handle_event( const boost::system::error_code& ec, boost::asio::streambuf& response ) {
+
+                std::pair< std::string, std::string > event_data;
+            
+                std::istream response_stream( &response );
+                std::string data;
+
+                while ( std::getline( response_stream, data ) && data != "\r" ) {
+                    std::string::size_type pos;
+                    if ( ( pos = data.find( "event:" ) ) != std::string::npos ) {
+                        copy_value( data, pos, event_data.first );
+                    } else if ( ( pos = data.find( "data:" ) ) != std::string::npos ) {
+                        copy_value( data, pos, event_data.second );
+                    }
+                }
+                callback_( event_data.first.c_str(), event_data.second.c_str() );
+            }
+
+        public:    
+            std::string server_;
+            boost::asio::io_service io_service_;
+            boost::asio::io_service::work work_;
+            client client_;
+            std::function< void( const char *, const char * ) > callback_;
+            std::vector< std::thread > threads_;
+        };
+    
+        sse::~sse()
+        {
+            if ( !impl_->threads_.empty() )
+                stop();
+
+            delete impl_;
         }
 
-    public:    
-        std::string server_;
-        boost::asio::io_service io_service_;
-        boost::asio::io_service::work work_;
-        client client_;
-        std::function< void( const char *, const char * ) > callback_;
-        std::vector< std::thread > threads_;
-    };
+
+        sse::sse( const char * server, const char * path, const char * port ) // : impl_( new impl( server, path ) )
+        {
+            auto request = std::make_unique< boost::asio::streambuf >();
+            std::ostream request_stream ( request.get() );
+
+            request_stream << "POST " << request::url_encode( path ) << " HTTP/1.0\r\n";
+            request_stream << "Host: " << server << "\r\n";
+            request_stream << "Accept: */*\r\n";
+            // request_stream << "Connection: close\r\n";
+            request_stream << "Content-Type: application/text\r\n";    
+            request_stream << "\r\n";
     
-}
+            impl_ = new impl( std::move( request ), server, port );
+        }
 
-using namespace adurl;
+        void
+        sse::exec( std::function< void( const char *, const char * ) > callback )
+        {
+            impl_->callback_ = callback;
+            impl_->threads_.emplace_back( [&](){ impl_->io_service_.run(); } );
+        }
 
-sse::~sse()
-{
-    if ( !impl_->threads_.empty() )
-        stop();
+        void
+        sse::stop()
+        {
+            impl_->io_service_.stop();
 
-    delete impl_;
-}
+            for ( auto& t: impl_->threads_ )
+                t.join();
 
+            impl_->threads_.clear();
+        }
 
-sse::sse( const char * server, const char * path, const char * port ) // : impl_( new impl( server, path ) )
-{
-    auto request = std::make_unique< boost::asio::streambuf >();
-    std::ostream request_stream ( request.get() );
-
-    request_stream << "POST " << request::url_encode( path ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server << "\r\n";
-    request_stream << "Accept: */*\r\n";
-    // request_stream << "Connection: close\r\n";
-    request_stream << "Content-Type: application/text\r\n";    
-    request_stream << "\r\n";
-    
-    impl_ = new impl( std::move( request ), server, port );
-}
-
-void
-sse::exec( std::function< void( const char *, const char * ) > callback )
-{
-    impl_->callback_ = callback;
-    impl_->threads_.emplace_back( [&](){ impl_->io_service_.run(); } );
-}
-
-void
-sse::stop()
-{
-    impl_->io_service_.stop();
-
-    for ( auto& t: impl_->threads_ )
-        t.join();
-
-    impl_->threads_.clear();
-}
-
+    } // namespace old
+} // namespace adurl
