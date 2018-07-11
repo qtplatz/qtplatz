@@ -87,7 +87,7 @@ blob::connect( const std::string& url
                             auto header = std::make_pair( data.substr( 0, pos ), data.substr( pos + 1 ) );
                             header.second = header.second.substr( 0, header.second.find_first_of( "\r\n" ) );
                             headers_.emplace_back( header );
-                            ADDEBUG() << headers_.back();
+                            // ADDEBUG() << headers_.back();
                             if ( headers_.back().first == "Content-Length" )
                                 content_length_ = std::stol( headers_.back().second );
                         }
