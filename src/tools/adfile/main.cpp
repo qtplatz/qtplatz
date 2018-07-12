@@ -54,6 +54,7 @@ main(int argc, char *argv[])
             ( "args",         po::value< std::vector< std::string > >(),  "input files" )
             ( "list-readers", "list data-reader list" )
             ( "rms",          "rms list" )
+            ( "pp",           po::value< double >(), "find p-p delta larger than value" )
             ;
 
         po::positional_options_description p;
@@ -67,7 +68,15 @@ main(int argc, char *argv[])
         return 0;
     }
 
-    adplugin::manager::standalone_initialize();    
+    adplugin::manager::standalone_initialize();
+
+    bool find_pp( false );
+    double pp_threshold(0);
+
+    if ( vm.count( "pp" ) ) {
+        double pp_threshold = vm[ "pp" ].as< double >();
+        find_pp = true;
+    }
 
     if ( vm.count("args") ) {
         
@@ -84,11 +93,14 @@ main(int argc, char *argv[])
                     if ( processor.raw() ) {
                         for ( auto reader: processor.raw()->dataReaders() ) {
                             if ( vm.count( "list-readers" ) ) {
-                                std::cout << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid();
+                                std::cout << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid() << std::endl;
                             }
                             if ( vm.count( "rms" ) ) {
-                                if ( ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) || 
-                                     ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) ) {
+                                if ( ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) || // u5303a waveform (either average, digitizer mode)
+                                     ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) ) { // software averaged waveform
+                                    
+                                    std::cout << "#" << reader->objtext() << std::endl;
+                                    std::cout << "#rowid\tretention-time(s)\ttic\tdbase\trms\tdelta(p-p)" << std::endl;
 
                                     for ( auto it = reader->begin(); it != reader->end(); ++it ) {
                                         if ( auto ms = reader->readSpectrum( it ) ) {
@@ -100,15 +112,17 @@ main(int argc, char *argv[])
                                             size_t beg = ms->size() > 100 ? 100 : 0;
                                             size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
                                             auto mm = std::minmax_element( intensities + beg, intensities + end );
-
-                                            std::cout << boost::format("%5d\t%10.4f\t%16.3f\t%12.4f\t%12.4f\tdelta(p-p)=\t%8.5f")
-                                                % it->rowid()
-                                                % it->time_since_inject()
-                                                % tic
-                                                % dbase
-                                                % rms
-                                                % (*mm.second - *mm.first)
-                                                      << std::endl;                                            
+                                            double pp = *mm.second - *mm.first;
+                                            if ( !find_pp || (find_pp && pp_threshold < pp) )  {
+                                                std::cout << boost::format("%5d\t%10.4f\t%16.3f\t%12.4f\t%12.4f\t%8.5f")
+                                                    % it->rowid()
+                                                    % it->time_since_inject()
+                                                    % tic
+                                                    % dbase
+                                                    % rms
+                                                    % (*mm.second - *mm.first)
+                                                          << std::endl;
+                                            }
                                         }
                                     }
                                 }
