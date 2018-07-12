@@ -73,7 +73,7 @@
 #include <algorithm>
 #include <future>
 #if !defined NDEBUG
-#include <workaround/boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_woarchive.hpp>
 #endif
 
 namespace quan {
