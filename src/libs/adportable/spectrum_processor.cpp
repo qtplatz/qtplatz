@@ -227,6 +227,13 @@ namespace adportable {
     {
         return tic_calculator()( nbrSamples, praw, N );
     }
+
+    template<>
+    std::tuple< double, double, double >
+    spectrum_processor::tic( size_t nbrSamples, const double * praw, size_t N )
+    {
+        return tic_calculator()( nbrSamples, praw, N );
+    }
 }
 
 /////////////////////
