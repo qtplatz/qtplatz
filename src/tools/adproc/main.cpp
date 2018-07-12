@@ -81,8 +81,11 @@ main(int argc, char *argv[])
                     file->accept( processor );
                     if ( processor.raw() ) {
                         for ( auto reader: processor.raw()->dataReaders() ) {
-                            // ADDEBUG() << reader->objtext() << ", " << reader->display_name();
-                            if ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) {
+
+                            ADDEBUG() << reader->objtext() << ", " << reader->display_name();
+
+                            if ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) {
+
                                 for ( auto it = reader->begin(); it != reader->end(); ++it ) {
                                     if ( auto ms = reader->readSpectrum( it ) ) {
 
@@ -94,7 +97,7 @@ main(int argc, char *argv[])
                                         size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
                                         auto mm = std::minmax_element( intensities + beg, intensities + end );
                                         
-                                        std::cout << boost::format("%5d\t%8.4f\t%.3f\t%.4f\t%.4f\td= %g")
+                                        std::cout << boost::format("%5d\t%10.4f\t%16.3f\t%12.4f\t%12.4f\td= %8.5f")
                                             % it->rowid()
                                             % it->time_since_inject()
                                             % tic
