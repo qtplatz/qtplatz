@@ -35,6 +35,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -50,8 +51,9 @@ main(int argc, char *argv[])
     {
         description.add_options()
             ( "help,h",      "Display this help message" )
-            ( "args",        po::value< std::vector< std::string > >(),  "input files" )
-            ( "rms",         "rms list" )
+            ( "args",         po::value< std::vector< std::string > >(),  "input files" )
+            ( "list-readers", "list data-reader list" )
+            ( "rms",          "rms list" )
             ;
 
         po::positional_options_description p;
@@ -75,33 +77,37 @@ main(int argc, char *argv[])
             if ( path.extension() == ".adfs" ) {
 
                 std::cout << path.string() << std::endl;
-
+                
                 if ( auto file = adcontrols::datafile::open( path.wstring(), false ) ) {
                     tools::dataprocessor processor;
                     file->accept( processor );
                     if ( processor.raw() ) {
                         for ( auto reader: processor.raw()->dataReaders() ) {
-                            // ADDEBUG() << reader->objtext() << ", " << reader->display_name();
-                            if ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) {
-                                for ( auto it = reader->begin(); it != reader->end(); ++it ) {
-                                    if ( auto ms = reader->readSpectrum( it ) ) {
-
-                                        double tic(0), dbase(0), rms(0);
-                                        const double * intensities = ms->getIntensityArray();
-
-                                        std::tie(tic, dbase, rms) = adportable::spectrum_processor::tic( ms->size(), intensities, 5 );
-                                        size_t beg = ms->size() > 100 ? 100 : 0;
-                                        size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
-                                        auto mm = std::minmax_element( intensities + beg, intensities + end );
-                                        
-                                        std::cout << boost::format("%5d\t%8.4f\t%.3f\t%.4f\t%.4f\td= %g")
-                                            % it->rowid()
-                                            % it->time_since_inject()
-                                            % tic
-                                            % dbase
-                                            % rms
-                                            % (*mm.second - *mm.first)
-                                                  << std::endl;
+                            if ( vm.count( "list-readers" ) ) {
+                                std::cout << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid();
+                            }
+                            if ( vm.count( "rms" ) ) {
+                                if ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) {
+                                    for ( auto it = reader->begin(); it != reader->end(); ++it ) {
+                                        if ( auto ms = reader->readSpectrum( it ) ) {
+                                            
+                                            double tic(0), dbase(0), rms(0);
+                                            const double * intensities = ms->getIntensityArray();
+                                            
+                                            std::tie(tic, dbase, rms) = adportable::spectrum_processor::tic( ms->size(), intensities, 5 );
+                                            size_t beg = ms->size() > 100 ? 100 : 0;
+                                            size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
+                                            auto mm = std::minmax_element( intensities + beg, intensities + end );
+                                            
+                                            std::cout << boost::format("%5d\t%8.4f\t%.3f\t%.4f\t%.4f\td= %g")
+                                                % it->rowid()
+                                                % it->time_since_inject()
+                                                % tic
+                                                % dbase
+                                                % rms
+                                                % (*mm.second - *mm.first)
+                                                      << std::endl;
+                                        }
                                     }
                                 }
                             }
@@ -111,6 +117,5 @@ main(int argc, char *argv[])
             }
         }
     }
-
 }
 

@@ -3,7 +3,7 @@ cmake_policy(SET CMP0022 NEW)
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0028 NEW)
 
-project( adproc )
+project( adfile )
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

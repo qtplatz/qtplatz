@@ -1,7 +1,7 @@
 
 add_subdirectory (eventbroker)
 add_subdirectory (adurlx)
-add_subdirectory (adproc)
+add_subdirectory (adfile)
 
 if ( Qt5_FOUND )
 
