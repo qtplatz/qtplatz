@@ -903,21 +903,13 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     attribute< trigger_slope >::set( *task.spDriver(), "External1", AGMD2_VAL_POSITIVE );
     attribute< trigger_coupling >::set( *task.spDriver(), "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
     attribute< trigger_delay >::set( *task.spDriver(), m._device_method().delay_to_first_sample_ );
-#if 0
-    // previous code -->
-    task.spDriver()->setActiveTriggerSource( "External1" );
-    task.spDriver()->setTriggerLevel( "External1", m._device_method().ext_trigger_level );
-    task.spDriver()->setTriggerSlope( "External1", AGMD2_VAL_POSITIVE );
-    task.spDriver()->setTriggerCoupling( "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
-    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
-    // <----
-#endif    
+
     bool success = false;
             
     const double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
 
-    //ADDEBUG() << "##### max rate:    " << max_rate;
-    //ADDEBUG() << "##### sample rate: " << samp_rate;
+    ADDEBUG() << "##### max rate:    " << max_rate;
+    ADDEBUG() << "##### sample rate: " << samp_rate;
 
     if ( ! AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
         AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );

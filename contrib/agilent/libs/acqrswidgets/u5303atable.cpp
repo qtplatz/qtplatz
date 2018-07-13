@@ -81,7 +81,12 @@ namespace acqrswidgets {
             if ( index.row() == r_sampling_rate ) {
                 if ( auto combo = qobject_cast<QComboBox *>( editor ) ) {
                     int idx = combo->currentIndex();
-                    double value = ( idx == 0 ) ? 3.2e9 : 1.0e9;
+                    double value = 3.2e9;
+                    switch( idx ) {
+                    case 0: value = 3.2e9; break; // inter leaving
+                    case 1: value = 1.6e9; break; // no inter leaving
+                    case 2: value = 1.0e9; break;
+                    }
                     model->setData( index, value, Qt::EditRole );
                     emit pThis_->valueChanged( idU5303ASampRate, 0, value );
                 }
@@ -118,7 +123,7 @@ namespace acqrswidgets {
         QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
             if ( index.row() == r_sampling_rate ) {
                 auto combo = new QComboBox( parent );
-                combo->addItems( QStringList() << "3.2GS/s" << "1.0GS/s" );
+                combo->addItems( QStringList() << "3.2GS/s" << "1.6GS.s" << "1.0GS/s" );
                 if ( index.data().toDouble() <= ( 1.0e9 + std::numeric_limits< double >::epsilon() ) )
                     combo->setCurrentIndex( 1 );
                 return combo;
