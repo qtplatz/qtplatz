@@ -388,8 +388,10 @@ task::prepare_for_run( const acqrscontrols::u5303a::method& method )
               << "\tdelay_to_first_s: " << adcontrols::metric::scale_to_micro( m.digitizer_delay_to_first_sample )
               << "\tinvert_signal: " << m.invert_signal;
         // << "\tnsa: " << m.nsa;
-#endif
+
     ADDEBUG() << "##### u5303a::task::prepare_for_run - protocol size: " << method.protocols().size();
+#endif
+
     io_service_.post( strand_.wrap( [=] { handle_prepare_for_run( method ); } ) );
 
     return true;
@@ -818,7 +820,8 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) {
         result = digitizer::readData16( *spDriver(), method_, data );
     } else {
-        result = digitizer::readData32( *spDriver(), method_, data );
+        result = digitizer::readData32( *spDriver(), method_, data, "Channel1" );
+        data.meta_.channelMode = acqrscontrols::u5303a::AVG;
     }
     set_time_since_inject( data ); // ==> set elapsed time for debugging 
     return result;
@@ -828,7 +831,7 @@ void
 task::connect( digitizer::command_reply_type f )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    reply_handlers_.push_back( f );
+    reply_handlers_.emplace_back( f );
 }
 
 void
@@ -841,7 +844,7 @@ void
 task::connect( digitizer::waveform_reply_type f )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    waveform_handlers_.push_back( f );
+    waveform_handlers_.emplace_back( f );
 }
 
 void
