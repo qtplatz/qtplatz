@@ -40,6 +40,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <libdgpio/pio.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
@@ -128,6 +129,7 @@ namespace u5303a {
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
             boost::asio::io_service::strand strand_;
+            boost::asio::steady_timer timer_;
             bool simulated_;
             std::unique_ptr< dgpio::pio > pio_;
             acqrscontrols::u5303a::method method_;
@@ -142,13 +144,17 @@ namespace u5303a {
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
             std::chrono::steady_clock::time_point tp_acquire_;
+            double temperature_;
+            std::array< double, 2 > channel_temperature_;
 
             bool handle_initial_setup();
             bool handle_terminating();
+            bool handle_temperature();
             bool handle_acquire();
             bool handle_TSR_acquire();
             bool handle_prepare_for_run( const acqrscontrols::u5303a::method );
-            bool handle_protocol( const acqrscontrols::u5303a::method );            
+            bool handle_protocol( const acqrscontrols::u5303a::method );
+            bool handle_timer( const boost::system::error_code& );
             bool acquire();
             bool waitForEndOfAcquisition( int timeout );
             bool readData( acqrscontrols::u5303a::waveform& );
@@ -292,6 +298,7 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
 
 task::task() : work_( io_service_ )
              , strand_( io_service_ )
+             , timer_( io_service_ )
              , simulated_( false )
              , pio_( std::make_unique< dgpio::pio >() )
              , exptr_( nullptr )
@@ -300,6 +307,7 @@ task::task() : work_( io_service_ )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
              , u5303_inject_timepoint_( 0 )
+             , temperature_( 0 )
 {
     acquire_posted_.clear();
 
@@ -583,7 +591,45 @@ task::handle_initial_setup()
     for ( auto& reply: reply_handlers_ )
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
 
+    using namespace std::chrono_literals;
+    
+    timer_.expires_from_now( 5s );
+    timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
+
 	return success;
+}
+
+bool
+task::handle_temperature()
+{
+    // AcqrsD1_getInstrumentInfo( inst_, "Temperature", &temperature_ );
+    AgMD2::log( AgMD2_QueryBoardTemperature( spDriver()->session(), &temperature_ ), __FILE__,__LINE__ );
+    AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel1", &channel_temperature_[ 0 ] ),__FILE__,__LINE__ );
+
+    std::ostringstream o;
+    o << temperature_ << ", Channel1: " << channel_temperature_[ 0 ];
+    
+    for ( auto& reply: reply_handlers_ )
+        reply( "Temperature", o.str() );
+
+    return true;
+}
+
+bool
+task::handle_timer( const boost::system::error_code& ec )
+{
+    using namespace std::chrono_literals;
+
+    if ( ec != boost::asio::error::operation_aborted ) {
+
+        strand_.post( [&] { handle_temperature(); } );
+
+        boost::system::error_code erc;
+        timer_.expires_from_now( 5s, erc );
+        if ( !erc )
+            timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
+
+    }
 }
 
 bool
