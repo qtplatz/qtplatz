@@ -1,0 +1,86 @@
+diff --git a/modules/flann/include/opencv2/flann/kdtree_index.h b/modules/flann/include/opencv2/flann/kdtree_index.h
+index c233515b4..1f9c4fa39 100644
+--- a/modules/flann/include/opencv2/flann/kdtree_index.h
++++ b/modules/flann/include/opencv2/flann/kdtree_index.h
+@@ -35,6 +35,9 @@
+ #include <map>
+ #include <cassert>
+ #include <cstring>
++#if __cplusplus >= 201402L // >= c++14
++# include <random>
++#endif
+ 
+ #include "general.h"
+ #include "nn_index.h"
+@@ -128,7 +131,13 @@ public:
+ #ifndef OPENCV_FLANN_USE_STD_RAND
+             cv::randShuffle(vind_);
+ #else
+-            std::random_shuffle(vind_.begin(), vind_.end());
++# if __cplusplus >= 201402L // >= c++14        
++        std::random_device rd;
++        std::mt19937 g(rd());
++        std::shuffle(vals_.begin(), vals_.end(), g);
++# else
++        std::random_shuffle(vind_.begin(), vind_.end());
++# endif
+ #endif
+ 
+             tree_roots_[i] = divideTree(&vind_[0], int(size_) );
+diff --git a/modules/flann/include/opencv2/flann/lsh_table.h b/modules/flann/include/opencv2/flann/lsh_table.h
+index 1db9960f8..ba08bac78 100644
+--- a/modules/flann/include/opencv2/flann/lsh_table.h
++++ b/modules/flann/include/opencv2/flann/lsh_table.h
+@@ -52,6 +52,9 @@
+ #endif
+ #include <math.h>
+ #include <stddef.h>
++#if __cplusplus >= 201402L // >= c++14
++# include <random>
++#endif
+ 
+ #include "dynamic_bitset.h"
+ #include "matrix.h"
+@@ -359,7 +362,13 @@ inline LshTable<unsigned char>::LshTable(unsigned int feature_size, unsigned int
+ #ifndef OPENCV_FLANN_USE_STD_RAND
+     cv::randShuffle(indices);
+ #else
++# if __cplusplus >= 201402L // >= c++14        
++    std::random_device rd;
++    std::mt19937 g(rd());
++    std::shuffle(vals_.begin(), vals_.end(), g);
++# else
+     std::random_shuffle(indices.begin(), indices.end());
++# endif
+ #endif
+ 
+     // Generate a random set of order of subsignature_size_ bits
+diff --git a/modules/flann/include/opencv2/flann/random.h b/modules/flann/include/opencv2/flann/random.h
+index d6784747c..ab734e835 100644
+--- a/modules/flann/include/opencv2/flann/random.h
++++ b/modules/flann/include/opencv2/flann/random.h
+@@ -34,7 +34,9 @@
+ #include <algorithm>
+ #include <cstdlib>
+ #include <vector>
+-
++#if __cplusplus >= 201402L // >= c++14
++# include <random>
++#endif
+ #include "general.h"
+ 
+ namespace cvflann
+@@ -128,7 +130,13 @@ public:
+ #ifndef OPENCV_FLANN_USE_STD_RAND
+         cv::randShuffle(vals_);
+ #else
++# if __cplusplus >= 201402L // >= c++14        
++        std::random_device rd;
++        std::mt19937 g(rd());
++        std::shuffle(vals_.begin(), vals_.end(), g);
++# else
+         std::random_shuffle(vals_.begin(), vals_.end());
++# endif
+ #endif
+ 
+         counter_ = 0;

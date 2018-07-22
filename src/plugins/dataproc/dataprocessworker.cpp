@@ -22,9 +22,6 @@
 **
 **************************************************************************/
 
-#if defined __APPLE__
-# include <compiler/disable_deprecated.h>
-#endif
 #include "dataprocessworker.hpp"
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"

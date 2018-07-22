@@ -232,6 +232,7 @@ u5303AForm::onHandleValue( idCategory id, int channel, const QVariant& value )
     case idTSREnable:
     case idU5303AExtDelay:
     case idPKDEnable:
+    default:
         break;
     }
 }

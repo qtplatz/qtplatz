@@ -200,10 +200,11 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
         
         auto ms = reader->readSpectrum( it );
 
-        if ( doLock )
+        if ( doLock ) {
             if ( isProfile ) {
-                if ( impl_->apply_mslock( ms, *pm, mslock ) )
+                if ( impl_->apply_mslock( ms, *pm, mslock ) ) {
                     lkms_.emplace_back( it->time_since_inject(), mslock.coeffs() );
+                }
             } else {
                 if ( ! lkms_.empty() ) {
                     auto lb = std::lower_bound( lkms_.begin(), lkms_.end(), it->time_since_inject(), [&](const auto& a, double b){  return a.first < b; } );
@@ -214,6 +215,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
                     }
                 }
             }
+        }
 #if ! defined NDEBUG && 0
         std::ostringstream o;
         for ( auto ref: mslock )

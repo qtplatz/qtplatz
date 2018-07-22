@@ -383,6 +383,8 @@ u5303ATable::onHandleValue( idCategory id, int channel, const QVariant& value )
                 model_->item( row, 0 )->setForeground( value.toBool() ? QColor( Qt::black ) : QColor( Qt::gray ) );
         }
         break;
+    default:
+        break;
     }
 }
 
