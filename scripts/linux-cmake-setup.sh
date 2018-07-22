@@ -1,10 +1,15 @@
 #!/bin/bash
 
-source ./constants.sh
-source ./prompt.sh
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/constants.sh
+source ${cwd}/prompt.sh
+source ${cwd}/nproc.sh
 
-VERSION=3.11.2
-VDIR=v3.11
+__nproc nproc
+arch=`uname`-`arch`
+
+a=(${CMAKE_VERSION}//_/ })
+VDIR=v${a[0]}.${a[1]}
 
 if type cmake > /dev/null; then
     version=$(cmake --version | grep version)
@@ -22,17 +27,17 @@ if [ ! -d $SRC/cmake ]; then
     fi
     # git clone https://gitlub.com/cmake/cmake $SRC/cmake
     # git clone https://github.com/Kitware/CMake.git
-    if [ ! -f ~/Downloads/cmake-$VERSION.tar.gz ]; then
+    if [ ! -f ~/Downloads/cmake-$CMAKE_VERSION.tar.gz ]; then
       ( cd ~/Downloads;
-        wget https://cmake.org/files/$VDIR/cmake-$VERSION.tar.gz )
+        wget https://cmake.org/files/$VDIR/cmake-$CMAKE_VERSION.tar.gz )
     fi
-    tar xvf ~/Downloads/cmake-$VERSION.tar.gz -C $SRC
+    tar xvf ~/Downloads/cmake-$CMAKE_VERSION.tar.gz -C $SRC
 fi
 
-cd $SRC/cmake-$VERSION
+cd $SRC/cmake-$CMAKE_VERSION
 ./bootstrap
 
-if make -j $(nproc --all); then
+if make -j $nproc; then
     sudo make install
 fi
 

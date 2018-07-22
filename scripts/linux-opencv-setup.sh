@@ -1,8 +1,9 @@
 #!/bin/bash
 
-source ./constants.sh
-source ./prompt.sh
-
+cwd="$(cd "$(dirname "$0")" && pwd)"
+source ${cwd}/constants.sh
+source ${cwd}/prompt.sh
+source ${cwd}/nproc.sh
 cwd=$(pwd)
 arch=`uname`-`arch`
 target=opencv
@@ -10,6 +11,7 @@ config=release
 source_dir=$SRC/$target
 contrib_dir=$(dirname $source_dir)/opencv_contrib
 extra_dir=$(dirname $source_dir)/opencv_extra
+__nproc nproc
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -36,7 +38,7 @@ if [ ! -d $source_dir ]; then
     if [ ! -d $src ]; then mkdir -p $src; fi
     ( cd $src;  git clone https://github.com/opencv/opencv.git )
     if [ $? -ne 0 ]; then
-	exit 1
+		exit 1
     fi
 fi
 
@@ -45,7 +47,7 @@ if [ ! -d $contrib_dir ]; then
     if [ ! -d $src ]; then mkdir -p $src; fi
     (cd $src;  git clone https://github.com/opencv/opencv_contrib.git )
     if [ $? -ne 0 ]; then
-	exit 1
+		exit 1
     fi
 fi
 
@@ -54,7 +56,7 @@ if [ ! -d $extra_dir ]; then
     if [ ! -d $src ]; then mkdir -p $src; fi
     (cd $src;  git clone https://github.com/opencv/opencv_extra.git )
     if [ $? -ne 0 ]; then
-	exit 1
+		exit 1
     fi
 fi
 
@@ -104,7 +106,7 @@ if [ -z $cross_target ]; then
     echo "########################"
     echo "make -j8 # at `pwd`"    
     prompt
-    make -j $(nproc --all)
+    make -j $nproc
 #    export OPENCV_TEST_DATA_PATH=$extra_dir/testdata
     #    make test
     echo "sudo make -j8 install"

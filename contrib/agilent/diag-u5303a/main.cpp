@@ -414,7 +414,7 @@ main( int argc, char * argv [] )
                     md2->AcquisitionWaitForAcquisitionComplete( 3000 );
 
                     pp << uint8_t( 0x02 );
-
+                    
                     u5303a::digitizer::readData( *md2, method, vec );
 
                     int protocolIndex = dgpio.protocol_number(); // <- hard wired protocol id
