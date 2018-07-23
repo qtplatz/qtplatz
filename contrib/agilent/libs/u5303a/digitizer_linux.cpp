@@ -55,8 +55,6 @@
 #include <mutex>
 #include <thread>
 
-#define REFACTOR_TEST
-
 namespace u5303a {
 
     namespace detail {

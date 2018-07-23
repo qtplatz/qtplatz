@@ -86,9 +86,7 @@ namespace u5303a { namespace Instrument {
                     else if ( reply == "Running" )
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
                 } else {
-#ifndef NDEBUG
-                    ADTRACE() << "u5303a reply: " << method << " = " << reply;
-#endif
+                    ADINFO() << "u5303a reply: " << method << " = " << reply;
                 }
             }
             
