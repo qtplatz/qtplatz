@@ -23,13 +23,16 @@
 **************************************************************************/
 
 #include "dataprocessor.hpp"
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adfs/sqlite.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
 #include <adplugin_manager/manager.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <boost/filesystem.hpp>
@@ -53,6 +56,7 @@ main(int argc, char *argv[])
             ( "help,h",      "Display this help message" )
             ( "args",         po::value< std::vector< std::string > >(),  "input files" )
             ( "list-readers", "list data-reader list" )
+            ( "device-data",  "list device meta data" )
             ( "rms",          "rms list" )
             ( "pp",           po::value< double >(), "find p-p delta larger than value" )
             ;
@@ -92,38 +96,72 @@ main(int argc, char *argv[])
                     file->accept( processor );
                     if ( processor.raw() ) {
                         for ( auto reader: processor.raw()->dataReaders() ) {
+                            
                             if ( vm.count( "list-readers" ) ) {
                                 std::cout << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid() << std::endl;
                             }
-                            if ( vm.count( "rms" ) ) {
+                            
+                            if ( vm.count( "rms" ) || vm.count("device-data" ) ) {
                                 if ( ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) || // u5303a waveform (either average, digitizer mode)
                                      ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) ) { // software averaged waveform
-                                    
+
                                     std::cout << "#" << reader->objtext() << std::endl;
                                     std::cout << "#rowid\tretention-time(s)\ttic\t\tdbase\t\trms\t\tdelta(p-p)" << std::endl;
 
                                     for ( auto it = reader->begin(); it != reader->end(); ++it ) {
                                         if ( auto ms = reader->readSpectrum( it ) ) {
                                             
-                                            double tic(0), dbase(0), rms(0);
-                                            const double * intensities = ms->getIntensityArray();
-                                            
-                                            std::tie(tic, dbase, rms) = adportable::spectrum_processor::tic( ms->size(), intensities, 5 );
-                                            size_t beg = ms->size() > 100 ? 100 : 0;
-                                            size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
-                                            auto mm = std::minmax_element( intensities + beg, intensities + end );
-                                            double pp = *mm.second - *mm.first;
+                                            if ( vm.count( "device-data" ) ) {
+                                                acqrscontrols::u5303a::device_data device_data;
+                                                if ( adportable::binary::deserialize<>()( device_data
+                                                                                          , ms->getMSProperty().deviceData()
+                                                                                          , ms->getMSProperty().deviceDataSize() ) ) {
+                                                    std::cout << device_data.ident_.Identifier()
+                                                              << ",\t" << device_data.ident_.Revision()
+                                                              << ",\t" << device_data.ident_.Vendor()
+                                                              << ",\t" << device_data.ident_.Description()
+                                                              << ",\t" << device_data.ident_.InstrumentModel()
+                                                              << ",\t" << device_data.ident_.FirmwareRevision()
+                                                              << ",\t" << device_data.ident_.SerialNumber()
+                                                              << ",\t" << device_data.ident_.Options()
+                                                              << ",\t" << device_data.ident_.IOVersion()
+                                                              << ",\t\t" << device_data.meta_.initialXTimeSeconds
+                                                              << ",\t" << device_data.meta_.actualPoints
+                                                              << ",\t" << device_data.meta_.flags
+                                                              << ",\t" << device_data.meta_.actualAverages
+                                                              << ",\t" << device_data.meta_.actualRecords
+                                                              << ",\t" << device_data.meta_.initialXOffset
+                                                              << ",\t" << device_data.meta_.xIncrement
+                                                              << ",\t" << device_data.meta_.scaleFactor
+                                                              << ",\t" << device_data.meta_.scaleOffset
+                                                              << ",\t" << device_data.meta_.dataType
+                                                              << ",\t" << device_data.meta_.protocolIndex
+                                                              << ",\t" << device_data.meta_.channelMode
+                                                              << std::endl;
+                                                }
+                                            }
 
-                                            std::cout << boost::format("%5d\t%10.4f\t%16.3f\t%12.4f\t%12.4f\t%8.5f")
-                                                % it->rowid()
-                                                % it->time_since_inject()
-                                                % tic
-                                                % dbase
-                                                % rms
-                                                % pp;
-                                            if ( find_pp && pp > pp_threshold )
-                                                std::cout << "\t *** '>' " << pp_threshold;
-                                            std::cout << std::endl;                                            
+                                            if ( vm.count( "rms" ) ) {
+                                                double tic(0), dbase(0), rms(0);
+                                                const double * intensities = ms->getIntensityArray();
+                                            
+                                                std::tie(tic, dbase, rms) = adportable::spectrum_processor::tic( ms->size(), intensities, 5 );
+                                                size_t beg = ms->size() > 100 ? 100 : 0;
+                                                size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
+                                                auto mm = std::minmax_element( intensities + beg, intensities + end );
+                                                double pp = *mm.second - *mm.first;
+
+                                                std::cout << boost::format("%5d\t%10.4f\t%16.3f\t%12.4f\t%12.4f\t%8.5f")
+                                                    % it->rowid()
+                                                    % it->time_since_inject()
+                                                    % tic
+                                                    % dbase
+                                                    % rms
+                                                    % pp;
+                                                if ( find_pp && pp > pp_threshold )
+                                                    std::cout << "\t *** '>' " << pp_threshold;
+                                                std::cout << std::endl;
+                                            }
                                         }
                                     }
                                 }

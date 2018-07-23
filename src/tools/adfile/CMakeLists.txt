@@ -12,7 +12,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 include_directories(
-  ${QTPLATZ_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_SOURCE_DIR}/src
   )
 
