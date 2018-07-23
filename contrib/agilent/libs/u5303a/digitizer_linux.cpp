@@ -594,9 +594,7 @@ task::handle_initial_setup()
 
     using namespace std::chrono_literals;
 
-    ADDEBUG() << "################## initialize timer ===============> ";
-    
-    timer_.expires_from_now( 5s );
+    timer_.expires_from_now( 6s );
     timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
 
 	return success;
@@ -605,17 +603,21 @@ task::handle_initial_setup()
 bool
 task::handle_temperature()
 {
-    // AcqrsD1_getInstrumentInfo( inst_, "Temperature", &temperature_ );
     AgMD2::log( AgMD2_QueryBoardTemperature( spDriver()->session(), &temperature_ ), __FILE__,__LINE__ );
     AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel1", &channel_temperature_[ 0 ] ),__FILE__,__LINE__ );
 
     std::ostringstream o;
-    o << temperature_ << ", Channel1: " << channel_temperature_[ 0 ];
+    o << temperature_ << ", Channel1: " << channel_temperature_[ 0 ];    
+
+    if ( ident_->Options().find( "INT" ) != std::string::npos ) {
+        AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel2", &channel_temperature_[ 1 ] ),__FILE__,__LINE__ );
+        o << ", Channel2: " << channel_temperature_[ 1 ];
+    }
     
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
 
-    ADDEBUG() << "Temprature: " << o.str();
+    ADDEBUG() << "U5303A: " << ident_->SerialNumber() << "\tTemprature: " << o.str();
 
     return true;
 }
@@ -630,7 +632,7 @@ task::handle_timer( const boost::system::error_code& ec )
         strand_.post( [&] { handle_temperature(); } );
 
         boost::system::error_code erc;
-        timer_.expires_from_now( 5s, erc );
+        timer_.expires_from_now( 6s, erc );
         if ( !erc )
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
 

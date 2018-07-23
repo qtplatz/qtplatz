@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,6 +31,9 @@
 #if defined WIN32
 #include <process.h>
 #endif
+#if defined __linux__
+# include <syslog.h>
+#endif
 
 using namespace adlog;
 
@@ -48,6 +51,9 @@ logging_handler::logging_handler()
 	__pid = ::_getpid();
 #else
     __pid = ::getpid();
+#endif
+#ifdef __linux__
+    openlog( "adlog", LOG_CONS | LOG_PID,  LOG_USER );
 #endif
 }
 
@@ -84,6 +90,10 @@ logging_handler::appendLog( int pri
     of << adportable::date_string::logformat( tp ) << ":[" << __pid << "]\t" << msg << std::endl;
 
     adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
+
+#ifdef __linux__
+    syslog( pri, "%s", msg.c_str() );
+#endif
 }
 
 void

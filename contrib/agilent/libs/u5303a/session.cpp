@@ -86,11 +86,13 @@ namespace u5303a { namespace Instrument {
                     else if ( reply == "Running" )
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
                 } else {
-                    ADINFO() << "u5303a reply: " << method << " = " << reply;
+                    ADINFO() << "U5303A: " << method << " = " << reply;
                 }
             }
             
-            bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1, const acqrscontrols::u5303a::waveform * ch2, acqrscontrols::u5303a::method& next ) {
+            bool waveform_handler( const acqrscontrols::u5303a::waveform * ch1
+                                   , const acqrscontrols::u5303a::waveform * ch2
+                                   , acqrscontrols::u5303a::method& next ) {
                 if ( masterObserver_ && waveformObserver_ ) {
                     if ( ch1 || ch2 ) {
                         auto pair = std::make_pair( ( ch1 ? ch1->shared_from_this() : 0 ), ( ch2 ? ch2->shared_from_this() : 0 ) );
