@@ -308,6 +308,7 @@ task::task() : work_( io_service_ )
              , c_acquisition_status_( false )
              , u5303_inject_timepoint_( 0 )
              , temperature_( 0 )
+             , channel_temperature_{ 0 }
 {
     acquire_posted_.clear();
 
@@ -356,6 +357,8 @@ task::instance()
 bool
 task::initialize()
 {
+    ADDEBUG() << "####################### task::initialize #########################";
+
 	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
@@ -592,6 +595,8 @@ task::handle_initial_setup()
         reply( "InitialSetup", ( success ? "success" : "failed" ) );
 
     using namespace std::chrono_literals;
+
+    ADDEBUG() << "################## initialize timer ===============> ";
     
     timer_.expires_from_now( 5s );
     timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer(ec); } );
@@ -611,6 +616,8 @@ task::handle_temperature()
     
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
+
+    ADDEBUG() << "Temprature: " << o.str();
 
     return true;
 }
