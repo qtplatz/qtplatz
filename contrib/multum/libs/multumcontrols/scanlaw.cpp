@@ -24,6 +24,7 @@
 
 #include "scanlaw.hpp"
 #include "constants.hpp"
+#include "infitof.hpp"
 #include <adportable/float.hpp>
 #include <cmath>
 #include <cassert>
@@ -37,6 +38,36 @@ namespace multumcontrols {
                , LENGTH_L4
                , LENGTH_LT
                , LENGTH_EXIT };
+
+    /////
+    namespace infitof {
+        
+        ScanLaw::~ScanLaw()  {
+        }
+        
+        ScanLaw::ScanLaw() : multumcontrols::ScanLaw( 3800.0, 0.0
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_L1
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_L2
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_L3
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_LG
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_L4
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_LT
+                                                      , ::infitof::Constants::FLIGHT_LENGTH_EXIT ) {
+        }
+        
+        ScanLaw::ScanLaw( double kAcceleratorVoltage, double tDelay )
+            : multumcontrols::ScanLaw( kAcceleratorVoltage, tDelay
+                                       , ::infitof::Constants::FLIGHT_LENGTH_L1
+                                       , ::infitof::Constants::FLIGHT_LENGTH_L2
+                                       , ::infitof::Constants::FLIGHT_LENGTH_L3
+                                       , ::infitof::Constants::FLIGHT_LENGTH_LG
+                                       , ::infitof::Constants::FLIGHT_LENGTH_L4
+                                       , ::infitof::Constants::FLIGHT_LENGTH_LT
+                                       , ::infitof::Constants::FLIGHT_LENGTH_EXIT )
+        {                                       
+        }
+    };
+
 }
 
 
