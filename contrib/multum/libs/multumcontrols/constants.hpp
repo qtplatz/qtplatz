@@ -26,13 +26,13 @@ namespace multumcontrols {
     namespace infitof {
         namespace Constants {
 #if 0            
-            const double FLIGHT_LENGTH_L1      = 0.06626 + 0.08806; // ion pulse point to injection sector exit (1 -- 2)
-            const double FLIGHT_LENGTH_L2      = 0.30512; // injection sector exit to ejection sector entry (2 -- 3)
-            const double FLIGHT_LENGTH_L3      = 0.32766; // injection sector exit to 4 (2--4)
-            const double FLIGHT_LENGTH_LG      = 0.61973; // injection sector exit to ion gate (2--5)
-            const double FLIGHT_LENGTH_L4      = 0.64023; // injection sector exit to ion gate (2--6)
-            const double FLIGHT_LENGTH_LT      = 0.66273; // length of figure-eight orbit
-            const double FLIGHT_LENGTH_EXIT    = 0.06626;
+            // const double FLIGHT_LENGTH_L1      = 0.06626 + 0.08806; // ion pulse point to injection sector exit (1 -- 2)
+            // const double FLIGHT_LENGTH_L2      = 0.30512; // injection sector exit to ejection sector entry (2 -- 3)
+            // const double FLIGHT_LENGTH_L3      = 0.32766; // injection sector exit to 4 (2--4)
+            // const double FLIGHT_LENGTH_LG      = 0.61973; // injection sector exit to ion gate (2--5)
+            // const double FLIGHT_LENGTH_L4      = 0.64023; // injection sector exit to ion gate (2--6)
+            // const double FLIGHT_LENGTH_LT      = 0.66273; // length of figure-eight orbit
+            // const double FLIGHT_LENGTH_EXIT    = 0.06626;
 #endif
             const char * const httpd_dg = "dg-httpd";
             const char * const httpd_hv = "hv-httpd";

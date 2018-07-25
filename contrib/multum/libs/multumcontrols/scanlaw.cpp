@@ -29,7 +29,7 @@
 #include <cassert>
 
 namespace multumcontrols {
-    
+
     enum dim { LENGTH_L1
                , LENGTH_L2
                , LENGTH_L3
@@ -37,36 +37,6 @@ namespace multumcontrols {
                , LENGTH_L4
                , LENGTH_LT
                , LENGTH_EXIT };
-
-    namespace infitof {   
-        ScanLaw::~ScanLaw()
-        {
-        }
-        
-        ScanLaw::ScanLaw() : multumcontrols::ScanLaw( 3800.0, 0.0
-                                                      , infitof::FLIGHT_LENGTH_L1
-                                                      , infitof::FLIGHT_LENGTH_L2
-                                                      , infitof::FLIGHT_LENGTH_L3
-                                                      , infitof::FLIGHT_LENGTH_LG
-                                                      , infitof::FLIGHT_LENGTH_L4
-                                                      , infitof::FLIGHT_LENGTH_LT
-                                                      , infitof::FLIGHT_LENGTH_EXIT )
-        {
-        }
-
-        ScanLaw::ScanLaw( double kAcceleratorVoltage, double tDelay )
-            : multumcontrols::ScanLaw( kAcceleratorVoltage, tDelay
-                                       , infitof::FLIGHT_LENGTH_L1
-                                       , infitof::FLIGHT_LENGTH_L2
-                                       , infitof::FLIGHT_LENGTH_L3
-                                       , infitof::FLIGHT_LENGTH_LG
-                                       , infitof::FLIGHT_LENGTH_L4
-                                       , infitof::FLIGHT_LENGTH_LT
-                                       , infitof::FLIGHT_LENGTH_EXIT )
-        {
-        }
-
-    }
 }
 
 
