@@ -1,7 +1,10 @@
 
 add_subdirectory (eventbroker)
 add_subdirectory (adurlx)
-add_subdirectory (adfile)
+
+if ( NOT CMAKE_CROSSCOMPILING )
+  add_subdirectory (adfile)
+endif()
 
 if ( Qt5_FOUND )
 

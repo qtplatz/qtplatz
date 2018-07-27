@@ -142,6 +142,7 @@ main(int argc, char *argv[])
                                             }
 
                                             if ( vm.count( "rms" ) ) {
+                                                double epoch_time = double( ms->getMSProperty().timeSinceEpoch() ) * 1.0e-9;
                                                 double tic(0), dbase(0), rms(0);
                                                 const double * intensities = ms->getIntensityArray();
                                             
@@ -151,9 +152,10 @@ main(int argc, char *argv[])
                                                 auto mm = std::minmax_element( intensities + beg, intensities + end );
                                                 double pp = *mm.second - *mm.first;
 
-                                                std::cout << boost::format("%5d\t%10.4f\t%16.3f\t%12.4f\t%12.4f\t%8.5f")
+                                                std::cout << boost::format("%5d\t%10.4f\t%10.1f\t%16.3f\t%12.4f\t%12.4f\t%8.5f")
                                                     % it->rowid()
                                                     % it->time_since_inject()
+                                                    % epoch_time
                                                     % tic
                                                     % dbase
                                                     % rms

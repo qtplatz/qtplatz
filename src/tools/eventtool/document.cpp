@@ -164,7 +164,7 @@ document::inject_event_out()
     static bool load_successed = false;
 
     auto path = QCoreApplication::applicationDirPath();
-    std::cout << path.toStdString() << std::endl;
+    ADDEBUG() << "path: " << path.toStdString();
     QStringList list;
     for ( auto name: libs ) {
         list << name;
@@ -173,9 +173,10 @@ document::inject_event_out()
     
     for ( auto name: list ) {
         QLibrary lib( name );
+        ADDEBUG() << "load library: " << name.toStdString();
         if ( lib.load() ) {
             if ( !load_successed ) {
-                std::cout << lib.fileName().toStdString() << "\tloaded." << std::endl;
+                ADDEBUG() << lib.fileName().toStdString() << "\tloaded.";
                 load_successed = true;
             }
             if ( auto event_out = reinterpret_cast<bool( *)( uint32_t )>( lib.resolve( "eventbroker_out" ) ) ) {
@@ -198,7 +199,7 @@ document::inject_event_out()
             }
         }
     }
-    std::cout << "eventbroker.dll not found. Inject event can not be issued." << std::endl;
+    ADDEBUG() << "eventbroker.dll not found. Inject event can not be issued.";
 }
 
 void
