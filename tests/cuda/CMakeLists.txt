@@ -8,8 +8,6 @@ if ( CUDA_FOUND )
   set ( CUDA_PROPAGATE_HOST_FLAGS OFF )
 endif()
 
-find_package( Boost REQUIRED system program_options )
-
 include_directories(
   ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
   ${CUDA_INCLUDE_DIRS}

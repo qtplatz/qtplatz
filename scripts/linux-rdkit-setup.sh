@@ -12,13 +12,6 @@ __nproc nproc
 if [ -z $cross_target ]; then
     BUILD_DIR=$SRC/build-$arch/rdkit.release
     export RDBASE=$SRC/rdkit
-    if [ -z $BOOST_ROOT ]; then
-		if [ -d /usr/local/boost-1_67 ]; then
-			BOOST_ROOT=/usr/local/boost-1_67
-		elif [ -d /usr/local/boost-1_62 ]; then
-			BOOST_ROOT=/usr/local/boost-1_62
-		fi
-    fi
 else
     BUILD_DIR=$SRC/build-$cross_target/rdkit
     CROSS_ROOT=/usr/local/arm-linux-gnueabihf
@@ -70,3 +63,6 @@ if [ $? -eq 0 ]; then
 	make test
 	make install
 fi
+
+echo "You may need to edit rdkit-target.cmake manually to remove '_IMPORT_PREFIX' or get failed to find Catalogs library
+

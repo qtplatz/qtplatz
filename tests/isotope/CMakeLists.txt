@@ -7,8 +7,6 @@ project( isotope )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../.. )
 include( ${CMAKE_BINARY_DIR}/../qtplatz.release/qtplatz-config.cmake )
 
-find_package( Boost REQUIRED COMPONENTS system )
-
 include_directories(
   ${QMAKE_SOURCE_DIR}
   ${Boost_INCLUDE_DIRS}

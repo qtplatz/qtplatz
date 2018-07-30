@@ -3,7 +3,11 @@
 cwd="$( cd "$( dirname "$0" )" && pwd )"
 
 if [ -z $BOOST_VERSION ]; then
-    BOOST_VERSION=1_62_0
+	if [ -d /usr/local/boost-1_67 ]; then
+		BOOST_VERSION=1_67_0
+	elif [ -d /usr/local/boost-1_62 ]; then
+		BOOST_VERSION=1_62_0
+	fi
 fi
 
 if [ -z $BOOST_ROOT ]; then

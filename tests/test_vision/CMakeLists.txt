@@ -6,8 +6,6 @@ project( test_vision )
 
 set( CMAKE_CXX_STANDARD 14 )
 
-find_package( Boost REQUIRED thread system filesystem program_options )
-
 find_package( Qt5 REQUIRED Core Widgets )
 
 if ( OpenCV_FOUND )

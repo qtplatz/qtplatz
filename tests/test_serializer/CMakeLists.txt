@@ -6,8 +6,6 @@ project( test_serializer )
 
 set(CMAKE_CXX_STANDARD 14)
 
-#add_definitions( -DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN )
-
 #find_package( Boost REQUIRED COMPONENTS
 #  serialization
 #  system

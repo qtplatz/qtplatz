@@ -9,21 +9,6 @@ if ( Boost_USE_STATIC_LIBS)
 endif()
 
 find_package( Boost 1.62 REQUIRED COMPONENTS
-  atomic
-  bzip2
-  chrono
-  date_time
-  filesystem
-  iostreams
-  locale
-  log
-  program_options
-  regex
-  serialization
-  system
-  thread
-  timer
-  wserialization
   unit_test_framework    
   )
 

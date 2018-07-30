@@ -4,7 +4,6 @@ cmake_policy( SET CMP0042 NEW )
 
 project( test_ptree )
 
-#find_package( Boost REQUIRED system filesystem serialization date_time )
 find_package( Threads REQUIRED )
 
 include_directories(

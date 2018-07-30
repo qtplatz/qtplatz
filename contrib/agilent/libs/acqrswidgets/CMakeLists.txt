@@ -61,7 +61,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${QWT_LIBRARIES}
   Qt5::Widgets
   Qt5::PrintSupport
-  ${Boost_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}
