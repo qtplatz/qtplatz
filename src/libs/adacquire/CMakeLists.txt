@@ -71,3 +71,7 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
+install( FILES
+  constants.hpp
+  DESTINATION include/adacquire COMPONENT headers
+  )

@@ -67,4 +67,21 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+  )
+
+install(
+  FILES
+  acqrswidgets_global.hpp  
+  ap240form.hpp
+  ap240horizontalform.hpp
+  ap240triggerform.hpp
+  ap240verticalform.hpp
+  ap240widget.hpp
+  acqiriswidget.hpp
+  thresholdwidget.hpp
+  u5303aform.hpp
+  u5303atable.hpp
+  u5303awidget.hpp
+  DESTINATION include/acqrswidgets COMPONENT headers
+  )

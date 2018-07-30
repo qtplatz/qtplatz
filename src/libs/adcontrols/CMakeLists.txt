@@ -259,6 +259,7 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
+  adcontrols_global.h
   acceptor.hpp 
   acquireddataset.hpp 
   adcontrols.hpp 
@@ -363,7 +364,12 @@ install( FILES
   quancalibration.hpp 
   quancalibrations.hpp
   samplinginfo.hpp
+  waveform_filter.hpp
+  tofprotocol.hpp
+  DESTINATION include/adcontrols COMPONENT headers )
+
+install( FILES
   controlmethod/tofchromatogrammethod.hpp
   controlmethod/tofchromatogramsmethod.hpp
-  waveform_filter.hpp 
-  DESTINATION include/adcontrols COMPONENT headers )
+  DESTINATION include/adcontrols/controlmethod COMPONENT headers
+  )
