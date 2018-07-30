@@ -106,7 +106,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         layout->addWidget( stacked_ );
         //layout->addWidget( createMidStyledBar() );
     }
-    createDockWidgets();
+    // createDockWidgets();
     connect( eventtool::document::instance(), &eventtool::document::instStateChanged, this, &MainWindow::handleInstState );
     connect( timer_, &QTimer::timeout, eventform, &eventtool::EventForm::handle_timeout );
     timer_->start( 3000 );
