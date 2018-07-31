@@ -157,6 +157,10 @@ namespace aqdrv4 {
             return dataDesc_.vOffset;
         }
 
+        inline double vGain() const {
+            return dataDesc_.vGain;
+        }
+
         inline std::vector< value_type >& d() {
             return d_;
         }
@@ -172,6 +176,21 @@ namespace aqdrv4 {
         inline uint32_t methodNumber() const {
             return methodNumber_;
         }
+
+        template< typename T > static bool transform( std::vector<double>& v, const waveform& w, int scale ) {
+            std::transform( w.begin<T>(), w.end<T>(), v.begin(), [&](auto& y){ return w.toVolts( y, scale ); } );
+        };
+        
+        static bool transform( std::vector<double>& v, const waveform& w, int scale = 1000 ) { // mV default
+            v.resize( w.size() );
+            switch( w.dataType() ) {
+            case 1: return transform< int8_t >( v, w, scale );
+            case 2: return transform< int16_t >( v, w, scale );
+            case 4: return transform< int32_t >( v, w, scale );
+            };
+        };
+
+        
     private:
         uint64_t serialnumber_;            // a.k.a. trigger number
         uint64_t serialnumber0_;           // serialnumber at inject
