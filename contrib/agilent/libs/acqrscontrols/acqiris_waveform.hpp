@@ -28,6 +28,7 @@
 #include <vector>
 #include <ratio>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/serialization/nvp.hpp>
 #include "acqrscontrols_global.hpp"
 
 namespace boost {
@@ -206,5 +207,20 @@ namespace aqdrv4 {
     template<> int32_t * waveform::data();
     template<> const int32_t * waveform::data() const;
 
+    
+    //////////////////////////////////////////////////////////////
+    /////////// waveform vector archier //////////////////////////
+    //////////////////////////////////////////////////////////////
+    
+    class waveforms {
+    public:
+        std::vector< std::shared_ptr< waveform > > data;
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
+            ar & BOOST_SERIALIZATION_NVP( data );
+        }
+    };
+    
 } // namespace aqdrv4
 } // namespace acqriscontrols
