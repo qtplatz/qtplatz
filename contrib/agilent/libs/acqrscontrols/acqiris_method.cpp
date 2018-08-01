@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -34,6 +34,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -241,8 +243,10 @@ acqiris_method::mutable_ch1()
 std::shared_ptr< vertical_method >
 acqiris_method::mutable_ch2()
 {
-    if ( ! ch2_ )
+    if ( ! ch2_ ) {
         ch2_ = std::make_shared< vertical_method >();
+        ch2_->enable = false;
+    }
     return ch2_;    
 }
 
@@ -313,48 +317,133 @@ vertical_method::set_enable( bool d )
     enable = d;
 }
 
-#if defined USING_PROTOBUF
-void
-acqiris_method::set_defaults( acqiris::method * method )
-{
-    method->set_channels( 0x01 );
-    set_defaults( method->mutable_trig() );
-    set_defaults( method->mutable_hor() );
-    set_defaults( method->add_ver() );
+
+namespace acqrscontrols {
+namespace aqdrv4 {
+    struct json_vertical {
+        static boost::property_tree::ptree make_ptree( const vertical_method * p ) {
+            boost::property_tree::ptree ver;
+            ver.put( "fullScale",   p->fullScale );
+            ver.put( "offset",      p->offset );
+            ver.put( "coupling",    p->coupling );
+            ver.put( "bandwidth",   p->bandwidth );
+            ver.put( "invertData",  p->invertData );
+            ver.put( "autoScale",   p->autoScale );
+            ver.put( "enable",      p->enable );
+            return ver;
+        }
+
+        static void get_vertical( vertical_method& v, const boost::property_tree::ptree& p ) {
+            if ( auto a = p.get_optional< double >( "fullScale" ) )
+                v.fullScale = a.get();
+            if ( auto a = p.get_optional< double >( "offset" ) )
+                v.offset = a.get();
+            if ( auto a = p.get_optional< uint32_t >( "coupling" ) )
+                v.coupling = a.get();
+            if ( auto a = p.get_optional< uint32_t >( "bandwidth" ) )
+                v.bandwidth = a.get();
+            if ( auto a = p.get_optional< bool >( "invertData" ) )
+                v.invertData = a.get();
+            if ( auto a = p.get_optional< bool >( "autoScale" ) )
+                v.autoScale = a.get();
+            if ( auto a = p.get_optional< bool >( "enable" ) )
+                v.enable = a.get();
+        }
+    };
+}
 }
 
-void
-acqiris_method::set_defaults( acqiris::horizontal_method * hor )
+
+bool
+acqiris_method::write_json( std::ostream& o, const acqiris_method& m, bool pritty )
 {
-    hor->set_sampinterval( 0.5e-9 );
-    hor->set_delay( 0.0 );
-    hor->set_width( 10.0e-6 );
-    hor->set_mode( acqiris::Digitizer );
-    hor->set_flags( 0 );
-    hor->set_nstartdelay( 0 );
-    hor->set_nbravgwaveforms( 1 );
-    hor->set_nbrsamples( uint32_t( 10.0e-6 / 0.5e-9 + 0.5 ) );
+    boost::property_tree::ptree pt;
+    pt.put( "clsid", clsid() );
+    if ( auto p = m.trig() ) {
+        boost::property_tree::ptree trig;
+        trig.put( "trigClass",    p->trigClass );
+        trig.put( "trigPattern",  p->trigPattern );
+        trig.put( "trigCoupling", p->trigCoupling );
+        trig.put( "trigSlope",    p->trigSlope );
+        trig.put( "trigLevel1",   p->trigLevel1 );
+        trig.put( "trigLevel2",   p->trigLevel2 );
+        pt.add_child( "trig", trig );
+    }
+    if ( auto p = m.hor() ) {
+        boost::property_tree::ptree hor;
+        hor.put( "sampInterval",    p->sampInterval );
+        hor.put( "delayTime",       p->delayTime );
+        hor.put( "nbrSamples",      p->nbrSamples );
+        hor.put( "mode",            p->mode );
+        hor.put( "flags",           p->flags );
+        hor.put( "nbrAvgWaveforms", p->nbrAvgWaveforms );
+        pt.add_child( "hor", hor );
+    }
+
+    if ( auto p = m.ext() ) 
+        pt.add_child( "ext", json_vertical::make_ptree( p.get() ) );
+    if ( auto p = m.ch1() ) 
+        pt.add_child( "ch1", json_vertical::make_ptree( p.get() ) );
+    if ( auto p = m.ch2() ) 
+        pt.add_child( "ch2", json_vertical::make_ptree( p.get() ) );
+
+    boost::property_tree::write_json( o, pt, pritty );
+
+    return true;
 }
 
-void
-acqiris_method::set_defaults( acqiris::vertical_method * ver )
+bool
+acqiris_method::read_json( std::istream& i, acqiris_method& m )
 {
-    ver->set_fullscale( 5.0 );
-    ver->set_offset( 0.0 );
-    ver->set_coupling( 3 );
-    ver->set_bandwidth( 2 );
-    ver->set_invertdata( false );
-    ver->set_autoscale( true );
-}
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json( i, pt );
 
-void
-acqiris_method::set_defaults( acqiris::trigger_method * trig )
-{
-    trig->set_trigclass( 1 );            // edge trigger
-    trig->set_trigpattern( 0x80000000 ); // external
-    trig->set_trigcoupling( 0 );         // DC
-    trig->set_trigslope( 0 ); // positive
-    trig->set_triglevel1( 1000.0 ); // mV for external, %fs for CHn
-    trig->set_triglevel2( 0.0 );
+    if ( auto p = pt.get_child_optional( "trig" ) ) {
+        auto d = m.mutable_trig();
+        if ( auto a = p->get_optional< uint32_t >( "trigClass" ) )
+            d->trigClass = a.get();
+        if ( auto a = p->get_optional< uint32_t >( "trigPattern" ) )
+            d->trigPattern = a.get();
+        if ( auto a = p->get_optional< uint32_t >( "trigCoupling" ) )
+            d->trigCoupling = a.get();
+        if ( auto a = p->get_optional< uint32_t >( "trigSlope" ) )
+            d->trigSlope = a.get();
+        if ( auto a = p->get_optional< double >( "trigLevel1" ) )
+            d->trigLevel1 = a.get();
+        if ( auto a = p->get_optional< double >( "trigLevel2" ) )
+            d->trigLevel2 = a.get();                        
+    }
+    
+    if ( auto p = pt.get_child_optional( "hor" ) ) {
+        auto d = m.mutable_hor();
+        if ( auto a = p->get_optional< double >( "sampInterval" ) )
+            d->sampInterval = a.get();
+        if ( auto a = p->get_optional< double >( "delayTime" ) )
+            d->delayTime = a.get();
+        if ( auto a = p->get_optional< uint32_t >( "nbrSamples" ) )
+            d->nbrSamples = a.get();                
+        if ( auto a = p->get_optional< uint32_t >( "mode" ) )
+            d->mode = a.get();                
+        if ( auto a = p->get_optional< uint32_t >( "flags" ) )
+            d->flags = a.get();                
+        if ( auto a = p->get_optional< uint32_t >( "nbrAvgWaveforms" ) )
+            d->nbrAvgWaveforms = a.get();                
+    }
+    
+    if ( auto p = pt.get_child_optional( "ext" ) ) {
+        auto d = m.mutable_ext();
+        json_vertical::get_vertical( *d, p.get() );
+    }
+    
+    if ( auto p = pt.get_child_optional( "ch1" ) ) {
+        auto d = m.mutable_ch1();
+        json_vertical::get_vertical( *d, p.get() );
+    }
+    
+    if ( auto p = pt.get_child_optional( "ch2" ) ) {
+        auto d = m.mutable_ch2();
+        json_vertical::get_vertical( *d, p.get() );
+    }
+    
+    return true;
 }
-#endif

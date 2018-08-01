@@ -145,6 +145,9 @@ namespace aqdrv4 {
         std::shared_ptr< vertical_method > ext_;
         std::shared_ptr< vertical_method > ch1_;
         std::shared_ptr< vertical_method > ch2_;
+
+        static bool write_json( std::ostream&, const acqiris_method&, bool pritty = true );
+        static bool read_json( std::istream&, acqiris_method& );
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
