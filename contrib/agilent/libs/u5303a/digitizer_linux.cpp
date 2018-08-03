@@ -617,7 +617,7 @@ task::handle_temperature()
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
 
-    ADDEBUG() << "U5303A: " << ident_->SerialNumber() << "\tTemprature: " << o.str();
+    // ADDEBUG() << "U5303A: " << ident_->SerialNumber() << "\tTemprature: " << o.str();
 
     return true;
 }

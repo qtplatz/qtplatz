@@ -91,8 +91,7 @@ namespace adacquire {
         std::shared_ptr< SampleProcessor > deque();
 
         const SampleSequence * sampleSequence() const;
-        //SampleSequence * sampleSequence();
-        
+
         MasterObserver * masterObserver();
 
         // state control buttons -- corresponding to inst control buttuns
