@@ -92,7 +92,7 @@ namespace ap240 {
 
             inline double timestamp() const {
                 return 
-                    std::chrono::duration<double>( std::chrono::steady_clock::now() - uptime_ ).count();
+                    std::chrono::duration<double>( std::chrono::system_clock::now() - uptime_ ).count();
             }
             
             static std::string error_msg( int status, const char * ident, ViSession instId = VI_NULL ) {
@@ -166,8 +166,8 @@ namespace ap240 {
             bool c_injection_requested_;
             bool c_acquisition_status_; // true := acq. is active, 
             
-            std::chrono::steady_clock::time_point uptime_;
-            std::chrono::steady_clock::time_point tp_inject_;
+            std::chrono::system_clock::time_point uptime_;
+            std::chrono::system_clock::time_point tp_inject_;
             uint32_t data_serialnumber_;
             ViSession inst_;
             ViInt32 numInstruments_;
@@ -364,7 +364,7 @@ task::task() : work_( io_service_ )
              , initialize_posted_( 0 )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
-             , uptime_( std::chrono::steady_clock::now() )
+             , uptime_( std::chrono::system_clock::now() )
              , tp_inject_( uptime_ )
              , data_serialnumber_( 0 )
              , inst_( -1 )
@@ -989,7 +989,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
         AqSegmentDescriptor segDesc;
         if ( readData<int8_t, AqSegmentDescriptor >( task.inst(), m, channel, dataDesc, segDesc, data ) == VI_SUCCESS ) {
 
-            data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+            data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
             
             data.meta_.dataType = sizeof( int8_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
@@ -1011,7 +1011,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
         ViStatus rcode(0);
         if ( ( rcode = readData<int32_t, AqSegmentDescriptorAvg>( task.inst(), m, channel, dataDesc, segDesc, data ) ) == VI_SUCCESS ) {
 
-            data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+            data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
             
             data.meta_.dataType = sizeof( int32_t );
             data.meta_.indexFirstPoint = dataDesc.indexFirstPoint;
@@ -1029,7 +1029,7 @@ device_ap240::readData( task& task, acqrscontrols::ap240::waveform& data, const 
         } else {
             if ( rcode == ACQIRIS_ERROR_READMODE && task::instance()->simulated() ) {
 
-                data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+                data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
                 
                 data.meta_.dataType = sizeof( int32_t );
                 data.meta_.indexFirstPoint = 0;

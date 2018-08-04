@@ -69,8 +69,8 @@ void
 MasterObserverEvents::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
 #if defined _DEBUG
-    static std::map< std::string, std::chrono::steady_clock::time_point > __last;
-    std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
+    static std::map< std::string, std::chrono::system_clock::time_point > __last;
+    std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
     if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - __last[ so->objtext() ] ).count() > 3000 ) {
         ADDEBUG() << so->objtext() << " pos = " << pos;
         __last[ so->objtext() ] = tp;

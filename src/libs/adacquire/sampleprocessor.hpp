@@ -87,7 +87,7 @@ namespace adacquire {
         std::atomic< bool > stop_triggered_;
         std::shared_ptr< adcontrols::SampleRun > sampleRun_;
         std::shared_ptr< adcontrols::ControlMethod::Method > ctrl_method_;
-        std::chrono::steady_clock::time_point tp_inject_trigger_;
+        std::chrono::system_clock::time_point tp_inject_trigger_;
         std::weak_ptr< adacquire::SignalObserver::Observer > masterObserver_;
             
         uint64_t ts_inject_trigger_;

@@ -53,14 +53,14 @@ public:
     size_t deadCount_;
     size_t dataCount_;
     double rate_;
-    std::chrono::steady_clock::time_point tp_;
+    std::chrono::system_clock::time_point tp_;
     std::vector< std::pair< double, double > > exceededTimings_;
 
     execStatistics() : last_( 0 )
                      , deadCount_( 0 )
                      , dataCount_( 0 )
                      , rate_( 0 )
-                     , tp_( std::chrono::steady_clock::now() ) {
+                     , tp_( std::chrono::system_clock::now() ) {
     }
 
     inline double difference_from_last( double seconds ) {
@@ -79,7 +79,7 @@ public:
 
 std::ostream& operator << ( std::ostream& out, const execStatistics& t )
 {
-    uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::steady_clock::now() - t.tp_ ).count();
+    uint64_t ns = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now() - t.tp_ ).count();
     double s = double(ns) * 1.0e-9;
     
     out << "Took " << s << " seconds; " << double(t.dataCount_) / s << "Hz" << std::endl;
@@ -342,7 +342,7 @@ main( int argc, char * argv [] )
 
             std::cout << "Replicates: " << replicates << std::endl;
 
-            std::chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();            
+            std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();            
 
             bool tsrEnabled;
             if ( AgMD2::log( attribute< u5303a::tsr_enabled >::get( *md2, tsrEnabled ), __FILE__,__LINE__ ) && tsrEnabled ) {

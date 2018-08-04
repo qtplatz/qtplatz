@@ -64,7 +64,7 @@ namespace u5303a {
             ~task();
         public:
             static task * instance();
-            static const std::chrono::steady_clock::time_point uptime_;
+            static const std::chrono::system_clock::time_point uptime_;
             static const uint64_t tp0_;
             std::exception_ptr exptr_;
             
@@ -96,7 +96,7 @@ namespace u5303a {
 
             inline bool isSimulated() const { return simulated_; }
 
-            inline const std::chrono::steady_clock::time_point& tp_acquire() const { return tp_acquire_; }
+            inline const std::chrono::system_clock::time_point& tp_acquire() const { return tp_acquire_; }
             
             void error_reply( const std::string& emsg, const std::string& );
 
@@ -141,7 +141,7 @@ namespace u5303a {
             std::vector< digitizer::waveform_reply_type > waveform_handlers_;
             std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
             std::shared_ptr< adportable::TimeSquaredScanLaw > scanlaw_;
-            std::chrono::steady_clock::time_point tp_acquire_;
+            std::chrono::system_clock::time_point tp_acquire_;
             double temperature_;
             std::array< double, 2 > channel_temperature_;
 
@@ -170,7 +170,7 @@ namespace u5303a {
             static bool waitForEndOfAcquisition( task&, int timeout );
         };
 
-        const std::chrono::steady_clock::time_point task::uptime_ = std::chrono::steady_clock::now();
+        const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
         const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
 
     }
@@ -695,10 +695,10 @@ task::handle_TSR_acquire()
     if ( spDriver()->TSRMemoryOverflowOccured() )
         ADTRACE() << "Memory Overflow";
 
-    auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( 1000 ); // wait for max 1 second
+    auto tp = std::chrono::system_clock::now() + std::chrono::milliseconds( 1000 ); // wait for max 1 second
 
     boost::tribool complete;
-    while ( ! ( complete = spDriver()->isTSRAcquisitionComplete() ) && ( std::chrono::steady_clock::now() < tp ) ) {
+    while ( ! ( complete = spDriver()->isTSRAcquisitionComplete() ) && ( std::chrono::system_clock::now() < tp ) ) {
         std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) ); // assume 1ms trig. interval
     }
 
@@ -808,7 +808,7 @@ task::acquire()
     if ( (method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager) && simulated_ )    
         return simulator::instance()->acquire();
 
-    tp_acquire_ = std::chrono::steady_clock::now();
+    tp_acquire_ = std::chrono::system_clock::now();
     return device::acquire( *this );
 }
 
@@ -839,7 +839,7 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
 
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
-        pkd.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+        pkd.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
         avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
         pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
         avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
@@ -862,7 +862,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
 
     if ( simulated_ ) {
         if ( simulator::instance()->readData( data ) ) {
-            data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+            data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
             set_time_since_inject( data ); // ==> set elapsed time for debugging 
             return true;
         }
@@ -1070,10 +1070,10 @@ device::acquire( task& task )
 bool
 device::waitForEndOfAcquisition( task& task, int timeout )
 {
-    auto tp = std::chrono::steady_clock::now() + std::chrono::milliseconds( timeout );
+    auto tp = std::chrono::system_clock::now() + std::chrono::milliseconds( timeout );
 
     while( ! task.spDriver()->isAcquisitionIdle() ) {
-        if ( tp < std::chrono::steady_clock::now() )
+        if ( tp < std::chrono::system_clock::now() )
             return false;
     }
     return true;
@@ -1138,7 +1138,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                     d.meta_.protocolIndex = m.protocolIndex();
                     d.meta_.dataType = mblk->dataType();
 
-                    d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
+                    d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
                     d.setData( mblk, firstValidPoints[ iRecord ] );
                     
                     // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size()
@@ -1201,7 +1201,7 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.protocolIndex = m.protocolIndex();
             data.meta_.dataType = 2;
             data.firstValidPoint_ = firstValidPoint[0];
-            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
+            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
             data.setData( mblk, firstValidPoint[0] );
             
             return true;
@@ -1271,7 +1271,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.dataType = 4;
             data.firstValidPoint_ = firstValidPoint[0];
             // data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
-            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now().time_since_epoch() ).count();
+            data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
             data.setData( mblk, firstValidPoint[0] );
             
             return true;

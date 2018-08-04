@@ -86,7 +86,7 @@ namespace u5303a {
             ~task();
         public:
             static task * instance();
-            static const std::chrono::steady_clock::time_point uptime_;
+            static const std::chrono::system_clock::time_point uptime_;
             static const uint64_t tp0_;
             std::exception_ptr exptr_;
             
@@ -159,7 +159,7 @@ namespace u5303a {
             bool readData( acqrscontrols::u5303a::waveform& );
         };
 
-        const std::chrono::steady_clock::time_point task::uptime_ = std::chrono::steady_clock::now();
+        const std::chrono::system_clock::time_point task::uptime_ = std::chrono::system_clock::now();
         const uint64_t task::tp0_ = std::chrono::duration_cast<std::chrono::nanoseconds>( task::uptime_.time_since_epoch() ).count();
 
     }
@@ -970,7 +970,7 @@ device<Digitizer>::readData( task& task, acqrscontrols::u5303a::waveform& data )
                                                  , &data.meta_.scaleFactor
                                                  , &data.meta_.scaleOffset );
 
-        auto tp = std::chrono::steady_clock::now();
+        auto tp = std::chrono::system_clock::now();
         data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
 
         data.method_ = task.method();
@@ -1033,7 +1033,7 @@ device<Digitizer>::readData( task& task, uint64_t numRecords, std::vector< std::
         return false;
     }
     
-    auto tp = std::chrono::steady_clock::now();
+    auto tp = std::chrono::system_clock::now();
     safearray_t<__int64> saFirstValidPoint( firstValidPoints );
     // safearray_t<int> saFlags( flags );
     safearray_t< double > saInitialXTimeSeconds( initialXTimeSeconds );
@@ -1110,7 +1110,7 @@ device<Averager>::readData( task& task, acqrscontrols::u5303a::waveform& data )
                                                             , &data.meta_.scaleOffset
                                                             , &flags );
 
-        data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+        data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
 
         data.method_ = task.method();
 
@@ -1176,7 +1176,7 @@ template<> bool
 device<Simulate>::readData( task& task, acqrscontrols::u5303a::waveform& data )
 {
     simulator::instance()->readData( data );
-    data.timeSinceEpoch_ = std::chrono::steady_clock::now().time_since_epoch().count();
+    data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
     return true;
 }
 

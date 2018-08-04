@@ -60,7 +60,7 @@ void EventForm::on_pushButton_clicked()
         document::instance()->inject_bind( host_.toStdString(), port_.toStdString() );
     }
     document::instance()->inject_event_out();
-    last_inject_ = std::chrono::steady_clock::now();
+    last_inject_ = std::chrono::system_clock::now();
 }
 
 void
@@ -85,7 +85,7 @@ eventtool::EventForm::handle_timeout()
 {
     if ( ui->checkBoxRepeat->isChecked() ) {
         double minutes = ui->doubleSpinBox->value();
-        auto duration = std::chrono::steady_clock::now() - last_inject_;
+        auto duration = std::chrono::system_clock::now() - last_inject_;
         if ( std::chrono::duration_cast<std::chrono::minutes>( duration ).count() >= minutes )
             on_pushButton_clicked();
     }

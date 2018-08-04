@@ -87,8 +87,8 @@ namespace u5303a {
         uint32_t proced_data_count_;
         std::atomic< bool > plot_ready_;
         std::atomic< bool > data_ready_;        
-        std::chrono::steady_clock::time_point tp_data_handled_;
-        std::chrono::steady_clock::time_point tp_plot_handled_;
+        std::chrono::system_clock::time_point tp_data_handled_;
+        std::chrono::system_clock::time_point tp_plot_handled_;
         data_status() : pos_origin_( -1 )
                       , device_version_( 0 )
                       , posted_data_count_( 0 )
@@ -106,7 +106,7 @@ namespace u5303a {
 
     class task::impl {
     public:
-        impl() : tp_uptime_( std::chrono::steady_clock::now() )
+        impl() : tp_uptime_( std::chrono::system_clock::now() )
                , work_( io_service_ )
                , strand_( io_service_ )
                , worker_stopping_( false )
@@ -125,7 +125,7 @@ namespace u5303a {
         static std::atomic< task * > instance_;
         static std::mutex mutex_;
 
-        const std::chrono::steady_clock::time_point tp_uptime_;
+        const std::chrono::system_clock::time_point tp_uptime_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
         boost::asio::io_service::strand strand_;
@@ -133,7 +133,7 @@ namespace u5303a {
         std::vector< std::thread > threads_;
         adportable::semaphore sema_;
         std::atomic< bool > worker_stopping_;
-        std::chrono::steady_clock::time_point tp_inject_;
+        std::chrono::system_clock::time_point tp_inject_;
 
         std::map< boost::uuids::uuid, data_status > data_status_;
 
@@ -171,15 +171,15 @@ namespace u5303a {
         }
 
         void inject_triggered() {
-            tp_inject_ = std::chrono::steady_clock::now();
+            tp_inject_ = std::chrono::system_clock::now();
         }
 
         template<typename Rep, typename Period> Rep uptime() const {
-            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::steady_clock::now() - tp_uptime_ ).count();
+            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_uptime_ ).count();
         }
 
         template<typename Rep, typename Period> Rep timeSinceInject() const {
-            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::steady_clock::now() - tp_inject_ ).count();
+            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_inject_ ).count();
         }
     };
     
@@ -305,7 +305,7 @@ task::impl::worker_thread()
             auto& status = data_status_[ u5303a_observer ];
             
             status.plot_ready_ = false;
-            status.tp_plot_handled_ = std::chrono::steady_clock::now();
+            status.tp_plot_handled_ = std::chrono::system_clock::now();
 
             int channel = 0;
             // std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
@@ -328,7 +328,7 @@ task::impl::worker_thread()
 
         if ( data_status_[ u5303a_observer ].data_ready_ ) {        
             data_status_[ u5303a_observer ].data_ready_ = false;
-            data_status_[ u5303a_observer ].tp_data_handled_ = std::chrono::steady_clock::now();
+            data_status_[ u5303a_observer ].tp_data_handled_ = std::chrono::system_clock::now();
             io_service_.post( strand_.wrap( [&]() { document::instance()->commitData(); } ) );
         }
 
@@ -355,7 +355,7 @@ task::impl::worker_thread()
                 adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
                 document::instance()->setData( histogram_observer, ms, 0 );
             }
-            status.tp_plot_handled_ = std::chrono::steady_clock::now();
+            status.tp_plot_handled_ = std::chrono::system_clock::now();
         }
 
     } while ( true );
@@ -409,7 +409,7 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
 
         auto threshold_results = document::instance()->tdc()->processThreshold2( waveforms );
 
-        const auto tp = std::chrono::steady_clock::now();
+        const auto tp = std::chrono::system_clock::now();
         
         if ( threshold_results[0] || threshold_results[1] ) {
 

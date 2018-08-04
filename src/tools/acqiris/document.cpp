@@ -134,12 +134,12 @@ document::push( std::shared_ptr< acqrscontrols::aqdrv4::waveform > d )
     
     que_.emplace_back( d ); // push should be called in strand so that no race should be exist
 
-    static auto tp_data_handled = std::chrono::steady_clock::now();
-    static auto tp_rate_handled = std::chrono::steady_clock::now();
+    static auto tp_data_handled = std::chrono::system_clock::now();
+    static auto tp_rate_handled = std::chrono::system_clock::now();
 
     using namespace std::chrono_literals;
 
-    auto tp = std::chrono::steady_clock::now();
+    auto tp = std::chrono::system_clock::now();
     if ( ( tp - tp_data_handled ) > 200ms ) {
         emit updateData();
         tp_data_handled = tp;

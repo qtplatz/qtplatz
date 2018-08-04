@@ -43,7 +43,7 @@ udpEventSender::udpEventSender( boost::asio::io_service& io, const char * host, 
 bool
 udpEventSender::send_to( const std::string& data, std::function< void( result_code, double, const char *) > callback )
 {
-    auto tp = std::chrono::steady_clock::now();
+    auto tp = std::chrono::system_clock::now();
 
     sock_.send_to( boost::asio::buffer( data.c_str(), data.size() ), endpoint_ );
 
@@ -77,7 +77,7 @@ udpEventSender::send_to( const std::string& data, std::function< void( result_co
 
     cv_.wait( lock );
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tp).count();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - tp).count();
     double elapsed_time = duration * 1.0e-6; // to seconds
 
     if ( transferred == 0 ) { // timed out

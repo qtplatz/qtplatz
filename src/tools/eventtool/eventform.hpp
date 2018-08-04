@@ -54,7 +54,7 @@ namespace eventtool {
         QString host_;
         QString port_;
         short recvPort_;
-        std::chrono::steady_clock::time_point last_inject_;
+        std::chrono::system_clock::time_point last_inject_;
     };
 }
 

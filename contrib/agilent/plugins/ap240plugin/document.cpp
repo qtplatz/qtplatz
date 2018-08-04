@@ -130,7 +130,7 @@ namespace ap240 {
         adportable::semaphore sema_;
         bool worker_stop_;
         std::chrono::microseconds round_trip_;
-        std::chrono::steady_clock::time_point time_handled_;
+        std::chrono::system_clock::time_point time_handled_;
         std::vector< std::thread > threads_;
         std::mutex que_mutex_;
         
@@ -163,7 +163,7 @@ namespace ap240 {
         inline void waveform_drawn() {
             if ( postCount_ ) {
                 --postCount_;
-                round_trip_ = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::steady_clock::now() - time_handled_ );
+                round_trip_ = std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::system_clock::now() - time_handled_ );
             }
         }
 
@@ -314,7 +314,7 @@ namespace ap240 {
                 if ( worker_stop_ )
                     return;
 
-                auto tp = std::chrono::steady_clock::now();
+                auto tp = std::chrono::system_clock::now();
 
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ) > cycleTime ) {
 

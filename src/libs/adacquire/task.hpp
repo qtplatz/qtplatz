@@ -66,7 +66,7 @@ namespace adacquire {
         typedef void( periodic_timer_t )( double elapsed_time );
         typedef std::function< periodic_timer_t > signal_periodic_timer_t;
 
-        typedef std::chrono::steady_clock this_clock_t;
+        typedef std::chrono::system_clock this_clock_t;
 
         typedef boost::signals2::signal< void( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents >
                                                , adcontrols::ControlMethod::const_time_event_iterator 

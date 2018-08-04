@@ -293,7 +293,7 @@ task::currentState() const
 //////////////////////////////////////////////////
 
 task::impl::impl() : fsm_( this )
-                   , tp_uptime_( std::chrono::steady_clock::now() )
+                   , tp_uptime_( std::chrono::system_clock::now() )
                    , tp_inject_( tp_uptime_ )
                    , sequence_( new SampleSequence )
                    , masterObserver_( std::make_shared<MasterObserver>() )
@@ -363,7 +363,7 @@ task::impl::fsm_action_ready()
 void
 task::impl::fsm_action_inject()
 {
-    tp_inject_ = std::chrono::steady_clock::now();
+    tp_inject_ = std::chrono::system_clock::now();
     inject_triggered_ = true;
 
     signalFSMAction_( Instrument::fsmInject );
@@ -459,7 +459,7 @@ task::impl:: handle_timeout( const boost::system::error_code& ec )
 
         if ( inject_triggered_ ) {
 
-            auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::steady_clock::now() - tp_inject_ ).count();
+            auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now() - tp_inject_ ).count();
 			double elapsed_time = double(ns) * 1.0e-9; 
             
             signal_periodic_timer_( elapsed_time );

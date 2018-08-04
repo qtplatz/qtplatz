@@ -203,7 +203,7 @@ namespace u5303a {
     public:
         static document * instance_; // workaround
         static std::mutex mutex_;
-        static const std::chrono::steady_clock::time_point uptime_;
+        static const std::chrono::system_clock::time_point uptime_;
         static const uint64_t tp0_;
 
         std::shared_ptr< acqrscontrols::u5303a::tdcdoc > tdcdoc_;
@@ -301,7 +301,7 @@ namespace u5303a {
 
     std::mutex document::impl::mutex_;
     document * document::impl::instance_( 0 );
-    const std::chrono::steady_clock::time_point document::impl::uptime_ = std::chrono::steady_clock::now();
+    const std::chrono::system_clock::time_point document::impl::uptime_ = std::chrono::system_clock::now();
     const uint64_t document::impl::tp0_ =
         std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
 }

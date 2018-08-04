@@ -218,8 +218,8 @@ namespace adacquire {
 
             std::atomic< uint32_t > objId_;
             std::atomic< bool > isActive_;
-            std::chrono::steady_clock::time_point tp_origin_;
-            std::chrono::steady_clock::time_point tp_last_event_;
+            std::chrono::system_clock::time_point tp_origin_;
+            std::chrono::system_clock::time_point tp_last_event_;
             Description description_;
             std::vector< std::shared_ptr< Observer > > siblings_;
             std::mutex mutex_;

@@ -79,8 +79,8 @@ namespace ap240 {
         uint32_t proced_data_count_;
         std::atomic< bool > plot_ready_;
         std::atomic< bool > data_ready_;        
-        std::chrono::steady_clock::time_point tp_data_handled_;
-        std::chrono::steady_clock::time_point tp_plot_handled_;
+        std::chrono::system_clock::time_point tp_data_handled_;
+        std::chrono::system_clock::time_point tp_plot_handled_;
         data_status() : pos_( -1 ), pos_origin_( 0 ), device_version_( 0 ), posted_data_count_( 0 ), plot_ready_( false ), data_ready_( false ) {
         }
         data_status( const data_status& t ) : pos_( t.pos_ )
@@ -113,8 +113,8 @@ namespace ap240 {
         std::vector< std::thread > threads_;
         adportable::semaphore sema_;
         std::atomic< bool > worker_stopping_;
-        std::chrono::steady_clock::time_point tp_uptime_;
-        std::chrono::steady_clock::time_point tp_inject_;
+        std::chrono::system_clock::time_point tp_uptime_;
+        std::chrono::system_clock::time_point tp_inject_;
 
         std::map< boost::uuids::uuid, data_status > data_status_;
 
@@ -149,15 +149,15 @@ namespace ap240 {
         }
 
         void inject_triggered() {
-            tp_inject_ = std::chrono::steady_clock::now();
+            tp_inject_ = std::chrono::system_clock::now();
         }
 
         template<typename Rep, typename Period> Rep uptime() const {
-            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::steady_clock::now() - tp_uptime_ ).count();
+            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_uptime_ ).count();
         }
 
         template<typename Rep, typename Period> Rep timeSinceInject() const {
-            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::steady_clock::now() - tp_inject_ ).count();
+            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_inject_ ).count();
         }
     };
 
@@ -279,7 +279,7 @@ task::impl::worker_thread()
         if ( status.plot_ready_ ) {
 
             status.plot_ready_ = false;
-            status.tp_plot_handled_ = std::chrono::steady_clock::now();
+            status.tp_plot_handled_ = std::chrono::system_clock::now();
 
             int channel = 0;
             std::array< std::shared_ptr< acqrscontrols::ap240_threshold_result >, 2 > threshold_results;
@@ -306,7 +306,7 @@ task::impl::worker_thread()
 
         if ( status.data_ready_ ) {
             status.data_ready_ = false;
-            status.tp_data_handled_ = std::chrono::steady_clock::now();
+            status.tp_data_handled_ = std::chrono::system_clock::now();
             document::instance()->commitData();
         }
 
@@ -372,7 +372,7 @@ task::impl::handle_ap240_average( const data_status status, std::array< threshol
         
     } while( 0 ) ;
     
-    auto tp = std::chrono::steady_clock::now();
+    auto tp = std::chrono::system_clock::now();
 
     if ( std::chrono::duration_cast<std::chrono::milliseconds> ( tp - status.tp_plot_handled_ ).count() >= 200 ) {
 

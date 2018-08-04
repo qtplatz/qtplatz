@@ -49,7 +49,7 @@ namespace adacquire {
         time_event_processor& operator = ( const time_event_processor& ) = delete;        
 
     public:
-        typedef std::chrono::steady_clock this_clock;
+        typedef std::chrono::system_clock this_clock;
 
         time_event_processor();
         ~time_event_processor();
