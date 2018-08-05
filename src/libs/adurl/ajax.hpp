@@ -48,7 +48,8 @@ namespace adurl {
         bool operator()( const std::string& method, const std::string& url, const std::string& body, const std::string& mimeType = "application/json" );
 
         bool get_response( boost::property_tree::ptree& ) const;
-        std::string response( bool pretty_print = true ) const;
+        const char * get_response( size_t& ) const;
+        const char * response() const;
         std::string response_header() const;
         
         unsigned int status_code() const;

@@ -48,52 +48,59 @@ dgProtocolForm::dgProtocolForm( QWidget * parent ) : QWidget( parent )
 
     resize( 100, 200 );
 
+    QStringList list;
+    list << "CH.1" << "CH.2" << "CH.3" << "CH.4" << "CH.5" << "CH.6" << "CH.7";
+
     if ( auto layout = new QVBoxLayout( this ) ) {
 
         if ( auto table = qtwrapper::make_widget< adwidgets::TableView >("protocol") ) {
 
+            table->verticalHeader()->setFixedWidth( 24 * 4 );
+            
             table->setModel( new QStandardItemModel() );
             table->setHorizontalHeader( new adwidgets::HtmlHeaderView() );
             layout->addWidget( table );
-            
+
             if ( auto model = qobject_cast< QStandardItemModel *>(table->model()) ) {
-            	model->setRowCount( adio::dg::delay_pulse_count + 1 ); // +1 for replicates
             	model->setColumnCount(2);
             	model->setHeaderData( 0, Qt::Horizontal, tr("Delay(&mu;s)"));
             	model->setHeaderData( 1, Qt::Horizontal, tr("Width(&mu;s)"));
-            	int row = 0;
-            	for ( auto& label: { tr("PUSH")
-                            , tr("INJECT(us)")
-                            , tr("EXIT")
-                            , tr("GATE")
-                            , tr("GATE")
-                            , tr("ADC")
-                            , tr("Replicates(N)") } ) {
-            		model->setHeaderData( row++, Qt::Vertical, label );
-            	}
             }
-            
+            setVerticalHeader( list );
         }
     }
 }
 
-// void
-// dgProtocolForm::setProtocol( const adio::dg::protocol< adio::dg::delay_pulse_count >& p )
-// {
-//     size_t rep = p.replicates();
-//     if ( auto table = findChild< QTableView * >() ) {
-//         if ( auto model = table->model() ) {
+void
+dgProtocolForm::setProtocol( size_t replicates, const std::vector< std::pair< double, double > >& pulses )
+{
+     if ( auto table = findChild< QTableView * >() ) {
+         if ( auto model = table->model() ) {
+             int row = 0;
+             for ( auto& pulse: pulses ) {
+                 model->setData( model->index( row, 0 ), (pulse.first * 1.0e6), Qt::EditRole );
+                 model->setData( model->index( row, 1 ), (pulse.second * 1.0e6), Qt::EditRole );
+                 ++row;
+             }
+             model->setData( model->index( row, 0 ), int(replicates), Qt::EditRole );
+         }
+         table->resizeColumnsToContents();
+         table->resizeRowsToContents();
+     }
 
-//             int row = 0;
-//             for ( auto& pulse: p.pulses() ) {
-//                 model->setData( model->index( row, 0 ), (pulse.first * 1.0e6), Qt::EditRole );
-//                 model->setData( model->index( row, 1 ), (pulse.second * 1.0e6), Qt::EditRole );
-//                 ++row;
-//             }
-//             model->setData( model->index( row, 0 ), int(rep), Qt::EditRole );
-//         }
-//         table->resizeColumnsToContents();
-//         table->resizeRowsToContents();
-//     }
+}
 
-// }
+void
+dgProtocolForm::setVerticalHeader( const QStringList& list )
+{
+    vHeader_ = list;
+    if ( auto table = findChild< adwidgets::TableView * >("protocol") ) {
+        if ( auto model = qobject_cast< QStandardItemModel * >( table->model() ) ) {
+            model->setRowCount( vHeader_.count() + 1 ); // +1 for replicates
+            int row = 0;
+            for ( auto& label: vHeader_ )
+                model->setHeaderData( row++, Qt::Vertical, label );
+            model->setHeaderData( vHeader_.count(), Qt::Vertical, tr( "Replicates(N)" ) );
+        }
+    }
+}

@@ -60,7 +60,9 @@ namespace adwidgets {
         void setURL( const QString& );
     public slots:
         void handleJson( const QJsonDocument& );
-        void handleSSE( const QByteArray );
+
+        void handleTick( const QByteArray );
+        void handleDelayPulseData( const QByteArray );
 
     signals:
         void hostChanged( const QString&, const QString& );

@@ -36,14 +36,16 @@ namespace adwidgets {
     public:
         explicit dgProtocolForm(QWidget *parent = 0);
         ~dgProtocolForm();
-        //void setProtocol( const adio::dg::protocol<adio::dg::delay_pulse_count>& );
+
+        void setProtocol( size_t replicates, const std::vector< std::pair< double, double > >& );
+        void setVerticalHeader( const QStringList& );
         
     signals:
 
     private slots:
         
     private:
-
+        QStringList vHeader_;
     };
 
 }

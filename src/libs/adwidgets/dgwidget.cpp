@@ -192,58 +192,61 @@ dgWidget::sizeHint() const
 void
 dgWidget::handleJson( const QJsonDocument& jdoc )
 {
-    if ( jdoc.isNull() ) {
-        return;
-    }
-    auto jobj = jdoc.object();
-    auto tick = jobj["tick"].toObject();
-    auto data = tick["data"].toString();
-    if ( !data.isNull() )
-        ADDEBUG() << data.toStdString();
-    //qDebug() << tick;
-#if 0    
-    auto adc = tick["adc"].toObject();
-    auto nacc = adc["nacc"].toString().toLong();
-    auto tp   = adc["tp"].toString().toLongLong();
-    auto advalues = adc["values"].toArray();
-    double adc_x = ( advalues[0].toDouble() - 1.250 ) * 2;
-    double adc_y = ( advalues[1].toDouble() - 1.250 ) * 2;
-    ADDEBUG() << "nacc=" << nacc << ", tp=" << tp << " adc_x=" << adc_x << " y=" << adc_y;
-#endif
 }
 
 void
-dgWidget::handleSSE( const QByteArray data )
+dgWidget::handleTick( const QByteArray data )
 {
-    //auto tp0 = std::chrono::steady_clock::now();
+    if ( data.size() ) {
+        if ( auto w = findChild< QLineEdit * >( "eventText" ) )
+            w->setText( QString::fromLatin1( data.data() ) );
+    }
+}
+
+void
+dgWidget::handleDelayPulseData( const QByteArray data )
+{
     auto jdoc = QJsonDocument::fromJson( data );
-    if ( jdoc.isNull() ) {
-        if ( data.size() ) {
-            if ( auto w = findChild< QLineEdit * >( "eventText" ) )
-                w->setText( QString::fromLatin1( data.data() ) );
-        }
-        //ADDEBUG() << "Empty json, " << data.size() << "\n" << data.constData();
+    if ( jdoc.isNull() )
         return;
+
+    auto jobj = jdoc.object();
+    auto top = jobj[ "protocols" ].toObject();
+
+    typedef std::vector< std::pair< double, double > > protocol_type;
+    std::vector< protocol_type > protocol_vector;
+
+    auto interval = top[ "interval" ].toString().toLong();
+    if ( auto w = findChild< QDoubleSpinBox * >( "interval" ) )
+        w->setValue( double(interval) / 1000.0 );  // us -> ms
+
+    if ( auto tab = findChild< QTabWidget * >() ) {
+        
+        auto protocols = top[ "protocol" ].toArray();
+
+        while ( tab->count() > protocols.count() )
+            tab->removeTab( tab->count() - 1 );
+
+        while ( tab->count() < protocols.count() )
+            tab->addTab( new dgProtocolForm(), QString( "Proto %1" ).arg( QString::number( tab->count() + 1 ) ) );
+
+        size_t idx(0);
+        for ( const auto& proto: protocols ) {
+            auto obj = proto.toObject();
+            size_t index = obj[ "index" ].toString().toUInt();
+            size_t replicates = obj[ "replicates" ].toString().toUInt();
+            std::vector< std::pair< double, double > > values;
+            for ( const auto& pulse_ref: obj[ "pulses" ].toArray() ) {
+                auto pulse = pulse_ref.toObject();
+                values.emplace_back( pulse[ "delay" ].toString().toDouble() * 1.0e-6
+                                     , pulse[ "width" ].toString().toDouble() * 1.0e-6 );
+                // ADDEBUG() << values.back();
+            }
+
+            if ( auto form = qobject_cast< dgProtocolForm * >( tab->widget( idx++ ) ) )
+                form->setProtocol( replicates, values );
+        }
     }
-    
-#if 0
-    auto dur0 = std::chrono::steady_clock::now() - tp0;
-    //std::istringstream in( data.constData() );
-    boost::iostreams::basic_array_source< char > device( data.constData(), data.size() );
-    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
-    try {
-        auto tp1 = std::chrono::steady_clock::now();
-        boost::property_tree::ptree pt;
-        boost::property_tree::read_json( in, pt );
-        auto dur1 = std::chrono::steady_clock::now() - tp1;
-        //ADDEBUG() << pt;
-        ADDEBUG() << std::chrono::nanoseconds( dur0 ).count()
-                  << ", " << std::chrono::nanoseconds( dur1 ).count()
-                  << " delta=" << double( std::chrono::nanoseconds( dur1 - dur0 ).count() ) / 1000 << "us";
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << ex.what();
-    }
-#endif
 }
 
 void

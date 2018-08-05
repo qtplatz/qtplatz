@@ -27,15 +27,18 @@
 #include "client.hpp"
 #include "request.hpp"
 #include <string>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <adportable/debug.hpp>
 
 #if 0 // todo
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/qi.hpp>
+
 namespace adurl {
 
     namespace qi = boost::spirit::qi;
@@ -140,10 +143,10 @@ ajax::operator()( const std::string& method
         response_ = std::move( client.response_ );
 
     if ( adurl::client::debug_mode() ) {
-        std::cerr << "-----------------------------------" << std::endl;
-        std::cerr << &client.response_header();
-        std::cerr << "status_code: " << status_code_ << ", " << status_message_ << std::endl;
-        std::cerr << "-----------------------------------" << std::endl;
+        ADDEBUG() << "\n-----------------------------------"
+                  << "\n" << &client.response_header()
+                  << "\nstatus_code: " << status_code_ << ", " << status_message_
+                  << "\n-----------------------------------";
     }
 
     return client.error() == adurl::client::NoError && client.status_code() == 200;
@@ -181,12 +184,11 @@ ajax::operator()( const std::string& method
         response_ = std::move( client.response_ );
 
     if ( adurl::client::debug_mode() ) {
-        std::cerr << "-----------------------------------" << std::endl;
-        std::cerr << &client.response_header();
-        std::cerr << "status_code: " << status_code_ << ", " << status_message_ << std::endl;
-        std::cerr << "-----------------------------------" << std::endl;
+        ADDEBUG() << "\n-----------------------------------"
+                  << "\n" << &client.response_header()
+                  << "\nstatus_code: " << status_code_ << ", " << status_message_
+                  << "\n-----------------------------------";
     }
-
     return client.error() == adurl::client::NoError && client.status_code() == 200;
 }
 
@@ -216,23 +218,22 @@ ajax::get_response( boost::property_tree::ptree& pt ) const
     return false;
 }
 
-std::string
-ajax::response( bool pretty_print ) const
+const char *
+ajax::get_response( size_t& size ) const
 {
     if ( status_code_ == 200 && response_ ) {
-        try {
-            boost::property_tree::ptree pt;
-            std::istream is( response_.get() );
-            boost::property_tree::read_json( is, pt );
-            std::string resp;
-            boost::iostreams::back_insert_device< std::string > inserter( resp );
-            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > out( inserter );
-            boost::property_tree::write_json( out, pt, pretty_print );
-            return resp;
-        } catch ( boost::property_tree::json_parser::json_parser_error& ) {
-        }
+        size = response_->size();
+        return boost::asio::buffer_cast< const char * >(response_->data());
     }
-    return std::string();
+    size = 0;
+    return nullptr;
+}
+
+const char *
+ajax::response() const
+{
+    size_t size;
+    return get_response( size );
 }
 
 std::string
