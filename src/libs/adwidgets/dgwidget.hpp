@@ -28,8 +28,13 @@
 #include "adwidgets_global.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <adplugin_manager/lifecycle.hpp>
+#include <memory>
+
+class QJsonDocument;
 
 namespace adwidgets {
+
+    class MouseEventFilter;
 
     class ADWIDGETSSHARED_EXPORT dgWidget : public QFrame
                                           , public adplugin::LifeCycle {
@@ -53,14 +58,15 @@ namespace adwidgets {
         QSize sizeHint() const override;
 
         void setURL( const QString& );
-        void setJsonObject( const QJsonObject& );
-        void setJsonObject( const QByteArray& );                                                
+    public slots:
+        void handleJson( const QJsonDocument& );
+        void handleSSE( const QByteArray );
 
-    private slots:
-        void handleReply( const QString&, const QString& );
-        void handleProtocols( const QByteArray& );
+    signals:
+        void hostChanged( const QString&, const QString& );
 
     private:
+        std::unique_ptr< MouseEventFilter > eventFilter_;
 
     };
 }

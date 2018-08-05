@@ -57,6 +57,8 @@ set( ${PROJECT_NAME}_SOURCES
   dgprotocolform.hpp
   filedialog.cpp
   findslopeform.cpp
+  hostaddrdialog.cpp
+  hostaddrdialog.hpp
   htmlheaderview.hpp
   insttreeview.cpp
   mslockdialog.cpp
