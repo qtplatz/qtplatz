@@ -135,6 +135,8 @@ if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 endif()
 
+find_package( json ) # nlohmann_json
+
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
 if ( WITH_QWT )
@@ -426,3 +428,4 @@ if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
   message( STATUS "################## WARNING ###################" )  
 endif()
 message( STATUS "---------- END SUMMARY ------------" )
+message( STATUS "nlohmann_json: " ${json} )

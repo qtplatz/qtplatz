@@ -62,6 +62,8 @@ list_dependency+=('libfreeimage-dev'
 		  'libglfw3-dev'
 		  'libfontconfig1-dev' )
 
+list_dependency+=('nlohmann-json-dev')
+
 #sudo apt update
 
 for arg in "${list_dependency[@]}"; do
