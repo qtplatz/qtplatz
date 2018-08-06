@@ -1,0 +1,270 @@
+{
+    "tick": {
+        "tick": "221380",
+        "time": "57052",
+        "nsec": "178488464",
+        "hv": {
+            "values": [
+                {
+                    "id": "0",
+                    "name": "aux1",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "4095",
+                    "unit": ""
+                },
+                {
+                    "id": "1",
+                    "name": "Vdet",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "5000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "2",
+                    "name": "Vext.in",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "3",
+                    "name": "Vext.out",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "4",
+                    "name": "Vgate.in",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "1000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "5",
+                    "name": "Vgate.out",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "1000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "6",
+                    "name": "Vtn.in",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "7",
+                    "name": "Vtn.out",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "8",
+                    "name": "Vmatsuda",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "9",
+                    "name": "Vinj.in",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "10",
+                    "name": "Vinj.out",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "11",
+                    "name": "Veinzel",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "5000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "12",
+                    "name": "Vacc",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "5000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "13",
+                    "name": "Theat50",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "500.0",
+                    "unit": "degC"
+                },
+                {
+                    "id": "14",
+                    "name": "Theat100",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "500.0",
+                    "unit": "degC"
+                },
+                {
+                    "id": "15",
+                    "name": "pump\/valve",
+                    "sn": "77",
+                    "set": "159",
+                    "act": "4095",
+                    "unit": ""
+                },
+                {
+                    "id": "16",
+                    "name": "aux2",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "4095",
+                    "unit": ""
+                },
+                {
+                    "id": "17",
+                    "name": "Vpush",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "2000.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "18",
+                    "name": "Iion",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "500.0",
+                    "unit": "uA"
+                },
+                {
+                    "id": "19",
+                    "name": "Vion",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "100.0",
+                    "unit": "V"
+                },
+                {
+                    "id": "20",
+                    "name": "Ifil",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "5000.0",
+                    "unit": "mA"
+                },
+                {
+                    "id": "21",
+                    "name": "Theat20",
+                    "sn": "77",
+                    "set": "0.0",
+                    "act": "500.0",
+                    "unit": "degC"
+                },
+                {
+                    "id": "22",
+                    "name": "Vtrp",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "16.4",
+                    "unit": "V"
+                },
+                {
+                    "id": "23",
+                    "name": "DFP.IS",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "5000.0",
+                    "unit": "mA"
+                },
+                {
+                    "id": "24",
+                    "name": "DFP.Analyzer",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "5000.0",
+                    "unit": "mA"
+                },
+                {
+                    "id": "25",
+                    "name": "Guage",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "10.2",
+                    "unit": "V"
+                },
+                {
+                    "id": "26",
+                    "name": "PStemp",
+                    "sn": "77",
+                    "set": "n\/a",
+                    "act": "81.9",
+                    "unit": "degC"
+                },
+                {
+                    "id": "27",
+                    "name": "states",
+                    "sn": "77",
+                    "set": "n\/a",
+                    "act": "4095",
+                    "unit": ""
+                },
+                {
+                    "id": "30",
+                    "name": "Rev.FPGA",
+                    "sn": "77",
+                    "set": "n\/a",
+                    "act": "4095",
+                    "unit": ""
+                },
+                {
+                    "id": "31",
+                    "name": "Rev.CPLD",
+                    "sn": "77",
+                    "set": "0",
+                    "act": "4095",
+                    "unit": ""
+                }
+            ]
+        },
+        "alarms": {
+            "alarm": {
+                "text": "<b>IS:<\/b> VAC[<font color='blue'>RDY<\/font>] TMP[<font color='blue'>ON<\/font>] DFP[<font color='blue'>ON<\/font>] ST[15] <b>Analyzer:<\/b> VAC[<font color='blue'>RDY<\/font>] TMP[<font color='blue'>ON<\/font>] DFP[<font color='blue'>ON<\/font>] ST[0xf] <b>ALARM<\/b>[111111111111, 11111111] DOOR[<font color='red'>OPEN<\/font>] GAUGE[<font color='blue'>ON<\/font>] VENT.V[<font color='red'>OPEN<\/font>] REF.V[<font color='red'>OPEN<\/font>] SAMP.V[<font color='red'>OPEN<\/font>] ISO.V[<font color='red'>OPEN<\/font>]"
+            }
+        },
+        "adc": {
+            "tp": "2852521369637",
+            "nacc": "32",
+            "values": [
+                "1.6785937500000001",
+                "1.9412812500000001",
+                "1.67103125",
+                "1.9486874999999999",
+                "1.6659999999999999",
+                "1.9529687499999999",
+                "1.6696875",
+                "1.88803125"
+            ]
+        }
+    }
+}
