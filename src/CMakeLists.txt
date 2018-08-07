@@ -16,7 +16,7 @@ configure_file(
 
 add_subdirectory( libs )
 
-if ( WITH_QT5 )
+if ( WITH_QT5 AND NOT CMAKE_CROSSCOMPILING )
   # message( STATUS "------------ src/adplugins ----------------" )
   add_subdirectory( adplugins )
   # message( STATUS "------------ src/app ----------------------" )

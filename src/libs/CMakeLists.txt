@@ -25,7 +25,7 @@ if ( OpenCV_FOUND OR ArrayFire_FOUND )
   add_subdirectory ( advision )
 endif()
 
-if ( NOT QTPLATZ_CORELIB_ONLY AND Qt5_FOUND )
+if ( NOT CMAKE_CROSSCOMPILING AND Qt5_FOUND )
 
   add_subdirectory (adextension)
   add_subdirectory (adprocessor)

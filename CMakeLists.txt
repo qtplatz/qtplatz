@@ -23,6 +23,9 @@ option( WITH_QT5           "Include QT5"                ON )
 option( WITH_QWT           "Include QWT"                ON )
 option( WITH_AqDrv4        "Keysight AP240/DC122"       ON )
 option( WITH_AgMD2         "Keysight U5303A"            ON )
+
+message( STATUS "####################### WITH QT5? " ${WITH_QT5} )
+
 if ( CMAKE_CROSSCOMPILING )
   option( WITH_CUDA          "CUDA"                     OFF )
 else()
@@ -33,10 +36,12 @@ option( WITH_ARRAYFIRE     "ArrayFire"                  OFF )
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
 
+message( STATUS "####################### WITH QT5? " ${WITH_QT5} )
+
 if ( WITH_QT5 )
   if ( QTDIR STREQUAL "" AND DEFINED $ENV{QTDIR} )
     set( QTDIR $ENV{QTDIR} )
-  endif()    
+  endif()
 endif()
 
 include (qtplatz.cmake)
@@ -132,10 +137,8 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   )
 
 if ( Boost_FOUND )
-  include_directories( ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
+  include_directories( ${Boost_INCLUDE_DIRS} )
 endif()
-
-find_package( json ) # nlohmann_json
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
 
@@ -289,11 +292,12 @@ endif()
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
+message( STATUS "======== QMAKE; " ${QMAKE} )
+
 include (config_qtplatz_config)
 
-config_qtplatz_config( "TRUE" )
-config_qtplatz_config( "FALSE" )
-
+config_qtplatz_config( "TRUE" )   # installed 
+config_qtplatz_config( "FALSE" )  # in source tree
 install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
 configure_file(
@@ -428,4 +432,3 @@ if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
   message( STATUS "################## WARNING ###################" )  
 endif()
 message( STATUS "---------- END SUMMARY ------------" )
-message( STATUS "nlohmann_json: " ${json} )

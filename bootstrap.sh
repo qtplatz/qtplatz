@@ -92,16 +92,18 @@ if [ $build_clean = true ]; then
     exit
 fi
 
-if [ -z "$QTDIR" ]; then
-    if find_qmake QMAKE; then
-	QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
-	echo "$0: qmake found in "$QTDIR " (qmake="${QMAKE}")"
-	prompt
-	export PATH=$QTDIR/bin:$PATH
-    else
-	echo "$0: ## Error: QMAKE cannot be found"
-	exit 1
-    fi
+if [ -z "$cross_target" ]; then
+	if [ -z "$QTDIR" ]; then
+		if find_qmake QMAKE; then
+			QTDIR=$($QMAKE -query QT_HOST_PREFIX); export QTDIR
+			echo "$0: qmake found in "$QTDIR " (qmake="${QMAKE}")"
+			prompt
+			export PATH=$QTDIR/bin:$PATH
+		else
+			echo "$0: ## Error: QMAKE cannot be found"
+			exit 1
+		fi
+	fi
 fi
 
 echo "build_dirs: ${build_dirs[*]}"
@@ -134,7 +136,7 @@ for build_dir in ${build_dirs[@]}; do
 	    armhf|armv7l|arm-linux-gnueabihf|de0-nano-soc|helio)
 		toolchain_file=$cwd/toolchain-arm-linux-gnueabihf.cmake
 		cmake -DCMAKE_TOOLCHAIN_FILE=$toolchain_file \
-		      -DQTPLATZ_CORELIB_ONLY=ON -DWITH_QT5=OFF -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir
+		      -DWITH_QWT=OFF -DWITH_OPENCV=OFF -DWITH_RDKIT=OFF $source_dir
 		echo cp $toolchain_file $build_dir/toolchain.cmake
 		cp $toolchain_file toolchain.cmake 
 		;;
