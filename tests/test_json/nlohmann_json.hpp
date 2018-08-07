@@ -25,7 +25,7 @@
 #pragma once
 
 #include <memory>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 struct data;
 

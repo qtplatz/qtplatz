@@ -24,9 +24,6 @@
 
 #include "nlohmann_json.hpp"
 #include "data.hpp"
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QByteArray>
 #include <iostream>
 #include <sstream>
 
