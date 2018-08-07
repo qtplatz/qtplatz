@@ -37,12 +37,14 @@ namespace tick {
             double set;
             double act;
             std::string unit;
+            value() : id(0), sn(0), name(""), set(0), act(0), unit("") {}
         };
     }
     struct adc {
         uint64_t tp;
         uint32_t nacc;
         std::vector< double > values;
+        adc() : tp(0), nacc(0), values(0) {}
     };
 }
 
@@ -54,5 +56,6 @@ public:
     std::vector< tick::hv::value > values;
     std::string alarm;
     tick::adc adc;
+    data() : tick(0), time(0), nsec(0),values(0), alarm("") {}
 };
 

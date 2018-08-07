@@ -32,100 +32,72 @@
 #include <iostream>
 #include <fstream>
 
-void
-load_data( std::string& data )
+std::string
+load_data()
 {
     std::ifstream inf( DATAFILE );
-    data = std::string((std::istreambuf_iterator<char>(inf)),  (std::istreambuf_iterator<char>()));    
+    return std::string((std::istreambuf_iterator<char>(inf)),  (std::istreambuf_iterator<char>()));    
 }
+
+template< typename T >
+struct json_parser {
+    double static parse( data& data, const std::string& json_string ) {
+        T parser;
+        auto tp0 = std::chrono::steady_clock::now();
+        if ( parser.parse( json_string ) ) {
+            double dur = double( std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count() ) / 1e3;
+            parser.map( data );
+            return dur;
+        }
+        return 0;
+    }
+    
+    // json write ( c++ class -> json.stringify )
+    double static json_write( const data& data )  {
+        auto tp0 = std::chrono::steady_clock::now();
+        auto json = T::make_json( data );
+        return double( std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count() ) / 1e3;
+    }
+    
+    // json read ( json string -> c++ class )
+    double static json_read( data& data, const std::string& json_string ) {
+        T parser;
+        auto tp0 = std::chrono::steady_clock::now();
+        if ( parser.parse( json_string ) ) {
+            parser.map( data );
+            return double( std::chrono::nanoseconds( std::chrono::steady_clock::now() - tp0 ).count() ) / 1e3;
+        }
+        return 0;
+    }
+    
+};
+
+data __data;
 
 int
 main()
 {
-    std::string json_string;
-    load_data( json_string );
+    const std::string json_string = load_data();
 
     std::ofstream null( "/dev/null" );
     
-    std::vector< double > durations;
-    {  //  boost --
-        typedef boost_json json_parser;
+    std::array< double, 4 > durations = { 0 };
 
-        json_parser parser;
-        std::string json_readback, json_stringify;
-        data data;
-
-        auto tp0 = std::chrono::steady_clock::now();
-        if ( parser.parse( json_string ) ) {
-            json_stringify = parser.stringify();
-            parser.map( data );
-            json_readback = parser.make_json( data );
-        }
-        auto tp = std::chrono::steady_clock::now();
-        durations.emplace_back( double( std::chrono::nanoseconds( tp - tp0 ).count() ) / 1e3 );
-        null << "stringify: " << json_stringify << std::endl;
-        null << "readback: " << json_readback << std::endl;
-    }
-    
-    {  // Qt
-        typedef qt5_json json_parser;
-        json_parser parser;
-        std::string json_readback, json_stringify;
-        data data;
-        
-        auto tp0 = std::chrono::steady_clock::now();
-        if ( parser.parse( json_string ) )  {
-            json_stringify = parser.stringify();
-            parser.map( data );
-            json_readback = parser.make_json( data );
-        }
-        auto tp = std::chrono::steady_clock::now();
-        durations.emplace_back( double( std::chrono::nanoseconds( tp - tp0 ).count() ) / 1e3 );
-        null << "stringify: " << json_stringify << std::endl;
-        null << "readback: " << json_readback << std::endl;
+    for ( size_t i = 0; i < 100; ++i ) {
+        __data = data();
+        durations[ 0 ] += json_parser< boost_json >::parse( __data, json_string );
+        __data = data();
+        durations[ 1 ] += json_parser< qt5_json >::parse( __data, json_string );
+        __data = data();
+        durations[ 2 ] += json_parser< nlohmann_json >::parse( __data, json_string );
+        __data = data();
+        durations[ 3 ] += json_parser< rapidjson_json >::parse( __data, json_string );
     }
 
-    { // nlohmann
-        typedef nlohmann_json json_parser;
-        
-        json_parser parser;
-        std::string json_readback, json_stringify;
-        data data;
-        auto tp0 = std::chrono::steady_clock::now();
+    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
 
-        if ( parser.parse( json_string ) )  {
-            json_stringify = parser.stringify();
-            parser.map( data );
-            json_readback = parser.make_json( data );
-        }
-
-        auto tp = std::chrono::steady_clock::now();
-        durations.emplace_back( double( std::chrono::nanoseconds( tp - tp0 ).count() ) / 1000.0 );
-        null << "stringify: " << json_stringify << std::endl;
-        null << "readback: " << json_readback << std::endl;
-        // std::cout << boost_json::make_json( data );
-    }
-    
-    { // RapidJSON
-        typedef rapidjson_json json_parser;
-
-        json_parser parser;
-        std::string json_readback, json_stringify;
-        data data;
-        
-        auto tp0 = std::chrono::steady_clock::now();
-
-        if ( parser.parse( json_string ) ) {
-            json_stringify = parser.stringify();
-        }
-
-        auto tp = std::chrono::steady_clock::now();
-        durations.emplace_back( double( std::chrono::nanoseconds( tp - tp0 ).count() ) / 1000.0 );
-        null << "stringify: " << json_stringify << std::endl;
-        null << "readback: " << json_readback << std::endl;                
-    }
-
-    std::cout << "Boost,Qt,nlohmann,Rapid\t"
+    std::cout << "\t\tboost\t\tQt\t\tnlohman\t\trapidjson\t|\tboost\t\tQt\t\tnlohman\t\trapidjson\n"
+              << "read/write\t"
               << boost::format( "%8.3f" ) % durations[ 0 ]
               << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
               << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
@@ -135,4 +107,50 @@ main()
               << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[3])
               << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[3])
               << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[3]) << std::endl;
+
+    json_parser< boost_json >::parse( __data, json_string );
+
+    std::fill( durations.begin(), durations.end(), 0 );
+
+    for ( size_t i = 0; i < 100; ++i ) {
+        durations[ 0 ] += json_parser< boost_json >::json_write( __data );
+        durations[ 1 ] += json_parser< qt5_json >::json_write( __data );
+        durations[ 2 ] += json_parser< nlohmann_json >::json_write( __data );
+        durations[ 3 ] += json_parser< rapidjson_json >::json_write( __data );
+    }
+
+    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
+    std::cout << "json_write\t"
+              << boost::format( "%8.3f" ) % durations[ 0 ]
+              << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
+              << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
+              << "\t " << boost::format( "%8.3f" ) % durations[ 3 ]
+              << "\t|"
+              << "\t" << boost::format( "%8.3f" ) % (durations[0]/durations[3])
+              << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[3])
+              << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[3])
+              << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[3]) << std::endl;
+
+    std::fill( durations.begin(), durations.end(), 0 );
+
+    for ( size_t i = 0; i < 100; ++i ) {
+        durations[ 0 ] += json_parser< boost_json >::json_read( __data, json_string );
+        durations[ 1 ] += json_parser< qt5_json >::json_read( __data, json_string );
+        durations[ 2 ] += json_parser< nlohmann_json >::json_read( __data, json_string );
+        durations[ 3 ] += json_parser< rapidjson_json >::json_read( __data, json_string );
+    }
+
+    std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
+        
+    std::cout << "json_read\t"
+              << boost::format( "%8.3f" ) % durations[ 0 ]
+              << "\t " << boost::format( "%8.3f" ) % durations[ 1 ]
+              << "\t " << boost::format( "%8.3f" ) % durations[ 2 ]
+              << "\t " << boost::format( "%8.3f" ) % durations[ 3 ]
+              << "\t|"
+              << "\t" << boost::format( "%8.3f" ) % (durations[0]/durations[3])
+              << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[3])
+              << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[3])
+              << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[3]) << std::endl;
+    
 }

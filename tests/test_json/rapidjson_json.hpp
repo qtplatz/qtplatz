@@ -40,5 +40,7 @@ public:
     static std::string make_json( const data& );
     
     std::unique_ptr< rapidjson::Document > doc;
+
+    static std::string stringify( const rapidjson::Document& );
 };
 

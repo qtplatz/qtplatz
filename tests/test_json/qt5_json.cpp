@@ -55,15 +55,16 @@ qt5_json::stringify() const
 bool
 qt5_json::map( data& d )
 {
-    auto jobj = doc->object();
-    auto top = jobj[ "tick" ].toObject();
+    const auto& jobj = doc->object();
+    const auto& top = jobj[ "tick" ].toObject();
+    
     d.tick = top[ "tick" ].toString().toLong();
     d.time = top[ "time" ].toString().toULongLong();
     d.nsec = top[ "nsec" ].toString().toULong();
 
-    auto hv = top[ "hv" ].toObject();
+    const auto& hv = top[ "hv" ].toObject();
     {
-        auto values = hv[ "values" ].toArray();
+        const auto& values = hv[ "values" ].toArray();
         for ( const auto& value: values ) {
             auto obj = value.toObject();
             tick::hv::value x;
@@ -79,11 +80,11 @@ qt5_json::map( data& d )
 
     d.alarm = top["alarms"].toObject()["alarm"].toObject()["text"].toString().toStdString();
     
-    auto adc = top["adc"].toObject();
+    const auto& adc = top["adc"].toObject();
     d.adc.tp = adc["tp"].toString().toULongLong();
     d.adc.nacc = adc["nacc"].toString().toInt();
     {
-        auto values = adc["values"].toArray();
+        const auto& values = adc["values"].toArray();
         for ( const auto& value: values ) {
             d.adc.values.emplace_back( value.toString().toDouble() );
         }
@@ -95,9 +96,9 @@ qt5_json::make_json( const data& d )
 {
     QJsonObject jobj, top;
  
-    top["tick"] = qint32( d.tick );
-    top["time"] = qint64( d.time );
-    top["nsec"] = qint32( d.nsec );
+    top["tick"] = std::to_string( d.tick ).c_str();
+    top["time"] = std::to_string( d.time ).c_str();
+    top["nsec"] = std::to_string( d.nsec ).c_str();
 
     { // hv
         QJsonArray values;
