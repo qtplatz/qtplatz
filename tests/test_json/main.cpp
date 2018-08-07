@@ -69,10 +69,17 @@ struct json_parser {
         }
         return 0;
     }
-    
-};
 
-data __data;
+    static std::string stringify( const data& data ) {
+        return T::make_json( data );
+    }
+
+    std::string stringify( const std::string& json_string ) {
+        T parser;
+        parser.parse( json_string );
+        return parser.stringify();
+    } 
+};
 
 int
 main()
@@ -84,14 +91,18 @@ main()
     std::array< double, 4 > durations = { 0 };
 
     for ( size_t i = 0; i < 100; ++i ) {
-        __data = data();
-        durations[ 0 ] += json_parser< boost_json >::parse( __data, json_string );
-        __data = data();
-        durations[ 1 ] += json_parser< qt5_json >::parse( __data, json_string );
-        __data = data();
-        durations[ 2 ] += json_parser< nlohmann_json >::parse( __data, json_string );
-        __data = data();
-        durations[ 3 ] += json_parser< rapidjson_json >::parse( __data, json_string );
+        {   data data;
+            durations[ 0 ] += json_parser< boost_json >::parse( data, json_string );
+        }
+        {   data data;        
+            durations[ 1 ] += json_parser< qt5_json >::parse( data, json_string );
+        }
+        {   data data;                
+            durations[ 2 ] += json_parser< nlohmann_json >::parse( data, json_string );
+        }
+        {   data data;                
+            durations[ 3 ] += json_parser< rapidjson_json >::parse( data, json_string );
+        }
     }
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
@@ -108,15 +119,17 @@ main()
               << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[3])
               << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[3]) << std::endl;
 
-    json_parser< boost_json >::parse( __data, json_string );
+    data global_data;
+    json_parser< boost_json >::parse( global_data, json_string );
 
     std::fill( durations.begin(), durations.end(), 0 );
 
+    // c++ -> json(string)
     for ( size_t i = 0; i < 100; ++i ) {
-        durations[ 0 ] += json_parser< boost_json >::json_write( __data );
-        durations[ 1 ] += json_parser< qt5_json >::json_write( __data );
-        durations[ 2 ] += json_parser< nlohmann_json >::json_write( __data );
-        durations[ 3 ] += json_parser< rapidjson_json >::json_write( __data );
+        durations[ 0 ] += json_parser< boost_json >::json_write( global_data );
+        durations[ 1 ] += json_parser< qt5_json >::json_write( global_data );
+        durations[ 2 ] += json_parser< nlohmann_json >::json_write( global_data );
+        durations[ 3 ] += json_parser< rapidjson_json >::json_write( global_data );
     }
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
@@ -133,11 +146,20 @@ main()
 
     std::fill( durations.begin(), durations.end(), 0 );
 
+    // json(string) -> c++ class
     for ( size_t i = 0; i < 100; ++i ) {
-        durations[ 0 ] += json_parser< boost_json >::json_read( __data, json_string );
-        durations[ 1 ] += json_parser< qt5_json >::json_read( __data, json_string );
-        durations[ 2 ] += json_parser< nlohmann_json >::json_read( __data, json_string );
-        durations[ 3 ] += json_parser< rapidjson_json >::json_read( __data, json_string );
+        { data data;
+            durations[ 0 ] += json_parser< boost_json >::json_read( data, json_string );
+        }
+        { data data;
+            durations[ 1 ] += json_parser< qt5_json >::json_read( data, json_string );
+        }
+        { data data;
+            durations[ 2 ] += json_parser< nlohmann_json >::json_read( data, json_string );
+        }
+        { data data;
+            durations[ 3 ] += json_parser< rapidjson_json >::json_read( data, json_string );
+        }
     }
 
     std::transform( durations.begin(), durations.end(), durations.begin(), [](auto d){ return d/100; } );
@@ -152,5 +174,25 @@ main()
               << "\t" << boost::format( "%8.3f" ) % (durations[1]/durations[3])
               << "\t" << boost::format( "%8.3f" ) % (durations[2]/durations[3])
               << "\t" << boost::format( "%8.3f" ) % (durations[3]/durations[3]) << std::endl;
-    
+
+    {
+        std::ofstream of( "boost.json" );
+        of << json_parser< boost_json >::stringify( global_data );
+        //of << json_parser< boost_json >().stringify( json_string );
+    }
+    {
+        std::ofstream of( "qt5.json" );
+        of << json_parser< qt5_json >::stringify( global_data );
+        //of << json_parser< qt5_json >().stringify( json_string );
+    }
+    {
+        std::ofstream of( "nlohman.json" );
+        of << json_parser< nlohmann_json >::stringify( global_data );
+        //of << json_parser< nlohmann_json >().stringify( json_string );
+    }
+    {
+        std::ofstream of( "rapidjson.json" );
+        of << json_parser< rapidjson_json >::stringify( global_data );
+        //of << json_parser< rapidjson_json >().stringify( json_string );
+    }            
 }

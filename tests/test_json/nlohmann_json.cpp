@@ -51,7 +51,7 @@ nlohmann_json::parse( const std::string& json_string )
 }
 
 std::string
-nlohmann_json::stringify() const
+nlohmann_json::stringify( bool ) const
 {
     std::ostringstream o;
     o << json;

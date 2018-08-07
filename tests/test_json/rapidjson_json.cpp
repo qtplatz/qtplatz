@@ -61,7 +61,7 @@ rapidjson_json::stringify( const rapidjson::Document& d )
 }
 
 std::string
-rapidjson_json::stringify() const
+rapidjson_json::stringify( bool ) const
 {
     return stringify( *doc );
 }

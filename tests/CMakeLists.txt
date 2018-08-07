@@ -18,7 +18,7 @@ add_subdirectory( test_ptree )
 add_subdirectory( test_serializer )
 #add_subdirectory( isotope )
 add_subdirectory( test_adfs )
-#add_subdirectory( test_json )
+add_subdirectory( test_json )
 
 if ( NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( test_dataprocessor )

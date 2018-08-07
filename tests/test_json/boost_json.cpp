@@ -56,13 +56,23 @@ boost_json::parse( const std::string& json_string )
 }
 
 std::string
-boost_json::stringify() const
+boost_json::stringify( bool pritty ) const
 {
-    std::string str;
-    boost::iostreams::back_insert_device< std::string > inserter( str );
-    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > o( inserter );
-    boost::property_tree::write_json( o, *ptree );
-    return str;
+    std::ostringstream o;
+    boost::property_tree::write_json( o, *ptree, pritty );
+    if ( !pritty )
+        return o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
+    return o.str();
+}
+
+std::string
+boost_json::stringify( const boost::property_tree::ptree& pt, bool pritty )
+{
+    std::ostringstream o;
+    boost::property_tree::write_json( o, pt, pritty );
+    if ( !pritty )
+        return o.str().substr( 0, o.str().find_first_of( "\r\n" ) );
+    return o.str();
 }
 
 bool
@@ -146,7 +156,5 @@ boost_json::make_json( const data& d )
     pt.add_child( "tick.alarms", alarms );
     pt.add_child( "tick.adc", adc );
 
-    std::ostringstream o;
-    boost::property_tree::write_json( o, pt );
-    return o.str();
+    return stringify( pt );
 }

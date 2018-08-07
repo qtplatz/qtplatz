@@ -46,9 +46,17 @@ qt5_json::parse( const std::string& json_string )
 }
 
 std::string
-qt5_json::stringify() const
+qt5_json::stringify( bool pritty ) const
 {
-    QByteArray xdata( doc->toJson() );
+    QByteArray xdata( doc->toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ) );
+    return std::string( xdata.data() );
+}
+
+std::string
+qt5_json::stringify( const QJsonObject& obj, bool pritty ) 
+{
+    QJsonDocument doc( obj );
+    QByteArray xdata( doc.toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ) );
     return std::string( xdata.data() );
 }
 
@@ -133,10 +141,8 @@ qt5_json::make_json( const data& d )
     }
 
     jobj[ "tick" ] = top;
-    QJsonDocument jdoc( jobj );
 
-    QByteArray xdata( jdoc.toJson() );
-    return std::string( xdata.data() );
+    return stringify( jobj );
 }
 
 

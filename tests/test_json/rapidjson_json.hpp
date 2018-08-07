@@ -34,7 +34,7 @@ public:
     rapidjson_json();
     ~rapidjson_json();
     bool parse( const std::string& );
-    std::string stringify() const;
+    std::string stringify( bool pritty = false ) const;
 
     bool map( data& );
     static std::string make_json( const data& );

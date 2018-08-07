@@ -34,7 +34,8 @@ public:
     qt5_json();
     ~qt5_json();
     bool parse( const std::string& );
-    std::string stringify() const;
+    std::string stringify( bool pritty = false ) const;
+    static std::string stringify( const QJsonObject&, bool pritty = false );
 
     bool map( data& );
     static std::string make_json( const data& );
