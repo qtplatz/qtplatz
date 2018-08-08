@@ -33,6 +33,8 @@ execute_process( COMMAND ${XMLPATTERNS} -no-format
 add_definitions(
   -DAP240_LIBRARY
   -D_SCL_SECURE_NO_WARNINGS
+  -D_LINUX
+  -D_ACQIRIS
   )
 
 include_directories(
@@ -77,6 +79,7 @@ add_library(
 target_link_libraries(
   ap240plugin LINK_PUBLIC
   adfs
+  adurl
   adutils
   adcontrols
   adacquire

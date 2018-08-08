@@ -52,6 +52,7 @@ namespace ap240 {
         void handle_waveform();
         void handle_threshold_method( int ch );
         void handle_method( const QString& );
+        void handle_aqdrv4_waveform();
 
     private:
         void init();

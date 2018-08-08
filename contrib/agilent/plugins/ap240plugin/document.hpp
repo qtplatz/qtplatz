@@ -45,7 +45,11 @@ namespace acqrscontrols {
         class waveform;
         class method;
     }
+    namespace aqdrv4 {
+        class waveform;
+    }
 }
+
 
 namespace ap240 {
 
@@ -80,6 +84,8 @@ namespace ap240 {
 
         waveforms_t findWaveform( uint32_t serialnumber = (-1) );
         std::shared_ptr< adcontrols::MassSpectrum > getHistogram( int channel, double rs ) const;
+
+        std::shared_ptr< const acqrscontrols::aqdrv4::waveform > findAqDrv4Waveform() const;
         
         int32_t device_status() const;
 
@@ -126,6 +132,10 @@ namespace ap240 {
 
         void reply_handler( const std::string&, const std::string& );
         bool waveform_handler( const acqrscontrols::ap240::waveform *, const acqrscontrols::ap240::waveform *, acqrscontrols::ap240::method& );
+        void handle_blob( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob );
+        void handle_sse( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body );
+        void handle_aqdrv4_waveforms( const std::vector< std::shared_ptr< acqrscontrols::aqdrv4::waveform > >& vec );
+        void worker_thread();
     signals:
         void on_reply( const QString&, const QString& );
         void on_waveform_received();
@@ -133,6 +143,7 @@ namespace ap240 {
         void onControlMethodChanged( const QString& );
         void on_threshold_method_changed( int ch );
         void sampleRunChanged();
+        void on_aqdrv4_waveforms();
     };
 
 }

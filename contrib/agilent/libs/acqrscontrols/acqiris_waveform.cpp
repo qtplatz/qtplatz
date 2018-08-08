@@ -22,6 +22,9 @@
 **************************************************************************/
 
 #include "acqiris_waveform.hpp"
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/samplinginfo.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <typeinfo>
 #include <cstring>
 
@@ -36,6 +39,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/format.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -255,5 +259,39 @@ namespace aqdrv4 {
         throw std::bad_cast();
     }
 
+    
+    bool
+    waveform::translate( adcontrols::MassSpectrum& ms, const waveform& wform, int scale ) // 0 := binary, 1 = Volts, 1000 = mV ...
+    {
+        // double timestamp = wform.meta_.initialXTimeSeconds;
+        ms.setCentroid( adcontrols::CentroidNone );
+
+        std::vector< double > y( wform.size() );
+        transform( y, wform, scale );
+        
+        ms.resize( wform.size() );
+        ms.setIntensityArray( y.data() );
+        
+        auto prop = ms.getMSProperty();
+        adcontrols::SamplingInfo info( wform.xIncrement()
+                                       , wform.delayTime() // meta_.initialXOffset
+                                       , int32_t( wform.delayTime() / wform.xIncrement() )
+                                       , uint32_t( wform.size() )
+                                       , 0 // actualAverages
+                                       , 0 );
+        
+        info.horPos( wform.segDesc().horPos );
+        
+        prop.setSamplingInfo( info );
+        prop.setAcceleratorVoltage( 3000 );
+        
+        using namespace adcontrols::metric;
+        prop.setTimeSinceInjection( wform.timeSinceInject() * 1.0e6 ); // microseconds
+        prop.setTimeSinceEpoch( wform.timeSinceEpoch() );
+        prop.setDataInterpreterClsid( "aqdrv4" );
+        ms.setMSProperty( prop );
+
+        return true;
+    }
 }
 }

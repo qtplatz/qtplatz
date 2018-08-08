@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "method.hpp"
+#include <nlohmann/json.hpp>
 #include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>
@@ -212,7 +213,6 @@ namespace acqrscontrols {
                 BOOST_THROW_EXCEPTION( ex );
             }
             return false;
-
         }
     }
 }

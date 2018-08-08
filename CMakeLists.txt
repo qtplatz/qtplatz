@@ -24,8 +24,6 @@ option( WITH_QWT           "Include QWT"                ON )
 option( WITH_AqDrv4        "Keysight AP240/DC122"       ON )
 option( WITH_AgMD2         "Keysight U5303A"            ON )
 
-message( STATUS "####################### WITH QT5? " ${WITH_QT5} )
-
 if ( CMAKE_CROSSCOMPILING )
   option( WITH_CUDA          "CUDA"                     OFF )
 else()
@@ -35,8 +33,6 @@ option( WITH_ARRAYFIRE     "ArrayFire"                  OFF )
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
 set( QTPLATZ_BINARY_DIR ${CMAKE_BINARY_DIR} )
-
-message( STATUS "####################### WITH QT5? " ${WITH_QT5} )
 
 if ( WITH_QT5 )
   if ( QTDIR STREQUAL "" AND DEFINED $ENV{QTDIR} )

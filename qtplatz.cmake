@@ -2,8 +2,6 @@
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 
-message( STATUS "### CMAKE_CURRENT_LIST_DIR: " "${CMAKE_CURRENT_LIST_DIR}" )
-
 find_package( arch )
 
 #####################
@@ -93,13 +91,12 @@ if ( WITH_QT5 )
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-  find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
-  message( STATUS "### Qt5 = " ${Qt5} )
     
   if ( Qt5_FOUND )
+    find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
     get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
     find_program( XMLPATTERNS NAMES xmlpatterns HINTS "${QTDIR}/bin" )
-    message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
+    # message( STATUS "### XMLPATTERNS: " ${XMLPATTERNS} )
     if ( NOT XMLPATTERNS )
       message( FATAL_ERROR "xmlpatterns command not found" )
     endif()

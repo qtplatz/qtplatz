@@ -110,8 +110,9 @@ MainWindow::createDockWidgets()
 
     if ( auto settings = document::instance()->settings() ) {
         bool remote = settings->value( "Digitizer/RemoteAccess", false ).toBool();
-        QString rhost = settings->value( "Digitizer/RemoteHost", "nipxi" ).toString();
-        form->setRemoteAccess( remote, rhost );
+        QString host = settings->value( "Digitizer/RemoteHost", "nipxi" ).toString();
+        QString port = settings->value( "Digitizer/RemotePort", "80" ).toString();
+        form->setRemoteAccess( remote, host, port );
     }    
     
     createDockWidget( form, "AP240", "AP240" );
@@ -128,10 +129,11 @@ MainWindow::createDockWidgets()
             }
         } );
     
-    connect( form, &acqrswidgets::ap240form::deviceConfigChanged, [this] ( bool remote, const QString& host ){
+    connect( form, &acqrswidgets::ap240form::hostChanged, [this] ( bool remote, const QString& host, const QString& port ){
             if ( auto settings = document::instance()->settings() ) {
                 settings->setValue( "Digitizer/RemoteAccess", remote );
                 settings->setValue( "Digitizer/RemoteHost", host );
+                settings->setValue( "Digitizer/RemotePort", port );
             }
         });
 }
@@ -158,6 +160,7 @@ MainWindow::OnInitialUpdate()
 	if ( WaveformWnd * wnd = centralWidget()->findChild<WaveformWnd *>() ) {
 		wnd->onInitialUpdate();
         connect( document::instance(), SIGNAL( on_waveform_received() ), wnd, SLOT( handle_waveform() ) );
+        connect( document::instance(), SIGNAL( on_aqdrv4_waveforms() ), wnd, SLOT( handle_aqdrv4_waveform() ) );
     }
 
     if ( auto widget = findChild< acqrswidgets::ap240form * >() ) {

@@ -1,25 +1,29 @@
 #ifndef HOSTADDRDIALOG_HPP
 #define HOSTADDRDIALOG_HPP
 
-#include "ui_hostaddrdialog.h"
+#include <QDialog>
 
 namespace adwidgets {
 
-class HostAddrDialog : public QDialog
-{
-    Q_OBJECT
+    namespace Ui {
+        class HostAddrDialog;
+    }
 
-public:
-    explicit HostAddrDialog(QWidget *parent = 0);
-    ~HostAddrDialog();
+    class HostAddrDialog : public QDialog
+    {
+        Q_OBJECT
 
-    void setUrl( const QString& );
-    void setHostAddr( const QString&, const QString& );
-    std::pair< QString, QString > hostAddr() const;
+    public:
+        explicit HostAddrDialog(QWidget *parent = 0);
+        ~HostAddrDialog();
 
-private:
-    Ui::HostAddrDialog ui;
-};
+        void setUrl( const QString& );
+        void setHostAddr( const QString&, const QString& );
+        std::pair< QString, QString > hostAddr() const;
+
+    private:
+        Ui::HostAddrDialog * ui;
+    };
 
 }
 

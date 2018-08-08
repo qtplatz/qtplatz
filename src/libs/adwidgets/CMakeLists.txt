@@ -67,6 +67,7 @@ set( ${PROJECT_NAME}_SOURCES
   moltable.cpp
   molview.cpp
   molview.hpp
+  mouserbuttonfilter.cpp
   mspeaktable.cpp
   msquantable.cpp
   mscalibrateform.cpp
@@ -129,6 +130,7 @@ set( ${PROJECT_NAME}_HEADERS
   peptidetable.hpp
   mslockdialog.hpp
   moltable.hpp
+  mouserbuttonfilter.hpp
   mspeaktable.hpp
   msquantable.hpp
   mscalibrateform.hpp

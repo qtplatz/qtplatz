@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,14 +32,19 @@
 #include <adportable/debug.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/serializer.hpp>
-#include <adwidgets/thresholdactionform.hpp>
 #include <adwidgets/findslopeform.hpp>
+#include <adwidgets/hostaddrdialog.hpp>
+#include <adwidgets/mouserbuttonfilter.hpp>
+#include <adwidgets/thresholdactionform.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QMessageBox>
 #include <QModelIndex>
+#include <QMouseEvent>
 #include <QPair>
 #include <QSignalBlocker>
 #include <QTabWidget>
@@ -52,7 +57,7 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                                       , ui( new Ui::ap240form )
 {
     ui->setupUi(this);
-    
+
 
     // Software TDC (Slope Time Converter) UI
     if ( auto layout = new QVBoxLayout( ui->groupBox_2 ) ) {    
@@ -95,9 +100,8 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
                 });            
         }
 
-        if ( auto gbx = new QGroupBox( tr("Digitizer Remote Access") ) ) {
-
-            gbx->setObjectName( "RemoteAccess" );
+        if ( auto gbx = qtwrapper::make_widget< QGroupBox >( "RemoteAccess", tr("Digitizer Remote Access") ) ) {
+            
             gbx->setFlat( true );
             layout->addWidget( gbx );
             gbx->setCheckable( true );
@@ -106,16 +110,48 @@ ap240form::ap240form(QWidget *parent) : QWidget(parent)
 
                 hLayout->setSpacing( 0 );
                 hLayout->setMargin( 0 );
+
+                hLayout->addWidget( qtwrapper::make_widget< QLabel >( "url", tr( "URL" ) ) );
                 
-                auto edit = new QLineEdit();
+                auto edit = qtwrapper::make_widget< QLineEdit >( "url" );
                 hLayout->addWidget( edit );
+                
+
+                if ( ( eventFilter_ = std::make_unique< adwidgets::MouseRButtonFilter >() ) ) {
+                    eventFilter_->installOn( edit );
+                    connect( eventFilter_.get(), &adwidgets::MouseRButtonFilter::mouseEvent, [&]( QWidget * w, QMouseEvent * ev){
+                            QMenu menu;
+                            menu.addAction( tr("Edit"), [this]{
+                                    adwidgets::HostAddrDialog dlg( this );
+                                    dlg.setModal( true );
+                                    if ( auto w = findChild< QLineEdit * >( "url" ) ) {
+                                        dlg.setUrl( w->text() );
+                                        if ( dlg.exec() ) {
+                                            host_ = dlg.hostAddr().first;
+                                            port_ = dlg.hostAddr().second;
+                                            emit hostChanged( remote_, host_, port_ );
+                                            if ( auto edit = qobject_cast< QLineEdit * >( w ) )
+                                                edit->setText( QString( "http://%1:%2" ).arg( host_, port_ ) );
+                                        }
+                                    }
+                                });
+                            menu.exec( ev->globalPos() );
+                        });
+                }
 
                 connect( gbx, &QGroupBox::toggled, this, [this,edit]( bool remote ){
-                        emit deviceConfigChanged( remote, edit->text() );
+                        remote_ = remote;
+                        emit hostChanged( remote, host_, port_ );
                     });
-                connect( edit, &QLineEdit::editingFinished, this, [this,gbx,edit](){
-                        emit deviceConfigChanged( gbx->isChecked(), edit->text() );
-                    });
+
+                edit->setReadOnly( true );
+                edit->setContextMenuPolicy( Qt::CustomContextMenu );
+
+                setStyleSheet("QLineEdit[readOnly=\"true\"] {"
+                              "color: #808080;"
+                              "background-color: #F0F0F0;"
+                              "border: 1px solid #B0B0B0;"
+                              "border-radius: 2px;}");    
             }
         }
     }
@@ -286,26 +322,30 @@ ap240form::set( const adcontrols::threshold_action& m )
 }
 
 void
-ap240form::setRemoteAccess( bool remote, const QString& host )
+ap240form::setRemoteAccess( bool remote, const QString& host, const QString& port )
 {
+    remote_ = remote;
+    host_ = host;
+    port_ = port;
+    
     if ( auto gbx = findChild< QGroupBox * >( "RemoteAccess" ) ) {
         gbx->setChecked( remote );
         if ( auto edit = gbx->findChild< QLineEdit * >() )
-            edit->setText( host );
+            edit->setText( QString( "http://%1:%2" ).arg( host, port ) );
     }
 }
 
-QPair< bool, QString>
-ap240form::remoteAccess() const
+bool
+ap240form::remoteAccess( QString& host, QString& port ) const
 {
     bool remote( false );
     QString rhost;
 
     if ( auto gbx = findChild< QGroupBox * >( "RemoteAccess" ) ) {
         remote = gbx->isChecked();
-        if ( auto edit = gbx->findChild< QLineEdit * >() )
-            rhost = edit->text();
+        host = host_;
+        port = port_;
     }
-    return QPair< bool, QString >( remote, rhost );
+    return remote;
 }
 

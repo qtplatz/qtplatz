@@ -35,6 +35,8 @@ namespace boost {
     namespace serialization { class access; }
 }
 
+namespace adcontrols { class MassSpectrum; }
+
 namespace acqrscontrols {  namespace ap240 { class waveform; } }
 
 namespace acqrscontrols {
@@ -97,12 +99,6 @@ namespace aqdrv4 {
             return segDesc_;
         }
 
-        // inline uint64_t serialNumber() const {
-        //      return serialnumber_;
-        // }
-        // inline uint64_t& serialNumber() {
-        //      return serialnumber_;
-        // }
         inline uint64_t serialNumber() const {
             return serialnumber_;
         }
@@ -190,6 +186,7 @@ namespace aqdrv4 {
             };
         };
 
+        static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
         
     private:
         uint64_t serialnumber_;            // a.k.a. trigger number

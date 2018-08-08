@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-     Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -32,37 +32,47 @@
 #include <ap240/digitizer.hpp>
 #include <acqrscontrols/ap240/histogram.hpp>
 #include <acqrscontrols/ap240/threshold_result.hpp>
-#include <adlog/logger.hpp>
+#include <acqrscontrols/acqiris_waveform.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adextension/isequenceimpl.hpp>
-#include <adinterface/controlserver.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
+#include <adinterface/controlserver.hpp>
+#include <adlog/logger.hpp>
 #include <adportable/advance.hpp>
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/profile.hpp>
-#include <adportable/serializer.hpp>
 #include <adportable/semaphore.hpp>
+#include <adportable/serializer.hpp>
 #include <adportable/sgfilter.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/waveform_processor.hpp>
-#include <qtwrapper/settings.hpp>
+#include <adurl/ajax.hpp>
+#include <adurl/sse.hpp>
+#include <adurl/blob.hpp>
 #include <app/app_version.h>
+#include <qtwrapper/settings.hpp>
 #include <coreplugin/documentmanager.h>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -70,6 +80,7 @@
 #include <chrono>
 #include <deque>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <thread>
 
@@ -91,30 +102,51 @@ namespace ap240 {
         std::atomic<int> postCount_;
         std::atomic<size_t> waveform_proc_count_;        
         std::atomic<size_t> waveform_post_count_;
-        std::atomic<uint32_t> worker_data_serialnumber_;
-    public:        
+    public:
+        typedef std::pair< std::shared_ptr< acqrscontrols::ap240_threshold_result >
+                           , std::shared_ptr< acqrscontrols::ap240_threshold_result > > threshold_result_pair_t;
+        
         std::unique_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::shared_ptr< ap240::iControllerImpl > iControllerImpl_;
         std::shared_ptr< ResultWriter > resultWriter_;
         std::shared_ptr< tdcdoc > tdcdoc_;
+        adportable::semaphore sema_;
+        bool worker_stop_;
+        std::chrono::microseconds round_trip_;
+        std::array< std::shared_ptr< ap240x::histogram >, 2 > histograms_;
+
+        std::chrono::system_clock::time_point time_handled_;
+        std::vector< std::thread > threads_;
+        std::mutex que_mutex_;
+        std::mutex que2_mutex_;
         
-        static std::atomic< document * > instance_;
+        std::vector< std::pair<
+                         std::shared_ptr< const acqrscontrols::ap240::waveform >
+                         , std::shared_ptr< const acqrscontrols::ap240::waveform >
+                         > > que_;
+        std::vector< threshold_result_pair_t > que2_;
+        std::vector< std::shared_ptr< const acqrscontrols::aqdrv4::waveform > > aqdrv4_queue_;
+        
+        
+        
+        std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
+        std::unique_ptr< adurl::sse > sse_;
+        std::unique_ptr< adurl::blob > blob_;
         static std::mutex mutex_;
 
     public:
-        impl() : worker_stop_( false )
-               , work_( io_service_ )
-               , histograms_( { std::make_shared< ap240x::histogram >()
-                           , std::make_shared< ap240x::histogram >() } )
+        impl() : work_( io_service_ )
                , postCount_( 0 )
-               , round_trip_( 0 )
-               , waveform_post_count_( 0 )
                , waveform_proc_count_( 0 )
-               , worker_data_serialnumber_( 0 )
+               , waveform_post_count_( 0 )
                , iSequenceImpl_( new adextension::iSequenceImpl() )
                , iControllerImpl_( std::make_shared< ap240::iControllerImpl >() )
+               , resultWriter_( std::make_shared< ResultWriter >() )
                , tdcdoc_( std::make_shared< tdcdoc >() )
-               , resultWriter_( std::make_shared< ResultWriter >() ) {
+               , worker_stop_( false )
+               , round_trip_( 0 )
+               , histograms_( {{ std::make_shared< ap240x::histogram >(), std::make_shared< ap240x::histogram >() }} )
+            {
         }
         
         ~impl() {
@@ -127,18 +159,6 @@ namespace ap240 {
         inline std::atomic<size_t>& waveform_post_count() { return waveform_post_count_; }
         inline std::atomic<size_t>& waveform_proc_count() { return waveform_proc_count_; }
         
-        adportable::semaphore sema_;
-        bool worker_stop_;
-        std::chrono::microseconds round_trip_;
-        std::chrono::system_clock::time_point time_handled_;
-        std::vector< std::thread > threads_;
-        std::mutex que_mutex_;
-        
-        std::vector< std::pair<
-                        std::shared_ptr< const acqrscontrols::ap240::waveform >
-                        , std::shared_ptr< const acqrscontrols::ap240::waveform >
-                        > > que_;
-
         inline void clearHistogram() {
             for ( auto& histogram : histograms_ )
                 histogram->clear();
@@ -171,14 +191,6 @@ namespace ap240 {
         
         inline adextension::iSequenceImpl * iSequence() { return iSequenceImpl_.get(); }
         inline ap240::iControllerImpl * iController() { return iControllerImpl_.get(); }
-        
-    private:
-        typedef std::pair< std::shared_ptr< acqrscontrols::ap240_threshold_result >, std::shared_ptr< acqrscontrols::ap240_threshold_result > > threshold_result_pair_t;
-        
-        std::mutex que2_mutex_;
-        std::vector< threshold_result_pair_t > que2_;
-        std::array< std::shared_ptr< ap240x::histogram >, 2 > histograms_;
-        std::array< std::shared_ptr< adcontrols::threshold_method >, 2 > threshold_methods_;
         
     public:
 
@@ -240,7 +252,8 @@ namespace ap240 {
                     ncores = 4;
                 while( ncores-- )
                     threads_.push_back( adportable::asio::thread( [this] { io_service_.run(); } ) );
-                threads_.push_back( adportable::asio::thread( [this] { worker(); } ) );
+                //threads_.push_back( adportable::asio::thread( [this] { worker(); } ) );
+                threads_.push_back( std::thread( std::bind( &document::worker_thread, document::instance() ) ) );
             }
         }
         
@@ -315,9 +328,13 @@ namespace ap240 {
                     return;
 
                 auto tp = std::chrono::system_clock::now();
-
+                using namespace std::chrono_literals;
+                if ( ( tp - time_handled_ ) >= 200ms ) {
+                    emit document::instance()->on_waveform_received();
+                }
+#if 0
                 if ( std::chrono::duration_cast<std::chrono::milliseconds>( tp - time_handled_ ) > cycleTime ) {
-
+                    
                     if ( postCount_ == 0 ) {
                         if ( cycleTime < round_trip_ ) {
                             ADTRACE() << "Computer is too slow for update spectrum view: round-trip=" << round_trip_.count() << " ms";
@@ -331,19 +348,20 @@ namespace ap240 {
 
                     resultWriter_->commitData();
                 }
+#endif
             }
         }
+
     };
 
 }
 
-std::atomic< document * > document::impl::instance_( 0 );
 std::mutex document::impl::mutex_;
 
 document::document() : impl_( new impl() )
-                     , digitizer_( new ap240::digitizer )
-                     , device_status_( 0 )
+                     , digitizer_( 0 ) // 
                      , method_( std::make_shared< acqrscontrols::ap240::method >() )
+                     , device_status_( 0 )
                      , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                  , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                  , QLatin1String( "ap240" ) ) )
@@ -359,26 +377,39 @@ document::~document()
 document *
 document::instance()
 {
-    document * tmp = impl::instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( impl::mutex_ );
-        tmp = impl::instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new document();
-            std::atomic_thread_fence( std::memory_order_release );
-            impl::instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static document __instance;
+    return &__instance;
 }
 
 void
 document::actionConnect()
 {
-    digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
-    digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
-    digitizer_->peripheral_initialize();
+    ADDEBUG() << __FUNCTION__;
+    
+    if ( bool remote = settings()->value( "Digitizer/RemoteAccess", false ).toBool() ) {
+        
+        QString host = settings()->value( "Digitizer/RemoteHost", "nipxi" ).toString();
+        QString port = settings()->value( "Digitizer/RemotePort", "80" ).toString();
+         
+        impl_->blob_ = std::make_unique< adurl::blob >( impl_->io_service() );
+        impl_->sse_ = std::make_unique< adurl::sse >( impl_->io_service() );
+
+        impl_->sse_->register_sse_handler( std::bind( &document::handle_sse, this, std::placeholders::_1, std::placeholders::_2 ) );
+        impl_->sse_->connect( "/api$events", host.toStdString(), port.toStdString() );
+        
+        impl_->blob_->register_blob_handler( std::bind( &document::handle_blob, this, std::placeholders::_1, std::placeholders::_2 ) );
+        impl_->blob_->connect( "/api$blob", host.toStdString(), port.toStdString() );
+
+        ADDEBUG() << "connecting to http://" << host.toStdString() << ":" << port.toStdString() << "/api$blob";
+       
+    } else {
+        
+        if ( ( digitizer_ = new ap240::digitizer ) ) {
+            digitizer_->connect_reply( boost::bind( &document::reply_handler, this, _1, _2 ) );
+            digitizer_->connect_waveform( boost::bind( &document::waveform_handler, this, _1, _2, _3 ) );
+            digitizer_->peripheral_initialize();
+        }
+    }
     impl_->run();
     task::instance()->initialize();
 }
@@ -454,6 +485,15 @@ document::findWaveform( uint32_t serialnumber )
 {
     (void)serialnumber;
     return impl_->findWaveform(); // for GUI display purpose
+}
+
+std::shared_ptr< const acqrscontrols::aqdrv4::waveform >
+document::findAqDrv4Waveform() const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    if ( ! impl_->aqdrv4_queue_.empty() )
+        return impl_->aqdrv4_queue_.back();
+    return nullptr;
 }
 
 // static
@@ -872,3 +912,79 @@ document::commitData()
     }
 }
 
+void
+document::handle_sse( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body )
+{
+}
+
+void
+document::handle_blob( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob )
+{
+    uint32_t id(0);
+    uint32_t length(0);
+
+    for ( const auto& header: headers ) {
+        // todo: header.second contains space (0x20) at the begining of string. it should be removed before compare
+        if ( header.first == "id" )
+            id = std::stol( header.second );
+        if ( header.first == "Content-Length" )
+            length = std::stol( header.second );
+    }
+    if ( length != blob.size() )
+        ADDEBUG() << "size missmatch at blob id: " << id << " length=" << length << " blob=" << blob.size();
+
+    acqrscontrols::aqdrv4::waveforms vec;
+    try {
+        if ( adportable::binary::deserialize<>()( vec, blob.data(), blob.size() ) ) {
+            static uint64_t last(0), tp_last(0);
+
+            for ( const auto& wform: vec.data ) {
+                ADDEBUG() << wform->serialNumber() << " " << ((( last + 1 ) == wform->serialNumber() ) ? "ok" : "fail" )
+                          << ", interval: " << double( wform->timeSinceEpoch() - tp_last ) * 1e-6 << "ms";
+                last = wform->serialNumber();
+                tp_last = wform->timeSinceEpoch();
+            }
+                    
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
+            
+            std::move( vec.data.begin(), vec.data.end(), std::back_inserter( impl_->aqdrv4_queue_ ) );
+
+            impl_->sema_.signal();
+        }
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << ex.what();
+    }
+}
+
+void
+document::handle_aqdrv4_waveforms( const std::vector< std::shared_ptr< acqrscontrols::aqdrv4::waveform > >& vec )
+{
+    ADDEBUG() << "todo: data write for handle aqdrv4 waveforms: " << vec.size();
+}
+
+void
+document::worker_thread()
+{
+    while ( true ) {
+        impl_->sema_.wait();
+
+        if ( impl_->worker_stop_ )
+            return;
+
+        auto tp = std::chrono::system_clock::now();
+        using namespace std::chrono_literals;
+
+        if ( ( tp - impl_->time_handled_ ) >= 200ms ) {
+
+            emit on_aqdrv4_waveforms();
+            
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
+            if ( impl_->aqdrv4_queue_.size() ) {
+                // todo write data to file etc.
+                auto tail = impl_->aqdrv4_queue_.back();
+                impl_->aqdrv4_queue_.clear();
+                impl_->aqdrv4_queue_.emplace_back( tail );
+            }
+        }
+    }
+}

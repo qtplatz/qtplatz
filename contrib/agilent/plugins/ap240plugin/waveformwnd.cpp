@@ -25,6 +25,7 @@
 #include "waveformwnd.hpp"
 #include "document.hpp"
 #include <acqrscontrols/ap240/threshold_result.hpp>
+#include <acqrscontrols/acqiris_waveform.hpp>
 #include <ap240/digitizer.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/chromatogramwidget.hpp>
@@ -170,6 +171,23 @@ WaveformWnd::handle_method( const QString& )
         }
         spw_->setAxisAutoScale( QwtPlot::yLeft, ptr->ch1_.autoScale );
         spw_->setAxisAutoScale( QwtPlot::yRight, ptr->ch2_.autoScale );
+    }
+}
+
+void
+WaveformWnd::handle_aqdrv4_waveform()
+{
+    if ( auto wform = document::instance()->findAqDrv4Waveform() ) {
+        auto ms = std::make_shared< adcontrols::MassSpectrum >();
+        if ( acqrscontrols::aqdrv4::waveform::translate( *ms, *wform, 1000 ) ) {
+            const auto& info = ms->getMSProperty().samplingInfo();
+            hpw_->setTitle( ( boost::format( "triggers: %1%;&nbsp;&nbsp;%2% triggers in que; &nbsp; rate = %3% trig/s" )
+                              % info.numberOfTriggers()
+                              % document::instance()->unprocessed_trigger_counts()
+                              % document::instance()->triggers_per_second()).str() );
+            spw_->setData( ms, 0, false );
+            spw_->setKeepZoomed( true );            
+        }
     }
 }
 
