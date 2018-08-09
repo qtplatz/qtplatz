@@ -938,12 +938,23 @@ document::handle_blob( const std::vector< std::pair< std::string, std::string > 
         if ( adportable::binary::deserialize<>()( vec, blob.data(), blob.size() ) ) {
             static uint64_t last(0), tp_last(0);
 
+            int skip_count( 0 );
+            std::pair< uint64_t, uint64_t > interval{ -1, 0 };
+            
             for ( const auto& wform: vec.data ) {
-                ADDEBUG() << wform->serialNumber() << " " << ((( last + 1 ) == wform->serialNumber() ) ? "ok" : "fail" )
-                          << ", interval: " << double( wform->timeSinceEpoch() - tp_last ) * 1e-6 << "ms";
+                if ( ( last + 1 ) != wform->serialNumber() )
+                    skip_count++;
+                auto tdiff = wform->timeSinceEpoch() - tp_last;
+                if ( interval.first > tdiff )
+                    interval.first = tdiff;
+                if ( interval.second < tdiff )
+                    interval.second = tdiff;
                 last = wform->serialNumber();
                 tp_last = wform->timeSinceEpoch();
             }
+
+            ADDEBUG() << "vec.size: " << vec.data.size() << boost::format( "\tinterval %8.3lf, %8.3lf" )
+                % (double(interval.first)*1e-6) % (double(interval.second)*1e-6);
                     
             std::lock_guard< std::mutex > lock( impl_->mutex_ );
             
