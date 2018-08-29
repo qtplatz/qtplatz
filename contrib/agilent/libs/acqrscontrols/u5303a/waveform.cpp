@@ -388,6 +388,30 @@ waveform::operator += ( const waveform& t )
     return *this;
 }
 
+bool
+waveform::darkSubtraction( const waveform& t )
+{
+    if ( ( std::abs( meta_.xIncrement - t.meta_.xIncrement ) >= 0.5e-9 ) ||
+         ( std::abs( meta_.initialXOffset - t.meta_.initialXOffset ) >= 0.5e-9 ) ||
+         ( meta_.actualAverages != t.meta_.actualAverages ) ||
+         ( meta_.dataType != t.meta_.dataType ) )
+        return false;
+
+    switch( meta_.dataType ) {
+    case 2:
+        sub< int16_t, int16_t >( t );
+        break;
+    case 4:
+        sub< int32_t, int32_t >( t );
+        break;
+    case 8:
+        sub< int64_t, int64_t >( t );
+        break;
+    }
+
+    return true;
+}
+
 double
 waveform::height( double tof, double window ) const
 {

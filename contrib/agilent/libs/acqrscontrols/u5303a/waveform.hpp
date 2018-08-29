@@ -115,10 +115,7 @@ namespace acqrscontrols {
                       , bool invert ); // software averager support
 
             waveform();
-
             waveform( const waveform&, int dataType );
-
-            waveform& operator += ( const waveform& );
 
             method method_;
             metadata meta_;
@@ -127,6 +124,9 @@ namespace acqrscontrols {
             uint64_t timeSinceEpoch_;
             uint64_t firstValidPoint_;
             double timeSinceInject_;
+
+            waveform& operator += ( const waveform& );
+            bool darkSubtraction( const waveform& );
 
             size_t size() const; // number of samples
 
@@ -208,6 +208,12 @@ namespace acqrscontrols {
                       , typename rvalue_type > void add( const waveform& t, double dbase ) {
                 std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
                                 , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a + b - dbase ); } );                
+            }
+            
+            template< typename lvalue_type
+                      , typename rvalue_type > void sub( const waveform& t ) {
+                std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
+                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a - b ); } );                
             }
         };
 

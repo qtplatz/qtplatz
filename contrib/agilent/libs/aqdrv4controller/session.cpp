@@ -309,3 +309,4 @@ Session::isRecording() const
 {
     return true;
 }
+

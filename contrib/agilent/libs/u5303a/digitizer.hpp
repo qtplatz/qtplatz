@@ -64,13 +64,13 @@ namespace u5303a {
             ar & BOOST_SERIALIZATION_NVP( meta );           
         }
     };
-    
 
+    ///////////
     class U5303ASHARED_EXPORT digitizer {
     public:
         digitizer();
         ~digitizer();
-
+        
         bool peripheral_initialize();
         bool peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& );
         bool peripheral_prepare_for_run( const acqrscontrols::u5303a::method& );
@@ -78,7 +78,10 @@ namespace u5303a {
         bool peripheral_stop();
         bool peripheral_trigger_inject();
         bool peripheral_terminate();
-        [[deprecated("replace with dgmod,hardwired")]] bool peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols );
+        bool peripheral_dark( size_t waitCount );
+    
+    // [[deprecated("replace with dgmod,hardwired")]] bool peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols );
+    
         void setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > );
 
         typedef void (command_handler_type)( const std::string, const std::string );
@@ -96,12 +99,15 @@ namespace u5303a {
 
         void connect_waveform( waveform_reply_type );
         void disconnect_waveform( waveform_reply_type );
+    
 
         static bool readData( AgMD2&, const acqrscontrols::u5303a::method&
                               , std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > >& );
         static bool readData16( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform& );
         static bool readData32( AgMD2&, const acqrscontrols::u5303a::method&, acqrscontrols::u5303a::waveform&, const char * channel = "Channel1" );
-    };
+    };    
+    
+
 }
 
 #endif

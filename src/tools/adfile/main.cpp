@@ -59,6 +59,7 @@ main(int argc, char *argv[])
             ( "device-data",  "list device meta data" )
             ( "rms",          "rms list" )
             ( "pp",           po::value< double >(), "find p-p delta larger than value" )
+            ( "at",           po::value< uint32_t >()->default_value(100), "rms start point in the waveform" )
             ;
 
         po::positional_options_description p;
@@ -81,6 +82,8 @@ main(int argc, char *argv[])
         pp_threshold = vm[ "pp" ].as< double >();
         find_pp = true;
     }
+
+    const uint32_t startPoint = vm[ "at" ].as< uint32_t >();
 
     if ( vm.count("args") ) {
         
@@ -147,10 +150,17 @@ main(int argc, char *argv[])
                                                 const double * intensities = ms->getIntensityArray();
                                             
                                                 std::tie(tic, dbase, rms) = adportable::spectrum_processor::tic( ms->size(), intensities, 5 );
-                                                size_t beg = ms->size() > 100 ? 100 : 0;
-                                                size_t end = ms->size() > (beg + 10) ? beg + 10 : ms->size();
-                                                auto mm = std::minmax_element( intensities + beg, intensities + end );
-                                                double pp = *mm.second - *mm.first;
+
+                                                // const size_t samplePoints = 10;
+                                                std::vector < double > ppv;
+                                                for ( size_t samplePoints: { 10, 100, 1000 } ) {
+                                                    size_t beg = ms->size() > startPoint ? startPoint : 0;
+                                                    size_t end = ms->size() > (beg + samplePoints) ? beg + samplePoints : ms->size();
+                                                    auto mm = std::minmax_element( intensities + beg, intensities + end );
+                                                    //double pp = *mm.second - *mm.first;
+                                                    ppv.emplace_back( *mm.second - *mm.first );
+                                                }
+                                                double pp = ppv[0];
 
                                                 std::cout << boost::format("%5d\t%10.4f\t%10.1f\t%16.3f\t%12.4f\t%12.4f\t%8.5f")
                                                     % it->rowid()
@@ -159,7 +169,9 @@ main(int argc, char *argv[])
                                                     % tic
                                                     % dbase
                                                     % rms
-                                                    % pp;
+                                                    % pp
+                                                          << boost::format( "\t%8.5f\t%8.5f" ) % ppv[1] % ppv[2];
+                                                
                                                 if ( find_pp && pp > pp_threshold )
                                                     std::cout << "\t *** '>' " << pp_threshold;
                                                 std::cout << std::endl;
