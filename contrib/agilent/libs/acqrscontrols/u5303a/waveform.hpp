@@ -213,7 +213,7 @@ namespace acqrscontrols {
             template< typename lvalue_type
                       , typename rvalue_type > void sub( const waveform& t ) {
                 std::transform( t.begin<rvalue_type>(), t.end<rvalue_type>(), this->data<lvalue_type>(), this->data<lvalue_type>()
-                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( a - b ); } );                
+                                , [&]( const rvalue_type& a, const lvalue_type& b ){ return lvalue_type( b - a ); } );                
             }
         };
 
