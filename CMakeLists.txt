@@ -98,7 +98,9 @@ if( WIN32 )
 elseif ( APPLE )
   set( CPACK_SET_DESTDIR ON )
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
-  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )  
+  set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib/qtplatz" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.12" )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=10.12" )
 else() # Linux
   set( CPACK_SET_DESTDIR ON )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals -Wno-psabi" )
@@ -121,7 +123,7 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   date_time
   filesystem
   iostreams
-  locale
+#  locale
   log
   program_options
   regex

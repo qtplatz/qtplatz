@@ -38,7 +38,7 @@ function boost_download {
 	if [ -f ${BOOST_BUILD_DIR} ]; then
 		rm -rf ${BOOST_BUILD_DIR}
 	fi
-	tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
+	#tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
 }
 
 function boost_build {
@@ -51,18 +51,26 @@ function boost_build {
 
     ( cd $BOOST_BUILD_DIR;
       echo $(pwd)
-      echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-      echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
-      prompt
 
       case "${arch}" in
-	  Linux*)
-	      ./bootstrap.sh --prefix=$BOOST_PREFIX &&
-		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+		  Linux*)
+			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX
+			  echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+			  prompt
+			  ./bootstrap.sh --prefix=$BOOST_PREFIX &&
+				  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	      ;;
 	  Darwin*)
+		  OSX_VERSION_MIN=-mmacosx-version-min=10.12
+	      C_FLAGS="-mmacosx-version-min=10.12"
+		  #CXX_FLAGS="-std=c++14 -setlib=libc++ $OSX_VERSION_MIN"
+		  CXX_FLAGS="-std=c++14 $OSX_VERSION_MIN"
+		  LINKFLAGS="-stdlib=libc++ $OSX_VERSION_MIN"
+		  echo ./bootstrap.sh --prefix=$BOOST_PREFIX
+		  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+		  prompt
 	      ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang &&
-		  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++14 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 	      ;;
 	  *)
 	      echo "Unknown arch: " $arch
@@ -72,16 +80,15 @@ function boost_build {
       echo "boost has been built on `pwd`";
       echo "run following command to install"
       echo "cd `pwd`"
-      echo "sudo ./b2 -j4 address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++14"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install"
       echo "*****************************************************"
-
       prompt
+	  
       case "${arch}" in
 	  Linux*)
 		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++14"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
 	      ;;
 	  Darwin*)
-	      sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="-std=c++14 -setlib=libc++" linkflags="-stdlib=libc++" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	      sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
 	      ;;
 	  *)
 	      echo "Unknown arch: " $arch
