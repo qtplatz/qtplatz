@@ -1,0 +1,11 @@
+============
+timestamp.sh ==> generage timestamp.db from *.adfs
+============
+It was used to use std::steady_time::time_point for recording timestamp for each spectral waveforms.  Thus it is not suitable to obtain an actual timestamp that can be calculated into Universal Time Coordinate(UTC).  This issue was resolved on QtPlatz 3.15.1-47 patch release.
+
+The timestamp.sh script generate timestamp.db file with multiple data-files as the argument list and extracts 'file creation time' taken from superblock table, where it indicates a time when data file initially created.
+
+============
+epochtime.py
+============
+Read timestamp.db, and then calculate a time difference between file create time and time-of-injection.

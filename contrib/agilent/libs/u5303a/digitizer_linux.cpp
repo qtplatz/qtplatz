@@ -77,6 +77,7 @@ namespace u5303a {
             bool run();
             bool stop();
             bool trigger_inject_out();
+            bool dark( size_t );
 
             void connect( digitizer::command_reply_type f );
             void disconnect( digitizer::command_reply_type f );
@@ -134,7 +135,9 @@ namespace u5303a {
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
             
             bool c_injection_requested_; 
-            bool c_acquisition_status_; // true: acq. is active, indeterminant: inj. waiting, 
+            bool c_acquisition_status_; // true: acq. is active, indeterminant: inj. waiting,
+            size_t darkCount_;
+            
             std::atomic<double> u5303_inject_timepoint_;
             std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
@@ -144,6 +147,7 @@ namespace u5303a {
             std::chrono::system_clock::time_point tp_acquire_;
             double temperature_;
             std::array< double, 2 > channel_temperature_;
+            std::shared_ptr< const acqrscontrols::u5303a::waveform > darkWaveform_;
 
             bool handle_initial_setup();
             bool handle_terminating();
@@ -223,9 +227,6 @@ digitizer::peripheral_prepare_for_run( const adcontrols::ControlMethod::Method& 
 bool
 digitizer::peripheral_prepare_for_run( const acqrscontrols::u5303a::method& m )
 {
-    // for ( auto& p: m.protocols() )
-    //     ADDEBUG() << "analyzer mode: " << p.mode();
-
     return task::instance()->prepare_for_run( m );
 }
 
@@ -257,11 +258,10 @@ digitizer::peripheral_trigger_inject()
     return task::instance()->trigger_inject_out();
 }
 
-// deprecated -- use dgmod's hard wired protocol handling
 bool
-digitizer::peripheral_protocol( uint32_t protoIdx, uint32_t nProtocols )
+digitizer::peripheral_dark( size_t waitCount )
 {
-    return false; //task::instance()->next_protocol( protoIdx, nProtocols );
+    return task::instance()->dark( waitCount );
 }
 
 void
@@ -294,19 +294,20 @@ digitizer::setScanLaw( std::shared_ptr< adportable::TimeSquaredScanLaw > ptr )
     task::instance()->setScanLaw( ptr );
 }
 
-task::task() : work_( io_service_ )
+task::task() : exptr_( nullptr )
+             , digitizerNumRecords_( 1 )
+             , fsm_( this )
+             , work_( io_service_ )
              , strand_( io_service_ )
              , timer_( io_service_ )
              , simulated_( false )
              , pio_( std::make_unique< dgpio::pio >() )
-             , exptr_( nullptr )
-             , digitizerNumRecords_( 1 )
-             , fsm_( this )
              , c_injection_requested_( false )
              , c_acquisition_status_( false )
+             , darkCount_( 0 )
              , u5303_inject_timepoint_( 0 )
              , temperature_( 0 )
-             , channel_temperature_{ 0 }
+             , channel_temperature_{{ 0 }}
 {
     acquire_posted_.clear();
 
@@ -426,6 +427,17 @@ task::trigger_inject_out()
 #endif
     c_injection_requested_ = true;
     return true;
+}
+
+bool
+task::dark( size_t waitCount )
+{
+    if ( method_.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer )
+        return false;
+    darkWaveform_.reset();
+    darkCount_ = waitCount;
+    for ( auto& reply: reply_handlers_ ) reply( waitCount ? "DarkStarted" : "DarkCanceled", "" );
+    return waitCount;
 }
 
 void
@@ -762,7 +774,8 @@ task::handle_acquire()
                 }
                 
             } else { // average
-                uint32_t events( 0 );
+                uint32_t events = darkCount_ ? adacquire::SignalObserver::wkEvent_DarkInProgress : 0;
+                
                 if ( method_._device_method().pkd_enabled ) {
                     // PKD+AVG
                     auto pkd = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
@@ -775,6 +788,13 @@ task::handle_acquire()
                             if ( reply( avg.get(), pkd.get(), m ) )
                                 handle_protocol( m );
                         }
+                        auto dark( darkWaveform_ );
+                        if ( darkCount_ && --darkCount_ == 0 ) {
+                            darkWaveform_ = avg;
+                            for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
+                        }
+                        if ( dark )
+                            avg->darkSubtraction( *dark );
                     }
                     
                 } else {
@@ -787,6 +807,13 @@ task::handle_acquire()
                             if ( reply( waveform.get(), nullptr, m ) )
                                 handle_protocol( m );
                         }
+                        auto dark( darkWaveform_ );
+                        if ( darkCount_ && --darkCount_ == 0 ) {
+                            darkWaveform_ = waveform;
+                            for ( auto& reply: reply_handlers_ ) reply( "DarkAcquired", "" );
+                        }
+                        if ( dark )
+                            waveform->darkSubtraction( *dark );
                     }
                 }
             }
@@ -957,7 +984,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     attribute< trigger_coupling >::set( *task.spDriver(), "External1", AGMD2_VAL_TRIGGER_COUPLING_DC );
     attribute< trigger_delay >::set( *task.spDriver(), m._device_method().delay_to_first_sample_ );
 
-    bool success = false;
+    //bool success = false;
             
     const double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
 
@@ -1118,8 +1145,8 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
                                                               , &scaleFactor
                                                               , &scaleOffset ), __FILE__, __LINE__ ) ) {
 
-            const auto& tp = task::instance()->tp_acquire();
-            uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
+            // const auto& tp = task::instance()->tp_acquire();
+            // uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
 
             for ( int64_t iRecord = 0; iRecord < actualRecords; ++iRecord ) {
 
@@ -1166,13 +1193,12 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
              , __FILE__, __LINE__ ) ) {
 
         ViInt32 actualAverages(0);
-        ViInt64 actualRecords(0);
         ViInt64 actualPoints[numRecords] = {0}, firstValidPoint[numRecords] = {0};
         ViReal64 initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
 
-        const auto& tp = task::instance()->tp_acquire();        
-        uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
+        //const auto& tp = task::instance()->tp_acquire();        
+        //uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
         
 		auto mblk = std::make_shared< adportable::mblock<int16_t> >( arraySize );
         
@@ -1230,8 +1256,8 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         ViInt32 flags[numRecords];
         auto mblk = std::make_shared< adportable::mblock< int32_t > >( arraySize );
 
-        const auto& tp = task::instance()->tp_acquire();
-        uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
+        // const auto& tp = task::instance()->tp_acquire();
+        // uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
 
         if ( AgMD2::log( AgMD2_FetchAccumulatedWaveformInt32( md2.session()
                                                               , channel // "Channel1"

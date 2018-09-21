@@ -85,6 +85,12 @@ namespace u5303a { namespace Instrument {
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eStop ); // 9
                     else if ( reply == "Running" )
                         reply_message( adi::Receiver::STATE_CHANGED, adi::Instrument::eRunning ); // 8
+                } else if ( method == "DarkStarted" ) {
+                    reply_message( adi::Receiver::DARK_STARTED, 1 );
+                } else if ( method == "DarkCanceled" ) {
+                    reply_message( adi::Receiver::DARK_CANCELED, 0 );
+                } else if ( method == "DarkAcquired" ) {
+                    reply_message( adi::Receiver::DARK_ACQUIRED, 0 );                    
                 } else {
                     ADINFO() << "U5303A: " << method << " = " << reply;
                 }
@@ -298,15 +304,6 @@ Session::stop_run()
 }
 
 bool
-Session::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
-{
-    // replaced with hardwired protocol identification using dgmod module
-    assert( 0 );
-    return true;
-    //return impl_->digitizer_->peripheral_protocol( protoIdx, nProtocols );
-}
-
-bool
 Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
                              , adcontrols::ControlMethod::const_time_event_iterator begin
                              , adcontrols::ControlMethod::const_time_event_iterator end )
@@ -318,3 +315,8 @@ Session::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::T
 }
 
 
+bool
+Session::dark_run( size_t waitCount )
+{
+    return impl_->digitizer_->peripheral_dark( waitCount );
+}

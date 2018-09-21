@@ -105,7 +105,9 @@ namespace adacquire {
 
             virtual bool isRecording() const { return false; }
 
-            virtual bool next_protocol( uint32_t protoIdx, uint32_t nProtocols ) { return false; }
+            [[deprecated("replace with dgmod hardwired")]] virtual bool next_protocol( uint32_t protoIdx, uint32_t nProtocols ) { return false; }
+
+            virtual bool dark_run( size_t waitcount = 3 ) { return false; }
         };
 
 

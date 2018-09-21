@@ -68,6 +68,9 @@ namespace adacquire {
             , ACTUAL_UPDATED
             , PROTOCOL_OVERRIDE_ENABLED // it is in tuning mode
             , CLIENT_ATTACHED
+            , DARK_STARTED
+            , DARK_ACQUIRED
+            , DARK_CANCELED
         };
 
         virtual void message( eINSTEVENT msg, uint32_t value ) = 0; // send message to client

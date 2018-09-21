@@ -80,7 +80,7 @@ namespace u5303a {
             bool suspend_run() override;
             bool resume_run() override;
             bool stop_run() override;
-            [[deprecated("replace with dgmod hardwired")]] bool next_protocol( uint32_t protoIdx, uint32_t nProtocols ) override;
+            bool dark_run( size_t ) override;
         };
 
     };
