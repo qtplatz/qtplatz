@@ -183,8 +183,9 @@ namespace acqrscontrols {
             static bool translate( adcontrols::MassSpectrum&, const threshold_result&, mass_assignor_t, int scale = 1000 );
 
             static inline bool is_equivalent( const metadata& a, const metadata& b ) {
+                // 1.0e-9s (1ns) difference should be ignored due to digitizer mode has 18ps time resolution
                 return ( ( adportable::compare<double>::essentiallyEqual( a.xIncrement, b.xIncrement )
-                           && adportable::compare<double>::essentiallyEqual( a.initialXOffset, b.initialXOffset ) ) );
+                           && adportable::compare<double>::essentiallyEqual( a.initialXOffset, b.initialXOffset, a.xIncrement ) ) );
             }
             
         private:

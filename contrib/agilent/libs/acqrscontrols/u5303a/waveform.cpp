@@ -317,8 +317,9 @@ waveform::waveform( const waveform& t, int dataType ) : method_( t.method_ )
 waveform&
 waveform::operator += ( const waveform& t )
 {
-    if ( ! is_equivalent( meta_, t.meta_ ) )
-        throw std::bad_cast();        
+    if ( ! is_equivalent( meta_, t.meta_ ) ) {
+        throw std::bad_cast();
+    }
     
     meta_.actualAverages += ( t.meta_.actualAverages == 0 ) ? 1 : t.meta_.actualAverages;
     wellKnownEvents_ |= t.wellKnownEvents_;
