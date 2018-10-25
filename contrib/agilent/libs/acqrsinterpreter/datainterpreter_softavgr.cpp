@@ -105,8 +105,8 @@ DataInterpreter::translate( acqrsinterpreter::waveform_types& waveform, const in
             } else {
 
                 native->deserialize_xdata( reinterpret_cast<const char *>( data ), dsize );
-                return adcontrols::translate_complete;
 
+                return adcontrols::translate_complete;
             }
         }
 

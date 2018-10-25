@@ -481,8 +481,9 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
+    size_t n = 0;
     for ( auto reader: dset->dataReaders() ) {
-        
+
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
             std::ostringstream o;
             o << "Spectrum " << reader->display_name() << " (" << std::fixed << std::setprecision( 3 ) << x1 << " - " << x2 << ")min";

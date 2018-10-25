@@ -390,9 +390,6 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
 void
 NavigationWidget::handleFoliumChanged( Dataprocessor * processor, const portfolio::Folium& folium )
 {
-#if !defined NDEBUG
-    ADDEBUG() << "handleFoliumChanged: " << folium.name();
-#endif
     if ( auto top = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
         if ( auto folder = StandardItemHelper::findFolder( top, folium.parentFolder().name() ) ) {
             if ( auto item = StandardItemHelper::findFolium( folder, folium.id() ) ) {

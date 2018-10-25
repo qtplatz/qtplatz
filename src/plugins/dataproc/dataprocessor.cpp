@@ -921,7 +921,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
     std::wstring name = adcontrols::Chromatogram::make_folder_name( src.getDescriptions() );
-    ADDEBUG() << "addChromatogram: " << name;
+    // ADDEBUG() << "addChromatogram: " << name;
 
     portfolio::Folium folium = folder.addFolium( name );
     adutils::ChromatogramPtr c = std::make_shared< adcontrols::Chromatogram >( src );  // profile, deep copy

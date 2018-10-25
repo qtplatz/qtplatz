@@ -571,10 +571,6 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
                 if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
-#if !defined NDEBUG
-                    ADDEBUG() << "handleSelectionChanged(" << folium.name() << ")->MassSpectrum isCentroid=" << ptr->isCentroid();
-#endif                
-                    
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
 

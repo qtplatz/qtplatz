@@ -23,13 +23,14 @@
 **************************************************************************/
 
 #include "datainterpreter_waveform.hpp"
-#include <acqrscontrols/u5303a/waveform.hpp>
 #include <acqrscontrols/ap240/waveform.hpp>
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/waveform.hpp>
-#include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/serializer.hpp>
 
 namespace acqrsinterpreter {
     namespace waveform {
@@ -40,6 +41,8 @@ namespace acqrsinterpreter {
             adcontrols::translate_state operator()( waveform_type& wform
                                                     , const char * data, size_t dsize
                                                     , const char * meta, size_t msize ) {
+
+                ADDEBUG() << "###### translator operator ";
 
                 if ( meta && msize )
                     wform.deserialize_xmeta( meta, msize );
@@ -72,7 +75,12 @@ namespace acqrsinterpreter {
         DataInterpreter<acqrscontrols::u5303a::waveform>::translate( acqrscontrols::u5303a::waveform& wform
                                                                      , const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
         {
-            return translator()( wform, reinterpret_cast< const char *>(data), dsize, reinterpret_cast< const char *>(meta), msize );
+            try {
+                return translator()( wform, reinterpret_cast< const char *>(data), dsize, reinterpret_cast< const char *>(meta), msize );
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << "###### Exception: " << ex.what();
+                return adcontrols::translate_error;
+            }
         }
 
         template<> adcontrols::translate_state

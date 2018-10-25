@@ -165,7 +165,6 @@ namespace acqrsinterpreter {
         return ptr->indices().size();
     }
 
-
     //------------------ coadd_spectrum visitor ----------------
     struct coadd_spectrum : public boost::static_visitor< void > {
 
@@ -174,7 +173,11 @@ namespace acqrsinterpreter {
         
         template< typename T > void operator()( T const& rhs ) const {
             auto ptr = boost::get< decltype( rhs ) >( waveform );
-            *ptr += *rhs;
+            try {
+                *ptr += *rhs;
+            } catch ( std::exception& ex ) {
+                // ADDEBUG() << "#### Exception: " << ex.what() << " while executing operator += waveform";
+            }
         }
     };
 
@@ -1060,11 +1063,21 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 auto proto = sql.get_column_value< int64_t >( col++ );
                 adfs::blob xdata = sql.get_column_value< adfs::blob >( col++ );
                 adfs::blob xmeta = sql.get_column_value< adfs::blob >( col++ );
-                
+
+                // ADDEBUG() << "coadd proto: " << proto;
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
-
+#if ! defined NDEBUG
+                    // check if lhs and rhs waveforms are the same condition -- ignore less than 1ns initialXOffset off due to digitizer mode
+                    // has 18ps resolution
+                    if ( waveform.which() == 2 && proto == 1 ) {
+                        // check waveform.cpp 322
+                        auto w = boost::get< std::shared_ptr< acqrscontrols::u5303a::waveform > >( waveform );                        
+                        ADDEBUG() << "T0=" << w->meta_.initialXOffset * 1.0e9 << "ns\tproto#=" << w->meta_.protocolIndex;
+                    }
+#endif
+                    
                     if ( coadded[ proto ].first++ == 0 ) {
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                         boost::apply_visitor( coadd_initialize( coadded[ proto ].second ), waveform );
