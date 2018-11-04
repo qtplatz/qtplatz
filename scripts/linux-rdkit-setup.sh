@@ -29,7 +29,7 @@ fi
 cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
 			 "-DRDK_BUILD_INCHI_SUPPORT=ON"
 			 "-DRDK_BUILD_PYTHON_WRAPPERS=OFF"
-			 "-DRDK_INSTALL_INTREE=ON"
+			 "-DRDK_INSTALL_INTREE=OFF"
 			 "-DRDK_INSTALL_STATIC_LIBS=ON"
 			 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
 		   )
@@ -64,4 +64,13 @@ if [ $? -eq 0 ]; then
 	make install
 fi
 
-echo "You may need to edit rdkit-target.cmake manually to remove '_IMPORT_PREFIX' or get failed to find Catalogs library"
+echo "You may need to edit rdkit-target.cmake manually to set '_IMPORT_PREFIX' or get failed to find Catalogs library"
+echo "You may also need to make sym-link RDKIT/lib/cmake/*.cmake RDKIT/lib"
+echo "Edit /usr/local/lib/cmake/rdkit/rdkit-config.cmake as:"
+echo '    include ("\${_prefix}/rdkit/rdkit-targets.cmake")'
+echo "change lib to rdkit in the middle of path name"
+
+##CMake Error at /usr/local/lib/cmake/rdkit/rdkit-config.cmake:6 (include):
+##  include could not find load file:
+##
+##    /usr/local/lib/cmake/lib/rdkit-targets.cmake

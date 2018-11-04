@@ -5,7 +5,11 @@ if ( rdkit_FOUND )
 endif()
 
 set ( rdkit "rdkit-NOTFOUND" )
-set ( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib" "${CMAKE_SOURCE_DIR}/../rdkit/lib" )
+set ( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib"
+  "${CMAKE_SOURCE_DIR}/../rdkit/lib"
+  "${CMAKE_SOURCE_DIR}/../rdkit/lib/cmake/rdkit"
+  "/usr/local/cmake/rdkit"
+  )
 
 if ( WIN32 )
   list ( APPEND _rdkit_libdirs "$ENV{PROGRAMFILES}/RDKit/lib" )
@@ -33,19 +37,23 @@ if ( rdkit_config_cmake )
   find_path( _inchi_include "INCHI-API/inchi.h" PATHS "${_prefix}/Code" "${_prefix}/External" )
   if ( _inchi_include )
     list( APPEND RDKit_INCLUDE_DIRS ${_inchi_include} )
+  else()
+    message( FATAL "INCH-API/inch.h not found")
   endif()
 
   find_path( _moldraw2d_include "MolDraw2DSVG.h" PATHS "${_prefix/GraphMol/MolDraw2D}" )
   if ( _moldraw2d_include )
     list( APPEND RDKit_INCLUDE_DIRS ${_moldraw2d_include} )
+  else()
+    message( FATAL "MolDraw2DSVG.h not found")
   endif()
-  
+
   set ( RDKit_LIBRARIES
     Catalogs
     ChemReactions
     DataStructs
     Depictor
-    Descriptors  
+    Descriptors
     EigenSolvers
     FileParsers
     FilterCatalog
@@ -71,9 +79,9 @@ endif()
 message( STATUS "###### rdkit-config.cmake NOT FOUND -- Continue local lookup #####" )
 
 set( _rdkit_incdirs
-  "${RDBASE}/Code"  
+  "${RDBASE}/Code"
   "${RDBASE}/External"
-  "$ENV{RDBASE}/Code"  
+  "$ENV{RDBASE}/Code"
   "$ENV{RDBASE}/External"
   "${CMAKE_SOURCE_DIR}/../rdkit/Code"
   "${CMAKE_SOURCE_DIR}/../rdkit/External"
@@ -337,7 +345,7 @@ else()
   set_target_properties( RDKit::Inchi		PROPERTIES IMPORTED_LOCATION_RELEASE ${INCHI_LIB} )
   set_target_properties( RDKit::RDInchiLib	PROPERTIES IMPORTED_LOCATION_RELEASE ${RDINCHILIB_LIB} )
   set_target_properties( RDKit::FilterCatalog	PROPERTIES IMPORTED_LOCATION_RELEASE ${FILTERCATALOG_LIB} )
-  set_target_properties( RDKit::Catalogs	PROPERTIES IMPORTED_LOCATION_RELEASE ${CATALOGS_LIB} )    
+  set_target_properties( RDKit::Catalogs	PROPERTIES IMPORTED_LOCATION_RELEASE ${CATALOGS_LIB} )
 endif()
 
 set ( RDKit_LIBRARIES
@@ -345,7 +353,7 @@ set ( RDKit_LIBRARIES
   RDKit::ChemReactions
   RDKit::DataStructs
   RDKit::Depictor
-  RDKit::Descriptors  
+  RDKit::Descriptors
   RDKit::EigenSolvers
   RDKit::FileParsers
   RDKit::FilterCatalog
