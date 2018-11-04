@@ -54,7 +54,7 @@ mkdir -p $BUILD_DIR;
 cd $BUILD_DIR;
 
 echo "RDBASE    : " $RDBASE
-echo "BUILD_DIR : " `pwd`        
+echo "BUILD_DIR : " `pwd`
 echo cmake "${cmake_args[@]}" $RDBASE
 prompt
 cmake "${cmake_args[@]}" $RDBASE
@@ -64,5 +64,4 @@ if [ $? -eq 0 ]; then
 	make install
 fi
 
-echo "You may need to edit rdkit-target.cmake manually to remove '_IMPORT_PREFIX' or get failed to find Catalogs library
-
+echo "You may need to edit rdkit-target.cmake manually to remove '_IMPORT_PREFIX' or get failed to find Catalogs library"
