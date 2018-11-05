@@ -1,12 +1,11 @@
-#!/usr/local/bin/python3
 import sqlite3
 import matplotlib.pyplot as plt
 
 #conn = sqlite3.connect('/disk2/data/mouse/2018-09-07/Soil_Closed15_0100.adfs')
-conn = sqlite3.connect('/Users/toshi/data/mouse/100ppmN2O_CO2_50ul_0001.adfs')
+conn = sqlite3.connect('/home/toshi/data/mouse/iwai/2018-10-26/noAIR_10mV_2650_0011.adfs')
 c = conn.cursor()
 
-c.execute( "SELECT ROUND(peak_intensity/5)*5 as threshold, COUNT(*) FROM peak GROUP BY threshold" )
+c.execute( "SELECT ROUND(peak_intensity/5)*5 as threshold, COUNT(*) FROM peak WHERE peak_time > 205.98e-6 and peak_time < 206.01 GROUP BY threshold" )
 
 result_set = c.fetchall()
 
