@@ -36,7 +36,7 @@
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
-#include <INCHI-API/inchi.h>
+#include <GraphMol/inchi.h>
 
 using namespace chemistry;
 
@@ -99,7 +99,7 @@ ChemQuery::column_name_tr( const QString& d )
         , { "casrn", QObject::tr( "CAS NO." ) }
         , { "SystematicName", QObject::tr( "Systematic Name" ) }
     };
-    
+
     for ( auto& t : names ) {
         if ( t.loc_c == d )
             return t.i10n;
@@ -160,7 +160,7 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
         sql_.bind( row++ ) = mass;
         sql_.bind( row++ ) = inchi;
         sql_.bind( row++ ) = inchikey;
-        
+
         if ( sql_.step() == adfs::sqlite_done ) {
             row = 1;
             sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchi = ?" );
@@ -190,15 +190,14 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
 //         sql_.bind( row++ ) = mass;
 //         sql_.bind( row++ ) = inchi;
 //         sql_.bind( row++ ) = inchikey;
-        
+
 //         if ( sql_.step() == adfs::sqlite_done ) {
 //             sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchi = ?" );
 //             sql_.bind( 1 ) = synonym;
 //             sql_.bind( 2 ) = inchi;
 //             return sql_.step();
 //         }
-        
+
 //     }
 //     return false;
 // }
-

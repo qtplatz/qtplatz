@@ -28,7 +28,7 @@
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
-#include <INCHI-API/inchi.h>
+#include <GraphMol/inchi.h>
 
 using namespace adchem;
 
@@ -69,7 +69,7 @@ std::string
 mol::formula( const RDKit::ROMol& m, bool separateIsotopes, bool abbreviateHIsotopes )
 {
     //m.updatePropertyCache( false );
-    return RDKit::Descriptors::calcMolFormula( m, separateIsotopes, abbreviateHIsotopes );    
+    return RDKit::Descriptors::calcMolFormula( m, separateIsotopes, abbreviateHIsotopes );
 }
 
 std::string
@@ -96,7 +96,7 @@ mol::InChI() const
     RDKit::ExtraInchiReturnValues rv;
     if ( mol_ )
         return RDKit::MolToInchi( *mol_, rv );
-    return std::string();    
+    return std::string();
 }
 
 // static

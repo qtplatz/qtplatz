@@ -49,7 +49,7 @@
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
-#include <INCHI-API/inchi.h>
+#include <GraphMol/inchi.h>
 #if defined _MSC_VER
 # pragma warning(default:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
 #endif
@@ -76,7 +76,7 @@ namespace chemistry {
                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                 , QLatin1String( "chemistry" ) ) ) {
         }
-        
+
         std::unique_ptr< QSettings > settings_;
         QSqlDatabase db_;
 
@@ -110,7 +110,7 @@ document::document(QObject *parent) : QObject(parent)
 {
 }
 
-document * 
+document *
 document::instance()
 {
     static document __instance;
@@ -133,7 +133,7 @@ document::initialSetup()
     if ( path.empty() || path.filename() == "molecules.adfs" ) {
         path = dir / "ChemistryDB.adfs";
     }
-    
+
     if ( !boost::filesystem::exists( path ) ) {
 
         if ( !adfs::filesystem().create( path ) ) // create qtplatz ini-db
@@ -157,7 +157,7 @@ document::initialSetup()
                         if ( sql.get_column_value< std::string >( 1 ) == "uuid" )
                             deprecated = true;
                     }
-                    
+
                     if ( deprecated ) {
                         sql.exec( "DROP TABLE IF EXISTS synonyms" );
                         sql.exec( "DROP TABLE IF EXISTS mols" );
@@ -186,7 +186,7 @@ document::initialSetup()
         QMessageBox::critical(0, tr("Cannot open database"),
                               tr("Unable to establish a database connection.\nClick Cancel to exit.")
                               , QMessageBox::Cancel );
-    } 
+    }
 }
 
 void
@@ -232,7 +232,7 @@ document::dbInit( ChemConnection * connection )
             query->insert( *mol, it->smiles(), it->symbol() );
         }
     }
-    
+
 }
 
 QSqlDatabase
@@ -247,7 +247,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
     auto stmt = sql.toStdString();
     ADDEBUG() << stmt;
     ChemSpider cs( chemSpiderToken().toStdString() );
-    
+
     if ( cs.AsyncSimpleSearch( stmt ) ) {
 
         int retry( 10 );
@@ -275,7 +275,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
                 edit->append( QString("%1").arg( QString::fromStdString( smiles ) ) );
                 edit->append( QString("%1").arg( QString::fromStdString( InChI ) ) );
                 edit->append( QString("%1").arg( QString::fromStdString( InChIKey ) ) );
-                
+
                 if ( auto mol = std::unique_ptr< RDKit::RWMol >( RDKit::SmilesToMol( smiles ) ) ) {
 
                     std::string svg = adchem::drawing::toSVG( *mol );
@@ -289,16 +289,16 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
 
                         sql.prepare( "INSERT OR IGNORE INTO mols (InChI) VALUES (?)" );
                         sql.addBindValue( QString::fromStdString( InChI ) );
-                    
+
                         if ( !sql.exec() ) {
                             ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
                                       << ", code = " << sql.lastError().number() << " while inserting " << InChI;
                         }
                     } while( 0 );
-                    
+
                     do {
                         QSqlQuery sql( impl::sqlDatabase() );
-                        
+
                         sql.prepare(
                             "UPDATE mols SET csid = ?, formula = ?, mass = ?, svg = ?, smiles = ?, InChIKey = ? "
                             " WHERE InChI = ?" );
@@ -319,7 +319,7 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
 
                     impl::sqlDatabase().commit();
                 }
-                
+
             }
         }
         emit onConnectionChanged(); // this will re-run setQuery
@@ -342,17 +342,17 @@ void
 document::findCSIDFromInChI( const QString& InChI )
 {
     ChemSpider cs( chemSpiderToken().toStdString() );
-    
+
     if ( cs.AsyncSimpleSearch( InChI.toStdString() ) ) {
 
         int retry( 10 );
         std::string status;
         while( !cs.GetAsyncSearchStatus( status ) && retry-- )
             ;
-        
+
         if ( retry <= 0 )
             return;
-        
+
         cs.GetAsyncSearchResult();
 
         for ( auto& csid: cs.csids() ) {
@@ -360,10 +360,10 @@ document::findCSIDFromInChI( const QString& InChI )
             QSqlQuery sql( impl::sqlDatabase() );
 
             sql.prepare( "UPDATE mols SET csid = ? WHERE InChI = ?" );
-            
+
             sql.addBindValue( csid );
             sql.addBindValue( InChI );
-            
+
             if ( !sql.exec() ) {
                 ADDEBUG() << "SQLite error: " << sql.lastError().text().toStdString()
                           << ", code = " << sql.lastError().number() << " while updating " << InChI.toStdString();
