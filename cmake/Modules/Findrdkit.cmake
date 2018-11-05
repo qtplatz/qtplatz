@@ -8,7 +8,7 @@ set ( rdkit "rdkit-NOTFOUND" )
 set ( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib"
   "${CMAKE_SOURCE_DIR}/../rdkit/lib"
   "${CMAKE_SOURCE_DIR}/../rdkit/lib/cmake/rdkit"
-  "/usr/local/cmake/rdkit"
+  "/usr/local/lib/cmake/rdkit"
   )
 
 if ( WIN32 )

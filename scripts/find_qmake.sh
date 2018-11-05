@@ -4,7 +4,7 @@ function find_qmake() {
     local __arch=`uname`
     local __result=$1
 
-    local hints=( "/Qt/5.11.1" "/Qt/5.11.0" \
+    local hints=( "/Qt/5.11.2" "/Qt/5.11.1" "/Qt/5.11.0" \
 		      "/Qt/5.10.1" \
 		      "/Qt/5.9.3" "/Qt/5.9.2" "/Qt/5.9.1" "/Qt/5.9" \
 		      "/Qt/5.8" \
