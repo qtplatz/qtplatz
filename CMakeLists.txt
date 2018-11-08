@@ -60,7 +60,7 @@ if ( APPLE )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS )
   set( CMAKE_SHARED_MODULE_SUFFIX ".dylib" )
   set( CMAKE_MACOSX_RPATH 1 )
-  set( CMAKE_SKIP_BUILD_RPATH  FALSE )  
+  set( CMAKE_SKIP_BUILD_RPATH  FALSE )
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
   set( QTPLATZ_PLUGIN_DESTINATION bin/qtplatz.app/Contents/PlugIns )
 
@@ -73,7 +73,7 @@ else()
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         ${QTPLATZ_BINARY_DIR}/bin )  # .exe | .dll
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${QTPLATZ_BINARY_DIR}/bin )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${QTPLATZ_BINARY_DIR}/bin )
-  
+
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins )
   set( QTPLATZ_PLUGIN_DESTINATION lib/qtplatz/plugins )
 
@@ -168,10 +168,10 @@ if ( WITH_OPENCV )
   endif()
   find_package( OpenCV 3 QUIET )
   if ( OpenCV_FOUND )
-    find_package( OpenCV 3 REQUIRED core imgproc video highgui features2d )    
+    find_package( OpenCV 3 REQUIRED core imgproc video highgui features2d )
     add_definitions( -DHAVE_OPENCV=1 )
   endif()
-  
+
   find_package( HDF5 QUIET )
   if ( HDF5_FOUND )
     add_definitions( -DHAVE_HDF5=1 )
@@ -190,7 +190,7 @@ if ( WITH_AgMD2 )
   find_package( AgMD2 QUIET )
   if ( AqMD2_FOUND )
     add_definitions( -DHAVE_AgMD2=1 )
-  endif()  
+  endif()
 endif()
 
 if ( WITH_CUDA )
@@ -208,12 +208,12 @@ if ( WITH_ARRAYFIRE )
 endif()
 
 if ( WIN32 )
-  set( SOLUTION_FILE "qtplatz" )  
+  set( SOLUTION_FILE "qtplatz" )
   configure_file(
     ${QTPLATZ_SOURCE_DIR}/makefile.nmake.in
     ${CMAKE_BINARY_DIR}/makefile @ONLY
     )
-  
+
   file( WRITE "${CMAKE_BINARY_DIR}/build-package.bat" "msbuild /m /p:Configuration=Release PACKAGE.vcxproj" )
 
   if ( DEBUG_SYMBOL )
@@ -242,7 +242,7 @@ set( CPACK_PACKAGE_NAME "qtplatz" )
 include( qtplatz-cpack-config )
 
 if ( WIN32 )
-  
+
   set( CPACK_GENERATOR "WIX" )
   include( msvc-cpack )
   include( rdkit-cpack )
@@ -251,7 +251,7 @@ if ( WIN32 )
   if ( OpenCV_FOUND )
     include( opencv-cpack )
   endif()
-  
+
 elseif( APPLE )
 
   SET( MACOSX_BUNDLE_STARTUP_COMMAND qtplatz)
@@ -260,7 +260,7 @@ elseif( APPLE )
   include( boost-cpack )
   include( qt5-cpack )
   include( rdkit-cpack )
-  
+
 elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
   set( CPACK_DEB_COMPONENT_INSTALL 1 )
   set( CPACK_GENERATOR "DEB" )
@@ -273,12 +273,12 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
     set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE armhf )
   endif()
 
-  set( INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib )  
+  set( INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib )
   configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/postinst.in ${CMAKE_CURRENT_BINARY_DIR}/postinst @ONLY )
-  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/prerm.in ${CMAKE_CURRENT_BINARY_DIR}/prerm @ONLY )  
+  configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/prerm.in ${CMAKE_CURRENT_BINARY_DIR}/prerm @ONLY )
 
   include( boost-cpack )
-  
+
   if ( Qt5_FOUND )
     include( qt5-cpack )
   endif()
@@ -294,7 +294,7 @@ message( STATUS "======== QMAKE; " ${QMAKE} )
 
 include (config_qtplatz_config)
 
-config_qtplatz_config( "TRUE" )   # installed 
+config_qtplatz_config( "TRUE" )   # installed
 config_qtplatz_config( "FALSE" )  # in source tree
 install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
@@ -308,7 +308,7 @@ message( STATUS "---------- SUMMARY ------------" )
 message( STATUS "# QTPLATZ_BINARY_DIR    : " ${QTPLATZ_BINARY_DIR} )
 message( STATUS "# QTPLATZ_CORELIB_ONLY  : " ${QTPLATZ_CORELIB_ONLY} )
 message( STATUS "# DEBUG SYMBOL          : " ${DEBUG_SYMBOL} )
-message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_VERSION} )      
+message( STATUS "# COMPILER VERSION      : " ${CMAKE_CXX_COMPILER_VERSION} )
 message( STATUS "# Boost_VERSION         : " ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION} )
 message( STATUS "# Boost_INCLUDE_DIRS    : " ${Boost_INCLUDE_DIRS} )
 message( STATUS "# Boost_LIBRARY_DIRS    : " ${Boost_LIBRARY_DIRS} )
@@ -355,7 +355,7 @@ if ( WITH_ARRAYFIRE AND ArrayFire_FOUND )
   message( STATUS "\t# ArrayFire_CPU    : "  ${ArrayFire_CPU_FOUND} )
   message( STATUS "\t# ArrayFire_CUDA   : "  ${ArrayFire_CUDA_FOUND} )
   message( STATUS "\t# ArrayFire_OpenCL : "  ${ArrayFire_OpenCL_FOUND} )
-  message( STATUS "\t# ArrayFire_Unified: "  ${ArrayFire_Unified_FOUND} )  
+  message( STATUS "\t# ArrayFire_Unified: "  ${ArrayFire_Unified_FOUND} )
   foreach( _dir ${ArrayFire_INCLUDE_DIRS} )
     message( STATUS "\t# INCLUDE          : "   ${_dir} )
   endforeach()
@@ -395,7 +395,7 @@ if ( AqDrv4_FOUND )
     get_target_property( _value ${AqDrv4_LIBRARIES} IMPORTED_IMPLIB )
     message( STATUS "                        : "  ${_value} )
   else()
-    message( STATUS "# AqDrv4 LIBRARIES      : "  ${AqDrv4_LIBRARIES} )    
+    message( STATUS "# AqDrv4 LIBRARIES      : "  ${AqDrv4_LIBRARIES} )
   endif()
 endif()
 if ( Boost_FOUND AND VERBOSE )
@@ -427,6 +427,6 @@ message( STATUS "# QMAKE                 : " ${QMAKE} )
 if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
   message( STATUS "################## WARNING ###################" )
   message( STATUS "QT_PLUGIN_PATH has set to $ENV{QT_PLUGIN_PATH}" )
-  message( STATUS "################## WARNING ###################" )  
+  message( STATUS "################## WARNING ###################" )
 endif()
 message( STATUS "---------- END SUMMARY ------------" )

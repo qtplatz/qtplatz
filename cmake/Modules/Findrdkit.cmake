@@ -26,7 +26,7 @@ if ( rdkit_config_cmake )
   get_filename_component( _dir "${rdkit_config_cmake}" PATH )
   get_filename_component( _prefix "${_dir}/.." ABSOLUTE )
 
-  set ( RDKit_LIBRARY_DIRS ${_dir} )
+  #set ( RDKit_LIBRARY_DIRS ${_dir} )
 
   find_file( version_cmake NAMES "rdkit-config-version.cmake" PATHS ${_dir} NO_DEFAULT_PATH )
   if ( version_cmake )
@@ -71,10 +71,14 @@ if ( rdkit_config_cmake )
     RDInchiLib
     SmilesParse
     )
-  set( rdkit_FOUND TRUE )
 
+  get_target_property( _path RDGeneral IMPORTED_LOCATION_RELEASE )
+  get_filename_component( RDKit_LIBRARY_DIRS ${_path} PATH )
+
+  set( rdkit_FOUND TRUE )
   return()
 endif()
+
 
 message( STATUS "###### rdkit-config.cmake NOT FOUND -- Continue local lookup #####" )
 
