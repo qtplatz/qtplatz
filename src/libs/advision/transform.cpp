@@ -170,7 +170,7 @@ namespace advision {
     template<>
     QImage transform_< QImage >::operator()< af::array >( const af::array& a ) const {
 
-        if ( a.numdims() < 2 ) // must be at least 2 (x,y) 
+        if ( a.numdims() < 2 ) // must be at least 2 (x,y)
             return QImage();
 
         if ( a.numdims() == 2 || a.dims( 2 ) == 1 ) { // gray-scale
@@ -178,7 +178,7 @@ namespace advision {
             a.as( u8 ).host( t.bits() );
 
         } else if ( a.dims( 3 ) == 3 ) { // RGB
-            af::array rgb = af::reorder( a.T(), 2, 0, 1 );  // RGB, 
+            af::array rgb = af::reorder( a.T(), 2, 0, 1 );  // RGB,
             QImage t( rgb.dims( 0 ), rgb.dims( 1 ), QImage::Format_RGB888 );
             rgb.as( u8 ).host( t.bits() );
 
@@ -186,7 +186,7 @@ namespace advision {
         // no RGBA supported on this version of advision
 
         return QImage();
-    }        
+    }
 
 #endif
 
@@ -197,21 +197,21 @@ namespace advision {
 	ADVISIONSHARED_EXPORT QImage transform_< QImage >::operator()< cv::Mat >( const cv::Mat& a ) const {
 
         cv::Mat t( a );  // shallow copy
-        
+
         switch( a.type() ) {
         case CV_32FC1: // cvtColor only accept 8bit single channel image
             a.convertTo( t, CV_8U, 255.0 );
-            cv::cvtColor( t, t, CV_GRAY2RGB );
+            cv::cvtColor( t, t, cv::COLOR_GRAY2RGB );
             break;
         case CV_32FC3: // cvtColor only accept 8bit single channel image
             a.convertTo( t, CV_8U, 255.0 );
-            cv::cvtColor( t, t, CV_BGR2RGB );
-            break;            
+            cv::cvtColor( t, t, cv::COLOR_BGR2RGB );
+            break;
         case CV_8UC1:
-            cv::cvtColor( a, t, CV_GRAY2RGB );
+            cv::cvtColor( a, t, cv::COLOR_GRAY2RGB );
             break;
         case CV_8UC3:
-            cv::cvtColor( a, t, CV_BGR2RGB );
+            cv::cvtColor( a, t, cv::COLOR_BGR2RGB );
             break;
         }
         auto qImage = QImage( static_cast< const unsigned char *>(t.data), t.cols, t.rows, t.step, QImage::Format_RGB888 );
@@ -245,4 +245,3 @@ namespace advision {
 #endif
 
 }
-

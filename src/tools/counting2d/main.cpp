@@ -35,7 +35,7 @@
 #include <ratio>
 
 #if OPENCV
-# include <cv.h>
+//# include <cv.h>
 # include <opencv2/cvconfig.h>
 # include <opencv2/flann/flann.hpp>
 # include <opencv2/highgui/highgui.hpp>
@@ -47,7 +47,7 @@ int
 main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    
+
     po::variables_map vm;
     po::options_description description( "counting2d" );
     {
@@ -67,8 +67,8 @@ main(int argc, char *argv[])
         std::cout << description;
         return 0;
     }
-    
-    adplugin::manager::standalone_initialize(); 
+
+    adplugin::manager::standalone_initialize();
 
     bool f_directory( false );
 
@@ -94,9 +94,9 @@ main(int argc, char *argv[])
     a.processEvents();
 
     if ( vm.count("args") ) {
-        
+
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
-            
+
             boost::filesystem::path file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
 
             std::wstring msg;
@@ -117,4 +117,3 @@ main(int argc, char *argv[])
 
     a.exec();
 }
-

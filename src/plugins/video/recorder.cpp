@@ -38,14 +38,14 @@ Recorder::Recorder()
     auto dir = boost::filesystem::path( adcontrols::SampleRun().dataDirectory() );
     if ( ! boost::filesystem::exists( dir ) ) {
         boost::system::error_code error;
-        boost::filesystem::create_directories(dir, error);        
+        boost::filesystem::create_directories(dir, error);
     }
     int no = 0;
     boost::filesystem::path path;
     do {
         path = dir / ( boost::format( "video_%03d.mp4" ) % no++ ).str();
     } while ( boost::filesystem::exists( path ) );
-    
+
     filename_ = path.string();
 }
 
@@ -73,8 +73,9 @@ Recorder::open( const std::string& filename, double fps, cv::Size frameSize, boo
 {
     filename_ = filename;
     ADDEBUG() << "##### create file: " << filename << " ######";
-    
-    int fourcc = CV_FOURCC('X','2','6','4');
+
+    //int fourcc = CV_FOURCC('X','2','6','4');
+    int fourcc = cv::VideoWriter::fourcc('X','2','6','4');
     //int fourcc = CV_FOURCC('X','V','I','C');
     //int fourcc = CV_FOURCC('M','J','P','G');
     return writer_.open( filename, fourcc, fps, frameSize, isColor );

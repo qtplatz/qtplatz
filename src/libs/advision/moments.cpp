@@ -54,7 +54,7 @@ Moments::operator()( const boost::numeric::ublas::matrix< double >& m ) const
     auto mat = transform_< cv::Mat >()( m );
 
     if ( sizeFactor_ > 1 )
-        cv::resize( mat, mat, cv::Size(0,0), sizeFactor_, sizeFactor_, CV_INTER_LINEAR );
+        cv::resize( mat, mat, cv::Size(0,0), sizeFactor_, sizeFactor_, cv::INTER_LINEAR );
 
     mat.convertTo( mat, CV_8UC1, 255 );
 
@@ -62,15 +62,15 @@ Moments::operator()( const boost::numeric::ublas::matrix< double >& m ) const
         cv::blur( mat, mat, cv::Size( blurCount_.first, blurCount_.second ) );
 
     cv::Canny( mat, mat, cannyThreshold_, cannyThreshold_ * 2, 3 );
-        
+
     std::vector< std::vector< cv::Point > > contours;
     std::vector< cv::Vec4i > hierarchy;
-    cv::findContours( mat, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+    cv::findContours( mat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 
     boost::numeric::ublas::matrix< double > moments( m.size1(), m.size2() );
 
     for( int i = 0; i< contours.size(); i++ )  {
-        
+
         cv::Moments mu = cv::moments( contours[i], false );
         unsigned cx = unsigned ( ( mu.m10 / mu.m00 ) / sizeFactor_ );
         unsigned cy = unsigned ( ( mu.m01 / mu.m00 ) / sizeFactor_ );
@@ -92,7 +92,7 @@ Moments::operator()( boost::numeric::ublas::matrix< double >& out, const boost::
     }
 
     if ( sizeFactor_ > 1 )
-        cv::resize( mat, mat, cv::Size(0,0), sizeFactor_, sizeFactor_, CV_INTER_LINEAR );
+        cv::resize( mat, mat, cv::Size(0,0), sizeFactor_, sizeFactor_, cv::INTER_LINEAR );
 
     mat.convertTo( mat, CV_8UC1, 255 );
 
@@ -100,17 +100,17 @@ Moments::operator()( boost::numeric::ublas::matrix< double >& out, const boost::
         cv::blur( mat, mat, cv::Size( blurCount_.first, blurCount_.second ) );
 
     cv::Canny( mat, mat, cannyThreshold_, cannyThreshold_ * 2, 3 );
-        
+
     std::vector< std::vector< cv::Point > > contours;
     std::vector< cv::Vec4i > hierarchy;
-    cv::findContours( mat, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+    cv::findContours( mat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 
     for( int i = 0; i< contours.size(); i++ )  {
 
         cv::Rect rc = cv::boundingRect( contours[i] );
         if ( ( unsigned(rc.width) >= szThreshold_.first && unsigned(rc.height) >= szThreshold_.first ) &&
              ( unsigned(rc.width) < szThreshold_.second && unsigned(rc.height) < szThreshold_.second ) ) {
-            
+
             cv::Moments mu = cv::moments( contours[i], false );
             unsigned cx = unsigned( ( mu.m10 / mu.m00 ) / sizeFactor_ );
             unsigned cy = unsigned( ( mu.m01 / mu.m00 ) / sizeFactor_ );

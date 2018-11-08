@@ -54,9 +54,8 @@ namespace advision {
     template<>
     cv::Mat bgr2rgb_< cv::Mat >::operator()< cv::Mat >( const cv::Mat& a ) const {
         cv::Mat b;
-        cv::cvtColor( a, b, CV_RGB2BGR );
+        cv::cvtColor( a, b, cv::COLOR_RGB2BGR );
         return b;
     }
-    
-}
 
+}

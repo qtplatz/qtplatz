@@ -56,10 +56,10 @@ plot::show( const cv::Mat& image )
     constexpr int Scale = 8;
     switch( image.type() ) {
     case CV_8UC1:
-        cv::cvtColor( image, mat_, CV_GRAY2RGB );
+        cv::cvtColor( image, mat_, cv::COLOR_GRAY2RGB );
         break;
     case CV_8UC3:
-        cv::cvtColor( image, mat_, CV_BGR2RGB );
+        cv::cvtColor( image, mat_, cv::COLOR_BGR2RGB );
         break;
     }
 
@@ -78,7 +78,7 @@ plot::paintEvent( QPaintEvent * )
 {
     QPainter painter(this);
     painter.drawImage( QPoint(0,0), qimg_ );
-    painter.end();    
+    painter.end();
 }
 
 void

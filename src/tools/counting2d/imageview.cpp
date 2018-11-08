@@ -61,10 +61,10 @@ ImageView::showImage( const cv::Mat& image )
     constexpr int Scale = 8;
     switch( image.type() ) {
     case CV_8UC1:
-        cv::cvtColor( image, mat_, CV_GRAY2RGB );
+        cv::cvtColor( image, mat_, cv::COLOR_GRAY2RGB );
         break;
     case CV_8UC3:
-        cv::cvtColor( image, mat_, CV_BGR2RGB );
+        cv::cvtColor( image, mat_, cv::COLOR_BGR2RGB );
         break;
     }
 
@@ -83,14 +83,14 @@ ImageView::paintEvent( QPaintEvent * )
 {
     QPainter painter(this);
     painter.drawImage( QPoint(0,0), qimg_ );
-    painter.end();    
+    painter.end();
 }
 
 void
 ImageView::setData( std::shared_ptr< const adcontrols::MappedSpectra > map )
 {
     cv::Mat m( map->size1(), map->size2(), CV_8UC1 );
-    
+
     adcontrols::MappedImage img;
     img.merge( *map );
 
@@ -99,7 +99,7 @@ ImageView::setData( std::shared_ptr< const adcontrols::MappedSpectra > map )
             m.at< unsigned char >( i, j ) = img( i, j ) * 128;
         }
     }
-    showImage( m );        
+    showImage( m );
 }
 
 void
@@ -118,7 +118,7 @@ ImageView::setData( std::shared_ptr< const adcontrols::MappedDataFrame > dframe 
             m.at< cv::Vec3b >( i, j )[2] = b;
         }
     }
-    showImage( m );        
+    showImage( m );
 }
 
 void

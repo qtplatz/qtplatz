@@ -36,11 +36,11 @@
 #include <ratio>
 #include <iomanip>
 #if OPENCV
-# include <cv.h>
+//# include <cv.h>
 # include <opencv2/cvconfig.h>
 # include <opencv2/flann/flann.hpp>
 using namespace cv;
-# include <opencv2/flann/hdf5.h>
+//# include <opencv2/flann/hdf5.h>
 #endif
 
 namespace po = boost::program_options;
@@ -83,7 +83,7 @@ int
 main(int argc, char *argv[])
 {
     QCoreApplication a( argc, argv );
-    
+
     po::variables_map vm;
     po::options_description description( "counting" );
     {
@@ -128,13 +128,13 @@ main(int argc, char *argv[])
         boost::filesystem::current_path( cdir );
         f_directory = true;
     }
-    
+
     if ( vm.count("args") ) {
-        
+
         for ( auto& _file: vm[ "args" ].as< std::vector< std::string > >() ) {
-            
+
             std::string file = f_directory ? boost::filesystem::canonical( _file, cwd ).string() : _file;
-            
+
             boost::filesystem::path path( file );
             if ( path.extension() == ".adfs" ) {
 
@@ -151,44 +151,44 @@ main(int argc, char *argv[])
                         });
                     std::cerr << std::endl;
                 }
-                
+
             } else {
-                
+
                 std::string adfsname;
                 if ( adtextfile::time_data_reader::is_time_data( file, adfsname ) ) {
-                    
+
                     Summary summary;
-                    
-                    if ( ! adfsname.empty() ) {            
-                        
+
+                    if ( ! adfsname.empty() ) {
+
                         double acclVoltage(0), tDelay(0), fLength(0);
                         std::string spectrometer;
-                        
+
                         if ( adtextfile::time_data_reader::readScanLaw( adfsname, acclVoltage, tDelay, fLength, spectrometer ) ) {
-                            
+
                             std::cout << "#datafile: " << file << " <- " << adfsname << std::endl;
                             std::cout << "#\taccelerator voltage: " << acclVoltage
                                       << "\ttDelay: " << tDelay
                                       << "\tfLength: " << fLength
                                       << std::endl;
                             std::cout << "#\tSpectrometer: " << spectrometer << std::endl;
-                            
+
                         }
                     }
-                    
+
                     if ( vm.count( "sqlite" ) ) {
-                        
+
                         SQLImport importer;
                         importer.import( file );
-                        
+
                     } else {
-                        
+
                         if ( vm.count( "resolution" ) )
                             summary.set_resolution( vm[ "resolution" ].as< double >() * 1.0e-9 );
-                        
+
                         if ( vm.count( "threshold" ) )
                             summary.set_threshold( vm[ "threshold" ].as< double >() / std::milli::den );
-                        
+
                         size_t processed(0);
                         if ( adtextfile::time_data_reader::load(
                                  file
@@ -200,30 +200,30 @@ main(int argc, char *argv[])
                                      return true;
                                  }) ) {
                             std::cerr << std::endl;
-                            
+
                             if ( vm.count( "hist" ) ) {
                                 auto histfile = summary.make_outfname( file, "_hist" );
                                 summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                                 summary.print_histogram( histfile );
                             }
-                            
+
                             if ( vm.count( "stat" ) ) {
                                 auto statfile = summary.make_outfname( file, "_stat" );
                                 summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                                 summary.print_statistics( statfile );
                             }
-                            
+
                             if ( !vm.count( "hist" ) && !vm.count( "stat" ) ) {
                                 // assume --stat if no process specified
                                 auto statfile = summary.make_outfname( file, "_stat" );
-                                
+
                                 summary.compute_statistics( vm[ "samp-rate" ].as<double>() / std::nano::den );
                                 summary.print_statistics( statfile );
                             }
-                            
+
                             summary.findPeaks();
                             summary.report( std::cout );
-                            
+
                             if ( vm.count( "pivot" ) ) {
                                 auto pivotfile = summary.make_outfname( file, "_pivot" );
                                 summary.pivot( pivotfile );
@@ -281,7 +281,7 @@ void
 Summary::compute_statistics( double xIncrement )
 {
     std::cerr << "computing statistics" << std::endl;
-    
+
     for ( auto& pklist: hgrm_ ) {
         auto& peaks = pklist.second;
         size_t sz = peaks.size();
@@ -298,7 +298,7 @@ Summary::print_statistics( const std::string& file )
     int id(1);
     while( boost::filesystem::exists( xfile ) )
         xfile = ( boost::format( "%s-%d" ) % file % id++ ).str();
-        
+
     std::ofstream of( xfile );
     using namespace adcontrols;
 
@@ -371,7 +371,7 @@ Summary::make_outfname( const std::string& infile, const std::string& suffix )
         }
         return path;
     }
-        
+
 }
 
 void
@@ -386,7 +386,7 @@ Summary::pivot( const std::string& file )
     int id(1);
     while( boost::filesystem::exists( xfile ) )
         xfile = ( boost::format( "%s-%d" ) % file % id++ ).str();
-        
+
     std::ofstream of( xfile );
     using namespace adcontrols;
 
@@ -406,13 +406,13 @@ void
 SQLImport::import( const std::string& file )
 {
     auto stem = boost::filesystem::path( file ).stem();
-    
+
     boost::filesystem::path dbf( stem );
     dbf.replace_extension( ".sqlite3" );
-    
+
     // if ( boost::filesystem::exists( dbf ) )
     //     boost::filesystem::remove( dbf );
-    
+
     if ( sqlite_.open( dbf.string().c_str(), adfs::opencreate ) ) {
         adfs::stmt sql( sqlite_ );
 
@@ -461,7 +461,7 @@ SQLImport::insert( const adcontrols::CountingData& d )
 {
     do {
         adfs::stmt sql( sqlite_ );
-        
+
         sql.prepare( "INSERT INTO trigger ( id,protocol,timeSinceEpoch,elapsedTime,events,threshold,algo ) VALUES (?,?,?,?,?,?,?)" );
         int id(1);
         sql.bind( id++ ) = d.triggerNumber();
@@ -479,7 +479,7 @@ SQLImport::insert( const adcontrols::CountingData& d )
 
     do {
         adfs::stmt sql( sqlite_ );
-        
+
         sql.prepare( "INSERT INTO peak ( idTrigger,peak_time,peak_intensity,front_offset,front_intensity,back_offset,back_intensity )\
  VALUES (?,?,?,?,?,?,?)" );
         for ( auto& pk: d.peaks() ) {
@@ -494,7 +494,7 @@ SQLImport::insert( const adcontrols::CountingData& d )
             if ( sql.step() != adfs::sqlite_done ) {
                 ADDEBUG() << "sql error";
                 return;
-            }        
+            }
         }
     } while ( 0 );
 }

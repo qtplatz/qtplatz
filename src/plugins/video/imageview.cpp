@@ -152,7 +152,7 @@ ImageView::ImageView( int index
 
     if ( auto btn = findChild< QToolButton * >( "Select" ) )
         btn->setChecked(true);
-    
+
     printButton_ = new QToolButton;
     printButton_->setIcon(QIcon(QPixmap(":/video/images/fileprint.png")));
 
@@ -166,7 +166,7 @@ ImageView::ImageView( int index
             connect( btn, &QToolButton::toggled, this, [=]( bool toggle ) { emit toggled( this, name, toggle ); } );
         }
     }
-    
+
     labelLayout->addStretch();
 
     QButtonGroup * exclsiveButtons = new QButtonGroup( this );
@@ -186,7 +186,7 @@ ImageView::ImageView( int index
 
     if ( auto btn = findChild< QToolButton * >( "RAW" ) )
         btn->setChecked( true );
-    
+
     labelLayout->addWidget(printButton_);
 
     QGridLayout *topLayout = new QGridLayout;
@@ -203,7 +203,7 @@ ImageView::ImageView( int index
     connect( rotateSlider_, &QSlider::valueChanged, this, [&]( int z ){
             emit zValue( this, z );
         } );
-    
+
     connect( graphicsView_->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(setResetButtonEnabled()) );
     connect( graphicsView_->horizontalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(setResetButtonEnabled()) );
 
@@ -253,15 +253,15 @@ ImageView::setImage( const cv::Mat& m )
 
     switch( m.type() ) {
     case CV_8UC1:
-        cv::cvtColor( m, mat_, CV_GRAY2RGB );
+        cv::cvtColor( m, mat_, cv::COLOR_GRAY2RGB );
         break;
     case CV_8UC3:
-        cv::cvtColor( m, mat_, CV_BGR2RGB );
+        cv::cvtColor( m, mat_, cv::COLOR_BGR2RGB );
         break;
     case CV_32F:
         raw_ = m;
-        cv::cvtColor( video::cvColor()( m ), mat_, CV_BGR2RGB );
-        break;        
+        cv::cvtColor( video::cvColor()( m ), mat_, cv::COLOR_BGR2RGB );
+        break;
     }
     qimg_ = QImage( static_cast< const unsigned char *>(mat_.data), mat_.cols, mat_.rows, mat_.step, QImage::Format_RGB888 );
     auto scene = new QGraphicsScene;
@@ -276,17 +276,17 @@ ImageView::resetButtons()
         btn->setChecked( false );
 
     if ( auto btn = findChild< QToolButton * >( "Log" ) )
-        btn->setChecked( false );    
+        btn->setChecked( false );
 
     if ( auto btn = findChild< QToolButton * >( "RAW" ) )
-        btn->setChecked( true );    
+        btn->setChecked( true );
 }
 
 void
 ImageView::drawComponents()
 {
     const static QPen pen[] = { QPen( Qt::blue ), QPen( Qt::green ), QPen( Qt::red ) };
-    
+
     auto scene = graphicsView_->scene();
 
     int count(0);

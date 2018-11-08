@@ -42,7 +42,7 @@ dft2d::dft( const cv::Mat& I )
     cv::Mat planes[] = {cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F)};
     cv::Mat complexI;
     cv::merge(planes, 2, complexI);         // Add to the expanded another plane with
-    
+
     cv::dft(complexI, complexI);            // this way the result may fit in the source matrix
 
     // compute the magnitude and switch to logarithmic scale
@@ -75,9 +75,9 @@ dft2d::dft( const cv::Mat& I )
     q2.copyTo(q1);
     tmp.copyTo(q2);
 
-    cv::normalize(magI, magI, 0, 1, CV_MINMAX); // Transform the matrix with float values into a
+    cv::normalize(magI, magI, 0, 1, cv::NORM_MINMAX); // Transform the matrix with float values into a
                                                 // viewable image form (float between values 0 and 1).
-    
+
     //cv::imshow("Input Image"       , I   );    // Show the result
     //cv::imshow("spectrum magnitude", magI);
     return magI;
@@ -94,7 +94,7 @@ dft2d::appod( const cv::Mat& I )
     cv::Mat planes[] = {cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F)};
     cv::Mat complexI;
     cv::merge( planes, 2, complexI );         // Add to the expanded another plane with
-    
+
     cv::dft( complexI, complexI );            // this way the result may fit in the source matrix
 
     for ( int i = 1; i < m - 1; ++i ) {
@@ -104,7 +104,7 @@ dft2d::appod( const cv::Mat& I )
     for ( int i = 1; i < n - 1; ++i ) {
         complexI.at< cv::Complex< float > >( 1, i ) = 0;
         complexI.at< cv::Complex< float > >( m - 2, i ) = 0;
-    }    
+    }
 
     cv::Mat invDFT;
     idft( complexI, invDFT, cv::DFT_SCALE | cv::DFT_REAL_OUTPUT ); // Applying IDFT
@@ -123,7 +123,7 @@ dft2d::zerofill( const cv::Mat& I, const int N )
     cv::Mat planes[] = {cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F)};
     cv::Mat complexI;
     cv::merge( planes, 2, complexI );         // Add to the expanded another plane with
-    
+
     cv::dft( complexI, complexI );            // this way the result may fit in the source matrix
 
     cv::Mat expanded( m * N, n * N, complexI.type(), cv::Scalar(0) );
@@ -138,8 +138,7 @@ dft2d::zerofill( const cv::Mat& I, const int N )
     }
 
     cv::Mat iDFT;
-    cv::idft( expanded, iDFT, cv::DFT_SCALE | cv::DFT_REAL_OUTPUT ); // Applying IDFT    
+    cv::idft( expanded, iDFT, cv::DFT_SCALE | cv::DFT_REAL_OUTPUT ); // Applying IDFT
 
     return iDFT;
 }
-

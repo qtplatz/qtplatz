@@ -65,7 +65,7 @@ namespace advision {
                 return false;
             }
         }
-        
+
         inline bool applyBlur( const cv::Mat& in, cv::Mat& out, const imBlur& blur ) {
             cv::Size ksize = cv::Size( blur.ksize.first, blur.ksize.second );
             try {
@@ -77,7 +77,7 @@ namespace advision {
             }
         }
     };
-    
+
 }
 
 class QPaintEvent;
@@ -107,9 +107,9 @@ namespace advision {
         cv::Mat mat = ApplyColorMap_< cv::Mat >()( m, float( scaleFactor ) );
 
         imBlur blur = size_ == 1 ? std::get<0>( algos_ ) : imBlur();
-        
+
         if ( blur.resizeFactor > 1 )
-            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
         opencv::applyGaussianBlur( mat, mat, blur );
         //opencv::applyBlur( mat, mat, blur );
@@ -145,7 +145,7 @@ namespace advision {
         imBlur blur = ( size_ == 2 ) ? std::get<1>( algos_ ) : imBlur();
 
         if ( blur.resizeFactor > 1 )
-            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
         opencv::applyGaussianBlur( mat, mat, blur );
         //opencv::applyBlur( mat, mat, blur );
@@ -166,7 +166,7 @@ namespace advision {
         imBlur blur = ( size_ == 2 ) ? std::get< 1 >( algos_ ) : imBlur();
 
         if ( blur.resizeFactor > 1 )
-            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
         opencv::applyGaussianBlur( mat, mat, blur );
         //opencv::applyBlur( mat, mat, blur );
@@ -207,7 +207,7 @@ namespace advision {
         auto mat = transform_< cv::Mat >()( m ); // -> float *
 
         mat = dft2d().dft( mat );
-        
+
         const std::vector< float > __levels{ 0.0, 1.0 };
         const std::vector< float > __colors{ 0.0, 1.0,   0.0, 1.0,   0.0, 1.0 };
 
@@ -236,7 +236,7 @@ namespace advision {
         imBlur blur = ( size_ == 3 ) ? std::get<2>( algos_ ) : imBlur();
 
         if ( blur.resizeFactor > 1 )
-            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );        
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
         opencv::applyGaussianBlur( mat, mat, blur );
         //opencv::applyBlur( mat, mat, blur );
@@ -266,9 +266,9 @@ namespace advision {
         mat = ApplyColorMap_< cv::Mat >( 2, __levels.data(), __colors.data() )( mat, float( scaleFactor ) );
 
         imBlur blur = size_ == 3 ? std::get<2>( algos_ ) : imBlur();
-        
+
         if ( blur.resizeFactor > 1 )
-            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, CV_INTER_LINEAR );
+            cv::resize( mat, mat, cv::Size(0,0), blur.resizeFactor, blur.resizeFactor, cv::INTER_LINEAR );
 
         opencv::applyGaussianBlur( mat, mat, blur );
         //opencv::applyBlur( mat, mat, blur );
@@ -290,40 +290,40 @@ namespace advision {
             method = std::get< 0 >( algos_ );
 
         if ( method.sizeFactor() > 1 )
-            cv::resize( mat, mat, cv::Size(0,0), method.sizeFactor(), method.sizeFactor(), CV_INTER_LINEAR );
+            cv::resize( mat, mat, cv::Size(0,0), method.sizeFactor(), method.sizeFactor(), cv::INTER_LINEAR );
 
         mat.convertTo( mat, CV_8UC1, 255 * scaleFactor );
 
         if ( method.blurSize() > 0 ) {
-            
+
             opencv::applyGaussianBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
             //opencv::applyBlur( mat, mat, imBlur( { method.blurSize(), method.blurSize() } ) );
         }
 
         cv::Canny( mat, mat, method.cannyThreshold(), method.cannyThreshold() * 2, 3 );
-        
+
         std::vector< std::vector< cv::Point > > contours;
         std::vector< cv::Vec4i > hierarchy;
-        cv::findContours( mat, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+        cv::findContours( mat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 
         cv::Mat drawing = cv::Mat::zeros( mat.size(), CV_8UC3 );
         int c = 1;
         for( int i = 0; i< contours.size(); i++ )  {
             cv::Rect rc = boundingRect( contours[i] );
             cv::Moments mu = cv::moments( contours[i], false );
-                
+
             double cx = ( mu.m10 / mu.m00 ) / method.sizeFactor();
             double cy = ( mu.m01 / mu.m00 ) / method.sizeFactor();
             cv::Point centre( mu.m10 / mu.m00, mu.m01 / mu.m00 );
             double area = cv::contourArea( contours[i] ) / ( method.sizeFactor() * method.sizeFactor() );
 
             if ( ( unsigned( rc.width ) >= method.minSizeThreshold() && unsigned( rc.height ) >= method.minSizeThreshold() ) &&
-                 ( unsigned( rc.width ) < method.maxSizeThreshold() && unsigned( rc.height ) < method.maxSizeThreshold() ) ) {            
-                
+                 ( unsigned( rc.width ) < method.maxSizeThreshold() && unsigned( rc.height ) < method.maxSizeThreshold() ) ) {
+
                 cv::Scalar color = cv::Scalar( (c&01)*255, ((c&02)/2)*255, ((c&04)/4)*255 );
                 cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
 
-                color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );                
+                color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );
                 cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
 
             } else {
@@ -331,7 +331,7 @@ namespace advision {
                 cv::Scalar color = cv::Scalar( (c&01)*127, ((c&02)/2)*127, ((c&04)/4)*127 );
                 cv::drawContours( drawing, contours, i, color, 1, 8, hierarchy, 0, cv::Point() );
 
-                color = cv::Scalar( (c&01)*63, ((c&02)/2)*63, ((c&04)/4)*63 );                
+                color = cv::Scalar( (c&01)*63, ((c&02)/2)*63, ((c&04)/4)*63 );
                 cv::drawMarker( drawing, centre, color, cv::MARKER_CROSS, std::min( rc.width, rc.height), 1, 8 );
 
             }
@@ -339,7 +339,7 @@ namespace advision {
         }
         return advision::transform_< QImage >()( drawing );
     }
-    
+
 #ifdef WIN32
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale >::imfilter() : size_( 1 ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale >::~imfilter() {}
@@ -354,7 +354,7 @@ namespace advision {
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT >::imfilter() : size_( 2 ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT >::imfilter( imGrayScale a, imDFT b ) : size_( 2 ), algos_( a, b ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT >::~imfilter() {}
-    
+
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imBlur >::imfilter() : size_( 2 ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imBlur >::imfilter( imColorMap a, imBlur b ) : size_( 2 ), algos_( a, b ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imColorMap, imBlur >::~imfilter() {}
@@ -372,11 +372,11 @@ namespace advision {
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT, imBlur >::imfilter( imGrayScale a, imDFT b, imBlur c )
         : size_( 3 ), algos_( a, b, c ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imGrayScale, imDFT, imBlur >::~imfilter() {}
-    
+
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imContours >::imfilter() : size_( 1 ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imContours >::imfilter( imContours a ) : size_( 1 ), algos_( a ) {}
     template<> ADVISIONSHARED_EXPORT imfilter< QImage, imContours >::~imfilter() {}
-    
+
 #endif
 
 }
