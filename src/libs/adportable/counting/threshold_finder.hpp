@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "waveform_processor.hpp"
-#include "advance.hpp"
+#include <adportable/waveform_processor.hpp>
+#include <adportable/advance.hpp>
 #include <iterator>
 
 //
@@ -36,11 +36,11 @@ namespace adportable {
     namespace counting {
 
         struct threshold_finder {
-    
+
             const bool findUp;
             const unsigned int nskip;
             const size_t count_limit;
-    
+
             threshold_finder( bool _findUp, unsigned int _nskip, size_t _count_limit = 32000 )
                 : findUp( _findUp ), nskip( _nskip ), count_limit( _count_limit ) {
             }
@@ -56,14 +56,14 @@ namespace adportable {
                 std::advance( it, offset );
                 while ( it != end ) {
                     if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
-                        if ( flag == findUp )                        
+                        if ( flag == findUp )
                             indices.emplace_back( uint32_t( std::distance( begin, it ) ) );
                         adportable::advance( it, nskip, end );
                     }
                 }
             }
 
-            
+
             // find both raising,falling indices
             template< typename const_iterator, typename index_type >
             void operator()( const_iterator&& begin, const_iterator&& end
@@ -95,7 +95,7 @@ namespace adportable {
                     }
                 }
             }
-        
+
         };
 
     } // counting
