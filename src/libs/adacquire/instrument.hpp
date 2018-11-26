@@ -34,19 +34,19 @@
 // namespace adcontrols { namespace ControlMethod { class Method; } }
 
 namespace adacquire {
-    
+
     namespace SignalObserver { class Observer; }
     namespace SampleBroker { class SampleSequence; }
-    
+
     class Receiver;
-    
+
     namespace Instrument {
-        
+
 #if defined _MSC_VER
         class Session;
         ADACQUIRESHARED_TEMPLATE_EXPORT template class ADACQUIRESHARED_EXPORT std::weak_ptr < Session > ;
 #endif
-        
+
         class ADACQUIRESHARED_EXPORT Session : public std::enable_shared_from_this < Session > {
 
             virtual void * _narrow_workaround( const char * type_name ) { return 0; }
@@ -68,15 +68,15 @@ namespace adacquire {
 
             virtual std::string software_revision() const = 0;  // ex. L"1.216"
 
-            virtual bool setConfiguration( const std::string& xml ) = 0 ;
+            virtual bool setConfiguration( const std::string& json ) = 0 ;
             virtual bool configComplete() = 0;
-            
+
             virtual bool connect( Receiver * receiver, const std::string& token ) = 0;
             virtual bool disconnect( Receiver * receiver ) = 0;
-      
+
             virtual uint32_t get_status() = 0;
             virtual SignalObserver::Observer * getObserver() = 0;
-      
+
             virtual bool initialize() = 0;
 
             virtual bool shutdown() = 0;  // shutdown server
@@ -85,14 +85,17 @@ namespace adacquire {
 
             virtual std::shared_ptr< const adcontrols::ControlMethod::Method > getControlMethod() = 0;
 
-            virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) = 0;
+            virtual bool prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > m ) { return false; }
+
+            enum arg_type { arg_portable_binary_archive, arg_binary_archive, arg_xml_archive, arg_json };
+            virtual bool prepare_for_run( const std::string& json, arg_type = arg_json ) { return false; } // new (Nov. 2018) interface for independence from adcontrols
 
             virtual bool time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
                                              , adcontrols::ControlMethod::const_time_event_iterator begin
                                              , adcontrols::ControlMethod::const_time_event_iterator end ) = 0;
-    
+
             virtual bool event_out( uint32_t event ) = 0;
-            
+
             virtual bool start_run() = 0;
 
             virtual bool suspend_run() = 0;
@@ -108,9 +111,11 @@ namespace adacquire {
             [[deprecated("replace with dgmod hardwired")]] virtual bool next_protocol( uint32_t protoIdx, uint32_t nProtocols ) { return false; }
 
             virtual bool dark_run( size_t waitcount = 3 ) { return false; }
+
+            virtual const char * configuration() const { return nullptr; }
         };
 
 
     };
-    
+
 } // namespace adicontroler
