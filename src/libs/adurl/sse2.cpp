@@ -72,7 +72,7 @@ sse::connect( const std::string& url
     request_stream << "Content-Type: application/text\r\n";    
     request_stream << "\r\n";
 
-    if ( client_ = std::make_unique< client >( io_context_, std::move( request ), server, port ) ) {
+    if ( (client_ = std::make_unique< client >( io_context_, std::move( request ), server, port )) ) {
 
         client_->connect( [&]( const boost::system::error_code& ec, boost::asio::streambuf& response ){
 
