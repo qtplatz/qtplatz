@@ -5,9 +5,9 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this 
+** Licensees holding valid MS-Cheminfomatics commercial licenses may use this
 ** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms 
+** provided with the Software or, alternatively, in accordance with the terms
 ** contained in a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
@@ -86,7 +86,7 @@ namespace u5303a {
         uint32_t posted_data_count_;
         uint32_t proced_data_count_;
         std::atomic< bool > plot_ready_;
-        std::atomic< bool > data_ready_;        
+        std::atomic< bool > data_ready_;
         std::chrono::system_clock::time_point tp_data_handled_;
         std::chrono::system_clock::time_point tp_plot_handled_;
         data_status() : pos_origin_( -1 )
@@ -119,7 +119,7 @@ namespace u5303a {
                , device_delay_count_( 0 )
                , isRecording_( true )
                , refreshHistogram_( false ) {
-            
+
         }
 
         static std::atomic< task * > instance_;
@@ -182,7 +182,7 @@ namespace u5303a {
             return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_inject_ ).count();
         }
     };
-    
+
     std::atomic< task * > task::impl::instance_( 0 );
     std::mutex task::impl::mutex_;
 }
@@ -202,9 +202,9 @@ bool
 task::initialize()
 {
     std::call_once( flag1, [=] () {
-            
+
             impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
-            
+
             unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
             ADTRACE() << nCores << " threads created for u5303a task";
             while( nCores-- )
@@ -227,11 +227,11 @@ task::impl::finalize()
 {
     worker_stopping_ = true;
     sema_.signal();
-    
+
     io_service_.stop();
     for ( auto& t : threads_ )
         t.join();
-    
+
     return true;
 }
 
@@ -250,11 +250,11 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
 
     if ( impl_->isRecording_ ) {
-        
+
         impl_->data_status_[ so->objid() ].posted_data_count_++;
-        
+
         impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
-        
+
     }
 }
 
@@ -303,37 +303,37 @@ task::impl::worker_thread()
         if ( data_status_[ u5303a_observer ].plot_ready_ ) {
 
             auto& status = data_status_[ u5303a_observer ];
-            
+
             status.plot_ready_ = false;
             status.tp_plot_handled_ = std::chrono::system_clock::now();
 
             int channel = 0;
             // std::array< std::shared_ptr< acqrscontrols::u5303a::threshold_result >, 2 > threshold_results;
             auto threshold_results = que_;
-            
+
             for ( auto result: threshold_results ) {
                 if ( result ) {
                     auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                    
+
                     if ( acqrscontrols::u5303a::waveform::translate( *ms, *result ) ) {
 
                         ms->getMSProperty().setTrigNumber( result->data()->serialnumber_, status.pos_origin_ );
                         document::instance()->setData( u5303a_observer, ms, channel );
-                        
+
                     }
                 }
                 ++channel;
             }
         }
 
-        if ( data_status_[ u5303a_observer ].data_ready_ ) {        
+        if ( data_status_[ u5303a_observer ].data_ready_ ) {
             data_status_[ u5303a_observer ].data_ready_ = false;
             data_status_[ u5303a_observer ].tp_data_handled_ = std::chrono::system_clock::now();
             io_service_.post( strand_.wrap( [&]() { document::instance()->commitData(); } ) );
         }
 
         // Histogram
-        if ( data_status_[ histogram_observer ].plot_ready_ ) { 
+        if ( data_status_[ histogram_observer ].plot_ready_ ) {
             auto& status = data_status_[ histogram_observer ];
             status.plot_ready_ = false;
 
@@ -343,14 +343,14 @@ task::impl::worker_thread()
                 double resolution = 0;
                 if ( auto tm = tdc->threshold_method( /* ch(0|1) */ 0 ) )
                     resolution = tm->time_resolution;
-                
+
                 if ( resolution > hgrm->xIncrement() ) {
                     adcontrols::TimeDigitalHistogram::vector_type time_merged;
                     //std::vector< std::pair< double, uint32_t > > time_merged;
                     //adcontrols::TimeDigitalHistogram::average_time( hgrm->histogram(), resolution, time_merged );
                     hgrm = hgrm->merge_peaks( resolution );
                 }
-                
+
                 auto ms = std::make_shared< adcontrols::MassSpectrum >();
                 adcontrols::TimeDigitalHistogram::translate( *ms, *hgrm );
                 document::instance()->setData( histogram_observer, ms, 0 );
@@ -371,7 +371,7 @@ task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
         if ( status.pos_origin_ == uint32_t( -1 ) ) {
             status.pos_origin_ = pos;
         }
-        
+
         if ( so->objid() == u5303a_observer ) {
 
             if ( auto rb = so->readData( pos ) )
@@ -391,12 +391,12 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
     typedef std::pair< std::shared_ptr< const acqrscontrols::u5303a::waveform >
                        , std::shared_ptr< const acqrscontrols::u5303a::waveform > > const_waveform_pair_t;
 
-    std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms( {0, 0} );
-    
+    std::array< std::shared_ptr< const acqrscontrols::u5303a::waveform >, 2 > waveforms( {{0, 0}} );
+
     if ( adportable::a_type< const_waveform_pair_t >::is_a( rb->data() ) ) {
         try {
             const_waveform_pair_t pair = boost::any_cast< const_waveform_pair_t >( rb->data() );
-            waveforms = { pair.first, pair.second };
+            waveforms = {{ pair.first, pair.second }};
         } catch ( boost::bad_any_cast& ) {
             assert( 0 );
             ADERROR() << "bad any cast";
@@ -410,7 +410,7 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
         auto threshold_results = document::instance()->tdc()->processThreshold2( waveforms );
 
         const auto tp = std::chrono::system_clock::now();
-        
+
         if ( threshold_results[0] || threshold_results[1] ) {
 
             if ( threshold_results[0] )  {
@@ -420,14 +420,14 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
                 // make histogram (long-term & periodical)
                 if ( document::instance()->tdc()->accumulate_histogram( threshold_results [ 0 ] ) &&
                      ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) > 250ms ) ) {
-                    
+
                     data_status_[ histogram_observer ].tp_plot_handled_ = tp;
                     io_service_.post( [this](){ handle_histograms(); } );
                 }
 
                 // single trigger waveform
                 if ( ( tp - data_status_[ u5303a_observer ].tp_plot_handled_ ) >= 250ms ) {
-                    que_ = threshold_results;                    
+                    que_ = threshold_results;
                     status.plot_ready_ = true; // u5303a
                     sema_.signal();
 
@@ -435,12 +435,12 @@ task::impl::handle_u5303a_data( data_status& status, std::shared_ptr<adacquire::
 
                 // data
                 if ( ( tp - status.tp_data_handled_ ) >= 1000ms ) {
-        
+
                     status.data_ready_ = true;  // u5303a
                     sema_.signal();
 
                 }
-                
+
             }
         }
     }

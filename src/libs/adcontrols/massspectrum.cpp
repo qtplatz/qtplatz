@@ -83,12 +83,12 @@ namespace adcontrols {
            MassSpectrumImpl();
            MassSpectrumImpl( const MassSpectrumImpl& );
            void clone( const MassSpectrumImpl&, bool deep = false );
-	    
+
            inline const double * getTimeArray() const { return tofArray_.size() ? tofArray_.data() : 0; }
            inline const double * getMassArray() const { return massArray_.size() ? massArray_.data() : 0; }
            inline const double * getIntensityArray() const { return intsArray_.size() ? intsArray_.data() : 0; }
            inline const unsigned char * getColorArray() const { return colArray_.size() ? colArray_.data() : 0; }
-           inline size_t size() const { return massArray_.size(); }
+           inline size_t size() const { return !intsArray_.empty() ? intsArray_.size() : massArray_.size(); }
            inline bool isCentroid() const { return algo_ != CentroidNone; }
            inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
            inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
@@ -115,12 +115,12 @@ namespace adcontrols {
            inline void set_annotations( const annotations& a ) { annotations_ = a; }
            inline const annotations& get_annotations() const {  return annotations_;  }
 		   inline annotations& get_annotations() {  return annotations_;  }
-	    
+
 	  // private:
            static std::wstring empty_string_;  // for error return as reference
 
            CentroidAlgorithm algo_;
-           MS_POLARITY polarity_;	    
+           MS_POLARITY polarity_;
            descriptions descriptions_;
            MSCalibration calibration_;
            MSProperty property_;
@@ -145,7 +145,7 @@ namespace adcontrols {
            // exclude from archive
            std::string uuid_; // for instance equality check; out of serialization scope
            std::tuple< bool, double, double > minmax_;
-	    
+
            friend class MassSpectrum;
 
            friend class boost::serialization::access;
@@ -167,7 +167,7 @@ namespace adcontrols {
                    if ( version >= 5 ) {
                        ar & BOOST_SERIALIZATION_NVP( vec_ );
                    } else {
-                       vec_.clear();                       
+                       vec_.clear();
                        std::vector< MassSpectrum > v;
                        ar & BOOST_SERIALIZATION_NVP( v );
                        for ( const auto& a: v ) { vec_.emplace_back( std::make_shared< MassSpectrum >( a ) ); }
@@ -225,7 +225,7 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 5 ) 
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 5 )
 // V4 -> V5: change std::vector< MassSpectrum > --> std::vector< std::shared_ptr< MassSpectrum > >
 
 ///////////////////////////////////////////
@@ -270,7 +270,7 @@ MassSpectrum::operator += ( const MassSpectrum& t )
 
     const double * rhs = getIntensityArray();
     const double * lhs = t.getIntensityArray();
-    
+
     for ( size_t i = 0; i < size() && i < t.size(); ++i )
         setIntensity( i, *rhs++ + *lhs++ );
 
@@ -362,11 +362,11 @@ MassSpectrum::getIntensityArray() const
 }
 
 size_t
-MassSpectrum::operator << ( const std::pair< double, double >& d ) 
+MassSpectrum::operator << ( const std::pair< double, double >& d )
 {
     std::vector<double>& m = pImpl_->massArray_;
     size_t pos = std::distance( m.begin(), std::lower_bound( m.begin(), m.end(), d.first ) );
-    
+
     if ( pImpl_->isCentroid() ) {
         // preserve indexed annotation
         for ( auto& a: pImpl_->annotations_ ) {
@@ -414,7 +414,7 @@ MassSpectrum::getTime( size_t idx ) const
         return MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
     if ( pImpl_->size() > idx )
         return pImpl_->tofArray_[ idx ];
-    else 
+    else
         return pImpl_->tofArray_[ pImpl_->tofArray_.size() - 1 ];
     return 0;
 }
@@ -623,7 +623,7 @@ MassSpectrum::addAnnotation( annotation&& a, bool uniq )
         if ( it != pImpl_->annotations_.end() )
              pImpl_->annotations_.erase( it );
     }
-        
+
     pImpl_->annotations_ << std::move( a );
 }
 
@@ -898,15 +898,15 @@ size_t
 MassSpectrum::find( double mass, double tolerance ) const
 {
     size_t pos = lower_bound( mass );
-    
+
     if ( pos != npos ) {
         if ( pos != 0 ) {
             if ( std::abs( getMass( pos ) - mass ) > std::abs( getMass( pos - 1 ) - mass ) )
                 --pos;
         }
-        
+
         double error = getMass( pos ) - mass;
-        
+
         if ( std::abs( error ) > tolerance )
             return npos;
     }
@@ -1147,18 +1147,18 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
 
     if ( ! ms.isCentroid() )
         return idx; // error
-    
+
     if ( lMass > hMass ) // just in case
         std::swap( lMass, hMass );
-    
+
     double hMax = 0;
-    
+
     segment_wrapper< const MassSpectrum > segments( ms );
     int fcn = 0;
     for ( auto& fms: segments ) {
         if ( fms.size() &&
              ( lMass < fms.getMass( fms.size() - 1 ) ) && ( hMass > fms.getMass( 0 ) ) ) {
-            
+
             const double * intens = fms.getIntensityArray();
             const double * masses = fms.getMassArray();
             auto lIt = std::lower_bound( masses, masses + fms.size(), lMass );
@@ -1271,7 +1271,7 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
     int mode = prop.mode();
 
     if ( assign_mass ) {
-        
+
         if ( pImpl_->tofArray_.empty() ) {
 
             size_t idx(0);
@@ -1279,7 +1279,7 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
                             , [&]( const double& ){
                                 return assign_mass( MSProperty::toSeconds( idx++, prop.samplingInfo() ), mode );
                             } );
-        
+
         } else {
 
             std::transform( pImpl_->tofArray_.begin(), pImpl_->tofArray_.end(), pImpl_->massArray_.begin()
@@ -1305,7 +1305,7 @@ MassSpectrum::operator << ( std::shared_ptr< MassSpectrum >&& ms )
 
     pImpl_->acqRange_.first = std::min( range.first, pImpl_->acqRange_.first );
     pImpl_->acqRange_.second = std::max( range.second, pImpl_->acqRange_.second );
-    
+
     return *this;
 }
 

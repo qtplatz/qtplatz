@@ -55,7 +55,7 @@ namespace adacquire {
         // typedef std::vector < uint8_t > octet_array;
 
         struct ADACQUIRESHARED_EXPORT Description {
-            
+
             enum axis { axisX, axisY };
 
             Description();
@@ -82,7 +82,7 @@ namespace adacquire {
 
             const wchar_t * trace_display_name() const;
             void set_trace_display_name( const std::wstring& );
-            
+
             const wchar_t * axis_label( axis ) const;
             void set_axis_label( axis, const std::wstring& );
 
@@ -101,14 +101,23 @@ namespace adacquire {
 
             DataReadBuffer( const DataReadBuffer& ) = delete;
             void operator = ( const DataReadBuffer& ) = delete;
-            
+
         public:
             virtual ~DataReadBuffer();
             DataReadBuffer();
-            
+
+            template<typename T> void load( const T& t ) {
+                elapsed_time_ = t.elapsed_time();
+                epoch_time_ = t.epoch_time();
+                pos_ = t.pos();
+                fcn_ = t.fcn();
+                ndata_ = t.ndata();
+                events_ = t.wellKnownEvents();
+            }
+
             uint64_t& timepoint();
             uint64_t& elapsed_time();
-            uint64_t& epoch_time();            
+            uint64_t& epoch_time();
             uint32_t& pos();       // data address (sequencial number for first data in this frame)
             uint32_t& fcn();       // function number for spectrum
             uint32_t& ndata();     // number of data in the buffer (for trace, spectrum should be always 1)
@@ -117,7 +126,7 @@ namespace adacquire {
             octet_array& xmeta();    // serialized meta data array
             uint64_t timepoint() const;
             uint64_t elapsed_time() const;
-            uint64_t epoch_time() const;                        
+            uint64_t epoch_time() const;
             uint32_t pos() const;       // data address (sequencial number for first data in this frame)
             uint32_t fcn() const;       // function number for spectrum
             uint32_t ndata() const;     // number of data in the buffer (for trace, spectrum should be always 1)
@@ -171,7 +180,7 @@ namespace adacquire {
             Observer();
 
             static boost::uuids::uuid& base_uuid();
-            
+
             /** \brief getDescription returns description
              */
             virtual const Description& description() const;
@@ -187,10 +196,10 @@ namespace adacquire {
 
             virtual bool isActive() const;
             virtual void setIsActive( bool );
-            
+
             /** getSblings returns Observers, which share time base and events.
              *
-             * Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
+             * Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent',
              * so application does not need to hookup events for shiblings.
              */
             virtual std::vector< std::shared_ptr< Observer > > siblings() const;
@@ -200,7 +209,7 @@ namespace adacquire {
             virtual bool addSibling( Observer * observer );
             virtual Observer * findObserver( const boost::uuids::uuid&, bool recursive );
 
-            /** uptime returns micro seconds since start moniring, 
+            /** uptime returns micro seconds since start moniring,
              * this number never reset to zero while running
              */
             virtual uint64_t uptime() const = 0;
@@ -213,7 +222,7 @@ namespace adacquire {
              * turn into class object.
              */
             virtual const char * dataInterpreterClsid() const  = 0;
-            
+
             virtual int32_t posFromTime( uint64_t usec ) const { return 0; }
 
             /** preparing stroage for the sample.
@@ -227,7 +236,7 @@ namespace adacquire {
             virtual bool closingStorage( SampleProcessor& ) const = 0;
 
             /** if instrument has one or more calibration information, adcontroller retrive them though this
-             * interface start with idx = 0 until return false;  all data will be set to datainterpreter 
+             * interface start with idx = 0 until return false;  all data will be set to datainterpreter
              * and also save into data file under /Calibration folder
              */
             virtual bool readCalibration( int32_t idx, octet_array& serialized, std::string& dataClass ) const;
@@ -240,7 +249,7 @@ namespace adacquire {
              */
             virtual bool processMethod( const std::string& dataClass, octet_array& serialized );
         };
-    
+
     };
 
 }
