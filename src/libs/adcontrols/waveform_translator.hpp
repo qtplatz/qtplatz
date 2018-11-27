@@ -36,12 +36,12 @@ namespace adcontrols {
     struct waveform_translator {
 
         template< typename waveform_type >
-        static bool translate( MassSpectrum& sp
-                               , const waveform_type& waveform
-                               , double xIncrement
-                               , double trigDelay
-                               , const char * dataInterpreterClsid
-                               , const std::string& device_data ) {
+        static bool translate_property( MassSpectrum& sp
+                                        , const waveform_type& waveform
+                                        , double xIncrement
+                                        , double trigDelay
+                                        , const char * dataInterpreterClsid
+                                        , const std::string& device_data ) {
 
             adcontrols::MSProperty prop = sp.getMSProperty();
             adcontrols::SamplingInfo info( xIncrement
@@ -61,14 +61,49 @@ namespace adcontrols {
             prop.setDeviceData( device_data.data(), device_data.size() );
             prop.setTrigNumber( waveform.serialnumber() );
 
-            std::vector< double > d( waveform.size() );
-            std::copy( waveform.begin(), waveform.end(), d.begin() );
-
             sp.setCentroid( adcontrols::CentroidNone );
             sp.setMSProperty( prop );
+
+            return true;
+        }
+
+        // translate without intensity conversion
+        template< typename waveform_type >
+        static bool translate( MassSpectrum& sp
+                               , const waveform_type& waveform
+                               , double xIncrement
+                               , double trigDelay
+                               , const char * dataInterpreterClsid
+                               , const std::string& device_data ) {
+
+            translate_property( sp, waveform, xIncrement, trigDelay, dataInterpreterClsid, device_data );
+
+            std::vector< double > d( waveform.size() );
+            std::copy( waveform.begin(), waveform.end(), d.begin() );
             sp.setIntensityArray( std::move( d ) );
 
             return true;
         }
+
+        // translate with intensity conversion
+        template< typename waveform_type, typename intensity_operation >
+        static bool translate( MassSpectrum& sp
+                               , const waveform_type& waveform
+                               , double xIncrement
+                               , double trigDelay
+                               , const char * dataInterpreterClsid
+                               , const std::string& device_data
+                               , intensity_operation unary_op ) {
+
+            translate_property( sp, waveform, xIncrement, trigDelay, dataInterpreterClsid, device_data );
+
+            std::vector< double > d( waveform.size() );
+
+            std::transform( waveform.begin(), waveform.end(), d.begin(), unary_op );
+            sp.setIntensityArray( std::move( d ) );
+
+            return true;
+        }
+
     };
 }
