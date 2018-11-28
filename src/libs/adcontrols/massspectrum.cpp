@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -55,177 +55,172 @@
 #include <map>
 
 namespace adcontrols {
-    namespace internal {
 
-        struct datum {
-            size_t idx;
-            double mass;
-            double time;
-            double intensity;
-            unsigned char color;
-            datum( size_t _idx, double _mass, double _tof, double _intensity, unsigned char _color ) :
-                idx( _idx ), mass( _mass ), time( _tof ), intensity( _intensity ), color( _color ) {
+    struct datum {
+        size_t idx;
+        double mass;
+        double time;
+        double intensity;
+        uint8_t color;
+        datum( size_t _idx, double _mass, double _tof, double _intensity, uint8_t _color ) :
+            idx( _idx ), mass( _mass ), time( _tof ), intensity( _intensity ), color( _color ) {
+        }
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+            ar & BOOST_SERIALIZATION_NVP( idx );
+            ar & BOOST_SERIALIZATION_NVP( time );
+            ar & BOOST_SERIALIZATION_NVP( mass );
+            ar & BOOST_SERIALIZATION_NVP( intensity );
+            ar & BOOST_SERIALIZATION_NVP( color );
+        }
+    };
+
+    class MassSpectrum::impl {
+    public:
+        ~impl();
+        impl();
+        impl( const impl& );
+
+        void clone( const MassSpectrum::impl&, bool deep = false );
+
+        // inline const double * getTimeArray() const { return tofArray_.size() ? tofArray_.data() : 0; }
+        // inline const double * getMassArray() const { return massArray_.size() ? massArray_.data() : 0; }
+        // inline const double * getIntensityArray() const { return intensityArray_.size() ? intensityArray_.data() : 0; }
+        // inline const uint8_t * getColorArray() const { return colArray_.size() ? colArray_.data() : 0; }
+        inline size_t size() const { return !intensityArray_.empty() ? intensityArray_.size() : massArray_.size(); }
+        inline bool isCentroid() const { return algo_ != CentroidNone; }
+        inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
+        inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
+        inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
+        void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
+        void setTimeArray( const double * );
+        void setMassArray( const double *, bool setrange );
+        void setIntensityArray( const double * );
+        void setColorArray( const uint8_t * );
+        void resize( size_t );
+
+        // void addDescription( const description& );
+        // const descriptions& getDescriptions() const;
+
+        // void setCalibration( const MSCalibration& );
+        // const MSCalibration& calibration() const;
+
+        // void setPolarity( MS_POLARITY polarity );
+        // MS_POLARITY polarity() const;
+
+        // inline void set_annotations( const annotations& a ) { annotations_ = a; }
+        // inline const annotations& get_annotations() const {  return annotations_;  }
+        // inline annotations& get_annotations() {  return annotations_;  }
+
+        // private:
+        static std::wstring empty_string_;  // for error return as reference
+
+        CentroidAlgorithm algo_;
+        MS_POLARITY polarity_;
+        descriptions descriptions_;
+        MSCalibration calibration_;
+        MSProperty property_;
+        annotations annotations_;
+
+        std::vector< double > tofArray_;
+        std::vector< double > massArray_;
+        std::vector< double > intensityArray_;
+        std::vector< uint8_t > colArray_;
+
+        std::pair<double, double> acqRange_;
+        int64_t timeSinceInjTrigger_; // usec
+        int64_t timeSinceFirmwareUp_; // usec
+        uint32_t numSpectrumSinceInjTrigger_;
+
+        std::vector< std::shared_ptr< MassSpectrum > > vec_;
+        int32_t protocolId_;
+        int32_t nProtocols_;
+        boost::uuids::uuid dataReaderUuid_;
+        int64_t rowid_; // SQLite's rowid for raw data record reference
+
+        // exclude from archive
+        std::string uuid_; // for instance equality check; out of serialization scope
+        std::tuple< bool, double, double > minmax_;
+
+        friend class MassSpectrum;
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+            ar & BOOST_SERIALIZATION_NVP(algo_)
+                & BOOST_SERIALIZATION_NVP(polarity_)
+                & BOOST_SERIALIZATION_NVP(acqRange_.first)
+                & BOOST_SERIALIZATION_NVP(acqRange_.second)
+                & BOOST_SERIALIZATION_NVP(descriptions_)
+                & BOOST_SERIALIZATION_NVP(calibration_)
+                & BOOST_SERIALIZATION_NVP(property_)
+                & BOOST_SERIALIZATION_NVP(massArray_)
+                & BOOST_SERIALIZATION_NVP(intensityArray_)
+                & BOOST_SERIALIZATION_NVP(tofArray_)
+                & BOOST_SERIALIZATION_NVP(colArray_)
+                & BOOST_SERIALIZATION_NVP( annotations_ )
+                ;
+            if ( version >= 2 ) {
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( vec_ );
+                } else {
+                    vec_.clear();
+                    std::vector< MassSpectrum > v;
+                    ar & BOOST_SERIALIZATION_NVP( v );
+                    for ( const auto& a: v ) { vec_.emplace_back( std::make_shared< MassSpectrum >( a ) ); }
+                }
             }
-
-            friend class boost::serialization::access;
-            template<class Archive> void serialize(Archive& ar, const unsigned int ) {
-                ar & BOOST_SERIALIZATION_NVP( idx );
-                ar & BOOST_SERIALIZATION_NVP( time );
-                ar & BOOST_SERIALIZATION_NVP( mass );
-                ar & BOOST_SERIALIZATION_NVP( intensity );
-                ar & BOOST_SERIALIZATION_NVP( color );
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( protocolId_ );
+                ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
             }
-        };
-
-       class MassSpectrumImpl {
-       public:
-           ~MassSpectrumImpl();
-           MassSpectrumImpl();
-           MassSpectrumImpl( const MassSpectrumImpl& );
-           void clone( const MassSpectrumImpl&, bool deep = false );
-
-           inline const double * getTimeArray() const { return tofArray_.size() ? tofArray_.data() : 0; }
-           inline const double * getMassArray() const { return massArray_.size() ? massArray_.data() : 0; }
-           inline const double * getIntensityArray() const { return intsArray_.size() ? intsArray_.data() : 0; }
-           inline const unsigned char * getColorArray() const { return colArray_.size() ? colArray_.data() : 0; }
-           inline size_t size() const { return !intsArray_.empty() ? intsArray_.size() : massArray_.size(); }
-           inline bool isCentroid() const { return algo_ != CentroidNone; }
-           inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
-           inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
-           inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
-           void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
-           void setTimeArray( const double * );
-           void setMassArray( const double *, bool setrange );
-           void setIntensityArray( const double * );
-           void setColorArray( const unsigned char * );
-           void resize( size_t );
-
-           void addDescription( const description& );
-           const descriptions& getDescriptions() const;
-
-           void setCalibration( const MSCalibration& );
-           const MSCalibration& calibration() const;
-
-           void setMSProperty( const MSProperty& );
-           const MSProperty& getMSProperty() const;
-
-           void setPolarity( MS_POLARITY polarity );
-           MS_POLARITY polarity() const;
-
-           inline void set_annotations( const annotations& a ) { annotations_ = a; }
-           inline const annotations& get_annotations() const {  return annotations_;  }
-		   inline annotations& get_annotations() {  return annotations_;  }
-
-	  // private:
-           static std::wstring empty_string_;  // for error return as reference
-
-           CentroidAlgorithm algo_;
-           MS_POLARITY polarity_;
-           descriptions descriptions_;
-           MSCalibration calibration_;
-           MSProperty property_;
-           annotations annotations_;
-
-           std::vector< double > tofArray_;
-           std::vector< double > massArray_;
-           std::vector< double > intsArray_;
-           std::vector< unsigned char > colArray_;
-
-           std::pair<double, double> acqRange_;
-           int64_t timeSinceInjTrigger_; // usec
-           int64_t timeSinceFirmwareUp_; // usec
-           uint32_t numSpectrumSinceInjTrigger_;
-
-           std::vector< std::shared_ptr< MassSpectrum > > vec_;
-           int32_t protocolId_;
-           int32_t nProtocols_;
-           boost::uuids::uuid dataReaderUuid_;
-           int64_t rowid_; // SQLite's rowid for raw data record reference
-
-           // exclude from archive
-           std::string uuid_; // for instance equality check; out of serialization scope
-           std::tuple< bool, double, double > minmax_;
-
-           friend class MassSpectrum;
-
-           friend class boost::serialization::access;
-           template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-               ar & BOOST_SERIALIZATION_NVP(algo_)
-                   & BOOST_SERIALIZATION_NVP(polarity_)
-                   & BOOST_SERIALIZATION_NVP(acqRange_.first)
-                   & BOOST_SERIALIZATION_NVP(acqRange_.second)
-                   & BOOST_SERIALIZATION_NVP(descriptions_)
-                   & BOOST_SERIALIZATION_NVP(calibration_)
-                   & BOOST_SERIALIZATION_NVP(property_)
-                   & BOOST_SERIALIZATION_NVP(massArray_)
-                   & BOOST_SERIALIZATION_NVP(intsArray_)
-                   & BOOST_SERIALIZATION_NVP(tofArray_)
-                   & BOOST_SERIALIZATION_NVP(colArray_)
-                   & BOOST_SERIALIZATION_NVP( annotations_ )
-                   ;
-               if ( version >= 2 ) {
-                   if ( version >= 5 ) {
-                       ar & BOOST_SERIALIZATION_NVP( vec_ );
-                   } else {
-                       vec_.clear();
-                       std::vector< MassSpectrum > v;
-                       ar & BOOST_SERIALIZATION_NVP( v );
-                       for ( const auto& a: v ) { vec_.emplace_back( std::make_shared< MassSpectrum >( a ) ); }
-                   }
-               }
-               if ( version >= 3 ) {
-                   ar & BOOST_SERIALIZATION_NVP( protocolId_ );
-                   ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
-               }
-               if ( version >= 4 ) {
-                   ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
-                   ar & BOOST_SERIALIZATION_NVP( rowid_ );
-               }
-
-               // exclude
-               // scanLaw_.reset();
-               minmax_ = std::make_tuple( false, 0.0, 0.0 );
-           }
-       };
-
-        template<> void MassSpectrumImpl::serialize( boost::archive::xml_woarchive& ar, const unsigned int ) {
-
-            ar & BOOST_SERIALIZATION_NVP( algo_ );
-            ar & BOOST_SERIALIZATION_NVP( polarity_ );
-            ar & BOOST_SERIALIZATION_NVP( acqRange_.first );
-            ar & BOOST_SERIALIZATION_NVP( acqRange_.second );
-            ar & BOOST_SERIALIZATION_NVP( descriptions_ );
-            ar & BOOST_SERIALIZATION_NVP( calibration_ );
-            ar & BOOST_SERIALIZATION_NVP( property_ );
-            ar & BOOST_SERIALIZATION_NVP( annotations_ );
-            ar & BOOST_SERIALIZATION_NVP( protocolId_ );
-            ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
-            ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
-            ar & BOOST_SERIALIZATION_NVP( rowid_ );
-
-            std::vector< datum > data;
-            for ( size_t i = 0; i < massArray_.size(); ++i )
-                data.emplace_back( datum( i
-                                          , massArray_[ i ]
-                                          , (tofArray_.empty() ? 0 : tofArray_[ i ])
-                                          , intsArray_[i]
-                                          , (colArray_.empty() ? 0 : colArray_[ i ]) ) );
-
-            ar & BOOST_SERIALIZATION_NVP( data );
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+                ar & BOOST_SERIALIZATION_NVP( rowid_ );
+            }
 
             // exclude
             // scanLaw_.reset();
             minmax_ = std::make_tuple( false, 0.0, 0.0 );
         }
+    };
 
-        template<> void MassSpectrumImpl::serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
-               // not supported
-        }
+    template<> void MassSpectrum::impl::serialize( boost::archive::xml_woarchive& ar, const unsigned int ) {
 
+        ar & BOOST_SERIALIZATION_NVP( algo_ );
+        ar & BOOST_SERIALIZATION_NVP( polarity_ );
+        ar & BOOST_SERIALIZATION_NVP( acqRange_.first );
+        ar & BOOST_SERIALIZATION_NVP( acqRange_.second );
+        ar & BOOST_SERIALIZATION_NVP( descriptions_ );
+        ar & BOOST_SERIALIZATION_NVP( calibration_ );
+        ar & BOOST_SERIALIZATION_NVP( property_ );
+        ar & BOOST_SERIALIZATION_NVP( annotations_ );
+        ar & BOOST_SERIALIZATION_NVP( protocolId_ );
+        ar & BOOST_SERIALIZATION_NVP( nProtocols_ );
+        ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
+        ar & BOOST_SERIALIZATION_NVP( rowid_ );
+
+        std::vector< datum > data;
+        for ( size_t i = 0; i < massArray_.size(); ++i )
+            data.emplace_back( datum( i
+                                      , massArray_[ i ]
+                                      , (tofArray_.empty() ? 0 : tofArray_[ i ])
+                                      , intensityArray_[i]
+                                      , (colArray_.empty() ? 0 : colArray_[ i ]) ) );
+
+        ar & BOOST_SERIALIZATION_NVP( data );
+
+        // exclude
+        // scanLaw_.reset();
+        minmax_ = std::make_tuple( false, 0.0, 0.0 );
+    }
+
+    template<> void MassSpectrum::impl::serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
+        // not supported
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 5 )
+BOOST_CLASS_VERSION( adcontrols::MassSpectrum::impl, 5 )
 // V4 -> V5: change std::vector< MassSpectrum > --> std::vector< std::shared_ptr< MassSpectrum > >
 
 ///////////////////////////////////////////
@@ -235,23 +230,23 @@ using namespace adcontrols::internal;
 
 MassSpectrum::~MassSpectrum()
 {
-    delete pImpl_;
+    delete impl_;
 }
 
-MassSpectrum::MassSpectrum() : pImpl_( new MassSpectrumImpl )
+MassSpectrum::MassSpectrum() : impl_( new impl )
 {
 }
 
-MassSpectrum::MassSpectrum( const MassSpectrum& t ) : pImpl_( new MassSpectrumImpl( *t.pImpl_ ) )
+MassSpectrum::MassSpectrum( const MassSpectrum& t ) : impl_( new MassSpectrum::impl( *t.impl_ ) )
 {
 }
 
 MassSpectrum&
 MassSpectrum::operator = ( const MassSpectrum& t )
 {
-	if ( t.pImpl_ != pImpl_ ) {
-		delete pImpl_;
-		pImpl_ = new MassSpectrumImpl( *t.pImpl_ );
+	if ( t.impl_ != impl_ ) {
+		delete impl_;
+		impl_ = new MassSpectrum::impl( *t.impl_ );
 	}
 	return *this;
 }
@@ -284,102 +279,111 @@ void
 MassSpectrum::normalizeIntensities( uint32_t nImaginalAverage )
 {
     // no segment handling due to each segment may have different number of average
-    auto nAvg = pImpl_->property_.samplingInfo().numberOfTriggers();
-    std::transform( pImpl_->intsArray_.begin(), pImpl_->intsArray_.end(), pImpl_->intsArray_.begin(), [=] ( double d ) { return d * nImaginalAverage / nAvg; } );
-    pImpl_->property_.setNumAverage( nImaginalAverage );
+    auto nAvg = impl_->property_.samplingInfo().numberOfTriggers();
+    std::transform( impl_->intensityArray_.begin(), impl_->intensityArray_.end(), impl_->intensityArray_.begin(), [=] ( double d ) { return d * nImaginalAverage / nAvg; } );
+    impl_->property_.setNumAverage( nImaginalAverage );
 }
 
 void
 MassSpectrum::clone( const MassSpectrum& t, bool deep )
 {
-	pImpl_->clone( *t.pImpl_, deep );
+	impl_->clone( *t.impl_, deep );
 }
 
 size_t
 MassSpectrum::size() const
 {
-    return pImpl_->size();
+    return impl_->size();
 }
 
 void
 MassSpectrum::resize( size_t n )
 {
-    pImpl_->resize( n );
+	impl_->intensityArray_.resize( n );
+
+    if ( ! impl_->massArray_.empty() )
+        impl_->massArray_.resize( n );
+
+	if ( ! impl_->tofArray_.empty() )
+        impl_->tofArray_.resize( n );
+
+    if ( ! impl_->colArray_.empty() )
+        impl_->colArray_.resize( n );
 }
 
 bool
 MassSpectrum::isCentroid() const
 {
-    return pImpl_->isCentroid();
+    return impl_->isCentroid();
 }
 
 bool
 MassSpectrum::isHistogram() const
 {
-    return pImpl_->getCentroidAlgorithm() == CentroidHistogram;
+    return impl_->getCentroidAlgorithm() == CentroidHistogram;
 }
 
 CentroidAlgorithm
 MassSpectrum::centroidAlgorithm() const
 {
-    return pImpl_->getCentroidAlgorithm();
+    return impl_->getCentroidAlgorithm();
 }
 
 void
 MassSpectrum::setCentroid( CentroidAlgorithm algo )
 {
-    return pImpl_->setCentroid( algo );
+    return impl_->setCentroid( algo );
 }
 
 void
 MassSpectrum::setPolarity( MS_POLARITY polarity )
 {
-    pImpl_->setPolarity( polarity );
+    impl_->polarity_ = polarity;
 }
 
 MS_POLARITY
 MassSpectrum::polarity() const
 {
-    return pImpl_->polarity();
+    return impl_->polarity_;
 }
 
 int
 MassSpectrum::mode() const
 {
-    return pImpl_->getMSProperty().mode();
+    return impl_->property_.mode();
 }
 
 const double *
 MassSpectrum::getMassArray() const
 {
-    return pImpl_->getMassArray();
+    return impl_->massArray_.data();
 }
 
 const double *
 MassSpectrum::getIntensityArray() const
 {
-    return pImpl_->getIntensityArray();
+    return impl_->intensityArray_.data();
 }
 
 size_t
 MassSpectrum::operator << ( const std::pair< double, double >& d )
 {
-    std::vector<double>& m = pImpl_->massArray_;
+    std::vector<double>& m = impl_->massArray_;
     size_t pos = std::distance( m.begin(), std::lower_bound( m.begin(), m.end(), d.first ) );
 
-    if ( pImpl_->isCentroid() ) {
+    if ( impl_->isCentroid() ) {
         // preserve indexed annotation
-        for ( auto& a: pImpl_->annotations_ ) {
+        for ( auto& a: impl_->annotations_ ) {
             if ( a.index() != (-1) && a.index() >= int( pos ) )
                 a.index( a.index() + 1 );
         }
     }
 
-    pImpl_->massArray_.insert( pImpl_->massArray_.begin() + pos, d.first );
-    pImpl_->intsArray_.insert( pImpl_->intsArray_.begin() + pos, d.second );
+    impl_->massArray_.insert( impl_->massArray_.begin() + pos, d.first );
+    impl_->intensityArray_.insert( impl_->intensityArray_.begin() + pos, d.second );
 
-    if ( ! pImpl_->tofArray_.empty() )
-        pImpl_->tofArray_.insert( pImpl_->tofArray_.begin() + pos, 0.0 ); // adjust size
+    if ( ! impl_->tofArray_.empty() )
+        impl_->tofArray_.insert( impl_->tofArray_.begin() + pos, 0.0 ); // adjust size
 
     return pos;
 }
@@ -387,50 +391,52 @@ MassSpectrum::operator << ( const std::pair< double, double >& d )
 void
 MassSpectrum::setMass( size_t idx, double mass )
 {
-    if ( idx < pImpl_->size() )
-        const_cast<double *>( pImpl_->getMassArray() )[idx] = mass;
+    if ( idx < impl_->size() ) {
+
+        if ( impl_->massArray_.empty() )
+            impl_->massArray_.resize( size() );
+
+        impl_->massArray_[ idx ] = mass;
+    }
 }
 
 double
 MassSpectrum::getMass( size_t idx ) const
 {
-    if ( idx < pImpl_->size() )
-        return pImpl_->getMassArray()[idx];
+    if ( idx < impl_->massArray_.size() )
+        return impl_->massArray_.at( idx ); // getMassArray()[idx];
     return 0;
 }
 
 double
 MassSpectrum::getIntensity( size_t idx ) const
 {
-    if ( idx < pImpl_->size() )
-        return pImpl_->getIntensityArray()[idx];
+    if ( idx < size() )
+        return impl_->intensityArray_.at( idx ); // getIntensityArray()[idx];
     return 0;
 }
 
 double
 MassSpectrum::getTime( size_t idx ) const
 {
-    if ( pImpl_->tofArray_.empty() )
-        return MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
-    if ( pImpl_->size() > idx )
-        return pImpl_->tofArray_[ idx ];
-    else
-        return pImpl_->tofArray_[ pImpl_->tofArray_.size() - 1 ];
-    return 0;
+    if ( impl_->tofArray_.empty() )
+        return MSProperty::toSeconds( idx, impl_->property_.samplingInfo() );
+
+    return impl_->tofArray_.size() > idx ? impl_->tofArray_[ idx ] : impl_->tofArray_.back(); // [ impl_->tofArray_.size() - 1 ];
 }
 
 size_t
 MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
 {
     size_t idx;
-    if ( const double * p = pImpl_->getTimeArray() ) {
-        idx = std::distance( p, std::lower_bound( p, p + pImpl_->size(), seconds ) );
+    if ( ! impl_->tofArray_.empty() ) {
+        idx = std::distance( impl_->tofArray_.begin(), std::lower_bound( impl_->tofArray_.begin(), impl_->tofArray_.end(), seconds ) );
     } else {
-        const SamplingInfo& info = pImpl_->getMSProperty().samplingInfo();
+        const SamplingInfo& info = impl_->property_.samplingInfo();
         idx = size_t( ( seconds - info.fSampDelay() ) / info.fSampInterval() );
     }
-    if ( closest && idx < pImpl_->size() ) {
-        if ( ( ( idx + 1 ) < pImpl_->size() )
+    if ( closest && idx < impl_->size() ) {
+        if ( ( ( idx + 1 ) < impl_->size() )
              && ( std::abs( seconds - getTime( idx ) ) > std::abs( seconds - getTime( idx + 1 ) ) ) )
             ++idx;
     }
@@ -440,136 +446,166 @@ MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
 void
 MassSpectrum::setIntensity( size_t idx, double intensity )
 {
-    if ( idx < pImpl_->size() )
-        const_cast<double *>( pImpl_->getIntensityArray() )[idx] = intensity;
+    if ( idx < impl_->size() )
+        impl_->intensityArray_[ idx ] = intensity;
 }
 
 void
 MassSpectrum::setTime( size_t idx, double time )
 {
-    if ( pImpl_->tofArray_.empty() )
-        pImpl_->tofArray_.resize( pImpl_->size() );
-    if ( idx < pImpl_->size() )
-        const_cast<double *>( pImpl_->getTimeArray() )[idx] = time;
+    if ( impl_->tofArray_.empty() )
+        impl_->tofArray_.resize( impl_->size() );
+
+    if ( idx < impl_->size() )
+        impl_->tofArray_[ idx ] = time;
 }
 
 const double *
 MassSpectrum::getTimeArray() const
 {
-    return pImpl_->getTimeArray();
+    return impl_->tofArray_.data();
 }
 
 void
 MassSpectrum::setAcquisitionMassRange( double min, double max )
 {
-    pImpl_->setAcquisitionMassRange( min, max );
+    impl_->setAcquisitionMassRange( min, max );
 }
 
 void
 MassSpectrum::setMassArray( const double * values, bool setRange )
 {
-    pImpl_->setMassArray( values, setRange );
+    // impl_->setMassArray( values, setRange );
+    if ( impl_->massArray_.size() != size() )
+        impl_->massArray_.resize( size() );
+
+	std::copy( values, values + size(), impl_->massArray_.begin() );
+
+    if ( setRange )
+		setAcquisitionMassRange( impl_->massArray_.front(), impl_->massArray_.back() );
 }
 
 void
 MassSpectrum::setIntensityArray( const double * values )
 {
-    pImpl_->setIntensityArray( values );
+    std::copy( values, values + size(), impl_->intensityArray_.begin() );
 }
 
 void
 MassSpectrum::setIntensityArray( std::vector< double >&& a )
 {
-    pImpl_->intsArray_ = std::move( a );
+    impl_->intensityArray_ = std::move( a );
 }
 
 void
 MassSpectrum::setMassArray( std::vector< double >&& a )
 {
-    pImpl_->massArray_ = std::move( a );
+    impl_->massArray_ = std::move( a );
 
-    if ( ! pImpl_->massArray_.empty() ) {
+    if ( ! impl_->massArray_.empty() ) {
 
-        if ( pImpl_->acqRange_.first > pImpl_->massArray_.front() )
-            pImpl_->acqRange_.first = pImpl_->massArray_.front();
+        if ( impl_->acqRange_.first > impl_->massArray_.front() )
+            impl_->acqRange_.first = impl_->massArray_.front();
 
-        if ( pImpl_->acqRange_.second < pImpl_->massArray_.back() )
-            pImpl_->acqRange_.second = pImpl_->massArray_.back();
+        if ( impl_->acqRange_.second < impl_->massArray_.back() )
+            impl_->acqRange_.second = impl_->massArray_.back();
     }
 }
 
 void
 MassSpectrum::setTimeArray( std::vector< double >&& a )
 {
-    pImpl_->tofArray_ = std::move( a );
+    impl_->tofArray_ = std::move( a );
 }
 
 void
 MassSpectrum::setTimeArray( const double * values )
 {
-    pImpl_->setTimeArray( values );
+    if ( values ) {
+
+        if ( impl_->tofArray_.empty() )
+            impl_->tofArray_.resize( size() );
+
+        std::copy( values, values + impl_->tofArray_.size(), impl_->tofArray_.begin() );
+
+    } else {
+        impl_->tofArray_.clear();
+    }
 }
 
-const unsigned char *
+const uint8_t *
 MassSpectrum::getColorArray() const
 {
-    return pImpl_->getColorArray();
+    return impl_->colArray_.data();
 }
 
 void
-MassSpectrum::setColorArray( const unsigned char * values )
+MassSpectrum::setColorArray( std::vector< uint8_t >&& a )
 {
-    pImpl_->setColorArray( values );
+    impl_->colArray_ = std::move( a );
 }
 
 void
-MassSpectrum::setColor( size_t idx, unsigned char color )
+MassSpectrum::setColorArray( const uint8_t * values )
 {
-    if ( idx < pImpl_->size() ) {
-        if ( pImpl_->getColorArray() == 0 )
-            pImpl_->colArray_.resize( pImpl_->size() );
-        const_cast< unsigned char *>( pImpl_->getColorArray() )[ idx ] = color;
+    // impl_->setColorArray( values );
+    if ( values ) {
+        if ( impl_->colArray_.size() != size() )
+            impl_->colArray_.resize( size() );
+		std::copy( values, values + impl_->colArray_.size(), impl_->colArray_.begin() );
+    } else {
+        impl_->colArray_.clear();
     }
+}
+
+void
+MassSpectrum::setColor( size_t idx, uint8_t color )
+{
+    if ( ( idx < size() ) && impl_->colArray_.empty() )
+        impl_->colArray_.resize( size() );
+
+    if ( idx < impl_->colArray_.size() )
+        impl_->colArray_[ idx ] = color;
 }
 
 int
 MassSpectrum::getColor( size_t idx ) const
 {
-    if ( idx < pImpl_->size() && pImpl_->getColorArray() )
-        return pImpl_->getColorArray()[ idx ];
+    if ( idx < impl_->colArray_.size() )
+        return impl_->colArray_.at( idx );
     return -1;
 }
 
 void
 MassSpectrum::addDescription( const description& t )
 {
-  pImpl_->addDescription( t );
+    impl_->descriptions_.append( t );
 }
 
 void
 MassSpectrum::addDescription( description&& t )
 {
-  pImpl_->addDescription( t );
+    impl_->descriptions_.append( t );
 }
 
 const descriptions&
 MassSpectrum::getDescriptions() const
 {
-  return pImpl_->getDescriptions();
+    return impl_->descriptions_;
 }
 
 const MSCalibration&
 MassSpectrum::calibration() const
 {
-    return pImpl_->calibration();
+    return impl_->calibration_;
 }
 
 void
 MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
 {
-    pImpl_->setCalibration( calib );
+    impl_->calibration_ = calib;
     if ( assignMasses ) {
-        for ( size_t i = 0; i < pImpl_->size(); ++i ) {
+        for ( size_t i = 0; i < impl_->size(); ++i ) {
             double tof = getTime( i );
             double mq = MSCalibration::compute( calib.coeffs(), tof );
             if ( mq > 0.0 )
@@ -581,64 +617,64 @@ MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
 const MSProperty&
 MassSpectrum::getMSProperty() const
 {
-    return pImpl_->getMSProperty();
+    return impl_->property_;
 }
 
 MSProperty&
 MassSpectrum::getMSProperty()
 {
-    return pImpl_->property_;
+    return impl_->property_;
 }
 
 void
 MassSpectrum::setMSProperty( const MSProperty& prop )
 {
-    pImpl_->setMSProperty( prop );
+    impl_->property_ = prop;
 }
 
 void
 MassSpectrum::set_annotations( const annotations& annots )
 {
-    pImpl_->set_annotations( annots );
+    impl_->annotations_ = annots;
 }
 
 const annotations&
 MassSpectrum::get_annotations() const
 {
-    return pImpl_->get_annotations();
+    return impl_->annotations_;
 }
 
 annotations&
 MassSpectrum::get_annotations()
 {
-    return pImpl_->get_annotations();
+    return impl_->annotations_;
 }
 
 void
 MassSpectrum::addAnnotation( annotation&& a, bool uniq )
 {
     if ( uniq && a.index() >= 0 ) {
-        auto it = std::find_if( pImpl_->annotations_.begin(), pImpl_->annotations_.end()
+        auto it = std::find_if( impl_->annotations_.begin(), impl_->annotations_.end()
                                 , [&]( const annotation& x ){ return x.index() == a.index() && x.dataFormat() == a.dataFormat(); } );
-        if ( it != pImpl_->annotations_.end() )
-             pImpl_->annotations_.erase( it );
+        if ( it != impl_->annotations_.end() )
+             impl_->annotations_.erase( it );
     }
 
-    pImpl_->annotations_ << std::move( a );
+    impl_->annotations_ << std::move( a );
 }
 
 void
 MassSpectrum::uuid( const char * uuid )
 {
-    pImpl_->uuid_ = uuid;
+    impl_->uuid_ = uuid;
 }
 
 const char *
 MassSpectrum::uuid() const
 {
-    if ( pImpl_->uuid_.empty() )
+    if ( impl_->uuid_.empty() )
         return 0;
-    return pImpl_->uuid_.c_str();
+    return impl_->uuid_.c_str();
 }
 
 template<class T> void
@@ -655,16 +691,16 @@ MassSpectrum::get()
 std::pair<double, double>
 MassSpectrum::getAcquisitionMassRange() const
 {
-    return pImpl_->getAcquisitionMassRange();
+    return impl_->getAcquisitionMassRange();
 }
 
 double
 MassSpectrum::getMinIntensity() const
 {
     if ( ! isCentroid() ) {
-        if ( !std::get<0>( pImpl_->minmax_ ) )
+        if ( !std::get<0>( impl_->minmax_ ) )
             getMaxIntensity();
-        return std::get<1>( pImpl_->minmax_ );
+        return std::get<1>( impl_->minmax_ );
     }
     return 0;
 }
@@ -672,59 +708,59 @@ MassSpectrum::getMinIntensity() const
 double
 MassSpectrum::getMaxIntensity() const
 {
-    if ( !std::get<0>( pImpl_->minmax_ ) ) {
-        std::get<0>( pImpl_->minmax_ ) = true;
-        auto it = std::minmax_element( pImpl_->intsArray_.begin(), pImpl_->intsArray_.end() );
-        if ( it.first != pImpl_->intsArray_.end() )
-            std::get<1>( pImpl_->minmax_ ) = *it.first;
-        if ( it.second != pImpl_->intsArray_.end() )
-            std::get<2>( pImpl_->minmax_ ) = *it.second;
+    if ( !std::get<0>( impl_->minmax_ ) ) {
+        std::get<0>( impl_->minmax_ ) = true;
+        auto it = std::minmax_element( impl_->intensityArray_.begin(), impl_->intensityArray_.end() );
+        if ( it.first != impl_->intensityArray_.end() )
+            std::get<1>( impl_->minmax_ ) = *it.first;
+        if ( it.second != impl_->intensityArray_.end() )
+            std::get<2>( impl_->minmax_ ) = *it.second;
     }
-    return std::get<2>( pImpl_->minmax_ );
+    return std::get<2>( impl_->minmax_ );
 }
 
 int32_t
 MassSpectrum::protocolId() const
 {
-    return pImpl_->protocolId_;
+    return impl_->protocolId_;
 }
 
 int32_t
 MassSpectrum::nProtocols() const
 {
-    return pImpl_->nProtocols_;
+    return impl_->nProtocols_;
 }
 
 void
 MassSpectrum::setProtocol( int32_t proto, int32_t nproto )
 {
-    pImpl_->protocolId_ = proto;
-    pImpl_->nProtocols_ = nproto;
+    impl_->protocolId_ = proto;
+    impl_->nProtocols_ = nproto;
 }
 
 // for v3 format datafile support
 void
 MassSpectrum::setDataReaderUuid( const boost::uuids::uuid& uuid )
 {
-    pImpl_->dataReaderUuid_ = uuid;
+    impl_->dataReaderUuid_ = uuid;
 }
 
 const boost::uuids::uuid&
 MassSpectrum::dataReaderUuid() const
 {
-    return pImpl_->dataReaderUuid_;
+    return impl_->dataReaderUuid_;
 }
 
 void
 MassSpectrum::setRowid( int64_t rowid )
 {
-    pImpl_->rowid_ = rowid;
+    impl_->rowid_ = rowid;
 }
 
 int64_t
 MassSpectrum::rowid() const
 {
-    return pImpl_->rowid_;
+    return impl_->rowid_;
 }
 
 std::wstring
@@ -732,7 +768,7 @@ MassSpectrum::saveXml() const
 {
    std::wostringstream o;
    boost::archive::xml_woarchive ar( o );
-   ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
+   ar << boost::serialization::make_nvp("MassSpectrum", impl_);
    return o.str();
 }
 
@@ -741,7 +777,7 @@ MassSpectrum::loadXml( const std::wstring& xml )
 {
    std::wistringstream in( xml );
    boost::archive::xml_wiarchive ar( in );
-   ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+   ar >> boost::serialization::make_nvp("MassSpectrum", impl_);
 }
 
 bool
@@ -766,28 +802,28 @@ namespace adcontrols {
     MassSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
+        ar << boost::serialization::make_nvp( "MassSpectrum", impl_ );
     }
 
     template<> void
     MassSpectrum::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+        ar >> boost::serialization::make_nvp("MassSpectrum", impl_);
     }
 
     template<> ADCONTROLSSHARED_EXPORT void
     MassSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
+        ar << boost::serialization::make_nvp("MassSpectrum", impl_);
     }
 
     template<> ADCONTROLSSHARED_EXPORT void
     MassSpectrum::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         (void)version;
-        ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+        ar >> boost::serialization::make_nvp("MassSpectrum", impl_);
     }
 }
 
@@ -805,46 +841,46 @@ namespace adcontrols {
 // size_t
 // MassSpectrum::addSegment( const MassSpectrum& sub )
 // {
-//     pImpl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
-//     return pImpl_->vec_.size();
+//     impl_->vec_.emplace_back( std::make_shared< MassSpectrum >( sub ) );
+//     return impl_->vec_.size();
 // }
 
 MassSpectrum&
 MassSpectrum::getSegment( size_t fcn )
 {
-    if ( pImpl_->vec_.size() > fcn )
-        return *pImpl_->vec_[ fcn ];
+    if ( impl_->vec_.size() > fcn )
+        return *impl_->vec_[ fcn ];
 
     throw std::out_of_range(
         ( boost::format(
             "MassSpectrum protocols subscript out of range -- attempt to get %d but %d protocols" )
           % fcn
-          % pImpl_->vec_.size() ).str() );
+          % impl_->vec_.size() ).str() );
 }
 
 const MassSpectrum&
 MassSpectrum::getSegment( size_t fcn ) const
 {
-    if ( pImpl_->vec_.size() > fcn )
-        return *pImpl_->vec_[ fcn ];
+    if ( impl_->vec_.size() > fcn )
+        return *impl_->vec_[ fcn ];
 
     throw std::out_of_range(
         ( boost::format(
             "MassSpectrum protocols subscript out of range -- attempt to get %d but %d protocols" )
           % fcn
-          % pImpl_->vec_.size() ).str() );
+          % impl_->vec_.size() ).str() );
 }
 
 size_t
 MassSpectrum::numSegments() const
 {
-    return pImpl_->vec_.size();
+    return impl_->vec_.size();
 }
 
 void
 MassSpectrum::clearSegments()
 {
-    pImpl_->vec_.clear();
+    impl_->vec_.clear();
 }
 
 MassSpectrum *
@@ -852,8 +888,8 @@ MassSpectrum::findProtocol( int32_t proto )
 {
     if ( protocolId() == proto )
         return this;
-    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const std::shared_ptr<const MassSpectrum>& ms ){ return ms->protocolId() == proto; } );
-    if ( it != pImpl_->vec_.end() )
+    auto it = std::find_if( impl_->vec_.begin(), impl_->vec_.end(), [=]( const std::shared_ptr<const MassSpectrum>& ms ){ return ms->protocolId() == proto; } );
+    if ( it != impl_->vec_.end() )
         return it->get();// &( *it );
     return 0;
 }
@@ -863,8 +899,8 @@ MassSpectrum::findProtocol( int32_t proto ) const
 {
     if ( protocolId() == proto )
         return this;
-    auto it = std::find_if( pImpl_->vec_.begin(), pImpl_->vec_.end(), [=]( const std::shared_ptr< const MassSpectrum >& ms ){ return ms->protocolId() == proto; } );
-    if ( it != pImpl_->vec_.end() )
+    auto it = std::find_if( impl_->vec_.begin(), impl_->vec_.end(), [=]( const std::shared_ptr< const MassSpectrum >& ms ){ return ms->protocolId() == proto; } );
+    if ( it != impl_->vec_.end() )
         return it->get();
     return 0;
 }
@@ -873,20 +909,20 @@ size_t
 MassSpectrum::lower_bound( double value, bool isMass ) const
 {
     if ( isMass ) {
-        const auto& vec = pImpl_->massArray_;
+        const auto& vec = impl_->massArray_;
         auto it = std::lower_bound( vec.begin(), vec.end(), value );
         if ( it != vec.end() )
             return std::distance( vec.begin(), it );
         return npos; // size_t(-1)
     } else {
-        if ( !pImpl_->tofArray_.empty() ) {
-            const auto& vec = pImpl_->tofArray_;
+        if ( !impl_->tofArray_.empty() ) {
+            const auto& vec = impl_->tofArray_;
             auto it = std::lower_bound( vec.begin(), vec.end(), value );
             if ( it != vec.end() )
                 return std::distance( vec.begin(), it );
         } else {
-            size_t idx = MSProperty::toIndex( value, pImpl_->getMSProperty().samplingInfo() );
-            double time = MSProperty::toSeconds( idx, pImpl_->getMSProperty().samplingInfo() );
+            size_t idx = MSProperty::toIndex( value, impl_->property_.samplingInfo() );
+            double time = MSProperty::toSeconds( idx, impl_->property_.samplingInfo() );
             //double error = std::abs( value - time );
             assert( value == time );
         }
@@ -918,32 +954,32 @@ MassSpectrum::find( double mass, double tolerance ) const
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-std::wstring MassSpectrumImpl::empty_string_ = L"";
+std::wstring MassSpectrum::impl::empty_string_ = L"";
 
-MassSpectrumImpl::~MassSpectrumImpl()
+MassSpectrum::impl::~impl()
 {
 }
 
-MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
-				                     , polarity_(PolarityPositive)
-                                     , timeSinceInjTrigger_(0)
-                                     , timeSinceFirmwareUp_(0)
-                                     , numSpectrumSinceInjTrigger_(0)
-                                     , protocolId_(0)
-                                     , nProtocols_(0)
-                                     , dataReaderUuid_( { {0} } )
-                                     , rowid_(0)
-                                     , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
+MassSpectrum::impl::impl() : algo_(CentroidNone)
+                           , polarity_(PolarityPositive)
+                           , timeSinceInjTrigger_(0)
+                           , timeSinceFirmwareUp_(0)
+                           , numSpectrumSinceInjTrigger_(0)
+                           , protocolId_(0)
+                           , nProtocols_(0)
+                           , dataReaderUuid_( { {0} } )
+                           , rowid_(0)
+                           , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
 {
 }
 
-MassSpectrumImpl::MassSpectrumImpl( const MassSpectrumImpl& t )
+MassSpectrum::impl::impl( const MassSpectrum::impl& t )
 {
 	clone( t, true );
 }
 
 void
-MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
+MassSpectrum::impl::clone( const MassSpectrum::impl& t, bool deep )
 {
 	algo_ = t.algo_;
 	polarity_ = t.polarity_;
@@ -959,7 +995,7 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 	if ( deep ) {
 		tofArray_ = t.tofArray_;
 		massArray_ = t.massArray_;
-		intsArray_ = t.intsArray_;
+		intensityArray_ = t.intensityArray_;
 		colArray_ = t.colArray_;
         annotations_ = t.annotations_;
         uuid_ = t.uuid_;
@@ -969,7 +1005,7 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 	} else {
 		tofArray_.clear();
 		massArray_.clear();
-		intsArray_.clear();
+		intensityArray_.clear();
         colArray_.clear();
         annotations_.clear();
         uuid_.clear();
@@ -977,102 +1013,18 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 	}
 }
 
-void
-MassSpectrumImpl::setTimeArray( const double * p )
-{
-    if ( p == nullptr ) {
-        tofArray_.clear();
-    } else {
-        if ( tofArray_.size() != size() )
-            tofArray_.resize( size() );
-        std::copy( p, p + tofArray_.size(), tofArray_.begin() );
-    }
-}
+// void
+// MassSpectrum::impl::addDescription( const description& t )
+// {
+// 	descriptions_.append( t );
+// }
 
-void
-MassSpectrumImpl::setMassArray( const double * p, bool setrange )
-{
-	std::copy( p, p + massArray_.size(), massArray_.begin() );
-    if ( setrange )
-		setAcquisitionMassRange( massArray_.front(), massArray_.back() );
-}
+// void
+// MassSpectrum::impl::setCalibration( const MSCalibration& calib )
+// {
+//     calibration_ = calib;
+// }
 
-void
-MassSpectrumImpl::setIntensityArray( const double * p )
-{
-	std::copy( p, p + intsArray_.size(), intsArray_.begin() );
-}
-
-void
-MassSpectrumImpl::setColorArray( const unsigned char * p )
-{
-    if ( p ) {
-        if ( colArray_.size() != size() )
-            colArray_.resize( size() );
-		std::copy( p, p + colArray_.size(), colArray_.begin() );
-    } else {
-        colArray_.clear();
-    }
-}
-
-void
-MassSpectrumImpl::resize( size_t size )
-{
-	massArray_.resize( size );
-	intsArray_.resize( size );
-	if ( ! tofArray_.empty() )
-       tofArray_.resize( size );
-    if ( ! colArray_.empty() )
-       colArray_.resize( size );
-}
-
-void
-MassSpectrumImpl::addDescription( const description& t )
-{
-	descriptions_.append( t );
-}
-
-const descriptions&
-MassSpectrumImpl::getDescriptions() const
-{
-	return descriptions_;
-}
-
-const MSCalibration&
-MassSpectrumImpl::calibration() const
-{
-    return calibration_;
-}
-
-void
-MassSpectrumImpl::setCalibration( const MSCalibration& calib )
-{
-    calibration_ = calib;
-}
-
-const MSProperty&
-MassSpectrumImpl::getMSProperty() const
-{
-    return property_;
-}
-
-void
-MassSpectrumImpl::setMSProperty( const MSProperty& prop )
-{
-    property_ = prop;
-}
-
-void
-MassSpectrumImpl::setPolarity( MS_POLARITY polarity )
-{
-    polarity_ = polarity;
-}
-
-MS_POLARITY
-MassSpectrumImpl::polarity() const
-{
-    return polarity_;
-}
 
 ////////////
 double
@@ -1225,16 +1177,16 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
     // tofarray, massarray, colarray, annotations
     // no segements array supported
 
-    auto itFirst = std::lower_bound( pImpl_->massArray_.begin(), pImpl_->massArray_.end(), range.first );
-    if ( itFirst == pImpl_->massArray_.end() )
+    auto itFirst = std::lower_bound( impl_->massArray_.begin(), impl_->massArray_.end(), range.first );
+    if ( itFirst == impl_->massArray_.end() )
         return false;
 
-    if ( itFirst != pImpl_->massArray_.begin() )
+    if ( itFirst != impl_->massArray_.begin() )
         --itFirst;
 
-    auto itEnd = std::lower_bound( pImpl_->massArray_.begin(), pImpl_->massArray_.end(), range.second );
+    auto itEnd = std::lower_bound( impl_->massArray_.begin(), impl_->massArray_.end(), range.second );
     size_t size = std::distance( itFirst, itEnd );
-    size_t idx = std::distance( pImpl_->massArray_.begin(), itFirst );
+    size_t idx = std::distance( impl_->massArray_.begin(), itFirst );
 
     ms.resize( size );
 
@@ -1267,22 +1219,22 @@ MassSpectrum::trim( adcontrols::MassSpectrum& ms, const std::pair<double, double
 bool
 MassSpectrum::assign_masses( mass_assignee_t assign_mass )
 {
-    const MSProperty& prop = pImpl_->getMSProperty();
+    const MSProperty& prop = impl_->property_;
     int mode = prop.mode();
 
     if ( assign_mass ) {
 
-        if ( pImpl_->tofArray_.empty() ) {
+        if ( impl_->tofArray_.empty() ) {
 
             size_t idx(0);
-            std::transform( pImpl_->massArray_.begin(), pImpl_->massArray_.end(), pImpl_->massArray_.begin()
+            std::transform( impl_->massArray_.begin(), impl_->massArray_.end(), impl_->massArray_.begin()
                             , [&]( const double& ){
                                 return assign_mass( MSProperty::toSeconds( idx++, prop.samplingInfo() ), mode );
                             } );
 
         } else {
 
-            std::transform( pImpl_->tofArray_.begin(), pImpl_->tofArray_.end(), pImpl_->massArray_.begin()
+            std::transform( impl_->tofArray_.begin(), impl_->tofArray_.end(), impl_->massArray_.begin()
                             , [&]( const double& t ){
                                 return assign_mass( t, mode );
                             } );
@@ -1301,10 +1253,10 @@ MassSpectrum&
 MassSpectrum::operator << ( std::shared_ptr< MassSpectrum >&& ms )
 {
     auto range = ms->getAcquisitionMassRange();
-    pImpl_->vec_.emplace_back( ms );
+    impl_->vec_.emplace_back( ms );
 
-    pImpl_->acqRange_.first = std::min( range.first, pImpl_->acqRange_.first );
-    pImpl_->acqRange_.second = std::max( range.second, pImpl_->acqRange_.second );
+    impl_->acqRange_.first = std::min( range.first, impl_->acqRange_.first );
+    impl_->acqRange_.second = std::max( range.second, impl_->acqRange_.second );
 
     return *this;
 }
@@ -1312,29 +1264,29 @@ MassSpectrum::operator << ( std::shared_ptr< MassSpectrum >&& ms )
 MassSpectrum::iterator
 MassSpectrum::begin()
 {
-    return pImpl_->vec_.begin();
+    return impl_->vec_.begin();
 }
 
 MassSpectrum::iterator
 MassSpectrum::end()
 {
-    return pImpl_->vec_.end();
+    return impl_->vec_.end();
 }
 
 MassSpectrum::const_iterator
 MassSpectrum::begin() const
 {
-    return pImpl_->vec_.begin();
+    return impl_->vec_.begin();
 }
 
 MassSpectrum::const_iterator
 MassSpectrum::end() const
 {
-    return pImpl_->vec_.end();
+    return impl_->vec_.end();
 }
 
 MassSpectrum::iterator
 MassSpectrum::erase( const_iterator first, const_iterator last )
 {
-    return pImpl_->vec_.erase( first, last );
+    return impl_->vec_.erase( first, last );
 }

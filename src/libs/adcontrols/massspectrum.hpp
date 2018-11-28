@@ -33,8 +33,8 @@
 #include <vector>
 
 namespace boost {
-    namespace archive { 
-        class binary_oarchive; 
+    namespace archive {
+        class binary_oarchive;
         class binary_iarchive;
     }
     namespace serialization {
@@ -52,14 +52,14 @@ namespace adcontrols {
 
     class MassSpectrum;
 
-    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;   
+    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;
 
     enum MS_POLARITY { PolarityIndeterminate
                        , PolarityPositive = (1)
                        , PolarityNegative
                        , PolarityMixed
     };
-    
+
     enum CentroidAlgorithm { CentroidNone
                              , CentroidPeakMass
                              , CentroidPeakAreaWaitedMass
@@ -69,10 +69,6 @@ namespace adcontrols {
                              , CentroidHistogram   // histogram based on counting (added 2018-MAY)
     };
 
-    namespace internal {
-        class MassSpectrumImpl;
-    }
-    
     class annotation;
     class description;
     class descriptions;
@@ -81,7 +77,7 @@ namespace adcontrols {
     class annotations;
 	class ScanLaw;
 
-    
+
     class ADCONTROLSSHARED_EXPORT MassSpectrum {
     public:
         ~MassSpectrum();
@@ -94,18 +90,18 @@ namespace adcontrols {
         const static size_t npos = size_t(-1);
         size_t lower_bound( double mass, bool isMass = true ) const;
         size_t find( double mass, double tolerance ) const;
-        
+
         // methods
         void clone( const MassSpectrum&, bool deep = false );
         static const wchar_t * dataClass() { return L"MassSpectrum"; }
-        
+
         size_t size() const;
         void resize( size_t );
 
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
-        const unsigned char * getColorArray() const;
+        const uint8_t * getColorArray() const;
 
         //double compute_mass( double time ) const;
         //size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
@@ -114,12 +110,12 @@ namespace adcontrols {
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );
         void setTime( size_t idx, double time );
-        void setColor( size_t idx, unsigned char color );
+        void setColor( size_t idx, uint8_t color );
         void setAcquisitionMassRange( double, double );
         void setMassArray( const double *, bool setRange = false );
         void setIntensityArray( const double * );
         void setTimeArray( const double * );
-		void setColorArray( const unsigned char * );
+		void setColorArray( const uint8_t * );
         bool isCentroid() const;
         bool isHistogram() const;
         void setCentroid( CentroidAlgorithm );
@@ -128,11 +124,12 @@ namespace adcontrols {
         void setIntensityArray( std::vector< double >&& );
         void setMassArray( std::vector< double >&& );
         void setTimeArray( std::vector< double >&& );
+        void setColorArray( std::vector< uint8_t >&& );
 
         // ---
         void setDataReaderUuid( const boost::uuids::uuid& );
         const boost::uuids::uuid& dataReaderUuid() const;
-        
+
         // ---
         MS_POLARITY polarity() const;
         void setPolarity( MS_POLARITY );
@@ -140,12 +137,12 @@ namespace adcontrols {
 
         typedef double( mass_assign_t )( double time, int mode );
         typedef std::function< mass_assign_t > mass_assignee_t;
-        
+
         bool assign_masses( mass_assignee_t );
         //void setScanLaw( const adcontrols::ScanLaw&, bool assignMasses = false );
         void setCalibration( const adcontrols::MSCalibration&, bool assignMasses = false );
         const MSCalibration& calibration() const;
-        
+
         void setMSProperty( const adcontrols::MSProperty& );
         const MSProperty& getMSProperty() const;
         MSProperty& getMSProperty();
@@ -154,7 +151,7 @@ namespace adcontrols {
 
         // [[deprecated("use MSProperty,acceleratorVoltage&tDelay")]]
         //     const ScanLaw* scanLaw() const;
-        
+
         template<class T> void set( const T& t );
         template<class T> const T& get();
         std::pair<double, double> getAcquisitionMassRange() const;
@@ -167,7 +164,7 @@ namespace adcontrols {
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;
 
 		int getColor( size_t idx ) const;
-    
+
         void addDescription( const description& );
         void addDescription( description&& );
         const descriptions& getDescriptions() const;
@@ -186,7 +183,7 @@ namespace adcontrols {
 
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
-        
+
         // adfs::cpio (serializer)
         static bool archive( std::ostream&, const MassSpectrum& );
         static bool restore( std::istream&, MassSpectrum& );
@@ -217,8 +214,9 @@ namespace adcontrols {
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-        
-        internal::MassSpectrumImpl * pImpl_;
+
+        class impl;
+        impl * impl_;
     };
 
     struct ADCONTROLSSHARED_EXPORT segments_helper {
@@ -233,7 +231,7 @@ namespace adcontrols {
         static bool add( MassSpectrum&, const MassSpectrum& );
         static bool normalize( MassSpectrum&, uint32_t imaginalNumAverage = 10000 );
     };
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
 
@@ -242,13 +240,13 @@ namespace adcontrols {
         T& ms_;
     public:
         segment_iterator( T& ms, size_t pos ) : pos_( pos ), ms_( ms ) {}
-        bool operator != ( const segment_iterator& rhs ) const { 
+        bool operator != ( const segment_iterator& rhs ) const {
 			return pos_ != rhs.pos_;
 		}
         const segment_iterator& operator ++ () { ++pos_; return *this; }
         operator T* () const { return pos_ == 0 ? &ms_ : &ms_.getSegment( pos_ - 1 ); }
     };
-    
+
 	template<class T = MassSpectrum > class segment_wrapper {
 		T& ms_;
     public:
