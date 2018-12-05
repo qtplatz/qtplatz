@@ -62,6 +62,7 @@ namespace adportable {
         inline iterator_type end()               { return d_.end(); }
         inline const_iterator_type begin() const { return d_.begin(); }
         inline const_iterator_type end() const   { return d_.end(); }
+        inline void clear()                      { d_.clear(); }
 
         uint64_t timepoint() const       { return timepoint_;       }
         uint64_t elapsed_time() const    { return elapsed_time_;    }
