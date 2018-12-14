@@ -270,7 +270,9 @@ MassSpectrum::operator += ( const MassSpectrum& t )
         setIntensity( i, *rhs++ + *lhs++ );
 
     // update sampleInfo.numAverage
-    getMSProperty().setNumAverage( getMSProperty().numAverage() + t.getMSProperty().numAverage() );
+    size_t navg = ( getMSProperty().numAverage() ? getMSProperty().numAverage() : 1 );
+
+    getMSProperty().setNumAverage( navg + ( t.getMSProperty().numAverage() ? t.getMSProperty().numAverage() : 1 ) );
 
 	return *this;
 }
