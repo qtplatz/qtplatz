@@ -38,7 +38,7 @@ function boost_download {
 	if [ -f ${BOOST_BUILD_DIR} ]; then
 		rm -rf ${BOOST_BUILD_DIR}
 	fi
-	#tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
+	tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
 }
 
 function boost_build {
