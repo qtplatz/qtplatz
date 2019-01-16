@@ -5,6 +5,7 @@ add_subdirectory (eventbroker)
 if ( NOT CMAKE_CROSSCOMPILING )
 
   add_subdirectory (adfile)
+  add_subdirectory (adimport)
 
   if ( Qt5_FOUND )
     

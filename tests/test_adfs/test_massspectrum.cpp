@@ -75,7 +75,7 @@ massspectrum::test()
     BOOST_TEST_CHECKPOINT("massspectrum::test!");
 
     ::adfs::filesystem fs;
-
+    
     if ( boost::filesystem::exists( adfs_file ) ) {
         if ( ! fs.mount( adfs_file ) )
             return false;
