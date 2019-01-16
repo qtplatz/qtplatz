@@ -34,6 +34,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adlog/logger.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/string.hpp>
 #include <adportable/textfile.hpp>
@@ -82,10 +83,17 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     }
 
     auto ignCols = dlg.ignoreColumns();
+    auto skipLines = dlg.skipLines();
 
     do {
         std::string line;
         if ( textfile::getline( in, line ) ) {
+
+            if ( skipLines ) {
+                --skipLines;
+                continue;
+            }
+
             tokenizer tokens( line, sep );
             double values[3] = {0};
             int i(0);
@@ -96,6 +104,8 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                     values[i++] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
             }
             if ( i == 2 ) {
+                if ( cols[0].size() < 10 )
+                    ADDEBUG() << line << "\t[" << cols[0].size() << "]\tvalues:" << values[0] << ", " << values[1];
                 cols[0].push_back( values[0] ); // (time|mass)
                 cols[1].push_back( values[1] ); // intens
             } else if ( i == 3 ) {
