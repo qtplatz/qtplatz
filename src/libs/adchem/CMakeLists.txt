@@ -19,7 +19,6 @@ foreach( a ${RDKit_LIBRARIES} )
 endforeach()
 ]]
 
-
 set( adchem_SOURCES
   adchem.cpp
   adchem.hpp

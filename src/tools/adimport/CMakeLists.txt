@@ -18,8 +18,10 @@ include_directories(
 
 add_executable( ${PROJECT_NAME}
   main.cpp
-  dataprocessor.hpp
   dataprocessor.cpp
+  dataprocessor.hpp
+  document.cpp
+  document.hpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txtspectrum.cpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txtspectrum.hpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/dialog.cpp

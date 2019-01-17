@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "dataprocessor.hpp"
+#include "document.hpp"
 #include <adplugins/adtextfile/dialog.hpp>
 #include <adplugins/adtextfile/txtspectrum.hpp>
 #include <adplugins/adtextfile/time_data_reader.hpp>
@@ -91,18 +92,7 @@ main(int argc, char *argv[])
     ::adfs::filesystem fs;
 
     boost::filesystem::path outfile( "output.adfs" );
-    if ( vm.count( "output" ) )
-        outfile = boost::filesystem::path( vm[ "output" ].as< std::string >() );
 
-    if ( boost::filesystem::exists( outfile ) ) {
-        if ( ! fs.mount( outfile ) )
-            return 1;
-    } else {
-        if ( ! fs.create( outfile ) )
-            return 1;
-    }
-
-	auto folder = fs.addFolder( L"/Processed/Spectra" );
     auto filelist = vm[ "args" ].as< std::vector< std::string > >();
     if ( filelist.empty() )
         return 0;
@@ -154,48 +144,51 @@ main(int argc, char *argv[])
             tDelay = dlg.tDelay();
             model = dlg.dataInterpreterClsid().toStdString();
         }
-
+        
         if ( dlg.dataType() != adtextfile::Dialog::data_spectrum ) {
             return 1;
-            // TXTSpectrum txt;
-            // if ( txt.load( filename, dlg ) && prepare_portfolio( txt, filename, portfolio ) ) {
-            //     processedDataset_.reset( new adcontrols::ProcessedDataset );
-            //     processedDataset_->xml( portfolio.xml() );
-            //     return true;
-            // }
         }
     }
-
+    
     // -- end file type determination
 
     if ( vm.count("args") ) {
 
-        for ( auto& fname: vm[ "args" ].as< std::vector< std::string > >() ) {
+        std::shared_ptr< adcontrols::MassSpectrum > avrg, pkd;
+        std::vector< size_t > hist;
+        
+        for ( auto& fname: filelist ) {
 
             boost::filesystem::path path( fname );
 
             ADDEBUG() << fname;
-            if ( auto file = adcontrols::datafile::open( path.wstring(), false ) ) {
 
+            adtextfile::TXTSpectrum txt;
+            if ( txt.load( path.wstring(), dlg ) ) { // && prepare_portfolio( txt, filename, portfolio ) ) {
+                if ( txt.spectra_.size() ) {
+                    auto ms = txt.spectra_[ 0 ];
+                    if ( avrg )
+                        *avrg += *ms;
+                    else
+                        avrg = ms;
+                    pkd = tools::document::histogram( hist, *ms, 0.004 );
+                    QString title = QString::fromStdString( path.string() );
+                    QString folderId;
+                    if ( tools::document::appendOnFile( outfile, title, *txt.spectra_[0], folderId ) ) {
+                        ADDEBUG() << title.toStdString() << "\tOK";
+                    }
+                }
             }
-
-
-            // if ( path.extension() == ".adfs" ) {
-
-            //     std::cout << path.string() << std::endl;
-
-            //     if ( auto file = adcontrols::datafile::open( path.wstring(), false ) ) {
-            //         tools::dataprocessor processor;
-            //         file->accept( processor );
-            //         if ( processor.raw() ) {
-            //             for ( auto reader: processor.raw()->dataReaders() ) {
-            //                 if ( vm.count( "list-readers" ) ) {
-            //                     std::cout << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid() << std::endl;
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
         }
+        QString folderId;
+
+        if ( tools::document::appendOnFile( outfile, "AVERAGED", *avrg, folderId ) ) {
+            ADDEBUG() << "OK";
+        }        
+
+        if ( tools::document::appendOnFile( outfile, "HISTOGRAM", *pkd, folderId ) ) {
+            ADDEBUG() << "OK";
+        }        
     }
 }
+
