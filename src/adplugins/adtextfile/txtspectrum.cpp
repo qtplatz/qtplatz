@@ -62,7 +62,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 	boost::filesystem::path path( name );
 
 	boost::filesystem::ifstream in( path );
-    if ( in.fail() ) 
+    if ( in.fail() )
         return false;
 
     typedef boost::char_separator<char> separator;
@@ -104,14 +104,16 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                     values[i++] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
             }
             if ( i == 2 ) {
+#ifndef NDEBUG
                 if ( cols[0].size() < 10 )
                     ADDEBUG() << line << "\t[" << cols[0].size() << "]\tvalues:" << values[0] << ", " << values[1];
+#endif
                 cols[0].push_back( values[0] ); // (time|mass)
-                cols[1].push_back( values[1] ); // intens
+                cols[1].push_back( values[1] * 1000 ); // intens
             } else if ( i == 3 ) {
                 cols[0].push_back( values[0] ); // time
                 cols[1].push_back( values[1] ); // mass
-                cols[2].push_back( values[2] ); // intens        
+                cols[2].push_back( values[2] ); // intens
             }
         }
 
@@ -127,11 +129,11 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 
     if ( compiled_ ) {
         const auto& tArray = cols[0];
-        
+
         std::vector<SamplingInfo> segments;
         if ( analyze_segments( segments, tArray, compiled_.get() ) )
             validate_segments( segments, tArray );
-        
+
         size_t idx = 0;
         size_t fcn = 0;
         for ( auto s: segments ) {
@@ -147,13 +149,13 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             spectra_.push_back( ptr );
         }
     } else {
-        
+
         auto ptr = std::make_shared< adcontrols::MassSpectrum >();
         ptr->resize( nSamples );
         MSProperty prop;
 
         auto& iArray = ( nCols == 3 ) ? cols[2] : cols[1];
-        
+
         if ( nCols == 3 || ( nCols == 2 && dlg.isTimeIntensity() ) ) {
             // convert 1st column to seconds
             auto& tArray = cols[0];
@@ -162,7 +164,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                             , [source_prefix] ( double t ) { return adcontrols::metric::scale_to_base<double>( t, source_prefix ); } );
 
             ptr->setTimeArray( tArray.data() );
-            
+
             if ( nCols == 3 )
                 ptr->setMassArray( cols[1].data() );
 
@@ -172,7 +174,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             int32_t nDelay = uint32_t( tArray [ 0 ] / interval + zhalf );
 
             adcontrols::SamplingInfo info( interval, delay, nDelay, uint32_t( nSamples ), /* number of average */ 1, /*mode*/ 0 );
-            info.setDelayTime( tArray[0] );  
+            info.setDelayTime( tArray[0] );
             prop.setSamplingInfo( info );
 
             if ( nCols == 2 ) {
@@ -180,7 +182,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                 for ( size_t i = 0; i < nSamples; ++i )
                     ptr->setMass( i, scanlaw.getMass( tArray[ i ], 0 ) );
             }
-            
+
         } else {
             ptr->setMassArray( cols[0].data() );
         }
@@ -196,7 +198,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
         ptr->setIntensityArray( iArray.data() );
         ptr->setMSProperty( prop );
         ptr->setAcquisitionMassRange( ptr->getMass( 0 ), ptr->getMass( nSamples - 1 ) );
-        
+
         spectra_.push_back( ptr );
     }
     return true;
@@ -276,7 +278,7 @@ TXTSpectrum::validate_segments( const std::vector<adcontrols::SamplingInfo>& seg
         if ( std::abs( t - timeArray[i] ) > 0.5e-9 ) {
             adcontrols::MSProperty::toSeconds( i, segments );
             adportable::debug(__FILE__, __LINE__) << "error: " << t - timeArray[i]
-                                                  << "actual:" << timeArray[i] 
+                                                  << "actual:" << timeArray[i]
                                                   << " calculated:" << t;
         }
     }
@@ -317,7 +319,7 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         for ( size_t i = 0; i < info.nSamples(); ++i )
             ms.setIntensity( i, intens[i] - base );
     }
-    
+
 
     if ( ! massArray.empty() ) {
         ms.setMassArray( massArray.data() + idx );
@@ -328,14 +330,14 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         double t2 = timeArray.back();
         double m1 = 500;
         double m2 = 800;
-        
+
         // theoretical calibration  [ sqrt(m) = a + b*t ]
         double b = ( std::sqrt( m2 ) - std::sqrt( m1 ) ) / ( t2 - t1 );
         double a = std::sqrt( m1 ) - b * t1;
         std::vector< double > coeffs;
         coeffs.push_back( a );
         coeffs.push_back( b );
-        
+
         adcontrols::MSCalibration calib;
         calib.coeffs( coeffs );
         ms.setCalibration( coeffs );
@@ -343,4 +345,3 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
     ms.setAcquisitionMassRange( massArray.front(), massArray.back() );
     return ms.size();
 }
-

@@ -144,19 +144,19 @@ main(int argc, char *argv[])
             tDelay = dlg.tDelay();
             model = dlg.dataInterpreterClsid().toStdString();
         }
-        
+
         if ( dlg.dataType() != adtextfile::Dialog::data_spectrum ) {
             return 1;
         }
     }
-    
+
     // -- end file type determination
 
     if ( vm.count("args") ) {
 
         std::shared_ptr< adcontrols::MassSpectrum > avrg, pkd;
         std::vector< size_t > hist;
-        
+
         for ( auto& fname: filelist ) {
 
             boost::filesystem::path path( fname );
@@ -171,7 +171,7 @@ main(int argc, char *argv[])
                         *avrg += *ms;
                     else
                         avrg = ms;
-                    pkd = tools::document::histogram( hist, *ms, 0.004 );
+                    pkd = tools::document::histogram( hist, *ms, 0.01 );
                     QString title = QString::fromStdString( path.string() );
                     QString folderId;
                     if ( tools::document::appendOnFile( outfile, title, *txt.spectra_[0], folderId ) ) {
@@ -184,11 +184,10 @@ main(int argc, char *argv[])
 
         if ( tools::document::appendOnFile( outfile, "AVERAGED", *avrg, folderId ) ) {
             ADDEBUG() << "OK";
-        }        
+        }
 
         if ( tools::document::appendOnFile( outfile, "HISTOGRAM", *pkd, folderId ) ) {
             ADDEBUG() << "OK";
-        }        
+        }
     }
 }
-
