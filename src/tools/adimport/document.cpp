@@ -24,15 +24,26 @@
 
 #include "document.hpp"
 #include <adcontrols/massspectrum.hpp>
+#include <adplugins/adspectrometer/massspectrometer.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
 #include <adfs/file.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 using namespace tools;
+
+document *
+document::instance()
+{
+    static document __instance;
+    return &__instance;
+}
 
 bool
 document::appendOnFile( const boost::filesystem::path& path
@@ -41,7 +52,7 @@ document::appendOnFile( const boost::filesystem::path& path
                         , QString& id )
 {
     adfs::filesystem fs;
-    
+
 	if ( ! boost::filesystem::exists( path ) ) {
 		if ( ! fs.create( path.c_str() ) )
 			return false;
@@ -50,7 +61,7 @@ document::appendOnFile( const boost::filesystem::path& path
 			return false;
 	}
 	adfs::folder folder = fs.addFolder( L"/Processed/Spectra" );
-    
+
     if ( folder ) {
 		adfs::file file = folder.addFile( adfs::create_uuid(), title.toStdWString() );
         if ( file ) {
@@ -78,7 +89,7 @@ document::histogram( std::vector< size_t >& hist, const adcontrols::MassSpectrum
             hist[i]++;
         prev = d;
     }
-    
+
     std::vector< double > times, masses, intens;
     for ( size_t i = 0; i < hist.size(); ++i ) {
         if ( hist[ i ] ) {
@@ -99,4 +110,95 @@ document::histogram( std::vector< size_t >& hist, const adcontrols::MassSpectrum
     pkd->setIntensityArray( std::move( intens ) );
 
     return pkd;
+}
+
+bool
+document::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const
+{
+    std::string objtext;
+
+#ifndef NDEBUG
+    ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
+#endif
+    do {
+        adfs::stmt sql( db );
+
+        static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
+        sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
+        sql.bind( 1 ) = uuid_massspectrometer;
+        sql.bind( 2 ) = 0;
+        sql.bind( 3 ) = std::string( adspectrometer::MassSpectrometer::class_name );
+        sql.bind( 4 ) = 1.0; // scanLaw->fLength( 0 ); // fLength at mode 0
+
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "sqlite error";
+    } while ( 0 );
+
+#if 0
+    // Save method
+    if ( uuid == boost::uuids::uuid{ 0 } ) {
+        // only if call for master observer
+
+        adfs::stmt sql( db );
+        sql.exec( "CREATE TABLE IF NOT EXISTS MetaData (clsid UUID, attrib TEXT, data BLOB )" ); // check adutils/AcquiredData::create_table_v3
+
+        std::string ar;
+        {
+            auto cm( cm_ );
+            boost::iostreams::back_insert_device< std::string > inserter( ar );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+            adcontrols::ControlMethod::Method::archive( device, *cm );
+        }
+
+        sql.prepare( "INSERT OR REPLACE INTO MetaData ( clsid, attrib, data ) VALUES ( ?,?,? )" );
+        sql.bind( 1 ) = adcontrols::ControlMethod::Method::clsid();
+        sql.bind( 2 ) = std::string( "ControlMethod::Method" );
+        sql.bind( 3 ) = adfs::blob( ar.size(), reinterpret_cast< const int8_t * >( ar.data() ) );
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "sqlite error";
+    }
+#endif
+
+    return true;
+}
+
+bool
+document::prepareStorage( adfs::filesystem& fs ) const
+{
+#ifndef NDEBUG
+    ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
+#endif
+    adfs::stmt sql( fs.db() );
+
+    sql.exec(
+        "CREATE TABLE trigger ("
+        " id INTEGER PRIMARY KEY"
+        ", protocol INTEGER"
+        ", timeSinceEpoch INTEGER"
+        ", elapsedTime REAL"
+        ", events INTEGER"
+        ", threshold REAL"
+        ", algo INTEGER"
+        ", nbr_of_trigs INTEGER"
+        ", raising_delta INTEGER"
+        ", falling_delta INTEGER"
+        ", front_end_range REAL"
+        " )" );
+
+    boost::uuids::uuid uuid = { 0 };
+
+    if ( initStorage( uuid, fs.db() ) && uuid == boost::uuids::uuid{{ 0 }} ) {
+        return true;
+    }
+
+    return false;
+}
+
+bool
+document::closingStorage( const boost::uuids::uuid& uuid, adfs::filesystem& fs ) const
+{
+    if ( uuid == boost::uuids::uuid{{ 0 }} ) {
+        // auto& fs = sp.filesystem();
+    }
+    return true;
 }

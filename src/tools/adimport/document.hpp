@@ -25,10 +25,16 @@
 #pragma once
 
 #include <boost/filesystem/path.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <QString>
 
 namespace adcontrols {
     class MassSpectrum;
+}
+
+namespace adfs {
+    class filesystem;
+    class sqlite;
 }
 
 namespace tools {
@@ -39,9 +45,16 @@ namespace tools {
                                   , const QString& title
                                   , const adcontrols::MassSpectrum& ms
                                   , QString& id );
-        
+
 
         static std::shared_ptr< adcontrols::MassSpectrum>
         histogram( std::vector< size_t >& hist, const adcontrols::MassSpectrum& ms, double v_th );
+
+        static document * instance();
+
+        bool prepareStorage( adfs::filesystem& fs ) const;
+        bool closingStorage( const boost::uuids::uuid&, adfs::filesystem& fs ) const;
+    private:
+        bool initStorage( const boost::uuids::uuid&, adfs::sqlite& db ) const;
     };
 }

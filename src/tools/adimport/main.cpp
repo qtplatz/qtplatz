@@ -24,6 +24,8 @@
 
 #include "dataprocessor.hpp"
 #include "document.hpp"
+#include "find_threshold_peaks.hpp"
+#include "find_threshold_timepoints.hpp"
 #include <adplugins/adtextfile/dialog.hpp>
 #include <adplugins/adtextfile/txtspectrum.hpp>
 #include <adplugins/adtextfile/time_data_reader.hpp>
@@ -75,7 +77,8 @@ main(int argc, char *argv[])
             ( "help,h",      "Display this help message" )
             ( "args",         po::value< std::vector< std::string > >(),  "input files" )
             ( "output,o",     "import from text file to adfs" )
-            ( "threshold,t",  po:value< double >()->default_value(6.66), "counting V_{threshold}" )
+            ( "threshold,t",  po::value< double >()->default_value(6.66), "counting V_{threshold}" )
+            ( "polarity",     po::value< std::string >()->default_value( "POS" ), "threshold polarity{POS|NEG}" )
             ;
         po::positional_options_description p;
         p.add( "args",  -1 );
@@ -90,13 +93,33 @@ main(int argc, char *argv[])
 
     adplugin::manager::standalone_initialize();
 
-    ::adfs::filesystem fs;
-
     boost::filesystem::path outfile( "output.adfs" );
 
     auto filelist = vm[ "args" ].as< std::vector< std::string > >();
     if ( filelist.empty() )
         return 0;
+
+    adfs::filesystem fs;
+    if ( boost::filesystem::exists( outfile ) ) {
+        if ( ! fs.mount( outfile ) )
+            return 1;
+    } else {
+        if ( ! fs.create( outfile ) )
+            return 1;
+    }
+
+    using adcontrols::threshold_method;
+    threshold_method method;
+
+    method.enable          = true;
+    method.threshold_level = vm[ "threshold" ].as< double >();
+    method.time_resolution = 0;
+    method.response_time   = 0;
+    method.use_filter      = false;
+    method.slope           = vm[ "polarity" ].as< std::string >() == "POS" ? threshold_method::CrossUp : threshold_method::CrossDown;
+    method.algo_           = threshold_method::Absolute;
+
+    tools::document::instance()->prepareStorage( fs );
 
     //--- determine file type
     adtextfile::Dialog dlg;
@@ -173,7 +196,7 @@ main(int argc, char *argv[])
                     else
                         avrg = ms;
 
-                    
+
                     pkd = tools::document::histogram( hist, *ms, vm[ "threshold" ].as<double>() );
                     QString title = QString::fromStdString( path.string() );
                     QString folderId;
