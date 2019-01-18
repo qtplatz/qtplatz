@@ -36,7 +36,7 @@
 #include <adportable/debug.hpp>
 #include <cstdint>
 
-namespace acqrscontrols {
+namespace tools {
 
     class find_threshold_timepoints {
         const adcontrols::threshold_method& method;
@@ -52,7 +52,6 @@ namespace acqrscontrols {
                            , std::vector< double >& processed ) {
 
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
-
 
             const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.getMSProperty().samplingInfo().fSampInterval() ) | 01;
 

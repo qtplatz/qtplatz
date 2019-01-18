@@ -26,29 +26,30 @@
 #include "document.hpp"
 #include "find_threshold_peaks.hpp"
 #include "find_threshold_timepoints.hpp"
-#include <adplugins/adtextfile/dialog.hpp>
-#include <adplugins/adtextfile/txtspectrum.hpp>
-#include <adplugins/adtextfile/time_data_reader.hpp>
 #include <acqrscontrols/u5303a/waveform.hpp>
+#include <adcontrols/countingmethod.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
-#include <adfs/sqlite.hpp>
-#include <adfs/fs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
+#include <adfs/fs.hpp>
+#include <adfs/sqlite.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
 #include <adplugin_manager/manager.hpp>
+#include <adplugins/adtextfile/dialog.hpp>
+#include <adplugins/adtextfile/time_data_reader.hpp>
+#include <adplugins/adtextfile/txtspectrum.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/utf.hpp>
-#include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
@@ -108,16 +109,19 @@ main(int argc, char *argv[])
             return 1;
     }
 
-    using adcontrols::threshold_method;
-    threshold_method method;
+    adcontrols::threshold_method method;
+    adcontrols::CountingMethod ranges; // disable
+
+    ranges.setEnable( false );
 
     method.enable          = true;
     method.threshold_level = vm[ "threshold" ].as< double >();
     method.time_resolution = 0;
     method.response_time   = 0;
     method.use_filter      = false;
-    method.slope           = vm[ "polarity" ].as< std::string >() == "POS" ? threshold_method::CrossUp : threshold_method::CrossDown;
-    method.algo_           = threshold_method::Absolute;
+    method.slope           = vm[ "polarity" ].as< std::string >() == "POS" ?
+        adcontrols::threshold_method::CrossUp : adcontrols::threshold_method::CrossDown;
+    method.algo_           = adcontrols::threshold_method::Absolute;
 
     tools::document::instance()->prepareStorage( fs );
 
@@ -176,6 +180,8 @@ main(int argc, char *argv[])
 
     // -- end file type determination
 
+    tools::find_threshold_timepoints threshold_finder( method, ranges );
+
     if ( vm.count("args") ) {
 
         std::shared_ptr< adcontrols::MassSpectrum > avrg, pkd;
@@ -196,6 +202,11 @@ main(int argc, char *argv[])
                     else
                         avrg = ms;
 
+                    // threshold finder
+                    adportable::counting::counting_result result;
+                    std::vector< double > processed;
+                    threshold_finder( *ms, result, processed );
+                    // <--
 
                     pkd = tools::document::histogram( hist, *ms, vm[ "threshold" ].as<double>() );
                     QString title = QString::fromStdString( path.string() );
