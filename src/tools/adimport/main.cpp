@@ -75,6 +75,7 @@ main(int argc, char *argv[])
             ( "help,h",      "Display this help message" )
             ( "args",         po::value< std::vector< std::string > >(),  "input files" )
             ( "output,o",     "import from text file to adfs" )
+            ( "threshold,t",  po:value< double >()->default_value(6.66), "counting V_{threshold}" )
             ;
         po::positional_options_description p;
         p.add( "args",  -1 );
@@ -171,7 +172,9 @@ main(int argc, char *argv[])
                         *avrg += *ms;
                     else
                         avrg = ms;
-                    pkd = tools::document::histogram( hist, *ms, 0.01 );
+
+                    
+                    pkd = tools::document::histogram( hist, *ms, vm[ "threshold" ].as<double>() );
                     QString title = QString::fromStdString( path.string() );
                     QString folderId;
                     if ( tools::document::appendOnFile( outfile, title, *txt.spectra_[0], folderId ) ) {
