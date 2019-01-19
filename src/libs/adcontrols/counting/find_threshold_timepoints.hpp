@@ -1,6 +1,6 @@
 /**************************************************************************
- ** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
- ** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
  *
  ** Contact: toshi.hondo@qtplatz.com
  **
@@ -36,8 +36,9 @@
 #include <adportable/debug.hpp>
 #include <cstdint>
 
-namespace tools {
+namespace adcontrols {
 
+    template< typename T = MassSpectrum >
     class find_threshold_timepoints {
         const adcontrols::threshold_method& method;
         const adcontrols::CountingMethod& ranges;
@@ -47,9 +48,8 @@ namespace tools {
                                                                                  , ranges( _ranges )
             {}
 
-        void operator () ( const adcontrols::MassSpectrum& data
-                           , adportable::counting::counting_result& result
-                           , std::vector< double >& processed ) {
+        void operator () ( const T& data
+                           , adportable::counting::counting_result& result ) {
 
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
 

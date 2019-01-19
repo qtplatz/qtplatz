@@ -24,9 +24,10 @@
 
 #include "dataprocessor.hpp"
 #include "document.hpp"
-#include "find_threshold_peaks.hpp"
-#include "find_threshold_timepoints.hpp"
+#include "resultwriter.hpp"
 #include <acqrscontrols/u5303a/waveform.hpp>
+#include <adcontrols/counting/find_threshold_timepoints.hpp>
+#include <adcontrols/counting/trigger_data.hpp>
 #include <adcontrols/countingmethod.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -179,8 +180,10 @@ main(int argc, char *argv[])
     }
 
     // -- end file type determination
+    adcontrols::counting::trigger_data trigger_data;
 
-    tools::find_threshold_timepoints threshold_finder( method, ranges );
+    trigger_data.thresholdLevel = method.threshold_level;
+    tools::resultwriter resultwriter( fs.db() );
 
     if ( vm.count("args") ) {
 
@@ -191,8 +194,6 @@ main(int argc, char *argv[])
 
             boost::filesystem::path path( fname );
 
-            ADDEBUG() << fname;
-
             adtextfile::TXTSpectrum txt;
             if ( txt.load( path.wstring(), dlg ) ) { // && prepare_portfolio( txt, filename, portfolio ) ) {
                 if ( txt.spectra_.size() ) {
@@ -202,10 +203,12 @@ main(int argc, char *argv[])
                     else
                         avrg = ms;
 
+                    trigger_data.serialnumber++;
+
                     // threshold finder
                     adportable::counting::counting_result result;
-                    std::vector< double > processed;
-                    threshold_finder( *ms, result, processed );
+                    adcontrols::find_threshold_timepoints<>( method, ranges )( *ms, result );
+                    resultwriter.insert( ms, trigger_data, std::move( result ) );
                     // <--
 
                     pkd = tools::document::histogram( hist, *ms, vm[ "threshold" ].as<double>() );

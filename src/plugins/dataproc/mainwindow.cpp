@@ -174,7 +174,7 @@ namespace dataproc {
         QObject * this_;
         apply_method_connector( QObject * p ) : this_(p) {}
         template<class T> bool operator () ( T* wnd ) const {
-            return 
+            return
                 this_->connect( DataprocPlugin::instance(), &DataprocPlugin::onApplyMethod, wnd
                                 , [=]( const adcontrols::ProcessMethod& pm ){ wnd->handleApplyMethod( pm ); });
         }
@@ -184,7 +184,7 @@ namespace dataproc {
         QObject * this_;
         check_state_changed_connector( QObject * p ) : this_(p) {}
         template< class T > bool operator () ( T* wnd ) const {
-            return 
+            return
                 this_->connect( SessionManager::instance(), &SessionManager::signalCheckStateChanged, wnd
                                 , [=]( Dataprocessor* dp, portfolio::Folium& f, bool st ){ wnd->handleCheckStateChanged( dp, f, st ); });
         }
@@ -299,13 +299,13 @@ MainWindow::createStyledBarTop()
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-        
+
         axisChoice_ = new QComboBox;
         axisChoice_->addItem( tr("m/z") );
         axisChoice_->addItem( tr("time") );
         toolBarLayout->addWidget( new QLabel( tr("Axis:") ) );
         toolBarLayout->addWidget( axisChoice_ );
-        
+
         toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
         toolBarLayout->addWidget( new QLineEdit );
     }
@@ -335,7 +335,7 @@ void
 MainWindow::currentPageChanged( int idx )
 {
     if ( idx == idSelSpectra ) {
-        if ( auto p = dynamic_cast<MSSpectraWnd *>(stack_->widget( idx )) ) 
+        if ( auto p = dynamic_cast<MSSpectraWnd *>(stack_->widget( idx )) )
             p->onPageSelected();
     }
 
@@ -399,7 +399,7 @@ MainWindow::createStyledBarMiddle()
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
-            
+
         }
     }
     return toolBar2;
@@ -456,7 +456,7 @@ MainWindow::createContents( Core::IMode * mode )
         wnd.push_back( new MSSpectraWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Spectra") ), wnd.back() ) );
     }
-    
+
     if ( auto pSrc = stack_->widget( idSelMSProcess ) ) {
         if ( auto pDst = stack_->widget( idSelSpectra ) )
             connect( dynamic_cast<MSProcessingWnd *>(pSrc), &MSProcessingWnd::dataChanged, dynamic_cast<MSSpectraWnd *>(pDst), &MSSpectraWnd::onDataChanged );
@@ -524,7 +524,7 @@ MainWindow::setSimpleDockWidgetArrangement()
         widget->setFloating( false );
         removeDockWidget( widget );
     }
-  
+
     size_t npos = 0;
     for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
@@ -564,7 +564,7 @@ MainWindow::createDockWidgets()
 {
     using adportable::Configuration;
 
-    struct widget { 
+    struct widget {
         QString title;
         QString pageName;
         std::function<QWidget *()> factory;
@@ -620,7 +620,7 @@ MainWindow::createDockWidgets()
                  qobject_cast< dataproc::MSPropertyForm *>( pWidget ) == nullptr &&
                  qobject_cast< adwidgets::MSPeakWidget *>( pWidget ) == nullptr ) {
 
-                // all MSPeakTable variants 
+                // all MSPeakTable variants
                 if ( auto wnd = findChild< MSProcessingWnd *>() ) {
                     connect( pWidget, SIGNAL( currentChanged( int, int ) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
                     connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
@@ -666,7 +666,7 @@ MainWindow::createToolbar()
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( QAction * action, const QString& objectName )
 {
     if ( auto button = new QToolButton ) {
@@ -681,7 +681,7 @@ MainWindow::toolButton( QAction * action, const QString& objectName )
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( const char * id )
 {
     return toolButton( Core::ActionManager::instance()->command(id)->action() );
@@ -747,7 +747,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 					} catch ( boost::bad_any_cast& ex ) {
 						ADERROR() << boost::diagnostic_information( ex );
 					}
-                    
+
                     if ( auto t = portfolio::find_first_of( f.attachments(), []( auto& a){ return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); }) ) {
                         try {
                             pkinfo = portfolio::get< adcontrols::MSPeakInfoPtr >( t );
@@ -755,7 +755,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                             ADERROR() << boost::diagnostic_information( ex );
                         }
                     }
-                    
+
                     if ( auto t = portfolio::find_first_of( f.attachments(), []( auto& a) { return a.name() == Constants::F_TARGETING;}) ) {
                         try {
                             targeting = portfolio::get< adcontrols::TargetingPtr >( t );
@@ -772,7 +772,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 			if ( it != docks.end() )
 				(*it)->raise();
         }
-        
+
         for ( auto widget: dockWidgets() ) {
             if ( auto pLifeCycle = qobject_cast<adplugin::LifeCycle *>( widget->widget() ) ) {
                 if ( centroid && pkinfo ) {
@@ -820,7 +820,7 @@ MainWindow::handleProcess( const QString& origin )
         if ( auto m = pm->find< adcontrols::MSSimulatorMethod >() ) {
             if ( auto wnd = findChild< ElementalCompWnd * >() ) {
                 wnd->simulate( *m );
-                stack_->setCurrentIndex( idSelElementalComp );                
+                stack_->setCurrentIndex( idSelElementalComp );
             }
         }
     } else if ( origin == "MSCalibrateWidget" ) {
@@ -877,7 +877,7 @@ MainWindow::handlePeptideTarget( const QVector<QPair<QString, QString> >& peptid
     adprot::digestedPeptides digested;
     for ( auto& p: peptides )
         digested << adprot::peptide( p.first.toStdString(), p.second.toStdString(), 0 );
-    
+
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
         processor->findPeptide( digested );
     } else {
@@ -920,7 +920,7 @@ MainWindow::OnInitialUpdate()
     createDockWidgets();
 
     QList< QDockWidget *> widgets = dockWidgets();
-  
+
     for ( auto widget: widgets ) {
         QWidget * obj = widget->widget();
 		adplugin::LifeCycleAccessor accessor( obj );
@@ -949,7 +949,7 @@ MainWindow::OnInitialUpdate()
 
 #if defined Q_OS_LINUX
     for ( auto dock: dockWidgets() ) {
-        dock->widget()->setStyleSheet( "* { font-size: 9pt; }" 
+        dock->widget()->setStyleSheet( "* { font-size: 9pt; }"
                                        "QHeaderView::section { font-size: 9pt; }" );
     }
 
@@ -971,7 +971,7 @@ MainWindow::OnFinalClose()
     using adcontrols::ProcessMethod;
 
     QList< QDockWidget *> widgets = dockWidgets();
-  
+
     for ( auto widget: widgets ) {
         QWidget * obj = widget->widget();
         adplugin::LifeCycleAccessor accessor( obj );
@@ -1020,7 +1020,7 @@ MainWindow::handleExportPeakList()
     if ( filename.isEmpty() )
         return;
     std::ofstream outf( filename.toStdString() );
-    
+
     for ( auto& session : *SessionManager::instance() ) {
         if ( auto processor = session.processor() ) {
             auto spectra = processor->getPortfolio().findFolder( L"Spectra" );
@@ -1053,7 +1053,7 @@ MainWindow::handleExportPeakList()
                                          << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
                                          << std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
                                          << std::scientific << std::setprecision(7) << ms.getIntensity( n );
-                                    
+
                                     auto it = std::find_if( annots.begin(), annots.end()
                                                             , [=]( const adcontrols::annotation& a ){ return a.index() == int(n); } );
                                     while ( it != annots.end() ) {
@@ -1117,7 +1117,7 @@ MainWindow::actionApply()
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-        
+
         if ( currentFeature_ == CalibrationProcess )
             processor->applyCalibration( pm );
         else
@@ -1129,7 +1129,7 @@ void
 MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
 {
     adcontrols::ProcessMethod pm;
-        
+
     getProcessMethod( pm );
 
     document::instance()->setProcessMethod( pm );
@@ -1147,7 +1147,7 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, port
     adcontrols::ProcessMethod pm;
 
     getProcessMethod( pm );
-    
+
     document::instance()->setProcessMethod( pm );
 
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
@@ -1212,14 +1212,14 @@ MainWindow::printCurrentView( const QString& pdfname ) const
 void
 MainWindow::saveDefaultMSCalibrateResult( portfolio::Folium& )
 {
-    
+
 }
 
 void
 MainWindow::getEditorFactories( adextension::iSequenceImpl& impl )
 {
     using namespace adextension;// ::iEditorFactory;
-    
+
     if ( auto p = std::make_shared< adextension::iEditorFactoryT< adwidgets::CentroidForm > >( "Centroid",  iEditorFactory::PROCESS_METHOD ) ) {
         impl << p;
     };
@@ -1299,7 +1299,7 @@ MainWindow::makeDisplayName( const std::wstring& id, const char * insertor, int 
         return o;
     }
     return QString();
-    
+
 }
 
 

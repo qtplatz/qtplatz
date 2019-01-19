@@ -14,4 +14,5 @@ sudo apt-get -y install build-essential
 sudo apt-get -y install dkms
 sudo apt-get -y install bc
 sudo apt-get -y install libncurses5-dev
+sudo apt-get -y install curl
 

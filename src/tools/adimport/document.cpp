@@ -115,59 +115,12 @@ document::histogram( std::vector< size_t >& hist, const adcontrols::MassSpectrum
 bool
 document::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const
 {
-    std::string objtext;
-
-#ifndef NDEBUG
-    ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
-#endif
-    do {
-        adfs::stmt sql( db );
-
-        static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
-        sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
-        sql.bind( 1 ) = uuid_massspectrometer;
-        sql.bind( 2 ) = 0;
-        sql.bind( 3 ) = std::string( adspectrometer::MassSpectrometer::class_name );
-        sql.bind( 4 ) = 1.0; // scanLaw->fLength( 0 ); // fLength at mode 0
-
-        if ( sql.step() != adfs::sqlite_done )
-            ADDEBUG() << "sqlite error";
-    } while ( 0 );
-
-#if 0
-    // Save method
-    if ( uuid == boost::uuids::uuid{ 0 } ) {
-        // only if call for master observer
-
-        adfs::stmt sql( db );
-        sql.exec( "CREATE TABLE IF NOT EXISTS MetaData (clsid UUID, attrib TEXT, data BLOB )" ); // check adutils/AcquiredData::create_table_v3
-
-        std::string ar;
-        {
-            auto cm( cm_ );
-            boost::iostreams::back_insert_device< std::string > inserter( ar );
-            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
-            adcontrols::ControlMethod::Method::archive( device, *cm );
-        }
-
-        sql.prepare( "INSERT OR REPLACE INTO MetaData ( clsid, attrib, data ) VALUES ( ?,?,? )" );
-        sql.bind( 1 ) = adcontrols::ControlMethod::Method::clsid();
-        sql.bind( 2 ) = std::string( "ControlMethod::Method" );
-        sql.bind( 3 ) = adfs::blob( ar.size(), reinterpret_cast< const int8_t * >( ar.data() ) );
-        if ( sql.step() != adfs::sqlite_done )
-            ADDEBUG() << "sqlite error";
-    }
-#endif
-
     return true;
 }
 
 bool
 document::prepareStorage( adfs::filesystem& fs ) const
 {
-#ifndef NDEBUG
-    ADDEBUG() << "## " << __FUNCTION__ << " " << uuid;
-#endif
     adfs::stmt sql( fs.db() );
 
     sql.exec(

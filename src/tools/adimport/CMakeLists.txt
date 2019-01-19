@@ -18,10 +18,10 @@ include_directories(
 
 add_executable( ${PROJECT_NAME}
   main.cpp
-  dataprocessor.cpp
-  dataprocessor.hpp
   document.cpp
   document.hpp
+  resultwriter.cpp
+  resultwriter.hpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txtspectrum.cpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/txtspectrum.hpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/adtextfile/dialog.cpp
@@ -40,6 +40,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )

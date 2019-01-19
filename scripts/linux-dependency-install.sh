@@ -12,10 +12,13 @@ list_dependency+=('mesa-common-dev'
 		  'python2.7'
 		  'python2.7-dev')
 
-#rtags 
+#rtags
 list_dependency+=('clang-3.9'
 		  'lldb-3.9'
 		  'libclang-3.9-dev')
+
+#rdkit
+list_dependency+=('libeigen3-def')
 
 #cmake+opencv
 list_dependency+=('libcurl4-openssl-dev'
@@ -64,6 +67,9 @@ list_dependency+=('libfreeimage-dev'
 
 list_dependency+=('nlohmann-json-dev')
 
+#emacs
+list_dependency+=('libxpm-dev' 'libgif-dev' 'gnutls-dev')
+
 #sudo apt update
 
 for arg in "${list_dependency[@]}"; do
@@ -77,4 +83,3 @@ if [ ${#failed_list[@]} -gt 0 ]; then
 	echo "	" "$arg"
    done
 fi
-

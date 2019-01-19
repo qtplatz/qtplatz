@@ -35,7 +35,7 @@
 #include <adportable/debug.hpp>
 #include <cstdint>
 
-namespace tools {
+namespace adcontrols {
 
     template< bool findPositive >
     class find_threshold_peaks {
