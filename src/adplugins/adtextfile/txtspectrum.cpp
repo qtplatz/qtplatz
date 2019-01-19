@@ -104,7 +104,7 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                     values[i++] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
             }
             if ( i == 2 ) {
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
                 if ( cols[0].size() < 10 )
                     ADDEBUG() << line << "\t[" << cols[0].size() << "]\tvalues:" << values[0] << ", " << values[1];
 #endif

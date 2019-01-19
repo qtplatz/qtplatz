@@ -93,7 +93,7 @@ main(int argc, char *argv[])
         return 0;
     }
 
-    adplugin::manager::standalone_initialize();
+    // adplugin::manager::standalone_initialize();
 
     boost::filesystem::path outfile( "output.adfs" );
 
@@ -207,7 +207,7 @@ main(int argc, char *argv[])
 
                     // threshold finder
                     adportable::counting::counting_result result;
-                    adcontrols::find_threshold_timepoints<>( method, ranges )( *ms, result );
+                    adcontrols::find_threshold_timepoints( method, ranges )( *ms, result );
                     resultwriter.insert( ms, trigger_data, std::move( result ) );
                     // <--
 

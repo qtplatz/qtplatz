@@ -38,7 +38,6 @@
 
 namespace adcontrols {
 
-    template< typename T = MassSpectrum >
     class find_threshold_timepoints {
         const adcontrols::threshold_method& method;
         const adcontrols::CountingMethod& ranges;
@@ -48,14 +47,16 @@ namespace adcontrols {
                                                                                  , ranges( _ranges )
             {}
 
+        template< typename T = MassSpectrum >
         void operator () ( const T& data
                            , adportable::counting::counting_result& result ) {
 
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
 
             const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.getMSProperty().samplingInfo().fSampInterval() ) | 01;
-
             double level = method.threshold_level;
+
+            ADDEBUG() << "nfilter=" << nfilter << ", level=" << level;
 
             result.setAlgo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
             result.setThreshold_level( method.threshold_level );
@@ -67,15 +68,11 @@ namespace adcontrols {
             const bool average( method.algo_ == adcontrols::threshold_method::AverageRelative );
             adportable::stddev stddev;
 
-            if ( average ) {
-                if ( method.use_filter ) {
-                    auto sd = stddev( data.getIntensityArray(), data.size() );
-                    finder( data.getIntensityArray(), data.getIntensityArray() + data.size(), elements, level + sd.second, 0 );
-                }
+            if ( average && method.use_filter ) {
+                auto sd = stddev( data.getIntensityArray(), data.size() );
+                finder( data.getIntensityArray(), data.getIntensityArray() + data.size(), elements, level + sd.second, 0 );
             } else {
-                if ( method.use_filter ) {
-                    finder( data.getIntensityArray(), data.getIntensityArray() + data.size(), elements, level, 0 );
-                }
+                finder( data.getIntensityArray(), data.getIntensityArray() + data.size(), elements, level, 0 );
             }
         }
     };
