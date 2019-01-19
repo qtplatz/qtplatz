@@ -78,8 +78,9 @@ main(int argc, char *argv[])
         description.add_options()
             ( "help,h",      "Display this help message" )
             ( "args",         po::value< std::vector< std::string > >(),  "input files" )
-            ( "output,o",     "import from text file to adfs" )
-            ( "threshold,t",  po::value< double >()->default_value(6.66), "counting V_{threshold}" )
+            ( "output,o",        po::value< std::string >()->default_value( "output.adfs" ), "import from text file to adfs" )
+            ( "counting_output", po::value< std::string >()->default_value( "output.adfs" ), "output file for counting results" )
+            ( "threshold,t",  po::value< double >()->default_value(6.66), "counting V_th" )
             ( "polarity",     po::value< std::string >()->default_value( "POS" ), "threshold polarity{POS|NEG}" )
             ;
         po::positional_options_description p;
@@ -95,18 +96,18 @@ main(int argc, char *argv[])
 
     // adplugin::manager::standalone_initialize();
 
-    boost::filesystem::path outfile( "output.adfs" );
-
     auto filelist = vm[ "args" ].as< std::vector< std::string > >();
     if ( filelist.empty() )
         return 0;
 
     adfs::filesystem fs;
-    if ( boost::filesystem::exists( outfile ) ) {
-        if ( ! fs.mount( outfile ) )
+
+    boost::filesystem::path counting_outfile( vm[ "counting_output" ].as< std::string >() );
+    if ( boost::filesystem::exists( counting_outfile ) ) {
+        if ( ! fs.mount( counting_outfile ) )
             return 1;
     } else {
-        if ( ! fs.create( outfile ) )
+        if ( ! fs.create( counting_outfile ) )
             return 1;
     }
 
@@ -185,6 +186,8 @@ main(int argc, char *argv[])
     trigger_data.thresholdLevel = method.threshold_level;
     tools::resultwriter resultwriter( fs.db() );
 
+    boost::filesystem::path outfile( vm[ "output" ].as< std::string >() );
+    
     if ( vm.count("args") ) {
 
         std::shared_ptr< adcontrols::MassSpectrum > avrg, pkd;
