@@ -18,14 +18,13 @@ set title sprintf("Histogram")
 set xlabel "Time($\\mu$s)"
 set ylabel "Counts" # (^4He^{2+})"
 
-set yrange [0:10]
-
 plot '< sqlite3 ' . dbfile . ' \
 "SELECT round(peak_time*1e9)/1000.0 as time,count(*) FROM trigger,peak WHERE id=idtrigger AND time > 338 GROUP BY time"' \
      using 1:($2) with impulse title "Time resolution: 1ns"
 
 set notitle
+set yrange [0:10]
 
 plot '< sqlite3 ' . dbfile . ' \
 "SELECT round(peak_time*1e9)/1000.0 as time,count(*) FROM trigger,peak WHERE id=idtrigger AND time > 338 GROUP BY time"' \
-     using 1:($2-1) with impulse title "Time resolution: 1ns, ignore 1 count data"
+     using 1:2 with impulse title "Time resolution: 1ns"
