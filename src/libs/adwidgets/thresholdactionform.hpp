@@ -59,10 +59,13 @@ namespace adwidgets {
 
         bool get( adcontrols::threshold_action& ) const;
         bool set( const adcontrols::threshold_action& );
-        
+
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
         std::shared_ptr< const adcontrols::MassSpectrometer > massSpectrometer() const;
-            
+
+        void setJson( const QByteArray& );
+        QByteArray readJson() const;
+
     signals:
         void valueChanged();
 

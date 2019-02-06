@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,15 +24,19 @@
 #include "findslopeform.hpp"
 #include "ui_findslopeform.h"
 #include <adcontrols/threshold_method.hpp>
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include <QSignalBlocker>
 #include <ratio>
 
 using namespace adwidgets;
 
-findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
+findSlopeForm::findSlopeForm(QWidget *parent) : QWidget(parent)
                                               , ui(new Ui::findSlopeForm)
                                               , channel_(0)
-    
+
 {
     ui->setupUi(this);
 
@@ -54,9 +57,9 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     ui->doubleSpinBox_resolution->setMinimum( 0 );
     ui->doubleSpinBox_resolution->setMaximum( 1000 ); // 1us
     ui->doubleSpinBox_resolution->setSingleStep( 0.01 );  // 10ps step
-    
+
     // Response time (ns)
-    ui->doubleSpinBox_resp->setMinimum( 0 );    
+    ui->doubleSpinBox_resp->setMinimum( 0 );
     ui->doubleSpinBox_resp->setMaximum( 100000 );
     ui->doubleSpinBox_resp->setSingleStep( 0.01 );  // 10ps step
     connect( ui->doubleSpinBox_resp, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged )
@@ -75,8 +78,8 @@ findSlopeForm::findSlopeForm(QWidget *parent) :  QWidget(parent)
     // Filter enable|disable
     connect( ui->groupBox_filter, &QGroupBox::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } );
     connect( ui->radioButton_dft, &QRadioButton::toggled, [this] ( bool on ) { emit valueChanged( channel_ ); } ); // DFT
-    
-    connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { 
+
+    connect( ui->spinBox_sg, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) {
             emit valueChanged( channel_ ); } ); // SG
 
     connect( ui->spinBox_dft_high, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) {
@@ -120,6 +123,8 @@ findSlopeForm::setChecked( bool on )
 void
 findSlopeForm::set( const adcontrols::threshold_method& m )
 {
+    QSignalBlocker block_this( this );
+
     const QSignalBlocker bloks [] = {
         QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->groupBox_filter )
         , QSignalBlocker( ui->doubleSpinBox ), QSignalBlocker( ui->doubleSpinBox_resolution ), QSignalBlocker( ui->doubleSpinBox_resp )
@@ -143,7 +148,7 @@ findSlopeForm::set( const adcontrols::threshold_method& m )
     if ( m.algo_ == adcontrols::threshold_method::Absolute )
         ui->radioButton->setChecked( true );
     else if ( m.algo_ == adcontrols::threshold_method::AverageRelative )
-        ui->radioButton_3->setChecked( true );        
+        ui->radioButton_3->setChecked( true );
     else if ( m.algo_ == adcontrols::threshold_method::Differential )
         ui->radioButton_2->setChecked( true );
 
@@ -174,11 +179,11 @@ findSlopeForm::get( adcontrols::threshold_method& m ) const
         m.algo_ = adcontrols::threshold_method::AverageRelative;
     else if ( ui->radioButton_2->isChecked() )
         m.algo_ = adcontrols::threshold_method::Differential;
-    
+
     m.use_filter = ui->groupBox_filter->isChecked();
     if ( ui->radioButton_sg->isChecked() )
         m.filter = adcontrols::threshold_method::SG_Filter;
-    else 
+    else
         m.filter = adcontrols::threshold_method::DFT_Filter;
     m.sgwidth = ui->spinBox_sg->value() / std::nano::den;        // * 1.0e-9;// ns -> s
     m.hCutoffHz = ui->spinBox_dft_high->value() * std::mega::num;//1.0e6;    // MHz -> Hz
@@ -192,3 +197,72 @@ findSlopeForm::channel() const
     return channel_;
 }
 
+void
+findSlopeForm::setJson( const QByteArray& json )
+{
+    auto doc = QJsonDocument::fromJson( json );
+    const auto& jobj = doc.object();
+    const auto& obj = jobj[ "threshold_method" ];
+
+    ui->groupBox->setChecked( obj[ "enable" ].toBool() );    //ui->groupBox->setChecked( m.enable );
+    ui->doubleSpinBox->setValue( obj[ "threshold_level" ].toDouble() * 1.0e3 );           // ui->doubleSpinBox->setValue( m.threshold_level * 1.0e3 );           // --> mV
+    ui->doubleSpinBox_resolution->setValue( obj[ "time_resolution"].toDouble() * 1.0e9 ); // --> ns
+    ui->doubleSpinBox_resp->setValue( obj[ "response_time" ].toDouble() * 1.0e9 );         // --> ns
+
+    // Slope
+    ui->radioButton_neg->setChecked( obj[ "slope" ].toString() == "CrossDown" ); // NEG
+    ui->radioButton_pos->setChecked( obj[ "slope" ].toString() == "CrossUp" );   // POS
+
+    // ThresholdAlgo
+    if ( obj[ "algo" ].toString() == "Absolute" )
+        ui->radioButton->setChecked( true );
+    else if ( obj[ "algo" ].toString() == "AverageRelative" )
+        ui->radioButton_3->setChecked( true );
+    else if ( obj[ "algo" ].toString() == "Differential" )
+        ui->radioButton_2->setChecked( true );
+
+    // Filter
+    ui->groupBox_filter->setChecked( obj[ "use_filter" ].toBool() );
+    if ( obj[ "filter" ].toString() == "DFT_Filter" )
+        ui->radioButton_dft->setChecked( true );
+    if ( obj[ "filter" ].toString() == "SG_Filter" )
+        ui->radioButton_sg->setChecked( true );
+
+    ui->spinBox_sg->setValue( obj[ "sgwidth" ].toDouble() * 1.0e9 );    // s --> ns
+    ui->spinBox_dft_high->setValue( obj [ "hCutoffHz" ].toDouble() * 1.0e-6 ); // Hz --> MHz
+    ui->spinBox_dft_low->setValue( obj [ "lCutoffHz" ].toDouble() * 1.0e-6 ); // Hz --> MHz
+    ui->checkBox->setChecked( obj ["complex" ].toBool() );
+}
+
+QByteArray
+findSlopeForm::readJson() const
+{
+    QString algo;
+    if ( ui->radioButton->isChecked() )
+        algo = "Absolute";
+    else if ( ui->radioButton_3->isChecked() )
+        algo = "AverageRelative";
+    else if ( ui->radioButton_2->isChecked() )
+        algo = "Differential";
+
+    QJsonObject obj {
+        { "enable",            ui->groupBox->isChecked()                                   } // m.enable
+        , { "threshold_level", ui->doubleSpinBox->value() * 1.0e-3                         } // mV -> V
+        , { "time_resolution", ui->doubleSpinBox_resolution->value() * 1.0e-9              } // ns -> seconds
+        , { "slope",           ui->radioButton_neg->isChecked() ? "CrossDown" : "CrossUp"  }
+        , { "algo",            algo                                                        }
+        , { "use_filter",      ui->groupBox_filter->isChecked()                            }
+        , { "filter",          ui->radioButton_sg->isChecked() ? "SG_Filter" : "DFT_Filter"}
+        , { "sgwidth",         double( ui->spinBox_sg->value() / std::nano::den )          } // * 1.0e-9;// ns -> s
+        , { "hCutoffHz",       double( ui->spinBox_dft_high->value() * std::mega::num )    } //1.0e6;    // MHz -> Hz
+        , { "lCutoffHz",       double( ui->spinBox_dft_low->value() * std::mega::num )     } //1.0e6;    // MHz -> Hz
+        , { "complex",         ui->checkBox->isChecked() }
+    };
+
+    QJsonObject jobj;
+    jobj [ "threshold_method" ] = obj;
+
+    QJsonDocument jdoc( jobj );
+
+    return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
+}

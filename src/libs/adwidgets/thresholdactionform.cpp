@@ -29,6 +29,11 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <QByteArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QSignalBlocker>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QSignalBlocker>
@@ -90,7 +95,7 @@ ThresholdActionForm::getContents( boost::any& ) const
 bool
 ThresholdActionForm::setContents( boost::any&& )
 {
-    Q_ASSERT( 0 );    
+    Q_ASSERT( 0 );
     return false;
 }
 
@@ -148,7 +153,7 @@ ThresholdActionForm::setMassSpectrometer( std::shared_ptr< const adcontrols::Mas
 
     } else {
 
-        ui->groupBox_2->setEnabled( false );        
+        ui->groupBox_2->setEnabled( false );
 
     }
 }
@@ -167,15 +172,15 @@ ThresholdActionForm::formulaChanged( const QString& formula )
 
         QSignalBlocker blocks[] = { QSignalBlocker( ui->doubleSpinBox_3 ), QSignalBlocker( ui->doubleSpinBox ) };
         (void)blocks;
-        
+
         double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula.toStdString() );
         ui->doubleSpinBox_3->setValue( mass );
 
         auto mode = ui->spinBox->value();
 
         double time = sp->scanLaw()->getTime( mass, mode );
-        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );            
-        
+        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );
+
         emit valueChanged();
     }
 }
@@ -187,10 +192,10 @@ ThresholdActionForm::modeChanged( int mode )
 
         double mass = ui->doubleSpinBox_3->value();
         double time = sp->scanLaw()->getTime( mass, mode );
-        
+
         QSignalBlocker block( ui->doubleSpinBox );
-        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );            
-        
+        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );
+
         emit valueChanged();
     }
 }
@@ -200,12 +205,69 @@ ThresholdActionForm::massChanged( double mass )
 {
     if ( auto sp = spectrometer_.lock() ) {
 
-        double time = sp->scanLaw()->getTime( mass, ui->spinBox->value() );        
+        double time = sp->scanLaw()->getTime( mass, ui->spinBox->value() );
 
         QSignalBlocker block( ui->doubleSpinBox );
-        
-        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );            
-        
+
+        ui->doubleSpinBox->setValue( adcontrols::metric::scale_to_micro( time ) );
+
         emit valueChanged();
     }
+}
+
+void
+ThresholdActionForm::setJson( const QByteArray& json )
+{
+    QSignalBlocker block_this( this );
+
+    auto doc = QJsonDocument::fromJson( json );
+    const auto& jobj = doc.object();
+    const auto& obj = jobj[ "threshold_action" ];
+    if ( ! obj.isNull() ) {
+        ui->checkBox->setChecked( obj[ "enable" ].toBool() );
+        ui->checkBox_2->setChecked( obj[ "exclusiveDisplay" ].toBool() );
+        ui->checkBox_3->setChecked( obj[ "recordOnFile" ].toBool() );
+        ui->doubleSpinBox->setValue( obj[ "delay" ].toDouble() * 1.0e6 );
+        ui->doubleSpinBox_2->setValue( obj[ "width" ].toDouble() * 1.0e6 );
+        ui->lineEdit->setText( obj[ "formula" ].toString() );
+        ui->spinBox->setValue( obj[ "mode" ].toInt() );
+        ui->doubleSpinBox_3->setValue( obj[ "mass" ].toDouble() );
+
+        const auto& sobj = obj[ "spectrometer" ];
+        if ( ! sobj.isNull() ) {
+            // todo
+        }
+    }
+}
+
+QByteArray
+ThresholdActionForm::readJson() const
+{
+    //m.enable = ui->groupBox->isChecked();
+
+    QJsonObject obj {
+        { "enable",              ui->groupBox->isChecked()                      } // m.enable
+        , { "recordOnFile",      ui->checkBox->isChecked()                      } // ns -> seconds
+        , { "enableTimeRange",   ui->checkBox_3->isChecked()                    }
+        , { "exclusiveDisplay",  ui->checkBox_2->isChecked()                    }
+        , { "delay",             ui->doubleSpinBox->value() / std::micro::den   }
+        , { "width",             ui->doubleSpinBox_2->value() / std::micro::den }
+    };
+
+    if ( auto sp = spectrometer_.lock() ) {
+        QJsonObject sobj {
+            { "objid_spectrometer", QString::fromStdString( sp->objtext() ) }
+            , { "formula",          ui->lineEdit->text()                    }
+            , { "mode",             ui->spinBox->value()                    }
+            , { "mass",             ui->doubleSpinBox_3->value()            }
+        };
+        obj [ "spectrometer" ] = sobj;
+    }
+
+    QJsonObject jobj;
+    jobj [ "threshold_action" ] = obj;
+
+    QJsonDocument jdoc( jobj );
+
+    return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
 }

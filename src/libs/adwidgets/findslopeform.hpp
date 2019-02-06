@@ -1,6 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -35,7 +34,7 @@ namespace adwidgets {
     namespace Ui {
         class findSlopeForm;
     }
-    
+
     class ADWIDGETSSHARED_EXPORT findSlopeForm : public QWidget   {
 
         Q_OBJECT
@@ -46,12 +45,14 @@ namespace adwidgets {
 
         void setTitle( int ch, const QString& );
         int channel() const;
-    
+
         bool isChecked() const;
         void setChecked( bool );
 
         void set( const adcontrols::threshold_method& );
         void get( adcontrols::threshold_method& ) const;
+        void setJson( const QByteArray& );
+        QByteArray readJson() const;
 
     signals:
         void valueChanged( int ch );

@@ -65,7 +65,7 @@ ThresholdWidget::ThresholdWidget( const QString&
                 // enable|disable
                 connect( ch, &adwidgets::findSlopeForm::valueChanged, [this] ( int ch ) { emit valueChanged( idSlopeTimeConverter, ch ); } );
             }
-            
+
             ///////////// Threshold action --- See also ap240form class /////////
 
             auto form = new adwidgets::ThresholdActionForm();
@@ -74,7 +74,7 @@ ThresholdWidget::ThresholdWidget( const QString&
             connect( form, &adwidgets::ThresholdActionForm::valueChanged, [this](){ emit valueChanged( idThresholdAction, 0 ); } );
         }
     }
-    
+
 }
 
 ThresholdWidget::~ThresholdWidget()
@@ -103,11 +103,11 @@ ThresholdWidget::getContents( boost::any& a ) const
     acqrscontrols::u5303a::method m;
 
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
-        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);        
+        adcontrols::ControlMethodPtr ptr = boost::any_cast<adcontrols::ControlMethodPtr>(a);
         adcontrols::TimeDigitalMethod tdm;
         get( tdm );
         ptr->append( tdm );
-        
+
     } else if ( adportable::a_type< adcontrols::ControlMethod::MethodItem >::is_pointer( a ) ) {
         // time function
         //assert( 0 );  // TBA
@@ -115,7 +115,7 @@ ThresholdWidget::getContents( boost::any& a ) const
 
     } else if ( adportable::a_type< acqrscontrols::u5303a::method >::is_pointer( a ) ) {
 
-        auto pm = boost::any_cast<acqrscontrols::u5303a::method *>( a );
+        //auto pm = boost::any_cast<acqrscontrols::u5303a::method *>( a );
         //get( *pm );
         assert( 0 );
         return true;
@@ -127,7 +127,7 @@ ThresholdWidget::getContents( boost::any& a ) const
 bool
 ThresholdWidget::setContents( boost::any&& a )
 {
-    const char * type = a.type().name();
+    // const char * type = a.type().name();
 
     auto pi = adcontrols::ControlMethod::any_cast<>( )( a, adcontrols::TimeDigitalMethod::clsid() );
     if ( pi ) {
@@ -180,7 +180,7 @@ ThresholdWidget::set( const adcontrols::TimeDigitalMethod& m )
             }
         }
     }
-    
+
     if ( auto form = findChild< adwidgets::ThresholdActionForm *>() ) {
         form->set( m.action() );
     }
