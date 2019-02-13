@@ -45,7 +45,6 @@ namespace adportable {
                            , const T& level
                            , const basic_waveform< T >& data
                            , adportable::counting::counting_result& result
-                           , std::vector< double >& processed
                            , unsigned int nfilter = 1
                            , enum adportable::counting::counting_result::algo algo = adportable::counting::counting_result::AverageRelative ) {
             //const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
