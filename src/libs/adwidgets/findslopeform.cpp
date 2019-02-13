@@ -24,6 +24,7 @@
 #include "findslopeform.hpp"
 #include "ui_findslopeform.h"
 #include <adcontrols/threshold_method.hpp>
+#include <adportable/debug.hpp>
 #include <QByteArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -200,6 +201,8 @@ findSlopeForm::channel() const
 void
 findSlopeForm::setJson( const QByteArray& json )
 {
+    ADDEBUG() << "#### " << json.toStdString();
+
     auto doc = QJsonDocument::fromJson( json );
     const auto& jobj = doc.object();
     const auto& obj = jobj[ "threshold_method" ];
@@ -246,7 +249,8 @@ findSlopeForm::readJson() const
         algo = "Differential";
 
     QJsonObject obj {
-        { "enable",            ui->groupBox->isChecked()                                   } // m.enable
+        { "title",             ui->groupBox->title() }
+        , { "enable",          ui->groupBox->isChecked()                                   } // m.enable
         , { "threshold_level", ui->doubleSpinBox->value() * 1.0e-3                         } // mV -> V
         , { "time_resolution", ui->doubleSpinBox_resolution->value() * 1.0e-9              } // ns -> seconds
         , { "slope",           ui->radioButton_neg->isChecked() ? "CrossDown" : "CrossUp"  }
@@ -265,4 +269,80 @@ findSlopeForm::readJson() const
     QJsonDocument jdoc( jobj );
 
     return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
+}
+
+// static
+QByteArray
+findSlopeForm::toJson( const adcontrols::threshold_method& m )
+{
+    QString algo;
+    if ( m.algo_ == adcontrols::threshold_method::Absolute )
+        algo = "Absolute";
+    else if ( m.algo_ == adcontrols::threshold_method::AverageRelative )
+        algo = "AverageRelative";
+    else if ( m.algo_ == adcontrols::threshold_method::Differential )
+        algo = "Differential";
+    else if ( m.algo_ == adcontrols::threshold_method::AcqirisPKD )
+        algo = "AcqirisPKD";
+    else
+        algo = QString::number( m.algo_ );
+
+    QJsonObject obj {
+        { "title",             ""                                       }
+        , { "enable",          m.enable                                 }
+        , { "threshold_level", m.threshold_level                        }
+        , { "time_resolution", m.time_resolution                        }
+        , { "slope",           m.slope == adcontrols::threshold_method::CrossDown ? "CrossDown" : "CrossUp"  }
+        , { "algo",            algo                                     }
+        , { "use_filter",      m.use_filter                             }
+        , { "filter",          m.filter == adcontrols::threshold_method::SG_Filter ? "SG_Filter" : "DFT_Filter" }
+        , { "sgwidth",         m.sgwidth                                }
+        , { "hCutoffHz",       m.hCutoffHz                              }
+        , { "lCutoffHz",       m.lCutoffHz                              }
+        , { "complex",         m.complex_                               }
+    };
+
+    QJsonObject jobj;
+    jobj [ "threshold_method" ] = obj;
+
+    QJsonDocument jdoc( jobj );
+
+    return QByteArray( jdoc.toJson( QJsonDocument::Compact ) );
+}
+
+// static
+bool
+findSlopeForm::fromJson( const QByteArray& json, adcontrols::threshold_method& m )
+{
+    auto doc = QJsonDocument::fromJson( json );
+    const auto& jobj = doc.object();
+    const auto& obj = jobj[ "threshold_method" ];
+
+    m.enable = obj[ "enable" ].toBool();
+    m.threshold_level = obj[ "threshold_level" ].toDouble();
+    m.time_resolution = obj[ "time_resolution" ].toDouble();
+    m.response_time   = obj[ "response_time" ].toDouble();
+    m.slope = obj[ "slope" ].toString() == "CrossDown" ? adcontrols::threshold_method::CrossDown : adcontrols::threshold_method::CrossUp;
+
+    // ThresholdAlgo
+    if ( obj[ "algo" ].toString() == "Absolute" )
+        m.algo_ = adcontrols::threshold_method::Absolute;
+    else if ( obj[ "algo" ].toString() == "AverageRelative" )
+        m.algo_ = adcontrols::threshold_method::AverageRelative;
+    else if ( obj[ "algo" ].toString() == "Differential" )
+        m.algo_ = adcontrols::threshold_method::Differential;
+    else if ( obj[ "algo" ].toString() == "AcqirisPKD" )
+        m.algo_ = adcontrols::threshold_method::AcqirisPKD;
+    else
+        m.algo_ = static_cast< adcontrols::threshold_method::ThresholdAlgo >( obj[ "algo" ].toInt() );
+
+    m.use_filter = obj[ "use_filter" ].toBool();
+    m.filter = obj[ "filter" ].toString() == "SG_Filter" ? adcontrols::threshold_method::SG_Filter : adcontrols::threshold_method::DFT_Filter;
+
+    m.sgwidth = obj[ "sgwidth" ].toDouble();
+    m.hCutoffHz = obj[ "hCutoffHz" ].toDouble();
+    m.lCutoffHz = obj[ "lCutoffHz" ].toDouble();
+    m.complex_ = obj[ "complex" ].toBool();
+
+    return true;
 }

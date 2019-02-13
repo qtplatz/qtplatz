@@ -56,7 +56,7 @@ namespace adlog {
                                              , const std::string& /* file */
                                              , int /* line */
                                              , const std::chrono::system_clock::time_point& ) > handler_type;
-        
+
         boost::signals2::connection register_handler( handler_type::slot_type );
 		typedef std::vector< handler_type >::iterator iterator;
 
@@ -64,6 +64,8 @@ namespace adlog {
 		void close();
 
         void setpid( uint64_t id );
+        void setlogfile( const std::string& );
+        const std::string& logfile() const;
 
     private:
         static std::mutex mutex_;

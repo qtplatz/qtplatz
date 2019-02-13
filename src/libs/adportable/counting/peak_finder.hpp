@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "waveform_processor.hpp"
-#include "advance.hpp"
+#include <adportable/waveform_processor.hpp>
+#include <adportable/advance.hpp>
 #include <iterator>
 //
 #include <iostream>
@@ -45,11 +45,11 @@ namespace adportable {
         template< bool findPositive >
         struct peak_finder {
 
-            template< typename const_iterator >        
+            template< typename const_iterator >
             inline auto /* typename const_iterator::value_type */ diferential3( const_iterator it ) const {
                 return ( -( it[ -1 ] ) + it[ 1 ] ) / 2;
             }
-                
+
             peak_finder() {
             }
 
@@ -67,7 +67,7 @@ namespace adportable {
                     bool found = ( findPositive ) ? ( d > slope ) : ( d < -slope );
                     if ( found ) {
                         const_iterator it0( it - 1 ), apex( end );
-                        
+
                         apex = find_peak< findPositive >()( it, end );
 
                         if ( apex != end )
@@ -79,7 +79,7 @@ namespace adportable {
                     ++it;
                 }
             }
-        
+
         };
 
         // positive peak
@@ -94,7 +94,7 @@ namespace adportable {
                     while ( it < ( end - 1 ) && *it > *(it + 1) )
                         ++it;
                     return apex;
-                }                            
+                }
             }
             return end;
         }

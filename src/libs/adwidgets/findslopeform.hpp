@@ -54,6 +54,9 @@ namespace adwidgets {
         void setJson( const QByteArray& );
         QByteArray readJson() const;
 
+        static QByteArray toJson( const adcontrols::threshold_method& );
+        static bool fromJson( const QByteArray&, adcontrols::threshold_method& );
+
     signals:
         void valueChanged( int ch );
 

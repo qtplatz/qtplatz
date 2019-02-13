@@ -26,6 +26,7 @@
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/debug_core.hpp>
 #include <boost/filesystem/path.hpp>
 #include <fstream>
 #if defined WIN32
@@ -45,7 +46,7 @@ static uint64_t __pid;
 logging_handler::logging_handler()
 {
     boost::filesystem::path logfile( adportable::profile::user_data_dir<char>() );
-    logfile /= "qtplatz.log";
+    logfile /= "adlog.log";
     logfile_ = logfile.string();
 #if defined WIN32
 	__pid = ::_getpid();
@@ -55,6 +56,7 @@ logging_handler::logging_handler()
 #ifdef __linux__
     openlog( "adlog", LOG_CONS | LOG_PID,  LOG_USER );
 #endif
+    adportable::core::debug_core::instance()->open( std::string() );  // disable file logging
 }
 
 logging_handler *
@@ -62,6 +64,18 @@ logging_handler::instance()
 {
     static logging_handler __instance;
     return &__instance;
+}
+
+const std::string&
+logging_handler::logfile() const
+{
+    return logfile_;
+}
+
+void
+logging_handler::setlogfile( const std::string& logfile )
+{
+    logfile_ = logfile;
 }
 
 void
@@ -85,9 +99,11 @@ logging_handler::appendLog( int pri
 {
     // forward (for graphical logging display on qtplatz)
     logger_( pri, msg, file, line, tp );
-    
-	std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
-    of << adportable::date_string::logformat( tp ) << ":[" << __pid << "]\t" << msg << std::endl;
+
+    if ( !logfile_.empty() ) {
+        std::ofstream of( logfile_.c_str(), std::ios_base::out | std::ios_base::app );
+        of << adportable::date_string::logformat( tp ) << ":[" << __pid << "]\t" << msg << std::endl;
+    }
 
     adportable::debug(file.c_str(),line) << adportable::date_string::logformat( tp ) << "\t" << msg;
 
@@ -100,4 +116,3 @@ void
 logging_handler::close()
 {
 }
-

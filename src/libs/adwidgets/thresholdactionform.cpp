@@ -29,6 +29,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adportable/debug.hpp>
 #include <QByteArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -220,6 +221,8 @@ ThresholdActionForm::setJson( const QByteArray& json )
 {
     QSignalBlocker block_this( this );
 
+    ADDEBUG() << __FUNCTION__ << json.toStdString();
+
     auto doc = QJsonDocument::fromJson( json );
     const auto& jobj = doc.object();
     const auto& obj = jobj[ "threshold_action" ];
@@ -244,30 +247,72 @@ QByteArray
 ThresholdActionForm::readJson() const
 {
     //m.enable = ui->groupBox->isChecked();
+    auto sp = spectrometer_.lock();
 
     QJsonObject obj {
-        { "enable",              ui->groupBox->isChecked()                      } // m.enable
-        , { "recordOnFile",      ui->checkBox->isChecked()                      } // ns -> seconds
-        , { "enableTimeRange",   ui->checkBox_3->isChecked()                    }
-        , { "exclusiveDisplay",  ui->checkBox_2->isChecked()                    }
-        , { "delay",             ui->doubleSpinBox->value() / std::micro::den   }
-        , { "width",             ui->doubleSpinBox_2->value() / std::micro::den }
+        { "enable",               ui->groupBox->isChecked()                      } // m.enable
+        , { "recordOnFile",       ui->checkBox->isChecked()                      } // ns -> seconds
+        , { "enableTimeRange",    ui->checkBox_3->isChecked()                    }
+        , { "exclusiveDisplay",   ui->checkBox_2->isChecked()                    }
+        , { "delay",              ui->doubleSpinBox->value() / std::micro::den   }
+        , { "width",              ui->doubleSpinBox_2->value() / std::micro::den }
+        , { "objid_spectrometer", ( sp ? QString::fromStdString( sp->objtext() ) : "" ) }
+        , { "formula",            ui->lineEdit->text()                    }
+        , { "mode",               ui->spinBox->value()                    }
+        , { "mass",               ui->doubleSpinBox_3->value()            }
     };
-
-    if ( auto sp = spectrometer_.lock() ) {
-        QJsonObject sobj {
-            { "objid_spectrometer", QString::fromStdString( sp->objtext() ) }
-            , { "formula",          ui->lineEdit->text()                    }
-            , { "mode",             ui->spinBox->value()                    }
-            , { "mass",             ui->doubleSpinBox_3->value()            }
-        };
-        obj [ "spectrometer" ] = sobj;
-    }
 
     QJsonObject jobj;
     jobj [ "threshold_action" ] = obj;
 
     QJsonDocument jdoc( jobj );
 
-    return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
+    return QByteArray( jdoc.toJson( QJsonDocument::Compact ) );
+}
+
+// static
+QByteArray
+ThresholdActionForm::toJson( const adcontrols::threshold_action& m )
+{
+    QJsonObject obj {
+        { "enable",              m.enable               }
+        , { "recordOnFile",      m.recordOnFile         }
+        , { "enableTimeRange",   m.enableTimeRange      }
+        , { "exclusiveDisplay",  m.exclusiveDisplay     }
+        , { "delay",             m.delay                }
+        , { "width",             m.width                }
+        , { "objid_spectrometer", QString::fromStdString( m.objid_spectrometer ) }
+        , { "formula",            QString::fromStdString( m.formula )            }
+        , { "mode",             int( m.mode )                                    }
+        , { "mass",             m.mass                                           }
+    };
+
+    QJsonObject jobj;
+    jobj [ "threshold_action" ] = obj;
+
+    QJsonDocument jdoc( jobj );
+
+    return QByteArray( jdoc.toJson( QJsonDocument::Compact ) );
+}
+
+// static
+bool
+ThresholdActionForm::fromJson( const QByteArray& json, adcontrols::threshold_action& m )
+{
+    auto doc = QJsonDocument::fromJson( json );
+    const auto& jobj = doc.object();
+    const auto& obj = jobj[ "threshold_method" ];
+
+    m.enable = obj[ "enable" ].toBool();
+    m.recordOnFile = obj[ "recordOnFile" ].toBool();
+    m.enableTimeRange  = obj[ "enableTimeRange" ].toBool();
+    m.exclusiveDisplay = obj[ "exclusiveDisplay" ].toBool();
+    m.delay            = obj[ "delay" ].toDouble();
+    m.width            = obj[ "width" ].toDouble();
+    m.objid_spectrometer = obj[ "objid_spectrometer" ].toString().toStdString();
+    m.formula            = obj[ "formula" ].toString().toStdString();
+    m.mode               = obj[ "mode" ].toDouble();
+    m.mass               = obj[ "mass" ].toDouble();
+
+    return true;
 }

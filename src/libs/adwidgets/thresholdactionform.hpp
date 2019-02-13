@@ -32,7 +32,11 @@
 
 class QStandardItemModel;
 
-namespace adcontrols { class threshold_action; class MassSpectrometer; }
+namespace adcontrols {
+    class threshold_action; class MassSpectrometer;
+    class threshold_action;
+    class threshold_method;
+}
 
 namespace adwidgets {
 
@@ -65,6 +69,9 @@ namespace adwidgets {
 
         void setJson( const QByteArray& );
         QByteArray readJson() const;
+
+        static QByteArray toJson( const adcontrols::threshold_action& );
+        static bool fromJson( const QByteArray&, adcontrols::threshold_action& );
 
     signals:
         void valueChanged();
