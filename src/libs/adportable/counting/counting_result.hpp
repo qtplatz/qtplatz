@@ -36,11 +36,11 @@ namespace adportable {
         public:
             static constexpr uint32_t npos = ( -1 );
             enum algo { Absolute, AverageRelative, Differential };
-            
+
             counting_result() : algo_( Absolute )
                               , threshold_level_( 0 ) {
             }
-            
+
             counting_result( const counting_result& t ) : algo_( t.algo_ )
                                                         , threshold_level_( t.threshold_level_ )
                                                         , indices2_( t.indices2_ ){
@@ -53,16 +53,16 @@ namespace adportable {
             inline const std::vector< adportable::counting::threshold_index >& indices2() const {
                 return indices2_;
             }
-            
-            inline void setAlgo( algo d ) {
+
+            inline void set_algo( algo d ) {
                 algo_ = d;
             }
-            
+
             inline const enum algo& algo() const {
                 return algo_;
             }
 
-            inline void setThreshold_level( double d ) {
+            inline void set_threshold_level( double d ) {
                 threshold_level_ = d;
             }
 

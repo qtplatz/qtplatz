@@ -36,21 +36,23 @@
 
 namespace adportable {
 
-    template< typename T >
+    template< typename waveform_type >
     class find_threshold_timepoints {
     public:
         find_threshold_timepoints() {}
 
+        template< typename result_type >
         void operator () ( bool findUp
-                           , const T& level
-                           , const basic_waveform< T >& data
-                           , adportable::counting::counting_result& result
+                           , const typename waveform_type::value_type& level
+                           , const waveform_type& data
+                           , result_type& result // adportable::counting::counting_result& result
                            , unsigned int nfilter = 1
-                           , enum adportable::counting::counting_result::algo algo = adportable::counting::counting_result::AverageRelative ) {
+                           , enum adportable::counting::counting_result::algo algo = adportable::counting::counting_result::Absolute ) const {
+
             //const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
-            result.setAlgo( algo );
-            result.setThreshold_level( level );
+            result.set_algo( algo );
+            result.set_threshold_level( level );
 
             auto& elements = result.indices2();
 
@@ -66,4 +68,5 @@ namespace adportable {
             }
         }
     };
+
 }

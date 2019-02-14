@@ -56,8 +56,8 @@ namespace adcontrols {
             const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.getMSProperty().samplingInfo().fSampInterval() ) | 01;
             double level = method.threshold_level;
 
-            result.setAlgo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
-            result.setThreshold_level( method.threshold_level );
+            result.set_algo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
+            result.set_threshold_level( method.threshold_level );
 
             auto& elements = result.indices2();
 

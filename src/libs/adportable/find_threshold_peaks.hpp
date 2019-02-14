@@ -34,14 +34,14 @@
 namespace adportable {
 
     // Algo = Differntial
-    template< bool findPositive, typename T = int32_t >
+    template< bool findPositive, typename waveform_type >
     class find_threshold_peaks {
 
     public:
         find_threshold_peaks() {}
 
-        void operator () ( const T& level
-                           , const basic_waveform< T >& data
+        void operator () ( const typename waveform_type::value_type& level
+                           , const waveform_type& data
                            , adportable::counting::counting_result& result ) {
 
             adportable::counting::peak_finder< findPositive >()( data.begin(), data.end(), result.indices2(), level );

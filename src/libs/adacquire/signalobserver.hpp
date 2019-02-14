@@ -110,9 +110,9 @@ namespace adacquire {
                 elapsed_time_ = t.elapsed_time();
                 epoch_time_ = t.epoch_time();
                 pos_ = t.pos();
-                fcn_ = t.fcn();
-                ndata_ = t.ndata();
-                events_ = t.wellKnownEvents();
+                fcn_ = t.pn();
+                ndata_ = 1; // number of data in this packet, so that always 1 for waveform
+                events_ = t.well_known_events();
             }
 
             uint64_t& timepoint();

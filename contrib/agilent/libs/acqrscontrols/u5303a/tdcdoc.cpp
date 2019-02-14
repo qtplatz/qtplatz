@@ -563,8 +563,8 @@ tdcdoc::processThreshold3( std::array< std::shared_ptr< const acqrscontrols::u53
 
             results[ i ] = std::make_shared< acqrscontrols::u5303a::threshold_result >( waveforms[ i ] );
             results[ i ]->setFindUp( methods[ i ]->slope == adcontrols::threshold_method::CrossUp );
-            results[ i ]->setThreshold_level( methods[ i ]->threshold_level );
-            results[ i ]->setAlgo( static_cast< enum adportable::counting::counting_result::algo >( methods[ i ]->algo_ ) );
+            results[ i ]->set_threshold_level( methods[ i ]->threshold_level );
+            results[ i ]->set_algo( static_cast< enum adportable::counting::counting_result::algo >( methods[ i ]->algo_ ) );
 
             //results[ i ]->time_resolution() = methods[ i ]->time_resolution;
 

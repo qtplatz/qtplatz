@@ -96,13 +96,13 @@ acqrsdata::processIt( std::function< void( size_t, size_t, const std::string& ) 
     method.use_filter      = false;
     method.slope           = polarity_ == positive_polarity ? threshold_method::CrossUp : threshold_method::CrossDown;
     method.algo_           = threshold_method::Absolute;
-    
+
     if ( auto dp = processor_ ) {
 
         ResultWriter writer( *dp->db() );
 
         adfs::stmt sql( *dp->db() );
-        
+
         size_t size(0);
         size_t idx(0);
         sql.prepare( "SELECT count(*) FROM AcquiredData WHERE objuuid = '76d1f823-2680-5da7-89f2-4d2d956149bd'" );
@@ -112,9 +112,9 @@ acqrsdata::processIt( std::function< void( size_t, size_t, const std::string& ) 
         if ( auto reader = dp->rawdata()->dataReader( ap240_observer ) ) {
 
             sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = '76d1f823-2680-5da7-89f2-4d2d956149bd'" );
-	  
+
             while( sql.step() == adfs::sqlite_row ) {
-                
+
                 auto rowid = sql.get_column_value< int64_t >( 0 );
                 boost::any a = reader->getData( rowid ); // ( it->rowid() );
                 if ( a.type() == typeid( std::shared_ptr< acqrscontrols::ap240::waveform > ) ) {
@@ -123,7 +123,7 @@ acqrsdata::processIt( std::function< void( size_t, size_t, const std::string& ) 
 
                             writer << rp;
                             progress( idx++, size, ( boost::format("\t%d peaks found") % rp->indices2().size() ).str() );
-                            
+
                         }
                     }
                 }
@@ -139,20 +139,20 @@ acqrsdata::processThreshold3( std::shared_ptr< const acqrscontrols::ap240::wavef
                               , const adcontrols::threshold_method& method )
 {
     auto result = std::make_shared< acqrscontrols::threshold_result_< acqrscontrols::ap240::waveform > >( waveform );
-    
+
     //result->setFindUp( method.slope == adcontrols::threshold_method::CrossUp );
-    result->setThreshold_level( method.threshold_level );
-    result->setAlgo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
+    result->set_threshold_level( method.threshold_level );
+    result->set_algo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
 
     ADDEBUG() << "Threshold_level: " << result->threshold_level();
 
     adcontrols::CountingMethod range;
     range.setEnable( false );
-            
+
     const auto idx = waveform->method_.protocolIndex();
-    
+
     if ( method.enable ) {
-        
+
         if ( method.algo_ == adcontrols::threshold_method::Differential ) {
             if  ( method.slope == adcontrols::threshold_method::CrossUp ) {
                 acqrscontrols::find_threshold_peaks< true, acqrscontrols::ap240::waveform > find_peaks( method, range );
@@ -165,7 +165,7 @@ acqrsdata::processThreshold3( std::shared_ptr< const acqrscontrols::ap240::wavef
             acqrscontrols::find_threshold_timepoints< acqrscontrols::ap240::waveform > find_threshold( method, range );
             find_threshold( *waveform, *result, result->processed() );
         }
-        
+
     }
 
     return result;

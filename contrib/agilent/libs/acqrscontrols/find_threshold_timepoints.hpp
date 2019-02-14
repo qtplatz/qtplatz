@@ -49,7 +49,7 @@ namespace acqrscontrols {
         void operator () ( const waveform_type& data
                            , adportable::counting::counting_result& result
                            , std::vector< double >& processed ) {
-            
+
             const bool findUp = method.slope == adcontrols::threshold_method::CrossUp;
             const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 
@@ -61,10 +61,10 @@ namespace acqrscontrols {
                 level = int( ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor );
             }
 
-            result.setAlgo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
-            result.setThreshold_level( method.threshold_level );
-            
-            auto& elements = result.indices2();            
+            result.set_algo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
+            result.set_threshold_level( method.threshold_level );
+
+            auto& elements = result.indices2();
 
             adportable::counting::threshold_finder finder( findUp, nfilter );
 
@@ -72,9 +72,9 @@ namespace acqrscontrols {
             adportable::stddev stddev;
 
             if ( ranges.enable() ) {
-                
+
                 using adcontrols::CountingMethod;
-                
+
                 for ( const auto& v: ranges ) {
                     if ( std::get< CountingMethod::CountingEnable >( v ) ) {
                         const auto& time_range = std::get< CountingMethod::CountingRange >( v ); // center, width
@@ -112,7 +112,7 @@ namespace acqrscontrols {
                 }
 
             } else {
-                
+
                 if ( average ) {
                     if ( method.use_filter ) {
                         auto sd = stddev( processed.begin(), processed.size() );
@@ -142,4 +142,3 @@ namespace acqrscontrols {
         }
     };
 }
-
