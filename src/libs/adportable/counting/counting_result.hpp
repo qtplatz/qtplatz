@@ -31,11 +31,11 @@
 
 namespace adportable {
     namespace counting {
+        enum algo { Absolute, AverageRelative, Differential };
 
         class counting_result {
         public:
             static constexpr uint32_t npos = ( -1 );
-            enum algo { Absolute, AverageRelative, Differential };
 
             counting_result() : algo_( Absolute )
                               , threshold_level_( 0 ) {
@@ -43,7 +43,11 @@ namespace adportable {
 
             counting_result( const counting_result& t ) : algo_( t.algo_ )
                                                         , threshold_level_( t.threshold_level_ )
-                                                        , indices2_( t.indices2_ ){
+                                                        , indices2_( t.indices2_ ) {
+            }
+
+            inline operator std::vector< adportable::counting::threshold_index >& () {
+                return indices2_;
             }
 
             inline std::vector< adportable::counting::threshold_index >& indices2() {

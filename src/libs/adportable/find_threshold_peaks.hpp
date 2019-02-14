@@ -40,11 +40,15 @@ namespace adportable {
     public:
         find_threshold_peaks() {}
 
+        template< typename result_type >
         void operator () ( const typename waveform_type::value_type& level
                            , const waveform_type& data
-                           , adportable::counting::counting_result& result ) {
+                           , result_type& result ) const {
 
-            adportable::counting::peak_finder< findPositive >()( data.begin(), data.end(), result.indices2(), level );
+            std::vector< counting::threshold_index >& v = result;
+            //adportable::counting::peak_finder< findPositive >()( data.begin(), data.end(), result.indices2(), level );
+            adportable::counting::peak_finder< findPositive >()( data.begin(), data.end(), v, level );
+
             // if ( ranges.enable() ) {
             //     using adcontrols::CountingMethod;
             //     for ( const auto& v: ranges ) {
@@ -64,5 +68,6 @@ namespace adportable {
             //         }
             //     }
         }
+
     };
 }

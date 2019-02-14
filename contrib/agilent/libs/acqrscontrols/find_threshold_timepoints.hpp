@@ -61,7 +61,7 @@ namespace acqrscontrols {
                 level = int( ( method.threshold_level + data.meta_.scaleOffset ) / data.meta_.scaleFactor );
             }
 
-            result.set_algo( static_cast< enum adportable::counting::counting_result::algo >( method.algo_ ) );
+            result.set_algo( static_cast< enum adportable::counting::algo >( method.algo_ ) );
             result.set_threshold_level( method.threshold_level );
 
             auto& elements = result.indices2();

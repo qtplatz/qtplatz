@@ -24,6 +24,7 @@
 
 #pragma once
 #include <adportable/counting/counting_result.hpp>
+#include <adportable/counting/basic_histogram.hpp>
 #include <adportable/basic_waveform.hpp>
 #include <adcontrols/threshold_method.hpp>
 #include <adcontrols/countingmethod.hpp>
@@ -47,7 +48,7 @@ namespace adportable {
                            , const waveform_type& data
                            , result_type& result // adportable::counting::counting_result& result
                            , unsigned int nfilter = 1
-                           , enum adportable::counting::counting_result::algo algo = adportable::counting::counting_result::Absolute ) const {
+                           , enum adportable::counting::algo algo = adportable::counting::Absolute ) const {
 
             //const unsigned int nfilter = static_cast<unsigned int>( method.response_time / data.meta_.xIncrement ) | 01;
 

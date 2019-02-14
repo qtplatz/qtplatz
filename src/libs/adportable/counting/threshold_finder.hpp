@@ -96,6 +96,40 @@ namespace adportable {
                 }
             }
 
+            // find raising,falling indices -> save into basic_waveform (2019-FEB-14, TH)
+            template< typename waveform_type, typename const_iterator, typename index_type >
+            void operator()( const_iterator&& begin, const_iterator&& end
+                             , waveform_type& waveform                                        // basic_waveform< int32_t, meta_data >
+                             , typename std::iterator_traits< const_iterator >::value_type level
+                             , size_t offset = 0 ) {
+                size_t count = 0;
+                bool flag;
+                auto it = begin + offset;
+                bool workprogress( false );
+                uint32_t first (0);
+                while ( it != end ) {
+                    if ( ( it = adportable::waveform_processor().find_threshold_element( it, end, level, flag ) ) != end ) {
+                        if ( flag == findUp ) {
+                            first = uint32_t( std::distance( begin, it ) );
+                            workprogress = true;
+                            if ( count_limit < count++ )
+                                return;
+                        } else {
+                            if ( workprogress ) {
+                                workprogress = false;
+                                auto bIt = begin + first; //indices.back().first;
+                                auto aIt = findUp ? std::max_element( bIt, it + 1 ) : std::min_element( bIt, it + 1 );
+                                waveform.emplace_back( first
+                                                       , uint32_t( std::distance( begin, it ) )  // second
+                                                       , uint32_t( std::distance( begin, aIt ) ) // apex
+                                                       , *aIt                                    // value
+                                                       , level );                                // level
+                            }
+                        }
+                    }
+                }
+            }
+
         };
 
     } // counting
