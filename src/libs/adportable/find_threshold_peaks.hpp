@@ -45,7 +45,7 @@ namespace adportable {
                            , const waveform_type& data
                            , result_type& result ) const {
 
-            std::vector< counting::threshold_index >& v = result;
+            std::vector< counting::threshold_index >& v = result; //.indices2();
             //adportable::counting::peak_finder< findPositive >()( data.begin(), data.end(), result.indices2(), level );
             adportable::counting::peak_finder< findPositive >()( data.begin(), data.end(), v, level );
 

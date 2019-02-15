@@ -82,16 +82,14 @@ namespace adportable {
         typedef typename std::vector< value_type >::iterator iterator_type;
         typedef typename std::vector< value_type >::const_iterator const_iterator_type;
 
+        inline operator std::vector< T >& ()     { return d_;              }
+
         inline iterator_type begin()             { return d_.begin();      }
         inline iterator_type end()               { return d_.end();        }
         inline const_iterator_type begin() const { return d_.begin();      }
         inline const_iterator_type end() const   { return d_.end();        }
         inline void clear()                      { d_.clear();             }
         inline void resize( size_t d )           { d_.resize( d );         }
-        inline iterator_type erase( iterator_type pos ) { return d_.erase( pos ); }
-        inline iterator_type erase( const_iterator_type pos ) { return d_.erase( pos ); }
-        inline iterator_type erase( iterator_type first, iterator_type last ) { return d_.erase( first, last ); }
-        inline iterator_type erase( const_iterator_type first, const_iterator_type last ) { return d_.erase( first, last ); }
 
         bool is_ordinal() const                  { return is_ordinal_;     }
         void set_is_ordinal( bool d )            { is_ordinal_ = d;        }

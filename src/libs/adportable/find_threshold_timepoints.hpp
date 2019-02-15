@@ -46,7 +46,7 @@ namespace adportable {
         void operator () ( bool findUp
                            , const typename waveform_type::value_type& level
                            , const waveform_type& data
-                           , result_type& result // adportable::counting::counting_result& result
+                           , result_type& result // adportable::counting::counting_result& | histogram : waveform< counting::threshold_index >, meta_type >
                            , unsigned int nfilter = 1
                            , enum adportable::counting::algo algo = adportable::counting::Absolute ) const {
 
@@ -55,7 +55,9 @@ namespace adportable {
             result.set_algo( algo );
             result.set_threshold_level( level );
 
-            auto& elements = result.indices2();
+            std::vector< counting::threshold_index >& v = result;
+            //std::vector< counting::threshold_index >& v = result.indices2();
+            //auto& elements = static_cast< std::vector< typename waveform_type::value_type >& >( result );
 
             counting::threshold_finder finder( findUp, nfilter );
 
@@ -63,9 +65,9 @@ namespace adportable {
 
             if ( algo == adcontrols::threshold_method::AverageRelative ) {
                 auto sd = stddev( data.begin(), data.size() );
-                finder( data.begin(), data.end(), elements, level + sd.second );
+                finder( data.begin(), data.end(), v, level + sd.second );
             } else {
-                finder( data.begin(), data.end(), elements, level );
+                finder( data.begin(), data.end(), v, level );
             }
         }
     };
