@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <string>
+#include <type_traits>
 
 namespace adportable {
 
@@ -42,8 +43,7 @@ namespace adportable {
                          , timepoint_( 0 )
                          , elapsed_time_( 0 )
                          , epoch_time_( 0 )
-                         , t0_( 0 )
-                         , is_ordinal_( true ) {
+                         , trig_delay_( 0 ) {
         }
 
         basic_waveform(
@@ -54,15 +54,14 @@ namespace adportable {
             , uint64_t timepoint = 0
             , uint64_t elapsed_time = 0
             , uint64_t epoch_time = 0
-            , double t0 = 0 ) : pos_( pos )
-                              , pn_( pn )
-                              , serialnumber_( serialnumber )
-                              , wellKnownEvents_( wellKnownEvents )
-                              , timepoint_( timepoint )
-                              , elapsed_time_( elapsed_time )
-                              , epoch_time_( epoch_time )
-                              , t0_( t0 )
-                              , is_ordinal_( true ) {
+            , double trig_delay = 0 ) : pos_( pos )
+                                      , pn_( pn )
+                                      , serialnumber_( serialnumber )
+                                      , wellKnownEvents_( wellKnownEvents )
+                                      , timepoint_( timepoint )
+                                      , elapsed_time_( elapsed_time )
+                                      , epoch_time_( epoch_time )
+                                      , trig_delay_( trig_delay ) {
         }
 
         basic_waveform( const basic_waveform& t ) : pos_( t.pos_ )
@@ -73,14 +72,14 @@ namespace adportable {
                                                   , elapsed_time_( t.elapsed_time_ )
                                                   , epoch_time_( t.epoch_time_ )
                                                   , d_( t.d_ )
-                                                  , xmeta_( t.xmeta_ )
-                                                  , is_ordinal_( t.is_ordinal_ ) {
+                                                  , xmeta_( t.xmeta_ ) {
         }
 
         typedef T value_type;
         typedef M meta_type;
         typedef typename std::vector< value_type >::iterator iterator_type;
         typedef typename std::vector< value_type >::const_iterator const_iterator_type;
+        constexpr static bool is_ordinal = std::is_pod< value_type >::value;
 
         inline operator std::vector< T >& ()     { return d_;              }
 
@@ -91,8 +90,6 @@ namespace adportable {
         inline void clear()                      { d_.clear();             }
         inline void resize( size_t d )           { d_.resize( d );         }
 
-        bool is_ordinal() const                  { return is_ordinal_;     }
-        void set_is_ordinal( bool d )            { is_ordinal_ = d;        }
         uint64_t timepoint() const               { return timepoint_;      }
         uint64_t elapsed_time() const            { return elapsed_time_;   }
         uint64_t epoch_time() const              { return epoch_time_;     }
@@ -101,7 +98,7 @@ namespace adportable {
         size_t   size() const                    { return d_.size();       }    // number of samples
         uint32_t well_known_events() const       { return wellKnownEvents_;}    // well known events
         uint32_t serialnumber() const            { return serialnumber_;   }    // a.k.a. trigger number
-        double t0() const                        { return t0_; }
+        double trig_delay() const                { return trig_delay_;     }    // seconds
         template< typename X = uint8_t > const X * xdata() const { return reinterpret_cast< const X* >( d_.data() ); } // binary data access
 
         void set_timepoint( uint64_t d )         { timepoint_       = d;   }
@@ -111,10 +108,10 @@ namespace adportable {
         void set_pn( uint32_t d )                { pn_              = d;   }    // protocol number for waveform
         void set_well_known_events( uint32_t d ) { wellKnownEvents_ = d;   }    // well known events
         void set_serialnumber( uint32_t d )      { serialnumber_    = d;   }    // a.k.a. trigger number
-        void set_t0( double d )                  { t0_ = d;                }
+        void set_trig_delay( double d )          { trig_delay_      = d;   }
 
-        void set_xmeta( const M& xmeta )         { xmeta_         = xmeta; }
-        const M& xmeta() const                   { return xmeta_;          }    // meta-data
+        virtual void set_xmeta( const M& xmeta ) { xmeta_         = xmeta; }
+        virtual const M& xmeta() const           { return xmeta_;          }    // meta-data
 
         void emplace_back( T&& t )               { d_.emplace_back( t );   }
         const T& operator []( size_t idx ) const { return d_[ idx ];       }
@@ -129,7 +126,6 @@ namespace adportable {
         uint64_t epoch_time_;
         std::vector< T > d_;
         M xmeta_;
-        double t0_;
-        bool is_ordinal_;
+        double trig_delay_;
     };
 }

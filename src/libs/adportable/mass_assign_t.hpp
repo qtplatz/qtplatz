@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,27 +25,8 @@
 
 #pragma once
 
-#include <vector>
-#include <cstddef>
-#include <cstdint>
-#include <numeric>
+#include <functional>
 
 namespace adportable {
-
-    class waveform_processor {
-    public:
-        template<typename Iterator, typename T>
-        inline Iterator find_threshold_element( Iterator beg, Iterator end, T level, bool& flag ) {
-            if ( beg != end ) {
-                flag = *beg < level; // positive-peak-front if true
-                while ( ++beg != end ) {
-                    if ( ( *beg < level ) != flag )
-                        return beg;
-                }
-            }
-            return end;
-        }
-
-    };
-
+    typedef std::function< double( double /* time */, int /* mode */ ) > mass_assign_t;
 }

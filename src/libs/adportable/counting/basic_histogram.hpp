@@ -45,8 +45,7 @@ namespace adportable {
             inline void set_threshold_level( double d )  { threshold_level_ = d; }
             inline const double& threshold_level() const { return threshold_level_; }
 
-            //inline const std::vector< index_type >& indices2() const { return static_cast< const std::vector< index_type >& >( *this ); }
-            inline const std::vector< index_type >& indices2() const { return *this; };
+            // inline const std::vector< index_type >& indices2() const { return (*this); };
 
         protected:
             enum algo algo_;

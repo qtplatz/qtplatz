@@ -924,9 +924,7 @@ MassSpectrum::lower_bound( double value, bool isMass ) const
                 return std::distance( vec.begin(), it );
         } else {
             size_t idx = MSProperty::toIndex( value, impl_->property_.samplingInfo() );
-            double time = MSProperty::toSeconds( idx, impl_->property_.samplingInfo() );
-            //double error = std::abs( value - time );
-            assert( value == time );
+            assert ( MSProperty::toSeconds( idx, impl_->property_.samplingInfo() ) == value );
         }
     }
     return npos; // size_t(-1)

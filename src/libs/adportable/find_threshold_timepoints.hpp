@@ -56,15 +56,11 @@ namespace adportable {
             result.set_threshold_level( level );
 
             std::vector< counting::threshold_index >& v = result;
-            //std::vector< counting::threshold_index >& v = result.indices2();
-            //auto& elements = static_cast< std::vector< typename waveform_type::value_type >& >( result );
 
             counting::threshold_finder finder( findUp, nfilter );
 
-            adportable::stddev stddev;
-
             if ( algo == adcontrols::threshold_method::AverageRelative ) {
-                auto sd = stddev( data.begin(), data.size() );
+                auto sd = adportable::stddev()( data.begin(), data.size() );
                 finder( data.begin(), data.end(), v, level + sd.second );
             } else {
                 finder( data.begin(), data.end(), v, level );

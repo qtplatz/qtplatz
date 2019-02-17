@@ -26,7 +26,10 @@
 
 #include "adcontrols_global.h"
 #include "massspectrum.hpp"
+#include "samplinginfo.hpp"
+#include "msproperty.hpp"
 #include <memory>
+#include <ratio>
 #include <string>
 #include <utility>
 #include <vector>

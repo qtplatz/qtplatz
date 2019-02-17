@@ -79,8 +79,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( this_protocol );
         }
     };
-    
-    ///////// Portable binary archive ////////    
+
+    ///////// Portable binary archive ////////
     template<> ADCONTROLSSHARED_EXPORT void
     TimeDigitalHistogram::serialize( portable_binary_oarchive& ar, const unsigned int version ) {
         TimeDigitalHistogram_archive<>().serialize( ar, *this, version );
@@ -90,7 +90,7 @@ namespace adcontrols {
     TimeDigitalHistogram::serialize( portable_binary_iarchive& ar, const unsigned int version ) {
         TimeDigitalHistogram_archive<>().serialize( ar, *this, version );
     }
-    
+
     ///////// XML archive ////////
     template<> void
     TimeDigitalHistogram::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
@@ -101,7 +101,7 @@ namespace adcontrols {
     template<> void
     TimeDigitalHistogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-        TimeDigitalHistogram_archive<>().serialize( ar, *this, version );        
+        TimeDigitalHistogram_archive<>().serialize( ar, *this, version );
     }
 }
 
@@ -222,7 +222,7 @@ TimeDigitalHistogram::setTimeSinceEpoch( const std::pair< uint64_t, uint64_t >& 
 {
     timeSinceEpoch_ = d;
 }
- 
+
 // double&
 // TimeDigitalHistogram::initialXTimeSeconds()
 // {
@@ -310,13 +310,13 @@ TimeDigitalHistogram::wellKnownEvents() const
 const std::pair< uint64_t, uint64_t >&
 TimeDigitalHistogram::serialnumber() const
 {
-    return serialnumber_;    
+    return serialnumber_;
 }
 
 const std::pair< uint64_t, uint64_t >&
 TimeDigitalHistogram::timeSinceEpoch() const
 {
-    return timeSinceEpoch_;    
+    return timeSinceEpoch_;
 }
 
 std::vector< std::pair< double, uint32_t > >&
@@ -331,7 +331,7 @@ TimeDigitalHistogram::histogram() const
     return histogram_;
 }
 
-void 
+void
 TimeDigitalHistogram::setThis_protocol( const TofProtocol& d )
 {
     this_protocol_ = d;
@@ -373,7 +373,7 @@ TimeDigitalHistogram::operator []( size_t idx ) const
 {
     return histogram_[ idx ];
 }
-            
+
 TimeDigitalHistogram::iterator
 TimeDigitalHistogram::begin()
 {
@@ -383,7 +383,7 @@ TimeDigitalHistogram::begin()
 TimeDigitalHistogram::iterator
 TimeDigitalHistogram::end()
 {
-    return histogram_.end();    
+    return histogram_.end();
 }
 
 TimeDigitalHistogram::const_iterator
@@ -395,7 +395,7 @@ TimeDigitalHistogram::begin() const
 TimeDigitalHistogram::const_iterator
 TimeDigitalHistogram::end() const
 {
-    return histogram_.end();        
+    return histogram_.end();
 }
 
 
@@ -414,14 +414,14 @@ TimeDigitalHistogram::accumulate( double tof, double window ) const
 
         auto lower = std::lower_bound( histogram_.begin(), histogram_.end(), (tof - window / 2.0)
                                        , []( const std::pair<double, uint32_t>& a, const double& b){ return a.first < b; } );
-        
+
         if ( lower != histogram_.end() ) {
-            
+
             auto upper = std::upper_bound( histogram_.begin(), histogram_.end(), ( tof + window / 2.0 )
-                                           , []( const double& a, const std::pair<double, uint32_t>& b){ return a < b.first; } );                
-            
+                                           , []( const double& a, const std::pair<double, uint32_t>& b){ return a < b.first; } );
+
             return std::accumulate( lower, upper, uint32_t(0)
-                                    , []( const uint32_t& a, const std::pair<double, uint32_t>& b ){ return a + b.second; });        
+                                    , []( const uint32_t& a, const std::pair<double, uint32_t>& b ){ return a + b.second; });
         }
     }
     return 0;
@@ -463,7 +463,7 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
     prop.setDeviceData( ar.data(), ar.size() );
-        
+
     sp.setMSProperty( prop );
     sp.setProtocol( hgrm.protocolIndex_, hgrm.nProtocols_ );
 
@@ -487,13 +487,14 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     if ( translate( sp, hgrm ) ) {
         const adcontrols::MSProperty& prop = sp.getMSProperty();
         const auto& sinfo = prop.samplingInfo();
-        
-        double lMass = mass_assignee( sinfo.fSampDelay(), prop.mode() );
-        double hMass = mass_assignee( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
-        
-        sp.setAcquisitionMassRange( lMass, hMass );
-
-        return sp.assign_masses( mass_assignee );
+        if ( mass_assignee ) {
+            double lMass = mass_assignee( sinfo.fSampDelay(), prop.mode() );
+            double hMass = mass_assignee( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
+            sp.setAcquisitionMassRange( lMass, hMass );
+            return sp.assign_masses( mass_assignee );
+        } else {
+            return true;
+        }
     }
     return false;
 }
@@ -512,10 +513,10 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
     trigger_count_ += t.trigger_count();
     wellKnownEvents_ |= t.wellKnownEvents();
 
-    if ( serialnumber_.first > t.serialnumber().first ) 
+    if ( serialnumber_.first > t.serialnumber().first )
         serialnumber_.first = t.serialnumber().first;
 
-    if ( serialnumber_.second < t.serialnumber().second ) 
+    if ( serialnumber_.second < t.serialnumber().second )
         serialnumber_.second = t.serialnumber().second;
 
     if ( timeSinceEpoch_.first > t.timeSinceEpoch().first )
@@ -566,13 +567,13 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
             summed.emplace_back( lhs->first, lhs->second );
             ++lhs;
         }
-        
+
         if ( lhs != histogram_.end() && to_binary( lhs->first ) == to_binary( rhs->first ) ) {
             double t = ( lhs->first * lhs->second + rhs->first * rhs->second ) / ( lhs->second + rhs->second );
             summed.emplace_back( t, ( lhs->second + rhs->second ) );
             ++lhs;
         } else {
-            summed.emplace_back( *rhs );            
+            summed.emplace_back( *rhs );
         }
     }
 
@@ -608,20 +609,18 @@ TimeDigitalHistogram::average_time( const std::vector< std::pair< double, uint32
                                     , double resolution
                                     , std::vector< std::pair< double, uint32_t > >& merged )
 {
-    auto size = hist.size();
-
     merged.clear();
 
     auto it = hist.begin();
-    
+
     while ( it != hist.end() ) {
-        
+
         auto tail = it + 1;
 
         while ( ( tail != hist.end() ) ) {
 
             double t1 = tail->first;
-            
+
             if ( std::abs( t1 - it->first ) > resolution )
                 break;
 
