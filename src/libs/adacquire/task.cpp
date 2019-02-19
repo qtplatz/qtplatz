@@ -49,7 +49,7 @@ namespace adacquire {
         ~impl();
         void initialize();
         void finalize();
-        
+
         static std::unique_ptr< task > instance_;
         static std::mutex mutex_;
 
@@ -76,7 +76,7 @@ namespace adacquire {
         std::vector< std::thread > threads_;
     public:
         boost::asio::io_service io_service_;
-        fsm::controller fsm_;        
+        fsm::controller fsm_;
         task::this_clock_t::time_point tp_uptime_;
         task::this_clock_t::time_point tp_inject_;
         std::unique_ptr< SampleSequence > sequence_;
@@ -88,7 +88,7 @@ namespace adacquire {
         boost::signals2::signal< fsm_state_changed_t > signalFSMStateChanged_;
         boost::signals2::signal< periodic_timer_t > signal_periodic_timer_;
         time_event_handler_t time_event_handler_;
-        
+
         boost::asio::deadline_timer timer_;
         double methodTime_;
         bool inject_triggered_;
@@ -145,7 +145,7 @@ task::connect_inst_events( signal_inst_events_t f )
 }
 
 boost::signals2::connection
-task::connect_fsm_action( signal_fsm_action_t f ) 
+task::connect_fsm_action( signal_fsm_action_t f )
 {
     return impl_->signalFSMAction_.connect( f );
 }
@@ -153,7 +153,7 @@ task::connect_fsm_action( signal_fsm_action_t f )
 boost::signals2::connection
 task::connect_fsm_state( signal_fsm_state_changed_t f )
 {
-    return impl_->signalFSMStateChanged_.connect( f );    
+    return impl_->signalFSMStateChanged_.connect( f );
 }
 
 boost::signals2::connection
@@ -234,14 +234,13 @@ task::fsmReady()
 void
 task::fsmInject()
 {
-    ADDEBUG() << "############### fsmInject #############";
     impl_->fsm_.process_event( fsm::Inject() );
 }
 
 void
 task::fsmErrorClear()
 {
-    impl_->fsm_.process_event( fsm::error_clear() );    
+    impl_->fsm_.process_event( fsm::error_clear() );
 }
 
 void
@@ -274,14 +273,14 @@ task::handle_write( const boost::uuids::uuid& uuid, std::shared_ptr< adacquire::
 #if ! defined NDEBUG && 0
     ADDEBUG() << "handle_write(" << uuid << ")";
 #endif
-    
+
     for ( auto& sampleprocessor : *impl_->sequence_ ) {
 
         sampleprocessor->write( uuid, *dw );
         impl_->sequence_warning_count_ = 0;
 
     }
-    
+
 }
 
 adacquire::Instrument::eInstStatus
@@ -318,10 +317,10 @@ task::impl::initialize()
             udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
             udpReceiver_->connect( std::bind( &task::impl::handle_event_out
                                               , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
-            
+
             timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
             timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
-            
+
             threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
         });
 
@@ -399,9 +398,9 @@ task::impl::fsm_no_transition( int state )
 {
     typedef boost::msm::back::recursive_get_transition_table< fsm::controller >::type recursive_stt;
     typedef boost::msm::back::generate_state_set<recursive_stt>::type all_states;
-    
+
     std::string name;
-    
+
     if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Stopped >::value == state )
         name = "fsm::controller::Stopped";
     else if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::PreparingForRun >::value == state )
@@ -414,7 +413,7 @@ task::impl::fsm_no_transition( int state )
         name = "fsm::controller::Dormant";
     else
         boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, state));
-    
+
     // ADDEBUG() << "##### no transition from state (" << state << ") " << name;
 }
 
@@ -444,11 +443,11 @@ task::impl::instStatus( int id_state )
         return Instrument::eRunning;
     if ( boost::msm::back::get_state_id< recursive_stt, fsm::controller::Dormant >::value == id_state )
         return Instrument::eStandBy;
-    
+
     std::string name;
     boost::mpl::for_each<all_states,boost::msm::wrap<boost::mpl::placeholders::_1> >(boost::msm::back::get_state_name<recursive_stt>(name, id_state));
     ADDEBUG() << "Status: " << id_state << ": " << name;
-    
+
     return Instrument::eNothing;
 }
 
@@ -460,13 +459,13 @@ task::impl:: handle_timeout( const boost::system::error_code& ec )
         if ( inject_triggered_ ) {
 
             auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now() - tp_inject_ ).count();
-			double elapsed_time = double(ns) * 1.0e-9; 
-            
+			double elapsed_time = double(ns) * 1.0e-9;
+
             signal_periodic_timer_( elapsed_time );
-            
+
             if ( elapsed_time >= methodTime_ )
                 fsm_.process_event( fsm::Complete() );
-		} 
+		}
 
         timer_.expires_from_now( boost::posix_time::millisec( 100 ) );
         timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );

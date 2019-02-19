@@ -61,23 +61,23 @@ SampleProcessor::~SampleProcessor()
             observer->closingStorage( *this );
             observer.reset();
         }
-        
+
         fs_->close();
 
         boost::filesystem::path progress_name = storage_name_;
         boost::system::error_code ec;
-        
+
         if ( c_acquisition_active_ ) {
             storage_name_.replace_extension( ".adfs" ); // *.adfs~ -> *.adfs
             boost::filesystem::rename( progress_name, storage_name_, ec );
-            if ( ec ) 
+            if ( ec )
                 ADDEBUG() << boost::format( "Sample %1% close failed: %2%" ) % storage_name_.stem().string() % ec.message();
         } else {
             boost::filesystem::remove( storage_name_, ec );
             if ( ec )
                 ADDEBUG() << boost::format( "Sample %1% remove failed: %2%" ) % storage_name_.stem().string() % ec.message();
         }
-        
+
     } catch ( std::exception& e ) {
         ADDEBUG() << boost::diagnostic_information( e );
     } catch ( ... ) {
@@ -103,7 +103,7 @@ void
 SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterObserver )
 {
     masterObserver_ = masterObserver->shared_from_this();
-    
+
     boost::filesystem::path path( sampleRun_->dataDirectory() );
 
 	if ( ! boost::filesystem::exists( path ) )
@@ -115,7 +115,7 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
 	storage_name_ = filename.normalize();
 
     sampleRun_->setFilePrefix( filename.stem().wstring() );
-	
+
 	///////////// creating filesystem ///////////////////
     if ( !fs_->create( storage_name_.wstring().c_str() ) )
         return;
@@ -123,7 +123,7 @@ SampleProcessor::prepare_storage( adacquire::SignalObserver::Observer * masterOb
     adutils::v3::AcquiredConf::create_table_v3( fs_->db() );
     adutils::v3::AcquiredData::create_table_v3( fs_->db() );
     v3::mscalibio::create_table_v3( fs_->db() );
-	
+
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
 
@@ -134,7 +134,7 @@ boost::filesystem::path
 SampleProcessor::prepare_sample_run( adcontrols::SampleRun& run, bool createDirectory )
 {
     boost::filesystem::path path( run.dataDirectory() );
-    
+
     if ( !boost::filesystem::exists( path ) ) {
         if ( !createDirectory )
             return boost::filesystem::path();
@@ -170,17 +170,18 @@ void
 SampleProcessor::write( const boost::uuids::uuid& objId
                         , SignalObserver::DataWriter& writer )
 {
-#if !defined NDEBUG
     int wcount = 0;
+#if !defined NDEBUG && 0
+    ADDEBUG() << "SampleProcessor::write(" << objId << ") writer.write. active=" << c_acquisition_active_;
 #endif
-    
+
     writer.rewind();
     do {
 
         if ( ! c_acquisition_active_ ) {
 
             if ( writer.events() & SignalObserver::wkEvent_INJECT ) {
-                ADINFO() << boost::format ( "SampleProcessor [%s] INJECT TRIGGERD by EVENT 0x%x AT OBJECT " ) % fs_->filename() % writer.events() << objId;
+                ADINFO() << boost::format ( "INJECT TRIGGERD [%s] EVENT: 0x%x OBJECT: " ) % fs_->filename() % writer.events() << objId;
                 if ( !c_acquisition_active_ ) { // protect from chattering
                     ts_inject_trigger_ = writer.epoch_time(); // uptime;
                     c_acquisition_active_ = true;
@@ -211,7 +212,7 @@ SampleProcessor::write( const boost::uuids::uuid& objId
                 }
             }
         }
-        
+
     } while( writer.next() );
 }
 
@@ -264,7 +265,7 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent, adfs::
         }
         populate_calibration( observer.get(), db );
     }
-    
+
 }
 
 // static
@@ -274,7 +275,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent, adfs:
     auto vec = parent->siblings();
 
     for ( auto observer : vec ) {
-        
+
         if ( auto clsid = observer->dataInterpreterClsid() ) {
             (void)clsid;
 
@@ -365,7 +366,7 @@ SampleProcessor::prepare_snapshot_storage( adfs::sqlite& db ) const
         adutils::v3::AcquiredConf::create_table_v3( db );
         adutils::v3::AcquiredData::create_table_v3( db );
         v3::mscalibio::create_table_v3( db );
-	
+
         populate_descriptions( masterObserver.get(), db );
         populate_calibration( masterObserver.get(), db );
 

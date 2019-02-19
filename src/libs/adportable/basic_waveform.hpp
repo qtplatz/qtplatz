@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <stdexcept>
 #include <vector>
 #include <string>
 #include <type_traits>
@@ -90,8 +91,8 @@ namespace adportable {
         inline void clear()                      { d_.clear();             }
         inline void resize( size_t d )           { d_.resize( d );         }
 
-        uint64_t timepoint() const               { return timepoint_;      }
-        uint64_t elapsed_time() const            { return elapsed_time_;   }
+        uint64_t timepoint() const               { return timepoint_;      }    // hardware returned clock count
+        uint64_t elapsed_time() const            { return elapsed_time_;   }    // elapsed time since digitizer started in ns
         uint64_t epoch_time() const              { return epoch_time_;     }
         uint32_t pos() const                     { return pos_;            }    // data address (sequencial number)
         uint32_t pn() const                      { return pn_;             }    // protocol number for waveform
@@ -113,8 +114,14 @@ namespace adportable {
         virtual void set_xmeta( const M& xmeta ) { xmeta_         = xmeta; }
         virtual const M& xmeta() const           { return xmeta_;          }    // meta-data
 
-        void emplace_back( T&& t )               { d_.emplace_back( t );   }
-        const T& operator []( size_t idx ) const { return d_[ idx ];       }
+        virtual size_t serialize_xmeta( std::string& o ) const           { throw std::runtime_error( "not implemented" ); }
+        virtual bool deserialize_xmeta( const char * data, size_t size ) { throw std::runtime_error( "not implemented" ); }
+
+        virtual size_t serialize_xdata( std::string& d ) const           { throw std::runtime_error( "not implemented" ); }
+        virtual bool deerialize_xdata( const char * data, size_t size )  { throw std::runtime_error( "not implemented" ); }
+
+        void emplace_back( T&& t )               { d_.emplace_back( t ); }
+        const T& operator []( size_t idx ) const { return d_[ idx ];     }
 
     protected:
         uint32_t pos_;

@@ -57,11 +57,11 @@ time_event_processor::setControlMethod( std::shared_ptr< const adcontrols::Contr
 
     method_ = m;
     methodTime_ = methodTime;
-    
+
     auto it = m->find( m->begin(), m->end(), adcontrols::ControlMethod::TimedEvents::clsid() );
 
     if ( it != m->end() ) {
-        
+
         if ( auto tt = std::make_shared< adcontrols::ControlMethod::TimedEvents >() ) {
             if ( it->get( *it, *tt ) ) {
                 ttable_ = std::move( tt );
@@ -69,8 +69,8 @@ time_event_processor::setControlMethod( std::shared_ptr< const adcontrols::Contr
             }
         }
     }
-    
-//#ifndef NDEBUG
+
+#if !defined NDEBUG && 0
     if ( ! ttable_ )
         ADDEBUG() << "############# No time event table ##############";
     else {
@@ -80,7 +80,7 @@ time_event_processor::setControlMethod( std::shared_ptr< const adcontrols::Contr
             });
         ADDEBUG() << "<-------------------- time event table -----------";
     }
-//#endif
+#endif
 }
 
 void
@@ -93,7 +93,7 @@ void
 time_event_processor::action_start()
 {
     deadline_timer_.cancel();
-    
+
     tp_started_ = this_clock::now(); // timer will start based on this tp
 
     preparing_for_run();
@@ -127,7 +127,7 @@ time_event_processor::preparing_for_run()
 
         while ( nextIt_ != ttable_->end() && nextIt_->time() < 0.0 )
             ++nextIt_;
-        
+
         if ( nextIt_ != begin ) {
             task::instance()->time_event_trigger( ttable_, begin, nextIt_ );
 
@@ -155,8 +155,8 @@ time_event_processor::exec_steps()
             auto begin = nextIt_++;
             while ( nextIt_ != ttable_->end() && nextIt_->time() < elapsed_time )
                 ++nextIt_;
-            
-            task::instance()->time_event_trigger( ttable_, begin, nextIt_ );            
+
+            task::instance()->time_event_trigger( ttable_, begin, nextIt_ );
 
             auto round_trip = std::chrono::duration<double>( this_clock::now() - tp_inject_ ).count() - elapsed_time;
             ADINFO() << "----------- exec_step at " << elapsed_time << " round trip " << ( round_trip * 1000 ) << "ms ---------->";
@@ -167,10 +167,10 @@ time_event_processor::exec_steps()
         }
 
         if ( nextIt_ != ttable_->end() ) {
-            
+
             auto duration = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::duration< double >( nextIt_->time() ) );
             this_clock::time_point next_time_point = tp_inject_ + duration;
-            
+
             deadline_timer_.expires_at( next_time_point );
             deadline_timer_.async_wait( [&]( const boost::system::error_code& ec ){ on_timer( ec ); } );
         }

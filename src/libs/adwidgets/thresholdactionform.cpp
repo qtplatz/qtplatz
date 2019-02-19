@@ -221,8 +221,6 @@ ThresholdActionForm::setJson( const QByteArray& json )
 {
     QSignalBlocker block_this( this );
 
-    ADDEBUG() << __FUNCTION__ << json.toStdString();
-
     auto doc = QJsonDocument::fromJson( json );
     const auto& jobj = doc.object();
     const auto& obj = jobj[ "threshold_action" ];

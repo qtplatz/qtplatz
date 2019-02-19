@@ -35,26 +35,27 @@ namespace adacquire {
     namespace so = adacquire::SignalObserver;
 
     class ADACQUIRESHARED_EXPORT SimpleObserver : public so::Observer {
-    
+
     public:
         virtual ~SimpleObserver();
         SimpleObserver( const char * objtext, const char * dataInterpreterClsid, const so::Description& desc );
-        
+        SimpleObserver( const char * objtext, const boost::uuids::uuid& objid, const char * dataInterpreterClsid, const so::Description& desc );
+
         const boost::uuids::uuid& objid() const override;
         const char * objtext() const override;
-        
+
         uint64_t uptime() const override;
         void uptime_range( uint64_t& oldest, uint64_t& newest ) const override;
-        
+
         std::shared_ptr< so::DataReadBuffer > readData( uint32_t pos ) override;
         const char * dataInterpreterClsid() const override;
-        
+
         int32_t posFromTime( uint64_t usec ) const override;
 
         bool prepareStorage( SampleProcessor& ) const override;
 
         bool closingStorage( SampleProcessor& ) const override;
-        
+
         //
         void setPrepareStorage( std::function< bool( SampleProcessor& ) > );
         void setClosingStorage( std::function< bool( SampleProcessor& ) > );

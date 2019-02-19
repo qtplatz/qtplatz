@@ -201,8 +201,6 @@ findSlopeForm::channel() const
 void
 findSlopeForm::setJson( const QByteArray& json )
 {
-    ADDEBUG() << "#### " << json.toStdString();
-
     auto doc = QJsonDocument::fromJson( json );
     const auto& jobj = doc.object();
     const auto& obj = jobj[ "threshold_method" ];

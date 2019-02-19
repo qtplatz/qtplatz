@@ -123,7 +123,7 @@ if (WIN32)
   set_target_properties( adchem PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adchem.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adchemd.lib )
-  
+
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcontrols.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcontrolsd.lib )
@@ -132,11 +132,11 @@ if (WIN32)
   set_target_properties( adfs PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adfs.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adfsd.lib )
-  
+
   set_target_properties( adacquire PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adacquire.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adacquired.lib )
-  
+
   set_target_properties( adlog PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adlog.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adlogd.lib )
@@ -152,7 +152,7 @@ if (WIN32)
   set_target_properties( adprocessor PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adprocessor.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adprocessord.lib )
-  
+
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adorbmgr.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adorbmgrd.lib )
@@ -175,10 +175,10 @@ if (WIN32)
 
   set_target_properties( advision PROPERTIES
 #    IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
-#    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )    
+#    IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/advision.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )    
-  
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/advisiond.lib )
+
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adwidgets.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adwidgetsd.lib )
@@ -190,7 +190,7 @@ if (WIN32)
   set_target_properties( eventbroker PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/eventbroker.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/eventbrokerd.lib )
-  
+
   set_target_properties( portfolio PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/portfolio.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/portfoliod.lib )
@@ -205,16 +205,16 @@ if (WIN32)
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/ap240d.lib )
   set_target_properties( acqrswidgets PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acqrswidgets.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrswidgetsd.lib )  
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrswidgetsd.lib )
   set_target_properties( acqrscontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/acqrscontrols.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrscontrolsd.lib )  
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/acqrscontrolsd.lib )
 
-  # multum | infitof 
+  # multum | infitof
   set_target_properties( multumcontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/multumcontrols.lib
-    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/multumcontrolsd.lib )  
-  
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/multumcontrolsd.lib )
+
 elseif ( APPLE )
 
   set_target_properties( QTC::Core PROPERTIES
@@ -245,11 +245,11 @@ elseif ( APPLE )
   set_target_properties( adfs PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs_debug.dylib )
-  
+
   set_target_properties( adacquire PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadacquire.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadacquire_debug.dylib )
-  
+
   set_target_properties( adlog PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadlog.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadlog_debug.dylib )
@@ -265,7 +265,7 @@ elseif ( APPLE )
   set_target_properties( adprocessor PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor_debug.dylib )
-  
+
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr_debug.dylib )
@@ -301,7 +301,7 @@ elseif ( APPLE )
   set_target_properties( eventbroker PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker_debug.dylib )
-  
+
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio_debug.dylib )
@@ -317,7 +317,7 @@ elseif ( APPLE )
   set_target_properties( multumcontrols PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols_debug.dylib )
-  
+
 else()  #Linux
 
   set_target_properties( QTC::Core PROPERTIES
@@ -344,7 +344,7 @@ else()  #Linux
 
   set_target_properties( adacquire PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadacquire.so )
-  
+
   set_target_properties( adlog PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadlog.so )
 
@@ -355,7 +355,7 @@ else()  #Linux
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadplugin_manager.so )
 
   set_target_properties( adprocessor PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor.so )    
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadprocessor.so )
 
   set_target_properties( adorbmgr PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadorbmgr.so )
@@ -374,7 +374,7 @@ else()  #Linux
 
   set_target_properties( advision PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadvision.so )
-  
+
   set_target_properties( adwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadwidgets.so )
 
@@ -382,8 +382,8 @@ else()  #Linux
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libchromatogr.so )
 
   set_target_properties( eventbroker PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker.so )  
-  
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libeventbroker.so )
+
   set_target_properties( portfolio PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libportfolio.so )
 
@@ -392,15 +392,15 @@ else()  #Linux
 
   set_target_properties( u5303a PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libu5303a.so )
-  
+
   set_target_properties( acqrswidgets PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrswidgets.so )  
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrswidgets.so )
 
   set_target_properties( acqrscontrols PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols.so )  
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libacqrscontrols.so )
 
   set_target_properties( multumcontrols PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.so )  
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumcontrols.so )
 
 endif()
 
@@ -442,7 +442,7 @@ elseif( APPLE )
   set_target_properties( adinterface PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadinterface.a
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadinterface_debug.a )
-  
+
   set_target_properties( adportable PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable.a
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable_debug.a )
@@ -476,7 +476,7 @@ else()
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadportable.a )
 
   set_target_properties( adio PROPERTIES
-    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio.a )  
+    IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libadio.a )
 
   set_target_properties( acewrapper PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/libacewrapper.a )

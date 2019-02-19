@@ -44,6 +44,20 @@ SimpleObserver::SimpleObserver( const char * objtext
     setDescription( desc_ );
 }
 
+SimpleObserver::SimpleObserver( const char * objtext
+                                , const boost::uuids::uuid&  objid
+                                , const char * dataInterpreterClsid
+                                , const so::Description& desc ) : objid_( objid )
+                                                                , objtext_( objtext )
+                                                                , clsid_( dataInterpreterClsid )
+                                                                , desc_( desc )
+{
+    desc_.set_trace_id( objtext );  // unique name for the trace, can be used as 'data storage name'
+	desc_.set_objtext(objtext);
+	desc_.set_objid(objid_);
+    setDescription( desc_ );
+}
+
 SimpleObserver::~SimpleObserver()
 {
 }
@@ -54,7 +68,7 @@ SimpleObserver::dataInterpreterClsid() const
     return clsid_.c_str();
 }
 
-const char * 
+const char *
 SimpleObserver::objtext() const
 {
     return objtext_.c_str();
@@ -66,14 +80,14 @@ SimpleObserver::objid() const
     return objid_;
 }
 
-uint64_t 
-SimpleObserver::uptime() const 
+uint64_t
+SimpleObserver::uptime() const
 {
     return 0;
 }
 
-void 
-SimpleObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
+void
+SimpleObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
 {
     oldest = newest = 0;
 }
@@ -85,7 +99,7 @@ SimpleObserver::readData( uint32_t pos )
 }
 
 int32_t
-SimpleObserver::posFromTime( uint64_t nsec ) const 
+SimpleObserver::posFromTime( uint64_t nsec ) const
 {
     return 0;
 }
