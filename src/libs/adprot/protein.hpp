@@ -22,8 +22,7 @@
 **
 **************************************************************************/
 
-#ifndef PROTEIN_HPP
-#define PROTEIN_HPP
+#pragma once
 
 #include "adprot_global.hpp"
 #include <string>
@@ -35,17 +34,29 @@ namespace adprot {
         protein();
         protein( const protein& );
         protein( const std::string& name, const std::string& sequence );
-        
+        protein( const std::string& name,
+                 const std::string& gene, const std::string& organism, const std::string& url, const std::string& sequence );
+
         const std::string& name() const;
         const std::string& sequence() const;
-        void name( const std::string& );
-        void sequence( const std::string& );
+        void set_name( const std::string& );
+        void set_sequence( const std::string& );
+
+        const std::string& gene() const;
+        void set_gene( const std::string& );
+
+        const std::string& url() const;
+        void set_url( const std::string& );
+
+        const std::string& organism() const;
+        void set_organism( const std::string& );
 
     private:
         std::string name_;
         std::string sequence_;
+        std::string gene_;
+        std::string organism_;
+        std::string url_;
     };
 
 }
-
-#endif // PROTEIN_HPP

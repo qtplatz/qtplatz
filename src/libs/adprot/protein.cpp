@@ -34,6 +34,9 @@ protein::protein()
 
 protein::protein( const protein& t ) : name_( t.name_ )
                                      , sequence_( t.sequence_ )
+                                     , gene_( t.gene_ )
+                                     , organism_( t.organism_ )
+                                     , url_( t.url_ )
 {
 }
 
@@ -48,6 +51,19 @@ protein::protein( const std::string& name
 #endif
 }
 
+protein::protein( const std::string& name
+                  , const std::string& gene
+                  , const std::string& organism
+                  , const std::string& url
+                  , const std::string& sequence ) : name_( name )
+                                                  , sequence_( sequence )
+                                                  , gene_( gene )
+                                                  , organism_( organism )
+                                                  , url_( url )
+{
+    sequence_.erase( std::remove_if( sequence_.begin(), sequence_.end(), [](const char c){return std::isspace(c);}), sequence_.end() );
+}
+
 const std::string&
 protein::name() const
 {
@@ -55,7 +71,7 @@ protein::name() const
 }
 
 void
-protein::name( const std::string& var )
+protein::set_name( const std::string& var )
 {
     name_ = var;
 }
@@ -68,8 +84,43 @@ protein::sequence() const
 }
 
 void
-protein::sequence( const std::string& var )
+protein::set_sequence( const std::string& var )
 {
     sequence_ = var;
 }
 
+const std::string&
+protein::gene() const
+{
+    return gene_;
+}
+
+void
+protein::set_gene( const std::string& t )
+{
+    gene_ = t;
+}
+
+const std::string&
+protein::url() const
+{
+    return url_;
+}
+
+void
+protein::set_url( const std::string& t )
+{
+    url_ = t;
+}
+
+const std::string&
+protein::organism() const
+{
+    return organism_;
+}
+
+void
+protein::set_organism( const std::string& t )
+{
+    organism_ = t;
+}

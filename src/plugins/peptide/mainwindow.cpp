@@ -93,7 +93,7 @@ MainWindow::createContents( Core::IMode * mode )
     QBoxLayout * editorHolderLayout = new QVBoxLayout;
 	editorHolderLayout->setMargin( 0 );
 	editorHolderLayout->setSpacing( 0 );
-	    
+
     if ( QWidget * editorWidget = new QWidget ) {
 
         editorWidget->setLayout( editorHolderLayout );
@@ -101,12 +101,12 @@ MainWindow::createContents( Core::IMode * mode )
 
         Utils::StyledBar * toolBar1 = createTopStyledBar();
         Utils::StyledBar * toolBar2 = createMidStyledBar();
-        
+
         //---------- central widget ------------
         QWidget * centralWidget = new QWidget;
         if ( centralWidget ) {
             setCentralWidget( centralWidget );
-            
+
             QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
             centralWidget->setLayout( centralLayout );
             centralLayout->setMargin( 0 );
@@ -114,11 +114,11 @@ MainWindow::createContents( Core::IMode * mode )
             // ----------------- top tool bar -------------------
             centralLayout->addWidget( toolBar1 );              // [1]
             // ----------------------------------------------------
-            
+
             centralLayout->addWidget( editorWidget ); // [0]
             centralLayout->setStretch( 0, 1 );
             centralLayout->setStretch( 1, 0 );
-            
+
             // ----------------- mid tool bar -------------------
             centralLayout->addWidget( toolBar2 );              // [1]
         }
@@ -196,7 +196,7 @@ MainWindow::createMidStyledBar()
             //----------
             Core::Context context( (Core::Id( Core::Constants::C_GLOBAL )) );
             // context << Core::Constants::C_GLOBAL_ID;
-            
+
             // QComboBox * features = new QComboBox;
             // features->addItem( "Centroid" );
             // features->addItem( "Isotope" );
@@ -238,11 +238,11 @@ MainWindow::onInitialUpdate()
                             "}"
                             // "QHeaderView::section:checked {"
                             // "  background-color: red;"
-                            // "  font-size: 9pt;"                            
+                            // "  font-size: 9pt;"
                             // "}"
-#if !defined Q_OS_MAC                            
+#if !defined Q_OS_MAC
                             "QTableView {"
-                            "  font-size: 9pt;"                            
+                            "  font-size: 9pt;"
                             "}"
 #endif
             );
@@ -291,7 +291,7 @@ MainWindow::setSimpleDockWidgetArrangement()
         widget->setFloating( false );
         removeDockWidget( widget );
     }
-  
+
     size_t npos = 0;
     for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
@@ -308,7 +308,7 @@ MainWindow::setSimpleDockWidgetArrangement()
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( QAction * action )
 {
     QToolButton * button = new QToolButton;
@@ -318,7 +318,7 @@ MainWindow::toolButton( QAction * action )
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( const char * id )
 {
     //Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
@@ -359,24 +359,50 @@ void
 MainWindow::setDemoData()
 {
     topLineEdit_->setText( tr( "select a file contains protein sequences by clicking file open icon..." ) );
-    adprot::protein protein( "Bovin serum albumin",
-                             " MKWVTFISLL LLFSSAYSRG VFRRDTHKSE IAHRFKDLGE EHFKGLVLIA FSQYLQQCPF" \
-                             " DEHVKLVNEL TEFAKTCVAD ESHAGCEKSL HTLFGDELCK VASLRETYGD MADCCEKQEP" \
-                             " ERNECFLSHK DDSPDLPKLK PDPNTLCDEF KADEKKFWGK YLYEIARRHP YFYAPELLYY" \
-                             " ANKYNGVFQE CCQAEDKGAC LLPKIETMRE KVLASSARQR LRCASIQKFG ERALKAWSVA" \
-                             " RLSQKFPKAE FVEVTKLVTD LTKVHKECCH GDLLECADDR ADLAKYICDN QDTISSKLKE" \
-                             " CCDKPLLEKS HCIAEVEKDA IPENLPPLTA DFAEDKDVCK NYQEAKDAFL GSFLYEYSRR" \
-                             " HPEYAVSVLL RLAKEYEATL EECCAKDDPH ACYSTVFDKL KHLVDEPQNL IKQNCDQFEK" \
-                             " LGEYGFQNAL IVRYTRKVPQ VSTPTLVEVS RSLGKVGTRC CTKPESERMP CTEDYLSLIL" \
-                             " NRLCVLHEKT PVSEKVTKCC TESLVNRRPC FSALTPDETY VPKAFDEKLF TFHADICTLP" \
-                             " DTEKQIKKQT ALVELLKHKP KATEEQLKTV MENFVAFVDK CCAADDKEAC FAVEGPKLVV" \
-                             " STQTALA" );
+    adprot::protein proteins [] = { { "Bovin serum albumin" // protein
+                                      ,""                   // gene
+                                      ,""                   // organism
+                                      ,""                   // url
+                                      ," MKWVTFISLL LLFSSAYSRG VFRRDTHKSE IAHRFKDLGE EHFKGLVLIA FSQYLQQCPF" \
+                                      " DEHVKLVNEL TEFAKTCVAD ESHAGCEKSL HTLFGDELCK VASLRETYGD MADCCEKQEP" \
+                                      " ERNECFLSHK DDSPDLPKLK PDPNTLCDEF KADEKKFWGK YLYEIARRHP YFYAPELLYY" \
+                                      " ANKYNGVFQE CCQAEDKGAC LLPKIETMRE KVLASSARQR LRCASIQKFG ERALKAWSVA" \
+                                      " RLSQKFPKAE FVEVTKLVTD LTKVHKECCH GDLLECADDR ADLAKYICDN QDTISSKLKE" \
+                                      " CCDKPLLEKS HCIAEVEKDA IPENLPPLTA DFAEDKDVCK NYQEAKDAFL GSFLYEYSRR" \
+                                      " HPEYAVSVLL RLAKEYEATL EECCAKDDPH ACYSTVFDKL KHLVDEPQNL IKQNCDQFEK" \
+                                      " LGEYGFQNAL IVRYTRKVPQ VSTPTLVEVS RSLGKVGTRC CTKPESERMP CTEDYLSLIL" \
+                                      " NRLCVLHEKT PVSEKVTKCC TESLVNRRPC FSALTPDETY VPKAFDEKLF TFHADICTLP" \
+                                      " DTEKQIKKQT ALVELLKHKP KATEEQLKTV MENFVAFVDK CCAADDKEAC FAVEGPKLVV" \
+                                      " STQTALA"
+        }
+                                    , {  "Cytochrome b-c1 complex subunit Rieske, mitochondrial"
+                                         , "UQCRSS1"
+                                         , "Mouse musculus (Bovine)"
+                                         , "https://www.uniprot.org/uniprot/P13272"
+                                         , "MLSVAARSGP FAPVLSATSR GVAGALRPLL QGAVPAASEP PVLDVKRPFL"
+                                         "CRESLSGQAA ARPLVATVGL NVPASVRFSH TDVKVPDFSD YRRAEVLDST"
+                                         "KSSKESSEAR KGFSYLVTAT TTVGVAYAAK NVVSQFVSSM SASADVLAMS"
+                                         "KIEIKLSDIP EGKNMAFKWR GKPLFVRHRT KKEIDQEAAV EVSQLRDPQH"
+                                         "DLDRVKKPEW VILIGVCTHL GCVPIANAGD FGGYYCPCHG SHYDASGRIR"
+                                         "KGPAPLNLEV PAYEFTSDDV VVVG"
+        }
+                                    , { "Cytochrome c"
+                                        , "CYCS"
+                                        , "Equus caballus (Horse)"
+                                        , "https://www.uniprot.org/uniprot/P00004"
+                                        , "MGDVEKGKKI FVQKCAQCHT VEKGGKHKTG PNLHGLFGRK TGQAPGFTYT "
+                                        "DANKNKGITW KEETLMEYLE NPKKYIPGTK MIFAGIKKKT EREDLIAYLK "
+                                        "KATNE             "
+        }
+    };
+
 
 	protfile_ = std::make_shared< adprot::protfile >( "demo data" );
-	*protfile_ << protein;
+    for ( const auto& prot: proteins )
+        *protfile_ << prot;
 
     if ( auto wnd = findChild< ProteinWnd * >() )
-        wnd->setData( *protfile_ );        
+        wnd->setData( *protfile_ );
 }
 
 void
@@ -392,7 +418,7 @@ MainWindow::actFileOpen()
                                         , tr("Protain sequence files(*.fas)") );
     if ( ! name.isEmpty() ) {
         topLineEdit_->setText( name );
-        
+
         auto file = std::make_shared< adprot::protfile >( name.toStdString() );
         if ( *file ) {
             protfile_ = file;
@@ -420,4 +446,3 @@ MainWindow::getChemicalFormula() const
 {
     return formulaParser_;
 }
-

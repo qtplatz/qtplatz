@@ -118,7 +118,7 @@ namespace adportable {
         virtual bool deserialize_xmeta( const char * data, size_t size ) { throw std::runtime_error( "not implemented" ); }
 
         virtual size_t serialize_xdata( std::string& d ) const           { throw std::runtime_error( "not implemented" ); }
-        virtual bool deerialize_xdata( const char * data, size_t size )  { throw std::runtime_error( "not implemented" ); }
+        virtual bool deserialize_xdata( const char * data, size_t size )  { throw std::runtime_error( "not implemented" ); }
 
         void emplace_back( T&& t )               { d_.emplace_back( t ); }
         const T& operator []( size_t idx ) const { return d_[ idx ];     }
