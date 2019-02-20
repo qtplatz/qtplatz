@@ -33,11 +33,15 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <QBoxLayout>
 #include <QDebug>
-#include <QSplitter>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMenu>
 #include <QMessageBox>
+#include <QSplitter>
 #include <QStandardItemModel>
 #include <ratio>
+
 
 #if defined _DEBUG
 # include <fstream>
@@ -329,5 +333,81 @@ void
 TofChromatogramsWidget::handleScanLawChanged()
 {
     
+}
+
+QByteArray
+TofChromatogramsWidget::readJson() const
+{
+    QJsonObject jtop;
+    QJsonArray jmols;
+
+    adcontrols::TofChromatogramsMethod m;
+    getContents( m );
+
+    jtop[ "numberOfTriggers" ]         = int( m.numberOfTriggers() );
+    jtop[ "refreshHistogram" ]         = m.refreshHistogram();
+
+    auto& model = *impl_->model_;
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        using adcontrols::TofChromatogramMethod;
+        adcontrols::TofChromatogramMethod item;
+        QJsonObject jitem;
+
+        jitem[ "enable"     ] = model.index( row, impl::c_formula ).data( Qt::CheckStateRole ) == Qt::Checked;
+        jitem[ "formula"    ] = model.index( row, impl::c_formula ).data( Qt::EditRole ).toString();
+        jitem[ "mass"       ] = model.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble();
+        jitem[ "massWindow" ] = model.index( row, impl::c_masswindow ).data( Qt::EditRole ).toDouble();
+        jitem[ "time"       ] = model.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
+        jitem[ "timeWindow" ] = model.index( row, impl::c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den;
+        jitem[ "intensAlgo" ] = model.index( row, impl::c_algo ).data( Qt::EditRole ).toInt();
+        jitem[ "protocol"   ] = model.index( row, impl::c_protocol ).data( Qt::EditRole ).toInt();
+        if ( row == 0 || jitem[ "mass" ].toDouble() > 0 || jitem[ "time" ].toDouble() > 0 )
+            jmols.append( jitem );
+    }
+
+    jtop[ "list" ] = jmols;
+    
+    QJsonObject jobj;
+    jobj[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ] = jtop;
+
+    QJsonDocument jdoc( jobj );
+    return QByteArray( jdoc.toJson( /* QJsonDocument::Indented */ ) );
+}
+
+void
+TofChromatogramsWidget::setJson( const QByteArray& json )
+{
+    auto doc = QJsonDocument::fromJson( json );
+    auto jtop = doc.object()[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ].toObject();
+    auto jlist = jtop[ "list" ].toArray();
+
+    adcontrols::TofChromatogramsMethod m;
+
+    m.setNumberOfTriggers( jtop[ "numberOfTriggers" ].toInt() );
+    m.setRefreshHistogram( jtop[ "refreshHistogram" ].toBool() );
+    if ( auto form = findChild< TofChromatogramsForm *>() )
+        form->setContents( m );    
+
+    auto& model = *impl_->model_;    
+    model.setRowCount( jlist.count() );
+    int row(0);
+    for ( const auto& x: jlist ) {
+        auto jtrace = x.toObject();
+        model.setData( model.index( row, impl::c_formula ), jtrace[ "formula" ].toString() );
+        
+        if ( auto item = model.item( row, impl::c_formula ) ) {
+            item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+            model.setData( model.index( row, impl::c_formula ), jtrace[ "enable" ].toBool() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        }
+        
+        model.setData( model.index( row, impl::c_mass ), jtrace[ "mass" ].toDouble() );
+        model.setData( model.index( row, impl::c_masswindow ), jtrace[ "massWindow" ].toDouble() );
+        model.setData( model.index( row, impl::c_time ), jtrace[ "time " ].toDouble() * std::micro::den );
+        model.setData( model.index( row, impl::c_timewindow ), jtrace[ "timeWindow" ].toDouble() * std::micro::den );
+        model.setData( model.index( row, impl::c_algo ), jtrace[ "intensAlgo" ].toInt() );
+        model.setData( model.index( row, impl::c_protocol ), jtrace[ "protocol" ].toInt() );
+
+        ++row;
+    }
 }
 

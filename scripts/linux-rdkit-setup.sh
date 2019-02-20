@@ -30,7 +30,7 @@ cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
 			 "-DRDK_BUILD_INCHI_SUPPORT=ON"
 			 "-DRDK_BUILD_PYTHON_WRAPPERS=OFF"
 			 "-DRDK_INSTALL_INTREE=OFF"
-			 "-DRDK_INSTALL_STATIC_LIBS=ON"
+			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
 			 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
 		   )
 if [ `uname` == "Darwin" ]; then
@@ -59,10 +59,11 @@ echo cmake "${cmake_args[@]}" $RDBASE
 prompt
 cmake "${cmake_args[@]}" $RDBASE
 make -j${nproc}
-if [ $? -eq 0 ]; then
-	make test
-	make install
-fi
+
+#if [ $? -eq 0 ]; then
+#	make test
+#	make install
+#fi
 
 echo "You may need to edit rdkit-target.cmake manually to set '_IMPORT_PREFIX' or get failed to find Catalogs library"
 echo "You may also need to make sym-link RDKIT/lib/cmake/*.cmake RDKIT/lib"

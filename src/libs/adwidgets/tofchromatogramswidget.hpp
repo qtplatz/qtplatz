@@ -63,6 +63,9 @@ namespace adwidgets {
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
         MolTableView * molTableView();
+
+        QByteArray readJson() const;
+        void setJson( const QByteArray& );
         
     private:
         void handleContextMenu( QMenu&, const QPoint& );
