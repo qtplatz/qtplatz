@@ -394,6 +394,10 @@ MainWindow::setDemoData()
                                         "DANKNKGITW KEETLMEYLE NPKKYIPGTK MIFAGIKKKT EREDLIAYLK "
                                         "KATNE             "
         }
+                                    , { ">sp|P62894|CYC_BOVIN Cytochrome c OS=Bos taurus OX=9913 GN=CYCS PE=1 SV=2"
+                                        , "MGDVEKGKKIFVQKCAQCHTVEKGGKHKTGPNLHGLFGRKTGQAPGFSYTDANKNKGITW"
+                                        "GEETLMEYLENPKKYIPGTKMIFAGIKKKGEREDLIAYLKKATNE" }
+                                    
     };
 
 
