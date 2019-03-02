@@ -80,7 +80,7 @@ namespace adplot {
             , QColor( 0xff, 0x8c, 0x00 )  //16  dark orange
             , QColor( 0x00, 0x00, 0x00, 0x00 )  //17
         };
-        
+
         class xSeriesData : public QwtSeriesData<QPointF>, boost::noncopyable {
         public:
             virtual ~xSeriesData() {
@@ -93,7 +93,7 @@ namespace adplot {
                                            , axisTime_( axisTime ) {
             }
 
-            size_t size() const override { 
+            size_t size() const override {
                 if ( ! indices_.empty() )
                     return indices_.size();
                 return ms_.size();
@@ -125,10 +125,10 @@ namespace adplot {
         private:
             QRectF rect_;
             const adcontrols::MassSpectrum& ms_;
-            std::vector< size_t > indices_; // if centroid with color, 
+            std::vector< size_t > indices_; // if centroid with color,
             bool axisTime_;
         };
-	
+
         class TraceData {
         public:
             TraceData( int idx ) : idx_( idx )
@@ -139,7 +139,7 @@ namespace adplot {
                 color_ = color_table[ idx % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) ) ];
 
             }
-            
+
             TraceData( const TraceData& t ) : idx_( t.idx_ )
                                             , focusedFcn_( t.focusedFcn_ )
                                             , alpha_( t.alpha_ )
@@ -150,7 +150,7 @@ namespace adplot {
                                             , pSpectrum_( t.pSpectrum_ )
                                             , isTimeAxis_( t.isTimeAxis_ ) {
             }
-            
+
             ~TraceData();
             void setData( plot& plot
                           , std::shared_ptr< const adcontrols::MassSpectrum>&
@@ -180,7 +180,7 @@ namespace adplot {
         private:
 			bool isTimeAxis_;
         };
-        
+
     } // namespace spectrumwidget
 
     ///////////////////////////////////
@@ -280,8 +280,8 @@ SpectrumWidget::yScaleHock( QRectF& rc )
         if ( ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) )
             setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
     }
-    
-    if ( hasAxis.first ) 
+
+    if ( hasAxis.first )
         rc.setCoords( rc.left(), left.first, rc.right(), left.second );
 }
 
@@ -346,7 +346,7 @@ SpectrumWidget::impl::scaleY( const QRectF& rc, std::pair< double, double >& lef
 {
     using spectrumwidget::TraceData;
     bool hasYLeft( false ), hasYRight( false );
-    
+
     left = right = std::make_pair( std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest() );
 
     for ( const auto& trace: traces_ ) {
@@ -384,7 +384,7 @@ SpectrumWidget::impl::baseScale( bool yRight, QRectF& rc )
 
         if ( !trace )
             continue;
-        
+
         const QRectF& t = trace->rect();
 
         if ( rc.isNull() ) {
@@ -395,12 +395,12 @@ SpectrumWidget::impl::baseScale( bool yRight, QRectF& rc )
 
             rc.setLeft( std::min( t.left(), rc.left() ) );
             rc.setRight( std::max( t.right(), rc.right() ) );
-            
+
             if ( trace->yRight() == yRight ) {
-                
+
                 rc.setBottom( std::min( t.bottom(), rc.bottom() ) );
                 rc.setTop( std::max( t.top(), rc.top() ) );
-                
+
             }
         }
     }
@@ -464,7 +464,7 @@ void
 SpectrumWidget::setAxis( HorizontalAxis axis, bool replot
                          , std::function< QRectF( const QRectF&, const adcontrols::MassSpectrum&, HorizontalAxis ) > axisConverter )
 {
-    if ( impl_->haxis_ == axis ) 
+    if ( impl_->haxis_ == axis )
         return; // nothing to be done
 
     // on trial -- it may be a problem when various number of laps protocols are combined.
@@ -490,7 +490,7 @@ SpectrumWidget::setAxis( HorizontalAxis axis, bool replot
         if ( zRect.isValid() )
             zoomer()->zoom( zRect );
     } else {
-        clear();                
+        clear();
     }
 }
 
@@ -520,7 +520,7 @@ SpectrumWidget::redraw_all( bool keepX )
             setAxisScale( QwtPlot::xBottom, rcLeft.left(), rcLeft.right() );
         setAxisScale( QwtPlot::yLeft, rcLeft.bottom(), rcLeft.top() );
     }
-    
+
     if ( !rcRight.isNull() ) {
         if ( ! keepX && rcLeft.isNull() )
             setAxisScale( QwtPlot::xBottom, rcRight.left(), rcRight.right() );
@@ -574,9 +574,9 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
     impl_->baseScale( yRight, baseRect );
 
     auto rectIndex = zoomer()->zoomRectIndex();
-    
+
     if ( ( yRight == false ) && ( rectIndex == 0 || !impl_->keepZoomed_ ) ) {
-        
+
         setAxisScale( yRight ? QwtPlot::yRight : QwtPlot::yLeft, baseRect.bottom(), baseRect.top() );
         setAxisScale( QwtPlot::xBottom, baseRect.left(), baseRect.right() );
         zoomer()->setZoomBase();
@@ -754,7 +754,7 @@ TraceData::setData( plot& plot
                     , bool yRight )
 {
     curves_.clear();
-    
+
     if ( !ms ) {
         pSpectrum_.reset();
         return;
@@ -767,7 +767,7 @@ TraceData::setData( plot& plot
 
 	double top = adcontrols::segments_helper::max_intensity( *ms );
     double bottom = adcontrols::segments_helper::min_intensity( *ms );
-	
+
 	top = top + ( top - bottom ) * 0.12; // add 12% margine for annotation
 
     if ( adportable::compare< double >::essentiallyEqual( top, bottom ) )
@@ -798,7 +798,7 @@ TraceData::setData( plot& plot
         rect.setCoords( scale_to_micro( time_range.first ), top, scale_to_micro( time_range.second ), bottom );
 
     } else {
-        
+
         std::pair< double, double > mass_range = ms->getAcquisitionMassRange();
         // check if zero width
         if ( adportable::compare<double>::approximatelyEqual( mass_range.first, mass_range.second ) && ms->size() ) {
@@ -807,7 +807,7 @@ TraceData::setData( plot& plot
         }
         rect.setCoords( mass_range.first, top, mass_range.second, bottom );
     }
-    
+
     yRight_ = yRight;
     rect_ = rect;
     if ( ms->isCentroid() ) { // sticked
@@ -840,7 +840,7 @@ TraceData::setAlpha( int alpha )
             ++fcn;
         }
     }
-}    
+}
 
 void
 TraceData::setColor( const QColor& color )
@@ -848,7 +848,7 @@ TraceData::setColor( const QColor& color )
     color_ = color;
     for ( auto& curve: curves_ )
         curve->setPen( color_ );
-}    
+}
 
 std::pair< double, double >
 TraceData::y_range( double left, double right, int fcn ) const
@@ -864,7 +864,7 @@ TraceData::y_range( double left, double right, int fcn ) const
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *pSpectrum_ );
 
         int _fcn(0);
-        
+
         for ( auto& seg: segments ) {
 
             if ( fcn >= 0 && _fcn++ != fcn )
@@ -883,15 +883,19 @@ TraceData::y_range( double left, double right, int fcn ) const
 
             size_t idleft( 0 ), idright( 0 );
 
-            if ( isTimeAxis_ && !isCentroid ) {
-                idleft  = adcontrols::MSProperty::toIndex( xleft, seg.getMSProperty().samplingInfo() );
-                idright = adcontrols::MSProperty::toIndex( xright, seg.getMSProperty().samplingInfo() );
+            if ( isTimeAxis_ ) {
+                if ( const double * t = seg.getTimeArray() ) {
+                    idleft = std::distance( t, std::lower_bound( t, t + seg.size(), xleft ) );
+                    idright = std::distance( t, std::lower_bound( t, t + seg.size(), xright ) );
+                } else {
+                    idleft  = adcontrols::MSProperty::toIndex( xleft, seg.getMSProperty().samplingInfo() );
+                    idright = adcontrols::MSProperty::toIndex( xright, seg.getMSProperty().samplingInfo() );
+                }
             } else {
-                if ( const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray() ) {
+                if ( const double * x = seg.getMassArray() ) {
                     idleft = std::distance( x, std::lower_bound( x, x + seg.size(), xleft ) );
                     idright = std::distance( x, std::lower_bound( x, x + seg.size(), xright ) );
-                } else
-                    continue;
+                }
             }
 
             if ( idleft >= seg.size() )
@@ -899,10 +903,10 @@ TraceData::y_range( double left, double right, int fcn ) const
 
             if ( idright > seg.size() )
                 idright = seg.size();
-            
+
             if ( idleft <= idright ) {
                 const double * y = seg.getIntensityArray();
-                
+
                 auto minmax = std::minmax_element( y + idleft, y + idright );
                 double min = *minmax.first;
                 double max = *minmax.second;
@@ -911,7 +915,7 @@ TraceData::y_range( double left, double right, int fcn ) const
                 if ( isCentroid ) {
                     bottom = 0;
                 } else {
-                    bottom = min - (max - min) / 25;                    
+                    bottom = min - (max - min) / 25;
                 }
             }
         }
@@ -932,7 +936,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
                                        , const std::pair<double, double>& range )
 {
     using adportable::array_wrapper;
-    using namespace adcontrols::metric;        
+    using namespace adcontrols::metric;
 
     // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "update_annotateion:";
     plot.setUpdatesEnabled( false );
@@ -944,12 +948,12 @@ SpectrumWidget::impl::update_annotations( plot& plot
 
         std::vector< peak > peaks;
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *centroid );
-        
+
         adcontrols::annotations auto_annotations;
         adcontrols::annotations annotations;
 
         double max_y = adcontrols::segments_helper::max_intensity( *centroid );
-        
+
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
             const unsigned char * colors = ms.getColorArray();
@@ -966,7 +970,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
                     end = std::distance( masses, std::lower_bound( masses, masses + ms.size(), range.second ) );
                 }
             }
-            
+
             if ( beg < end ) {
                 const adcontrols::annotations& attached = ms.get_annotations();
                 std::map< size_t, adcontrols::annotations > marge;
@@ -1022,20 +1026,20 @@ SpectrumWidget::impl::update_annotations( plot& plot
                 }
             }
         }
-        
+
         auto_annotations.sort();
         annotations.sort();
-        
+
         annotations_.clear();
         Annotations annots(plot, annotations_);
-        
+
         for ( const auto& a: annotations ) {
             QwtText text( QString::fromStdString(a.text()), QwtText::RichText);
             text.setColor( Qt::darkGreen );
             text.setFont( Annotation::font() );
             bool added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
         }
-        
+
         QColor color = Qt::darkGreen;
         QFont font = Annotation::font();
         if ( ! annotations.empty() ) {
@@ -1104,4 +1108,3 @@ SpectrumWidget::viewId() const
 {
     return viewid_;
 }
-
