@@ -517,13 +517,13 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
     trigger_count_ += t.trigger_count();
     wellKnownEvents_ |= t.wellKnownEvents();
 
-    if ( serialnumber_.first > t.serialnumber().first )
+    //if ( serialnumber_.first > t.serialnumber().first )
         serialnumber_.first = t.serialnumber().first;
 
     if ( serialnumber_.second < t.serialnumber().second )
         serialnumber_.second = t.serialnumber().second;
 
-    if ( timeSinceEpoch_.first > t.timeSinceEpoch().first )
+    //if ( timeSinceEpoch_.first > t.timeSinceEpoch().first )
         timeSinceEpoch_.first = t.timeSinceEpoch().first;
 
     if ( timeSinceEpoch_.second < t.timeSinceEpoch().second )

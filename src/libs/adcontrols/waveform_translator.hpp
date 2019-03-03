@@ -43,6 +43,8 @@ namespace adcontrols {
                                         , const waveform_type& waveform
                                         , double xIncrement
                                         , double trigDelay
+                                        , size_t actualAverages
+                                        , int mode
                                         , const char * dataInterpreterClsid
                                         , const std::string& device_data ) {
 
@@ -51,8 +53,8 @@ namespace adcontrols {
                                            , trigDelay
                                            , int32_t( trigDelay / xIncrement )
                                            , uint32_t( waveform.size() )
-                                           , 0 // waveform.meta_.actualAverages
-                                           , 0 // mode );
+                                           , actualAverages
+                                           , mode
                 );
             info.setSampInterval( xIncrement );
 
@@ -76,10 +78,12 @@ namespace adcontrols {
                                , const waveform_type& waveform
                                , double xIncrement
                                , double trigDelay
+                               , size_t actualAverages
+                               , int mode
                                , const char * dataInterpreterClsid
                                , const std::string& device_data ) {
 
-            translate_property( sp, waveform, xIncrement, trigDelay, dataInterpreterClsid, device_data );
+            translate_property( sp, waveform, xIncrement, trigDelay, actualAverages, mode, dataInterpreterClsid, device_data );
 
             std::vector< double > d( waveform.size() );
             std::copy( waveform.begin(), waveform.end(), d.begin() );
@@ -94,11 +98,13 @@ namespace adcontrols {
                                , const waveform_type& waveform
                                , double xIncrement
                                , double trigDelay
+                               , size_t actualAverages
+                               , int mode
                                , const char * dataInterpreterClsid
                                , const std::string& device_data
                                , intensity_operation unary_op ) {
 
-            translate_property( sp, waveform, xIncrement, trigDelay, dataInterpreterClsid, device_data );
+            translate_property( sp, waveform, xIncrement, trigDelay, actualAverages, mode, dataInterpreterClsid, device_data );
 
             std::vector< double > d( waveform.size() );
 
