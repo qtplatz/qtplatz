@@ -69,7 +69,7 @@ AcquirePlugin::~AcquirePlugin()
 #if HAVE_CORBA
 AcquirePlugin::AcquirePlugin() : orb_i_( new orb_i() )
 #else
-AcquirePlugin::AcquirePlugin() 
+AcquirePlugin::AcquirePlugin()
 #endif
 {
 }
@@ -81,20 +81,20 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
     Q_UNUSED(error_message);
 
-    adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
+    //adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
 
     Core::Context context( (Core::Id( "Acquire.MainView" )), (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
 
     if ( AcquireMode * mode = new AcquireMode(this) ) {
         mode->setContext( context );
-        
+
         if ( auto mainWindow = MainWindow::instance() ) {
 
             mainWindow->activateWindow();
             mainWindow->createActions();
-            
+
             mode->setWidget( mainWindow->createContents( mode ) );
-            
+
             addAutoReleasedObject(mode);
             mainWindow->setSimpleDockWidgetArrangement();
         }
@@ -170,11 +170,11 @@ AcquirePlugin::aboutToShutdown()
 void
 AcquirePlugin::handle_shutdown()
 {
-    try { 
+    try {
         MainWindow::instance()->handle_shutdown();
     } catch ( ... ) {
         ADDEBUG() << boost::current_exception_diagnostic_information();
-        assert( 0 );        
+        assert( 0 );
     }
 }
 
@@ -185,7 +185,7 @@ AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long categor
         MainWindow::instance()->handle_debug_print( priority, category, text );
     } catch ( ... ) {
         ADDEBUG() << boost::current_exception_diagnostic_information();
-        assert( 0 );        
+        assert( 0 );
     }
 }
 
@@ -221,8 +221,8 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 
     for ( CORBA::ULong i = 0; i < nsize; ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
-        
-        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA
              && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
 
             SignalObserver::Observer_var tgt = SignalObserver::Observer::_duplicate( siblings[i] );
@@ -236,7 +236,7 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 					boost::filesystem::create_directories( path, ec );
 				}
 				path /= "acquire.adfs";
-				
+
                 try {
 					pImpl_->brokerSession_->coaddSpectrum( path.string().c_str() /* L"acquire" */, tgt, x1, x2 );
                 } catch ( std::exception& ex ) {
@@ -252,4 +252,3 @@ Q_EXPORT_PLUGIN( AcquirePlugin )
 
 
 ///////////////////
-

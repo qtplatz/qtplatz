@@ -90,6 +90,7 @@ namespace adportable {
         inline const_iterator_type end() const   { return d_.end();        }
         inline void clear()                      { d_.clear();             }
         inline void resize( size_t d )           { d_.resize( d );         }
+        inline const T * data() const            { return d_.data();       }
 
         uint64_t timepoint() const               { return timepoint_;      }    // hardware returned clock count
         uint64_t elapsed_time() const            { return elapsed_time_;   }    // elapsed time since digitizer started in ns
