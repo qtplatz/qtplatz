@@ -20,7 +20,7 @@ if ( QTPLATZ_CONFIG_Chemistry AND rdkit_FOUND )
   add_subdirectory( chemistry )
 endif()
 
-if ( QTPLATZ_CONFIG_Peptide )
+if ( NOT CMAKE_CROSSCOMPILING AND QTPLATZ_CONFIG_Peptide )
   add_subdirectory( peptide )
 endif()
 
@@ -36,6 +36,6 @@ if ( QTPLATZ_CONFIG_Query )
   add_subdirectory( query )
 endif()
 
-if ( OpenCV_FOUND )
+if ( NOT CMAKE_CROSSCOMPILING AND OpenCV_FOUND )
   add_subdirectory( video )
 endif()

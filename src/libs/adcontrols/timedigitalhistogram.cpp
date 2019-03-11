@@ -507,24 +507,24 @@ TimeDigitalHistogram::operator += ( const TimeDigitalHistogram& t )
              this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first
              , t.this_protocol().delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first ) ) {
         *this = t;
+#if !defined NDEBUG
         ADDEBUG() << "########################### " << __FUNCTION__ << " ### just clear it, trigger_count_=" << trigger_count_
+                  << ", " << t.trigger_count_
                   << ", " << this_protocol_.delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first
                   << ", " << t.this_protocol().delay_pulses().at( TofProtocol::EXT_ADC_TRIG ).first;
-
+#endif
         return *this;
     }
 
     trigger_count_ += t.trigger_count();
     wellKnownEvents_ |= t.wellKnownEvents();
 
-    //if ( serialnumber_.first > t.serialnumber().first )
-        serialnumber_.first = t.serialnumber().first;
+    serialnumber_.first = t.serialnumber().first;
 
     if ( serialnumber_.second < t.serialnumber().second )
         serialnumber_.second = t.serialnumber().second;
 
-    //if ( timeSinceEpoch_.first > t.timeSinceEpoch().first )
-        timeSinceEpoch_.first = t.timeSinceEpoch().first;
+    timeSinceEpoch_.first = t.timeSinceEpoch().first;
 
     if ( timeSinceEpoch_.second < t.timeSinceEpoch().second )
         timeSinceEpoch_.second = t.timeSinceEpoch().second;
