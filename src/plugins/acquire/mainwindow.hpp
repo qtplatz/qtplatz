@@ -1,16 +1,15 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,112 +22,93 @@
 **
 **************************************************************************/
 
-#ifndef ACQUIREUIMANAGER_H
-#define ACQUIREUIMANAGER_H
+#pragma once
 
-#include <QObject>
-#include <QWidget>
-#if HAVE_CORBA
-#include <adinterface/receiverC.h>
-#endif
 #include <utils/fancymainwindow.h>
+#include <array>
+#include <atomic>
 #include <memory>
+#include <mutex>
 
-namespace adcontrols {
-    namespace ControlMethod { class Method; }
-    class SampleRun;
-}
-
-namespace Core { class IMode; class Context; }
-namespace Utils { class StyledBar; }
-
-namespace adportable { class Configuration; }
-namespace adextension { class iMonitorFactory; class iController; }
-namespace adwidgets { class ControlMethodWidget; class SampleRunWidget; }
-
-class QDockWidget;
-class QAction;
-class QMainWindow;
 class QHBoxLayout;
 class QWidget;
 class QToolButton;
 class QAction;
 
+namespace adcontrols { class MassSpectrum; class Trace; class SampleRun; namespace ControlMethod { class Method; } }
+namespace adextension { class iController; class iSequenceImpl; }
+
+namespace Core { class IMode; class Context; }
+namespace Utils { class StyledBar; }
+
 namespace acquire {
-        
-    struct AcquireManagerActions;
-    struct MainWindowData;
-        
-    //------------
-    //------------
-    class MainWindow : public Utils::FancyMainWindow {
 
-        Q_OBJECT
-        explicit MainWindow(QWidget *parent = 0);        
+    class acquireplugin;
 
-    public:
-        ~MainWindow();
+	class MainWindow : public Utils::FancyMainWindow {
+		Q_OBJECT
+	public:
+		explicit MainWindow(QWidget *parent = 0);
+		~MainWindow();
 
-        static MainWindow * instance();
-      
-        void init( const adportable::Configuration& config );
-        void setSimpleDockWidgetArrangement();
+		QWidget * createContents( Core::IMode * );
 
-        QWidget * createContents( Core::IMode * );
-        
-        void OnInitialUpdate();
-        void OnFinalClose();
-        // 
-        void eventLog( const QString& );
+		void OnInitialUpdate();
+		void OnFinalClose();
+		void activateLayout();
+		void setSimpleDockWidgetArrangement();
+		QDockWidget * createDockWidget( QWidget *, const QString& title = QString(), const QString& page = QString() );
 
-        std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod();
-        void getControlMethod( adcontrols::ControlMethod::Method& );
-        void setControlMethod( const adcontrols::ControlMethod::Method& );
-
-        bool getSampleRun( adcontrols::SampleRun& );
-        void setSampleRun( const adcontrols::SampleRun& );
-
-        size_t findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& ) const;
-
-        //
         void createActions();
-        void actMethodOpen();
-        void actMethodSave();
-        void handleInstState( int );
-        //
-    signals:
-        void signal_eventLog( QString );
-        void signal_message( unsigned long msg, unsigned long value );
-        void signal_debug_print( unsigned long priority, unsigned long category, QString text );
 
-    public slots:
-        void handle_message( unsigned long msg, unsigned long value );
-        void handle_shutdown();
-        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
-        void handleControlMethod();
+		static QToolButton * toolButton( const char * );
+		static QToolButton * toolButton( QAction * );
 
-        // new interface for pure c++ instrument controller (aka iController)
-        void iControllerConnected( adextension::iController * inst );
-        void iControllerMessage( adextension::iController *, uint32_t msg, uint32_t value );
+		static MainWindow * instance();
+
+        void setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::Method> );
+
+        std::shared_ptr< adcontrols::ControlMethod::Method > getControlMethod() const;
+
+        void getEditorFactories( adextension::iSequenceImpl& );
+
+        size_t findInstControllers( std::vector< std::shared_ptr< adextension::iController > >& vec ) const;
+
+        void editor_commit();
+
+        void setSampleRun( const adcontrols::SampleRun& );
+        std::shared_ptr< adcontrols::SampleRun > getSampleRun() const;
 
     private:
-        Utils::StyledBar * createTopStyledToolbar();
-        Utils::StyledBar * createMidStyledToolbar();
-        void createDockWidgets();
-        
-        QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
-        static QToolButton * toolButton( QAction * action );
-        static QToolButton * toolButton( const char * id );
-        QAction * createAction( const QString&, const QString& msg, QObject * parent );
+        std::vector< QWidget* > widgets_;
+        QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
+
+    signals:
+
+	public slots:
+        void actSnapshot();
+        void iControllerConnected( adextension::iController * );
         void saveCurrentImage();
         void printCurrentView();
         void hideDock( bool );
-        void changeConfiguration( const QString& );
-        
-        class impl;
-        std::unique_ptr< impl > impl_;
-    };
+
+    private slots:
+        void handle_reply( const QString&, const QString& );
+        void handleInstState( int status );
+        void handleDataSaveIn();
+        void handleRunName();
+        void handleControlMethodOpen();
+        void handleControlMethodSaveAs();
+        void handleModulesFailed( const QStringList& );
+
+	private:
+        QAction * actionConnect_;
+        static MainWindow * instance_;
+
+        void setToolBarDockWidget( QDockWidget * dock );
+        void createDockWidgets();
+        Utils::StyledBar * createTopStyledToolbar();
+        Utils::StyledBar * createMidStyledToolbar();
+	};
 
 }
-
-#endif // ACQUIREUIMANAGER_H

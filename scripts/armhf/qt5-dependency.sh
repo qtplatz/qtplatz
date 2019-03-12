@@ -18,6 +18,12 @@ list_dependency+=('libclang-3.8-dev'
 				  'gperf'
 				 )
 
+list_dependency+=('mesa-common-dev:armhf'
+				  'libglu1-mesa-dev:armhf'
+				  'freeglut3-dev:armhf'
+				  )
+
+
 for arg in "${list_dependency[@]}"; do
     echo sudo apt-get install -y "$arg"
     sudo apt-get install -y "$arg" || failed_list+=("$arg")

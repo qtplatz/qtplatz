@@ -24,231 +24,125 @@
 **************************************************************************/
 
 #include "acquireplugin.hpp"
-#include "acquiremode.hpp"
 #include "constants.hpp"
-#include "document.hpp"
-#include "mastercontroller.hpp"
+#include "mode.hpp"
 #include "mainwindow.hpp"
-
-#if HAVE_CORBA
-#include "orb_i.hpp"
-#include "orbconnection.hpp"
-#include "qbroker.hpp"
-#endif
-
-#include <acewrapper/constants.hpp>
-#include <acewrapper/ifconfig.hpp>
-#include <adextension/iacquire.hpp>
-#include <adextension/isnapshothandler.hpp>
-#include <adcontrols/samplerun.hpp>
-#include <adportable/debug.hpp>
+#include "iacquireimpl.hpp"
+#include "document.hpp"
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adextension/isequenceimpl.hpp>
 #include <adportable/debug_core.hpp>
-#include <adplugin_manager/loader.hpp>
 #include <adlog/logging_handler.hpp>
-#include <adlog/logger.hpp>
 #include <coreplugin/icore.h>
-#include <coreplugin/id.h>
+#include <coreplugin/icontext.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/id.h>
 #include <coreplugin/modemanager.h>
-#include <extensionsystem/pluginmanager.h>
+
 #include <QAction>
-#include <QtCore/qplugin.h>
 #include <QMessageBox>
-#include <boost/exception/all.hpp>
+#include <QMainWindow>
+#include <QMenu>
+#include <QtPlugin>
 
 using namespace acquire;
 
-AcquirePlugin::~AcquirePlugin()
-{
-#if HAVE_CORBA
-    orb_i_->shutdown();
-    delete orb_i_;
-#endif
-}
-
-#if HAVE_CORBA
-AcquirePlugin::AcquirePlugin() : orb_i_( new orb_i() )
-#else
-AcquirePlugin::AcquirePlugin()
-#endif
+acquireplugin::acquireplugin() : mainWindow_( new MainWindow() )
+                               , mode_( std::make_unique< Mode >(this) )
 {
 }
 
+acquireplugin::~acquireplugin()
+{
+}
 
 bool
-AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
+acquireplugin::initialize( const QStringList &arguments, QString *errorString )
 {
-    Q_UNUSED(arguments);
-    Q_UNUSED(error_message);
+    Q_UNUSED(arguments)
+    Q_UNUSED(errorString)
 
-    //adportable::core::debug_core::instance()->hook( adlog::logging_handler::log );
+    mainWindow_->activateWindow();
+    mainWindow_->createActions();
 
-    Core::Context context( (Core::Id( "Acquire.MainView" )), (Core::Id( Core::Constants::C_NAVIGATION_PANE )) );
+    const Core::Context context( ( "ACQUIRE.MainView" ) );
 
-    if ( AcquireMode * mode = new AcquireMode(this) ) {
-        mode->setContext( context );
+    mode_->setId( "ACQUIRE.MainView" );
+    mode_->setContext( context );
 
-        if ( auto mainWindow = MainWindow::instance() ) {
+    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+        mode_->setWidget( widget );
 
-            mainWindow->activateWindow();
-            mainWindow->createActions();
+    addObject( mode_.get() );
 
-            mode->setWidget( mainWindow->createContents( mode ) );
-
-            addAutoReleasedObject(mode);
-            mainWindow->setSimpleDockWidgetArrangement();
-        }
+#if 0
+    // add instrument controller
+    for ( auto iController : document::instance()->iControllers() ) {
+        addObject( iController );
+        connect( iController, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
-
-#if HAVE_CORBA
-    auto qbroker = new QBroker();
-    connect( qbroker, &QBroker::initialized, this, &AcquirePlugin::handle_broker_initialized );
-    addObject( qbroker );
 #endif
 
-    if ( auto iAcquire = document::instance()->iAcquire() ) {
-        addObject( iAcquire );
-    }
-
-    if ( auto iExtension = document::instance()->masterController() ) {
+#if 0
+    // no time function supported.
+    if ( auto iExtension = document::instance()->iSequence() ) {
+        MainWindow::instance()->getEditorFactories( *iExtension );
         addObject( iExtension );
-        connect( iExtension, &adextension::iController::connected, MainWindow::instance(), &MainWindow::iControllerConnected );
     }
+#endif
+
+    QAction *action = new QAction(tr("acquire action"), this);
+
+    Core::ActionManager * am = Core::ActionManager::instance();
+    Core::Command * cmd = am->registerAction(action, Constants::ACTION_ID, context );
+    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
+    connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
+
+    Core::ActionContainer *menu = am->createMenu(Constants::MENU_ID);
+    menu->menu()->setTitle(tr("ACQUIRE"));
+    menu->addAction(cmd);
+    am->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
     return true;
 }
 
 void
-AcquirePlugin::extensionsInitialized()
+acquireplugin::extensionsInitialized()
 {
-    if ( auto mainWindow = MainWindow::instance() ) {
-
-        mainWindow->OnInitialUpdate();
-        document::instance()->initialSetup();
-        mainWindow->setControlMethod( *document::instance()->controlMethod() );
-        mainWindow->setSampleRun( *document::instance()->sampleRun() );
-
-        // gather and initialize control method,time events
-        mainWindow->handleControlMethod();
-    }
-}
-
-void
-AcquirePlugin::handle_broker_initialized()
-{
-#if HAVE_CORBA
-    if ( orb_i_ ) {
-        orb_i_->initialize();
-    }
-#endif
+    document::instance()->initialSetup(); // load default control method
+	mainWindow_->OnInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
-AcquirePlugin::aboutToShutdown()
+acquireplugin::aboutToShutdown()
 {
-    document::instance()->actionDisconnect();
+    // Save settings
+    // Disconnect from signals that are not needed during shutdown
+    // Hide UI (if you add UI that is not in the main window directly)
+    document::instance()->finalClose();
 
-    if ( auto iAcquire = document::instance()->iAcquire() )
-        removeObject( iAcquire );
+    if ( auto iExtension = document::instance()->iSequence() )
+        removeObject( iExtension );
 
-#if HAVE_CORBA
+    for ( auto iExtension: document::instance()->iControllers() )
+        removeObject( iExtension );
 
-    auto iBroker = ExtensionSystem::PluginManager::instance()->getObject< adextension::iBroker >();
-    removeObject( iBroker );
+    if ( mode_ )
+        removeObject( mode_.get() );
 
-#endif
-
-    if ( auto mainWindow = MainWindow::instance() ) {
-
-        document::instance()->finalClose( mainWindow );
-        mainWindow->OnFinalClose();
-    }
-
-	return SynchronousShutdown;
+    return SynchronousShutdown;
 }
 
 void
-AcquirePlugin::handle_shutdown()
+acquireplugin::triggerAction()
 {
-    try {
-        MainWindow::instance()->handle_shutdown();
-    } catch ( ... ) {
-        ADDEBUG() << boost::current_exception_diagnostic_information();
-        assert( 0 );
-    }
+    QMessageBox::information(Core::ICore::instance()->mainWindow(),
+                             tr("Action triggered"),
+                             tr("This is an action from acquire."));
 }
 
-void
-AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
-{
-    try {
-        MainWindow::instance()->handle_debug_print( priority, category, text );
-    } catch ( ... ) {
-        ADDEBUG() << boost::current_exception_diagnostic_information();
-        assert( 0 );
-    }
-}
-
-void
-AcquirePlugin::handle_monitor_selected(int)
-{
-}
-
-void
-AcquirePlugin::handle_monitor_activated(int)
-{
-}
-
-void
-AcquirePlugin::handleSelected( const QPointF& pt )
-{
-	selectRange( pt.x(), pt.x(), pt.y(), pt.y() );
-}
-
-void
-AcquirePlugin::handleSelected( const QRectF& rc )
-{
-	selectRange( rc.x(), rc.x() + rc.width(), rc.y(), rc.y() + rc.height() );
-}
-
-void
-AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
-{
-    (void)y1; (void)y2;
-#if 0
-    SignalObserver::Observers_var siblings = orb_i_->observer_->getSiblings();
-    CORBA::ULong nsize = siblings->length();
-
-    for ( CORBA::ULong i = 0; i < nsize; ++i ) {
-        SignalObserver::Description_var desc = siblings[i]->getDescription();
-
-        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA
-             && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
-
-            SignalObserver::Observer_var tgt = SignalObserver::Observer::_duplicate( siblings[i] );
-
-            if ( pImpl_ && ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
-				boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
-				path /= "data";
-				path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-				if ( ! boost::filesystem::exists( path ) ) {
-					boost::system::error_code ec;
-					boost::filesystem::create_directories( path, ec );
-				}
-				path /= "acquire.adfs";
-
-                try {
-					pImpl_->brokerSession_->coaddSpectrum( path.string().c_str() /* L"acquire" */, tgt, x1, x2 );
-                } catch ( std::exception& ex ) {
-                    QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
-                }
-            }
-        }
-    }
-#endif
-}
-
-Q_EXPORT_PLUGIN( AcquirePlugin )
-
-
-///////////////////
+Q_EXPORT_PLUGIN2(acquire, acquireplugin)

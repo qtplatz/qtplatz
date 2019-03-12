@@ -1,15 +1,18 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-project( acquire )
+project( acquireplugin )
 
 set( PROVIDER MS-Cheminformatics )
+set( COMPAT_VERSION 3.2.81 )
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 
-find_package( Qt5 CONFIG REQUIRED Core Widgets Sql Network PrintSupport Svg )
+find_package( Threads REQUIRED )
+
+#QT += core svg printsupport widgets
+find_package( Qt5 REQUIRED Core Gui PrintSupport Sql Svg Widgets )
+
 find_package( qwt )
-if ( QTPLATZ_SUPPORT_CORBA )
-  find_package( ace+tao )
-endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -20,125 +23,80 @@ file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec"
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
   )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.config"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.config"
-  )
-
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec
-  )
-
-add_definitions( -DACQUIRE_LIBRARY )
-
-if ( MSVC )
-  add_definitions( -D_SCL_SECURE_NO_WARNINGS -wd4996 )
-endif()
-
-include_directories(
-  ${CMAKE_BINARY_DIR}/src/libs/adinterface
-  ${CMAKE_BINARY_DIR}/src/libs
-  ${QWT_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/src/plugins
-  ${ACE+TAO_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5Core_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/src         # version.h
+  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
   )
 
 if (WIN32)
-  set( LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
-elseif( ${CMAKE_SYSTEM_NAME} MATCHES Darwin )
-  set( LINK_DIRS ${QTPLATZ_SOURCE_DIR}/bin/qtplatz.app/Contents/Plugins/QtProject )
-else()
-  set( LINK_DIRS ${QTPLATZ_BINARY_DIR}/lib/qtplatz/plugins/QtProject )
+  add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
-link_directories(
-  ${LINK_DIRS}
+include_directories(
+  ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
+  ${QTPLATZ_SOURCE_DIR}/src/libs
+  ${QTPLATZ_SOURCE_DIR}/src/plugins
+  ${CMAKE_SOURCE_DIR}/src/libs
+  ${QWT_INCLUDE_DIRS}
+  ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt5Core_INCLUDE_DIRS}
+  ${QTPLATZ_SOURCE_DIR}/src         # version.h
   )
 
-set( ${PROJECT_NAME}_SOURCES
-  acquiremode.cpp
-  acquiremode.hpp
+add_library( ${PROJECT_NAME} MODULE
+  acquire_global.hpp
+  mode.hpp
+  mode.cpp
   acquireplugin.cpp
   acquireplugin.hpp
   constants.cpp
   constants.hpp
   document.cpp
   document.hpp
+  iacquireimpl.cpp
+  iacquireimpl.hpp
+  isequenceimpl.cpp
   mainwindow.cpp
-  mainwindow.hpp  
+  mainwindow.hpp
   task.cpp
   task.hpp
-  session.cpp
-  session.hpp
-  mastercontroller.cpp
-  mastercontroller.hpp
-  masterobserver.cpp
-  masterobserver.hpp
-  masterreceiver.cpp
-  masterreceiver.hpp
-  masterobserverevents.cpp
-  masterobserverevents.hpp  
   waveformwnd.cpp
   waveformwnd.hpp
-  )
-
-
-set( ${PROJECT_NAME}_HEADERS
-  acquire_global.h
-  )
-
-if ( QTPLATZ_SUPPORT_CORBA )
-  list( APPEND ${PROJECT_NAME}_SOURCES
-    qbroker.cpp
-    qbroker.hpp
-    orbconnection.cpp
-    orbconnection.hpp
-    orb_i.cpp
-    orb_i.hpp
-    )
-  
-  set( CORBA_DEPENDENCY
-    adinterface
-    adorbmgr
-    ${ACE+TAO_LIBRARIES}
-    )
-  
-endif()
-
-add_library(
-  acquire MODULE
-  ${${PROJECT_NAME}_SOURCES}
-  ${${PROJECT_NAME}_HEADERS}
+#  isequenceimpl.cpp
+#  isequenceimpl.hpp
+#  resultwriter.cpp
+#  resultwriter.hpp
   ${Resources}
   )
 
-
 target_link_libraries(
-  acquire LINK_PUBLIC
-  adfs
-  adutils
-  adcontrols
+  acquireplugin LINK_PUBLIC
   adacquire
-  adplot
-  adwidgets
-  acewrapper
-  adplugin
+  adcontrols
   adextension
+  adfs
   adlog
+  adplot
+  adplugin
+  adplugin_manager
   adportable
+  adutils
+  adwidgets
+  qtwrapper
   xmlparser
   Core
-  ${CORBA_DEPENDENCY}
+  extensionsystem
+  utils
+  Qt5::Svg
+  Qt5::Widgets
+  Threads::Threads
   ${Boost_LIBRARIES}
+  ${QWT_LIBRARIES}
   )
 
 set_target_properties( ${PROJECT_NAME}
@@ -154,7 +112,5 @@ install( TARGETS ${PROJECT_NAME}
 
 install( FILES
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.config"
-  DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
-
-#"${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
+  DESTINATION lib/qtplatz/plugins/MS-Cheminformatics COMPONENT plugins
+  )

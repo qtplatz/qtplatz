@@ -1,6 +1,6 @@
 /**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2015 MS-Cheminformatics LLC
-** Author: Toshinobu Hondo
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -22,7 +22,6 @@
 **
 **************************************************************************/
 
-#include "constants.hpp"
 #include <adacquire/signalobserver.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -32,8 +31,8 @@ Q_DECLARE_METATYPE( boost::uuids::uuid );
 
 namespace so = adacquire::SignalObserver;
 
-namespace acquire {
+namespace ads54j {
 
-    const boost::uuids::uuid deprecated_observer = boost::uuids::name_generator( so::Observer::base_uuid() )( "deprecated" );
-    
+    // const boost::uuids::uuid ads54j_observer = boost::uuids::string_generator()( "1c64d0c3-d22c-4b79-a59c-4c752b90533a" );
+    //const boost::uuids::uuid trace_observer = name_generator( so::Observer::base_uuid() )( acqrscontrols::ads54j::tdcdoc_traces_observer_name );
 }

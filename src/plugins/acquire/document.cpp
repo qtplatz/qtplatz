@@ -1,15 +1,14 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with
-** the Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -21,60 +20,100 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
 #include "document.hpp"
 #include "constants.hpp"
-#include "fsm.hpp"
 #include "mainwindow.hpp"
-#include "mastercontroller.hpp"
-#include "masterreceiver.hpp"
-#include "masterobserver.hpp"
-#if HAVE_CORBA
-#include "orb_i.hpp"
-#endif
 #include "task.hpp"
-#include "waveformwnd.hpp"
+#include "iacquireimpl.hpp"
+#include "resultwriter.hpp"
+//#include <acquire/acquire_rx.hpp>
+//#include <acquire/adxcvr.hpp>
+//#include <acquire/waveform_adder.hpp>
+//#include <acquire/counting_data_writer.hpp>
+//#include <acquire/constants.hpp>
+//#include <acquire/dataframe.hpp>  // direct access
+//#include <acquire/histogram.hpp>
+//#include <acquire/histogram_adder.hpp>
+//#include <acquire/ilas.hpp>
+//#include <acquire/jesd204_rx.hpp>
+//#include <acquire/meta_data.hpp>
+//#include <acquire/singleton.hpp>  // direct access
+//#include <acquire/pkd_result.hpp>
+//#include <acquire/waveform.hpp>
+//#include <acquire/waveformobserver.hpp>
+#include <adacquire/masterobserver.hpp>
+#include <adacquire/simpleobserver.hpp>
+#include <adacquire/sampleprocessor.hpp>
+#include <adacquire/task.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
-#include <adcontrols/trace.hpp>
+#include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
+#include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
-#include <adextension/iacquire.hpp>
+#include <adcontrols/timedigitalhistogram.hpp>
+#include <adcontrols/timedigitalmethod.hpp>
+#include <adcontrols/trace.hpp>
+#include <adextension/icontrollerimpl.hpp>
+#include <adextension/isequenceimpl.hpp>
+#include <adextension/isnapshothandler.hpp>
 #include <adfs/adfs.hpp>
-#include <adfs/filesystem.hpp>
-#include <adfs/file.hpp>
-#include <adinterface/automaton.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/profile.hpp>
+#include <adlog/logging_handler.hpp>
+#include <adplugins/adspectrometer/massspectrometer.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
-#include <adportable/utf.hpp>
-#include <adportfolio/portfolio.hpp>
-#include <adportfolio/folder.hpp>
-#include <adportfolio/folium.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/debug_core.hpp>
+//#include <adportable/find_threshold_peaks.hpp>
+//#include <adportable/find_threshold_timepoints.hpp>
+#include <adportable/profile.hpp>
+#include <adportable/serializer.hpp>
+#include <adportable/spectrum_processor.hpp>
+#include <adwidgets/findslopeform.hpp>
+#include <adwidgets/thresholdactionform.hpp>
 #include <qtwrapper/settings.hpp>
-#include <xmlparser/pugixml.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <extensionsystem/pluginmanager.h>
-#include <QFileInfo>
-#include <QSettings>
-#include <QMessageBox>
-#include <boost/date_time.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/format.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/msm/back/state_machine.hpp>
-#include <boost/msm/front/state_machine_def.hpp>
-#include <boost/msm/front/functor_row.hpp>
-#include <boost/msm/front/euml/common.hpp>
-#include <boost/msm/front/euml/operator.hpp>
-#include <boost/msm/front/euml/state_grammar.hpp>
-#include <atomic>
+#include <boost/format.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <QSettings>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QMetaType>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDebug>
+#include <algorithm>
+#include <chrono>
 #include <future>
+#include <limits>
+#include <string>
+#include <fstream>
 
+Q_DECLARE_METATYPE( boost::uuids::uuid );
+
+using namespace acquire;
 
 namespace acquire {
-    
+
     struct user_preference {
         static boost::filesystem::path path( QSettings * settings ) {
             boost::filesystem::path dir( settings->fileName().toStdWString() );
@@ -82,212 +121,632 @@ namespace acquire {
         }
     };
 
-    class document::impl : public adextension::iAcquire {
-    public:
-        impl() : settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
-                                                           , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                           , QLatin1String( "acquire" ) ) )
-               , sampleRun_( std::make_shared< adcontrols::SampleRun >() ) {
-                       
-            connected_.clear();
-        }
-
-        ~impl() {
-        }
-
-        inline fsm::acquire& fsm() { return fsm_; }
-
-        void setControllerState( const QString& module, bool enable );
-
-        MasterController * masterController() {
-            static std::once_flag flag;
-            std::call_once( flag, [this] () { masterController_ = std::make_shared< MasterController >(); } );
-            return masterController_.get();
-        }
-
-        MasterObserver * masterObserver() {
-            static std::once_flag flag;
-            std::call_once( flag, [this] () { masterObserver_ = std::make_shared< MasterObserver >(); } );
-            return masterObserver_.get();
-        }
-        
-        MasterReceiver * masterReceiver() {
-            static std::once_flag flag;
-            std::call_once( flag, [this] () { receiver_ = std::make_shared< MasterReceiver >( masterController() ); } );
-            return receiver_.get();
-        }
-
-        void handleCommitMethods() {
-            // Update ControlMethod by UI data with individual initial conditions
-            adcontrols::ControlMethod::Method cm;
-            MainWindow::instance()->getControlMethod( cm );
-
-            auto iControllers = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >();
-            if ( !iControllers.isEmpty() ) {
-                for ( auto& iController : iControllers )
-                    iController->preparing_for_run( cm );
-            }
-            document::instance()->setControlMethod( cm ); // commit
-            
-            // Update document by UI data
-            adcontrols::SampleRun run;
-            MainWindow::instance()->getSampleRun( run );
-            acquire::document::instance()->setSampleRun( run ); // commit
-        }
-
-        // =================== iAcquire ================>
-        QList< QString > configurations() const override {
-            auto set = document::instance()->configurations();
-            QList< QString > list;
-            copy( set.begin(), set.end(), std::back_inserter( list ) );
-            return list;
-        }
-        
-        std::shared_ptr< const adcontrols::ControlMethod::Method > find( const QString& configuration ) const override {
-            return document::instance()->controlMethod( configuration );
-        }
-        
-        void merge( const QString& configuration, std::shared_ptr< const adcontrols::ControlMethod::Method > rvalue ) override {
-            if ( auto lvalue = document::instance()->controlMethod( configuration ) ) {
-                auto lhs = std::make_shared< adcontrols::ControlMethod::Method >( *lvalue );
-                //(*lhs) += *rvalue;
+    template< typename T > struct xmlWriter {
+        void operator()( const adcontrols::ControlMethod::MethodItem& mi, const boost::filesystem::path& dir ) const {
+            T x;
+            if ( mi.get<>( mi, x ) ) {
+                boost::filesystem::path fname( dir / mi.modelname() );
+                fname.replace_extension( ".cmth.xml" );
+                std::wofstream outf( fname.string() );
+                T::xml_archive( outf, x );
             }
         }
-        
-        QString curentConfiguration() const override {
-            return document::instance()->currentConfiguration();
-        }
-
-        // <<================= iAcquire ================
-
-    public:
-        std::atomic_flag connected_;
-        std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
-        std::set< QString > confignames_;
-        std::map< QString, std::shared_ptr< adcontrols::ControlMethod::Method > > cmMap_;
-
-        fsm::acquire fsm_;
-        std::shared_ptr< MasterController > masterController_;
-        std::shared_ptr< MasterObserver > masterObserver_;
-        std::shared_ptr< MasterReceiver > receiver_;
-        std::map< QString, bool > moduleStates_;
-        std::shared_ptr< QSettings > settings_;  // user scope settings
-        std::shared_ptr< adcontrols::SampleRun > sampleRun_;
-        QString ctrlmethod_filename_;
-        QString samplerun_filename_;
     };
 
+    namespace so = adacquire::SignalObserver;
+
+    struct ObserverData {
+        const char * objtext;
+        const boost::uuids::uuid objid;
+        const char * dataInterpreterClsid;
+        const so::Description desc;
+    };
+
+    static ObserverData observers [] = {
+
+        // { acquire::waveform_observer_name      // "1.acquire.ms-cheminfo.com"
+        //   , acquire::waveform_observer         // "ab4620f4-933f-4b44-9102-740caf8f791a"
+        //   , acquire::waveform_datainterpreter  // "a33d0d5e-5ace-4d2c-9d46-ddffcd799b51"
+        //   , { acquire::waveform_observer_name  // desc.traceId := data name on adfs file
+        //       , so::eTRACE_SPECTRA
+        //       , so::eMassSpectrometer
+        //       , L"Time", L"Count", 3, 0
+        //     }
+        // }
+        // , { acquire::histogram_observer_name     // "histogram.tdc.1.acquire.ms-cheminfo.com"
+        //     , acquire::histogram_observer        // "b3600237-527b-4689-8b25-4ca1c30b99dd"
+        //     , acquire::histogram_datainterpreter // "58fa8716-28fb-484f-bb89-49e843f70981"
+        //     , { acquire::histogram_observer_name // desc.traceId := data name on adfs file
+        //         , so::eTRACE_SPECTRA
+        //         , so::eMassSpectrometer
+        //         , L"Time", L"Count", 3, 0
+        //     }
+        // }
+        /*
+        , { acquire::softavgr_observer_name
+            , acquire::softavgr_datainterpreter
+            , { acquire::softavgr_observer_name
+                , so::eTRACE_SPECTRA
+                , so::eMassSpectrometer
+                , L"Time", L"mV", 3, 0
+            }
+        }
+        */
+    };
+
+    struct exec_fsm_stop {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            task::instance()->sample_stopped();
+            for ( auto& iController : iControllers ) {
+                if ( auto session = iController->getInstrumentSession() )
+                    session->stop_run();
+            }
+        }
+    };
+
+    struct exec_fsm_start {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            for ( auto inst : iControllers ) {
+                if ( auto session = inst->getInstrumentSession() )
+                    session->start_run();
+            }
+
+            document::instance()->prepare_for_run();
+            task::instance()->sample_started(); // workaround::method start
+            // increment sample number
+            if ( auto run = document::instance()->sampleRun() )
+                ++( *run );
+        }
+    };
+
+    struct exec_fsm_ready {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            // make immediate inject
+            // adacquire::task::instance()->fsmInject();
+        }
+    };
+
+    struct exec_fsm_inject {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            task::instance()->sample_injected();
+            for ( auto& iController : iControllers ) {
+                if ( auto session = iController->getInstrumentSession() )
+                    session->event_out( adacquire::Instrument::instEventInjectOut ); // loopback to peripherals
+            }
+        }
+    };
+
+    struct exec_fsm_complete {
+        void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
+            adacquire::task::instance()->fsmStart();
+            adacquire::task::instance()->fsmReady();
+        }
+    };
+
+    // template<typename T> struct wrap {};
+
+    //..........................................
+    class document::impl {
+    public:
+        static document * instance_; // workaround
+        static std::mutex mutex_;
+        static const std::chrono::system_clock::time_point uptime_;
+        static const uint64_t tp0_;
+
+        std::mutex acquire_mutex_;
+
+        std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
+        std::shared_ptr< ::acquire::iACQUIREImpl > iACQUIREImpl_;
+        std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
+        std::vector< std::shared_ptr< adextension::iController > > iControllers_;
+        std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
+        std::map< boost::uuids::uuid, std::shared_ptr< adacquire::SignalObserver::Observer > > observers_;
+        bool isMethodDirty_;
+
+        std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
+        //std::unique_ptr< ResultWriter > resultWriter_;
+        std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
+
+        int32_t device_status_;
+        // double triggers_per_second_;
+
+        std::shared_ptr< QSettings > settings_;  // user scope settings
+        QString ctrlmethod_filename_;
+
+        std::map< QString, bool > moduleLists_;
+        std::set< QString > blockedModules_;
+        std::ofstream console_;
+        QString ip_address_;
+        QString port_;
+
+        std::atomic_bool acquire_polling_stop_request_;
+        std::atomic_bool acquire_polling_stopped_;
+        bool  acquire_polling_enabled_;
+        uint32_t acquire_polling_interval_;
+        uint32_t acquire_polling_mtu_;
+
+        bool     acquire_avgr_enabled_;
+        //uint32_t acquire_avgr_lower_addr_;
+        //uint32_t acquire_avgr_upper_addr_;
+        double acquire_dg_adc_delay_;
+        double acquire_dg_interval_;
+        uint32_t acquire_avgr_samples_;
+        uint32_t acquire_avgr_trig_counts_;
+        uint32_t acquire_avgr_index_;
+        uint32_t acquire_avgr_trig_number_;
+        std::atomic< bool > acquire_avgr_dirty_;
+        int32_t acquire_pkd_threshold_;
+        bool  acquire_pkd_algo_;
+
+        bool avrg_disable_dma_;
+        bool avrg_ext_trigger_;
+        bool avrg_invert_data_;
+
+        uint32_t polling_counts_;
+
+        ///---------------
+        QJsonDocument threshold_method_;
+        QJsonDocument threshold_action_;
+        std::shared_ptr< adcontrols::threshold_method > method_;
+        uint32_t avrg_count_;
+        bool avrg_refresh_;
+
+        // display data
+        std::vector< std::shared_ptr< adcontrols::Trace > > traces_;
+        // std::map< boost::uuids::uuid
+        //           , std::array< std::shared_ptr< adcontrols::MassSpectrum >
+        //                         , acquire::nchannels > > spectra_;
+
+        impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
+               , iACQUIREImpl_( std::make_shared< acquire::iACQUIREImpl >() )
+               , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "ACQUIRE" ) )
+               , isMethodDirty_( true )
+               , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
+                 //, resultWriter_( std::make_unique< ResultWriter >() )
+               , device_status_( 0 )
+               , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
+                                                           , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
+                                                           , QLatin1String( "acquire" ) ) )
+               , blockedModules_( { "Acquire", "InfiTOF" } )
+               , console_( "/dev/null" )
+               , acquire_polling_enabled_( false )
+               , acquire_polling_interval_( 1000 )
+               , acquire_polling_mtu_( 4096 )
+               , acquire_avgr_enabled_( false )
+               , acquire_dg_adc_delay_( 0.0 )
+               , acquire_dg_interval_( 1.0e-3 ) // := 1ms
+               , acquire_avgr_samples_( 1024 )
+               , acquire_avgr_trig_counts_( 0 )
+               , acquire_avgr_index_( 0 )
+               , acquire_avgr_trig_number_( 0 )
+               , acquire_avgr_dirty_( true )
+               , acquire_pkd_threshold_( 512 ) // 12bit singed int
+               , acquire_pkd_algo_ ( false )
+               , avrg_disable_dma_ ( false )
+               , avrg_ext_trigger_ ( false )
+               , avrg_invert_data_ ( false )
+               , polling_counts_( 0 )
+               , avrg_count_( 100 )
+               , avrg_refresh_( false )
+            {
+                method_ = std::make_shared< adcontrols::threshold_method >();
+                adcontrols::TofChromatogramsMethod tofm;
+                tofm.setNumberOfTriggers( 1000 );
+        }
+
+        void handle_fsm_state_changed( bool enter, int id_state, adacquire::Instrument::eInstStatus st ) {
+            if ( enter )
+                emit document::instance()->instStateChanged( st );
+        }
+
+        void handle_fsm_action( adacquire::Instrument::idFSMAction a ) {
+
+            typedef boost::mpl::vector< exec_fsm_stop, exec_fsm_start, exec_fsm_ready, exec_fsm_inject, exec_fsm_complete > actions;
+
+            switch( a ) {
+            case adacquire::Instrument::fsmStop:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmStop>::type()( iControllers_ );
+                break;
+            case adacquire::Instrument::fsmStart:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmStart>::type()( iControllers_ );
+                break;
+            case adacquire::Instrument::fsmReady:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmReady>::type()( iControllers_ );
+                break;
+            case adacquire::Instrument::fsmInject:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmInject>::type()( iControllers_ );
+                break;
+            case adacquire::Instrument::fsmComplete:
+                boost::mpl::at_c<actions, adacquire::Instrument::fsmComplete>::type()( iControllers_ );
+                break;
+            }
+        }
+
+        bool initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const  {
+            std::string objtext;
+
+            if ( uuid == boost::uuids::uuid{ 0 } ) {
+                objtext = "master.observer";
+            } else {
+                auto it = observers_.find( uuid );
+                if ( it != observers_.end() )
+                    objtext = it->second->objtext();
+                else
+                    return false;
+            }
+
+            ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
+
+            do {
+                adfs::stmt sql( db );
+
+                static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
+                sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
+                sql.bind( 1 ) = uuid_massspectrometer;
+                sql.bind( 2 ) = 0;
+                sql.bind( 3 ) = std::string( adspectrometer::MassSpectrometer::class_name );
+                sql.bind( 4 ) = 1.0; // scanLaw->fLength( 0 ); // fLength at mode 0
+
+                if ( sql.step() != adfs::sqlite_done )
+                    ADDEBUG() << "sqlite error";
+            } while ( 0 );
+
+            // Save method
+            if ( uuid == boost::uuids::uuid{ 0 } ) {
+                // only if call for master observer
+
+                adfs::stmt sql( db );
+                sql.exec( "CREATE TABLE IF NOT EXISTS MetaData (clsid UUID, attrib TEXT, data BLOB )" ); // check adutils/AcquiredData::create_table_v3
+
+                std::string ar;
+                {
+                    auto cm( cm_ );
+                    boost::iostreams::back_insert_device< std::string > inserter( ar );
+                    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+                    adcontrols::ControlMethod::Method::archive( device, *cm );
+                }
+
+                sql.prepare( "INSERT OR REPLACE INTO MetaData ( clsid, attrib, data ) VALUES ( ?,?,? )" );
+                sql.bind( 1 ) = adcontrols::ControlMethod::Method::clsid();
+                sql.bind( 2 ) = std::string( "ControlMethod::Method" );
+                sql.bind( 3 ) = adfs::blob( ar.size(), reinterpret_cast< const int8_t * >( ar.data() ) );
+                if ( sql.step() != adfs::sqlite_done )
+                    ADDEBUG() << "sqlite error";
+            }
+            return true;
+        }
+
+        void apply() {
+            // acquire_rx::instance<0>()->set_dg_adc_delay( acquire_dg_adc_delay_ );
+            // acquire_rx::instance<0>()->set_dg_interval( acquire_dg_interval_ );
+            // acquire_rx::instance<0>()->set_avgr_num_triggers( acquire_avgr_trig_counts_ );
+            // acquire_rx::instance<0>()->set_avgr_disable_dma( avrg_disable_dma_ );
+            // acquire_rx::instance<0>()->set_invert_data( avrg_invert_data_ );
+            // acquire_rx::instance<0>()->set_pkd_threshold( acquire_pkd_threshold_ );
+            // acquire_rx::instance<0>()->set_pkd_algo( acquire_pkd_algo_ );
+            acquire_avgr_dirty_ = false;
+        }
+    };
+
+    //////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+
+    std::mutex document::impl::mutex_;
+    document * document::impl::instance_( 0 );
+    const std::chrono::system_clock::time_point document::impl::uptime_ = std::chrono::system_clock::now();
+    const uint64_t document::impl::tp0_ =
+        std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
 }
 
-using namespace acquire;
-
-std::atomic< document * > document::instance_(0);
-std::mutex document::mutex_;
+document::document() : impl_( new impl() )
+{
+    // diagnostic
+    QVariant v;
+    v.setValue( boost::uuids::uuid() );
+}
 
 document::~document()
 {
     delete impl_;
+    ADTRACE() << "=====> document dtor";
 }
 
-document::document(QObject *parent) : QObject(parent)
-                                    , impl_( new impl() )
+document *
+document::instance()
 {
+    static std::once_flag flag;
+
+    std::call_once( flag, [=] () { impl::instance_ = new document(); } );
+    return impl::instance_;
 }
 
 void
-document::actionConnect( bool applyMethod )
+document::actionConnect()
 {
-    // When press 'connect' button on Acquire's MainWindow, directory goes to MasterController::connect 
-    // then call this from MainWindow.
+    using namespace std::literals::chrono_literals;
 
-    if ( impl_->connected_.test_and_set( std::memory_order_acquire ) == false ) {
+    //ADTRACE() << "iControllers size=" << impl_->iControllers_.size();
+    ADTRACE() << "iControllers size=" << impl_->iControllers_.size();
 
-        task::instance()->open();
+    if ( !impl_->iControllers_.empty() ) {
 
-        if ( *( impl_->fsm().current_state() ) == 0 ) {
+        std::vector< std::future<bool> > futures;
 
-            impl_->fsm().start();
+        std::vector< std::shared_ptr< adextension::iController > > activeControllers;
 
-            std::vector< std::shared_ptr< adextension::iController > > vec;
-            MainWindow::instance()->findInstControllers( vec );
+        for ( auto& iController : impl_->iControllers_ ) {
 
-            for ( auto inst : vec ) 
-                connect( inst.get(), &adextension::iController::message, MainWindow::instance(), &MainWindow::iControllerMessage );
+            if ( isControllerEnabled( iController->module_name() ) ) {
 
-            if ( applyMethod ) {
-                // Do here when 'Correct' button on Acquire view pressed
+                ADTRACE() << "acquire actionConnect connecting to " << iController->module_name().toStdString();
 
-                std::vector< std::future<bool> > futures;
-                for ( auto& iController : vec ) {
-                    // fire 'connect' trigger to all controllers
-                    futures.push_back( std::async( [iController] () {
-                        return iController->connect() && iController->wait_for_connection_ready(); } ) );
-                }
-                
-                size_t i = 0;
-                for ( auto& future : futures ) {
-                    if ( future.get() )
-                        impl_->activeControllers_.push_back( vec[ i ] );
-                    ++i;
-                }
+                activeControllers.emplace_back( iController );
 
-                futures.clear();
-                auto cm = MainWindow::instance()->getControlMethod();
-                for ( auto iController : impl_->activeControllers_ ) {
-                    if ( auto session = iController->getInstrumentSession() )
-                        futures.push_back( std::async( std::launch::async, [session, cm] () {
-                                    return session->initialize() && session->prepare_for_run( cm ); } ) );
-                }
-                task::instance()->post( futures );
-            }
+                futures.emplace_back( std::async( [iController] () { return iController->wait_for_connection_ready( 3s ); } ) );
 
-            // connect all data streams
-            if ( auto masterObserver = impl_->masterObserver() ) {
-
-                auto ptr( masterObserver->shared_from_this() );
-
-                for ( auto& iController : vec ) {
-
-                    if ( auto session = iController->getInstrumentSession() ) {
-
-                        // connect to each controller session for instrument state change
-                        session->connect( impl_->masterReceiver(), "acquire.master" );
-
-                        if ( auto observer = session->getObserver() ) {
-                            ADDEBUG() << iController->module_name().toStdString() << "  --> Added to MasterObserver";
-                            ptr->addSibling( observer );
-                        }
+                if ( iController->connect() ) {
+                    if ( iController->module_name() == iACQUIREImpl::__module_name__ ) {
+                        QJsonObject jobj;
+                        jobj[ "ip_address" ] = impl_->ip_address_;
+                        jobj[ "port" ] = impl_->port_;
+                        QJsonDocument jdoc( jobj );
+                        auto json = std::string( jdoc.toJson( QJsonDocument::Indented ).data() );
+                        if ( auto inst = impl_->iACQUIREImpl_->getInstrumentSession() )
+                            inst->setConfiguration( json );
                     }
                 }
             }
-
         }
+
+        QStringList failed;
+        size_t i = 0;
+        for ( auto& future : futures ) {
+            if ( future.get() )
+                impl_->activeControllers_.push_back( activeControllers[ i ] );
+            else
+                failed << activeControllers[ i ]->module_name();
+            ++i;
+        }
+
+        emit onModulesFailed( failed );
+
+        futures.clear();
+        for ( auto& iController : impl_->iControllers_ ) {
+            if ( auto session = iController->getInstrumentSession() ) {
+                session->initialize();
+            }
+        }
+
+        // setup observer hiralchey
+        // ADDEBUG() << "########### setup observer hiralchey ################";
+        if ( auto masterObserver = adacquire::task::instance()->masterObserver() ) {
+            // create local signal observers
+            for ( auto& o: observers ) {
+                auto so = std::make_shared< adacquire::SimpleObserver >( o.objtext
+                                                                         , o.objid
+                                                                         , o.dataInterpreterClsid
+                                                                         , o.desc );
+                const auto uuid = so->objid();
+                impl_->observers_[ uuid ] = so;
+                masterObserver->addSibling( so.get() );
+                so->setPrepareStorage( [ uuid, this ]( adacquire::SampleProcessor& sp ) { return prepareStorage( uuid, sp ); } );
+                so->setClosingStorage( [ uuid, this ]( adacquire::SampleProcessor& sp ) { return closingStorage( uuid, sp ); } );
+            }
+
+            masterObserver->setPrepareStorage( [&]( adacquire::SampleProcessor& sp ) {
+                                                   return document::instance()->prepareStorage( boost::uuids::uuid{ 0 }, sp );
+                                               } );
+
+            masterObserver->setClosingStorage( [&]( adacquire::SampleProcessor& sp ) {
+                                                   return document::instance()->closingStorage( boost::uuids::uuid{ 0 }, sp );
+                                               } );
+
+            for ( auto& iController : impl_->iControllers_ ) {
+                if ( auto session = iController->getInstrumentSession() ) {
+                    if ( auto observer = session->getObserver() ) {
+                        masterObserver->addSibling( observer );
+                    }
+                }
+            }
+        } else {
+            ADTRACE() << "##### No master observer found #####";
+        }
+
+        // FSM Action
+        adacquire::task::instance()->connect_fsm_action( std::bind( &impl::handle_fsm_action, impl_, std::placeholders::_1 ) );
+
+        // FSM State
+        adacquire::task::instance()->connect_fsm_state(
+            std::bind( &impl::handle_fsm_state_changed, impl_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+
+        adacquire::task::instance()->fsmStart();
+        adacquire::task::instance()->fsmReady();
     }
 }
 
 void
-document::addToRecentFiles( const QString& filename )
+document::actionInject()
 {
-    qtwrapper::settings(*impl_->settings_).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
+    ADTRACE() << "\t#### Action INJECT IN ####";
+    adacquire::task::instance()->fsmInject();
 }
 
-document * 
-document::instance()
+void
+document::actionRec( bool onoff )
 {
-    static document __document;
-    return &__document;
+    task::instance()->setRecording( onoff );
+
+    for ( auto inst : impl_->iControllers_ ) {
+        if ( auto session = inst->getInstrumentSession() )
+            session->recording( onoff );
+    }
+}
+
+void
+document::actionSyncTrig()
+{
+    //impl_->coadded_.clear();
+}
+
+void
+document::actionRun()
+{
+    adacquire::task::instance()->fsmStart();
+}
+
+void
+document::actionStop()
+{
+    adacquire::task::instance()->fsmStop();
+}
+
+void
+document::addInstController( adextension::iController * p )
+{
+    try {
+        if ( auto ptr = p->pThis() ) {
+
+            using adextension::iController;
+            using adacquire::SignalObserver::Observer;
+
+            if ( document::instance()->isControllerEnabled( p->module_name() ) ) {
+
+                impl_->console_ << "addInstController : " << p->module_name().toStdString() << std::endl;
+
+                impl_->iControllers_.emplace_back( ptr );
+
+                // switch to UI thread
+                connect( p, &iController::message, document::instance()
+                         , [] ( iController * p, unsigned int code, unsigned int value ) { document::instance()->handleMessage( p, code, value ); } );
+
+                // non UI thread
+                connect( p, &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
+                //connect( p, &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
+
+                ptr->dataChangedHandler( [] ( Observer *o, unsigned int pos ) {
+                                             task::instance()->onDataChanged( o, pos );
+                                         } );
+            }
+        }
+
+    } catch ( std::bad_weak_ptr& ) {
+
+        QMessageBox::warning( MainWindow::instance(), "ACQUIRE plugin"
+                              , QString( tr( "Instrument controller %1 has no shared_ptr; ignored." ) ).arg( p->module_name() ) );
+
+    }
+}
+
+void
+document::prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm )
+{
+    // make empty que
+    while( auto sample = adacquire::task::instance()->deque() )
+        ;
+
+    // push new sample
+    adacquire::task::instance()->prepare_next_sample( run, cm );
+
+    // set INJECTION WAITING
+    adacquire::task::instance()->fsmReady();
+
+    emit sampleRunChanged();
+}
+
+void
+document::prepare_for_run()
+{
+    using adcontrols::ControlMethod::MethodItem;
+
+    auto cm = MainWindow::instance()->getControlMethod();
+
+    prepare_next_sample( impl_->nextSampleRun_, *impl_->cm_ );
+
+    ADTRACE() << "### prepare_for_run ###";
+
+    std::vector< std::future< bool > > futures;
+    for ( auto& iController : impl_->iControllers_ ) {
+        if ( auto session = iController->getInstrumentSession() ) {
+            futures.push_back( std::async( [=] () { return session->prepare_for_run( cm ); } ) );
+        }
+    }
+    if ( !futures.empty() )
+        task::instance()->post( futures );
+}
+
+void
+document::start_run()
+{
+    ADTRACE() << "### start run ###";
+    prepare_for_run();
+}
+
+void
+document::stop()
+{
+    ADTRACE() << "### stop ###";
+
+    std::vector< std::future< bool > > futures;
+
+    for ( auto& iController : impl_->iControllers_ ) {
+        if ( auto session = iController->getInstrumentSession() ) {
+            futures.push_back( std::async( [=] () { return session->stop_run(); } ) );
+        }
+    }
+    if ( !futures.empty() )
+        task::instance()->post( futures );
+
+}
+
+int32_t
+document::device_status() const
+{
+    return impl_->device_status_;
 }
 
 
-adextension::iAcquire *
-document::iAcquire()
+// static
+bool
+document::appendOnFile( const boost::filesystem::path& path
+                        , const QString& title
+                        , const adcontrols::MassSpectrum& ms
+                        , QString& id )
 {
-    return impl_;
+    adfs::filesystem fs;
+
+	if ( ! boost::filesystem::exists( path ) ) {
+		if ( ! fs.create( path.c_str() ) )
+			return false;
+	} else {
+		if ( ! fs.mount( path.c_str() ) )
+			return false;
+	}
+	adfs::folder folder = fs.addFolder( L"/Processed/Spectra" );
+
+    if ( folder ) {
+		adfs::file file = folder.addFile( adfs::create_uuid(), title.toStdWString() );
+        if ( file ) {
+            file.dataClass( ms.dataClass() );
+            id = QString::fromStdWString( file.id() );
+            if ( file.save( ms ) )
+				file.commit();
+        }
+	}
+    return true;
+
 }
 
 void
 document::initialSetup()
 {
+    adlog::logging_handler::instance()->register_handler(
+        [&]( int pri, const std::string& text, const std::string& file, int line, const std::chrono::system_clock::time_point& tp ){
+            impl_->console_ << text << std::endl;
+        });
+    adportable::core::debug_core::instance()->open( std::string() ); // disable log file
+    adlog::logging_handler::instance()->setlogfile( std::string() );
+
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
 
     if ( !boost::filesystem::exists( dir ) ) {
@@ -299,112 +758,131 @@ document::initialSetup()
 
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
-        path = QString::fromStdWString( ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
+        path = QString::fromStdWString(
+            ( boost::filesystem::path( adportable::profile::user_data_dir< char >() ) / "data" ).generic_wstring() );
     } else {
         path = QFileInfo( path ).path();
     }
 
-    Core::DocumentManager::setUseProjectsDirectory( true );
-    if ( ! currentConfiguration().isEmpty() ) {
-        QString mfile = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), currentConfiguration() );
-        adcontrols::ControlMethod::Method m;
-        if ( load( mfile, m ) ) {
-            auto cm = std::make_shared< adcontrols::ControlMethod::Method >( m );
-            impl_->cmMap_ [ currentConfiguration() ] = cm;
-            setControlMethod( *cm, QString() ); // don't save default name
+    if ( auto run = std::make_shared< adcontrols::SampleRun >() ) {
+
+        boost::filesystem::path fname( dir / "samplerun.xml" );
+        if ( boost::filesystem::exists( fname ) ) {
+            std::wifstream inf( fname.string() );
+            try {
+                adcontrols::SampleRun::xml_restore( inf, *run );
+
+                // replace directory name to 'today'
+                run->setDataDirectory( impl_->nextSampleRun_->dataDirectory() ); // reset data directory to ctor default
+                adacquire::SampleProcessor::prepare_sample_run( *run, false );
+
+                MainWindow::instance()->setSampleRun( *run );
+                document::setSampleRun( run );
+
+            } catch ( std::exception& ex ) {
+                ADTRACE() << ex.what();
+            }
         }
     }
 
-    boost::filesystem::path sfile( dir / "samplerun.sequ" );
-    adcontrols::SampleRun sr;
-    if ( load( QString::fromStdWString( sfile.wstring() ), sr ) ) {
-        //boost::filesystem::path path( sr.dataDirectory() );
-        boost::filesystem::path path( adportable::profile::user_data_dir< char >() );
-        path /= "data";
-        path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-        sr.dataDirectory( path.normalize().wstring().c_str() );
+    if ( auto settings = impl_->settings_ ) {
+        impl_->ip_address_ = settings->value( Constants::THIS_GROUP + QString("/ip_address"),  "192.168.1.128" ).toString();
+        impl_->port_ = settings->value( Constants::THIS_GROUP + QString("/port"),  "8267" ).toString();
+    }
 
-        setSampleRun( sr, QString() ); // don't save default name
+    if ( auto settings = impl_->settings_ ) {
+        using namespace adwidgets;
+        auto m = settings->value( QString( Constants::THIS_GROUP ) + "/threshold_method"
+                                  , findSlopeForm::toJson( adcontrols::threshold_method() ) );
+        impl_->threshold_method_ = QJsonDocument::fromJson( m.toByteArray() );
+
+        // convert to binary method
+        if ( impl_->threshold_method_.isArray() ) {
+            auto m = std::make_shared< adcontrols::threshold_method >();
+            if ( adwidgets::findSlopeForm::fromJson(
+                     QJsonDocument( impl_->threshold_method_.array().at(0).toObject() ).toJson( QJsonDocument::Compact ), *m ) )
+                impl_->method_ = m;
+        }
+
+        auto a = settings->value( QString( Constants::THIS_GROUP ) + "/threshold_action"
+                                  , ThresholdActionForm::toJson( adcontrols::threshold_action() ) );
+        impl_->threshold_action_ = QJsonDocument::fromJson( a.toByteArray() );
+
+        auto json = tof_chromatograms_method();
+        if ( ! json.isEmpty() ) {
+            auto doc = QJsonDocument::fromJson( json );
+            auto jtop = doc.object()[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ].toObject();
+            impl_->avrg_refresh_ = jtop[ "refreshHistogram" ].toBool();
+            impl_->avrg_count_ = jtop[ "numberOfTriggers" ].toInt();
+        }
     }
 }
 
 void
-document::finalClose( MainWindow * mainwindow )
+document::finalClose()
 {
+    for ( auto iController : impl_->iControllers_ )
+        iController->disconnect( true );
+
+    // make empty que
+    while( auto sample = adacquire::task::instance()->deque() )
+        ;
+
+    task::instance()->finalize();
+
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "dataproc::document"
+            QMessageBox::information( 0, "acquire::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
         }
     }
 
-    auto cm = std::make_shared< adcontrols::ControlMethod::Method >();
-    mainwindow->getControlMethod( *cm );
-    impl_->cmMap_[ currentConfiguration() ] = cm;
-
-    for ( const auto& pair : impl_->cmMap_ ) {
-        QString fname = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), pair.first );
-        save( fname, *pair.second );
+    if ( auto run = sampleRun() ) {
+        boost::filesystem::path fname( dir / "samplerun.xml" );
+        std::wofstream outf( fname.string() );
+        adcontrols::SampleRun::xml_archive( outf, *run );
     }
 
-    mainwindow->getSampleRun( *impl_->sampleRun_ );
-    boost::filesystem::path sname( dir / "samplerun.sequ" );
-    save( QString::fromStdWString( sname.wstring() ), *impl_->sampleRun_ );
-}
+    if ( auto settings = impl_->settings_ ) {
+        settings->beginGroup( Constants::THIS_GROUP );
 
-std::shared_ptr< adcontrols::ControlMethod::Method >
-document::controlMethod() const
-{
-    if ( impl_->cmMap_.find( currentConfiguration() ) == impl_->cmMap_.end() ) 
-        impl_->cmMap_ [ currentConfiguration() ] = std::make_shared< adcontrols::ControlMethod::Method >();
-    return impl_->cmMap_ [ currentConfiguration() ];
-}
+        settings->beginWriteArray( "ControlModule" );
 
-std::shared_ptr< const adcontrols::ControlMethod::Method >
-document::controlMethod( const QString& config ) const
-{
-    auto it = impl_->cmMap_.find( config );
-    if ( it != impl_->cmMap_.end() )
-        return it->second;
-    return nullptr;
-}
+        int i = 0;
+        for ( auto& state : impl_->moduleLists_ ) {
+            settings->setArrayIndex( i++ );
+            settings->setValue( "module_name", state.first );
+            settings->setValue( "enable", state.second );
+        }
 
-std::shared_ptr< adcontrols::SampleRun >
-document::sampleRun() const
-{
-    return impl_->sampleRun_;
+        settings->endArray();
+        settings->endGroup();
+
+        settings->sync();
+    }
+
+    if ( auto settings = impl_->settings_ )
+        settings->setValue( QString( Constants::THIS_GROUP ) + "/threshold_method", impl_->threshold_method_.toJson( QJsonDocument::Compact ) );
+
+    if ( auto settings = impl_->settings_ )
+        settings->setValue( QString(Constants::THIS_GROUP) + "/threshold_action", impl_->threshold_action_.toJson( QJsonDocument::Compact ) );
+
+   if ( auto settings = impl_->settings_ ) {
+       settings->setValue( Constants::THIS_GROUP + QString("/ip_address"), impl_->ip_address_ );
+       settings->setValue( Constants::THIS_GROUP + QString("/port"), impl_->port_ );
+       settings->sync();
+    }
+    ADDEBUG() << "###########################################";
+    ADDEBUG() << "############## finally closed  ############";
+    ADDEBUG() << "###########################################";
 }
 
 void
-document::setControlMethod( const adcontrols::ControlMethod::Method& m, const QString& filename )
+document::addToRecentFiles( const QString& filename )
 {
-    do {
-        impl_->cmMap_[ currentConfiguration() ] = std::make_shared< adcontrols::ControlMethod::Method >( m );
-        // for ( auto& item : m ) {
-        //     ADDEBUG() << item.modelname() << ", " << item.itemLabel() << " initial: " << item.isInitialCondition() << " time: " << item.time();
-        // }
-    } while(0);
-
-    if ( ! filename.isEmpty() ) {
-        impl_->ctrlmethod_filename_ = filename;
-        qtwrapper::settings(*impl_->settings_).addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, filename );
-    }
-
-    emit onControlMethodChanged( filename );
-}
-
-void
-document::setSampleRun( const adcontrols::SampleRun& m, const QString& filename )
-{
-    impl_->sampleRun_ = std::make_shared< adcontrols::SampleRun >( m );
-
-    if ( ! filename.isEmpty() ) {
-        impl_->samplerun_filename_ = filename;
-        qtwrapper::settings(*impl_->settings_).addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, filename );
-    }
-    emit onSampleRunChanged( QString::fromWCharArray( impl_->sampleRun_->filePrefix() ), QString::fromWCharArray( impl_->sampleRun_->dataDirectory() ) );
+    qtwrapper::settings( *impl_->settings_ ).addRecentFiles( Constants::GRP_DATA_FILES, Constants::KEY_FILES, filename );
 }
 
 QString
@@ -421,7 +899,7 @@ document::recentFile( const char * group, bool dir_on_fail )
         file = Core::DocumentManager::currentFile();
         if ( file.isEmpty() )
             file = qtwrapper::settings( *impl_->settings_ ).recentFile( Constants::GRP_DATA_FILES, Constants::KEY_FILES );
-        
+
         if ( !file.isEmpty() ) {
             QFileInfo fi( file );
             return fi.path();
@@ -431,335 +909,603 @@ document::recentFile( const char * group, bool dir_on_fail )
     return QString();
 }
 
-bool
-document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
+std::shared_ptr< const adcontrols::SampleRun >
+document::sampleRun() const
 {
-    QFileInfo fi( filename );
+    return impl_->nextSampleRun_;
+}
 
-    if ( fi.exists() ) {
-        adfs::filesystem fs;
-        if ( fs.mount( filename.toStdWString().c_str() ) ) {
-            adfs::folder folder = fs.findFolder( L"/ControlMethod" );
-        
-            auto files = folder.files();
-            if ( !files.empty() ) {
-                auto file = files.back();
-                try {
-                    file.fetch( m );
-                }
-                catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "acquire -- Open default control method"
-                                              , (boost::format( "Failed to open file: %1% by reason of %2% @ %3% #%4%" )
-                                                 % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
-                    return false;
-                }
-                return true;
-            }
+std::shared_ptr< adcontrols::SampleRun >
+document::sampleRun()
+{
+    return impl_->nextSampleRun_;
+}
+
+void
+document::setSampleRun( std::shared_ptr< adcontrols::SampleRun > sr )
+{
+    impl_->nextSampleRun_ = sr;
+}
+
+bool
+document::isRecording() const
+{
+    return task::instance()->isRecording();
+}
+
+void
+document::handleConnected( adextension::iController * controller )
+{
+    ADTRACE() << controller->module_name().toStdString();
+    task::instance()->initialize();
+}
+
+void
+document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t value )
+{
+    if ( code == adacquire::Receiver::CLIENT_ATTACHED ) {
+
+        // do nothing
+
+    } else if ( code == adacquire::Receiver::STATE_CHANGED ) {
+
+        if ( value & adacquire::Instrument::eErrorFlag ) {
+            QMessageBox::warning( MainWindow::instance(), "ACQUIRE Error"
+                                  , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
         }
+    }
+}
+
+// void
+// document::handleLog( adextension::iController *, const QString& )
+// {
+// }
+
+// void
+// document::handleDataEvent( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos )
+// {
+// }
+
+void
+document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum > ms, unsigned idx )
+{
+    assert( idx < acquire::nchannels );
+
+    // if ( idx >= acquire::nchannels )
+    //     return;
+
+    // do {
+    //     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    //     impl_->spectra_[ objid ][ idx ] = ms;
+    // } while( 0 );
+
+    // ADDEBUG() << "setData observer plot ready: " << objid; // histogram_observer;
+
+    emit dataChanged( objid, idx );
+}
+
+void
+document::commitData()
+{
+    // save time data
+    //impl_->resultWriter_->commitData();
+}
+
+std::shared_ptr< const adcontrols::MassSpectrum >
+document::recentSpectrum( const boost::uuids::uuid& uuid, int idx ) const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    // auto it = impl_->spectra_.find( uuid );
+    // if ( it != impl_->spectra_.end() ) {
+    //     if ( it->second.size() > idx )
+    //         return it->second.at( idx );
+    // }
+    return nullptr;
+}
+
+// std::shared_ptr< const adcontrols::MassSpectrum >
+// document::recentCoAddedSpectrum( const boost::uuids::uuid& uuid, int idx ) const
+// {
+//     std::lock_guard< std::mutex > lock( impl_->mutex_ );
+//     auto it = impl_->coadded_.find( uuid );
+//     if ( it != impl_->coadded_.end() ) {
+//         if ( it->second.size() > idx )
+//             return it->second.at( idx );
+//     }
+//     return nullptr;
+// }
+
+QSettings *
+document::settings()
+{
+    return impl_->settings_.get();
+}
+
+adextension::iSequenceImpl *
+document::iSequence()
+{
+    return impl_->iSequenceImpl_.get();
+}
+
+bool
+document::isControllerEnabled( const QString& module ) const
+{
+    if ( impl_->iACQUIREImpl_->module_name() == module )
+        return true;
+    return false;
+}
+
+bool
+document::isControllerBlocked( const QString& module ) const
+{
+    return impl_->blockedModules_.find( module ) != impl_->blockedModules_.end();
+}
+
+bool
+document::prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const
+{
+    if ( uuid == boost::uuids::uuid{{ 0 }} )
+        ADTRACE() << "## prepare storage '" << sp.storage_name().string() << "'";
+
+    progress( 0.0, sp.sampleRun() ); // show data name on top of waveformwnd
+
+    if ( impl_->initStorage( uuid, sp.filesystem().db() ) && uuid == boost::uuids::uuid{{ 0 }} ) {
+
+        // // counting peaks
+        // if ( uuid == boost::uuids::uuid{{ 0 }} ) {
+        //     acquire::counting_data_writer::prepare_storage( sp.filesystem() );
+        // };
+
+        return true;
     }
     return false;
 }
 
 bool
-document::save( const QString& filename, const adcontrols::ControlMethod::Method& m )
+document::closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& ) const
 {
-    adfs::filesystem file;
-
-    if ( !file.create( filename.toStdWString().c_str() ) ) {
-        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
-        return false;
-    }
-    
-    adfs::folder folder = file.addFolder( L"/ControlMethod" );
-    adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
-    try {
-        adfile.dataClass( adcontrols::ControlMethod::Method::dataClass() );
-        adfile.save( m );
-    } catch ( std::exception& ex ) {
-        ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
-        return false;
-    }
-    adfile.commit();
-
     return true;
 }
 
-bool
-document::load( const QString& filename, adcontrols::SampleRun& m )
+std::shared_ptr< const adcontrols::ControlMethod::Method >
+document::controlMethod() const
 {
-    QFileInfo fi( filename );
-
-    if ( fi.exists() ) {
-        adfs::filesystem fs;
-        if ( fs.mount( filename.toStdWString().c_str() ) ) {
-            adfs::folder folder = fs.findFolder( L"/SampleRun" );
-        
-            auto files = folder.files();
-            if ( !files.empty() ) {
-                auto file = files.back();
-                try {
-                    file.fetch( m );
-                }
-                catch ( std::exception& ex ) {
-                    QMessageBox::information( 0, "acquire -- Open default sample run"
-                                              , (boost::format( "Failed to open last used sample run file: %1% by reason of %2% @ %3% #%4%" )
-                                                 % filename.toStdString() % ex.what() % __FILE__ % __LINE__).str().c_str() );
-                    return false;
-                }
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool
-document::save( const QString& filename, const adcontrols::SampleRun& m )
-{
-    adfs::filesystem file;
-
-    if ( !file.create( filename.toStdWString().c_str() ) ) {
-        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
-        return false;
-    }
-    
-    adfs::folder folder = file.addFolder( L"/SampleRun" );
-    adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
-    try {
-        adfile.dataClass( adcontrols::ControlMethod::Method::dataClass() );
-        adfile.save( m );
-    } catch ( std::exception& ex ) {
-        ADTRACE() << "Exception: " << boost::diagnostic_information( ex );
-        return false;
-    }
-    adfile.commit();
-
-    do {
-        boost::filesystem::path xmlfile( filename.toStdWString() );
-        xmlfile.replace_extension( ".xml" );
-        std::wostringstream os;
-        adcontrols::SampleRun::xml_archive( os, m );
-        pugi::xml_document dom;
-        dom.load( pugi::as_utf8( os.str() ).c_str() );
-        dom.save_file( xmlfile.string().c_str() );
-    } while(0);
-
-    return true;
+    return nullptr;
 }
 
 void
-document::fsmStop()
+document::acquire_ip_addr( const QString& host, const QString& port )
 {
-    impl_->fsm().start();
+    ADTRACE() << __FUNCTION__ << host.toStdString() << ", " << port.toStdString();
+
+}
+
+QVector< QPair< QString, bool > >
+document::controllerSettings() const
+{
+    QVector< QPair< QString, bool > > modules;
+    for ( auto module: impl_->moduleLists_ )
+        modules.append( { module.first, module.second } );
+    return modules;
 }
 
 void
-document::fsmActPrepareForRun()
+document::setControllerSettings( const QString& module, bool enable )
 {
-    adcontrols::SampleRun run;
-    auto mainWindow = MainWindow::instance();
+    ADTRACE() << module.toStdString() << ", " << enable;
+    bool dirty( false );
 
-    if ( mainWindow && mainWindow->getSampleRun( run ) )
-        setSampleRun( run, QString() );
+    if ( impl_->moduleLists_[ module ] != enable )
+        dirty = true;
 
-    impl_->fsm().process_event( fsm::prepare() );
-}
-
-void
-document::fsmActRun()
-{
-    impl_->fsm().process_event( fsm::start_run() );
-}
-
-void
-document::fsmActInject()
-{
-    impl_->fsm().process_event( fsm::inject() );
-}
-
-void
-document::fsmActStop()
-{
-    impl_->fsm().process_event( fsm::stop() );
-}
-
-// See also AcquirePlugin::handle_controller_message
-void
-document::notify_ready_for_run( const char * xml )
-{
-    if ( xml ) {
-        std::wstring wxml( adportable::utf::to_wstring( xml ) );
-        std::wistringstream is( wxml );
-
-        adcontrols::SampleRun run;
-        adcontrols::SampleRun::xml_restore( is, run );
-
-        emit onSampleRunChanged( QString::fromWCharArray( run.filePrefix() ), QString::fromWCharArray( run.dataDirectory() ) );
-        double length = run.methodTime();
-        emit onSampleRunLength( QString( "%1 min" ).arg( QString::number( length / 60, 'f', 1 ) ) );
-    }
-}
-
-MasterController *
-document::masterController()
-{
-    return impl_->masterController();
-}
-
-MasterObserver *
-document::masterObserver()
-{
-    return impl_->masterObserver();
-}
-
-void
-document::actionConnect()
-{
-    this->actionConnect( true ); // fetch method from MainWindow
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )
-      orbi->actionConnect();
-#endif
-}
-
-void
-document::actionDisconnect()
-{
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )
-        orbi->actionDisconnect();    
-#endif
-}
-
-void
-document::actionInitRun()
-{
-    impl_->handleCommitMethods();
-
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )    
-        orbi->actionInitRun();
-#endif
-}
-
-void
-document::actionRun()
-{
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )        
-        orbi->actionRun();    
-#endif
-}
-
-void
-document::actionStop()
-{
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )        
-    orbi->actionStop();    
-#endif
-}
-
-void
-document::actionInject()
-{
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )        
-    orbi->actionInject();    
-#endif
-}
-
-void
-document::actionSnapshot()
-{
-#if HAVE_CORBA
-    if ( auto orbi = orb_i::instance() )        
-        orbi->actionSnapshot();    
-#endif
-}
-
-///////////
-
-void
-document::setData( const boost::uuids::uuid& objid, std::shared_ptr< const adcontrols::MassSpectrum > ms )
-{
-    if ( auto wnd = MainWindow::instance()->findChild< WaveformWnd * >() )
-        wnd->setData( objid, ms, 0, false );
-}
-
-void
-document::setData( const boost::uuids::uuid& objid, const adcontrols::TraceAccessor& trace, int fcn )
-{
-    if ( auto wnd = MainWindow::instance()->findChild< WaveformWnd * >() )
-        wnd->setData( objid, trace, fcn );
-}
-
-void
-document::setControllerState( const QString& module, bool enable )
-{
-    impl_->setControllerState( module, enable );
-}
-
-void
-document::impl::setControllerState( const QString& module, bool enable )
-{
-    moduleStates_[ module ] = enable;
+    impl_->moduleLists_[ module ] = enable;
 
     // update settings
-    settings_->beginGroup( "u5303a" );
-        
-    settings_->beginWriteArray( "Controllers" );
+    impl_->settings_->beginGroup( Constants::THIS_GROUP );
+
+    impl_->settings_->beginWriteArray( "Controllers" );
 
     int i = 0;
-    for ( auto& state : moduleStates_ ) {
-        settings_->setArrayIndex( i++ );
-        settings_->setValue( "module_name", state.first );
-        settings_->setValue( "enable", state.second );
+    for ( auto& state : impl_->moduleLists_ ) {
+        impl_->settings_->setArrayIndex( i++ );
+        impl_->settings_->setValue( "module_name", state.first );
+        impl_->settings_->setValue( "enable", state.second );
     }
 
-    settings_->endArray();
-    settings_->endGroup();
+    impl_->settings_->endArray();
+    impl_->settings_->endGroup();
+
+    emit moduleConfigChanged();
 }
 
 void
-document::addConfiguration( const QString& name )
+document::addInstController( std::shared_ptr< adextension::iController > p )
 {
-    impl_->confignames_.insert( name );
 
-    if ( impl_->cmMap_.find( name ) == impl_->cmMap_.end() ) {
-        impl_->cmMap_[ name ] = std::make_shared< adcontrols::ControlMethod::Method >();
+    using adextension::iController;
+    using adacquire::SignalObserver::Observer;
 
-        boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
-        QString fname = QString( "%1/%2.cmth" ).arg( QString::fromStdWString( dir.wstring() ), name );
+    if ( document::instance()->isControllerEnabled( p->module_name() ) ) {
 
-        load( fname, *impl_->cmMap_[ name ] );
+        impl_->iControllers_.emplace_back( p );
+
+        // switch to UI thread
+        connect( p.get(), &iController::message, document::instance()
+                 , [] ( iController * p, unsigned int code, unsigned int value ) { document::instance()->handleMessage( p, code, value ); } );
+
+        // non UI thread
+        connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
+        //connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
+
+        p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
+    }
+
+}
+
+std::vector< adextension::iController * >
+document::iControllers() const
+{
+    return { impl_->iACQUIREImpl_.get() };
+}
+
+void
+document::loadControllerSettings()
+{
+    auto& settings = impl_->settings_;
+    auto& moduleLists = impl_->moduleLists_;
+
+    settings->beginGroup( Constants::THIS_GROUP );
+
+    int size = settings->beginReadArray( "Controllers" );
+
+    for ( int i = 0; i < size; ++i ) {
+        settings->setArrayIndex( i );
+        QString module_name = settings->value("module_name").toString();
+        bool enable = settings->value( "enable" ).toBool();
+        moduleLists[ module_name ] = enable;
+    }
+
+    settings->endArray();
+    settings->endGroup();
+
+    for ( auto& list : impl_->blockedModules_ ) {
+        auto it = moduleLists.find( list  );
+        if ( it == moduleLists.end() ) {
+            moduleLists[ list ] = false;
+        }
+    }
+}
+
+std::ostream&
+document::console()
+{
+    return impl_->console_;
+}
+
+void
+document::handleConsoleIn( const QString& line )
+{
+    ADTRACE() << line.toStdString();
+}
+
+bool
+document::poll()
+{
+    // static meta_data prev;
+    // meta_data meta;
+    // std::ostringstream o;
+    // static std::chrono::system_clock::time_point __tp;
+    // static std::chrono::system_clock::time_point __read_tp;
+    // static std::chrono::system_clock::time_point __retry_tp;
+    // static std::pair< double, double > rtt( std::numeric_limits<double>::max() , 0 );
+
+    // const static uint32_t acquire_avgr_upper_addr = 0x9000'0000;
+    // const static uint32_t acquire_avgr_lower_addr = 0x8200'0000;
+    // const static uint32_t nbuf = ( acquire_avgr_upper_addr - acquire_avgr_lower_addr ) / 0x20000;
+
+    // std::lock_guard< std::mutex > lock( impl_->acquire_mutex_ );
+
+    // if ( impl_->acquire_avgr_dirty_ ) {
+    //     impl_->apply();
+    //     impl_->acquire_avgr_trig_number_ = 0;
+    // }
+
+    // // always read newest waveform
+
+    // auto tp = std::chrono::system_clock::now();
+
+    // uint32_t remain(0);
+    // std::shared_ptr< waveform > avg, pkd;
+
+    // // uint32_t addr = 0; // impl_->acquire_avgr_lower_addr_ + 0x20000 * impl_->acquire_avgr_index_;
+    // std::tie(avg, pkd) = singleton::instance()->mrd_avgd( 0, impl_->acquire_avgr_samples_, meta, impl_->acquire_avgr_trig_number_ );
+
+    // if ( avg ) {
+    //     if ( impl_->acquire_avgr_trig_number_ < meta.trig_number_ ) {
+    //         impl_->acquire_avgr_trig_number_ = meta.trig_number_;
+    //     } else {
+    //         if ( std::chrono::duration_cast< std::chrono::milliseconds >( tp - __retry_tp ).count() >= 1000 ) {
+    //             __retry_tp = tp;
+    //             ADDEBUG() << "same or older trig: " << impl_->acquire_avgr_trig_number_ << ", " << meta.trig_number_
+    //                       << boost::format( "\t0x%x" ) % meta.read_addr_;
+    //         }
+    //         using namespace std::chrono_literals;
+    //         std::this_thread::sleep_for( 20ms );
+    //         return impl_->acquire_polling_enabled_;
+    //     }
+
+    //     auto index = ( (meta.read_addr_ - acquire_avgr_lower_addr) / 0x20000 ) + 1;
+    //     impl_->acquire_avgr_index_ = index % nbuf;
+    //     //addr = impl_->acquire_avgr_lower_addr_ + 0x20000 * impl_->acquire_avgr_index_; // <- next addr
+
+    //     __retry_tp = tp; // reset retry timepoint
+    //     __read_tp = tp;
+
+    //     singleton::instance()->post( std::make_pair( avg, pkd ) ); //std::move( avg ), std::move( pkd ) );
+    //     impl_->polling_counts_++;
+
+    //     if ( std::chrono::duration_cast< std::chrono::milliseconds >( tp - __tp ).count() >= 1000 ) {
+    //         __tp = tp;
+    //         double rms;
+    //         std::tie( std::ignore, std::ignore, rms )
+    //             = adportable::spectrum_processor::tic( avg->size(), avg->data() );
+    //         meta.print( o, prev );
+    //         ADTRACE() << o.str() << boost::format( "\trms: %.3lf" ) % rms;
+    //     }
+    //     prev = meta;
+    // }
+
+    return impl_->acquire_polling_enabled_;
+}
+
+void
+document::acquire_apply( const QByteArray& json )
+{
+    impl_->console_ << json.data() << std::endl;
+
+    // if ( ! singleton::instance()->is_open() ) {
+    //     ADTRACE() << "##### acquire is not open\n";
+    //     singleton::instance()->open( impl_->ip_address_.toStdString().c_str(), impl_->port_.toStdString().c_str() );
+    // }
+
+    // if ( singleton::instance()->is_open() ) {
+    //     auto doc = QJsonDocument::fromJson( json );
+    //     const auto& jobj = doc.object();
+    //     impl_->acquire_avgr_enabled_ = jobj[ "avrg.enable"  ].toBool();
+    //     impl_->acquire_avgr_samples_ = jobj[ "avrg.samples" ].toInt();
+    //     impl_->acquire_dg_adc_delay_ = jobj[ "dg.adc_delay" ].toDouble();
+    //     impl_->acquire_dg_interval_  = jobj[ "dg.interval"  ].toDouble();
+
+    //     auto avgr_trig_counts = jobj[ "avrg.trig_counts" ].toInt();
+    //     auto disable_dma = jobj[ "avrg.disable_dma" ].toBool();
+    //     auto ext_trigger = jobj[ "avrg.ext_trigger" ].toBool();
+    //     auto invert_data = jobj[ "avrg.invert_data" ].toBool();
+    //     auto pkd_threshold = jobj[ "pkd.threshold" ].toInt();
+    //     auto pkd_algo    = jobj[ "pkd.algo" ].toBool();
+
+    //     impl_->acquire_avgr_trig_counts_ = avgr_trig_counts;
+    //     impl_->avrg_disable_dma_ = disable_dma;
+    //     impl_->avrg_ext_trigger_ = ext_trigger;
+    //     impl_->avrg_invert_data_ = invert_data;
+    //     impl_->acquire_pkd_threshold_ = pkd_threshold;
+    //     impl_->acquire_pkd_algo_ = pkd_algo;
+    //     impl_->acquire_polling_enabled_  = jobj[ "polling.checked" ].toBool();
+    //     impl_->acquire_polling_interval_ = jobj[ "polling.interval" ].toInt();
+    //     impl_->acquire_polling_mtu_      = jobj[ "polling.mtu" ].toInt();
+
+    //     singleton::instance()->set_mtu( impl_->acquire_polling_mtu_ );
+    //     impl_->acquire_avgr_dirty_ = true;
+
+    //     if ( impl_->acquire_polling_enabled_ ) {
+    //         task::instance()->start_polling( impl_->acquire_polling_interval_ );
+    //     } else {
+    //         poll();
+    //     }
+
+    //     if ( auto settings = impl_->settings_ ) {
+    //         settings->setValue( Constants::THIS_GROUP + QString("/acquire"), json );
+    //     }
+
+    // } else {
+        ADTRACE() << "##### acquire is not open\n";
+    //}
+}
+
+void
+document::acquire_command( const char * arg, bool flag )
+{
+    // impl_->console_ << arg << ", " << flag << std::endl;
+    std::lock_guard< std::mutex > lock( impl_->acquire_mutex_ );
+
+    // if ( ! singleton::instance()->is_open() ) {
+    //     impl_->console_ << "##### acquire is not open\n";
+    //     singleton::instance()->open( impl_->ip_address_.toStdString().c_str(), impl_->port_.toStdString().c_str() );
+    // }
+
+    // if ( std::strcmp( arg, "xcvr" ) == 0 ) {
+    //     singleton::instance()->xcvr_reset( impl_->console_ );
+    //     impl_->acquire_avgr_dirty_ = true;
+    // } else if ( std::strcmp( arg, "jesd" ) == 0 ) {
+    //     jesd204_rx::instance<0>()->rx_status_read( impl_->console_ );
+    // } else if ( std::strcmp( arg, "ilas" ) == 0 ) {
+    //     const char * argv[] = {"ilas", 0};
+    //     ilas::command( 1, argv, impl_->console_ );
+    // } else if ( std::strcmp( arg, "sysref" ) == 0 ) {
+    //     acquire_rx::instance<0>()->sysref_en( flag );
+    //     impl_->console_ << boost::format("sysref = %x" ) % ( acquire_rx::instance<0>()->sysref_en() ? "enable" : "disable" ) << std::endl;
+    // } else if ( std::strcmp( arg, "polling" ) == 0 ) {
+    //     impl_->acquire_polling_enabled_ = flag;
+    // } else if ( std::strcmp( arg, "invert" ) == 0 ) {
+    //     impl_->acquire_avgr_dirty_ = true;
+    // } else if ( std::strcmp( arg, "ext_trig" ) == 0 ) {
+    //     // todo
+    // } else if ( std::strcmp( arg, "disable_dma" ) == 0 ) {
+    //     acquire_rx::instance<0>()->set_avgr_disable_dma( flag );
+    // }
+}
+
+QPair< QString, QString >
+document::acquire_ip_address() const
+{
+    return { impl_->ip_address_, impl_->port_ };
+}
+
+void
+document::set_acquire_ip_address( const QString& host, const QString& port ) const
+{
+    impl_->ip_address_ = host;
+    impl_->port_ = port;
+
+    if ( auto settings = impl_->settings_ ) {
+        settings->setValue( Constants::THIS_GROUP + QString("/ip_address"), host );
+        settings->setValue( Constants::THIS_GROUP + QString("/port"), port );
     }
 }
 
 void
-document::setCurrentConfiguration( const QString& name )
+document::takeSnapshot()
 {
-    impl_->confignames_.insert( name );
-    impl_->settings_->setValue( "acquire/configuration", name );
+    boost::filesystem::path dir( impl_->nextSampleRun_->dataDirectory() );
+
+    if ( ! boost::filesystem::exists( dir ) ) {
+        boost::system::error_code ec;
+        boost::filesystem::create_directories( dir, ec );
+    }
+    auto path = dir / ( std::wstring( impl_->nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
+
+    std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
+    std::string date = adportable::date_string::logformat( tp );
+
+    QStringList formatList{ "Spectrum %1 CH-%2", "LT-Avrgd %1 CH-%2", "LT-Hist %1 CH-%2", "PKD %1 CH-%2" };
+    // get waveform(s)
+    auto formatIt = formatList.begin();
+    // for ( auto& uuid: { WaveformObserver::__objid__, avrg_waveform_observer, histogram_observer, pkd_observer } ) {
+
+    //     auto spectra = impl_->spectra_[ uuid ];
+
+    //     int ch = 1;
+    //     for ( auto ms: spectra ) {
+    //         if ( ms ) {
+    //             QString title = formatIt->arg( QString::fromStdString( date ), QString::number( ch ) );
+    //             QString folderId;
+    //             if ( appendOnFile( path, title, *ms, folderId ) ) {
+    //                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+    //                 for ( auto handler: vec )
+    //                     handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
+    //             }
+    //         }
+    //         ++ch;
+    //     }
+    //     ++formatIt;
+    // }
 }
 
-const std::set< QString >&
-document::configurations() const
+const QJsonDocument&
+document::threshold_method() const
 {
-    return impl_->confignames_;
+    return impl_->threshold_method_;
 }
 
-QString
-document::currentConfiguration() const
+const QJsonDocument&
+document::threshold_action() const
 {
-    return impl_->settings_->value( "acquire/configuration" ).toString();    
+    return impl_->threshold_action_;
+}
+
+QByteArray
+document::acquire_method() const
+{
+    if ( auto settings = document::instance()->settings() )
+        return settings->value( QString( Constants::THIS_GROUP ) + "/acquire", QByteArray() ).toByteArray();
+
+    return QByteArray();
 }
 
 void
-document::onConfigurationChanged( const QString& config )
+document::set_threshold_method( const QByteArray& json, int ch )
 {
-    emit impl_->currChanged( config );
+    auto obj = QJsonDocument::fromJson( json ).object();
+    auto jslope = obj[ "findSlope" ];
+
+    if ( jslope.isArray() ) {
+        auto a = jslope.toArray().at( ch );
+        emit on_threshold_method_changed( QJsonDocument( a.toObject() ) );
+        impl_->threshold_method_ = QJsonDocument( jslope.toArray() );
+
+        auto m = std::make_shared< adcontrols::threshold_method >();
+        if ( impl_->threshold_method_.isArray() ) {
+            auto ch = impl_->threshold_method_.array().at(0);
+            if ( adwidgets::findSlopeForm::fromJson( QJsonDocument( ch.toObject() ).toJson( QJsonDocument::Compact ), *m ) )
+                impl_->method_ = m;
+        }
+    }
+
+    // debug
+#if defined NDEBUG && 0
+    {
+        auto json = impl_->threshold_method_.toJson();
+        ADDEBUG() << json.toStdString();
+        auto doc = QJsonDocument::fromJson( json );
+        if ( doc.isArray() ) {
+            for ( auto ch: doc.array() ) {
+                ADDEBUG() << QJsonDocument( ch.toObject() ).toJson().toStdString();
+            }
+        }
+    }
+#endif
 }
 
+void
+document::set_threshold_action( const QByteArray& json )
+{
+    auto obj = QJsonDocument::fromJson( json ).object();
+    auto jaction = obj[ "action" ];
 
-////////////
+    impl_->threshold_action_ = QJsonDocument( jaction.toObject() );
+
+    emit on_threshold_action_changed( impl_->threshold_action_ );
+}
+
+void
+document::set_tof_chromatograms_method( const QByteArray& json )
+{
+    auto doc = QJsonDocument::fromJson( json );
+    auto jtop = doc.object()[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ].toObject();
+
+    impl_->avrg_refresh_ = jtop[ "refreshHistogram" ].toBool();
+    impl_->avrg_count_ = jtop[ "numberOfTriggers" ].toInt();
+
+    ADDEBUG() << "refresh: " << impl_->avrg_refresh_
+              << ", average: " << impl_->avrg_count_;
+
+    task::instance()->setHistogramClearCycleEnabled( impl_->avrg_refresh_ );
+    task::instance()->setHistogramClearCycle( impl_->avrg_count_ );
+
+    if ( auto settings = impl_->settings_ )
+        settings->setValue( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", doc.toJson( QJsonDocument::Compact ) );
+}
+
+QByteArray
+document::tof_chromatograms_method() const
+{
+    if ( auto settings = impl_->settings_ )
+        return settings->value( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", QByteArray() ).toByteArray();
+    return QByteArray();
+}
+
+//////////////////
+void
+document::progress( double elapsed_time, std::shared_ptr< const adcontrols::SampleRun >&& sampleRun ) const
+{
+    double method_time = sampleRun->methodTime();
+    QString runName = QString::fromStdWString( sampleRun->filePrefix() );
+    // ADDEBUG() << __FUNCTION__ << " runName: " << runName.toStdString() << ", method time: " << method_time;
+    // emit sampleProgress( elapsed_time, method_time, runName, sampleRun->runCount() + 1, sampleRun->replicates() );
+}
+
+void
+document::set_pkd_threshold( double d )
+{
+    // ACQUIRE GUI --> this
+    emit on_threshold_level_changed( d );
+}

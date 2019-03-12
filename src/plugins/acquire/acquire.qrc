@@ -1,25 +1,15 @@
 <RCC>
   <qresource prefix="/acquire">
-    <file>images/Button Add.png</file>
-    <file>images/Button Cancel.png</file>
-    <file>images/Button Close.png</file>
-    <file>images/Button Delete.png</file>
-    <file>images/Button Fast Forward.png</file>
-    <file>images/Button First.png</file>
-    <file>images/Button Help.png</file>
-    <file>images/Button Info.png</file>
-    <file>images/Button Last.png</file>
-    <file>images/Button Next.png</file>
-    <file>images/Button Pause.png</file>
-    <file>images/Button Play.png</file>
-    <file>images/Button Previous.png</file>
-    <file>images/Button Refresh.png</file>
-    <file>images/Button Reload.png</file>
-    <file>images/Button Rewind.png</file>
-    <file>images/Button Stop.png</file>
-    <file>images/RunControl.png</file>
+    <!-- Photo via <a href="https://www.goodfreephotos.com/">Good Free Photos</a> -->
+    <file>images/final247-color-wheel.svg</file>
+    <!-- See README.txt -->
+    <file>images/image001_512.png</file>
     <file>images/arrow-circle-double.png</file>
     <file>images/camera.png</file>
+    <file>images/disk.png</file>
+    <file>images/blue-document-page-next.png</file>
+    <file>images/folder-open-document.png</file>
+    <file>images/blue-folder-open-document.png</file>
     <file>images/control-pause-record.png</file>
     <file>images/control-pause.png</file>
     <file>images/control.png</file>
@@ -27,13 +17,11 @@
     <file>images/control_power_blue.png</file>
     <file>images/control_record.png</file>
     <file>images/control_stop.png</file>
-    <file>images/debugger_start.png</file>
     <file>images/disk--plus.png</file>
     <file>images/document-pdf.png</file>
-    <file>images/fileopen.png</file>
-    <file>images/filesave.png</file>
     <file>images/folder-horizontal-open.png</file>
+    <file>images/plus-circle.png</file>
     <file>images/image.png</file>
-    <file>images/snapshot_small.png</file>
+    <file>stylesheet/tabbar.qss</file>
   </qresource>
 </RCC>
