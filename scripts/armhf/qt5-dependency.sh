@@ -3,19 +3,19 @@
 #=========================
 #     Preparation
 #========================
-QT_VER=5.12.0
-QT_DIR=/opt/Qt/${QT_VER}
-QT_SRC=${QT_DIR}/Src/qtbase
+QTVER=5.12.0
+QTDIR=/opt/Qt/${QTVER}
+QTSRC=${QTDIR}/Src/qtbase
 
-mkdir ${QT_SRC}/mkspecs/linux-arm-gnueabihf-g++
-cd ${QT_SRC}/mkspecs/linux-arm-gnueabihf-g++
-cp ../linux-arm-gnueabi-g++/* .
-sed -i -e 's/arm-linux-gnueabi-/arm-linux-gnueabihf-/g' qmake.conf
+mkdir /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
+cp -r /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabi-g++ /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
+sed -i -e 's/arm-linux-gnueabi-/arm-linux-gnueabihf-/g' /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++/qmake.conf
 
 failed_list=()
 list_dependency+=('libclang-3.8-dev'
 				  'bison'
 				  'flex'
+				  'gperf'
 				 )
 
 for arg in "${list_dependency[@]}"; do
