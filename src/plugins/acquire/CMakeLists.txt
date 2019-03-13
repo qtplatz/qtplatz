@@ -37,19 +37,6 @@ if (WIN32)
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
-find_library( DGIO_LIBRARY dgio HINTS "/opt/map-fpga/lib" )
-if ( NOT DGIO_LIBRARY )
-  message( FATAL "libdgio not find" )
-endif()
-
-find_path( DGIO_INCLUDE_DIR "trigger_data.hpp" HINTS "/opt/map-fpga/include/dgio" )
-if ( NOT DGIO_INCLUDE_DIR )
-  message( FATAL ${DGIO_INCLUDE_DIR} )
-endif()
-if ( DGIO_INCLUDE_DIR )
-  include_directories( ${DGIO_INCLUDE_DIR} )
-endif()
-
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
@@ -111,7 +98,6 @@ target_link_libraries(
   Qt5::Widgets
   Threads::Threads
   xmlparser
-  ${DGIO_LIBRARY}
   ${Boost_LIBRARIES}
   ${QWT_LIBRARIES}
   )

@@ -25,6 +25,7 @@
 #include "sse.hpp"
 #include "client.hpp"
 #include "request.hpp"
+#include <boost/algorithm/string.hpp>
 #include <adportable/debug.hpp>
 #include <algorithm>
 #include <cctype>
@@ -69,7 +70,7 @@ sse::connect( const std::string& url
     request_stream << "POST " << request::url_encode( url_ ) << " HTTP/1.0\r\n";
     request_stream << "Host: " << server_ << "\r\n";
     request_stream << "Accept: */*\r\n";
-    request_stream << "Content-Type: application/text\r\n";    
+    request_stream << "Content-Type: application/text\r\n";
     request_stream << "\r\n";
 
     if ( (client_ = std::make_unique< client >( io_context_, std::move( request ), server, port )) ) {
@@ -86,8 +87,9 @@ sse::connect( const std::string& url
                         if ( pos != std::string::npos ) {
                             auto header = std::make_pair( data.substr( 0, pos ), data.substr( pos + 1 ) );
                             header.second = header.second.substr( 0, header.second.find_first_of( "\r\n" ) );
+                            boost::trim( header.second );
                             headers_.emplace_back( header );
-                            // ADDEBUG() << headers_.back();
+                            // ADDEBUG() << headers_.back() << "'" << headers_.back().second << "'";
                             if ( headers_.back().first == "Content-Length" )
                                 content_length_ = std::stol( headers_.back().second );
                         }
@@ -113,4 +115,3 @@ sse::connect( const std::string& url
             });
     }
 }
-

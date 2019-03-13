@@ -23,7 +23,6 @@
 
 #include "session.hpp"
 #include "../document.hpp"
-#include <trigger_data.hpp>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/receiver.hpp>
 #include <adacquire/sampleprocessor.hpp>
@@ -37,9 +36,12 @@
 #include <adportable/semaphore.hpp>
 #include <adportable/utf.hpp>
 #include <adurl/ajax.hpp>
-#include <adurl/blob.hpp>
 #include <adurl/sse.hpp>
 #include <QByteArray>
+#include <QDebug>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <boost/asio.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -58,17 +60,19 @@ namespace acquire {
 
             impl() : work_( io_service_ )
                    , sse_( std::make_unique< adurl::sse >( io_service_ ) )
-                   , blob_( std::make_unique< adurl::blob >( io_service_ ) ) {
+                   , worker_stopping_( false ) {
                 // masterObserver_->addSibling( waveformObserver_.get() );
                 }
 
             static std::shared_ptr< session > instance_;
 
             std::mutex mutex_;
+            adportable::semaphore sema_;
 
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
             std::vector< std::thread > threads_;
+            std::atomic< bool > worker_stopping_;
 
             typedef std::pair< std::shared_ptr< adacquire::Receiver >, std::string > client_pair_t;
             std::vector< client_pair_t > clients_;
@@ -78,7 +82,7 @@ namespace acquire {
             std::pair< std::string, std::string > httpd_address_;
 
             std::unique_ptr< adurl::sse > sse_;
-            std::unique_ptr< adurl::blob > blob_;
+            std::vector< advalue > que_;
 
             void reply_message( adacquire::Receiver::eINSTEVENT msg, uint32_t value ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
@@ -109,7 +113,7 @@ namespace acquire {
             }
 
             void connect_sse( const std::string& host, const std::string& port, const std::string& url );
-            void connect_blob( const std::string& host, const std::string& port, const std::string& url );
+            void worker_thread();
         };
     }
 }
@@ -140,18 +144,10 @@ session::setConfiguration( const std::string& json )
     std::istringstream in( json );
     boost::property_tree::read_json( in, pt );
 
-    ADDEBUG() << "#####################################";
-    ADDEBUG() << __FUNCTION__;
-    ADDEBUG() << json;
-    ADDEBUG() << "#####################################";
-
     if ( auto ip_addr = pt.get_optional< std::string >( "ip_address" ) ) {
         if ( auto port = pt.get_optional< std::string >( "port" ) ) {
             impl_->httpd_address_ = std::make_pair( ip_addr.get(), port.get() );
-            ADDEBUG() << impl_->httpd_address_;
-            impl_->connect_sse( ip_addr.get(), port.get(), "/dg/ctl?events" );
-            impl_->connect_blob( ip_addr.get(), port.get(), "/dataStorage" );
-            //singleton::instance()->open( impl_->server_address_.first.c_str(), impl_->server_address_.second.c_str() );
+            impl_->connect_sse( ip_addr.get(), port.get(), "/ad/api$events" );
         }
     }
 
@@ -177,10 +173,14 @@ session::connect( adacquire::Receiver * receiver, const std::string& token )
 
     if ( ptr ) {
         impl_->clients_.emplace_back( ptr, token );
+
+        static std::once_flag flag;
+        std::call_once( flag, [=]{ impl_->threads_.emplace_back( std::thread( [=]{ impl_->worker_thread(); } ) ); } );
+
         //auto self = this->shared_from_this();
         //singleton::instance()->connect( self );
         //singleton::instance()->connect( ptr );
-        // impl_->io_service_.post( [this] () { impl_->reply_message( adacquire::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
+        impl_->io_service_.post( [this] () { impl_->reply_message( adacquire::Receiver::CLIENT_ATTACHED, uint32_t( impl_->clients_.size() ) ); } );
         return true;
     }
     return false;
@@ -226,6 +226,8 @@ bool
 session::shutdown()
 {
     ADDEBUG() << "################# " << __FUNCTION__ << " ##################";
+    impl_->worker_stopping_ = true;
+    impl_->sema_.signal();
 
     //singleton::instance()->close();
     impl_->io_service_.stop();
@@ -322,47 +324,55 @@ void
 session::impl::connect_sse( const std::string& host, const std::string& port, const std::string& url )
 {
     sse_->register_sse_handler(
-        []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
+        [&]( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
 
-            document::instance()->debug_sse( headers, body );
-            /*
-            auto it = std::find_if( headers.begin(), headers.end(), [&](auto& h){ return h.first == "data"; });
-            if ( it != headers.end() )  {
-                if ( it->second.find( '{' ) == std::string::npos ) { // not a json string := tick number/number k
-                QByteArray data( it->second.data(), it->second.size() );
-                    emit document::instance()->onTick( data );
-                } else {
-                    // json comes here
+            auto it = std::find_if( headers.begin(), headers.end()
+                                    , [](const auto& pair){ return pair.first == "event" && pair.second == "ad.values"; } );
+            if ( it == headers.end() )
+                return;
+            it = std::find_if( headers.begin(), headers.end(), [](const auto& pair){ return pair.first == "data"; });
+            if ( it != headers.end() ) {
+                // document::instance()->debug_sse( headers, body );
+                auto jdoc = QJsonDocument::fromJson( QByteArray( it->second.data(), it->second.size() ) );
+                auto jarray = jdoc.object()[ "ad.values" ].toArray();
+                std::lock_guard< std::mutex > lock( mutex_ );
+                for ( const auto& jadval: jarray ) {
+                    advalue value;
+                    auto jobj = jadval.toObject();
+                    value.tp = jobj[ "tp" ].toDouble();
+                    value.nacc = jobj[ "nacc" ].toInt();
+
+                    auto vec = jobj[ "ad" ].toArray();
+                    std::transform( vec.begin(), vec.end(), value.ad.begin(), [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
+
+                    que_.emplace_back( value );
+
+                    sema_.signal();
                 }
             }
-            */
-        });
+        } );
+
     sse_->connect( url, host, port );
     threads_.emplace_back( [&]{ io_service_.run(); } );
-
 }
 
 void
-session::impl::connect_blob( const std::string& host, const std::string& port, const std::string& url )
+session::impl::worker_thread()
 {
-    blob_->register_blob_handler(
-        []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob ){
-            if ( auto sequence = adacquire::task::instance()->sampleSequence() ) {
-                if ( auto sample = sequence->at( 0 ) ) {
-                    if ( sample->inject_triggered() ) {
-                        try {
-                            auto data = std::make_unique< map::trigger_data >();
-                            if ( adportable::binary::deserialize<>()( *data, blob.data(), blob.size() ) ) {
-                                document::debug_write( headers, *data );
-                                document::write( *sample, std::move( data ) );
-                            }
-                        } catch ( std::exception& ex ) {
-                            ADDEBUG() << "serializer failed.";
-                        }
-                    }
-                }
-            }
-        });
-    blob_->connect( url, host, port );
-    threads_.emplace_back( [&]{ io_service_.run(); } );
+    do {
+        sema_.wait();
+
+        if ( worker_stopping_ )
+            return;
+
+        std::vector< advalue > advec;
+        do {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            std::move( que_.begin(), que_.end(), std::back_inserter( advec ) );
+            que_.clear();
+        } while ( 0 );
+
+        document::instance()->debug_data( advec );
+
+    } while ( true );
 }

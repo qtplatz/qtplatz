@@ -32,6 +32,14 @@ namespace acquire {
         // Session class define here is psude singletion by a manager class
         // which is only the class make Session instance.
 
+        struct advalue {
+            double tp;
+            uint32_t nacc;
+            std::array< double, 8 > ad;
+            advalue() : tp(0), nacc(0), ad{{ 0 }} {}
+            advalue( const advalue& t ) : tp(t.tp), nacc(t.nacc), ad{ t.ad } {}
+        };
+
         class session : public adacquire::Instrument::Session { // inherit from enable_shared_from_this<Session>
             session( const Session& ) = delete;
             session& operator = ( const Session& ) = delete;

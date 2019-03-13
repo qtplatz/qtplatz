@@ -26,7 +26,7 @@
 #include "task.hpp"
 #include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
-#include <trigger_data.hpp>
+#include "dgmod/session.hpp"
 #include <adurl/ajax.hpp>
 #include <adurl/blob.hpp>
 #include <adurl/sse.hpp>
@@ -1319,7 +1319,7 @@ bool
 document::write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::trigger_data >&& data )
 {
     adfs::stmt sql( sp.filesystem().db() );
-
+#if 0
     sql.prepare( "INSERT INTO map_trigger (trig_count,fpga_clock,posix_clock,protocol,wellKnownEvents"
                  ",dac_clock,dac_x,dac_y,adc_clock,adc_x,adc_y)"
                  " VALUES (?,?,?,?,?,?,?,?,?,?,?)" );
@@ -1347,6 +1347,7 @@ document::write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::tri
 
         sql.reset();
     }
+#endif
     return true;
 }
 
@@ -1358,7 +1359,7 @@ document::debug_write( const std::vector< std::pair< std::string, std::string > 
     static uint64_t fpga_clock(0), posix_clock(0), trig_count(0), skip_count(0);
     static int64_t last_skip(0);
     int i = 0;
-
+#if 0
     for ( auto& datum: data ) {
         if ( i < llimit || i >= data.size() - 2 ) {
             std::chrono::nanoseconds dur( datum.posix_clock() );
@@ -1396,28 +1397,39 @@ document::debug_write( const std::vector< std::pair< std::string, std::string > 
         posix_clock = datum.posix_clock();
         trig_count = datum.trig_count();
     }
-
+#endif
 }
 
 void
 document::debug_sse( const std::vector< std::pair< std::string, std::string> >& headers, const std::string& body )
 {
-    //static auto __tp = std::chrono::system_clock::now();
-
-    //auto tp = std::chrono::system_clock::now();
-    //if ( std::chrono::duration_cast< std::chrono::milliseconds >( tp - __tp ).count() > 3000 ) {
-    ADDEBUG() << "header size: " << headers.size();
-    size_t n(0);
-    for ( auto& header: headers ) {
-        if ( header.first == "data" ) {
-            QByteArray data( header.second.data(), header.second.size() );
-            auto jdoc = QJsonDocument::fromJson( data );
-            ADDEBUG() << jdoc.toJson( QJsonDocument::Compact ).toStdString();
-        } else
-            ADDEBUG() << "header[ " << n++ << "]: " << header.first << ", " << header.second;
+    bool ok( false );
+    {
+        auto it = std::find_if( headers.begin(), headers.end()
+                                , [](const auto& pair){ return pair.first == "event" && pair.second == "ad.values"; } );
+        ok = it != headers.end();
     }
-    ADDEBUG() << "------------------- body ------------------";
-    ADDEBUG() << body;
-    ADDEBUG() << "------------------- end body ------------------";
-//    __tp = tp;
+
+    if ( ok ) {
+        auto it = std::find_if( headers.begin(), headers.end(), [&](auto& pair){ return pair.first == "data"; });
+        if ( it != headers.end() )  {
+            auto jdoc = QJsonDocument::fromJson( QByteArray( it->second.data(), it->second.size() ) );
+            auto jarray = jdoc.object()[ "ad.values" ].toArray();
+            for ( const auto& jadval: jarray ) {
+                qDebug() << __FILE__ << ":" << __LINE__ << "\t" << jadval;
+            }
+        }
+    }
+
+}
+
+void
+document::debug_data( const std::vector< dgmod::advalue >& vec )
+{
+    for ( const auto& item: vec ) {
+        std::ostringstream o;
+        for ( auto& ad: item.ad )
+            o << boost::format("%.3f, ") % ad;
+        impl_->console_ << "tp: " << boost::format("%.7f") % item.tp << "\tnacc: " << item.nacc << "\t" << o.str() << std::endl;
+    }
 }

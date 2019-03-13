@@ -24,7 +24,6 @@
 #include "task.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-#include <trigger_data.hpp> // /opt/dgio
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
