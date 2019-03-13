@@ -24,10 +24,7 @@
 #include "task.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-//#include <ads54j/constants.hpp>
-//#include <ads54j/singleton.hpp>
-//#include <ads54j/waveform.hpp>
-//#include <ads54j/waveformobserver.hpp>
+#include <trigger_data.hpp> // /opt/dgio
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
@@ -48,6 +45,7 @@
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
+#include <adacquire/samplesequence.hpp>
 #include <adacquire/task.hpp>
 #include <adacquire/timedigital_histogram_accessor.hpp>
 #include <adacquire/waveform_accessor.hpp>
@@ -118,7 +116,6 @@ namespace acquire {
                , device_delay_count_( 0 )
                , timer_( io_service_ )
                , interval_( 1000 ) {
-
         }
 
         static std::atomic< task * > instance_;
@@ -153,6 +150,9 @@ namespace acquire {
         std::chrono::system_clock::time_point tp_;
         uint32_t interval_;
         bool polling_enable_;
+
+        //------------
+        //----
 
         void worker_thread();
         bool finalize();

@@ -27,7 +27,7 @@
 #include "constants.hpp"
 #include "mode.hpp"
 #include "mainwindow.hpp"
-#include "iacquireimpl.hpp"
+#include "idgmodimpl.hpp"
 #include "document.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -79,21 +79,17 @@ acquireplugin::initialize( const QStringList &arguments, QString *errorString )
 
     addObject( mode_.get() );
 
-#if 0
     // add instrument controller
     for ( auto iController : document::instance()->iControllers() ) {
         addObject( iController );
         connect( iController, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
-#endif
 
-#if 0
     // no time function supported.
     if ( auto iExtension = document::instance()->iSequence() ) {
         MainWindow::instance()->getEditorFactories( *iExtension );
         addObject( iExtension );
     }
-#endif
 
     QAction *action = new QAction(tr("acquire action"), this);
 

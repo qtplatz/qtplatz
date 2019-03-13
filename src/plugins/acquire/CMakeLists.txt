@@ -37,6 +37,19 @@ if (WIN32)
   add_definitions( -D_SCL_SECURE_NO_WARNINGS )
 endif()
 
+find_library( DGIO_LIBRARY dgio HINTS "/opt/map-fpga/lib" )
+if ( NOT DGIO_LIBRARY )
+  message( FATAL "libdgio not find" )
+endif()
+
+find_path( DGIO_INCLUDE_DIR "trigger_data.hpp" HINTS "/opt/map-fpga/include/dgio" )
+if ( NOT DGIO_INCLUDE_DIR )
+  message( FATAL ${DGIO_INCLUDE_DIR} )
+endif()
+if ( DGIO_INCLUDE_DIR )
+  include_directories( ${DGIO_INCLUDE_DIR} )
+endif()
+
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
@@ -58,8 +71,6 @@ add_library( ${PROJECT_NAME} MODULE
   constants.hpp
   document.cpp
   document.hpp
-  iacquireimpl.cpp
-  iacquireimpl.hpp
   isequenceimpl.cpp
   mainwindow.cpp
   mainwindow.hpp
@@ -67,6 +78,10 @@ add_library( ${PROJECT_NAME} MODULE
   task.hpp
   waveformwnd.cpp
   waveformwnd.hpp
+  idgmodimpl.cpp
+  idgmodimpl.hpp
+  dgmod/session.cpp
+  dgmod/session.hpp
 #  isequenceimpl.cpp
 #  isequenceimpl.hpp
 #  resultwriter.cpp
@@ -85,16 +100,18 @@ target_link_libraries(
   adplugin
   adplugin_manager
   adportable
+  adurl
   adutils
   adwidgets
   qtwrapper
-  xmlparser
   Core
   extensionsystem
   utils
   Qt5::Svg
   Qt5::Widgets
   Threads::Threads
+  xmlparser
+  ${DGIO_LIBRARY}
   ${Boost_LIBRARIES}
   ${QWT_LIBRARIES}
   )

@@ -27,7 +27,7 @@
 #include "waveformwnd.hpp"
 #include "document.hpp"
 #include "isequenceimpl.hpp"
-#include "iacquireimpl.hpp"
+#include "idgmodimpl.hpp"
 #include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
@@ -46,13 +46,12 @@
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
-//#include <acquirewidgets/operationform.hpp>
-//#include <acquirewidgets/thresholdwidget.hpp>
 #include <adwidgets/cherrypicker.hpp>
 #include <adwidgets/countingwidget.hpp>
 #include <adwidgets/outputwidget.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
+#include <adwidgets/dgwidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -122,36 +121,27 @@ MainWindow::createDockWidgets()
     QFile file( ":/acquire/stylesheet/tabbar.qss" );
     file.open( QFile::ReadOnly );
     QString tabStyle( file.readAll() );
-#if 0
-    if ( auto widget = qtwrapper::make_widget< OperationForm >("ACQUIRE20") ) {
-        createDockWidget( widget, "ACQUIRE", "ACQUIRE" );
-        connect( widget, &OperationForm::on_pushButtonApply_clicked, [widget]{ document::instance()->acquire_apply( widget->readJson() ); } );
-        connect( widget, &OperationForm::on_pushButtonXCVR_clicked, []{ document::instance()->acquire_command( "xcvr" ); } );
-        connect( widget, &OperationForm::on_pushButtonILAS_clicked, []{ document::instance()->acquire_command( "ilas" ); } );
-        connect( widget, &OperationForm::on_pushButtonJESD_clicked, []{ document::instance()->acquire_command( "jesd" ); } );
-        connect( widget, &OperationForm::on_checkBoxSysref_toggled, [](bool flag){ document::instance()->acquire_command("sysref", flag);});
-        connect( widget, &OperationForm::on_checkBoxPolling_toggled, [](bool flag){ document::instance()->acquire_command("polling", flag);});
-        connect( widget, &OperationForm::on_checkBoxInvertData_toggled,[](bool flag){ document::instance()->acquire_command("invert", flag);});
-        connect( widget, &OperationForm::on_checkBoxExtTrig_toggled, [](bool flag){ document::instance()->acquire_command("ext_trig", flag);});
-        connect( widget, &OperationForm::on_checkBoxDisableDMA_toggled,[](bool flag){ document::instance()->acquire_command("disable_dma", flag);});
-        connect( widget, &OperationForm::on_doubleSpinBoxPkdThreshold_valueChanged, [](double v){ document::instance()->set_pkd_threshold( v ); });
-        connect( widget, &OperationForm::hostChanged
-                 , []( const QString& host, const QString& port ){
-                       document::instance()->set_acquire_ip_address( host, port );
-                   } );
-    }
 
-    if ( auto widget = qtwrapper::make_widget< acquirewidgets::ThresholdWidget >( "ACQUIREThreshold", /*num_channels*/ 1 ) ) {
-        createDockWidget( widget, "Threshold", "Threshold" );
-        connect( widget, &acquirewidgets::ThresholdWidget::valueChanged
-                 , [this,widget]( int cat, int ch ){
-                       if ( cat == acquirewidgets::ThresholdWidget::idSlopeTimeConverter )
-                           document::instance()->set_threshold_method( widget->readJson(), ch );
-                       else
-                           document::instance()->set_threshold_action( widget->readJson() );
+    if ( auto sse = qtwrapper::make_widget< adwidgets::dgWidget >( "delayPulseMonitor" ) ) {
+
+        createDockWidget( sse, "ACQUIRE", "ACQUIRE" );
+
+        connect( sse, &adwidgets::dgWidget::hostChanged, this
+                 , [sse](const QString& host, const QString& port ){
+                       document::instance()->set_http_addr( host, port );
+                       sse->setURL( QString("http://%1:%2").arg( host, port ) );
+                   });
+
+        connect( document::instance(), &document::onTick, this
+                 , [sse]( const QByteArray& data ){
+                       sse->handleTick( data );
+                   });
+
+        connect( document::instance(), &document::onDelayPulseData, this
+                 , [sse]( const QByteArray& data ){
+                       sse->handleDelayPulseData( data );
                    });
     }
-#endif
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::OutputWidget >("Output", document::instance()->console() ) ) {
         createDockWidget( widget, "Output", "Output" );
@@ -271,9 +261,6 @@ MainWindow::OnInitialUpdate()
             action->setEnabled( false );
     }
 
-    for ( auto inst: document::instance()->iControllers() )
-        document::instance()->addInstController( inst );
-
     for ( auto iController: ExtensionSystem::PluginManager::instance()->getObjects< adextension::iController >() ) {
         document::instance()->addInstController( iController );
     }
@@ -307,13 +294,11 @@ MainWindow::OnInitialUpdate()
         connect( document::instance(), &document::on_threshold_level_changed, wnd, &WaveformWnd::handle_threshold_level );
     }
 
-    // if ( auto widget = findChild< OperationForm * >("ACQUIRE20") ) {
-    //     auto pair = document::instance()->acquire_ip_address();
-    //     widget->setUrl( pair.first, pair.second );
-    //     QByteArray json = document::instance()->acquire_method();
-    //     if ( !json.isEmpty() )
-    //         widget->setJson( json );
-    // }
+    if ( auto w = findChild< adwidgets::dgWidget * >( "delayPulseMonitor" ) ) {
+        QString host, port;
+        std::tie( host, port ) = document::instance()->http_addr();
+        w->setURL( QString("http://%1:%2").arg( host, port ) );
+    }
 
     if ( auto widget = findChild< adwidgets::TofChromatogramsWidget * >( "tofChromatograms" ) ) {
         QByteArray json = document::instance()->tof_chromatograms_method();
@@ -464,6 +449,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title, const QStr
         widget->setWindowTitle( title );
     if ( widget->objectName().isEmpty() )
         widget->setObjectName( page );
+
 
     QDockWidget * dockWidget = addDockForWidget( widget );
     dockWidget->setObjectName( page.isEmpty() ? widget->objectName() : page );

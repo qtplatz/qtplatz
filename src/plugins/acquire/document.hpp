@@ -38,6 +38,7 @@ class QSettings;
 class QByteArray;
 
 namespace adacquire { class SampleProcessor; }
+namespace map { struct trigger_data; }
 
 namespace adextension { class iController; class iSequenceImpl; }
 
@@ -118,11 +119,7 @@ namespace acquire {
         std::ostream& console();
         void setConsole( std::ostream& p );
         void acquire_apply( const QByteArray& );
-        void acquire_command( const char *, bool = false );
-        QPair< QString, QString > acquire_ip_address() const;
-        void set_acquire_ip_address( const QString&, const QString& ) const;
-        void setData( const boost::uuids::uuid&, std::shared_ptr< adcontrols::MassSpectrum >, unsigned idx );
-        std::shared_ptr< const adcontrols::MassSpectrum > recentSpectrum( const boost::uuids::uuid&, int idx ) const;
+
         bool poll();
 
         void set_pkd_threshold( double d );
@@ -143,6 +140,14 @@ namespace acquire {
         // Action handlers
         void takeSnapshot();
 
+        // copy from pkdavgacquire
+        std::pair< QString, QString > http_addr() const;
+        void set_http_addr( const QString&, const QString& );
+
+        static bool write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::trigger_data >&& );
+        static void debug_write( const std::vector< std::pair< std::string, std::string > >& headers, const map::trigger_data& );
+        // locally added for acquire debugging
+        void debug_sse( const std::vector< std::pair< std::string, std::string> >& headers, const std::string& body );
     private:
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
         bool prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const;
@@ -160,6 +165,9 @@ namespace acquire {
         impl * impl_;
 
     signals:
+        void onTick( const QByteArray );
+        void onDelayPulseData( const QByteArray );
+
         void on_reply( const QString&, const QString& );
         void on_waveform_received();
         void onControlMethodChanged( const QString& );

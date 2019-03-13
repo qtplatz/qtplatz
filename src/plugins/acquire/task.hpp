@@ -76,6 +76,7 @@ namespace acquire {
         uint64_t upTimeSinceEpoch() const;
 
         void start_polling( uint32_t interval );
+        // ----
 
     private:
         class impl;

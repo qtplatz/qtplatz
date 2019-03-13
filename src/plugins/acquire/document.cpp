@@ -24,23 +24,12 @@
 #include "constants.hpp"
 #include "mainwindow.hpp"
 #include "task.hpp"
-#include "iacquireimpl.hpp"
+#include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
-//#include <acquire/acquire_rx.hpp>
-//#include <acquire/adxcvr.hpp>
-//#include <acquire/waveform_adder.hpp>
-//#include <acquire/counting_data_writer.hpp>
-//#include <acquire/constants.hpp>
-//#include <acquire/dataframe.hpp>  // direct access
-//#include <acquire/histogram.hpp>
-//#include <acquire/histogram_adder.hpp>
-//#include <acquire/ilas.hpp>
-//#include <acquire/jesd204_rx.hpp>
-//#include <acquire/meta_data.hpp>
-//#include <acquire/singleton.hpp>  // direct access
-//#include <acquire/pkd_result.hpp>
-//#include <acquire/waveform.hpp>
-//#include <acquire/waveformobserver.hpp>
+#include <trigger_data.hpp>
+#include <adurl/ajax.hpp>
+#include <adurl/blob.hpp>
+#include <adurl/sse.hpp>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/simpleobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
@@ -71,13 +60,13 @@
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/debug_core.hpp>
-//#include <adportable/find_threshold_peaks.hpp>
-//#include <adportable/find_threshold_timepoints.hpp>
+
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adwidgets/findslopeform.hpp>
 #include <adwidgets/thresholdactionform.hpp>
+#include <date/date.h>
 #include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
@@ -236,7 +225,7 @@ namespace acquire {
         std::mutex acquire_mutex_;
 
         std::shared_ptr< adcontrols::SampleRun > nextSampleRun_;
-        std::shared_ptr< ::acquire::iACQUIREImpl > iACQUIREImpl_;
+        std::shared_ptr< ::acquire::iDGMODImpl > iDGMODImpl_;
         std::shared_ptr< adextension::iSequenceImpl > iSequenceImpl_;
         std::vector< std::shared_ptr< adextension::iController > > iControllers_;
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
@@ -256,8 +245,8 @@ namespace acquire {
         std::map< QString, bool > moduleLists_;
         std::set< QString > blockedModules_;
         std::ofstream console_;
-        QString ip_address_;
-        QString port_;
+        QString http_host_;
+        QString http_port_;
 
         std::atomic_bool acquire_polling_stop_request_;
         std::atomic_bool acquire_polling_stopped_;
@@ -298,7 +287,7 @@ namespace acquire {
         //                         , acquire::nchannels > > spectra_;
 
         impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
-               , iACQUIREImpl_( std::make_shared< acquire::iACQUIREImpl >() )
+               , iDGMODImpl_( std::make_shared< acquire::iDGMODImpl >() )
                , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "ACQUIRE" ) )
                , isMethodDirty_( true )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
@@ -365,7 +354,7 @@ namespace acquire {
         bool initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const  {
             std::string objtext;
 
-            if ( uuid == boost::uuids::uuid{ 0 } ) {
+            if ( uuid == boost::uuids::uuid{{ 0 }} ) {
                 objtext = "master.observer";
             } else {
                 auto it = observers_.find( uuid );
@@ -392,7 +381,7 @@ namespace acquire {
             } while ( 0 );
 
             // Save method
-            if ( uuid == boost::uuids::uuid{ 0 } ) {
+            if ( uuid == boost::uuids::uuid{{ 0 }} ) {
                 // only if call for master observer
 
                 adfs::stmt sql( db );
@@ -425,6 +414,23 @@ namespace acquire {
             // acquire_rx::instance<0>()->set_pkd_threshold( acquire_pkd_threshold_ );
             // acquire_rx::instance<0>()->set_pkd_algo( acquire_pkd_algo_ );
             acquire_avgr_dirty_ = false;
+        }
+
+        void set_http_addr( const QString& host, const QString& port ) {
+            http_host_ = host;
+            http_port_ = port;
+            settings_->setValue( Constants::THIS_GROUP + QString("/http_host"), host );
+            settings_->setValue( Constants::THIS_GROUP + QString("/http_port"), port );
+        }
+        void config_http_addr( const QString& host, const QString& port ) {
+            QJsonObject jobj {
+                { "ip_address", host }
+                ,{ "port",  port }
+            };
+            QJsonDocument jdoc( jobj );
+            auto json = std::string( jdoc.toJson( QJsonDocument::Compact ).data() );
+            if ( auto inst = iDGMODImpl_->getInstrumentSession() )
+                inst->setConfiguration( json );
         }
     };
 
@@ -469,6 +475,9 @@ document::actionConnect()
     //ADTRACE() << "iControllers size=" << impl_->iControllers_.size();
     ADTRACE() << "iControllers size=" << impl_->iControllers_.size();
 
+    //task::instance()->connect_sse( impl_->http_host_.toStdString(), impl_->http_port_.toStdString(), "/dg/ctl?events" );
+    //task::instance()->connect_blob( impl_->http_host_.toStdString(), impl_->http_port_.toStdString(), "/dataStorage" );
+
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
@@ -485,17 +494,11 @@ document::actionConnect()
 
                 futures.emplace_back( std::async( [iController] () { return iController->wait_for_connection_ready( 3s ); } ) );
 
-                if ( iController->connect() ) {
-                    if ( iController->module_name() == iACQUIREImpl::__module_name__ ) {
-                        QJsonObject jobj;
-                        jobj[ "ip_address" ] = impl_->ip_address_;
-                        jobj[ "port" ] = impl_->port_;
-                        QJsonDocument jdoc( jobj );
-                        auto json = std::string( jdoc.toJson( QJsonDocument::Indented ).data() );
-                        if ( auto inst = impl_->iACQUIREImpl_->getInstrumentSession() )
-                            inst->setConfiguration( json );
-                    }
-                }
+                 if ( iController->connect() ) {
+                     if ( iController->module_name() == iDGMODImpl::__module_name__ ) {
+                         impl_->config_http_addr( impl_->http_host_, impl_->http_port_ );
+                     }
+                 }
             }
         }
 
@@ -511,10 +514,14 @@ document::actionConnect()
 
         emit onModulesFailed( failed );
 
+        auto cm = MainWindow::instance()->getControlMethod();
+        //setControlMethod( *cm, QString() );
+
         futures.clear();
         for ( auto& iController : impl_->iControllers_ ) {
             if ( auto session = iController->getInstrumentSession() ) {
                 session->initialize();
+                session->prepare_for_run( cm );
             }
         }
 
@@ -535,11 +542,11 @@ document::actionConnect()
             }
 
             masterObserver->setPrepareStorage( [&]( adacquire::SampleProcessor& sp ) {
-                                                   return document::instance()->prepareStorage( boost::uuids::uuid{ 0 }, sp );
+                                                   return document::instance()->prepareStorage( boost::uuids::uuid{{ 0 }}, sp );
                                                } );
 
             masterObserver->setClosingStorage( [&]( adacquire::SampleProcessor& sp ) {
-                                                   return document::instance()->closingStorage( boost::uuids::uuid{ 0 }, sp );
+                                                   return document::instance()->closingStorage( boost::uuids::uuid{{ 0 }}, sp );
                                                } );
 
             for ( auto& iController : impl_->iControllers_ ) {
@@ -604,6 +611,8 @@ document::actionStop()
 void
 document::addInstController( adextension::iController * p )
 {
+    ADDEBUG() << "################# " << __FUNCTION__ << " module: " << p->module_name().toStdString();
+
     try {
         if ( auto ptr = p->pThis() ) {
 
@@ -786,8 +795,8 @@ document::initialSetup()
     }
 
     if ( auto settings = impl_->settings_ ) {
-        impl_->ip_address_ = settings->value( Constants::THIS_GROUP + QString("/ip_address"),  "192.168.1.128" ).toString();
-        impl_->port_ = settings->value( Constants::THIS_GROUP + QString("/port"),  "8267" ).toString();
+        impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "192.168.1.132" ).toString();
+        impl_->http_port_ = settings->value( Constants::THIS_GROUP + QString("/http_port"),  "http" ).toString();
     }
 
     if ( auto settings = impl_->settings_ ) {
@@ -869,14 +878,8 @@ document::finalClose()
     if ( auto settings = impl_->settings_ )
         settings->setValue( QString(Constants::THIS_GROUP) + "/threshold_action", impl_->threshold_action_.toJson( QJsonDocument::Compact ) );
 
-   if ( auto settings = impl_->settings_ ) {
-       settings->setValue( Constants::THIS_GROUP + QString("/ip_address"), impl_->ip_address_ );
-       settings->setValue( Constants::THIS_GROUP + QString("/port"), impl_->port_ );
-       settings->sync();
-    }
-    ADDEBUG() << "###########################################";
-    ADDEBUG() << "############## finally closed  ############";
-    ADDEBUG() << "###########################################";
+    if ( auto settings = impl_->settings_ )
+        settings->sync();
 }
 
 void
@@ -956,64 +959,12 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
     }
 }
 
-// void
-// document::handleLog( adextension::iController *, const QString& )
-// {
-// }
-
-// void
-// document::handleDataEvent( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos )
-// {
-// }
-
-void
-document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols::MassSpectrum > ms, unsigned idx )
-{
-    assert( idx < acquire::nchannels );
-
-    // if ( idx >= acquire::nchannels )
-    //     return;
-
-    // do {
-    //     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    //     impl_->spectra_[ objid ][ idx ] = ms;
-    // } while( 0 );
-
-    // ADDEBUG() << "setData observer plot ready: " << objid; // histogram_observer;
-
-    emit dataChanged( objid, idx );
-}
-
 void
 document::commitData()
 {
     // save time data
     //impl_->resultWriter_->commitData();
 }
-
-std::shared_ptr< const adcontrols::MassSpectrum >
-document::recentSpectrum( const boost::uuids::uuid& uuid, int idx ) const
-{
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );
-    // auto it = impl_->spectra_.find( uuid );
-    // if ( it != impl_->spectra_.end() ) {
-    //     if ( it->second.size() > idx )
-    //         return it->second.at( idx );
-    // }
-    return nullptr;
-}
-
-// std::shared_ptr< const adcontrols::MassSpectrum >
-// document::recentCoAddedSpectrum( const boost::uuids::uuid& uuid, int idx ) const
-// {
-//     std::lock_guard< std::mutex > lock( impl_->mutex_ );
-//     auto it = impl_->coadded_.find( uuid );
-//     if ( it != impl_->coadded_.end() ) {
-//         if ( it->second.size() > idx )
-//             return it->second.at( idx );
-//     }
-//     return nullptr;
-// }
 
 QSettings *
 document::settings()
@@ -1030,7 +981,7 @@ document::iSequence()
 bool
 document::isControllerEnabled( const QString& module ) const
 {
-    if ( impl_->iACQUIREImpl_->module_name() == module )
+    if ( impl_->iDGMODImpl_->module_name() == module )
         return true;
     return false;
 }
@@ -1121,7 +1072,7 @@ document::setControllerSettings( const QString& module, bool enable )
 void
 document::addInstController( std::shared_ptr< adextension::iController > p )
 {
-
+    ADDEBUG() << "################# " << __FUNCTION__ << " module: " << p->module_name().toStdString();
     using adextension::iController;
     using adacquire::SignalObserver::Observer;
 
@@ -1145,7 +1096,7 @@ document::addInstController( std::shared_ptr< adextension::iController > p )
 std::vector< adextension::iController * >
 document::iControllers() const
 {
-    return { impl_->iACQUIREImpl_.get() };
+    return { impl_->iDGMODImpl_.get() };
 }
 
 void
@@ -1191,70 +1142,6 @@ document::handleConsoleIn( const QString& line )
 bool
 document::poll()
 {
-    // static meta_data prev;
-    // meta_data meta;
-    // std::ostringstream o;
-    // static std::chrono::system_clock::time_point __tp;
-    // static std::chrono::system_clock::time_point __read_tp;
-    // static std::chrono::system_clock::time_point __retry_tp;
-    // static std::pair< double, double > rtt( std::numeric_limits<double>::max() , 0 );
-
-    // const static uint32_t acquire_avgr_upper_addr = 0x9000'0000;
-    // const static uint32_t acquire_avgr_lower_addr = 0x8200'0000;
-    // const static uint32_t nbuf = ( acquire_avgr_upper_addr - acquire_avgr_lower_addr ) / 0x20000;
-
-    // std::lock_guard< std::mutex > lock( impl_->acquire_mutex_ );
-
-    // if ( impl_->acquire_avgr_dirty_ ) {
-    //     impl_->apply();
-    //     impl_->acquire_avgr_trig_number_ = 0;
-    // }
-
-    // // always read newest waveform
-
-    // auto tp = std::chrono::system_clock::now();
-
-    // uint32_t remain(0);
-    // std::shared_ptr< waveform > avg, pkd;
-
-    // // uint32_t addr = 0; // impl_->acquire_avgr_lower_addr_ + 0x20000 * impl_->acquire_avgr_index_;
-    // std::tie(avg, pkd) = singleton::instance()->mrd_avgd( 0, impl_->acquire_avgr_samples_, meta, impl_->acquire_avgr_trig_number_ );
-
-    // if ( avg ) {
-    //     if ( impl_->acquire_avgr_trig_number_ < meta.trig_number_ ) {
-    //         impl_->acquire_avgr_trig_number_ = meta.trig_number_;
-    //     } else {
-    //         if ( std::chrono::duration_cast< std::chrono::milliseconds >( tp - __retry_tp ).count() >= 1000 ) {
-    //             __retry_tp = tp;
-    //             ADDEBUG() << "same or older trig: " << impl_->acquire_avgr_trig_number_ << ", " << meta.trig_number_
-    //                       << boost::format( "\t0x%x" ) % meta.read_addr_;
-    //         }
-    //         using namespace std::chrono_literals;
-    //         std::this_thread::sleep_for( 20ms );
-    //         return impl_->acquire_polling_enabled_;
-    //     }
-
-    //     auto index = ( (meta.read_addr_ - acquire_avgr_lower_addr) / 0x20000 ) + 1;
-    //     impl_->acquire_avgr_index_ = index % nbuf;
-    //     //addr = impl_->acquire_avgr_lower_addr_ + 0x20000 * impl_->acquire_avgr_index_; // <- next addr
-
-    //     __retry_tp = tp; // reset retry timepoint
-    //     __read_tp = tp;
-
-    //     singleton::instance()->post( std::make_pair( avg, pkd ) ); //std::move( avg ), std::move( pkd ) );
-    //     impl_->polling_counts_++;
-
-    //     if ( std::chrono::duration_cast< std::chrono::milliseconds >( tp - __tp ).count() >= 1000 ) {
-    //         __tp = tp;
-    //         double rms;
-    //         std::tie( std::ignore, std::ignore, rms )
-    //             = adportable::spectrum_processor::tic( avg->size(), avg->data() );
-    //         meta.print( o, prev );
-    //         ADTRACE() << o.str() << boost::format( "\trms: %.3lf" ) % rms;
-    //     }
-    //     prev = meta;
-    // }
-
     return impl_->acquire_polling_enabled_;
 }
 
@@ -1262,104 +1149,6 @@ void
 document::acquire_apply( const QByteArray& json )
 {
     impl_->console_ << json.data() << std::endl;
-
-    // if ( ! singleton::instance()->is_open() ) {
-    //     ADTRACE() << "##### acquire is not open\n";
-    //     singleton::instance()->open( impl_->ip_address_.toStdString().c_str(), impl_->port_.toStdString().c_str() );
-    // }
-
-    // if ( singleton::instance()->is_open() ) {
-    //     auto doc = QJsonDocument::fromJson( json );
-    //     const auto& jobj = doc.object();
-    //     impl_->acquire_avgr_enabled_ = jobj[ "avrg.enable"  ].toBool();
-    //     impl_->acquire_avgr_samples_ = jobj[ "avrg.samples" ].toInt();
-    //     impl_->acquire_dg_adc_delay_ = jobj[ "dg.adc_delay" ].toDouble();
-    //     impl_->acquire_dg_interval_  = jobj[ "dg.interval"  ].toDouble();
-
-    //     auto avgr_trig_counts = jobj[ "avrg.trig_counts" ].toInt();
-    //     auto disable_dma = jobj[ "avrg.disable_dma" ].toBool();
-    //     auto ext_trigger = jobj[ "avrg.ext_trigger" ].toBool();
-    //     auto invert_data = jobj[ "avrg.invert_data" ].toBool();
-    //     auto pkd_threshold = jobj[ "pkd.threshold" ].toInt();
-    //     auto pkd_algo    = jobj[ "pkd.algo" ].toBool();
-
-    //     impl_->acquire_avgr_trig_counts_ = avgr_trig_counts;
-    //     impl_->avrg_disable_dma_ = disable_dma;
-    //     impl_->avrg_ext_trigger_ = ext_trigger;
-    //     impl_->avrg_invert_data_ = invert_data;
-    //     impl_->acquire_pkd_threshold_ = pkd_threshold;
-    //     impl_->acquire_pkd_algo_ = pkd_algo;
-    //     impl_->acquire_polling_enabled_  = jobj[ "polling.checked" ].toBool();
-    //     impl_->acquire_polling_interval_ = jobj[ "polling.interval" ].toInt();
-    //     impl_->acquire_polling_mtu_      = jobj[ "polling.mtu" ].toInt();
-
-    //     singleton::instance()->set_mtu( impl_->acquire_polling_mtu_ );
-    //     impl_->acquire_avgr_dirty_ = true;
-
-    //     if ( impl_->acquire_polling_enabled_ ) {
-    //         task::instance()->start_polling( impl_->acquire_polling_interval_ );
-    //     } else {
-    //         poll();
-    //     }
-
-    //     if ( auto settings = impl_->settings_ ) {
-    //         settings->setValue( Constants::THIS_GROUP + QString("/acquire"), json );
-    //     }
-
-    // } else {
-        ADTRACE() << "##### acquire is not open\n";
-    //}
-}
-
-void
-document::acquire_command( const char * arg, bool flag )
-{
-    // impl_->console_ << arg << ", " << flag << std::endl;
-    std::lock_guard< std::mutex > lock( impl_->acquire_mutex_ );
-
-    // if ( ! singleton::instance()->is_open() ) {
-    //     impl_->console_ << "##### acquire is not open\n";
-    //     singleton::instance()->open( impl_->ip_address_.toStdString().c_str(), impl_->port_.toStdString().c_str() );
-    // }
-
-    // if ( std::strcmp( arg, "xcvr" ) == 0 ) {
-    //     singleton::instance()->xcvr_reset( impl_->console_ );
-    //     impl_->acquire_avgr_dirty_ = true;
-    // } else if ( std::strcmp( arg, "jesd" ) == 0 ) {
-    //     jesd204_rx::instance<0>()->rx_status_read( impl_->console_ );
-    // } else if ( std::strcmp( arg, "ilas" ) == 0 ) {
-    //     const char * argv[] = {"ilas", 0};
-    //     ilas::command( 1, argv, impl_->console_ );
-    // } else if ( std::strcmp( arg, "sysref" ) == 0 ) {
-    //     acquire_rx::instance<0>()->sysref_en( flag );
-    //     impl_->console_ << boost::format("sysref = %x" ) % ( acquire_rx::instance<0>()->sysref_en() ? "enable" : "disable" ) << std::endl;
-    // } else if ( std::strcmp( arg, "polling" ) == 0 ) {
-    //     impl_->acquire_polling_enabled_ = flag;
-    // } else if ( std::strcmp( arg, "invert" ) == 0 ) {
-    //     impl_->acquire_avgr_dirty_ = true;
-    // } else if ( std::strcmp( arg, "ext_trig" ) == 0 ) {
-    //     // todo
-    // } else if ( std::strcmp( arg, "disable_dma" ) == 0 ) {
-    //     acquire_rx::instance<0>()->set_avgr_disable_dma( flag );
-    // }
-}
-
-QPair< QString, QString >
-document::acquire_ip_address() const
-{
-    return { impl_->ip_address_, impl_->port_ };
-}
-
-void
-document::set_acquire_ip_address( const QString& host, const QString& port ) const
-{
-    impl_->ip_address_ = host;
-    impl_->port_ = port;
-
-    if ( auto settings = impl_->settings_ ) {
-        settings->setValue( Constants::THIS_GROUP + QString("/ip_address"), host );
-        settings->setValue( Constants::THIS_GROUP + QString("/port"), port );
-    }
 }
 
 void
@@ -1378,7 +1167,7 @@ document::takeSnapshot()
 
     QStringList formatList{ "Spectrum %1 CH-%2", "LT-Avrgd %1 CH-%2", "LT-Hist %1 CH-%2", "PKD %1 CH-%2" };
     // get waveform(s)
-    auto formatIt = formatList.begin();
+    // auto formatIt = formatList.begin();
     // for ( auto& uuid: { WaveformObserver::__objid__, avrg_waveform_observer, histogram_observer, pkd_observer } ) {
 
     //     auto spectra = impl_->spectra_[ uuid ];
@@ -1499,6 +1288,8 @@ document::progress( double elapsed_time, std::shared_ptr< const adcontrols::Samp
 {
     double method_time = sampleRun->methodTime();
     QString runName = QString::fromStdWString( sampleRun->filePrefix() );
+    (void)method_time;
+    (void)runName;
     // ADDEBUG() << __FUNCTION__ << " runName: " << runName.toStdString() << ", method time: " << method_time;
     // emit sampleProgress( elapsed_time, method_time, runName, sampleRun->runCount() + 1, sampleRun->replicates() );
 }
@@ -1508,4 +1299,125 @@ document::set_pkd_threshold( double d )
 {
     // ACQUIRE GUI --> this
     emit on_threshold_level_changed( d );
+}
+
+std::pair< QString, QString >
+document::http_addr() const
+{
+    return std::make_pair( impl_->http_host_, impl_->http_port_ );
+}
+
+void
+document::set_http_addr( const QString& host, const QString& port )
+{
+    impl_->set_http_addr( host, port );
+    impl_->config_http_addr( host, port );
+}
+
+//static
+bool
+document::write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::trigger_data >&& data )
+{
+    adfs::stmt sql( sp.filesystem().db() );
+
+    sql.prepare( "INSERT INTO map_trigger (trig_count,fpga_clock,posix_clock,protocol,wellKnownEvents"
+                 ",dac_clock,dac_x,dac_y,adc_clock,adc_x,adc_y)"
+                 " VALUES (?,?,?,?,?,?,?,?,?,?,?)" );
+
+    for ( auto& d: *data ) {
+        int id(1);
+        double adc_x = ( d.advalues()[0] - 1250 ) * 2;
+        double adc_y = ( d.advalues()[1] - 1250 ) * 2;
+        sql.bind( id++ ) = d.trig_count();
+        sql.bind( id++ ) = d.fpga_clock();
+        sql.bind( id++ ) = d.posix_clock();
+        sql.bind( id++ ) = d.protocol();
+        sql.bind( id++ ) = d.wellKnownEvents();
+        sql.bind( id++ ) = d.dac_clock();
+        sql.bind( id++ ) = d.dac_x();
+        sql.bind( id++ ) = d.dac_y();
+        sql.bind( id++ ) = d.adc_clock();
+        sql.bind( id++ ) = adc_x;
+        sql.bind( id++ ) = adc_y;
+
+        if ( sql.step() != adfs::sqlite_done ) {
+            ADDEBUG() << "sql error: " << sql.errmsg();
+            break;
+        }
+
+        sql.reset();
+    }
+    return true;
+}
+
+//static
+void
+document::debug_write( const std::vector< std::pair< std::string, std::string > >& headers, const map::trigger_data& data )
+{
+    constexpr const size_t llimit = 15;
+    static uint64_t fpga_clock(0), posix_clock(0), trig_count(0), skip_count(0);
+    static int64_t last_skip(0);
+    int i = 0;
+
+    for ( auto& datum: data ) {
+        if ( i < llimit || i >= data.size() - 2 ) {
+            std::chrono::nanoseconds dur( datum.posix_clock() );
+            auto tp = std::chrono::time_point< std::chrono::system_clock >( dur );
+            using namespace date;
+            std::ostringstream o;
+            o << tp;
+            ADDEBUG() << boost::format( "[%4d] %d %s\t%.3lf s\t%8.3lf\t%8.3lf ms\t%d" )
+                % i
+                % datum.trig_count()
+                % o.str()
+                % (datum.fpga_clock() * 1.0e-9)
+                % (( datum.fpga_clock() - fpga_clock )/1.0e6)
+                % (( datum.posix_clock() - posix_clock )/1.0e6)
+                % skip_count
+                      << ", " << last_skip;
+        } else if ( i == llimit + 1 ) {
+            ADDEBUG() << "\t...snip...";
+        }
+        if ( trig_count && ( (trig_count + 1 ) != datum.trig_count() ) ) {
+            ++skip_count;
+            last_skip = datum.trig_count() - trig_count;
+            ADDEBUG() << "skip detected: " << trig_count
+                      << boost::format( " [%4d] %d\t%.3lf s\t%8.3lf\t%8.3lf ms\t%d" )
+                % i
+                % datum.trig_count()
+                % (datum.fpga_clock() * 1.0e-9)
+                % (( datum.fpga_clock() - fpga_clock )/1.0e6)
+                % (( datum.posix_clock() - posix_clock )/1.0e6)
+                % skip_count
+                      << ", " << last_skip;
+        }
+        ++i;
+        fpga_clock = datum.fpga_clock();
+        posix_clock = datum.posix_clock();
+        trig_count = datum.trig_count();
+    }
+
+}
+
+void
+document::debug_sse( const std::vector< std::pair< std::string, std::string> >& headers, const std::string& body )
+{
+    //static auto __tp = std::chrono::system_clock::now();
+
+    //auto tp = std::chrono::system_clock::now();
+    //if ( std::chrono::duration_cast< std::chrono::milliseconds >( tp - __tp ).count() > 3000 ) {
+    ADDEBUG() << "header size: " << headers.size();
+    size_t n(0);
+    for ( auto& header: headers ) {
+        if ( header.first == "data" ) {
+            QByteArray data( header.second.data(), header.second.size() );
+            auto jdoc = QJsonDocument::fromJson( data );
+            ADDEBUG() << jdoc.toJson( QJsonDocument::Compact ).toStdString();
+        } else
+            ADDEBUG() << "header[ " << n++ << "]: " << header.first << ", " << header.second;
+    }
+    ADDEBUG() << "------------------- body ------------------";
+    ADDEBUG() << body;
+    ADDEBUG() << "------------------- end body ------------------";
+//    __tp = tp;
 }
