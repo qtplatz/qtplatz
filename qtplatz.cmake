@@ -17,7 +17,7 @@ if( WIN32 )
 
   set( BOOST_ROOT ${_boost} )
   set( BOOST_INCLUDEDIR ${_boost} )
-  set( BOOST_LIBRARYDIR "C:/Boost/lib" )    
+  set( BOOST_LIBRARYDIR "C:/Boost/lib" )
 
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   set( Boost_USE_STATIC_LIBS ON )
@@ -32,7 +32,7 @@ else()
   find_path( _boost NAMES include/boost HINTS
     "/usr/local/boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 (debian9 default)
     "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
-    #"/usr/local/boost-1_65_1"     # V15 <-- not released with this version 
+    #"/usr/local/boost-1_65_1"     # V15 <-- not released with this version
     #"/usr/local/boost-1_63"       # V14 <-- not released with this version
     "/usr/local/boost-1_59"        # V13
     "/usr/local/boost-1_58"        # V12
@@ -51,8 +51,8 @@ endif()
 #
 
 if ( WITH_QT5 )
-  
-  set ( __qt5_versions "5.11.1" "5.11.0" "5.10.1" "5.9.2" )
+
+  set ( __qt5_versions "5.12.1" "5.12.0" "5.11.1" "5.11.0" "5.10.1" "5.9.2" )
 
   if ( WIN32 )
     foreach( v ${__qt5_versions} )
@@ -67,7 +67,7 @@ if ( WITH_QT5 )
     if ( CMAKE_CROSSCOMPILING )
       foreach( v ${__qt5_versions} )
         list ( APPEND __qmake_hints "/usr/local/arm-linux-gnueabihf/opt/Qt/${v}/bin" )
-      endforeach()      
+      endforeach()
     else()
       foreach( v ${__qt5_versions} )
         list ( APPEND __qmake_hints "/opt/Qt/${v}/gcc_64/bin" )
@@ -77,7 +77,7 @@ if ( WITH_QT5 )
 
   find_program( QMAKE NAMES qmake HINTS ${__qmake_hints} )
 
-  if ( QMAKE ) 
+  if ( QMAKE )
     execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX OUTPUT_VARIABLE __prefix )
     string( REGEX REPLACE "\n$" "" __prefix ${__prefix} )
     list( APPEND CMAKE_PREFIX_PATH "${__prefix}/lib/cmake" )
@@ -91,7 +91,7 @@ if ( WITH_QT5 )
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )
-    
+
   if ( Qt5_FOUND )
     find_package( Qt5 CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
     get_filename_component( QTDIR "${Qt5_DIR}/../../.." ABSOLUTE ) # Qt5_DIR = ${QTDIR}/lib/cmake/Qt5
@@ -155,10 +155,10 @@ else()
 
   if ( ${CMAKE_BUILD_TYPE} MATCHES DEBUG )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -DDEBUG")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -DDEBUG")    
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -DDEBUG")
   endif()
 
-endif()  
+endif()
 
 if ( MSVC )
   add_definitions( -wd4251 -wd4244 -wd4005 -wd4275 -wd4267 -wd4996 -wd4348 )
