@@ -59,17 +59,13 @@
 using namespace acquire;
 
 WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
-                                             , spw_( new adplot::SpectrumWidget )
-                                             , hpw_( new adplot::SpectrumWidget )
-                                             , pkw_( new adplot::SpectrumWidget )
-                                             , tpw_( new adplot::ChromatogramWidget )
                                              , tickCount_( 0 )
 {
     for ( auto& tp: tp_ )
         tp = std::make_shared< adcontrols::Trace >();
 
-    // for ( auto& marker : peak_marker_ )
-    //     marker = std::make_unique< adplot::PeakMarker >();
+    std::for_each( tpw_.begin(), tpw_.end(), [](auto& pw){ pw = std::make_unique< adplot::ChromatogramWidget >(); } );
+    std::for_each( spw_.begin(), spw_.end(), [](auto& pw){ pw = std::make_unique< adplot::SpectrumWidget >(); } );
 
     init();
     connect( document::instance(), &document::dataChanged, this, &WaveformWnd::dataChanged );
@@ -78,10 +74,6 @@ WaveformWnd::WaveformWnd( QWidget * parent ) : QWidget( parent )
 WaveformWnd::~WaveformWnd()
 {
     fini();
-    delete tpw_;
-    delete pkw_;
-    delete hpw_;
-    delete spw_;
 }
 
 void
@@ -89,58 +81,39 @@ WaveformWnd::init()
 {
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     do {
-        splitter->addWidget( tpw_ );
-        splitter->addWidget( hpw_ ); // long-term
-        splitter->addWidget( pkw_ );
-        splitter->addWidget( spw_ );
-        splitter->setStretchFactor( 0, 1 );
-        splitter->setStretchFactor( 1, 3 );
-        splitter->setStretchFactor( 2, 3 );
+        splitter->addWidget( tpw_[0].get() );
+        splitter->addWidget( tpw_[1].get() );
+        splitter->addWidget( spw_[0].get() );
+        splitter->addWidget( spw_[1].get() );
+        // splitter->setStretchFactor( 0, 1 );
+        // splitter->setStretchFactor( 1, 3 );
+        // splitter->setStretchFactor( 2, 3 );
         splitter->setOrientation( Qt::Vertical );
     } while(0);
 
-    tpw_->setMinimumHeight( 8 );
-    spw_->setMinimumHeight( 80 );
-    hpw_->setMinimumHeight( 80 );
-    pkw_->setMinimumHeight( 80 );
-    spw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-    hpw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-    pkw_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-    spw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 40 );
-    hpw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 40 );
-    pkw_->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 40 );
+    for ( auto& w: tpw_ )
+        w->setMinimumHeight( 40 );
+    for ( auto& w: spw_ )
+        w->setMinimumHeight( 40 );
 
-    spw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-    spw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    spw_->enableAxis( QwtPlot::yRight, true );
+    for ( auto& w: spw_ ) {
+        w->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+        w->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 40 );
+        w->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+        w->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+        w->enableAxis( QwtPlot::yRight, true );
+        w->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
+        w->setKeepZoomed( false );
+        w->setAutoAnnotation( false );
+    }
 
-    spw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
-    spw_->setKeepZoomed( false );
+    spw_[0]->link( spw_[1].get() );
 
-    hpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
-    hpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    hpw_->enableAxis( QwtPlot::yRight, true );
-
-    hpw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
-    hpw_->setKeepZoomed( false );
-    hpw_->setAutoAnnotation( false );
-
-    //------------
-    pkw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
-    pkw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    pkw_->enableAxis( QwtPlot::yRight, true );
-
-    pkw_->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
-    pkw_->setKeepZoomed( false );
-    pkw_->setAutoAnnotation( false );
-    //------------
-
-    spw_->link( hpw_ );
-    hpw_->link( pkw_ );
-
-    tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-    tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-    tpw_->enableAxis( QwtPlot::yRight, true );
+    for ( auto& w: tpw_ ) {
+        w->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
+        w->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+        w->enableAxis( QwtPlot::yRight, true );
+    }
 
     QBoxLayout * layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
@@ -155,7 +128,7 @@ WaveformWnd::init()
         threshold_markers_[ i ]->setLinePen( colors[ i ], 2, Qt::DotLine );
         threshold_markers_[ i ]->setYAxis( ( i == 1 ) ? QwtPlot::yRight : QwtPlot::yLeft );
         threshold_markers_[ i ]->setYValue( ( i + 1 ) * 100 );
-        threshold_markers_[ i ]->attach( spw_ );
+        threshold_markers_[ i ]->attach( spw_[0].get() );
     }
 
     // Histogram window marker
@@ -163,11 +136,11 @@ WaveformWnd::init()
     for ( auto& histogram_window_marker : histogram_window_markers_ ) {
         int idx = 0;
         for ( auto& marker: histogram_window_marker ) {
-            QColor color( tpw_->color( idx++ ) );
+            QColor color( tpw_[0]->color( idx++ ) );
             color.setAlpha( 0x20 );
             marker = std::make_unique< adplot::SpanMarker >( color, QwtPlotMarker::VLine, 2.0 );
             marker->setVisible( false );
-            marker->attach( viewId == 0 ? spw_ : hpw_ );
+            marker->attach( viewId == 0 ? spw_[0].get() : spw_[1].get() );
         }
         ++viewId;
     }
@@ -175,7 +148,7 @@ WaveformWnd::init()
     // Threshold action (fence) marker (indigo)
     if ( ( threshold_action_marker_
            = std::make_unique< adplot::SpanMarker >( QColor( 0x4b, 0x00, 0x62, 0x60 ), QwtPlotMarker::VLine, 1.5 ) ) ) {
-        threshold_action_marker_->attach( spw_ );
+        threshold_action_marker_->attach( spw_[0].get() );
     }
 }
 
@@ -192,11 +165,8 @@ WaveformWnd::fini()
 void
 WaveformWnd::onInitialUpdate()
 {
-    spw_->setKeepZoomed( false );
-    hpw_->setKeepZoomed( false );
-    pkw_->setKeepZoomed( false );
-    //handle_method( QString() );
-    //handle_threshold_method( 0 );
+    for ( auto& sp: spw_ )
+        sp->setKeepZoomed( false );
 }
 
 
@@ -248,9 +218,9 @@ WaveformWnd::setMethod( const adcontrols::TofChromatogramsMethod& m )
         }
         ++idx;
     }
-    spw_->replot();
-    hpw_->replot();
-    pkw_->replot();
+
+    for ( auto& spw: spw_ )
+        spw->replot();
 }
 
 void
@@ -281,7 +251,7 @@ WaveformWnd::handle_threshold_action( const QJsonDocument& doc )
         threshold_action_marker_->setVisible( enable );
 
         if ( replot )
-            spw_->replot();
+            spw_[0]->replot();
     }
 }
 
@@ -314,7 +284,7 @@ WaveformWnd::handle_threshold_method( const QJsonDocument& doc )
         threshold_markers_[ ch ]->setVisible( enable );
 
         if ( replot )
-            spw_->replot();
+            spw_[0]->replot();
     }
 }
 
@@ -335,5 +305,5 @@ WaveformWnd::handle_threshold_level( double level_mV )
     }
 
     if ( replot )
-        spw_->replot();
+        spw_[0]->replot();
 }

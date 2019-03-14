@@ -22,7 +22,7 @@
 **************************************************************************/
 
 #include "session.hpp"
-#include "../document.hpp"
+#include "traceobserver.hpp"
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/receiver.hpp>
 #include <adacquire/sampleprocessor.hpp>
@@ -52,17 +52,19 @@
 #include <sstream>
 #include <string>
 
-namespace acquire {
+namespace socfpga {
 
     namespace dgmod {
 
         struct session::impl {
 
             impl() : work_( io_service_ )
-                   , sse_( std::make_unique< adurl::sse >( io_service_ ) )
-                   , worker_stopping_( false ) {
-                // masterObserver_->addSibling( waveformObserver_.get() );
-                }
+                   , worker_stopping_( false )
+                   , masterObserver_( std::make_shared< adacquire::MasterObserver >( "acquire.master.observer.ms-cheminfo.com" ) )
+                   , traceObserver_( std::make_shared< socfpga::dgmod::TraceObserver >() )
+                   , sse_( std::make_unique< adurl::sse >( io_service_ ) ) {
+                masterObserver_->addSibling( traceObserver_.get() );
+            }
 
             static std::shared_ptr< session > instance_;
 
@@ -77,12 +79,13 @@ namespace acquire {
             typedef std::pair< std::shared_ptr< adacquire::Receiver >, std::string > client_pair_t;
             std::vector< client_pair_t > clients_;
 
-            //std::shared_ptr< adacquire::MasterObserver > masterObserver_;
-            //std::shared_ptr< WaveformObserver > waveformObserver_;
+            std::shared_ptr< adacquire::MasterObserver > masterObserver_;
+            std::shared_ptr< TraceObserver > traceObserver_;
+
             std::pair< std::string, std::string > httpd_address_;
 
             std::unique_ptr< adurl::sse > sse_;
-            std::vector< socfpga::dgmod::advalue > que_;
+            std::vector< advalue > que_;
 
             void reply_message( adacquire::Receiver::eINSTEVENT msg, uint32_t value ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
@@ -118,7 +121,7 @@ namespace acquire {
     }
 }
 
-using namespace acquire::dgmod;
+using namespace socfpga::dgmod;
 
 session::session() : impl_( new impl() )
 {
@@ -337,7 +340,7 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                 auto jarray = jdoc.object()[ "ad.values" ].toArray();
                 std::lock_guard< std::mutex > lock( mutex_ );
                 for ( const auto& jadval: jarray ) {
-                    socfpga::dgmod::advalue value;
+                    advalue value;
                     auto jobj = jadval.toObject();
                     value.tp = jobj[ "tp" ].toDouble();
                     value.nacc = jobj[ "nacc" ].toInt();
@@ -365,14 +368,12 @@ session::impl::worker_thread()
         if ( worker_stopping_ )
             return;
 
-        std::vector< socfpga::dgmod::advalue > advec;
+        std::vector< advalue > advec;
         do {
             std::lock_guard< std::mutex > lock( mutex_ );
             std::move( que_.begin(), que_.end(), std::back_inserter( advec ) );
             que_.clear();
         } while ( 0 );
-
-        document::instance()->debug_data( advec );
 
     } while ( true );
 }

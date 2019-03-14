@@ -58,13 +58,13 @@ namespace adcontrols {
 
 namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
 
+namespace socfpga { namespace dgmod { struct advalue; } }
+
 namespace acquire {
 
     class iControllerImpl;
 
     namespace detail { struct remover; }
-
-    namespace dgmod { struct advalue; }
 
     class document : public QObject {
 
@@ -150,7 +150,7 @@ namespace acquire {
         static void debug_write( const std::vector< std::pair< std::string, std::string > >& headers, const map::trigger_data& );
         // locally added for acquire debugging
         void debug_sse( const std::vector< std::pair< std::string, std::string> >& headers, const std::string& body );
-        void debug_data( const std::vector< dgmod::advalue >& );
+        void debug_data( const std::vector< socfpga::dgmod::advalue >& );
     private:
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
         bool prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const;

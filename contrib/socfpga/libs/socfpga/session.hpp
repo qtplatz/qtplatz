@@ -25,9 +25,9 @@
 
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
-#include <socfpga/advalue.hpp>
+#include "advalue.hpp"
 
-namespace acquire {
+namespace socfpga {
 
     namespace dgmod {
         // Session class define here is psude singletion by a manager class

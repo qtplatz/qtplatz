@@ -27,12 +27,9 @@
 #include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
 #include "dgmod/session.hpp"
-#include <adurl/ajax.hpp>
-#include <adurl/blob.hpp>
-#include <adurl/sse.hpp>
 #include <adacquire/masterobserver.hpp>
-#include <adacquire/simpleobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
+#include <adacquire/simpleobserver.hpp>
 #include <adacquire/task.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
@@ -60,17 +57,20 @@
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/debug_core.hpp>
-
 #include <adportable/profile.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adurl/ajax.hpp>
+#include <adurl/blob.hpp>
+#include <adurl/sse.hpp>
 #include <adwidgets/findslopeform.hpp>
 #include <adwidgets/thresholdactionform.hpp>
-#include <date/date.h>
-#include <qtwrapper/settings.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
+#include <date/date.h>
 #include <extensionsystem/pluginmanager.h>
+#include <qtwrapper/settings.hpp>
+#include <socfpga/session.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/bind.hpp>
@@ -1424,7 +1424,7 @@ document::debug_sse( const std::vector< std::pair< std::string, std::string> >& 
 }
 
 void
-document::debug_data( const std::vector< dgmod::advalue >& vec )
+document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
 {
     for ( const auto& item: vec ) {
         std::ostringstream o;

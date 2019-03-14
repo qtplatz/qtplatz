@@ -38,7 +38,7 @@ if (WIN32)
 endif()
 
 include_directories(
-  ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
+  ${QTPLATZ_SOURCE_DIR}/contrib/socfpga/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
   ${QTPLATZ_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
@@ -93,6 +93,7 @@ target_link_libraries(
   qtwrapper
   Core
   extensionsystem
+  socfpga
   utils
   Qt5::Svg
   Qt5::Widgets

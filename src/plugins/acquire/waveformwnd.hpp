@@ -63,11 +63,14 @@ namespace acquire {
     private:
         void init();
         void fini();
-        adplot::ChromatogramWidget * tpw_;
-        adplot::SpectrumWidget * spw_;
-        adplot::SpectrumWidget * hpw_;
-        adplot::SpectrumWidget * pkw_;
+        // adplot::ChromatogramWidget * tpw_;
+        // adplot::SpectrumWidget * spw_;
+        // adplot::SpectrumWidget * hpw_;
+        // adplot::SpectrumWidget * pkw_;
         size_t tickCount_;
+
+        std::array< std::unique_ptr< adplot::ChromatogramWidget >, 2 > tpw_;
+        std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > spw_;
 
         std::array< std::shared_ptr< adcontrols::MassSpectrum >, spViewCount > sp_;
         std::array< std::shared_ptr< adcontrols::Trace>, 2 > tp_;
