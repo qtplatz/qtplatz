@@ -205,6 +205,7 @@ namespace adacquire {
             virtual std::vector< std::shared_ptr< Observer > > siblings() const;
 
             /** Instrument controller will add/remove sibling by changing method while running sequence
+             *  the method name should be more like 'addChild', actually this method add a link as child -- not sibling to this
              */
             virtual bool addSibling( Observer * observer );
             virtual Observer * findObserver( const boost::uuids::uuid&, bool recursive );

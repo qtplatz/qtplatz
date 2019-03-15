@@ -278,6 +278,8 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
 
+    ADDEBUG() << "onDataChanged: " << so->objtext() << ", pos: " << pos;
+
     if ( impl_->isRecording_ ) {
 
         impl_->data_status_[ so->objid() ].posted_data_count_++;

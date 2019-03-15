@@ -59,7 +59,6 @@ namespace socfpga {
         struct session::impl {
 
             impl() : work_( io_service_ )
-                   , worker_stopping_( false )
                    , masterObserver_( std::make_shared< adacquire::MasterObserver >( "acquire.master.observer.ms-cheminfo.com" ) )
                    , traceObserver_( std::make_shared< socfpga::dgmod::TraceObserver >() )
                    , sse_( std::make_unique< adurl::sse >( io_service_ ) ) {
@@ -74,7 +73,6 @@ namespace socfpga {
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
             std::vector< std::thread > threads_;
-            std::atomic< bool > worker_stopping_;
 
             typedef std::pair< std::shared_ptr< adacquire::Receiver >, std::string > client_pair_t;
             std::vector< client_pair_t > clients_;
@@ -114,9 +112,7 @@ namespace socfpga {
                     ADINFO() << "ACQUIRE: " << method << " = " << reply;
                 }
             }
-
             void connect_sse( const std::string& host, const std::string& port, const std::string& url );
-            void worker_thread();
         };
     }
 }
@@ -177,9 +173,6 @@ session::connect( adacquire::Receiver * receiver, const std::string& token )
     if ( ptr ) {
         impl_->clients_.emplace_back( ptr, token );
 
-        static std::once_flag flag;
-        std::call_once( flag, [=]{ impl_->threads_.emplace_back( std::thread( [=]{ impl_->worker_thread(); } ) ); } );
-
         //auto self = this->shared_from_this();
         //singleton::instance()->connect( self );
         //singleton::instance()->connect( ptr );
@@ -216,7 +209,7 @@ session::get_status()
 adacquire::SignalObserver::Observer *
 session::getObserver()
 {
-    return nullptr; //singleton::instance()->getObserver();
+    return impl_->masterObserver_.get();
 }
 
 bool
@@ -229,8 +222,6 @@ bool
 session::shutdown()
 {
     ADDEBUG() << "################# " << __FUNCTION__ << " ##################";
-    impl_->worker_stopping_ = true;
-    impl_->sema_.signal();
 
     //singleton::instance()->close();
     impl_->io_service_.stop();
@@ -323,6 +314,18 @@ session::dark_run( size_t waitCount )
     return true; // impl_->digitizer_->peripheral_dark( waitCount );
 }
 
+// bool
+// singleton::post( std::pair< std::shared_ptr< const waveform >, std::shared_ptr< const waveform > >&& avgpkd )
+// {
+//     if ( masterObserver_ && waveformObserver_ ) {
+//         auto pos = avgpkd.first->pos();
+//         waveformObserver_->emplace_back( std::move( avgpkd ) );
+//         masterObserver_->dataChanged( waveformObserver_.get(), pos );
+//     }
+//     return true;
+//     //return handle_waveform( std::move( avgpkd.first ) );
+// }
+
 void
 session::impl::connect_sse( const std::string& host, const std::string& port, const std::string& url )
 {
@@ -349,31 +352,14 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                     std::transform( vec.begin(), vec.end(), value.ad.begin(), [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
 
                     que_.emplace_back( value );
-
                     sema_.signal();
                 }
+                traceObserver_->emplace_back( std::move( que_ ) );
+                que_.clear();
+                masterObserver_->dataChanged( traceObserver_.get(), 0 );
             }
         } );
 
     sse_->connect( url, host, port );
     threads_.emplace_back( [&]{ io_service_.run(); } );
-}
-
-void
-session::impl::worker_thread()
-{
-    do {
-        sema_.wait();
-
-        if ( worker_stopping_ )
-            return;
-
-        std::vector< advalue > advec;
-        do {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            std::move( que_.begin(), que_.end(), std::back_inserter( advec ) );
-            que_.clear();
-        } while ( 0 );
-
-    } while ( true );
 }

@@ -135,7 +135,7 @@ namespace u5303a {
                 , so::eMassSpectrometer
                 , L"Time", L"Count", 3, 0
             }
-        }        
+        }
         , { acqrscontrols::u5303a::softavgr_observer_name
             , acqrscontrols::u5303a::softavgr_datainterpreter
             , { acqrscontrols::u5303a::softavgr_observer_name
@@ -143,9 +143,9 @@ namespace u5303a {
                 , so::eMassSpectrometer
                 , L"Time", L"mV", 3, 0
             }
-        }        
+        }
     };
-    
+
 
     struct exec_fsm_stop {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
@@ -163,7 +163,7 @@ namespace u5303a {
                 if ( auto session = inst->getInstrumentSession() )
                     session->start_run();
             }
-            
+
             document::instance()->prepare_for_run();
             task::instance()->sample_started(); // workaround::method start
             // increment sample number
@@ -174,7 +174,7 @@ namespace u5303a {
 
     struct exec_fsm_ready {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {
-            // // make immediate inject 
+            // // make immediate inject
             // adacquire::task::instance()->fsmInject();
         }
     };
@@ -197,7 +197,7 @@ namespace u5303a {
     };
 
     // template<typename T> struct wrap {};
-    
+
     //..........................................
     class document::impl {
     public:
@@ -225,7 +225,7 @@ namespace u5303a {
 
         int32_t device_status_;
         // double triggers_per_second_;
-        
+
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
 
@@ -274,27 +274,27 @@ namespace u5303a {
             if ( enter )
                 emit document::instance()->instStateChanged( st );
         }
-        
+
         void handle_fsm_action( adacquire::Instrument::idFSMAction a ) {
 
             typedef boost::mpl::vector< exec_fsm_stop, exec_fsm_start, exec_fsm_ready, exec_fsm_inject, exec_fsm_complete > actions;
-            
+
             switch( a ) {
             case adacquire::Instrument::fsmStop:
                 boost::mpl::at_c<actions, adacquire::Instrument::fsmStop>::type()( iControllers_ );
                 break;
             case adacquire::Instrument::fsmStart:
                 boost::mpl::at_c<actions, adacquire::Instrument::fsmStart>::type()( iControllers_ );
-                break;                
+                break;
             case adacquire::Instrument::fsmReady:
                 boost::mpl::at_c<actions, adacquire::Instrument::fsmReady>::type()( iControllers_ );
-                break;                                
+                break;
             case adacquire::Instrument::fsmInject:
                 boost::mpl::at_c<actions, adacquire::Instrument::fsmInject>::type()( iControllers_ );
-                break;                                                
+                break;
             case adacquire::Instrument::fsmComplete:
                 boost::mpl::at_c<actions, adacquire::Instrument::fsmComplete>::type()( iControllers_ );
-                break;                                                                
+                break;
             }
         }
     };
@@ -305,7 +305,7 @@ namespace u5303a {
     const uint64_t document::impl::tp0_ =
         std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
 }
-    
+
 document::document() : impl_( new impl() )
 {
     // diagnostic
@@ -316,7 +316,7 @@ document::document() : impl_( new impl() )
 document::~document()
 {
     delete impl_;
-    ADDEBUG() << "=====> document dtor";    
+    ADDEBUG() << "=====> document dtor";
 }
 
 document *
@@ -332,7 +332,7 @@ void
 document::actionConnect()
 {
     using namespace std::literals::chrono_literals;
-    
+
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
@@ -346,7 +346,7 @@ document::actionConnect()
                 ADDEBUG() << "u5303a actionConnect connecting to " << iController->module_name().toStdString();
 
                 activeControllers.emplace_back( iController );
-                
+
                 futures.emplace_back( std::async( [iController] () { return iController->wait_for_connection_ready( 3s ); } ) );
 
                 iController->connect();
@@ -382,13 +382,13 @@ document::actionConnect()
         if ( auto masterObserver = adacquire::task::instance()->masterObserver() ) {
 
             masterObserver->setPrepareStorage( [&]( adacquire::SampleProcessor& sp ) {
-                    return impl_->prepareStorage( boost::uuids::uuid{ 0 }, sp );
+                                                   return impl_->prepareStorage( boost::uuids::uuid{ { 0 } }, sp );
                 } );
-            
+
             masterObserver->setClosingStorage( [&]( adacquire::SampleProcessor& sp ) {
-                    return impl_->closingStorage( boost::uuids::uuid{ 0 }, sp );
+                                                   return impl_->closingStorage( boost::uuids::uuid{ { 0 } }, sp );
                 } );
-            
+
             for ( auto& iController : impl_->iControllers_ ) {
                 if ( auto session = iController->getInstrumentSession() ) {
                     if ( auto observer = session->getObserver() )
@@ -403,7 +403,7 @@ document::actionConnect()
         // FSM State
         adacquire::task::instance()->connect_fsm_state(
             std::bind( &impl::handle_fsm_state_changed, impl_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
-        
+
         adacquire::task::instance()->fsmStart();
         adacquire::task::instance()->fsmReady();
     }
@@ -438,7 +438,7 @@ document::actionRun()
 {
     auto cm = MainWindow::instance()->getControlMethod();
     setControlMethod( cm, QString() );
-    
+
     adacquire::task::instance()->fsmStart();
 }
 
@@ -457,7 +457,7 @@ document::addInstController( adextension::iController * p )
             impl_->addInstController( p->pThis() );
 
     } catch ( std::bad_weak_ptr& ) {
-        
+
         QMessageBox::warning( MainWindow::instance(), "U5303A plugin"
                               , QString( tr( "Instrument controller %1 has no shared_ptr; ignored." ) ).arg( p->module_name() ) );
 
@@ -486,7 +486,7 @@ document::impl::addInstController( std::shared_ptr< adextension::iController > p
         // non UI thread
         connect( p.get(), &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
         connect( p.get(), &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
-        
+
         p->dataChangedHandler( [] ( Observer *o, unsigned int pos ) { task::instance()->onDataChanged( o, pos ); } );
     }
 
@@ -524,9 +524,9 @@ document::prepare_for_run()
     impl_->isMethodDirty_ = false;
 
     prepare_next_sample( impl_->nextSampleRun_, *impl_->cm_ );
-    
+
     ADDEBUG() << "### prepare_for_run ###";
-    
+
     std::vector< std::future< bool > > futures;
     for ( auto& iController : impl_->iControllers_ ) {
         if ( auto session = iController->getInstrumentSession() ) {
@@ -540,7 +540,7 @@ document::prepare_for_run()
 void
 document::start_run()
 {
-    ADDEBUG() << "### start run ###";    
+    ADDEBUG() << "### start run ###";
     prepare_for_run();
 }
 
@@ -550,7 +550,7 @@ document::stop()
     ADDEBUG() << "### stop ###";
 
     std::vector< std::future< bool > > futures;
-    
+
     for ( auto& iController : impl_->iControllers_ ) {
         if ( auto session = iController->getInstrumentSession() ) {
             futures.push_back( std::async( [=] () { return session->stop_run(); } ) );
@@ -558,7 +558,7 @@ document::stop()
     }
     if ( !futures.empty() )
         task::instance()->post( futures );
-    
+
 }
 
 int32_t
@@ -581,7 +581,7 @@ document::appendOnFile( const boost::filesystem::path& path
                         , QString& id )
 {
     adfs::filesystem fs;
-	
+
 	if ( ! boost::filesystem::exists( path ) ) {
 		if ( ! fs.create( path.c_str() ) )
 			return false;
@@ -601,7 +601,7 @@ document::appendOnFile( const boost::filesystem::path& path
         }
 	}
     return true;
-    
+
 }
 
 void
@@ -639,7 +639,7 @@ document::initialSetup()
         boost::filesystem::path fname( dir / "samplerun.xml" );
         if ( boost::filesystem::exists( fname ) ) {
             std::wifstream inf( fname.string() );
-            try { 
+            try {
                 adcontrols::SampleRun::xml_restore( inf, *run );
 
                 // replace directory name to 'today'
@@ -680,7 +680,7 @@ document::finalClose()
     auto cm = MainWindow::instance()->getControlMethod();
     if ( cm ) {
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
-        save( QString::fromStdWString( fname.wstring() ), *cm );        
+        save( QString::fromStdWString( fname.wstring() ), *cm );
     }
 
     if ( auto run = sampleRun() ) {
@@ -694,9 +694,9 @@ document::finalClose()
         if ( mi.clsid() == acqrscontrols::u5303a::method::clsid() ) {
             xmlWriter< acqrscontrols::u5303a::method >()( mi, dir );
         } else if ( mi.clsid() == adcontrols::TimeDigitalMethod::clsid() ) {
-            xmlWriter< adcontrols::TimeDigitalMethod >()( mi, dir );            
+            xmlWriter< adcontrols::TimeDigitalMethod >()( mi, dir );
         } else if ( mi.clsid() == adcontrols::threshold_method::clsid() ) {
-            xmlWriter< adcontrols::threshold_method >()( mi, dir );            
+            xmlWriter< adcontrols::threshold_method >()( mi, dir );
         } else if ( mi.clsid() == adcontrols::threshold_action::clsid() ) {
             xmlWriter< adcontrols::threshold_action >()( mi, dir );
         }
@@ -704,7 +704,7 @@ document::finalClose()
 
     if ( auto settings = impl_->settings_ ) {
         settings->beginGroup( Constants::THIS_GROUP );
-        
+
         settings->beginWriteArray( "ControlModule" );
 
         int i = 0;
@@ -758,7 +758,7 @@ document::load( const QString& filename, acqrscontrols::u5303a::method& m )
 
         std::wifstream inf( filename.toStdString() );
         boost::archive::xml_wiarchive ar( inf );
-        
+
         ar >> boost::serialization::make_nvp( "u5303a_method", m );
 
         return true;
@@ -788,7 +788,7 @@ document::load( const QString& filename, adcontrols::ControlMethod::Method& m )
         adfs::filesystem fs;
         if ( fs.mount( filename.toStdWString().c_str() ) ) {
             adfs::folder folder = fs.findFolder( L"/ControlMethod" );
-        
+
             auto files = folder.files();
             if ( !files.empty() ) {
                 auto file = files.back();
@@ -816,7 +816,7 @@ document::save( const QString& filename, const adcontrols::ControlMethod::Method
         ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
         return false;
     }
-    
+
     adfs::folder folder = file.addFolder( L"/ControlMethod" );
     adfs::file adfile = folder.addFile( filename.toStdWString(), filename.toStdWString() );
     try {
@@ -993,7 +993,7 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
     if ( code == adacquire::Receiver::CLIENT_ATTACHED ) {
 
         // do nothing
-        
+
     } else if ( code == adacquire::Receiver::STATE_CHANGED ) {
 
         if ( value & adacquire::Instrument::eErrorFlag ) {
@@ -1028,7 +1028,7 @@ document::setData( const boost::uuids::uuid& objid, std::shared_ptr< adcontrols:
         return;
 
     do {
-        std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
         impl_->spectra_[ objid ][ idx ] = ms;
     } while( 0 );
 
@@ -1046,7 +1046,7 @@ document::commitData()
 std::shared_ptr< adcontrols::MassSpectrum >
 document::recentSpectrum( const boost::uuids::uuid& uuid, int idx )
 {
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
     auto it = impl_->spectra_.find( uuid );
     if ( it != impl_->spectra_.end() ) {
@@ -1076,7 +1076,7 @@ document::impl::getHistogram( double resolution ) const
         double resolution = 0;
         if ( auto tm = tdcdoc_->threshold_method( 0 ) )
             resolution = tm->time_resolution;
-        
+
         if ( resolution > hgrm->xIncrement() ) {
             hgrm = hgrm->merge_peaks( resolution );
         }
@@ -1097,16 +1097,16 @@ document::impl::takeSnapshot()
     // debug -->
     resultWriter_->dump_waveform();
     // <-- debug
-    
+
     if ( ! boost::filesystem::exists( dir ) ) {
         boost::system::error_code ec;
         boost::filesystem::create_directories( dir, ec );
     }
-    
+
     boost::filesystem::path path( dir / file );
     if ( ! boost::filesystem::exists( path ) )
         path = dir / ( std::wstring( nextSampleRun_->filePrefix() ) + L"_snapshots.adfs" );
-    
+
     unsigned idx = 0;
 
     // get histogram
@@ -1116,14 +1116,14 @@ document::impl::takeSnapshot()
 
     auto histogram = getHistogram( resolution );
 
-    std::chrono::system_clock::time_point tp = std::chrono::system_clock::now(); 
+    std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
     std::string date = adportable::date_string::logformat( tp );
 
     uint32_t serialnumber(0);
 
     // get waveform(s)
     auto spectra = spectra_[ u5303a_observer ];
-    
+
     int ch = 1;
     for ( auto ms: spectra ) {
         if ( ms ) {
@@ -1195,11 +1195,11 @@ document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
         return false;
 
     // "{E45D27E0-8478-414C-B33D-246F76CF62AD}"
-    static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text ); 
+    static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
 
     // if ( auto scanLaw = document::instance()->scanLaw() ) {
     static std::string this_spectrometer = "d8472724-40dd-4859-a1de-064b4a5e8320"; // "malpix large multum chamber"
-        
+
     adfs::stmt sql( sp.filesystem().db() );
     sql.prepare( "\
 INSERT OR REPLACE INTO ScanLaw ( objuuid, objtext, acclVoltage, tDelay, spectrometer, clsidSpectrometer) VALUES ( ?,?,?,?,?,? )" );
@@ -1209,7 +1209,7 @@ INSERT OR REPLACE INTO ScanLaw ( objuuid, objtext, acclVoltage, tDelay, spectrom
     sql.bind( 4 ) = 0.0;    // scanLaw->tDelay();
     sql.bind( 5 ) = this_spectrometer;
     sql.bind( 6 ) = uuid_massspectrometer;
-    
+
     if ( sql.step() != adfs::sqlite_done )
         ADDEBUG() << "sqlite error";
 
@@ -1243,7 +1243,7 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     tdc()->setTofChromatogramsMethod( m );
 
-    std::lock_guard< std::mutex > lock( impl_->mutex_ );    
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
 
     auto prev = impl_->tofChromatogramsMethod_;
 
@@ -1251,7 +1251,7 @@ document::setMethod( const adcontrols::TofChromatogramsMethod& m )
 
         task::instance()->setTofChromatogramsMethod( *impl_->tofChromatogramsMethod_ );
 
-        if ( impl_->traces_.size() > impl_->tofChromatogramsMethod_->size() ) 
+        if ( impl_->traces_.size() > impl_->tofChromatogramsMethod_->size() )
             impl_->traces_.resize( impl_->tofChromatogramsMethod_->size() );
 
         while ( impl_->traces_.size() < impl_->tofChromatogramsMethod_->size() )
@@ -1274,12 +1274,12 @@ document::addCountingChromatogramsPoint( uint64_t timeSinceEpoch
     auto injectTime = task::instance()->injectTimeSinceEpoch();
 
     double seconds = ( timeSinceEpoch - task::instance()->upTimeSinceEpoch() ) * 1.0e-9;
-    
+
     if ( auto method = impl_->tofChromatogramsMethod_ ) {
-        
+
         auto size = std::min( std::min( values.size(), method->size() ), impl_->traces_.size() );
         if ( size ) {
-            std::lock_guard< std::mutex > lock( impl_->mutex_ );            
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
         	for ( uint32_t fcn = 0; fcn < uint32_t( size ); ++fcn ) {
         		auto item = method->begin() + fcn;
                 impl_->traces_ [ fcn ]->append( serialnumber, seconds, values [ fcn ] );
@@ -1303,4 +1303,3 @@ document::massSpectrometer() const
 {
     return impl_->massSpectrometer_;
 }
-

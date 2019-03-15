@@ -23,6 +23,7 @@
 
 #include "idgmodimpl.hpp"
 #include "dgmod/session.hpp"
+#include <socfpga/session.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
 #include <adportable/debug.hpp>
@@ -32,23 +33,25 @@ using namespace acquire;
 
 iDGMODImpl::iDGMODImpl() : adextension::iControllerImpl("DGMOD")
 {
-    ADDEBUG() << "iDGMODImpl ctor";
 }
 
 iDGMODImpl::~iDGMODImpl()
 {
-    ADDEBUG() << "iDGMODImpl dtor";
 }
 
 bool
 iDGMODImpl::connect()
 {
-    ADDEBUG() << "############################### " << __FUNCTION__;
-
+#if 0
     if ( auto session = std::make_shared< acquire::dgmod::session >() ) {
         adextension::iControllerImpl::connect( session.get(), "iDGMODImpl" );
         return true;
     }
-
+#else
+    if ( auto session = std::make_shared< socfpga::dgmod::session >() ) {
+        adextension::iControllerImpl::connect( session.get(), "iDGMODImpl" );
+        return true;
+    }
+#endif
     return false;
 }

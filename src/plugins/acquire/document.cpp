@@ -26,7 +26,7 @@
 #include "task.hpp"
 #include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
-#include "dgmod/session.hpp"
+//#include "dgmod/session.hpp"
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
 #include <adacquire/simpleobserver.hpp>
@@ -472,12 +472,6 @@ document::actionConnect()
 {
     using namespace std::literals::chrono_literals;
 
-    //ADTRACE() << "iControllers size=" << impl_->iControllers_.size();
-    ADTRACE() << "iControllers size=" << impl_->iControllers_.size();
-
-    //task::instance()->connect_sse( impl_->http_host_.toStdString(), impl_->http_port_.toStdString(), "/dg/ctl?events" );
-    //task::instance()->connect_blob( impl_->http_host_.toStdString(), impl_->http_port_.toStdString(), "/dataStorage" );
-
     if ( !impl_->iControllers_.empty() ) {
 
         std::vector< std::future<bool> > futures;
@@ -526,20 +520,7 @@ document::actionConnect()
         }
 
         // setup observer hiralchey
-        // ADDEBUG() << "########### setup observer hiralchey ################";
         if ( auto masterObserver = adacquire::task::instance()->masterObserver() ) {
-            // create local signal observers
-            for ( auto& o: observers ) {
-                auto so = std::make_shared< adacquire::SimpleObserver >( o.objtext
-                                                                         , o.objid
-                                                                         , o.dataInterpreterClsid
-                                                                         , o.desc );
-                const auto uuid = so->objid();
-                impl_->observers_[ uuid ] = so;
-                masterObserver->addSibling( so.get() );
-                so->setPrepareStorage( [ uuid, this ]( adacquire::SampleProcessor& sp ) { return prepareStorage( uuid, sp ); } );
-                so->setClosingStorage( [ uuid, this ]( adacquire::SampleProcessor& sp ) { return closingStorage( uuid, sp ); } );
-            }
 
             masterObserver->setPrepareStorage( [&]( adacquire::SampleProcessor& sp ) {
                                                    return document::instance()->prepareStorage( boost::uuids::uuid{{ 0 }}, sp );
@@ -556,6 +537,14 @@ document::actionConnect()
                     }
                 }
             }
+
+            // debug
+            // ADDEBUG() << "=======================================================";
+            // auto vec = masterObserver->siblings();
+            // for ( auto& o: vec )
+            //     ADDEBUG() << "============" << o->objtext() << ", " << o->objid();
+            // ADDEBUG() << "=======================================================";
+            // end debug
         } else {
             ADTRACE() << "##### No master observer found #####";
         }
@@ -611,8 +600,6 @@ document::actionStop()
 void
 document::addInstController( adextension::iController * p )
 {
-    ADDEBUG() << "################# " << __FUNCTION__ << " module: " << p->module_name().toStdString();
-
     try {
         if ( auto ptr = p->pThis() ) {
 
@@ -1355,11 +1342,12 @@ document::write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::tri
 void
 document::debug_write( const std::vector< std::pair< std::string, std::string > >& headers, const map::trigger_data& data )
 {
+#if 0
     constexpr const size_t llimit = 15;
     static uint64_t fpga_clock(0), posix_clock(0), trig_count(0), skip_count(0);
     static int64_t last_skip(0);
     int i = 0;
-#if 0
+
     for ( auto& datum: data ) {
         if ( i < llimit || i >= data.size() - 2 ) {
             std::chrono::nanoseconds dur( datum.posix_clock() );
