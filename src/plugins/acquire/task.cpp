@@ -50,8 +50,12 @@
 #include <adacquire/waveform_accessor.hpp>
 #include <adportable/date_string.hpp>
 #include <adlog/logger.hpp>
+#include <date/date.h>
+#include <socfpga/advalue.hpp>
+#include <socfpga/traceobserver.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/basic_waitable_timer.hpp>
+#include <boost/format.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/numeric/ublas/fwd.hpp> // matrix forward decl
@@ -62,6 +66,7 @@
 #include <QRect>
 #include <algorithm>
 #include <atomic>
+#include <bitset>
 #include <chrono>
 #include <cstdlib>
 #include <deque>
@@ -157,7 +162,7 @@ namespace acquire {
         bool finalize();
         void readData( adacquire::SignalObserver::Observer *, uint32_t pos );
 
-        void handle_acquire_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
+        void handle_trace_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
 
         void handle_histograms();
         void handle_waveforms();
@@ -278,14 +283,9 @@ task::onDataChanged( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
     // This thread is marshaled from SignalObserver::Observer, which is the device's data read thread
 
-    ADDEBUG() << "onDataChanged: " << so->objtext() << ", pos: " << pos;
-
     if ( impl_->isRecording_ ) {
-
         impl_->data_status_[ so->objid() ].posted_data_count_++;
-
         impl_->io_service_.post( [=]{ impl_->readData( so, pos ); } );
-
     }
 }
 
@@ -446,76 +446,58 @@ task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
             status.pos_origin_ = pos;
         }
 
+        if ( so->objid() == socfpga::dgmod::TraceObserver::__objid__ ) { // dgmod's adc reader
+            if ( auto rb = so->readData( pos ) )
+                handle_trace_data( status, rb );
+        } else {
+            ADTRACE() << "Unhandled data : " << so->objtext() << ", uuid: " << so->objid();
+        }
+
         //if ( so->objid() == WaveformObserver::__objid__ ) {
         //    if ( auto rb = so->readData( pos ) )
         //        handle_acquire_data( status, rb );
         //} else {
-            std::string name = so->objtext();
-            auto uuid = so->objid();
-            ADTRACE() << "Unhandled data : " << name << " uuid: " << uuid;
             //}
     }
 }
 
 void
-task::impl::handle_acquire_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
+task::impl::handle_trace_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
 {
-    // std::shared_ptr< const acquire::waveform > avg, pkd;
+    std::vector< socfpga::dgmod::advalue > data;
+    if ( adportable::a_type< std::vector< socfpga::dgmod::advalue > >::is_a( rb->data() ) ) {
+        try {
+            data = boost::any_cast< std::vector< socfpga::dgmod::advalue > >( rb->data() );
+        } catch ( boost::bad_any_cast& ex ) {
+            ADDEBUG() << "bad_any_cast: " << ex.what();
+        }
+    }
 
-    // if ( adportable::a_type< const_waveform_pair_t >::is_a( rb->data() ) ) {
-    //     try {
-    //         std::tie( avg, pkd ) = boost::any_cast< const_waveform_pair_t >( rb->data() );
-    //     } catch ( boost::bad_any_cast& ) {
-    //         assert( 0 );
-    //         ADERROR() << "bad any cast";
-    //     }
-    // } else if ( adportable::a_type< std::shared_ptr< const acquire::waveform > >::is_a( rb->data() ) ) {
-    //     avg = boost::any_cast< std::shared_ptr< const acquire::waveform > >(rb->data());
-    //     pkd = nullptr;
-    // }
+    static uint64_t posix_time_last, elapsed_time_last;
+    static uint32_t adc_counter_last;
 
-    // const auto tp = std::chrono::system_clock::now();
-    // using namespace std::chrono_literals;
+    for ( const auto& item: data ) {
+        std::chrono::system_clock::time_point posix_time;
+        posix_time += std::chrono::nanoseconds( item.posix_time );
+        using namespace date;
+        std::ostringstream o;
+        std::bitset< 16 > bits( item.flags >> 16 );
 
-    // // data commit on file every second
-    // if ( ( tp - status.tp_data_handled_ ) >= 1000ms ) {
-    //     status.data_ready_ = true;  // acquire
-    //     sema_.signal();
-    // }
+        o << posix_time
+          << ", dt:" << boost::format("%.3fs") % (double( int64_t(item.elapsed_time) - int64_t(elapsed_time_last) )*1.0e-9)
+          << ", pos: " << (item.adc_counter - adc_counter_last)
+          << ", elapsed: " << boost::format("%.3fs") % (double( int64_t( item.elapsed_time ) - int64_t(item.flags_time) )*1.0e-9)
+          << ", " << bits.to_string();
+        for ( auto& ad: item.ad )
+            o << boost::format( ", %.3f" ) % ad;
 
-    // if ( avg ) {
-        // waveform_observer == waveform from digitizer (raw)
-        // if ( ( tp - data_status_[ WaveformObserver::__objid__ ].tp_plot_handled_ ) >= 250ms ) {
-        //     que_ = std::make_pair( avg, pkd );
-        //     status.plot_ready_ = true; // acquire single trigger waveform
-        //     sema_.signal();
-        // }
+        posix_time_last = item.posix_time;
+        elapsed_time_last = item.elapsed_time;
+        adc_counter_last = item.adc_counter;
 
-        // if ( avg->xmeta().actual_averages_ > 0 ) { // hard averaged
-        //     document::instance()->enqueue( avg, pkd );
-        //     if ( ( tp - data_status_[ avrg_waveform_observer ].tp_plot_handled_ ) >= 250ms )
-        //         io_service_.post( [this](){ handle_waveforms(); } );
-
-        //     if ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) >= 250ms )
-        //         io_service_.post( [this](){ handle_histograms(); } );
-
-        // } else { // soft average
-        //     // make an averaged waveform
-        //     if ( document::instance()->accumulate_waveform( avg ) && ( tp - data_status_[ avrg_waveform_observer ].tp_plot_handled_ ) >= 250ms ) {
-        //         io_service_.post( [this](){ handle_waveforms(); } );
-        //     }
-
-        //     if ( auto result = document::instance()->processThreshold3( avg ) ) {
-        //         io_service_.post( [=] () { document::instance()->result_to_file( result ); } );  // save trigger,peaks in the data
-        //         // make histogram (long-term & periodical)
-        //         if ( document::instance()->accumulate_histogram( result ) && ( ( tp - data_status_[ histogram_observer ].tp_plot_handled_ ) > 250ms ) ) {
-        //             io_service_.post( [this](){ handle_histograms(); } );
-        //         }
-        //     } else {
-        //         ADDEBUG() << "##### got nullptr from processThreshold3 #####";
-        //     }
-        // }
-//    }
+        ADDEBUG() << o.str();
+    }
+    document::instance()->setData( data );
 }
 
 void

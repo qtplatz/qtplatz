@@ -132,7 +132,7 @@ namespace acquire {
         const QJsonDocument& threshold_action() const;
         QByteArray acquire_method() const;
 
-        void set_tof_chromatograms_method( const QByteArray& json );
+        void set_tof_chromatograms_method( const QByteArray& json, bool commitSettings );
         QByteArray tof_chromatograms_method() const;
 
         void commitData(); // call from task
@@ -151,6 +151,9 @@ namespace acquire {
         // locally added for acquire debugging
         void debug_sse( const std::vector< std::pair< std::string, std::string> >& headers, const std::string& body );
         void debug_data( const std::vector< socfpga::dgmod::advalue >& );
+        void setData( const std::vector< socfpga::dgmod::advalue >& );
+        void getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& );
+
     private:
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
         bool prepareStorage( const boost::uuids::uuid& uuid, adacquire::SampleProcessor& sp ) const;

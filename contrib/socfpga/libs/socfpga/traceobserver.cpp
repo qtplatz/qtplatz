@@ -39,7 +39,7 @@ using namespace socfpga::dgmod;
 
 const constexpr boost::uuids::uuid TraceObserver::__objid__;
 
-TraceObserver::TraceObserver()
+TraceObserver::TraceObserver() : rx_pos_( 0 )
 {
     so::Description desc;
     desc.set_trace_method( so::eTRACE_IMAGE_TDC );
@@ -101,7 +101,7 @@ TraceObserver::readData( uint32_t pos )
             return (*it);
     }
 
-    ADDEBUG() << "readData failed.  request.pos:" << pos
+    ADDEBUG() << "readData( " << pos << " ) failed."
               << " begin =" << que_.front()->pos() << " end = " << que_.back()->pos();
     // std::for_each( que_.begin(), que_.end(), [](auto& p){ ADDEBUG() << p->pos(); } );
 
@@ -126,24 +126,35 @@ TraceObserver::posFromTime( uint64_t nsec ) const
 }
 
 uint32_t
-TraceObserver::emplace_back( std::vector< advalue >&& pair )
+TraceObserver::emplace_back( std::vector< advalue >&& values )
 {
+    if ( values.empty() )
+        return 0;
+
     auto rb = std::make_shared< so::DataReadBuffer >();
-#if 0
-    rb->load< const dgmod::advalue >( *(pair.first) );
-    rb->setData( std::move( pair ) );
+
+    uint32_t pos = rx_pos_;
+
+    rx_pos_ += values.size();
+
+    const auto& top    = values[0];
+    rb->pos()          = pos;
+    rb->timepoint()    = top.elapsed_time;
+    rb->elapsed_time() = top.elapsed_time; // time since inject
+    rb->epoch_time()   = top.posix_time;
+    rb->fcn()          = 0;
+    rb->ndata()        = values.size();
+    rb->events()       = top.flags;
+    rb->setData( std::move( values ) );
 
     std::lock_guard< std::mutex > lock( mutex() );
-    if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
+    if ( que_.size() > 200 ) { // 2 seconds @ 1kHz
         auto tail = que_.begin();
-        std::advance( tail, 500 );
+        std::advance( tail, 50 );
         que_.erase( que_.begin(), tail );
     }
 
-    uint32_t pos = rb->pos();
     que_.emplace_back( std::move( rb ) );
 
     return pos;
-#endif
-    return 0;
 }

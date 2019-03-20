@@ -33,7 +33,6 @@
 #include <adportable/asio/thread.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
-#include <adportable/semaphore.hpp>
 #include <adportable/utf.hpp>
 #include <adurl/ajax.hpp>
 #include <adurl/sse.hpp>
@@ -61,14 +60,14 @@ namespace socfpga {
             impl() : work_( io_service_ )
                    , masterObserver_( std::make_shared< adacquire::MasterObserver >( "acquire.master.observer.ms-cheminfo.com" ) )
                    , traceObserver_( std::make_shared< socfpga::dgmod::TraceObserver >() )
-                   , sse_( std::make_unique< adurl::sse >( io_service_ ) ) {
+                   , sse_( std::make_unique< adurl::sse >( io_service_ ) )
+                   , pos_( 0 ) {
                 masterObserver_->addSibling( traceObserver_.get() );
             }
 
             static std::shared_ptr< session > instance_;
 
             std::mutex mutex_;
-            adportable::semaphore sema_;
 
             boost::asio::io_service io_service_;
             boost::asio::io_service::work work_;
@@ -84,6 +83,7 @@ namespace socfpga {
 
             std::unique_ptr< adurl::sse > sse_;
             std::vector< advalue > que_;
+            std::uint32_t pos_;
 
             void reply_message( adacquire::Receiver::eINSTEVENT msg, uint32_t value ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
@@ -340,23 +340,54 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
             if ( it != headers.end() ) {
                 // document::instance()->debug_sse( headers, body );
                 auto jdoc = QJsonDocument::fromJson( QByteArray( it->second.data(), it->second.size() ) );
-                auto jarray = jdoc.object()[ "ad.values" ].toArray();
-                std::lock_guard< std::mutex > lock( mutex_ );
-                for ( const auto& jadval: jarray ) {
-                    advalue value;
-                    auto jobj = jadval.toObject();
-                    value.tp = jobj[ "tp" ].toDouble();
-                    value.nacc = jobj[ "nacc" ].toInt();
 
-                    auto vec = jobj[ "ad" ].toArray();
-                    std::transform( vec.begin(), vec.end(), value.ad.begin(), [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
+                // ADDEBUG() << jdoc.toJson().toStdString();
 
-                    que_.emplace_back( value );
-                    sema_.signal();
+                if ( jdoc.object().contains( "ad.values" ) ) {
+
+                    auto jarray = jdoc.object()[ "ad.values" ].toArray();
+                    std::lock_guard< std::mutex > lock( mutex_ );
+                    for ( const auto& jadval: jarray ) {
+                        advalue value;
+                        auto jobj = jadval.toObject();
+                        value.posix_time   = jobj[ "posix_time" ].toString().toULongLong(); // SoC kernel time (must be using ptpd)
+                        value.adc_counter  = jobj[ "adc_c" ].toString().toULong();        // ADC trigger counter (250kHz)
+                        value.elapsed_time = jobj[ "elapsed" ].toString().toULongLong();  // fpga clock in ns
+                        value.flags_time   = jobj[ "flags_t" ].toString().toULongLong();
+                        value.nacc         = jobj[ "nacc" ].toInt();
+
+                        auto jflags = jobj[ "flags" ].toArray();
+                        std::array< uint32_t, 2 > flags;
+                        std::transform( jflags.begin(), jflags.end(), flags.begin(), [&](const auto& o){ return o.toString().toUInt(); } );
+                        value.flags = flags[ 0 ];
+
+                        auto vec = jobj[ "ad" ].toArray();
+                        std::transform( vec.begin(), vec.end(), value.ad.begin(), [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
+                        que_.emplace_back( value );
+
+#if !defined NDEBUG && 0
+                        {
+                            static uint64_t last_posix_time, last_elapsed_time;
+                            static uint32_t last_adc_counter;
+
+                            std::bitset< 16 > bits( value.flags >> 16 );
+                            ADDEBUG() << "posix_dt: " << boost::format("%.3f") % (double(value.posix_time - last_posix_time)/1e6)
+                                      << ", adc_c: " << (value.adc_counter - last_adc_counter)
+                                      << ", elapsed: " << boost::format("%.3f") % (double(value.elapsed_time - value.flags_time)/1e6)
+                                      << ", elapsed(dt): " << boost::format("%.3f") % (double(value.elapsed_time - last_elapsed_time)/1e6)
+                                      << ", nacc: " << value.nacc
+                                      << ", flags: " << bits.to_string();
+                            last_posix_time = value.posix_time;
+                            last_elapsed_time = value.elapsed_time;
+                            last_adc_counter = value.adc_counter;
+                        }
+#endif
+                    }
+                    auto pos = traceObserver_->emplace_back( std::move( que_ ) );
+                    que_.clear();
+                    masterObserver_->dataChanged( traceObserver_.get(), pos );
                 }
-                traceObserver_->emplace_back( std::move( que_ ) );
-                que_.clear();
-                masterObserver_->dataChanged( traceObserver_.get(), 0 );
+
             }
         } );
 

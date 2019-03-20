@@ -114,4 +114,5 @@ sse::connect( const std::string& url
                 }
             });
     }
+    return true;
 }

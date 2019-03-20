@@ -65,6 +65,7 @@ namespace socfpga {
 
         private:
             std::vector< std::shared_ptr< so::DataReadBuffer > > que_;
+            uint32_t rx_pos_;
         };
     }
 }

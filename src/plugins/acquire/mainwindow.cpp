@@ -160,7 +160,7 @@ MainWindow::createDockWidgets()
         createDockWidget( widget, "Chromatograms", "Chromatograms" );
         connect( widget, &adwidgets::TofChromatogramsWidget::applyTriggered
                  , [widget](){
-                       document::instance()->set_tof_chromatograms_method( widget->readJson() );
+                       document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
                    });
     }
 

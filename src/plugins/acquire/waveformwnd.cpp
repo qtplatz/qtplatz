@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -44,9 +44,15 @@
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
+#include <socfpga/constants.hpp>
 #include <coreplugin/minisplitter.h>
+#include <qtwrapper/settings.hpp>
+#include <qtwrapper/font.hpp>
+#include <qwt_plot_legenditem.h>
 #include <qwt_plot_marker.h>
 #include <qwt_scale_widget.h>
+#include <qwt_scale_widget.h>
+#include <qwt_text.h>
 #include <QSplitter>
 #include <QBoxLayout>
 #include <boost/format.hpp>
@@ -81,10 +87,15 @@ WaveformWnd::init()
 {
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     do {
-        splitter->addWidget( tpw_[0].get() );
-        splitter->addWidget( tpw_[1].get() );
-        splitter->addWidget( spw_[0].get() );
-        splitter->addWidget( spw_[1].get() );
+        for ( auto& tpw: tpw_ )
+            splitter->addWidget( tpw.get() );
+
+        if ( auto hsplitter = new Core::MiniSplitter ) {
+            hsplitter->setOrientation( Qt::Horizontal );
+            for ( auto& spw: spw_ )
+                hsplitter->addWidget( spw.get() );
+            splitter->addWidget( hsplitter );
+        }
         // splitter->setStretchFactor( 0, 1 );
         // splitter->setStretchFactor( 1, 3 );
         // splitter->setStretchFactor( 2, 3 );
@@ -96,23 +107,34 @@ WaveformWnd::init()
     for ( auto& w: spw_ )
         w->setMinimumHeight( 40 );
 
+    for ( auto& w: tpw_ ) {
+        auto legend = new QwtPlotLegendItem;
+        legend->attach( w.get() );
+        legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::ItemBackground );
+        //legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground );
+        legend->setMaxColumns( 32 );
+        legend->setAlignment( Qt::AlignRight | Qt::AlignTop );
+        w->setContextMenuPolicy( Qt::CustomContextMenu );
+    }
+
     for ( auto& w: spw_ ) {
         w->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
-        w->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 40 );
+        //w->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 40 );
         w->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-        w->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-        w->enableAxis( QwtPlot::yRight, true );
+        //w->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+        //w->enableAxis( QwtPlot::yRight, true );
         w->setAxis( adplot::SpectrumWidget::HorizontalAxisTime );
         w->setKeepZoomed( false );
         w->setAutoAnnotation( false );
+        w->setContextMenuPolicy( Qt::CustomContextMenu );
     }
 
     spw_[0]->link( spw_[1].get() );
 
     for ( auto& w: tpw_ ) {
         w->setAxisTitle( QwtPlot::yLeft, tr( "<i>mV</i>" ) );
-        w->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
-        w->enableAxis( QwtPlot::yRight, true );
+        //w->setAxisTitle( QwtPlot::yRight, tr( "<i>mV</i>" ) );
+        //w->enableAxis( QwtPlot::yRight, true );
     }
 
     QBoxLayout * layout = new QVBoxLayout( this );
@@ -173,6 +195,9 @@ WaveformWnd::onInitialUpdate()
 void
 WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
 {
+    if ( uuid == socfpga::dgmod::trace_observer ) {
+        traceDataChanged( idx );
+    }
     // if ( auto sp = document::instance()->recentSpectrum( uuid, idx ) ) {
     //     if ( uuid == WaveformObserver::__objid__ ) {
     //         //         // waveform (analog)
@@ -186,6 +211,45 @@ WaveformWnd::dataChanged( const boost::uuids::uuid& uuid, int idx )
     //         spw_->setKeepZoomed( true );
 
     //     } else if ( uuid == pkd_observer ) {
+}
+
+void
+WaveformWnd::traceDataChanged( int )
+{
+    std::vector< std::shared_ptr< adcontrols::Trace > > traces;
+
+    document::instance()->getTraces( traces );
+
+    QString footer = QString( " #Traces: %2" ).arg( QString::number( traces.size() ) );
+
+    size_t idx(0);
+
+    auto nEnabled = std::accumulate( traces.begin(), traces.end(), 0, [](size_t a, const auto& trace){ return a + (trace->enable() ? 1 : 0); } );
+    (void)nEnabled;
+
+    for ( auto& trace: traces ) {
+        auto& tpw = tpw_.at( idx >= 4 ? 1 : 0 );
+
+        if ( trace->enable() ) {
+            double time = trace->x( trace->size() - 1 );
+            footer += QString( "  Time: %1min " ).arg( QString::number( time / 60, 'f', 3 ) );
+            tpw->setFooter( footer );
+            tpw->setData( trace, idx, false );
+
+            // ================= title for legends ===================
+            //char c = item.intensityAlgorithm() == item.eCounting ? 'C' : item.intensityAlgorithm() == item.ePeakAreaOnProfile ? 'A' : 'H';
+            //auto formula = QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( item.formula() ) );
+            //if ( formula.isEmpty() )
+            //    formula = QString::fromStdString( item.formula() ); // 'TIC'
+
+            QwtText title = QwtText( QString( "%1: %2[%3]" )
+                                     .arg( QString::number( idx + 1 ), QString::fromStdString(trace->legend()), QString( "trace" ) ), QwtText::RichText );
+            title.setFont( qtwrapper::font()( title.font(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel ) );
+            if ( auto plotItem = tpw->getPlotItem( idx ) )
+                plotItem->setTitle( title );
+        }
+        ++idx;
+    }
 }
 
 void

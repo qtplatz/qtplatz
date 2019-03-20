@@ -22,7 +22,6 @@
 **************************************************************************/
 
 #include "idgmodimpl.hpp"
-#include "dgmod/session.hpp"
 #include <socfpga/session.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
@@ -42,16 +41,9 @@ iDGMODImpl::~iDGMODImpl()
 bool
 iDGMODImpl::connect()
 {
-#if 0
-    if ( auto session = std::make_shared< acquire::dgmod::session >() ) {
-        adextension::iControllerImpl::connect( session.get(), "iDGMODImpl" );
-        return true;
-    }
-#else
     if ( auto session = std::make_shared< socfpga::dgmod::session >() ) {
         adextension::iControllerImpl::connect( session.get(), "iDGMODImpl" );
         return true;
     }
-#endif
     return false;
 }

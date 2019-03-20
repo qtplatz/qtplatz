@@ -33,11 +33,22 @@ namespace socfpga {
         // which is only the class make Session instance.
 
         struct advalue {
-            double tp;
+            uint64_t elapsed_time;
+            uint64_t flags_time;
+            uint64_t posix_time;
+            uint32_t adc_counter; // 250kHz counter
             uint32_t nacc;
+            uint32_t flags;
             std::array< double, 8 > ad;
-            advalue() : tp(0), nacc(0), ad{{ 0 }} {}
-            advalue( const advalue& t ) : tp(t.tp), nacc(t.nacc), ad{ t.ad } {}
+            advalue() : elapsed_time(0), flags_time(0), posix_time(0), adc_counter(0), nacc(0), flags{0}, ad{{ 0 }} {}
+             advalue( const advalue& t ) : elapsed_time( t.elapsed_time )
+                                         , flags_time( t.flags_time )
+                                         , posix_time( t.posix_time )
+                                         , adc_counter( t.adc_counter )
+                                         , nacc( t.nacc )
+                                         , flags( t.flags )
+                                         , ad( {t.ad} )
+                {}
         };
 
     }

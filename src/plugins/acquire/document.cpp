@@ -27,10 +27,12 @@
 #include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
 //#include "dgmod/session.hpp"
+#include <date/date.h>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
 #include <adacquire/simpleobserver.hpp>
 #include <adacquire/task.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
@@ -70,6 +72,7 @@
 #include <date/date.h>
 #include <extensionsystem/pluginmanager.h>
 #include <qtwrapper/settings.hpp>
+#include <socfpga/constants.hpp>
 #include <socfpga/session.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -91,6 +94,7 @@
 #include <QJsonObject>
 #include <QDebug>
 #include <algorithm>
+#include <bitset>
 #include <chrono>
 #include <future>
 #include <limits>
@@ -132,7 +136,6 @@ namespace acquire {
     };
 
     static ObserverData observers [] = {
-
         // { acquire::waveform_observer_name      // "1.acquire.ms-cheminfo.com"
         //   , acquire::waveform_observer         // "ab4620f4-933f-4b44-9102-740caf8f791a"
         //   , acquire::waveform_datainterpreter  // "a33d0d5e-5ace-4d2c-9d46-ddffcd799b51"
@@ -151,16 +154,6 @@ namespace acquire {
         //         , L"Time", L"Count", 3, 0
         //     }
         // }
-        /*
-        , { acquire::softavgr_observer_name
-            , acquire::softavgr_datainterpreter
-            , { acquire::softavgr_observer_name
-                , so::eTRACE_SPECTRA
-                , so::eMassSpectrometer
-                , L"Time", L"mV", 3, 0
-            }
-        }
-        */
     };
 
     struct exec_fsm_stop {
@@ -234,7 +227,7 @@ namespace acquire {
 
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
         //std::unique_ptr< ResultWriter > resultWriter_;
-        std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
+        //std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
 
         int32_t device_status_;
         // double triggers_per_second_;
@@ -281,10 +274,8 @@ namespace acquire {
         bool avrg_refresh_;
 
         // display data
-        std::vector< std::shared_ptr< adcontrols::Trace > > traces_;
-        // std::map< boost::uuids::uuid
-        //           , std::array< std::shared_ptr< adcontrols::MassSpectrum >
-        //                         , acquire::nchannels > > spectra_;
+        std::array< std::shared_ptr< adcontrols::Trace >, 8 > traces_;
+
 
         impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iDGMODImpl_( std::make_shared< acquire::iDGMODImpl >() )
@@ -321,6 +312,11 @@ namespace acquire {
                 method_ = std::make_shared< adcontrols::threshold_method >();
                 adcontrols::TofChromatogramsMethod tofm;
                 tofm.setNumberOfTriggers( 1000 );
+
+                for ( size_t i = 0; i < traces_.size(); ++i ) {
+                    traces_[ i ] = std::make_shared< adcontrols::Trace >( i, 8192 - 512, 8192 );
+                    traces_[ i ]->setEnable( true );
+                }
         }
 
         void handle_fsm_state_changed( bool enter, int id_state, adacquire::Instrument::eInstStatus st ) {
@@ -806,10 +802,7 @@ document::initialSetup()
 
         auto json = tof_chromatograms_method();
         if ( ! json.isEmpty() ) {
-            auto doc = QJsonDocument::fromJson( json );
-            auto jtop = doc.object()[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ].toObject();
-            impl_->avrg_refresh_ = jtop[ "refreshHistogram" ].toBool();
-            impl_->avrg_count_ = jtop[ "numberOfTriggers" ].toInt();
+            set_tof_chromatograms_method( json, false );
         }
     }
 }
@@ -1243,7 +1236,7 @@ document::set_threshold_action( const QByteArray& json )
 }
 
 void
-document::set_tof_chromatograms_method( const QByteArray& json )
+document::set_tof_chromatograms_method( const QByteArray& json, bool commitSettings )
 {
     auto doc = QJsonDocument::fromJson( json );
     auto jtop = doc.object()[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ].toObject();
@@ -1251,14 +1244,37 @@ document::set_tof_chromatograms_method( const QByteArray& json )
     impl_->avrg_refresh_ = jtop[ "refreshHistogram" ].toBool();
     impl_->avrg_count_ = jtop[ "numberOfTriggers" ].toInt();
 
-    ADDEBUG() << "refresh: " << impl_->avrg_refresh_
-              << ", average: " << impl_->avrg_count_;
-
     task::instance()->setHistogramClearCycleEnabled( impl_->avrg_refresh_ );
     task::instance()->setHistogramClearCycle( impl_->avrg_count_ );
 
-    if ( auto settings = impl_->settings_ )
-        settings->setValue( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", doc.toJson( QJsonDocument::Compact ) );
+    auto jlist = jtop[ "list" ].toArray();
+    size_t idx(0);
+    for ( const auto& item: jlist ) {
+        if ( idx < impl_->traces_.size() ) {
+            const auto& obj = item.toObject();
+            auto& trace = impl_->traces_.at( idx );
+            bool enable = obj[ "enable" ].toBool();
+            auto formula = obj[ "formula" ].toString().toStdString();
+            auto legend = adcontrols::ChemicalFormula::formatFormula( formula );
+
+            trace->setEnable( enable ); // id[0] is always true
+            trace->setLegend( legend.empty() ? formula : legend );
+        }
+        ++idx;
+    }
+
+    while ( idx < impl_->traces_.size() )
+        impl_->traces_.at( idx++ )->setEnable(false);
+
+    // check if nothing enabled
+    auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end(), [](const auto& t){ return t->enable(); });
+    if ( it == impl_->traces_.end() ) {
+        impl_->traces_.at( 0 )->setEnable( true );
+    }
+    if ( commitSettings ) {
+        if ( auto settings = impl_->settings_ )
+            settings->setValue( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", doc.toJson( QJsonDocument::Compact ) );
+    }
 }
 
 QByteArray
@@ -1418,6 +1434,34 @@ document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
         std::ostringstream o;
         for ( auto& ad: item.ad )
             o << boost::format("%.3f, ") % ad;
-        impl_->console_ << "tp: " << boost::format("%.7f") % item.tp << "\tnacc: " << item.nacc << "\t" << o.str() << std::endl;
+        std::chrono::system_clock::time_point tp;
+        tp += std::chrono::nanoseconds( item.posix_time );
+        using namespace date;
+        impl_->console_ << "tp: " << tp << " " << item.elapsed_time << "\tnacc: " << item.nacc << "\t" << o.str() << std::endl;
     }
+}
+
+void
+document::setData( const std::vector< socfpga::dgmod::advalue >& values )
+{
+    for ( auto& value: values ) {
+        //double time = value.posix_time / std::nano::den; // (s)
+        double time = value.elapsed_time / std::nano::den;
+        for ( size_t ch = 0; ch < value.ad.size() && ch < impl_->traces_.size(); ++ch ) {
+            auto& trace = impl_->traces_.at( ch );
+            trace->append( value.adc_counter, time, value.ad[ ch ], 0 );
+        }
+    }
+    emit document::instance()->dataChanged( socfpga::dgmod::trace_observer, -1 );
+}
+
+void
+document::getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& traces )
+{
+    traces.clear();
+
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+
+    for ( auto trace: impl_->traces_ )
+        traces.emplace_back( trace );
 }

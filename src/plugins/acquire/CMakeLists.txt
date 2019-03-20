@@ -67,8 +67,6 @@ add_library( ${PROJECT_NAME} MODULE
   waveformwnd.hpp
   idgmodimpl.cpp
   idgmodimpl.hpp
-  dgmod/session.cpp
-  dgmod/session.hpp
 #  isequenceimpl.cpp
 #  isequenceimpl.hpp
 #  resultwriter.cpp
