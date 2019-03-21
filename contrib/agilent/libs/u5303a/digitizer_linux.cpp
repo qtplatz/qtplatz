@@ -58,7 +58,7 @@
 namespace u5303a {
 
     namespace detail {
- 
+
         class task : public fsm::handler {
             task();
             ~task();
@@ -67,9 +67,9 @@ namespace u5303a {
             static const std::chrono::system_clock::time_point uptime_;
             static const uint64_t tp0_;
             std::exception_ptr exptr_;
-            
+
             inline boost::asio::io_service& io_service() { return io_service_; }
-            
+
             void terminate();
             bool initialize();
             bool prepare_for_run( const adcontrols::ControlMethod::Method& );
@@ -98,7 +98,7 @@ namespace u5303a {
             inline bool isSimulated() const { return simulated_; }
 
             inline const std::chrono::system_clock::time_point& tp_acquire() const { return tp_acquire_; }
-            
+
             void error_reply( const std::string& emsg, const std::string& );
 
             [[deprecated("replace with dgmod 2.0.4 hardwired")]] bool next_protocol( uint32_t protoIdx, uint32_t nProtocols );
@@ -114,7 +114,7 @@ namespace u5303a {
             void fsm_action_TSR_continue() override;
             void fsm_action_halt() override;
             void fsm_state( bool, fsm::idState ) override;
-            
+
         private:
             friend std::unique_ptr< task >::deleter_type;
 
@@ -133,11 +133,11 @@ namespace u5303a {
             std::unique_ptr< dgpio::pio > pio_;
             acqrscontrols::u5303a::method method_;
             std::atomic_flag acquire_posted_;   // only one 'acquire' handler can be in the strand
-            
-            bool c_injection_requested_; 
+
+            bool c_injection_requested_;
             bool c_acquisition_status_; // true: acq. is active, indeterminant: inj. waiting,
             size_t darkCount_;
-            
+
             std::atomic<double> u5303_inject_timepoint_;
             std::vector< std::string > foundResources_;
             std::vector< digitizer::command_reply_type > reply_handlers_;
@@ -192,7 +192,7 @@ digitizer::digitizer()
     _putenv_s( "AGMD2_SKIP_CAL_REQUIRED_CHECKS", "1" );
 #else
     setenv( "AGMD2_SKIP_CAL_REQUIRED_CHECKS", "1", true );
-#endif    
+#endif
 }
 
 digitizer::~digitizer()
@@ -312,7 +312,7 @@ task::task() : exptr_( nullptr )
     acquire_posted_.clear();
 
     pio_->open();
-    
+
     fsm_.start(); // Stopped state
 
     threads_.push_back( adportable::asio::thread( [this]() {
@@ -323,7 +323,7 @@ task::task() : exptr_( nullptr )
                     exptr_ = std::current_exception();
                 }
             } ) );
-    
+
 }
 
 task::~task()
@@ -361,7 +361,7 @@ task::initialize()
 	io_service_.post( strand_.wrap( [this] { findResource(); } ) );
 
     io_service_.post( strand_.wrap( [this] { handle_initial_setup(); } ) );
-        
+
     return true;
 }
 
@@ -370,7 +370,7 @@ task::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
 {
     // this method should be called same marshaling on readData(), which is under layer function of waveform_handler functor
     if ( protoIdx < method_.protocols().size() ) {
-        
+
         if ( method_.setProtocolIndex( protoIdx, true ) ) {
             // don't call 'handle_protocol' from here.  It is for previous version of 'InfiTOF' plugin
             // next_protocol() method will be called from new implementation 'InfiTOF2' plugin
@@ -444,11 +444,11 @@ void
 task::terminate()
 {
     io_service_.stop();
-    
+
     for ( std::thread& t: threads_ )
         t.join();
 
-    threads_.clear();    
+    threads_.clear();
 }
 
 
@@ -537,7 +537,7 @@ task::set_time_since_inject( acqrscontrols::u5303a::waveform& waveform )
         c_acquisition_status_ = true;
         u5303_inject_timepoint_ = waveform.meta_.initialXTimeSeconds;
         waveform.wellKnownEvents_ |= adacquire::SignalObserver::wkEvent_INJECT;
-        
+
         ADDEBUG() << "## INJECTION on U5303A ## waveform.wellKnownEvents: " << waveform.wellKnownEvents_;
     }
 
@@ -561,6 +561,7 @@ task::handle_initial_setup()
             strInitOptions = "Simulate=true, DriverSetup= Model=U5303A";
             simulated = true;
             success = ( spDriver_->initWithOptions( "PXI40::0::0::INSTR", VI_FALSE, VI_TRUE, strInitOptions ) == VI_SUCCESS );
+            ADDEBUG() << "################# U5303A SIMULATION MODE ##################: " << strInitOptions << " code: " << success;
         }
     }
 
@@ -575,14 +576,14 @@ task::handle_initial_setup()
 
     if ( success ) {
         simulated_ = simulated;
-        
+
         ident_ = std::make_shared< acqrscontrols::u5303a::identify >();
         spDriver_->Identify( ident_ );
         // SR0 = 0.5GS/s 2ch; SR0+INT = 1.0GS/s 1ch;
         // SR1 = 1.0GS/s 2ch; SR1+INT = 2.0GS/s 1ch;
         // SR2 = 1.6GS/s 2ch; SR2+INT = 3.2GS/s 1ch;
         // M02 = 256MB; M10 = 1GB, M40 = 4GB
-        
+
         for ( auto& reply : reply_handlers_ ) reply( "Identifier", ident_->Identifier() );
         for ( auto& reply : reply_handlers_ ) reply( "Revision", ident_->Revision() );
         for ( auto& reply : reply_handlers_ ) reply( "Description", ident_->Description() );
@@ -619,13 +620,13 @@ task::handle_temperature()
     AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel1", &channel_temperature_[ 0 ] ),__FILE__,__LINE__ );
 
     std::ostringstream o;
-    o << temperature_ << ", Channel1: " << channel_temperature_[ 0 ];    
+    o << temperature_ << ", Channel1: " << channel_temperature_[ 0 ];
 
     if ( ident_->Options().find( "INT" ) != std::string::npos ) {
         AgMD2::log( AgMD2_QueryChannelTemperature ( spDriver()->session(), "Channel2", &channel_temperature_[ 1 ] ),__FILE__,__LINE__ );
         o << ", Channel2: " << channel_temperature_[ 1 ];
     }
-    
+
     for ( auto& reply: reply_handlers_ )
         reply( "Temperature", o.str() );
 
@@ -676,7 +677,7 @@ task::handle_prepare_for_run( const acqrscontrols::u5303a::method m )
     }
 
     method_ = m;
-    
+
     if ( m._device_method().TSR_enabled ) {
         return fsm_.process_event( fsm::TSRInitiate() ) == boost::msm::back::HANDLED_TRUE;
     } else {
@@ -692,7 +693,7 @@ task::handle_protocol( const acqrscontrols::u5303a::method m )
 
     if ( simulated_ )
         simulator::instance()->setup( m );
-    
+
     method_ = m;
     return true;
 }
@@ -703,7 +704,7 @@ task::handle_TSR_acquire()
 {
     acquire_posted_.clear();
     fsm_.process_event( fsm::Continue() );
-    
+
     if ( spDriver()->TSRMemoryOverflowOccured() )
         ADTRACE() << "Memory Overflow";
 
@@ -716,14 +717,14 @@ task::handle_TSR_acquire()
 
     if ( !complete )
         return false;
-    
+
     std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
-    
+
     digitizer::readData( *spDriver(), method_, vec );
-    spDriver_->TSRContinue();    
+    spDriver_->TSRContinue();
 
     for ( auto& waveform: vec ) {
-        // ==> set elapsed time for debugging 
+        // ==> set elapsed time for debugging
         set_time_since_inject( *waveform );
         // <==
         acqrscontrols::u5303a::method m;
@@ -739,21 +740,21 @@ bool
 task::handle_acquire()
 {
     acquire_posted_.clear();  // make sure only one 'acquire' handler is in the strand que
-    
+
     fsm_.process_event( fsm::Continue() );
-    
+
     if ( acquire() ) {
 
         using acqrscontrols::u5303a::method;
         if ( waitForEndOfAcquisition( 3000 ) ) {
             if ( method_.mode() == method::DigiMode::Digitizer ) { // digitizer
-                
+
                 int protocolIndex = pio_->protocol_number(); // <- hard wired protocol id
-                
+
                 if ( protocolIndex < 0 && simulated_ )
                 	protocolIndex = simulator::instance()->protocol_number();
 
-                if ( protocolIndex >= 0 ) 
+                if ( protocolIndex >= 0 )
                     method_.setProtocolIndex( protocolIndex & 03, false ); // 2bits
 
                 std::vector< std::shared_ptr< acqrscontrols::u5303a::waveform > > vec;
@@ -772,10 +773,10 @@ task::handle_acquire()
                             handle_protocol( m );
                     }
                 }
-                
+
             } else { // average
                 uint32_t events = darkCount_ ? adacquire::SignalObserver::wkEvent_DarkInProgress : 0;
-                
+
                 if ( method_._device_method().pkd_enabled ) {
                     // PKD+AVG
                     auto pkd = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
@@ -796,7 +797,7 @@ task::handle_acquire()
                         if ( dark )
                             avg->darkSubtraction( *dark );
                     }
-                    
+
                 } else {
                     // AVERAGE
                     auto waveform = std::make_shared< acqrscontrols::u5303a::waveform >( ident_, events );
@@ -832,7 +833,7 @@ task::handle_acquire()
 bool
 task::acquire()
 {
-    if ( (method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager) && simulated_ )    
+    if ( (method_.mode() == acqrscontrols::u5303a::method::DigiMode::Averager) && simulated_ )
         return simulator::instance()->acquire();
 
     tp_acquire_ = std::chrono::system_clock::now();
@@ -890,7 +891,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
     if ( simulated_ ) {
         if ( simulator::instance()->readData( data ) ) {
             data.timeSinceEpoch_ = std::chrono::system_clock::now().time_since_epoch().count();
-            set_time_since_inject( data ); // ==> set elapsed time for debugging 
+            set_time_since_inject( data ); // ==> set elapsed time for debugging
             return true;
         }
     }
@@ -903,7 +904,7 @@ task::readData( acqrscontrols::u5303a::waveform& data )
         result = digitizer::readData32( *spDriver(), method_, data, "Channel1" );
         data.meta_.channelMode = acqrscontrols::u5303a::AVG;
     }
-    set_time_since_inject( data ); // ==> set elapsed time for debugging 
+    set_time_since_inject( data ); // ==> set elapsed time for debugging
     return result;
 }
 
@@ -955,7 +956,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     auto it = std::find_if( input_specs.begin(), input_specs.end(), [&]( auto& a ) { return options.find( a.first ) != options.npos; } );
     if ( it == input_specs.end() ) // no input specification found
         return false;
-    
+
     const double input_rate = it->second;
     double max_rate = ( options.find("INT") != options.npos ) ? input_rate * 2 : input_rate;
 
@@ -967,7 +968,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
         max_rate = input_rate;
-        
+
     } else if ( m._device_method().samp_rate > input_rate && options.find( "INT" ) != options.npos ) {
 
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
@@ -985,7 +986,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     attribute< trigger_delay >::set( *task.spDriver(), m._device_method().delay_to_first_sample_ );
 
     //bool success = false;
-            
+
     const double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
 
     ADDEBUG() << "##### max rate:    " << max_rate;
@@ -994,8 +995,8 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     if ( ! AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
         AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );
     }
-    
-    if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer 
+
+    if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer
         // ADDEBUG() << "Normal Mode";
         task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
@@ -1028,7 +1029,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             //                                         , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
             //                                         , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
 
-            // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).            
+            // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
             AgMD2::log( attribute< peak_detection_amplitude_accumulation_enabled >::set(
                             *task.spDriver(), "Channel1", m._device_method().pkd_amplitude_accumulation_enabled )
                         , __FILE__,__LINE__ );
@@ -1036,25 +1037,25 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             // task.spDriver()->setAttributeViBoolean( "Channel1"
             //                                         , AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
             //                                         , m._device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE );
-            
+
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
 
             AgMD2::log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_raising_delta ), __FILE__,__LINE__ );
             AgMD2::log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_falling_delta ), __FILE__,__LINE__ );
-            
+
             // task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta );
             // task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta );
 
             AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
             // task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            
+
             AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
             AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
 
             //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
             //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );            
+            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
 
         } else {
 
@@ -1070,7 +1071,7 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
 
     // ADTRACE() << "##### ACQUISITION_MODE : " << task.spDriver()->AcquisitionMode();
-    
+
     task.spDriver()->CalibrationSelfCalibrate();
 
 	return true;
@@ -1081,7 +1082,7 @@ device::setup( task& task, const acqrscontrols::u5303a::method& m )
 {
     // Don't forget environment variable: 'AGMD2_SKIP_CAL_REQUIRED_CHECKS=1'
 
-    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );    
+    task.spDriver()->setTriggerDelay( m._device_method().delay_to_first_sample_ );
     task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
     task.spDriver()->setAcquisitionNumRecordsToAcquire( m._device_method().nbr_records );
 
@@ -1120,7 +1121,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
 
         auto mblk = std::make_shared< adportable::mblock<int16_t> >( arraySize );
         std::fill( mblk->data(), mblk->data() + arraySize, 0 );
-        
+
         ViInt64 actualRecords(0), waveformArrayActualSize(0);
         std::vector<ViInt64> actualPoints( numRecords ), firstValidPoints( numRecords );
         std::vector<ViReal64> initialXOffset( numRecords ), initialXTimeSeconds( numRecords ), initialXTimeFraction( numRecords );
@@ -1151,9 +1152,9 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
             for ( int64_t iRecord = 0; iRecord < actualRecords; ++iRecord ) {
 
                 if ( auto data = std::make_shared< acqrscontrols::u5303a::waveform >( md2.Identify(), md2.dataSerialNumber() ) ) {
-                    
+
                     auto& d = *data;
-                    
+
                     d.method_ = m;
                     d.meta_.actualAverages = 0; // digitizer
                     d.meta_.actualPoints = actualPoints[ iRecord ];
@@ -1167,7 +1168,7 @@ digitizer::readData( AgMD2& md2, const acqrscontrols::u5303a::method& m, std::ve
 
                     d.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
                     d.setData( mblk, firstValidPoints[ iRecord ] );
-                    
+
                     // ADDEBUG() << "readData: " << d.method_.protocolIndex() << "/" << d.method_.protocols().size()
                     //           << " SF=" << scaleFactor << " SO=" << scaleOffset << " t=" << d.meta_.dataType
                     //           << " data[10]=" << boost::format( "%x" ) % mblk->data()[ 10 ];
@@ -1197,11 +1198,11 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
         ViReal64 initialXTimeSeconds[numRecords] = {0}, initialXTimeFraction[numRecords] = {0};
         ViReal64 initialXOffset(0), xIncrement(0), scaleFactor(0), scaleOffset(0);
 
-        //const auto& tp = task::instance()->tp_acquire();        
+        //const auto& tp = task::instance()->tp_acquire();
         //uint64_t acquire_tp_count = std::chrono::duration_cast<std::chrono::nanoseconds>( tp.time_since_epoch() ).count();
-        
+
 		auto mblk = std::make_shared< adportable::mblock<int16_t> >( arraySize );
-        
+
         if ( AgMD2::log( AgMD2_FetchWaveformInt16( md2.session()
                                                    , "Channel1"
                                                    , arraySize
@@ -1215,7 +1216,7 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
                                                    , &scaleFactor
                                                    , &scaleOffset ), __FILE__, __LINE__ ) ) {
 
-            
+
             data.method_ = m;
             data.meta_.actualAverages = actualAverages;
             data.meta_.actualPoints = actualPoints[ 0 ];
@@ -1229,7 +1230,7 @@ digitizer::readData16( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.firstValidPoint_ = firstValidPoint[0];
             data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
             data.setData( mblk, firstValidPoint[0] );
-            
+
             return true;
         }
     }
@@ -1299,7 +1300,7 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             // data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
             data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
             data.setData( mblk, firstValidPoint[0] );
-            
+
             return true;
         }
     }

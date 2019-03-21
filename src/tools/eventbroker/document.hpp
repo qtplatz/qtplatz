@@ -45,7 +45,7 @@ namespace eventbroker {
         std::vector< event_handler > handlers_;
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
-        std::shared_ptr< acewrapper::udpEventSender > udpSender_;
+        std::unique_ptr< acewrapper::udpEventSender > udpSender_;
         std::vector< std::thread > threads_;
 
     public:
@@ -58,4 +58,3 @@ namespace eventbroker {
     };
 
 }
-

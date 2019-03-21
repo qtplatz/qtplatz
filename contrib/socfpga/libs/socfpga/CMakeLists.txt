@@ -11,6 +11,8 @@ add_library( socfpga SHARED
   session.hpp
   traceobserver.cpp
   traceobserver.hpp
+  data_accessor.cpp
+  data_accessor.hpp
   )
 
 include_directories(

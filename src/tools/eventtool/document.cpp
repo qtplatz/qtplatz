@@ -82,7 +82,7 @@ namespace eventtool {
         boost::asio::io_service::work work_;
         std::vector< std::thread > threads_;
         std::unique_ptr< acewrapper::udpEventReceiver > udpReceiver_;
-            
+
         // finite automaton handler
         void handle_state( bool entering, adinterface::instrument::eInstStatus ) override;
         void action_on( const adinterface::fsm::onoff& ) override;
@@ -148,13 +148,13 @@ document::finalClose()
 {
 }
 
-#if defined _DEBUG
+#if defined _DEBUG || !defined NDEBUG
 const char * libs[] = {
     "eventbrokerd", "eventbroker", "libeventbrokerd", "libeventbroker"
 };
 #else
 const char * libs[] = {
-    "eventbroker", "eventbrokerd", "libeventbroker", "libeventbrokerd"
+    "eventbroker", "libeventbroker"
 };
 #endif
 
@@ -168,12 +168,11 @@ document::inject_event_out()
     QStringList list;
     for ( auto name: libs ) {
         list << name;
-        list << QString("../lib/qtplatz/%1").arg( name );
+        list << QString("%1/../lib/qtplatz/%2").arg( path, name );
     }
-    
+
     for ( auto name: list ) {
         QLibrary lib( name );
-        ADDEBUG() << "load library: " << name.toStdString();
         if ( lib.load() ) {
             if ( !load_successed ) {
                 ADDEBUG() << lib.fileName().toStdString() << "\tloaded.";
@@ -212,10 +211,10 @@ document::inject_bind( const std::string& host, const std::string& port )
                 bind( host.c_str(), port.c_str() );
                 std::cout << lib.fileName().toStdString() << "\tloaded, bind to " << host << ":" << port << std::endl;
                 return;
-            }            
+            }
         }
     }
-    std::cout << "eventbroker.dll not found." << std::endl;    
+    std::cout << "eventbroker.dll not found." << std::endl;
 }
 
 bool

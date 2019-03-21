@@ -53,6 +53,7 @@
 #include <date/date.h>
 #include <socfpga/advalue.hpp>
 #include <socfpga/traceobserver.hpp>
+#include <socfpga/data_accessor.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/basic_waitable_timer.hpp>
 #include <boost/format.hpp>
@@ -87,8 +88,8 @@ namespace acquire {
         uint32_t proced_data_count_;
         std::atomic< bool > plot_ready_;
         std::atomic< bool > data_ready_;
-        std::chrono::system_clock::time_point tp_data_handled_;
-        std::chrono::system_clock::time_point tp_plot_handled_;
+        std::chrono::steady_clock::time_point tp_data_handled_;
+        std::chrono::steady_clock::time_point tp_plot_handled_;
         data_status() : pos_origin_( -1 )
                       , device_version_( 0 )
                       , posted_data_count_( 0 )
@@ -164,39 +165,6 @@ namespace acquire {
 
         void handle_trace_data( data_status&, std::shared_ptr< adacquire::SignalObserver::DataReadBuffer > rb );
 
-        void handle_histograms();
-        void handle_waveforms();
-
-        void start_timer( uint32_t interval ) { // ms
-            using namespace std::chrono_literals;
-
-            interval_ = interval;
-            auto tp = std::chrono::system_clock::now();
-            auto tp0 = std::chrono::time_point_cast< std::chrono::seconds >( tp ) + 1s;
-            tp_ = std::chrono::time_point_cast< std::chrono::milliseconds >( tp0 );
-
-            timer_.expires_at( tp_ );
-            timer_.async_wait( std::bind( &impl::handle_timer, this, std::placeholders::_1 ) );
-        }
-
-        void stop_timer() {
-            //ADDEBUG() << "cancel timer";
-            timer_.cancel();
-            polling_enable_ = false;
-        }
-
-        void handle_timer( const boost::system::error_code& ec ) {
-            if ( !ec ) {
-                //auto prev(tp_);
-                tp_ += std::chrono::milliseconds( interval_ );
-                timer_.expires_at( tp_ );
-                timer_.async_wait( std::bind( &impl::handle_timer, this, std::placeholders::_1 ) );
-                io_service_.post( strand_.wrap( [&]() { document::instance()->poll(); } ) );
-            } else {
-                //ADDEBUG() << "handle_timer error";
-            }
-        }
-
         void resetDeviceData() {
             traceAccessor_->clear();
             inject_triggered();  // reset time
@@ -206,13 +174,30 @@ namespace acquire {
             tp_inject_ = std::chrono::system_clock::now();
         }
 
-        template<typename Rep, typename Period> Rep uptime() const {
-            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_uptime_ ).count();
+        void handle_inst_event( adacquire::Instrument::eInstEvent ev ) {
+            if ( ev == adacquire::Instrument::instEventInjectOut )
+                document::instance()->actionInject();
         }
 
-        template<typename Rep, typename Period> Rep timeSinceInject() const {
-            return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>( std::chrono::system_clock::now() - tp_inject_ ).count();
+        void handle_periodic_timer( double elapsed_time ) {
+            static double last_handled = 0;
+
+            if ( std::abs( elapsed_time - last_handled ) > 2.0 ) {
+                if ( auto sample = adacquire::task::instance()->sampleSequence()->at( 0 ) ) {
+                    document::instance()->progress( elapsed_time, sample->sampleRun() );
+                } else {
+                    ADDEBUG() << "handle timer: " << elapsed_time;
+                }
+                last_handled = elapsed_time;
+            }
         }
+
+         void handle_time_event( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                                 , adcontrols::ControlMethod::const_time_event_iterator begin
+                                 , adcontrols::ControlMethod::const_time_event_iterator end ) {
+             document::instance()->applyTimedEvent( tt, begin, end );
+         }
+
     };
 
     std::atomic< task * > task::impl::instance_( 0 );
@@ -233,16 +218,38 @@ task::~task()
 bool
 task::initialize()
 {
-    std::call_once( flag1, [=] () {
+    std::call_once(
+        flag1
+        , [=] () {
+              impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
 
-            impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->worker_thread(); } ) );
+              unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
+              ADTRACE() << nCores << " threads created for acquire task";
+              while( nCores-- )
+                  impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
 
-            unsigned nCores = std::max( unsigned( 3 ), std::thread::hardware_concurrency() ) - 1;
-            ADTRACE() << nCores << " threads created for acquire task";
-            while( nCores-- )
-                impl_->threads_.push_back( adportable::asio::thread( [=] { impl_->io_service_.run(); } ) );
+              adacquire::task::instance()->connect_inst_events(
+                  []( adacquire::Instrument::eInstEvent ev ){ // handle {UDP port 7125|hardware injection via signalObserver}
+                      ADTRACE() << "Event: " << ev << " handled";
+                      if ( ev == adacquire::Instrument::instEventInjectOut )
+                          document::instance()->actionInject();
+                  });
 
-        } );
+              // Listen 'inject' trigger from UDP Event Source
+              adacquire::task::instance()->connect_inst_events( std::bind( &task::impl::handle_inst_event, impl_, std::placeholders::_1 ) );
+
+              // periodic timer (100ms interval)
+              adacquire::task::instance()->connect_periodic_timer( std::bind( &task::impl::handle_periodic_timer, impl_, std::placeholders::_1 ) );
+
+              // time event handler
+              adacquire::task::instance()->register_time_event_handler( std::bind( &task::impl::handle_time_event
+                                                                                   , impl_
+                                                                                   , std::placeholders::_1
+                                                                                   , std::placeholders::_2
+                                                                                   , std::placeholders::_3 ) );
+              // Initialize core
+              adacquire::task::instance()->initialize();
+          } );
 
     return true;
 }
@@ -316,46 +323,6 @@ task::post( std::vector< std::future<bool> >& futures )
 
     std::unique_lock< std::mutex > lock( m );
     cv.wait( lock, [&processed] { return processed; } );
-}
-
-void
-task::impl::handle_histograms()
-{
-    if ( auto doc = document::instance() ) {
-
-        auto accessor = std::make_shared< adacquire::timedigital_histogram_accessor >();
-
-        size_t ndata(0);
-        do {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            //ndata = doc->readTimeDigitalHistograms( accessor->vec );
-        } while ( 0 );
-
-        // ADDEBUG() << __FUNCTION__ << " ndata: " << ndata;
-
-        if ( ndata ) {
-            // ================== write Time digital countgram to datafile ======================
-            // do {
-            //     auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
-            //     io_service_.post( [=](){ adacquire::task::instance()->handle_write( histogram_observer, tmp ); } );
-            // } while (0 );
-            // ============================================================================
-
-            //if ( auto cm = tdc->tofChromatogramsMethod() )
-            //    document::instance()->addCountingChromatogramPoints( *cm, accessor->vec );
-
-            //if ( auto hgrm = accessor->vec.back() ) {
-            //data_status_[ histogram_observer ].plot_ready_ = true;
-            sema_.signal();
-            //}
-        }
-    }
-
-}
-
-void
-task::impl::handle_waveforms()
-{
 }
 
 //////////////
@@ -436,8 +403,6 @@ task::impl::worker_thread()
 void
 task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
 {
-    // ADDEBUG() << "##### " << __FUNCTION__ << " pos: " << pos << " objid: " << so->objid() << " #####";
-
     if ( so ) {
 
         auto& status = data_status_[ so->objid() ];
@@ -452,52 +417,39 @@ task::impl::readData( adacquire::SignalObserver::Observer * so, uint32_t pos )
         } else {
             ADTRACE() << "Unhandled data : " << so->objtext() << ", uuid: " << so->objid();
         }
-
-        //if ( so->objid() == WaveformObserver::__objid__ ) {
-        //    if ( auto rb = so->readData( pos ) )
-        //        handle_acquire_data( status, rb );
-        //} else {
-            //}
     }
 }
 
 void
 task::impl::handle_trace_data( data_status& status, std::shared_ptr<adacquire::SignalObserver::DataReadBuffer> rb )
 {
-    std::vector< socfpga::dgmod::advalue > data;
-    if ( adportable::a_type< std::vector< socfpga::dgmod::advalue > >::is_a( rb->data() ) ) {
+    std::shared_ptr< std::vector< socfpga::dgmod::advalue > > data;
+    if ( adportable::a_type< std::shared_ptr< std::vector< socfpga::dgmod::advalue > > >::is_a( rb->data() ) ) {
         try {
-            data = boost::any_cast< std::vector< socfpga::dgmod::advalue > >( rb->data() );
+            data = boost::any_cast< std::shared_ptr< std::vector< socfpga::dgmod::advalue > > >( rb->data() );
         } catch ( boost::bad_any_cast& ex ) {
             ADDEBUG() << "bad_any_cast: " << ex.what();
         }
     }
 
-    static uint64_t posix_time_last, elapsed_time_last;
-    static uint32_t adc_counter_last;
+    if ( rb->events() & ~adacquire::SignalObserver::wkEvent_UserEventsMask )
+        adacquire::task::instance()->handle_so_event( static_cast< adacquire::SignalObserver::wkEvent >( rb->events() ) );
 
-    for ( const auto& item: data ) {
-        std::chrono::system_clock::time_point posix_time;
-        posix_time += std::chrono::nanoseconds( item.posix_time );
-        using namespace date;
-        std::ostringstream o;
-        std::bitset< 16 > bits( item.flags >> 16 );
-
-        o << posix_time
-          << ", dt:" << boost::format("%.3fs") % (double( int64_t(item.elapsed_time) - int64_t(elapsed_time_last) )*1.0e-9)
-          << ", pos: " << (item.adc_counter - adc_counter_last)
-          << ", elapsed: " << boost::format("%.3fs") % (double( int64_t( item.elapsed_time ) - int64_t(item.flags_time) )*1.0e-9)
-          << ", " << bits.to_string();
-        for ( auto& ad: item.ad )
-            o << boost::format( ", %.3f" ) % ad;
-
-        posix_time_last = item.posix_time;
-        elapsed_time_last = item.elapsed_time;
-        adc_counter_last = item.adc_counter;
-
-        ADDEBUG() << o.str();
+    document::instance()->setData( *data );
+    const auto tp = std::chrono::steady_clock::now();
+    using namespace std::chrono_literals;
+    if ( ( tp - status.tp_data_handled_ ) > 1000ms ) {
+        status.tp_data_handled_ = tp;
+        sema_.signal();
     }
-    document::instance()->setData( data );
+
+    // ================== write trace data to datafile ======================
+    do {
+        auto accessor = std::make_shared< socfpga::dgmod::data_accessor >( data );
+        auto tmp = std::make_shared< adacquire::SignalObserver::DataWriter >( accessor );
+        io_service_.post( [=](){ adacquire::task::instance()->handle_write( socfpga::dgmod::TraceObserver::__objid__, tmp ); } );
+     } while (0 );
+    // ============================================================================
 }
 
 void
@@ -568,14 +520,4 @@ uint64_t
 task::upTimeSinceEpoch() const
 {
     return std::chrono::duration_cast< std::chrono::nanoseconds >( impl_->tp_uptime_.time_since_epoch() ).count();
-}
-
-void
-task::start_polling( uint32_t interval )
-{
-    // // impl_->start_timer( interval );
-    // impl_->io_service_.post( impl_->strand_.wrap( [&]() {
-    //                                                   if ( document::instance()->poll() )
-    //                                                       start_polling( 0 );
-    //                                               } ) );
 }

@@ -311,18 +311,18 @@ void
 task::impl::initialize()
 {
     static std::once_flag flag;
-    std::call_once( flag, [&](){
+    std::call_once( flag
+                    , [&](){
+                          // Injection event listener via UDP port 7125 start
+                          udpReceiver_ = std::make_unique< acewrapper::udpEventReceiver >( io_service_, 7125 );
+                          udpReceiver_->connect( std::bind( &task::impl::handle_event_out
+                                                            , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
 
-            // Injection event listener via UDP port 7125 start
-            udpReceiver_.reset( new acewrapper::udpEventReceiver( io_service_, 7125 ) );
-            udpReceiver_->connect( std::bind( &task::impl::handle_event_out
-                                              , this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 ) );
+                          timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
+                          timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
 
-            timer_.expires_from_now( boost::posix_time::seconds( 1 ) );
-            timer_.async_wait( boost::bind( &impl::handle_timeout, this, boost::asio::placeholders::error ) );
-
-            threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
-        });
+                          threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
+                      });
 
     fsm_.stop();
 }
@@ -478,4 +478,11 @@ task::time_event_trigger( std::shared_ptr< const adcontrols::ControlMethod::Time
                           , adcontrols::ControlMethod::const_time_event_iterator end )
 {
     impl_->time_event_handler_( tt, begin, end );
+}
+
+void
+task::handle_so_event( SignalObserver::wkEvent events )
+{
+    if ( events & SignalObserver::wkEvent_INJECT )
+        impl_->signalInstEvents_( Instrument::instEventInjectOut );
 }

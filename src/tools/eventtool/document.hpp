@@ -42,7 +42,7 @@ namespace eventtool {
 
     class document : public QObject {
         Q_OBJECT
-        ~document();
+        virtual ~document();
         document( const document& ) = delete;
         document( QObject * parent = 0 );
         static std::atomic< document * > instance_;
@@ -64,10 +64,9 @@ namespace eventtool {
 
     signals:
         void instStateChanged( int );
-        
+
     private:
         class impl;
         impl * impl_;
     };
 }
-

@@ -46,6 +46,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <atomic>
+#include <chrono>
 #include <future>
 #include <memory>
 #include <sstream>
@@ -61,7 +62,10 @@ namespace socfpga {
                    , masterObserver_( std::make_shared< adacquire::MasterObserver >( "acquire.master.observer.ms-cheminfo.com" ) )
                    , traceObserver_( std::make_shared< socfpga::dgmod::TraceObserver >() )
                    , sse_( std::make_unique< adurl::sse >( io_service_ ) )
-                   , pos_( 0 ) {
+                   , pos_( 0 )
+                   , acquisition_active_( false )
+                   , software_inject_requested_( false )
+                   , software_inject_posix_time_( 0 ) {
                 masterObserver_->addSibling( traceObserver_.get() );
             }
 
@@ -80,10 +84,11 @@ namespace socfpga {
             std::shared_ptr< TraceObserver > traceObserver_;
 
             std::pair< std::string, std::string > httpd_address_;
-
             std::unique_ptr< adurl::sse > sse_;
-            std::vector< advalue > que_;
             std::uint32_t pos_;
+            bool acquisition_active_;
+            bool software_inject_requested_;
+            uint64_t software_inject_posix_time_;
 
             void reply_message( adacquire::Receiver::eINSTEVENT msg, uint32_t value ) {
                 std::lock_guard< std::mutex > lock( mutex_ );
@@ -121,13 +126,11 @@ using namespace socfpga::dgmod;
 
 session::session() : impl_( new impl() )
 {
-    ADDEBUG() << "################### " << __FUNCTION__ << " ######################";
 }
 
 session::~session()
 {
     delete impl_;
-    ADDEBUG() << "################### " << __FUNCTION__ << " ######################";
 }
 
 std::string
@@ -221,9 +224,6 @@ session::initialize()
 bool
 session::shutdown()
 {
-    ADDEBUG() << "################# " << __FUNCTION__ << " ##################";
-
-    //singleton::instance()->close();
     impl_->io_service_.stop();
 
     for ( auto& t: impl_->threads_ )
@@ -253,12 +253,18 @@ session::getControlMethod()
 bool
 session::prepare_for_run( std::shared_ptr< const adcontrols::ControlMethod::Method > )
 {
+    impl_->software_inject_requested_ = false;
+    impl_->acquisition_active_ = false;
+    impl_->software_inject_posix_time_ = 0;
     return false;
 }
 
 bool
 session::prepare_for_run( const std::string& json, arg_type atype )
 {
+    impl_->software_inject_requested_ = false;
+    impl_->acquisition_active_ = false;
+    impl_->software_inject_posix_time_ = 0;
     if ( atype != arg_json )
         return false;
     return true;
@@ -267,8 +273,21 @@ session::prepare_for_run( const std::string& json, arg_type atype )
 bool
 session::event_out( uint32_t event )
 {
-    ADDEBUG() << "##### session::event_out( " << event << " )";
-    //return impl_->digitizer_->peripheral_trigger_inject();
+    if ( event == adacquire::Instrument::instEventInjectOut ) { // software inject
+        if ( !impl_->acquisition_active_ ) {
+            adurl::ajax ajax( impl_->httpd_address_.first, impl_->httpd_address_.second );
+            if ( ajax( "POST", "/ad/api$event_out", "{\"flags\":fake_inject}", "application/json" ) ) {
+                size_t size(0);
+                ADDEBUG() << ajax.get_response( size );
+            }
+            //auto tp = std::chrono::system_clock::now();
+            //impl_->software_inject_posix_time_ = std::chrono::nanoseconds( tp.time_since_epoch() ).count();
+            //impl_->software_inject_requested_ = true;
+            ADDEBUG() << "****************************************************";
+            ADDEBUG() << "status_message: " << ajax.status_message();
+            ADDEBUG() << "status_message: " << ajax.status_code();
+        }
+    }
     return true;
 }
 
@@ -314,18 +333,6 @@ session::dark_run( size_t waitCount )
     return true; // impl_->digitizer_->peripheral_dark( waitCount );
 }
 
-// bool
-// singleton::post( std::pair< std::shared_ptr< const waveform >, std::shared_ptr< const waveform > >&& avgpkd )
-// {
-//     if ( masterObserver_ && waveformObserver_ ) {
-//         auto pos = avgpkd.first->pos();
-//         waveformObserver_->emplace_back( std::move( avgpkd ) );
-//         masterObserver_->dataChanged( waveformObserver_.get(), pos );
-//     }
-//     return true;
-//     //return handle_waveform( std::move( avgpkd.first ) );
-// }
-
 void
 session::impl::connect_sse( const std::string& host, const std::string& port, const std::string& url )
 {
@@ -342,11 +349,15 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                 auto jdoc = QJsonDocument::fromJson( QByteArray( it->second.data(), it->second.size() ) );
 
                 // ADDEBUG() << jdoc.toJson().toStdString();
+                // ADDEBUG() << "acquisition_active: " << acquisition_active_;
 
                 if ( jdoc.object().contains( "ad.values" ) ) {
 
                     auto jarray = jdoc.object()[ "ad.values" ].toArray();
                     std::lock_guard< std::mutex > lock( mutex_ );
+                    uint32_t events(0);
+                    std::vector< advalue > values;
+
                     for ( const auto& jadval: jarray ) {
                         advalue value;
                         auto jobj = jadval.toObject();
@@ -361,9 +372,29 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                         std::transform( jflags.begin(), jflags.end(), flags.begin(), [&](const auto& o){ return o.toString().toUInt(); } );
                         value.flags = flags[ 0 ];
 
+                        events |= value.flags;
+
                         auto vec = jobj[ "ad" ].toArray();
                         std::transform( vec.begin(), vec.end(), value.ad.begin(), [&](const auto& o ){ return double(o.toInt()) / value.nacc; });
-                        que_.emplace_back( value );
+
+                        // handle hardware injection -- this is desiered
+                        if ( value.flags & adacquire::SignalObserver::wkEvent_INJECT ) {
+                            if ( !acquisition_active_ )
+                                traceObserver_->setInjectData( value );
+                            else
+                                value.flags &= ~adacquire::SignalObserver::wkEvent_INJECT;
+                            acquisition_active_ = true; // hardware inject event received.
+                        }
+
+                        // handle software injection timing -- this is workaround
+                        if ( !acquisition_active_ && software_inject_requested_ ) {
+                            value.flags |= adacquire::SignalObserver::wkEvent_INJECT;  // force set inject event received.
+                            value.flags_time = software_inject_posix_time_;
+                            acquisition_active_ = true;
+                            software_inject_requested_ = false;
+                        }
+
+                        values.emplace_back( value );
 
 #if !defined NDEBUG && 0
                         {
@@ -383,8 +414,7 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                         }
 #endif
                     }
-                    auto pos = traceObserver_->emplace_back( std::move( que_ ) );
-                    que_.clear();
+                    auto pos = traceObserver_->emplace_back( std::move( values ), events );
                     masterObserver_->dataChanged( traceObserver_.get(), pos );
                 }
 

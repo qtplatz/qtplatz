@@ -272,6 +272,7 @@ namespace acquire {
         std::shared_ptr< adcontrols::threshold_method > method_;
         uint32_t avrg_count_;
         bool avrg_refresh_;
+        std::map< uint32_t, std::pair< uint64_t, uint64_t > > event_tp_;
 
         // display data
         std::array< std::shared_ptr< adcontrols::Trace >, 8 > traces_;
@@ -560,7 +561,6 @@ document::actionConnect()
 void
 document::actionInject()
 {
-    ADTRACE() << "\t#### Action INJECT IN ####";
     adacquire::task::instance()->fsmInject();
 }
 
@@ -653,9 +653,8 @@ document::prepare_for_run()
 
     auto cm = MainWindow::instance()->getControlMethod();
 
+    ADTRACE() << "## prepare_for_run ##";
     prepare_next_sample( impl_->nextSampleRun_, *impl_->cm_ );
-
-    ADTRACE() << "### prepare_for_run ###";
 
     std::vector< std::future< bool > > futures;
     for ( auto& iController : impl_->iControllers_ ) {
@@ -919,7 +918,6 @@ document::isRecording() const
 void
 document::handleConnected( adextension::iController * controller )
 {
-    ADTRACE() << controller->module_name().toStdString();
     task::instance()->initialize();
 }
 
@@ -1291,10 +1289,8 @@ document::progress( double elapsed_time, std::shared_ptr< const adcontrols::Samp
 {
     double method_time = sampleRun->methodTime();
     QString runName = QString::fromStdWString( sampleRun->filePrefix() );
-    (void)method_time;
-    (void)runName;
-    // ADDEBUG() << __FUNCTION__ << " runName: " << runName.toStdString() << ", method time: " << method_time;
-    // emit sampleProgress( elapsed_time, method_time, runName, sampleRun->runCount() + 1, sampleRun->replicates() );
+
+    emit sampleProgress( elapsed_time, method_time, runName, sampleRun->runCount() + 1, sampleRun->replicates() );
 }
 
 void
@@ -1442,16 +1438,31 @@ document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
 }
 
 void
-document::setData( const std::vector< socfpga::dgmod::advalue >& values )
+document::setData( const std::vector< socfpga::dgmod::advalue >& data )
 {
-    for ( auto& value: values ) {
-        //double time = value.posix_time / std::nano::den; // (s)
-        double time = value.elapsed_time / std::nano::den;
-        for ( size_t ch = 0; ch < value.ad.size() && ch < impl_->traces_.size(); ++ch ) {
+    bool injflag( false );
+    for ( auto& item: data ) {
+        double time = double(item.elapsed_time) / std::nano::den;
+
+        if ( !injflag && ( item.flags & adacquire::SignalObserver::wkEvent_INJECT ) ) {
+            injflag = true;
+            for ( auto& trace: impl_->traces_ )
+                trace->setInjectTime( double( item.flags_time ) / std::nano::den );
+            std::lock_guard< std::mutex > lock( impl_->mutex_ );
+            impl_->event_tp_[ adacquire::SignalObserver::wkEvent_INJECT ] = { item.posix_time, item.flags_time };
+        }
+
+        for ( size_t ch = 0; ch < item.ad.size() && ch < impl_->traces_.size(); ++ch ) {
             auto& trace = impl_->traces_.at( ch );
-            trace->append( value.adc_counter, time, value.ad[ ch ], 0 );
+            trace->append( item.adc_counter, time, item.ad[ ch ], item.flags );
         }
     }
+
+    do {
+        std::lock_guard< std::mutex > lock( impl_->mutex_ );
+        impl_->event_tp_[ 0 ] = { data.back().posix_time, data.back().elapsed_time };
+    } while(0);
+
     emit document::instance()->dataChanged( socfpga::dgmod::trace_observer, -1 );
 }
 
@@ -1464,4 +1475,30 @@ document::getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& traces
 
     for ( auto trace: impl_->traces_ )
         traces.emplace_back( trace );
+}
+
+bool
+document::applyTimedEvent( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                           , adcontrols::ControlMethod::const_time_event_iterator begin
+                           , adcontrols::ControlMethod::const_time_event_iterator end )
+{
+    // // ---> infiTOF tofdll
+    // hv::Session::instance()->time_event_trigger( tt, begin, end );
+
+    // for ( auto& iController : impl_->iControllers_ ) {
+    //     if ( auto session = iController->getInstrumentSession() )
+    //         session->time_event_trigger( tt, begin, end );
+    // }
+    return true;
+}
+
+// posix_time, elapsed_time
+std::pair< uint64_t, uint64_t >
+document::find_event_time( uint32_t wellKnownEvent ) const
+{
+    std::lock_guard< std::mutex > lock( impl_->mutex_ );
+    auto it = impl_->event_tp_.find( wellKnownEvent );
+    if ( it != impl_->event_tp_.end() )
+        return it->second;
+    return { 0, 0 };
 }

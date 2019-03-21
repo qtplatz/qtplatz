@@ -61,11 +61,14 @@ namespace socfpga {
             bool closingStorage( adacquire::SampleProcessor& ) const override { return false; }
 
             // TraceObserver (local)
-            uint32_t emplace_back( std::vector< advalue >&& );
+            uint32_t emplace_back( std::vector< advalue >&&, uint32_t events );
+            void setInjectData( const advalue& );
 
         private:
             std::vector< std::shared_ptr< so::DataReadBuffer > > que_;
-            uint32_t rx_pos_;
+            uint64_t elapsed_time_at_inject_;
+            uint64_t epoch_time_at_inject_;
+            uint32_t adc_counter_at_inject_;
         };
     }
 }

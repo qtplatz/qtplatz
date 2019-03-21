@@ -31,13 +31,16 @@
 #include <memory>
 #include <vector>
 #include <ostream>
-//#include <ads54j/constants.hpp>
 #include <adportable/mass_assign_t.hpp>
+#include <adcontrols/controlmethod_fwd.hpp>
 
 class QSettings;
 class QByteArray;
 
-namespace adacquire { class SampleProcessor; }
+namespace adacquire {
+    class SampleProcessor;
+}
+
 namespace map { struct trigger_data; }
 
 namespace adextension { class iController; class iSequenceImpl; }
@@ -53,7 +56,6 @@ namespace adcontrols {
     class SampleRun;
     class threshold_method;
     class TofChromatogramsMethod;
-    class TimeDigitalHistogram;
 }
 
 namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
@@ -139,6 +141,10 @@ namespace acquire {
 
         void progress( double elapsed_time, std::shared_ptr< const adcontrols::SampleRun >&& sampleRun ) const;
 
+        bool applyTimedEvent( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents > tt
+                              , adcontrols::ControlMethod::const_time_event_iterator begin
+                              , adcontrols::ControlMethod::const_time_event_iterator end );
+
         // Action handlers
         void takeSnapshot();
 
@@ -153,6 +159,9 @@ namespace acquire {
         void debug_data( const std::vector< socfpga::dgmod::advalue >& );
         void setData( const std::vector< socfpga::dgmod::advalue >& );
         void getTraces( std::vector< std::shared_ptr< adcontrols::Trace > >& );
+
+        // posix_time, elapsed_time
+        std::pair< uint64_t, uint64_t > find_event_time( uint32_t wellKnownEvent ) const;
 
     private:
         void prepare_next_sample( std::shared_ptr< adcontrols::SampleRun > run, const adcontrols::ControlMethod::Method& cm );
@@ -178,6 +187,7 @@ namespace acquire {
         void on_waveform_received();
         void onControlMethodChanged( const QString& );
         void sampleRunChanged();
+        void sampleProgress( double elapsed_time, double method_time, const QString& runName, int, int ) const;
 
         void dataChanged( const boost::uuids::uuid&, int );
         void instStateChanged( int );

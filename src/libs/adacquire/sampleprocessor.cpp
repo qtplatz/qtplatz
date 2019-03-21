@@ -170,7 +170,7 @@ void
 SampleProcessor::write( const boost::uuids::uuid& objId
                         , SignalObserver::DataWriter& writer )
 {
-    int wcount = 0;
+    // int wcount = 0;
 #if !defined NDEBUG && 0
     ADDEBUG() << "SampleProcessor::write(" << objId << ") writer.write. active=" << c_acquisition_active_;
 #endif

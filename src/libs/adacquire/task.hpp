@@ -47,7 +47,7 @@ namespace adacquire {
     namespace SignalObserver { class DataWriter; }
 
     class ADACQUIRESHARED_EXPORT task {
-        
+
         ~task();
         task();
 
@@ -62,23 +62,23 @@ namespace adacquire {
 
         typedef void( fsm_state_changed_t )(bool, int id_state, Instrument::eInstStatus);
         typedef std::function< fsm_state_changed_t > signal_fsm_state_changed_t;
-        
+
         typedef void( periodic_timer_t )( double elapsed_time );
         typedef std::function< periodic_timer_t > signal_periodic_timer_t;
 
         typedef std::chrono::system_clock this_clock_t;
 
         typedef boost::signals2::signal< void( std::shared_ptr< const adcontrols::ControlMethod::TimedEvents >
-                                               , adcontrols::ControlMethod::const_time_event_iterator 
+                                               , adcontrols::ControlMethod::const_time_event_iterator
                                                , adcontrols::ControlMethod::const_time_event_iterator ) > time_event_handler_t;
-        
+
         boost::signals2::connection connect_fsm_action( signal_fsm_action_t );
         boost::signals2::connection connect_fsm_state( signal_fsm_state_changed_t );
         boost::signals2::connection connect_inst_events( signal_inst_events_t );
         boost::signals2::connection connect_periodic_timer( signal_periodic_timer_t );
 
         boost::signals2::connection register_time_event_handler( const time_event_handler_t::slot_type& );
-        
+
         void initialize();
         void finalize();
         boost::asio::io_service_type& io_service();
@@ -112,6 +112,9 @@ namespace adacquire {
 
         void handle_write( const boost::uuids::uuid&, std::shared_ptr< adacquire::SignalObserver::DataWriter > );
 
+        //
+        void handle_so_event( SignalObserver::wkEvent );
+
     private:
         friend std::unique_ptr< task >::deleter_type;
         class impl;
@@ -119,4 +122,3 @@ namespace adacquire {
     };
 
 } // namespace adcontroller
-

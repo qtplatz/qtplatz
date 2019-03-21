@@ -62,6 +62,7 @@ namespace acewrapper {
             sock_.open( endpoint.protocol() );
             sock_.set_option( udp::socket::reuse_address( true ) );
             sock_.bind( endpoint );
+            ADDEBUG() << "udpEventReceiver endpoint: " << endpoint;
         }
 
         void  do_receive()  {
@@ -80,7 +81,7 @@ namespace acewrapper {
                     }
                 });
         }
-        
+
         void do_send(std::size_t length)  {
             sock_.async_send_to(
                 boost::asio::buffer(data_, length), sender_endpoint_,
@@ -88,7 +89,7 @@ namespace acewrapper {
                     do_receive();
                 });
         }
-        
+
         boost::asio::io_service& io_service_;
         boost::asio::ip::udp::socket sock_;
         boost::asio::ip::udp::endpoint sender_endpoint_;
@@ -98,7 +99,7 @@ namespace acewrapper {
         std::mutex mutex_;
         std::condition_variable cv_;
     };
-    
+
 }
 
 using namespace acewrapper;
@@ -110,7 +111,7 @@ udpEventReceiver::~udpEventReceiver()
 
 udpEventReceiver::udpEventReceiver( boost::asio::io_service& io, short port ) : impl_( new impl( io, port ) )
 {
-} 
+}
 
 void
 udpEventReceiver::register_handler( std::function<void( const char *, size_t, const boost::asio::ip::udp::endpoint& )> h )
@@ -123,4 +124,3 @@ udpEventReceiver::connect( std::function<void( const char *, size_t, const boost
 {
     return impl_->signal_.connect( h );
 }
-

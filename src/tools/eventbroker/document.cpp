@@ -48,7 +48,7 @@ document::~document()
 }
 
 document::document() : work_( io_service_ )
-                     , udpSender_( new acewrapper::udpEventSender( io_service_, "localhost", "7125" ) )
+                     , udpSender_( std::make_unique< acewrapper::udpEventSender >( io_service_, "localhost", "7125" ) )
 {
     threads_.emplace_back( std::thread( [=] {io_service_.run(); } ) );
     threads_.emplace_back( std::thread( [=] {io_service_.run(); } ) );
@@ -57,27 +57,14 @@ document::document() : work_( io_service_ )
 document *
 document::instance()
 {
-    typedef document T;
-
-    T * tmp = instance_.load( std::memory_order_relaxed );
-    std::atomic_thread_fence( std::memory_order_acquire );
-    if ( tmp == nullptr ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        tmp = instance_.load( std::memory_order_relaxed );
-        if ( tmp == nullptr ) {
-            tmp = new T();
-            std::atomic_thread_fence( std::memory_order_release );
-            instance_.store( tmp, std::memory_order_relaxed );
-        }
-    }
-    return tmp;
+    static document __instance;
+    return &__instance;
 }
 
 bool
 document::register_handler( event_handler h )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-
     handlers_.push_back( h );
     return true;
 }
@@ -98,8 +85,7 @@ document::bind( const char * host, const char * port )
 {
     try {
         std::lock_guard< std::mutex > lock( mutex_ );
-        auto ptr = std::make_shared< acewrapper::udpEventSender>( io_service_, host, port );
-        udpSender_ = ptr;
+        udpSender_ = std::make_unique< acewrapper::udpEventSender>( io_service_, host, port );
         return true;
     } catch ( boost::exception& ex ) {
         ADDEBUG() << boost::diagnostic_information( ex );
@@ -115,11 +101,12 @@ document::event_out( uint32_t value )
     if ( udpSender_ ) {
         std::ostringstream o;
         o << "EVENTOUT " << value << std::endl;
-        return udpSender_->send_to( o.str(), [=] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
-            for ( auto callback : handlers_ )
-                callback( "event_out", code, duration, msg );
-        } );
+        return udpSender_->send_to( o.str()
+                                    , [=] ( acewrapper::udpEventSender::result_code code, double duration, const char * msg ) {
+                                          for ( auto callback : handlers_ )
+                                              callback( "event_out", code, duration, msg );
+                                      } );
+        return true;
     }
     return false;
 }
-

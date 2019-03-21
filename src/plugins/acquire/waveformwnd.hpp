@@ -57,6 +57,9 @@ namespace acquire {
         void handle_threshold_action( const QJsonDocument& );
         void handle_threshold_method( const QJsonDocument& );
         void handle_threshold_level( double mV );
+
+        void handleSampleProgress( double, double, const QString&, int, int );
+
     private slots:
         void dataChanged( const boost::uuids::uuid&, int idx );
 

@@ -36,7 +36,7 @@ namespace socfpga {
             uint64_t elapsed_time;
             uint64_t flags_time;
             uint64_t posix_time;
-            uint32_t adc_counter; // 250kHz counter
+            uint32_t adc_counter; // data number
             uint32_t nacc;
             uint32_t flags;
             std::array< double, 8 > ad;

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "udpeventsender.hpp"
+#include <adportable/debug.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <chrono>
@@ -37,13 +38,19 @@ udpEventSender::udpEventSender( boost::asio::io_service& io, const char * host, 
 {
     udp::resolver resolver( io );
     endpoint_ = *resolver.resolve( { udp::v4(), host, port } );
-    std::cerr << endpoint_ << std::endl;
-} 
+
+    std::ostringstream o;
+    o << endpoint_;
+    ADDEBUG() << "udpEventSender endpoint: " << o.str();
+
+}
 
 bool
 udpEventSender::send_to( const std::string& data, std::function< void( result_code, double, const char *) > callback )
 {
     auto tp = std::chrono::system_clock::now();
+
+    ADDEBUG() << "send_to: " << data;
 
     sock_.send_to( boost::asio::buffer( data.c_str(), data.size() ), endpoint_ );
 
@@ -89,4 +96,3 @@ udpEventSender::send_to( const std::string& data, std::function< void( result_co
 
     return true;
 }
-

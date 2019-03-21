@@ -25,7 +25,7 @@
 #include "waveformwnd.hpp"
 #include "constants.hpp"
 #include "document.hpp"
-//#include <ads54j/waveformobserver.hpp>
+#include <adacquire/constants.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -41,9 +41,11 @@
 #include <adplot/peakmarker.hpp>
 #include <adplot/spectrumwidget.hpp>
 #include <adplot/spanmarker.hpp>
+#include <adportable/date_string.hpp>
 #include <adportable/float.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
+#include <date/date.h>
 #include <socfpga/constants.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qtwrapper/settings.hpp>
@@ -86,12 +88,15 @@ void
 WaveformWnd::init()
 {
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
+    splitter->setChildrenCollapsible( true );
+
     do {
         for ( auto& tpw: tpw_ )
             splitter->addWidget( tpw.get() );
 
         if ( auto hsplitter = new Core::MiniSplitter ) {
             hsplitter->setOrientation( Qt::Horizontal );
+            hsplitter->setChildrenCollapsible( true );
             for ( auto& spw: spw_ )
                 hsplitter->addWidget( spw.get() );
             splitter->addWidget( hsplitter );
@@ -172,6 +177,11 @@ WaveformWnd::init()
            = std::make_unique< adplot::SpanMarker >( QColor( 0x4b, 0x00, 0x62, 0x60 ), QwtPlotMarker::VLine, 1.5 ) ) ) {
         threshold_action_marker_->attach( spw_[0].get() );
     }
+
+    for ( auto& spw: spw_ )
+        spw->hide();
+
+    connect( document::instance(), &document::sampleProgress, this, &WaveformWnd::handleSampleProgress );
 }
 
 void
@@ -219,8 +229,13 @@ WaveformWnd::traceDataChanged( int )
     std::vector< std::shared_ptr< adcontrols::Trace > > traces;
 
     document::instance()->getTraces( traces );
+    uint64_t posix_time;
+    std::tie( posix_time, std::ignore ) = document::instance()->find_event_time( 0 );
 
-    QString footer = QString( " #Traces: %2" ).arg( QString::number( traces.size() ) );
+    auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point() + std::chrono::nanoseconds( posix_time ), true );
+    QString timeString = QString::fromStdString( t );
+
+    QString footer;
 
     size_t idx(0);
 
@@ -232,8 +247,10 @@ WaveformWnd::traceDataChanged( int )
 
         if ( trace->enable() ) {
             double time = trace->x( trace->size() - 1 );
-            footer += QString( "  Time: %1min " ).arg( QString::number( time / 60, 'f', 3 ) );
-            tpw->setFooter( footer );
+            if ( footer.isEmpty() ) {
+                footer += QString( "  Elapsed time: %1min [%2]" ).arg( QString::number( time / 60, 'f', 3 ), timeString );
+                tpw->setFooter( footer );
+            }
             tpw->setData( trace, idx, false );
 
             // ================= title for legends ===================
@@ -242,8 +259,8 @@ WaveformWnd::traceDataChanged( int )
             //if ( formula.isEmpty() )
             //    formula = QString::fromStdString( item.formula() ); // 'TIC'
 
-            QwtText title = QwtText( QString( "%1: %2[%3]" )
-                                     .arg( QString::number( idx + 1 ), QString::fromStdString(trace->legend()), QString( "trace" ) ), QwtText::RichText );
+            QwtText title = QwtText( QString( "%1: %2" )
+                                     .arg( QString::number( idx + 1 ), QString::fromStdString( trace->legend() ) ), QwtText::RichText );
             title.setFont( qtwrapper::font()( title.font(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel ) );
             if ( auto plotItem = tpw->getPlotItem( idx ) )
                 plotItem->setTitle( title );
@@ -370,4 +387,30 @@ WaveformWnd::handle_threshold_level( double level_mV )
 
     if ( replot )
         spw_[0]->replot();
+}
+
+void
+WaveformWnd::handleSampleProgress( double elapsed_time, double method_time, const QString& run_name, int runCount, int replicates )
+{
+    uint64_t posix_time;
+    std::tie( posix_time, std::ignore ) = document::instance()->find_event_time( adacquire::SignalObserver::wkEvent_INJECT );
+
+    QString title = QString( "Time(seconds): %1/%2 (%3)  Replicates: %4/%5" )
+        .arg( QString::number( elapsed_time, 'f', 1 )
+              , QString::number( method_time, 'f', 1 )
+              , run_name
+              , QString::number( runCount )
+              , QString::number( replicates )
+            );
+
+    if ( posix_time ) {
+        std::chrono::system_clock::time_point tp;
+        tp += std::chrono::nanoseconds( posix_time );
+        using namespace date;
+        std::ostringstream o;
+        o << tp;
+        title += QString("     Inject @ %1").arg( QString::fromStdString( o.str() ) );
+    }
+
+    tpw_.at(0)->setTitle( title );
 }

@@ -39,7 +39,9 @@ using namespace socfpga::dgmod;
 
 const constexpr boost::uuids::uuid TraceObserver::__objid__;
 
-TraceObserver::TraceObserver() : rx_pos_( 0 )
+TraceObserver::TraceObserver() : elapsed_time_at_inject_(0)
+                               , epoch_time_at_inject_(0)
+                               , adc_counter_at_inject_(0)
 {
     so::Description desc;
     desc.set_trace_method( so::eTRACE_IMAGE_TDC );
@@ -126,29 +128,29 @@ TraceObserver::posFromTime( uint64_t nsec ) const
 }
 
 uint32_t
-TraceObserver::emplace_back( std::vector< advalue >&& values )
+TraceObserver::emplace_back( std::vector< advalue >&& values, uint32_t events )
 {
     if ( values.empty() )
         return 0;
 
     auto rb = std::make_shared< so::DataReadBuffer >();
 
-    uint32_t pos = rx_pos_;
-
-    rx_pos_ += values.size();
-
     const auto& top    = values[0];
-    rb->pos()          = pos;
-    rb->timepoint()    = top.elapsed_time;
-    rb->elapsed_time() = top.elapsed_time; // time since inject
+
+    auto pos = top.adc_counter;
+
+    rb->pos()          = top.adc_counter;
+    rb->timepoint()    = top.elapsed_time;  // timepoint should be a steady time.  elapsed_time of this device is fpga clock counts that is ok
+    rb->elapsed_time() = top.elapsed_time;
     rb->epoch_time()   = top.posix_time;
     rb->fcn()          = 0;
     rb->ndata()        = values.size();
-    rb->events()       = top.flags;
-    rb->setData( std::move( values ) );
+    rb->events()       = events;
+    //rb->setData( std::move( values ) );
+    rb->setData( std::make_shared< std::vector< advalue > >( std::move( values ) ) );
 
     std::lock_guard< std::mutex > lock( mutex() );
-    if ( que_.size() > 200 ) { // 2 seconds @ 1kHz
+    if ( que_.size() > 200 ) {
         auto tail = que_.begin();
         std::advance( tail, 50 );
         que_.erase( que_.begin(), tail );
@@ -157,4 +159,12 @@ TraceObserver::emplace_back( std::vector< advalue >&& values )
     que_.emplace_back( std::move( rb ) );
 
     return pos;
+}
+
+void
+TraceObserver::setInjectData( const advalue& value )
+{
+    elapsed_time_at_inject_ = value.elapsed_time;
+    epoch_time_at_inject_ = value.elapsed_time;
+    adc_counter_at_inject_ = value.adc_counter;
 }
