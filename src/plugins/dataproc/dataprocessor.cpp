@@ -379,12 +379,12 @@ namespace dataproc {
 
         doSpectralProcess( const adutils::MassSpectrumPtr& p
                            , portfolio::Folium& f
-                           , Dataprocessor * dp ) : ptr_(p), folium(f), dataprocessor_( dp ) {
+                           , Dataprocessor * dp ) : ptr_(p), dataprocessor_( dp ), folium(f) {
         }
 
         doSpectralProcess( std::shared_ptr< const adcontrols::MassSpectrum >& p
                            , portfolio::Folium& f
-                           , Dataprocessor * dp ) : ptr_(p), folium(f), dataprocessor_( dp ) {
+                           , Dataprocessor * dp ) : ptr_(p), dataprocessor_( dp ), folium(f) {
         }
 
         template<typename T> bool operator () ( T& ) const {
@@ -1201,11 +1201,11 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
         // adcontrols::TimeDigitalHistogram
         adfs::stmt sql ( *dp->db() );
         sql.prepare( "SELECT clsidSpectrometer FROM ScanLaw WHERE objuuid=?" );
-        sql.bind( 1 ) = boost::uuids::uuid{ 0 };
+        sql.bind( 1 ) = boost::uuids::uuid{{ 0 }};
         if ( sql.step() == adfs::sqlite_row ) {
             boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 0 );
             if ( ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
-                spectrometer->initialSetup( *dp->db(), { 0 } );
+                spectrometer->initialSetup( *dp->db(), {{ 0 }} );
         } else {
             fixupDataInterpreterClsid( folium );
         }

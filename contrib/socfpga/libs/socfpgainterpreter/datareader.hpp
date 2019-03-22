@@ -82,6 +82,7 @@ namespace socfpgainterpreter {
         std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( const_iterator& ) const override                                { return nullptr; }
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const override  { return nullptr; }
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override                                         { return nullptr; }
+        std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int idx ) const override;
         adcontrols::DataInterpreter * dataInterpreter() const override;
 
     private:

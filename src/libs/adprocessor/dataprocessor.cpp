@@ -74,8 +74,8 @@ dataprocessor::~dataprocessor()
 {
 }
 
-dataprocessor::dataprocessor() : modified_( false )
-                               , rawdata_( 0 )
+dataprocessor::dataprocessor() : rawdata_( 0 )
+                               , modified_( false )
                                , portfolio_( std::make_unique< portfolio::Portfolio >() )
                                , mode_( 0 )
 {
@@ -222,17 +222,17 @@ dataprocessor::massSpectrometer()
 
         adfs::stmt sql( *this->db() );
 
-        boost::uuids::uuid clsidSpectrometer{ 0 };
+        boost::uuids::uuid clsidSpectrometer{{ 0 }};
         sql.prepare( "SELECT id FROM Spectrometer LIMIT 1" );
         if ( sql.step() == adfs::sqlite_row )
             clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 0 );
 
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
-            spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
+            spectrometer->initialSetup( *this->db(), {{ 0 }} ); // load relevant to 'master observer'
             spectrometer_ = spectrometer;
         } else {
             if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( adcontrols::iids::adspectrometer_uuid ) ) {
-                spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
+                spectrometer->initialSetup( *this->db(), {{ 0 }} ); // load relevant to 'master observer'
                 spectrometer_ = spectrometer;
             }
         }
@@ -259,7 +259,7 @@ dataprocessor::readSpectrumFromTimeCount()
         }
     }
 
-    boost::uuids::uuid clsidSpectrometer{ 0 };
+    boost::uuids::uuid clsidSpectrometer{{ 0 }};
     sql.prepare( "SELECT id FROM Spectrometer LIMIT 1" );
     if ( sql.step() == adfs::sqlite_row )
         clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 0 );
@@ -270,7 +270,7 @@ dataprocessor::readSpectrumFromTimeCount()
         return nullptr;
     }
 
-    spectrometer->initialSetup( *db(), { 0 } );
+    spectrometer->initialSetup( *db(), {{ 0 }} );
     auto scanlaw = spectrometer->scanLaw();
 
     {

@@ -398,7 +398,6 @@ rawdata::find_scan( int idx, int fcn ) const
     }
 
     if ( idx >= 0 && fcn < 0 ) {  // find first "replicates-alinged" scan pos (idx means tic[fcn][idx])
-        typedef decltype(*fcnIdx_.rbegin()) value_type;
         size_t count = 0;
         for ( auto it = fcnIdx_.begin(); it != fcnIdx_.end(); ++it ) {
             if ( it->second == 0 && count++ == size_t(idx) )

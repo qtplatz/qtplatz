@@ -43,6 +43,7 @@
 #include <adcontrols/datainterpreter.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
@@ -85,11 +86,20 @@ rawdata::loadAcquiredConf()
 {
     if ( configLoaded_ )
         return true;
+
     if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
         for ( const auto& conf: conf_ ) {
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) )
-                    readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
+                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) {
+                    reader->setDescription( adacquire::SignalObserver::eTRACE_METHOD( conf.trace_method )
+                                            , conf.trace_id
+                                            , adportable::utf::to_utf8( conf.trace_display_name )
+                                            , adportable::utf::to_utf8( conf.axis_label_x )
+                                            , adportable::utf::to_utf8( conf.axis_label_y )
+                                            , conf.axis_decimals_x
+                                            , conf.axis_decimals_y );
+                    readers_.emplace_back( reader, int( reader->fcnCount() ) );
+                }
             } else {
                 undefined_data_readers_.emplace_back( conf.objtext, conf.objid );
                 ADERROR() << "# reader for '" << conf.trace_id << "'" << " not implemented.";
@@ -187,8 +197,8 @@ rawdata::dataReaders( bool allPossible ) const
             v.push_back( reader.first );
     } else {
         for ( auto& reader : readers_ )
-            if ( reader.first->fcnCount() > 0 )
-                v.push_back( reader.first );
+            if ( reader.first->fcnCount() > 0 || reader.first->trace_method() == adacquire::SignalObserver::eTRACE_TRACE )
+                v.emplace_back( reader.first );
     }
 
     return v;

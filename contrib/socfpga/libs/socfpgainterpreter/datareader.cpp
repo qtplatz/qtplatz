@@ -74,7 +74,7 @@ DataReader::~DataReader()
 DataReader::DataReader( const char * traceid ) : adcontrols::DataReader( traceid )
                                                , objid_( {{ 0 }} )
                                                , objrowid_( -1 )
-                                               , fcnCount_( 0 )
+                                               , fcnCount_( 0 ) // ADC data stream has no protocol dependency
                                                , elapsed_time_origin_( 0 )
                                                , impl_( new impl() )
 {
@@ -107,15 +107,6 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 if ( sql.step() == adfs::sqlite_row )
                     objrowid_ = sql.get_column_value< int64_t >( 0 );
             }
-            // fcnCount
-            {
-                adfs::stmt sql( *db );
-                sql.prepare( "SELECT COUNT( DISTINCT fcn ) FROM AcquiredData WHERE objuuid = ?" );
-                sql.bind( 1 ) = objid_;
-                if ( sql.step() == adfs::sqlite_row )
-                    fcnCount_ = sql.get_column_value< int64_t >( 0 );
-            }
-
 #if ! defined NDEBUG
             ADDEBUG() << "DataReader::initailze(" << objid << ", " << objtext << ") fcnCount=" << fcnCount_;
 #endif
@@ -265,41 +256,7 @@ std::shared_ptr< const adcontrols::Chromatogram >
 DataReader::TIC( int fcn ) const
 {
     ADDEBUG() << __FUNCTION__ << "(" << fcn << ")";
-
-    std::call_once( impl_->flag_, [&]{
-            if ( auto interpreter = interpreter_->_narrow< socfpgainterpreter::DataInterpreter >() ) {
-                if ( auto db = db_.lock() ) {
-                    adfs::stmt sql( *db );
-                    sql.prepare( "SELECT data FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
-                    sql.bind( 1 ) = objid_;
-                    while ( sql.step() == adfs::sqlite_row ) {
-                        adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
-                        if ( interpreter->translate( impl_->data_, xdata.data(), xdata.size() ) == adcontrols::translate_complete )
-                            ;
-                    }
-                    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end(), [](const auto& a){ return a.flags & adacquire::SignalObserver::wkEvent_INJECT; } );
-                    if ( it == impl_->data_.end() )
-                        it = impl_->data_.begin();
-                    impl_->injdata_ = *it;
-                }
-            }
-        });
-
-    auto ptr = std::make_shared< adcontrols::Chromatogram >();
-    ptr->setDataReaderUuid( objid_ );
-
-    const auto& injdata = impl_->injdata_;
-
-    for ( const auto& item: impl_->data_ ) {
-        double time = double( item.elapsed_time - injdata.flags_time ) / std::nano::den;
-        double value = item.ad[ 0 ];
-#ifndef NDEBUG
-        ADDEBUG() << "data: " << time << "s, " << value << "mV";
-#endif
-        (*ptr) << std::make_pair( time, value );
-    }
-
-    return ptr;
+    return getChromatogram( 0 );
 }
 
 
@@ -357,6 +314,47 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 {
     return nullptr;
 }
+
+std::shared_ptr< adcontrols::Chromatogram >
+DataReader::getChromatogram( int idx ) const
+{
+    if ( idx >= impl_->injdata_.ad.size() )
+        return nullptr;
+
+    std::call_once( impl_->flag_, [&]{
+            if ( auto interpreter = interpreter_->_narrow< socfpgainterpreter::DataInterpreter >() ) {
+                if ( auto db = db_.lock() ) {
+                    adfs::stmt sql( *db );
+                    sql.prepare( "SELECT data FROM AcquiredData WHERE objuuid = ? ORDER BY npos" );
+                    sql.bind( 1 ) = objid_;
+                    while ( sql.step() == adfs::sqlite_row ) {
+                        adfs::blob xdata = sql.get_column_value< adfs::blob >( 0 );
+                        if ( interpreter->translate( impl_->data_, xdata.data(), xdata.size() ) == adcontrols::translate_complete )
+                            ;
+                    }
+                    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end(), [](const auto& a){ return a.flags & adacquire::SignalObserver::wkEvent_INJECT; } );
+                    if ( it == impl_->data_.end() )
+                        it = impl_->data_.begin();
+                    impl_->injdata_ = *it;
+                }
+            }
+        });
+
+
+    auto ptr = std::make_shared< adcontrols::Chromatogram >();
+    ptr->setDataReaderUuid( objid_ );
+
+    const auto& injdata = impl_->injdata_;
+
+    for ( const auto& item: impl_->data_ ) {
+        double time = double( item.elapsed_time - injdata.flags_time ) / std::nano::den;
+        double value = item.ad[ idx ];
+        (*ptr) << std::make_pair( time, value );
+    }
+    return ptr;
+
+}
+
 
 adcontrols::DataInterpreter *
 DataReader::dataInterpreter() const

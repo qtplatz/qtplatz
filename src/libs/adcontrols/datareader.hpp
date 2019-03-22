@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <adacquire/constants.hpp>
 #include <boost/any.hpp>
 #include <functional>
 #include <utility>
@@ -54,14 +55,14 @@ namespace adcontrols {
         DataReader_value_type( const DataReader_value_type& t );
         DataReader_value_type( DataReader_iterator * it, int64_t rowid = (-1) );
         DataReader_value_type& operator = ( const DataReader_value_type& t );
-        
+
         int64_t rowid() const;
         int64_t pos() const;
         int64_t elapsed_time() const;
         double time_since_inject() const;
         int fcn() const;
     };
-    
+
     class ADCONTROLSSHARED_EXPORT DataReader_iterator
         : public std::iterator< std::bidirectional_iterator_tag
                                 , DataReader_iterator > {
@@ -99,13 +100,13 @@ namespace adcontrols {
         virtual ~DataReader(void) {}
 
         DataReader( const char * traceid = nullptr );
-        
+
         DataReader( const DataReader& );
         DataReader& operator = ( const DataReader& );
 
         typedef DataReader_iterator iterator;
         typedef DataReader_iterator const_iterator;
-        
+
         enum TimeSpec { ElapsedTime, EpochTime };
         enum IndexSpec { TriggerNumber, IndexCount };
 
@@ -118,13 +119,13 @@ namespace adcontrols {
         virtual int64_t objrowid() const = 0;                // rowid corresponding to objuuid; this is for backward (v2) compatibility
         virtual const std::string& display_name() const = 0; // return value can be localized
 
-        virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; }
-        
+        virtual std::shared_ptr< const adcontrols::Chromatogram > TIC( int fcn ) const { return nullptr; } // eTRACE_SPECTRA (MassSpectra) may return this
+
         virtual const_iterator begin( int fcn = (-1) ) const = 0;
         virtual const_iterator end() const = 0;
 
         virtual size_t size( int fcn = (-1) ) const = 0;
-        
+
         /* findPos returns trigger number on the data stream across all protocol functions */
         virtual const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const = 0;
 
@@ -143,13 +144,16 @@ namespace adcontrols {
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
-        
+
         virtual boost::any getData( int64_t rowid ) const { return nullptr; }
-        
+
         virtual std::shared_ptr< adcontrols::MappedSpectra > getMappedSpectra( int64_t rowid ) const { return nullptr; }
 
         virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
-        
+
+        /**
+         * @brief Return a chromatogram from a series of spectra computed by time-of-flight and time-width
+         */
         virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int fcn, double time, double width ) const { return nullptr; }
 
         virtual std::shared_ptr< adcontrols::MassSpectrum >  readSpectrum( const_iterator& it ) const { return nullptr; }
@@ -158,6 +162,11 @@ namespace adcontrols {
 
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const { return nullptr; }
 
+        /**
+         * @brief Return a chromatogram from a eTRACE_TRACE data
+         */
+        virtual std::shared_ptr< adcontrols::Chromatogram >  getChromatogram( int idx ) const { return nullptr; }
+
         virtual DataInterpreter * dataInterpreter() const { return nullptr; }
 
         virtual const void * _narrow_workaround( const char * /* typename */ ) const { return nullptr; }
@@ -165,11 +174,25 @@ namespace adcontrols {
         template< typename T > T * _narrow() const {
             return reinterpret_cast< T * >( _narrow_workaround( typeid( T ).name() ) );
         }
+        ////////////////////////////////////////
+        // SignalObserver::Description
+        adacquire::SignalObserver::eTRACE_METHOD trace_method() const;
+        const std::string& trace_id() const;
+        const std::string& trace_display_name() const;
+        std::pair< std::string, std::string > axis_labels() const;
+        std::pair< int, int > axis_decimals() const;
 
+        void setDescription(adacquire::SignalObserver::eTRACE_METHOD
+                            , const std::string& trace_id
+                            , const std::string& trace_display_name
+                            , const std::string& axisX_label
+                            , const std::string& axisY_label
+                            , int axisX_decimals, int axisY_decimals);
+    public:
         //////////////////////////////////////////////////////////////
         // singleton interfaces
         typedef std::shared_ptr< DataReader >( factory_type )( const char * traceid );
-        
+
         static std::shared_ptr< DataReader > make_reader( const char * traceid );
 
         static void register_factory( std::function< factory_type >, const char * clsid );
@@ -178,8 +201,13 @@ namespace adcontrols {
 
     private:
         class impl;
-
+        adacquire::SignalObserver::eTRACE_METHOD trace_method_;
+        std::string trace_id_;
+        std::string trace_display_name_;
+        std::string axisX_label_;
+        std::string axisY_label_;
+        int32_t axisX_decimals_;
+        int32_t axisY_decimals_;
     };
 
 }
-

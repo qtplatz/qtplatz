@@ -64,14 +64,14 @@ namespace adcontrols {
         const_iterator findPos( double seconds, int fcn, bool closest = false, TimeSpec ts = ElapsedTime ) const override { return end(); }
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override { return end(); }
         size_t size( int ) const override { return 0; }
-        
+
         static std::shared_ptr< DataReader > instance() {
 
             static std::shared_ptr< NullDataReader >  __instance;
 
             static std::once_flag flag;
             std::call_once( flag, [&](){ __instance = std::make_shared< NullDataReader >(); } );
-                            
+
             return __instance;
         }
     };
@@ -120,7 +120,7 @@ DataReader_iterator::DataReader_iterator( const DataReader_iterator& t ) : reade
 }
 
 DataReader_iterator&
-DataReader_iterator::operator = ( const DataReader_iterator& t ) 
+DataReader_iterator::operator = ( const DataReader_iterator& t )
 {
     reader_ = t.reader_;
     value_ = t.value_;
@@ -188,7 +188,7 @@ DataReader_value_type::elapsed_time() const
 {
     if ( auto reader = reader_.lock() )
         return reader->elapsed_time( rowid_ );
-    return (-1);    
+    return (-1);
 }
 
 double
@@ -209,8 +209,58 @@ DataReader_value_type::fcn() const
 
 /////////////////////
 
-DataReader::DataReader( const char * traceid )
+DataReader::DataReader( const char * traceid ) : trace_method_( adacquire::SignalObserver::eTRACE_TRACE )
+                                               , axisX_decimals_( 0 )
+                                               , axisY_decimals_( 0 )
 {
+}
+
+void
+DataReader::setDescription( adacquire::SignalObserver::eTRACE_METHOD trace_method
+                            , const std::string& trace_id
+                            , const std::string& trace_display_name
+                            , const std::string& axisX_label
+                            , const std::string& axisY_label
+                            , int axisX_decimals
+                            , int axisY_decimals )
+{
+    trace_method_       = trace_method;
+    trace_id_           = trace_id;
+    trace_display_name_ = trace_display_name;
+    axisX_label_        = axisX_label;
+    axisY_label_        = axisY_label;
+    axisX_decimals_     = axisX_decimals;
+    axisY_decimals_     = axisY_decimals;
+}
+
+adacquire::SignalObserver::eTRACE_METHOD
+DataReader::trace_method() const
+{
+    return trace_method_;
+}
+
+const std::string&
+DataReader::trace_id() const
+{
+    return trace_id_;
+}
+
+const std::string&
+DataReader::trace_display_name() const
+{
+    return trace_display_name_;
+}
+
+std::pair< std::string, std::string >
+DataReader::axis_labels() const
+{
+    return std::make_pair( axisX_label_, axisY_label_ );
+}
+
+std::pair< int, int >
+DataReader::axis_decimals() const
+{
+    return std::make_pair( axisX_decimals_, axisY_decimals_ );
 }
 
 //static
@@ -252,7 +302,7 @@ DataReader::impl::make_reader( const char * traceid ) const
 //////////////////////////
 
 //static
-DataReader::const_iterator 
+DataReader::const_iterator
 DataReader::findPos( double seconds, const std::vector< std::shared_ptr< const DataReader > >& readers, findPosFlags flag )
 {
     double diff = std::numeric_limits<double>::max();

@@ -54,10 +54,10 @@ AcquiredConf::create_table( adfs::sqlite& db )
 ,axis_x_decimals      INTEGER       \
 ,axis_y_decimals      INTEGER       \
 ,UNIQUE(objid)                      \
-)" 
+)"
              ) )
         return true;
-    
+
     return false;
 }
 
@@ -77,7 +77,7 @@ AcquiredConf::create_mslock( adfs::sqlite& db )
              ",matchedTime REAL)"
              ) )
         return true;
-    
+
     return false;
 }
 
@@ -123,11 +123,11 @@ AcquiredConf::insert( adfs::sqlite& dbf
                       , const std::wstring& axis_x_label
                       , const std::wstring& axis_y_label
                       , uint64_t axis_x_decimals
-                      , uint64_t axis_y_decimals ) 
+                      , uint64_t axis_y_decimals )
 {
     adfs::stmt sql( dbf );
 
-    sql.prepare( 
+    sql.prepare(
         "INSERT INTO AcquiredConf VALUES(\
 :objid                 \
 ,:pobjid               \
@@ -142,7 +142,7 @@ AcquiredConf::insert( adfs::sqlite& dbf
 ,:axis_x_decimails     \
 ,:axis_y_decimals      \
 )" );
-    
+
     static boost::uuids::uuid nullid { {(0)} } ;
     int col = 1;
     sql.bind( col++ ) = objid;
@@ -180,11 +180,11 @@ AcquiredConf::insert( adfs::sqlite& dbf
                       , const char * axis_x_label
                       , const char * axis_y_label
                       , uint32_t axis_x_decimals
-                      , uint32_t axis_y_decimals ) 
+                      , uint32_t axis_y_decimals )
 {
     adfs::stmt sql( dbf );
 
-    sql.prepare( 
+    sql.prepare(
         "INSERT INTO AcquiredConf VALUES(\
 :objid                 \
 ,:pobjid               \
@@ -199,7 +199,7 @@ AcquiredConf::insert( adfs::sqlite& dbf
 ,:axis_x_decimails     \
 ,:axis_y_decimals      \
 )" );
-    
+
     sql.begin();
 
     int col = 1;
@@ -249,7 +249,7 @@ AcquiredConf::formatVersion( adfs::sqlite& dbf )
 
     if ( sql.prepare( "PRAGMA TABLE_INFO(AcquiredConf)" ) ) {
         while ( sql.step() == adfs::sqlite_row ) {
-            if ( sql.get_column_value< std::string >( 1 ) == "objuuid" ) 
+            if ( sql.get_column_value< std::string >( 1 ) == "objuuid" )
                 return format_v3;
         }
     }
@@ -287,7 +287,7 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
             } catch ( std::bad_cast& ) {
                 // ignore
             }
-            vec.push_back( d );
+            vec.emplace_back( d );
         }
     }
     return true;
@@ -315,4 +315,3 @@ AcquiredConf::data::data( const data& t ) : objid( t.objid )
     , axis_y_decimals( t.axis_y_decimals )
 {
 }
-

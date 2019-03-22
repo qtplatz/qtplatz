@@ -44,10 +44,10 @@ TraceObserver::TraceObserver() : elapsed_time_at_inject_(0)
                                , adc_counter_at_inject_(0)
 {
     so::Description desc;
-    desc.set_trace_method( so::eTRACE_IMAGE_TDC );
-    desc.set_spectrometer( so::eMassSpectrometer );
-    desc.set_trace_id( __objtext__ );  // unique name for the trace, can be used as 'data storage name'
-    desc.set_trace_display_name( L"DGMOD Traces" );
+    desc.set_trace_method( so::eTRACE_TRACE );
+    desc.set_spectrometer( so::eUnknownSpectrometer );  // ADC input
+    desc.set_trace_id( __objtext__ );                   // unique name for the trace, can be used as 'data storage name'
+    desc.set_trace_display_name( L"ADC" );
     desc.set_axis_label( so::Description::axisX, L"Time" );
     desc.set_axis_label( so::Description::axisY, L"mV" );
     desc.set_axis_decimals( so::Description::axisX, 3 );

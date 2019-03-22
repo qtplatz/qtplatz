@@ -147,7 +147,7 @@ namespace dataproc {
             }
         }
 
-        void set_time_axis( bool isTime ) { 
+        void set_time_axis( bool isTime ) {
             is_time_axis_ = isTime;
         }
 
@@ -180,7 +180,7 @@ namespace dataproc {
             index = 0;
             fcn = (-1);
             seconds = 0;
-            
+
             pos = rawfile->posFromTime( adcontrols::Chromatogram::toSeconds( x ) );
             if ( rawfile->index( pos, index, fcn, rep ) ) {
                 seconds = rawfile->timeFromPos( pos ); // adcontrols::Chromatogram::toMinutes( rawfile->timeFromPos( pos ) );
@@ -212,11 +212,11 @@ namespace dataproc {
         bool ticTracker( const QPointF& pos, QwtText& text ) {
             if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto rawfile = dp->rawdata() ) {
-                    
+
                     size_t npos(0);
                     int fcn(0), rep(0), index(0);
                     double minutes(0);
-                    
+
                     if ( rawfile->dataformat_version() >= 3 ) {
                         return true;
                     } else {
@@ -239,7 +239,7 @@ namespace dataproc {
         void setCheckedChromatogram( std::shared_ptr< adcontrols::Chromatogram >& ptr, int idx ) {
             checkedChromatograms_[ idx ] = ptr;
         }
-        
+
         adplot::ChromatogramWidget * ticPlot_;
         adplot::SpectrumWidget * profileSpectrum_;
         adplot::SpectrumWidget * processedSpectrum_;
@@ -274,7 +274,7 @@ MSProcessingWnd::init()
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
             pImpl_->ticPlot_->register_tracker( [=]( const QPointF& pos, QwtText& text ){ return pImpl_->ticTracker( pos, text ); } );
         }
-	
+
         if ( ( pImpl_->profileSpectrum_ = new adplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
             using adplot::SpectrumWidget;
@@ -345,11 +345,11 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     pImpl_->hasHistogram_ = true;
 
     std::shared_ptr< adcontrols::MassSpectrum > profile;
-    
+
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
 
         pProfileSpectrum_ = std::make_pair( folium.id(), hist ); // sticked
-        
+
         auto att = dp->findProfiledHistogram( folium );
         if ( !att )
             att = dp->addProfiledHistogram( folium );
@@ -373,7 +373,7 @@ MSProcessingWnd::draw_histogram( portfolio::Folium& folium, adutils::MassSpectru
     pImpl_->profileSpectrum_->setAlpha( drawIdx1_ - 1, 0x60 );
 
     pImpl_->profileSpectrum_->setData( hist, static_cast<int>(drawIdx1_++) );
-    
+
     QString title = QString("[%1]").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ) );
 	for ( auto text: hist->getDescriptions() )
 		title += QString::fromStdWString( std::wstring( text.text() ) + L", " );
@@ -486,6 +486,8 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 
             auto vec = dset->dataReaders();
             for ( auto& reader : vec ) {
+                ADDEBUG() << "reader->trace_method" << reader->trace_method();
+
                 for ( int fcn = 0; fcn < reader->fcnCount(); ++fcn ) {
                     if ( auto tic = reader->TIC( fcn ) ) {
                         auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
@@ -497,6 +499,22 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                             portfolio::Folium folium = processor->addChromatogram( c, m, true );
                         }
                         processor->setCurrentSelection( folium );
+                    }
+                }
+                if ( reader->trace_method() == adacquire::SignalObserver::eTRACE_TRACE ) {
+                    for ( size_t idx = 0; idx < 8; ++idx ) {
+                        ADDEBUG() << "reader->trace index" << idx;
+                        if ( auto tic = reader->getChromatogram( idx ) ) {
+                            auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
+                                                                     % adcontrols::Chromatogram::make_folder_name( tic->getDescriptions() )
+                                                                     % L"ADC" % ( idx + 1 ) ).str() );
+                            if ( folium.nil() ) {
+                                adcontrols::Chromatogram c = *tic;
+                                c.addDescription( adcontrols::description( L"acquire.title", ( boost::wformat( L"ADC.%1%" ) % ( idx + 1 ) ).str() ) );
+                                portfolio::Folium folium = processor->addChromatogram( c, m, true );
+                            }
+                            processor->setCurrentSelection( folium );
+                        }
                     }
                 }
             }
@@ -559,7 +577,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
     drawIdx2_ = 0;
 
     if ( portfolio::Folder folder = folium.parentFolder() ) {
-        
+
         if ( folder.name() == L"Spectra" ) { //|| folder.name() == L"Chromatograms" ) {
 
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) {
@@ -574,14 +592,14 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                     idActiveFolium_ = folium.id();
                     idSpectrumFolium_ = folium.id();
 
-                    if ( ptr->isCentroid() && folium.name() != adcontrols::constants::F_CENTROID_SPECTRUM ) 
-                        draw_histogram( folium, ptr ); // draw counting histogram 
+                    if ( ptr->isCentroid() && folium.name() != adcontrols::constants::F_CENTROID_SPECTRUM )
+                        draw_histogram( folium, ptr ); // draw counting histogram
                     else
                         draw_profile( folium.id(), ptr );
 
                     if ( auto fcentroid = portfolio::find_first_of( folium.attachments(), []( const portfolio::Folium& a ){
                                 return a.name() == Constants::F_CENTROID_SPECTRUM; }) ) {
-                        
+
                         if ( auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( fcentroid ) ) {
                             draw2( centroid );
                             pProcessedSpectrum_ = std::make_pair( fcentroid.id(), centroid );
@@ -591,11 +609,11 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
 
                         if ( auto fmethod = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
                                     return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); }) ) {
-                                
+
                             if ( auto method = portfolio::get< adcontrols::ProcessMethodPtr >( fmethod ) )
                                 MainWindow::instance()->setProcessMethod( *method );
                         }
-                        
+
                         if ( auto fpkinfo = portfolio::find_first_of( fcentroid.attachments(), []( portfolio::Folium& a ){
                                     return portfolio::is_type< adcontrols::MSPeakInfoPtr >( a ); } ) ) {
                             pkinfo_ = std::make_pair( fpkinfo.id(), portfolio::get< adcontrols::MSPeakInfoPtr >( fpkinfo ) );
@@ -625,7 +643,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Fo
                             draw2( ptr );
                         }
                     }
-                    
+
                 }
             }
         }
@@ -670,7 +688,7 @@ MSProcessingWnd::handleAxisChanged( adcontrols::hor_axis axis )
     auto plot_axis = ( axis == adcontrols::hor_axis_mass ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
 
     std::shared_ptr< adcontrols::MassSpectrometer > spectrometer;
-    
+
     if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
         spectrometer = processor->massSpectrometer();
 
@@ -755,9 +773,9 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
 {
     // this will be relocate into 'CalibScanLaw' class defined in adtofprocessor
     adwidgets::ScanLawDialog2 dlg;
-        
+
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
-        
+
         for ( auto& fms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *ms ) ) {
             int mode = fms.getMSProperty().mode();
             for ( const auto& a: fms.get_annotations() ) {
@@ -775,12 +793,11 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
     }
 
     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-        
+
         if ( auto db = dp->db() ) { // sqlite shared_ptr
             {
                 adfs::stmt sql( *db );
                 sql.prepare( "SELECT id,description,fLength FROM Spectrometer" );
-                bool found(false);
                 if ( sql.step() == adfs::sqlite_row ) {
                     dlg.setSpectrometerData( sql.get_column_value< boost::uuids::uuid >( 0 )
                                              , QString::fromStdWString( sql.get_column_value< std::wstring >( 1 ) )
@@ -801,10 +818,10 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
                 }
             }
         }
-        
+
         if ( dlg.exec() != QDialog::Accepted )
             return;
-        
+
         double t0 = dlg.tDelay() / std::micro::den;
         double acclV = dlg.acceleratorVoltage();
         adportable::TimeSquaredScanLaw law( acclV, t0, dlg.length() ); // <- todo: get 'L' from Spectrometer on db
@@ -819,7 +836,7 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
             sql.bind( 3 ) = obj.toStdString();
             while ( sql.step() == adfs::sqlite_row )
                 ;
-        }        
+        }
 
         // assign masses for processed peak
         if ( auto ms = pProcessedSpectrum_.second.lock() ) {
@@ -829,7 +846,7 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
                 fms.assign_masses( [&]( double time, int mode ){ return law.getMass( time, mode ); } );
             }
         }
-        
+
         // assign masses for profile spectrum
         if ( auto ms = pProfileSpectrum_.second.lock() ) {
             for ( auto& fms: adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms ) ) {
@@ -838,7 +855,7 @@ MSProcessingWnd::estimateScanLaw( const boost::uuids::uuid& iid_spectrometer )
                 fms.assign_masses( [&]( double time, int mode ){ return law.getMass( time, mode ); } );
             }
         }
-        handleDataMayChanged();   
+        handleDataMayChanged();
     }
 }
 
@@ -848,7 +865,7 @@ MSProcessingWnd::handleLockMass( const QVector< QPair<int, int> >& refs )
     if ( auto ms = pProcessedSpectrum_.second.lock() ) {
 
         adcontrols::lockmass::mslock lockmass;
-        
+
         for ( auto ref : refs ) {
             adcontrols::lockmass::mslock::findReferences( lockmass, *ms, ref.first, ref.second );
         }
@@ -905,7 +922,7 @@ MSProcessingWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::F
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
                 if ( folium.empty() )
                     processor->fetch( folium );
-                if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) 
+                if ( auto cptr = portfolio::get< adcontrols::ChromatogramPtr >( folium ) )
 					pImpl_->setCheckedChromatogram( cptr, idx );
                 //pImpl_->ticPlot_->setData( cptr, idx );
             }
@@ -927,10 +944,10 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 	double x0 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = pImpl_->ticPlot_->transform( QwtPlot::xBottom, rect.right() );
 
-    QMenu menu; 
+    QMenu menu;
 
 	if ( int( std::abs( x1 - x0 ) ) <= 2 ) {
-        
+
         if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
             if ( auto rawfile = dp->rawdata() ) {
                 //--- v3 support -->
@@ -943,7 +960,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                                 ( boost::format( "Select spectrum (%s) @ %.3lfs" ) % reader->display_name() % rect.left() ).str() )
                                             , [=] () { document::instance()->onSelectSpectrum_v3( rect.left(), it ); } );
                     }
-                    
+
                 } else {
                     // v2 data
                     size_t pos;
@@ -953,22 +970,22 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                         seconds = 0;
                         index = fcn = -1;
                     }
-                    menu.addAction( QString::fromStdString( 
+                    menu.addAction( QString::fromStdString(
                                         (boost::format( "Select a part of spectrum @%.3fs (%d/%d)" ) % seconds % index % fcn ).str() )
                                     , [=] () { document::instance()->onSelectSpectrum_v2( seconds, pos, fcn ); } );
-                    
+
                     if ( index < 0 || fcn < 0 )
                         menu.actions().back()->setEnabled( false );
-                    
+
                     menu.addAction( QString::fromStdString(
                                         ( boost::format( "Select a spectrum @%.3f s" ) % rect.left() ).str() )
                                     , [&] () { document::instance()->handleSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); } );
                 }
             }
         }
-                    
+
         menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( pImpl_->ticPlot_ ); } );
-        
+
         menu.addAction( tr( "Save SVG File" ), [&] () {
                 QString name = QFileDialog::getSaveFileName( MainWindow::instance()
                                                              , "Save SVG File"
@@ -986,7 +1003,7 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                     }
                 }
             } );
-                
+
         menu.exec( QCursor::pos() );
 
     } else {
@@ -1002,7 +1019,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
 
     QMenu menu;
-    
+
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
 
         using namespace adcontrols::metric;
@@ -1011,16 +1028,16 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
         QString right = QString::number( rect.right(), 'f', 3 );
 
         std::pair<size_t, size_t> range;
-        
+
         if ( auto ms = pProfileSpectrum_.second.lock() ) {
-            
-            if ( ms->dataReaderUuid() != boost::uuids::uuid( {0} ) ) {
+
+            if ( ms->dataReaderUuid() != boost::uuids::uuid( {{0}} ) ) {
                 // v3 data
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
                     if ( auto rd = dp->rawdata() ) {
                         if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
                             auto display_name = QString::fromStdString( reader->display_name() );
-                            
+
                             // todo: chromatogram creation by m/z|time range
                             if ( axis_ == adcontrols::hor_axis_mass ) {
                                 auto title = ( boost::format( "Make chromatogram from %s in m/z range %.3lf -- %.3lf" )
@@ -1037,7 +1054,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                     }
                 }
             }
-            
+
             if ( axis_ == adcontrols::hor_axis_time )
                 range = std::make_pair( ms->getIndexFromTime( scale_to_base( rect.left(), micro ) )
                                         , ms->getIndexFromTime( scale_to_base( rect.right(), micro ) ) );
@@ -1046,7 +1063,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
                 range = std::make_pair( std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.left() ) )
                                         , std::distance( masses, std::lower_bound( masses, masses + ms->size(), rect.right() ) ) );
             }
-            
+
             const auto f_rms = ( axis_ == adcontrols::hor_axis_time ) ?
                 tr("RMS in range %1 -- %2(us)") : tr("RMS in m/z range %1 -- %2");
             const auto f_maxval = ( axis_ == adcontrols::hor_axis_time ) ?
@@ -1056,36 +1073,36 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
             menu.addAction( tr( "y-zoom" )
                 , [=](){ pImpl_->profileSpectrum_->yZoom( rect.left(), rect.right() ); } );
-            
+
             menu.addAction( QString( f_rms ).arg( left, right ), [&](){
                     if ( compute_rms( rect.left(), rect.right() ) > 0 )
-                        draw1();                        
+                        draw1();
                 });
-            
+
             menu.addAction( QString( f_maxval ).arg( left, right ), [&](){
                     compute_minmax( rect.left(), rect.right() );
-                    draw1();                        
+                    draw1();
                 });
 
             menu.addAction( QString( f_count ).arg( left, right ), [&](){
                     compute_count( rect.left(), rect.right() );
                     draw1();
                 });
-            
+
             menu.addAction( QString( tr("Frequency analysis") ).arg( left, right ), [&](){
                     power_spectrum( *ms, range );
                 });
         }
 
         menu.exec( QCursor::pos() );
-        
+
 	} else {
         using adplot::plot;
 
         bool isHistogram( false );
         if ( auto ms = pProfileSpectrum_.second.lock() )
             isHistogram = ms->isCentroid();
-        
+
         menu.addAction( tr( "Correct baseline" ),   [this] () { correct_baseline(); draw1(); } );
         menu.addAction( tr( "Copy to clipboard" ),  [this] () { plot::copyToClipboard( pImpl_->profileSpectrum_ ); } );
         menu.addAction( tr( "Frequency analysis" ), [this] () { frequency_analysis(); } );
@@ -1129,7 +1146,7 @@ MSProcessingWnd::selectedOnPowerPlot( const QRectF& rect )
 
     menu.addAction( tr( "Dismiss" ), [&](){ pImpl_->pwplot_->hide(); } );
 
-    menu.exec( QCursor::pos() );    
+    menu.exec( QCursor::pos() );
 }
 
 void
@@ -1141,7 +1158,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     QMenu menu;
 
     menu.addAction( tr( "y-zoom" ), [&](){ pImpl_->processedSpectrum_->yZoom( rect.left(), rect.right() ); } );
-    
+
     menu.addAction( tr( "Make mass chromatograms" )
                     , [&]{ make_chromatograms_from_peaks( pProcessedSpectrum_.second.lock(), axis_, rect.left(), rect.right() ); } );
 
@@ -1152,7 +1169,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
         actions[ 0 ]->setEnabled( hasRange );
         actions[ 1 ]->setEnabled( hasRange && ptr && ptr->isCentroid() );
     }
-    
+
     menu.addAction( tr( "Copy to clipboard" ), [&]{ adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ ); } );
 
     menu.addAction( tr( "Save as SVG File..." ), [&]{
@@ -1160,14 +1177,14 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                                                          , MainWindow::makePrintFilename( idSpectrumFolium_, L"_processed_" )
                                                          , tr("SVG (*.svg)") );
             if ( ! name.isEmpty() )
-                adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );                
+                adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, name, "svg" );
         });
-    
+
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         dp->addContextMenu( adprocessor::ContextMenuOnProcessedMS, menu, ptr
                             , { rect.left(), rect.right() }, axis_ == adcontrols::hor_axis_time );
     }
-    
+
     menu.exec( QCursor::pos() );
 }
 
@@ -1185,7 +1202,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setColorMode( QPrinter::Color );
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
-    
+
 	portfolio::Folium folium;
     printer.setDocName( "QtPlatz Process Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
@@ -1201,7 +1218,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
 
 	painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
-	
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
@@ -1219,7 +1236,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     // -- starting method print
     drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
     drawRect.setHeight( printer.height() - drawRect.top() );
-    
+
     {
         portfolio::Folio attachments = folium.attachments();
         auto it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
@@ -1254,7 +1271,7 @@ MSProcessingWnd::assign_masses_to_profile( const std::pair< boost::uuids::uuid, 
         return true;
     } else {
         estimateScanLaw( iid_spectrometer.first );
-        return true;        
+        return true;
     }
     return false;
 }
@@ -1265,11 +1282,11 @@ MSProcessingWnd::assign_masses_to_profile()
 	adportable::TimeSquaredScanLaw law;
 
     std::pair< double, double > mass_range;
-    
+
     if ( auto x = this->pProfileSpectrum_.second.lock() ) {
-        
+
         adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
-        
+
         for ( auto& ms: segments ) {
             for ( size_t idx = 0; idx < ms.size(); ++idx ) {
                 double m = law.getMass( ms.getTime( idx ), 0 );
@@ -1328,7 +1345,7 @@ MSProcessingWnd::compute_rms( double s, double e )
         namespace pfx = adcontrols::metric;
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
-        
+
         for ( auto& ms: segments ) {
 
             std::pair< size_t, size_t > range;
@@ -1351,7 +1368,7 @@ MSProcessingWnd::compute_rms( double s, double e )
                 double rms = std::sqrt( sdd );
 
 				using namespace adcontrols::metric;
-                
+
                 ptr->addDescription( adcontrols::description( L"process"
                                                               , (boost::wformat(L"RMS[%.3lf-%.3lf(&mu;s),N=%d]=%.3lf")
                                                                  % scale_to_micro( ms.getTime(range.first) )
@@ -1384,7 +1401,7 @@ MSProcessingWnd::compute_minmax( double s, double e )
 	if ( auto ptr = this->pProfileSpectrum_.second.lock() ) {
 
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
-        
+
         for ( auto& ms: segments ) {
 
             std::pair< size_t, size_t > range;
@@ -1405,12 +1422,12 @@ MSProcessingWnd::compute_minmax( double s, double e )
 
                 std::pair<double, double> result = std::make_pair( *pair.first, *pair.second );
                 std::pair< size_t, size_t > index = std::make_pair( std::distance( data.begin(), pair.first ), std::distance( data.begin(), pair.second ) );
-                
+
                 std::pair< double, double > time = std::make_pair(
                     adcontrols::MSProperty::toSeconds( index.first, ms.getMSProperty().samplingInfo() )
                     , adcontrols::MSProperty::toSeconds( index.second, ms.getMSProperty().samplingInfo() )
                     );
-                
+
                 ptr->addDescription( adcontrols::description( L"process"
                                                               , ( boost::wformat(L"min at %.4us=%.3f; max at %.4us=%3f" )
                                                                   % scale_to_micro(time.first) % result.first
@@ -1434,7 +1451,7 @@ double
 MSProcessingWnd::compute_count( double s, double e )
 {
 	if ( auto ptr = pProfileSpectrum_.second.lock() ) {
-        
+
         using namespace adcontrols::metric;
 
         QString clipboard;
@@ -1442,10 +1459,8 @@ MSProcessingWnd::compute_count( double s, double e )
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *ptr );
 
         int idx = 0;
-        
-        for ( auto& ms: segments ) {
 
-            const auto& prop = ms.getMSProperty();
+        for ( auto& ms: segments ) {
 
             bool found( false );
             std::pair< size_t, size_t > range = { 0, 0 };
@@ -1471,21 +1486,21 @@ MSProcessingWnd::compute_count( double s, double e )
             		}
             	}
             }
-            
+
             if ( found ) {
 
                 // ADDEBUG() << "data range: " << range.first << ", " << range.second;
-                
+
                 const double * data = ms.getIntensityArray();
                 double count = std::accumulate( data + range.first, data + range.second, 0.0 );
-                
+
                 auto maxIdx = std::distance( data, std::max_element( data + range.first, data + range.second ) );
 
                 double apex = ( pImpl_->is_time_axis_ ) ? ms.getTime( maxIdx ) : ms.getMass( maxIdx );
                 double height = ms.getIntensity( maxIdx );
 
                 char fmt = ( pImpl_->is_time_axis_ ) ? 'e' : 'f';
-                
+
                 clipboard.append(
                     QString("#%1\tCount,height,apex(m/z|time),N,n-trig\t%2\t%3\t%4\t%5\t%6\n").arg(
                         QString::number( idx )
@@ -1532,7 +1547,7 @@ MSProcessingWnd::power_spectrum( const adcontrols::MassSpectrum& ms
     double dc = fft[0].real();
     double nyquist = fft[ N / 2 ].real();
 
-    //----- draw 
+    //----- draw
     std::ostringstream o;
     o << boost::format( "N=%d Power: DC=%.7g Nyquist=%.7g" ) % (x.size() * 2) % dc % nyquist;
     QString title = QString("[%1] %2").arg( MainWindow::makeDisplayName( idSpectrumFolium_ ), QString::fromStdString( o.str() ) );
@@ -1559,9 +1574,9 @@ MSProcessingWnd::power_spectrum( const adcontrols::Chromatogram& c )
             spc[ idx++ ] = std::complex< double >( it.intensity() );
 
         double fInterval = c.sampInterval();
-        
+
         adportable::fft::fourier_transform( fft, spc, false );
-        
+
         const double T = N * fInterval;
         std::vector< double > x( N / 2 ), y( N / 2 );
 
@@ -1570,7 +1585,7 @@ MSProcessingWnd::power_spectrum( const adcontrols::Chromatogram& c )
 
         //std::iota( x.begin(), x.end(), frequency(T) );
         for ( size_t i = 0; i < N / 2; ++i )
-            x [ i ] = double( i ) / T; // Hz 
+            x [ i ] = double( i ) / T; // Hz
 
         double dc = fft[0].real();
         double nyquist = fft[ N / 2 ].real();
@@ -1647,7 +1662,7 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
             for ( const auto& pkseg: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
 
                 adcontrols::MSPeakInfo xInfo;
-            
+
                 auto beg = std::lower_bound( pkseg.begin(), pkseg.end(), left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
                         return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
 
@@ -1665,9 +1680,9 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                 }
             }
         }
-        
+
         if ( xpkinfo ) {
-            
+
 
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
                 if ( auto file = processor->rawdata() ) {
@@ -1696,28 +1711,28 @@ MSProcessingWnd::save_image_file()
     bool compress = settings->value( KEY_COMPRESS, true ).toBool();
     int dpi = settings->value( KEY_DPI, 300 ).toInt();
     settings->endGroup();
-            
+
     std::string dfmt = "." + fmt.toStdString();
-            
+
     adwidgets::FileDialog dlg( MainWindow::instance()
                                , tr( "Save Image File" )
                                , MainWindow::makePrintFilename( idSpectrumFolium_, L"_profile_", dfmt.c_str() ) );
-            
+
     dlg.setVectorCompression( tr( "Compress vector graphics" ), compress, fmt, dpi );
-            
+
     if ( dlg.exec() == QDialog::Accepted ) {
         auto result = dlg.selectedFiles();
         boost::filesystem::path path( result.at( 0 ).toStdWString() );
         const char * format = "svg";
         if ( path.extension() == ".pdf" )
             format = "pdf";
-                
+
         settings->beginGroup( GRP_SPECTRUM_IMAGE );
         settings->setValue( KEY_IMAGEE_FORMAT, format );
         settings->setValue( KEY_COMPRESS, dlg.vectorCompression() );
         settings->setValue( KEY_DPI, dlg.dpi() );
         settings->endGroup();
-                
+
         adplot::plot::copyImageToFile( pImpl_->profileSpectrum_, result.at( 0 ), format, dlg.vectorCompression(), dlg.dpi() );
     }
 }
@@ -1725,13 +1740,12 @@ MSProcessingWnd::save_image_file()
 void
 MSProcessingWnd::autoYScale( adplot::plot * plot )
 {
-    if ( auto zoomer = plot->zoomer() ) 
+    if ( auto zoomer = plot->zoomer() )
         zoomer->autoYScale( ! zoomer->autoYScale() );
 }
 
 void
 MSProcessingWnd::autoYZoom( adplot::plot * plot, double xmin, double xmax )
 {
-    
-}
 
+}
