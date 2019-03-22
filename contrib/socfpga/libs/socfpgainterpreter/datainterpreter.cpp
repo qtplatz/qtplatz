@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "datainterpreter.hpp"
+#include <socfpga/data_accessor.hpp>
 
 using namespace socfpgainterpreter;
 
@@ -35,17 +36,6 @@ DataInterpreter::DataInterpreter()
 }
 
 adcontrols::translate_state
-DataInterpreter::translate( adcontrols::MassSpectrum&
-                            , const char * data, size_t dsize
-                            , const char * meta, size_t msize
-                            , const adcontrols::MassSpectrometer&
-                            , size_t idData
-                            , const wchar_t * traceId ) const
-{
-    return adcontrols::translate_error;
-}
-
-adcontrols::translate_state
 DataInterpreter::translate( adcontrols::TraceAccessor&
                             , const char * data, size_t dsize
                             , const char * meta, size_t msize, unsigned long events ) const
@@ -54,7 +44,8 @@ DataInterpreter::translate( adcontrols::TraceAccessor&
 }
 
 adcontrols::translate_state
-DataInterpreter::translate( std::vector< acquire::dgmod::advalue >&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
+DataInterpreter::translate( std::vector< socfpga::dgmod::advalue >& data, const int8_t* xdata, size_t dsize ) const
 {
-    return adcontrols::translate_error;
+    socfpga::dgmod::data_accessor::deserialize( data, reinterpret_cast< const char *>( xdata ), dsize );
+    return adcontrols::translate_complete;
 }

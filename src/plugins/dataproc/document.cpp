@@ -96,7 +96,7 @@ document::document(QObject *parent) : QObject(parent)
 {
 }
 
-document * 
+document *
 document::instance()
 {
     static document __instance;
@@ -175,7 +175,7 @@ document::finalClose()
     // update data from UI
     adcontrols::ProcessMethod pm;
     MainWindow::instance()->getProcessMethod( pm );
-    
+
     boost::filesystem::path fname( dir / "default.pmth" );
     save( QString::fromStdWString( fname.wstring() ), pm );
 }
@@ -251,7 +251,7 @@ const std::shared_ptr< adcontrols::Chromatogram >
 document::findTIC( Dataprocessor * dp, int fcn )
 {
     if ( dp ) {
-        
+
         auto cfolder = dp->portfolio().findFolder( L"Chromatograms" );
         std::wstring name = ( boost::wformat( L"TIC/TIC.%d" ) % ( fcn + 1 ) ).str();
         if ( auto folium = cfolder.findFoliumByName( name ) ) {
@@ -278,7 +278,7 @@ document::load( const QString& filename, adcontrols::ProcessMethod& pm )
         adfs::filesystem fs;
         if ( fs.mount( filename.toStdWString().c_str() ) ) {
             adfs::folder folder = fs.findFolder( L"/ProcessMethod" );
-        
+
             try {
                 auto files = folder.files();
                 if ( !files.empty() ) {
@@ -308,14 +308,14 @@ document::save( const QString& filename, const adcontrols::ProcessMethod& pm )
 {
     boost::filesystem::path name( filename.toStdWString() );
     name.replace_extension( ".pmth" );
-    
+
     adfs::filesystem fs;
-    
+
     if ( !fs.create( name.wstring().c_str() ) ) {
         ADDEBUG() << "Error: \"" << filename.toStdString() << "\" can't be created";
         return false;
     }
-    
+
     adfs::folder folder = fs.addFolder( L"/ProcessMethod" );
     adfs::file adfile = folder.addFile( name.wstring(), name.wstring() );
     try {
@@ -350,7 +350,7 @@ document::saveScanLaw( const QString& model, double flength, double accv, double
         settings_->setValue( model + "/acceleratorVoltage", accv );
         settings_->setValue( model + "/tDelay", tdelay );
         settings_->setValue( model + "/mass", mass );
-        settings_->setValue( model + "/formula", formula );        
+        settings_->setValue( model + "/formula", formula );
         settings_->endGroup();
     }
     emit scanLawChanged( flength, accv, tdelay );
@@ -390,7 +390,7 @@ document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 	if ( dp ) {
 
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
-            
+
             auto cptr = document::findTIC( dp, 0 );
             if ( !cptr )
                 return;
@@ -417,11 +417,11 @@ document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adco
         size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
         double t1 = x1;
         double t2 = x2;
-        
+
         int pos = int( pos1 );
 
         if ( dset->getSpectrum( -1, pos++, *ms ) ) {
-            
+
             t1 = ms->getMSProperty().timeSinceEpoch(); // adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
 
             std::wostringstream text;
@@ -481,7 +481,6 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     double t1 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x1 : double( adcontrols::Chromatogram::toSeconds( x1 ) );
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
-    size_t n = 0;
     for ( auto reader: dset->dataReaders() ) {
 
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
@@ -601,9 +600,8 @@ document::horAxis( Plot id ) const
     return adcontrols::axis::Seconds;
 }
 
-void 
+void
 document::setHorAxis( Plot id, adcontrols::axis::AxisH value )
 {
     horAxis_[ id ] = value;
 }
-

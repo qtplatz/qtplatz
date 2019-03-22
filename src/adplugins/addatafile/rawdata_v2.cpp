@@ -115,7 +115,7 @@ rawdata::loadAcquiredConf()
 
             if ( conf.trace_method == signalobserver::eTRACE_TRACE // timed trace := chromatogram
                  && conf.trace_id == L"MS.TIC" ) {
-                
+
                 adcontrols::TraceAccessor accessor;
 
                 if ( auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid ) ) {
@@ -140,7 +140,7 @@ rawdata::loadAcquiredConf()
                     std::shared_ptr< adcontrols::Chromatogram > cptr( std::make_shared< adcontrols::Chromatogram >() );
                     cptr->addDescription( adcontrols::description( L"create", conf.trace_display_name ) );
                     tic_.push_back( cptr ); // add empty chromatogram for dieplay titiles
-                    undefined_spectrometers_.push_back( conf.dataInterpreterClsid );
+                    undefined_spectrometers_.push_back( adportable::utf::to_utf8( conf.dataInterpreterClsid ) );
                 }
                 std::sort( times_.begin(), times_.end()
                            , []( const std::pair<double, int>& a, const std::pair<double,int>&b ){ return a.first < b.first; });
@@ -157,7 +157,7 @@ bool
 rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
 {
     uint64_t objid = 1;
-    
+
     auto it = std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& c){
             return c.dataInterpreterClsid == dataInterpreterClsid;
         });
@@ -165,7 +165,7 @@ rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcon
     if ( it != conf_.end() )
         objid = it->objid;
     else {
-        if ( conf_.empty() ) 
+        if ( conf_.empty() )
             adutils::AcquiredConf::create_table( dbf_.db() );
 		adutils::AcquiredConf::data d;
 		d.objid = objid;
@@ -212,7 +212,7 @@ rawdata::loadCalibrations()
             if ( adutils::mscalibio::readCalibration( dbf_.db(), uint32_t(conf.objid), MSCalibrateResult::dataClass(), device, rev ) ) {
 
                 auto calibResult = std::make_shared< MSCalibrateResult >();
-                
+
                 boost::iostreams::basic_array_source< char > source( device.data(), device.size() );
                 boost::iostreams::stream< boost::iostreams::basic_array_source< char > > strm( source );
 
@@ -291,7 +291,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
         });
     if ( it == conf_.end() )
         return false;
-    
+
     adcontrols::translate_state state;
     uint64_t npos = npos0_ + pos;
 
@@ -307,7 +307,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
         int rep = int( npos - index->first );  // id within a replicates (rep'licates is the offset from (fcn=0,rep=0) spectrum)
         while ( index != fcnIdx_.begin() && index->second != 0 ) // find fcn=0
             --index;
-        
+
         // read all protocols
         while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, index->first + rep, ms, it->trace_id ) )
                 == adcontrols::translate_indeterminate )
@@ -326,7 +326,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
     }
     if ( fcn < 0 )
         return state == adcontrols::translate_complete;
-    
+
     return state == adcontrols::translate_complete || state == adcontrols::translate_indeterminate;
 }
 
@@ -495,10 +495,10 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
     (void)begPos;
     (void)endPos;
     result.clear();
-    
+
 	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
             return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";  });
-    
+
 	if ( it == conf_.end() )
         return false;
 
@@ -507,7 +507,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
         return false;
 
     auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( adportable::utf::to_utf8( it->dataInterpreterClsid ) );
-    
+
     typedef std::tuple< int, double, double, std::vector< adcontrols::Chromatogram >::size_type > mass_window_t;
     std::vector< mass_window_t > masses;
 
@@ -515,9 +515,9 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
         result.push_back( adcontrols::Chromatogram() );
         auto idChro = result.size() - 1;
-        
+
         int fcn = std::get<0>( range );
-        
+
         if ( std::get<2>( range ) <= 1.0 ) {
             double mass = std::get<1>( range );
             double width = std::get<2>( range );
@@ -532,9 +532,9 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
             masses.push_back( std::make_tuple( fcn, lMass, uMass, idChro ) );
         }
     }
-    
+
     std::sort( masses.begin(), masses.end(), []( const mass_window_t& a, const mass_window_t& b ){ return std::get<1>(a) < std::get<1>(b); } );
-    
+
     int nProgress = 0;
     adfs::stmt sql( dbf_.db() );
 
@@ -543,7 +543,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
     for ( int i = 0; i < tic_[0]->size(); ++i ) {
 
         progress( nProgress++, long( tic_[ 0 ]->size() ) );
-        
+
         adcontrols::MassSpectrum _ms;
         adcontrols::translate_state state;
 
@@ -561,9 +561,9 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
                 double time = fms.getMSProperty().timeSinceInjection();
                 if ( time > 4000 ) // workaround for negative time at the begining of time event function delay
                     time = 0;
-                
+
                 for ( auto& t: masses ) {
-                    
+
                     double lMass = std::get<1>( t );
                     double uMass = std::get<2>( t );
 
@@ -597,7 +597,7 @@ rawdata::fetchTraces( int64_t objid, const adcontrols::DataInterpreter& interpre
 {
 
     adfs::stmt sql( dbf_.db() );
-    
+
     if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
 
         sql.bind( 1 ) = objid;
@@ -649,7 +649,7 @@ rawdata::fetchSpectrum( int64_t objid
         adfs::stmt sql( dbf_.db() );
 
         if ( sql.prepare( "SELECT fcn, data, meta FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
-        
+
             sql.bind( 1 ) = objid;
             sql.bind( 2 ) = npos;
 
@@ -674,7 +674,7 @@ bool
 rawdata::hasProcessedSpectrum( int, int ) const
 {
     return std::find_if( conf_.begin(), conf_.end()
-                         , [](const adutils::AcquiredConf::data& d){ return d.trace_id == L"MS.CENTROID"; }) 
+                         , [](const adutils::AcquiredConf::data& d){ return d.trace_id == L"MS.CENTROID"; })
         != conf_.end();
 }
 
@@ -692,7 +692,7 @@ bool
 rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char >& xdata, std::vector< char >& xmeta ) const
 {
     adfs::stmt sql( dbf_.db() );
-	
+
 	xdata.clear();
 	xmeta.clear();
 
@@ -706,7 +706,7 @@ rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char
         if ( sql.step() == adfs::sqlite_row ) {
             uint64_t rowid = sql.get_column_value< int64_t >( 0 );
             fcn            = sql.get_column_value< int64_t >( 1 );
-            
+
             if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );
                 if ( blob.size() )

@@ -70,7 +70,7 @@ namespace addatafile {
             bool index( size_t pos, int& idx, int& fcn, int& rep, double * t ) const override;
             size_t find_scan( int idx, int fcn ) const override;
             int make_index( size_t pos, int& fcn ) const override;
-        
+
             bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
                                    , std::vector< adcontrols::Chromatogram >&
                                    , std::function< bool (long curr, long total ) > progress
@@ -86,12 +86,12 @@ namespace addatafile {
 
             bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
 
-            const std::vector< std::wstring > undefined_spectrometers() const { return undefined_spectrometers_; }
-
+            const std::vector< std::string > undefined_spectrometers() const { return undefined_spectrometers_; }
+            const std::vector< std::pair< std::string, boost::uuids::uuid > > undefined_data_readers() const { return undefined_data_readers_; }
             adfs::sqlite* db() const override;
-        
+
             bool mslocker( adcontrols::lockmass::mslock&, uint32_t objid ) const override;
-        
+
         private:
             bool fetchTraces( int64_t objid, const adcontrols::DataInterpreter&, adcontrols::TraceAccessor& );
 
@@ -102,7 +102,7 @@ namespace addatafile {
             adcontrols::datafile& parent_;
 
             std::vector< adutils::AcquiredConf::data > conf_;
-        
+
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
             std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer
             std::map< uint64_t, std::shared_ptr< adcontrols::DataInterpreter > > interpreters_; // objid,interpreter
@@ -116,9 +116,9 @@ namespace addatafile {
             std::vector< std::tuple< size_t, int, int> > fcnVec_; // <pos,fcn,rep,seconds>
             std::vector< std::pair< size_t, int > > fcnIdx_;
             std::vector< std::pair< double, int > > times_;
-            std::vector< std::wstring > undefined_spectrometers_;
+            std::vector< std::string > undefined_spectrometers_;
+            std::vector< std::pair< std::string, boost::uuids::uuid > > undefined_data_readers_;
         };
 
     }
 }
-

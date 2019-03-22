@@ -51,8 +51,8 @@ namespace adcontrols {
 
         virtual bool subscribe( const LCMSDataset& ) { return false; }
         virtual bool subscribe( const ProcessedDataset& ) { return false; }
-		virtual bool onFileAdded( const std::wstring& /* path */, adfs::file& ) { return false; } 
-        virtual void notify( idError, const wchar_t * ) { }
+		virtual bool onFileAdded( const std::wstring& /* path */, adfs::file& ) { return false; }
+        virtual void notify( idError, const std::string& json ) { }
         virtual std::shared_ptr< adfs::sqlite > db() const { return nullptr; }
     };
 

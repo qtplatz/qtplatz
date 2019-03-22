@@ -31,6 +31,7 @@
 #include "peak.hpp"
 #include "peakresult.hpp"
 #include "peaks.hpp"
+#include <adportable/debug.hpp>
 
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
@@ -65,7 +66,7 @@ namespace adcontrols {
             ~ChromatogramImpl();
             ChromatogramImpl();
             ChromatogramImpl( const ChromatogramImpl& );
-	  
+
             inline const double * getTimeArray() const { return timeArray_.empty() ? 0 : &timeArray_[0]; }
             inline const double * getDataArray() const { return dataArray_.empty() ? 0 : &dataArray_[0]; }
 
@@ -75,9 +76,11 @@ namespace adcontrols {
             inline size_t size() const { return dataArray_.size(); }
             inline const std::pair<double, double>& getAcquisitionTimeRange() const;
             inline double samplingInterval() const { return samplingInterval_; /* seconds */ }
-            void samplingInterval( double v ) { samplingInterval_ = v; }
+            void setSamplingInterval( double v ) { samplingInterval_ = v; }
+
             bool isConstantSampledData() const { return isConstantSampling_; }
-            void isConstantSampledData( bool b ) { isConstantSampling_ = b; }
+            void setIsConstantSampledData( bool b ) { isConstantSampling_ = b; }
+
             void setTime( size_t idx, const double& );
             void setData( size_t idx, const double& );
             void setTimeArray( const double * );
@@ -95,11 +98,11 @@ namespace adcontrols {
             void maxTime( double v ) { timeRange_.second = v; }
             void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
             size_t dataDelayPoints() const { return dataDelayPoints_; }
-	   
+
             friend class Chromatogram;
             static std::wstring empty_string_;  // for error return as reference
             bool isConstantSampling_;
-	   
+
             descriptions descriptions_;
             Peaks peaks_;
             Baselines baselines_;
@@ -116,26 +119,26 @@ namespace adcontrols {
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
             boost::property_tree::ptree ptree_;
-	   
+
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
 
                 ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
                     & BOOST_SERIALIZATION_NVP(isConstantSampling_)
-                    & BOOST_SERIALIZATION_NVP(timeRange_.first) 
-                    & BOOST_SERIALIZATION_NVP(timeRange_.second) 
-                    & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
+                    & BOOST_SERIALIZATION_NVP(timeRange_.first)
+                    & BOOST_SERIALIZATION_NVP(timeRange_.second)
+                    & BOOST_SERIALIZATION_NVP(dataDelayPoints_)
                     & BOOST_SERIALIZATION_NVP(descriptions_)
                     & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
                     & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
-                    & BOOST_SERIALIZATION_NVP(dataArray_) 
-                    & BOOST_SERIALIZATION_NVP(timeArray_) 
-                    & BOOST_SERIALIZATION_NVP(evntVec_) 
-                    & BOOST_SERIALIZATION_NVP(peaks_) 
+                    & BOOST_SERIALIZATION_NVP(dataArray_)
+                    & BOOST_SERIALIZATION_NVP(timeArray_)
+                    & BOOST_SERIALIZATION_NVP(evntVec_)
+                    & BOOST_SERIALIZATION_NVP(peaks_)
                     ;
-                if ( version >= 2 ) 
+                if ( version >= 2 )
                     ar & BOOST_SERIALIZATION_NVP( proto_ );
-                if ( version >= 3 ) 
+                if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP( dataReaderUuid_ );
                 if ( version >= 4 ) {
                     ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
@@ -220,13 +223,13 @@ Chromatogram::resize( size_t n )
     pImpl_->resize( n );
 }
 
-Peaks& 
+Peaks&
 Chromatogram::peaks()
 {
     return pImpl_->peaks_;
 }
 
-const Peaks& 
+const Peaks&
 Chromatogram::peaks() const
 {
     return pImpl_->peaks_;
@@ -259,13 +262,14 @@ Chromatogram::setPeaks( const Peaks& peaks )
 bool
 Chromatogram::isConstantSampledData() const
 {
-    return pImpl_->isConstantSampledData();
+    return pImpl_->isConstantSampling_;
 }
 
 void
-Chromatogram::isConstantSampledData( bool b )
+Chromatogram::setIsConstantSampledData( bool b )
 {
-    pImpl_->isConstantSampledData( b );
+
+    pImpl_->isConstantSampling_ = b;
 }
 
 double
@@ -309,11 +313,24 @@ void
 Chromatogram::operator << ( const std::pair<double, double>& data )
 {
     pImpl_->isConstantSampling_ = false;
-    pImpl_->timeArray_.push_back( data.first );
-    pImpl_->dataArray_.push_back( data.second );
+    pImpl_->timeArray_.emplace_back( data.first );
+    pImpl_->dataArray_.emplace_back( data.second );
     if ( pImpl_->timeArray_.size() == 1 )
         pImpl_->timeRange_.first = pImpl_->timeArray_.front();
     pImpl_->timeRange_.second = pImpl_->timeArray_.back();
+}
+
+void
+Chromatogram::operator << ( std::pair<double, double>&& data )
+{
+    pImpl_->isConstantSampling_ = false;
+
+    if ( pImpl_->timeArray_.empty() )
+        pImpl_->timeRange_.first = data.first;
+    pImpl_->timeRange_.second = data.first;
+
+    pImpl_->timeArray_.emplace_back( data.first );
+    pImpl_->dataArray_.emplace_back( data.second );
 }
 
 double
@@ -366,13 +383,13 @@ Chromatogram::getTimeArray() const
 		pImpl_->timeArray_.clear();
 		const std::pair<double, double>& timerange = pImpl_->getAcquisitionTimeRange();
 		const size_t nSize = pImpl_->size();
-		for ( size_t i = 0; i < nSize; ++i ) 
+		for ( size_t i = 0; i < nSize; ++i )
 			pImpl_->timeArray_.push_back( timerange.first + i * pImpl_->samplingInterval() );
 	}
     return pImpl_->getTimeArray();
 }
 
-const Chromatogram::Event& 
+const Chromatogram::Event&
 Chromatogram::getEvent( size_t idx ) const
 {
     return pImpl_->getEventVec()[ idx ];
@@ -391,7 +408,7 @@ Chromatogram::sampInterval() const
 void
 Chromatogram::sampInterval( const seconds_t& v )
 {
-    pImpl_->samplingInterval( v );
+    pImpl_->samplingInterval_ = v;
 }
 
 const std::wstring&
@@ -451,7 +468,7 @@ Chromatogram::getDescriptions() const
 Chromatogram::seconds_t
 Chromatogram::minimumTime() const
 {
-    return pImpl_->getAcquisitionTimeRange().first;    
+    return pImpl_->getAcquisitionTimeRange().first;
 }
 
 Chromatogram::seconds_t
@@ -513,21 +530,21 @@ namespace adcontrols {
 	(void)version;
 	ar << boost::serialization::make_nvp("Chromatogram", pImpl_);
     }
-    
+
     template<> void
     Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
 	(void)version;
 	ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
     }
-    
+
     template<> void
     Chromatogram::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
 	(void)version;
 	ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
     }
-    
+
     template<> void
     Chromatogram::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
@@ -545,19 +562,19 @@ namespace adcontrols {
     {
 	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
     }
-    
+
     template<> void
     Chromatogram::Event::serialize( boost::archive::xml_wiarchive& ar, const unsigned int)
     {
 	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
     }
-    
+
     template<> void
     Chromatogram::Event::serialize( portable_binary_oarchive& ar, const unsigned int)
     {
 	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
     }
-    
+
     template<> void
     Chromatogram::Event::serialize( portable_binary_iarchive& ar, const unsigned int)
     {
@@ -591,7 +608,7 @@ ChromatogramImpl::~ChromatogramImpl()
 {
 }
 
-ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true) 
+ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
                                      , dataDelayPoints_(0)
                                      , samplingInterval_(0)
                                      , proto_(0)
@@ -607,7 +624,7 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSamp
                                                                 , timeArray_( t.timeArray_ )
                                                                 , evntVec_( t.evntVec_ )
                                                                 , timeRange_( t.timeRange_)
-                                                                , dataDelayPoints_ ( t.dataDelayPoints_ )   
+                                                                , dataDelayPoints_ ( t.dataDelayPoints_ )
                                                                 , samplingInterval_( t.samplingInterval_ )
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
@@ -734,7 +751,7 @@ Chromatogram::ptree()
 const boost::property_tree::ptree&
 Chromatogram::ptree() const
 {
-    return pImpl_->ptree_;    
+    return pImpl_->ptree_;
 }
 
 bool
@@ -746,7 +763,7 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     auto it0 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t0 );
     if ( it0 == pImpl_->timeArray_.end() )
         return false;
-    
+
     auto it1 = std::lower_bound( pImpl_->timeArray_.begin(), pImpl_->timeArray_.end(), t1 );
 
     size_t pos0 = std::distance( pImpl_->timeArray_.begin(), it0 );
@@ -757,7 +774,7 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
 
     double area = std::accumulate( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1, 0.0 );
     double height = *std::max_element( pImpl_->dataArray_.begin() + pos0, pImpl_->dataArray_.begin() + pos1 );
-    
+
     pk.setStartTime( t0 );
     pk.setEndTime( t1 );
     pk.setPeakTime( t0 + ( t1 - t0 ) / 2.0 );
@@ -777,7 +794,7 @@ Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool ho
     pk.setBaseId( bsid );
 
     result.peaks().add( pk );
-    
+
     return true;
 }
 
@@ -796,13 +813,13 @@ Chromatogram::end()
 Chromatogram::const_iterator
 Chromatogram::begin() const
 {
-    return Chromatogram_iterator( this, 0 );    
+    return Chromatogram_iterator( this, 0 );
 }
 
 Chromatogram::const_iterator
 Chromatogram::end() const
 {
-    return Chromatogram_iterator( this, size() );    
+    return Chromatogram_iterator( this, size() );
 }
 
 /////////
@@ -821,7 +838,7 @@ Chromatogram_iterator::Chromatogram_iterator( const Chromatogram_iterator& t ) :
 {
 }
 
-Chromatogram_iterator& 
+Chromatogram_iterator&
 Chromatogram_iterator::operator = ( const Chromatogram_iterator& t )
 {
     chromatogram_ = t.chromatogram_;
@@ -841,4 +858,3 @@ Chromatogram_iterator::operator ++ ( int )
 {
     return Chromatogram_iterator( chromatogram_, idx_++ );
 }
-

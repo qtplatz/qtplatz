@@ -54,7 +54,7 @@ dataprocessor::subscribe( const adcontrols::ProcessedDataset& )
 }
 
 void
-dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * msg )
+dataprocessor::notify( adcontrols::dataSubscriber::idError, const std::string& json )
 {
-    ADDEBUG() << __FUNCTION__ << " " << msg;
+    ADDEBUG() << __FUNCTION__ << " " << json;
 }

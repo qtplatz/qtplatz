@@ -83,7 +83,7 @@ namespace dataproc {
         }
 
         inline Core::IDocument * document() { return this; };
-        
+
         // Core::IDocument
         bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false ) override;
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
@@ -102,7 +102,7 @@ namespace dataproc {
         QString qfilename() const;
 
         void exportXML() const;
-        
+
         portfolio::Portfolio getPortfolio();
         bool load( const std::wstring& path, const std::wstring& id );
 		bool fetch( portfolio::Folium& );
@@ -118,7 +118,7 @@ namespace dataproc {
         void exportMatchedMasses( std::shared_ptr< adcontrols::MassSpectra >, const std::wstring& foliumId ); // spectrogram data
         portfolio::Folium addProfiledHistogram( portfolio::Folium& ); // replace if already exist
         portfolio::Folium findProfiledHistogram( const portfolio::Folium& );
-        
+
         // apply calibration to entire dataset
         void applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
 		void lockMassHandled( const std::wstring& foliumId, const std::shared_ptr< adcontrols::MassSpectrum >&, const adcontrols::lockmass::mslock& );
@@ -130,7 +130,7 @@ namespace dataproc {
         void createContour();
         void clusterContour();
         void findPeptide( const adprot::digestedPeptides& );
-        
+
         // portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );
         portfolio::Folium addSpectrum( std::shared_ptr< const adcontrols::MassSpectrum >, const adcontrols::ProcessMethod& );
@@ -148,7 +148,7 @@ namespace dataproc {
         static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
-        void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
+        void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;
 
         //
 		bool onFileAdded( const std::wstring& path, adfs::file& ) override;

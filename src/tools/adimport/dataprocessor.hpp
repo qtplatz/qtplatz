@@ -39,7 +39,7 @@ namespace tools {
     public:
         bool subscribe( const adcontrols::LCMSDataset& raw ) override;
         bool subscribe( const adcontrols::ProcessedDataset& ) override;
-        void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
+        void notify( adcontrols::dataSubscriber::idError, const std::string& ) override;
         //
         const adcontrols::LCMSDataset * raw() const { return raw_; }
     };

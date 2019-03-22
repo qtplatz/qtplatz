@@ -61,8 +61,8 @@ namespace test_dataprocessor {
             ADDEBUG() << __FUNCTION__ << " hasProcessedDataset = " << hasProcessedDataset;
             return true;
         }
-        virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override {
-            ADDEBUG() << __FUNCTION__;
+        virtual void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override {
+            ADDEBUG() << __FUNCTION__ << " Error: " << json;
         }
     };
 }

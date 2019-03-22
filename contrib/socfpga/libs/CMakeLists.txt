@@ -1,3 +1,3 @@
 
 add_subdirectory( socfpga )
-#add_subdirectory( dgmodinterpreter )
+add_subdirectory( socfpgainterpreter )

@@ -119,7 +119,7 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
         try {
             file_->accept( *this );  // may access 'db' if file was imported from csv.
         } catch ( std::exception& ex ) {
-#if __cplusplus >= 201402L            
+#if __cplusplus >= 201402L
             std::wstring_convert< std::codecvt_utf8_utf16< wchar_t > > converter;
             error_message = converter.from_bytes( ex.what() );
 #else
@@ -130,7 +130,7 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
 
         if ( auto sp = massSpectrometer() )
             ProcessMediator::instance()->onCreate( sp->objclsid(), this->shared_from_this() );
-        
+
         return true;
     }
     return false;
@@ -150,7 +150,7 @@ dataprocessor::setFile( std::unique_ptr< adcontrols::datafile >&& file )
     if ( file_ ) {
         file_->accept( *this );
     }
-    
+
 }
 
 adcontrols::datafile *
@@ -210,29 +210,30 @@ dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 }
 
 void
-dataprocessor::notify( adcontrols::dataSubscriber::idError, const wchar_t * )
+dataprocessor::notify( adcontrols::dataSubscriber::idError, const std::string& json )
 {
+    ADDEBUG() << json;
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >
 dataprocessor::massSpectrometer()
 {
     if ( ! spectrometer_ && this->db() ) {
-        
+
         adfs::stmt sql( *this->db() );
-        
+
         boost::uuids::uuid clsidSpectrometer{ 0 };
         sql.prepare( "SELECT id FROM Spectrometer LIMIT 1" );
         if ( sql.step() == adfs::sqlite_row )
             clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 0 );
-        
+
         if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) {
             spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
             spectrometer_ = spectrometer;
         } else {
             if ( auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( adcontrols::iids::adspectrometer_uuid ) ) {
                 spectrometer->initialSetup( *this->db(), { 0 } ); // load relevant to 'master observer'
-                spectrometer_ = spectrometer;                
+                spectrometer_ = spectrometer;
             }
         }
     }
@@ -243,13 +244,13 @@ std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readSpectrumFromTimeCount()
 {
     std::shared_ptr< adcontrols::MassSpectrum > ms;
-    
+
     adfs::stmt sql( *this->db() );
     sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like 'histogram.timecount.1.%' LIMIT 1" );
     if ( sql.step() == adfs::sqlite_row ) {
 
         auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
-        
+
         if ( auto raw = this->rawdata() ) {
             if ( auto reader = raw->dataReader( objuuid ) ) {
                 auto it = reader->begin();
@@ -257,12 +258,12 @@ dataprocessor::readSpectrumFromTimeCount()
             }
         }
     }
-    
+
     boost::uuids::uuid clsidSpectrometer{ 0 };
     sql.prepare( "SELECT id FROM Spectrometer LIMIT 1" );
-    if ( sql.step() == adfs::sqlite_row ) 
+    if ( sql.step() == adfs::sqlite_row )
         clsidSpectrometer = sql.get_column_value< boost::uuids::uuid >( 0 );
-    
+
     auto spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer );
     if ( ! spectrometer ) {
         ADDEBUG() << "MassSpectrometer " << clsidSpectrometer << " Not installed.";
@@ -271,7 +272,7 @@ dataprocessor::readSpectrumFromTimeCount()
 
     spectrometer->initialSetup( *db(), { 0 } );
     auto scanlaw = spectrometer->scanLaw();
-        
+
     {
         // lead control method
         auto idstr = boost::lexical_cast< std::string >( adcontrols::ControlMethod::Method::clsid() );
@@ -303,17 +304,17 @@ dataprocessor::readSpectrumFromTimeCount()
         auto temp = proto == 0 ? hist : std::make_shared< adcontrols::MassSpectrum >();
         temp->clone( *ms );
         temp->setCentroid( adcontrols::CentroidNative );
-            
+
         std::vector< double > t, y, m;
         double ptime(0);
         sql.prepare( "SELECT ROUND(peak_time, 9) AS time,COUNT(*) FROM peak,trigger"
                      " WHERE id=idTrigger AND protocol=? GROUP BY time ORDER BY time" );
         sql.bind(1) = proto;
         while ( sql.step() == adfs::sqlite_row ) {
-                
+
             double time = sql.get_column_value< double >( 0 ); // time
             uint64_t count = sql.get_column_value< uint64_t >( 1 ); // count
-                
+
             if ( (time - ptime) > 1.2e-9 ) {
                 if ( ptime > 1.0e-9 ) {
                     // add count(0) to the end of last cluster
@@ -351,14 +352,14 @@ std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readSpectrum( bool histogram, uint32_t pos, int proto )
 {
     const std::string traceid = histogram ? "histogram.timecount.1.%" : "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
-    
+
     adfs::stmt sql( *this->db() );
 
     sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like ? LIMIT 1" );
     sql.bind( 1 ) = traceid;
-    
+
     if ( sql.step() == adfs::sqlite_row ) {
-        
+
         auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
 
         if ( auto raw = this->rawdata() ) {
@@ -376,20 +377,20 @@ std::shared_ptr< adcontrols::MassSpectrum >
 dataprocessor::readCoAddedSpectrum( bool histogram )
 {
     const std::string traceid = histogram ? "histogram.timecount.1.%" : "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
-    
+
     adfs::stmt sql( *this->db() );
 
     sql.prepare( "SELECT objuuid from AcquiredConf WHERE objtext like ? LIMIT 1" );
     sql.bind( 1 ) = traceid;
-    
+
     if ( sql.step() == adfs::sqlite_row ) {
-        
+
         auto objuuid = sql.get_column_value< boost::uuids::uuid >( 0 );
-        
+
         if ( auto raw = this->rawdata() ) {
             if ( auto reader = raw->dataReader( objuuid ) ) {
                 auto ms = reader->coaddSpectrum( reader->begin(), reader->end() );
-                
+
                 return ms;
             }
         }

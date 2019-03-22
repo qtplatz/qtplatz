@@ -78,7 +78,7 @@ bool
 DataInterpreterBroker::register_factory( std::shared_ptr< DataInterpreterFactory > factory, const boost::uuids::uuid& uuid, const std::string& dataInterpreterClsid )
 {
     ADDEBUG() << "register_factory(" << uuid << ", " << dataInterpreterClsid << ")";
-    
+
     if ( uuid == boost::uuids::uuid{ {0} } ) {
         impl::instance().factories_[ name_to_uuid( dataInterpreterClsid ) ] = std::make_pair( dataInterpreterClsid, factory );
     } else {
@@ -96,6 +96,7 @@ DataInterpreterBroker::find_factory( const std::string& dataInterpreterClsid )
         if ( auto ptr = it->second.second )
             return ptr.get();
     }
+    ADDEBUG() << "## find_factory(" << dataInterpreterClsid << ") has no result.";
     return nullptr;
 }
 
@@ -107,6 +108,7 @@ DataInterpreterBroker::find_factory( const boost::uuids::uuid& uuid )
         if ( auto ptr = it->second.second )
             return ptr.get();
     }
+    ADDEBUG() << "## find_factory(" << uuid << ") has no result.";
     return nullptr;
 }
 

@@ -35,8 +35,8 @@ namespace boost {
     namespace serialization {
         class access;
     }
-    namespace archive { 
-        class binary_oarchive; 
+    namespace archive {
+        class binary_oarchive;
         class binary_iarchive;
     }
     namespace uuids {
@@ -44,7 +44,7 @@ namespace boost {
     }
 }
 
-class portable_binary_oarchive; 
+class portable_binary_oarchive;
 class portable_binary_iarchive;
 
 namespace adcontrols {
@@ -64,7 +64,9 @@ namespace adcontrols {
     enum Chromaogram_HAxis : uint32_t { Minutes, Seconds, Hours, Litter };
     enum Chromaogram_VAxis : uint32_t { Arbitrary, Counts, Volts, AU, RIU };
 
-    class ADCONTROLSSHARED_EXPORT Chromatogram {
+    class ADCONTROLSSHARED_EXPORT Chromatogram;  // workaround for emacs auto indent bug
+
+    class /* ADCONTROLSSHARED_EXPORT */ Chromatogram {
     public:
         ~Chromatogram();
         Chromatogram();
@@ -105,7 +107,8 @@ namespace adcontrols {
         void resize( size_t );
 
         bool isConstantSampledData() const;
-        void isConstantSampledData( bool );
+        void setIsConstantSampledData( bool );
+
         double timeFromSampleIndex( size_t sampleIndex ) const;
         double timeFromDataIndex( size_t sampleIndex ) const;
         size_t toSampleIndex( double time, bool closest = false ) const;
@@ -133,20 +136,21 @@ namespace adcontrols {
         void addEvent( const Event& );
 
         // append (time,intensity) to the end of chromatogram
-        void operator << ( const std::pair<double, double>& );  
+        void operator << ( const std::pair<double, double>& );
+        void operator << ( std::pair<double, double>&& );
 
         seconds_t sampInterval() const; // seconds
         void sampInterval( const seconds_t&  );
 
         size_t minimumTimePoints() const;  // equivalent to minTime count as number of points under sampInterval
         seconds_t minimumTime() const;  // a.k.a. start delay time
-		seconds_t maximumTime() const;  // 
+		seconds_t maximumTime() const;  //
         std::pair<seconds_t, seconds_t> timeRange() const;
 
         // if time delay caused by tubing, compensate by this value
         // semi-micro UV cell has about 2-3uL volume, assume 1.0m x 0.1mmID tubing were used
         // for connecting MS, 7.85uL of volume := 4.7seconds under 100uL/min flow rate.
-        // When flowrate is 400uL still 1.2seconds delay, which is larger than peak width on 
+        // When flowrate is 400uL still 1.2seconds delay, which is larger than peak width on
         // peaks for k' < 4 if column plate number > 5000.
         double tubingDelayTime() const; // min
         void minimumTimePoints( size_t );
@@ -173,7 +177,7 @@ namespace adcontrols {
 
         boost::property_tree::ptree& ptree();
         const boost::property_tree::ptree& ptree() const;
-        
+
         bool add_manual_peak( PeakResult&, double t0, double t1, bool horizontalBaseline = true, double baseLevel = 0 ) const;
 
         [[deprecated]] Peaks& peaks();
@@ -181,10 +185,10 @@ namespace adcontrols {
 
         [[deprecated]] Baselines& baselines();
         const Baselines& baselines() const;
-        
+
         void setBaselines( const Baselines& );
         void setPeaks( const Peaks& );
-    
+
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
@@ -195,7 +199,7 @@ namespace adcontrols {
     template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
 
-    typedef std::shared_ptr<Chromatogram> ChromatogramPtr;   
+    typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
     class ADCONTROLSSHARED_EXPORT Chromatogram_iterator : public std::iterator< std::forward_iterator_tag, Chromatogram_iterator > {
         const Chromatogram * chromatogram_;
@@ -214,4 +218,3 @@ namespace adcontrols {
         inline double intensity() const { return chromatogram_->intensity( idx_ ); };
     };
 }
-

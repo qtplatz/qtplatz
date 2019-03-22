@@ -34,8 +34,11 @@
 
 namespace adfs { class sqlite; }
 namespace adcontrols { class MassSpectrometer; }
+namespace socfpga { namespace dgmod { struct advalue; } }
 
 namespace socfpgainterpreter {
+
+    class DataInterpreter;
 
     class DataReader : public adcontrols::DataReader {
 
@@ -74,34 +77,26 @@ namespace socfpgainterpreter {
         int fcn( int64_t rowid ) const override;
         // <============================
         boost::any getData( int64_t rowid ) const override;
-        std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
-        std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override; // only by time range
-        std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( const_iterator& ) const override;
-        std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const override;
-        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
+        std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override                                   { return nullptr; }
+        std::shared_ptr< adcontrols::Chromatogram > getChromatogram( int fcn, double time, double width ) const override;
+        std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( const_iterator& ) const override                                { return nullptr; }
+        std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const override  { return nullptr; }
+        std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override                                         { return nullptr; }
         adcontrols::DataInterpreter * dataInterpreter() const override;
 
     private:
-        void make_indices();
-        void loadTICs();
-        void loadCachedTICs();
-        std::unique_ptr< adcontrols::DataInterpreter > interpreter_;
-        std::shared_ptr< adcontrols::MassSpectrometer > spectrometer_;
         std::weak_ptr< adfs::sqlite > db_;
-        boost::uuids::uuid objid_;
         std::string objtext_;
-        int64_t objrowid_;
         std::string display_name_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tics_;
+        std::vector< socfpga::dgmod::advalue > data_;
+        boost::uuids::uuid objid_;
+        int64_t objrowid_;
         size_t fcnCount_;
         int64_t elapsed_time_origin_;
-
-        struct index {
-            int64_t rowid; int64_t pos; int64_t elapsed_time; int fcn;
-            index( int64_t _0 = 0, int64_t _1 = 0, int64_t _2 = 0, int _3 = 0 ) : rowid( _0 ), pos( _1 ), elapsed_time( _2 ), fcn( _3 ) {}
-        };
-
-        std::vector< index > indices_;
+        std::unique_ptr< DataInterpreter > interpreter_;
+        class impl;
+        impl * impl_;
     };
 
 }

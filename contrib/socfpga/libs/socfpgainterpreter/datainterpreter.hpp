@@ -36,7 +36,7 @@ namespace adcontrols {
     template< typename T > class waveform;
 }
 
-namespace acquire {
+namespace socfpga {
     namespace dgmod {
         struct advalue;
     }
@@ -44,24 +44,19 @@ namespace acquire {
 
 namespace socfpgainterpreter {
 
-    // typedef boost::variant< std::shared_ptr< socfpga::waveform >
-    //                         , std::shared_ptr< adcontrols::TimeDigitalHistogram > // don't move this to first item in this variant (see coadd_spectrum)
-    //                         > waveform_variant_t;
-
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:
         virtual ~DataInterpreter();
         DataInterpreter();
 
         // deprecated
-        adcontrols::translate_state
-        translate( adcontrols::MassSpectrum&
-                   , const char * data, size_t dsize
-                   , const char * meta, size_t msize
-                   , const adcontrols::MassSpectrometer&
-                   , size_t idData
-                   , const wchar_t * traceId ) const override;
-
+         adcontrols::translate_state
+         translate( adcontrols::MassSpectrum&
+                    , const char * data, size_t dsize
+                    , const char * meta, size_t msize
+                    , const adcontrols::MassSpectrometer&
+                    , size_t idData
+                    , const wchar_t * traceId ) const override { return adcontrols::translate_error; }
         adcontrols::translate_state
         translate( adcontrols::TraceAccessor&
                    , const char * data, size_t dsize
@@ -72,8 +67,7 @@ namespace socfpgainterpreter {
         bool make_device_text( std::vector< std::pair< std::string, std::string > >&
                                , const adcontrols::MSProperty& ) const override { return false; }
 
-        virtual adcontrols::translate_state
-        translate( std::vector< acquire::dgmod::advalue >&, const int8_t * data, size_t dsize, const int8_t * meta, size_t msize );
+        adcontrols::translate_state translate( std::vector< socfpga::dgmod::advalue >&, const int8_t* data, size_t dsize ) const;
 
         // workaround
         virtual void setWorkaroundProtocols( const std::vector< std::pair< int, double > >& p ) { op_ = p; }

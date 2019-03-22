@@ -58,25 +58,25 @@ namespace adprocessor {
 
     class ADPROCESSORSHARED_EXPORT dataprocessor : public std::enable_shared_from_this< dataprocessor >
                                                  , public adcontrols::dataSubscriber {
-        
+
     public:
         virtual ~dataprocessor();
         dataprocessor();
 
         // dataprocessor
-        virtual void setMode( int id );  // main 
+        virtual void setMode( int id );  // main
         virtual int mode() const;
-        
+
         virtual void setModified( bool );
-        
+
         virtual bool open( const std::wstring&, std::wstring& errmsg );
-        
+
 		virtual const std::wstring& filename() const;
 
         virtual void setFile( std::unique_ptr< adcontrols::datafile >&& );
         virtual adcontrols::datafile * file();
         virtual const adcontrols::datafile * file() const;
-        
+
         virtual const adcontrols::LCMSDataset * rawdata();
 
         std::shared_ptr< adfs::sqlite > db() const override;
@@ -87,20 +87,20 @@ namespace adprocessor {
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrumFromTimeCount();
         virtual std::shared_ptr< adcontrols::MassSpectrum > readCoAddedSpectrum( bool histogram = false );
         virtual std::shared_ptr< adcontrols::MassSpectrum > readSpectrum( bool histogram = false, uint32_t pos = 0, int proto = (-1) );
-        
+
         virtual std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
 
         static bool doCentroid( adcontrols::MSPeakInfo& pkInfo
                                 , adcontrols::MassSpectrum& centroid
                                 , const adcontrols::MassSpectrum& profile
                                 , const adcontrols::CentroidMethod& m );
-        
+
         virtual uint64_t countTimeCounts( const adcontrols::MassSpectrum&, double lMass, double uMass );
-        
+
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
         virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
-        virtual void notify( adcontrols::dataSubscriber::idError, const wchar_t * ) override;
+        virtual void notify( adcontrols::dataSubscriber::idError, const std::string& ) override;
         // <----
         virtual void addContextMenu( ContextID, QMenu&, std::shared_ptr< const adcontrols::MassSpectrum >, const std::pair< double, double >&, bool isTime );
         virtual void addContextMenu( ContextID, QMenu&, const portfolio::Folium& );
@@ -118,5 +118,3 @@ namespace adprocessor {
     };
 
 } // mpxcontrols
-
-

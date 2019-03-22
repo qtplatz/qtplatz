@@ -88,9 +88,10 @@ rawdata::loadAcquiredConf()
     if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
         for ( const auto& conf: conf_ ) {
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) ) 
+                if ( reader->initialize( dbf_, conf.objid, conf.objtext ) )
                     readers_.push_back( std::make_pair( reader, int( reader->fcnCount() ) ) );
             } else {
+                undefined_data_readers_.emplace_back( conf.objtext, conf.objid );
                 ADERROR() << "# reader for '" << conf.trace_id << "'" << " not implemented.";
             }
         }
@@ -118,14 +119,14 @@ rawdata::loadMSFractuation()
                 return;
         }
     }
-    
+
     adfs::stmt sql( dbf_.db() );
     sql.prepare( "SELECT DISTINCT rowid FROM MSLock ORDER BY rowid" );
 
     while ( sql.step() == adfs::sqlite_row ) {
 
         int64_t rowid = sql.get_column_value< int64_t >(0);
-        
+
         adfs::stmt sql2( dbf_.db() );
         sql2.prepare( "SELECT exactMass,matchedMass FROM MSLock where rowid = ?" );
         sql2.bind( 1 ) = rowid;
@@ -232,7 +233,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
     adfs::stmt sql( dbf_.db() );
     if ( sql.prepare( "SELECT objuuid from AcquiredData WHERE AcquiredData.npos = ?" ) ) {
         sql.bind( 1 ) = pos;
-        while ( sql.step() == adfs::sqlite_row ) 
+        while ( sql.step() == adfs::sqlite_row )
             uuids.push_back( sql.get_column_value< boost::uuids::uuid >( 0 ) );
     }
 
@@ -311,7 +312,6 @@ rawdata::find_scan( int idx, int fcn ) const
     }
 
     if ( idx >= 0 && fcn < 0 ) {  // find first "replicates-alinged" scan pos (idx means tic[fcn][idx])
-        typedef decltype(*fcnIdx_.rbegin()) value_type;
         size_t count = 0;
         for ( auto it = fcnIdx_.begin(); it != fcnIdx_.end(); ++it ) {
             if ( it->second == 0 && count++ == size_t(idx) )
@@ -384,7 +384,7 @@ size_t
 rawdata::posFromTime( double seconds ) const
 {
     for ( auto& reader : readers_ ) {
-        if ( auto tpos = reader.first->findPos( seconds ) ) 
+        if ( auto tpos = reader.first->findPos( seconds ) )
             return tpos->time_since_inject();
     }
 	return 0;
@@ -415,7 +415,7 @@ rawdata::fetchTraces( int64_t objid, const adcontrols::DataInterpreter& interpre
 {
 
     adfs::stmt sql( dbf_.db() );
-    
+
     if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
 
         sql.bind( 1 ) = objid;

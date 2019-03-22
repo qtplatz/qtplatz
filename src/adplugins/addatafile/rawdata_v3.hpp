@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,10 +31,12 @@
 #include <adfs/adfs.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <adutils/acquiredconf_v3.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <boost/variant.hpp>
 #include <memory>
 #include <map>
 #include <cstdint>
+
 
 namespace adcontrols {
     class Chromatogram;
@@ -75,7 +77,7 @@ namespace addatafile {
             bool index( size_t pos, int& idx, int& fcn, int& rep, double * t ) const override;
             size_t find_scan( int idx, int fcn ) const override;
             int make_index( size_t pos, int& fcn ) const override;
-        
+
             bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
                                    , std::vector< adcontrols::Chromatogram >&
                                    , std::function< bool (long curr, long total ) > progress
@@ -93,10 +95,11 @@ namespace addatafile {
 
             bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
 
-            const std::vector< std::wstring > undefined_spectrometers() const { return undefined_spectrometers_; }
+            const std::vector< std::string > undefined_spectrometers() const { return undefined_spectrometers_; }
+            const std::vector< std::pair< std::string, boost::uuids::uuid > > undefined_data_readers() const { return undefined_data_readers_; }
 
             adfs::sqlite* db() const override;
-        
+
             bool mslocker( adcontrols::lockmass::mslock&, uint32_t objid ) const override;
 
             // v3 specific
@@ -104,7 +107,7 @@ namespace addatafile {
             const adcontrols::DataReader * dataReader( size_t idx ) const override;
             const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const override;
             std::vector < std::shared_ptr< const adcontrols::DataReader > > dataReaders( bool allPossible ) const override;
-        
+
         private:
             bool fetchTraces( int64_t objid, const adcontrols::DataInterpreter&, adcontrols::TraceAccessor& );
 
@@ -118,7 +121,7 @@ namespace addatafile {
             std::vector< adutils::v3::AcquiredConf::data > conf_;
 
             int32_t fcnCount_;
-        
+
             std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
             //std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer
             //std::map< uint64_t, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
@@ -130,11 +133,11 @@ namespace addatafile {
             std::vector< std::tuple< size_t, int, int> > fcnVec_; // <pos,fcn,rep,seconds>
             std::vector< std::pair< size_t, int > > fcnIdx_;
             std::vector< std::pair< double, int > > times_;
-            std::vector< std::wstring > undefined_spectrometers_;
+            std::vector< std::string > undefined_spectrometers_;
+            std::vector< std::pair< std::string, boost::uuids::uuid > > undefined_data_readers_;
             std::vector< std::pair< std::shared_ptr< adcontrols::DataReader >, int > > readers_; // <reader,fcn>
         };
 
 
     }
 }
-

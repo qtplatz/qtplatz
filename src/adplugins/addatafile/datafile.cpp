@@ -42,6 +42,7 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -49,6 +50,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
 #include <adlog/logger.hpp>
@@ -117,9 +120,15 @@ namespace addatafile { namespace detail {
             }
         };
 
-        struct undefined_spectrometers : boost::static_visitor< std::vector< std::wstring > > {
-            template<typename T, typename Stream = std::wostringstream > const std::vector< std::wstring > operator()( T& t ) const {
+        struct undefined_spectrometers : boost::static_visitor< std::vector< std::string > > {
+            template<typename T> const std::vector< std::string > operator()( T& t ) const {
                 return t->undefined_spectrometers();
+            }
+        };
+
+        struct undefined_data_readers : boost::static_visitor< std::vector< std::pair< std::string, boost::uuids::uuid > > > {
+            template<typename T> const std::vector< std::pair< std::string, boost::uuids::uuid > > operator()( T& t ) const {
+                return t->undefined_data_readers();
             }
         };
 
@@ -163,15 +172,37 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 
             boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
 
-            auto undefined_spectrometers = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
-            
-            if ( ! undefined_spectrometers.empty() ) {
-                std::wostringstream o;
-                for ( auto& t: undefined_spectrometers )
-                    o << t << L"\r";
-                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, o.str().c_str() );
+            boost::property_tree::ptree ptop;
+            auto undefined_dataReaders = boost::apply_visitor( detail::undefined_data_readers(), rawdata_ );
+            if ( ! undefined_dataReaders.empty() ) {
+                boost::property_tree::ptree pt;
+                std::for_each( undefined_dataReaders.begin(), undefined_dataReaders.end()
+                               , [&](auto& a){
+                                     boost::property_tree::ptree item;
+                                     item.put( "objtext", a.first );
+                                     item.put( "objid", a.second );
+                                     pt.push_back( std::make_pair("", item ) );
+                                 });
+                ptop.add_child( "dataReader", pt );
             }
 
+            auto undefined_spectrometers = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
+            if ( ! undefined_spectrometers.empty() ) {
+                boost::property_tree::ptree pt;
+                std::for_each( undefined_spectrometers.begin(), undefined_spectrometers.end()
+                               , [&](auto& a){
+                                     boost::property_tree::ptree item;
+                                     item.put( "spectrometer", a );
+                                     pt.push_back( std::make_pair( "", item ) );
+                                 });
+                ptop.add_child( "spectrometer", pt );
+            }
+
+            if ( !ptop.empty() ) {
+                std::ostringstream json;
+                boost::property_tree::write_json( json, ptop );
+                sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, json.str() );
+            }
         }
 
         // publish processed dataset
@@ -202,10 +233,10 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     filename_ = filename;
     processedDataset_.reset( new adcontrols::ProcessedDataset );
-    
-    if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) ) 
+
+    if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) )
         return true;
-    
+
     if ( ( mounted_ = dbf_.create( filename.c_str() ) ) )
         return true;
 
@@ -230,7 +261,7 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
         assert( n <= 1 );  // should only be one results
 
         boost::int64_t rowid = sql.get_column_value<int64_t>( 0 );  // file id
-        
+
         adfs::blob blob;
         if ( rowid && blob.open( dbf_.db(), "main", "file", "data", rowid, adfs::readonly ) ) {
             if ( blob.size() ) {
@@ -238,46 +269,46 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                 if ( blob.read( reinterpret_cast<int8_t *>(obuf.data()), blob.size() ) ) {
 
 					if ( dataType == adcontrols::MassSpectrum::dataClass() ) {
-                        
+
                         any = detail::serializer< adcontrols::MassSpectrum >::deserialize( obuf );
-                        
+
 					} else if ( dataType == adcontrols::Chromatogram::dataClass() ) {
-						
+
                         any = detail::serializer< adcontrols::Chromatogram >::deserialize( obuf );
-                        
+
 					} else if ( dataType == adcontrols::PeakResult::dataClass() ) {
-                        
-						any = detail::serializer< adcontrols::PeakResult >::deserialize( obuf );    
-                        
+
+						any = detail::serializer< adcontrols::PeakResult >::deserialize( obuf );
+
 					} else if ( dataType == adcontrols::ProcessMethod::dataClass() ) {
-                        
-                        any = detail::serializer< adcontrols::ProcessMethod >::deserialize( obuf );    
-                        
+
+                        any = detail::serializer< adcontrols::ProcessMethod >::deserialize( obuf );
+
 					} else if ( dataType == adcontrols::MSCalibrateResult::dataClass() ) {
-                        
-                        any = detail::serializer< adcontrols::MSCalibrateResult >::deserialize( obuf );    
-                        
+
+                        any = detail::serializer< adcontrols::MSCalibrateResult >::deserialize( obuf );
+
 					} else if ( dataType == adcontrols::MSPeakInfo::dataClass() ) {
-                        
+
                         any = detail::serializer< adcontrols::MSPeakInfo >::deserialize( obuf );
 
 					} else if ( dataType == adcontrols::MassSpectra::dataClass() ) {
-                        
+
                         any = detail::serializer< adcontrols::MassSpectra >::deserialize( obuf );
 
 					} else if ( dataType == adcontrols::Targeting::dataClass() ) {
-                        
+
                         any = detail::serializer< adcontrols::Targeting >::deserialize( obuf );
 
 					} else if ( dataType == adcontrols::QuanSample::dataClass() ) {
-                        
+
                         any = detail::serializer< adcontrols::QuanSample >::deserialize( obuf );
 
 					} else if ( dataType == adcontrols::QuanSequence::dataClass() ) {
-                        
+
                         any = detail::serializer< adcontrols::QuanSequence >::deserialize( obuf );
 
-                        
+
                     } else {
                         ADERROR() << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType << ")";
                         BOOST_THROW_EXCEPTION( std::bad_typeid() );
@@ -359,7 +390,7 @@ datafile::loadContents( const std::wstring& path, const std::wstring& id, adcont
         const std::wstring& name = folder.name();
 		(void)name;
 		adfs::file file = dbf_.findFile( folder, id );
-        if ( file ) 
+        if ( file )
 			sub.onFileAdded( path, file );
     }
     return false;
@@ -445,7 +476,7 @@ namespace addatafile {
 #if defined DEBUG && 0
             const std::wstring& dataclass = folium.dataClass();
             const std::wstring& name = folium.name();
-            adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save(" 
+            adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save("
                                                     << dataclass << ", " << name << ")";
 #endif
             boost::any any = static_cast<const boost::any&>( folium );
@@ -459,7 +490,7 @@ namespace addatafile {
                     assert( 0 );
                     return false;
                 }
-                
+
                 for ( const portfolio::Folium& att: folium.attachments() )
                     save( dbThis, filename, source, att );
             }
@@ -512,7 +543,7 @@ namespace addatafile {
             // save all files in this folder
             for ( const portfolio::Folium& folium: folder.folio() )
                 folium::save( dbThis, pathname, source, folium );
-    
+
             // recursive save sub folders
             for ( const portfolio::Folder& subfolder: folder.folders() )
                 folder::save( dbf, pathname, source, subfolder );
@@ -530,8 +561,8 @@ namespace addatafile {
         bool folium::load( portfolio::Folium dst, const adfs::file& src )
         {
 #if defined DEBUG && 0
-            adportable::debug(__FILE__, __LINE__) 
-                << ">> folium::load(" << src.attribute(L"name") << ") " 
+            adportable::debug(__FILE__, __LINE__)
+                << ">> folium::load(" << src.attribute(L"name") << ") "
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
             import::attributes( dst, src );
@@ -544,7 +575,7 @@ namespace addatafile {
         {
 #if defined DEBUG && 0
             adportable::debug(__FILE__, __LINE__)
-                << " +++ attachment::load(" << src.attribute(L"name") << ") " 
+                << " +++ attachment::load(" << src.attribute(L"name") << ") "
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
             import::attributes( dst, src );
@@ -568,7 +599,7 @@ namespace addatafile {
 
         void import::attributes( adfs::attributes& d, const portfolio::attributes_type& s )
         {
-            for ( const portfolio::attribute_type& a: s ) 
+            for ( const portfolio::attribute_type& a: s )
                 d.setAttribute( a.first, a.second );
         }
         //---
@@ -577,4 +608,3 @@ namespace addatafile {
 }
 
 //////////////////////////
-
