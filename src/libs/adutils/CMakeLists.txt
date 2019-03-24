@@ -1,13 +1,13 @@
 # adutils
 project ( adutils )
 
-add_library( adutils 
+add_library( adutils
   adutils.cpp
   adutils.hpp
   acquiredconf.cpp
   acquiredconf.hpp
   acquiredconf_v3.cpp
-  acquiredconf_v3.hpp  
+  acquiredconf_v3.hpp
   acquireddata.cpp
   acquireddata.hpp
   acquireddata_v3.hpp
@@ -21,6 +21,8 @@ add_library( adutils
   fsio.hpp
   fsio2.cpp
   fsio2.hpp
+  inifile.cpp
+  inifile.hpp
   mscalibio.cpp
   mscalibio.hpp
   processeddata.hpp

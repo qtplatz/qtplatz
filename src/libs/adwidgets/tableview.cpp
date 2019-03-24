@@ -73,7 +73,7 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
     }
 }
 
-void 
+void
 TableView::handlePaste()
 {
 }
@@ -94,7 +94,7 @@ TableView::handleCopyToClipboard()
     indices.removeFirst();
     for( int i = 0; i < indices.size(); ++i ) {
         QModelIndex index = indices.at( i );
-        
+
         if ( !isRowHidden( prev.row() ) ) {
 
             //auto t = prev.data( Qt::EditRole ).type();
@@ -106,7 +106,7 @@ TableView::handleCopyToClipboard()
                 if ( index.row() == prev.row() )
                     selected_text.append( '\t' );
             }
-            
+
             if ( index.row() != prev.row() )
                 selected_text.append( '\n' );
         }
@@ -168,4 +168,3 @@ TableView::contextMenuEvent( QContextMenuEvent * event )
     addActionsToContextMenu( menu, event->pos() );
     menu.exec( event->globalPos() );
 }
-

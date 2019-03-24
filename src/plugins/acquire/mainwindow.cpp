@@ -46,12 +46,13 @@
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
+#include <adwidgets/adtraceswidget.hpp>
 #include <adwidgets/cherrypicker.hpp>
 #include <adwidgets/countingwidget.hpp>
+#include <adwidgets/dgwidget.hpp>
 #include <adwidgets/outputwidget.hpp>
 #include <adwidgets/samplerunwidget.hpp>
 #include <adwidgets/tofchromatogramswidget.hpp>
-#include <adwidgets/dgwidget.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -93,6 +94,7 @@
 #include <QTabBar>
 #include <qdebug.h>
 #include <csignal>
+#include <boost/uuid/uuid_io.hpp>
 
 using namespace acquire;
 
@@ -143,7 +145,7 @@ MainWindow::createDockWidgets()
                    });
     }
 
-    if ( auto widget = qtwrapper::make_widget< adwidgets::OutputWidget >("Output", document::instance()->console() ) ) {
+    if ( auto widget = qtwrapper::make_widget< adwidgets::OutputWidget >( "Output", document::instance()->console() ) ) {
         createDockWidget( widget, "Output", "Output" );
         document::instance()->console() << "Hello World" << std::endl;
         connect( widget, &adwidgets::OutputWidget::onInputLine
@@ -162,6 +164,10 @@ MainWindow::createDockWidgets()
                  , [widget](){
                        document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
                    });
+    }
+
+    if ( auto widget = qtwrapper::make_widget< adwidgets::ADTracesWidget >( "adTraces" ) ) {
+        createDockWidget( widget, "ADTraces", "ADTraces" );
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
@@ -821,6 +827,12 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
             widget->setContents( boost::any(m) );
         }
     }
+#ifndef NDEBUG
+    ADDEBUG() << "************ setControlMethod *******";
+    for ( auto& mi : *m )
+        ADDEBUG() << mi.clsid() << ", " << mi.modelname() << ", " << mi.itemLabel();
+    ADDEBUG() << "************************************";
+#endif
 }
 
 std::shared_ptr< adcontrols::ControlMethod::Method >
@@ -833,6 +845,12 @@ MainWindow::getControlMethod() const
             widget->getContents( a );
         }
     }
+#ifndef NDEBUG
+    ADDEBUG() << "************ getControlMethod *******";
+    for ( auto& mi : *ptr )
+        ADDEBUG() << mi.clsid() << ", " << mi.modelname() << ", " << mi.itemLabel();
+    ADDEBUG() << "************************************";
+#endif
     return ptr;
 }
 

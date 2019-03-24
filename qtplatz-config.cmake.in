@@ -70,6 +70,7 @@ add_library( QTC::Utils SHARED IMPORTED )
 add_library( acewrapper STATIC IMPORTED )
 add_library( adchem SHARED IMPORTED )
 add_library( adcontrols SHARED IMPORTED )
+add_library( admethods SHARED IMPORTED )
 add_library( adextension SHARED IMPORTED )
 add_library( adacquire SHARED IMPORTED )
 add_library( adlog SHARED IMPORTED )
@@ -127,6 +128,10 @@ if (WIN32)
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/adcontrols.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/adcontrolsd.lib )
+
+  set_target_properties( admethods PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/admethods.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/admethodsd.lib )
 
   #add 16-DEC-2015
   set_target_properties( adfs PROPERTIES
@@ -241,6 +246,10 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols_debug.dylib )
 
+  set_target_properties( admethods PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmethods.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmethods_debug.dylib )
+
   #add 16-DEC-2015
   set_target_properties( adfs PROPERTIES
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadfs.dylib
@@ -337,6 +346,9 @@ else()  #Linux
 
   set_target_properties( adcontrols PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadcontrols.so )
+
+  set_target_properties( admethods PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libadmethods.so )
 
   #add 16-DEC-2015
   set_target_properties( adfs PROPERTIES

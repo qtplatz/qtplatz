@@ -16,7 +16,7 @@ include_directories(
   ${QWT_INCLUDE_DIR}
   ${Qt5PrintSupport_INCLUDE_DIRS}
   ${Qt5Svg_INCLUDE_DIRS}
-  ${Qt5Sql_INCLUDE_DIRS}  
+  ${Qt5Sql_INCLUDE_DIRS}
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5OpenGL_INCLUDE_DIRS}
   )
@@ -104,6 +104,7 @@ set( ${PROJECT_NAME}_SOURCES
   toftable.cpp
   tofchromatogramsform.cpp
   tofchromatogramswidget.cpp
+  adtraceswidget.cpp
   thresholdactionform.cpp
   controlmethod/timedeventswidget.cpp
   controlmethod/timedtableview.cpp
@@ -141,7 +142,7 @@ set( ${PROJECT_NAME}_HEADERS
   mstoleranceform.hpp
   mslockform.hpp
   mschromatogramform.hpp
-  mschromatogramwidget.hpp  
+  mschromatogramwidget.hpp
   mspeaksummary.hpp
   mspeakwidget.hpp
   mssimulatorform.hpp
@@ -167,6 +168,7 @@ set( ${PROJECT_NAME}_HEADERS
   targetingadducts.hpp
   tofchromatogramsform.hpp
   tofchromatogramswidget.hpp
+  adtraceswidget.hpp
   thresholdactionform.hpp
   controlmethod/timedeventswidget.hpp
   controlmethod/timedtableview.hpp
@@ -185,9 +187,10 @@ target_link_libraries( adwidgets LINK_PUBLIC
   adplugin_manager
   adlog
   adcontrols
+  admethods
   adprot
   qtwrapper
-  adportable	
+  adportable
   ${QWT_LIBRARIES}
   Qt5::PrintSupport
   Qt5::Svg
@@ -204,4 +207,3 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )
-

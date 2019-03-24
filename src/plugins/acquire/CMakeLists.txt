@@ -81,6 +81,7 @@ target_link_libraries(
   adextension
   adfs
   adlog
+  admethods
   adplot
   adplugin
   adplugin_manager

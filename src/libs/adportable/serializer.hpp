@@ -54,5 +54,16 @@ namespace adportable {
         }
     };
 
-}
+    struct bin_serializer {
+        template< typename T > bool operator ()( const T& data, std::string& ar ) const {
+            return serializer<T>::serialize( data, ar );
+        }
+    };
 
+    struct bin_deserializer {
+        template< typename T > bool operator ()( T& data, const char * s, std::size_t size ) const {
+            return serializer<T>::deserialize( data, s, size );
+        }
+    };
+
+}

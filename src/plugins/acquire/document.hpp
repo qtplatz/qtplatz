@@ -178,6 +178,8 @@ namespace acquire {
     private:
         class impl;
         impl * impl_;
+        bool save( const QString& filename, const adcontrols::ControlMethod::Method& ) const;
+        bool load( const QString& filename, adcontrols::ControlMethod::Method& ) const;
 
     signals:
         void onTick( const QByteArray );

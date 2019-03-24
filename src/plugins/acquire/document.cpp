@@ -46,6 +46,7 @@
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/timedigitalmethod.hpp>
 #include <adcontrols/trace.hpp>
+#include <admethods/controlmethod/adtracemethod.hpp>
 #include <adextension/icontrollerimpl.hpp>
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/isnapshothandler.hpp>
@@ -65,6 +66,7 @@
 #include <adurl/ajax.hpp>
 #include <adurl/blob.hpp>
 #include <adurl/sse.hpp>
+#include <adutils/inifile.hpp>
 #include <adwidgets/findslopeform.hpp>
 #include <adwidgets/thresholdactionform.hpp>
 #include <app/app_version.h>
@@ -747,6 +749,11 @@ document::initialSetup()
         }
     }
 
+    if ( impl_->cm_ ) {
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        load( QString::fromStdString( fname.string() ), *impl_->cm_ );
+    };
+
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
         path = QString::fromStdWString(
@@ -804,6 +811,8 @@ document::initialSetup()
             set_tof_chromatograms_method( json, false );
         }
     }
+
+
 }
 
 void
@@ -826,6 +835,12 @@ document::finalClose()
             return;
         }
     }
+
+    if ( auto cm = MainWindow::instance()->getControlMethod() ) {
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        save( QString::fromStdString( fname.string() ), *cm );
+    }
+
 
     if ( auto run = sampleRun() ) {
         boost::filesystem::path fname( dir / "samplerun.xml" );
@@ -1501,4 +1516,31 @@ document::find_event_time( uint32_t wellKnownEvent ) const
     if ( it != impl_->event_tp_.end() )
         return it->second;
     return { 0, 0 };
+}
+
+bool
+document::save( const QString& filename, const adcontrols::ControlMethod::Method& m ) const
+{
+    adfs::filesystem file;
+
+    if ( !file.create( filename.toStdWString().c_str() ) ) {
+        ADTRACE() << "Error: \"" << filename.toStdString() << "\" can't be created";
+        return false;
+    }
+
+    return adutils::inifile::save( file.db(), m );
+}
+
+bool
+document::load( const QString& filename, adcontrols::ControlMethod::Method& m ) const
+{
+    QFileInfo fi( filename );
+
+    if ( fi.exists() ) {
+        adfs::filesystem file;
+        if ( file.mount( filename.toStdWString().c_str() ) ) {
+            return adutils::inifile::load( file.db(), m );
+        }
+    }
+    return false;
 }

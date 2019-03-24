@@ -103,7 +103,7 @@ namespace adwidgets {
         std::function<void(const QPoint& )> handleContextMenu_;
 
         //-------------------------------------------------
-        
+
         std::map< int, ColumnState > columnStates_;
 
         inline const ColumnState& state( int column ) { return columnStates_[ column ]; }
@@ -142,10 +142,10 @@ namespace adwidgets {
                                    , QString::number( index.data( Qt::EditRole ).toDouble(), 'f', state.precision  ) );
             }
         };
-        
+
         ///////////////////////
         struct paint_f_mass {
-            
+
             int cformula;
             int cadducts;
             paint_f_mass( int _cformula, int _cadducts ) : cformula( _cformula ), cadducts( _cadducts ) {}
@@ -154,10 +154,10 @@ namespace adwidgets {
                 painter->save();
                 if ( cformula >= 0 ) {
                     auto expr = index.model()->index( index.row(), cformula ).data( Qt::EditRole ).toString();
-                    
+
                     if ( cadducts >= 0 )
                         expr += " " + index.model()->index( index.row(), cadducts ).data( Qt::EditRole ).toString();
-                    
+
                     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
                     if ( exactMass > 0.7 ) {  // Any 'chemical formula' mass should be > 1.0 (Hydrogen := 1.007825)
                         double mass = index.data( Qt::EditRole ).toDouble();
@@ -167,10 +167,10 @@ namespace adwidgets {
                     }
                     paint_f_precision()( state, painter, option, index );
                 }
-                painter->restore();                
+                painter->restore();
             }
         };
-        
+
         ///////////////////////
         struct paint_f_formula {
             void operator()( const ColumnState& state, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
@@ -188,7 +188,7 @@ namespace adwidgets {
                 if ( index.data().toDouble() <= 0.0001 ) {
                     painter->fillRect( option.rect, QColor( 0xff, 0x63, 0x47, 0x80 ) ); // tomato
                 }
-                painter->restore();                
+                painter->restore();
                 paint_f_precision()( state, painter, option, index );
             }
         };
@@ -205,7 +205,7 @@ namespace adwidgets {
                 renderer.render( painter, target );
                 painter->restore();
             }
-            
+
         };
 
         struct paint_f_protocol {
@@ -213,12 +213,12 @@ namespace adwidgets {
                 painter->drawText( option.rect, option.displayAlignment, index.data().toInt() < 0 ? "*" : index.data().toString() );
             }
         };
-        
+
         /////////////////////////
 
         delegate( impl * p ) : impl_( p ) {
         }
-        
+
         void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
 
             QStyleOptionViewItem opt(option);
@@ -234,12 +234,12 @@ namespace adwidgets {
                     painter->drawText( option.rect, Qt::AlignHCenter | Qt::AlignVCenter, state.choice[ idx ].first );
 
             } else if ( field == ColumnState::f_formula ) {
-                
+
                 paint_f_formula()( state, painter, opt, index );
-                
+
             } else if ( field == ColumnState::f_abundance ) {
 
-                paint_f_abundance()( state, painter, option, index );                
+                paint_f_abundance()( state, painter, option, index );
 
             } else if ( field == ColumnState::f_mass ) {
 
@@ -254,7 +254,7 @@ namespace adwidgets {
 
                 opt.displayAlignment = Qt::AlignCenter | Qt::AlignVCenter;
                 paint_f_protocol()( state, painter, opt, index );
-                
+
             } else if ( impl_->state( index.column() ).precision && index.data( Qt::EditRole ).canConvert<double>() ) {
 
                 paint_f_precision()( state, painter, opt, index );
@@ -280,7 +280,7 @@ namespace adwidgets {
                     model->setData( index, combo->currentText(), Qt::DisplayRole );
                     model->setData( index, idx, Qt::EditRole );
                 }
-                
+
             } else if ( state.field == ColumnState::f_formula || state.field == ColumnState::f_adducts ) {
                 // protect chemical paser from non-ascii 8-bit input
                 if ( auto edit = qobject_cast< QLineEdit * >( editor ) ) {
@@ -346,7 +346,7 @@ namespace adwidgets {
             }
             return false;
         }
-        
+
         QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
 
             auto field = impl_->field( index.column() );
@@ -359,7 +359,7 @@ namespace adwidgets {
                 return QStyledItemDelegate::sizeHint( option, index );
             }
         }
-        
+
     };
 }
 
@@ -393,7 +393,7 @@ MolTableView::onInitialUpdate()
 {
     //horizontalHeader()->setSectionResizeMode( QHeaderView::ResizeToContents );
     horizontalHeader()->setSectionResizeMode( 0, QHeaderView::Interactive );
-    horizontalHeader()->setStretchLastSection( true );    
+    horizontalHeader()->setStretchLastSection( true );
 }
 
 void
@@ -486,24 +486,24 @@ void
 MolTableView::dropEvent( QDropEvent * event )
 {
 	const QMimeData * mimeData = event->mimeData();
-    
+
 	if ( mimeData->hasUrls() ) {
 
         QSignalBlocker block( this );
 #if 0
         int row = model_->rowCount() == 0 ? 0 : model_->rowCount() - 1;
-        
+
         QList<QUrl> urlList = mimeData->urls();
         for ( auto& url : urlList ) {
 
 #if HAVE_RDKit
             std::string filename = url.toLocalFile().toStdString();
             std::cout << "dropEvent: " << filename << std::endl;
-            
+
             if ( auto supplier = std::make_shared< RDKit::SDMolSupplier >( filename, false, false, false ) ) {
-                
+
                 model_->insertRows( row, supplier->length() );
-                
+
                 for ( size_t i = 0; i < supplier->length(); ++i ) {
                     if ( auto mol = std::unique_ptr< RDKit::ROMol >( ( *supplier )[ i ] ) ) {
                         mol->updatePropertyCache( false );
@@ -514,7 +514,7 @@ MolTableView::dropEvent( QDropEvent * event )
                 }
             }
             resizeRowsToContents();
-#endif            
+#endif
         }
         event->accept();
 #endif
@@ -531,7 +531,7 @@ MolTableView::handleCopyToClipboard()
         return;
 
     adcontrols::moltable molecules;
-    
+
     QString selected_text;
     QModelIndex prev = indices.first();
     QModelIndex last = indices.last();
@@ -541,12 +541,11 @@ MolTableView::handleCopyToClipboard()
     adcontrols::moltable::value_type mol;
 
     for( int i = 0; i < indices.size(); ++i ) {
-        
+
         QModelIndex index = indices.at( i );
 
         if ( !isRowHidden( prev.row() ) ) {
 
-            auto t = prev.data( Qt::EditRole ).type();
             if ( !isColumnHidden( prev.column() ) && ( impl_->state( prev.column() ).field != ColumnState::f_svg ) ) {
 
                 QString text = prev.data( Qt::EditRole ).toString();
@@ -560,10 +559,11 @@ MolTableView::handleCopyToClipboard()
             case ColumnState::f_formula: mol.formula() = prev.data( Qt::EditRole ).toString().toStdString(); break;
             case ColumnState::f_adducts: mol.adducts() = prev.data( Qt::EditRole ).toString().toStdString(); break;
             case ColumnState::f_mass: mol.mass() = prev.data( Qt::EditRole ).toDouble(); break;
-            case ColumnState::f_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;                
+            case ColumnState::f_abundance: mol.abundance() = prev.data( Qt::EditRole ).toDouble(); break;
             case ColumnState::f_synonym: mol.synonym() = prev.data( Qt::EditRole ).toString().toStdString(); break;
             case ColumnState::f_description: mol.description() = prev.data( Qt::EditRole ).toString().toStdWString(); break;
             case ColumnState::f_smiles: mol.smiles() = prev.data( Qt::EditRole ).toString().toStdString(); break;
+            default: break;
             }
 
             if ( index.row() != prev.row() ) {
@@ -579,7 +579,7 @@ MolTableView::handleCopyToClipboard()
         selected_text.append( last.data( Qt::EditRole ).toString() );
 
     QApplication::clipboard()->setText( selected_text );
-    
+
     std::wostringstream o;
     try {
         if ( adcontrols::moltable::xml_archive( o, molecules ) ) {
@@ -656,7 +656,7 @@ MolTableView::getMonoIsotopicMass( const QString& formula, const QString& adduct
         expr += " " + adducts;
 
     double exactMass = ac::ChemicalFormula().getMonoIsotopicMass( ac::ChemicalFormula::split( expr.toStdString() ) );
-    
+
     return exactMass;
 }
 
@@ -669,7 +669,6 @@ MolTableView::smilesToSvg( const QString& smiles )
         std::string svg = adchem::drawing::toSVG( *mol );
         return QByteArray( svg.data(), svg.size() );
     }
-#endif                
+#endif
     return QByteArray();
 }
-
