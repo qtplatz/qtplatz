@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "adtraceswidget.hpp"
+#include "delegatehelper.hpp"
 #include "tableview.hpp"
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>
@@ -31,6 +32,8 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <QBoxLayout>
 #include <QDebug>
+#include <QEvent>
+#include <QHeaderView>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -38,66 +41,93 @@
 #include <QMessageBox>
 #include <QSplitter>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include <ratio>
 
 using admethods::controlmethod::ADTraceMethod;
 
 namespace adwidgets {
 
-    class ADTracesWidget::impl {
-        ADTracesWidget * this_;
+
+    class ADTracesWidget::delegate : public QStyledItemDelegate {
     public:
-        enum columns { c_id, c_legend, c_vOffset, ncolumns };
+        enum { c_legend, c_vOffset, c_ncolumn };
 
-        impl( ADTracesWidget * p ) : this_( p )
-                                   , model_( std::make_unique< QStandardItemModel >() ) {
-
-            model_->setColumnCount( ncolumns );
-            model_->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
-            model_->setHeaderData( c_legend,    Qt::Horizontal, QObject::tr( "Legend" ) );
-            model_->setHeaderData( c_vOffset,       Qt::Horizontal, QObject::tr( "Offset(V)" ) );
+        delegate() {
         }
 
-        ~impl() {
+        void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            QStyleOptionViewItem opt(option);
+            initStyleOption( &opt, index );
+            opt.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
+            if ( index.column() == c_legend )
+                DelegateHelper::render_html2( painter, opt, index.data().toString() );
+            else
+                QStyledItemDelegate::paint( painter, opt, index );
         }
 
-        void setMethod( const ADTraceMethod& m ) {
-            model_->setRowCount( m.size() );
+        QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
+            if ( index.column() == c_legend ) {
+                return DelegateHelper::html_size_hint( option, index );
+            } else {
+                return QStyledItemDelegate::sizeHint( option, index );
+            }
+        }
+    };
+
+
+    class ADTracesWidget::impl {
+    public:
+        QStandardItemModel model_;
+        admethods::controlmethod::ADTraceMethod data_;
+        TableView * tableView_;
+
+        impl() : tableView_( new TableView ) {
+            tableView_->setModel( &model_ );
+            tableView_->setSelectionMode( QAbstractItemView::SingleSelection );
+            tableView_->setItemDelegate( new delegate() );
+        }
+
+        void init() {
+            model_.setColumnCount( delegate::c_ncolumn );
+            model_.setHeaderData( delegate::c_legend, Qt::Horizontal, QObject::tr( "Legend" ) );
+            model_.setHeaderData( delegate::c_vOffset, Qt::Horizontal, QObject::tr( "Offset(V)" ) );
+            setData( ADTraceMethod() );
+            tableView_->setColumnWidth( 0, 240 );
+        }
+
+        void setData( const ADTraceMethod& m ) {
+            model_.setRowCount( m.size() );
             for ( size_t row = 0; row < m.size(); ++row ) {
                 const auto& t = m[ row ]; // ADTrace
-                model_->setData( model_->index( row, c_legend ), QString::fromStdString( t.legend() ) );
-                model_->setData( model_->index( row, c_vOffset), t.vOffset() );
+
+                model_.setData( model_.index( row, 0 ), QString::fromStdString( t.legend() ) );
+                model_.setData( model_.index( row, 1 ), t.vOffset() );
+
+                if ( auto item = model_.item( row, 0 ) ) {
+                    item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
+                    model_.setData( model_.index( row, 0 ), t.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+                }
             }
         }
 
-        void dataChanged( const QModelIndex& _1, const QModelIndex& _2 ) {
-            ADDEBUG() << "**** " << __FUNCTION__ << " **** row: " << _1.row();
-            // if ( _1.column() == c_formula ) {
-            //     int row = _1.row();
-            //     double exactMass = MolTableView::getMonoIsotopicMass( _1.data( Qt::EditRole ).toString() );
-            //     if ( exactMass > 0.7 ) {
-            //         model_->setData( model_->index( row, c_mass ), exactMass );
-            //         model_->setData( model_->index( row, c_masswindow ), 0.005 );
-            //     } else {
-            //         for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
-            //             model_->setData( model_->index( row, id ), QVariant() );
-            //     }
-            // }
-            emit this_->valueChanged();
+        bool fetch( ADTraceMethod& data ) const  {
+            for ( size_t row = 0; row < model_.rowCount() && row < data.size(); ++ row ) {
+                auto enable = model_.index( row, 0 ).data( Qt::CheckStateRole ) == Qt::Checked;
+                auto legend = model_.index( row, 0 ).data( Qt::EditRole ).toString().toStdString();
+                auto vOffset = model_.index( row, 1 ).data( Qt::EditRole ).toDouble();
+                data[ row ] = std::make_tuple( enable, legend, vOffset );
+            }
+            return true;
         }
 
-        void handleContextMenu( const QPoint& pt );
-        void addLine();
-
-        std::unique_ptr< QStandardItemModel > model_;
     };
-
 }
 
 using namespace adwidgets;
 
 ADTracesWidget::ADTracesWidget(QWidget *parent) : QWidget(parent)
-                                                , impl_( new impl( this ) )
+                                                , impl_( new impl )
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
@@ -105,27 +135,16 @@ ADTracesWidget::ADTracesWidget(QWidget *parent) : QWidget(parent)
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {
-            //splitter->addWidget( ( new ADTracesForm ) );
-            splitter->addWidget( ( new TableView ) );
-            //splitter->setStretchFactor( 0, 0 );
-            //splitter->setStretchFactor( 1, 3 );
+            splitter->addWidget( impl_->tableView_ );
             splitter->setOrientation ( Qt::Horizontal );
             layout->addWidget( splitter );
         }
     }
 
-    if ( auto table = findChild< TableView * >() ) {
-        table->setModel( impl_->model_.get() );
-        table->setColumnHidden( impl::c_id, true );
-    }
+    impl_->init();
 
-    // if ( auto form = findChild< ADTracesForm * >() )  {
-    //     connect( form, &ADTracesForm::applyTriggered, [this](){ emit applyTriggered(); } );
-    //     connect( form, &ADTracesForm::valueChanged, [this](){ emit valueChanged(); } );
-    // }
-
-    connect( impl_->model_.get(), &QStandardItemModel::dataChanged
-             , [this] ( const QModelIndex& _1, const QModelIndex& _2 ) { impl_->dataChanged( _1, _2 ); } );
+    connect( &impl_->model_, &QStandardItemModel::dataChanged
+             , [this]( const QModelIndex &topLeft, const QModelIndex &bottomRight){ emit dataChanged( topLeft.row(), topLeft.column() ); });
 }
 
 ADTracesWidget::~ADTracesWidget()
@@ -140,18 +159,6 @@ ADTracesWidget::OnCreate( const adportable::Configuration& )
 void
 ADTracesWidget::OnInitialUpdate()
 {
-    auto m = ADTraceMethod();
-    impl_->setMethod( m );
-
-    //if ( auto form = findChild< ADTracesForm * >() )
-    //    form->OnInitialUpdate();
-
-    if ( auto table = findChild< TableView *>() ) {
-        //table->onInitialUpdate();
-        // connect( table, &MolTableView::onContextMenu, this, &ADTracesWidget::handleContextMenu );
-    }
-
-    //setContents( adcontrols::ADTracesMethod() );
 }
 
 void
@@ -173,19 +180,16 @@ ADTracesWidget::getContents( boost::any& a ) const
         getContents( m );
 
         auto ptr = boost::any_cast< std::shared_ptr< adcontrols::ControlMethod::Method > >( a );
-        ADDEBUG() << "**** " << __FUNCTION__ << " ptr = " << (void*)(ptr.get());
         ptr->append( m );
 
         return true;
     }
-    ADDEBUG() << "**** " << __FUNCTION__ << " no pointer";
     return false;
 }
 
 bool
 ADTracesWidget::setContents( boost::any&& a )
 {
-    ADDEBUG() << "**** " << __FUNCTION__ << "(boost::any) ****";
     if ( auto pi = adcontrols::ControlMethod::any_cast<>()( a, ADTraceMethod::clsid() ) ) {
         ADTraceMethod m;
         if ( pi->get( *pi, m ) ) {
@@ -193,83 +197,42 @@ ADTracesWidget::setContents( boost::any&& a )
             return true;
         }
     }
-    ADDEBUG() << "**** " << __FUNCTION__ << " no ADTraceMethod found ****";
     return false;
 }
 
 bool
 ADTracesWidget::getContents( ADTraceMethod& m ) const
 {
-    ADDEBUG() << "**** " << __FUNCTION__ << " ****";
-    auto& model = *impl_->model_;
-
-    for ( int row = 0; row < model.rowCount() && row < m.size(); ++row ) {
-        auto enable = model.index( row, impl::c_legend ).data( Qt::CheckStateRole ) == Qt::Checked;
-        auto legend = model.index( row, impl::c_legend ).data( Qt::EditRole ).toString().toStdString();
-        auto vOffset = model.index( row, impl::c_vOffset ).data( Qt::EditRole ).toDouble();
-        m[ row ] = std::make_tuple( enable, legend, vOffset );
-    }
-
-    return true;
+    ADDEBUG() << "************* getContents";
+    return impl_->fetch( m );
 }
 
 bool
 ADTracesWidget::setContents( const ADTraceMethod& m )
 {
-    //if ( auto form = findChild< ADTracesForm *>() )
-    //    form->setContents( m );
-    ADDEBUG() << "**** " << __FUNCTION__ << "(ADTraceMethod) **** " << m.toJson();
-
-    impl_->setMethod( m );
-
+    ADDEBUG() << "************* setContents";
+    impl_->setData( m );
     return true;
-
 }
 
 void
 ADTracesWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
 {
-    menu.addAction( "Simulate MS Spectrum", this, SLOT( run() ) );
-}
-
-void
-ADTracesWidget::impl::handleContextMenu( const QPoint& pt )
-{
-    QMenu menu;
-    typedef std::pair< QAction *, std::function< void() > > action_type;
-
-    if ( auto table = this_->findChild< TableView * >() ) {
-
-        std::vector< action_type > actions;
-        actions.push_back( std::make_pair( menu.addAction( "add line" ), [this](){ addLine(); }) );
-
-        if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
-            auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){ return t.first == selected; });
-            if ( it != actions.end() )
-                (it->second)();
-        }
-    }
-}
-
-void
-ADTracesWidget::impl::addLine()
-{
-    model_->insertRow( model_->rowCount() );
-}
-
-void
-ADTracesWidget::handleScanLawChanged()
-{
-
+    //menu.addAction( "Simulate MS Spectrum", this, SLOT( run() ) );
 }
 
 QByteArray
 ADTracesWidget::readJson() const
 {
-    return QByteArray();
+    ADTraceMethod m;
+    impl_->fetch( m );
+    auto json = m.toJson();
+    return QByteArray( json.data(), json.size() );
 }
 
 void
 ADTracesWidget::setJson( const QByteArray& json )
 {
+    ADTraceMethod m;
+    m.fromJson( json.toStdString() );
 }

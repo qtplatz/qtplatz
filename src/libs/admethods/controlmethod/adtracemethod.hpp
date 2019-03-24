@@ -80,7 +80,7 @@ namespace admethods {
             const std::array< ADTrace, 8 >::const_iterator begin() { return data_.begin(); }
             const std::array< ADTrace, 8 >::const_iterator end() { return data_.end(); }
 
-            std::string toJson() const;
+            std::string toJson( bool pritty = false ) const;
             void fromJson( const std::string& );
 
             static bool archive( std::ostream&, const ADTraceMethod& );

@@ -36,7 +36,7 @@ inifile::save( adfs::sqlite& db, const adcontrols::ControlMethod::Method& cm )
 {
     adfs::stmt sql( db );
 
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
     ADDEBUG() << "************ inifile::save *********";
     for ( auto& mi : cm )
         ADDEBUG() << mi.clsid() << ", " << mi.modelname() << ", " << mi.itemLabel();
@@ -71,7 +71,7 @@ inifile::load( adfs::sqlite& db, adcontrols::ControlMethod::Method& cm )
     if ( sql.step() == adfs::sqlite_row ) {
         auto blob = sql.get_column_value< adfs::blob >( 0 );
         if ( adportable::bin_deserializer()( cm, reinterpret_cast< const char *>( blob.data() ), blob.size() ) ) {
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
             ADDEBUG() << "************ inifile::load *********";
             for ( auto& mi : cm )
                 ADDEBUG() << mi.clsid() << ", " << mi.modelname() << ", " << mi.itemLabel();

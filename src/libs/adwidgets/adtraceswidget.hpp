@@ -25,7 +25,6 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
-
 #include <adplugin_manager/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
@@ -58,28 +57,22 @@ namespace adwidgets {
         //
         bool getContents( admethods::controlmethod::ADTraceMethod& ) const;
         bool setContents( const admethods::controlmethod::ADTraceMethod& );
-        //
-        //MolTableView * molTableView();
 
         QByteArray readJson() const;
         void setJson( const QByteArray& );
 
-    private:
-        void handleContextMenu( QMenu&, const QPoint& );
-
-        class impl;
-        std::unique_ptr< impl > impl_;
-
     signals:
-        void valueChanged();
-        void applyTriggered();
-        void editorValueChanged( const QModelIndex&, double );
+        void dataChanged( int row, int column );
 
     public slots:
-        void handleScanLawChanged();
 
     private slots:
 
+    private:
+        void handleContextMenu( QMenu&, const QPoint& );
+        class delegate;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }

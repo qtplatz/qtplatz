@@ -48,12 +48,10 @@ namespace admethods {
             if ( Archive::is_saving::value ) {
                 auto json = toJson();
                 ar & BOOST_SERIALIZATION_NVP( json );
-                ADDEBUG() << "************** " << __FUNCTION__ << ", " << json;
             } else {
                 std::string json;
                 ar & BOOST_SERIALIZATION_NVP( json );
                 fromJson( json );
-                ADDEBUG() << "************** " << __FUNCTION__ << ", " << json;
             }
         }
     }
@@ -91,7 +89,6 @@ ADTraceMethod::archive( std::ostream& os, const ADTraceMethod& t )
 bool
 ADTraceMethod::restore( std::istream& is, ADTraceMethod& t )
 {
-    ADDEBUG() << "************** " << __FUNCTION__;
     portable_binary_iarchive ar( is );
     try {
         ar & t;
@@ -103,7 +100,7 @@ ADTraceMethod::restore( std::istream& is, ADTraceMethod& t )
 }
 
 std::string
-ADTraceMethod::toJson() const
+ADTraceMethod::toJson( bool pritty ) const
 {
     QJsonArray a;
 
@@ -113,7 +110,7 @@ ADTraceMethod::toJson() const
     }
     QJsonObject jobj{ {"clsid", __clsid_str}, { "modelClass", __modelClass__ }, { "data", a } };
 
-    return QJsonDocument( jobj ).toJson( QJsonDocument::Compact ).toStdString();
+    return QJsonDocument( jobj ).toJson( pritty ? QJsonDocument::Indented : QJsonDocument::Compact ).toStdString();
 }
 
 void

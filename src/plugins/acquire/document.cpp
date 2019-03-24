@@ -751,7 +751,8 @@ document::initialSetup()
 
     if ( impl_->cm_ ) {
         boost::filesystem::path fname( dir / Constants::LAST_METHOD );
-        load( QString::fromStdString( fname.string() ), *impl_->cm_ );
+        if ( load( QString::fromStdString( fname.string() ), *impl_->cm_ ) )
+            MainWindow::instance()->setControlMethod( impl_->cm_ );
     };
 
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
@@ -1065,7 +1066,6 @@ document::setControllerSettings( const QString& module, bool enable )
 void
 document::addInstController( std::shared_ptr< adextension::iController > p )
 {
-    ADDEBUG() << "################# " << __FUNCTION__ << " module: " << p->module_name().toStdString();
     using adextension::iController;
     using adacquire::SignalObserver::Observer;
 
@@ -1539,7 +1539,9 @@ document::load( const QString& filename, adcontrols::ControlMethod::Method& m ) 
     if ( fi.exists() ) {
         adfs::filesystem file;
         if ( file.mount( filename.toStdWString().c_str() ) ) {
-            return adutils::inifile::load( file.db(), m );
+            if ( adutils::inifile::load( file.db(), m ) ) {
+                return true;
+            }
         }
     }
     return false;

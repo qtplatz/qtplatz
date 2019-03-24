@@ -168,6 +168,10 @@ MainWindow::createDockWidgets()
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::ADTracesWidget >( "adTraces" ) ) {
         createDockWidget( widget, "ADTraces", "ADTraces" );
+        connect( widget, &adwidgets::ADTracesWidget::dataChanged
+                 , [widget]{
+                       ADDEBUG() << "ADTraces value changed";
+                   });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::CherryPicker >("ModulePicker") ) {
@@ -243,9 +247,8 @@ MainWindow::OnInitialUpdate()
 
     for ( auto dock: dockWidgets() ) {
         if ( auto widget = qobject_cast<adplugin::LifeCycle *>( dock->widget() ) ) {
+            widget->setContents( boost::any( document::instance()->controlMethod() ) ); // document -> GUI
             widget->OnInitialUpdate();
-            // setup control method on ui
-            widget->setContents( boost::any( document::instance()->controlMethod() ) );
         }
     }
 
@@ -827,12 +830,6 @@ MainWindow::setControlMethod( std::shared_ptr< const adcontrols::ControlMethod::
             widget->setContents( boost::any(m) );
         }
     }
-#ifndef NDEBUG
-    ADDEBUG() << "************ setControlMethod *******";
-    for ( auto& mi : *m )
-        ADDEBUG() << mi.clsid() << ", " << mi.modelname() << ", " << mi.itemLabel();
-    ADDEBUG() << "************************************";
-#endif
 }
 
 std::shared_ptr< adcontrols::ControlMethod::Method >
