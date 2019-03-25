@@ -37,15 +37,15 @@ namespace adwidgets {
 
     class MolTableView;
 
-    class ADWIDGETSSHARED_EXPORT ADTracesWidget : public QWidget
+    class ADWIDGETSSHARED_EXPORT ADTraceWidget : public QWidget
                                                 , public adplugin::LifeCycle {
 
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle );
 
     public:
-        explicit ADTracesWidget(QWidget *parent = 0);
-        ~ADTracesWidget();
+        explicit ADTraceWidget(QWidget *parent = 0);
+        ~ADTraceWidget();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;

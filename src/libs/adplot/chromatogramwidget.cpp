@@ -64,7 +64,7 @@ namespace adplot {
         static QColor color_table [] = {
             QColor( 0x00, 0x00, 0xff )    // 0  blue
             , QColor( 0xff, 0x00, 0x00 )  // 1  red
-            , QColor( 0x00, 0x80, 0x00 )  // 2  green            
+            , QColor( 0x00, 0x80, 0x00 )  // 2  green
             , QColor( 0x4b, 0x00, 0x82 )  // 3  indigo
             , QColor( 0xff, 0x14, 0x93 )  // 4  deep pink
             , QColor( 0x94, 0x00, 0xd3 )  // 5  dark violet
@@ -95,7 +95,7 @@ namespace adplot {
                 , rect_( rc ) {
             }
 
-            size_t size() const override { 
+            size_t size() const override {
                 if ( auto ptr = cptr_.lock() )
                     return ptr->size();
                 return 0;
@@ -133,11 +133,9 @@ namespace adplot {
             size_t size() const override { return t_->size(); }
 
             QPointF sample( size_t idx ) const override {
-                auto y = t_->range_y();
-                // double v = 1000 * ( t_->y( idx ) - y.first ) / ( y.second - y.first );  // Relative
-                return QPointF( t_->x(idx) - t_->injectTime(), t_->y( idx ) );
+                return QPointF( t_->x(idx) - t_->injectTime(), (t_->y( idx ) - t_->yOffset()) );
             }
-            
+
             virtual QRectF boundingRect() const override {
                 return rect_;
             }
@@ -147,7 +145,7 @@ namespace adplot {
         private:
 			QRectF rect_;
         };
-        
+
         template<class T> class TraceData {
         public:
             ~TraceData() { }
@@ -173,9 +171,8 @@ namespace adplot {
                 double x0 = trace->x( 0 ) - trace->injectTime();
                 double x1 = trace->x( trace->size() - 1 ) - trace->injectTime();
                 auto range_y = trace->range_y();
-                // double height = range_y.second - range_y.first;
                 rect_ = QRectF( QPointF( x0, range_y.first ), QPointF( x1, range_y.second ) );
-                
+
                 d_trace->setBoundingRect( rect_ );
 
                 curve_.p()->setData( d_trace );
@@ -196,7 +193,7 @@ namespace adplot {
                 auto range_y = std::pair<double, double>( cp->getMinIntensity(), cp->getMaxIntensity() );
 
                 // // workaround for 'counting chromatogram', which can be complete flat signals
-                if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() ) 
+                if ( std::abs( range_y.first - range_y.second ) <= std::numeric_limits<double>::epsilon() )
                      range_y.first = 0;
 
                 rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first );
@@ -232,7 +229,7 @@ namespace adplot {
             std::shared_ptr< const adcontrols::Chromatogram > grab_;
             bool y2_;
         };
-        
+
         // typedef boost::variant< ChromatogramData, TraceData<adcontrols::Trace> > trace_variant;
         typedef boost::variant< std::unique_ptr< ChromatogramData >
                                 , std::unique_ptr< TraceData<adcontrols::Trace> > > trace_variant;
@@ -298,9 +295,9 @@ namespace adplot {
                 text.setBackgroundBrush( QBrush( bg ) );
                 return text;
             }
-            
+
         };
-        
+
     }
 
     class ChromatogramWidget::impl {
@@ -308,23 +305,23 @@ namespace adplot {
         impl& operator = ( const impl& ) = delete;
     public:
         impl() : axis_( HorizontalAxisSeconds ) {}
-        
+
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
-        
+
         std::vector< chromatogram_widget::trace_variant > traces_;
         std::vector< Peak > peaks_;
-        std::vector< Baseline > baselines_;	
+        std::vector< Baseline > baselines_;
         std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
         std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
         ChromatogramWidget::HorizontalAxis axis_;
-        
+
         void clear();
         void removeData( int );
         void update_annotations( const std::pair<double, double>&, adcontrols::annotations& ) const;
 		void clear_annotations();
         void update_markers( const std::pair<double, double>& ) const;
-        
+
         QwtText tracker1( const QPointF& );
         QwtText tracker2( const QPointF&, const QPointF& );
 
@@ -345,26 +342,26 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
 {
     setAxisTitle(QwtPlot::xBottom, QwtText( "Time[seconds]", QwtText::RichText ) );
     setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
-    
+
     // -----------
     auto font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel );
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
-    
+
     if ( auto zoomer = plot::zoomer() ) {
         using namespace std::placeholders;
         zoomer->tracker1( std::bind( &impl::tracker1, impl_, _1 ) );
         zoomer->tracker2( std::bind( &impl::tracker2, impl_, _1, _2 ) );
-        
+
         connect( zoomer, &Zoomer::zoomed, this, &ChromatogramWidget::zoomed );
 	}
-    
+
     if ( auto picker = plot::picker() ) {
         // picker_->setStateMachine( new QwtPickerClickPointMachine() );
 		connect( picker, SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker, SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );
 		connect( picker, SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
-        
+
         picker->setEnabled( true );
 	}
 }
@@ -423,7 +420,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
         impl_->traces_[ idx ] = std::make_unique< TraceData< adcontrols::Trace > >( *this );
 
     if ( auto& trace = boost::get< std::unique_ptr< TraceData< adcontrols::Trace > > >( impl_->traces_[ idx ] ) ) {
-        
+
         trace->plot_curve().setPen( QPen( color_table [ idx ] ) );
         trace->plot_curve().setYAxis( yRight ? QwtPlot::yRight : QwtPlot::yLeft );
         trace->setData( c );
@@ -483,17 +480,17 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
 
     auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
 
-	trace->plot_curve().setPen( QPen( color_table[idx] ) ); 
+	trace->plot_curve().setPen( QPen( color_table[idx] ) );
     trace->setData( cp, yRight );
     impl_->peak_annotations_.clear();
 
     for ( auto& pk: cp->peaks() )
         setPeak( pk, impl_->peak_annotations_ );
-    
+
     impl_->peak_annotations_.sort();
-    
+
     plotAnnotations( impl_->peak_annotations_ );
-    
+
     QRectF rect = trace->boundingRect();
     for ( const auto& v: impl_->traces_ ) {
         if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
@@ -536,30 +533,30 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 
 	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
 		setBaseline( *it );
-    
+
     impl_->peak_annotations_.clear();
 	for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
 		setPeak( *it, impl_->peak_annotations_ );
-    
+
     plotAnnotations( impl_->peak_annotations_ );
-}    
+}
 
 void
 ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotations& vec )
 {
     //double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
     double tR = peak.peakTime();
-    
+
     int pri = 0;
     std::string label = peak.name();
     if ( label.empty() )
         label = ( boost::format( "%.4lf" ) % tR ).str();
 
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
-    
+
     adcontrols::annotation annot( label, tR, peak.topHeight(), pri );
     vec << annot;
-    
+
     impl_->peaks_.push_back( adplot::Peak( *this, peak ) );
 }
 
@@ -575,7 +572,7 @@ ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
     impl_->clear_annotations();
 
     adplot::Annotations w( *this, impl_->annotation_markers_ );
-    
+
     for ( auto& a: vec ) {
 		QwtText text( QString::fromStdString( a.text() ), QwtText::RichText );
         text.setColor( Qt::darkGreen );
@@ -617,7 +614,7 @@ ChromatogramWidget::zoomed( const QRectF& rect )
     updateMarkers_visitor drawMarker( this, range );
     for ( auto& trace : impl_->traces_ )
         boost::apply_visitor( drawMarker, trace );
-    
+
     adcontrols::annotations vec;
     impl_->update_annotations( range, vec );
     vec.sort();
@@ -692,11 +689,11 @@ ChromatogramWidget::impl::update_annotations( const std::pair<double, double>& r
     auto end = std::lower_bound( peaks.begin(), peaks.end(), range.second, [=]( const adcontrols::annotation& a, double rhs ){
             return a.x() < rhs;
         });
-    
+
     std::for_each( beg, end, [&]( const adcontrols::annotation& a ){
             vec << a;
         });
-    
+
     vec.sort();
 }
 
@@ -734,4 +731,3 @@ ChromatogramWidget::impl::redraw()
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-

@@ -58,6 +58,8 @@ namespace adcontrols {
     class TofChromatogramsMethod;
 }
 
+namespace admethods { namespace controlmethod { class ADTraceMethod; } }
+
 namespace boost { namespace uuids { struct uuid; } namespace filesystem { class path; } }
 
 namespace socfpga { namespace dgmod { struct advalue; } }
@@ -136,6 +138,7 @@ namespace acquire {
 
         void set_tof_chromatograms_method( const QByteArray& json, bool commitSettings );
         QByteArray tof_chromatograms_method() const;
+        void set_trace_method( const admethods::controlmethod::ADTraceMethod& );
 
         void commitData(); // call from task
 
@@ -171,9 +174,11 @@ namespace acquire {
 
     private slots:
         void handleMessage( adextension::iController *, uint32_t code, uint32_t value );
+        void handleInfo( adextension::iController *, const QByteArray& json );
         void handleConnected( adextension::iController * controller );
     public slots:
         void handleConsoleIn( const QString& line );
+        void handleTraceMethodChanged();
 
     private:
         class impl;
@@ -182,8 +187,8 @@ namespace acquire {
         bool load( const QString& filename, adcontrols::ControlMethod::Method& ) const;
 
     signals:
-        void onTick( const QByteArray );
-        void onDelayPulseData( const QByteArray );
+        void onTick( const QByteArray& );
+        void onDelayPulseData( const QByteArray& );
 
         void on_reply( const QString&, const QString& );
         void on_waveform_received();

@@ -46,7 +46,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/split_filename.hpp>
-#include <adwidgets/adtraceswidget.hpp>
+#include <adwidgets/adtracewidget.hpp>
 #include <adwidgets/cherrypicker.hpp>
 #include <adwidgets/countingwidget.hpp>
 #include <adwidgets/dgwidget.hpp>
@@ -124,6 +124,19 @@ MainWindow::createDockWidgets()
     file.open( QFile::ReadOnly );
     QString tabStyle( file.readAll() );
 
+
+    if ( auto widget = new adwidgets::SampleRunWidget ) {
+        createDockWidget( widget, "Sample Run", "SampleRunWidget" );
+    }
+
+    if ( auto widget = qtwrapper::make_widget< adwidgets::ADTraceWidget >( "adTraces" ) ) {
+        createDockWidget( widget, "ADC", "ADTraces" );
+        connect( widget, &adwidgets::ADTraceWidget::dataChanged
+                 , [](int row, int column) {
+                       document::instance()->handleTraceMethodChanged();
+                   });
+    }
+
     if ( auto sse = qtwrapper::make_widget< adwidgets::dgWidget >( "delayPulseMonitor" ) ) {
 
         createDockWidget( sse, "ACQUIRE", "ACQUIRE" );
@@ -154,23 +167,11 @@ MainWindow::createDockWidgets()
                    });
     }
 
-    if ( auto widget = new adwidgets::SampleRunWidget ) {
-        createDockWidget( widget, "Sample Run", "SampleRunWidget" );
-    }
-
     if ( auto widget = qtwrapper::make_widget< adwidgets::TofChromatogramsWidget >( "tofChromatograms" ) ) {
         createDockWidget( widget, "Chromatograms", "Chromatograms" );
         connect( widget, &adwidgets::TofChromatogramsWidget::applyTriggered
                  , [widget](){
                        document::instance()->set_tof_chromatograms_method( widget->readJson(), true );
-                   });
-    }
-
-    if ( auto widget = qtwrapper::make_widget< adwidgets::ADTracesWidget >( "adTraces" ) ) {
-        createDockWidget( widget, "ADTraces", "ADTraces" );
-        connect( widget, &adwidgets::ADTracesWidget::dataChanged
-                 , [widget]{
-                       ADDEBUG() << "ADTraces value changed";
                    });
     }
 
@@ -181,31 +182,6 @@ MainWindow::createDockWidgets()
                        document::instance()->setControllerSettings( key, enable );
                    });
     }
-
-#if 0
-    if ( auto widget = qtwrapper::make_widget< adwidgets::dgWidget >( "delayPulseMonitor" ) ) {
-
-        if ( auto tab = widget->findChild< QTabWidget * >() )
-            tab->setObjectName( "delayPulseTab" );
-        if ( auto bar = widget->findChild< QTabBar * >() )
-            bar->setObjectName( "delayPulseTabBar" );
-
-        if ( auto tab = widget->findChild< QTabWidget * >() ) {
-            tab->setObjectName( "ThresholdTab" );
-            if ( auto bar = tab->findChild< QTabBar * >() )
-                bar->setObjectName( "ThresholdTabBar" );
-
-            tab->addTab( widget, "Delay/Pulse" );
-            tab->setStyleSheet( tabStyle );
-        }
-
-        connect( widget, &adwidgets::dgWidget::hostChanged, this
-                 , [widget](const QString& host, const QString& port ){
-                       document::instance()->acquire_ip_addr( host, port );
-                       widget->setURL( QString("%1:%2").arg( host, port ) );
-                   });
-    }
-#endif
 
 #if defined Q_OS_LINUX
     for ( auto dock: dockWidgets() ) {
@@ -423,7 +399,8 @@ MainWindow::setSimpleDockWidgetArrangement()
 {
     qtwrapper::TrackingEnabled< Utils::FancyMainWindow > x( *this );
 
-    const std::string left = "ACQUIRE;ACQUIREThreshold"; // ;SampleRunWidget";
+    //const std::string left = "ACQUIRE;ACQUIREThreshold"; // ;SampleRunWidget";
+    const std::string left = "SampleRunWidget";
 
     for ( auto widget : dockWidgets() ) {
         widget->setFloating( false );
@@ -842,12 +819,6 @@ MainWindow::getControlMethod() const
             widget->getContents( a );
         }
     }
-#ifndef NDEBUG
-    ADDEBUG() << "************ getControlMethod *******";
-    for ( auto& mi : *ptr )
-        ADDEBUG() << mi.clsid() << ", " << mi.modelname() << ", " << mi.itemLabel();
-    ADDEBUG() << "************************************";
-#endif
     return ptr;
 }
 

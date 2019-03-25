@@ -100,19 +100,6 @@ namespace adcontrols {
         void setColorArray( const uint8_t * );
         void resize( size_t );
 
-        // void addDescription( const description& );
-        // const descriptions& getDescriptions() const;
-
-        // void setCalibration( const MSCalibration& );
-        // const MSCalibration& calibration() const;
-
-        // void setPolarity( MS_POLARITY polarity );
-        // MS_POLARITY polarity() const;
-
-        // inline void set_annotations( const annotations& a ) { annotations_ = a; }
-        // inline const annotations& get_annotations() const {  return annotations_;  }
-        // inline annotations& get_annotations() {  return annotations_;  }
-
         // private:
         static std::wstring empty_string_;  // for error return as reference
 

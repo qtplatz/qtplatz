@@ -59,4 +59,7 @@ Receiver::notify_error( const std::string& what,  const std::string& file, int l
 {
 }
 
-
+// void
+// Receiver::notify_info( const std::string& json ) const
+// {
+// }

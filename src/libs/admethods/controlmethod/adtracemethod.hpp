@@ -54,6 +54,8 @@ namespace admethods {
 
             std::string legend() const;
             void setLegend( const std::string& );
+
+            inline std::tuple< bool, std::string, double > data() const { return d_; }
         private:
             std::tuple< bool, std::string, double > d_;  // enable, legend, vOffset
         };

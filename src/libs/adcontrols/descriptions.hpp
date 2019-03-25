@@ -66,6 +66,7 @@ namespace adcontrols {
        std::wstring make_folder_name( const std::wstring& regex = L".*" ) const;
 
        std::wstring toString() const;
+       std::string toJson() const;
 
        static bool xml_archive( std::wostream&, const descriptions& );
        static bool xml_restore( std::wistream&, descriptions& );
@@ -78,10 +79,8 @@ namespace adcontrols {
 
     template<> void ADCONTROLSSHARED_EXPORT
     descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version );
-    
-    
+
+
     template<> void ADCONTROLSSHARED_EXPORT
     descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version );
 }
-
-

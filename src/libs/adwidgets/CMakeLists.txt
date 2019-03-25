@@ -104,7 +104,7 @@ set( ${PROJECT_NAME}_SOURCES
   toftable.cpp
   tofchromatogramsform.cpp
   tofchromatogramswidget.cpp
-  adtraceswidget.cpp
+  adtracewidget.cpp
   thresholdactionform.cpp
   controlmethod/timedeventswidget.cpp
   controlmethod/timedtableview.cpp
@@ -168,7 +168,7 @@ set( ${PROJECT_NAME}_HEADERS
   targetingadducts.hpp
   tofchromatogramsform.hpp
   tofchromatogramswidget.hpp
-  adtraceswidget.hpp
+  adtracewidget.hpp
   thresholdactionform.hpp
   controlmethod/timedeventswidget.hpp
   controlmethod/timedtableview.hpp

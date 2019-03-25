@@ -100,6 +100,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
@@ -503,17 +504,20 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                 }
                 if ( reader->trace_method() == adacquire::SignalObserver::eTRACE_TRACE ) {
                     for ( size_t idx = 0; idx < 8; ++idx ) {
-                        ADDEBUG() << "reader->trace index" << idx;
-                        if ( auto tic = reader->getChromatogram( idx ) ) {
-                            auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )
-                                                                     % adcontrols::Chromatogram::make_folder_name( tic->getDescriptions() )
-                                                                     % L"ADC" % ( idx + 1 ) ).str() );
-                            if ( folium.nil() ) {
-                                adcontrols::Chromatogram c = *tic;
-                                c.addDescription( adcontrols::description( L"acquire.title", ( boost::wformat( L"ADC.%1%" ) % ( idx + 1 ) ).str() ) );
-                                portfolio::Folium folium = processor->addChromatogram( c, m, true );
+                        if ( auto pChro = reader->getChromatogram( idx ) ) {
+                            bool enable(true);
+                            std::string legend;
+                            if ( auto value = pChro->ptree().get_optional< bool >("trace.enable") )
+                                enable = value.get();
+                            if ( enable ) {
+                                pChro->addDescription( adcontrols::description({"acquire.title", ( boost::format( "ADC.%1%" ) % ( idx + 1 ) ).str()}) );
+                                std::wstring name = adcontrols::Chromatogram::make_folder_name( pChro->getDescriptions() );
+                                auto folium = folder.findFoliumByName( name );
+                                if ( folium.nil() ) {
+                                    folium = processor->addChromatogram( *pChro, m, true );
+                                    processor->setCurrentSelection( folium );
+                                }
                             }
-                            processor->setCurrentSelection( folium );
                         }
                     }
                 }

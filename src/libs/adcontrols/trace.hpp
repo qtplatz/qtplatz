@@ -58,7 +58,7 @@ namespace adcontrols {
 
         void setEnable( bool );
         bool enable() const;
-        
+
         void setIsCountingTrace( bool );
         bool isCountingTrace() const;
 
@@ -80,6 +80,9 @@ namespace adcontrols {
         const std::string& legend() const;
         void setLegend( const std::string& );
 
+        void setYOffset( double );
+        double yOffset() const;
+
     private:
 		int fcn_;
         double minY_;
@@ -88,6 +91,7 @@ namespace adcontrols {
         bool enable_;
         double injectTime_;
         std::string legend_;
+        double yOffset_;
 
         enum { data_number, x_value, y_value, event_flags };
         typedef std::tuple< size_t, double, double, uint32_t > value_type;

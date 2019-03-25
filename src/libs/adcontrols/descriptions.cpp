@@ -42,6 +42,9 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -85,9 +88,9 @@ namespace adcontrols {
             std::wstring operator()() const {
 
                 std::wstring name;
-                
+
                 std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const description& d ){
-                        
+
                         std::match_results< std::wstring::const_iterator > match;
                         std::wstring key = d.key();
                         if ( std::regex_match( key, match, regex_ ) ) {
@@ -101,7 +104,7 @@ namespace adcontrols {
                 return name;
             }
         };
-        
+
 	}
 }
 
@@ -153,7 +156,7 @@ descriptions::size() const
     return pImpl_->size();
 }
 
-const description& 
+const description&
 descriptions::operator [] ( size_t idx ) const
 {
    return (*pImpl_)[idx];
@@ -189,13 +192,27 @@ descriptions::begin() const
 std::vector< description >::const_iterator
 descriptions::end() const
 {
-    return pImpl_->vec_.end();    
+    return pImpl_->vec_.end();
 }
 
 std::wstring
 descriptions::make_folder_name( const std::wstring& regex ) const
 {
     return internal::make_folder_name( regex, *pImpl_ )();
+}
+
+std::string
+descriptions::toJson() const
+{
+    boost::property_tree::ptree pt;
+    for ( const auto& desc: *this ) {
+        std::string key, value;
+        std::tie(key, value) = desc.keyValue();
+        pt.put( key, value );
+    }
+    std::ostringstream o;
+    boost::property_tree::write_json( o, pt );
+    return o.str();
 }
 
 namespace adcontrols {
@@ -206,7 +223,7 @@ namespace adcontrols {
         (void)version;
         ar & *pImpl_;
     }
-    
+
     template<> void
     descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
@@ -221,14 +238,14 @@ namespace adcontrols {
         (void)version;
         ar << boost::serialization::make_nvp("descriptions", pImpl_);
     }
-    
+
     template<> void
     descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         (void)version;
         ar >> boost::serialization::make_nvp("descriptions", pImpl_);
     }
-    
+
 
 }; // namespace adcontrols
 //-------------------------------------------------------------------------------------------

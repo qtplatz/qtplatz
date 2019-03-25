@@ -26,7 +26,6 @@
 #include "task.hpp"
 #include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
-//#include "dgmod/session.hpp"
 #include <date/date.h>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
@@ -55,6 +54,7 @@
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adlog/logging_handler.hpp>
+#include <admethods/controlmethod/adtracemethod.hpp>
 #include <adplugins/adspectrometer/massspectrometer.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
@@ -228,11 +228,8 @@ namespace acquire {
         bool isMethodDirty_;
 
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
-        //std::unique_ptr< ResultWriter > resultWriter_;
-        //std::shared_ptr< const adcontrols::TofChromatogramsMethod > tofChromatogramsMethod_;
 
         int32_t device_status_;
-        // double triggers_per_second_;
 
         std::shared_ptr< QSettings > settings_;  // user scope settings
         QString ctrlmethod_filename_;
@@ -250,8 +247,6 @@ namespace acquire {
         uint32_t acquire_polling_mtu_;
 
         bool     acquire_avgr_enabled_;
-        //uint32_t acquire_avgr_lower_addr_;
-        //uint32_t acquire_avgr_upper_addr_;
         double acquire_dg_adc_delay_;
         double acquire_dg_interval_;
         uint32_t acquire_avgr_samples_;
@@ -279,13 +274,11 @@ namespace acquire {
         // display data
         std::array< std::shared_ptr< adcontrols::Trace >, 8 > traces_;
 
-
         impl() : nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                , iDGMODImpl_( std::make_shared< acquire::iDGMODImpl >() )
                , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "ACQUIRE" ) )
                , isMethodDirty_( true )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
-                 //, resultWriter_( std::make_unique< ResultWriter >() )
                , device_status_( 0 )
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
@@ -614,6 +607,8 @@ document::addInstController( adextension::iController * p )
                 connect( p, &iController::message, document::instance()
                          , [] ( iController * p, unsigned int code, unsigned int value ) { document::instance()->handleMessage( p, code, value ); } );
 
+                connect( p, &iController::notifyInfo, [](iController * p, const QByteArray& json){ document::instance()->handleInfo( p, json ); });
+
                 // non UI thread
                 connect( p, &iController::connected, [this] ( iController * p ) { handleConnected( p ); } );
                 //connect( p, &iController::log, [this] ( iController * p, const QString& log ) { handleLog( p, log ); } );
@@ -749,12 +744,6 @@ document::initialSetup()
         }
     }
 
-    if ( impl_->cm_ ) {
-        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
-        if ( load( QString::fromStdString( fname.string() ), *impl_->cm_ ) )
-            MainWindow::instance()->setControlMethod( impl_->cm_ );
-    };
-
     QString path = recentFile( Constants::GRP_DATA_FILES, false );
     if ( path.isEmpty() ) {
         path = QString::fromStdWString(
@@ -784,6 +773,13 @@ document::initialSetup()
         }
     }
 
+    // load last control method from ini-file
+    if ( impl_->cm_ ) {
+        boost::filesystem::path fname( dir / Constants::LAST_METHOD );
+        if ( load( QString::fromStdString( fname.string() ), *impl_->cm_ ) )
+            MainWindow::instance()->setControlMethod( impl_->cm_ ); // <-- update MainWindos
+    };
+
     if ( auto settings = impl_->settings_ ) {
         impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "192.168.1.132" ).toString();
         impl_->http_port_ = settings->value( Constants::THIS_GROUP + QString("/http_port"),  "http" ).toString();
@@ -806,14 +802,10 @@ document::initialSetup()
         auto a = settings->value( QString( Constants::THIS_GROUP ) + "/threshold_action"
                                   , ThresholdActionForm::toJson( adcontrols::threshold_action() ) );
         impl_->threshold_action_ = QJsonDocument::fromJson( a.toByteArray() );
-
-        auto json = tof_chromatograms_method();
-        if ( ! json.isEmpty() ) {
-            set_tof_chromatograms_method( json, false );
-        }
     }
 
-
+    // force update trace method to waveformwnd
+    handleTraceMethodChanged();
 }
 
 void
@@ -949,6 +941,27 @@ document::handleMessage( adextension::iController * ic, uint32_t code, uint32_t 
         if ( value & adacquire::Instrument::eErrorFlag ) {
             QMessageBox::warning( MainWindow::instance(), "ACQUIRE Error"
                                   , QString( "Module %1 error with code %2" ).arg( ic->module_name(), QString::number( value, 16 ) ) );
+        }
+    }
+}
+
+void
+document::handleInfo( adextension::iController *, const QByteArray& json )
+{
+    static std::chrono::steady_clock::time_point __tp;
+
+    auto jtick = QJsonDocument::fromJson( json ).object()[ "tick" ].toObject();
+    if ( ! jtick.isEmpty() ) {
+        emit onTick( json );
+        if ( std::chrono::duration_cast< std::chrono::seconds >( std::chrono::steady_clock::now() - __tp ).count() > 6 ) {
+            adurl::ajax ajax( impl_->http_host_.toStdString(), impl_->http_port_.toStdString() );
+            if ( ajax( "GET", "/dg/ctl?status.json" ) ) {
+                size_t sz;
+                if ( auto resp = ajax.get_response( sz ) ) {
+                    QByteArray data( resp, sz );
+                    emit onDelayPulseData( data );
+                }
+            }
         }
     }
 }
@@ -1158,28 +1171,7 @@ document::takeSnapshot()
     std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
     std::string date = adportable::date_string::logformat( tp );
 
-    QStringList formatList{ "Spectrum %1 CH-%2", "LT-Avrgd %1 CH-%2", "LT-Hist %1 CH-%2", "PKD %1 CH-%2" };
-    // get waveform(s)
-    // auto formatIt = formatList.begin();
-    // for ( auto& uuid: { WaveformObserver::__objid__, avrg_waveform_observer, histogram_observer, pkd_observer } ) {
-
-    //     auto spectra = impl_->spectra_[ uuid ];
-
-    //     int ch = 1;
-    //     for ( auto ms: spectra ) {
-    //         if ( ms ) {
-    //             QString title = formatIt->arg( QString::fromStdString( date ), QString::number( ch ) );
-    //             QString folderId;
-    //             if ( appendOnFile( path, title, *ms, folderId ) ) {
-    //                 auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
-    //                 for ( auto handler: vec )
-    //                     handler->folium_added( path.string().c_str(), "/Processed/Spectra", folderId );
-    //             }
-    //         }
-    //         ++ch;
-    //     }
-    //     ++formatIt;
-    // }
+    // nothing to be done
 }
 
 const QJsonDocument&
@@ -1296,6 +1288,25 @@ document::tof_chromatograms_method() const
     if ( auto settings = impl_->settings_ )
         return settings->value( QString( Constants::THIS_GROUP ) + "/tofChromatogramsMethod", QByteArray() ).toByteArray();
     return QByteArray();
+}
+
+void
+document::set_trace_method( const admethods::controlmethod::ADTraceMethod& m )
+{
+    for ( size_t idx = 0; idx < impl_->traces_.size() && idx < m.size(); ++idx ) {
+        const auto& adtrace = m[ idx ];
+
+        auto& trace = impl_->traces_.at( idx );
+        trace->setEnable( adtrace.enable() ); // id[0] is always true
+        trace->setLegend( adtrace.legend() );
+        trace->setYOffset( adtrace.vOffset() );
+    }
+
+    // check if nothing enabled
+    auto it = std::find_if( impl_->traces_.begin(), impl_->traces_.end(), [](const auto& t){ return t->enable(); });
+    if ( it == impl_->traces_.end() ) {
+        impl_->traces_.at( 0 )->setEnable( true );
+    }
 }
 
 //////////////////
@@ -1545,4 +1556,17 @@ document::load( const QString& filename, adcontrols::ControlMethod::Method& m ) 
         }
     }
     return false;
+}
+
+void
+document::handleTraceMethodChanged()
+{
+    if ( auto cm = MainWindow::instance()->getControlMethod() ) {
+        auto it = cm->find( cm->begin(), cm->end(), admethods::controlmethod::ADTraceMethod::__clsid__ );
+        if ( it != cm->end() ) {
+            admethods::controlmethod::ADTraceMethod tm;
+            it->get( *it, tm );
+            set_trace_method( tm );
+        }
+    }
 }

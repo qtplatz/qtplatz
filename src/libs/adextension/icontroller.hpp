@@ -42,14 +42,14 @@ namespace adacquire {
 namespace adextension {
 
     using namespace std::chrono_literals;
-    
+
     class ADEXTENSIONSHARED_EXPORT iController : public QObject
                                                , public std::enable_shared_from_this< iController > {
         Q_OBJECT
     public:
         explicit iController(QObject *parent = 0);
         std::shared_ptr< iController > pThis() { return shared_from_this(); }
-        std::shared_ptr< const iController > pThis() const { return shared_from_this(); }        
+        std::shared_ptr< const iController > pThis() const { return shared_from_this(); }
 
         virtual bool connect() = 0;
 
@@ -91,7 +91,7 @@ namespace adextension {
         void dataChanged( adacquire::SignalObserver::Observer *, unsigned int pos );
         void dataEvent( adacquire::SignalObserver::Observer *, unsigned int events, unsigned int pos );
         void notifyError( iController * self, const QString& what, const QString& file, int line );
+        void notifyInfo( iController * self, const QByteArray& json );
     };
 
 }
-

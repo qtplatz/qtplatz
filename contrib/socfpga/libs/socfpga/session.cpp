@@ -117,6 +117,12 @@ namespace socfpga {
                     ADINFO() << "ACQUIRE: " << method << " = " << reply;
                 }
             }
+
+            void reply_info( const std::string& json ) {
+                for ( auto& r: clients_ )
+                    r.first->notify_info( json );
+            }
+
             void connect_sse( const std::string& host, const std::string& port, const std::string& url );
         };
     }
@@ -339,16 +345,22 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
     sse_->register_sse_handler(
         [&]( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
 
+            //std::for_each( headers.begin(), headers.end(), [](const auto& pair){ ADDEBUG() << pair; });
             auto it = std::find_if( headers.begin(), headers.end()
                                     , [](const auto& pair){ return pair.first == "event" && pair.second == "ad.values"; } );
-            if ( it == headers.end() )
+
+            // handle non ad.values data
+            if ( it == headers.end() ) {
+                if ( ( it = std::find_if( headers.begin(), headers.end(), [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() )
+                    reply_info( it->second );
                 return;
-            it = std::find_if( headers.begin(), headers.end(), [](const auto& pair){ return pair.first == "data"; });
-            if ( it != headers.end() ) {
-                // document::instance()->debug_sse( headers, body );
+            }
+
+            // handle ad.values
+            if ( ( it = std::find_if( headers.begin(), headers.end(), [](const auto& pair){ return pair.first == "data"; }) ) != headers.end() ) {
+
                 auto jdoc = QJsonDocument::fromJson( QByteArray( it->second.data(), it->second.size() ) );
 
-                // ADDEBUG() << jdoc.toJson().toStdString();
                 // ADDEBUG() << "acquisition_active: " << acquisition_active_;
 
                 if ( jdoc.object().contains( "ad.values" ) ) {
@@ -395,24 +407,6 @@ session::impl::connect_sse( const std::string& host, const std::string& port, co
                         }
 
                         values.emplace_back( value );
-
-#if !defined NDEBUG && 0
-                        {
-                            static uint64_t last_posix_time, last_elapsed_time;
-                            static uint32_t last_adc_counter;
-
-                            std::bitset< 16 > bits( value.flags >> 16 );
-                            ADDEBUG() << "posix_dt: " << boost::format("%.3f") % (double(value.posix_time - last_posix_time)/1e6)
-                                      << ", adc_c: " << (value.adc_counter - last_adc_counter)
-                                      << ", elapsed: " << boost::format("%.3f") % (double(value.elapsed_time - value.flags_time)/1e6)
-                                      << ", elapsed(dt): " << boost::format("%.3f") % (double(value.elapsed_time - last_elapsed_time)/1e6)
-                                      << ", nacc: " << value.nacc
-                                      << ", flags: " << bits.to_string();
-                            last_posix_time = value.posix_time;
-                            last_elapsed_time = value.elapsed_time;
-                            last_adc_counter = value.adc_counter;
-                        }
-#endif
                     }
                     auto pos = traceObserver_->emplace_back( std::move( values ), events );
                     masterObserver_->dataChanged( traceObserver_.get(), pos );

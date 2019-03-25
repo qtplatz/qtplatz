@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "adtraceswidget.hpp"
+#include "adtracewidget.hpp"
 #include "delegatehelper.hpp"
 #include "tableview.hpp"
 #include <adportable/is_type.hpp>
@@ -42,6 +42,7 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
+#include <QSignalBlocker>
 #include <ratio>
 
 using admethods::controlmethod::ADTraceMethod;
@@ -49,7 +50,7 @@ using admethods::controlmethod::ADTraceMethod;
 namespace adwidgets {
 
 
-    class ADTracesWidget::delegate : public QStyledItemDelegate {
+    class ADTraceWidget::delegate : public QStyledItemDelegate {
     public:
         enum { c_legend, c_vOffset, c_ncolumn };
 
@@ -76,7 +77,7 @@ namespace adwidgets {
     };
 
 
-    class ADTracesWidget::impl {
+    class ADTraceWidget::impl {
     public:
         QStandardItemModel model_;
         admethods::controlmethod::ADTraceMethod data_;
@@ -97,6 +98,9 @@ namespace adwidgets {
         }
 
         void setData( const ADTraceMethod& m ) {
+
+            QSignalBlocker block( &model_ );
+
             model_.setRowCount( m.size() );
             for ( size_t row = 0; row < m.size(); ++row ) {
                 const auto& t = m[ row ]; // ADTrace
@@ -126,7 +130,7 @@ namespace adwidgets {
 
 using namespace adwidgets;
 
-ADTracesWidget::ADTracesWidget(QWidget *parent) : QWidget(parent)
+ADTraceWidget::ADTraceWidget(QWidget *parent) : QWidget(parent)
                                                 , impl_( new impl )
 {
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
@@ -147,32 +151,32 @@ ADTracesWidget::ADTracesWidget(QWidget *parent) : QWidget(parent)
              , [this]( const QModelIndex &topLeft, const QModelIndex &bottomRight){ emit dataChanged( topLeft.row(), topLeft.column() ); });
 }
 
-ADTracesWidget::~ADTracesWidget()
+ADTraceWidget::~ADTraceWidget()
 {
 }
 
 void
-ADTracesWidget::OnCreate( const adportable::Configuration& )
+ADTraceWidget::OnCreate( const adportable::Configuration& )
 {
 }
 
 void
-ADTracesWidget::OnInitialUpdate()
+ADTraceWidget::OnInitialUpdate()
 {
 }
 
 void
-ADTracesWidget::onUpdate( boost::any&& )
+ADTraceWidget::onUpdate( boost::any&& )
 {
 }
 
 void
-ADTracesWidget::OnFinalClose()
+ADTraceWidget::OnFinalClose()
 {
 }
 
 bool
-ADTracesWidget::getContents( boost::any& a ) const
+ADTraceWidget::getContents( boost::any& a ) const
 {
     if ( adportable::a_type< adcontrols::ControlMethodPtr >::is_a( a ) ) {
 
@@ -188,7 +192,7 @@ ADTracesWidget::getContents( boost::any& a ) const
 }
 
 bool
-ADTracesWidget::setContents( boost::any&& a )
+ADTraceWidget::setContents( boost::any&& a )
 {
     if ( auto pi = adcontrols::ControlMethod::any_cast<>()( a, ADTraceMethod::clsid() ) ) {
         ADTraceMethod m;
@@ -201,28 +205,26 @@ ADTracesWidget::setContents( boost::any&& a )
 }
 
 bool
-ADTracesWidget::getContents( ADTraceMethod& m ) const
+ADTraceWidget::getContents( ADTraceMethod& m ) const
 {
-    ADDEBUG() << "************* getContents";
     return impl_->fetch( m );
 }
 
 bool
-ADTracesWidget::setContents( const ADTraceMethod& m )
+ADTraceWidget::setContents( const ADTraceMethod& m )
 {
-    ADDEBUG() << "************* setContents";
     impl_->setData( m );
     return true;
 }
 
 void
-ADTracesWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
+ADTraceWidget::handleContextMenu( QMenu& menu, const QPoint& pt )
 {
     //menu.addAction( "Simulate MS Spectrum", this, SLOT( run() ) );
 }
 
 QByteArray
-ADTracesWidget::readJson() const
+ADTraceWidget::readJson() const
 {
     ADTraceMethod m;
     impl_->fetch( m );
@@ -231,7 +233,7 @@ ADTracesWidget::readJson() const
 }
 
 void
-ADTracesWidget::setJson( const QByteArray& json )
+ADTraceWidget::setJson( const QByteArray& json )
 {
     ADTraceMethod m;
     m.fromJson( json.toStdString() );

@@ -27,23 +27,27 @@
 #include <socfpga/constants.hpp>
 #include <socfpga/advalue.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/description.hpp>
-#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/scanlaw.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
+#include <admethods/controlmethod/adtracemethod.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <adutils/acquiredconf_v3.hpp>
+#include <adutils/inifile.hpp>
 #include <boost/format.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <atomic>
 #include <cassert>
 #include <limits>
@@ -62,6 +66,7 @@ namespace socfpgainterpreter {
         std::vector< socfpga::dgmod::advalue > data_;
         socfpga::dgmod::advalue injdata_;
         std::once_flag flag_;
+        std::unique_ptr< admethods::controlmethod::ADTraceMethod > traceMethod_;
     };
 }
 
@@ -107,9 +112,18 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 if ( sql.step() == adfs::sqlite_row )
                     objrowid_ = sql.get_column_value< int64_t >( 0 );
             }
-#if ! defined NDEBUG
-            ADDEBUG() << "DataReader::initailze(" << objid << ", " << objtext << ") fcnCount=" << fcnCount_;
-#endif
+
+            {
+                adcontrols::ControlMethod::Method cm;
+                if ( adutils::inifile::load( *db, cm ) ) {
+                    auto it = cm.find( cm.begin(), cm.end(), admethods::controlmethod::ADTraceMethod::__clsid__ );
+                    if ( it != cm.end() ) {
+                        auto tm = std::make_unique< admethods::controlmethod::ADTraceMethod >();
+                        if ( it->get( *it, *tm ) )
+                            impl_->traceMethod_ = std::move( tm );
+                    }
+                }
+            }
         }
         return true;
     }
@@ -332,7 +346,8 @@ DataReader::getChromatogram( int idx ) const
                         if ( interpreter->translate( impl_->data_, xdata.data(), xdata.size() ) == adcontrols::translate_complete )
                             ;
                     }
-                    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end(), [](const auto& a){ return a.flags & adacquire::SignalObserver::wkEvent_INJECT; } );
+                    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end()
+                                            , [](const auto& a){ return a.flags & adacquire::SignalObserver::wkEvent_INJECT; } );
                     if ( it == impl_->data_.end() )
                         it = impl_->data_.begin();
                     impl_->injdata_ = *it;
@@ -346,10 +361,20 @@ DataReader::getChromatogram( int idx ) const
 
     const auto& injdata = impl_->injdata_;
 
+    double vOffs = 0;
+    if ( impl_->traceMethod_ ) {
+        vOffs = (*impl_->traceMethod_)[ idx ].vOffset();
+        boost::property_tree::ptree pt;
+        pt.put( "trace.legend", (*impl_->traceMethod_)[ idx ].legend() );
+        pt.put( "trace.enable", (*impl_->traceMethod_)[ idx ].enable() );
+        pt.put( "trace.vOffset", (*impl_->traceMethod_)[ idx ].vOffset() );
+        ptr->setGeneratorProperty( pt );
+    }
+
     for ( const auto& item: impl_->data_ ) {
         double time = double( item.elapsed_time - injdata.flags_time ) / std::nano::den;
         double value = item.ad[ idx ];
-        (*ptr) << std::make_pair( time, value );
+        (*ptr) << std::make_pair( time, value - vOffs );
     }
     return ptr;
 

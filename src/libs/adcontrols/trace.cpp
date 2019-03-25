@@ -44,6 +44,7 @@ Trace::Trace( int fcn, unsigned lower, unsigned upper ) : upper_limit( upper )
                                                         , isCountingTrace_( false )
                                                         , enable_( true )
                                                         , injectTime_( 0 )
+                                                        , yOffset_( 0 )
 {
 }
 
@@ -90,7 +91,7 @@ bool
 Trace::erase_before( size_t npos )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
+
     auto it = std::upper_bound( values_.begin(), values_.end(), npos, [] ( size_t npos, const value_type& b ) {
             return npos < std::get<data_number>( b ); } );
 
@@ -112,7 +113,7 @@ void
 Trace::clear()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
+
     values_.clear();
     minY_ = isCountingTrace_ ? 0 : std::numeric_limits<double>::max();
     maxY_ = std::numeric_limits<double>::lowest();
@@ -142,7 +143,7 @@ Trace::x( size_t idx ) const
 double
 Trace::y( size_t idx ) const
 {
-    if ( values_.size() > idx )    
+    if ( values_.size() > idx )
         return std::get< y_value >( values_.at( idx ) );
     return 0;
 }
@@ -150,7 +151,7 @@ Trace::y( size_t idx ) const
 std::pair< double, double >
 Trace::xy( size_t idx ) const
 {
-    if ( values_.size() > idx )        
+    if ( values_.size() > idx )
         return std::make_pair( std::get< x_value >( values_.at( idx ) ), std::get< y_value >( values_.at( idx ) ) );
     return { 0, 0 };
 }
@@ -158,16 +159,16 @@ Trace::xy( size_t idx ) const
 uint32_t
 Trace::events( size_t idx ) const
 {
-    if ( values_.size() > idx )        
+    if ( values_.size() > idx )
         return std::get< event_flags >( values_.at( idx ) );
     return 0;
 }
-    
+
 
 std::pair<double, double>
 Trace::range_y() const
 {
-    return std::make_pair( minY_, maxY_ );
+    return std::make_pair( minY_ - yOffset_, maxY_ - yOffset_ );
 }
 
 size_t
@@ -227,4 +228,16 @@ void
 Trace::setLegend( const std::string& legend )
 {
     legend_ = legend;
+}
+
+void
+Trace::setYOffset( double y )
+{
+    yOffset_ = y;
+}
+
+double
+Trace::yOffset() const
+{
+    return yOffset_;
 }

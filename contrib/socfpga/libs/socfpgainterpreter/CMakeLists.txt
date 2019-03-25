@@ -39,6 +39,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adfs
   adplugin
   adportable
+  admethods
   ${Boost_LIBRARIES}
   )
 

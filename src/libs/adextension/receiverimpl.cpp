@@ -26,8 +26,8 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <sstream>
-
-class QString;
+#include <QByteArray>
+#include <QString>
 
 using namespace adextension;
 
@@ -38,19 +38,19 @@ ReceiverImpl::~ReceiverImpl()
 ReceiverImpl::ReceiverImpl( iController * p ) : controller_( p->pThis() )
 {
 }
-            
+
 void
 ReceiverImpl::message( eINSTEVENT msg, uint32_t value )
 {
     if ( auto p = controller_.lock() )
         emit p->message( p.get(), unsigned( msg ), unsigned( value ) );
 }
-            
+
 void
 ReceiverImpl::log( const adacquire::EventLog::LogMessage& log )
 {
     if ( auto p = controller_.lock() ) {
-        
+
         std::wostringstream o;
 
         if ( log.xml_archive( o, log ) ) {
@@ -66,7 +66,7 @@ void
 ReceiverImpl::shutdown()
 {
 }
-            
+
 void
 ReceiverImpl::debug_print( uint32_t priority, uint32_t category, const std::string& text )
 {
@@ -83,5 +83,13 @@ void
 ReceiverImpl::notify_error( const std::string& what , const std::string& file , int line )
 {
     if ( auto p = controller_.lock() )
-        emit p->notifyError( p.get(), QString::fromStdString( what ), QString::fromStdString( file ), line );    
+        emit p->notifyError( p.get(), QString::fromStdString( what ), QString::fromStdString( file ), line );
+}
+
+void
+ReceiverImpl::notify_info( const std::string& json ) const
+{
+    if ( auto p = controller_.lock() ) {
+        emit p->notifyInfo( p.get(), QByteArray( json.data(), json.size() ) );
+    }
 }

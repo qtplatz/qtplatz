@@ -42,7 +42,7 @@ namespace adacquire {
 
         virtual ~Receiver();
         Receiver();
-        
+
         enum eMSGPRIORITY {
             pri_DEBUG
             , pri_INFO     // informational
@@ -50,7 +50,7 @@ namespace adacquire {
             , pri_EXCEPT   // exception, can be recoverd. Mostly a bug
             , pri_PANIC // non-recoverable exception
         };
-        
+
         enum eINSTEVENT {
             NOTHING
             , HEARTBEAT // formerly, it was timer signal
@@ -79,6 +79,7 @@ namespace adacquire {
         virtual void debug_print( uint32_t priority, uint32_t category, const std::string& text );
         virtual void notify_error( const boost::system::error_code& ec, const std::string& file, int line );
         virtual void notify_error( const std::string& what, const std::string& file, int line );
+        virtual void notify_info( const std::string& json ) const = 0;
     };
 
 }

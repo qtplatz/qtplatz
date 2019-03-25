@@ -50,16 +50,17 @@ namespace adextension {
         ~ReceiverImpl();
         ReceiverImpl( iController * p );
         void message( eINSTEVENT msg, uint32_t value ) override;
-            
+
         void log( const adacquire::EventLog::LogMessage& log ) override;
 
         void shutdown() override;
-            
+
         void debug_print( uint32_t priority, uint32_t category, const std::string& text ) override;
-        
+
         void notify_error( const boost::system::error_code&, const std::string& file, int line ) override;
 
         void notify_error( const std::string&, const std::string& file, int line ) override;
+
+        void notify_info( const std::string& json ) const override;
     };
 }
-

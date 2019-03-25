@@ -37,50 +37,41 @@
 
 namespace adcontrols {
 
-   class ADCONTROLSSHARED_EXPORT description {
-   public:
-       ~description();
-       description();
-       description( const description& );
-       description( const wchar_t * key, const wchar_t * text );       
+    class ADCONTROLSSHARED_EXPORT description;
+    class  description {
+    public:
+        ~description();
+        description();
+        description( const description& );
+        [[deprecated]] description( const wchar_t * key, const wchar_t * text );
+        [[deprecated]] description( const std::wstring& key, const std::wstring& text );
+        description( std::pair< std::string, std::string >&& keyValue );
 
-       description( const std::wstring& key, const std::wstring& text );
-       inline bool operator == ( const description& t ) const;
+        inline bool operator == ( const description& t ) const;
 
-       const wchar_t * text() const;
-       const wchar_t * key() const;
+        [[deprecated]] std::wstring text() const;
+        [[deprecated]] std::wstring key() const;
+        std::pair< std::string, std::string > keyValue() const;
 
-       const char * xml() const;
-       void xml( const char * u );
-       
-   private:
-       time_t tv_sec_;
-       long tv_usec_;
+        const char * xml() const;
+        void xml( const char * u );
+
+    private:
+        //time_t tv_sec_;
+        //long tv_usec_;
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
-       std::wstring key_;
-       std::wstring text_;
-       std::string xml_;
-	 
-       friend class boost::serialization::access;
-       template<class Archive>
-           void serialize(Archive& ar, const unsigned int version ) {
-           using namespace boost::serialization;
-           ar & BOOST_SERIALIZATION_NVP(tv_sec_);
-           ar & BOOST_SERIALIZATION_NVP(tv_usec_);
-           ar & BOOST_SERIALIZATION_NVP(key_);
-           ar & BOOST_SERIALIZATION_NVP(text_);
-           if ( version == 1 ) {
-               std::wstring wxml;
-               ar & BOOST_SERIALIZATION_NVP(wxml);
-               xml_ = adportable::utf::to_utf8( wxml );
-           } else {
-               ar & BOOST_SERIALIZATION_NVP(xml_);
-           }
-       }
+        uint64_t posix_time_;
+        std::pair< std::string, std::string > keyValue_;
+        std::wstring key_;
+        std::wstring text_;
+        std::string xml_;
 
-   };
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, const unsigned int version );
+    };
 
 }
 
