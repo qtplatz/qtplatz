@@ -34,8 +34,9 @@
 #include <adportable/mass_assign_t.hpp>
 #include <adcontrols/controlmethod_fwd.hpp>
 
-class QSettings;
 class QByteArray;
+class QSettings;
+template<typename T> class QVector;
 
 namespace adacquire {
     class SampleProcessor;
@@ -94,6 +95,8 @@ namespace acquire {
         void prepare_for_run();
         void start_run();
         void stop();
+
+        void setAutoZero();
 
         int32_t device_status() const;
 
@@ -204,6 +207,7 @@ namespace acquire {
         void on_threshold_action_changed( const QJsonDocument& );
         void on_threshold_method_changed( const QJsonDocument& );
         void on_threshold_level_changed( double );
+        void on_auto_zero_changed( const QVector< double >& );
     };
 
 }

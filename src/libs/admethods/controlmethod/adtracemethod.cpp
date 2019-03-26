@@ -74,7 +74,6 @@ ADTraceMethod::ADTraceMethod( const ADTraceMethod& t ) : data_( t.data_ )
 bool
 ADTraceMethod::archive( std::ostream& os, const ADTraceMethod& t )
 {
-    ADDEBUG() << "************** " << __FUNCTION__;
     portable_binary_oarchive ar( os );
     try {
         ar & t;

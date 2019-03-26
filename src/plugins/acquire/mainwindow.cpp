@@ -77,21 +77,22 @@
 #include <QApplication>
 #include <QDockWidget>
 #include <QFileDialog>
+#include <QHBoxLayout>
+#include <QIcon>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
-#include <QStackedWidget>
+#include <QPushButton>
 #include <QResizeEvent>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QToolButton>
-#include <QTextEdit>
-#include <QLabel>
-#include <QIcon>
-#include <QToolBar>
+#include <QStackedWidget>
 #include <QTabBar>
+#include <QTextEdit>
+#include <QToolBar>
+#include <QToolButton>
+#include <QVBoxLayout>
 #include <qdebug.h>
 #include <csignal>
 #include <boost/uuid/uuid_io.hpp>
@@ -135,7 +136,9 @@ MainWindow::createDockWidgets()
                  , [](int row, int column) {
                        document::instance()->handleTraceMethodChanged();
                    });
+        connect( document::instance(), &document::on_auto_zero_changed, widget, &adwidgets::ADTraceWidget::handleVOffsets );
     }
+
 
     if ( auto sse = qtwrapper::make_widget< adwidgets::dgWidget >( "delayPulseMonitor" ) ) {
 
@@ -290,6 +293,11 @@ MainWindow::OnInitialUpdate()
         if ( !json.isEmpty() )
             widget->setJson( json );
     }
+
+    if ( auto btn = findChild< QPushButton * >( "btnZERO" ) ) {
+        connect( btn, &QPushButton::clicked, []{ document::instance()->setAutoZero(); } );
+    }
+
 }
 
 void
@@ -499,6 +507,9 @@ MainWindow::createTopStyledToolbar()
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+        toolBarLayout->addWidget( qtwrapper::make_widget< QPushButton >( "btnZERO", "ZERO" ) );
+
     }
     return toolBar;
 }
@@ -569,7 +580,6 @@ MainWindow::createMidStyledToolbar()
             toolBarLayout->addItem( new QSpacerItem(16, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
             toolBarLayout->addWidget( toolButton( am->command( Constants::HIDE_DOCK )->action() ) );
-
         }
 		return toolBar;
     }

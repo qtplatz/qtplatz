@@ -65,6 +65,7 @@ namespace adwidgets {
         void dataChanged( int row, int column );
 
     public slots:
+        void handleVOffsets( const QVector< double >& );
 
     private slots:
 

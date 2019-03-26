@@ -95,6 +95,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
+#include <QVector>
 #include <algorithm>
 #include <bitset>
 #include <chrono>
@@ -226,6 +227,7 @@ namespace acquire {
         std::vector< std::shared_ptr< adextension::iController > > activeControllers_;
         std::map< boost::uuids::uuid, std::shared_ptr< adacquire::SignalObserver::Observer > > observers_;
         bool isMethodDirty_;
+        std::atomic< bool > autoZeroFlag_;
 
         std::shared_ptr< adcontrols::ControlMethod::Method > cm_;
 
@@ -278,6 +280,7 @@ namespace acquire {
                , iDGMODImpl_( std::make_shared< acquire::iDGMODImpl >() )
                , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "ACQUIRE" ) )
                , isMethodDirty_( true )
+               , autoZeroFlag_( false )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                , device_status_( 0 )
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
@@ -1489,6 +1492,16 @@ document::setData( const std::vector< socfpga::dgmod::advalue >& data )
         impl_->event_tp_[ 0 ] = { data.back().posix_time, data.back().elapsed_time };
     } while(0);
 
+    if ( impl_->autoZeroFlag_ ) {
+        impl_->autoZeroFlag_ = false;
+        QVector<double> avrg( 8 );
+        for ( auto& d: data )
+            std::transform( avrg.begin(), avrg.end(), d.ad.begin(), avrg.begin(), std::plus< double >() );
+        for ( auto& a: avrg )
+            a /= data.size();
+        emit on_auto_zero_changed( avrg );
+    }
+
     emit document::instance()->dataChanged( socfpga::dgmod::trace_observer, -1 );
 }
 
@@ -1569,4 +1582,10 @@ document::handleTraceMethodChanged()
             set_trace_method( tm );
         }
     }
+}
+
+void
+document::setAutoZero()
+{
+    impl_->autoZeroFlag_ = true;
 }

@@ -32,6 +32,7 @@
 #include <adcontrols/massspectrometer.hpp>
 #include <QBoxLayout>
 #include <QDebug>
+#include <QDoubleSpinBox>
 #include <QEvent>
 #include <QHeaderView>
 #include <QJsonArray>
@@ -74,6 +75,18 @@ namespace adwidgets {
                 return QStyledItemDelegate::sizeHint( option, index );
             }
         }
+
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem &option, const QModelIndex& index ) const override {
+            if ( index.column() == c_vOffset ) {
+                auto widget = new QDoubleSpinBox( parent );
+                widget->setMinimum( -2.6 ); widget->setMaximum( 2.6 ); widget->setSingleStep( 0.01 ); widget->setDecimals( 7 );
+                widget->setValue( index.data( Qt::EditRole ).toDouble() );
+                return widget;
+            } else {
+                return QStyledItemDelegate::createEditor( parent, option, index );
+            }
+        }
+
     };
 
 
@@ -113,6 +126,14 @@ namespace adwidgets {
                     model_.setData( model_.index( row, 0 ), t.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
                 }
             }
+        }
+
+        void setVOffsets( const QVector< double >& values ) {
+
+            QSignalBlocker block( &model_ );
+            for ( size_t row = 0; row < values.size(); ++row )
+                model_.setData( model_.index( row, 1 ), values[ row ] );
+            tableView_->viewport()->update();
         }
 
         bool fetch( ADTraceMethod& data ) const  {
@@ -237,4 +258,11 @@ ADTraceWidget::setJson( const QByteArray& json )
 {
     ADTraceMethod m;
     m.fromJson( json.toStdString() );
+}
+
+void
+ADTraceWidget::handleVOffsets( const QVector< double >& values )
+{
+    impl_->setVOffsets( values );
+    emit dataChanged( 0, 0 );
 }
