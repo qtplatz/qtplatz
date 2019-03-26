@@ -114,10 +114,22 @@ WaveformWnd::init()
 
     for ( auto& w: tpw_ ) {
         auto legend = new QwtPlotLegendItem;
+
+        legend->setRenderHint( QwtPlotItem::RenderAntialiased );
+        QColor color( Qt::green );
+        legend->setTextPen( color );
+        legend->setBorderPen( color );
+        QColor bc( Qt::gray );
+        bc.setAlpha( 200 );
+        legend->setBackgroundBrush( bc );
+        // legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::ItemBackground );
+        // legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground );
+        QFont font = legend->font();
+        font.setPointSize( 10 );
+        legend->setFont( font );
+
         legend->attach( w.get() );
-        legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::ItemBackground );
-        //legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground );
-        legend->setMaxColumns( 32 );
+        legend->setMaxColumns( 2 );
         legend->setAlignment( Qt::AlignRight | Qt::AlignTop );
         w->setContextMenuPolicy( Qt::CustomContextMenu );
     }
@@ -252,18 +264,6 @@ WaveformWnd::traceDataChanged( int )
                 tpw->setFooter( footer );
             }
             tpw->setData( trace, idx, false );
-
-            // ================= title for legends ===================
-            //char c = item.intensityAlgorithm() == item.eCounting ? 'C' : item.intensityAlgorithm() == item.ePeakAreaOnProfile ? 'A' : 'H';
-            //auto formula = QString::fromStdString( adcontrols::ChemicalFormula::formatFormula( item.formula() ) );
-            //if ( formula.isEmpty() )
-            //    formula = QString::fromStdString( item.formula() ); // 'TIC'
-
-            QwtText title = QwtText( QString( "%1: %2" )
-                                     .arg( QString::number( idx + 1 ), QString::fromStdString( trace->legend() ) ), QwtText::RichText );
-            title.setFont( qtwrapper::font()( title.font(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisLabel ) );
-            if ( auto plotItem = tpw->getPlotItem( idx ) )
-                plotItem->setTitle( title );
         }
         ++idx;
     }

@@ -36,6 +36,8 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
+#include <qwt_plot_legenditem.h>
+#include <qwt_legend.h>
 #include <qwt_symbol.h>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -53,6 +55,8 @@
 #include <qtwrapper/font.hpp>
 #include <boost/format.hpp>
 #include <boost/variant.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/optional.hpp>
 #include <QDebug>
 #include <queue>
 #include <memory>
@@ -313,8 +317,10 @@ namespace adplot {
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;
         std::function< bool( const QPointF&, QwtText& ) > tracker_hook_;
-        std::vector< std::shared_ptr< QwtPlotCurve > > curves_;
+        std::vector< std::shared_ptr< QwtPlotCurve > > peak_params_curves_; // peak parameter curves
         ChromatogramWidget::HorizontalAxis axis_;
+        std::unique_ptr< QwtPlotLegendItem > legendItem_;
+        std::unique_ptr< QwtLegend > externalLegend_;
 
         void clear();
         void removeData( int );
@@ -349,9 +355,8 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : plot(parent)
     setAxisFont( QwtPlot::yLeft, font );
 
     if ( auto zoomer = plot::zoomer() ) {
-        using namespace std::placeholders;
-        zoomer->tracker1( std::bind( &impl::tracker1, impl_, _1 ) );
-        zoomer->tracker2( std::bind( &impl::tracker2, impl_, _1, _2 ) );
+        zoomer->tracker1( std::bind( &impl::tracker1, impl_, std::placeholders::_1 ) );
+        zoomer->tracker2( std::bind( &impl::tracker2, impl_, std::placeholders::_1, std::placeholders::_2 ) );
 
         connect( zoomer, &Zoomer::zoomed, this, &ChromatogramWidget::zoomed );
 	}
@@ -425,6 +430,8 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Trace> c, int id
         trace->plot_curve().setYAxis( yRight ? QwtPlot::yRight : QwtPlot::yLeft );
         trace->setData( c );
 
+        trace->plot_curve().setTitle( QString::fromStdString( c->legend() ) );
+
         auto yAxis = yRight ? QwtPlot::yRight : QwtPlot::yLeft;
 
         QRectF rc;
@@ -491,6 +498,9 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
 
     plotAnnotations( impl_->peak_annotations_ );
 
+    if ( auto value = cp->ptree().get_optional<std::string>( "trace.legend" ) )
+        trace->plot_curve().setTitle( QString::fromStdString( value.get() ) );
+
     QRectF rect = trace->boundingRect();
     for ( const auto& v: impl_->traces_ ) {
         if ( boost::apply_visitor( isValid< std::unique_ptr< ChromatogramData > >(), v ) ) {
@@ -506,6 +516,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram >& 
                   , rect.top() - rect.height() * 0.05, rect.bottom() + rect.height() * 0.05 );
 
     zoomer()->setZoomBase(); // zoom base set to data range
+
 }
 
 void
@@ -529,7 +540,7 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 
     impl_->peaks_.clear();
     impl_->baselines_.clear();
-    impl_->curves_.clear();
+    impl_->peak_params_curves_.clear();
 
 	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
 		setBaseline( *it );
@@ -557,13 +568,13 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotatio
     adcontrols::annotation annot( label, tR, peak.topHeight(), pri );
     vec << annot;
 
-    impl_->peaks_.push_back( adplot::Peak( *this, peak ) );
+    impl_->peaks_.emplace_back( *this, peak );
 }
 
 void
 ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 {
-    impl_->baselines_.push_back( adplot::Baseline( *this, bs ) );
+    impl_->baselines_.emplace_back( *this, bs );
 }
 
 void
@@ -589,6 +600,8 @@ ChromatogramWidget::drawPeakParameter( const adcontrols::Peak& pk )
     if ( tr.algorithm() == adcontrols::RetentionTime::ParaboraFitting ) {
 
         auto curve = std::make_shared< QwtPlotCurve >();
+        curve->setItemAttribute( QwtPlotItem::Legend, false );
+
         QPolygonF points;
 
         double a, b, c;
@@ -603,8 +616,9 @@ ChromatogramWidget::drawPeakParameter( const adcontrols::Peak& pk )
         }
         curve->setPen( QPen( QColor( 240, 0, 0, 0x80 ) ) );
         curve->attach( this );
-        impl_->curves_.push_back( curve );
+        impl_->peak_params_curves_.emplace_back( curve );
     }
+
 }
 
 void
@@ -728,6 +742,61 @@ void
 ChromatogramWidget::impl::redraw()
 {
 }
+
+void
+ChromatogramWidget::setItemLegendEnabled( bool enable )
+{
+    if ( enable ) {
+        if ( ! impl_->legendItem_ )
+            impl_->legendItem_ = std::make_unique< QwtPlotLegendItem >();
+        impl_->legendItem_->setRenderHint( QwtPlotItem::RenderAntialiased );
+        QColor color( Qt::white );
+        impl_->legendItem_->setTextPen( color );
+        impl_->legendItem_->setBorderPen( color );
+        QColor bc( Qt::gray );
+        bc.setAlpha( 200 );
+        impl_->legendItem_->setBackgroundBrush( bc );
+
+        impl_->legendItem_->attach( this );
+        impl_->legendItem_->setMaxColumns( 2 );
+
+        QFont font = impl_->legendItem_->font();
+        font.setPointSize( 10 );
+        impl_->legendItem_->setFont( font );
+
+        impl_->legendItem_->setAlignment( Qt::AlignTop | Qt::AlignRight );
+
+    } else {
+        impl_->legendItem_.reset();
+    }
+}
+
+bool
+ChromatogramWidget::itemLegendEnabled() const
+{
+    return impl_->legendItem_ != nullptr;
+}
+
+void
+ChromatogramWidget::setLegendEnabled( bool enable )
+{
+    if ( enable ) {
+        if ( ! impl_->externalLegend_ )
+            impl_->externalLegend_ = std::make_unique< QwtLegend >();
+        impl_->externalLegend_->setWindowTitle("Legend");
+        //connect( this, SIGNAL( legendDataChanged( const QVariant &, const QList<QwtLegendData> & ) ),
+        //         impl_->externalLegend_, SLOT( updateLegend( const QVariant &, const QList<QwtLegendData> & ) ) );
+    } else {
+        impl_->externalLegend_.reset();
+    }
+}
+
+bool
+ChromatogramWidget::legendEnabled() const
+{
+    return impl_->externalLegend_ != nullptr;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

@@ -34,7 +34,7 @@
 
 namespace adcontrols {
     class Trace;
-    class Chromatogram; 
+    class Chromatogram;
 	class PeakResult;
     class Baseline;
     class Peak;
@@ -65,9 +65,13 @@ namespace adplot {
         void setZoomed( const QRectF&, bool keepY = true );
         QColor color( int idx ) const;
         QwtPlotItem * getPlotItem( int idx );
-        
+
         enum HorizontalAxis { HorizontalAxisSeconds, HorizontalAxisMinutes };
         void setAxis( HorizontalAxis, bool replot = false );
+        void setItemLegendEnabled( bool );
+        bool itemLegendEnabled() const;
+        void setLegendEnabled( bool );
+        bool legendEnabled() const;
 
 	private:
         void setBaseline( const adcontrols::Baseline& );
@@ -93,4 +97,3 @@ namespace adplot {
     };
 
 }
-

@@ -37,16 +37,16 @@ namespace adplot {
 
     class Baseline {
         Baseline();
+        Baseline( const Baseline& ) = delete;
     public:
-        Baseline( const Baseline& );
         Baseline( plot& plot, const adcontrols::Baseline& );
+        Baseline( Baseline&& );
 
         inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         plot * plot_;
-        std::shared_ptr< QwtPlotCurve > curve_;
+        std::unique_ptr< QwtPlotCurve > curve_;
     };
 
 
 }
-

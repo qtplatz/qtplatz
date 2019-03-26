@@ -36,14 +36,13 @@ namespace adplot {
 
     class Peak {
         Peak();
+        Peak( const Peak& ) = delete;
     public:
-        Peak( const Peak& );
         Peak( plot& plot, const adcontrols::Peak& );
-
-		// inline operator QwtPlotCurve * () { return curve_.get(); }
+        Peak( Peak&& t );
     private:
         plot * plot_;
-		std::shared_ptr< QwtPlotCurve > curve_;
+		std::unique_ptr< QwtPlotCurve > curve_;
     };
 
 }

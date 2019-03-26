@@ -30,16 +30,17 @@
 
 using namespace adplot;
 
-Peak::Peak( const Peak& t ) : curve_( t.curve_ )
+Peak::Peak( Peak&& t ) : plot_( t.plot_ ), curve_( std::move( t.curve_ ) )
 {
 }
 
 Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
-                                                       , curve_( std::make_shared< QwtPlotCurve >() )
+                                                       , curve_( std::make_unique< QwtPlotCurve >() )
 {
     QColor color( 0x7f, 0, 0, 0x60 );
     curve_->setPen( QPen( color ) );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
+    curve_->setItemAttribute( QwtPlotItem::Legend, false );
     curve_->attach( plot_ );
 
     QRectF rc = plot.zoomRect();
@@ -48,6 +49,7 @@ Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
     x [ 0 ] = peak.startTime(); // adcontrols::timeutil::toMinutes( peak.startTime() );
     x [ 1 ] = peak.endTime(); // adcontrols::timeutil::toMinutes( peak.endTime() );
     y [ 0 ] = y [ 1 ] = std::min( peak.startHeight(), peak.endHeight() ) - ( rc.height() / 20 );
-    
+
+
     curve_->setSamples(  x, y, 2 );
 }

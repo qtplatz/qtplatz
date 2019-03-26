@@ -84,7 +84,7 @@ namespace dataproc {
         ~impl() {
             delete peakTable_;
         }
-        
+
         impl( ChromatogramWnd * p ) : QObject( p )
                                     , this_( p )
                                     , peakTable_( new adwidgets::PeakTable )
@@ -95,6 +95,7 @@ namespace dataproc {
             std::for_each( plots_.begin(), plots_.end(), [&]( auto& plot ){
                     plot = std::make_unique< adplot::ChromatogramWidget >();
                     plot->setMinimumHeight( 80 );
+                    plot->setItemLegendEnabled( true );
                 });
 
             plots_[ 0 ]->link( plots_[ 1 ].get() );
@@ -107,7 +108,7 @@ namespace dataproc {
             marker_->attach( plots_[ 0 ].get() );
             marker_->visible( true );
             marker_->setYAxis( QwtPlot::yLeft );
-            
+
         }
 
         void setData( adcontrols::ChromatogramPtr& ptr ) {
@@ -183,7 +184,7 @@ namespace dataproc {
     //     template< typename T >
     //     bool operator()( T& ) { return false; };
     // };
-    
+
     // template< typename T > struct is_same : public boost::static_visitor< bool > {
     //     template<typename U> bool operator()( U& ) const { return false; };
     //     bool operator()( T& ) const { return true; };
@@ -272,12 +273,12 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
 
     if ( auto chr = boost::get< adutils::ChromatogramPtr >( data ) ) { // current selection
 
-        impl_->idActiveFolium_ = folium.id();        
+        impl_->idActiveFolium_ = folium.id();
         impl_->plots_[ 0 ]->setData( chr, 0 ); // draw current selection with attached data at id=0
 
         auto title = adcontrols::Chromatogram::make_folder_name( chr->getDescriptions() );
         impl_->plots_[ 0 ]->setTitle( QString::fromStdWString( title ) );
-        
+
         portfolio::Folio attachments = folium.attachments();
         for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
             adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
@@ -285,7 +286,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
         }
 
         auto it = std::find_if( impl_->overlays_.begin(), impl_->overlays_.end(), [&]( auto& a ){ return folium.id() == a.idFolium; } );
-        
+
         if ( it != impl_->overlays_.end() ) {
             if ( folium.attribute( L"isChecked" ) == L"false" )
                 impl_->overlays_.erase( it );
@@ -301,7 +302,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::F
     }
 
     impl_->plots_[ 1 ]->clear();
-    
+
     if ( impl_->overlays_.empty() ) {
         impl_->plots_[ 1 ]->hide();
     } else {
@@ -337,7 +338,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setColorMode( QPrinter::Color );
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
-    
+
 	portfolio::Folium folium;
     printer.setDocName( "QtPlatz Chromatogram Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
@@ -353,7 +354,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
 	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
 
 	painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
-	
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
@@ -385,7 +386,7 @@ ChromatogramWnd::handlePrintCurrentView( const QString& pdfname )
     font.setPointSize( 8 );
     painter.setFont( font );
     painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
-    
+
 }
 
 ///////////////////////////
@@ -396,9 +397,9 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
     double x0 = plots_[ 0 ]->transform( QwtPlot::xBottom, rect.left() );
 	double x1 = plots_[ 0 ]->transform( QwtPlot::xBottom, rect.right() );
 
-    typedef std::pair < QAction *, std::function<void()> > action_type; 
+    typedef std::pair < QAction *, std::function<void()> > action_type;
 
-    QMenu menu; 
+    QMenu menu;
     std::vector < action_type > actions;
 
 	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
@@ -411,7 +412,7 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
     actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [&] () {
                 adplot::plot::copyToClipboard( this->plots_[ 0 ].get() );
             } ) );
-    
+
     actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [&] () {
                 QString name = QFileDialog::getSaveFileName( MainWindow::instance()
                                                              , "Save SVG File"
@@ -420,8 +421,8 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect )
                 if ( ! name.isEmpty() )
                     adplot::plot::copyImageToFile( plots_[ 0 ].get(), name, "svg" );
             }) );
-    
-    
+
+
     if ( auto selected = menu.exec( QCursor::pos() ) ) {
         auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
         if ( it != actions.end() )

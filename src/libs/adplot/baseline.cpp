@@ -23,9 +23,6 @@
 **
 **************************************************************************/
 
-#if defined _MSC_VER
-# pragma warning(disable:4996 )
-#endif
 #include "baseline.hpp"
 #include "plot.hpp"
 #include <qwt_plot_curve.h>
@@ -33,15 +30,16 @@
 
 using namespace adplot;
 
-Baseline::Baseline( const Baseline& t ) : curve_( t.curve_ )
+Baseline::Baseline( Baseline&& t ) : plot_( t.plot_ ), curve_( std::move( t.curve_ ) )
 {
 }
 
 Baseline::Baseline( plot& plot, const adcontrols::Baseline& bs ) : plot_( &plot )
-                                                                     , curve_( new QwtPlotCurve() ) 
+                                                                 , curve_( std::make_unique< QwtPlotCurve >() )
 {
     QColor color( 0xcf, 0x00, 0, 0x60 );
 	curve_->setPen( QPen( color ) );
+    curve_->setItemAttribute( QwtPlotItem::Legend, false );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     curve_->attach( plot_ );
 
