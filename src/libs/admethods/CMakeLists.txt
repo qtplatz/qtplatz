@@ -37,6 +37,6 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
-  controlmethod/adtracesmmethod.hpp
+  controlmethod/adtracemethod.hpp
   DESTINATION include/admethods/controlmethod COMPONENT headers
   )

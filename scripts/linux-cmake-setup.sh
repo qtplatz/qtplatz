@@ -29,7 +29,9 @@ if [ ! -d $SRC/cmake ]; then
     # git clone https://github.com/Kitware/CMake.git
     if [ ! -f ~/Downloads/cmake-$CMAKE_VERSION.tar.gz ]; then
       ( cd ~/Downloads;
-        wget https://cmake.org/files/$VDIR/cmake-$CMAKE_VERSION.tar.gz )
+        #wget https://cmake.org/files/$VDIR/cmake-$CMAKE_VERSION.tar.gz 
+	wget https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz )
+
     fi
     tar xvf ~/Downloads/cmake-$CMAKE_VERSION.tar.gz -C $SRC
 fi

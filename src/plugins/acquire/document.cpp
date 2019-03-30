@@ -784,7 +784,7 @@ document::initialSetup()
     };
 
     if ( auto settings = impl_->settings_ ) {
-        impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "192.168.1.132" ).toString();
+        impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "192.168.0.132" ).toString();
         impl_->http_port_ = settings->value( Constants::THIS_GROUP + QString("/http_port"),  "http" ).toString();
     }
 
