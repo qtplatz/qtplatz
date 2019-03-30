@@ -1211,13 +1211,13 @@ MassSpectrum::assign_masses( mass_assignee_t assign_mass )
 
     if ( assign_mass ) {
 
+        impl_->massArray_.resize( size() );
+
         if ( impl_->tofArray_.empty() ) {
 
             size_t idx(0);
-            std::transform( impl_->massArray_.begin(), impl_->massArray_.end(), impl_->massArray_.begin()
-                            , [&]( const double& ){
-                                return assign_mass( MSProperty::toSeconds( idx++, prop.samplingInfo() ), mode );
-                            } );
+            for ( auto& m : impl_->massArray_ )
+                m = assign_mass( MSProperty::toSeconds( idx++, prop.samplingInfo() ), mode );
 
         } else {
 
