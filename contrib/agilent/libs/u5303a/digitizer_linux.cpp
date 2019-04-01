@@ -989,9 +989,6 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
 
     const double samp_rate = m._device_method().samp_rate > max_rate ? max_rate : m._device_method().samp_rate;
 
-    ADDEBUG() << "##### max rate:    " << max_rate;
-    ADDEBUG() << "##### sample rate: " << samp_rate;
-
     if ( ! AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), samp_rate ), __FILE__,__LINE__ ) ) {
         AgMD2::log( attribute< u5303a::sample_rate >::set( *task.spDriver(), max_rate ), __FILE__,__LINE__ );
     }

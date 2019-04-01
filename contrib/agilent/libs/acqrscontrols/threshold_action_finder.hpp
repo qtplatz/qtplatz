@@ -42,9 +42,9 @@ namespace acqrscontrols {
                 const auto adc_delay = proto.delay_pulses()[ adcontrols::TofProtocol::EXT_ADC_TRIG ].first;
 
                 if ( action->enableTimeRange ) {
-                    
-                    uint32_t beg = uint32_t( ( action->delay - action->width - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
-                    uint32_t end = uint32_t( ( action->delay + action->width - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
+
+                    uint32_t beg = uint32_t( ( action->delay - (action->width/2) - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
+                    uint32_t end = uint32_t( ( action->delay + (action->width/2) - (adc_delay + meta.initialXOffset ) ) / meta.xIncrement );
 
                     auto it = std::lower_bound( result->indices().begin(), result->indices().end(), beg );
                     if ( it != result->indices().end() ) {
@@ -65,9 +65,8 @@ namespace acqrscontrols {
                 }
             }
             return false;
-            
+
         }
-        
+
     };
 }
-

@@ -343,12 +343,13 @@ bool
 tdcdoc::makeCountingChromatogramPoints( const adcontrols::TimeDigitalHistogram& histogram
                                         , std::vector< uint32_t >& results )
 {
-    for ( auto& item: (*impl_->tofChromatogramsMethod_) ) {
+    for ( auto& item: *impl_->tofChromatogramsMethod_ ) {
 
         double time = item.time();
         double window = item.timeWindow();
+        auto counts = histogram.accumulate( time, window );
 
-        results.emplace_back( histogram.accumulate( time, window ) );
+        results.emplace_back( counts );
     }
 
     return true;
@@ -698,6 +699,11 @@ bool
 tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
+
+    for ( auto& mi: *impl_->tofChromatogramsMethod_ ) {
+        ADDEBUG() << "*************** time: " << mi.time() << ", window: " << mi.timeWindow();
+    }
+
     return true;
 }
 

@@ -31,6 +31,7 @@
 #include <memory>
 
 class QMenu;
+class QStandardItemModel;
 
 namespace adcontrols { class TofChromatogramsMethod; class MassSpectrometer; }
 
@@ -40,11 +41,13 @@ namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT TofChromatogramsWidget : public QWidget
                                                         , public adplugin::LifeCycle {
-        
+
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-        
+
     public:
+        enum columns { c_id, c_formula, c_mass, c_masswindow, c_time, c_timewindow, c_algo, c_protocol, ncolumns };
+
         explicit TofChromatogramsWidget(QWidget *parent = 0);
         ~TofChromatogramsWidget();
 
@@ -54,7 +57,7 @@ namespace adwidgets {
         void onUpdate( boost::any&& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any&& ) override;   
+        bool setContents( boost::any&& ) override;
         //
         bool getContents( adcontrols::TofChromatogramsMethod& ) const;
         bool setContents( const adcontrols::TofChromatogramsMethod& );
@@ -66,13 +69,15 @@ namespace adwidgets {
 
         QByteArray readJson() const;
         void setJson( const QByteArray& );
-        
+
+        QStandardItemModel * model();
+
     private:
         void handleContextMenu( QMenu&, const QPoint& );
 
         class impl;
         std::unique_ptr< impl > impl_;
-        
+
     signals:
         void valueChanged();
         void applyTriggered();
@@ -82,8 +87,7 @@ namespace adwidgets {
         void handleScanLawChanged();
 
     private slots:
-        
+
     };
 
 }
-

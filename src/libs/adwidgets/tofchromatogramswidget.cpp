@@ -52,13 +52,13 @@ namespace adwidgets {
     class TofChromatogramsWidget::impl {
         TofChromatogramsWidget * this_;
     public:
-        enum columns { c_id, c_formula, c_mass, c_masswindow, c_time, c_timewindow, c_algo, c_protocol, ncolumns };
+        // enum columns { c_id, c_formula, c_mass, c_masswindow, c_time, c_timewindow, c_algo, c_protocol, ncolumns };
 
         QString connString_;
-        
+
         impl( TofChromatogramsWidget * p ) : this_( p )
                                            , model_( std::make_unique< QStandardItemModel >() ) {
-            
+
             model_->setColumnCount( ncolumns );
             model_->setHeaderData( c_id,         Qt::Horizontal, QObject::tr( "id" ) );
             model_->setHeaderData( c_formula,    Qt::Horizontal, QObject::tr( "Formula" ) );
@@ -79,7 +79,8 @@ namespace adwidgets {
                 double exactMass = MolTableView::getMonoIsotopicMass( _1.data( Qt::EditRole ).toString() );
                 if ( exactMass > 0.7 ) {
                     model_->setData( model_->index( row, c_mass ), exactMass );
-                    model_->setData( model_->index( row, c_masswindow ), 0.005 );
+                    if ( model_->data( model_->index( row, c_masswindow ), Qt::EditRole ).toDouble() < 0.001 ) // < 1ns
+                        model_->setData( model_->index( row, c_masswindow ), 0.100 );
                 } else {
                     for ( auto& id : { c_mass, c_masswindow, c_time, c_timewindow } )
                         model_->setData( model_->index( row, id ), QVariant() );
@@ -94,7 +95,7 @@ namespace adwidgets {
         std::unique_ptr< QStandardItemModel > model_;
         std::weak_ptr< const adcontrols::MassSpectrometer > spectrometer_;
     };
-    
+
 }
 
 using namespace adwidgets;
@@ -108,7 +109,7 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
         layout->setSpacing(2);
 
         if ( QSplitter * splitter = new QSplitter ) {
-            splitter->addWidget( ( new TofChromatogramsForm ) ); 
+            splitter->addWidget( ( new TofChromatogramsForm ) );
             splitter->addWidget( ( new MolTableView ) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
@@ -118,20 +119,20 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
     }
 
     if ( auto table = findChild< MolTableView * >() ) {
-        
+
         table->setModel( impl_->model_.get() );
         table->setContextMenuHandler( [this]( const QPoint& pt ){ impl_->handleContextMenu( pt ); } );
 
-        table->setColumnField( impl::c_formula, ColumnState::f_any, true, true );
-        table->setPrecision( impl::c_mass, 4 );
-        table->setPrecision( impl::c_time, 3 );
-        table->setPrecision( impl::c_timewindow, 3 );
+        table->setColumnField( c_formula, ColumnState::f_any, true, true );
+        table->setPrecision( c_mass, 4 );
+        table->setPrecision( c_time, 3 );
+        table->setPrecision( c_timewindow, 3 );
         {
             std::vector< std::pair< QString, QVariant > > choice;
             choice.emplace_back( "Area", QVariant( adcontrols::TofChromatogramMethod::ePeakAreaOnProfile ) );
             choice.emplace_back( "Height", QVariant( adcontrols::TofChromatogramMethod::ePeakHeightOnProfile ) );
             choice.emplace_back( "Counting", QVariant( adcontrols::TofChromatogramMethod::eCounting ) );
-            table->setChoice( impl::c_algo, choice );
+            table->setChoice( c_algo, choice );
         }
         {
             std::vector< std::pair< QString, QVariant > > choice;
@@ -139,13 +140,13 @@ TofChromatogramsWidget::TofChromatogramsWidget(QWidget *parent) : QWidget(parent
             choice.emplace_back( "1", QVariant( 1 ) );
             choice.emplace_back( "3", QVariant( 2 ) );
             choice.emplace_back( "4", QVariant( 3 ) );
-            table->setChoice( impl::c_protocol, choice );
+            table->setChoice( c_protocol, choice );
         }
-        
-        table->setColumnHidden( impl::c_id, true );
+
+        table->setColumnHidden( c_id, true );
 
         connect( table, &MolTableView::valueChanged, [&]( const QModelIndex& index, double value ){
-                if ( index.column() == impl::c_time || index.column() == impl::c_timewindow )
+                if ( index.column() == c_time || index.column() == c_timewindow )
                     value /= std::micro::den;  // us -> s
                 emit editorValueChanged( index, value );
             });
@@ -174,7 +175,7 @@ TofChromatogramsWidget::OnInitialUpdate()
 {
     if ( auto form = findChild< TofChromatogramsForm * >() )
         form->OnInitialUpdate();
-    
+
     if ( auto table = findChild< MolTableView *>() ) {
         table->onInitialUpdate();
         // connect( table, &MolTableView::onContextMenu, this, &TofChromatogramsWidget::handleContextMenu );
@@ -227,21 +228,21 @@ TofChromatogramsWidget::getContents( adcontrols::TofChromatogramsMethod& m ) con
 
     if ( auto form = findChild< TofChromatogramsForm *>() )
         form->getContents( m );
-    
+
     //QSqlDatabase db = QSqlDatabase::database( impl_->connString_ );
     auto& model = *impl_->model_;
     for ( int row = 0; row < model.rowCount(); ++row ) {
         using adcontrols::TofChromatogramMethod;
         adcontrols::TofChromatogramMethod item;
 
-        item.setEnable( model.index( row, impl::c_formula ).data( Qt::CheckStateRole ) == Qt::Checked );
-        item.setFormula( model.index( row, impl::c_formula ).data( Qt::EditRole ).toString().toStdString() );
-        item.setMass( model.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble() );
-        item.setMassWindow( model.index( row, impl::c_masswindow ).data( Qt::EditRole ).toDouble() );
-		item.setTime( model.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setTimeWindow( model.index( row, impl::c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den );
-        item.setIntensityAlgorithm( TofChromatogramMethod::eIntensityAlgorishm(  model.index( row, impl::c_algo ).data( Qt::EditRole ).toInt() ) );
-        item.setProtocol( model.index( row, impl::c_protocol ).data( Qt::EditRole ).toInt() );
+        item.setEnable( model.index( row, c_formula ).data( Qt::CheckStateRole ) == Qt::Checked );
+        item.setFormula( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdString() );
+        item.setMass( model.index( row, c_mass ).data( Qt::EditRole ).toDouble() );
+        item.setMassWindow( model.index( row, c_masswindow ).data( Qt::EditRole ).toDouble() );
+		item.setTime( model.index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den );
+        item.setTimeWindow( model.index( row, c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den );
+        item.setIntensityAlgorithm( TofChromatogramMethod::eIntensityAlgorishm(  model.index( row, c_algo ).data( Qt::EditRole ).toInt() ) );
+        item.setProtocol( model.index( row, c_protocol ).data( Qt::EditRole ).toInt() );
         m << item;
     }
 
@@ -253,25 +254,25 @@ TofChromatogramsWidget::setContents( const adcontrols::TofChromatogramsMethod& m
 {
     if ( auto form = findChild< TofChromatogramsForm *>() )
         form->setContents( m );
-    
+
     auto& model = *impl_->model_;
     model.setRowCount( m.size() );
 
     int row(0);
     for ( auto& trace: m ) {
-        model.setData( model.index( row, impl::c_formula ), QString::fromStdString( trace.formula() ) );
-        
-        if ( auto item = model.item( row, impl::c_formula ) ) {
+        model.setData( model.index( row, c_formula ), QString::fromStdString( trace.formula() ) );
+
+        if ( auto item = model.item( row, c_formula ) ) {
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            model.setData( model.index( row, impl::c_formula ), trace.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_formula ), trace.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        
-        model.setData( model.index( row, impl::c_mass ), trace.mass() );
-        model.setData( model.index( row, impl::c_masswindow ), trace.massWindow() );
-        model.setData( model.index( row, impl::c_time ), trace.time() * std::micro::den );
-        model.setData( model.index( row, impl::c_timewindow ), trace.timeWindow() * std::micro::den );
-        model.setData( model.index( row, impl::c_algo ), trace.intensityAlgorithm() );
-        model.setData( model.index( row, impl::c_protocol ), trace.protocol() );
+
+        model.setData( model.index( row, c_mass ), trace.mass() );
+        model.setData( model.index( row, c_masswindow ), trace.massWindow() );
+        model.setData( model.index( row, c_time ), trace.time() * std::micro::den );
+        model.setData( model.index( row, c_timewindow ), trace.timeWindow() * std::micro::den );
+        model.setData( model.index( row, c_algo ), trace.intensityAlgorithm() );
+        model.setData( model.index( row, c_protocol ), trace.protocol() );
         ++row;
     }
     return true;
@@ -303,12 +304,12 @@ TofChromatogramsWidget::impl::handleContextMenu( const QPoint& pt )
 {
     QMenu menu;
     typedef std::pair< QAction *, std::function< void() > > action_type;
-    
+
     if ( auto table = this_->findChild< MolTableView * >() ) {
 
         std::vector< action_type > actions;
         actions.push_back( std::make_pair( menu.addAction( "add line" ), [this](){ addLine(); }) );
-        
+
         if ( QAction * selected = menu.exec( table->mapToGlobal( pt ) ) ) {
             auto it = std::find_if( actions.begin(), actions.end(), [=]( const action_type& t ){ return t.first == selected; });
             if ( it != actions.end() )
@@ -332,7 +333,7 @@ TofChromatogramsWidget::setMassSpectrometer( std::shared_ptr< const adcontrols::
 void
 TofChromatogramsWidget::handleScanLawChanged()
 {
-    
+
 }
 
 QByteArray
@@ -353,20 +354,20 @@ TofChromatogramsWidget::readJson() const
         adcontrols::TofChromatogramMethod item;
         QJsonObject jitem;
 
-        jitem[ "enable"     ] = model.index( row, impl::c_formula ).data( Qt::CheckStateRole ) == Qt::Checked;
-        jitem[ "formula"    ] = model.index( row, impl::c_formula ).data( Qt::EditRole ).toString();
-        jitem[ "mass"       ] = model.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble();
-        jitem[ "massWindow" ] = model.index( row, impl::c_masswindow ).data( Qt::EditRole ).toDouble();
-        jitem[ "time"       ] = model.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
-        jitem[ "timeWindow" ] = model.index( row, impl::c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den;
-        jitem[ "intensAlgo" ] = model.index( row, impl::c_algo ).data( Qt::EditRole ).toInt();
-        jitem[ "protocol"   ] = model.index( row, impl::c_protocol ).data( Qt::EditRole ).toInt();
+        jitem[ "enable"     ] = model.index( row, c_formula ).data( Qt::CheckStateRole ) == Qt::Checked;
+        jitem[ "formula"    ] = model.index( row, c_formula ).data( Qt::EditRole ).toString();
+        jitem[ "mass"       ] = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+        jitem[ "massWindow" ] = model.index( row, c_masswindow ).data( Qt::EditRole ).toDouble();
+        jitem[ "time"       ] = model.index( row, c_time ).data( Qt::EditRole ).toDouble() / std::micro::den;
+        jitem[ "timeWindow" ] = model.index( row, c_timewindow ).data( Qt::EditRole ).toDouble() / std::micro::den;
+        jitem[ "intensAlgo" ] = model.index( row, c_algo ).data( Qt::EditRole ).toInt();
+        jitem[ "protocol"   ] = model.index( row, c_protocol ).data( Qt::EditRole ).toInt();
         if ( row == 0 || jitem[ "mass" ].toDouble() > 0 || jitem[ "time" ].toDouble() > 0 )
             jmols.append( jitem );
     }
 
     jtop[ "list" ] = jmols;
-    
+
     QJsonObject jobj;
     jobj[ QString::fromStdString( adcontrols::TofChromatogramsMethod::modelClass() ) ] = jtop;
 
@@ -386,28 +387,33 @@ TofChromatogramsWidget::setJson( const QByteArray& json )
     m.setNumberOfTriggers( jtop[ "numberOfTriggers" ].toInt() );
     m.setRefreshHistogram( jtop[ "refreshHistogram" ].toBool() );
     if ( auto form = findChild< TofChromatogramsForm *>() )
-        form->setContents( m );    
+        form->setContents( m );
 
-    auto& model = *impl_->model_;    
+    auto& model = *impl_->model_;
     model.setRowCount( jlist.count() );
     int row(0);
     for ( const auto& x: jlist ) {
         auto jtrace = x.toObject();
-        model.setData( model.index( row, impl::c_formula ), jtrace[ "formula" ].toString() );
-        
-        if ( auto item = model.item( row, impl::c_formula ) ) {
+        model.setData( model.index( row, c_formula ), jtrace[ "formula" ].toString() );
+
+        if ( auto item = model.item( row, c_formula ) ) {
             item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
-            model.setData( model.index( row, impl::c_formula ), jtrace[ "enable" ].toBool() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            model.setData( model.index( row, c_formula ), jtrace[ "enable" ].toBool() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
-        
-        model.setData( model.index( row, impl::c_mass ), jtrace[ "mass" ].toDouble() );
-        model.setData( model.index( row, impl::c_masswindow ), jtrace[ "massWindow" ].toDouble() );
-        model.setData( model.index( row, impl::c_time ), jtrace[ "time " ].toDouble() * std::micro::den );
-        model.setData( model.index( row, impl::c_timewindow ), jtrace[ "timeWindow" ].toDouble() * std::micro::den );
-        model.setData( model.index( row, impl::c_algo ), jtrace[ "intensAlgo" ].toInt() );
-        model.setData( model.index( row, impl::c_protocol ), jtrace[ "protocol" ].toInt() );
+
+        model.setData( model.index( row, c_mass ), jtrace[ "mass" ].toDouble() );
+        model.setData( model.index( row, c_masswindow ), jtrace[ "massWindow" ].toDouble() );
+        model.setData( model.index( row, c_time ), jtrace[ "time " ].toDouble() * std::micro::den );
+        model.setData( model.index( row, c_timewindow ), jtrace[ "timeWindow" ].toDouble() * std::micro::den );
+        model.setData( model.index( row, c_algo ), jtrace[ "intensAlgo" ].toInt() );
+        model.setData( model.index( row, c_protocol ), jtrace[ "protocol" ].toInt() );
 
         ++row;
     }
 }
 
+QStandardItemModel *
+TofChromatogramsWidget::model()
+{
+    return impl_->model_.get();
+}
