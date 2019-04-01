@@ -193,9 +193,6 @@ QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
     double width = document::instance()->width();
     const std::pair< double, double > range{ tof - width / 2, tof + width / 2 };
 
-    ADDEBUG() << "tof: " << tof << ", width: " << width;
-    ADDEBUG() << itemText.toStdString() << "; " << range;
-
     if ( itemText == "{Counting}" ) {
         setSQL( QString( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol  FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" ) );
     } else if ( itemText == "{CountRate}" ) {

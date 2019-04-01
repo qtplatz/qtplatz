@@ -89,6 +89,7 @@ namespace adportable {
                                                       , uint32_t( std::distance( begin, aIt ) ) // apex
                                                       , *aIt                                    // value
                                                       , level );
+                                adportable::advance( it, nskip, end );
                             }
                         }
                     }

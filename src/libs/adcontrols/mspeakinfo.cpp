@@ -112,7 +112,7 @@ MSPeakInfo::getSegment( size_t fcn ) const
     throw std::out_of_range( "MSPeakInfo fragments subscript out of range" );
 }
 
-size_t 
+size_t
 MSPeakInfo::total_size() const
 {
     size_t size = vec_.size();
@@ -188,7 +188,7 @@ MSPeakInfo::trim( MSPeakInfo& clone, const std::pair<double, double>& range ) co
     // make very-clean
     clone.clear();
     clone.clearSegments();
-    
+
     auto itFirst = std::lower_bound( vec_.begin(), vec_.end(), range.first, [](const MSPeakInfoItem& a, double mass){ return a.mass() < mass; } );
     if ( itFirst == vec_.end() )
         return false;
@@ -225,7 +225,7 @@ MSPeakInfo::find_range( const MSPeakInfo& pki, double left, double right, bool i
             auto first = std::lower_bound( pki.begin(), pki.end(), left, [] ( const MSPeakInfoItem& a, double t ) { return a.time() < t; } );
             auto last = std::lower_bound( pki.begin(), pki.end(), right, [] ( const MSPeakInfoItem& a, double t ) { return a.time() < t; } );
             return std::make_pair( first, last );
-        }        
+        }
     } else {
         if ( pki.front().mass() < right && left < pki.back().mass() ) {
             auto first = std::lower_bound( pki.begin(), pki.end(), left, [] ( const MSPeakInfoItem& a, double m ) { return a.mass() < m; } );
@@ -243,8 +243,11 @@ MSPeakInfo::max_element( const MSPeakInfo& pki, double left, double right, bool 
     if ( pki.size() > 0 ) {
         auto pair = find_range( pki, left, right, isTime );
 
-        if ( pair.first != pki.end() )
-            return std::max_element( pair.first, pair.second, []( const MSPeakInfoItem& a, const MSPeakInfoItem& b ){ return a.height() < b.height(); } );
+        if ( pair.first != pki.end() ) {
+            auto it =
+                std::max_element( pair.first, pair.second, []( const MSPeakInfoItem& a, const MSPeakInfoItem& b ){ return a.height() < b.height(); } );
+            return it;
+        }
     }
     return pki.end();
 }
