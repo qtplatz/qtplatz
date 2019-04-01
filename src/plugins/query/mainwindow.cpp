@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +26,7 @@
 #include "queryconstants.hpp"
 #include "queryconnection.hpp"
 #include "document.hpp"
+#include "queryform.hpp"
 #include "querywidget.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -46,17 +47,18 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/documentmanager.h>
 #include <utils/styledbar.h>
-
+#include <QComboBox>
 #include <QFileDialog>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QStackedWidget>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QTextEdit>
-#include <QtWidgets/qlabel.h>
-#include <QtWidgets/qlineedit.h>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QToolButton>
+#include <QTextEdit>
+#include <QLabel>
+#include <QLineEdit>
 #include <QTextEdit>
 #include <QTableView>
 #include <QDockWidget>
@@ -74,7 +76,7 @@ MainWindow::~MainWindow()
 {
 }
 
-MainWindow::MainWindow(QWidget *parent) : QWidget( parent )
+MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , stack_( new QStackedWidget )
 {
 }
@@ -82,12 +84,26 @@ MainWindow::MainWindow(QWidget *parent) : QWidget( parent )
 QWidget *
 MainWindow::createContents( Core::IMode * )
 {
-    QVBoxLayout * viewLayout = new QVBoxLayout( this );
+    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
+    setDocumentMode( true );
+    setDockNestingEnabled( true );
+
+    Utils::StyledBar * toolBar1 = createTopStyledBar();
+
+    //---------- central widget ------------
+    QWidget * centralWidget = new QWidget;
+    setCentralWidget( centralWidget );
+
+    QVBoxLayout * viewLayout = new QVBoxLayout( centralWidget );
     viewLayout->setMargin(0);
     viewLayout->setSpacing(0);
+    viewLayout->addWidget( toolBar1 );
 
     if ( auto widget = new QueryWidget ) {
         viewLayout->addWidget( widget );
+
+        if ( auto btn = findChild< QPushButton * >("btnHistory") )
+            connect( btn, &QPushButton::clicked, widget, &QueryWidget::showHistory );
     }
 
     return this;
@@ -101,7 +117,33 @@ MainWindow::createTopStyledBar()
         toolBar->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
+        toolBarLayout->setSpacing( 2 );
+
+        if ( auto am = Core::ActionManager::instance() ) {
+            Core::Context context( ( Core::Id( "query.MainView" ) ) );
+
+            if ( auto btnOpen = new QToolButton ) {
+                btnOpen->setDefaultAction( Core::ActionManager::instance()->command( Constants::FILE_OPEN )->action() );
+                btnOpen->setToolTip( tr("Open result file...") );
+                toolBarLayout->addWidget( btnOpen );
+
+                auto edit = new QLineEdit;
+                edit->setReadOnly( true );
+                edit->setObjectName( Constants::editQueryFilename );
+                toolBarLayout->addWidget( edit );
+
+                connect( document::instance(), &document::onConnectionChanged
+                         , [edit](){ edit->setText( QString::fromStdWString( document::instance()->connection()->filepath() ) ); } );
+
+            }
+
+            if ( auto button = new QPushButton( "History" ) ) {
+                button->setObjectName( "btnHistory" );
+                toolBarLayout->addWidget( button );
+            }
+        }
+
+
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
     }
@@ -112,8 +154,11 @@ void
 MainWindow::onInitialUpdate()
 {
     document::instance()->onInitialUpdate();
-#if ! defined Q_OS_MAC
-    setStyleSheet( "* { font-size: 9pt; }" );
+
+#if defined Q_OS_LINUX
+    auto font = this->font();
+    font.setPointSize( 9 );
+    setFont( font );
 #endif
 }
 
@@ -125,7 +170,7 @@ MainWindow::onFinalClose()
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( QAction * action )
 {
     QToolButton * button = new QToolButton;
@@ -135,7 +180,7 @@ MainWindow::toolButton( QAction * action )
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( const char * id )
 {
     return toolButton( Core::ActionManager::instance()->command(id)->action() );
@@ -145,12 +190,12 @@ void
 MainWindow::createActions()
 {
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
-        
+
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Query") );
-        
+
         if ( auto p = new QAction( QIcon( ":/query/images/fileopen.png" ), tr( "Open SQLite file..." ), this ) ) {
-            
+
             am->registerAction( p, Constants::FILE_OPEN, Core::Context( Core::Constants::C_GLOBAL ) );   // Tools|Query|Open SQLite file...
             connect( p, &QAction::triggered, this, &MainWindow::handleOpen );
             menu->addAction( am->command( Constants::FILE_OPEN ) );
@@ -191,7 +236,7 @@ MainWindow::handleOpen()
         if ( !name.isEmpty() ) {
 
             qtwrapper::waitCursor wait;
-            
+
             if ( auto connection = std::make_shared< QueryConnection >() ) {
 
                 if ( connection->connect( name.toStdWString() ) ) {
@@ -205,6 +250,32 @@ MainWindow::handleOpen()
     } catch ( ... ) {
         QMessageBox::warning( this, "Query MainWindow", boost::current_exception_diagnostic_information().c_str() );
     }
-    
+
 }
 
+QDockWidget *
+MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& pageName )
+{
+    if ( widget->windowTitle().isEmpty() ) // avoid QTC_CHECK warning on console
+        widget->setWindowTitle( title );
+
+    if ( widget->objectName().isEmpty() )
+        widget->setObjectName( pageName );
+
+    QDockWidget * dockWidget = addDockForWidget( widget );
+    dockWidget->setObjectName( pageName.isEmpty() ? widget->objectName() : pageName );
+
+    if ( title.isEmpty() )
+        dockWidget->setWindowTitle( widget->objectName() );
+    else
+        dockWidget->setWindowTitle( title );
+
+    addDockWidget( Qt::TopDockWidgetArea, dockWidget );
+
+    return dockWidget;
+}
+
+void
+MainWindow::createDockWidgets()
+{
+}

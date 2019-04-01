@@ -94,11 +94,15 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
 
     connect( document::instance(), &document::onConnectionChanged, this, &QueryWidget::handleConnectionChanged );
     connect( document::instance(), &document::onHistoryChanged, this, [this](){
-            hdlg_->appendSql( document::instance()->sqlHistory() );
+                                                                          hdlg_->appendSql( document::instance()->sqlHistory() );
         } );
+
     connect( form_.get(), &QueryForm::triggerQuery, this, &QueryWidget::handleQuery );
     connect( form_.get(), &QueryForm::showHistory, this, &QueryWidget::showHistory );
+    connect( form_.get(), &QueryForm::plotButtonPressed, this, &QueryWidget::handlePlot );
+
     connect( table_.get(), &QueryResultTable::plot, this, &QueryWidget::handlePlot );
+
     dlg_->setModal( false );
     connect( dlg_, &CountingQueryDialog::accepted, this, [this]{ accept(); } );
     connect( dlg_, &CountingQueryDialog::applied, this, [this]{ applyQuery(); } );
@@ -106,35 +110,15 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
     hdlg_->setModal( false );
     connect( hdlg_, &SqlHistoryDialog::accepted, this, [&]{ hdlg_->hide(); } );
 
-    if ( auto toolBar = new Utils::StyledBar ) {
-        
-        layout_->addWidget( toolBar );
-        
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 2 );
-        toolBarLayout->setSpacing( 2 );
-        
-        if ( auto btnOpen = new QToolButton ) {
-            btnOpen->setDefaultAction( Core::ActionManager::instance()->command( Constants::FILE_OPEN )->action() );
-            btnOpen->setToolTip( tr("Open result file...") );
-            toolBarLayout->addWidget( btnOpen );
-
-            auto edit = new QLineEdit;
-            edit->setReadOnly( true );
-            edit->setObjectName( Constants::editQueryFilename );
-            toolBarLayout->addWidget( edit );
-        }
-    }
-
     if ( QSplitter * splitter = new QSplitter ) {
         splitter->setOrientation( Qt::Vertical );
 
         splitter->addWidget( form_.get() );
-        
+
         if ( auto hsplitter = new QSplitter ) {
             hsplitter->setOrientation( Qt::Horizontal );
             hsplitter->addWidget( table_.get() );
-#if QT5_CHARTS            
+#if QT5_CHARTS
             if ( auto chartView = new charts::ChartView )
                 hsplitter->addWidget( chartView );
 #else
@@ -161,12 +145,6 @@ QueryWidget::QueryWidget(QWidget *parent) : QWidget(parent)
 void
 QueryWidget::handleConnectionChanged()
 {
-    ADDEBUG() << "set file: " << document::instance()->connection()->filepath();
-
-    if ( auto edit = findChild< QLineEdit * >( Constants::editQueryFilename ) ) {
-        edit->setText( QString::fromStdWString( document::instance()->connection()->filepath() ) );
-    }
-
     if ( auto conn = document::instance()->connection() ) {
         if ( auto form = findChild< QueryForm * >() ) {
             QStringList tables;
@@ -181,17 +159,23 @@ QueryWidget::handleConnectionChanged()
             }
             tables.insert( 0, "sqlite_master" );
 
-            if ( hasPeak && hasTrigger )
+            if ( hasPeak && hasTrigger ) {
                 tables.insert( 0, "{Counting}" ); // '{}' never appear on sql table name
+                tables.insert( 0, "{Frequency}" );
+                tables.insert( 0, "{Frequency -- min(peak_time)}" );
+                tables.insert( 0, "{TOF/Intensities -- min(peak_time)}" );
+                tables.insert( 0, "{Peak Height}" );
+            }
             tables.insert( 0, "{CountRate}" );
             tables.insert( 0, "{CountRatio}" );
-            
+
             tables.insert( 0, "" ); // empty on top of combobox
 
             form->setTableList( tables );
-            
+            emit tableListChanged( tables );
+
             QStringList words ( tables );
-            
+
             if ( QCompleter * completer = new QCompleter( this ) ) {
                 QFile file( ":/query/wordlist.txt" );
                 if ( file.open( QFile::ReadOnly ) ) {
@@ -202,11 +186,11 @@ QueryWidget::handleConnectionChanged()
                     }
                 }
 
-                for ( auto& table: tables ) 
+                for ( auto& table: tables )
                     words << table;
-                
+
                 query = conn->sqlQuery( "SELECT objuuid FROM AcquiredConf" );
-                while ( query.next() ) 
+                while ( query.next() )
                     words << query.value( 0 ).toString(); // guid
 
                 words.sort( Qt::CaseInsensitive );
@@ -232,11 +216,11 @@ QueryWidget::executeQuery()
             auto query = connection->sqlQuery( "SELECT * FROM sqlite_master WHERE type='table'" );
             table_->setQuery( query, connection->shared_from_this() );
         }
-            
+
         {
             adfs::sqlite sqlite;
             sqlite.open( boost::filesystem::path( connection->filepath() ).string().c_str(), adfs::readonly );
-            
+
             QSqlQuery query( connection->sqlDatabase() );
             //query.prepare( "SELECT acclVoltage,tDelay,clsidSpectrometer FROM ScanLaw WHERE spectrometer='InfiTOF' LIMIT 1" );
             query.prepare( "SELECT acclVoltage,tDelay,fLength,clsidSpectrometer FROM ScanLaw,Spectrometer WHERE id=clsidSpectrometer LIMIT 1" );
@@ -294,7 +278,7 @@ QueryWidget::handleQuery( const QString& sql )
         } else {
             document::instance()->addSqlHistory( sql );
         }
-        
+
         table_->setQuery( query );
     }
 }
@@ -307,13 +291,13 @@ QueryWidget::handlePlot()
 #else
     typedef adplot::ChartView ChartView_t;
 #endif
-    
+
     if ( auto chart = findChild< ChartView_t * >() ) {
 
         PlotDialog dlg( this );
 
         dlg.setModel( table_->model() );
-        
+
         auto& settings = document::instance()->settings();
         settings.beginGroup( "PlotDialog" );
         dlg.setClearExisting( settings.value( "clearExisting", true ).toBool() );
@@ -325,9 +309,9 @@ QueryWidget::handlePlot()
         }
         settings.endArray();
         settings.endGroup();
-        
+
         if ( dlg.exec() ) {
-            
+
             settings.beginGroup( "PlotDialog" );
             settings.setValue( "clearExisting", dlg.clearExisting() );
             settings.setValue( "chartType", dlg.chartType() );
@@ -356,10 +340,10 @@ QueryWidget::handlePlot()
 
                 auto xtitle = table_->model()->headerData( iX, Qt::Horizontal ).toString();
                 auto ytitle = table_->model()->headerData( iY, Qt::Horizontal ).toString();
-                
+
                 chart->setData( table_->model(), title, iX, iY, xtitle, ytitle, type );
             }
-            
+
             if ( auto chart = findChild< ChartView_t * >() )
                 chart->show();
         }
@@ -370,7 +354,7 @@ void
 QueryWidget::buildQuery( const QString& q, const QRectF& rc, bool isMass )
 {
     (void)q;
-    
+
     qtwrapper::waitCursor wait;
 
     auto model = qobject_cast< QStandardItemModel *>( dlg_->model() );
@@ -378,7 +362,7 @@ QueryWidget::buildQuery( const QString& q, const QRectF& rc, bool isMass )
     dlg_->activateWindow();
     dlg_->show();
     dlg_->raise();
-    
+
     std::vector< std::pair< int, std::pair< double, double > > > t_ranges;
 
     if ( auto conn = document::instance()->connection()->shared_from_this() ) {
@@ -410,7 +394,7 @@ QueryWidget::buildQuery( const QString& q, const QRectF& rc, bool isMass )
         }
     }
     QString postfix = QString("%1-%2").arg( rc.left() ).arg( rc.right() );
-        
+
     int row = model->rowCount();
     model->setRowCount( row + t_ranges.size() );
     for ( auto& t: t_ranges ) {
@@ -439,7 +423,7 @@ QueryWidget::accept()
                                               , model->index( row, 2 ).data( Qt::EditRole ).toDouble()
                                               , model->index( row, 3 ).data( Qt::EditRole ).toDouble() ) );
     }
-    
+
     if ( dlg_->commandText() == "COUNTING" ) {
         size_t idx( 0 );
         for ( auto& t: ranges ) {
@@ -455,7 +439,7 @@ QueryWidget::accept()
         }
 
     } else if ( dlg_->commandText() == "COUNTING.FREQUENCY" ) {
-        
+
         stmt << "SELECT name,ROUND(peak_intensity/10)*10 AS threshold,avg(peak_time), avg(peak_intensity), avg(peak_width), COUNT(*) FROM (\r\n";
         size_t idx( 0 );
         for ( auto& t: ranges ) {

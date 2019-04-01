@@ -24,6 +24,13 @@
 #include "queryform.hpp"
 #include "sqledit.hpp"
 #include <adportable/debug.hpp>
+#include <utils/styledbar.h>
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command.h>
+#include <coreplugin/coreconstants.h>
+#include <coreplugin/icore.h>
+#include <QAction>
 #include <QAbstractItemView>
 #include <QApplication>
 #include <QCompleter>
@@ -43,39 +50,42 @@ QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
     resize( 200, 100 );
 
     auto vLayout = new QVBoxLayout( this );
-    auto gridLayout = new QGridLayout();
 
     if ( auto textEditor = new SqlEdit() ) {
         textEditor->installEventFilter( this );
         vLayout->addWidget( textEditor );
     }
 
-    if ( auto combo = new QComboBox() ) {
-        combo->setObjectName( "tableList" );
-        gridLayout->addWidget( combo, 1, 0, 1, 1 );
-        connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
-                 , this, &QueryForm::on_comboBox_currentIndexChanged );
-    }
+    if ( auto toolBar = new Utils::StyledBar ) {
+        toolBar->setProperty( "topBorder", true );
+        toolBar->setSingleRow( true );
+        //toolBar->setLightColored( false );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin(0);
+        toolBarLayout->setSpacing(2);
 
-    if ( auto button = new QPushButton( "View History" ) ) {
-        gridLayout->addWidget( button, 1, 1, 1, 1 );
-        connect( button, &QPushButton::clicked, this, [&](){ emit showHistory(); });
+        if ( auto combo = new QComboBox() ) {
+            combo->setObjectName( "tableList" );
+            toolBarLayout->addWidget( combo );
+            connect( combo, qOverload< const QString &>(&QComboBox::currentIndexChanged), this, &QueryForm::on_comboBox_currentIndexChanged );
+            toolBarLayout->setStretchFactor( combo, 1 );
+        }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+        if ( auto button = new QPushButton( "Execute query" ) ) {
+            toolBarLayout->addWidget( button );
+            connect( button, &QPushButton::pressed, this, [&]{ emit on_pushButton_pressed(); } );
+        }
+
+        if ( auto button = new QPushButton( "Plot..." ) ) {
+            toolBarLayout->addWidget( button );
+            connect( button, &QPushButton::pressed, this, [&]{ emit plotButtonPressed(); } );
+        }
+
+        vLayout->addWidget( toolBar );
     }
-/*
-    if ( auto combo = new QComboBox() ) {
-        combo->setObjectName( "history" );
-        combo->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLength );
-        gridLayout->addWidget( combo, 1, 1, 1, 1 );
-        connect( combo, static_cast< void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
-                 , this, &QueryForm::on_history_currentIndexChanged );
-    }
-*/
-    if ( auto button = new QPushButton( "execute query" ) ) {
-        gridLayout->addWidget( button, 1, 2, 1, 1 );
-        connect( button, &QPushButton::pressed, this, &QueryForm::on_pushButton_pressed );
-    }
-    
-    vLayout->addLayout( gridLayout );
 }
 
 QueryForm::~QueryForm()
@@ -118,19 +128,19 @@ QueryForm::sql() const
     return QString();
 }
 
-void 
+void
 QueryForm::on_plainTextEdit_textChanged()
 {
 }
 
-void 
+void
 QueryForm::on_pushButton_pressed()
 {
     if ( auto textEdit = findChild< QPlainTextEdit * >() )
         emit triggerQuery( textEdit->toPlainText() );
 }
 
-void 
+void
 QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
 {
     if ( itemText == "{Counting}" ) {
@@ -138,6 +148,22 @@ QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
     } else if ( itemText == "{CountRate}" ) {
         setSQL( QString( "SELECT idSample,dataSource,formula,cast(timeCounts AS REAL)/trigCounts as CountRate"
                          " FROM QuanResponse,QuanSample WHERE QuanResponse.idSample=QuanSample.id" ) );
+    } else if ( itemText == "{TOF/Intensities -- min(peak_time)}" ) {
+        setSQL( QString( "SELECT MIN(peak_time),peak_intensity FROM trigger,peak WHERE id=idTrigger"
+                         " AND peak_time > 99.90e-6 AND peak_time < 99.92e-6 GROUP BY id" ) );
+    } else if ( itemText == "{Frequency -- min(peak_time)}" ) {
+        setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
+                         " (SELECT MIN(peak_time),ROUND(peak_intensity/10)*10 AS Threshold"
+                         " FROM trigger,peak WHERE id=idTrigger AND peak_time > 99.90e-6 AND peak_time < 99.92e-6 GROUP BY id)\n"
+                         " GROUP BY Threshold" ) );
+    } else if ( itemText == "{Frequency}" ) {
+        setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
+                         " (SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger"
+                         " AND peak_time > 0.0e-6 AND peak_time < 600.0e-6 AND Threshold < 0.0)\n"
+                         " GROUP by Threshold" ) );
+    } else if ( itemText == "{Peak Height}" ) {
+        setSQL( QString( "SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger"
+                         " AND peak_time > 0.0e-6 AND peak_time < 600.0e-6" ) );
     } else if ( itemText == "{CountRatio}" ) {
         setSQL( QString(
                     "SELECT t1.uuid as 'uuid'"
@@ -172,7 +198,7 @@ QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
     }
 }
 
-void 
+void
 QueryForm::on_history_currentIndexChanged( const QString& itemText )
 {
     if ( auto combo = findChild< QComboBox * >( "history" ) )
@@ -213,4 +239,3 @@ QueryForm::completer() const
         return textEditor->completer();
     return nullptr;
 }
-

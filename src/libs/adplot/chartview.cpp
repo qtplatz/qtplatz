@@ -26,6 +26,7 @@
 #include "xyseriesdata.hpp"
 #include <adportable/float.hpp>
 #include <adplot/zoomer.hpp>
+#include <adportable/debug.hpp>
 #include <qwt_picker_machine.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
@@ -48,6 +49,7 @@
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QSvgGenerator>
+#include <QDebug>
 #include <boost/format.hpp>
 #include <ratio>
 #include <memory>
@@ -61,7 +63,7 @@ namespace adplot {
         , Qt::darkMagenta   // 4
         , Qt::darkYellow    // 5
         , Qt::darkBlue      // 6
-        , Qt::darkRed       // 7            
+        , Qt::darkRed       // 7
         , Qt::green         // 8
         , Qt::cyan          // 9
         , Qt::magenta       // 10
@@ -88,9 +90,9 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
         // gradient.setColorAt( 1.0, QColor( 0xae, 0xc6, 0xcf ) ); // pastel blue
         gradient.setColorAt( 0.0, QColor( 0xc1, 0xff, 0xc1 ) ); // darkseagreen
         gradient.setColorAt( 1.0, QColor( 0xb4, 0xee, 0xb4 ) ); // darkseagreen 2
-         
+
         pal.setBrush( QPalette::Window, QBrush( gradient ) );
-         
+
         // QPalette::WindowText is used for the curve color
         // pal.setColor( QPalette::WindowText, Qt::green );
 
@@ -99,7 +101,7 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
 
     this->enableAxis( QwtPlot::yLeft, true );
     this->enableAxis( QwtPlot::xBottom, true );
-    
+
     QwtPlotGrid *grid = new QwtPlotGrid();
     grid->setPen( Qt::gray, 0.0, Qt::DotLine );
     grid->enableX( true );
@@ -110,7 +112,7 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
 
     this->axisScaleEngine( QwtPlot::yLeft )->setAttribute( QwtScaleEngine::Floating, true );
     this->axisScaleEngine( QwtPlot::xBottom )->setAttribute( QwtScaleEngine::Floating, true );
-    
+
     auto zoomer = new adplot::Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, this->canvas() );
 
     // Shift+LeftButton: zoom out to full size
@@ -120,14 +122,14 @@ ChartView::ChartView( QWidget * parent ) : QwtPlot( parent )
     const QColor c( Qt::darkBlue );
     zoomer->setRubberBandPen( c );
     zoomer->setTrackerPen( c );
-    zoomer->autoYScaleHock( [&]( QRectF& rc ){ yScaleHock( rc ); } ); 
+    zoomer->autoYScaleHock( [&]( QRectF& rc ){ yScaleHock( rc ); } );
     zoomer->autoYScale( true );
 
     if ( auto panner = new QwtPlotPanner( canvas() ) ) {
         panner->setAxisEnabled( QwtPlot::yRight, false );
         panner->setMouseButton( Qt::MidButton );
     }
-    
+
     if ( auto picker = new QwtPlotPicker( canvas() ) ) {
         picker->setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
         picker->setStateMachine( new QwtPickerDragRectMachine() );
@@ -147,11 +149,13 @@ void
 ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int y
                     , const QString& xLabel, const QString& yLabel, const QString& chartType )
 {
+    ADDEBUG() << "setData";
+
     if ( model ) {
 
         size_t size = plots_.size();
         auto color = color_table[ size % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) ) ];
-        
+
         if ( chartType == "Scatter" ) {
 
             auto curve = std::make_shared< QwtPlotCurve >();
@@ -163,7 +167,7 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
             curve->attach( this );
 
         } else if ( chartType == "Line" ) {
-            
+
             auto curve = std::make_shared< QwtPlotCurve >();
             plots_.emplace_back( curve );
 
@@ -175,14 +179,14 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
 
             curve->setSamples( new XYSeriesData( model, x, y ) );
             curve->attach( this );
-            
+
         } else if ( chartType == "Histogram" ) {
 
             auto curve = std::make_shared< QwtPlotCurve >();
-            plots_.emplace_back( curve );            
+            plots_.emplace_back( curve );
 
             curve->setStyle( QwtPlotCurve::Sticks );
-            curve->setPen( QPen( color ) );            
+            curve->setPen( QPen( color ) );
             curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
             //curve->setYAxis( QwtPlot::yLeft );
 
@@ -196,7 +200,11 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
 
             for ( auto& plot: plots_ )
                 bRect |= plot->boundingRect();
-            
+
+            double w = bRect.width() * 0.1;
+            double h = bRect.height() * 0.05;
+            bRect = bRect.adjusted( -w, -h, w, h );
+
             this->setAxisScale( QwtPlot::yLeft, std::min( bRect.top(), bRect.bottom() ), std::max( bRect.top(), bRect.bottom() ) );
             this->setAxisScale( QwtPlot::xBottom, bRect.left(), bRect.right() );
 
@@ -207,7 +215,7 @@ ChartView::setData( QAbstractItemModel * model, const QString& title, int x, int
             setAxisTitle( QwtPlot::yLeft, QwtText( yLabel, QwtText::RichText ) );
         }
     }
-    
+
 }
 
 void
@@ -216,54 +224,58 @@ ChartView::setData( QwtSeriesData< QPointF > * data, const QString& title
 {
     size_t size = plots_.size();
     auto color = color_table[ size % ( sizeof( color_table ) / sizeof( color_table[ 0 ] ) ) ];
-        
+
     if ( chartType == "Scatter" ) {
-        
+
         auto curve = std::make_shared< QwtPlotCurve >();
         curve->setStyle( QwtPlotCurve::NoCurve );
         curve->setSymbol( new QwtSymbol( QwtSymbol::XCross, Qt::NoBrush, QPen( color ), QSize( 5, 5 ) ) );
         plots_.emplace_back( curve );
-        
+
         curve->setSamples( data );
         curve->attach( this );
-        
+
     } else if ( chartType == "Line" ) {
-        
+
         auto curve = std::make_shared< QwtPlotCurve >();
         plots_.emplace_back( curve );
-        
+
         curve->setStyle( QwtPlotCurve::Lines );
         curve->setPen( QPen( color ) );
         curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
         curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
         curve->setSamples( data );
         curve->attach( this );
-        
+
     } else if ( chartType == "Histogram" ) {
-        
+
         auto curve = std::make_shared< QwtPlotCurve >();
-        plots_.emplace_back( curve );            
-        
+        plots_.emplace_back( curve );
+
         curve->setStyle( QwtPlotCurve::Sticks );
-        curve->setPen( QPen( color ) );            
+        curve->setPen( QPen( color ) );
         curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
         curve->setSamples( data );
         curve->attach( this );
     }
-    
+
     if ( plots_.size() != size ) {
-        
+
         QRectF bRect;
-        
+
         for ( auto& plot: plots_ )
             bRect |= plot->boundingRect();
-        
+
+        double w = bRect.width() * 0.1;
+        double h = bRect.height() * 0.05;
+        bRect = bRect.adjusted( -w, -h, w, h );
+
         this->setAxisScale( QwtPlot::yLeft, std::min( bRect.top(), bRect.bottom() ), std::max( bRect.top(), bRect.bottom() ) );
         this->setAxisScale( QwtPlot::xBottom, bRect.left(), bRect.right() );
-        
+
         if ( auto zoomer = findChild< QwtPlotZoomer * >() )
             zoomer->setZoomBase();
-        
+
         setAxisTitle( QwtPlot::xBottom, QwtText( xLabel, QwtText::RichText ) );
         setAxisTitle( QwtPlot::yLeft, QwtText( yLabel, QwtText::RichText ) );
     }
@@ -283,14 +295,14 @@ ChartView::copyToClipboard()
 
     QImage img( sz, QImage::Format_ARGB32 );
     img.fill( qRgba( 0, 0, 0, 0 ) );
-    
+
     QRectF rc( 0, 0, sz.width(), sz.height() );
-    
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, false );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
-    
+
     QPainter painter;
 
     painter.begin(&img);
@@ -307,7 +319,7 @@ ChartView::saveImage( bool clipboard )
     QSvgGenerator generator;
     QByteArray svg;
     QBuffer buffer( &svg );
-    
+
     generator.setTitle( "QtPlatz Generated SVG" );
     generator.setDescription( "Copyright (C) 2013-2017 MS-Cheminformataics, All rights reserved" );
     auto sz = this->size();
@@ -316,7 +328,7 @@ ChartView::saveImage( bool clipboard )
 
     if ( clipboard ) {
 
-        generator.setOutputDevice( &buffer );        
+        generator.setOutputDevice( &buffer );
 
     } else {
         auto name = QFileDialog::getSaveFileName( this, tr( "Save SVG File" )
@@ -385,7 +397,7 @@ ChartView::selected( const QRectF& rc )
     }
     if ( auto action = menu.addAction( tr( "Show query ranges" ) ) ) {
         action->setData( idx++ );                                       // 9
-    }    
+    }
 
     QPointF pos = QPointF( rc.left(), rc.top() );
 
@@ -417,13 +429,13 @@ ChartView::selected( const QRectF& rc )
             break;
         case 7:
             yZoom( rc );
-            break;            
+            break;
         case 8:
             emit makeQuery( "COUNTING", rc, bool( axisTitle( QwtPlot::xBottom ).text().contains( "m/z" ) ) );
             break;
         case 9:
             emit makeQuery( "", rc, false ); // show
-            break;            
+            break;
         }
     }
 
@@ -435,11 +447,11 @@ ChartView::yZoom( const QRectF& rect )
     std::pair<double, double > left, right;
 
     auto hasAxis = scaleY( rect, left, right );
-    
+
     if ( hasAxis.first && ! adportable::compare<double>::approximatelyEqual( left.first, left.second ) ) {
         setAxisScale( QwtPlot::yLeft, left.first, left.second ); // set yLeft
     }
-    
+
     if ( hasAxis.second && ! adportable::compare<double>::approximatelyEqual( right.first, right.second ) ) {
         setAxisScale( QwtPlot::yRight, right.first, right.second ); // set yRight
     }
@@ -467,7 +479,7 @@ std::pair<bool, bool>
 ChartView::scaleY( const QRectF& rc, std::pair< double, double >& left, std::pair< double, double >& right )
 {
     bool hasYLeft( false ), hasYRight( false );
-    
+
     left = right = std::make_pair( std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest() );
 
     for ( auto curve: plots_ ) {

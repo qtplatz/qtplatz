@@ -54,11 +54,11 @@ namespace query {
 
     signals:
         void onQueryData( std::shared_ptr< QueryQuery > );
+        void tableListChanged( const QStringList& );
 
     public slots :
         void handleConnectionChanged();
 
-    private slots:
         void handleQuery( const QString& );
         void handlePlot();
         void buildQuery( const QString&, const QRectF&, bool );
@@ -68,4 +68,3 @@ namespace query {
     };
 
 }
-

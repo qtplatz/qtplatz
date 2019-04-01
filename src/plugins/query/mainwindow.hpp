@@ -25,8 +25,7 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
-//#include <utils/fancymainwindow.h>
-#include <QWidget>
+#include <utils/fancymainwindow.h>
 #include <memory>
 #include <array>
 
@@ -43,7 +42,7 @@ class QStackedWidget;
 
 namespace query {
 
-    class MainWindow : public QWidget { // public Utils::FancyMainWindow {
+    class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
     public:
         explicit MainWindow(QWidget *parent = 0);
@@ -59,7 +58,8 @@ namespace query {
         QStackedWidget * stack_;
 
         void createDockWidgets();
-        QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
+        QDockWidget * createDockWidget( QWidget * widget, const QString& title, const QString& objname );
+
         void setSimpleDockWidgetArrangement();
         Utils::StyledBar * createTopStyledBar();
         Utils::StyledBar * createMidStyledBar();
@@ -71,6 +71,7 @@ namespace query {
         void handleIndexChanged( int index, int subIndex );
         void handleSequenceCompleted();
         void handleOpen();
+
 
     signals:
 

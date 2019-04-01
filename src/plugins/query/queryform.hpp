@@ -48,16 +48,18 @@ namespace query {
         void setCompleter( QCompleter * );
         QCompleter * completer() const;
 
-    private slots:
-        void on_plainTextEdit_textChanged();
+    public slots:
+        void on_comboBox_currentIndexChanged( const QString& );
         void on_pushButton_pressed();
 
-        void on_comboBox_currentIndexChanged( const QString& );
+    private slots:
+        void on_plainTextEdit_textChanged();
         void on_history_currentIndexChanged( const QString& );
 
     signals:
         void triggerQuery( const QString& );
         void showHistory();
+        void plotButtonPressed();
 
     private:
         bool eventFilter( QObject *object, QEvent *event );
