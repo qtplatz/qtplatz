@@ -53,7 +53,7 @@ namespace query {
         struct user_preference {
             static boost::filesystem::path path( QSettings * settings ) {
                 boost::filesystem::path dir( settings->fileName().toStdWString() );
-                return dir.remove_filename() / "Query";                
+                return dir.remove_filename() / "Query";
             }
         };
     }
@@ -120,9 +120,9 @@ void
 document::addSqlHistory( const QString& sql )
 {
     auto list = sqlHistory();
-    
+
     list.erase( std::remove_if( list.begin(), list.end(), [sql] ( const QString& a ){ return sql == a; } ), list.end() );
-    
+
     settings_->beginGroup( "Query" );
     settings_->beginWriteArray( "History" );
 
@@ -133,7 +133,7 @@ document::addSqlHistory( const QString& sql )
         settings_->setArrayIndex( i + 1 );
         settings_->setValue( "Sql", list[ i ] );
     }
-    
+
     settings_->endArray();
     settings_->endGroup();
 
@@ -157,7 +157,7 @@ document::sqlHistory()
 
     settings_->endArray();
     settings_->endGroup();
-    
+
     return list;
 }
 
@@ -171,4 +171,28 @@ std::shared_ptr< adcontrols::MassSpectrometer >
 document::massSpectrometer()
 {
     return massSpectrometer_;
+}
+
+double
+document::tof() const
+{
+    settings_->value( "Query/TOF", 0.0 ).toDouble();
+}
+
+double
+document::width() const
+{
+    settings_->value( "Query/Width", 0.0 ).toDouble();
+}
+
+void
+document::setTof( double v )
+{
+    settings_->setValue( "Query/TOF", v );
+}
+
+void
+document::setWidth( double v )
+{
+    settings_->setValue( "Query/Width", v );
 }

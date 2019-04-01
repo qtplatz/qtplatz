@@ -22,24 +22,28 @@
 **************************************************************************/
 
 #include "queryform.hpp"
+#include "document.hpp"
 #include "sqledit.hpp"
-#include <adportable/debug.hpp>
 #include <utils/styledbar.h>
+#include <adportable/debug.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
-#include <QAction>
 #include <QAbstractItemView>
+#include <QAction>
 #include <QApplication>
-#include <QCompleter>
-#include <QScrollBar>
-#include <QStringList>
-#include <QPlainTextEdit>
 #include <QBoxLayout>
 #include <QComboBox>
+#include <QCompleter>
+#include <QDoubleSpinBox>
+#include <QLabel>
+#include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollBar>
+#include <QStringList>
 #include <QStyledItemDelegate>
 
 using namespace query;
@@ -73,6 +77,48 @@ QueryForm::QueryForm(QWidget *parent) : QWidget(parent)
 
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+        if ( auto label = new QLabel( "TOF(&micro;s)" ) ) {
+            label->setTextFormat( Qt::RichText );
+            toolBarLayout->addWidget( label );
+        }
+
+        if ( auto sbox = qtwrapper::make_widget< QDoubleSpinBox >("sboxTOF") ) {
+            sbox->setDecimals( 4 );
+            sbox->setSingleStep( 0.001 );
+            sbox->setMinimum( 0 );
+            sbox->setMaximum( 1000.0 );
+            sbox->setValue( document::instance()->tof() * 1.0e6 );
+            toolBarLayout->addWidget( sbox );
+            connect( sbox, qOverload<double>( &QDoubleSpinBox::valueChanged ), this
+                     , [&](double v){
+                           document::instance()->setTof( v / 1.0e6 );
+                           if ( auto combo = findChild< QComboBox * >("tableList") )
+                               on_comboBox_currentIndexChanged( combo->currentText() );
+                       } );
+        }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+
+        if ( auto label = new QLabel( "Width(ns)" ) )
+            toolBarLayout->addWidget( label );
+
+        if ( auto sbox = qtwrapper::make_widget< QDoubleSpinBox >("sboxWidth") ) {
+            sbox->setDecimals( 2 );
+            sbox->setSingleStep( 0.1 );
+            sbox->setMinimum( 0 );
+            sbox->setMaximum( 1000.0 );
+            sbox->setValue( document::instance()->width() * 1.0e9 );
+            toolBarLayout->addWidget( sbox );
+            connect( sbox, qOverload<double>( &QDoubleSpinBox::valueChanged ), this
+                     , [&](double v){
+                           document::instance()->setWidth( v / 1.0e9 );
+                           if ( auto combo = findChild< QComboBox * >("tableList") )
+                               on_comboBox_currentIndexChanged( combo->currentText() );
+                       } );
+        }
+
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
 
         if ( auto button = new QPushButton( "Execute query" ) ) {
             toolBarLayout->addWidget( button );
@@ -143,27 +189,59 @@ QueryForm::on_pushButton_pressed()
 void
 QueryForm::on_comboBox_currentIndexChanged( const QString& itemText )
 {
+    double tof = document::instance()->tof();
+    double width = document::instance()->width();
+    const std::pair< double, double > range{ tof - width / 2, tof + width / 2 };
+
+    ADDEBUG() << "tof: " << tof << ", width: " << width;
+    ADDEBUG() << itemText.toStdString() << "; " << range;
+
     if ( itemText == "{Counting}" ) {
         setSQL( QString( "SELECT ROUND(peak_time, 9) AS time, COUNT(*), protocol  FROM peak,trigger WHERE id=idTrigger GROUP BY time ORDER BY time" ) );
     } else if ( itemText == "{CountRate}" ) {
         setSQL( QString( "SELECT idSample,dataSource,formula,cast(timeCounts AS REAL)/trigCounts as CountRate"
                          " FROM QuanResponse,QuanSample WHERE QuanResponse.idSample=QuanSample.id" ) );
     } else if ( itemText == "{TOF/Intensities -- min(peak_time)}" ) {
-        setSQL( QString( "SELECT MIN(peak_time),peak_intensity FROM trigger,peak WHERE id=idTrigger"
-                         " AND peak_time > 99.90e-6 AND peak_time < 99.92e-6 GROUP BY id" ) );
+        queryItem_ = itemText;
+        if ( tof >= 10.0e-9 ) {
+            setSQL( QString( "SELECT MIN(peak_time),peak_intensity FROM trigger,peak WHERE id=idTrigger"
+                             " AND peak_time > %1 AND peak_time < %2 GROUP BY id" ).arg( QString::number( range.first )
+                                                                                         , QString::number( range.second ) ) );
+        } else {
+            setSQL( QString( "SELECT MIN(peak_time),peak_intensity FROM trigger,peak WHERE id=idTrigger GROUP BY id" ) );
+        }
     } else if ( itemText == "{Frequency -- min(peak_time)}" ) {
-        setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
-                         " (SELECT MIN(peak_time),ROUND(peak_intensity/10)*10 AS Threshold"
-                         " FROM trigger,peak WHERE id=idTrigger AND peak_time > 99.90e-6 AND peak_time < 99.92e-6 GROUP BY id)\n"
-                         " GROUP BY Threshold" ) );
+        queryItem_ = itemText;
+        if ( tof >= 10.0e-9 ) {
+            setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
+                             " (SELECT MIN(peak_time),ROUND(peak_intensity/10)*10 AS Threshold"
+                             " FROM trigger,peak WHERE id=idTrigger AND peak_time > %1 AND peak_time < %2 GROUP BY id)\n"
+                             " GROUP BY Threshold" ).arg( QString::number( range.first ), QString::number( range.second ) ) );
+        } else {
+            setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
+                             " (SELECT MIN(peak_time),ROUND(peak_intensity/10)*10 AS Threshold"
+                             " FROM trigger,peak WHERE id=idTrigger GROUP BY id)\n"
+                             " GROUP BY Threshold" ) );
+        }
     } else if ( itemText == "{Frequency}" ) {
-        setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
-                         " (SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger"
-                         " AND peak_time > 0.0e-6 AND peak_time < 600.0e-6 AND Threshold < 0.0)\n"
-                         " GROUP by Threshold" ) );
+        queryItem_ = itemText;
+        if ( tof >= 10.0e-9 ) {
+            setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
+                             " (SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger"
+                             " AND peak_time > %1 AND peak_time < %2 AND Threshold < 0.0)\n"
+                             " GROUP by Threshold" ).arg( QString::number( range.first ), QString::number( range.second ) ) );
+        } else {
+            setSQL( QString( "SELECT *,COUNT(*) AS COUNTS FROM\n"
+                             " (SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger AND Threshold < 0.0)\n"
+                             " GROUP by Threshold" ) );
+        }
     } else if ( itemText == "{Peak Height}" ) {
-        setSQL( QString( "SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger"
-                         " AND peak_time > 0.0e-6 AND peak_time < 600.0e-6" ) );
+        queryItem_ = itemText;
+        if ( tof >= 10.0e-9 )
+            setSQL( QString( "SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger"
+                             " AND peak_time > %1 AND peak_time < %2" ).arg( QString::number( range.first ), QString::number( range.first ) ) );
+        else
+            setSQL( QString( "SELECT ROUND(peak_intensity/10)*10 AS Threshold,* FROM trigger,peak WHERE id=idTrigger" ) );
     } else if ( itemText == "{CountRatio}" ) {
         setSQL( QString(
                     "SELECT t1.uuid as 'uuid'"

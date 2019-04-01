@@ -12,21 +12,22 @@ print sprintf("********************** Time-of-flight/Peak Heights '%s'", caption
 
 set title sprintf("Time-of-flight/Peak Heights '%s'", caption )
 
-tof_lower = 99.90e-6
-tof_upper = 99.92e-6
+tof = 99.91e-6
+tof_lower = tof - 10e-9
+tof_upper = tof + 10e-9
+step = 5
 
 SQL = sprintf( "'\
-SELECT *,COUNT(*) AS COUNTS FROM (SELECT MIN(peak_time),ROUND(peak_intensity/10)*10 AS Threshold \
+SELECT *,COUNT(*) AS COUNTS FROM (SELECT MIN(peak_time),ROUND(peak_intensity/%d)*%d AS Threshold \
 FROM trigger,peak WHERE id=idTrigger AND peak_time > %.14g AND peak_time < %.14g GROUP BY id) \
-GROUP BY Threshold'", tof_lower, tof_upper )
+GROUP BY Threshold'", step, step, tof_lower, tof_upper )
 
 SQL1 = sprintf( "'\
-SELECT Threshold,COUNT(*) AS COUNTS FROM (SELECT ROUND(peak_intensity/10)*10 AS Threshold \
+SELECT Threshold,COUNT(*) AS COUNTS FROM (SELECT ROUND(peak_intensity/%d)*%d AS Threshold \
 FROM trigger,peak WHERE id=idTrigger AND peak_time > %.14g AND peak_time < %.14g) \
-GROUP BY Threshold'", tof_lower, tof_upper )
+GROUP BY Threshold'", step, step, tof_lower, tof_upper )
 
-
-set ylabel "Frequence(counts)"
+set ylabel "Frequency(counts)"
 set xlabel "Peak height(-mV)"
 
 set datafile separator "|"

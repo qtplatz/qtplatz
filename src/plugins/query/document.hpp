@@ -41,7 +41,7 @@ namespace adcontrols { class MassSpectrometer; }
 class QSettings;
 
 namespace query {
-    
+
     class QueryConnection;
 
     class document : public QObject {
@@ -67,6 +67,10 @@ namespace query {
 
         void setMassSpectrometer( std::shared_ptr< adcontrols::MassSpectrometer > );
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer();
+        double tof() const;
+        double width() const;
+        void setTof( double );
+        void setWidth( double );
 
     private:
         friend std::unique_ptr< document >::deleter_type;
