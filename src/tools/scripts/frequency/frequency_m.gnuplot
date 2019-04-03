@@ -47,7 +47,7 @@ SELECT sum(-Threshold*COUNTS)/sum(COUNTS) FROM \
 AND peak_time > %.14g AND peak_time < %.14g GROUP BY id) \
 GROUP BY Threshold ) WHERE COUNTS > %.14g'"
 
-set multiplot layout (N > 2) ? N + 3 : N,1
+set multiplot layout (N > 2) ? N + 1 : N,1
 
 set ylabel "Frequency(counts)"
 set xlabel "Peak height(-mV)"
@@ -81,8 +81,9 @@ set label 3 sprintf("$\\overline{m}=%.1fmV$(50\\%)", AVG50[i]) at graph 0.8, 0.6
 legend = sprintf( "%s (TOF:$%.3f\\mu s\\pm %.1fns$)", TITLE[i], tof * 1.0e6, tof_width * 1.0e9 )
 
 plot '< sqlite3 '. FILE[i] . " " . SQL using (-$2):3 with linespoints pt 6 ps 2 axis x1y1 title legend \
-     , max_y[ i ] * 0.1 with lines notitle \
-     , max_y[ i ] * 0.5 with lines notitle
+     , max_y[ i ] * 1.0 with lines dashtype 2 lc rgb 'gray' notitle \
+     , max_y[ i ] * 0.1 with lines dashtype 2 lc rgb 'gray' notitle \
+     , max_y[ i ] * 0.5 with lines dashtype 2 lc rgb 'red' notitle
 }
 
 unset label 1
@@ -107,7 +108,6 @@ if ( N > 2 ) {
   fit f(x) AVG using (Vmcp[$0+1]):(AVG[$0+1]) via a,b,c
 
   plot AVG using (Vmcp[$0+1]):(AVG[$0+1]) with linespoints pt 5 ps 2.5 title "Average(all)" \
-     , f(x), Vmcp using 1:2 notitle \
      , AVG10 using (Vmcp[$0+1]):(AVG10[$0+1]) with linespoints pt 6 ps 2.5 title "Average(10\\%)" \
      , AVG50 using (Vmcp[$0+1]):(AVG50[$0+1]) with linespoints pt 7 ps 2.5 title "Average(50\\%)" \
      , AVG75 using (Vmcp[$0+1]):(AVG75[$0+1]) with linespoints pt 7 ps 2.5 title "Average(75\\%)"
