@@ -51,6 +51,8 @@ namespace adcontrols {
         [[deprecated]] std::wstring text() const;
         [[deprecated]] std::wstring key() const;
         std::pair< std::string, std::string > keyValue() const;
+        void setKey( const std::string& );
+        void setValue( const std::string& );
 
         const char * xml() const;
         void xml( const char * u );

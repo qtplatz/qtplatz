@@ -54,10 +54,10 @@ namespace adcontrols {
 
 	   void operator = ( const descriptions& );
 
-	   void append( const description&, bool uniq = false );
+	   void append( const description&, bool uniq = true );
 	   size_t size() const;
 	   const description& operator [] ( size_t idx ) const;
-       descriptions& operator << ( const description& );
+       //descriptions& operator << ( const description& );
 
        std::vector< description >::iterator begin();
        std::vector< description >::iterator end();

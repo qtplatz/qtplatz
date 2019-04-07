@@ -89,17 +89,17 @@ namespace adcontrols {
 
                 std::wstring name;
 
-                std::for_each( vec_.rbegin(), vec_.rend(), [&] ( const description& d ){
+                std::for_each( vec_.rbegin(), vec_.rend()
+                               , [&] ( const description& d ){
 
-                        std::match_results< std::wstring::const_iterator > match;
-                        std::wstring key = d.key();
-                        if ( std::regex_match( key, match, regex_ ) ) {
-                            if ( !name.empty() )
-                                name += L' ';
-                            name += d.text();
-                        }
-
-                    } );
+                                     std::match_results< std::wstring::const_iterator > match;
+                                     std::wstring key = d.key();
+                                     if ( std::regex_match( key, match, regex_ ) ) {
+                                         if ( !name.empty() )
+                                             name += L' ';
+                                         name += d.text();
+                                     }
+                                 } );
 
                 return name;
             }
@@ -141,13 +141,6 @@ void
 descriptions::append( const description& desc, bool uniq )
 {
     pImpl_->append( desc, uniq );
-}
-
-descriptions&
-descriptions::operator << ( const description& desc )
-{
-    pImpl_->append( desc, false );
-    return *this;
 }
 
 size_t
@@ -259,10 +252,13 @@ void
 descriptionsImpl::append( const description& desc, bool uniq )
 {
    if ( uniq ) {
-      // to do
-      // find desc.key from vec_, and remove it
+       auto it = std::find_if( vec_.begin(), vec_.end(), [&]( const auto& t ){ return t.keyValue().first == desc.keyValue().first; } );
+       if ( it != vec_.end() ) {
+           it->setValue( desc.keyValue().second );
+           return;
+       }
    }
-   vec_.push_back( desc );
+   vec_.emplace_back( desc );
 }
 
 //static

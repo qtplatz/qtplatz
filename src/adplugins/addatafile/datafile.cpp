@@ -53,7 +53,6 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <adportable/string.hpp>
-#include <adportable/posix_path.hpp>
 #include <adlog/logger.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <adfs/adfs.hpp>
@@ -343,7 +342,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     dbf_.addFolder( path );
 
-    adportable::path name( path );
+    boost::filesystem::path name( path );
 
     for ( const portfolio::Folder& folder : portfolio.folders() ) {
         detail::folder::save( dbf_, name, source, folder );
@@ -371,7 +370,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     dbf_.addFolder( path );
 
-    adportable::path name( path );
+    boost::filesystem::path name( path );
 
     for ( const portfolio::Folder& folder: portfolio.folders() )
         detail::folder::save( dbf_, name, *detail::nullfile, folder );
@@ -468,7 +467,7 @@ namespace addatafile {
         attachment::save( adfs::file& parent, const boost::filesystem::path& path
                           , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
-            boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
+            boost::filesystem::path filename = path / folium.id();
 
             adfs::file dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes() );
@@ -502,7 +501,7 @@ namespace addatafile {
         folium::save( adfs::folder& folder, const boost::filesystem::path& path
                       , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
-            boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
+            boost::filesystem::path filename = path / folium.id();
 
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
@@ -538,7 +537,7 @@ namespace addatafile {
         folder::save( adfs::filesystem& dbf, const boost::filesystem::path& path
                       , const adcontrols::datafile& source, const portfolio::Folder& folder )
         {
-            boost::filesystem::path pathname = adportable::path::posix( path / folder.name() );
+            boost::filesystem::path pathname = path / folder.name();
 
             adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
             import::attributes( dbThis, folder.attributes() );

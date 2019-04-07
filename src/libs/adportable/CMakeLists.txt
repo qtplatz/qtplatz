@@ -20,14 +20,13 @@ add_library( adportable
   histogram_processor.hpp
   lifecycleframe.cpp
   mblock.hpp
-  mslockref.cpp  
+  mslockref.cpp
   mslockref.hpp
   polfit.cpp
   portable_binary_oarchive.cpp
   portable_binary_oarchive.hpp
   portable_binary_iarchive.cpp
   portable_binary_iarchive.hpp
-  posix_path.cpp
   profile.cpp
   semaphore.hpp
   serialport.cpp
@@ -43,7 +42,7 @@ add_library( adportable
   uuid.cpp
   fft4g_h.c
   waveform_averager.hpp
-  waveform_peakfinder.cpp  
+  waveform_peakfinder.cpp
   waveform_peakfinder.hpp
   waveform_processor.hpp
   waveform_simulator.hpp
@@ -73,4 +72,3 @@ install( FILES
   serializer.hpp
   DESTINATION include/adportable COMPONENT headers
   )
-

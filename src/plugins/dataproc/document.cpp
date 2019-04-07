@@ -485,10 +485,14 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     for ( auto reader: dset->dataReaders() ) {
 
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
+
             std::ostringstream o;
             o << "Spectrum " << reader->display_name() << " (" << std::fixed << std::setprecision( 3 ) << x1 << " - " << x2 << ")min";
             adcontrols::ProcessMethod m;
-            ms->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( o.str() ) ) );
+            ms->addDescription( adcontrols::description( { "create", o.str() } ) );
+
+            ADDEBUG() << "================ " << __FUNCTION__ << " reader: " << reader->display_name() << ", desc: " << o.str();
+
             portfolio::Folium folium = dp->addSpectrum( ms, m );
         }
     }

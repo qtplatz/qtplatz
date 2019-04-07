@@ -130,6 +130,18 @@ description::keyValue() const
     return keyValue_;
 }
 
+void
+description::setKey( const std::string& t )
+{
+    keyValue_.first = t;
+}
+
+void
+description::setValue( const std::string& t )
+{
+    keyValue_.second = t;
+}
+
 std::wstring
 description::text() const
 {
