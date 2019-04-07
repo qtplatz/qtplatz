@@ -51,9 +51,9 @@ using namespace adcontrols;
 namespace adcontrols {
 
     class MSPeakInfoItem;
-    
+
     namespace internal {
-        
+
         class CentroidProcessImpl : boost::noncopyable {
         public:
             CentroidProcessImpl() {
@@ -77,12 +77,12 @@ namespace adcontrols {
         struct timeFunctor {
 
             const adcontrols::SamplingInfo& info;
-            
+
             timeFunctor( const adcontrols::MassSpectrum& profile )
                 : info( profile.getMSProperty().samplingInfo() ) {
             }
 
-            double operator ()( int pos ) { 
+            double operator ()( int pos ) {
                 return adcontrols::MSProperty::toSeconds( pos, info );
             }
         };
@@ -110,7 +110,7 @@ namespace adcontrols {
                 }
             }
         };
-        
+
     }
 }
 
@@ -149,9 +149,9 @@ CentroidProcess::operator()( const MassSpectrum& profile )
     if ( profile.isCentroid() ) {
         // assume this is a histogram by counting (discreate time,mass,count array)
         pImpl_->findCluster( profile );
-        
+
     } else {
-    
+
         if ( pImpl_->method_.processOnTimeAxis() && std::abs( profile.getMass( 0 ) - profile.getMass( profile.size() - 1 ) ) < 0.001 ) {
             pImpl_->findpeaks_by_time( profile );
         } else {
@@ -256,12 +256,13 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
 	info_.setMode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
     info_.setProtocol( profile.protocolId(), profile.nProtocols() );
+    info_.setIsAreaIntensity( method_.centroidAreaIntensity() );
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
 
-        adportable::array_wrapper<const double>::iterator it = 
+        adportable::array_wrapper<const double>::iterator it =
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
-        
+
         double h = *it - pk.base;
         double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
 
@@ -288,7 +289,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.centroid_left_mass_ = moment.xLeft();
                 item.centroid_right_mass_ = moment.xRight();
                 item.centroid_threshold_ = threshold;
-                
+
                 // half-height width
                 moment.width( profile.getIntensityArray(), pk.base + h * 0.5, uint32_t(pk.first), uint32_t(idx), pk.second );
                 item.HH_left_mass_ = moment.xLeft();
@@ -331,7 +332,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                     item.area_ = area; // Intens x ns that assumes data is always 1ns interval
 
                 double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
-                
+
                 toferror += difference * item.height_;
                 toferror_weight += item.height_;
 
@@ -339,7 +340,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
                 item.set_peak_start_index( uint32_t(pk.first) );
                 item.set_peak_end_index( uint32_t(pk.second) );
-				
+
 				if ( ( masses[pk.second] - masses[pk.first]) >= finder.peakwidth_ )
 					info_ << item;
             }
@@ -362,10 +363,10 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
     finder.peakwidth_ = method_.rsInSeconds();
 
     std::vector< double > times( profile.size() );
-    timeFunctor functor( profile );    
+    timeFunctor functor( profile );
     for ( size_t i = 0; i < times.size(); ++i )
         times[ i ] = functor( int(i) );
-    
+
     finder( profile.size(), times.data(), profile.getIntensityArray() );
 
     array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
@@ -379,9 +380,9 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
 
-        adportable::array_wrapper<const double>::iterator it = 
+        adportable::array_wrapper<const double>::iterator it =
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
-        
+
         double h = *it - pk.base;
         //double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
 
@@ -390,7 +391,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
         double threshold = pk.base + h * method_.peakCentroidFraction();
         do {
             MSPeakInfoItem item;
-            
+
             // centroid by time
             timeFunctor functor( profile );
             adportable::Moment time_moment( functor );
@@ -408,34 +409,34 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 
             item.base_height_ = pk.base;
             item.height_ = h;
-            
+
             // area in HH range
             adportable::spectrum_processor::areaFraction fraction;
             adportable::spectrum_processor::getFraction( fraction, times.data(), profile.size(), time_moment.xLeft(), time_moment.xRight() );
             double area = adportable::spectrum_processor::area( fraction, pk.base, intens.begin(), intens.size() );
-            
+
             if ( method_.areaMethod() == CentroidMethod::eAreaTime || method_.areaMethod() == CentroidMethod::eAreaDa )
                 item.area_ = area * adcontrols::metric::scale_to_nano( time_moment.xRight() - time_moment.xLeft() ); // Intens. x ns
             else if ( method_.areaMethod() == CentroidMethod::eWidthNormalized )
                 item.area_ = area / ((fraction.uPos - fraction.lPos + 1) + fraction.lFrac + fraction.uFrac); // width of unit of sample interval
             else if ( method_.areaMethod() == CentroidMethod::eAreaPoint )
                 item.area_ = area; // Intens x ns that assumes data is always 1ns interval
-            
+
             double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
-            
+
             toferror += difference * item.height_;
             toferror_weight += item.height_;
-            
+
             // prepare result
             // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
             item.set_peak_start_index( uint32_t(pk.first) );
             item.set_peak_end_index( uint32_t(pk.second) );
-			
+
             //if ( ( times[pk.second] - times[pk.first]) >= finder.peakwidth_ )
                 info_ << item;
         } while(0);
 
-        toferror /= toferror_weight;    
+        toferror /= toferror_weight;
         if ( toferror >= 20.0e-12 ) // warning if error was 20ps or larger
             adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
     }
@@ -450,20 +451,20 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
     const double * pCounts = histogram.getIntensityArray();
     const double * pTimes = histogram.getTimeArray();
     const double * pMasses = histogram.getMassArray();
-    
+
     if ( finder( histogram.size(), pTimes, pCounts ) ) {
 
         // merge( finder.results_, histogram.size(), pTimes, pCounts );
 
         info_.setMode( histogram.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
         info_.setProtocol( histogram.protocolId(), histogram.nProtocols() );
-        
+
         for ( adportable::peakinfo& pk: finder.results_ ) {
-            
+
             MSPeakInfoItem item;
-            
+
             auto it = std::max_element( pCounts + pk.first, pCounts + pk.second );
-            
+
             item.height_ = *it;
             size_t idx = std::distance( pCounts, it );
             double threshold = item.height_ * method_.peakCentroidFraction();
@@ -496,14 +497,14 @@ CentroidProcessImpl::findCluster( const MassSpectrum& histogram )
                 item.HH_left_time_        = moment.xLeft();
                 item.HH_right_time_       = moment.xRight();
             }
-            
+
             double counts(0);
             for ( auto i = pk.first; i <= pk.second; ++i ) {
                 if ( pTimes[ i ] >= item.centroid_left_time_ && pTimes[ i ] <= item.centroid_right_time_ )
                     counts += pCounts[ i ];
             }
             item.area_ = counts;
-            
+
             item.set_peak_start_index( uint32_t(pk.first) );
             item.set_peak_end_index( uint32_t(pk.second) );
             info_ << item;

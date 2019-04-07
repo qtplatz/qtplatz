@@ -31,6 +31,7 @@
 using namespace adcontrols;
 
 MSPeakInfo::MSPeakInfo( int mode ) : mode_( mode )
+                                   , isAreaIntensity_( true )
 {
 }
 
@@ -38,6 +39,7 @@ MSPeakInfo::MSPeakInfo( const MSPeakInfo& t ) : vec_( t.vec_ )
                                               , mode_( t.mode_ )
                                               , protocolId_( t.protocolId_ )
                                               , nProtocols_( t.nProtocols_ )
+                                              , isAreaIntensity_( t.isAreaIntensity_ )
 {
 }
 
@@ -250,4 +252,16 @@ MSPeakInfo::max_element( const MSPeakInfo& pki, double left, double right, bool 
         }
     }
     return pki.end();
+}
+
+void
+MSPeakInfo::setIsAreaIntensity( bool f )
+{
+    isAreaIntensity_ = f;
+}
+
+bool
+MSPeakInfo::isAreaIntensity() const
+{
+    return isAreaIntensity_;
 }

@@ -472,6 +472,8 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
                 return a.formula().empty() ? b : b + a.area(); });
     }
 
+    const bool is_area = info.isAreaIntensity();
+
     int row = 0;
     int fcn = 0;
     for ( auto& pkinfo: segs ) {
@@ -486,7 +488,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
             model.setData( model.index( row, c_mspeaktable_time ), pk.time() );
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
-            model.setData( model.index( row, c_mspeaktable_intensity ), pk.area() );
+            model.setData( model.index( row, c_mspeaktable_intensity ), is_area ? pk.area() : pk.height() );
             model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
             if ( ! pk.formula().empty() ) {
                 double mass = exactMass( pk.formula() );

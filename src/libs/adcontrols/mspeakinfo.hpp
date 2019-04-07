@@ -53,7 +53,7 @@ namespace adcontrols {
 
         typedef std::vector< MSPeakInfoItem >::iterator iterator;
         typedef std::vector< MSPeakInfoItem >::const_iterator const_iterator;
-        
+
         inline iterator begin() { return vec_.begin(); }
         inline iterator end() { return vec_.end(); }
         inline const_iterator begin() const { return vec_.begin(); }
@@ -62,7 +62,7 @@ namespace adcontrols {
         size_t total_size() const;
         void clear();
         const MSPeakInfoItem& front() const;
-        const MSPeakInfoItem& back() const;        
+        const MSPeakInfoItem& back() const;
 
         MSPeakInfo& operator << ( const MSPeakInfoItem& );
         MSPeakInfo& operator << ( MSPeakInfoItem&& );
@@ -82,6 +82,9 @@ namespace adcontrols {
 
         bool trim( MSPeakInfo&, const std::pair<double, double>& range ) const;
 
+        void setIsAreaIntensity( bool );
+        bool isAreaIntensity() const;
+
         static bool archive( std::ostream&, const MSPeakInfo& );
         static bool restore( std::istream&, MSPeakInfo& );
 
@@ -94,6 +97,7 @@ namespace adcontrols {
         int32_t mode_;
         int32_t protocolId_;
         int32_t nProtocols_;
+        bool isAreaIntensity_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
@@ -103,6 +107,8 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( protocolId_ ) & BOOST_SERIALIZATION_NVP( nProtocols_ );
             ar & BOOST_SERIALIZATION_NVP( vec_ );
             ar & BOOST_SERIALIZATION_NVP( siblings_ );
+            if ( version >= 4 )
+                ar & BOOST_SERIALIZATION_NVP( isAreaIntensity_ );
         }
 
     };
@@ -110,6 +116,6 @@ namespace adcontrols {
 	typedef std::shared_ptr< MSPeakInfo > MSPeakInfoPtr;
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSPeakInfo, 3 )
+BOOST_CLASS_VERSION( adcontrols::MSPeakInfo, 4 )
 
 #endif // MSPEAKINFO_HPP
