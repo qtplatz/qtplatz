@@ -700,9 +700,9 @@ tdcdoc::setTofChromatogramsMethod( const adcontrols::TofChromatogramsMethod& m )
 {
     impl_->tofChromatogramsMethod_ = std::make_shared< adcontrols::TofChromatogramsMethod >( m );
 
-    for ( auto& mi: *impl_->tofChromatogramsMethod_ ) {
-        ADDEBUG() << "*************** time: " << mi.time() << ", window: " << mi.timeWindow();
-    }
+    // for ( auto& mi: *impl_->tofChromatogramsMethod_ ) {
+    //     ADDEBUG() << "*************** time: " << mi.time() << ", window: " << mi.timeWindow();
+    // }
 
     return true;
 }

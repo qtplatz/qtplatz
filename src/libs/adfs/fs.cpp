@@ -71,7 +71,7 @@ bool
 fs::format_superblock( adfs::sqlite& db, const std::wstring& filename )
 {
     adfs::stmt sql( db );
-    if ( ! sql.exec( 
+    if ( ! sql.exec(
         "CREATE TABLE superblock( creator TEXT, name TEXT, magic INTEGER, ctime DATE, create_user TEXT )" ) )
         return false;
 
@@ -154,7 +154,7 @@ fileid \
 ,FOREIGN KEY(fileid) REFERENCES directory(fileid) )"   ) ) {
 
         sql.reset();
-        BOOST_THROW_EXCEPTION( adfs::exception( "format directory failed: can't insert root directory", "sqlite3" ) );             
+        BOOST_THROW_EXCEPTION( adfs::exception( "format directory failed: can't insert root directory", "sqlite3" ) );
     }
 
     sql.exec( "CREATE INDEX dirindex on directory(name, parent_id)" );
@@ -370,7 +370,7 @@ fs::select_folders( sqlite& db, int64_t parent_id, std::vector<folder>& vec )
             vec.push_back( folder(db, rowid, name) );
         }
     }
-    return true;  
+    return true;
 }
 
 bool
@@ -443,7 +443,7 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, int64_t parent
 
     if ( sql.prepare( "INSERT INTO directory (name,parent_id,type,ctime,mtime) VALUES (?,?,?,?,?)" ) ) {
         sql.bind( 1 ) = name;
-        sql.bind( 2 ) = parent_id; // 
+        sql.bind( 2 ) = parent_id; //
         sql.bind( 3 ) = int64_t( type ); // 1:directory, 2:file
         sql.bind( 4 ) = date;
         sql.bind( 5 ) = date;
@@ -488,20 +488,17 @@ internal::dml::insert_file( adfs::sqlite& db, dir_type type, int64_t parentid, c
         std::string date = ( boost::format( "%1%" ) % pt ).str();
 
         adfs::stmt sql( db );
-        // sql.begin();
-
-        // register 'guid (as filename)' into directory
 
         if ( sql.prepare( "INSERT OR REPLACE INTO directory (name,parent_id,type,ctime,mtime,hash,attr) VALUES (?,?,?,?,?,NULL,NULL)" ) ) {
             sql.bind( 1 ) = name;
-            sql.bind( 2 ) = parentid; // 
+            sql.bind( 2 ) = parentid; //
             sql.bind( 3 ) = int64_t( type ); // 1:directory, 2:file
             sql.bind( 4 ) = date;
             sql.bind( 5 ) = date;
 
-            if ( sql.step() == adfs::sqlite_done ) {
-
-                // select rowid instead of fileid, due ot compatibility with V2 format
+            auto result = sql.step();
+            if ( result == adfs::sqlite_done || result == adfs::sqlite_constraint ) {
+                // select rowid instead of fileid, due to compatibility with V2 format
                 // that does not have fileid primary key on 'directory'
 
                 if ( sql.prepare( "INSERT OR REPLACE INTO file (fileid) SELECT rowid FROM directory WHERE type = ? AND name = ? and parent_id = ?" ) ) {
@@ -524,10 +521,13 @@ internal::dml::insert_file( adfs::sqlite& db, dir_type type, int64_t parentid, c
                         }
                     }
                 }
+            } else {
+                ADDEBUG() << ( result == sqlite_error ? "Error: " : "" )<< " " << sql.errmsg();
+                ADDEBUG() << "name: " << name << ", parentid: " << parentid << ", type:" << type << ", date: " << date;
             }
         }
     } while(0);
-    
+
     //<---- end trial
 
     int64_t fileid(0);
@@ -546,6 +546,6 @@ internal::dml::insert_file( adfs::sqlite& db, dir_type type, int64_t parentid, c
         if ( res == sqlite_done || res == sqlite_constraint )
             return adfs::file( db, fileid, name );
     }
+
     return adfs::file();
 }
-

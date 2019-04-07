@@ -509,25 +509,28 @@ namespace addatafile {
                 any = source.fetch( folium.id(), folium.dataClass() );
 
             if ( folder && !any.empty() ) {
-                adfs::file dbf = folder.addFile( folium.id() );
+                if ( adfs::file dbf = folder.addFile( folium.id() ) ) {
 
-                import::attributes( dbf, folium.attributes() );
-                try {
-                    adutils::cpio::save( dbf, any );
-                } catch ( boost::exception& ex ) {
-                    ADTRACE() << boost::diagnostic_information( ex );
-                }
-
-                for ( const portfolio::Folium& att : folium.attachments() ) {
+                    import::attributes( dbf, folium.attributes() );
                     try {
-                        detail::attachment::save( dbf, filename, source, att );
-                    }
-                    catch ( boost::exception& ex) {
+                        adutils::cpio::save( dbf, any );
+                    } catch ( boost::exception& ex ) {
                         ADTRACE() << boost::diagnostic_information( ex );
                     }
+
+                    for ( const portfolio::Folium& att : folium.attachments() ) {
+                        try {
+                            detail::attachment::save( dbf, filename, source, att );
+                        }
+                        catch ( boost::exception& ex) {
+                            ADTRACE() << boost::diagnostic_information( ex );
+                        }
+                    }
                 }
+                return true;
+            } else {
+                return false;
             }
-            return true;
         }
 
         // struct folder {

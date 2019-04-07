@@ -74,6 +74,7 @@
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -128,17 +129,17 @@ namespace quan {
 
     // new interface as of 2018-MAY
     struct save_chromatogram {
-        
+
         static std::wstring make_title( const wchar_t * dataSource, const boost::property_tree::ptree& pt )  {
             boost::filesystem::path path( dataSource );
 
             auto wform = pt.get_optional< std::string >( "generator.extract_by_mols.wform_type" );
-            
+
             if ( auto mol = pt.get_child_optional( "generator.extract_by_mols.moltable" ) ) {
                 auto formula = mol.get().get_optional< std::string >( "formula" );
                 auto width = mol.get().get_optional< double >( "width" );
                 auto proto = mol.get().get_optional< int32_t >( "protocol" );
-                
+
                 return ( boost::wformat( L"%s #%d W(%.1fmDa) {%s}-%s" )
                          % ( formula ? adportable::utf::to_wstring( formula.get() ) : L"" )
                          % ( proto ? proto.get() : (-1) )
@@ -149,7 +150,7 @@ namespace quan {
                 return ( boost::wformat( L"{%s}" ) % path.stem().wstring() ).str();
             }
         }
-        
+
         static boost::uuids::uuid
         save( std::shared_ptr< QuanDataWriter > writer, const wchar_t * dataSource
               , std::pair< std::shared_ptr< adcontrols::Chromatogram >, std::shared_ptr< adcontrols::PeakResult > >& pair
@@ -167,13 +168,13 @@ namespace quan {
         }
     };
 
-    // new interface as of 2018-MAY    
+    // new interface as of 2018-MAY
     struct save_spectrum {
         static std::wstring make_title( const wchar_t * dataSource, const std::string& formula, double tR, const wchar_t * trailer = L"" ) {
             boost::filesystem::path path( dataSource );
             return ( boost::wformat( L"%s tR(%.3fs) {%s} %s" ) % adportable::utf::to_wstring( formula ) % tR %  path.stem().wstring() % trailer ).str();
         }
-        
+
         static boost::uuids::uuid
         save( std::shared_ptr< QuanDataWriter > writer
               , const wchar_t * dataSource
@@ -183,7 +184,7 @@ namespace quan {
               , const std::string& formula
               , int32_t proto
               , boost::property_tree::ptree& ptree )  {
-            
+
             if ( auto file = writer->write( *ms, title ) ) {
                 if ( auto cm = procm->find< adcontrols::CentroidMethod >() ) {
                     adcontrols::MSPeakInfo pkinfo;
@@ -193,9 +194,9 @@ namespace quan {
                     if ( adprocessor::dataprocessor::doCentroid( pkinfo, centroid, *ms, *cm ) ) {
 
                         centroid.addDescription( adcontrols::description( L"process", L"Centroid" ) );
-                        
+
                         if ( auto tm = procm->find< adcontrols::TargetingMethod >() ) {
-                            targeting = adcontrols::Targeting( *tm );                            
+                            targeting = adcontrols::Targeting( *tm );
                             if ( targeting.get()( centroid ) || targeting->force_find( centroid, formula, proto ) ) {
                                 if ( target_result_finder::find( targeting.get(), formula, proto, centroid, ptree ) )
                                     annotation::add( centroid, ptree.get_optional< int >("targeting.idx").get(), proto, formula );
@@ -212,12 +213,12 @@ namespace quan {
                         }
                     }
                 }
-                
+
                 if ( ms->isHistogram() ) {
                     if ( auto hist = adcontrols::histogram::make_profile( *ms ) )
                         writer->attach< adcontrols::MassSpectrum >( file, *hist, adcontrols::constants::F_PROFILED_HISTOGRAM );
                 }
-                
+
                 return boost::uuids::string_generator()( file.name() );
             }
             return { 0 };
@@ -225,7 +226,7 @@ namespace quan {
     };
 
     /////////////////////////
-    /////////////////////////    
+    /////////////////////////
 
     struct response_builder {
 
@@ -236,16 +237,16 @@ namespace quan {
 
             auto& ptree = pair.first->ptree();
             ADDEBUG() << "************ " << ptree;
-                        
+
             auto matchedMass = ptree.get_optional< double >( "targeting.matchedMass" );
             auto dataGuid = ptree.get_optional< boost::uuids::uuid >( "folder.dataGuid" );
-            
+
             if ( auto child = pair.first->ptree().get_child_optional( "generator.extract_by_mols" ) ) {
-                
+
                 if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
-                    
+
                     if ( auto mol = child.get().get_child_optional( "moltable" ) ) {               // "generator.extract_by_mols.moltable"
-                        
+
                         // lookup c-peak
                         if ( auto formula = mol.get().get_optional< std::string >( "formula" ) ) {
                             adcontrols::QuanResponse resp;
@@ -265,7 +266,7 @@ namespace quan {
                                 resp.tR_ = it->peakTime();
                             }
                             sample << resp;
-                            
+
                             ptree.put( "resp.uuid_cmpd", resp.uuid_cmpd() );
                             ptree.put( "resp.uuid_cmpd_table", resp.uuid_cmpd_table() );
                             ptree.put( "resp.dataGuid", dataGuid.get() );
@@ -289,7 +290,7 @@ namespace quan {
     };
 
     /////////////////////////
-    /////////////////////////    
+    /////////////////////////
 }
 
 using namespace quan;
@@ -301,7 +302,7 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const QuanCan
     boost::filesystem::path path( dataSource );
     std::wstring title = ( boost::wformat( L"%s, %s" ) % path.stem().wstring() % adportable::utf::to_wstring( candidate.formula() ) ).str();
     title += trailer;  //L" (1st phase)";
-    
+
     return title;
 }
 
@@ -322,10 +323,10 @@ QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adc
         debug_level_ = qm->debug_level();
         save_on_datasource_ = qm->save_on_datasource();
     }
-    
+
     if ( auto pCompounds = pm->find< adcontrols::QuanCompounds >() ) {
 
-        // mass chromatograms extraction method 
+        // mass chromatograms extraction method
         pCompounds->convert_if( cXmethods_[ 0 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return !comp.isCounting();} );
         pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
 
@@ -355,7 +356,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                                        , std::shared_ptr< QuanDataWriter > writer
                                        , std::shared_ptr< adwidgets::ProgressInterface > progress )
 {
-    
+
     if ( auto raw = processor.getLCMSDataset() ) {
 
         if ( raw->dataformat_version() < 3 )  // no support for old (before 2014) data
@@ -399,7 +400,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                         pair.first->setPeaks( pair.second->peaks() );          // copy identified peak result (for annotation in chroamtogram widget)
                     }
                 }
-                
+
                 for ( auto& pair: rlist ) {
                     boost::uuids::uuid msGuid{ 0 }, dataGuid{ 0 };
                     auto& chr = pair.first;
@@ -454,7 +455,7 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
                     pk->setFormula( formula.get().c_str() );
                     pk->setName( adcontrols::ChemicalFormula::formatFormula( pk->formula() ) );
                 }
-                
+
                 // next candidate
                 std::advance( cmpd, 1 );
                 cmpd = std::find_if( cmpd, compounds.end(), [&]( auto& a ) { return a.uuid() == uuid.get(); } );
@@ -464,4 +465,3 @@ QuanChromatogramProcessor::identify( adcontrols::PeakResult& res, const adcontro
     }
 	return false;
 }
-

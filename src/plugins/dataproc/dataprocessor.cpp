@@ -77,6 +77,7 @@
 #include <adportable/is_same.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/spectrum_processor.hpp>
+#include <adportable/utf.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adutils/fsio.hpp>
 #include <adutils/processeddata.hpp>

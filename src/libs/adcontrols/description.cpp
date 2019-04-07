@@ -28,53 +28,66 @@
 #include <chrono>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/utf.hpp>
+#include <boost/any.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace adcontrols {
-    using namespace boost::serialization;
 
-    template< typename Archive > ADCONTROLSSHARED_EXPORT void description::serialize(Archive& ar, const unsigned int version ) {
-        using namespace boost::serialization;
-        if ( version < 3 ) {
-            time_t tv_sec;
-            long tv_usec;
-            std::wstring key, value;
-            ar & BOOST_SERIALIZATION_NVP(tv_sec);
-            ar & BOOST_SERIALIZATION_NVP(tv_usec);
-            ar & BOOST_SERIALIZATION_NVP(key);
-            ar & BOOST_SERIALIZATION_NVP(value);
-            std::chrono::system_clock::time_point tp = std::chrono::system_clock::time_point() + std::chrono::seconds( tv_sec ) + std::chrono::microseconds( tv_usec );
-            posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( tp.time_since_epoch() ).count();
-            keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( value ) );
-            if ( version < 2 ) {
-                std::wstring wxml;
-                ar & BOOST_SERIALIZATION_NVP( wxml );
-                xml_ = adportable::utf::to_utf8( wxml );
+    template< typename T = description >
+    struct description_archive {
+        template< typename Archive >
+        void operator()( Archive& ar, T& _, const unsigned int version ) {
+            using namespace boost::serialization;
+            if ( version < 3 ) {
+                time_t tv_sec;
+                long tv_usec;
+                std::wstring key, value;
+                ar & BOOST_SERIALIZATION_NVP(tv_sec);
+                ar & BOOST_SERIALIZATION_NVP(tv_usec);
+                ar & BOOST_SERIALIZATION_NVP(key);
+                ar & BOOST_SERIALIZATION_NVP(value);
+                std::chrono::system_clock::time_point tp =
+                    std::chrono::system_clock::time_point() + std::chrono::seconds( tv_sec ) + std::chrono::microseconds( tv_usec );
+                _.posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( tp.time_since_epoch() ).count();
+                _.keyValue_ = std::make_pair( adportable::utf::to_utf8( key ), adportable::utf::to_utf8( value ) );
+                if ( version < 2 ) {
+                    std::wstring wxml;
+                    ar & BOOST_SERIALIZATION_NVP( wxml );
+                    _.xml_ = adportable::utf::to_utf8( wxml );
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( _.xml_ );
+                }
             } else {
-                ar & BOOST_SERIALIZATION_NVP( xml_ );
+                ar & BOOST_SERIALIZATION_NVP( _.posix_time_ );
+                ar & BOOST_SERIALIZATION_NVP( _.keyValue_ );
+                ar & BOOST_SERIALIZATION_NVP( _.xml_ );
             }
-        } else {
-            ar & BOOST_SERIALIZATION_NVP( posix_time_ );
-            ar & BOOST_SERIALIZATION_NVP( keyValue_ );
-            ar & BOOST_SERIALIZATION_NVP( xml_ );
         }
-    }
+    };
 
     template<> ADCONTROLSSHARED_EXPORT void description::serialize( portable_binary_oarchive& ar, const unsigned int version ) {
-        description::serialize( ar, version );
+        description_archive<>()( ar, *this, version );
     }
 
     template<> ADCONTROLSSHARED_EXPORT void description::serialize( portable_binary_iarchive& ar, const unsigned int version ) {
-        description::serialize( ar, version );
+        description_archive<>()( ar, *this, version );
     }
 
     template<> ADCONTROLSSHARED_EXPORT void description::serialize( boost::archive::xml_woarchive& ar, const unsigned int version ) {
-        description::serialize( ar, version );
+        description_archive<>()( ar, *this, version );
     }
 
     template<> ADCONTROLSSHARED_EXPORT void description::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version ) {
-        description::serialize( ar, version );
+        description_archive<>()( ar, *this, version );
     }
 }
 

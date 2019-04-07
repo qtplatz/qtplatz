@@ -36,7 +36,7 @@
 #include "attributes.hpp"
 
 namespace boost { namespace uuids { struct uuid; } }
-    
+
 namespace adfs {
 
     class folder;
@@ -70,11 +70,13 @@ namespace adfs {
         // --- create/modify
         file addAttachment( const std::wstring& name );
         file addAttachment( const boost::uuids::uuid& uuid );
-        
+
+        operator bool () const { return db_ != nullptr; }
+
         inline sqlite& db() const { return *db_; }
         // inline const std::wstring& name() const { return name_; }
         template< typename T = wchar_t > const std::basic_string< T > name() const;
-            
+
         inline int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
 
         template<typename data_type> bool fetch( data_type& t, std::function<bool( std::istream&, data_type& )> deserializer = &data_type::restore ) {
@@ -107,4 +109,3 @@ namespace adfs {
     typedef std::vector< adfs::file > files;
 
 }
-

@@ -46,6 +46,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>

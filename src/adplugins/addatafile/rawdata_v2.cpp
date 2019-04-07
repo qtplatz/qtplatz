@@ -43,6 +43,7 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>

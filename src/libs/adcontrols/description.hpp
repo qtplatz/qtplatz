@@ -29,13 +29,12 @@
 #include "adcontrols_global.h"
 #include <string>
 #include <time.h>
-#include <boost/any.hpp>
-#include <boost/serialization/string.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
-#include <adportable/utf.hpp>
 
 namespace adcontrols {
+
+    template< typename T > struct description_archive;
 
     class ADCONTROLSSHARED_EXPORT description;
     class  description {
@@ -57,24 +56,19 @@ namespace adcontrols {
         void xml( const char * u );
 
     private:
-        //time_t tv_sec_;
-        //long tv_usec_;
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
         uint64_t posix_time_;
         std::pair< std::string, std::string > keyValue_;
-        std::wstring key_;
-        std::wstring text_;
         std::string xml_;
 
+        friend struct description_archive< description >;
+        friend struct description_archive< const description >;
+
         friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive& ar, const unsigned int version );
+        template<class Archive> void serialize(Archive& ar, const unsigned int version );
     };
 
 }
 
-BOOST_CLASS_VERSION(adcontrols::description, 2);
+BOOST_CLASS_VERSION(adcontrols::description, 3);
 
 #endif // DESCRIPTION_H
