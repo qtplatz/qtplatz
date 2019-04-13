@@ -488,8 +488,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 
             auto vec = dset->dataReaders();
             for ( auto& reader : vec ) {
-                ADDEBUG() << "reader->trace_method" << reader->trace_method();
-
+                // ADDEBUG() << "reader->trace_method" << reader->trace_method();
                 for ( int fcn = 0; fcn < reader->fcnCount(); ++fcn ) {
                     if ( auto tic = reader->TIC( fcn ) ) {
                         auto folium = folder.findFoliumByName( ( boost::wformat( L"%1%/%2%.%3%" )

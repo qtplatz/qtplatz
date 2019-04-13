@@ -659,7 +659,7 @@ tdcdoc::threshold_action() const
 bool
 tdcdoc::set_threshold_method( int channel, const adcontrols::threshold_method& m )
 {
-    ADDEBUG() << __FUNCTION__ << " channel: " << channel << " < " << impl_->threshold_methods_.size() << ", response: " << m.response_time;
+    // ADDEBUG() << __FUNCTION__ << " channel: " << channel << " < " << impl_->threshold_methods_.size() << ", response: " << m.response_time;
 
     if ( channel < impl_->threshold_methods_.size() ) {
 

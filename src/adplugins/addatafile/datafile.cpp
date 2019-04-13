@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -67,28 +67,124 @@
 /////////////////
 namespace addatafile { namespace detail {
 
-    static adcontrols::datafile * nullfile(0);
+        struct import {
+            //---
+            void static attributes( portfolio::Folium& d, const adfs::attributes& s )   {
+                for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+                    d.setAttribute( it->first, it->second );
+            }
 
-        struct folder {
-            static bool save( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
-            static bool load( portfolio::Folder parent, const adfs::folder& adf );
-        };
+            void static attributes( portfolio::Folder& d, const adfs::attributes& s )  {
+                for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+                    d.setAttribute( it->first, it->second );
+            }
 
-        struct folium {
-            static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-            static bool load( portfolio::Folium dst, const adfs::file& src );
+            void static attributes( adfs::attributes& d, const portfolio::attributes_type& s ) {
+                for ( const portfolio::attribute_type& a: s )
+                    d.setAttribute( a.first, a.second );
+            }
         };
 
         struct attachment {
-            static bool save( adfs::file& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-            static bool load( portfolio::Folium dst, const adfs::file& adf );
+            static bool save( adfs::file& parent, const boost::filesystem::path& path, const portfolio::Folium& folium ) {
+                boost::filesystem::path filename = path / folium.id();
+                boost::any any = static_cast<const boost::any&>( folium );
+                if ( ! any.empty() ) {
+                    adfs::file dbThis = parent.addAttachment( folium.id() );
+                    import::attributes( dbThis, folium.attributes() );
+                    try {
+                        adutils::cpio::save( dbThis, any );
+                    } catch ( boost::bad_any_cast& ex ) {
+                        assert( 0 );
+                        return false;
+                    }
+                    for ( const portfolio::Folium& att: folium.attachments() ) {
+                        boost::any any = static_cast<const boost::any&>( folium );
+                        if ( !any.empty() )
+                            save( dbThis, filename, att );
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            static bool save_as( adfs::file&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool load( portfolio::Folium dst, const adfs::file& src ) {
+                import::attributes( dst, src );
+                for ( const adfs::file& att: src.attachments() )
+                    attachment::load( dst.addAttachment( att.name() ), att );
+                return true;
+            }
         };
 
-        struct import {
-            static void attributes( adfs::attributes&, const portfolio::attributes_type& );
-            static void attributes( portfolio::Folium&, const adfs::attributes& );
-            static void attributes( portfolio::Folder&, const adfs::attributes& );
+        struct folium {
+            static bool save( adfs::folder& folder, const boost::filesystem::path& path, const portfolio::Folium& folium ) {
+                boost::filesystem::path filename = path / folium.id();
+
+                boost::any any = static_cast<const boost::any&>( folium );
+                if ( any.empty() )
+                    return false;
+
+                if ( folder && !any.empty() ) {
+                    if ( adfs::file dbf = folder.addFile( folium.id() ) ) {
+
+                        import::attributes( dbf, folium.attributes() );
+                        try {
+                            adutils::cpio::save( dbf, any );
+                        } catch ( boost::exception& ex ) {
+                            ADTRACE() << boost::diagnostic_information( ex );
+                        }
+
+                        for ( const portfolio::Folium& att : folium.attachments() ) {
+                            try {
+                                detail::attachment::save( dbf, filename, att );
+                            } catch ( boost::exception& ex) {
+                                ADTRACE() << boost::diagnostic_information( ex );
+                            }
+                        }
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            static bool save_as( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool load( portfolio::Folium dst, const adfs::file& src ) {
+                import::attributes( dst, src );
+                for ( const adfs::file& att: src.attachments() )
+                    attachment::load( dst.addAttachment( att.name() ), att );
+                return true;
+            }
         };
+
+        struct folder {
+            static bool save( adfs::filesystem& dbf, const boost::filesystem::path& path, const portfolio::Folder& folder )  {
+                boost::filesystem::path pathname = path / folder.name();
+
+                adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
+                import::attributes( dbThis, folder.attributes() );
+
+                // save all files in this folder
+                for ( const portfolio::Folium& folium: folder.folio() ) {
+                    boost::any any = static_cast<const boost::any&>( folium );
+                    if ( !any.empty() )
+                        folium::save( dbThis, pathname, folium );
+                }
+                // recursive call for sub folders
+                for ( const portfolio::Folder& subfolder: folder.folders() )
+                    folder::save( dbf, pathname, subfolder );
+                return true;
+            }
+
+            static bool save_as( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
+            static bool load( portfolio::Folder parent, const adfs::folder& adfolder ) {
+                for ( const adfs::file& file: adfolder.files() )
+                    folium::load( parent.addFolium( file.name() ), file );
+                return true;
+            }
+        };
+
 
         template< class T > struct serializer {
 
@@ -345,7 +441,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     boost::filesystem::path name( path );
 
     for ( const portfolio::Folder& folder : portfolio.folders() ) {
-        detail::folder::save( dbf_, name, source, folder );
+        detail::folder::save_as( dbf_, name, source, folder );
     }
 
     sql.commit();
@@ -373,7 +469,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     boost::filesystem::path name( path );
 
     for ( const portfolio::Folder& folder: portfolio.folders() )
-        detail::folder::save( dbf_, name, *detail::nullfile, folder );
+        detail::folder::save( dbf_, name, folder );
 
     sql.commit();
     return true;
@@ -464,7 +560,7 @@ namespace addatafile {
     namespace detail {
 
         bool
-        attachment::save( adfs::file& parent, const boost::filesystem::path& path
+        attachment::save_as( adfs::file& parent, const boost::filesystem::path& path
                           , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
             boost::filesystem::path filename = path / folium.id();
@@ -472,14 +568,8 @@ namespace addatafile {
             adfs::file dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes() );
 
-#if defined DEBUG && 0
-            const std::wstring& dataclass = folium.dataClass();
-            const std::wstring& name = folium.name();
-            adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save("
-                                                    << dataclass << ", " << name << ")";
-#endif
             boost::any any = static_cast<const boost::any&>( folium );
-            if ( any.empty() && (&source != nullfile ) )
+            if ( any.empty() )
                 any = source.fetch( folium.id(), folium.dataClass() );
 
             if ( ! any.empty() ) {
@@ -490,21 +580,22 @@ namespace addatafile {
                     return false;
                 }
 
-                for ( const portfolio::Folium& att: folium.attachments() )
-                    save( dbThis, filename, source, att );
+                for ( const portfolio::Folium& att: folium.attachments() ) {
+                    save_as( dbThis, filename, source, att );
+                }
             }
             return true;
         }
-        //------------
 
+        //------------
         bool
-        folium::save( adfs::folder& folder, const boost::filesystem::path& path
-                      , const adcontrols::datafile& source, const portfolio::Folium& folium )
+        folium::save_as( adfs::folder& folder, const boost::filesystem::path& path
+                         , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
             boost::filesystem::path filename = path / folium.id();
 
             boost::any any = static_cast<const boost::any&>( folium );
-            if ( any.empty() && (&source != nullfile ) )
+            if ( any.empty() )
                 any = source.fetch( folium.id(), folium.dataClass() );
 
             if ( folder && !any.empty() ) {
@@ -518,10 +609,10 @@ namespace addatafile {
                     }
 
                     for ( const portfolio::Folium& att : folium.attachments() ) {
+                        boost::any any = static_cast<const boost::any&>( att );
                         try {
-                            detail::attachment::save( dbf, filename, source, att );
-                        }
-                        catch ( boost::exception& ex) {
+                            detail::attachment::save( dbf, filename, att );
+                        } catch ( boost::exception& ex) {
                             ADTRACE() << boost::diagnostic_information( ex );
                         }
                     }
@@ -532,9 +623,9 @@ namespace addatafile {
             }
         }
 
-        // struct folder {
+        //------------------------------------
         bool
-        folder::save( adfs::filesystem& dbf, const boost::filesystem::path& path
+        folder::save_as( adfs::filesystem& dbf, const boost::filesystem::path& path
                       , const adcontrols::datafile& source, const portfolio::Folder& folder )
         {
             boost::filesystem::path pathname = path / folder.name();
@@ -543,68 +634,20 @@ namespace addatafile {
             import::attributes( dbThis, folder.attributes() );
 
             // save all files in this folder
-            for ( const portfolio::Folium& folium: folder.folio() )
-                folium::save( dbThis, pathname, source, folium );
+            for ( const portfolio::Folium& folium: folder.folio() ) {
+                boost::any any = static_cast<const boost::any&>( folium );
+                if ( any.empty() )
+                    any = source.fetch( folium.id(), folium.dataClass() );
+                if ( !any.empty() )
+                    folium::save_as( dbThis, pathname, source, folium );
+            }
 
             // recursive save sub folders
             for ( const portfolio::Folder& subfolder: folder.folders() )
-                folder::save( dbf, pathname, source, subfolder );
+                folder::save_as( dbf, pathname, source, subfolder );
 
             return true;
         }
-
-        bool folder::load( portfolio::Folder parent, const adfs::folder& adfolder )
-        {
-            for ( const adfs::file& file: adfolder.files() )
-                folium::load( parent.addFolium( file.name() ), file );
-            return true;
-        }
-
-        bool folium::load( portfolio::Folium dst, const adfs::file& src )
-        {
-#if defined DEBUG && 0
-            adportable::debug(__FILE__, __LINE__)
-                << ">> folium::load(" << src.attribute(L"name") << ") "
-                << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
-#endif
-            import::attributes( dst, src );
-            for ( const adfs::file& att: src.attachments() )
-                attachment::load( dst.addAttachment( att.name() ), att );
-            return true;
-        }
-
-        bool attachment::load( portfolio::Folium dst, const adfs::file& src )
-        {
-#if defined DEBUG && 0
-            adportable::debug(__FILE__, __LINE__)
-                << " +++ attachment::load(" << src.attribute(L"name") << ") "
-                << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
-#endif
-            import::attributes( dst, src );
-            for ( const adfs::file& att: src.attachments() )
-                attachment::load( dst.addAttachment( att.name() ), att );
-            return true;
-        }
-
-        //---
-        void import::attributes( portfolio::Folium& d, const adfs::attributes& s )
-        {
-            for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
-                d.setAttribute( it->first, it->second );
-        }
-
-        void import::attributes( portfolio::Folder& d, const adfs::attributes& s )
-        {
-            for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
-                d.setAttribute( it->first, it->second );
-        }
-
-        void import::attributes( adfs::attributes& d, const portfolio::attributes_type& s )
-        {
-            for ( const portfolio::attribute_type& a: s )
-                d.setAttribute( a.first, a.second );
-        }
-        //---
 
     }
 }

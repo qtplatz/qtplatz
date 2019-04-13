@@ -228,6 +228,11 @@ if ( WIN32 )
     set( CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DEBUG" )
     set( CMAKE_CXX_FLAGS_RELEASE "/MD /Zi /O2 /Ob2 /D NDEBUG" )
   endif()
+else()
+
+  if ( DEBUG_SYMBOL )
+    set( CMAKE_CXX_FLAGS_RELEASE "-g" )
+  endif()
 
 endif()
 

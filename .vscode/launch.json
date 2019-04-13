@@ -25,6 +25,25 @@
             ]
         }
         , {
+            "name": "(gdb) Release Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/../build-Linux-x86_64/qtplatz.release/bin/qtplatz",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [ { "name": "AcqirisOption", "value": "simulate" } ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+        , {
             "name": "(lldb) Launch"
             , "type": "lldb"
             , "request": "launch"
