@@ -244,7 +244,12 @@ WaveformWnd::traceDataChanged( int )
     uint64_t posix_time;
     std::tie( posix_time, std::ignore ) = document::instance()->find_event_time( 0 );
 
-    auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point() + std::chrono::nanoseconds( posix_time ), true );
+    //auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point() + std::chrono::nanoseconds( posix_time ), true );
+#if defined (Q_OS_MACOS)
+    auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::microseconds( posix_time / 1000 ) ), true );    
+#else
+    auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::nanoseconds( posix_time ) ), true );
+#endif    
     QString timeString = QString::fromStdString( t );
 
     QString footer;
@@ -404,8 +409,11 @@ WaveformWnd::handleSampleProgress( double elapsed_time, double method_time, cons
             );
 
     if ( posix_time ) {
-        std::chrono::system_clock::time_point tp;
-        tp += std::chrono::nanoseconds( posix_time );
+#if defined (Q_OS_MACOS)
+        std::chrono::system_clock::time_point tp( std::chrono::nanoseconds( posix_time ) );
+#else
+        std::chrono::system_clock::time_point tp( std::chrono::microseconds( posix_time / 1000 ) );
+#endif
         using namespace date;
         std::ostringstream o;
         o << tp;

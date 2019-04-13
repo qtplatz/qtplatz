@@ -175,6 +175,7 @@ namespace aqdrv4 {
 
         template< typename T > static bool transform( std::vector<double>& v, const waveform& w, int scale ) {
             std::transform( w.begin<T>(), w.end<T>(), v.begin(), [&](auto& y){ return w.toVolts( y, scale ); } );
+            return true;
         };
         
         static bool transform( std::vector<double>& v, const waveform& w, int scale = 1000 ) { // mV default
@@ -184,6 +185,7 @@ namespace aqdrv4 {
             case 2: return transform< int16_t >( v, w, scale );
             case 4: return transform< int32_t >( v, w, scale );
             };
+            return true;
         };
 
         static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...

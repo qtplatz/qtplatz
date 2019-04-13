@@ -1459,8 +1459,11 @@ document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
         std::ostringstream o;
         for ( auto& ad: item.ad )
             o << boost::format("%.3f, ") % ad;
-        std::chrono::system_clock::time_point tp;
-        tp += std::chrono::nanoseconds( item.posix_time );
+#if defined (Q_OS_MACOS)
+        std::chrono::system_clock::time_point tp( std::chrono::microseconds( item.posix_time / 1000 ) );
+#else
+        std::chrono::system_clock::time_point tp( std::chrono::nanoseconds( item.posix_time ) );
+#endif
         using namespace date;
         impl_->console_ << "tp: " << tp << " " << item.elapsed_time << "\tnacc: " << item.nacc << "\t" << o.str() << std::endl;
     }

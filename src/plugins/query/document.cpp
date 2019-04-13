@@ -176,13 +176,13 @@ document::massSpectrometer()
 double
 document::tof() const
 {
-    settings_->value( "Query/TOF", 0.0 ).toDouble();
+    return settings_->value( "Query/TOF", 0.0 ).toDouble();
 }
 
 double
 document::width() const
 {
-    settings_->value( "Query/Width", 0.0 ).toDouble();
+    return settings_->value( "Query/Width", 0.0 ).toDouble();
 }
 
 void

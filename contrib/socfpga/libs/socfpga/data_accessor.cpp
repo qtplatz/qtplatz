@@ -169,8 +169,16 @@ data_accessor::debug_print( const socfpga::dgmod::advalue& d, double t0 )
     for ( auto& v: d.ad )
         o << boost::format( ", %.3lf" ) % v;
 
+#if defined (Q_OS_MACOS)
+    auto tp = std::chrono::system_clock::time_point( std::chrono::microseconds( d.posix_time/1000 ) );
+#else
+    auto tp = std::chrono::system_clock::time_point( std::chrono::microseconds( d.posix_time ) );
+#endif
+
+    //std::chrono::system_clock::time_point() + std::chrono::nanoseconds( d.posix_time );
+    
     ADDEBUG() << "time: " << boost::format( "%.4fs" ) % (( d.elapsed_time - t0 ) / 1.0e9)
               << ", flag: " << boost::format( "{0x%x, %.3f}" ) % (d.flags >> 24) % (( d.flags_time - t0 ) / 1.0e9 )
-              << ", " << adportable::date_string::logformat( std::chrono::system_clock::time_point() + std::chrono::nanoseconds( d.posix_time ), true )
+              << ", " << adportable::date_string::logformat( tp, true )
               << "\t" << o.str();
 }
