@@ -120,13 +120,18 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
     auto cm = procmethod_->find< adcontrols::CentroidMethod >();
     auto qm = procmethod_->find< adcontrols::QuanMethod >();
-        
+
     if ( !cm || !qm )
         return false;
 
     adcontrols::QuanCompounds compounds;
     if ( auto qc = procmethod_->find< adcontrols::QuanCompounds >() )
         compounds = *qc;
+
+    std::set< int32_t > protocols;
+    for ( const auto& cmpd: compounds )
+        protocols.insert( cmpd.protocol() );
+    int32_t proto = ( protocols.size() == 1 ) ? *protocols.begin() : (-1);
 
     int channels( 0 ); // 1 := counting channel use, 2 := profile channel use, 3 := both
     for ( const auto& c: compounds )
@@ -137,7 +142,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         tolerance = tm->tolerance( adcontrols::idToleranceDaltons );
 
     auto lkMethod = procmethod_->find< adcontrols::MSLockMethod >();
-    
+
     for ( auto& sample : samples_ ) {
 
         const boost::filesystem::path stem = boost::filesystem::path( sample.dataSource() ).stem();
@@ -147,20 +152,20 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         if ( dp->open( sample.dataSource(), emsg ) ) {
 
             FindCompounds findCompounds( compounds, *cm, tolerance );
-            
-            if ( channels & 0x01 ) { // counting 
+
+            if ( channels & 0x01 ) { // counting
                 if ( auto hist = dp->readSpectrumFromTimeCount() )
                     findCompounds.doCentroid( dp, hist, true );
             }
 
             if ( channels & 0x02 ) { // profile
-                if ( auto profile = dp->readCoAddedSpectrum( false ) )
+                if ( auto profile = dp->readCoAddedSpectrum( false, proto ) )
                     findCompounds.doCentroid( dp, profile, false );
             }
-            
+
             if ( lkMethod && lkMethod->enabled() )
-                findCompounds.doMSLock( *lkMethod, true );
-            
+                findCompounds.doMSLock( *lkMethod, !( channels & 0x02 ) );
+
             if ( channels & 0x01 ) { // counting
                 findCompounds( dp, true );
                 findCompounds.write( writer, stem.wstring(), procmethod_, sample, true, dp );
@@ -171,7 +176,7 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                 findCompounds.write( writer, stem.wstring(), procmethod_, sample, false, dp );
             }
         }
-        
+
         writer->insert_table( sample );
         (*progress_)();
         processor_->complete( &sample );
@@ -193,4 +198,3 @@ QuanCountingProcessor::subscribe( const adcontrols::ProcessedDataset& d )
     portfolio_ = std::make_shared< portfolio::Portfolio >( d.xml() );
     return true;
 }
-

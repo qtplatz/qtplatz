@@ -33,7 +33,7 @@
 #include <QObject>
 #include <sstream>
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
 #endif
@@ -120,7 +120,7 @@ QuanQuery::column_name_tr( const QString& d )
             , { "amount", QObject::tr( "amount" ) }
             , { "idCompound", QObject::tr( "id" ) }
     };
-    
+
     for ( auto& t : names ) {
         if ( t.loc_c == d )
             return t.i10n;
@@ -166,7 +166,7 @@ QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const s
     if ( isISTD ) {
         bool hasIsCounting = hasColumn( "isCounting", "QuanCompound" );
         if ( hasIsCounting ) {
-            fmtstr = 
+            fmtstr =
                 "SELECT t1.uuid as 'uuid'"
                 ", t1.id as id"
                 ", t1.idSample as idSample"
@@ -181,6 +181,7 @@ QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const s
                 ", t2.formula as formula"
                 ", t2.CountRate as CountRate"
                 ", t1.CountRate/t2.CountRate AS 'Ratio'"
+                ", intensity"
                 ", amount"
                 ", trigCounts"
                 ", dataSource"
@@ -190,6 +191,7 @@ QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const s
                 ", QuanCompound.isCounting"
                 ", QuanCompound.mass AS 'exact mass', QuanResponse.mass"
                 ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error'"
+                ", intensity"
                 ", timeCounts * 100.0 / trigCounts as 'CountRate', trigCounts, QuanResponse.amount, QuanCompound.description, dataSource"
                 " FROM QuanSample, QuanResponse, QuanCompound"
                 " WHERE QuanSample.id = idSample"
@@ -200,7 +202,7 @@ QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const s
                 " WHERE QuanResponse.idCmpd=QuanCompound.uuid AND isISTD=1) t2"
                 " ON t1.idSample=t2.idSample ORDER BY t1.idSample";
         } else {
-            fmtstr = 
+            fmtstr =
                 "SELECT t1.uuid as 'uuid'"
                 ", t1.id as id"
                 ", t1.idSample as idSample"
@@ -251,7 +253,7 @@ QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const s
     } else if ( idx == 2 ) { // Standard
         query = ( boost::format( fmtstr ) % (( boost::format( "%1% AND sampleType = 1" ) % additional ).str()) ).str();
     } else if ( idx == 3 ) { // QC
-        fmtstr = 
+        fmtstr =
             "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
             ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass "
             ", (QuanCompound.mass - QuanResponse.mass) * 1000 AS 'error(mDa)'"
@@ -266,7 +268,7 @@ QuanQuery::buildCountingQuery( std::string& query, int idx, bool isISTD, const s
             " ORDER BY QuanCompound.id, QuanSample.level";
         query = ( boost::format( fmtstr ) % additional ).str();
     } else if ( idx == 4 ) { // Blank
-        fmtstr = 
+        fmtstr =
             "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
             ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
             ", (QuanCompound.mass - QuanResponse.mass)*1000 AS 'error(mDa)'"
@@ -288,9 +290,9 @@ bool
 QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const std::string& additional )
 {
     std::string fmtstr;
-    
+
     if ( idx == 0 ) { // All
-        
+
         fmtstr = "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
             ", sampleType, QuanSample.level, QuanCompound.formula"
             ", QuanCompound.mass AS \"exact mass\", QuanResponse.mass"
@@ -303,7 +305,7 @@ QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const s
             " ORDER BY QuanCompound.id, QuanSample.level";
 
     } else if ( idx == 1 ) { // Unknown
-        
+
         fmtstr = "SELECT QuanCompound.uuid, QuanResponse.id, QuanSample.name"
             ", sampleType, QuanCompound.formula, QuanCompound.mass AS \"exact mass\""
             ", QuanResponse.mass"
@@ -313,7 +315,7 @@ QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const s
             " WHERE QuanSample.id = QuanResponse.idSample"
             " AND QuanResponse.idCmpd = QuanCompound.uuid"
             " AND sampleType = 0 "
-            " %1%"            
+            " %1%"
             " ORDER BY QuanCompound.id";
     }
     else if ( idx == 2 ) { // Standard
@@ -344,7 +346,7 @@ QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const s
             " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
             " %1%"
             " ORDER BY QuanCompound.id, QuanSample.level";
-        
+
     } else if ( idx == 4 ) { // Blank
 
         fmtstr = "SELECT QuanCompound.uuid, QuanSample.name, sampleType, QuanCompound.formula"
@@ -356,7 +358,7 @@ QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const s
             " AND QuanResponse.idCmpd = QuanCompound.uuid"
             " AND sampleType = 3"
             " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
-            " %1%"            
+            " %1%"
             " ORDER BY QuanCompound.id, QuanSample.level";
     }
 
@@ -364,6 +366,6 @@ QuanQuery::buildQuantifyQuery( std::string& query, int idx, bool isISTD, const s
         return false;
 
     query = ( boost::format( fmtstr ) % additional ).str();
-    
+
     return true;
 }

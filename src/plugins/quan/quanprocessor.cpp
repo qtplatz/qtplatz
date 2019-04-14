@@ -75,7 +75,7 @@ QuanProcessor::QuanProcessor( std::shared_ptr< adcontrols::QuanSequence >& s
         que_[ it->dataSource() ].emplace_back( *it );
 
     ADDEBUG() << "QuanProcessor nThreads=" << que_.size();
-    
+
     progress_total_ = std::accumulate( que_.begin(), que_.end(), 0, [] ( int n, decltype(*que_.begin())& q ){ return n + int( q.second.size() ); } );
     progress_->setRange( 0, progress_total_ );
 }
@@ -225,13 +225,13 @@ QuanProcessor::doCalibration( adfs::sqlite& db, std::function< bool(size_t,size_
             }
         }
     }
-    
+
     for ( auto& map : calibrants ) {
 
         switch( eq ) {
         case adcontrols::QuanMethod::idCalibOnePoint:
             do {
-                map.second.fit( 1 ); // single point, average 
+                map.second.fit( 1 ); // single point, average
             } while (0);
             break;
         case adcontrols::QuanMethod::idCalibLinear_origin:
@@ -287,9 +287,9 @@ QuanProcessor::doQuantification( adfs::sqlite& db, std::function< bool(size_t,si
         doCountingQuantification( db, progress );
         return;
     }
-    
-    bool isCounting = qM->isCounting();
-    
+
+    // bool isCounting = qM->isCounting();
+
     adfs::stmt sql( db );
 
     struct unknown {
@@ -304,23 +304,23 @@ QuanProcessor::doQuantification( adfs::sqlite& db, std::function< bool(size_t,si
 
     std::map< uint64_t, unknown > unknowns;
 
-    std::string query = 
+    std::string query =
         "SELECT QuanResponse.id, QuanSample.id, QuanCompound.formula, intensity, a, b, c, d, e, f"
         " FROM QuanResponse, QuanCompound, QuanSample, QuanCalib"
         " WHERE QuanResponse.idCmpd = QuanCompound.uuid"
         " AND QuanSample.id = QuanResponse.idSample"
         " AND QuanSample.sampleType = 0"
         " AND QuanResponse.idCmpd = QuanCalib.idCmpd";
-    
+
     if ( sql.prepare( query ) ) {
-        
+
         while ( sql.step() == adfs::sqlite_row ) {
             int row = 0;
             uint64_t idResp = sql.get_column_value< uint64_t >( row++ ); // QuanResponse.id
             unknown& u = unknowns[ idResp ];
-            
+
             u.idSamp = sql.get_column_value< uint64_t >( row++ ); // QuanSample.id
-            u.formula = sql.get_column_value< std::string >( row++ ); // 
+            u.formula = sql.get_column_value< std::string >( row++ ); //
             u.intensity = sql.get_column_value< double >( row++ ); // QuanResponse.id
             for ( int i = 0; i < 5; ++i ) {
                 if ( sql.is_null_column( row ) )
@@ -387,7 +387,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
     std::map< uint64_t, std::set< int > > levels;
     std::string query;
     if ( isISTD ) {
-        query = 
+        query =
             "SELECT id, uuid, idTable, formula, r1.CR/r2.CR, amount, level, r1.idSample FROM "
             "(SELECT QuanCompound.id"
             ", QuanCompound.uuid"
@@ -408,7 +408,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
             " WHERE QuanSample.id = QuanResponse.idSample"
             " AND QuanResponse.idCmpd = QuanCompound.uuid"
             " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
-            " AND sampleType = 1 AND isISTD=1 ) r2"            
+            " AND sampleType = 1 AND isISTD=1 ) r2"
             " ON r1.idSample=r2.idSample ORDER BY r1.id";
     } else {
         query = "SELECT QuanCompound.id"
@@ -423,7 +423,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
             " AND QuanResponse.idCmpd = QuanCompound.uuid"
             " AND QuanAmount.idCompound = QuanCompound.id AND QuanAmount.level = QuanSample.level"
             " AND sampleType = 1"
-            " ORDER BY QuanCompound.id";        
+            " ORDER BY QuanCompound.id";
     }
 
     if ( sql.prepare( query ) ) {
@@ -463,7 +463,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
             progress( ++nProgress, nTotal );
         }
     }
-    
+
     for ( auto& map : calibrants ) {
 
         switch( eq ) {
@@ -486,7 +486,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
         }
 
         results << map.second;
-        
+
         if ( sql.prepare( "INSERT INTO QuanCalib "
                           "(uuid, idCompound, idTable, idCmpd, idMethod, n, min_x, max_x, chisqr, a, b, c, d, e, f)"
                           "VALUES"
@@ -503,7 +503,7 @@ QuanProcessor::doCountingCalibration( adfs::sqlite& db, std::function<bool(size_
                 sql.bind( row++ ) = double( map.second.max_x() );  // :max_x
             } else {
                 sql.bind( row++ ) = double( map.second.min_x() );  // :min_x
-                sql.bind( row++ ) = double( map.second.max_x() );  // :max_x                
+                sql.bind( row++ ) = double( map.second.max_x() );  // :max_x
             }
             sql.bind( row++ ) = double( map.second.chisqr() ); // chisqr
             size_t i = 0;
@@ -527,7 +527,7 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db, std::function<bool(si
 
     if ( auto qM = procmethod_->find< adcontrols::QuanMethod >() )
         isISTD = qM->isInternalStandard();
-    
+
     adfs::stmt sql( db );
 
     size_t nTotal(0), nProgress( 0 );
@@ -569,7 +569,7 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db, std::function<bool(si
     }
     nTotal += unknowns.size();
     progress( 0, nTotal );
-    
+
     std::string query;
     if ( isISTD ) {
         query =
@@ -603,7 +603,7 @@ QuanProcessor::doCountingQuantification( adfs::sqlite& db, std::function<bool(si
             uint64_t idResp = sql.get_column_value< uint64_t >( row++ ); // QuanResponse.id
             unknown& u = unknowns[ idResp ];
             u.idSamp = sql.get_column_value< uint64_t >( row++ ); // QuanSample.id
-            u.formula = sql.get_column_value< std::string >( row++ ); // 
+            u.formula = sql.get_column_value< std::string >( row++ ); //
             u.intensity = sql.get_column_value< double >( row++ ); // QuanResponse.id
 
             auto it = calib.find( idCmpd );

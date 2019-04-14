@@ -374,7 +374,7 @@ dataprocessor::readSpectrum( bool histogram, uint32_t pos, int proto )
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
-dataprocessor::readCoAddedSpectrum( bool histogram )
+dataprocessor::readCoAddedSpectrum( bool histogram, int proto )
 {
     const std::string traceid = histogram ? "histogram.timecount.1.%" : "tdcdoc.waveform.1.u5303a.ms-cheminfo.com";
 
@@ -389,8 +389,7 @@ dataprocessor::readCoAddedSpectrum( bool histogram )
 
         if ( auto raw = this->rawdata() ) {
             if ( auto reader = raw->dataReader( objuuid ) ) {
-                auto ms = reader->coaddSpectrum( reader->begin(), reader->end() );
-
+                auto ms = reader->coaddSpectrum( reader->begin( proto ), reader->end() );
                 return ms;
             }
         }

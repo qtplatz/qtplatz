@@ -64,8 +64,8 @@ using namespace quan;
 
 FindCompounds::FindCompounds( const adcontrols::QuanCompounds& cmpds
                               , const adcontrols::CentroidMethod& cm
-                              , double tolerance ) : compounds_( cmpds )
-                                                   , cm_( cm )
+                              , double tolerance ) : cm_( cm )
+                                                   , compounds_( cmpds )
                                                    , tolerance_( tolerance ) {
 }
 
@@ -82,7 +82,6 @@ FindCompounds::doCentroid( std::shared_ptr< adprocessor::dataprocessor > dp
     profile_[ index ]  = ms;
 
     if ( dp->doCentroid( *pkinfo_[ index ], *centroid_[ index ], *ms, cm_ ) ) {
-        
         return true;
     }
     return false;
@@ -99,15 +98,17 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
 
     if ( ! ( ms && centroid && pkinfo ) )
         return false;
-        
+
     for ( auto& compound: compounds_ ) {
-            
+
         if ( compound.isCounting() == isCounting ) {
-                
+
             adcontrols::segment_wrapper< adcontrols::MassSpectrum > centroids( *centroid_[ index ] );
             int fcn(0);
             for ( auto& xpkinfo: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *pkinfo ) ) {
-            
+
+                const bool isArea = xpkinfo.isAreaIntensity();
+
                 auto beg = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() - tolerance_
                                              , [](const auto& a, const double& m) {
                                                  return a.mass() < m;
@@ -119,11 +120,11 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                                              });
 
                 if ( beg != xpkinfo.end() && ( beg->mass() < compound.mass() + tolerance_ ) ) {
-                
+
                     auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
                     pk->formula( compound.formula() ); // assign formula to peak
                     pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
-                    
+
                     auto it = responses_.find( compound.uuid() );
                     if ( it == responses_.end() ) {
                         auto& resp = responses_[ compound.uuid() ];
@@ -133,21 +134,20 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                         resp.setPeakIndex( pk->peak_index() );
                         resp.setFcn( fcn );
                         resp.setMass( pk->mass() );
-                        size_t trigCounts = centroids[ fcn ].getMSProperty().numAverage();
-                            
+                        // size_t trigCounts = centroids[ fcn ].getMSProperty().numAverage();
                         // ADDEBUG() << "FindCompounds : " << compound.formula()
                         //           << ( compound.isCounting() ? " Counting " : " Profile " ) << " fcn[" << fcn << "] mass: " << pk->mass();
 
                         typedef const adcontrols::MassSpectrum const_ms_t;
-                        
+
                         if ( isCounting ) { // histogram specific
                             double w = pk->centroid_right() - pk->centroid_left();
                             auto count = dp->countTimeCounts( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn], pk->mass() - w, pk->mass() + w );
-                            resp.setIntensity( 0 );
+                            resp.setIntensity( pk->area() ); // total counts
                             resp.setCountTimeCounts( count );
                         } else {
-                            resp.setIntensity( pk->area() );
-                            resp.setCountTimeCounts( pk->area() * trigCounts );
+                            resp.setIntensity( isArea ? pk->area() : pk->height() );
+                            resp.setCountTimeCounts( isArea ? pk->area() : pk->height() );  // pk->area() * trigCounts );
                         }
 
                         resp.setCountTriggers( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn].getMSProperty().numAverage() );
@@ -156,7 +156,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                     } else {
                         ADDEBUG() << "duplicate peak identified within protocols for " << compound.formula();
                     }
-                
+
                     using adcontrols::annotation;
                     centroids[fcn].get_annotations()
                         << annotation( compound.formula()
@@ -178,12 +178,16 @@ bool
 FindCompounds::doMSLock( const adcontrols::MSLockMethod& m, bool isCounting )
 {
     size_t index = isCounting ? 0 : 1;
+
+    if ( centroid_[ index ] == nullptr )
+        return false;
+
     // find reference peak by mass window
     auto mslock = std::make_shared< adcontrols::lockmass::mslock >();
-    
-    // TODO: consider how to handle segmented spectrum -- current impl is always process first 
+
+    // TODO: consider how to handle segmented spectrum -- current impl is always process first
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
-    
+
     for ( auto& compound : compounds_ ) {
         if ( compound.isLKMSRef() ) {
             double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( compound.formula() );
@@ -198,7 +202,7 @@ FindCompounds::doMSLock( const adcontrols::MSLockMethod& m, bool isCounting )
         }
     }
     mslock_ = mslock;
-    
+
     if ( (*mslock_).fit() ) {
         for ( size_t idx = 0; idx < 2; ++idx ) {
             if ( centroid_[ idx ] )
@@ -223,15 +227,17 @@ FindCompounds::write( std::shared_ptr< QuanDataWriter > writer
 {
     size_t index = isCounting ? 0 : 1;
 
-    // save instogram on adfs filesystem
-    if ( auto file = writer->write( *profile_[ index ], stem ) ) {
-        
+    auto name = stem + ( isCounting ? L" [C]" : L" [P]" );
+
+    // save hinstogram on adfs filesystem
+    if ( auto file = writer->write( *profile_[ index ], name ) ) {
+
         for ( auto& resp: responses_ )
             resp.second.setDataGuid( file.name() ); // dataGuid
 
         for ( const auto& resp: responses_ )
             sample << resp.second;
-        
+
         auto att = writer->attach< adcontrols::MassSpectrum >( file, *centroid_[ index ], dataproc::Constants::F_CENTROID_SPECTRUM );
         writer->attach< adcontrols::ProcessMethod >( att, *pm, L"ProcessMethod" );
         writer->attach< adcontrols::MSPeakInfo >( file, *pkinfo_[ index ], dataproc::Constants::F_MSPEAK_INFO );
@@ -245,4 +251,3 @@ FindCompounds::write( std::shared_ptr< QuanDataWriter > writer
         }
     }
 }
-

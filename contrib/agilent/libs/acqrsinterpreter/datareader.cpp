@@ -462,11 +462,13 @@ DataReader::begin( int fcn ) const
             sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid=? ORDER BY rowid LIMIT 1" );
             sql.bind( 1 ) = objid_;
         }
+
         if ( sql.step() == adfs::sqlite_row ) {
             auto rowid = sql.get_column_value< int64_t >( 0 );
             return adcontrols::DataReader_iterator( this, rowid, fcn );
         }
     }
+
     return end();
 }
 
@@ -479,8 +481,6 @@ DataReader::end() const
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    //ADDEBUG() << "findPos( " << int64_t( seconds * std::nano::den ) << ")";
-
     if ( tspec == ElapsedTime ) {
         if ( auto db = db_.lock() ) {
             adfs::stmt sql( *db );
@@ -788,6 +788,9 @@ DataReader::pos( int64_t rowid ) const
     if ( indices_.empty() )
         const_cast< DataReader * >(this)->make_indices();
 
+    if ( rowid == (-1) )
+        return std::numeric_limits< int64_t >::max();
+
     auto it = std::lower_bound( indices_.begin(), indices_.end(), rowid, [] ( const index& a, int64_t rowid ) { return a.rowid < rowid; } );
     if ( it != indices_.end() )
         return it->pos;
@@ -1068,10 +1071,10 @@ DataReader::coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const
                 waveform_types waveform;
                 if ( interpreter->translate( waveform, xdata.data(), xdata.size()
                                              , xmeta.data(), xmeta.size() ) == adcontrols::translate_complete ) {
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 0
                     // check if lhs and rhs waveforms are the same condition -- ignore less than 1ns initialXOffset off due to digitizer mode
                     // has 18ps resolution
-                    if ( waveform.which() == 2 && proto == 1 ) {
+                    if ( waveform.which() == 2 /* && proto == 1 */ ) {  // 2 = u5303a
                         // check waveform.cpp 322
                         auto w = boost::get< std::shared_ptr< acqrscontrols::u5303a::waveform > >( waveform );
                         ADDEBUG() << "T0=" << w->meta_.initialXOffset * 1.0e9 << "ns\tproto#=" << w->meta_.protocolIndex;
