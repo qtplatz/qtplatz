@@ -87,6 +87,35 @@ FindCompounds::doCentroid( std::shared_ptr< adprocessor::dataprocessor > dp
     return false;
 }
 
+namespace quan {
+    struct findCompound {
+
+        adcontrols::MSPeakInfo::iterator
+        operator()( adcontrols::MSPeakInfo& xpkinfo
+                    , const adcontrols::QuanCompound& compound
+                    , double tolerance
+                    , int protocol ) const {
+
+            if ( compound.protocol() >= 0 && protocol != compound.protocol() )
+                return xpkinfo.end();
+
+            auto beg = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m) { return a.mass() < m; });
+            auto end = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() + tolerance, [](const auto& a, const double& m) { return a.mass() < m; });
+
+            ADDEBUG() << "***** findCompound ***** " << compound.protocol() << ", " << protocol << ", " << (beg != xpkinfo.end() ? beg->mass() : -1.0);
+
+            if ( beg != xpkinfo.end() && ( beg->mass() < compound.mass() + tolerance ) ) {
+
+                auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
+                pk->formula( compound.formula() ); // assign formula to peak
+                pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
+                return pk;
+            }
+            return xpkinfo.end();
+        }
+    };
+}
+
 bool
 FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, bool isCounting )
 {
@@ -104,27 +133,12 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
         if ( compound.isCounting() == isCounting ) {
 
             adcontrols::segment_wrapper< adcontrols::MassSpectrum > centroids( *centroid_[ index ] );
+
             int fcn(0);
+
             for ( auto& xpkinfo: adcontrols::segment_wrapper< adcontrols::MSPeakInfo >( *pkinfo ) ) {
-
-                const bool isArea = xpkinfo.isAreaIntensity();
-
-                auto beg = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() - tolerance_
-                                             , [](const auto& a, const double& m) {
-                                                 return a.mass() < m;
-                                             });
-
-                auto end = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() + tolerance_
-                                             , [](const auto& a, const double& m){
-                                                 return a.mass() < m;
-                                             });
-
-                if ( beg != xpkinfo.end() && ( beg->mass() < compound.mass() + tolerance_ ) ) {
-
-                    auto pk = std::max_element( beg, end, [](const auto& a, const auto& b){ return a.area() < b.area(); } );
-                    pk->formula( compound.formula() ); // assign formula to peak
-                    pk->set_peak_index( std::distance( xpkinfo.begin(), pk ) );
-
+                auto pk = findCompound()( xpkinfo, compound, tolerance_, fcn );
+                if ( pk != xpkinfo.end() ) {
                     auto it = responses_.find( compound.uuid() );
                     if ( it == responses_.end() ) {
                         auto& resp = responses_[ compound.uuid() ];
@@ -134,23 +148,18 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                         resp.setPeakIndex( pk->peak_index() );
                         resp.setFcn( fcn );
                         resp.setMass( pk->mass() );
-                        // size_t trigCounts = centroids[ fcn ].getMSProperty().numAverage();
-                        // ADDEBUG() << "FindCompounds : " << compound.formula()
-                        //           << ( compound.isCounting() ? " Counting " : " Profile " ) << " fcn[" << fcn << "] mass: " << pk->mass();
-
-                        typedef const adcontrols::MassSpectrum const_ms_t;
 
                         if ( isCounting ) { // histogram specific
                             double w = pk->centroid_right() - pk->centroid_left();
-                            auto count = dp->countTimeCounts( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn], pk->mass() - w, pk->mass() + w );
+                            auto count = dp->countTimeCounts( adcontrols::segment_wrapper<const adcontrols::MassSpectrum>( *ms )[fcn], pk->mass() - w, pk->mass() + w );
                             resp.setIntensity( pk->area() ); // total counts
                             resp.setCountTimeCounts( count );
                         } else {
-                            resp.setIntensity( isArea ? pk->area() : pk->height() );
-                            resp.setCountTimeCounts( isArea ? pk->area() : pk->height() );  // pk->area() * trigCounts );
+                            resp.setIntensity( xpkinfo.isAreaIntensity() ? pk->area() : pk->height() );
+                            resp.setCountTimeCounts( xpkinfo.isAreaIntensity() ? pk->area() : pk->height() );  // pk->area() * trigCounts );
                         }
 
-                        resp.setCountTriggers( adcontrols::segment_wrapper<const_ms_t>( *ms )[fcn].getMSProperty().numAverage() );
+                        resp.setCountTriggers( adcontrols::segment_wrapper<const adcontrols::MassSpectrum>( *ms )[fcn].getMSProperty().numAverage() );
                         resp.setAmounts( 0 );
                         resp.set_tR( 0 );
                     } else {
@@ -165,6 +174,8 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                                        , pk->peak_index()
                                        , 1000
                                        , annotation::dataFormula );
+                } else {
+                    ADDEBUG() << "*********** compound " << compound.formula() << ", " << compound.protocol() << " NOT FOUND at " << fcn;
                 }
                 ++fcn;
             }

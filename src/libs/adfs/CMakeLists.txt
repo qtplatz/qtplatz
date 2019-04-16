@@ -23,7 +23,7 @@ else()
   set( adfs_SOURCE apiposix.cpp apiposix.hpp )
   set( oslibs ${CMAKE_DL_LIBS} Threads::Threads )
 endif()
-  
+
 add_library( ${PROJECT_NAME} SHARED
   adfs.cpp
   attributes.cpp
@@ -53,9 +53,14 @@ if ( SHARED_ADFS_LIBRARY )
     )
 endif()
 
-install( TARGETS ${PROJECT_NAME}
+add_executable( sqlite3  shell.c sqlite3.c )
+
+find_package( Threads REQUIRED )
+target_link_libraries( sqlite3 Threads::Threads ${CMAKE_DL_LIBS} )
+
+install( TARGETS ${PROJECT_NAME} sqlite3
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
 
 install( FILES
@@ -72,5 +77,5 @@ install( FILES
   fs.hpp
   sqlite3ext.h
   sqlite3.h
-  sqlite.hpp  
+  sqlite.hpp
   DESTINATION include/adfs COMPONENT headers )
