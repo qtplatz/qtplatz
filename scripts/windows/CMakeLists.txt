@@ -8,8 +8,8 @@ endif()
 
 get_filename_component( SOURCE_ROOT "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
 set ( BUILD_ROOT ${CMAKE_CURRENT_BINARY_DIR} )
-set ( EIGEN_SOURCE_DIR ${SOURCE_ROOT}/eigen )
-set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen )
+set ( EIGEN_SOURCE_DIR ${BUILD_ROOT}/eigen )
+set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
 
 set ( RDBASE ${SOURCE_ROOT}/rdkit )  # <- RDKit source & install directory
 set ( RDKIT_RELEASE "Release_2018_03_1" )
@@ -18,20 +18,6 @@ set ( RDKIT_SOURCE_DIR "${RDBASE}" )
 set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
 include( ${CMAKE_SOURCE_DIR}/../constants.cmake )
-
-#[[
-file( STRINGS ${CMAKE_SOURCE_DIR}/../constants.bat configs )
-foreach( i ${configs} )
-  string( REGEX MATCHALL "^set[ \t]+[^=]+=.+$" config ${i} )
-  if ( config )
-    string( REGEX REPLACE "^set[ \t]+([^=]+)=(.+$)" "\\1" key ${i} )
-    string( REGEX REPLACE "^set[ \t]+([^=]+)=(.+$)" "\\2" value ${i} )
-    if ( ${key} MATCHES "^(BOOST_VERSION|QMAKE)$" )
-      set( ${key} ${value} )
-    endif()
-  endif()
-endforeach()
-]]
 
 if ( NOT BOOST_VERSION )
   message( FATAL_ERROR "Empty BOOST_VERSION" )
@@ -82,11 +68,9 @@ add_custom_target( eigen
   COMMAND ${CMAKE_COMMAND}
   -DEIGEN_SOURCE_DIR=${EIGEN_SOURCE_DIR}
   -DEIGEN_BINARY_DIR=${EIGEN_BINARY_DIR}
-  -DGENERATOR=${GENERATOR}
+  -DGENERATOR="NMake Makefiles"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/eigen.cmake"
-  COMMENT "Run eigen.bat"
-  COMMAND cmd /c "eigen.bat"
-  WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}
   )
 
 ### rdkit
@@ -99,13 +83,18 @@ add_custom_target( rdkit
   -DGENERATOR=${GENERATOR}
   -P "${CMAKE_CURRENT_SOURCE_DIR}/rdkit.cmake"
   COMMENT "Run rdkit.bat"
-  COMMAND cmd /c "rdkit.bat"
-  WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
+  #  COMMAND cmd /c "rdkit.bat"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR}  
   )
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/rdkit.bat.in
   ${CMAKE_CURRENT_BINARY_DIR}/rdkit.bat
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/eigen.bat.in
+  ${CMAKE_CURRENT_BINARY_DIR}/eigen.bat
   )
 
 message( STATUS "SOURCE_ROOT         = " ${SOURCE_ROOT} )

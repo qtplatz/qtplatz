@@ -3,14 +3,8 @@ set BOOST_VERSION="${BOOST_VERSION}"
 set BOOST_ROOT="${BOOST_ROOT}"
 set BOOST_LIBRARYDIR="${BOOST_LIBRARYDIR}"
 set GENERATOR="${GENERATOR}"
-set EIGEN_SOURCE_DIR="${RDBASE}"
+set EIGEN_SOURCE_DIR="${EIGEN_SOURCE_DIR}"
 set EIGEN_BINARY_DIR="${EIGEN_BINARY_DIR}"
 
 pushd "${EIGEN_BINARY_DIR}"
-
-cmake -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %EIGEN_SOURCE_DIR%
-
-echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build.bat
-echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj >> build.bat
-echo "run build.bat"
-
+cmake -G "NMake Makefiles" %EIGEN_SOURCE_DIR%

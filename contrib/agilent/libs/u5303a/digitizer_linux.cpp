@@ -650,6 +650,7 @@ task::handle_timer( const boost::system::error_code& ec )
             timer_.async_wait( [&]( const boost::system::error_code& ec ){ handle_timer( ec ); });
 
     }
+    return true;
 }
 
 bool

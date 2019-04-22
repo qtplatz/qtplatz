@@ -2,16 +2,14 @@
 @echo off
 
 set BOOST_VERSION=1_67_0
-::set QMAKE=C:\Qt\5.10.1\msvc2017_64\bin\qmake.exe
-set QMAKE=C:\Qt\5.11.0\msvc2017_64\bin\qmake.exe
+call find_qmake
 
-pushd %CWD%\..\..
+pushd %~dp0..\..
 set SOURCE_ROOT=%CD%
 popd
 set BUILD_ROOT=%SOURCE_ROOT%\build
 
-if %VisualStudioVersion% EQU 14.0 ( set GENERATOR="Visual Studio 14 2015 Win64" )
-if %VisualStudioVersion% EQU 15.0 ( set GENERATOR="Visual Studio 15 2017 Win64" )
+set GENERATOR="NMake Makefiles"
 
 set %~1=%BOOST_VERSION%
 set %~2=%QMAKE%

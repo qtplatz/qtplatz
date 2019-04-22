@@ -22,5 +22,7 @@ cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
 
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build.bat
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj >> build.bat
-echo "run build.bat"
+echo "rdkit build environment set up complete."
+echo "run build.bat manually."
+
 
