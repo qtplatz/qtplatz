@@ -88,6 +88,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <QSettings>
+#include <QString>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QMetaType>
@@ -138,7 +139,7 @@ namespace acquire {
         const so::Description desc;
     };
 
-    static ObserverData observers [] = {
+    //static ObserverData observers [] = {
         // { acquire::waveform_observer_name      // "1.acquire.ms-cheminfo.com"
         //   , acquire::waveform_observer         // "ab4620f4-933f-4b44-9102-740caf8f791a"
         //   , acquire::waveform_datainterpreter  // "a33d0d5e-5ace-4d2c-9d46-ddffcd799b51"
@@ -157,7 +158,6 @@ namespace acquire {
         //         , L"Time", L"Count", 3, 0
         //     }
         // }
-    };
 
     struct exec_fsm_stop {
         void operator ()(  std::vector< std::shared_ptr< adextension::iController > >& iControllers ) const {

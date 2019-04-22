@@ -15,7 +15,7 @@ set ( EIGEN_SOURCE_DIR ${BUILD_ROOT}/eigen )
 set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
 
 set ( RDBASE ${SOURCE_ROOT}/rdkit )  # <- RDKit source & install directory
-set ( RDKIT_RELEASE "Release_2019_03_1" )
+#set ( RDKIT_RELEASE "Release_2019_09_1" )
 set ( RDKIT_BINARY_DIR "${BUILD_ROOT}/rdkit" )
 set ( RDKIT_SOURCE_DIR "${RDBASE}" )
 set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )

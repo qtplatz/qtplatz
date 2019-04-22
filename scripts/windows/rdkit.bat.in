@@ -16,12 +16,12 @@ cmake -DBOOST_LIBRARYDIR=%BOOST_LIBRARYDIR% ^
       	 -DRDK_BUILD_SWIG_JAVA_WRAPPER=OFF ^
       	 -DRDK_INSTALL_STATIC_LIBS=OFF ^
 	 -DRDK_INSTALL_DYNAMIC_LIBS=ON ^
-	 -DRDK_INSTALL_INTREE=ON ^
+	 -DRDK_INSTALL_INTREE=OFF ^
+	 -DCMAKE_INSTALL_PREFIX="C:/RDKit" ^
       	 -DCMAKE_DEBUG_POSTFIX="d" -G %GENERATOR% %RDBASE%
-
-:: if RDK_INSTALL_INTREE=OFF, RDBoost includes are completely missed out!
 
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Debug INSTALL.vcxproj > build-debug.bat
 echo msbuild /m:%NUMBER_OF_PROCESSORS% /p:Configuration=Release INSTALL.vcxproj > build-release.bat
-echo "rdkit build environment set up complete."
+echo "*******************************"
 echo "run build-release.bat manually."
+echo "*******************************"

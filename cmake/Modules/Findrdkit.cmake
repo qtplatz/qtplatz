@@ -5,21 +5,20 @@ if ( rdkit_FOUND )
 endif()
 
 set ( rdkit "rdkit-NOTFOUND" )
-set ( _rdkit_libdirs "${RDBASE}/lib" "$ENV{RDBASE}/lib"
-  "${CMAKE_SOURCE_DIR}/../rdkit/lib"
-  "${CMAKE_SOURCE_DIR}/../rdkit/lib/cmake/rdkit"
-  "/usr/local/lib/cmake/rdkit"
-  )
 
-if ( WIN32 )
-  list ( APPEND _rdkit_libdirs "$ENV{PROGRAMFILES}/RDKit/lib" )
+if ( DEFINED $ENV{RDBASE} )
+  set ( _rdkit_libdirs "$ENV{RDBASE}/lib" )
 endif()
+if ( WIN32 )
+  list ( APPEND _rdkit_libdirs "C:/RDKit/lib/cmake/rdkit" "$ENV{PROGRAMFILES}/RDKit/lib/cmake/rdkit" )
+else()
+  list ( APPEND _rdkit_libdirs "/usr/local/lib/cmake/rdkit" )
+endif()
+list ( APPEND _rdkit_libdirs ${RDBASE} "${CMAKE_SOURCE_DIR}/../rdkit/lib/cmake/rdkit" )
 
 find_file( rdkit_config_cmake "rdkit-config.cmake" PATHS ${_rdkit_libdirs} )
 
 if ( rdkit_config_cmake )
-
-  # message( STATUS "###### rdkit-config.cmake : " ${rdkit_config_cmake} )
 
   include( ${rdkit_config_cmake} )
 

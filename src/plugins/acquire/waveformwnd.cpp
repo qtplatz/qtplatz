@@ -245,7 +245,7 @@ WaveformWnd::traceDataChanged( int )
     std::tie( posix_time, std::ignore ) = document::instance()->find_event_time( 0 );
 
     //auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point() + std::chrono::nanoseconds( posix_time ), true );
-#if defined (Q_OS_MACOS)
+#if defined (Q_OS_MACOS) || (_MSC_VER)
     auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::microseconds( posix_time / 1000 ) ), true );    
 #else
     auto t = adportable::date_string::logformat( std::chrono::system_clock::time_point( std::chrono::nanoseconds( posix_time ) ), true );

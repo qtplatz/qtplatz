@@ -80,7 +80,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
-#include <algorithm>
+#include <set>
 
 using namespace quan;
 
