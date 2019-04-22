@@ -6,6 +6,7 @@ if ( NOT WIN32 )
   message( FATAL_ERROR "This cmake script is targetted for win32")
 endif()
 
+list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules" )
 include (../../qtplatz.cmake)
 
 get_filename_component( SOURCE_ROOT "${CMAKE_SOURCE_DIR}/../../.." ABSOLUTE )
