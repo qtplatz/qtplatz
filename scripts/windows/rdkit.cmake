@@ -26,3 +26,4 @@ if ( NOT EXISTS ${RDKIT_BINARY_DIR} )
   file( MAKE_DIRECTORY ${RDKIT_BINARY_DIR} )
 endif()
 
+message( STATUS "************************" )

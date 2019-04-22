@@ -7,7 +7,7 @@ call find_qmake
 pushd %~dp0..\..
 set SOURCE_ROOT=%CD%
 popd
-set BUILD_ROOT=%SOURCE_ROOT%\build
+set BUILD_ROOT=%SOURCE_ROOT%\build-x86_64
 
 set GENERATOR="NMake Makefiles"
 

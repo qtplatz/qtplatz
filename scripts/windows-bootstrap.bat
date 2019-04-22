@@ -13,7 +13,7 @@ set SOURCE_DIR=%SOURCE_DIR:\\=\%
 
 call %CWD%\constants.bat BOOST_VERSION QMAKE SOURCE_ROOT BUILD_ROOT GENERATOR
 
-set BUILD_DIR=%SOURCE_ROOT%\windows.build
+set BUILD_DIR=%SOURCE_ROOT%\build-x86_64
 echo "##############################################"
 echo "SOURCE_ROOT=%SOURCE_ROOT%"
 echo "SOURCE_DIR=%SOURCE_DIR%"
