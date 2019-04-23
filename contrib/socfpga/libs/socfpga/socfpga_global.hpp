@@ -21,15 +21,13 @@
 **
 **************************************************************************/
 
-#ifndef ADS54J_GLOBAL_HPP
-#define ADS54J_GLOBAL_HPP
+#pragma once
 
 #include <compiler/decl_export.h>
 
-#if defined(ADS54J_LIBRARY)
-#  define ADS54JSHARED_EXPORT DECL_EXPORT
+#if defined(SOCFPGA_LIBRARY)
+#  define SOCFPGASHARED_EXPORT DECL_EXPORT
 #else
-#  define ADS54JSHARED_EXPORT DECL_IMPORT
+#  define SOCFPGASHARED_EXPORT DECL_IMPORT
 #endif
 
-#endif // ADS54J_GLOBAL_HPP

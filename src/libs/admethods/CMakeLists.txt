@@ -3,7 +3,7 @@ cmake_policy( SET CMP0022 NEW )
 
 project( admethods )
 
-add_definitions(-DADCONTROLS_LIBRARY)
+add_definitions(-DADMETHODS_LIBRARY)
 if ( MSVC )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
   add_definitions( -wd4251 -wd4244 )

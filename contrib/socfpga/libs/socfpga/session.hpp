@@ -26,12 +26,15 @@
 #include <adacquire/instrument.hpp>
 #include <adacquire/signalobserver.hpp>
 #include "advalue.hpp"
+#include "socfpga_global.hpp"
 
 namespace socfpga {
-
+    
     namespace dgmod {
         // Session class define here is psude singletion by a manager class
         // which is only the class make Session instance.
+
+        class SOCFPGASHARED_EXPORT session;
 
         class session : public adacquire::Instrument::Session { // inherit from enable_shared_from_this<Session>
             session( const Session& ) = delete;

@@ -2,9 +2,12 @@
 #define HOSTADDRDIALOG_HPP
 
 #include <QDialog>
+#include "adwidgets_global.hpp"
 
 namespace adwidgets {
 
+    class ADWIDGETSSHARED_EXPORT HostAddrDialog;
+    
     namespace Ui {
         class HostAddrDialog;
     }

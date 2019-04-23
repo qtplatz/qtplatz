@@ -104,6 +104,7 @@
 #include <limits>
 #include <string>
 #include <fstream>
+#include <set>
 
 Q_DECLARE_METATYPE( boost::uuids::uuid );
 
@@ -1459,7 +1460,7 @@ document::debug_data( const std::vector< socfpga::dgmod::advalue >& vec )
         std::ostringstream o;
         for ( auto& ad: item.ad )
             o << boost::format("%.3f, ") % ad;
-#if defined (Q_OS_MACOS)
+#if defined (Q_OS_MACOS) || defined (_MSC_VER)
         std::chrono::system_clock::time_point tp( std::chrono::microseconds( item.posix_time / 1000 ) );
 #else
         std::chrono::system_clock::time_point tp( std::chrono::nanoseconds( item.posix_time ) );

@@ -124,13 +124,13 @@ namespace adcontrols {
     namespace ControlMethod {
 
         ////////// PORTABLE BINARY ARCHIVE //////////
-        template<> void
+        template<> ADCONTROLSSHARED_EXPORT void
         Method::serialize( portable_binary_oarchive& ar, const unsigned int )
         {
             ar & *impl_;
         }
 
-        template<> void
+        template<> ADCONTROLSSHARED_EXPORT void
         Method::serialize( portable_binary_iarchive& ar, const unsigned int version )
         {
             if ( version <= 1 ) {

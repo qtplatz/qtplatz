@@ -113,6 +113,7 @@ blob::connect( const std::string& url
                     headers_.clear();
                 }
             });
-    }
+	}
+	return true;
 }
 

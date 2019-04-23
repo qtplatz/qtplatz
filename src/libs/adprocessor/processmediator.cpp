@@ -25,6 +25,7 @@
 #include "processmediator.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <QMenu>
 
 using namespace adprocessor;
 

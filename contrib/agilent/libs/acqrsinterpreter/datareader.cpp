@@ -176,6 +176,7 @@ namespace acqrsinterpreter {
             try {
                 *ptr += *rhs;
             } catch ( std::exception& ex ) {
+				(void)ex;
                 // ADDEBUG() << "#### Exception: " << ex.what() << " while executing operator += waveform";
             }
         }

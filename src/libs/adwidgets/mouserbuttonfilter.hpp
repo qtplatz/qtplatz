@@ -25,11 +25,14 @@
 #pragma once
 
 #include <QObject>
+#include "adwidgets_global.hpp"
 
 class QMouseEvent;
 class QWidget;
 
 namespace adwidgets {
+
+    class ADWIDGETSSHARED_EXPORT MouseRButtonFilter;
 
     class MouseRButtonFilter : public QObject {
 

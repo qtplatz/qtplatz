@@ -26,6 +26,7 @@
 
 #include <adacquire/datawriter.hpp>
 #include <vector>
+#include "socfpga_global.hpp"
 
 namespace adacquire {
     namespace SignalObserver {
@@ -36,6 +37,8 @@ namespace adacquire {
 namespace socfpga {
     namespace dgmod {
 
+        class SOCFPGASHARED_EXPORT  data_accessor;
+        
         struct advalue;
 
         // this was copied to acqrscontrols -- todo replace this as well.

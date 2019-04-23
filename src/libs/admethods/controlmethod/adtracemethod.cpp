@@ -44,7 +44,7 @@ namespace admethods {
         constexpr const boost::uuids::uuid ADTraceMethod::__clsid__;
 
         using namespace boost::serialization;
-        template<typename Archive> ADMETHODSSHARED_EXPORT void ADTraceMethod::serialize( Archive& ar, const unsigned int version ) {
+        template<typename Archive> void ADTraceMethod::serialize( Archive& ar, const unsigned int version ) {
             if ( Archive::is_saving::value ) {
                 auto json = toJson();
                 ar & BOOST_SERIALIZATION_NVP( json );

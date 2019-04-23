@@ -45,7 +45,7 @@ namespace acqrscontrols {
     class ACQRSCONTROLSSHARED_EXPORT threshold_result : public adportable::counting::counting_result {
     public:
         
-# if defined _MSC_VER && _MSC_VER <= 1800
+# if defined _MSC_VER && _MSC_VER <= 1916
         static const uint32_t npos = (-1);
 # else
         static constexpr uint32_t npos = ( -1 );
