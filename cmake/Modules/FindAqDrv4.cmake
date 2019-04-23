@@ -1,8 +1,8 @@
 # find AqDrv4 -- Keysight AP240/DC110... driver
 
 if ( WIN32 )
-
-  set ( __dir "$ENV{PROGRAMFILES\(x86\)}/Agilent/Acqiris" )
+  set ( __pf86 "PROGRAMFILES(X86)" )
+  set ( __dir "$ENV{${__pf86}}/Agilent/Acqiris" )
   find_path( __AqDrv4_INCLUDE_DIR NAMES AcqirisImport.h PATHS "${__dir}/include" )
 
   if ( __AqDrv4_INCLUDE_DIR )
