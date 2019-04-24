@@ -33,8 +33,10 @@
 namespace boost { namespace serialization { class access; } }
 
 namespace multumcontrols {
-    
-    class MULTUMCONTROLSSHARED_EXPORT DelayMethod {
+    class MULTUMCONTROLSSHARED_EXPORT OrbitProtocol;
+    class MULTUMCONTROLSSHARED_EXPORT DelayMethod;
+
+    class DelayMethod {
     public:
         double delay; // seconds
         double width; // seconds
@@ -45,16 +47,16 @@ namespace multumcontrols {
 
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
             void serialize( Archive& ar, const unsigned int );
     };
 
 
     template<typename T> class OrbitProtocol_archive;
-    
+
     //--
-    class MULTUMCONTROLSSHARED_EXPORT OrbitProtocol {
-        
+    class OrbitProtocol {
+
     public:
         enum eItem { MCP_V, IONIZATION_V, NAVERAGE, GAIN, NINTVAL, FIL_A };
 
@@ -65,6 +67,7 @@ namespace multumcontrols {
         DelayMethod pulser;   // A
         DelayMethod inject;   // B
         DelayMethod exit;     // D
+        DelayMethod exit2;    // <-- added at V9
         std::vector< DelayMethod > gate;  // C
         DelayMethod external_adc_delay;
         std::string& description();
@@ -89,14 +92,14 @@ namespace multumcontrols {
         std::string description_;
         // serializer v8
         uint32_t replicates_;
-        
+
     public:
         OrbitProtocol();
         OrbitProtocol( const OrbitProtocol& t );
 
     private:
         friend class boost::serialization::access;
-        template< class Archive >  
+        template< class Archive >
             void serialize( Archive& ar, const unsigned int version );
         friend class OrbitProtocol_archive < OrbitProtocol > ;
         friend class OrbitProtocol_archive < const OrbitProtocol > ;
@@ -109,5 +112,5 @@ namespace multumcontrols {
 
 }
 
-BOOST_CLASS_VERSION( multumcontrols::OrbitProtocol, 8 )
+BOOST_CLASS_VERSION( multumcontrols::OrbitProtocol, 9 )
 BOOST_CLASS_VERSION( multumcontrols::DelayMethod, 1 )

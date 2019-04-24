@@ -33,7 +33,9 @@
 
 namespace adurl {
 
-    class ADURLSHARED_EXPORT dg {
+    class ADURLSHARED_EXPORT dg;
+
+    class dg {
     public:
 
         enum { size = 6 };  // CH0 (push), CH1(INJ), CH2(EXIT), CH3(GATE 0), CH4(GATE 1), CH5(ADC delay)
@@ -41,20 +43,21 @@ namespace adurl {
         static constexpr const size_t number_of_protocols = 4;
 
         class ADURLSHARED_EXPORT request_timeout : public  std::exception {};
-        class ADURLSHARED_EXPORT error_reply : public std::exception {};    
+        class ADURLSHARED_EXPORT error_reply : public std::exception {};
 
         /** \brief constructor, which take server address
          */
         dg( const char * server );
-        
+
         /** \brief commit (set) delay pulse to delay generator-box
          */
         bool commit( const adio::dg::protocols<adio::dg::protocol<> >& );
+        bool commit( const std::string& );
 
         /** \brief update (read) actual delay pulse data from delay-generator box
-         *  
+         *
          * updated results can be read using interval() and delayPuse() methods
-         */        
+         */
         [[deprecated]] bool update_actuals();
 
         /** \brief start (activate) triggers
@@ -62,7 +65,7 @@ namespace adurl {
         bool start_triggers();
 
         /** \brief stop (deactivate) triggers
-         */        
+         */
         bool stop_triggers();
 
         /** \brief reset error state
@@ -78,5 +81,5 @@ namespace adurl {
         bool errorState_;
         const int timeout_ = 3000;
     };
-    
+
 }

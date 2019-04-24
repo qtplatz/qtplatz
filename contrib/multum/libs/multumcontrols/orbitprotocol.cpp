@@ -63,8 +63,10 @@ namespace multumcontrols {
                 if ( version >= 7 )
                     ar & BOOST_SERIALIZATION_NVP( _.external_adc_delay );
                 if ( version >= 8 )
-                    ar & BOOST_SERIALIZATION_NVP( _.replicates_ );                    
-                
+                    ar & BOOST_SERIALIZATION_NVP( _.replicates_ );
+                if ( version >= 9 )
+                    ar & BOOST_SERIALIZATION_NVP( _.exit2 );
+
             } else {
                 ar & BOOST_SERIALIZATION_NVP( _.lower_mass );
                 ar & BOOST_SERIALIZATION_NVP( _.upper_mass );
@@ -105,18 +107,18 @@ namespace multumcontrols {
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> MULTUMCONTROLSSHARED_EXPORT void OrbitProtocol::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         OrbitProtocol_archive<>().serialize( ar, *this, version );
     }
 
-    ///////////////////////////////////////////////////    
+    ///////////////////////////////////////////////////
 
     template<typename T = DelayMethod >
     class DelayMethod_archive {
@@ -140,12 +142,12 @@ namespace multumcontrols {
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> MULTUMCONTROLSSHARED_EXPORT void DelayMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         DelayMethod_archive<>().serialize( ar, *this, version );
@@ -172,8 +174,9 @@ OrbitProtocol::OrbitProtocol() : lower_mass( 0 )
                                , upper_mass( 0 )
                                , avgr_delay( 0 )
                                , avgr_duration( 0 )
-                               , nlaps_( 0 )
+                               , exit2( 0, 0, false )
                                , gate( 2 )
+                               , nlaps_( 0 )
                                , reference_( 0 )
                                , replicates_( 1 )
 {
@@ -186,15 +189,16 @@ OrbitProtocol::OrbitProtocol( const OrbitProtocol& t ) : lower_mass(t.lower_mass
                                                        , pulser( t.pulser )
                                                        , inject( t.inject )
                                                        , exit( t.exit )
+                                                       , exit2( t.exit2 )
                                                        , gate( t.gate )
                                                        , external_adc_delay( t.external_adc_delay )
                                                        , additionals_( t.additionals_ )
-                                                       , description_( t.description_ )
                                                        , nlaps_( t.nlaps_ )
                                                        , reference_( t.reference_ )
                                                        , formulae_( t.formulae_ )
+                                                       , description_( t.description_ )
                                                        , replicates_( t.replicates_ )
-{            
+{
 }
 
 std::string&
@@ -218,7 +222,7 @@ OrbitProtocol::formulae()
 const std::string&
 OrbitProtocol::formulae() const
 {
-    return formulae_;    
+    return formulae_;
 }
 
 std::vector< std::pair< OrbitProtocol::eItem, int32_t > >&
@@ -270,4 +274,3 @@ OrbitProtocol::replicates() const
 }
 
 ///////////////////
-
