@@ -128,6 +128,15 @@ MainWindow::createDockWidgets()
 
     if ( auto widget = new adwidgets::SampleRunWidget ) {
         createDockWidget( widget, "Sample Run", "SampleRunWidget" );
+        connect( widget, &adwidgets::SampleRunWidget::apply
+                 , [this,widget](){
+                       auto sampleRun = std::make_shared< adcontrols::SampleRun >();
+                       widget->getSampleRun( *sampleRun );
+                       ADDEBUG() << "************ SampleRun apply method time: " << sampleRun->methodTime();
+                       if ( auto edit = findChild< QLineEdit *>( "dataSaveIn" ) )
+                           edit->setText( QString::fromStdWString( sampleRun->dataDirectory() ) );
+                       this->setSampleRun( *sampleRun );
+                   });
     }
 
     if ( auto widget = qtwrapper::make_widget< adwidgets::ADTraceWidget >( "adTraces" ) ) {

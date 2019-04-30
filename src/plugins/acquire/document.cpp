@@ -583,6 +583,13 @@ document::actionSyncTrig()
 void
 document::actionRun()
 {
+    auto run = MainWindow::instance()->getSampleRun();
+    setSampleRun( run );
+
+    // auto cm = MainWindow::instance()->getControlMethod();
+    // setControlMethod( cm, QString(), true );
+    // exec_method::instance().setup( cm );
+
     adacquire::task::instance()->fsmStart();
 }
 
