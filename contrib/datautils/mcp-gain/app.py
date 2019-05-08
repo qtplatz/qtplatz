@@ -7,6 +7,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 import pandas as pd
+import plotly.plotly as py
+import plotly.graph_objs as go
 import sqlite3
 import io
 import os
@@ -23,10 +25,17 @@ tof = 99.8765e-6
 tof_width = 10e-8
 tof_lower = tof - tof_width / 2
 tof_upper = tof - tof_width / 2
+max_y = 0
 
-query = "SELECT *,COUNT(*) AS COUNTS FROM (SELECT MIN(peak_time),ROUND(peak_intensity/{0})*{0} AS Threshold \
+query = "SELECT *,COUNT(*) AS COUNTS FROM (SELECT MIN(peak_time),ROUND((-peak_intensity)/{0})*{0} AS Threshold \
 FROM trigger,peak WHERE id=idTrigger AND peak_time > ({1}-{2}) AND peak_time < ({1}+{2}) GROUP BY id) \
 GROUP BY Threshold".format(step, tof, tof_width)
+
+quary_arg = "SELECT sum(-Threshold*COUNTS)/sum(COUNTS) FROM \
+(SELECT *,COUNT(*) AS COUNTS FROM \
+(SELECT MIN(peak_time),ROUND(peak_intensity/{0})*{0} AS Threshold FROM trigger,peak WHERE id=idTrigger \
+AND peak_time > ({1}-{2}) AND peak_time < ({1}+{2}) GROUP BY id) \
+GROUP BY Threshold ) WHERE COUNTS > {3}'".format( step, tof, tof_width, max_y * 0.5 )
 
 #query = "SELECT * from trigger,peak WHERE id=idTrigger AND peak_time > ({0} - {1}) AND peak_time < ({0} + {1})".format( tof, tof_width )
 
@@ -48,33 +57,32 @@ app.layout = html.Div(children=[
     dcc.Input(id='filename', value='', type='text'),
 
     html.Div( [ html.P(query) ] ),
-
-    html.Div(id='gain-plot'),
-
     html.Div(id='gain-table'),
-
-    dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
-                {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
-            ],
-            'layout': {
-                'title': 'Dash Data Visualization'
-            }
-        }
-    )
 ])
 
 def mcp_gain_query( filename ):
-    print ("********************************************")
-    print (filename)
     conn = sqlite3.connect( filename )
     df = pd.read_sql_query( query, conn )
     #print(df.to_dict('records'))
     return html.Div( [ html.H6(filename),
-                       dash_table.DataTable( data=df.to_dict('records'), columns=[{'name': i, 'id': i} for i in df.columns] ),
+                       html.Div([
+                           html.Div([
+                               dcc.Graph(
+                                   figure={
+                                       'data': [
+                                           {'x': df["Threshold"], 'y': df["COUNTS"], 'type': 'scatter', 'name': 'SF'},
+                                       ],
+                                       'layout': {
+                                           'title': 'MCP Peak Height Distribution'
+                                       }
+                                   }
+                               ),
+                           ], className="six columns"),
+                           html.Div([
+                               dash_table.DataTable( data=df.to_dict('records'), columns=[{'name': i, 'id': i} for i in df.columns] ),
+                           ], className="six columns"),
+                       ], className="row"),
+
                        html.Hr(),
     ])
 
