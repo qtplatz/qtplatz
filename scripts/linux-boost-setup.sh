@@ -62,11 +62,11 @@ function boost_build {
 	      ;;
 	  Darwin*)
 		  OSX_VERSION_MIN=-mmacosx-version-min=10.12
-	      C_FLAGS="-mmacosx-version-min=10.12"
+	      	C_FLAGS="-mmacosx-version-min=10.12"
 		  #CXX_FLAGS="-std=c++14 -setlib=libc++ $OSX_VERSION_MIN"
 		  CXX_FLAGS="-std=c++14 $OSX_VERSION_MIN"
 		  LINKFLAGS="-stdlib=libc++ $OSX_VERSION_MIN"
-		  echo ./bootstrap.sh --prefix=$BOOST_PREFIX
+		  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=/usr/local/bin/python3 --with-python-version=3.7
 		  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 		  prompt
 	      ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang &&
