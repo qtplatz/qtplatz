@@ -3,7 +3,8 @@
 cwd="$( cd "$( dirname "$0" )" && pwd )"
 
 if [ -z $BOOST_VERSION ]; then
-	BOOST_VERSION=1_67_0
+	#	BOOST_VERSION=1_67_0
+		BOOST_VERSION=1_70_0
 fi
 
 if [ -z $BOOST_ROOT ]; then
@@ -12,7 +13,7 @@ if [ -z $BOOST_ROOT ]; then
 fi
 
 if [ -z $CMAKE_VERSION ]; then
-	CMAKE_VERSION=3.14.1
+	CMAKE_VERSION=3.14.3
 fi
 
 if [ -z $SRC ]; then

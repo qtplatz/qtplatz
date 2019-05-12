@@ -29,6 +29,7 @@ else()
 
   find_path( _boost NAMES include/boost HINTS
     "/usr/local/boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 (debian9 default)
+    "/usr/local/boost-1_70"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
     "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
     #"/usr/local/boost-1_65_1"     # V15 <-- not released with this version
     #"/usr/local/boost-1_63"       # V14 <-- not released with this version

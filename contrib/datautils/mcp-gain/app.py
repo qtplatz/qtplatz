@@ -23,7 +23,7 @@ pattern = '/home/toshi/data/hpk-mcp/2019-04-25/mcp1/gain/*.adfs'
 
 step = 5
 tof = 99.8765e-6
-tof_width = 10e-8
+tof_width = 10e-9
 tof_lower = tof - tof_width / 2
 tof_upper = tof - tof_width / 2
 max_y = 0

@@ -54,7 +54,7 @@ function boost_build {
 
       case "${arch}" in
 		  Linux*)
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python
+			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=/usr/bin/python --with-python-version=3.5
 			  echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++14" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python &&
