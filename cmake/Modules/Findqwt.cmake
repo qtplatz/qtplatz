@@ -8,6 +8,7 @@ if ( WIN32 )
   find_path( qwt_DIR NAMES include/qwt.h HINTS C:/qwt-6.1.4-svn C:/Qwt-6.1.3 $ENV{QWT} )
 else()
   find_path( qwt_DIR NAMES include/qwt.h HINTS
+    /usr/local/qwt-6.1.5-svn
     /usr/local/qwt-6.1.4-svn
     /usr/local/qwt-6.1.3-svn
     /usr/local/qwt-6.1.2-svn
@@ -24,7 +25,7 @@ if ( qwt_DIR )
   set( QWT_DEBUG_LIB "QWT_DEBUG_LIB-NOTFOUND" )
 
   find_library( QWT_LIB NAMES qwt HINTS ${qwt_DIR}/lib )
-#  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )    
+#  find_library( QWT_DEBUG_LIB NAMES qwt${CMAKE_DEBUG_POSTFIX} HINTS ${qwt_DIR}/lib )
   if ( QWT_LIB )
     add_library( Qwt STATIC IMPORTED )
     set ( QWT_LIBRARIES Qwt )

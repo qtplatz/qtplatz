@@ -15,6 +15,10 @@ if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
+  add_subdirectory( infitof )
+endif()
+
+if ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM )
   add_subdirectory( socfpga )
 endif()
 
