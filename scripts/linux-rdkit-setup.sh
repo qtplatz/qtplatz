@@ -60,10 +60,10 @@ prompt
 cmake "${cmake_args[@]}" $RDBASE
 make -j${nproc}
 
-#if [ $? -eq 0 ]; then
+if [ $? -eq 0 ]; then
 #	make test
-#	make install
-#fi
+	sudo make install
+fi
 
 echo "You may need to edit rdkit-target.cmake manually to set '_IMPORT_PREFIX' or get failed to find Catalogs library"
 echo "You may also need to make sym-link RDKIT/lib/cmake/*.cmake RDKIT/lib"

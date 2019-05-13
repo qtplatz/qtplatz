@@ -3,6 +3,9 @@
 default:
 	@echo "====================================="
 	@echo "make dependency"
+	@echo "make rtags"
+	@echo "make fonts"
+	@echo "make bower"
 	@echo "make cross-tools"
 	@echo "make boost"
 	@echo "=== Don't forget apply boost-nvcc_hpp.patch if using cuda"
@@ -11,7 +14,6 @@ default:
 	@echo "make rdkit"
 	@echo "make qwt"
 	@echo "make gnuplot"
-	@echo "make rtags"
 #	@echo "make ffmpeg"
 #	@echo "make jpeg"
 	@echo "make opencv" || "make opencv.debug"
@@ -22,8 +24,14 @@ dependency:
 	./linux-initial-setup.sh
 	./linux-dependency-install.sh
 
+fonts:
+	./linux-fonts-setup.sh
+
 cross-tools:
 	./armhf/debian-multiarch-setup.sh
+
+bower:
+	./linux-bower-setup.sh
 
 boost:
 	./linux-boost-setup.sh

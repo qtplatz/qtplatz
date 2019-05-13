@@ -1,9 +1,11 @@
 #!/bin/bash
 
-curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
+sudo apt-get install software-properties-common
 
-apt-get install --yes nodejs
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install --yes nodejs
 
-npm install bower -g
+node --version
+npm --version
 
-npm install gulp -g
+sudo npm install -g bower

@@ -21,6 +21,8 @@ fi
 echo "=========="
 echo "building cmake"
 
+sudo apt install openssl libssl-dev
+
 if [ ! -d $SRC/cmake ]; then
     if [ ! -d $SRC ]; then
 	mkdir $SRC
@@ -29,7 +31,7 @@ if [ ! -d $SRC/cmake ]; then
     # git clone https://github.com/Kitware/CMake.git
     if [ ! -f ~/Downloads/cmake-$CMAKE_VERSION.tar.gz ]; then
       ( cd ~/Downloads;
-        #wget https://cmake.org/files/$VDIR/cmake-$CMAKE_VERSION.tar.gz 
+        #wget https://cmake.org/files/$VDIR/cmake-$CMAKE_VERSION.tar.gz
 	wget https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz )
 
     fi
@@ -37,10 +39,8 @@ if [ ! -d $SRC/cmake ]; then
 fi
 
 cd $SRC/cmake-$CMAKE_VERSION
-./bootstrap
+./bootstrap --system-curl
 
 if make -j $nproc; then
     sudo make install
 fi
-
-
