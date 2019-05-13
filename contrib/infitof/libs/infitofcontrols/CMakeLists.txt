@@ -22,14 +22,14 @@ add_library( ${PROJECT_NAME} SHARED
   avgrmethod.cpp
   avgrmethod.hpp
   infitofcontrols_global.hpp
-  ionsourcemethod.hpp
-  ionsourcemethod.cpp
+#  ionsourcemethod.hpp
+#  ionsourcemethod.cpp
   method.hpp
   method.cpp
-  methodeditorbehavior.hpp
-  methodeditorbehavior.cpp
-  voltagemethod.cpp
-  voltagemethod.hpp
+#  methodeditorbehavior.hpp
+#  methodeditorbehavior.cpp
+#  voltagemethod.cpp
+#  voltagemethod.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

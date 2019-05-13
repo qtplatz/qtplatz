@@ -25,6 +25,7 @@
 #pragma once
 
 #include "infitofcontrols_global.hpp"
+#include <multumcontrols/orbitprotocol.hpp>
 #include <boost/serialization/version.hpp>
 #include <cstdint>
 #include <iostream>

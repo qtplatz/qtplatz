@@ -90,13 +90,13 @@ method::clsid()
 }
 
 std::vector<int32_t>&
-method::arp_hv()
+method::hv()
 {
     return arp_hv_;
 }
 
 const std::vector<int32_t>&
-method::arp_hv() const
+method::hv() const
 {
     return arp_hv_;
 }

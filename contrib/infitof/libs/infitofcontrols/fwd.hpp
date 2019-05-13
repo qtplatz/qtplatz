@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -24,25 +24,7 @@
 
 #pragma once
 
-#include "infcontrols_global.hpp"
-#include "method.hpp"
-
-namespace infitof {
-    class OrbitProtocol;
-    class DelayMethod;
-}
-
-namespace adcontrols {
-    class TofProtocol;
-}
-
-namespace infcontrols {
-
-    struct INFCONTROLSSHARED_EXPORT method_workaround {
-
-        static void copy( multumcontrols::OrbitProtocol&, const infitof::OrbitProtocol& );
-        static void copy( infitof::OrbitProtocol&, const multumcontrols::OrbitProtocol& );
-
-    };
-    
+namespace infitofcontrols {
+    class method;
+    class AvgrMethod;
 }

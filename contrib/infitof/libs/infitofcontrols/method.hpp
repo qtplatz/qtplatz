@@ -26,7 +26,6 @@
 
 #include "infitofcontrols_global.hpp"
 #include "avgrmethod.hpp"
-#include "ionsourcemethod.hpp"
 #include <boost/serialization/version.hpp>
 #include <boost/variant.hpp>
 #include <cstdint>
@@ -49,8 +48,8 @@ namespace infitofcontrols {
         static const char * itemLabel() { return "Analyzer"; }
         static const boost::uuids::uuid& clsid();
 
-        std::vector<int32_t>& arp_hv();
-        const std::vector<int32_t>& arp_hv() const;
+        std::vector<int32_t>& hv();
+        const std::vector<int32_t>& hv() const;
 
         AvgrMethod& tof();
         const AvgrMethod& tof() const;
@@ -61,7 +60,7 @@ namespace infitofcontrols {
     private:
         std::string description_;
         AvgrMethod tof_;                 // Timing protocol(s)
-        std::vector< int32_t > arp_hv_;  // equivalent to infitofcontrols::arp::HVSetpts
+        std::vector< int32_t > arp_hv_;
 
     public:
         ~method();
