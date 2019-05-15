@@ -54,10 +54,10 @@ function boost_build {
 
       case "${arch}" in
 		  Linux*)
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=/usr/bin/python3 --with-python-version=3.5
+			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=/usr/bin/python3
 			  echo ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++17" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 			  prompt
-			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python &&
+			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=/usr/bin/python3 &&
 				  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++17" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 			  ;;
 		  Darwin*)
