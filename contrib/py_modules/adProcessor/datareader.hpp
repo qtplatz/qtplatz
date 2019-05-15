@@ -45,5 +45,10 @@ public:
     std::string objtext() const;
     std::string display_name() const;
 
+    size_t size( int fcn = (-1) ) const;
+    std::shared_ptr< adcontrols::MassSpectrum > readSpectrum() const;
+
     std::shared_ptr< const adcontrols::DataReader > reader_;
 };
+
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS( DataReader_overloads, size, 0, 1 );

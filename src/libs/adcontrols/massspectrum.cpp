@@ -872,6 +872,16 @@ MassSpectrum::clearSegments()
     impl_->vec_.clear();
 }
 
+// Added 15/May 2019
+std::shared_ptr< const MassSpectrum >
+MassSpectrum::getProtocol( int proto ) const
+{
+    auto it = std::find_if( impl_->vec_.begin(), impl_->vec_.end(), [=]( const std::shared_ptr<const MassSpectrum>& ms ){ return ms->protocolId() == proto; } );
+    if ( it != impl_->vec_.end() )
+        return *it;
+    return nullptr;
+}
+
 MassSpectrum *
 MassSpectrum::findProtocol( int32_t proto )
 {

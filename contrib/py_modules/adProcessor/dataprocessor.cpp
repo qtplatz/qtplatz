@@ -27,6 +27,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>

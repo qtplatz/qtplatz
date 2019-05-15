@@ -25,28 +25,21 @@
 
 #include <boost/python.hpp>
 #include <adcontrols/chemicalformula.hpp>
-#include <adcontrols/datafile.hpp>
-#include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <memory>
 
+double getitem_ms_intensity( const adcontrols::MassSpectrum& ms, size_t index ) {
+    return ms.getMass( index );
+}
+
+
 using namespace boost::python;
-
-struct datafile_wrap : adcontrols::datafile, boost::python::wrapper< adcontrols::datafile > {
-    static adcontrols::datafile * open( const std::wstring& filename ) {
-        return adcontrols::datafile::open( filename );
-    }
-    void accept( adcontrols::dataSubscriber& t ) override {
-        this->get_override( "accept" )( t );
-    }
-
-    boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override {
-        return this->get_override( "fetch" );
-    }
-};
 
 BOOST_PYTHON_MODULE( adControls )
 {
     // register_ptr_to_python<std::shared_ptr< adcontrols::ChemicalFormula > >();
+    register_ptr_to_python< std::shared_ptr< adcontrols::MassSpectrum > >();
+    register_ptr_to_python< std::shared_ptr< const adcontrols::MassSpectrum > >();
 
     double (adcontrols::ChemicalFormula::*d1)( const std::string& ) const = &adcontrols::ChemicalFormula::getMonoIsotopicMass;
 
@@ -54,7 +47,14 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "getMonoIsotopicMass", d1 )
         ;
 
-    //class_< datafile_wrap, std::shared_ptr< datafile_wrap >, boost::noncopyable >( "datafile" )
-    //    .def( "open", &datafile_wrap::open ).staticmethod( "open" )
-    //    ;
+    class_< adcontrols::MassSpectrum >( "MassSpectrum" )
+        .def( "__len__", &adcontrols::MassSpectrum::size )
+        .def( "size",    &adcontrols::MassSpectrum::size )
+        .def( "resize",  &adcontrols::MassSpectrum::resize )
+        .def( "getMass", &adcontrols::MassSpectrum::getMass )
+        .def( "getTime", &adcontrols::MassSpectrum::getTime )
+        .def( "getIntensity", &adcontrols::MassSpectrum::getIntensity )
+        .def( "numProtocols", &adcontrols::MassSpectrum::numSegments )
+        .def( "getProtocol", &adcontrols::MassSpectrum::getProtocol )
+        ;
 }

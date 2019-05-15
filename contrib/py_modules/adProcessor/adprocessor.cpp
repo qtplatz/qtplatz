@@ -32,6 +32,7 @@
 #include <adcontrols/datareader.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/datareader.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <memory>
 
 #include <boost/uuid/uuid_io.hpp>
@@ -106,5 +107,7 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( "objuuid", &DataReader::objuuid )
         .def( "objtext", &DataReader::objtext )
         .def( "display_name", &DataReader::display_name )
+        .def( "size", &DataReader::size, DataReader_overloads() )
+        .def( "readSpectrum", &DataReader::readSpectrum )
         ;
 }

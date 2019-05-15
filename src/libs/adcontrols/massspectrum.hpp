@@ -194,6 +194,7 @@ namespace adcontrols {
 
         MassSpectrum * findProtocol( int32_t proto );
         const MassSpectrum * findProtocol( int32_t proto ) const;
+        std::shared_ptr< const MassSpectrum > getProtocol( int proto ) const; // Added 15/May 2019
 
         void clearSegments();
         size_t numSegments() const;

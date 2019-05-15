@@ -26,6 +26,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
@@ -75,4 +76,20 @@ std::string
 DataReader::display_name() const
 {
     return reader_ ? reader_->display_name() : "";
+}
+
+size_t
+DataReader::size( int fcn ) const
+{
+    return reader_ ? reader_->size( fcn ) : 0;
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+DataReader::readSpectrum() const
+{
+    if ( reader_ ) {
+        auto it = reader_->begin();
+        return reader_->readSpectrum( it );
+    }
+    return nullptr;
 }
