@@ -40,7 +40,7 @@ Mode::~Mode()
 Mode::Mode(QObject *parent) :  Core::IMode(parent)
 {
     setDisplayName( tr( "ACQUIRE" ) );
-    setIcon(QIcon(":/acquire/images/final247-color-wheel.svg"));
+    setIcon(QIcon(":/acquire/images/Ecg-595b40b75ba036ed117d58e2.svg"));
     setPriority( 90 );
 }
 

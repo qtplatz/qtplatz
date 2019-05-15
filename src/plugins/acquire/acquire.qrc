@@ -2,6 +2,10 @@
   <qresource prefix="/acquire">
     <!-- Photo via <a href="https://www.goodfreephotos.com/">Good Free Photos</a> -->
     <file>images/final247-color-wheel.svg</file>
+
+    <!-- ttps://www.visualpharm.com/free-icons/ecg-595b40b75ba036ed117d58e2 -->
+    <file>images/Ecg-595b40b75ba036ed117d58e2.svg</file>
+
     <!-- See README.txt -->
     <file>images/image001_512.png</file>
     <file>images/arrow-circle-double.png</file>

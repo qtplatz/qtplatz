@@ -1,0 +1,51 @@
+cmake_minimum_required ( VERSION 3.14 )
+
+project ( adProcessor )
+
+add_definitions( -DBOOST_NO_AUTO_PTR )
+
+find_package( Boost 1.67 COMPONENTS python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR} REQUIRED )
+if ( Boost_FOUND )
+  include_directories( ${Boost_INCLUDE_DIRS} )
+endif()
+
+if ( Python3_FOUND )
+  include_directories( ${Python3_INCLUDE_DIRS} )
+endif()
+
+add_library( ${PROJECT_NAME} MODULE
+  adprocessor.cpp
+  dataprocessor.cpp
+  dataprocessor.hpp
+  datareader.cpp
+  datareader.hpp
+  uuid.cc
+  )
+
+link_directories(
+  ${QTPLATZ_BINARY_DIR}/lib/qtplatz  # <== qmake .lib output dir
+  )
+
+target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  adcontrols
+  adfs
+  adplugin_manager
+  adprocessor
+  acqrscontrols
+  adportable
+  ${Python3_LIBRARIES}
+  ${Boost_LIBRARIES}
+  )
+
+set_target_properties( ${PROJECT_NAME}
+  PROPERTIES
+  PREFIX ""
+  LIBRARY_OUTPUT_DIRECTORY ${PYTHON_MODULE_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PYTHON_MODULE_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PYTHON_MODULE_DIR}
+  )
+
+install( TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules
+  LIBRARY DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules
+  )

@@ -45,7 +45,7 @@ using namespace adplugin;
 # elif defined __MACH__
 #  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
 # else
-#  define DEBUG_LIB_TRAIL ""        // xyz.so 
+#  define DEBUG_LIB_TRAIL ""        // xyz.so
 # endif
 #else
 # define DEBUG_LIB_TRAIL ""
@@ -81,10 +81,12 @@ loader::populate( const wchar_t * topdir )
                             QLibrary lib( libname );
 
                             boost::filesystem::path path( libname.toStdString() );
-#if BOOST_VERSION >= 106100
+#ifndef NDEBUG
+# if BOOST_VERSION >= 106100
                             ADDEBUG() << "\tloading : " << boost::filesystem::relative( path, appdir, ec ).string();
-#else
+# else
                             ADDEBUG() << "\tloading : " << path.string();
+# endif
 #endif
                             if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
                                 break;
@@ -127,7 +129,7 @@ std::wstring
 loader::config_fullpath( const std::wstring& apppath, const std::wstring& library_filename )
 {
 	boost::filesystem::path path = boost::filesystem::path( apppath ) / pluginDirectory;
-	boost::filesystem::path fullpath = path / library_filename; 
+	boost::filesystem::path fullpath = path / library_filename;
 	return fullpath.generic_wstring();
 }
 
@@ -136,12 +138,12 @@ loader::loadLibrary( const QString& libname, const QStringList& paths )
 {
     auto appdir = QCoreApplication::applicationDirPath(); // ~/Applications/qtplatz/bin
     boost::filesystem::path install_path( boost::filesystem::path( appdir.toStdWString() ).parent_path() );
-    
+
     boost::filesystem::path stem( ( libname + DEBUG_LIB_TRAIL ).toStdWString() );
 
     QLibrary lib;
     typedef adplugin::plugin * ( *factory )();
-    
+
     for ( auto& path : paths ) {
         boost::filesystem::path p( path.toStdWString() );
         if ( p.is_absolute() )

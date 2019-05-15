@@ -85,12 +85,12 @@ namespace adplugin {
         plugin_data( const plugin_data& t ) : plugin_( t.plugin_ ) {
         }
 
-        const char * clsid() const { 
+        const char * clsid() const {
             return plugin_->clsid();
         }
 
-        const char * iid() const { 
-            return plugin_->iid(); 
+        const char * iid() const {
+            return plugin_->iid();
         }
 
         adplugin::plugin_ptr plugin() const { return plugin_; }
@@ -113,7 +113,7 @@ namespace adplugin {
     public:
         virtual ~data() {}
         data() {}
-        
+
         typedef std::map< std::string, plugin_data > map_type;
         typedef std::vector< plugin_data > vector_type;
 
@@ -124,13 +124,13 @@ namespace adplugin {
         plugin_ptr select_iid( const char * regex );
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
 
-        size_t select_plugins( const char * regex, std::vector< plugin_ptr >& ); // added 2016-07-05, for mpxdatainterpreter 
+        size_t select_plugins( const char * regex, std::vector< plugin_ptr >& ); // added 2016-07-05, for mpxdatainterpreter
 
         bool isLoaded( const std::string& adpluginspec ) const;
-        
-        // visitor 
+
+        // visitor
         void visit( adplugin::plugin * plugin, const char * adpluginspec );
-        
+
     private:
         map_type plugins_;
         vector_type additionals_; // if shared-object contains more than two plugins
@@ -260,15 +260,15 @@ manager::data::install( QLibrary& lib, const std::string& adpluginspec, const st
     typedef adplugin::plugin * ( *factory_type )();
 
     boost::filesystem::path path( lib.fileName().toStdString() );
-    
+
     if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
 
         if ( adplugin::plugin * pptr = factory() ) {
-            
+
             pptr->setConfig( adpluginspec, specxml, path.string() );
             plugins_[ adpluginspec ] = plugin_data( pptr->pThis() );
             pptr->accept( *this, adpluginspec.c_str() );
-            
+
             return true;
         }
 
@@ -342,30 +342,34 @@ manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
 void
 manager::standalone_initialize()
 {
-    auto apath = boost::filesystem::canonical( boost::dll::program_location() ).parent_path();
-    auto tpath = apath.parent_path();
-    
-    // ADDEBUG() << "apath: " << boost::filesystem::path( apath ).string();
-    // ADDEBUG() << "tpath: " << tpath.string();
+    //auto apath = boost::filesystem::canonical( boost::dll::program_location() ).parent_path();
+    //auto tpath = apath.parent_path();
+    auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+
+#ifndef NDEBUG
+    ADDEBUG() << "app: " << boost::dll::program_location();
+    ADDEBUG() << "this: " << boost::dll::this_line_location();
+    ADDEBUG() << "tpath: " << tpath.string();
+#endif
 
     adplugin::loader::populate( tpath.wstring().c_str() );
-    
+
     // spectrometers
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
-		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
+		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){
                 adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
                 if ( factory )
                     adcontrols::MassSpectrometerBroker::register_factory( factory );
             });
 	}
-    
+
     // dataproverders
     std::vector< adplugin::plugin_ptr > dataproviders;
     std::vector< std::string > mime; // todo
 
     if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
-        
+
         std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
                 adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
                 if ( factory ) {
