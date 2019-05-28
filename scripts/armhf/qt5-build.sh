@@ -3,7 +3,7 @@
 #=========================
 #     Preparation
 #========================
-QTVER=5.12.0
+QTVER=5.12.3
 QTDIR=/opt/Qt/${QTVER}
 QTSRC=${QTDIR}/Src/qtbase
 

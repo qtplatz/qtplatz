@@ -81,7 +81,7 @@ namespace quan {
         struct user_preference {
             static boost::filesystem::path path( QSettings * settings ) {
                 boost::filesystem::path dir( settings->fileName().toStdWString() );
-                return dir.remove_filename() / "Quan";                
+                return dir.remove_filename() / "Quan";
             }
         };
     }
@@ -95,7 +95,8 @@ namespace quan {
                        , adcontrols::QuanCompounds
                        , adcontrols::QuanMethod
                        , adcontrols::TargetingMethod
-                       , adcontrols::CountingMethod > method_list;
+                       , adcontrols::CountingMethod
+                       , adcontrols::QuanResponseMethod > method_list;
 
     template< typename last >
     struct item_list< last > {
@@ -109,7 +110,7 @@ namespace quan {
             item_list< args... >::create( p );
         }
     };
-    
+
 }
 
 using namespace quan;
@@ -123,8 +124,8 @@ QuanDocument::~QuanDocument()
 QuanDocument::QuanDocument() : settings_( std::make_shared< QSettings >(QSettings::IniFormat, QSettings::UserScope
                                                                         , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
                                                                         , QLatin1String( "Quan" ) ) )
-                             , postCount_( 0 )
                              , procm_( std::make_unique< adcontrols::ProcessMethod >())
+                             , postCount_( 0 )
                              , quanSequence_( std::make_shared< adcontrols::QuanSequence >() )
                              , semaphore_( 16 )
 {
@@ -172,7 +173,7 @@ bool
 QuanDocument::save_default_methods()
 {
     boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
-    
+
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
             QMessageBox::information( 0, "QuanDocument"
@@ -183,8 +184,9 @@ QuanDocument::save_default_methods()
 
     if ( docTemplate_ )
         save( dir / "QuanDocTemplate.xml", *docTemplate_ );
-    
+
     save( dir / "QuanSequence.xml", *quanSequence_, false ) && save( dir / "QuanMethod.xml", *procm_, false );
+    save( dir / "QuanMethod.qmth", *procm_, false );
 
     // check if method file in user file space
     QString name = recentFile( Constants::GRP_METHOD_FILES, Constants::KEY_FILES );
@@ -201,10 +203,12 @@ QuanDocument::load_default_methods()
     do {
         // .qmth file
         QString name = recentFile( Constants::GRP_METHOD_FILES, Constants::KEY_FILES );
+        if ( !name.isEmpty() )
+            ADDEBUG() << "=========== default method load from: " << name.toStdString();
 
         if ( ! name.isEmpty() ) {
             boost::filesystem::path filepath( name.toStdWString() );
-    
+
             if ( boost::filesystem::exists( filepath ) && load( filepath, *procm_, true ) ) {
                 auto qm = procm_->find< adcontrols::QuanMethod >();
                 if ( !qm ) {
@@ -215,13 +219,15 @@ QuanDocument::load_default_methods()
                 dirty_flags_[ idMethodComplex ] = false;
             }
         }
-        
+
         // recovery from backup
         if ( dirty_flags_[ idMethodComplex ] ) {
             boost::filesystem::path dir = detail::user_preference::path( settings_.get() );
             boost::filesystem::path backup = dir / L"QuanMethod.xml";
+            ADDEBUG() << "=========== default method load from: " << backup.string();
             if ( boost::filesystem::exists( backup ) && load( backup, *procm_, false ) )
                 dirty_flags_[ idMethodComplex ] = false; // don't update filename
+            ADDEBUG() << "=========== default method load status: " << ( ( dirty_flags_[ idMethodComplex ] == false ) ? "success" : "fail" );
         }
 
     } while ( 0 );
@@ -248,7 +254,7 @@ QuanDocument::load_default_methods()
             }
         }
     } while ( 0 );
-    
+
     return !(dirty_flags_[ idQuanSequence ] | dirty_flags_[ idMethodComplex ]);
 }
 
@@ -317,7 +323,7 @@ QuanDocument::run()
 {
     if ( postCount_ )
         return;
-    
+
     qtwrapper::waitCursor wait;
 
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
@@ -325,12 +331,12 @@ QuanDocument::run()
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
 
             if ( writer->open() ) {
-                
+
                 if ( !writer->create_table() ) {
                     QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
                     return;
                 }
-                
+
                 // deep copy which prepare for a long background process (e.g. chromatogram search...)
                 auto dup = std::make_shared< adcontrols::ProcessMethod >( *procm_ );
 
@@ -338,14 +344,14 @@ QuanDocument::run()
                 auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, concurrency );
                 //auto que = std::make_shared< QuanProcessor >( quanSequence_, dup  );
                 exec_.push_back( que );
-                
+
                 writer->write( *quanSequence_ );         // save into global space in a result file
                 writer->write( *dup );                   // ibid
-                
+
                 writer->insert_table( *procm_->find< adcontrols::QuanMethod >() );    // write data into sql table for user query
                 writer->insert_table( *procm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
                 writer->insert_table( *quanSequence_ );  // ibid
-                
+
                 for ( auto it = que->begin(); it != que->end(); ++it ) {
                     ++postCount_;
                     auto p = std::make_shared< adwidgets::ProgressInterface >();
@@ -364,33 +370,33 @@ void
 QuanDocument::execute_counting()
 {
     qtwrapper::waitCursor wait;
-    
+
     if ( quanSequence_ && quanSequence_->size() > 0 ) {
-        
+
         // deep copy which prepare for a long background process (e.g. chromatogram search...)
         auto dup = std::make_shared< adcontrols::ProcessMethod >( *procm_ );
         unsigned int concurrency = std::min( std::thread::hardware_concurrency(), 4u );
         auto que = std::make_shared< QuanProcessor >( quanSequence_, dup, concurrency );
 
         if ( auto writer = std::make_shared< QuanDataWriter >( quanSequence_->outfile() ) ) {
-            
+
             if ( writer->open() ) {
-                
+
                 if ( !writer->create_table() ) {
                     QMessageBox::information( 0, "QuanDocument", "Create result table failed" );
                     return;
                 }
-                
+
                 if ( !writer->create_counting_tables() ) {
                     QMessageBox::information( 0, "QuanDocument", "Create counting table failed" );
                     return;
                 }
-                
+
                 exec_.push_back( que );
 
                 writer->write( *quanSequence_ ); // save into global space in a result file
                 writer->write( *dup );           // ibid
-                
+
                 writer->insert_table( *procm_->find< adcontrols::QuanMethod >() );    // write data into sql table for user query
                 writer->insert_table( *procm_->find< adcontrols::QuanCompounds >() ); // write data into sql table for user query
                 writer->insert_table( *quanSequence_ );  // ibid
@@ -406,7 +412,7 @@ QuanDocument::execute_counting()
                 }
             }
         }
-        
+
     }
 }
 
@@ -414,7 +420,7 @@ void
 QuanDocument::stop()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    
+
 //    if ( progress_ )
 //        progress_->progress.cancel();
     //adwidgets::ProgressWnd::instance()->stop();
@@ -442,7 +448,7 @@ QuanDocument::handle_processed( QuanProcessor * processor )
     std::lock_guard< std::mutex > lock( mutex_ );
 
     ADDEBUG() << "handle_processed(" << postCount_ << ")";
-    
+
     if ( postCount_ && ( --postCount_ == 0 ) ) {
 
         std::for_each( futures_.begin(), futures_.end(), []( auto& t ){ t.get(); } );
@@ -454,7 +460,7 @@ QuanDocument::handle_processed( QuanProcessor * processor )
         adwidgets::ProgressInterface p1, p2;
         Core::ProgressManager::addTask( p1.progress.future(), "Calibrating...", Constants::QUAN_TASK_CALIB );
         Core::ProgressManager::addTask( p2.progress.future(), "Determinating...", Constants::QUAN_TASK_QUAN );
-        
+
         auto future = std::async( std::launch::async, [&](){
                 if ( auto sequence = processor->sequence() ) {
                     boost::filesystem::path database( sequence->outfile() );
@@ -477,7 +483,7 @@ QuanDocument::handle_processed( QuanProcessor * processor )
                             setConnection( connection.get() );
                     }
                 }
-                
+
             } );
 
         while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
@@ -537,14 +543,14 @@ QuanDocument::setConnection( QuanConnection * conn )
     adwidgets::ProgressInterface handler( 0, 5 );
 
     if ( ( publisher_ = std::make_shared< QuanPublisher >() ) ) {
-        
+
         Core::ProgressManager::addTask( handler.progress.future(), "Quan connecting database...", Constants::QUAN_TASK_OPEN );
 
         auto future = std::async( std::launch::async, [&](){ (*publisher_)(conn, handler); } );
 
         while ( std::future_status::ready != future.wait_for( std::chrono::milliseconds( 100 ) ) )
             QCoreApplication::instance()->processEvents();
-        
+
         emit onConnectionChanged();
     }
 
@@ -636,14 +642,14 @@ QuanDocument::recentFile( const QString& group, const QString& key ) const
     QString value;
 
     settings_->beginGroup( group );
-    
+
     if ( int size = settings_->beginReadArray( key ) ) {
         (void)size;
         settings_->setArrayIndex( 0 );
         value = settings_->value( "File" ).toString();
     }
     settings_->endArray();
-    
+
     settings_->endGroup();
 
     return value;
@@ -693,7 +699,7 @@ bool
 QuanDocument::save( const boost::filesystem::path& path, const adcontrols::QuanSequence& t, bool updateSettings )
 {
     if ( path.extension() == ".xml" ) {
-        
+
         boost::filesystem::wofstream fo( path );
         if ( adcontrols::QuanSequence::xml_archive( fo, t ) ) {
             if ( updateSettings )
@@ -715,9 +721,9 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::QuanS
                 if ( updateSettings )
                     addRecentFiles( Constants::GRP_SEQUENCE_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
             }
-            boost::filesystem::path xmlfile( path );
-            xmlfile.replace_extension( path.extension().string() + ".xml" );
-            return save( xmlfile, t, false );
+            //boost::filesystem::path xmlfile( path );
+            //xmlfile.replace_extension( path.extension().string() + ".xml" );
+            //return save( xmlfile, t, false );
         }
     }
     return false;
@@ -806,9 +812,9 @@ QuanDocument::save( const boost::filesystem::path& path, const adcontrols::Proce
                         addRecentFiles( Constants::GRP_METHOD_FILES, Constants::KEY_FILES, QString::fromStdWString( path.generic_wstring() ) );
                 }
             }
-            boost::filesystem::path xmlfile( path );
-            xmlfile.replace_extension( path.extension().string() + ".xml" );
-            return save( xmlfile, pm, false );
+            //boost::filesystem::path xmlfile( path );
+            //xmlfile.replace_extension( path.extension().string() + ".xml" );
+            //return save( xmlfile, pm, false );
         }
 
     }
@@ -846,13 +852,13 @@ namespace quan {
     {
         return procm_->find< adcontrols::MSLockMethod >();
     }
-    
+
     template<> const adcontrols::ProcessMethod *
     QuanDocument::getm() const
     {
         return procm_.get();
     }
-    
+
     template<> void
     QuanDocument::setm< adcontrols::QuanMethod >( const adcontrols::QuanMethod& t )
     {

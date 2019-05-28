@@ -26,9 +26,10 @@
 #define MSTOLERANCEFORM_HPP
 
 #include "adwidgets_global.hpp"
+#include <adcontrols/quanresponsemethod.hpp>
 #include <QWidget>
 
-namespace adcontrols { class TargetingMethod;  }
+namespace adcontrols { class TargetingMethod;  class QuanResponseMethod; }
 
 namespace adwidgets {
 namespace Ui {
@@ -46,16 +47,14 @@ namespace Ui {
         void setTitle( const QString& );
         bool isChecked() const;
         void setChecked( bool );
-        
+
+        std::string toJson( bool pritty = false ) const;
+        void fromJson( const std::string& );
+
         bool setContents( const adcontrols::TargetingMethod& );
-        bool getContents( adcontrols::TargetingMethod& );
 
-        enum idWidthMethod { idWidthDaltons, idWidthRP };
-        idWidthMethod widthMethod();
-        void setWidthMethod( idWidthMethod );
-
-        double value( idWidthMethod ) const;
-        void setValue( idWidthMethod, double );
+        bool setContents( const adcontrols::QuanResponseMethod& );
+        bool getContents( adcontrols::QuanResponseMethod& ) const;
 
     private:
         Ui::MSToleranceForm *ui;

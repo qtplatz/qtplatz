@@ -119,6 +119,8 @@ namespace adcontrols {
             boost::uuids::uuid dataReaderUuid_;
             boost::uuids::uuid dataGuid_;
             boost::property_tree::ptree ptree_;
+            std::vector< double > tofArray_;
+            std::vector< double > massArray_;
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -144,12 +146,16 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( dataGuid_ );
                     ar & BOOST_SERIALIZATION_NVP( ptree_ );
                 }
+                if ( version >= 5 ) {
+                    ar & BOOST_SERIALIZATION_NVP( tofArray_ );
+                    ar & BOOST_SERIALIZATION_NVP( massArray_ );
+                }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 4 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 5 )
 
 ///////////////////////////////////////////
 
@@ -331,6 +337,50 @@ Chromatogram::operator << ( std::pair<double, double>&& data )
 
     pImpl_->timeArray_.emplace_back( data.first );
     pImpl_->dataArray_.emplace_back( data.second );
+}
+
+void
+Chromatogram::operator << ( std::tuple<double, double, double, double >&& data )
+{
+    pImpl_->isConstantSampling_ = false;
+
+    if ( pImpl_->timeArray_.empty() )
+        pImpl_->timeRange_.first = std::get<0>(data);
+    pImpl_->timeRange_.second = std::get<0>(data);
+
+    pImpl_->timeArray_.emplace_back( std::get<0>( data ) );
+    pImpl_->dataArray_.emplace_back( std::get<1>( data ) );
+
+    pImpl_->tofArray_.emplace_back( std::get<2>( data ) );
+    pImpl_->massArray_.emplace_back( std::get<3>( data ) );
+}
+
+const std::vector< double >&
+Chromatogram::tofArray() const
+{
+    return pImpl_->tofArray_;
+}
+
+const std::vector< double >&
+Chromatogram::massArray() const
+{
+    return pImpl_->massArray_;
+}
+
+double
+Chromatogram::tof( size_t idx ) const
+{
+    if ( pImpl_->tofArray_.size() > idx )
+        return pImpl_->tofArray_.at( idx );
+    return 0;
+}
+
+double
+Chromatogram::mass( size_t idx ) const
+{
+    if ( pImpl_->massArray_.size() > idx )
+        return pImpl_->massArray_.at( idx );
+    return 0;
 }
 
 double

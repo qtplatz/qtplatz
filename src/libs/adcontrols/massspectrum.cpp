@@ -415,6 +415,20 @@ MassSpectrum::getTime( size_t idx ) const
 }
 
 size_t
+MassSpectrum::getIndexFromMass( double mass, bool closest ) const
+{
+    if ( impl_->massArray_.empty() )
+        return 0;
+    size_t idx = std::distance( impl_->massArray_.begin(), std::lower_bound( impl_->massArray_.begin(), impl_->massArray_.end(), mass ) );
+    if ( closest && idx < impl_->massArray_.size() ) {
+        if ( ( ( idx + 1 ) < impl_->size() )
+             && ( std::abs( mass - getMass( idx ) ) > std::abs( mass - getMass( idx + 1 ) ) ) )
+            ++idx;
+    }
+    return idx;
+}
+
+size_t
 MassSpectrum::getIndexFromTime( double seconds, bool closest ) const
 {
     size_t idx;

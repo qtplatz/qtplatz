@@ -51,7 +51,7 @@ endif()
 
 if ( WITH_QT5 )
 
-  set ( __qt5_versions "5.12.1" "5.12.0" "5.11.1" "5.11.0" "5.10.1" "5.9.2" )
+  set ( __qt5_versions "5.12.3" "5.12.2" "5.12.1" "5.12.0" "5.11.1" "5.11.0" "5.10.1" "5.9.2" )
 
   if ( WIN32 )
     foreach( v ${__qt5_versions} )
@@ -87,6 +87,10 @@ if ( WITH_QT5 )
     #message( "===== QTDIR: " ${QTDIR} )
     #message( "===== CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
     #message( "=============================================================" )
+  else()
+    message( "=============================================================" )
+    message( "====== No QMAKE FOUND =======================================" )
+    message( "=============================================================" )
   endif()
 
   find_package( Qt5 OPTIONAL_COMPONENTS Core QUIET )

@@ -24,12 +24,14 @@
 
 #include "msfinder.hpp"
 #include "massspectrum.hpp"
+#include "mspeakinfo.hpp"
+#include "mspeakinfoitem.hpp"
 #include <algorithm>
 #include <iterator>
 
 using namespace adcontrols;
 
-namespace adcontrols { 
+namespace adcontrols {
     namespace detail {
 
         template< typename It >
@@ -50,7 +52,7 @@ namespace adcontrols {
             inline bool unique() const { return std::distance( range_.first, range_.second ) <= 1;  }
             inline size_t first() const { return std::distance( beg_, range_.first ); }
             inline size_t second() const { return std::distance( beg_, range_.second ); }
-                    
+
             size_t closest( double mass ) {
 
                 if ( range_.first && range_.second ) {
@@ -65,21 +67,21 @@ namespace adcontrols {
             };
 
             bool operator()( double target_mass ) {
-                
+
                 if ( beg_ == nullptr )
                     return false;
-                
+
                 if ( ( target_mass + tolerance_ ) < *beg_ ||
                      *(end_ - 1) < ( target_mass - tolerance_ ) )
                     return false;
-                
+
                 range_.first = std::lower_bound( beg_, end_, target_mass - tolerance_ );
                 if ( range_.first != end_ ) {
-                    
+
                     double d = std::abs( *range_.first - target_mass );
                     if ( d > tolerance_ )
                         return false;
-                    
+
                     range_.second = std::lower_bound( range_.first, end_, target_mass + tolerance_ ); // next to the last effective point
 
                     return true;
@@ -111,14 +113,14 @@ size_t
 MSFinder::operator()( const MassSpectrum& ms, double mass ) const
 {
     double tolerance = (toleranceMethod_ == idToleranceDaltons) ? width_ : (mass * width_ / 1.0e6);
-    
+
     detail::orderd_mass_finder<const double *> finder( ms.getMassArray(), ms.getMassArray() + ms.size(), tolerance );
 
     if ( finder( mass ) ) {
-        
+
         if ( finder.unique() )
             return finder.first();
-    
+
         if ( findAlgorithm_ == idFindLargest ) {
 
             const double * intens = ms.getIntensityArray();
@@ -131,11 +133,26 @@ MSFinder::operator()( const MassSpectrum& ms, double mass ) const
         } else if ( findAlgorithm_ == idFindClosest ) {
 
             return finder.closest( mass );
-            
+
         }
 
     }
     return npos;
 }
 
+std::vector< MSPeakInfoItem >::const_iterator
+MSFinder::operator()( const MSPeakInfo& pks, double mass ) const
+{
+    double tolerance = (toleranceMethod_ == idToleranceDaltons) ? width_ : (mass * width_ / 1.0e6);
 
+    auto its = std::lower_bound( pks.begin(), pks.end(), mass - tolerance, []( const auto& pk, double lMass ){ return pk.mass() < lMass; } );
+    if ( its != pks.end() ) {
+        auto ite = std::lower_bound( its, pks.end(), mass + tolerance, []( const auto& pk, double uMass ){ return pk.mass() < uMass; } );
+        if ( findAlgorithm_ == idFindLargest ) {
+            return std::max_element( its, ite, [](const auto& a, const auto& b){ return a.height() < b.height(); } );
+        } else {
+            return std::min_element( its, ite, [&](const auto& a, const auto& b){ return std::abs(a.mass() - mass) < std::abs(b.mass() - mass); } );
+        }
+    }
+    return pks.end();
+}

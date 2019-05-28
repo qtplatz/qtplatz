@@ -61,7 +61,7 @@ namespace quan {
         adfs::file write( const adcontrols::QuanSample& );
         adfs::file write( const adcontrols::Chromatogram&, const std::wstring& title );
         adfs::file write( const adcontrols::Chromatogram&, const wchar_t * dataSource, const std::wstring& title );
-        
+
         // bool write( std::shared_ptr< QuanChromatograms > chro, const std::wstring& title, std::vector< std::wstring >& );
 
         bool drop_table();
@@ -74,6 +74,9 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSample& );
         [[deprecated]] bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t> >& dataGuids );
         bool insert_reference( const boost::uuids::uuid& dataGuid, const boost::uuids::uuid& refGuid, int32_t idx, int32_t proto );
+        bool addCountingResponse( const boost::uuids::uuid& dataGuid // chromatogram file id
+                                  , const adcontrols::QuanSample& sample
+                                  , const adcontrols::Chromatogram& );
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 

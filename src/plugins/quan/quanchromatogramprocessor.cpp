@@ -164,7 +164,7 @@ namespace quan {
                 writer->attach< adcontrols::ProcessMethod >( file, procm, L"Process Method" );
                 return fGuid;
             }
-            return { 0 };
+            return {{ 0 }};
         }
     };
 
@@ -221,7 +221,7 @@ namespace quan {
 
                 return boost::uuids::string_generator()( file.name() );
             }
-            return { 0 };
+            return {{ 0 }};
         }
     };
 
@@ -314,9 +314,9 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::st
 
 
 QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
-    : procm_( std::make_shared< adcontrols::ProcessMethod >( *pm ) )
-    , cXmethods_{ std::make_unique< adcontrols::MSChromatogramMethod >(), std::make_unique< adcontrols::MSChromatogramMethod >() }
-    , debug_level_( 0 )
+    : debug_level_( 0 )
+    , procm_( std::make_shared< adcontrols::ProcessMethod >( *pm ) )
+    , cXmethods_{{ std::make_unique< adcontrols::MSChromatogramMethod >(), std::make_unique< adcontrols::MSChromatogramMethod >() }}
     , save_on_datasource_( false )
 {
     if ( auto qm = pm->find< adcontrols::QuanMethod >() ) {
@@ -331,6 +331,9 @@ QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adc
         pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
 
         if ( auto lkm = pm->find< adcontrols::MSLockMethod >() ) {
+#ifndef NDEBUG
+            ADDEBUG() << lkm->toJson();
+#endif
             for ( auto& cm: cXmethods_ )
                 cm->setLockmass( lkm->enabled() );
         }
@@ -402,7 +405,7 @@ QuanChromatogramProcessor::operator()( QuanSampleProcessor& processor
                 }
 
                 for ( auto& pair: rlist ) {
-                    boost::uuids::uuid msGuid{ 0 }, dataGuid{ 0 };
+                    boost::uuids::uuid msGuid{{ 0 }}, dataGuid{{ 0 }};
                     auto& chr = pair.first;
                     auto& ptree = chr->ptree();
                     for ( auto& pk: pair.second->peaks() ) {

@@ -124,6 +124,11 @@ namespace adcontrols {
         size_t eventsCount() const;
         const Event& getEvent( size_t idx ) const;
 
+        const std::vector< double >& tofArray() const;
+        const std::vector< double >& massArray() const;
+        double tof( size_t idx ) const;
+        double mass( size_t idx ) const;
+
         void setProtocol( int );
         int protocol() const;
 
@@ -138,6 +143,7 @@ namespace adcontrols {
         // append (time,intensity) to the end of chromatogram
         void operator << ( const std::pair<double, double>& );
         void operator << ( std::pair<double, double>&& );
+        void operator << ( std::tuple<double, double, double, double>&& ); // time,inens,tof,mass
 
         seconds_t sampInterval() const; // seconds
         void sampInterval( const seconds_t&  );

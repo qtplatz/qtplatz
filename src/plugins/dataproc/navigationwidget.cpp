@@ -86,7 +86,7 @@ public:
 			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
 			item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
 		}
-		
+
         return item;
     }
 
@@ -156,12 +156,12 @@ public:
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, false );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
     }
-    
+
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
-        
+
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true, folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
-        
+
         auto atts = folium.attachments();
         for ( auto& att: atts )
             appendAttachment( *item, att );
@@ -223,7 +223,7 @@ NavigationWidget::~NavigationWidget()
 NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
                                                     , pTreeView_( new QTreeView( this ) )
                                                     , pModel_( new QStandardItemModel )
-                                                    , pDelegate_( new NavigationDelegate ) 
+                                                    , pDelegate_( new NavigationDelegate )
 {
     pTreeView_->setModel( pModel_ );
     pTreeView_->setItemDelegate( pDelegate_ );
@@ -237,7 +237,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         "}"
         "QTreeView::item:selected {"
         " border: 1px solid #567dbc;"
-        "}"        
+        "}"
         "QTreeView::item:open {"
         " background-color: #c5ebfb;"
         " color: blue;"
@@ -252,7 +252,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         "QTreeView::branch:closed:has-children {"
         " image: url(:/dataproc/image/control-000-small.png);"
         "}"
-#endif        
+#endif
         );
 
 
@@ -293,7 +293,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
         connect( mgr, &SessionManager::onSessionUpdated, this, [&] ( Dataprocessor* dp, const QString& id ){ handleSessionUpdated( dp, id ); } );
 
         connect( mgr, &SessionManager::onFolderChanged, this, &NavigationWidget::handleFolderChanged );
-        
+
         connect( pModel_, &QStandardItemModel::itemChanged, this, &NavigationWidget::handleItemChanged );
 
         connect( mgr, &SessionManager::foliumChanged, this, &NavigationWidget::handleFoliumChanged );
@@ -368,7 +368,7 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
             SessionManager::instance()->checkStateChanged( dp, folium, state == Qt::Checked );
 
     }
-    
+
 }
 
 void
@@ -441,7 +441,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 
         if ( QStandardItem * folderItem
              = StandardItemHelper::findFolder( processorItem, folium.parentFolder().name() ) ) {
-            
+
             if ( QStandardItem * item = StandardItemHelper::findFolium( processorItem, folium.id() ) ) {
                 // replace existing
                 item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
@@ -487,7 +487,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
     item->setToolTip( filename );
 
     portfolio::Portfolio portfolio = processor->getPortfolio();
-    
+
 	for ( auto& folder: portfolio.folders() )
         PortfolioHelper::appendFolder( *item, folder );
 
@@ -568,12 +568,25 @@ namespace dataproc {
 
 	struct export_chromatogram {
 		static bool write( std::ostream& o, const adcontrols::Chromatogram& c ) {
-            for ( size_t n = 0; n < c.size(); ++n ) {
-                o << std::scientific << std::setprecision( 15 ) << c.time( n )
-                    << "\t"
-                    << std::fixed << std::setprecision( 13 ) << c.intensity( n ) << std::endl;
+            if ( c.tofArray().empty() && c.massArray().empty() ) {
+                for ( size_t n = 0; n < c.size(); ++n ) {
+                    o << std::scientific << std::setprecision( 15 ) << c.time( n )
+                      << "\t"
+                      << std::fixed << std::setprecision( 13 ) << c.intensity( n ) << std::endl;
+                }
+            } else {
+                for ( size_t n = 0; n < c.size(); ++n ) {
+                    o << std::scientific << std::setprecision( 15 ) << c.time( n )
+                      << "\t"
+                      << std::fixed << std::setprecision( 13 ) << c.intensity( n )
+                      << "\t"
+                      << std::scientific << std::setprecision( 15 ) << c.tof( n )
+                      << "\t"
+                      << std::fixed << std::setprecision( 8 ) << c.mass( n )
+                      << std::endl;
+                }
             }
-			return true;
+            return true;
 		}
 	};
 
@@ -607,15 +620,15 @@ namespace dataproc {
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
             while ( !boost::filesystem::is_directory( path ) )
                 path = path.branch_path();
-            
+
             QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
                                                                         , QObject::tr( "Save spectrum" )
                                                                         , QString::fromStdWString( path.wstring() )
-                                                                        , QString::fromStdWString( folium.name() ) 
+                                                                        , QString::fromStdWString( folium.name() )
                                                                         , QObject::tr( "qtplatz (*.adfs);;Text files (*.txt)" ) );
-            
+
             boost::filesystem::path dstfile( filename.toStdWString() );
-            
+
             if ( dstfile.extension() == ".adfs" ) {
                 adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
             } else {
@@ -624,30 +637,38 @@ namespace dataproc {
                 auto ms = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                 export_spectrum::write( of, *ms );
             }
-        }        
+        }
     };
 
     struct SaveChromatogramAs {
         portfolio::Folium folium;
         Dataprocessor * processor;
-        
+
         SaveChromatogramAs( portfolio::Folium& f, Dataprocessor * p ) : folium( f ), processor( p )
             {}
         void operator()() {
-            
+
             boost::filesystem::path path( processor->file()->filename() );
             std::wstring defaultname = path.stem().wstring() + L"_" + folium.name();
             while ( !boost::filesystem::is_directory( path ) )
                 path = path.branch_path();
 
+            QString fSel;
             QString filename = qtwrapper::QFileDialog::getSaveFileName( 0
                                                                         , QObject::tr( "Save Chromatogarm" )
                                                                         , QString::fromStdWString( path.wstring() )
                                                                         , QString::fromStdWString( folium.name() )
-                                                                        , QObject::tr( "Text files (*.txt);;qtplatz (*.adfs)" ) );
-            
+                                                                        , QObject::tr( "Text files (*.txt);;qtplatz (*.adfs)" )
+                                                                        , &fSel );
+
             boost::filesystem::path dstfile( filename.toStdWString() );
-            
+            if ( dstfile.extension() == "" ) {
+                if ( fSel == "Text files (*.txt)" )
+                    dstfile.replace_extension( "txt" );
+                else if ( fSel == "qtplatz (*.adfs)" )
+                    dstfile.replace_extension( "adfs" );
+            }
+
             if ( dstfile.extension() == ".adfs" ) {
                 adutils::fsio2::appendOnFile( dstfile.wstring(), folium, *processor->file() );
             } else {
@@ -655,9 +676,9 @@ namespace dataproc {
                 if ( auto c = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) )
                     export_chromatogram::write( of, *c );
             }
-        }        
+        }
     };
-    
+
     struct CalibrationAction {
         Dataprocessor * processor;
         CalibrationAction( Dataprocessor * p ) : processor( p ) {}
@@ -697,7 +718,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     active_spectrum = QString::fromStdWString( active_folium.name() );
             }
         }
-        
+
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             // this indicates menu requested on folium|folder node
 
@@ -709,11 +730,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     menu.addAction( QString( tr("Uncheck all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( false, *pModel_, index ) );
                     menu.addAction( QString( tr("Check all for %1") ).arg( index.data( Qt::EditRole ).toString() ), CheckAllFunctor( true, *pModel_, index ) );
                 }
-                
+
             } else if ( data.canConvert< portfolio::Folium >() ) { // an item of [Spectrum|Chrmatogram] selected
 
                 portfolio::Folium folium = data.value< portfolio::Folium >();
-                
+
                 if ( (folium.parentFolder().name() == L"Spectra") ||
                      (folium.parentFolder().name() == L"MSCalibration") )  {
 
@@ -734,14 +755,14 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             } );
                         bool hasFilterd = itFiltered != atts.end();
 
-                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, processor ) ) ) 
+                        if ( auto a = menu.addAction( tr("Save profile spectrum as..."), SaveSpectrumAs( asProfile, folium, processor ) ) )
                             a->setEnabled( isSpectrum );
-                        
+
                         portfolio::Folium centroid = itCentroid != atts.end() ? *itCentroid : portfolio::Folium();
 
                         if ( auto a = menu.addAction( tr("Save centroid spectrum as..."), SaveSpectrumAs( asCentroid, centroid, processor ) ) )
                             a->setEnabled( hasCentroid );
-                        
+
                         portfolio::Folium filtered = itFiltered != atts.end() ? *itFiltered : portfolio::Folium();
                         if( auto a = menu.addAction( tr("Save DFT filtered spectrum as..."), SaveSpectrumAs( asDFTProfile, filtered, processor ) ) )
                             a->setEnabled( hasFilterd );
@@ -749,20 +770,20 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         menu.addAction( tr("Send checked spectra to calibration folder"), CalibrationAction( processor ) );
 
                         menu.addSeparator();
-                        
+
                         if ( auto a = menu.addAction( QString( tr("Subtract background '%1' from '%2'") ).arg( selected_spectrum, active_spectrum )
                                                       , BackgroundSubtraction( active_folium, folium, processor ) ) )
                             a->setEnabled( !active_spectrum.isEmpty() );
                     }
                 }
-                
+
                 if ( folium.parentFolder().name() == L"Chromatograms" ) {
 
                     menu.addAction( tr( "Create Contour" ), [processor] () { processor->createContour(); } );
                     menu.addAction( tr( "Save Chromatogram as..."), SaveChromatogramAs( folium, processor ) );
-                    menu.addSeparator();                    
+                    menu.addSeparator();
                 }
-                
+
                 if ( folium.parentFolder().name() == L"Spectrograms" ) {
                     menu.addAction( tr("Apply lock mass"), [processor,folium](){
                             if ( auto v = portfolio::get< std::shared_ptr< adcontrols::MassSpectra > >( folium ) )
@@ -778,10 +799,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                         processor->remove( folium );
                         invalidateSession( processor );
                     } );
-                
+
                 processor->addContextMenu( adprocessor::ContextMenuOnNavigator, menu, folium );
             }
-            
+
             menu.addSeparator();
             menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
 

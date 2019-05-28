@@ -51,6 +51,8 @@
 #include <adportable/utf.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <numeric>
 
 using namespace quan;
 
@@ -389,14 +391,34 @@ QuanDataWriter::create_counting_tables()
     adfs::stmt sql( db );
     bool result( true );
 
-    // result &= sql.exec(
-    //     "CREATE TABLE IF NOT EXISTS group ("
-    //     " id INTEGER PRIMARY KEY"
-    //     ", name TEXT"
-    //     ", grpid INTEGER"
-    //     ", sampid INTEGER"
-    //     ", UNIQUE( name )"
-    //     ")" );
+    result &= sql.exec(
+        "CREATE TABLE QuanCountingResponse ("
+        " id     INTEGER PRIMARY KEY"
+        ",idSample       INTEGAR"
+        ",dataSource     TEXT"
+        ",fcn            INTEGAR"
+        ",idCmpd         UUID"
+        ",dataGuid       UUID"
+        ",formula        TEXT"
+        ",response       REAL"
+        ",tof            REAL"
+        ",stddev         REAL"
+        ",N              INTEGER"
+        ",centroid       TEXT"
+        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+
+    result &= sql.exec(
+        "CREATE TABLE QuanCountingData ("
+        "idSample       INTEGAR"
+        ",idCmpd        INTEGAR"
+        ",fcn           INTEGAR"
+        ",idx           INTEGAR"
+        ",time          REAL"
+        ",response      REAL"
+        ",tof           REAL"
+        ",mass          REAL"
+        ",stem          TEXT"
+        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
 
     return result;
 }
@@ -642,7 +664,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
 
     sql.begin();
 
-    ADDEBUG() << "inserting QuanResponse table size=" << t.results().size();
+    // ADDEBUG() << "inserting QuanResponse table size=" << t.results().size();
 
     for ( auto& result: t.results() ) {
 
@@ -651,7 +673,7 @@ QuanDataWriter::insert_table( const adcontrols::QuanSample& t )
                           "SELECT QuanSample.id,?,?,?,?,?,?,?,?,?,?,?"
                           "FROM QuanSample WHERE QuanSample.uuid = :uuid") ) {
 
-            ADDEBUG() << "insert_table fcn: " << result.fcn_ << ", " << result.uuid_cmpd();
+            // ADDEBUG() << "insert_table fcn: " << result.fcn_ << ", " << result.uuid_cmpd();
 
             int col = 1;
             sql.bind( col++ ) = result.idx_;
@@ -720,4 +742,92 @@ QuanDataWriter::insert_table( const std::wstring& dataGuid, const std::vector< s
         return true;
     }
     return false;
+}
+
+bool
+QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chromatogram file id
+                                     , const adcontrols::QuanSample& sample
+                                     , const adcontrols::Chromatogram& chro )
+{
+    double mean(0), variance(0);
+    size_t N = chro.size();
+
+    if ( chro.size() )
+        mean = std::accumulate( chro.getIntensityArray(), chro.getIntensityArray() + N, 0.0 ) / N;
+
+    if ( chro.size() > 1 )
+        variance = std::accumulate( chro.getIntensityArray(), chro.getIntensityArray() + N, 0.0
+                                    , [&](const auto& a, const auto& v){ return a + (v - mean) * (v - mean); }) / (N - 1);
+
+    // ADDEBUG() << "addCountingResponse( proto: " << chro.protocol() << ", mean: " << mean << ")";
+
+    if ( auto child = chro.ptree().get_child_optional( "generator.extract_by_mols" ) ) {
+        if ( auto cmpdGuid = child.get().get_optional< boost::uuids::uuid >( "molid" ) ) { // "generator.extract_by_mols.molid"
+            if ( auto mol = child.get().get_child_optional( "moltable" ) ) {               // "generator.extract_by_mols.moltable"
+                auto formula = mol.get().get_optional< std::string >( "formula" );
+                auto proto = mol.get().get_optional< int32_t >( "protocol" );
+                if ( formula && proto ) {
+
+                    //ADDEBUG() << " " << cmpdGuid.get() << ", formula: "
+                    //<< formula.get() << ", proto: " << proto.get() << ", average: " << resp << ", idSample: " << sample.row();
+                    auto tof = child.get().get_optional<double>( "tof" );
+                    auto centroid = child.get().get_optional< std::string >( "centroid" );
+
+                    adfs::stmt sql( fs_.db() );
+
+                    if ( sql.prepare(
+                             "INSERT INTO QuanCountingResponse (idSample,dataSource,fcn,idCmpd,dataGuid,formula,response,tof,stddev,N,centroid)"
+                             " VALUES ((SELECT id FROM QuanSample WHERE uuid = ?),?,?,?,?,?,?,?,?,?,?)" ) ) {
+                        sql.bind( 1 ) = sample.uuid();
+                        sql.bind( 2 ) = boost::filesystem::path( sample.dataSource() ).stem().string();
+                        sql.bind( 3 ) = proto.get();
+                        sql.bind( 4 ) = cmpdGuid.get();
+                        sql.bind( 5 ) = dataGuid;
+                        sql.bind( 6 ) = formula.get();
+                        sql.bind( 7 ) = mean;
+                        sql.bind( 8 ) = ( tof ? tof.get() : 0 );
+                        sql.bind( 9 ) = std::sqrt( variance );
+                        sql.bind( 10 ) = N;
+                        sql.bind( 11 ) = ( centroid ? centroid.get() : "" );
+                        if ( sql.step() != adfs::sqlite_done ) {
+                            ADTRACE() << "sql error " << sql.errmsg();
+                            return false;
+                        }
+                    }
+                } else {
+                    ADDEBUG() << "## Error: formula/proto not found";
+                }
+
+                auto tof = child.get().get_optional<double>( "tof" );
+                adfs::stmt sql( fs_.db() );
+                if ( sql.prepare( "INSERT INTO QuanCountingData (idSample,idCmpd,fcn,idx,time,response,tof,mass) VALUES"
+                                  "((SELECT id FROM QuanSample WHERE uuid = ?)"
+                                  ",(SELECT id FROM QuanCompound WHERE uuid = ?)"
+                                  ",?,?,?,?,?,?)" ) ) {
+                    for ( size_t i = 0; i < N; ++i ) {
+                        sql.bind( 1 ) = sample.uuid();
+                        sql.bind( 2 ) = cmpdGuid.get();
+                        sql.bind( 3 ) = chro.protocol();
+                        sql.bind( 4 ) = i;
+                        sql.bind( 5 ) = chro.time( i );
+                        sql.bind( 6 ) = chro.intensity( i );
+                        sql.bind( 7 ) = chro.tofArray().empty() ? tof.get() : chro.tof( i );
+                        sql.bind( 8 ) = chro.mass( i );
+                        // sql.bind( 9 ) = boost::filesystem::path( sample.dataSource() ).stem().string();
+                        if ( sql.step() != adfs::sqlite_done )
+                            ADTRACE() << "sql error " << sql.errmsg();
+                        sql.reset();
+                    }
+                }
+
+            } else {
+                ADDEBUG() << "## Error: moltable not found";
+                return false;
+            }
+        } else {
+            ADDEBUG() << "## Error: molid not found";
+            return false;
+        }
+    }
+    return true;
 }

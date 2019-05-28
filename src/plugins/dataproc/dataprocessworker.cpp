@@ -157,6 +157,8 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
     if ( auto rawfile = processor->rawdata() ) {
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
+                auto datasource = tm->dataSource(); // MSChromatogramMethod::Profile | Centroid
+
                 adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
                 dlg.setProtocolHidden( true );
                 if ( dlg.exec() == QDialog::Accepted ) {
@@ -178,14 +180,14 @@ DataprocessWorker::createChromatogramsV2( Dataprocessor * processor
                                           , const std::vector< std::pair< int, adcontrols::MSPeakInfoItem > >& ranges )
 {
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
-    
+
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
         threads_.push_back( adportable::asio::thread( [=] { io_service_.run(); } ) );
 
 	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
 	MainWindow::instance()->getProcessMethod( *pm );
-    
+
     threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, pm, axis, ranges, p ); } ) );
 }
 
@@ -202,7 +204,7 @@ DataprocessWorker::createContour( Dataprocessor* processor )
 
     adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
     MainWindow::instance()->getProcessMethod( *pm );
-    
+
     if ( auto rawfile = processor->rawdata() ) {
         if ( rawfile->dataformat_version() >= 3 ) {
             adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
@@ -262,7 +264,7 @@ DataprocessWorker::mslock( Dataprocessor * processor, std::shared_ptr< adcontrol
                                             , QObject::tr("Already mass locked")
                                             , QObject::tr( "delete assigned masses?" )
                                             , QMessageBox::Yes, QMessageBox::No|QMessageBox::Default|QMessageBox::Escape );
-        if ( result == QMessageBox::No ) 
+        if ( result == QMessageBox::No )
             return;
     }
 
@@ -295,7 +297,7 @@ DataprocessWorker::exportMatchedMasses( Dataprocessor * processor
 
     adwidgets::MSLockDialog dlg;
     dlg.setContents( lockm );
-    
+
     if ( dlg.exec() == QDialog::Accepted ) {
 
         if ( dlg.getContents( lockm ) && !lockm.molecules().empty() ) {
@@ -414,7 +416,7 @@ DataprocessWorker::handleChromatogramByAxisRange3( Dataprocessor * processor
                                                   , std::shared_ptr<adwidgets::Progress> progress )
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
-    
+
     if ( auto dset = processor->rawdata() ) {
         adprocessor::v3::MSChromatogramExtractor ex( dset );
         ex.extract_by_axis_range( vec, *pm, reader, fcn, axis, range
@@ -462,7 +464,7 @@ void
 DataprocessWorker::handleMSLock( Dataprocessor * processor
                                  , std::shared_ptr< adcontrols::MassSpectra > spectra
                                  , const adcontrols::MSLockMethod& lockm
-                                 , std::shared_ptr<adwidgets::Progress> progress )                                 
+                                 , std::shared_ptr<adwidgets::Progress> progress )
 {
     if ( spectra->size() == 0 )
         return;
@@ -519,7 +521,7 @@ DataprocessWorker::handleMSLock( Dataprocessor * processor
     }
 
     sql.commit();
-    
+
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
 
@@ -527,16 +529,16 @@ void
 DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
                                               , std::shared_ptr< const adcontrols::MassSpectra > spectra
                                               , const adcontrols::MSLockMethod& lockm
-                                              , std::shared_ptr<adwidgets::Progress> progress )                                 
+                                              , std::shared_ptr<adwidgets::Progress> progress )
 {
     auto& mols = lockm.molecules();
     progress->setRange( 0, static_cast<int>( spectra->size() * mols.data().size() ) );
 
     adcontrols::ProcessMethod m;
     m << lockm;
-    
+
     adcontrols::MSFinder finder( lockm.tolerance( lockm.toleranceMethod() ), lockm.algorithm(), lockm.toleranceMethod() );
-    
+
 
     boost::filesystem::path base =
         boost::filesystem::path( processor->filename() ).parent_path() / boost::filesystem::path( processor->filename() ).stem();
@@ -548,7 +550,7 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
             double t0 = (*spectra->begin())->getMSProperty().timeSinceInjection();
             std::string name = ( boost::format( "%s_%s_%d.txt" ) % base.string() % mol.formula() % (*spectra->begin())->mode() ).str();
             std::ofstream outf( name );
-            
+
             int nprog( 0 );
             std::vector< double > masses, times;
             for ( auto& ms : *spectra ) {
@@ -562,17 +564,17 @@ DataprocessWorker::handleExportMatchedMasses( Dataprocessor * processor
 
             auto drift = std::make_shared< adcontrols::Chromatogram >();
             drift->resize( masses.size() );
-            
+
             drift->setIntensityArray( masses.data() );
             drift->setTimeArray( times.data() );
-            
+
             for ( size_t i = 0; i < drift->size(); ++i )
             outf << std::fixed << std::setprecision( 14 ) << times[i] << "," << masses[i] << std::endl;
-            
+
             drift->addDescription( adcontrols::description( L"create", adportable::utf::to_wstring( mol.formula() ) ) );
             for ( auto& desc: spectra->getDescriptions() )
                 drift->addDescription( desc );
-            
+
             auto folium = processor->addChromatogram( *drift, m );
         }
     }
@@ -588,21 +590,21 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
 
         bool hasCentroid = dset->hasProcessedSpectrum( 0, 0 );
         const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
-        
+
         auto spectra = std::make_shared< adcontrols::MassSpectra >();
         auto objId = dset->findObjId( L"MS.CENTROID" );
-        
+
         adcontrols::Chromatogram tic;
         if ( dset->getTIC( 0, tic ) ) {
-            
+
             spectra->setChromatogram( tic );
-            
+
             for ( int pos = 0; pos < int( tic.size() ); ++pos ) {
                 if ( auto ptr = std::make_shared< adcontrols::MassSpectrum >() ) {
                     if ( pos == 0 )
                         progress->setRange( 0, static_cast<int>(tic.size()) );
                     (*progress)( pos );
-                    
+
                     if ( hasCentroid ) {
                         if ( dset->getSpectrum( 0, pos, *ptr, objId ) ) {
                             ADTRACE() << "Creating spectrogram from centroid: " << pos << "/" << tic.size();
@@ -624,9 +626,9 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
         portfolio::Folium folium = processor->addContour( spectra );
         SessionManager::instance()->folderChanged( processor, folium.parentFolder().name() );
     }
-    
+
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
-    
+
 }
 
 void
@@ -637,7 +639,7 @@ DataprocessWorker::handleCreateSpectrogram3( Dataprocessor* processor
                                              , std::shared_ptr<adwidgets::Progress> progress )
 {
     const adcontrols::CentroidMethod * centroidMethod = pm->find< adcontrols::CentroidMethod >();
-        
+
     auto spectra = std::make_shared< adcontrols::MassSpectra >();
 
     // todo: handle fcn
@@ -684,7 +686,7 @@ DataprocessWorker::handleFindPeptide( Dataprocessor* processor
             return t.type() == typeid(TargetingMethod) && boost::get<TargetingMethod>(t).targetId() == TargetingMethod::idTargetPeptide;});
     if ( it != pm->end() )
         tm = boost::get<adcontrols::TargetingMethod>( *it );
-    
+
     adcontrols::MassSpectraPtr ptr;
 
     if ( portfolio::Folder folder = processor->portfolio().findFolder( L"Spectrograms" ) ) {
@@ -716,7 +718,7 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
             return t.type() == typeid(TargetingMethod) && boost::get<TargetingMethod>(t).targetId() == TargetingMethod::idTargetPeptide;});
     if ( it != pm->end() )
         tm = boost::get<adcontrols::TargetingMethod>( *it );
-    
+
     adcontrols::MassSpectraPtr ptr;
 
     if ( portfolio::Folder folder = processor->portfolio().findFolder( L"Spectrograms" ) ) {
@@ -736,14 +738,13 @@ DataprocessWorker::handleClusterSpectrogram( Dataprocessor* processor
             });
         finder( *ptr, *clusters );
         processor->addContourClusters( clusters );
-        // 
+        //
         start = std::chrono::steady_clock::now();
         // heap free checking on microsoft takes long time (more than 30 min for deleting 4000k objects)
     }
 
-    ADTRACE() << "destractor spent: " 
+    ADTRACE() << "destractor spent: "
               << double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now() - start ).count() / 1000.0 );
 
     io_service_.post( std::bind(&DataprocessWorker::join, this, adportable::this_thread::get_id() ) );
 }
-

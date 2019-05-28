@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>284</width>
+    <width>330</width>
     <height>286</height>
    </rect>
   </property>
@@ -152,7 +152,7 @@
           </font>
          </property>
          <property name="decimals">
-           <number>4</number>
+          <number>4</number>
          </property>
          <property name="minimum">
           <double>0.000100000000000</double>
@@ -421,6 +421,9 @@
             <property name="text">
              <string>Peak width (&amp;mu;s)</string>
             </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
+            </property>
            </widget>
           </item>
           <item row="0" column="1">
@@ -520,7 +523,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

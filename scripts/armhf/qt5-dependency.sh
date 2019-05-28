@@ -3,12 +3,12 @@
 #=========================
 #     Preparation
 #========================
-QTVER=5.12.0
+QTVER=5.12.3
 QTDIR=/opt/Qt/${QTVER}
 QTSRC=${QTDIR}/Src/qtbase
 
 mkdir /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
-cp -r /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabi-g++ /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
+cp -r /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabi-g++/* /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++
 sed -i -e 's/arm-linux-gnueabi-/arm-linux-gnueabihf-/g' /opt/Qt/${QTVER}/Src/qtbase/mkspecs/linux-arm-gnueabihf-g++/qmake.conf
 
 failed_list=()
