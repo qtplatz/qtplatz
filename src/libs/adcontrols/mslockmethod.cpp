@@ -35,11 +35,12 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-
 
 namespace adcontrols {
 
@@ -75,21 +76,21 @@ namespace adcontrols {
     {
         MSLockMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         MSLockMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         MSLockMethod_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MSLockMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         MSLockMethod_archive<>().serialize( ar, *this, version );
-    }    
+    }
 }
 
 using namespace adcontrols;
@@ -193,7 +194,7 @@ MSLockMethod::setTolerance( idToleranceMethod t, double value )
 {
     if ( t == idToleranceDaltons )
         toleranceDa_ = value;
-    else 
+    else
         tolerancePpm_ = value;
 }
 
@@ -225,4 +226,40 @@ void
 MSLockMethod::setMolecules( const moltable& mols )
 {
     molecules_ = std::make_unique< moltable >( mols );
+}
+
+std::string
+MSLockMethod::toJson() const
+{
+    boost::property_tree::ptree pt;
+    pt.put( "clsid", "adcontrols::MSLockMethod");
+    pt.put( "enabled", enabled_ );
+    pt.put( "enablePeakThreshold", enablePeakThreshold_ );
+    pt.put( "algorithm", algorithm_ );
+    pt.put( "toleranceMethod", toleranceMethod_ );
+    pt.put( "toleranceDa", toleranceDa_ );
+    pt.put( "tolerancePpm", tolerancePpm_ );
+
+    boost::property_tree::ptree jmols;
+    for ( const auto& mol: molecules_->data() ) {
+        boost::property_tree::ptree jmol;
+        jmol.put( "enable", mol.enable() );
+        jmol.put( "flags", mol.flags() );
+        jmol.put( "mass", mol.mass() );
+        jmol.put( "abundance", mol.abundance() );
+        jmol.put( "formula", mol.formula() );
+        jmol.put( "adducts", mol.adducts() );
+        jmol.put( "synonym", mol.synonym() );
+        jmol.put( "smiles",  mol.smiles() );
+        jmol.put( "description",  mol.description() );
+        jmol.put( "isMSRef",  mol.isMSRef() ); // equivalent to ( mol.flags() & moltable::isMSRef )
+        jmols.push_back( { "", jmol } );
+    }
+
+    pt.add_child( "molecules", jmols );
+
+    std::ostringstream o;
+    boost::property_tree::write_json( o, pt );
+
+    return o.str();
 }

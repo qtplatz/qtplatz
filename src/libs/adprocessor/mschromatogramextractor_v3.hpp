@@ -49,14 +49,14 @@ namespace adprocessor {
     namespace v3 {
 
         class ADPROCESSORSHARED_EXPORT MSChromatogramExtractor {
-            
+
             MSChromatogramExtractor( const MSChromatogramExtractor& ) = delete;
             MSChromatogramExtractor& operator = ( const MSChromatogramExtractor& ) = delete;
-            
+
         public:
             ~MSChromatogramExtractor();
             MSChromatogramExtractor( const adcontrols::LCMSDataset * );
-            
+
             // [0] Chromatograms from a list of mol in process method
             bool extract_by_mols( std::vector< std::shared_ptr< adcontrols::Chromatogram > >&
                                   , const adcontrols::ProcessMethod&
@@ -67,9 +67,9 @@ namespace adprocessor {
             bool extract_by_peak_info( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                        , const adcontrols::ProcessMethod&
                                        , std::shared_ptr< const adcontrols::MSPeakInfo > pkinfo
-                                       , std::shared_ptr< const adcontrols::DataReader > reader                        
+                                       , std::shared_ptr< const adcontrols::DataReader > reader
                                        , std::function<bool( size_t, size_t )> progress );
-            
+
             // [2] Chromatograms from specified m/z or time range
             bool extract_by_axis_range( std::vector< std::shared_ptr< adcontrols::Chromatogram > >& vec
                                         , const adcontrols::ProcessMethod&
@@ -82,8 +82,11 @@ namespace adprocessor {
             static bool computeIntensity( double& y, const adcontrols::MassSpectrum&, adcontrols::hor_axis, const std::pair< double, double >& );
 
             std::shared_ptr< const adcontrols::MassSpectrum > getMassSpectrum( double tR ) const;
-            
+
+            const std::vector< std::pair< double, std::vector<double> > >& lkms() const { return lkms_; }
+
         private:
+
             bool loadSpectra( const adcontrols::ProcessMethod *
                               , std::shared_ptr< const adcontrols::DataReader >
                               , int fcn
@@ -91,9 +94,8 @@ namespace adprocessor {
 
             class impl;
             impl * impl_;
-            
+
             std::vector< std::pair< double, std::vector<double> > > lkms_;  // time, coeffs
         };
     }
 }
-

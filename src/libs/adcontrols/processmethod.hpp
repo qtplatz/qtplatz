@@ -38,6 +38,7 @@
 #include <adcontrols/mssimulatormethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quanmethod.hpp>
+#include <adcontrols/quanresponsemethod.hpp>
 #include <adcontrols/idaudit.hpp>
 #include <boost/variant.hpp>
 #include <vector>
@@ -48,15 +49,17 @@ namespace boost { namespace serialization { class access; } }
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT ProcessMethod {
+    class ADCONTROLSSHARED_EXPORT ProcessMethod;
+
+    class ProcessMethod {
     public:
         ~ProcessMethod();
         ProcessMethod();
         ProcessMethod( const ProcessMethod& );
         template< class T > ProcessMethod( const T& v ) {  vec_.push_back( v );   }
-        
+
         static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
-        
+
         typedef boost::variant< CentroidMethod                  // 0
                                 , ElementalCompositionMethod    // 1
                                 , IsotopeMethod                 // 2
@@ -69,12 +72,13 @@ namespace adcontrols {
                                 , TargetingMethod               // 9
                                 , MSSimulatorMethod             // 10
                                 , CountingMethod                // 11
+                                , QuanResponseMethod            // 12
                                 > value_type;
-        
+
         typedef std::vector< value_type > vector_type;
         typedef vector_type::iterator iterator;
         typedef vector_type::const_iterator const_iterator;
-        
+
         template<class T> void appendMethod( const T& t ) { vec_.emplace_back( t ); }
         template<class T> ProcessMethod& operator << ( const T& t ) { vec_.emplace_back( t ); return *this; }
         template<class T> ProcessMethod& operator *= ( const T& t ) { remove<T>(); (*this) << t; return *this; } // remove if duplicate, and add
@@ -107,7 +111,7 @@ namespace adcontrols {
             if ( it != end() )
                 erase( it, end() );
         }
-        
+
         const value_type& operator [] ( int ) const;
         value_type& operator [] ( int );
         void clear();
@@ -144,4 +148,3 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION( adcontrols::ProcessMethod, 1 )
-

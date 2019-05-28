@@ -99,7 +99,7 @@ MainWindow::createContents( Core::IMode * )
     QVBoxLayout * viewLayout = new QVBoxLayout( this );
     viewLayout->setMargin(0);
     viewLayout->setSpacing(0);
-    
+
     auto tabWidget = new DoubleTabWidget( this );
 
     connect( tabWidget, &DoubleTabWidget::currentIndexChanged, this, &MainWindow::handleIndexChanged );
@@ -119,7 +119,7 @@ MainWindow::createContents( Core::IMode * )
     connect( doc, &QuanDocument::onSequenceCompleted, this, &MainWindow::handleSequenceCompleted );
 
     // [Select Data] double tab
-    
+
     if ( auto panelsWidget = new PanelsWidget( stack_ ) ) {
         if ( auto configwidget = new QuanConfigWidget ) {
 
@@ -129,7 +129,7 @@ MainWindow::createContents( Core::IMode * )
                                                         , configwidget );
             panelsWidget->addPanel( doc->addPanel( 0, 0, panel ) );
             connect( panelsWidget, &PanelsWidget::onCommit, configwidget, &QuanConfigWidget::commit );
-            
+
             if ( auto widget = new DataSequenceWidget ) {
                 // Select Data (table)
                 auto panel = std::make_shared< PanelData >( tr("Select Data")
@@ -142,7 +142,7 @@ MainWindow::createContents( Core::IMode * )
                 connect( configwidget, &QuanConfigWidget::onSampleInletChanged, widget, &DataSequenceWidget::handleSampleInletChanged );
             }
         }
-        
+
         stack_->addWidget( panelsWidget );
     }
 
@@ -186,14 +186,13 @@ MainWindow::createContents( Core::IMode * )
                                                        , QIcon( QLatin1String( ":/quan/images/EditorSettings.png" ) )
                                                        , widget );
             panelsWidget->addPanel( data.get() );
-            // widget->setMaximumHeight( 16777215 ); 
         }
 
         stack_->addWidget( panelsWidget );
     }
 
     stack_->setCurrentIndex( 0 );
-    
+
     return this;
 }
 
@@ -272,7 +271,7 @@ MainWindow::onFinalClose()
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( QAction * action )
 {
     QToolButton * button = new QToolButton;
@@ -282,7 +281,7 @@ MainWindow::toolButton( QAction * action )
 }
 
 // static
-QToolButton * 
+QToolButton *
 MainWindow::toolButton( const char * id )
 {
     return toolButton( Core::ActionManager::instance()->command(id)->action() );
@@ -292,7 +291,7 @@ void
 MainWindow::createActions()
 {
     if ( Core::ActionManager * am = Core::ActionManager::instance() ) {
-        
+
         Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID ); // Menu ID
         menu->menu()->setTitle( tr("Quan") );
 
@@ -387,32 +386,32 @@ MainWindow::run()
                 return;
             }
         }
-        
+
         isCounting = qm->isCounting();
     }
 
     if ( auto sequence = QuanDocument::instance()->quanSequence() ) {
-        
+
         if ( sequence->size() == 0 ) {
             QMessageBox::critical( this, "Quan Execution Error", "Empty sample sequence." );
             return;
         }
-            
+
         boost::filesystem::path path( sequence->outfile() );
         if ( path.empty() ) {
             QMessageBox::critical( this, "Quan Execution Error", "Empty data output filename." );
             return;
         }
-        
+
         if ( boost::filesystem::exists( path ) ) {
-                
+
             QString file( QString::fromStdWString( path.normalize().wstring() ) );
             auto reply = QMessageBox::question( 0, "Quan Sequence Exec"
                                                 , QString("File %1% already exists, remove?").arg( file )
                                                 , QMessageBox::Yes,QMessageBox::No,QMessageBox::Ignore );
             if ( reply == QMessageBox::No )
                 return;
-                
+
             if ( reply == QMessageBox::Yes ) {
                 boost::system::error_code ec;
                 boost::filesystem::remove( path, ec );
@@ -429,7 +428,7 @@ MainWindow::run()
 
     if ( auto stop = Core::ActionManager::command(Constants::QUAN_SEQUENCE_STOP)->action() )
         stop->setEnabled( true );
-    
+
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( false );
 
@@ -453,7 +452,7 @@ MainWindow::handleSequenceCompleted()
 {
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_STOP )->action() )
         stop->setEnabled( false );
-    
+
     if ( auto stop = Core::ActionManager::command( Constants::QUAN_SEQUENCE_RUN )->action() )
         stop->setEnabled( true );
 
@@ -494,7 +493,8 @@ MainWindow::handleOpenQuanResult()
 void
 MainWindow::handleOpenQuanMethod()
 {
-    auto name = QFileDialog::getOpenFileName( this, tr( "Open Quantitation Method File" )
+    auto name = QFileDialog::getOpenFileName( this
+                                              , tr( "Open Quantitation Method File" )
                                               , QuanDocument::instance()->lastMethodDir()
                                               , tr( "Quan Method Files(*.qmth);;Result Files(*.adfs);;XML Files(*.xml)" ) );
     if ( ! name.isEmpty() ) {
@@ -528,8 +528,10 @@ MainWindow::handleSaveQuanMethod()
         commit();
 
         boost::filesystem::path path( name.toStdWString() );
+        if ( path.extension() == "" )
+            path.replace_extension( "qmth" );
 
-        if ( auto pm = QuanDocument::instance()->getm< adcontrols::ProcessMethod >() ) 
+        if ( auto pm = QuanDocument::instance()->getm< adcontrols::ProcessMethod >() )
             QuanDocument::instance()->save( path, *pm, true );
 
         if ( auto qm = QuanDocument::instance()->getm< adcontrols::QuanMethod >() ) {

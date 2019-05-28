@@ -25,6 +25,7 @@
 
 #include <boost/python.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <memory>
 
@@ -56,5 +57,13 @@ BOOST_PYTHON_MODULE( adControls )
         .def( "getIntensity", &adcontrols::MassSpectrum::getIntensity )
         .def( "numProtocols", &adcontrols::MassSpectrum::numSegments )
         .def( "getProtocol", &adcontrols::MassSpectrum::getProtocol )
+        ;
+
+    class_< adcontrols::Chromatogram >( "Chromatogram" )
+        .def( "__len__",       &adcontrols::Chromatogram::size )
+        .def( "size",          &adcontrols::Chromatogram::size )
+        .def( "getTime",       &adcontrols::Chromatogram::time )
+        .def( "getIntensity",  &adcontrols::Chromatogram::intensity )
+        .def( "protocol",      &adcontrols::Chromatogram::protocol )
         ;
 }

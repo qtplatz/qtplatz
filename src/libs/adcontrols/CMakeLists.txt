@@ -11,24 +11,24 @@ endif()
 
 add_library( adcontrols SHARED
   acceptor.cpp
-  acceptor.hpp 
+  acceptor.hpp
   acquireddataset.cpp
-  acquireddataset.hpp 
+  acquireddataset.hpp
   adcontrols.cpp
   adcontrols.hpp
   annotation.cpp
-  annotation.hpp 
+  annotation.hpp
   annotations.cpp
   annotations.hpp
   axis.hpp
   baseline.cpp
-  baseline.hpp 
+  baseline.hpp
   baselines.cpp
-  baselines.hpp 
+  baselines.hpp
   centroidmethod.cpp
-  centroidmethod.hpp 
+  centroidmethod.hpp
   centroidprocess.cpp
-  centroidprocess.hpp 
+  centroidprocess.hpp
   chemicalformula.cpp
   chemicalformula.hpp
   chromatogram.cpp
@@ -60,31 +60,31 @@ add_library( adcontrols SHARED
   countinghistogram.cpp
   countinghistogram.hpp
   ctable.cpp
-  ctable.hpp 
+  ctable.hpp
   ctfile.cpp
-  ctfile.hpp 
+  ctfile.hpp
   datafile.cpp
-  datafile.hpp 
+  datafile.hpp
   datafilebroker.cpp
-  datafilebroker.hpp  
+  datafilebroker.hpp
   datainterpreter.cpp
   datainterpreter.hpp
   datainterpreterbroker.cpp
-  datainterpreterbroker.hpp 
+  datainterpreterbroker.hpp
   datapublisher.cpp
   datapublisher.hpp
   datareader.cpp
   datareader.hpp
   datasubscriber.cpp
-  datasubscriber.hpp 
+  datasubscriber.hpp
   description.cpp
-  description.hpp 
+  description.hpp
   descriptions.cpp
-  descriptions.hpp 
+  descriptions.hpp
   elementalcomposition.cpp
-  elementalcomposition.hpp 
+  elementalcomposition.hpp
   elementalcompositioncollection.cpp
-  elementalcompositioncollection.hpp 
+  elementalcompositioncollection.hpp
   elementalcompositionmethod.cpp
   elementalcompositionmethod.hpp
   error_code.cpp
@@ -92,17 +92,17 @@ add_library( adcontrols SHARED
   histogram.cpp
   histogram.hpp
   isotopecluster.cpp
-  isotopecluster.hpp 
+  isotopecluster.hpp
   isotopemethod.cpp
   isotopemethod.hpp
   idaudit.cpp
-  idaudit.hpp 
+  idaudit.hpp
   lcmsdataset.cpp
-  lcmsdataset.hpp 
+  lcmsdataset.hpp
   lockmass.cpp
   lockmass.hpp
   logging_hook.cpp
-  logging_hook.hpp   
+  logging_hook.hpp
   mappeddataframe.cpp
   mappeddataframe.hpp
   mappedimage.cpp
@@ -112,53 +112,53 @@ add_library( adcontrols SHARED
   mappedspectrum.cpp
   mappedspectrum.hpp
   massspectrometer.cpp
-  massspectrometer.hpp 
+  massspectrometer.hpp
   massspectrometerbroker.cpp
-  massspectrometerbroker.hpp 
+  massspectrometerbroker.hpp
   massspectrometer_factory.cpp
-  massspectrometer_factory.hpp 
+  massspectrometer_factory.hpp
   massspectra.cpp
-  massspectra.hpp 
+  massspectra.hpp
   massspectrum.cpp
-  massspectrum.hpp 
+  massspectrum.hpp
   molecule.cpp
-  molecule.hpp 
+  molecule.hpp
   msassignedmass.cpp
-  msassignedmass.hpp 
+  msassignedmass.hpp
   mscalibratemethod.cpp
-  mscalibratemethod.hpp 
+  mscalibratemethod.hpp
   mscalibrateresult.cpp
-  mscalibrateresult.hpp 
+  mscalibrateresult.hpp
   mscalibration.cpp
   mscalibration.hpp
   msfractuation.cpp
   msfractuation.hpp
   msmoltable.cpp
-  msmoltable.hpp 
+  msmoltable.hpp
   mslockmethod.cpp
-  mslockmethod.hpp 
+  mslockmethod.hpp
   mspeakinfoitem.cpp
-  mspeakinfoitem.hpp 
+  mspeakinfoitem.hpp
   msproperty.cpp
-  msproperty.hpp 
+  msproperty.hpp
   msreference.cpp
-  msreference.hpp 
+  msreference.hpp
   msreferencedefns.cpp
-  msreferencedefns.hpp 
+  msreferencedefns.hpp
   msreferences.cpp
   msreferences.hpp
   msident.cpp
-  msident.hpp 
+  msident.hpp
   msquant.cpp
   msquant.hpp
   mspeakinfo.cpp
-  mspeakinfo.hpp   
+  mspeakinfo.hpp
   mspeak.cpp
-  mspeak.hpp 
+  mspeak.hpp
   mspeaks.cpp
-  mspeaks.hpp 
+  mspeaks.hpp
   msqpeak.cpp
-  msqpeak.hpp 
+  msqpeak.hpp
   msqpeaks.cpp
   msqpeaks.hpp
   mschromatogrammethod.cpp
@@ -168,48 +168,50 @@ add_library( adcontrols SHARED
   moltable.cpp
   moltable.hpp
   peak.cpp
-  peak.hpp 
+  peak.hpp
   peakasymmetry.cpp
-  peakasymmetry.hpp 
+  peakasymmetry.hpp
   peakmethod.cpp
-  peakmethod.hpp 
+  peakmethod.hpp
   peakresolution.cpp
-  peakresolution.hpp 
+  peakresolution.hpp
   peaks.cpp
-  peaks.hpp 
+  peaks.hpp
   processeddataset.cpp
-  processeddataset.hpp 
+  processeddataset.hpp
   processmethod.cpp
   processmethod.hpp
   peakresult.cpp
   peakresult.hpp
   profile_time_array.cpp
-  profile_time_array.hpp  
+  profile_time_array.hpp
   quanmethod.cpp
-  quanmethod.hpp 
+  quanmethod.hpp
   quancompounds.cpp
-  quancompounds.hpp 
+  quancompounds.hpp
   quancompound.cpp
-  quancompound.hpp 
+  quancompound.hpp
+  quanresponsemethod.cpp
+  quanresponsemethod.hpp
   quansequence.cpp
-  quansequence.hpp 
+  quansequence.hpp
   quansample.cpp
-  quansample.hpp 
+  quansample.hpp
   quanreport.cpp
-  quanreport.hpp 
+  quanreport.hpp
   quanresponse.cpp
-  quanresponse.hpp 
+  quanresponse.hpp
   reportmethod.cpp
-  reportmethod.hpp 
+  reportmethod.hpp
   retentiontime.cpp
   retentiontime.hpp
   samplerun.cpp
   samplerun.hpp
   scanlaw.hpp
   spectrogram.cpp
-  spectrogram.hpp   
+  spectrogram.hpp
   tableofelement.cpp
-  tableofelement.hpp 
+  tableofelement.hpp
   targetingmethod.cpp
   targetingmethod.hpp
   theoreticalplate.cpp
@@ -227,17 +229,17 @@ add_library( adcontrols SHARED
   tofprotocol.cpp
   tofprotocol.hpp
   trace.cpp
-  trace.hpp 
+  trace.hpp
   traceaccessor.cpp
-  traceaccessor.hpp 
+  traceaccessor.hpp
   targeting.cpp
   targeting.hpp
-  visitor.cpp 
-  msfinder.cpp 
+  visitor.cpp
+  msfinder.cpp
   quanresponses.cpp
-  quanresponses.hpp 
+  quanresponses.hpp
   quancalibration.cpp
-  quancalibration.hpp 
+  quancalibration.hpp
   quancalibrations.cpp
   quancalibrations.hpp
   samplinginfo.cpp
@@ -251,117 +253,117 @@ add_library( adcontrols SHARED
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 target_link_libraries( adcontrols LINK_PUBLIC adportable ${Boost_LIBRARIES} )
 
-#set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )      
+#set_target_properties( adcontrols  PROPERTIES  LIBRARY_OUTPUT_DIRECTORY ${QTPLATZ_BINARY_DIR}/lib/qtplatz )
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   ARCHIVE DESTINATION lib COMPONENT libraries )
 
 install( FILES
   adcontrols_global.h
-  acceptor.hpp 
-  acquireddataset.hpp 
-  adcontrols.hpp 
-  baseline.hpp 
-  baselines.hpp 
-  centroidmethod.hpp 
-  centroidprocess.hpp 
-  chemicalformula.hpp 
-  chromatogram.hpp 
+  acceptor.hpp
+  acquireddataset.hpp
+  adcontrols.hpp
+  baseline.hpp
+  baselines.hpp
+  centroidmethod.hpp
+  centroidprocess.hpp
+  chemicalformula.hpp
+  chromatogram.hpp
   controlmethod.hpp
-  ctable.hpp 
-  ctfile.hpp 
-  datafile.hpp 
-  datafilebroker.hpp 
+  ctable.hpp
+  ctfile.hpp
+  datafile.hpp
+  datafilebroker.hpp
   datainterpreter.hpp
-  datainterpreterbroker.hpp 
+  datainterpreterbroker.hpp
   datapublisher.hpp
   datareader.hpp
-  datasubscriber.hpp 
-  description.hpp 
-  descriptions.hpp 
-  elementalcomposition.hpp 
-  elementalcompositioncollection.hpp 
+  datasubscriber.hpp
+  description.hpp
+  descriptions.hpp
+  elementalcomposition.hpp
+  elementalcompositioncollection.hpp
   elementalcompositionmethod.hpp
   error_code.hpp
-  isotopecluster.hpp 
-  isotopemethod.hpp 
-  lcmsdataset.hpp 
+  isotopecluster.hpp
+  isotopemethod.hpp
+  lcmsdataset.hpp
   lockmass.hpp
-  logging_hook.hpp 
+  logging_hook.hpp
   mappedspectrum.hpp
   mappedspectrum.hpp
   mappedspectra.hpp
   mappedspectra.hpp
   mappedimage.hpp
-  mappedimage.hpp      
-  massspectrometer.hpp 
-  massspectrometerbroker.hpp 
-  massspectrometer_factory.hpp 
-  massspectra.hpp 
-  massspectrum.hpp 
-  molecule.hpp 
-  msassignedmass.hpp 
-  mscalibratemethod.hpp 
-  mscalibrateresult.hpp 
-  mscalibration.hpp 
-  msmoltable.hpp 
-  mslockmethod.hpp 
-  mspeakinfoitem.hpp 
-  msproperty.hpp 
-  msreference.hpp 
-  msreferencedefns.hpp 
-  msreferences.hpp 
-  msident.hpp 
-  msquant.hpp 
-  peak.hpp 
-  peakasymmetry.hpp 
-  peakmethod.hpp 
-  peakresolution.hpp 
-  peaks.hpp 
-  processeddataset.hpp 
-  processmethod.hpp 
-  reportmethod.hpp 
+  mappedimage.hpp
+  massspectrometer.hpp
+  massspectrometerbroker.hpp
+  massspectrometer_factory.hpp
+  massspectra.hpp
+  massspectrum.hpp
+  molecule.hpp
+  msassignedmass.hpp
+  mscalibratemethod.hpp
+  mscalibrateresult.hpp
+  mscalibration.hpp
+  msmoltable.hpp
+  mslockmethod.hpp
+  mspeakinfoitem.hpp
+  msproperty.hpp
+  msreference.hpp
+  msreferencedefns.hpp
+  msreferences.hpp
+  msident.hpp
+  msquant.hpp
+  peak.hpp
+  peakasymmetry.hpp
+  peakmethod.hpp
+  peakresolution.hpp
+  peaks.hpp
+  processeddataset.hpp
+  processmethod.hpp
+  reportmethod.hpp
   retentiontime.hpp
   samplerun.hpp
   scanlaw.hpp
   serializer.hpp
-  spectrogram.hpp 
+  spectrogram.hpp
   tableofelement.hpp
-  targeting.hpp 
+  targeting.hpp
   targetingmethod.hpp
   theoreticalplate.hpp
   threshold_method.hpp
   threshold_action.hpp
   timedigitalmethod.hpp
   timedigitalhistogram.hpp
-  timeutil.hpp 
-  trace.hpp 
-  traceaccessor.hpp 
-  visitor.hpp 
-  peakresult.hpp 
-  annotation.hpp 
-  annotations.hpp 
-  mspeakinfo.hpp 
-  mspeak.hpp 
-  mspeaks.hpp 
-  msqpeak.hpp 
+  timeutil.hpp
+  trace.hpp
+  traceaccessor.hpp
+  visitor.hpp
+  peakresult.hpp
+  annotation.hpp
+  annotations.hpp
+  mspeakinfo.hpp
+  mspeak.hpp
+  mspeaks.hpp
+  msqpeak.hpp
   msqpeaks.hpp
   mschromatogrammethod.hpp
   mssimulatormethod.hpp
   moltable.hpp
-  profile_time_array.hpp 
-  quanmethod.hpp 
-  quancompounds.hpp 
-  quancompound.hpp 
-  quansequence.hpp 
-  quansample.hpp 
-  quanreport.hpp 
-  quanresponse.hpp 
-  msfinder.hpp 
-  quanresponses.hpp 
-  quancalibration.hpp 
+  profile_time_array.hpp
+  quanmethod.hpp
+  quancompounds.hpp
+  quancompound.hpp
+  quansequence.hpp
+  quansample.hpp
+  quanreport.hpp
+  quanresponse.hpp
+  msfinder.hpp
+  quanresponses.hpp
+  quancalibration.hpp
   quancalibrations.hpp
   samplinginfo.hpp
   waveform_filter.hpp

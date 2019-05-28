@@ -44,8 +44,10 @@ namespace adcontrols {
     class moltable;
 
     template< typename T > class MSLockMethod_archive;
-    
-    class ADCONTROLSSHARED_EXPORT MSLockMethod {
+
+    class ADCONTROLSSHARED_EXPORT MSLockMethod;
+
+    class MSLockMethod {
     public:
 		~MSLockMethod(void);
 		MSLockMethod(void);
@@ -71,6 +73,8 @@ namespace adcontrols {
         const moltable& molecules() const;
         moltable& molecules();
         void setMolecules( const moltable& );
+
+        std::string toJson() const;
 
     private:
         bool enabled_;

@@ -38,6 +38,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -45,6 +46,7 @@
 #include <adcontrols/lockmass.hpp>
 #include <adcontrols/msfinder.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/moltable.hpp>
 #include <adcontrols/mslockmethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -57,6 +59,7 @@
 #include <adcontrols/quanmethod.hpp>
 #include <adcontrols/quancompounds.hpp>
 #include <adcontrols/quanresponse.hpp>
+#include <adcontrols/quanresponsemethod.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
 #include <adcontrols/targeting.hpp>
@@ -69,9 +72,10 @@
 #include <adlog/logger.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adprocessor/dataprocessor.hpp>
+#include <adprocessor/mschromatogramextractor.hpp>
 #include <adutils/cpio.hpp>
-//#include <adwidgets/progresswnd.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
@@ -80,7 +84,51 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <set>
+
+namespace quan {
+
+    struct save_chromatogram {
+
+        static std::wstring make_title( const wchar_t * dataSource, const boost::property_tree::ptree& pt )  {
+            boost::filesystem::path path( dataSource );
+
+            auto wform = pt.get_optional< std::string >( "generator.extract_by_mols.wform_type" );
+
+            if ( auto mol = pt.get_child_optional( "generator.extract_by_mols.moltable" ) ) {
+                auto formula = mol.get().get_optional< std::string >( "formula" );
+                auto width = mol.get().get_optional< double >( "width" );
+                auto proto = mol.get().get_optional< int32_t >( "protocol" );
+
+                return ( boost::wformat( L"%s #%d W(%.1fmDa) {%s}-%s" )
+                         % ( formula ? adportable::utf::to_wstring( formula.get() ) : L"" )
+                         % ( proto ? proto.get() : (-1) )
+                         % ( width ? width.get() *1000 : 0.0 )
+                         % path.stem().wstring()
+                         % ( wform ? adportable::utf::to_wstring( wform.get() ) : L"n/a" ) ).str();
+            } else {
+                return ( boost::wformat( L"{%s}" ) % path.stem().wstring() ).str();
+            }
+        }
+
+        static boost::uuids::uuid
+        save( std::shared_ptr< QuanDataWriter > writer
+              , const wchar_t * dataSource
+              , std::shared_ptr< adcontrols::Chromatogram > chromatogram
+              , const adcontrols::ProcessMethod& procm, size_t idx )   {
+
+            auto title = make_title( dataSource, chromatogram->ptree() );
+            if ( adfs::file file = writer->write( *chromatogram, title ) ) {
+                auto fGuid = boost::uuids::string_generator()( file.name() );
+                chromatogram->ptree().put( "folder.dataGuid", fGuid );
+                return fGuid;
+            }
+            return {{ 0 }};
+        }
+    };
+}
 
 using namespace quan;
 
@@ -93,18 +141,45 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
                                               , std::shared_ptr< adwidgets::ProgressInterface > p )
     : raw_( 0 )
     , samples_( samples )
-    , procmethod_( processor->procmethod() )
+    , procm_( std::make_shared< adcontrols::ProcessMethod >( *processor->procmethod() ) ) // deep copy
     , cformula_( std::make_shared< adcontrols::ChemicalFormula >() )
     , processor_( processor->shared_from_this() )
     , progress_( p )
     , progress_current_( 0 )
     , progress_total_( 0 )
+    , cXmethods_{{ std::make_unique< adcontrols::MSChromatogramMethod >(), std::make_unique< adcontrols::MSChromatogramMethod >() }}
 {
     if ( !samples.empty() )
         path_ = samples[ 0 ].dataSource();
+
     progress_current_ = 0;
     progress_total_ = samples.size();
-    // progress_->setRange( int( progress_current_ ), int( progress_total_) );
+
+    if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
+
+        // mass chromatograms extraction method
+        // split molecule list into either counting or profile
+        pCompounds->convert_if( cXmethods_[ 0 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return !comp.isCounting();} );
+        pCompounds->convert_if( cXmethods_[ 1 ]->molecules(), []( const adcontrols::QuanCompound& comp ){ return comp.isCounting();} );
+
+        if ( auto lkm = procm_->find< adcontrols::MSLockMethod >() ) {
+#ifndef NDEBUG
+            ADDEBUG() << lkm->toJson();
+#endif
+            for ( auto& cm: cXmethods_ )
+                cm->setLockmass( lkm->enabled() );
+        }
+
+        if ( auto targeting_method = procm_->find< adcontrols::TargetingMethod >() ) {
+            for ( auto& cm: cXmethods_ )
+                cm->width( targeting_method->tolerance( targeting_method->toleranceMethod() ), adcontrols::MSChromatogramMethod::widthInDa );
+
+            auto tm = std::make_shared< adcontrols::TargetingMethod >( *targeting_method );
+            pCompounds->convert( tm->molecules() );
+            *procm_ *= *tm;
+        }
+    }
+
     (*progress_)( int( progress_current_ ), int( progress_total_) );
 }
 
@@ -118,14 +193,15 @@ QuanCountingProcessor::processor()
 bool
 QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 {
-    auto cm = procmethod_->find< adcontrols::CentroidMethod >();
-    auto qm = procmethod_->find< adcontrols::QuanMethod >();
+    auto cm = procm_->find< adcontrols::CentroidMethod >();
+    auto qm = procm_->find< adcontrols::QuanMethod >();
+    auto rm = procm_->find< adcontrols::QuanResponseMethod >();
 
     if ( !cm || !qm )
         return false;
 
     adcontrols::QuanCompounds compounds;
-    if ( auto qc = procmethod_->find< adcontrols::QuanCompounds >() )
+    if ( auto qc = procm_->find< adcontrols::QuanCompounds >() )
         compounds = *qc;
 
     std::set< int32_t > protocols;
@@ -138,10 +214,10 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         channels |= c.isCounting() ? 1 : 2;
 
     double tolerance = 0.001;
-    if ( auto tm = procmethod_->find< adcontrols::TargetingMethod >() )
+    if ( auto tm = procm_->find< adcontrols::TargetingMethod >() )
         tolerance = tm->tolerance( adcontrols::idToleranceDaltons );
 
-    auto lkMethod = procmethod_->find< adcontrols::MSLockMethod >();
+    auto lkMethod = procm_->find< adcontrols::MSLockMethod >();
 
     for ( auto& sample : samples_ ) {
 
@@ -150,6 +226,34 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
         std::wstring emsg;
 
         if ( dp->open( sample.dataSource(), emsg ) ) {
+            if ( auto raw = dp->rawdata() ) {
+                if ( raw->dataformat_version() < 3 )
+                    return false;
+                std::array< std::shared_ptr< const adcontrols::DataReader >, 2 > readers {{nullptr, nullptr}};
+                for ( auto reader: raw->dataReaders() ) {
+                    if ( reader->objtext().find( "waveform" ) != std::string::npos && cXmethods_[0]->molecules().size() ) // profile
+                        readers[ 0 ] = reader;
+                    if ( reader->objtext().find( "histogram" ) != std::string::npos && cXmethods_[1]->molecules().size() ) // counting
+                        readers[ 1 ] = reader;
+                }
+                auto extractor = std::make_unique< adprocessor::v3::MSChromatogramExtractor >( raw );
+                auto pCompounds = procm_->find< adcontrols::QuanCompounds >();
+                if ( !pCompounds )
+                    return false;
+                size_t idx = 0;
+                for ( auto reader: readers ) {
+                    adcontrols::ProcessMethod pm( *procm_ );
+                    pm *= (*cXmethods_[ idx ]);
+                    if ( reader ) {
+                        std::vector< std::shared_ptr< adcontrols::Chromatogram > > clist;
+                        extractor->extract_by_mols( clist, pm, reader, [&]( size_t, size_t )->bool{ return (*progress_)(); } );
+                        for ( auto chro: clist ) {
+                            auto dataGuid = save_chromatogram::save( writer, sample.dataSource(), chro, pm, idx );
+                            writer->addCountingResponse( dataGuid, sample, *chro );
+                        }
+                    }
+                }
+            }
 
             FindCompounds findCompounds( compounds, *cm, tolerance );
 
@@ -168,12 +272,12 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
 
             if ( channels & 0x01 ) { // counting
                 findCompounds( dp, true );
-                findCompounds.write( writer, stem.wstring(), procmethod_, sample, true, dp );
+                findCompounds.write( writer, stem.wstring(), procm_, sample, true, dp );
             }
 
             if ( channels & 0x02 ) { // profile
                 findCompounds( dp, false );
-                findCompounds.write( writer, stem.wstring(), procmethod_, sample, false, dp );
+                findCompounds.write( writer, stem.wstring(), procm_, sample, false, dp );
             }
         }
 

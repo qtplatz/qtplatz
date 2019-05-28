@@ -26,22 +26,27 @@
 #define MSFINDER_HPP
 
 #include "adcontrols_global.h"
+#include <vector>
 
 namespace adcontrols {
 
     class MassSpectrum;
+    class MSPeakInfo;
+    class MSPeakInfoItem;
 
     enum idFindAlgorithm : int {
         idFindLargest
         , idFindClosest
     };
-        
+
     enum idToleranceMethod : int {
         idToleranceDaltons
         , idTolerancePpm
     };
 
-    class ADCONTROLSSHARED_EXPORT MSFinder  {
+    class ADCONTROLSSHARED_EXPORT MSFinder;
+
+    class MSFinder  {
     public:
 
         ~MSFinder();
@@ -51,7 +56,9 @@ namespace adcontrols {
         static const size_t npos = size_t( -1 ); // no peak has found
 
         size_t operator()( const MassSpectrum&, double mass ) const;
-        
+
+        std::vector< MSPeakInfoItem >::const_iterator operator()( const MSPeakInfo&, double mass ) const;
+
         double width() const { return width_; }
         idToleranceMethod toleranceMethod() const { return toleranceMethod_; }
         idFindAlgorithm findAlgorithm() const { return findAlgorithm_; }

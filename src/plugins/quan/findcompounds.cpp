@@ -102,7 +102,7 @@ namespace quan {
             auto beg = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() - tolerance, [](const auto& a, const double& m) { return a.mass() < m; });
             auto end = std::lower_bound( xpkinfo.begin(), xpkinfo.end(), compound.mass() + tolerance, [](const auto& a, const double& m) { return a.mass() < m; });
 
-            ADDEBUG() << "***** findCompound ***** " << compound.protocol() << ", " << protocol << ", " << (beg != xpkinfo.end() ? beg->mass() : -1.0);
+            // ADDEBUG() << "***** findCompound ***** " << compound.protocol() << ", " << protocol << ", " << (beg != xpkinfo.end() ? beg->mass() : -1.0);
 
             if ( beg != xpkinfo.end() && ( beg->mass() < compound.mass() + tolerance ) ) {
 
@@ -175,7 +175,7 @@ FindCompounds::operator()( std::shared_ptr< adprocessor::dataprocessor > dp, boo
                                        , 1000
                                        , annotation::dataFormula );
                 } else {
-                    ADDEBUG() << "*********** compound " << compound.formula() << ", " << compound.protocol() << " NOT FOUND at " << fcn;
+                    // ADDEBUG() << "*********** compound " << compound.formula() << ", " << compound.protocol() << " NOT FOUND at " << fcn;
                 }
                 ++fcn;
             }

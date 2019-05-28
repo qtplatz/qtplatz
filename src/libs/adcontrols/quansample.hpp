@@ -56,14 +56,14 @@ namespace adcontrols {
         QuanSample();
         QuanSample( const QuanSample& );
         static const wchar_t * dataClass() { return L"adcontrols::QuanSample"; }
-        
+
         enum QuanSampleType {
             SAMPLE_TYPE_UNKNOWN
             , SAMPLE_TYPE_STD
             , SAMPLE_TYPE_QC
             , SAMPLE_TYPE_BLANK
         };
-        
+
         enum QuanInlet {
             Chromatography
             , Infusion
@@ -111,16 +111,16 @@ namespace adcontrols {
 
         int32_t channel() const;
         void channel( int32_t t );
-        
+
         int32_t istdId() const;
         void istdId( int32_t );
-        
+
         int32_t level() const;
         void level( int32_t );
-        
+
         double injVol() const;  // ignore when infusion
         void injVol( double );  // ignore when infusion
-        
+
         double addedAmounts() const;
         void addedAmounts( double );
 
@@ -150,7 +150,7 @@ namespace adcontrols {
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
 
-    typedef std::shared_ptr<QuanSample> QuanSamplePtr;   
+    typedef std::shared_ptr<QuanSample> QuanSamplePtr;
 }
 
 BOOST_CLASS_VERSION( adcontrols::QuanSample, 3 )

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -25,12 +25,32 @@
 #include "mstoleranceform.hpp"
 #include "ui_mstoleranceform.h"
 #include <adcontrols/targetingmethod.hpp>
+#include <adportable/debug.hpp>
+#include <QByteArray>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 using namespace adwidgets;
 
 MSToleranceForm::MSToleranceForm(QWidget *parent) : QWidget(parent), ui( new Ui::MSToleranceForm )
 {
     ui->setupUi(this);
+
+    ui->radioButton_area->setChecked( true );
+    ui->radioButton_intens->setChecked( true );
+    ui->radioButton_2->setChecked( true );
+
+    ui->radioButton_intens->setEnabled( false );
+    ui->radioButton_closest->setEnabled( false );
+    ui->label->setText( "Width(mDa)" );
+
+    connect( ui->radioButton_centroid, &QRadioButton::toggled, this, [&](bool checked){
+            ui->radioButton_intens->setEnabled( checked );
+            ui->radioButton_closest->setEnabled( checked );
+            ui->label->setText( checked ? "Tolerance(mDa)" : "Width(mDa)" );
+        });
+
 }
 
 MSToleranceForm::~MSToleranceForm()
@@ -56,64 +76,66 @@ MSToleranceForm::setChecked( bool checked )
     ui->groupBox->setChecked( checked );
 }
 
-
-MSToleranceForm::idWidthMethod
-MSToleranceForm::widthMethod()
-{
-    if ( ui->radioButtonRP->isChecked() )
-        return idWidthRP;
-    return idWidthDaltons;
-}
-
-void
-MSToleranceForm::setWidthMethod( idWidthMethod which )
-{
-    if ( which == idWidthRP )
-        ui->radioButtonRP->setChecked( true );
-    else
-        ui->radioButtonWidth->setChecked( true );
-}
-
-
-double
-MSToleranceForm::value( idWidthMethod which ) const
-{
-    if ( which == idWidthRP )
-        return ui->doubleSpinBoxRP->value();
-    else
-        return ui->doubleSpinBoxWidth->value();
-}
-
-void
-MSToleranceForm::setValue( idWidthMethod which , double value )
-{
-    if ( which == idWidthRP )
-        ui->doubleSpinBoxRP->setValue( value );
-    else
-        ui->doubleSpinBoxWidth->setValue( value );
-}
-
 bool
 MSToleranceForm::setContents( const adcontrols::TargetingMethod& tm )
 {
-    ui->groupBox->setCheckable( false );
-    ui->groupBox->setChecked( true );
-    setWidthMethod( tm.toleranceMethod() == adcontrols::idTolerancePpm ? idWidthRP : idWidthDaltons );
-    setValue( idWidthRP, tm.tolerance( adcontrols::idTolerancePpm ) );
-    setValue( idWidthDaltons, tm.tolerance( adcontrols::idToleranceDaltons ) * 1000 ); // Da -> mDa
+    adcontrols::QuanResponseMethod m;
+    m.setWidth( tm.tolerance( adcontrols::idToleranceDaltons ) );
+    m.setFindAlgorithm( tm.findAlgorithm() );
+    return setContents( m );
+}
+
+bool
+MSToleranceForm::setContents( const adcontrols::QuanResponseMethod& m )
+{
+    using namespace adcontrols;
+
+    ui->doubleSpinBoxWidth->setValue( m.width() * 1000 );
+
+    if ( m.intensityMethod() == QuanResponseMethod::idArea )
+        ui->radioButton_area->setChecked( true );
+    else
+        ui->radioButton_centroid->setChecked( true );
+
+    if ( m.findAlgorithm() == idFindLargest )
+        ui->radioButton_intens->setChecked( true );
+    else
+        ui->radioButton_closest->setChecked( true );
+
+    if ( m.dataSelectionMethod() == QuanResponseMethod::idAverage )
+        ui->radioButton_2->setChecked( true );
+    else
+        ui->radioButton_3->setChecked( true );
+
     return true;
 }
 
 bool
-MSToleranceForm::getContents( adcontrols::TargetingMethod& tm )
+MSToleranceForm::getContents( adcontrols::QuanResponseMethod& m ) const
 {
-    if ( widthMethod() == idWidthRP )
-        tm.setToleranceMethod( adcontrols::idTolerancePpm );
-    else
-        tm.setToleranceMethod( adcontrols::idToleranceDaltons );
+    using namespace adcontrols;
 
-    tm.setTolerance( adcontrols::idTolerancePpm, value( idWidthRP ) );
-    tm.setTolerance( adcontrols::idToleranceDaltons, value( idWidthDaltons ) / 1000.0 );
+    m.setWidthMethod( QuanResponseMethod::idWidthDaltons );
+    m.setWidth( ui->doubleSpinBoxWidth->value() / 1000.0 );
+    m.setIntensityMethod( ui->radioButton_centroid->isChecked() ? QuanResponseMethod::idCentroid : QuanResponseMethod::idArea );
+    m.setFindAlgorithm( ui->radioButton_closest->isChecked() ? idFindClosest : idFindLargest );
+    m.setDataSelectionMethod( ui->radioButton_2->isChecked() ? QuanResponseMethod::idAverage : QuanResponseMethod::idLargest );
 
     return true;
+}
+
+std::string
+MSToleranceForm::toJson( bool pritty ) const
+{
+    adcontrols::QuanResponseMethod m;
+    getContents( m );
+    return m.toJson();
+}
+
+void
+MSToleranceForm::fromJson( const std::string& json )
+{
+    adcontrols::QuanResponseMethod m;
+    m.fromJson( json );
+    setContents( m );
 }

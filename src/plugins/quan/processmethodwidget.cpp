@@ -25,6 +25,7 @@
 #include "processmethodwidget.hpp"
 #include "quandocument.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adportable/debug.hpp>
 #include <adwidgets/centroidform.hpp>
 #include <adwidgets/mstoleranceform.hpp>
 #include <adwidgets/mslockform.hpp>
@@ -80,7 +81,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
         bb->hide();
 
     layout_->setColumnStretch( 2, 1 );
-        
+
     //tLayout->addStretch( 1 );
     centroidform->OnInitialUpdate();
     peakmethodform->OnInitialUpdate();
@@ -89,7 +90,7 @@ ProcessMethodWidget::ProcessMethodWidget(QWidget *parent) :  QWidget(parent)
     connect( peakmethodform, &adwidgets::PeakMethodForm::valueChanged, this, &ProcessMethodWidget::commit );
 
     QuanDocument::instance()->connectDataChanged( [this]( int id, bool load ){ handleDataChanged( id, load ); });
-    
+
 }
 
 
@@ -107,14 +108,17 @@ ProcessMethodWidget::handleDataChanged( int id, bool load )
             if ( auto peakmethodform = findChild< adwidgets::PeakMethodForm * >() ) {
                 peakmethodform->setContents( boost::any(*pm) );
             }
-        
+
             if ( auto form = findChild< adwidgets::MSLockForm * >() ) {
                 form->setContents( *pm, true );
             }
 
             if ( auto form = findChild< adwidgets::MSToleranceForm * >() ) {
-                if ( auto pTgt = pm->find< adcontrols::TargetingMethod >() )
+                if ( auto pResp = pm->find< adcontrols::QuanResponseMethod >() ) {
+                    form->setContents( *pResp );
+                } else if ( auto pTgt = pm->find< adcontrols::TargetingMethod >() ) { // compatibility for old method data
                     form->setContents( *pTgt );
+                }
             }
         }
     }
@@ -125,19 +129,27 @@ ProcessMethodWidget::commit()
 {
     adcontrols::ProcessMethod pm;
 
-    if ( auto form = findChild< adwidgets::CentroidForm * >() ) 
+    if ( auto form = findChild< adwidgets::CentroidForm * >() )
         form->getContents( pm );
 
-    if ( auto form = findChild< adwidgets::PeakMethodForm * >() ) 
+    if ( auto form = findChild< adwidgets::PeakMethodForm * >() )
         form->getContents( pm );
 
     if ( auto form = findChild< adwidgets::MSLockForm * >() )
         form->getContents( pm );
 
     if ( auto form = findChild< adwidgets::MSToleranceForm * >() ) {
-        adcontrols::TargetingMethod t;
-        form->getContents( t );
-        pm.appendMethod( t );
+        adcontrols::QuanResponseMethod rm;
+        if ( form->getContents( rm ) ) {
+            pm.appendMethod( rm );
+
+            using namespace adcontrols;
+            TargetingMethod t;
+            t.setToleranceMethod( rm.widthMethod() == adcontrols::QuanResponseMethod::idWidthPpm ? adcontrols::idTolerancePpm : adcontrols::idToleranceDaltons );
+            t.setTolerance( adcontrols::idTolerancePpm, rm.width( QuanResponseMethod::idWidthPpm ) );
+            t.setTolerance( adcontrols::idToleranceDaltons, rm.width( QuanResponseMethod::idWidthDaltons ) );
+            pm.appendMethod( t );
+        }
     }
 
     QuanDocument::instance()->setm( pm );
