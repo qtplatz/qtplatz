@@ -1,10 +1,13 @@
 #!/bin/bash
 
 cwd="$( cd "$( dirname "$0" )" && pwd )"
+OS="$(uname -s)"
 
 if [ -z $BOOST_VERSION ]; then
-		BOOST_VERSION=1_67_0
-	#	BOOST_VERSION=1_70_0
+	case "${OS}" in
+		Darwin*) BOOST_VERSION=1_69_0;;
+		*) BOOST_VERSION=1_67_0;;
+	esac
 fi
 
 if [ -z $BOOST_ROOT ]; then

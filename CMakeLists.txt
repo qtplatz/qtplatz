@@ -29,7 +29,11 @@ if ( CMAKE_CROSSCOMPILING )
   option( WITH_PYTHON3       "Python3 modules"          OFF )
 else()
   option( WITH_CUDA          "CUDA"                     ON )
-  option( WITH_PYTHON3       "Python3 modules"          ON )
+  if ( APPLE )
+    option( WITH_PYTHON3       "Python3 modules"          OFF )
+  else()
+    option( WITH_PYTHON3       "Python3 modules"          ON )
+  endif()
 endif()
 
 set( QTPLATZ_SOURCE_DIR ${CMAKE_SOURCE_DIR} )
@@ -129,7 +133,6 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
   date_time
   filesystem
   iostreams
-#  locale
   log
   program_options
   regex
