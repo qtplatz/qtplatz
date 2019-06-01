@@ -19,8 +19,8 @@ function bzip2_download {
 		fi
 		if [ ! -f $(dirname $BZIP2_SOURCE) ]; then
 			mkdir -p $(dirname $BZIP2_SOURCE)
+			tar xvf ${DOWNLOADS}/bzip2-1.0.6.tar.gz -C $(dirname $BZIP2_SOURCE)
 		fi
-		tar xvf ${DOWNLOADS}/bzip2-1.0.6.tar.gz -C $(dirname $BZIP2_SOURCE)
     fi
 }
 
@@ -35,10 +35,12 @@ function boost_download {
 		echo curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 		curl -L -o ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/$VERSION/boost_$BOOST_VERSION.tar.bz2/download
 	fi
-	if [ -f ${BOOST_BUILD_DIR} ]; then
-		rm -rf ${BOOST_BUILD_DIR}
+	if [ ! -f ${BOOST_BUILD_DIR} ]; then
+		tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})		
 	fi
-	tar xvf ${DOWNLOADS}/boost-${BOOST_VERSION}.tar.bz2 -C $(dirname ${BOOST_BUILD_DIR})
+#	if [ -f ${BOOST_BUILD_DIR} ]; then
+#		rm -rf ${BOOST_BUILD_DIR}
+#	fi
 }
 
 function boost_build {
@@ -61,15 +63,24 @@ function boost_build {
 				  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++17" -s BZIP2_SOURCE=${BZIP2_SOURCE}
 			  ;;
 		  Darwin*)
+			  echo "***********************************************************************************************************"
+			  echo "if you got failed by zlib, try following command."
+			  echo "sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /"
+			  echo "***********************************************************************************************************"
+			  PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+			  PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
 			  OSX_VERSION_MIN=-mmacosx-version-min=10.12
-	      	  C_FLAGS="-mmacosx-version-min=10.12"
-			  CXX_FLAGS="-std=c++14 $OSX_VERSION_MIN"
-			  LINKFLAGS="-stdlib=libc++ $OSX_VERSION_MIN"
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX
-			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+			  #CXX_FLAGS="-std=c++17 $OSX_VERSION_MIN"
+			  #LINKFLAGS="-stdlib=libc++ $OSX_VERSION_MIN"
+			  CXX_FLAGS="-std=c++17"
+			  LINKFLAGS="-stdlib=libc++"			  
+			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
 			  prompt
-			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=`which python3` &&
-				  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE}
+			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
+			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
+			  prompt
+			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  ;;
 		  *)
 			  echo "Unknown arch: " $arch
@@ -79,6 +90,7 @@ function boost_build {
       echo "boost has been built on `pwd`";
       echo "run following command to install"
       echo "cd `pwd`"
+	  echo "sudo ./b2 install"
       echo "*****************************************************"
       prompt
 
@@ -87,7 +99,7 @@ function boost_build {
 		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++14"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
 	      ;;
 	  Darwin*)
-	      sudo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" -s BZIP2_SOURCE=${BZIP2_SOURCE} install
+	      sudo ./b2 install
 	      ;;
 	  *)
 	      echo "Unknown arch: " $arch
@@ -150,10 +162,14 @@ echo "	BOOST_BUILD_DIR   : ${BOOST_BUILD_DIR}"
 echo "	BOOST_PREFIX      : ${BOOST_PREFIX}"
 echo "	CROSS_ROOT        : ${CROSS_ROOT}"
 
-if [ ! -d ${BZIP2_SOURCE} ]; then
-    echo "	BZIP2_SOURCE      : download to ${BZIP2_SOURCE}"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	echo "	BZIP2_SOURCE      : Using OSX native"
 else
-    echo "	BZIP2_SOURCE      : ${BZIP2_SOURCE}"
+	if [ ! -d ${BZIP2_SOURCE} ]; then
+		echo "	BZIP2_SOURCE      : download to ${BZIP2_SOURCE}"
+	else
+		echo "	BZIP2_SOURCE      : ${BZIP2_SOURCE}"
+	fi
 fi
 
 if [ ! -d $BOOST_BUILD_DIR ]; then
@@ -172,7 +188,7 @@ echo "CWD=" $cwd
 
 prompt
 
-if [ ! -d ${BZIP2_SOURCE} ]; then
+if [[ "$OSTYPE" != "darwin"* ]] && [ ! -d ${BZIP2_SOURCE} ]; then
     bzip2_download $BZIP2_SOURCE $DOWNLOADS
     if [ ! $? -eq 0 ]; then exit 1; fi
 fi

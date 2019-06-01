@@ -16,8 +16,9 @@ set ( CMAKE_ECLIPSE_VERSION 4.5 )
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
+set ( Boost_NO_BOOST_CMAKE ON )
 
-option( WITH_RDKIT         "Include chemistry support"  ON )
+option( WITH_RDKIT         "Include chemistry support"  OFF )
 option( WITH_OPENCV        "Include OpenCV"             ON )
 option( WITH_QT5           "Include QT5"                ON )
 option( WITH_QWT           "Include QWT"                ON )
@@ -128,7 +129,7 @@ endif()
 # adplugin now uses boost_dll, which require 1.61
 find_package( Boost 1.62 REQUIRED COMPONENTS
   atomic
-  bzip2
+#  bzip2
   chrono
   date_time
   filesystem
@@ -145,6 +146,9 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
+  message( STATUS "############################### Boost_FOUND=" ${Boost_FOUND} ", Boost_INCLUDE_DIRS: " ${Boost_INCLUDE_DIRS} ) 
+else()
+  message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/src/libs )
@@ -435,6 +439,7 @@ message( STATUS "# CMAKE_GENERATOR       : "  ${CMAKE_GENERATOR} )
 message( STATUS "# VERSION               : "  ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_TWEAK} )
 message( STATUS "# CMAKE_INSTALL_PREFIX  : "  ${CMAKE_INSTALL_PREFIX} )
 message( STATUS "# CPACK_PACKAGE_INSTALL_DIRECTORY: " ${CPACK_PACKAGE_INSTALL_DIRECTORY} )
+message( STATUS "# BOOST_ROOT            : "  ${BOOST_ROOT} )
 message( STATUS "# Boost_LIBRARY_DIRS    : "  ${Boost_LIBRARY_DIRS} )
 message( STATUS "# Boost_Use_STATIC_LIBS : "  ${Boost_USE_STATIC_LIBS} )
 if ( Boost_FOUND AND VERBOSE )

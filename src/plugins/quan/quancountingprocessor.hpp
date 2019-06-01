@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adcontrols/datasubscriber.hpp>
+#include <array>
 #include <string>
 #include <vector>
 #include <map>

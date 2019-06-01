@@ -5,7 +5,7 @@ OS="$(uname -s)"
 
 if [ -z $BOOST_VERSION ]; then
 	case "${OS}" in
-		Darwin*) BOOST_VERSION=1_69_0;;
+		Darwin*) BOOST_VERSION=1_70_0;;
 		*) BOOST_VERSION=1_67_0;;
 	esac
 fi
@@ -16,7 +16,7 @@ if [ -z $BOOST_ROOT ]; then
 fi
 
 if [ -z $CMAKE_VERSION ]; then
-	CMAKE_VERSION=3.14.3
+	CMAKE_VERSION=3.14.4
 fi
 
 if [ -z $SRC ]; then

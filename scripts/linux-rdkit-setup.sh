@@ -5,6 +5,10 @@ source ${cwd}/constants.sh
 source ${cwd}/prompt.sh
 source ${cwd}/nproc.sh
 
+PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
+PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
+PYTHON=$(python3 -c "import sys; print(sys.executable)")
+
 cwd=$(pwd)
 arch=`uname`-`arch`
 __nproc nproc
@@ -26,7 +30,19 @@ else
     fi
 fi
 
-cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
+if [ `uname` == "Darwin" ]; then
+    cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
+			 "-DRDK_BUILD_INCHI_SUPPORT=ON"
+			 "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
+			 "-DPYTHON_EXECUTABLE=${PYTHON}"
+			 "-DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE}"
+			 "-DRDK_INSTALL_INTREE=OFF"
+			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
+			 "-DBoost_NO_BOOST_CMAKE=ON"
+			 )
+    cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
+else
+    cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
 			 "-DRDK_BUILD_INCHI_SUPPORT=ON"
 			 "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
 			 "-DPYTHON_EXECUTABLE=/usr/bin/python3"
@@ -35,9 +51,8 @@ cmake_args=( "-DBOOST_ROOT=$BOOST_ROOT"
 			 "-DRDK_INSTALL_STATIC_LIBS=OFF"
 			 "-DRDK_INSTALL_DYNAMIC_LIBS=ON"
 		   )
-if [ `uname` == "Darwin" ]; then
-    cmake_args+=("-DCMAKE_MACOSX_RPATH=TRUE")
 fi
+
 if [ ! -z $cross_target ]; then
     cmake_args+=( "-DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN" "-DRDK_OPTIMIZE_NATIVE=OFF" )
 	sudo apt install libeigen3-dev
@@ -60,7 +75,9 @@ echo "BUILD_DIR : " `pwd`
 echo cmake "${cmake_args[@]}" $RDBASE
 prompt
 cmake "${cmake_args[@]}" $RDBASE
-make -j${nproc}
+echo "make -j${nproc}"
+prompt
+make -k -j${nproc} 
 
 if [ $? -eq 0 ]; then
 #	make test
