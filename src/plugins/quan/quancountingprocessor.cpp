@@ -65,10 +65,11 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/waveform_filter.hpp>
 #include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/file.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
-#include <adfs/file.hpp>
-#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/debug.hpp>
@@ -154,6 +155,33 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
 
     progress_current_ = 0;
     progress_total_ = samples.size();
+
+    // dry run
+    {
+        size_t n_spectra( 0 );
+        for ( const auto& sample: samples_ ) {
+            std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( sample.dataSource(), /* read-only */ true ) );
+            if ( file ) {
+                struct subscriber : adcontrols::dataSubscriber {
+                    const adcontrols::LCMSDataset * raw;
+                    subscriber() : raw( 0 ) {}
+                    bool subscribe( const adcontrols::LCMSDataset& d ) { raw = &d; return true; }
+                } subscribe;
+                file->accept( subscribe );
+                size_t n = 0;
+                if ( subscribe.raw && subscribe.raw->db() ) {
+                    adfs::stmt sql( *subscribe.raw->db() );
+                    sql.prepare( "SELECT COUNT(*) FROM AcquiredData GROUP BY fcn" );
+                    while ( sql.step() == adfs::sqlite_row )
+                        n = std::max( uint64_t( n ), sql.get_column_value< uint64_t >( 0 ) );
+                    n_spectra += n;
+                }
+            }
+        }
+        progress_current_ = 0;
+        progress_total_ = ( n_spectra > std::numeric_limits< decltype( progress_total_ ) >::max() ) ? std::numeric_limits< decltype( progress_total_ ) >::max() : n_spectra;
+    }
+    // <-- end dry run
 
     if ( auto pCompounds = procm_->find< adcontrols::QuanCompounds >() ) {
 
@@ -251,6 +279,9 @@ QuanCountingProcessor::operator()( std::shared_ptr< QuanDataWriter > writer )
                             auto dataGuid = save_chromatogram::save( writer, sample.dataSource(), chro, pm, idx );
                             writer->addCountingResponse( dataGuid, sample, *chro );
                         }
+                        ADDEBUG() << "################# MSLock size: " << extractor->lkms().size();
+                        writer->addMSLock( sample, extractor->lkms() );
+                        writer->addMSLock( dp, extractor->lkms() );
                     }
                 }
             }

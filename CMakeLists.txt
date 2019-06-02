@@ -18,7 +18,7 @@ set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 set ( QTPLATZ_CORELIB_ONLY OFF CACHE BOOL "QTPLATZ CORE LIBRARY ONLY" )
 set ( Boost_NO_BOOST_CMAKE ON )
 
-option( WITH_RDKIT         "Include chemistry support"  OFF )
+option( WITH_RDKIT         "Include chemistry support"  ON )
 option( WITH_OPENCV        "Include OpenCV"             ON )
 option( WITH_QT5           "Include QT5"                ON )
 option( WITH_QWT           "Include QWT"                ON )
@@ -124,12 +124,15 @@ if ( WIN32 )
 endif()
 if ( APPLE )
   set(CMAKE_DEBUG_POSTFIX "_debug")
+  set( boost_bzip2 "" )
+else()
+  set( boost_bzip2 "bzip2" )
 endif()
 
 # adplugin now uses boost_dll, which require 1.61
 find_package( Boost 1.62 REQUIRED COMPONENTS
   atomic
-#  bzip2
+  ${boost_bzip2}
   chrono
   date_time
   filesystem
@@ -146,7 +149,7 @@ find_package( Boost 1.62 REQUIRED COMPONENTS
 
 if ( Boost_FOUND )
   include_directories( ${Boost_INCLUDE_DIRS} )
-  message( STATUS "############################### Boost_FOUND=" ${Boost_FOUND} ", Boost_INCLUDE_DIRS: " ${Boost_INCLUDE_DIRS} ) 
+  message( STATUS "############################### Boost_FOUND=" ${Boost_FOUND} ", Boost_INCLUDE_DIRS: " ${Boost_INCLUDE_DIRS} )
 else()
   message( FATAL_ERROR "#################### " ${Boost_FOUND} )
 endif()

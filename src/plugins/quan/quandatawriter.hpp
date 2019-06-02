@@ -41,6 +41,8 @@ namespace adcontrols {
     class QuanMethod; class idAudit;
 }
 
+namespace adprocessor { class dataprocessor; }
+
 namespace adfs { class stmt; }
 
 namespace quan {
@@ -74,9 +76,16 @@ namespace quan {
         bool insert_table( const adcontrols::QuanSample& );
         [[deprecated]] bool insert_table( const std::wstring& dataGuid, const std::vector< std::tuple<std::wstring, uint32_t, uint32_t> >& dataGuids );
         bool insert_reference( const boost::uuids::uuid& dataGuid, const boost::uuids::uuid& refGuid, int32_t idx, int32_t proto );
+
         bool addCountingResponse( const boost::uuids::uuid& dataGuid // chromatogram file id
                                   , const adcontrols::QuanSample& sample
                                   , const adcontrols::Chromatogram& );
+
+        bool addMSLock( const adcontrols::QuanSample& sample
+                        , const std::vector< std::pair< double, std::vector< double > > >& lkms ); // time, coeffs
+
+        bool addMSLock( std::shared_ptr< adprocessor::dataprocessor> dp
+                        , const std::vector< std::pair< double, std::vector< double > > >& lkms ); // time, coeffs
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 

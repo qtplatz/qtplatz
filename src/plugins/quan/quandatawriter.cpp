@@ -39,6 +39,7 @@
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adprocessor/dataprocessor.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
@@ -418,6 +419,14 @@ QuanDataWriter::create_counting_tables()
         ",tof           REAL"
         ",mass          REAL"
         ",stem          TEXT"
+        ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
+
+    result &= sql.exec(
+        "CREATE TABLE MSLock ("
+        "idSample       INTEGAR"
+        ",elapsedTime   REAL"
+        ",a             REAL"
+        ",b             REAL"
         ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
 
     return result;
@@ -828,6 +837,72 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
             ADDEBUG() << "## Error: molid not found";
             return false;
         }
+    }
+    return true;
+}
+
+
+bool
+QuanDataWriter::addMSLock( const adcontrols::QuanSample& sample
+                           , const std::vector< std::pair< double, std::vector< double > > >& lkms ) // time, coeffs
+{
+    if ( lkms.empty() )
+        return true;
+
+    adfs::stmt sql( fs_.db() );
+    sql.begin();
+    if ( sql.prepare( "INSERT INTO MSLock (idSample,elapsedTime,a,b) VALUES ((SELECT id FROM QuanSample WHERE uuid=?),?,?,?)" ) ) {
+        for ( const auto& pair : lkms ) {
+            sql.bind( 1 ) = sample.uuid();
+            sql.bind( 2 ) = pair.first; // time
+            const auto& coeffs = pair.second;
+            if ( coeffs.size() == 1 ) {
+                sql.bind( 3 ) = 0;
+                sql.bind( 4 ) = coeffs.at( 0 );
+            } else {
+                sql.bind( 3 ) = coeffs.at( 0 );
+                sql.bind( 4 ) = coeffs.at( 1 );
+            }
+            if ( sql.step() != adfs::sqlite_done )
+                ADTRACE() << "sql error " << sql.errmsg();
+            sql.reset();
+        }
+    }
+    sql.commit();
+
+    return true;
+}
+
+bool
+QuanDataWriter::addMSLock( std::shared_ptr< adprocessor::dataprocessor> dp
+                           , const std::vector< std::pair< double, std::vector< double > > >& lkms )
+{
+    if ( lkms.empty() )
+        return true;
+
+    if ( auto db = dp->db() ) {
+        adfs::stmt sql( *db );
+        sql.exec( "DROP TABLE IF EXISTS MSLock" );
+        sql.exec( "CREATE TABLE MSLock (elapsedTime REAL, a REAL, b REAL)" );
+
+        sql.begin();
+        if ( sql.prepare( "INSERT INTO MSLock (elapsedTime,a,b) VALUES (?,?,?)" ) ) {
+            for ( const auto& pair : lkms ) {
+                sql.bind( 1 ) = pair.first;
+                const auto& coeffs = pair.second;
+                if ( coeffs.size() == 1 ) {
+                    sql.bind( 2 ) = 0;
+                    sql.bind( 3 ) = coeffs.at( 0 );
+                } else {
+                    sql.bind( 2 ) = coeffs.at( 0 );
+                    sql.bind( 3 ) = coeffs.at( 1 );
+                }
+                if ( sql.step() != adfs::sqlite_done )
+                    ADTRACE() << "sql error " << sql.errmsg();
+                sql.reset();
+            }
+        }
+        sql.commit();
     }
     return true;
 }
