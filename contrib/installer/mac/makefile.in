@@ -29,7 +29,6 @@ stage:
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c . | tar xvf -
 	find @Boost_LIBRARY_DIRS@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
-	cp -rp ../python3.* qtplatz.app/Contents/
 
 clean:
 	rm -rf qtplatz.app ${TARGET}

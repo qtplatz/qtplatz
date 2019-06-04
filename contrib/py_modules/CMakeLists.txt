@@ -3,7 +3,11 @@ find_package( Python3 COMPONENTS Interpreter Development )
 
 if ( Python3_FOUND )
 
-  set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/qtplatz )
+  if ( APPLE )
+    set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/bin/qtplatz.app/Library/Python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages/qtplatz )
+  else()
+    set( PYTHON_MODULE_DIR ${CMAKE_BINARY_DIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/qtplatz )
+  endif()
 
   if ( WIN32 )
     set( PYTHON_DIST_PACKAGES "C:/Python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )

@@ -273,8 +273,10 @@ if ( WIN32 )
 
 elseif( APPLE )
 
+  set( CPACK_PACKAGE_FILE_NAME qtplatz )
   SET( MACOSX_BUNDLE_STARTUP_COMMAND qtplatz)
   set( CPACK_BINARY_DRAGNDROP ON )
+  set( MACOSX_BUNDLE_BUNDLE_NAME qtplatz )
 
   include( boost-cpack )
   include( qt5-cpack )
