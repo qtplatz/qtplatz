@@ -57,9 +57,9 @@ mslock::operator << ( const reference& t )
         });
     if ( it == references_.end() )
         references_.emplace_back( t );
-    else 
+    else
         *it = t;
-    
+
 	return *this;
 }
 
@@ -73,7 +73,7 @@ mslock::operator += ( const mslock& rhs )
                 });
             if ( it == references_.end() )
                 references_.emplace_back( a );
-            else 
+            else
                 *it = a;
         }
     }
@@ -147,7 +147,7 @@ mslock::empty() const
     return references_.empty();
 }
 
-mslock::const_iterator 
+mslock::const_iterator
 mslock::begin() const
 {
     return references_.begin();
@@ -217,7 +217,7 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
         double exactMass = formulaParser.getMonoIsotopicMass( list );
         double matchedMass = segs[ fcn ].getMass( it->index() );
         double time        = segs[ fcn ].getTime( it->index() );
-        lk << reference( formula, exactMass, matchedMass, time );        
+        lk << reference( formula, exactMass, matchedMass, time );
 
         return true;
     }
@@ -228,7 +228,7 @@ bool
 mslock::fit()
 {
     fitter_.clear();
-    
+
     if ( references_.size() == 1 ) {
         auto& ref = references_[0];
         double error = ref.matchedMass() - ref.exactMass();
@@ -299,6 +299,13 @@ fitter::fitter( std::vector< double >&& a )
     coeffs_ = std::move( a );
 }
 
+fitter::fitter( const std::array< double, 2 >& a )
+{
+    coeffs_.resize(2);
+    std::copy( a.begin(), a.end(), coeffs_.begin() );
+}
+
+
 fitter::fitter( const std::vector< double >& a )
 {
     coeffs_ = a;
@@ -307,17 +314,17 @@ fitter::fitter( const std::vector< double >& a )
 fitter&
 fitter::operator = ( std::vector< double >&& a )
 {
-    coeffs_ = std::move( a );   
+    coeffs_ = std::move( a );
     return *this;
 }
 
-const std::vector< double >& 
+const std::vector< double >&
 fitter::coeffs() const
 {
     return coeffs_;
 }
 
-std::vector< double >& 
+std::vector< double >&
 fitter::coeffs()
 {
     return coeffs_;
@@ -328,7 +335,7 @@ fitter::operator()( MassSpectrum& ms ) const
 {
     if ( coeffs_.empty() )
         return false;
-    
+
     const double * masses = ms.getMassArray();
 
     if ( coeffs_.size() == 1 ) {
@@ -365,7 +372,7 @@ fitter::operator()( MSPeakInfo& pkInfo ) const
 
     } else {
 
-        for ( auto& item: pkInfo ) { 
+        for ( auto& item: pkInfo ) {
             double mass = item.mass() - adportable::polfit::estimate_y( coeffs_, item.mass() );
             item.assign_mass( mass );
         }
@@ -380,4 +387,3 @@ fitter::clear()
 {
     coeffs_.clear();
 }
-

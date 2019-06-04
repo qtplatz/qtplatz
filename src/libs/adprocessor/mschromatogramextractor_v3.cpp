@@ -210,11 +210,17 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
         if ( doLock ) {
             if ( isProfile ) {
                 if ( impl_->apply_mslock( ms, *pm, mslock ) ) {
-                    lkms_.emplace_back( it->time_since_inject(), mslock.coeffs() );
+                    //lkms_.emplace_back( it->time_since_inject(), mslock.coeffs() );
+                    std::array< double, 2 > coeffs;
+                    if ( mslock.coeffs().size() == 1 )
+                        coeffs = {{ 0.0, mslock.coeffs()[ 0 ] }};
+                    else
+                        coeffs = {{ mslock.coeffs()[ 0 ], mslock.coeffs()[ 1 ] }};
+                    lkms_.emplace_back( it->epoch_time(), coeffs );
                 }
             } else {
                 if ( ! lkms_.empty() ) {
-                    auto lb = std::lower_bound( lkms_.begin(), lkms_.end(), it->time_since_inject(), [&](const auto& a, double b){  return a.first < b; } );
+                    auto lb = std::lower_bound( lkms_.begin(), lkms_.end(), it->epoch_time(), [&](const auto& a, double b){  return a.first < b; } );
                     if ( lb != lkms_.end() ) {
                         adcontrols::lockmass::fitter fitter( lb->second );
                         for ( auto& t: adcontrols::segment_wrapper< adcontrols::MassSpectrum >( *ms ) )
@@ -706,7 +712,6 @@ MSChromatogramExtractor::impl::doMSLock( adcontrols::lockmass::mslock& mslock
                                        , const adcontrols::MassSpectrum& centroid
                                        , const adcontrols::MSLockMethod& m )
 {
-    // TODO: consider how to handle segmented spectrum -- current impl is always process first
     adcontrols::MSFinder find( m.tolerance( m.toleranceMethod() ), m.algorithm(), m.toleranceMethod() );
 
     int mode = (-1);  // TODO: lock mass does not support rapid protocol

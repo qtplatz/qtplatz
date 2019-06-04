@@ -42,10 +42,10 @@ namespace acqrsinterpreter {
     public:
         virtual ~DataReader( void );
         DataReader( const char * traceid );
-        
-        static std::vector< std::string > traceid_list();        
 
-        // <===== adcontrols::DataReader 
+        static std::vector< std::string > traceid_list();
+
+        // <===== adcontrols::DataReader
 
         bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
         void finalize() override;
@@ -62,7 +62,7 @@ namespace acqrsinterpreter {
         const_iterator end() const override;
         const_iterator findPos( double seconds, int fcn = (-1), bool closest = false, TimeSpec ts = ElapsedTime ) const override;
         size_t size( int fcn ) const override;
-        
+
         double findTime( int64_t tpos, IndexSpec ispec = TriggerNumber, bool exactMatch = true ) const override;
 
         // =============================> Iterator reference methods
@@ -72,6 +72,7 @@ namespace acqrsinterpreter {
         int64_t elapsed_time( int64_t rowid ) const override;
         double time_since_inject( int64_t rowid ) const override;
         int fcn( int64_t rowid ) const override;
+        int64_t epoch_time( int64_t rowid ) const override;
         // <============================
         boost::any getData( int64_t rowid ) const override;
         std::shared_ptr< adcontrols::MassSpectrum > getSpectrum( int64_t rowid ) const override;
@@ -80,7 +81,7 @@ namespace acqrsinterpreter {
         std::shared_ptr< adcontrols::MassSpectrum > coaddSpectrum( const_iterator&& begin, const_iterator&& end ) const override;
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
         adcontrols::DataInterpreter * dataInterpreter() const override;
-        
+
     private:
         void make_indices();
         void loadTICs();
@@ -105,5 +106,3 @@ namespace acqrsinterpreter {
     };
 
 }
-
-

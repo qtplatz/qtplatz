@@ -191,6 +191,14 @@ DataReader_value_type::elapsed_time() const
     return (-1);
 }
 
+int64_t
+DataReader_value_type::epoch_time() const
+{
+    if ( auto reader = reader_.lock() )
+        return reader->epoch_time( rowid_ );
+    return (-1);
+}
+
 double
 DataReader_value_type::time_since_inject() const
 {

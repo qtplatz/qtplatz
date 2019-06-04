@@ -83,7 +83,7 @@ namespace adprocessor {
 
             std::shared_ptr< const adcontrols::MassSpectrum > getMassSpectrum( double tR ) const;
 
-            const std::vector< std::pair< double, std::vector<double> > >& lkms() const { return lkms_; }
+            const std::vector< std::pair< int64_t, std::array<double, 2> > >& lkms() const { return lkms_; }
 
         private:
 
@@ -95,7 +95,7 @@ namespace adprocessor {
             class impl;
             impl * impl_;
 
-            std::vector< std::pair< double, std::vector<double> > > lkms_;  // time, coeffs
+            std::vector< std::pair< int64_t, std::array< double, 2 > > > lkms_;  // time, coeffs
         };
     }
 }

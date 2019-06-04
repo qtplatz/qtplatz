@@ -812,6 +812,20 @@ DataReader::elapsed_time( int64_t rowid ) const
     return -1;
 }
 
+int64_t
+DataReader::epoch_time( int64_t rowid ) const
+{
+    if ( auto db = db_.lock() ) {
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT epoch_time FROM AcquiredData WHERE objuuid=? AND rowid=?" );
+        sql.bind( 1 ) = objid_;
+        sql.bind( 2 ) = rowid;
+        if ( sql.step() == adfs::sqlite_row )
+            return sql.get_column_value< int64_t >( 0 );
+    }
+    return -1;
+}
+
 double
 DataReader::time_since_inject( int64_t rowid ) const
 {

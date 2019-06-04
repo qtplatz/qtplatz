@@ -59,6 +59,7 @@ namespace adcontrols {
         int64_t rowid() const;
         int64_t pos() const;
         int64_t elapsed_time() const;
+        int64_t epoch_time() const;
         double time_since_inject() const;
         int fcn() const;
     };
@@ -142,6 +143,7 @@ namespace adcontrols {
         virtual int64_t prev( int64_t rowid, int fcn ) const { return -1; }
         virtual int64_t pos( int64_t rowid ) const { return -1; }
         virtual int64_t elapsed_time( int64_t rowid ) const { return -1; }
+        virtual int64_t epoch_time( int64_t rowid ) const { return -1; }
         virtual double time_since_inject( int64_t rowid ) const { return -1; }
         virtual int fcn( int64_t rowid ) const { return -1; }
 

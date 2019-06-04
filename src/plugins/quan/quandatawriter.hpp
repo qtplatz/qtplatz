@@ -82,10 +82,10 @@ namespace quan {
                                   , const adcontrols::Chromatogram& );
 
         bool addMSLock( const adcontrols::QuanSample& sample
-                        , const std::vector< std::pair< double, std::vector< double > > >& lkms ); // time, coeffs
+                        , const std::vector< std::pair< int64_t, std::array< double, 2 > > >& lkms ); // time, coeffs
 
         bool addMSLock( std::shared_ptr< adprocessor::dataprocessor> dp
-                        , const std::vector< std::pair< double, std::vector< double > > >& lkms ); // time, coeffs
+                        , const std::vector< std::pair< int64_t, std::array< double, 2 > > >& lkms ); // time, coeffs
 
         static bool insert_table( adfs::stmt&, const adcontrols::idAudit&, const std::string& what );
 

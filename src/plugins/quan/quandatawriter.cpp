@@ -422,9 +422,9 @@ QuanDataWriter::create_counting_tables()
         ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
 
     result &= sql.exec(
-        "CREATE TABLE MSLock ("
+        "CREATE TABLE MSComp ("
         "idSample       INTEGAR"
-        ",elapsedTime   REAL"
+        ",epochTime     INTEGER"
         ",a             REAL"
         ",b             REAL"
         ",FOREIGN KEY( idSample ) REFERENCES QuanSample ( id ) )" );
@@ -844,25 +844,19 @@ QuanDataWriter::addCountingResponse( const boost::uuids::uuid& dataGuid // chrom
 
 bool
 QuanDataWriter::addMSLock( const adcontrols::QuanSample& sample
-                           , const std::vector< std::pair< double, std::vector< double > > >& lkms ) // time, coeffs
+                           , const std::vector< std::pair< int64_t, std::array< double, 2 > > >& lkms ) // time, coeffs
 {
     if ( lkms.empty() )
         return true;
 
     adfs::stmt sql( fs_.db() );
     sql.begin();
-    if ( sql.prepare( "INSERT INTO MSLock (idSample,elapsedTime,a,b) VALUES ((SELECT id FROM QuanSample WHERE uuid=?),?,?,?)" ) ) {
+    if ( sql.prepare( "INSERT INTO MSComp (idSample,epochTime,a,b) VALUES ((SELECT id FROM QuanSample WHERE uuid=?),?,?,?)" ) ) {
         for ( const auto& pair : lkms ) {
             sql.bind( 1 ) = sample.uuid();
             sql.bind( 2 ) = pair.first; // time
-            const auto& coeffs = pair.second;
-            if ( coeffs.size() == 1 ) {
-                sql.bind( 3 ) = 0;
-                sql.bind( 4 ) = coeffs.at( 0 );
-            } else {
-                sql.bind( 3 ) = coeffs.at( 0 );
-                sql.bind( 4 ) = coeffs.at( 1 );
-            }
+            sql.bind( 3 ) = pair.second[0];
+            sql.bind( 4 ) = pair.second[1];
             if ( sql.step() != adfs::sqlite_done )
                 ADTRACE() << "sql error " << sql.errmsg();
             sql.reset();
@@ -875,28 +869,22 @@ QuanDataWriter::addMSLock( const adcontrols::QuanSample& sample
 
 bool
 QuanDataWriter::addMSLock( std::shared_ptr< adprocessor::dataprocessor> dp
-                           , const std::vector< std::pair< double, std::vector< double > > >& lkms )
+                           , const std::vector< std::pair< int64_t, std::array< double, 2 > > >& lkms )
 {
     if ( lkms.empty() )
         return true;
 
     if ( auto db = dp->db() ) {
         adfs::stmt sql( *db );
-        sql.exec( "DROP TABLE IF EXISTS MSLock" );
-        sql.exec( "CREATE TABLE MSLock (elapsedTime REAL, a REAL, b REAL)" );
+        sql.exec( "DROP TABLE IF EXISTS MSComp" );
+        sql.exec( "CREATE TABLE MSComp (epochTime INTEGER, a REAL, b REAL)" );
 
         sql.begin();
-        if ( sql.prepare( "INSERT INTO MSLock (elapsedTime,a,b) VALUES (?,?,?)" ) ) {
+        if ( sql.prepare( "INSERT INTO MSComp (epochTime,a,b) VALUES (?,?,?)" ) ) {
             for ( const auto& pair : lkms ) {
                 sql.bind( 1 ) = pair.first;
-                const auto& coeffs = pair.second;
-                if ( coeffs.size() == 1 ) {
-                    sql.bind( 2 ) = 0;
-                    sql.bind( 3 ) = coeffs.at( 0 );
-                } else {
-                    sql.bind( 2 ) = coeffs.at( 0 );
-                    sql.bind( 3 ) = coeffs.at( 1 );
-                }
+                sql.bind( 2 ) = pair.second[0];
+                sql.bind( 3 ) = pair.second[1];
                 if ( sql.step() != adfs::sqlite_done )
                     ADTRACE() << "sql error " << sql.errmsg();
                 sql.reset();

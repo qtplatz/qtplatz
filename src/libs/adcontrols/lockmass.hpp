@@ -27,6 +27,7 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -37,7 +38,7 @@ namespace adcontrols {
     class MSPeakInfo;
 
     namespace lockmass {
-        
+
         class ADCONTROLSSHARED_EXPORT reference {
         public:
             reference();
@@ -71,6 +72,7 @@ namespace adcontrols {
             fitter( const fitter& );
             fitter( std::vector< double >&& );
             fitter( const std::vector< double >& );
+            fitter( const std::array<double, 2 >& );
             fitter& operator = ( std::vector< double >&& );
             bool operator()( MassSpectrum& ) const; // correct mass array
             bool operator()( MSPeakInfo& ) const;
@@ -79,7 +81,7 @@ namespace adcontrols {
             std::vector< double >& coeffs();
         private:
             std::vector< double > coeffs_;
-            
+
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -99,7 +101,7 @@ namespace adcontrols {
             void clear();
             size_t size() const;
             bool empty() const;
-            
+
             static bool findReferences( mslock&,  const adcontrols::MassSpectrum& );
             static bool findReferences( mslock&,  const adcontrols::MassSpectrum&, int idx, int fcn );
             bool fit();
@@ -110,11 +112,11 @@ namespace adcontrols {
             const_iterator end() const;
             const std::vector< double >& coeffs() const;
             const lockmass::fitter& fitter() const;
-            
+
         private:
             std::vector< reference > references_;
             lockmass::fitter fitter_;
-            
+
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int ) {
@@ -130,4 +132,3 @@ namespace adcontrols {
 #endif
     }
 }
-
