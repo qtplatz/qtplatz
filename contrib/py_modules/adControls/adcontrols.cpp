@@ -33,6 +33,9 @@ double getitem_ms_intensity( const adcontrols::MassSpectrum& ms, size_t index ) 
     return ms.getMass( index );
 }
 
+class pyMassSpectrum : public adcontrols::MassSpectrum {
+public:
+};
 
 using namespace boost::python;
 
