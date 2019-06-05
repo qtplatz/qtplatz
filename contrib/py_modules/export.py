@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-
-from qtplatz import adProcessor, adControls
-
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
 from PyQt5.QtGui import QIcon
+from qtplatz import adProcessor, adControls
 
 app = QApplication(sys.argv)
 filename, f = QFileDialog.getOpenFileName(None, "Open file for export in python", "","QtPlatz (*.adfs);;All Files (*)" )

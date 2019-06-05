@@ -27,8 +27,8 @@
 #pragma once
 
 #if defined __APPLE__
-#  define pluginDirectory          "PlugIns"
-#  define sharedDirectory          "PlugIns"
+#  define pluginDirectory          "Contents/PlugIns"
+#  define sharedDirectory          "Contents/Frameworks"
 #else
 #  define pluginDirectory          "lib/qtplatz/plugins"
 # if defined WIN32

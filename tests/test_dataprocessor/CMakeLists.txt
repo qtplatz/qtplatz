@@ -20,6 +20,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   adcontrols
   adprocessor
+  adplugin_manager
   ${Boost_LIBRARIES}
   )
 

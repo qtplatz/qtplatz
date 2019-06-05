@@ -35,11 +35,20 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   ${Python3_LIBRARIES}
   ${Boost_LIBRARIES}
+  Qt5::Widgets
+  Qt5::Core
   )
+
+if ( WIN32 )
+  set ( suffix ".dll" )
+else()
+  set ( suffix ".so" )
+endif()
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   PREFIX ""
+  SUFFIX ${suffix} 
   LIBRARY_OUTPUT_DIRECTORY ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PYTHON_MODULE_DIR}

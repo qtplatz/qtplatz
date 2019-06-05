@@ -38,9 +38,10 @@ target_link_libraries( adprocessor LINK_PUBLIC
   adcontrols
   adfs
   adutils
-  adwidgets
   portfolio
   ${Boost_LIBRARIES}
+  Qt5::Widgets
+  Qt5::Core
   )
 
 install( TARGETS ${PROJECT_NAME}
