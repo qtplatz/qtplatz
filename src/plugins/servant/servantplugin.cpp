@@ -59,6 +59,7 @@
 #include <QtCore>
 #include <qdebug.h>
 
+#include <boost/dll.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
@@ -115,18 +116,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     context.add( Core::Id( "Servant.MainView" ) );
     context.add( Core::Id( Core::Constants::C_NAVIGATION_PANE ) );
     
-    std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-
+    //std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     //ADDEBUG() << "ServantPlugin::initilize -- loader::populate...";
-    adplugin::loader::populate( apppath.c_str() );
-	std::vector< adplugin::plugin_ptr > spectrometers;
-	if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
-		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
-                adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
-                if ( factory )
-                    adcontrols::MassSpectrometerBroker::register_factory( factory );
-            });
-	}
+    adplugin::manager::standalone_initialize();
+    //auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+    //adplugin::loader::populate( tpath.wstring().c_str() );
+    //adplugin::loader::populate( apppath.c_str() );
+	// std::vector< adplugin::plugin_ptr > spectrometers;
+	// if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
+	// 	std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
+    //             adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
+    //             if ( factory )
+    //                 adcontrols::MassSpectrometerBroker::register_factory( factory );
+    //         });
+	// }
     //ADDEBUG() << "ServantPlugin::initilize -- loader::populated.";
     return true;
 }

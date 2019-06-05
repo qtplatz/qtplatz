@@ -109,6 +109,7 @@
 #include <QtCore/qplugin.h>
 #include <QtCore>
 
+#include <boost/dll.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/exception/all.hpp>
@@ -159,12 +160,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     //-------------------------------------------------------------------------------------------
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    
-    try {
-        adplugin::loader::populate( apppath.c_str() );
-    } catch ( boost::exception& ex ) {
-        QMessageBox::warning( 0, tr( "Processing" ), boost::diagnostic_information( ex ).c_str() );
-    }
+    adplugin::manager::standalone_initialize();
 
     do {
         std::vector< std::string > mime;
@@ -172,15 +168,14 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
             std::vector< adplugin::plugin_ptr > dataproviders;
             if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
 
-                std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
-                    adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
-                    if ( factory ) {
-                        ADDEBUG() << "installing " << factory->name() << "...";
-                        adcontrols::datafileBroker::register_factory( factory, d->clsid() );
-                        if ( factory->mimeTypes() )
-                            mime.push_back( factory->mimeTypes() );
-                    }
-                } );
+                std::for_each( dataproviders.begin(), dataproviders.end()
+                               , [&] ( const adplugin::plugin_ptr& d ) {
+                                     adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
+                                     if ( factory ) {
+                                         if ( factory->mimeTypes() )
+                                             mime.push_back( factory->mimeTypes() );
+                                     }
+                                 } );
                 //long x = 0;
             }
         } while ( 0 );
