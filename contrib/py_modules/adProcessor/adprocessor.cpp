@@ -101,6 +101,7 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( "open", &dataProcessor::open )
         .def( "dataReaderTuples", &dataProcessor::dataReaderTuples )
         .def( "dataReaders", &dataProcessor::dataReaders )
+        .def( "dataReader", &dataProcessor::dataReader )
         ;
 
     class_< DataReader >( "dataReader", no_init )
@@ -109,5 +110,12 @@ BOOST_PYTHON_MODULE( adProcessor )
         .def( "display_name", &DataReader::display_name )
         .def( "size", &DataReader::size, DataReader_overloads() )
         .def( "readSpectrum", &DataReader::readSpectrum )
+        .def( "rewind", &DataReader::rewind )
+        .def( "next",   &DataReader::next )
+        .def( "rowid", &DataReader::rowid )
+        .def( "epoch_time",        &DataReader::epoch_time )
+        .def( "elapsed_time",      &DataReader::elapsed_time )
+        .def( "time_since_inject", &DataReader::time_since_inject )
+        .def( "protocol",          &DataReader::protocol )
         ;
 }

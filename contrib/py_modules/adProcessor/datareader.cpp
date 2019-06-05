@@ -49,11 +49,14 @@ DataReader::DataReader()
 }
 
 DataReader::DataReader( const DataReader& t ) : reader_( t.reader_ )
+                                              , it_( t.it_ )
 {
 }
 
 DataReader::DataReader( std::shared_ptr< const adcontrols::DataReader > t ) : reader_( t )
 {
+    if ( reader_ )
+        it_ = reader_->begin();
 }
 
 DataReader::~DataReader()
@@ -92,4 +95,62 @@ DataReader::readSpectrum() const
         return reader_->readSpectrum( it );
     }
     return nullptr;
+}
+
+bool
+DataReader::rewind()
+{
+    if ( reader_ ) {
+        it_ = reader_->begin();
+        return true;
+    }
+    return false;
+}
+
+bool
+DataReader::next()
+{
+    if ( reader_ && it_ )
+        return it_++ != reader_->end();
+    return false;
+}
+
+int64_t
+DataReader::rowid() const
+{
+    if ( reader_ && it_ )
+        return it_->rowid();
+    return -1;
+}
+
+int64_t
+DataReader::epoch_time() const
+{
+    if ( reader_ && it_ )
+        return it_->epoch_time();
+    return -1;
+}
+
+int64_t
+DataReader::elapsed_time() const
+{
+    if ( reader_ && it_ )
+        return it_->elapsed_time();
+    return -1;
+}
+
+double
+DataReader::time_since_inject() const
+{
+    if ( reader_ && it_ )
+        return it_->time_since_inject();
+    return -1;
+}
+
+int
+DataReader::protocol() const
+{
+    if ( reader_ && it_ )
+        return it_->fcn();
+    return -1;
 }

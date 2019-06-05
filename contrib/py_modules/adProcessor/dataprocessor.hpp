@@ -53,4 +53,5 @@ public:
     bool open( const std::wstring& filename );
     std::vector< boost::python::tuple > dataReaderTuples() const;
     std::vector< std::shared_ptr< DataReader > > dataReaders() const;
+    std::shared_ptr< DataReader > dataReader( const std::string& uuid ) const;
 };

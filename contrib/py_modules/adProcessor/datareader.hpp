@@ -26,13 +26,13 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/datareader.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/python.hpp>
 #include <boost/uuid/uuid.hpp>
 
 namespace adcontrols {
     class MassSpectrum;
-    class DataReader;
 }
 
 class DataReader {
@@ -46,9 +46,18 @@ public:
     std::string display_name() const;
 
     size_t size( int fcn = (-1) ) const;
-    std::shared_ptr< adcontrols::MassSpectrum > readSpectrum() const;
+    bool rewind();
+    bool next();
+    int64_t rowid() const;
+    int64_t epoch_time() const;
+    int64_t elapsed_time() const;
+    double time_since_inject() const;
+    int protocol() const;
 
+    std::shared_ptr< adcontrols::MassSpectrum > readSpectrum() const;
+private:
     std::shared_ptr< const adcontrols::DataReader > reader_;
+    adcontrols::DataReader::const_iterator it_;
 };
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS( DataReader_overloads, size, 0, 1 );

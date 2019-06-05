@@ -42,6 +42,7 @@
 #include <boost/python.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <memory>
 #include <mutex>
 
@@ -119,4 +120,17 @@ dataProcessor::dataReaders() const
             a.emplace_back( std::make_shared< DataReader >( reader ) );
     }
     return a;
+}
+
+std::shared_ptr< DataReader >
+dataProcessor::dataReader( const std::string& str ) const
+{
+    auto uuid = boost::uuids::string_generator()( str );
+    if ( raw_ ) {
+        for ( auto& reader: raw_->dataReaders() ) {
+            if ( reader->objuuid() == uuid )
+                return std::make_shared< DataReader >( reader );
+        }
+    }
+    return nullptr;
 }
