@@ -107,9 +107,9 @@ namespace infitofwidgets {
         , { "Iion",         "Ionization(mA)", [](){ return make_widget< QDoubleSpinBox >("act.Iion"); } }
         , { "DFP.IS",       "DFP.IS(mA)",     [](){ return make_widget< QDoubleSpinBox >("act.DFP.IS"); } }
         , { "DFP.Analyzer", "DFP.Analyzer",   [](){ return make_widget< QDoubleSpinBox >("act.DFP.Analyzer"); } }
-        , { "PStemp",       "P.S. Temp(<sup>o</sup>C)", [](){ return make_widget< QDoubleSpinBox >("act.PStemp"); } }
-        , { "Rev.FPGA",     "Rev.FPGA",       [](){ return make_widget< QLineEdit >("act.Rev.FPGA"); } }
-        , { "Rev.CPLD",     "Rev.CPLD",       [](){ return make_widget< QLineEdit >("act.Rev.CPLD"); } }
+        //, { "PStemp",       "P.S. Temp(<sup>o</sup>C)", [](){ return make_widget< QDoubleSpinBox >("act.PStemp"); } }
+        //, { "Rev.FPGA",     "Rev.FPGA",       [](){ return make_widget< QLineEdit >("act.Rev.FPGA"); } }
+        //, { "Rev.CPLD",     "Rev.CPLD",       [](){ return make_widget< QLineEdit >("act.Rev.CPLD"); } }
     };
 
     static const std::tuple< const std::string, QString, std::function< QWidget*(void) > > switch_factories [] = {
@@ -208,9 +208,7 @@ hvWidget::hvWidget( const QString& server
 
         if ( auto grid = new QGridLayout() ) {
             int row = 0, col = 0;
-
-            grid->addWidget( make_widget< QTextEdit >( "alarms" ), row, col, 1, 4 );
-
+            // grid->addWidget( make_widget< QTextEdit >( "alarms" ), row, col, 1, 4 );
             ++row;
             col = 0;
             grid->addWidget( make_widget< QLabel >( "tick", "Elapsd time:" ), row, col++ );
@@ -221,7 +219,6 @@ hvWidget::hvWidget( const QString& server
 
             layout->addLayout( grid );
         }
-
     }
 
     ////////////////////////////////////////////////////////
@@ -391,12 +388,12 @@ hvWidget::handleReply( const QString& ev, const QByteArray& data )
                             w->setText( QString::number( p ) );
                     }
 
-                } else if ( name.get() == "Rev.FPGA" || name.get() == "Rev.CPLD" ) {
+                // } else if ( name.get() == "Rev.FPGA" || name.get() == "Rev.CPLD" ) {
 
-                    if ( auto act = item.get_optional< std::string >( "act" ) ) {
-                        if ( auto w = findChild< QLineEdit * >( QString::fromStdString( "act." + name.get() ) ) )
-                            w->setText( QString::fromStdString( act.get() ) );
-                    }
+                //     if ( auto act = item.get_optional< std::string >( "act" ) ) {
+                //         if ( auto w = findChild< QLineEdit * >( QString::fromStdString( "act." + name.get() ) ) )
+                //             w->setText( QString::fromStdString( act.get() ) );
+                //     }
 
                 } else {
                     auto pair = json_value::get< double >( item );

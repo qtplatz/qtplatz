@@ -294,17 +294,17 @@ namespace infitofwidgets {
 
     static const std::tuple< const std::string, QString, std::function< QWidget*(void) > > item2_factories [] = {
         { "Vtrp", "Vtrp",                     [](){ return make_widget< act_widget_t >("act.Vtrp"); } }
-        , { "Theat50",      "Heater(50W)",    [](){ return make_widget< act_widget_t >("act.Theat50"); } }
-        , { "Theat100",     "Heater(100W)",   [](){ return make_widget< act_widget_t >("act.Theat100"); } }
+        //, { "Theat50",      "Heater(50W)",    [](){ return make_widget< act_widget_t >("act.Theat50"); } }
+        //, { "Theat100",     "Heater(100W)",   [](){ return make_widget< act_widget_t >("act.Theat100"); } }
         , { "Iion",         "Ionization(mA)", [](){ return make_widget< act_widget_t >("act.Iion"); } }
-        , { "Theat20",      "Heater(20W)",    [](){ return make_widget< act_widget_t >("act.Theat20"); } }
+        //, { "Theat20",      "Heater(20W)",    [](){ return make_widget< act_widget_t >("act.Theat20"); } }
         , { "DFP.IS",       "DFP.IS(mA)",     [](){ return make_widget< act_widget_t >("act.DFP.IS"); } }
         , { "DFP.Analyzer", "DFP.Analyzer",   [](){ return make_widget< act_widget_t >("act.DFP.Analyzer"); } }
-        , { "PStemp",       "P.S. Temp(<sup>o</sup>C)", [](){ return make_widget< act_widget_t >("act.PStemp"); } }
+        //, { "PStemp",       "P.S. Temp(<sup>o</sup>C)", [](){ return make_widget< act_widget_t >("act.PStemp"); } }
         , { "Rev.FPGA",     "Rev.FPGA",       [](){ return make_widget< QLineEdit >("act.Rev.FPGA"); } }
         , { "Rev.CPLD",     "Rev.CPLD",       [](){ return make_widget< QLineEdit >("act.Rev.CPLD"); } }
     };
-
+#if 0
     static const std::tuple< const std::string, QString, std::function< QWidget*(void) > > switch_factories [] = {
         { "switch.isovalve",       "Isolation Valve",   [](){
                 auto w = make_widget< QPushButton >("switch.isovalve"); w->setProperty( "id", "switch-isovalve" ); return w; } }
@@ -313,7 +313,7 @@ namespace infitofwidgets {
         , { "switch.filsel",       "Filament Sel.",     [](){
                 auto w = make_widget< QPushButton >("switch.filsel"); w->setProperty( "id", "switch-filsel" ); return w; }  }
     };
-
+#endif
 }
 
 #include "hvtunewidget.moc"
@@ -327,19 +327,23 @@ hvTuneWidget::hvTuneWidget( const QString& server
 {
     using namespace qtwrapper;
 
-    resize( 200, 200 );
+    resize( 200, 100 );
 
     if ( auto layout = new QVBoxLayout( this ) ) {
+        //layout->setContentsMargins(0, 0, 0, 0);
+        //layout->setSpacing(0);
 
         if ( auto grid = new QGridLayout() ) {
             int row = 0, col = 0;
+
+            grid->setVerticalSpacing( 0 );
 
             grid->addWidget( make_widget< QLabel >( "pressure.analyzer", "Analyzer(Pa)" ), row, col++ );
             grid->addWidget( make_widget< QLineEdit >( "pressure.analyzer", "" ), row, col++ );
 
             grid->addWidget( make_widget< QLabel >( "pressure.ionsource", "Ion Source(Pa)" ), row, col++ );
             grid->addWidget( make_widget< QLineEdit >( "pressure.ionsource" ), row, col++ );
-
+            
             if ( auto onoff = make_widget< QPushButton >( "switch.onoff", "HV" ) ) {
                 onoff->setProperty( "id", "switch-hv" );
                 grid->addWidget( onoff, row, col++ );
@@ -355,6 +359,10 @@ hvTuneWidget::hvTuneWidget( const QString& server
         }
 
         if ( auto hor = new QHBoxLayout() ) {
+            
+            hor->setContentsMargins(0, 0, 0, 0);
+            hor->setSpacing(0);
+            
             if ( auto gridLayout = new QGridLayout() ) {
                 // Left
                 gridLayout->setVerticalSpacing( 0 );
@@ -381,7 +389,6 @@ hvTuneWidget::hvTuneWidget( const QString& server
             if ( auto gridLayout = new QGridLayout() ) {
                 // Middle
                 gridLayout->setVerticalSpacing( 0 );
-
                 int row = 0;
                 int col = 0;
                 for ( const auto& name: item_names ) {
@@ -415,10 +422,11 @@ hvTuneWidget::hvTuneWidget( const QString& server
 
             layout->addLayout( hor );
         }
-
+#if 0
         if ( auto grid = new QGridLayout() ) {
             int row = 0;
             int col = 0;
+            grid->setVerticalSpacing( 0 );
             for ( const auto& name: switch_factories ) {
                 //++row;
                 //col = 0;
@@ -427,9 +435,11 @@ hvTuneWidget::hvTuneWidget( const QString& server
             }
             layout->addLayout( grid );
         }
-
+#endif
+#if 0
         if ( auto grid = new QGridLayout() ) {
             int row = 0, col = 0;
+            grid->setVerticalSpacing( 0 );
             grid->addWidget( make_widget< QLabel >( "tick", "Elapsed time:" ), row, col++ );
             grid->addWidget( make_widget< QLineEdit >( "eventText", "tick" ), row, col++ );
 
@@ -442,7 +452,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
 
             layout->addLayout( grid );
         }
-
+#endif
     }
 
     ////////////////////////////////////////////////////////
