@@ -32,17 +32,18 @@
 #include <adurl/ajax.hpp>
 #include <adurl/sse.hpp>
 #include <QBoxLayout>
+#include <QCheckBox>
 #include <QComboBox>
-#include <QPushButton>
 #include <QDoubleSpinBox>
 #include <QEventLoop>
-#include <QLabel>
 #include <QLCDNumber>
+#include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QTabWidget>
-#include <QTextStream>
 #include <QTextEdit>
+#include <QTextStream>
 #include <QtGlobal>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
@@ -331,7 +332,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
 
     if ( auto layout = new QVBoxLayout( this ) ) {
         //layout->setContentsMargins(0, 0, 0, 0);
-        //layout->setSpacing(0);
+        layout->setSpacing(0);
 
         if ( auto grid = new QGridLayout() ) {
             int row = 0, col = 0;
@@ -343,7 +344,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
 
             grid->addWidget( make_widget< QLabel >( "pressure.ionsource", "Ion Source(Pa)" ), row, col++ );
             grid->addWidget( make_widget< QLineEdit >( "pressure.ionsource" ), row, col++ );
-            
+
             if ( auto onoff = make_widget< QPushButton >( "switch.onoff", "HV" ) ) {
                 onoff->setProperty( "id", "switch-hv" );
                 grid->addWidget( onoff, row, col++ );
@@ -359,10 +360,10 @@ hvTuneWidget::hvTuneWidget( const QString& server
         }
 
         if ( auto hor = new QHBoxLayout() ) {
-            
+
             hor->setContentsMargins(0, 0, 0, 0);
-            hor->setSpacing(0);
-            
+            //hor->setSpacing(0);
+
             if ( auto gridLayout = new QGridLayout() ) {
                 // Left
                 gridLayout->setVerticalSpacing( 0 );
@@ -374,6 +375,14 @@ hvTuneWidget::hvTuneWidget( const QString& server
                 connect( mode, QOverload<int>::of( &QComboBox::activated ), this, &hvTuneWidget::handleModeChanged );
 
                 gridLayout->addWidget( mode, row, col++ );
+                if ( auto cbx = make_widget< QCheckBox >( "fine", "0.1V step" ) ) {
+                    gridLayout->addWidget( cbx, row, col++, Qt::AlignLeft );
+                    connect( cbx, &QCheckBox::toggled, this
+                             , [&](bool flag){
+                                   for ( auto w: findChildren< QDoubleSpinBox * >() )
+                                       w->setSingleStep( flag ? 0.1 : 1.0 );
+                               });
+                }
 
                 for ( const auto& name: sector_names ) {
                     ++row;
@@ -492,7 +501,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
             sbox->setMaximum( maxValue );
             if ( key.find( ".in" ) != std::string::npos )
                 sbox->setMinimum( -maxValue );
-            sbox->setDecimals( 0 );
+            sbox->setDecimals( 1 );
             sbox->setKeyboardTracking( false );
             sbox->setProperty( "id", id );
             connect( sbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [=]( double value ){ handleSectorValueChanged( sbox, value ); } );
@@ -507,7 +516,7 @@ hvTuneWidget::hvTuneWidget( const QString& server
     for ( auto& item: item_names ) {
         if ( auto sbox = findChild< QDoubleSpinBox * >( ( "set." + std::get< 0 >( item ) ).c_str() ) ) {
             sbox->setMaximum( std::get< 2 >( item ) );
-            sbox->setDecimals( 0 );
+            sbox->setDecimals( 1 );
             sbox->setKeyboardTracking( false );
             sbox->setProperty( "id", std::get< 3 >( item ) );
             connect( sbox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [=]( double value ){ handleValueChanged( sbox, value ); } );
