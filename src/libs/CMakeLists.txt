@@ -56,5 +56,5 @@ install( FILES
   )
 
 if ( UNIX AND CMAKE_CROSSCOMPILING )
-  install ( FILES qtplatz.conf DESTINATION /etc/ld.so.conf.d )
+  install ( FILES qtplatz.conf DESTINATION /etc/ld.so.conf.d COMPONENT runtime_libraries )
 endif()
