@@ -54,3 +54,7 @@ install( FILES
   date/date.h
   DESTINATION include/date COMPONENT headers
   )
+
+if ( UNIX AND CMAKE_CROSSCOMPILING )
+  install ( FILES qtplatz.conf DESTINATION /etc/ld.so.conf.d )
+endif()
