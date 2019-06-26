@@ -56,7 +56,6 @@ namespace infitofwidgets {
 
         Q_OBJECT
 
-        hvWidget * parent_;
         std::string server_;
         std::string port_;
         std::unique_ptr< adurl::old::sse > sse_;
@@ -64,8 +63,7 @@ namespace infitofwidgets {
     public:
         Impl( const std::string& server
               , const std::string& port
-              , hvWidget * parent ) : parent_( parent )
-                                    , server_( server )
+              , hvWidget * parent ) : server_( server )
                                     , port_( port ) {
 
             sse_ = std::make_unique< adurl::old::sse >( server_.c_str(), "/hv/api$events", port_.c_str() );

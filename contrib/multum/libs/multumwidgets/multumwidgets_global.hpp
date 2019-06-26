@@ -1,15 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,16 +22,12 @@
 **
 **************************************************************************/
 
-namespace multumcontrols {
-    namespace infitof {
-        namespace Constants {
+#pragma once
 
-            const char * const httpd_dg = "dg-httpd";
-            const char * const httpd_hv = "hv-httpd";
-        }
-    }
+#include <QtCore/qglobal.h>
 
-    namespace Constants {
-        static constexpr size_t max_protocol = 4;
-    }
-}
+#if defined(MULTUMWIDGETS_LIBRARY)
+#  define MULTUMWIDGETSSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define MULTUMWIDGETSSHARED_EXPORT Q_DECL_IMPORT
+#endif

@@ -101,6 +101,7 @@ add_library( eventbroker SHARED IMPORTED )
 add_library( multumcontrols SHARED IMPORTED )
 add_library( infitofcontrols SHARED IMPORTED )
 add_library( infitofwidgets SHARED IMPORTED )
+add_library( multumwidgets SHARED IMPORTED )
 add_library( portfolio SHARED IMPORTED )
 add_library( qtwrapper STATIC IMPORTED )
 add_library( u5303a SHARED IMPORTED )
@@ -230,6 +231,10 @@ if (WIN32)
     IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/infitofwidgets.lib
     IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/infitofwidgetsd.lib )
 
+  set_target_properties( multumwidgets PROPERTIES
+    IMPORTED_IMPLIB     ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Release/multumwidgets.lib
+    IMPORTED_IMPLIB_DEBUG ${QTPLATZ_ARCHIVE_OUTPUT_DIRECTORY}/Debug/multumwidgetsd.lib )
+
 elseif ( APPLE )
 
   set_target_properties( QTC::Core PROPERTIES
@@ -345,6 +350,10 @@ elseif ( APPLE )
     IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofwidgets.dylib
     IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofwidgets_debug.dylib )
 
+  set_target_properties( multumwidgets PROPERTIES
+    IMPORTED_LOCATION       ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumwidgets.dylib
+    IMPORTED_LOCATION_DEBUG ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumwidgets_debug.dylib )
+
 else()  #Linux
 
   set_target_properties( QTC::Core PROPERTIES
@@ -437,6 +446,9 @@ else()  #Linux
 
   set_target_properties( infitofwidgets PROPERTIES
     IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libinfitofwidgets.so )
+
+  set_target_properties( multumwidgets PROPERTIES
+    IMPORTED_LOCATION     ${QTPLATZ_LIBRARY_OUTPUT_DIRECTORY}/libmultumwidgets.so )
 
 endif()
 
