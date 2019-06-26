@@ -43,7 +43,7 @@ namespace adurl {
 
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
-    
+
     struct url {
         std::string protocol;
         std::string address;
@@ -71,7 +71,7 @@ namespace adurl {
 
     template< typename Iterator >
     struct url_parser : boost::spirit::qi::grammer< Iterator, url() > {
-        
+
         url_parser() : url_parser::base_type( start ) {
             using qi::lit;
             using qi::lexeme;
@@ -155,14 +155,17 @@ ajax::operator()( const std::string& method
 bool
 ajax::operator()( const std::string& method
                   , const std::string& url
-                  , const std::string& body 
+                  , const std::string& body
                   , const std::string& mimeType )
 {
     auto request = std::make_unique< boost::asio::streambuf >();
     std::ostream request_stream ( request.get() );
 
-    request_stream << method << " " << request::url_encode( url ) << " HTTP/1.0\r\n";
-    request_stream << "Host: " << server_port_string( server_, port_ ) << "\r\n";    
+    if ( method == "GET" )
+        request_stream << "GET " << request::url_encode( url ) << "?" << body << " HTTP/1.0\r\n";
+    else
+        request_stream << method << " " << request::url_encode( url ) << " HTTP/1.0\r\n";
+    request_stream << "Host: " << server_port_string( server_, port_ ) << "\r\n";
     request_stream << "Accept: */*\r\n";
     request_stream << "Connection: close\r\n";
     request_stream << "Content-Type: " << mimeType << "\r\n";  //"Content-Type: application/json\r\n";
@@ -212,8 +215,8 @@ ajax::get_response( boost::property_tree::ptree& pt ) const
             std::istream is( response_.get() );
             boost::property_tree::read_json( is, pt );
             return true;
-        } catch ( boost::property_tree::json_parser::json_parser_error& ) {            
-        } 
+        } catch ( boost::property_tree::json_parser::json_parser_error& ) {
+        }
      }
     return false;
 }
