@@ -428,7 +428,7 @@ hvWidget::handleProtocols( const QByteArray& json )
 void
 hvWidget::handleSwitchToggled( QObject * obj, bool checked )
 {
-    ADDEBUG() << "handleSwitchToggled: " << obj->objectName().toStdString() << " checked=" << checked;
+    // ADDEBUG() << "handleSwitchToggled: " << obj->objectName().toStdString() << " checked=" << checked;
 
     if ( auto btn = qobject_cast< QPushButton * >( obj ) ) {
 

@@ -284,14 +284,7 @@ session::event_out( uint32_t event )
             adurl::ajax ajax( impl_->httpd_address_.first, impl_->httpd_address_.second );
             if ( ajax( "POST", "/ad/api$event_out", "{\"flags\":fake_inject}", "application/json" ) ) {
                 size_t size(0);
-                ADDEBUG() << ajax.get_response( size );
             }
-            //auto tp = std::chrono::system_clock::now();
-            //impl_->software_inject_posix_time_ = std::chrono::nanoseconds( tp.time_since_epoch() ).count();
-            //impl_->software_inject_requested_ = true;
-            ADDEBUG() << "****************************************************";
-            ADDEBUG() << "status_message: " << ajax.status_message();
-            ADDEBUG() << "status_message: " << ajax.status_code();
         }
     }
     return true;

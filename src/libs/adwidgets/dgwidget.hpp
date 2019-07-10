@@ -41,9 +41,9 @@ namespace adwidgets {
 
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-        
+
     public:
-        
+
         explicit dgWidget(QWidget *parent = 0);
         ~dgWidget();
 
@@ -57,7 +57,8 @@ namespace adwidgets {
         //
         QSize sizeHint() const override;
 
-        void setURL( const QString& );
+        [[deprecated("use setUrl instead")]] void setURL( const QString& );
+        void setUrl( const QString& host, const QString& port );
     public slots:
         void handleJson( const QJsonDocument& );
 
@@ -72,4 +73,3 @@ namespace adwidgets {
 
     };
 }
-

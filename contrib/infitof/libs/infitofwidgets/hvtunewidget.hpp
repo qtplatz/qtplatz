@@ -36,9 +36,9 @@ namespace infitofwidgets {
     class INFITOFWIDGETSSHARED_EXPORT hvTuneWidget : public QWidget {
 
         Q_OBJECT
-        
+
     public:
-        
+
         explicit hvTuneWidget( const QString& server, const QString& port = "http", QWidget *parent = 0 );
         ~hvTuneWidget();
 
@@ -47,7 +47,7 @@ namespace infitofwidgets {
 
         QString setpts() const;
         void setSetpts( const boost::property_tree::ptree& );
-        
+
     private:
         void setUrl( const QString& url );
         void uiUpdateSectorVoltages();
@@ -68,4 +68,3 @@ namespace infitofwidgets {
         std::unique_ptr<impl> impl_;
     };
 }
-

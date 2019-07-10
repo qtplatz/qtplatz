@@ -78,19 +78,19 @@ dgWidget::dgWidget( QWidget * parent ) : QFrame( parent )
     using namespace qtwrapper;
 
     resize( 200, 200 );
-    
+
     if ( auto layout = new QVBoxLayout( this ) ) {
 
         if ( auto gridLayout = new QGridLayout() ) {
 
             gridLayout->setVerticalSpacing( 0 );
-            
+
             const int row = 0;
             int col = 0;
 
             // url
             gridLayout->addWidget( new QLabel( "URL" ), row, col++ );
-            
+
             if ( auto url = make_widget< QLineEdit >( "url" ) ) {
                 gridLayout->addWidget( url, row, col++ );
 
@@ -127,7 +127,7 @@ dgWidget::dgWidget( QWidget * parent ) : QFrame( parent )
 
             layout->addLayout( gridLayout );
         }
-        
+
         if ( auto tab = new QTabWidget() ) {
             tab->addTab( new dgProtocolForm(), "Proto1" );
             layout->addWidget( tab );
@@ -135,7 +135,7 @@ dgWidget::dgWidget( QWidget * parent ) : QFrame( parent )
         }
         setStyleSheet( "QTableView: { color: blue; font-size: 8pt}" );
     }
-    
+
     // connect( impl_, &impl::onReply, this, &dgWidget::handleReply );
     // connect( impl_, &impl::onProtocols, this, &dgWidget::handleProtocols );
     if ( auto url = findChild< QLineEdit *>( "url" ) ) {
@@ -147,7 +147,7 @@ dgWidget::dgWidget( QWidget * parent ) : QFrame( parent )
                   "color: #808080;"
                   "background-color: #F0F0F0;"
                   "border: 1px solid #B0B0B0;"
-                  "border-radius: 2px;}");    
+                  "border-radius: 2px;}");
 }
 
 dgWidget::~dgWidget()
@@ -221,7 +221,7 @@ dgWidget::handleDelayPulseData( const QByteArray data )
         w->setValue( double(interval) / 1000.0 );  // us -> ms
 
     if ( auto tab = findChild< QTabWidget * >() ) {
-        
+
         auto protocols = top[ "protocol" ].toArray();
 
         while ( tab->count() > protocols.count() )
@@ -254,6 +254,13 @@ dgWidget::setURL( const QString& url )
 {
     if ( auto edit = findChild< QLineEdit * >("url") )
         edit->setText( url );
+}
+
+void
+dgWidget::setUrl( const QString& host, const QString& port )
+{
+    if ( auto edit = findChild< QLineEdit * >("url") )
+        edit->setText( QString("http://%1:%2").arg( host, port ) );
 }
 
 #include "dgwidget.moc"

@@ -346,11 +346,13 @@ DataReader::getChromatogram( int idx ) const
                         if ( interpreter->translate( impl_->data_, xdata.data(), xdata.size() ) == adcontrols::translate_complete )
                             ;
                     }
-                    auto it = std::find_if( impl_->data_.begin(), impl_->data_.end()
-                                            , [](const auto& a){ return a.flags & adacquire::SignalObserver::wkEvent_INJECT; } );
-                    if ( it == impl_->data_.end() )
-                        it = impl_->data_.begin();
-                    impl_->injdata_ = *it;
+                    if ( ! impl_->data_.empty() ) {
+                        auto it = std::find_if( impl_->data_.begin(), impl_->data_.end()
+                                                , [](const auto& a){ return a.flags & adacquire::SignalObserver::wkEvent_INJECT; } );
+                        if ( it == impl_->data_.end() )
+                            it = impl_->data_.begin();
+                        impl_->injdata_ = *it;
+                    }
                 }
             }
         });

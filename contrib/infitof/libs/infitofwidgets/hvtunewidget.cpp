@@ -744,7 +744,6 @@ void
 hvTuneWidget::handleSwitchToggled( QObject * obj, bool checked )
 {
     if ( auto btn = qobject_cast< QPushButton * >( obj ) ) {
-        ADDEBUG() << __FUNCTION__ << "::" << obj->objectName().toStdString() << " checked=" << checked;
 
         if ( obj->objectName() == "switch.onoff" ) {
             btn->setText( btn->isChecked() ? "HV is ON" : "HV is OFF" );

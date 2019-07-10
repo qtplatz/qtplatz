@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "debug_core.hpp"
+#include "date_string.hpp"
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <boost/format.hpp>
@@ -66,18 +68,24 @@ void
 debug_core::log( int pri, const std::string& msg, const std::string& file, int line ) const
 {
     if ( ! hooks_.empty() ) {
-        std::lock_guard< std::mutex > lock( mutex_ );    
+        std::lock_guard< std::mutex > lock( mutex_ );
         for ( auto& logger: hooks_ )
             logger( pri, msg, file, line );
     }
 
     std::string loc;
-    if ( !file.empty() )
-        loc = ( boost::format( "%1%(%2%): " ) % file % line ).str();
-    
+    if ( !file.empty() ) {
+        std::string::size_type pos;
+        if ( ( pos = file.find( "src" ) ) != std::string::npos )
+            loc = ( boost::format( "./%1%(%2%): " ) % file.substr( pos + 4 ) % line ).str();
+        else
+            loc = ( boost::format( "%1%(%2%): " ) % file % line ).str();
+    }
+
     if ( !logfname_.empty() ) {
         std::ofstream of( logfname_.c_str(), std::ios_base::out | std::ios_base::app );
-        of << loc << msg << std::endl;
+        of << date_string::logformat( std::chrono::system_clock::now(), false )
+           << "\t" << loc << msg << std::endl;
     }
     std::cout << loc << msg << std::endl;
 }
@@ -95,4 +103,3 @@ debug_core::unhook()
     std::lock_guard< std::mutex > lock( mutex_ );
     hooks_.clear();
 }
-
