@@ -213,7 +213,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
 
     int n = 0;
     for ( auto& m: segments ) {
-        
+
         const adcontrols::MSCalibration& calib =  m.calibration();
         size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
@@ -253,7 +253,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
                     o << "\t(MULTITURN_NORMAILZED algorithm)";
             }
             o << "</tr>";
-            //-----------------------------            
+            //-----------------------------
 		}
     }
     o << "</table>";
@@ -262,7 +262,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     // make_protocol_text( textv, ms.getMSProperty() );
     std::vector < std::pair< std::string, std::string > > textv;
     auto& prop = ms.getMSProperty();
-    
+
     o << "<table border=\"1\" cellpadding=\"4\">";
     o << "<caption>Rapid protocol information</caption>";
     o << "<tr>";
@@ -279,11 +279,27 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     }
     o << "</table>";
     o << "<hr>";
-    
+
     // device (averager) dependent data (require data interpreter)
     const char * ipClsid = prop.dataInterpreterClsid();
     o << "<h2>digitizer device dependent data '" << ( ( ipClsid && ipClsid[0] ) ? ipClsid : "none" ) << "'</h2>" << std::endl;
     o << "<p>data reader uuid: " << ms.dataReaderUuid() << "</p>" << std::endl;
+    if ( ipClsid ) {
+        if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( ipClsid ) ) {
+            if ( interpreter->make_device_text( textv, ms.getMSProperty() ) ) {
+                o << "<table border=\"1\" cellpadding=\"4\">";
+                std::for_each( textv.begin(), textv.end()
+                               , [&]( const auto& text ){
+                                     o << "<tr>"
+                                       << "<td>" << text.first << "</td><td>" << text.second << "</td>"
+                                       << "</tr>";
+                                 });
+                o << "</tr>" << std::endl;
+                o << "</table>";
+            }
+        }
+    }
+
 
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         if ( auto spectrometer = dp->massSpectrometer() ) {

@@ -108,7 +108,7 @@ datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
 
     if ( auto ptr = factory_plugin< waveform::DataInterpreter< acqrscontrols::ap240::waveform >, IID_DataInterpreter >::make_this() ) {
         ptr->accept( visitor, adplugin );
-    }    
+    }
 
 }
 
@@ -121,7 +121,7 @@ datareader_factory::iid() const
 void *
 datareader_factory::query_interface_workaround( const char * typname )
 {
-    if ( std::strcmp( typname, typeid( adcontrols::DataReader ).name() ) == 0 ) 
+    if ( std::strcmp( typname, typeid( adcontrols::DataReader ).name() ) == 0 )
         return reinterpret_cast< void * >(this);
 
     return nullptr;

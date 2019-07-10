@@ -120,7 +120,7 @@ InfiTofDataInterpreter::translate( adcontrols::MassSpectrum& xms
                 return result; // subscript out of range
             }
 
-            auto& fms = spectra[ avgr->protocolId ];
+            //auto& fms = spectra[ avgr->protocolId ];
 
             bool found( false );
 
