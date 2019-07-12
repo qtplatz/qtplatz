@@ -59,8 +59,11 @@ udpEventSender::send_to( const std::string& data, std::function< void( result_co
     boost::system::error_code ec = boost::asio::error::would_block;
 
     std::unique_lock< std::mutex > lock( mutex_ );
-
+#if BOOST_VERSION >= 107000
+    boost::asio::steady_timer timer( sock_.get_executor() );
+#else
     boost::asio::steady_timer timer( sock_.get_io_service() );
+#endif
     timer.expires_from_now( std::chrono::milliseconds( 500 ) ); // 0.5s
 
     timer.async_wait( [&]( const boost::system::error_code& ec ){

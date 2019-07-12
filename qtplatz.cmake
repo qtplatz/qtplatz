@@ -30,9 +30,9 @@ if( WIN32 )
 else()
 
   find_path( _boost NAMES include/boost HINTS
-#    "/usr/local/boost-1_70"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
+    "/usr/local/boost-1_70"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
     "/usr/local/boost-1_69"        # V17 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(17)
-    "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)    
+    "/usr/local/boost-1_67"        # V16 <-- 'libs/serialization/src/basic_archive.cpp library_version_type(16)
     "/usr/local/boost-1_62"        # V14 <-- qtplatz acquisition 3.11.0 (debian9 default)
     "/usr/local/boost-1_59"        # V13
     "/usr/local/boost-1_58"        # V12

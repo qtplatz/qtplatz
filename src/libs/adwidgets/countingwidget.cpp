@@ -41,11 +41,12 @@
 #include <QSplitter>
 #include <QGroupBox>
 #include <ratio>
+#include <cmath>
 
 namespace adwidgets {
 
     using adcontrols::CountingMethod;
-    
+
     struct CountingHelper {
         static bool readRow( int row, CountingMethod::value_type&, const QStandardItemModel& model );
         static bool setRow( int row, const CountingMethod::value_type&, QStandardItemModel& model );
@@ -78,7 +79,7 @@ CountingWidget::CountingWidget(QWidget *parent) : QWidget(parent)
         connect( gbox, &QGroupBox::clicked, [this]( bool checked ){ emit valueChanged( -1, CountingEnable, checked ); } );
 
         topLayout->addWidget( gbox );
-        
+
         if ( QVBoxLayout * vboxLayout = new QVBoxLayout( gbox ) ) {
             vboxLayout->setMargin( 2 );
             vboxLayout->setSpacing( 2 );
@@ -108,7 +109,7 @@ CountingWidget::CountingWidget(QWidget *parent) : QWidget(parent)
 
             // item changed
             connect( model_.get(), &QStandardItemModel::itemChanged, this, &CountingWidget::handleItemChanged );
-            
+
             vboxLayout->addWidget( moltable );
         }
     }
@@ -196,13 +197,13 @@ CountingWidget::setContents( const adcontrols::CountingMethod& t )
 
     int idx(0);
 
-    for ( const auto& value: t ) 
+    for ( const auto& value: t )
         CountingHelper::setRow( idx++, value, *model_ );
 
     if ( auto gbox = findChild< QGroupBox * >() )
         gbox->setChecked( t.enable() );
 
-    return true;    
+    return true;
 }
 
 void
@@ -219,7 +220,7 @@ CountingWidget::setup( MolTableView * table )
     model_->setHeaderData( c_laps, Qt::Horizontal, QObject::tr( "#lap" ) );
 
     table->setModel( model_.get() );
-    
+
     table->setColumnField( c_formula, ColumnState::f_formula, true, true ); // checkable
     table->setColumnField( c_mass, ColumnState::f_mass, false, false );     // not editable
     table->setColumnField( c_time, ColumnState::f_time );
@@ -272,7 +273,7 @@ void
 CountingWidget::setValue( int row, column_type column, const QVariant& value )
 {
     QSignalBlocker block( model_.get() );
-    
+
     if ( column == CountingWidget::CountingEnable ) {
         model_->setData( model_->index( row, c_formula ), value, Qt::CheckStateRole );
     } else if ( column == CountingWidget::CountingFormula ) {
@@ -280,7 +281,7 @@ CountingWidget::setValue( int row, column_type column, const QVariant& value )
     } else if ( column == CountingWidget::CountingRangeFirst ) {
         model_->setData( model_->index( row, c_time ), value, Qt::EditRole );
     } else if ( column == CountingWidget::CountingRangeWidth ) {
-        model_->setData( model_->index( row, c_width ), value, Qt::EditRole );        
+        model_->setData( model_->index( row, c_width ), value, Qt::EditRole );
     } else {
         model_->setData( model_->index( row, int(column) ), value, Qt::EditRole );
     }
@@ -304,11 +305,11 @@ CountingWidget::handleItemChanged( const QStandardItem * item )
 {
     auto index = item->index();
 
-    int prev = model_->index( index.row(), c_formula ).data( Qt::CheckStateRole ).toInt();
-    
+    // int prev = model_->index( index.row(), c_formula ).data( Qt::CheckStateRole ).toInt();
+
     if ( index.column() == c_formula ) {
-        QSignalBlocker block( model_.get() );        
-        
+        QSignalBlocker block( model_.get() );
+
         std::vector< adcontrols::mol::element > elements;
         int charge;
         if ( adcontrols::ChemicalFormula::getComposition( elements, index.data().toString().toStdString(), charge ) && charge == 0 ) {
@@ -318,9 +319,9 @@ CountingWidget::handleItemChanged( const QStandardItem * item )
         double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( model_->data( index, Qt::EditRole ).toString().toStdString() );
         double prev = model_->data( model_->index( index.row(), c_mass ), Qt::EditRole ).toDouble();
 
-        model_->setData( model_->index( index.row(), c_mass ), mass, Qt::EditRole );        
+        model_->setData( model_->index( index.row(), c_mass ), mass, Qt::EditRole );
 
-        if ( std::abs( mass - prev ) >= 1.0 ) {
+        if ( std::fabs( mass - prev ) >= 1.0 ) {
             CountingHelper::setTime( index.row(), mass, spectrometer_.lock(), *model_ );
             emit valueChanged( index.row(), CountingWidget::CountingFormula, index.data( Qt::EditRole ) );
         }
@@ -367,7 +368,7 @@ CountingHelper::setRow( int row, const adcontrols::CountingMethod::value_type& v
     bool checked = std::get< CountingMethod::CountingEnable >( v );
 
     model.setData( model.index( row, c_formula ), QString::fromStdString( formula ) );
-    
+
     if ( auto item = model.item( row, c_formula ) ) {
         item->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | item->flags() );
         model.setData( model.index( row, c_formula ), checked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
@@ -375,14 +376,14 @@ CountingHelper::setRow( int row, const adcontrols::CountingMethod::value_type& v
 
     if ( !formula.empty() )
         model.setData( model.index( row, c_mass ), adcontrols::ChemicalFormula().getMonoIsotopicMass( formula ) );
-     
+
     model.setData( model.index( row, c_time ), std::get< CountingMethod::CountingRange >( v ).first * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, c_width ), std::get< CountingMethod::CountingRange >( v ).second * std::micro::den, Qt::EditRole );
     model.setData( model.index( row, c_protocol ), std::get< CountingMethod::CountingProtocol >( v ), Qt::EditRole );
     model.setData( model.index( row, c_laps ), 0, Qt::EditRole );
 
     if ( auto item = model.item( row, c_mass ) )
-        item->setEditable( false );    
+        item->setEditable( false );
 
     if ( auto item = model.item( row, c_laps ) )
         item->setEditable( false );
@@ -401,4 +402,3 @@ CountingHelper::setTime( int row, double mass, std::shared_ptr< const adcontrols
     }
     return true;
 }
-    
