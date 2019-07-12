@@ -28,8 +28,9 @@
 #include "adcontrols_global.h"
 #include <boost/any.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace boost {
     namespace serialization {
