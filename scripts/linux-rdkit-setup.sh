@@ -77,18 +77,16 @@ prompt
 cmake "${cmake_args[@]}" $RDBASE
 echo "make -j${nproc}"
 prompt
-make -k -j${nproc} 
+make -k -j${nproc}
 
 if [ $? -eq 0 ]; then
 #	make test
 	sudo make install
 fi
 
-echo "You may need to edit rdkit-target.cmake manually to set '_IMPORT_PREFIX' or get failed to find Catalogs library"
-echo "You may also need to make sym-link RDKIT/lib/cmake/*.cmake RDKIT/lib"
 echo "Edit /usr/local/lib/cmake/rdkit/rdkit-config.cmake as:"
 echo '    include ("\${_prefix}/rdkit/rdkit-targets.cmake")'
-echo "change lib to rdkit in the middle of path name"
+echo "--- change lib to rdkit in the middle of path name ---"
 
 ##CMake Error at /usr/local/lib/cmake/rdkit/rdkit-config.cmake:6 (include):
 ##  include could not find load file:
