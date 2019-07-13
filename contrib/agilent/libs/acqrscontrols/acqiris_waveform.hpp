@@ -23,12 +23,13 @@
 
 #pragma once
 
-#include <AcqirisImport.h> 
+#include <AcqirisImport.h>
 #include <AcqirisD1Import.h>
 #include <vector>
 #include <ratio>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <memory>
 #include "acqrscontrols_global.hpp"
 
 namespace boost {
@@ -55,7 +56,7 @@ namespace aqdrv4 {
         static const boost::uuids::uuid& clsid();
 
         typedef int32_t value_type; // (internal data holder type) referenced from archiver in WaveformObserver
-            
+
         template< typename value_t > const value_t* begin() const;
         template< typename value_t > const value_t* end() const;
         template< typename value_t > const value_t* data() const;
@@ -68,7 +69,7 @@ namespace aqdrv4 {
         int operator [] ( size_t idx ) const;
 
         double time( size_t idx ) const {
-            return idx * dataDesc_.sampTime + segDesc_.horPos + delayTime_;        
+            return idx * dataDesc_.sampTime + segDesc_.horPos + delayTime_;
         }
 
         double toVolts( int d, int scale = std::milli::den ) const {
@@ -114,7 +115,7 @@ namespace aqdrv4 {
 
         inline uint32_t wellKnownEvents() const {
             return wellKnownEvents_;
-        }        
+        }
         inline uint32_t& wellKnownEvents() {
             return wellKnownEvents_;
         }
@@ -142,7 +143,7 @@ namespace aqdrv4 {
         }
 
         inline uint64_t timeStamp() const {
-            return uint64_t( segDesc_.timeStampHi ) << 32 | segDesc_.timeStampLo;        
+            return uint64_t( segDesc_.timeStampHi ) << 32 | segDesc_.timeStampLo;
         }
 
         inline double xIncrement() const {
@@ -177,7 +178,7 @@ namespace aqdrv4 {
             std::transform( w.begin<T>(), w.end<T>(), v.begin(), [&](auto& y){ return w.toVolts( y, scale ); } );
             return true;
         };
-        
+
         static bool transform( std::vector<double>& v, const waveform& w, int scale = 1000 ) { // mV default
             v.resize( w.size() );
             switch( w.dataType() ) {
@@ -189,7 +190,7 @@ namespace aqdrv4 {
         };
 
         static bool translate( adcontrols::MassSpectrum&, const waveform&, int scale = 1000 ); // 0 := binary, 1 = Volts, 1000 = mV ...
-        
+
     private:
         uint64_t serialnumber_;            // a.k.a. trigger number
         uint64_t serialnumber0_;           // serialnumber at inject
@@ -219,17 +220,17 @@ namespace aqdrv4 {
     template<> const int32_t * waveform::end() const;
 
     template<> int8_t * waveform::data();
-    template<> const int8_t * waveform::data() const;        
+    template<> const int8_t * waveform::data() const;
     template<> int16_t * waveform::data();
     template<> const int16_t * waveform::data() const;
     template<> int32_t * waveform::data();
     template<> const int32_t * waveform::data() const;
 
-    
+
     //////////////////////////////////////////////////////////////
     /////////// waveform vector archier //////////////////////////
     //////////////////////////////////////////////////////////////
-    
+
     class waveforms {
     public:
         std::vector< std::shared_ptr< waveform > > data;
@@ -239,6 +240,6 @@ namespace aqdrv4 {
             ar & BOOST_SERIALIZATION_NVP( data );
         }
     };
-    
+
 } // namespace aqdrv4
 } // namespace acqriscontrols

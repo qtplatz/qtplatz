@@ -12,6 +12,9 @@ list_dependency+=('mesa-common-dev'
 		  'python2.7'
 		  'python2.7-dev')
 
+#boost
+list_dependency+=('libbz2-dev')
+
 #rtags
 list_dependency+=('clang-3.9'
 		  'lldb-3.9'

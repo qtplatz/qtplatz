@@ -56,14 +56,17 @@ function boost_build {
 
       case "${arch}" in
 		  Linux*)
+			  echo "********************************************"
+			  echo "It seems that libbz2.a should be removed befor run following"
+			  echo "********************************************"
 			  PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 			  PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
 			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON}
-			  echo ./b2 -j $nproc address-model=64 toolset=gcc threading=multi cflags=-fPIC cxxflags="-fPIC -std=c++17" -s BZIP2_SOURCE=${BZIP2_SOURCE} include=${PYTHON_INCLUDE}
+			  echo ./b2 -j $nproc address-model=64 toolset=gcc threading=multi cflags=-fPIC cxxflags="-fPIC -std=c++17" include=${PYTHON_INCLUDE}
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
-				  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++17" -s BZIP2_SOURCE=${BZIP2_SOURCE} include=${PYTHON_INCLUDE}
+			  	  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++17" include=${PYTHON_INCLUDE} # -sBZIP2_SOURCE=${BZIP2_SOURCE}
 			  ;;
 		  Darwin*)
 			  echo "***********************************************************************************************************"

@@ -312,7 +312,6 @@ set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
 message( STATUS "======== QMAKE; " ${QMAKE} )
-
 include (config_qtplatz_config)
 
 config_qtplatz_config( "TRUE" )   # installed

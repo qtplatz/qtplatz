@@ -4,6 +4,8 @@ cmake_policy( SET CMP0042 NEW )
 
 project( test_dataprocessor )
 
+find_package( BZip2 REQUIRED )
+
 include_directories(
   ${Boost_INCLUDE_DIRS}
   ${QTPLATZ_SOURCE_DIR}/src/libs
@@ -22,6 +24,5 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adprocessor
   adplugin_manager
   ${Boost_LIBRARIES}
+  ${BZIP2_LIBRARIES}
   )
-
-

@@ -1,6 +1,7 @@
 function( config_qtplatz_config installed )
 
   if ( installed )
+
     set ( QTPLATZ_INCLUDE_DIRS "\$\{_dir\}/include" )
     set ( QTPLATZ_BINARY_DIR   "\$\{_dir\}" )
     set ( QTPLATZ_LIBRARY_DIRS "\$\{_dir\}/lib" )
@@ -12,7 +13,9 @@ function( config_qtplatz_config installed )
     configure_file(
       ${CMAKE_SOURCE_DIR}/qtplatz-config.cmake.in
       ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake @ONLY )
+
   else()
+
     set ( QTPLATZ_INCLUDE_DIRS
       "${CMAKE_SOURCE_DIR}/src/libs"
       "${CMAKE_BINARY_DIR}/src/libs"
@@ -30,6 +33,7 @@ function( config_qtplatz_config installed )
     configure_file(
       ${CMAKE_SOURCE_DIR}/qtplatz-config.cmake.in
       ${CMAKE_BINARY_DIR}/qtplatz-config.cmake @ONLY )
+
   endif()
 
 endfunction()

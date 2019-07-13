@@ -4,7 +4,7 @@ cmake_policy( SET CMP0042 NEW )
 
 project( test_serializer )
 
-set(CMAKE_CXX_STANDARD 14)
+find_package( BZip2 REQUIRED )
 
 #find_package( Boost REQUIRED COMPONENTS
 #  serialization
@@ -30,5 +30,5 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adportable
   ${Boost_LIBRARIES}
+  ${BZIP2_LIBRARIES}
   )
-

@@ -6,7 +6,7 @@ OS="$(uname -s)"
 if [ -z $BOOST_VERSION ]; then
 	case "${OS}" in
 		Darwin*) BOOST_VERSION=1_69_0;;
-		*) BOOST_VERSION=1_70_0;;
+		*) BOOST_VERSION=1_69_0;;
 	esac
 fi
 

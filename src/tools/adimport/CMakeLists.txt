@@ -5,6 +5,8 @@ cmake_policy(SET CMP0028 NEW)
 
 project( adimport )
 
+find_package( BZip2 REQUIRED )
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -36,6 +38,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   acqrscontrols
   adportable
   ${Boost_LIBRARIES}
+  ${BZIP2_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME}
