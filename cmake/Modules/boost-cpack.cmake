@@ -5,6 +5,13 @@ endif()
 
 include( "soname" )
 
+if ( WITH_PYTHON3 AND ( NOT CMAKE_CROSSCOMPILING AND NOT RTC_ARCH_ARM ) )
+  find_package( Python3 COMPONENTS Interpreter Development )
+  if ( Python3_FOUND )
+    set( python3 "python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}" )
+  endif()
+endif()
+
 if ( Boost_FOUND )
 
   set ( libs
@@ -23,7 +30,9 @@ if ( Boost_FOUND )
     system
     thread
     timer
-    wserialization )
+    wserialization
+    ${python3}
+    )
 
   foreach ( lib ${libs} )
     file( GLOB files ${Boost_LIBRARY_DIRS}/libboost_${lib}.${SO}* )

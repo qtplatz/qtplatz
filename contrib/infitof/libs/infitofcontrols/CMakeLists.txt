@@ -43,7 +43,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/infitof COMPONENT runtime_libraries
+  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
   )
 
 if ( PKG_WITH_DEV )
