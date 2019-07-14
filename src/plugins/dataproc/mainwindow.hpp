@@ -63,18 +63,18 @@ namespace dataproc {
         explicit MainWindow(QWidget *parent = 0);
 
         static MainWindow * instance();
-        
+
         void contextMenuEvent( QContextMenuEvent * ) override { /* disable */ }; // from Utils::FancyMainWindow <- QMainWindow <= QWidget
 
         QWidget * createContents( Core::IMode * );
         // if you are looking for 'create_actions', you should see dataproc::ActionManager
-        
+
         void activateLayout();
         void setSimpleDockWidgetArrangement();
-        
+
         static QToolButton * toolButton( const char * );
         static QToolButton * toolButton( QAction *, const QString& objectName = QString() );
-        
+
         void getProcessMethod( adcontrols::ProcessMethod& );
 		void setProcessMethod( const adcontrols::ProcessMethod& );
 
@@ -83,14 +83,14 @@ namespace dataproc {
 
         void applyCalibration( const adcontrols::MSAssignedMasses& );
         void applyCalibration( const adcontrols::MSAssignedMasses&, portfolio::Folium& );
-        
+
         int currentProcessView( std::string& ) const;
         void printCurrentView( const QString& ) const;
 
         void saveDefaultMSCalibrateResult( portfolio::Folium& );
         void lockMassHandled( const std::shared_ptr< adcontrols::MassSpectrum >& );
         void dataMayChanged();
-        void zoomedOnSpectrum( const QRectF& );
+        void zoomedOnSpectrum( const QRectF&, adcontrols::hor_axis );
 
         void proteinSelected( const adprot::digestedPeptides& );
         void setSpectrumAxisChoice( adcontrols::hor_axis );
@@ -144,7 +144,7 @@ namespace dataproc {
         QWidget * toolBar_;
         QHBoxLayout * toolBarLayout_;
         QComboBox * axisChoice_;
-        
+
         QAction * actionSearch_;
         QAction * actionApply_;
 
@@ -160,16 +160,15 @@ namespace dataproc {
         Utils::StyledBar * createStyledBarTop();
         Utils::StyledBar * createStyledBarMiddle();
         void currentPageChanged( int );
-        
 
     signals:
         void onPrintCurrentView( const QString& ) const;
         void onAddMSPeaks( const adcontrols::MSPeaks& ) const;
         void onDataMayCanged() const;
-        void onZoomedOnSpectrum( const QRectF& ) const;
+        void onZoomedOnSpectrum( const QRectF&, int axis ) const;
         void onZoomedOnChromatogram( const QRectF& ) const;
     };
 
 }
-    
+
 #endif // MAINWINDOW_HPP

@@ -630,7 +630,7 @@ MainWindow::createDockWidgets()
                              , wnd, SLOT( handleScanLawEst( const QVector<QPair<int, int>>& ) ) );
                     connect( pWidget, SIGNAL( rescaleY( int ) ), wnd, SLOT( handleRescaleY( int ) ) ); // fcn (a.k.a protocol)
                 }
-                connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF& ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF& ) ) );
+                connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF&, int ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF&, int ) ) );
 
                 if ( qobject_cast<adwidgets::MSPeakTable *>( pWidget ) == nullptr )
                     connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) )
@@ -688,9 +688,9 @@ MainWindow::toolButton( const char * id )
 }
 
 void
-MainWindow::zoomedOnSpectrum( const QRectF& rc )
+MainWindow::zoomedOnSpectrum( const QRectF& rc, adcontrols::hor_axis axis )
 {
-    emit onZoomedOnSpectrum( rc );
+    emit onZoomedOnSpectrum( rc, int(axis) );
 }
 
 void

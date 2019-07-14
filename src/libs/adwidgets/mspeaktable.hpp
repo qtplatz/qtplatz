@@ -93,7 +93,7 @@ namespace adwidgets {
 
     public slots:
         void handleCopyToClipboard() override;
-        void handleZoomedOnSpectrum( const QRectF& );   // zoomer zoomed
+        void handleZoomedOnSpectrum( const QRectF&, int axis );   // zoomer zoomed
         void hideRows();
         void showRows();
         void handlePrint( QPrinter&, QPainter& );
@@ -131,7 +131,7 @@ namespace adwidgets {
         void valueChanged( const QModelIndex& ) const;
 
     public slots:
-        
+
     };
 }
 

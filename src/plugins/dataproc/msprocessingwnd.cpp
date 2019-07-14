@@ -565,7 +565,11 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSProcessingWnd::handleZoomedOnSpectrum( const QRectF& rc )
 {
-    MainWindow::instance()->zoomedOnSpectrum( rc );
+    if ( axis_ == adcontrols::hor_axis_time ) {
+        MainWindow::instance()->zoomedOnSpectrum( QRectF( rc.x()/std::micro::den, rc.y(), rc.width()/std::micro::den, rc.height()), axis_ );
+    } else {
+        MainWindow::instance()->zoomedOnSpectrum( rc, axis_ );
+    }
 }
 
 void

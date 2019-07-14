@@ -29,6 +29,7 @@
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/constants.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -465,14 +466,14 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
     adcontrols::segment_wrapper< const adcontrols::MSPeakInfo > segs( info ); // adcontrols::MSPeakInfo
 
-    double iSum(0), iSumAssigned( 0 );
-    for ( auto& pkinfo: segs ) {
-        iSum += std::accumulate( pkinfo.begin(), pkinfo.end(), 0.0, []( double b, const MSPeakInfoItem& a ){ return b + a.area(); } );
-        iSumAssigned += std::accumulate( pkinfo.begin(), pkinfo.end(), 0.0, []( double b, const MSPeakInfoItem& a ){
-                return a.formula().empty() ? b : b + a.area(); });
-    }
-
     const bool is_area = info.isAreaIntensity();
+
+    double iMax(0);
+    for ( auto& pkinfo: segs ) {
+        auto it = std::max_element( pkinfo.begin(), pkinfo.end(), [&](const auto& a, const auto& b){ return is_area ? (a.area() < b.area()) : (a.height() < b.height()); });
+        if ( it != pkinfo.end() )
+            iMax = std::max( iMax, is_area ? it->area() : it->height() );
+    }
 
     int row = 0;
     int fcn = 0;
@@ -488,7 +489,9 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
 
             model.setData( model.index( row, c_mspeaktable_time ), pk.time() );
             model.setData( model.index( row, c_mspeaktable_mass ), pk.mass() );
-            model.setData( model.index( row, c_mspeaktable_intensity ), is_area ? pk.area() : pk.height() );
+            auto abundance = is_area ? pk.area() : pk.height();
+            model.setData( model.index( row, c_mspeaktable_intensity ), abundance );
+            model.setData( model.index( row, c_mspeaktable_relative_intensity ), (abundance * 100) / iMax );
             model.setData( model.index( row, c_mspeaktable_mode ), pkinfo.mode() );
             if ( ! pk.formula().empty() ) {
                 double mass = exactMass( pk.formula() );
@@ -702,17 +705,19 @@ MSPeakTable::keyPressEvent( QKeyEvent * event )
 }
 
 void
-MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
+MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc, int axis )
 {
     QStandardItemModel& model = *impl_->model_;
+
+    bool isTimeAxis = axis == adcontrols::hor_axis_time;
 
     if ( impl_->data_source_.which() == 1 ) {
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( auto ptr = wptr.lock() ) {
-            std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right() ); // index,fcn
-            if ( bp.first >= 0 && bp.second >= 0 ) {
+            std::pair<int, int> bp = adcontrols::segments_helper::base_peak_index( *ptr, rc.left(), rc.right(), isTimeAxis ); // index,fcn
 
-                {
+            if ( bp.first >= 0 && bp.second >= 0 ) {
+                do {
                     // ---> change rel. intensity
                     setUpdatesEnabled( false );
                     double base_height = adcontrols::segments_helper::get_intensity( *ptr, bp );
@@ -722,20 +727,20 @@ MSPeakTable::handleZoomedOnSpectrum( const QRectF& rc )
                     }
                     setUpdatesEnabled( true );
                     // <--- end rel. intensity
-                }
+                } while ( 0 );
 
-                {
+                do {
                     for ( int row = 0; row < model.rowCount(); ++row ) {
                         if ( model.index( row, c_mspeaktable_index ).data( Qt::EditRole ).toInt() == bp.first
                              && model.index( row, c_mspeaktable_fcn ).data( Qt::EditRole ).toInt() == bp.second ) {
 
-                            QModelIndex index = model.index( row, c_mspeaktable_mass );
+                            QModelIndex index = model.index( row, isTimeAxis ? c_mspeaktable_time : c_mspeaktable_mass );
                             setCurrentIndex( index );
                             scrollTo( index, QAbstractItemView::EnsureVisible );
                             break;
                         }
                     }
-                }
+                } while ( 0 );
             }
         }
     }

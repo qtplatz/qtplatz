@@ -386,6 +386,7 @@ CentroidProcessImpl::findpeaks_by_time( const MassSpectrum& profile )
 
 	info_.setMode( profile.mode() );  // copy analyzer mode a.k.a. laps for multi-turn mass spectrometer
     info_.setProtocol( profile.protocolId(), profile.nProtocols() );
+    info_.setIsAreaIntensity( method_.centroidAreaIntensity() );
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
 
