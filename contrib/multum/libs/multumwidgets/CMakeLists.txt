@@ -54,9 +54,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   )
 
 install( TARGETS ${PROJECT_NAME}
-  RUNTIME DESTINATION bin COMPONENT apprications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT runtime_libraries
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT modules
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
-)
-
-install( TARGETS ${PROJECT_NAME}  ARCHIVE DESTINATION lib COMPONENT libraries )
+  )
