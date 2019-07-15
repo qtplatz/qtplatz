@@ -30,7 +30,7 @@
 #include "adwidgets_global.hpp"
 
 #include <QTableView>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <memory>
 
 namespace adcontrols {
@@ -101,7 +101,7 @@ namespace adwidgets {
         void saveAsDefaultCalibration();
         void copySummaryToClipboard();
         void addSelectionToPeakTable();
-        
+
     private:
         bool inProgress_;
         std::unique_ptr< QStandardItemModel > pModel_;

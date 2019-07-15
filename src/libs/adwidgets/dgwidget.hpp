@@ -27,7 +27,7 @@
 #include <QFrame>
 #include "adwidgets_global.hpp"
 #include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <memory>
 
 class QJsonDocument;

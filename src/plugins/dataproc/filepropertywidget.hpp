@@ -25,7 +25,7 @@
 #ifndef FILEPROPERTYWIDGET_HPP
 #define FILEPROPERTYWIDGET_HPP
 
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
@@ -53,9 +53,9 @@ namespace dataproc {
         bool setContents( boost::any&& ) override;
         // <--------------
         static QWidget * create( QWidget * parent );
-        
+
     signals:
-            
+
     public slots:
 
     private:

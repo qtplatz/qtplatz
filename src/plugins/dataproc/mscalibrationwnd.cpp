@@ -62,10 +62,8 @@
 #include <qmessagebox.h>
 #include <adportable/configuration.hpp>
 #include <adlog/logger.hpp>
-#include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycleaccessor.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin_manager/manager.hpp>
-//#include <adplugin/widget_factory.hpp>
 #include <adportable/xml_serializer.hpp> // for quick print
 
 #include <qwt_plot_renderer.h>
@@ -167,9 +165,8 @@ MSCalibrationWnd::init()
             typedef adplot::SpectrumWidget SW;
             connect( pImpl_->processedSpectrum_, static_cast<void(SW::*)(const QRectF&)>(&SW::onSelected), pSummary, &ST::handle_selected );
 
-            adplugin::LifeCycleAccessor accessor( pSummary );
-            adplugin::LifeCycle * p = accessor.get();
-            if ( p )
+
+            if ( auto p = qobject_cast< adplugin::LifeCycle * >( pSummary ) )
                 p->OnInitialUpdate();
 
             connect( this
@@ -206,14 +203,14 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     Q_UNUSED(processor);
     using portfolio::Folium;
     using portfolio::Folio;
-	
+
     portfolio::Folder folder = folium.parentFolder();
-    
+
     if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() )
         pImpl_->restore_state( *centroid );
 
     if ( folder && folder.name() == L"MSCalibration" ) {
-        
+
         pImpl_->folium_ = folium;
 
         pImpl_->processedSpectrum_->clear();
@@ -228,30 +225,30 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             });
         if ( it != attachments.end() ) {
             pImpl_->calibCentroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
-            if ( auto fpki 
+            if ( auto fpki
                  = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& a ){
-                         return portfolio::is_type< std::shared_ptr< adcontrols::MSPeakInfo > >( a ); } 
+                         return portfolio::is_type< std::shared_ptr< adcontrols::MSPeakInfo > >( a ); }
                      ) ) {
                 pImpl_->peakInfo_ = portfolio::get< std::shared_ptr< adcontrols::MSPeakInfo > >( fpki );
             }
         }
-        
+
         // calib result
         if ( auto fcalibResult = portfolio::find_first_of( attachments, []( portfolio::Folium& f ){
                     return portfolio::is_type< adcontrols::MSCalibrateResultPtr >(f);
                 }) ) {
             pImpl_->calibResult_ = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
-            
+
             if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( fcalibResult ) )
                 MainWindow::instance()->setProcessMethod( *method );
         }
-        
+
         auto result = pImpl_->calibResult_.lock();
         auto centroid = pImpl_->calibCentroid_.lock();
 
         if ( result && centroid )
             emit onSetData( *result, *centroid );
-        
+
         if ( centroid )
             pImpl_->processedSpectrum_->setData( centroid, 1 );
 
@@ -285,7 +282,7 @@ MSCalibrationWnd::handleAxisChanged( adcontrols::hor_axis axis )
 
     // replot profile
     boost::any& data = pImpl_->folium_;
-    if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
+    if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
         pImpl_->processedSpectrum_->setData( ptr, idx_profile, true ); // on yRight axis
     }
@@ -312,9 +309,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 bool
 MSCalibrationWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
 {
-    adplugin::LifeCycleAccessor accessor( pImpl_->summaryTable_ );
-    adplugin::LifeCycle * p = accessor.get();
-    if ( p ) {
+    if ( auto p = qobject_cast< adplugin::LifeCycle * >( pImpl_->summaryTable_ ) ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
         boost::any any( ptr );
         if ( p->getContents( any ) ) {
@@ -336,16 +331,16 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
 
     // recalc polinomials
 	mass_calibrator calibrator( calibResult.assignedMasses(), prop );
-        
+
     unsigned int nterm = pCalibMethod->polynomialDegree() + 1;
     if ( calibrator.size() < nterm )
         nterm = static_cast<int>( calibrator.size() );
-    
+
     adcontrols::MSCalibration calib;
     if ( calibrator.polfit( calib, nterm ) ) {
 
         calibResult.calibration( calib );
-        
+
         return true;
     }
 
@@ -375,10 +370,10 @@ MSCalibrationWnd::handleValueChanged()
         }
 
         if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() ) {
-            
+
             if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
-                pImpl_->processedSpectrum_->setData( centroid, 1 ); 
-            
+                pImpl_->processedSpectrum_->setData( centroid, 1 );
+
             emit onSetData( *calibResult, *centroid );
         }
 
@@ -420,7 +415,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                             ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) ); //getNormalizedTime( i ) ) );
                     }
                 }
-                pImpl_->processedSpectrum_->setData( profile, idx_profile, true ); 
+                pImpl_->processedSpectrum_->setData( profile, idx_profile, true );
 
 				// centroid (override profile that has better visibility)
                 adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *centroid );
@@ -444,10 +439,10 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                     }
 				}
 
-                // update annotation 
+                // update annotation
                 DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );
 
-                pImpl_->processedSpectrum_->setData( centroid, idx_centroid ); 
+                pImpl_->processedSpectrum_->setData( centroid, idx_centroid );
 
                 emit onSetData( *calibResult, *centroid );
             }
@@ -525,30 +520,30 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
 	printer.setOrientation( QPrinter::Landscape );
-    
+
     printer.setDocName( "QtPlatz Calibration Report" );
     printer.setOutputFileName( pdfname );
     // printer.setOutputFormat( QPrinter::PdfFormat );
     printer.setResolution( resolution );
 
     QPainter painter( &printer );
-    
+
     QRectF boundingRect;
     QRectF drawRect( margin_left, 0.0, printer.width(), (18.0/72)*resolution );
-    
+
     painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
-    
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
-    
+
     drawRect.setTop( boundingRect.bottom() );
     drawRect.setHeight( size.height() );
     drawRect.setWidth( size.width() );
     renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
     // ---------- spectrum rendered ----------
-    
+
     // ---------- calibratin equation ----------
     if ( calibResult ) {
         const adcontrols::MSCalibration& calib = calibResult->calibration();
@@ -565,11 +560,12 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
         painter.drawText( drawRect, Qt::TextWordWrap, text );
     }
     // ---------- end calibration equestion -----
-    
+
     if ( connect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
                   , pImpl_->summaryTable_, SLOT(handlePrint(QPrinter&, QPainter&)) ) ) {
         emit onPrint( printer, painter );
         bool res = disconnect( this, SIGNAL( onPrint(QPrinter&, QPainter&) ), pImpl_->summaryTable_, SLOT(handlePrint(QPrinter&, QPainter&)) );
         assert( res );
+        (void)res;
     }
 }

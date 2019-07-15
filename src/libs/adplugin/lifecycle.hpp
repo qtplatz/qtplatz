@@ -53,7 +53,7 @@ namespace adplugin {
                 p = reinterpret_cast<T*>( query_interface_workaround( typeid(T).name() ) );
             return p;
         }
-		
+
     protected:
 	inline bool isScoped() const { return scope_flag_; }
 
@@ -67,5 +67,3 @@ namespace adplugin {
     };
 
 }
-
-

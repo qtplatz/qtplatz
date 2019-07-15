@@ -29,7 +29,8 @@
 #include "adwidgets_global.hpp"
 #include <QWidget>
 #include <QStandardItemModel>
-#include <adplugin_manager/lifecycle.hpp>
+//#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adportable/configuration.hpp>
 #include <memory>
 
@@ -45,7 +46,7 @@ namespace Ui {
 
 namespace adwidgets {
 
-    class ADWIDGETSSHARED_EXPORT CentroidForm : public QWidget 
+    class ADWIDGETSSHARED_EXPORT CentroidForm : public QWidget
                                               , public adplugin::LifeCycle {
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )

@@ -26,7 +26,7 @@
 
 #include "../adwidgets_global.hpp"
 
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
 
@@ -38,10 +38,10 @@ namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT TimedEventsWidget : public QWidget
                                                    , public adplugin::LifeCycle {
-        
+
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-        
+
     public:
         explicit TimedEventsWidget(QWidget *parent = 0);
         ~TimedEventsWidget();
@@ -52,18 +52,18 @@ namespace adwidgets {
         void onUpdate( boost::any&& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any&& ) override;   
+        bool setContents( boost::any&& ) override;
         //
         bool getContents( adcontrols::ControlMethod::TimedEvents& ) const;
         bool setContents( const adcontrols::ControlMethod::TimedEvents& );
         //
         void addModuleCap( const std::vector< adcontrols::ControlMethod::ModuleCap >& );
-        
+
         class impl;
     private:
         class delegate;
         std::unique_ptr< impl > impl_;
-        
+
     signals:
         void valueChanged();
         void applyTriggered();
@@ -71,8 +71,7 @@ namespace adwidgets {
     public slots:
 
     private slots:
-        
+
     };
 
 }
-

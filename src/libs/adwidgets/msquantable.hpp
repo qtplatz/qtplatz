@@ -30,7 +30,7 @@
 #include "adwidgets_global.hpp"
 #include "tableview.hpp"
 #include <memory>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 
 class QItemDelegate;
 class QStandardItemModel;
@@ -51,11 +51,11 @@ namespace adwidgets {
 
         enum {
             column_component   // this is the primary id of component. if same key is assined to more than two formula, quant. result will be summed
-            , column_formula      // 
+            , column_formula      //
             , column_description
             , column_other
         };
-        
+
         void setData( adcontrols::MSQPeaks * );
         void handleSelected( const QRectF&, bool isTime = false );
 
@@ -67,7 +67,7 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         void * query_interface_workaround( const char * ) override;
-        
+
     protected:
         // reimplement QTableView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
@@ -93,7 +93,7 @@ namespace adwidgets {
         static void update_row( QStandardItemModel&, int row, const adcontrols::MSQPeak& );
 
     signals:
-        void currentChanged( const QModelIndex& ); 
+        void currentChanged( const QModelIndex& );
         void currentChanged( const QString& dataGuid, int idx, int fcn );
         void dataChanged( const QString& dataGuid, int idx, int fcn, int column, const QVariant& );
     };

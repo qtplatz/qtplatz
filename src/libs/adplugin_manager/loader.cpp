@@ -28,28 +28,51 @@
 #include <adplugin/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
-#include <QCoreApplication>
-#include <QFileInfo>
-#include <QLibrary>
-#include <QString>
-#include <QStringList>
+// #include <QCoreApplication>
+// #include <QFileInfo>
+// #include <QLibrary>
+// #include <QString>
+// #include <QStringList>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/version.hpp>
+#include <boost/dll.hpp>
 
 using namespace adplugin;
 
 #if defined _DEBUG || defined DEBUG
 # if defined WIN32
 #  define DEBUG_LIB_TRAIL "d" // xyzd.dll
-# elif defined __MACH__
+constexpr static const char * const debug_trail = "d";
+# elif defined __MACH__ || __APPLE__
 #  define DEBUG_LIB_TRAIL "_debug" // xyz_debug.dylib
+constexpr static const char * const debug_trail = "_debug";
 # else
 #  define DEBUG_LIB_TRAIL ""        // xyz.so
+constexpr static const char * const debug_trail = "";
 # endif
 #else
 # define DEBUG_LIB_TRAIL ""
+constexpr static const char * const debug_trail = "";
 #endif
+
+std::string
+loader::debug_suffix()
+{
+    return debug_trail;
+}
+
+boost::filesystem::path
+loader::shared_directory()
+{
+    return boost::dll::program_location().parent_path() / std::string( sharedDirectory );
+}
+
+boost::filesystem::path
+loader::plugin_directory()
+{
+    return boost::dll::program_location().parent_path() / std::string( pluginDirectory );
+}
 
 void
 loader::populate( const wchar_t * topdir )
@@ -77,28 +100,23 @@ loader::populate( const wchar_t * topdir )
                         auto branch = it->path().branch_path();
 
                         for ( auto& dir : { branch, sharedlibs } ) {
+
+                            auto fname = dir / (stem.string() + debug_trail);
+                            boost::system::error_code ec;
+                            boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
+                            if ( !ec ) {
+                                if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) )
+                                    break;
+                            } else {
+                                ADDEBUG() << ec.message();
+                            }
+#if 0
                             QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
                             QLibrary lib( libname );
-
-                            boost::filesystem::path path( libname.toStdString() );
-#ifndef NDEBUG
-# if BOOST_VERSION >= 106100
-                            ADDEBUG() << "\tloading : " << boost::filesystem::relative( path, appdir, ec ).string();
-# else
-                            ADDEBUG() << "\tloading : " << path.string();
-# endif
-#endif
                             if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
                                 break;
-                            } else {
-#if defined __APPLE__
-                                // somewhat 'DEBUG' can't define on apple with Xcode
-                                QLibrary lib( libname + "_debug" );
-                                if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) )
-                                    break;
-#endif
-                                ADDEBUG() << "## failed to load: " << libname.toStdString() << "\n\t" << lib.errorString().toStdString();
                             }
+#endif
                         }
                     }
                 }
@@ -133,6 +151,27 @@ loader::config_fullpath( const std::wstring& apppath, const std::wstring& librar
 	return fullpath.generic_wstring();
 }
 
+adplugin::plugin *
+loader::loadLibrary( const std::string& stem )
+{
+    boost::system::error_code ec;
+    if ( auto dll = loadLibrary( stem, ec ) ) {
+        if ( auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" ) ) {
+            manager::instance()->keep( dll );
+            return factory();
+        }
+    }
+}
+
+boost::dll::shared_library
+loader::loadLibrary( const std::string& stem, boost::system::error_code& ec )
+{
+    auto path = adplugin::loader::shared_directory() / ( stem + debug_suffix() );
+    return boost::dll::shared_library( path, boost::dll::load_mode::append_decorations, ec );
+}
+
+
+#if 0
 adplugin::plugin *
 loader::loadLibrary( const QString& libname, const QStringList& paths )
 {
@@ -191,3 +230,4 @@ loader::loadLibrary( const QString& libname, const QStringList& paths )
     }
     return 0;
 }
+#endif

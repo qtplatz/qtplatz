@@ -30,15 +30,22 @@
 #include <vector>
 #include <string>
 
-class QLibrary;
-class QString; 
-class QStringList;
+// class QLibrary;
+// class QString;
+// class QStringList;
+
+namespace boost {
+    namespace filesystem { class path; }
+    namespace dll { class shared_library; }
+    namespace system { class error_code; }
+}
 
 namespace adplugin {
 
     class plugin;
+    class ADPLUGINSHARED_EXPORT loader;
 
-    class ADPLUGINSHARED_EXPORT loader {
+    class loader {
 
     public:
         static void populate( const wchar_t * pluginpath );
@@ -49,10 +56,14 @@ namespace adplugin {
 
         static std::wstring config_fullpath( const std::wstring& apppath, const std::wstring& config_filename );
 
+        static std::string debug_suffix();
+        static boost::filesystem::path shared_directory();
+        static boost::filesystem::path plugin_directory();
+
         //
-        static adplugin::plugin * loadLibrary( const QString& libname, const QStringList& paths );
+        // static adplugin::plugin * loadLibrary( const QString& libname, const QStringList& paths );
+        static adplugin::plugin * loadLibrary( const std::string& stem );
+        static boost::dll::shared_library loadLibrary( const std::string& stem, boost::system::error_code& ec );
     };
 
 }
-
-

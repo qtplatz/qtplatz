@@ -27,12 +27,12 @@
 
 #include <QWidget>
 #include "adwidgets_global.hpp"
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <memory>
 
 class QTabWidget;
 
-namespace adcontrols { 
+namespace adcontrols {
     namespace ControlMethod { class Method; class MethodItem; }
 }
 
@@ -70,7 +70,7 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         // end LifeCycle
-        
+
         bool getMethod( adcontrols::ControlMethod::MethodItem& mi );
         bool setMethod( const adcontrols::ControlMethod::MethodItem& mi );
     private:
@@ -83,7 +83,7 @@ namespace adwidgets {
         /** Menu items "Import Initial Condition" emit 'onImportInitialCondition' signal
         */
         void onImportInitialCondition();
-            
+
     private slots:
         void showContextMenu( const QPoint& pt );
     };

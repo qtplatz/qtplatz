@@ -27,7 +27,7 @@
 
 #include "adwidgets_global.hpp"
 
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 
 class QMenu;
@@ -36,10 +36,10 @@ namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT MSSimulatorWidget : public QWidget
                                                    , public adplugin::LifeCycle {
-        
+
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-        
+
     public:
         explicit MSSimulatorWidget(QWidget *parent = 0);
         ~MSSimulatorWidget();
@@ -52,14 +52,14 @@ namespace adwidgets {
         void onUpdate( boost::any&& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any&& ) override;   
-        
+        bool setContents( boost::any&& ) override;
+
         //
         void setTimeSquaredScanLaw( double flength, double acceleratorVoltage, double tdelay );
 
     private:
         void handleContextMenu( QMenu&, const QPoint& );
-        
+
     signals:
         void triggerProcess( const QString& );
 

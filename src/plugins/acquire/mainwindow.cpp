@@ -41,7 +41,6 @@
 #include <adextension/isnapshothandler.hpp>
 #include <adlog/logger.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
@@ -315,10 +314,9 @@ MainWindow::OnFinalClose()
     document::instance()->settings()->setValue( "DOCK_LOCATIONS", saveState() );
 
     for ( auto dock: dockWidgets() ) {
-        adplugin::LifeCycleAccessor accessor( dock->widget() );
-        if ( auto editor = accessor.get() ) {
+        //adplugin::LifeCycleAccessor accessor( dock->widget() );
+        if ( auto editor = qobject_cast< adplugin::LifeCycle * >( dock->widget() ) ) // accessor.get() ) {
             editor->OnFinalClose();
-        }
     }
 }
 

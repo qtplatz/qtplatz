@@ -24,7 +24,7 @@
 
 #pragma once
 #include <QWidget>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include "acqrswidgets_global.hpp"
 #include "constants.hpp"
@@ -38,7 +38,7 @@ namespace acqrscontrols { namespace ap240 { class method; } }
 // simple 'time-of-flight' data acquisition as a part of adacquire archetecture of qtplatz.
 
 namespace acqrswidgets {
-    
+
     class ACQRSWIDGETSSHARED_EXPORT ap240widget : public QWidget
                                                 , public adplugin::LifeCycle {
 
@@ -64,7 +64,7 @@ namespace acqrswidgets {
 
         void get( std::shared_ptr< acqrscontrols::ap240::method > ) const;
         void set( std::shared_ptr< const acqrscontrols::ap240::method> );
-        
+
         bool get( acqrscontrols::ap240::method& ) const;
         bool set( const acqrscontrols::ap240::method& );
 
@@ -72,10 +72,8 @@ namespace acqrswidgets {
         void valueChanged( idCategory cat, int channel );
         void dataChanged();
         void applyTriggered();
-    
+
     private:
 
     };
 }
-
-

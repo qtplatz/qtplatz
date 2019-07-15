@@ -57,8 +57,7 @@
 #include <adextension/isequenceimpl.hpp>
 #include <adextension/iwidgetfactory.hpp>
 #include <adlog/logger.hpp>
-#include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycleaccessor.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -603,8 +602,7 @@ MainWindow::createDockWidgets()
                 connect( this, SIGNAL( onAddMSPeaks( const adcontrols::MSPeaks& ) )
                          , pWidget, SLOT( handle_add_mspeaks( const adcontrols::MSPeaks& ) ) );
 
-                adplugin::LifeCycleAccessor accessor( pWidget );
-                if ( adplugin::LifeCycle * p = accessor.get() ) {
+                if ( auto p = qobject_cast< adplugin::LifeCycle * >( pWidget ) ) {
                     if ( auto wnd = findChild< MSPeaksWnd *>() ) {
                         p->setContents( boost::any( static_cast<QWidget *>(wnd) ) );
                     }
@@ -923,9 +921,7 @@ MainWindow::OnInitialUpdate()
 
     for ( auto widget: widgets ) {
         QWidget * obj = widget->widget();
-		adplugin::LifeCycleAccessor accessor( obj );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle )
+		if ( auto pLifeCycle = qobject_cast< adplugin::LifeCycle * >( obj ) )
 			pLifeCycle->OnInitialUpdate();
     }
 
@@ -974,9 +970,8 @@ MainWindow::OnFinalClose()
 
     for ( auto widget: widgets ) {
         QWidget * obj = widget->widget();
-        adplugin::LifeCycleAccessor accessor( obj );
-        adplugin::LifeCycle * pLifeCycle = accessor.get();
-        if ( pLifeCycle ) {
+
+        if ( auto pLifeCycle = qobject_cast< adplugin::LifeCycle * >( obj ) ) {
             //disconnect( obj, SIGNAL( onMethodApply( ProcessMethod& ) ), this, SLOT( onMethodApply( ProcessMethod& ) ) );
             pLifeCycle->OnFinalClose();
         }

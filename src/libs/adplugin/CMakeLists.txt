@@ -10,6 +10,9 @@ cmake_policy(SET CMP0020 NEW)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
+find_package( Qt5 COMPONENTS Core REQUIRED )
+include_directories( ${Qt5Core_INCLUDE_DIRS}  )
+
 add_definitions(-DADPLUGIN_LIBRARY)
 
 add_library( adplugin SHARED
@@ -18,13 +21,7 @@ add_library( adplugin SHARED
   plugin.cpp
   plugin.hpp
   plugin_ptr.cpp
-  plugin_ptr.hpp  
-#  orbfactory.cpp
-#  orbfactory.hpp
-#  orbbroker.cpp
-#  orbbroker.hpp
-#  orbservant.cpp
-#  orbservant.hpp
+  plugin_ptr.hpp
   visitor.cpp
   visitor.hpp
   )
@@ -39,5 +36,5 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT modules
-  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+  )

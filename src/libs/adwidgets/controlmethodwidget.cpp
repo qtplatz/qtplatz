@@ -25,8 +25,7 @@
 #include "controlmethodwidget.hpp"
 #include "controlmethodtable.hpp"
 #include <adcontrols/controlmethod.hpp>
-#include <adplugin_manager/lifecycleaccessor.hpp>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adplugin/lifecycle.hpp>
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <QVBoxLayout>
@@ -113,7 +112,7 @@ ControlMethodWidget::ControlMethodWidget(QWidget *parent) : QWidget(parent)
         QSizePolicy sizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth( false ); 
+        sizePolicy.setHeightForWidth( false );
         impl_->table_->setSizePolicy( sizePolicy );
     }
 
@@ -146,8 +145,8 @@ ControlMethodWidget::addEditor( QWidget * widget )
 {
     impl_->table_->addEditor( widget->objectName() ); // for menu
 
-    adplugin::LifeCycleAccessor accessor( widget );
-    if ( auto lifecycle = accessor.get() ) {
+    //adplugin::LifeCycleAccessor accessor( widget );
+    if ( auto lifecycle = qobject_cast< adplugin::LifeCycle *>( widget ) ) {  // accessor.get() ) {
 
         impl_->editors_.push_back( std::make_pair( lifecycle, widget ) );
 
@@ -246,7 +245,7 @@ ControlMethodWidget::impl::validate( std::shared_ptr< adcontrols::ControlMethod:
         auto temp = std::make_shared< adcontrols::ControlMethod::Method >();
         boost::any a( temp );
         editor->getContents( a );
-        
+
         for ( auto& item : *temp ) {
             ADDEBUG() << item.modelname() << ", " << item.itemLabel();
             auto it = cm->find( cm->begin(), cm->end(), item.clsid() );

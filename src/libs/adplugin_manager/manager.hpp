@@ -33,10 +33,12 @@
 #include <memory>
 #include <compiler/pragma_warning.hpp>
 
-class QString;
-class QObject;
-class QWidget;
-class QLibrary;
+// class QString;
+// class QObject;
+// class QWidget;
+// class QLibrary;
+
+namespace boost { namespace dll { class shared_library; } }
 
 namespace adportable {
     class Configuration;
@@ -51,7 +53,7 @@ namespace adplugin {
 
         class data;
         data * d_;
-        
+
     protected:
         manager();
         ~manager();
@@ -60,10 +62,11 @@ namespace adplugin {
 
         static manager * instance();
 
-        bool install( QLibrary&, const std::string& adpluginspec );
+        //bool install( QLibrary&, const std::string& adpluginspec );
+        bool install( boost::dll::shared_library&&, const std::string& adpluginspec );
 
         bool isLoaded( const std::string& adpluginspec ) const;
-        
+
 		void populated();
 
         plugin_ptr select_iid( const char * regex );
@@ -72,6 +75,7 @@ namespace adplugin {
         std::vector< plugin_ptr > select_plugins( const char * regex );
 
         static void standalone_initialize();
+        void keep( const boost::dll::shared_library& );
 
     private:
         friend std::unique_ptr< manager >::deleter_type;

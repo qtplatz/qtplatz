@@ -26,7 +26,7 @@
 #define MSPEAKVIEW_HPP
 
 #include "adwidgets_global.hpp"
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
 

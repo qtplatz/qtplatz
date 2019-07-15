@@ -25,7 +25,7 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
 
@@ -53,14 +53,14 @@ namespace adwidgets {
         void onUpdate( boost::any&& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any&& ) override;   
+        bool setContents( boost::any&& ) override;
         //
         enum column_type {
             CountingEnable, CountingFormula
             , CountingRangeFirst, CountingRangeWidth
             , CountingProtocol, CountingLaps
         };
-        
+
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
         bool getContents( adcontrols::CountingMethod& ) const;
         bool setContents( const adcontrols::CountingMethod& );

@@ -25,7 +25,7 @@
 #ifndef MSCHROMATOGRAMFORM_HPP
 #define MSCHROMATOGRAMFORM_HPP
 
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include "adwidgets_global.hpp"
 

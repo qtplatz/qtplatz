@@ -40,7 +40,7 @@ iControllerImpl::~iControllerImpl()
 bool
 iControllerImpl::connect()
 {
-    if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "u5303a", QStringList() ) ) {
+    if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "u5303a" ) ) {
 
         if ( auto manager = plugin->query_interface< adacquire::manager >() ) {
             if ( auto session = manager->session( "u5303a::icontrollerimpl" ) ) {
@@ -50,7 +50,6 @@ iControllerImpl::connect()
         }
 
     }
-    
+
     return false;
 }
-

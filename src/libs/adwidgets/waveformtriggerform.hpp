@@ -27,7 +27,7 @@
 
 #include "adwidgets_global.hpp"
 #include <QWidget>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 
 namespace adwidgets {
 
@@ -37,7 +37,7 @@ namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT WaveformTriggerForm : public QWidget
                                                      , public adplugin::LifeCycle {
-        
+
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
 

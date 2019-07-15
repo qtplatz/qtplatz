@@ -25,7 +25,7 @@
 #pragma once
 
 #include <QWidget>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include "acqrswidgets_global.hpp"
 #include "constants.hpp"
@@ -34,7 +34,7 @@
 namespace adcontrols { class threshold_method; class threshold_action; class TimeDigitalMethod; class MassSpectrometer; }
 
 namespace acqrswidgets {
-    
+
     class ACQRSWIDGETSSHARED_EXPORT ThresholdWidget : public QWidget
                                                     , public adplugin::LifeCycle {
 
@@ -43,7 +43,7 @@ namespace acqrswidgets {
         Q_INTERFACES( adplugin::LifeCycle )
 
     public:
-            
+
         explicit ThresholdWidget( const QString&, uint32_t nChannels = 2, QWidget *parent = 0);
         ~ThresholdWidget();
 
@@ -53,18 +53,18 @@ namespace acqrswidgets {
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
-    
+
         void onInitialUpdate();
         void onStatus( int );
 
         void get( adcontrols::TimeDigitalMethod& ) const;
         void set( const adcontrols::TimeDigitalMethod& );
 
-        void get( int ch, adcontrols::threshold_method& ) const;    
-        void set( int ch, const adcontrols::threshold_method& );    
+        void get( int ch, adcontrols::threshold_method& ) const;
+        void set( int ch, const adcontrols::threshold_method& );
 
-        void get( adcontrols::threshold_action& ) const;    
-        void set( const adcontrols::threshold_action& );    
+        void get( adcontrols::threshold_action& ) const;
+        void set( const adcontrols::threshold_action& );
 
         void setMassSpectrometer( std::shared_ptr< const adcontrols::MassSpectrometer > );
 
@@ -75,4 +75,3 @@ namespace acqrswidgets {
         uint32_t nChannels_; // number of channels to be supported
     };
 }
-

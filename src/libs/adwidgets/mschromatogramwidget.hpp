@@ -25,7 +25,7 @@
 #ifndef MSCHROMATOGRAMWIDGET_HPP
 #define MSCHROMATOGRAMWIDGET_HPP
 
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
 #include "adwidgets_global.hpp"
@@ -58,7 +58,7 @@ namespace adwidgets {
         void onUpdate( boost::any&& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any&& ) override;   
+        bool setContents( boost::any&& ) override;
         //
         void setContents( const adcontrols::MSChromatogramMethod& );
         bool getContents( adcontrols::MSChromatogramMethod& ) const;
@@ -66,7 +66,7 @@ namespace adwidgets {
     private:
         void handleContextMenu( QMenu&, const QPoint& );
         void setup( MolTableView * );
-        
+
     signals:
         void triggerProcess( const QString& );
 

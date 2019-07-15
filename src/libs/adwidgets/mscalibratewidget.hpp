@@ -26,7 +26,7 @@
 #define MSCALIBRATEWIDGET_HPP
 
 #include "adwidgets_global.hpp"
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 
 namespace adcontrols { class MSCalibrateMethod; }
@@ -50,7 +50,7 @@ namespace adwidgets {
         void onUpdate( boost::any&& ) override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
-        bool setContents( boost::any&& ) override;   
+        bool setContents( boost::any&& ) override;
 
         //
         void loadFromUI( adcontrols::MSCalibrateMethod& );

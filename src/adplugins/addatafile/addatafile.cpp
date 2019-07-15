@@ -39,7 +39,6 @@ adplugin_plugin_instance()
     // Workaround for boost/VC bug #6320 according to following artcile
     // https://svn.boost.org/trac/boost/ticket/6320
     boost::filesystem::path p("dummy");
-#endif   
+#endif
     return addatafile::datafile_factory::instance();
 }
-

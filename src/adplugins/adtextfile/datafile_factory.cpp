@@ -98,7 +98,7 @@ datafile_factory::open( const wchar_t * filename, bool readonly ) const
 // adplugin::plugin implementation
 
 const char *
-datafile_factory::iid() const 
+datafile_factory::iid() const
 {
     return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.adtextfile";
 }
@@ -106,7 +106,7 @@ datafile_factory::iid() const
 void
 datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
-	v.visit( this, adplugin );
+	// v.visit( this, adplugin );
 }
 
 void *

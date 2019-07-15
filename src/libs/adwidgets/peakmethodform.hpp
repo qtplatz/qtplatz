@@ -26,7 +26,7 @@
 #define PEAKMETHODFORM_HPP
 
 #include "adwidgets_global.hpp"
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
 
@@ -50,7 +50,7 @@ namespace adwidgets {
                                                 , public adplugin::LifeCycle {
 		Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-    
+
 	public:
 		explicit PeakMethodForm(QWidget *parent = 0);
 		~PeakMethodForm();
@@ -72,7 +72,7 @@ namespace adwidgets {
 		void apply( adcontrols::ProcessMethod& );
         void valueChanged();
         void triggerProcess( const QString& );
-                                             
+
     private slots:
 
     private:

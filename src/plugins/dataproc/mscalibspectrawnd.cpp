@@ -50,8 +50,7 @@
 #include <adportable/polfit.hpp>
 #include <adportable/float.hpp>
 #include <adportable/utf.hpp>
-#include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycleaccessor.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin_manager/manager.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportfolio/portfolio.hpp>
@@ -96,7 +95,7 @@ namespace dataproc {
                 return adportable::polfit::estimate_y( polynomial_, x );
             }
             double standard_error() const {
-                return adportable::polfit::standard_error( x_.data(), y_.data(), x_.size(), polynomial_ );                
+                return adportable::polfit::standard_error( x_.data(), y_.data(), x_.size(), polynomial_ );
             }
         };
 }
@@ -108,8 +107,8 @@ MSCalibSpectraWnd::~MSCalibSpectraWnd()
 }
 
 namespace dataproc {
-    
-    static struct { const char * xbottom; const char * xtop; const char * yleft; const char * yright; } 
+
+    static struct { const char * xbottom; const char * xtop; const char * yleft; const char * yright; }
         axis_labels [] = {
             { "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>"
               , 0
@@ -152,7 +151,7 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
         grid->attach( plot.get() );
     }
 
-	QFont font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisTitle ); 
+	QFont font = qtwrapper::font()( QFont(), qtwrapper::fontSizeSmall, qtwrapper::fontAxisTitle );
 
     int id = 0;
     for ( auto& plot: plots_ ) {
@@ -200,7 +199,7 @@ MSCalibSpectraWnd::init()
         splitter->addWidget( wndSplitter_ );
 
         for ( int i = 0; i < 2; ++i ) {
-            
+
             std::shared_ptr< adplot::SpectrumWidget > wnd = std::make_shared< adplot::SpectrumWidget >(this);
             wnd->setAutoAnnotation( false );
             wnd->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
@@ -220,7 +219,7 @@ MSCalibSpectraWnd::init()
         wndSplitter_->setOrientation( Qt::Vertical );
 
         Core::MiniSplitter * splitter2 = new Core::MiniSplitter; // left pane split top (table) & bottom (time,mass plot)
-        
+
         // summary table
 		if ( ( wndCalibSummary_ = new adwidgets::MSCalibrateSummaryTable() ) ) { // adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) ) {
             bool res;
@@ -244,14 +243,12 @@ MSCalibSpectraWnd::init()
 
             (void)res;
 
-            adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
-            adplugin::LifeCycle * p = accessor.get();
-            if ( p )
+            if ( auto p = qobject_cast< adplugin::LifeCycle * >( wndCalibSummary_ ) )
                 p->OnInitialUpdate();
-            
+
             connect( this, SIGNAL( onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
                          wndCalibSummary_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
-            
+
             splitter2->addWidget( wndCalibSummary_ );
         }
         if ( Core::MiniSplitter * splitter3 = new Core::MiniSplitter ) { // time vs length | slope, intercept vs m/z
@@ -318,7 +315,7 @@ MSCalibSpectraWnd::handleAxisChanged( adcontrols::hor_axis axis )
     axis_ = axis;
     for ( auto wnd: wndSpectra_ )
 		wnd->setAxis( static_cast< adplot::SpectrumWidget::HorizontalAxis >( axis ) );
-    
+
     replotSpectra();
 }
 
@@ -375,6 +372,7 @@ MSCalibSpectraWnd::flight_length_regression()
             for ( auto& pk: masses ) {
 
                 auto& ms = segments[ pk.idMassSpectrum() ];
+                (void)ms;
 
                 if ( pk.enable() )
                     time_corrected_calibrants[ pk.mode() ].push_back( std::make_tuple( pk
@@ -390,7 +388,7 @@ MSCalibSpectraWnd::flight_length_regression()
     std::map< int, Fitter<CurveLinear> > time_correctors;
 
     for ( auto& map: time_corrected_calibrants ) {
-        
+
         Fitter<CurveLinear>& time_corrector = time_correctors[ map.first ];
 
         for ( auto& calibrant: map.second )
@@ -408,11 +406,11 @@ MSCalibSpectraWnd::flight_length_regression()
     std::map< std::wstring, std::pair< double, Fitter< CurveLinear > > > formula_length_time_fitters;
 
     for ( const auto& map: time_corrected_calibrants ) {
-        
+
         for ( auto& calibrant: map.second ) {
             const adcontrols::MSAssignedMass pk = std::get< calibrant_assined_mass >( calibrant );
 			Fitter<CurveLinear>& fitter = formula_length_time_fitters[ pk.formula() ].second;
-            
+
             formula_length_time_fitters[ pk.formula() ].first = std::get< calibrant_sqrt_m >( calibrant );
             fitter << std::make_pair( std::get< calibrant_length >( calibrant ), std::get< calibrant_time >( calibrant ) );
         }
@@ -444,7 +442,7 @@ MSCalibSpectraWnd::flight_length_regression()
 
     if ( orbital_sector_fitter.fit() && injection_sector_fitter.fit() ) {
         using namespace adcontrols;
-        MSCalibration calib( orbital_sector_fitter.polynomial_, micro, injection_sector_fitter.polynomial_, MSCalibration::MULTITURN_NORMALIZED ); 
+        MSCalibration calib( orbital_sector_fitter.polynomial_, micro, injection_sector_fitter.polynomial_, MSCalibration::MULTITURN_NORMALIZED );
         margedCalibResult_->calibration( calib );
     }
 
@@ -475,23 +473,23 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
 
         SessionManager::instance()->updateDataprocessor( processor, fSummary );
     }
-    
+
 	auto fcalibResult = portfolio::find_first_of( fSummary.attachments(), []( const portfolio::Folium& f ){
 			return f.dataClass() == adcontrols::MSCalibrateResult::dataClass();
 		});
-    if ( ! fcalibResult ) 
+    if ( ! fcalibResult )
         return;
 
     margedSpectrum_ = portfolio::get< adcontrols::MassSpectrumPtr >( fSummary );
     margedCalibResult_ = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
-	
+
 	populate( processor, folder );
     generate_marged_result( processor );
 	flight_length_regression();
 
     if ( margedCalibResult_ && margedSpectrum_ )
         emit onSetData( *margedCalibResult_, *margedSpectrum_ );
-    
+
     if ( margedSpectrum_ )
         wndSpectra_[ 0 ] ->setData( margedSpectrum_, 0 );
 }
@@ -537,14 +535,14 @@ MSCalibSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 }
 
 //
-void 
+void
 MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
 {
     using namespace adcontrols::metric;
 
     // size_t idSpectrum = fcn >> 16;
     adcontrols::MSAssignedMasses assigned;
-    
+
     adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
     double time = segments[ fcn ].getTime( idx );
     do {
@@ -558,7 +556,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
         marker.setLinePen( Qt::gray, 0.0, Qt::DashDotLine );
 		wndSpectra_[0]->replot();
     } while(0);
-        
+
     selFormula_.clear();
     if ( readCalibSummary( assigned ) ) {
 
@@ -612,13 +610,13 @@ int
 MSCalibSpectraWnd::populate( Dataprocessor * processor, portfolio::Folder& folder )
 {
     results_.clear();
-    
+
     portfolio::Folio folio = folder.folio();
 
     std::for_each( folio.begin(), folio.end(), [&]( portfolio::Folium& item ){
 
             if ( item.name() != L"Summary Spectrum" && item.attribute( L"isChecked" ) == L"true" ) {
-                
+
                 if ( item.empty() )
                     processor->fetch( item );
 
@@ -648,9 +646,7 @@ MSCalibSpectraWnd::populate( Dataprocessor * processor, portfolio::Folder& folde
 bool
 MSCalibSpectraWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
 {
-    adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
-    adplugin::LifeCycle * p = accessor.get();
-    if ( p ) {
+    if ( auto p = qobject_cast< adplugin::LifeCycle * >( wndCalibSummary_ ) ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
         boost::any any( ptr );
         if ( p->getContents( any ) ) {
@@ -677,7 +673,7 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
 
         if ( auto spectrometer = adcontrols::MassSpectrometer::create( prop.dataInterpreterClsid() ) ) {
             spectrometer->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
-            
+
             if ( auto scanLaw = spectrometer->scanLaw() ) {
 
                 adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, calib );
@@ -691,11 +687,11 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
 
                 emit onSetData( *margedCalibResult_, *margedSpectrum_ );
             }
-            
+
         }
 
     }
-    
+
 }
 
 void
@@ -753,7 +749,7 @@ MSCalibSpectraWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
 	printer.setOrientation( QPrinter::Landscape );
-    
+
     printer.setDocName( "QtPlatz Multi-turn calibration report" );
     printer.setOutputFileName( pdfname );
     // printer.setResolution( resolution );
@@ -791,8 +787,9 @@ MSCalibSpectraWnd::handlePrintCurrentView( const QString& pdfname )
         bool res = disconnect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
                                , wndCalibSummary_, SLOT(handlePrint(QPrinter&, QPainter&)) );
         assert( res );
+        (void)res;
     }
-    
+
 }
 
 void
@@ -861,7 +858,7 @@ static Qt::GlobalColor colors [] = {
 void
 MSCalibSpectraWnd::plot_time_corrected_calibrant( int id, int mode, const Fitter<CurveLinear>& fitter, adplot::plot& plot )
 {
-    QwtText title( (boost::format("laps: %d") % mode ).str().c_str() ); 
+    QwtText title( (boost::format("laps: %d") % mode ).str().c_str() );
     plot_fitter( id, title, fitter, plot );
 
     plot.axisAutoScale( QwtPlot::xBottom );
@@ -959,5 +956,3 @@ MSCalibSpectraWnd::plot_fitter( int id, const QwtText& title, const Fitter<2>& f
         regression_curve->setYAxis( yAxis );
     regression_curve->attach( &plot );
 }
-
-

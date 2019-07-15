@@ -27,29 +27,29 @@
 #include "acqrswidgets_global.hpp"
 #include "constants.hpp"
 #include <QWidget>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 
 namespace acqrscontrols { namespace u5303a { class method; } }
 
 namespace acqrswidgets {
-    
+
     class ACQRSWIDGETSSHARED_EXPORT u5303AWidget : public QWidget
                                                  , public adplugin::LifeCycle {
 
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-        
+
     public:
         explicit u5303AWidget(QWidget *parent = 0);
-        
+
         // LifeCycle
         void OnCreate( const adportable::Configuration& ) override;
         void OnInitialUpdate() override;
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
-        
+
         void onInitialUpdate();
         void onStatus( int );
 
@@ -59,7 +59,7 @@ namespace acqrswidgets {
         void setEnabled( const QString&, bool );
 
     private:
-        
+
     signals :
         void valueChanged( idCategory, int channel ); // historical, deprecated
         void dataChanged();
@@ -70,5 +70,3 @@ namespace acqrswidgets {
     };
 
 }
-
-

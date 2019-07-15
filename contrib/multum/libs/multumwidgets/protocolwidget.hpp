@@ -26,7 +26,7 @@
 
 #include "multumwidgets_global.hpp"
 #include <multumcontrols/fwd.hpp>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <QFrame>
 #include <memory>
 

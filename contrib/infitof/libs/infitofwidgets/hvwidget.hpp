@@ -26,7 +26,7 @@
 
 #include <QFrame>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include "infitofwidgets_global.hpp"
 
 class QNetworkReply;
@@ -38,9 +38,9 @@ namespace infitofwidgets {
 
         Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
-        
+
     public:
-        
+
         explicit hvWidget( const QString&, const QString& port = "http", QWidget *parent = 0 );
         ~hvWidget();
 
@@ -66,4 +66,3 @@ namespace infitofwidgets {
 
     };
 }
-

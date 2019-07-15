@@ -26,7 +26,7 @@
 #define AP240FORM_HPP
 
 #include <QWidget>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adplugin/lifecycle.hpp>
 #include "acqrswidgets_global.hpp"
 #include "constants.hpp"
@@ -39,7 +39,7 @@ namespace adwidgets {
 }
 
 namespace acqrswidgets {
-    
+
     namespace Ui {
         class ap240form;
     }
@@ -62,15 +62,15 @@ namespace acqrswidgets {
         void OnFinalClose() override;
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
-    
+
         void onInitialUpdate();
         void onStatus( int );
 
         void get( std::shared_ptr< acqrscontrols::ap240::method > ) const;
         void set( std::shared_ptr< const acqrscontrols::ap240::method> );
 
-        void get( int ch, adcontrols::threshold_method& ) const;    
-        void set( int ch, const adcontrols::threshold_method& );    
+        void get( int ch, adcontrols::threshold_method& ) const;
+        void set( int ch, const adcontrols::threshold_method& );
         void get( adcontrols::threshold_action& ) const;
         void set( const adcontrols::threshold_action& );
 
@@ -83,7 +83,7 @@ namespace acqrswidgets {
         void valueChanged( idCategory cat, int ch );
         //void deviceConfigChanged( bool remote_access, const QString& host, const QString& port = "80" );
         void hostChanged( bool remote_access, const QString& host, const QString& port );
-        
+
     private:
         Ui::ap240form *ui;
         bool remote_;

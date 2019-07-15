@@ -26,7 +26,7 @@
 #include "dgprotocolform.hpp"
 #include "hostaddrdialog.hpp"
 #include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <adportable/debug.hpp>
 #include <qtwrapper/make_widget.hpp>
 #include <QBoxLayout>

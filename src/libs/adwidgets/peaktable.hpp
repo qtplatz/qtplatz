@@ -26,7 +26,7 @@
 
 #include "adwidgets_global.hpp"
 #include "tableview.hpp"
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <memory>
 
 class QStandardItemModel;
@@ -57,11 +57,11 @@ namespace adwidgets {
         bool getContents( boost::any& ) const override;
         bool setContents( boost::any&& ) override;
         int peakId( int row ) const;
-        
+
     signals:
         void valueChanged( int row );
         void currentChanged( int idx );
-            
+
     public slots:
         void setData( const adcontrols::Peaks& );
 		void setData( const adcontrols::PeakResult& );
@@ -71,9 +71,8 @@ namespace adwidgets {
 
         // QTableView
         void currentChanged( const QModelIndex&, const QModelIndex& ) override;
-        
+
     private:
         QStandardItemModel * model_;
     };
 }
-

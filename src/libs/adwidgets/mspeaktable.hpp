@@ -28,7 +28,7 @@
 #include "adwidgets_global.hpp"
 #include "tableview.hpp"
 #include <QItemDelegate>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include <memory>
 #include <functional>
 

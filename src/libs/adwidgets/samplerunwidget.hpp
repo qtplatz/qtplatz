@@ -28,7 +28,7 @@
 #pragma once
 
 #include <QWidget>
-#include <adplugin_manager/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
 #include "adwidgets_global.hpp"
 
 namespace adcontrols { class SampleRun; }
