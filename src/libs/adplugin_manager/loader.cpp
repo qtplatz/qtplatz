@@ -80,21 +80,13 @@ loader::populate( const wchar_t * topdir )
     boost::filesystem::path appdir( topdir );
     boost::filesystem::path modules( appdir / pluginDirectory );
     boost::filesystem::path sharedlibs( appdir / sharedDirectory );
-
-    ADDEBUG() << "loader populating : " << topdir;
-
+#ifndef NDEBUG
+    ADDEBUG() << "loader populating in directory: " << topdir;
+#endif
     if ( boost::filesystem::is_directory( modules ) ) {
 
         boost::system::error_code ec;
         boost::filesystem::recursive_directory_iterator it( modules, ec );
-
-        std::vector< std::string > exclude{
-            "mpxinterpreter"
-            //, "adtextfile"
-            //, "socfpgainterpreter"
-            //, "infitofspectrometer"
-            //, "acqrsinterpreter"
-        };
 
         if ( !ec ) {
 
@@ -107,29 +99,15 @@ loader::populate( const wchar_t * topdir )
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
 
-                        if ( auto xit = std::find( exclude.begin(), exclude.end(), stem ) != exclude.end() ) {
-                            ADDEBUG() << stem << " -- was excluded due to causing a clash -- to be fixed.";
-                            break;
-                        }
-
                         for ( auto& dir : { branch, sharedlibs } ) {
 
                             auto fname = dir / (stem.string() + debug_trail);
                             boost::system::error_code ec;
                             boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
-                            if ( !ec ) {
-                                if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) )
-                                    break;
-                            } else {
-                                ADDEBUG() << ec.message();
-                            }
-#if 0
-                            QString libname = QString::fromStdString( ( dir / stem ).string() + DEBUG_LIB_TRAIL );
-                            QLibrary lib( libname );
-                            if ( lib.load() && manager::instance()->install( lib, it->path().generic_string() ) ) {
+                            if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) )
                                 break;
-                            }
-#endif
+                            else
+                                ADDEBUG() << ec.message();
                         }
                     }
                 }

@@ -80,7 +80,10 @@ namespace adplugin {
     public:
         ~plugin_data() {
             boost::system::error_code ec;
-            ADDEBUG() << "<<<<<<< plugin_data dtor : " << dll_.location( ec ) << ", " << ec.message() << " use_count: " << plugin_.use_count();
+            plugin_ = nullptr; // release plugin before unload library
+#ifndef NDEBUG
+            ADDEBUG() << "<<< plugin_data dtor : " << dll_.location( ec ) << ", " << ec.message() << " use_count: " << plugin_.use_count();
+#endif
         }
 
         plugin_data() {
@@ -93,12 +96,8 @@ namespace adplugin {
                               , boost::dll::shared_library&& dll ) : plugin_( ptr )
                                                                    , dll_( dll ) {
             boost::system::error_code ec;
-            ADDEBUG() << ">>>>>>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
+            ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
         }
-
-        // plugin_data( const plugin_data& t ) : plugin_( t.plugin_ )
-        //                                     , dll_( t.dll_ ) {
-        // }
 
         const char * clsid() const {
             return plugin_->clsid();
@@ -127,16 +126,8 @@ namespace adplugin {
         data& operator = ( const data& ) = delete;
 
     public:
-        virtual ~data() {
-            ADDEBUG() << ">>>>>>>>>>>>>>>>>>>>>>>>> manager::data dtor";
-        }
+        virtual ~data() {}
         data() {}
-
-        void clear() {
-            std::lock_guard< std::mutex > lock( mutex_ );
-            //std::for_each( additionals_.rbegin(), additionals_.rend(), [&]( auto& p ){ p.reset(); } );
-            plugins_.clear();
-        }
 
         typedef std::vector< adplugin::plugin_ptr > vector_type;
 
@@ -148,8 +139,7 @@ namespace adplugin {
                     if ( auto plugin = factory() ) {
                         pluginspecs_.insert( adpluginspec );
                         plugin->setConfig( adpluginspec, context, lib.location().string() );
-                        //plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) );
-                        plugins_.emplace_back( std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) );
+                        plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) ); // reverse order
                         plugin->accept( *this, adpluginspec.c_str() );
                         return true;
                     }
@@ -198,7 +188,6 @@ manager::manager(void) : d_( new manager::data() )
 manager::~manager(void)
 {
     ADDEBUG() << "adplugin_manager::manager dtor";
-    //d_->clear();
     delete d_;
 }
 
