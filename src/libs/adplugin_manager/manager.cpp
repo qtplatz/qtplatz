@@ -95,8 +95,10 @@ namespace adplugin {
         explicit plugin_data( adplugin::plugin_ptr ptr
                               , boost::dll::shared_library&& dll ) : plugin_( ptr )
                                                                    , dll_( dll ) {
+#ifndef NDEBUG            
             boost::system::error_code ec;
             ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
+#endif
         }
 
         const char * clsid() const {
@@ -187,7 +189,6 @@ manager::manager(void) : d_( new manager::data() )
 
 manager::~manager(void)
 {
-    ADDEBUG() << "adplugin_manager::manager dtor";
     delete d_;
 }
 

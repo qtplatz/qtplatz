@@ -28,6 +28,7 @@
 #include "datainterpreter.hpp"
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
+#include <compiler/boost/workaround_1_69.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
