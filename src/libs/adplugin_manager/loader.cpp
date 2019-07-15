@@ -88,6 +88,14 @@ loader::populate( const wchar_t * topdir )
         boost::system::error_code ec;
         boost::filesystem::recursive_directory_iterator it( modules, ec );
 
+        std::vector< std::string > exclude{
+            "mpxinterpreter"
+            //, "adtextfile"
+            //, "socfpgainterpreter"
+            //, "infitofspectrometer"
+            //, "acqrsinterpreter"
+        };
+
         if ( !ec ) {
 
             while ( it != boost::filesystem::recursive_directory_iterator() ) {
@@ -98,6 +106,11 @@ loader::populate( const wchar_t * topdir )
 
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
+
+                        if ( auto xit = std::find( exclude.begin(), exclude.end(), stem ) != exclude.end() ) {
+                            ADDEBUG() << stem << " -- was excluded due to causing a clash -- to be fixed.";
+                            break;
+                        }
 
                         for ( auto& dir : { branch, sharedlibs } ) {
 
@@ -127,8 +140,6 @@ loader::populate( const wchar_t * topdir )
         ADDEBUG() << boost::format( "## Error: loader %1% is not a directory" ) % modules.generic_string();
         BOOST_THROW_EXCEPTION( std::runtime_error( ( boost::format( "loader %1% is not directory" ) % modules.generic_string() ).str() ) );
     }
-    //ADDEBUG() << "loader populated : " << topdir << ".";
-	manager::instance()->populated();
 }
 
 // static

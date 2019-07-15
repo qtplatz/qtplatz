@@ -19,9 +19,6 @@ add_library( ${PROJECT_NAME} SHARED
   manager.hpp
   loader.cpp
   loader.hpp
-#  lifecycleaccessor.cpp
-#  lifecycleaccessor.hpp
-#  lifecycle.hpp
   )
 
 include_directories( ${Qt5Core_INCLUDE_DIRS}  )

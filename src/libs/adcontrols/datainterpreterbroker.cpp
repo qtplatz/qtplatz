@@ -77,10 +77,6 @@ DataInterpreterBroker::~DataInterpreterBroker()
 bool
 DataInterpreterBroker::register_factory( std::shared_ptr< DataInterpreterFactory > factory, const boost::uuids::uuid& uuid, const std::string& dataInterpreterClsid )
 {
-//#ifndef NDEBUG
-    ADDEBUG() << "register_factory(" << uuid << ", " << dataInterpreterClsid << ")";
-//#endif
-
     if ( uuid == boost::uuids::uuid{ {0} } ) {
         impl::instance().factories_[ name_to_uuid( dataInterpreterClsid ) ] = std::make_pair( dataInterpreterClsid, factory );
     } else {

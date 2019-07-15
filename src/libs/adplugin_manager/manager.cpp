@@ -24,7 +24,6 @@
 
 #include "loader.hpp"
 #include "manager.hpp"
-//#include <QLibrary>
 #include <acewrapper/constants.hpp>
 #include <adcontrols/datafile_factory.hpp>
 #include <adcontrols/datafilebroker.hpp>
@@ -49,7 +48,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <fstream>
-#include <map>
+#include <set>
 #include <mutex>
 
 #if defined _MSC_VER // std::regex on VS2012 got clash due to no instance of _CType.table depend on the timing
@@ -76,19 +75,30 @@ namespace adplugin {
     class plugin_data {
         adplugin::plugin_ptr plugin_;
         boost::dll::shared_library dll_;
+        plugin_data( const plugin_data& t ) = delete;
+        const plugin_data& operator = ( const plugin_data& t ) = delete;
     public:
+        ~plugin_data() {
+            boost::system::error_code ec;
+            ADDEBUG() << "<<<<<<< plugin_data dtor : " << dll_.location( ec ) << ", " << ec.message() << " use_count: " << plugin_.use_count();
+        }
+
         plugin_data() {
         }
 
         plugin_data( adplugin::plugin_ptr ptr ) : plugin_( ptr ) {
         }
 
-        plugin_data( adplugin::plugin_ptr ptr, boost::dll::shared_library&& dll ) : plugin_( ptr )
-                                                                                  , dll_( dll ) {
+        explicit plugin_data( adplugin::plugin_ptr ptr
+                              , boost::dll::shared_library&& dll ) : plugin_( ptr )
+                                                                   , dll_( dll ) {
+            boost::system::error_code ec;
+            ADDEBUG() << ">>>>>>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
         }
 
-        plugin_data( const plugin_data& t ) : plugin_( t.plugin_ ), dll_( t.dll_ ) {
-        }
+        // plugin_data( const plugin_data& t ) : plugin_( t.plugin_ )
+        //                                     , dll_( t.dll_ ) {
+        // }
 
         const char * clsid() const {
             return plugin_->clsid();
@@ -102,10 +112,12 @@ namespace adplugin {
 
         adplugin::plugin * p() { return plugin_.get(); }
 
+        boost::filesystem::path path() const {
+            return dll_.location();
+        }
+
         bool operator == ( const adplugin::plugin& t ) const {
-            if ( plugin_.get() == &t ) // equal address
-                return true;
-            return ( plugin_->clsid() == t.clsid() &&  plugin_->iid() == t.iid() );
+            return plugin_.get() == &t; // equal address
         }
     };
 
@@ -115,14 +127,36 @@ namespace adplugin {
         data& operator = ( const data& ) = delete;
 
     public:
-        virtual ~data() {}
+        virtual ~data() {
+            ADDEBUG() << ">>>>>>>>>>>>>>>>>>>>>>>>> manager::data dtor";
+        }
         data() {}
 
-        typedef std::map< std::string, plugin_data > map_type;
-        typedef std::vector< plugin_data > vector_type;
+        void clear() {
+            std::lock_guard< std::mutex > lock( mutex_ );
+            //std::for_each( additionals_.rbegin(), additionals_.rend(), [&]( auto& p ){ p.reset(); } );
+            plugins_.clear();
+        }
 
-        // bool install( QLibrary&, const std::string& adpluginspec, const std::string& context );
-        bool install( boost::dll::shared_library&&, const std::string& adpluginspec, const std::string& context );
+        typedef std::vector< adplugin::plugin_ptr > vector_type;
+
+        bool install( boost::dll::shared_library&& lib, const std::string& adpluginspec, const std::string& context ) {
+            if ( pluginspecs_.find( adpluginspec ) != pluginspecs_.end() )
+                return false;
+            if ( lib.has( "adplugin_plugin_instance" ) ) {
+                if ( auto factory = lib.get< adplugin::plugin *() >( "adplugin_plugin_instance" ) ) {
+                    if ( auto plugin = factory() ) {
+                        pluginspecs_.insert( adpluginspec );
+                        plugin->setConfig( adpluginspec, context, lib.location().string() );
+                        //plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) );
+                        plugins_.emplace_back( std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) );
+                        plugin->accept( *this, adpluginspec.c_str() );
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         void populated();
 
@@ -137,13 +171,15 @@ namespace adplugin {
         void visit( adplugin::plugin * plugin, const char * adpluginspec );
 
     private:
-        map_type plugins_;
+        std::set< std::string > pluginspecs_;
+        std::vector< std::shared_ptr< plugin_data > > plugins_;
         vector_type additionals_; // if shared-object contains more than two plugins
+        std::mutex mutex_;
     public:
         std::vector< boost::dll::shared_library > keeper_; // avoiding unload
     };
-
 }
+
 ////////////////////////////////////
 
 manager *
@@ -161,22 +197,10 @@ manager::manager(void) : d_( new manager::data() )
 
 manager::~manager(void)
 {
+    ADDEBUG() << "adplugin_manager::manager dtor";
+    //d_->clear();
     delete d_;
 }
-
-#if 0
-bool
-manager::install( QLibrary& lib, const std::string& adpluginspec )
-{
-    std::ostringstream s;
-    std::ifstream inf( adpluginspec.c_str() );
-
-    // read contents of .adplugin file
-    std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
-
-    return d_->install( lib, adpluginspec, s.str() );
-}
-#endif
 
 bool
 manager::install( boost::dll::shared_library&& dll, const std::string& adpluginspec )
@@ -197,35 +221,17 @@ manager::isLoaded( const std::string& adpluginspec ) const
     return d_->isLoaded( adpluginspec );
 }
 
-void
-manager::populated()
-{
-	return d_->populated();
-}
-
 plugin_ptr
 manager::select_iid( const char * regex )
 {
     return d_->select_iid( regex );
 }
 
-// plugin_ptr
-// manager::select_clsid( const char * regex )
-// {
-//     return d_->select_clsid( regex );
-// }
-
 size_t
 manager::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
     return d_->select_iids( regex, vec );
 }
-
-// size_t
-// manager::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
-// {
-//     return d_->select_clsids( regex, vec );
-// }
 
 std::vector< plugin_ptr >
 manager::select_plugins( const char * regex )
@@ -247,78 +253,15 @@ manager::data::visit( adplugin::plugin * plugin, const char * adpluginspec )
         return;
 
     // make it unique
-	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){ return d.second == (*plugin); });
-	if ( it == plugins_.end() ) {
-		additionals_.emplace_back( plugin_data( plugin->pThis() ) );
-    } else {
-    }
-}
-
-void
-manager::data::populated()
-{
-#if ( defined _DEBUG || defined DEBUG ) && 0
-    adportable::debug(__FILE__, __LINE__) << "==> populated";
-	std::for_each( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){
-            adportable::debug(__FILE__, __LINE__) << "\t" << d.second.iid();
-        });
-    adportable::debug(__FILE__, __LINE__) << "<== populated";
-#endif
+	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const auto& d){ return *d == (*plugin); });
+	if ( it == plugins_.end() )
+		additionals_.emplace_back( plugin->pThis() );
 }
 
 bool
 manager::data::isLoaded( const std::string& adpluginspec ) const
 {
-    return plugins_.find( adpluginspec ) != plugins_.end();
-}
-
-#if 0
-bool
-manager::data::install( QLibrary& lib, const std::string& adpluginspec, const std::string& specxml )
-{
-    if ( plugins_.find( adpluginspec ) != plugins_.end() )
-        return true; // already in, so that does not need unload() call
-
-    typedef adplugin::plugin * ( *factory_type )();
-
-    boost::filesystem::path path( lib.fileName().toStdString() );
-
-    if ( auto factory = reinterpret_cast< factory_type >( lib.resolve( "adplugin_plugin_instance" ) ) ) {
-
-        //if ( adplugin::plugin * pptr = factory() ) {
-        if ( auto plugin = factory() ) {
-
-            plugin->setConfig( adpluginspec, specxml, path.string() );
-            plugins_[ adpluginspec ] = plugin_data( plugin->pThis() );
-            plugin->accept( *this, adpluginspec.c_str() );
-
-            return true;
-        }
-
-    }
-    return false;
-}
-#endif
-
-bool
-manager::data::install( boost::dll::shared_library&& lib, const std::string& adpluginspec, const std::string& specxml )
-{
-    if ( plugins_.find( adpluginspec ) != plugins_.end() )
-        return true; // already in, so that does not need unload() call
-
-    if ( lib.has( "adplugin_plugin_instance" ) ) {
-
-        if ( auto factory = lib.get< adplugin::plugin *() >( "adplugin_plugin_instance" ) ) {
-
-            if ( auto plugin = factory() ) {
-                plugin->setConfig( adpluginspec, specxml, lib.location().string() );
-                plugins_[ adpluginspec ] = plugin_data( plugin->pThis(), std::move( lib ) );
-                plugin->accept( *this, adpluginspec.c_str() );
-                return true;
-            }
-        }
-    }
-    return false;
+    return pluginspecs_.find( adpluginspec ) != pluginspecs_.end();
 }
 
 
@@ -335,11 +278,9 @@ manager::data::select_iid( const char * regex )
     using namespace std;
 #endif
 
-	auto itr = std::find_if( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
-            return regex_match( m.second.iid(), matches, re );
-        });
-	if ( itr != plugins_.end() )
-		return itr->second.plugin();
+	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&]( const auto& p ){ return regex_match( p->iid(), matches, re ); });
+	if ( it != plugins_.end() )
+		return (*it)->plugin();
     return 0;
 }
 
@@ -356,10 +297,11 @@ manager::data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
     using namespace std;
 #endif
 
-	std::for_each( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
-            if ( regex_match( m.second.iid(), matches, re ) )
-                vec.push_back( m.second.plugin() );
-		} );
+	std::for_each( plugins_.begin(), plugins_.end()
+                   , [&]( const auto& p ){
+                         if ( regex_match( p->iid(), matches, re ) )
+                             vec.emplace_back( p->plugin() );
+                     } );
     return vec.size();
 }
 
@@ -376,9 +318,10 @@ manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
     using namespace std;
 #endif
 
-	std::for_each( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
-            if ( regex_match( m.first.c_str(), matches, re ) )
-                vec.push_back( m.second.plugin() );
+	std::for_each( plugins_.begin(), plugins_.end()
+                   , [&]( const auto& m ){
+                         if ( regex_match( m->path().string().c_str(), matches, re ) )
+                             vec.emplace_back( m->plugin() );
 		} );
     return vec.size();
 }
@@ -388,8 +331,6 @@ manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
 void
 manager::standalone_initialize()
 {
-    //auto apath = boost::filesystem::canonical( boost::dll::program_location() ).parent_path();
-    //auto tpath = apath.parent_path();
     auto tpath = boost::dll::this_line_location().parent_path().parent_path().parent_path();
 
 #ifndef NDEBUG
@@ -403,11 +344,12 @@ manager::standalone_initialize()
     // spectrometers
 	std::vector< adplugin::plugin_ptr > spectrometers;
 	if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
-		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){
-                adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
-                if ( factory )
-                    adcontrols::MassSpectrometerBroker::register_factory( factory );
-            });
+		std::for_each( spectrometers.begin()
+                       , spectrometers.end()
+                       , []( const adplugin::plugin_ptr& d ){
+                             if ( auto factory = d->query_interface< adcontrols::massspectrometer_factory >() )
+                                 adcontrols::MassSpectrometerBroker::register_factory( factory );
+                         });
 	}
 
     // dataproverders
@@ -416,14 +358,15 @@ manager::standalone_initialize()
 
     if ( adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
 
-        std::for_each( dataproviders.begin(), dataproviders.end(), [&] ( const adplugin::plugin_ptr& d ) {
-                adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
-                if ( factory ) {
-                    adcontrols::datafileBroker::register_factory( factory, d->clsid() );
-                    if ( factory->mimeTypes() )
-                        mime.push_back( factory->mimeTypes() );
-                }
-            } );
+        std::for_each( dataproviders.begin()
+                       , dataproviders.end()
+                       , [&] ( const adplugin::plugin_ptr& d ) {
+                             if ( auto factory = d->query_interface< adcontrols::datafile_factory >() ) {
+                                 adcontrols::datafileBroker::register_factory( factory, d->clsid() );
+                                 if ( factory->mimeTypes() )
+                                     mime.emplace_back( factory->mimeTypes() );
+                             }
+                         });
     }
 }
 

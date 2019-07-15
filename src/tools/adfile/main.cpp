@@ -49,6 +49,8 @@ namespace po = boost::program_options;
 int
 main(int argc, char *argv[])
 {
+    adplugin::manager::instance();
+
     po::variables_map vm;
     po::options_description description( "counting" );
     {
@@ -60,6 +62,7 @@ main(int argc, char *argv[])
             ( "rms",          "rms list" )
             ( "pp",           po::value< double >(), "find p-p delta larger than value" )
             ( "at",           po::value< uint32_t >()->default_value(100), "rms start point in the waveform" )
+            ( "pause",        "pause until key hit" )
             ;
 
         po::positional_options_description p;
@@ -85,25 +88,30 @@ main(int argc, char *argv[])
 
     const uint32_t startPoint = vm[ "at" ].as< uint32_t >();
 
+    if ( vm.count( "pause" ) ) {
+        std::cerr << "------------------------------------ pause ---------------------------------------" << std::endl;
+        getchar();
+    }
+
     if ( vm.count("args") ) {
-        
+
         for ( auto& fname: vm[ "args" ].as< std::vector< std::string > >() ) {
-            
+
             boost::filesystem::path path( fname );
             if ( path.extension() == ".adfs" ) {
 
                 std::cout << path.string() << std::endl;
-                
+
                 if ( auto file = adcontrols::datafile::open( path.wstring(), false ) ) {
                     tools::dataprocessor processor;
                     file->accept( processor );
                     if ( processor.raw() ) {
                         for ( auto reader: processor.raw()->dataReaders() ) {
-                            
+
                             if ( vm.count( "list-readers" ) ) {
                                 std::cout << reader->objtext() << ", " << reader->display_name() << ", " << reader->objuuid() << std::endl;
                             }
-                            
+
                             if ( vm.count( "rms" ) || vm.count("device-data" ) ) {
                                 if ( ( reader->objtext() == "1.u5303a.ms-cheminfo.com" ) || // u5303a waveform (either average, digitizer mode)
                                      ( reader->objtext() == "tdcdoc.waveform.1.u5303a.ms-cheminfo.com" ) ) { // software averaged waveform
@@ -113,7 +121,7 @@ main(int argc, char *argv[])
 
                                     for ( auto it = reader->begin(); it != reader->end(); ++it ) {
                                         if ( auto ms = reader->readSpectrum( it ) ) {
-                                            
+
                                             if ( vm.count( "device-data" ) ) {
                                                 acqrscontrols::u5303a::device_data device_data;
                                                 if ( adportable::binary::deserialize<>()( device_data
@@ -148,7 +156,7 @@ main(int argc, char *argv[])
                                                 double epoch_time = double( ms->getMSProperty().timeSinceEpoch() ) * 1.0e-9;
                                                 double tic(0), dbase(0), rms(0);
                                                 const double * intensities = ms->getIntensityArray();
-                                            
+
                                                 std::tie(tic, dbase, rms) = adportable::spectrum_processor::tic( ms->size(), intensities, 5 );
 
                                                 // const size_t samplePoints = 10;
@@ -171,7 +179,7 @@ main(int argc, char *argv[])
                                                     % rms
                                                     % pp
                                                           << boost::format( "\t%8.5f\t%8.5f" ) % ppv[1] % ppv[2];
-                                                
+
                                                 if ( find_pp && pp > pp_threshold )
                                                     std::cout << "\t *** '>' " << pp_threshold;
                                                 std::cout << std::endl;
@@ -186,5 +194,5 @@ main(int argc, char *argv[])
             }
         }
     }
+    std::cerr << "------------------------------------ exit ---------------------------------------" << std::endl;
 }
-

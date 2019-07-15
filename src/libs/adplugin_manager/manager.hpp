@@ -54,7 +54,6 @@ namespace adplugin {
         class data;
         data * d_;
 
-    protected:
         manager();
         ~manager();
 
@@ -66,8 +65,6 @@ namespace adplugin {
         bool install( boost::dll::shared_library&&, const std::string& adpluginspec );
 
         bool isLoaded( const std::string& adpluginspec ) const;
-
-		void populated();
 
         plugin_ptr select_iid( const char * regex );
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& vec );
