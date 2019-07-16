@@ -233,7 +233,7 @@
 		</dict>
 	</array>
         <key>NSHumanReadableCopyright</key>
-        <string>(C) 2013-2014 MS-Cheminformatics LLC</string>
+        <string>(C) 2013-2019 MS-Cheminformatics LLC</string>
 	<key>CFBundleIconFile</key>
 	<string>$$ICON</string>
 	<key>CFBundlePackageType</key>

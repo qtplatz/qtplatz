@@ -28,11 +28,6 @@
 #include <adplugin/constants.hpp>
 #include <boost/filesystem.hpp>
 #include <adlog/logger.hpp>
-// #include <QCoreApplication>
-// #include <QFileInfo>
-// #include <QLibrary>
-// #include <QString>
-// #include <QStringList>
 #include <boost/format.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/version.hpp>
@@ -40,7 +35,7 @@
 
 using namespace adplugin;
 
-#if defined _DEBUG || defined DEBUG
+#if defined _DEBUG || defined DEBUG || !defined NDEBUG
 # if defined WIN32
 #  define DEBUG_LIB_TRAIL "d" // xyzd.dll
 constexpr static const char * const debug_trail = "d";
@@ -107,7 +102,7 @@ loader::populate( const wchar_t * topdir )
                             if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) )
                                 break;
                             else
-                                ADDEBUG() << ec.message();
+                                ADDEBUG() << "loading\n" << fname << "\n" << ec.message();
                         }
                     }
                 }

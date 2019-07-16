@@ -35,6 +35,8 @@ else()
   set ( suffix ".so" )
 endif()
 
+set ( CMAKE_INSTALL_RPATH "@loader_path/../../../../../Contents/Frameworks" )
+
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES
   PREFIX ""
@@ -43,6 +45,13 @@ set_target_properties( ${PROJECT_NAME}
   LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PYTHON_MODULE_DIR}
   LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PYTHON_MODULE_DIR}
   )
+
+if ( APPLE )
+  set_target_properties( ${PROJECT_NAME}
+    PROPERTIES
+    INSTALL_RPATH "@loader_path/../../../../../Contents/Frameworks"
+    )
+endif()
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION "${PYTHON_DIST_PACKAGES}/qtplatz" COMPONENT modules

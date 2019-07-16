@@ -82,7 +82,7 @@ namespace adplugin {
             boost::system::error_code ec;
             plugin_ = nullptr; // release plugin before unload library
 #ifndef NDEBUG
-            ADDEBUG() << "<<< plugin_data dtor : " << dll_.location( ec ) << ", " << ec.message() << " use_count: " << plugin_.use_count();
+            ADDEBUG() << "<<< plugin_data dtor : " << dll_.location( ec ) << "\t" << (ec ? ec.message() : "Success");
 #endif
         }
 

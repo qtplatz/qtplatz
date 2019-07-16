@@ -41,7 +41,13 @@ set( SOURCES
   )
 
 # remove 'WIN32' below for run with console
-add_executable( qtplatz WIN32
+if ( APPLE )
+  set ( BUNDLE MACOSX_BUNDLE )
+elseif ( WIN32 )
+  set ( BUNDLE WIN32 )
+endif()
+
+add_executable( qtplatz ${BUNDLE}
   ${SOURCES}  
   ${lockedfile_SOURCES}
   ${${PROJECT_NAME}_Resources}
@@ -57,5 +63,9 @@ target_link_libraries(
   Qt5::Network
 )
 
-install( TARGETS qtplatz RUNTIME DESTINATION bin COMPONENT applications )
+install( TARGETS qtplatz
+  RUNTIME DESTINATION bin COMPONENT applications
+  BUNDLE DESTINATION bin COMPONENT applications
+  )
+
 install( FILES qtcreator.ico DESTINATION share/qtplatz COMPONENT applications )

@@ -14,12 +14,14 @@ default:
 	@echo "################################################"
 	@echo "make app"
 	@echo "make deployqt"
+	@echo "make rpath"
 	@echo "make dmg"
 	@echo
 
 world:
 	make app
 	make deployqt
+	make rpath
 	make dmg
 
 stage:
@@ -28,7 +30,7 @@ stage:
 # all: qtplatz.app
 app:
 	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c . | tar xvf -
-	find @Boost_LIBRARY_DIRS@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
+#	find @Boost_LIBRARY_DIRS@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
 
 clean:
 	rm -rf qtplatz.app ${TARGET}
@@ -58,19 +60,24 @@ otool:
 test:
 	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/adfile
 
-rpath:
+show_rpath:
 	for i in qtplatz.app/Contents/MacOS/*; do \
 		echo $$i; \
 		otool -l $$i | grep RPATH -A2; \
 	done
 
-add_rpath:
+rpath:
 	for i in adfile adimport adurlx eventtool formula_parser; do \
 		echo $$i; \
+		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ qtplatz.app/Contents/MacOS/$$i; \
+		install_name_tool -delete_rpath @QTDIR@/lib qtplatz.app/Contents/MacOS/$$i; \
+		install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ qtplatz.app/Contents/MacOS/$$i; \
 		install_name_tool -add_rpath @executable_path/../Frameworks qtplatz.app/Contents/MacOS/$$i; \
 	done
 	for i in qtplatz.app/Library/Python/3.7/site-packages/qtplatz/*.so; do \
 		echo $$i; \
+		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ $$i; \
+		install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ $$i; \
 		install_name_tool -add_rpath @loader_path/../../../../../Contents/Frameworks $$i; \
 	done
 

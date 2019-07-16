@@ -20,7 +20,7 @@ set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/makefile.in"
-  "${CMAKE_BINARY_DIR}/package/makefile"
+  "${CMAKE_BINARY_DIR}/package/Makefile"
   @ONLY
   )
 

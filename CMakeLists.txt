@@ -1,7 +1,7 @@
 #
 cmake_minimum_required ( VERSION 3.7 )  # for GREATER_EQUAL
 cmake_policy( SET CMP0020 NEW )
-cmake_policy( SET CMP0042 NEW )
+cmake_policy( SET CMP0042 NEW ) # MAC OSX RPATH
 cmake_policy( SET CMP0053 NEW )
 
 project (qtplatz)
@@ -53,7 +53,7 @@ include (version)
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
 elseif( APPLE )
-  set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
+  set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/package/bin" )
 else()
   set( CMAKE_INSTALL_PREFIX "/opt/qtplatz" )
 endif()
@@ -68,6 +68,7 @@ if ( APPLE )
   set( CMAKE_SHARED_MODULE_SUFFIX ".dylib" )
   set( CMAKE_MACOSX_RPATH 1 )
   set( CMAKE_SKIP_BUILD_RPATH  FALSE )
+  set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )  
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
   set( QTPLATZ_PLUGIN_DESTINATION bin/qtplatz.app/Contents/PlugIns )
 
