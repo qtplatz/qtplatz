@@ -54,3 +54,24 @@ otool:
 	done
 	@echo "-------- ---------"
 	otool -L ${PLUGINS}/platforms/libqcocoa.dylib
+
+test:
+	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/adfile
+
+rpath:
+	for i in qtplatz.app/Contents/MacOS/*; do \
+		echo $$i; \
+		otool -l $$i | grep RPATH -A2; \
+	done
+
+add_rpath:
+	for i in adfile adimport adurlx eventtool formula_parser; do \
+		echo $$i; \
+		install_name_tool -add_rpath @executable_path/../Frameworks qtplatz.app/Contents/MacOS/$$i; \
+	done
+	for i in qtplatz.app/Library/Python/3.7/site-packages/qtplatz/*.so; do \
+		echo $$i; \
+		install_name_tool -add_rpath @loader_path/../../../../../Contents/Frameworks $$i; \
+	done
+
+
