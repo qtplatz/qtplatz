@@ -27,6 +27,7 @@
 #include <acqrscontrols/acqrscontrols_global.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/tdcbase.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <atomic>
 #include <array>

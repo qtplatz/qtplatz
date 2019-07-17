@@ -26,6 +26,7 @@
 #include "serializer.hpp"
 #include "modulecap.hpp"
 #include "eventcap.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>

@@ -25,6 +25,7 @@
 #include "adtracemethod.hpp"
 #include "serializer.hpp"
 #include <adportable/debug.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid_generators.hpp>

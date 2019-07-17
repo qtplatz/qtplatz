@@ -54,6 +54,8 @@ namespace adcontrols {
         //
         static std::vector< std::pair< boost::uuids::uuid, std::string > > installed_uuids();
 
+        static void clear_factories();
+
     private:
         class impl;
     };

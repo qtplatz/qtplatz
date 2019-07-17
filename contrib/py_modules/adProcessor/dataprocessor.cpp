@@ -39,6 +39,7 @@
 #include <adportable/utf.hpp>
 #include <adprocessor/dataprocessor.hpp>
 #include <boost/filesystem.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/python.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>

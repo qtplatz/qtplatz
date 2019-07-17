@@ -32,6 +32,7 @@
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

@@ -93,16 +93,18 @@ loader::populate( const wchar_t * topdir )
 
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
-
-                        for ( auto& dir : { branch, sharedlibs } ) {
+                        
+                        for ( auto& dir : { branch /*, sharedlibs */ } ) {
 
                             auto fname = dir / (stem.string() + debug_trail);
                             boost::system::error_code ec;
                             boost::dll::shared_library dll( fname, boost::dll::load_mode::append_decorations, ec );
-                            if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) )
+                            if ( dll && manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
+                                ADDEBUG() << "loading\n\t" << dll.location() << "\tSuccess";
                                 break;
-                            else
-                                ADDEBUG() << "loading\n" << fname << "\n" << ec.message();
+                            } else {
+                                ADDEBUG() << "loading\n\t" << fname << "\t" << ec.message();
+                            }
                         }
                     }
                 }
@@ -145,6 +147,7 @@ loader::loadLibrary( const std::string& stem )
             return factory();
         }
     }
+    return nullptr;
 }
 
 boost::dll::shared_library

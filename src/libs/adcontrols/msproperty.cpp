@@ -33,6 +33,7 @@
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/unique_ptr.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/shared_ptr.hpp>

@@ -63,6 +63,15 @@ target_link_libraries(
   Qt5::Network
 )
 
+if (APPLE)
+  set_target_properties( qtplatz PROPERTIES
+    MACOSX_BUNDLE ON
+    MACOSX_BUNDLE_BUNDLE_NAME "QtPlatz"
+    MACOSX_BUNDLE_ICON_FILE "${CURRENT_SOURCE_DIR}/qtcreator.ico"
+    MACOSX_BUNDLE_BUNDLE_IDENTIFIER "com.ms-cheminfo.qtplatz"
+    )
+endif()
+    
 install( TARGETS qtplatz
   RUNTIME DESTINATION bin COMPONENT applications
   BUNDLE DESTINATION bin COMPONENT applications

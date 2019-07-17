@@ -30,6 +30,7 @@
 
 #include "signalobserver.hpp"
 #include <adutils/acquiredconf.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <atomic>

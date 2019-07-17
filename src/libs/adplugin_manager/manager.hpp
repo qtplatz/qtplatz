@@ -51,8 +51,8 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT manager {
 
-        class data;
-        data * d_;
+        class impl;
+        impl * d_;
 
         manager();
         ~manager();

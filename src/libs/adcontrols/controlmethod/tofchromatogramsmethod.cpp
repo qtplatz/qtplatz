@@ -25,6 +25,7 @@
 #include "tofchromatogramsmethod.hpp"
 #include "tofchromatogrammethod.hpp"
 #include "serializer.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>

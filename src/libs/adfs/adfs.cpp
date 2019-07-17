@@ -27,8 +27,8 @@
 #include "sqlite.hpp"
 #include "sqlite3.h"
 #include <iostream>
+#include <compiler/boost/workaround.hpp>
 #include <boost/filesystem.hpp>
-
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>

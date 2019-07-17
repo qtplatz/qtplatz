@@ -30,6 +30,7 @@
 #include "constants.hpp"
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <algorithm>
@@ -38,99 +39,6 @@
 
 using namespace adcontrols;
 
-namespace adcontrols {
-
-#if 0
-    class MassSpectrometerBrokerImpl;
-	class massspectrometer_factory;
-    
-    //-------------------------
-    //-------------------------
-    class MassSpectrometerBrokerImpl : public massSpectrometerBroker {
-        MassSpectrometerBrokerImpl() {}
-    public:
-        ~MassSpectrometerBrokerImpl() {}
-
-        static MassSpectrometerBrokerImpl * instance() {
-            static MassSpectrometerBrokerImpl __instance;
-            return &__instance;
-        }
-        
-        bool register_factory( massspectrometer_factory* factory, const std::wstring& name ) {
-            factories_[name] = factory;
-            try {
-                MassSpectrometerBroker::register_factory( factory, MassSpectrometerBroker::name_to_uuid( name ), adportable::utf::to_utf8( name ) );
-            } catch ( std::bad_weak_ptr& ex ) {
-                ADDEBUG() << ex.what() << " for class " << name;
-            }
-            return true;
-        }
-        
-        massspectrometer_factory * find( const std::wstring& name ) {
-            auto it = factories_.find( name );
-            if ( it == factories_.end() ) {
-                it = std::find_if( factories_.begin(), factories_.end(), [name] ( decltype(factories_)::value_type& a ) {
-                    return a.second->is_canonical_name( name.c_str() );
-                } );
-            }
-            if ( it != factories_.end() )
-                return it->second;
-            return 0;
-        }
-
-        void names( std::vector< std::wstring >& list ) {
-            for ( auto& factory: factories_ )
-                list.push_back( factory.first );
-        }
-        
-        void visit( adcontrols::MassSpectrometer& );
-        
-    private:
-        std::map< std::wstring, massspectrometer_factory *> factories_;
-    };
-#endif
-
-}
-
-#if 0
-void
-MassSpectrometerBrokerImpl::visit( adcontrols::MassSpectrometer& )
-{
-    //adcontrols::MassSpectrometerBroker::factory_type factory = impl.factory();
-    //register_factory( factory, impl.name() );
-}
-
-/////////////////////////////////////////////
-
-massSpectrometerBroker::massSpectrometerBroker(void)
-{
-}
-
-massSpectrometerBroker::~massSpectrometerBroker(void)
-{
-}
-
-bool
-massSpectrometerBroker::register_factory( massspectrometer_factory * factory, const std::wstring& name )
-{
-    return MassSpectrometerBrokerImpl::instance()->register_factory( factory, name );
-}
-
-massspectrometer_factory*
-massSpectrometerBroker::find( const std::wstring& name )
-{
-	return MassSpectrometerBrokerImpl::instance()->find( name );
-}
-
-// static
-std::vector< std::wstring >
-massSpectrometerBroker::names()
-{
-    std::vector< std::wstring > vec;
-	MassSpectrometerBrokerImpl::instance()->names( vec );
-    return vec;
-}
-#endif
 
 ////////////////////////////////////////////////////////////////
 /////// new generation
@@ -144,6 +52,20 @@ namespace adcontrols {
             static impl __impl;
             return __impl;
         }
+
+        ~impl() {
+            if ( !factories_.empty() )
+                clear();
+        }
+
+        void clear() {
+            for ( auto& a: factories_ ) {
+                ADDEBUG() << "deleting : " << a.second.first;
+                a.second.second = nullptr;
+            }
+            factories_.clear();
+        }
+
         typedef std::pair< std::string, std::shared_ptr< massspectrometer_factory > > value_type; 
 
         std::map< boost::uuids::uuid, value_type > factories_;
@@ -157,6 +79,13 @@ MassSpectrometerBroker::MassSpectrometerBroker()
 
 MassSpectrometerBroker::~MassSpectrometerBroker()
 {
+}
+
+//static
+void
+MassSpectrometerBroker::clear_factories()
+{
+    impl::instance().clear();
 }
 
 //static

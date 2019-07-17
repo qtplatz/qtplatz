@@ -32,7 +32,7 @@
 #include "peakresult.hpp"
 #include "peaks.hpp"
 #include <adportable/debug.hpp>
-
+#include <compiler/boost/workaround.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/property_tree/ptree.hpp>

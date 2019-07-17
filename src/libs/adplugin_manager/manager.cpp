@@ -122,14 +122,18 @@ namespace adplugin {
         }
     };
 
-    class manager::data : adplugin::visitor {
+    class manager::impl : adplugin::visitor {
 
-        data( const data& ) = delete;
-        data& operator = ( const data& ) = delete;
+        impl( const impl& ) = delete;
+        impl& operator = ( const impl ) = delete;
 
     public:
-        virtual ~data() {}
-        data() {}
+        virtual ~impl() {
+            // clear all factories before unload library
+            adcontrols::MassSpectrometerBroker::clear_factories();
+            adcontrols::datafileBroker::clear_factories();
+        }
+        impl() {}
 
         typedef std::vector< adplugin::plugin_ptr > vector_type;
 
@@ -157,10 +161,20 @@ namespace adplugin {
 
         size_t select_plugins( const char * regex, std::vector< plugin_ptr >& ); // added 2016-07-05, for mpxdatainterpreter
 
-        bool isLoaded( const std::string& adpluginspec ) const;
+        bool isLoaded( const std::string& adpluginspec ) const {
+            return pluginspecs_.find( adpluginspec ) != pluginspecs_.end();
+        }
 
         // visitor
-        void visit( adplugin::plugin * plugin, const char * adpluginspec );
+        // allow additional (subsidary) pulugin install
+        void visit( adplugin::plugin * plugin, const char * adpluginspec ) {
+            if ( adpluginspec == 0 || plugin == 0 )
+                return;
+            // make it unique
+            auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const auto& d){ return *d == (*plugin); });
+            if ( it == plugins_.end() )
+                additionals_.emplace_back( plugin->pThis() );
+        }
 
     private:
         std::set< std::string > pluginspecs_;
@@ -183,7 +197,7 @@ manager::instance()
 
 //////////////////////
 
-manager::manager(void) : d_( new manager::data() )
+manager::manager(void) : d_( new manager::impl() )
 {
 }
 
@@ -234,29 +248,8 @@ manager::select_plugins( const char * regex )
 }
 
 
-//////////////////
-// allow additional (subsidary) pulugin install
-void
-manager::data::visit( adplugin::plugin * plugin, const char * adpluginspec )
-{
-    if ( adpluginspec == 0 || plugin == 0 )
-        return;
-
-    // make it unique
-	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const auto& d){ return *d == (*plugin); });
-	if ( it == plugins_.end() )
-		additionals_.emplace_back( plugin->pThis() );
-}
-
-bool
-manager::data::isLoaded( const std::string& adpluginspec ) const
-{
-    return pluginspecs_.find( adpluginspec ) != pluginspecs_.end();
-}
-
-
 plugin_ptr
-manager::data::select_iid( const char * regex )
+manager::impl::select_iid( const char * regex )
 {
 #if defined BOOST_REGEX
 	boost::regex re( regex );
@@ -275,7 +268,7 @@ manager::data::select_iid( const char * regex )
 }
 
 size_t
-manager::data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
+manager::impl::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
 #ifdef BOOST_REGEX
 	boost::regex re( regex );
@@ -296,7 +289,7 @@ manager::data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 }
 
 size_t
-manager::data::select_plugins( const char * regex, std::vector< plugin_ptr >& vec )
+manager::impl::select_plugins( const char * regex, std::vector< plugin_ptr >& vec )
 {
 #ifdef BOOST_REGEX
 	boost::regex re( regex );

@@ -27,6 +27,7 @@
 #include "mspeak.hpp"
 #include "mspeakinfoitem.hpp"
 #include "scanlaw.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace adcontrols;

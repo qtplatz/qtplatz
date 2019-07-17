@@ -27,6 +27,7 @@
 #include <AcqirisD1Import.h>
 #include <vector>
 #include <ratio>
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <memory>

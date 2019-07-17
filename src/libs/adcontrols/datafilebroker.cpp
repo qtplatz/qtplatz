@@ -44,7 +44,9 @@ namespace adcontrols {
         static std::atomic<datafileBrokerImpl *> instance_;
         static std::once_flag flag;
     public:
-        ~datafileBrokerImpl() {}
+        ~datafileBrokerImpl() {
+            ADDEBUG() << "###### datafileBrokerImpl -- dtor ######### " << this;
+        }
 
         bool register_factory( datafile_factory * factory, const std::string& uniqname );
 
@@ -57,6 +59,9 @@ namespace adcontrols {
 
         const std::map< std::string, std::shared_ptr< datafile_factory > >& factories() const { return factories_; }
 
+        void clear() {
+            // don't delete since factory is allocated in each shared library
+        }
     private:
         std::map < std::string, std::shared_ptr< datafile_factory > > factories_;
     };
@@ -76,6 +81,7 @@ datafileBrokerImpl::instance()
 
 datafileBroker::~datafileBroker()
 {
+    ADDEBUG() << "###### datafileBroker -- dtor ######### " << this;
 }
 
 datafileBroker::datafileBroker()
@@ -109,6 +115,13 @@ datafile *
 datafileBroker::create( const std::wstring& filename, error_code * ec )
 {
     return datafileBrokerImpl::instance()->create( filename, ec );
+}
+
+//static
+void
+datafileBroker::clear_factories()
+{
+    datafileBrokerImpl::instance()->clear();
 }
 
 //////////////////////////

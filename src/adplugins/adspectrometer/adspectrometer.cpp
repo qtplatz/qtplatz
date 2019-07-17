@@ -28,6 +28,7 @@
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adportable/debug.hpp>
 #include <adplugin/plugin.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/exception/all.hpp>
 #include <memory>

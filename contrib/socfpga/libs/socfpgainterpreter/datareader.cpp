@@ -42,6 +42,7 @@
 #include <adportable/utf.hpp>
 #include <adutils/acquiredconf_v3.hpp>
 #include <adutils/inifile.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/format.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>

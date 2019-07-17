@@ -25,10 +25,11 @@
 #include "traceobserver.hpp"
 #include "advalue.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
 #include <boost/version.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 

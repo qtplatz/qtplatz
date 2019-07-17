@@ -29,6 +29,7 @@
 #include <adportable/base64.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/utility.hpp>

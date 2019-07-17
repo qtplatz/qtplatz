@@ -25,6 +25,7 @@
 
 #include "apiposix.hpp"
 #include <adportable/string.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

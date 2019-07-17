@@ -25,6 +25,7 @@
 
 #include "adcontrols_global.h"
 #include "constants.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 

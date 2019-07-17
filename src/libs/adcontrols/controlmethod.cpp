@@ -30,6 +30,7 @@
 #include <adportable/float.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/any.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/xml_woarchive.hpp>

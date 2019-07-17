@@ -43,6 +43,7 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/polfit.hpp>
 #include "constants.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <cmath>
 #include <cstdlib>

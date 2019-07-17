@@ -6,6 +6,9 @@ PLUGINS    = ./qtplatz.app/Contents/PlugIns
 TARGET     = qtplatz-@QTPLATZ_VERSION@.dmg
 QTPLATZ_SOURCE_DIR = @QTPLATZ_SOURCE_DIR@
 
+ADPLUGIN:=$(wildcard qtplatz.app/Contents/PlugIns/MS-Cheminformatics/*.adplugin)
+PLUGIN:=$(notdir $(basename $(ADPLUGIN) ))
+
 default:
 	@echo "################################################"
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
@@ -24,22 +27,19 @@ world:
 	make rpath
 	make dmg
 
-stage:
-	make app
-
 # all: qtplatz.app
 app:
-	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c . | tar xvf -
-#	find @Boost_LIBRARY_DIRS@ -name "libboost_*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
+	tar --exclude "*_debug.*.dylib" --exclude "*_debug.*.a" -C ../bin -c qtplatz.app | tar xvf -
+	find @Boost_LIBRARY_DIRS@ -name "libboost_python*.dylib" -exec cp -p {} qtplatz.app/Contents/Frameworks/ \;
+
+deployqt:
+	${DEPLOYQT} ./qtplatz.app -verbose=2
 
 clean:
 	rm -rf qtplatz.app ${TARGET}
 
 translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
-
-deployqt:
-	${DEPLOYQT} ./qtplatz.app -verbose=2
 
 dmg: qtplatz.app translations
 	hdiutil create -size 250m ${TARGET} -srcfolder ./qtplatz.app
@@ -51,34 +51,28 @@ otool:
 	otool -L qtplatz.app/Contents/Plugins/QtProject/*.dylib
 	otool -L qtplatz.app/Contents/Frameworks/*.dylib
 	otool -L qtplatz.app/Contents/Plugins/MS-Cheminformatics/*.dylib
-	for i in QtCore QtGui QtWidgets QtPrintSupport; do \
-		otool -L ${FRAMEWORKS}/$$i.framework/Versions/5/$$i; \
-	done
-	@echo "-------- ---------"
-	otool -L ${PLUGINS}/platforms/libqcocoa.dylib
 
 test:
-	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/adfile
+	DYLD_PRINT_LIBRARIES=1 qtplatz.app/Contents/MacOS/qtplatz
 
-show_rpath:
+list_plugin:
+	for i in ${PLUGIN}; do echo $$i; done
+
+liat_rpath:
 	for i in qtplatz.app/Contents/MacOS/*; do \
 		echo $$i; \
 		otool -l $$i | grep RPATH -A2; \
 	done
 
 rpath:
-	for i in adfile adimport adurlx eventtool formula_parser; do \
-		echo $$i; \
-		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ qtplatz.app/Contents/MacOS/$$i; \
-		install_name_tool -delete_rpath @QTDIR@/lib qtplatz.app/Contents/MacOS/$$i; \
-		install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ qtplatz.app/Contents/MacOS/$$i; \
-		install_name_tool -add_rpath @executable_path/../Frameworks qtplatz.app/Contents/MacOS/$$i; \
-	done
 	for i in qtplatz.app/Library/Python/3.7/site-packages/qtplatz/*.so; do \
 		echo $$i; \
 		install_name_tool -delete_rpath @Boost_LIBRARY_DIRS@ $$i; \
 		install_name_tool -delete_rpath @CMAKE_LIBRARY_OUTPUT_DIRECTORY@ $$i; \
 		install_name_tool -add_rpath @loader_path/../../../../../Contents/Frameworks $$i; \
+	done
+	for i in ${PLUGIN}; do \
+		install_name_tool -add_rpath @loader_path/../../Frameworks qtplatz.app/Contents/PlugIns/MS-Cheminformatics/lib$$i.dylib; \
 	done
 
 

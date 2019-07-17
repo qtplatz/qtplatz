@@ -27,6 +27,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/datareader.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/python.hpp>
 #include <boost/uuid/uuid.hpp>

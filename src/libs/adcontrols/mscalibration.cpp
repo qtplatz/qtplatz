@@ -26,6 +26,7 @@
 #include "massspectrometer.hpp"
 #include "metric/prefix.hpp"
 #include "mscalibration.hpp"
+#include <compiler/boost/workaround.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>

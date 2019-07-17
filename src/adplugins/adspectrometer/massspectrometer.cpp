@@ -35,6 +35,7 @@
 #include <adportable/serializer.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adlog/logger.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
