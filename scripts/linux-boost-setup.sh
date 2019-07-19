@@ -63,10 +63,18 @@ function boost_build {
 			  PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
 			  PYTHON=$(python3 -c "import sys; print(sys.executable)")
 			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON}
-			  echo ./b2 -j $nproc address-model=64 toolset=gcc threading=multi cflags=-fPIC cxxflags="-fPIC -std=c++17" include=${PYTHON_INCLUDE}
+			  echo ./b2 -j $nproc address-model=64 toolset=gcc threading=multi cflags=-fPIC cxxflags="-fPIC -std=c++17" \
+				   include=${PYTHON_INCLUDE} \
+				   install
+#				   -sBZIP2_SOURCE=${BZIP2_SOURCE} \
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-python=${PYTHON} &&
-			  	  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags="-fPIC -std=c++17" include=${PYTHON_INCLUDE} # -sBZIP2_SOURCE=${BZIP2_SOURCE}
+			  	  ./b2 -j $nproc address-model=64 toolset=gcc cflags=-fPIC cxxflags="-fPIC -std=c++17" \
+					   threading=multi \
+					   link=shared \
+					   include=${PYTHON_INCLUDE} \
+					   install
+#					   -sBZIP2_SOURCE=${BZIP2_SOURCE} \
 			  ;;
 		  Darwin*)
 			  echo "***********************************************************************************************************"
@@ -81,34 +89,17 @@ function boost_build {
 			  #LINKFLAGS="-stdlib=libc++ $OSX_VERSION_MIN"
 			  CXX_FLAGS="-std=c++17"
 			  LINKFLAGS="-stdlib=libc++"
-			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
+			  echo ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang \
+				   --with-python=${PYTHON} --with-python-root=${PYTHON_ROOT} --with-python-version=3.7 install
 			  prompt
-			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
-			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
+			  ./bootstrap.sh --prefix=$BOOST_PREFIX --with-toolset=clang --with-python=${PYTHON} \
+							 --with-python-root=${PYTHON_ROOT} --with-python-version=3.7
+			  echo ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
 			  prompt
-			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
+			  ./b2 -j $nproc address-model=64 toolset=clang cxxflags="$CXX_FLAGS" linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE} install
 			  ;;
 		  *)
 			  echo "Unknown arch: " $arch
-      esac
-
-      echo "*****************************************************"
-      echo "boost has been built on `pwd`";
-      echo "run following command to install"
-      echo "cd `pwd`"
-	  echo "sudo ./b2 install"
-      echo "*****************************************************"
-      prompt
-
-      case "${arch}" in
-	  Linux*)
-		  ./b2 -j $nproc address-model=64 cflags=-fPIC cxxflags='"-fPIC -std=c++14"' -s BZIP2_SOURCE=${BZIP2_SOURCE} install
-	      ;;
-	  Darwin*)
-	      sudo ./b2 install
-	      ;;
-	  *)
-	      echo "Unknown arch: " $arch
       esac
     )
 }
@@ -214,32 +205,32 @@ if [ -z $cross_target ]; then
 
 else
     if [ ! -w $CROSS_ROOT ]; then
-	echo "You have no write access to $CROSS_ROOT"
-	echo "Do you want to continue with sudo?"
-	prompt
-	sudo mkdir -p $CROSS_ROOT
-	sudo chgrp staff $CROSS_ROOT
-	sudo chmod g+sw $CROSS_ROOT
+		echo "You have no write access to $CROSS_ROOT"
+		echo "Do you want to continue with sudo?"
+		prompt
+		sudo mkdir -p $CROSS_ROOT
+		sudo chgrp staff $CROSS_ROOT
+		sudo chmod g+sw $CROSS_ROOT
 
-	staff=$(id -Gn | grep -c staff)
-	if [ $staff = 0 ]; then
-	    echo "You need to join 'staff' group as run follwoing command".
-	    sudo usermod -a -G staff $USER
-	fi
-	if [ ! -w $CROSS_ROOT ]; then
-	    echo "You may need to logout/login cycle"
-	    exit 1
-	fi
+		staff=$(id -Gn | grep -c staff)
+		if [ $staff = 0 ]; then
+			echo "You need to join 'staff' group as run follwoing command".
+			sudo usermod -a -G staff $USER
+		fi
+		if [ ! -w $CROSS_ROOT ]; then
+			echo "You may need to logout/login cycle"
+			exit 1
+		fi
     fi
 
     if [ ! -f ~/user-config.jam ]; then
 		echo "# Creating ~/user-config.jam..."
-	cat <<EOF>~/user-config.jam
-using gcc : arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
+		cat <<EOF>~/user-config.jam
+using gcc :		arm : arm-linux-gnueabihf-g++ : <cxxflags>"-std=c++14 -fPIC" ;
 using python : 2.7 ;
 EOF
     fi
-    boost_cross_build ${BOOST_BUILD_DIR} ${BZIP2_SOURCE}
+	    boost_cross_build ${BOOST_BUILD_DIR} ${BZIP2_SOURCE}
 fi
 
 echo "=============================="
