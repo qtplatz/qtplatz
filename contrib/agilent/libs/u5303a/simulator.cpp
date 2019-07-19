@@ -30,6 +30,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/mblock.hpp>
 #include <adportable/waveform_simulator.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/asio.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/math/distributions/normal.hpp>
@@ -41,13 +42,13 @@
 namespace u5303a {
 
     static std::mt19937 __gen__;
-    static std::uniform_real_distribution<> __dist__( -15.0, 35.0 );        
+    static std::uniform_real_distribution<> __dist__( -15.0, 35.0 );
     static auto __noise__ = []{ return __dist__( __gen__ ); };
-    
+
     static std::chrono::high_resolution_clock::time_point __uptime__ = std::chrono::high_resolution_clock::now();
     static std::chrono::high_resolution_clock::time_point __last__;
     static size_t __counter__;
-    
+
     static const std::vector< std::pair<double, double> >
     peak_list = { { 104.0e-6, 0.01 }, { 105.0e-6, 0.005 }, { 106.0e-6, 0.0030 } };
 
@@ -56,15 +57,16 @@ namespace u5303a {
 
         waveform_simulator( double sampInterval = 1.0e-9
                             , double startDelay = 0
-                            , uint32_t nbrSamples = 100000 & 0x0f
+                            , uint32_t nbrSamples = (100000 & 0x0f)
                             , uint32_t nbrWaveforms = 1 ) : sampInterval_( sampInterval )
-                                                         , startDelay_( startDelay )
-                                                         , nbrSamples_( nbrSamples )
-                                                         , nbrWaveforms_( nbrWaveforms )
+                                                          , startDelay_( startDelay )
+                                                          , serialNumber_( 0 )
+                                                          , nbrSamples_( nbrSamples )
+                                                          , nbrWaveforms_( nbrWaveforms )
             {}
 
         void addIons( const std::vector< std::pair<double, double> >& ions ) override {}
-        
+
         void onTriggered() override;
 
         const int32_t * waveform() const  override { return waveform_.data(); }
@@ -87,10 +89,10 @@ namespace u5303a {
                                                                            , uint32_t nbrWaveforms ) {
             return std::make_shared< waveform_simulator >( sampInterval, startDelay, nbrSamples, nbrWaveforms );
         }
-        
+
         std::vector< int32_t > waveform_;
-        double startDelay_;
         double sampInterval_;
+        double startDelay_;
         double timeStamp_;
         uint32_t serialNumber_;
         uint32_t nbrSamples_;
@@ -160,11 +162,11 @@ simulator::acquire()
     if ( ! acqTriggered_.test_and_set() ) {
 
 		if ( auto generator = adacquire::waveform_simulator_manager::instance().waveform_simulator( sampInterval_, startDelay_, nbrSamples_, nbrWaveforms_ ) ) {
-                
+
 			generator->addIons( ions_ );
 			generator->onTriggered();
 			post( generator );
-            
+
 			hasWaveform_ = true;
 			std::unique_lock< std::mutex > lock( queue_ );
 			cond_.notify_one();
@@ -202,7 +204,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 
     bool invert = method_->_device_method().invert_signal;
     int32_t offset = method_->_device_method().front_end_offset;
-    
+
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
         auto dp = mblk->data();
@@ -226,7 +228,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         pkd.meta_.channelMode = acqrscontrols::u5303a::AVG;
         avg.setData( mblk, 0 );
     }
-    
+
     if ( ptr ) {
 
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
@@ -239,7 +241,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
                 dp[ idx ] = peak.second * 10000 + __noise__();// + __counter__;
         }
         __counter__ ++;
-        
+
         pkd.method_ = *method_;
         pkd.method_._device_method().digitizer_delay_to_first_sample = startDelay_;
         pkd.method_._device_method().nbr_of_averages = int32_t( nbrWaveforms_ );
@@ -256,7 +258,7 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
         pkd.meta_.scaleOffset = 0.0;
         pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
         pkd.setData( mblk, 0 );
-        return true;        
+        return true;
     }
     return false;
 }
@@ -265,7 +267,7 @@ bool
 simulator::readData( acqrscontrols::u5303a::waveform& data )
 {
     // readData simulation for average mode (md2 driver is capable for digitizer mode)
-    
+
     std::shared_ptr< adacquire::waveform_simulator > ptr;
 
     do {
@@ -275,7 +277,7 @@ simulator::readData( acqrscontrols::u5303a::waveform& data )
             waveforms_.erase( waveforms_.begin() );
         }
     } while(0);
-    
+
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );
 
@@ -330,9 +332,9 @@ void
 simulator::next_protocol()
 {
     auto m( method_ );
-        
+
     if ( --protocolReplicates_ <= 0 ) {
-        
+
         if ( ++protocolIndex_ >= m->protocols().size() )
             protocolIndex_ = 0;
 
@@ -357,7 +359,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
     if ( ! vec.empty() )  {
 
         auto& w = *vec[ 0 ];
-                
+
         if ( w.meta_.dataType == 2 ) {
             // int16_t
 
@@ -371,7 +373,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 
             for ( auto& w: vec ) {
                 w->setData( mblock, w->firstValidPoint_ );
-                w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms 
+                w->meta_.initialXTimeSeconds = double( counter++ ) * 1.0e-3; // assume 1ms
             }
 
         } else { // int32_t
@@ -390,7 +392,7 @@ simulator::touchup( std::vector< std::shared_ptr< acqrscontrols::u5303a::wavefor
 void
 waveform_simulator::onTriggered()
 {
-	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();    
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
     timeStamp_ = std::chrono::duration< double >( now - __uptime__ ).count(); // s
     static std::chrono::high_resolution_clock::time_point __last_handled;
 
@@ -401,7 +403,7 @@ waveform_simulator::onTriggered()
     int32_t maxy = 0;
     size_t idx = 0;
     for ( int32_t& d: waveform_ ) {
-        
+
         double t = startDelay_ + sampInterval_ * idx++;
 
         double y = 0;
@@ -413,11 +415,9 @@ waveform_simulator::onTriggered()
         if ( d > maxy )
             maxy = d;
     }
-    
+
     if ( std::chrono::duration_cast< std::chrono::seconds >( now - __last_handled ).count() >= 1000 ) {
         __last_handled = now;
         ADDEBUG() << maxy;
     }
 }
-
-

@@ -24,10 +24,8 @@
 
 #include "waveformobserver.hpp"
 #include <u5303a/digitizer.hpp>
+#include <compiler/boost/workaround.hpp>
 #include <boost/version.hpp>
-#if BOOST_VERSION < 106000
-#include <boost/uuid/uuid_io.hpp>
-#endif
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <acqrscontrols/u5303a/waveform.hpp>
@@ -56,7 +54,7 @@ namespace u5303a {
 using namespace u5303a;
 
 static const char * objtext__ = "1.u5303a.ms-cheminfo.com";
-    
+
 WaveformObserver::WaveformObserver() : objid_( boost::uuids::name_generator( base_uuid() )( objtext__ ) )
 {
     so::Description desc;
@@ -77,7 +75,7 @@ WaveformObserver::~WaveformObserver()
 {
 }
 
-const char * 
+const char *
 WaveformObserver::objtext() const
 {
     return objtext__;
@@ -89,31 +87,31 @@ WaveformObserver::objid() const
     return objid_;
 }
 
-uint64_t 
-WaveformObserver::uptime() const 
+uint64_t
+WaveformObserver::uptime() const
 {
     return 0;
 }
 
-void 
-WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const 
+void
+WaveformObserver::uptime_range( uint64_t& oldest, uint64_t& newest ) const
 {
     oldest = newest = 0;
-    
+
     std::lock_guard< std::mutex > lock( const_cast<WaveformObserver *>( this )->mutex() );
 
     if ( !que_.empty() ) {
         oldest = que_.front()->timepoint(); //waveform_pair::pos( que_.front() );
         newest = que_.back()->timepoint();  //waveform_pair::pos( que_.back() );
     }
-    
+
 }
 
 std::shared_ptr< so::DataReadBuffer >
 WaveformObserver::readData( uint32_t pos )
 {
     std::lock_guard< std::mutex > lock( mutex() );
-    
+
     if ( que_.empty() )
         return 0;
 
@@ -135,16 +133,16 @@ WaveformObserver::readData( uint32_t pos )
 }
 
 int32_t
-WaveformObserver::posFromTime( uint64_t nsec ) const 
+WaveformObserver::posFromTime( uint64_t nsec ) const
 {
     std::lock_guard< std::mutex > lock( const_cast< WaveformObserver *>(this)->mutex() );
-    
+
     if ( que_.empty() )
         return false;
-    
+
     auto it = std::lower_bound( que_.begin(), que_.end(), nsec
                                 , [] ( const std::shared_ptr< so::DataReadBuffer >& p, uint64_t usec ) { return p->timepoint() < usec; } );
-    
+
     if ( it != que_.end() )
         return (*it)->pos(); //waveform_pair::pos(*it);
 
@@ -157,11 +155,11 @@ WaveformObserver::operator << ( const_waveform_pair_t& pair )
     auto rb = std::make_shared< so::DataReadBuffer >();
 
     if ( pair.first || pair.second ) {
-        
+
         rb->pos() = waveform_pair::pos( pair );
         rb->timepoint() = waveform_pair::timepoint( pair );
         rb->setData( boost::any( pair ) );
-        
+
         std::lock_guard< std::mutex > lock( mutex() );
         if ( que_.size() > 2000 ) { // 2 seconds @ 1kHz
             auto tail = que_.begin();
@@ -176,4 +174,3 @@ WaveformObserver::operator << ( const_waveform_pair_t& pair )
 
     return uint32_t(-1);
 }
-

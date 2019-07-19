@@ -23,9 +23,10 @@
 **************************************************************************/
 
 #include "icontrollerimpl.hpp"
+#include <adacquire/manager.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin_manager/loader.hpp>
-#include <adacquire/manager.hpp>
+#include <adportable/debug.hpp>
 
 using namespace u5303a;
 
@@ -49,7 +50,8 @@ iControllerImpl::connect()
             }
         }
 
-    }
+    } else
+        ADDEBUG() << "iControllerImpl::connect u5303a loadLibrary failed";
 
     return false;
 }
