@@ -69,7 +69,7 @@ if ( APPLE )
   set( CMAKE_SHARED_MODULE_SUFFIX ".dylib" )
   set( CMAKE_MACOSX_RPATH 1 )
   set( CMAKE_SKIP_BUILD_RPATH  FALSE )
-  set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )  
+  set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
   set( QTPLATZ_PLUGIN_DIRECTORY ${QTPLATZ_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns )
   set( QTPLATZ_PLUGIN_DESTINATION bin/qtplatz.app/Contents/PlugIns )
 
@@ -130,7 +130,7 @@ endif()
 # adplugin now uses boost_dll, which require 1.61
 find_package( Boost 1.62 REQUIRED COMPONENTS
   atomic
-  ${boost_bzip2}
+#  ${boost_bzip2}
   chrono
   date_time
   filesystem
