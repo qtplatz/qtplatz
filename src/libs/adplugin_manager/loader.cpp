@@ -60,13 +60,14 @@ loader::debug_suffix()
 boost::filesystem::path
 loader::shared_directory()
 {
-    return boost::dll::program_location().parent_path() / std::string( sharedDirectory );
+    // program_location: /opt/qtplatz/bin/qtplatz
+    return boost::dll::program_location().parent_path().parent_path() / std::string( sharedDirectory ); // /opt/qtplatz/ lib/qtplatz
 }
 
 boost::filesystem::path
 loader::plugin_directory()
 {
-    return boost::dll::program_location().parent_path() / std::string( pluginDirectory );
+    return boost::dll::program_location().parent_path().parent_path() / std::string( pluginDirectory );
 }
 
 void
@@ -93,7 +94,7 @@ loader::populate( const wchar_t * topdir )
 
                         auto stem = it->path().stem();
                         auto branch = it->path().branch_path();
-                        
+
                         for ( auto& dir : { branch /*, sharedlibs */ } ) {
 
                             auto fname = dir / (stem.string() + debug_trail);
@@ -147,74 +148,22 @@ loader::loadLibrary( const std::string& stem )
             return factory();
         }
     }
+
+    ADDEBUG() << "### Warning: loadLibrary(" << stem << ") failed: " << ec.message();
+
     return nullptr;
 }
 
 boost::dll::shared_library
 loader::loadLibrary( const std::string& stem, boost::system::error_code& ec )
 {
-    auto path = adplugin::loader::shared_directory() / ( stem + debug_suffix() );
-    return boost::dll::shared_library( path, boost::dll::load_mode::append_decorations, ec );
+    // this_line := "/home/toshi/src/build-Linux-x86_64/qtplatz.debug/lib/qtplatz/libadplugin_manager.so"
+    auto top = boost::dll::this_line_location().parent_path().parent_path().parent_path();
+    auto slib = top / sharedDirectory;
+
+    if ( auto dll = boost::dll::shared_library( slib / ( stem + debug_suffix() ), boost::dll::load_mode::append_decorations, ec ) )
+        return dll;
+
+    auto plgn = top / pluginDirectory;
+    return boost::dll::shared_library( plgn / ( stem + debug_suffix() ), boost::dll::load_mode::append_decorations, ec );
 }
-
-
-#if 0
-adplugin::plugin *
-loader::loadLibrary( const QString& libname, const QStringList& paths )
-{
-    auto appdir = QCoreApplication::applicationDirPath(); // ~/Applications/qtplatz/bin
-    boost::filesystem::path install_path( boost::filesystem::path( appdir.toStdWString() ).parent_path() );
-
-    boost::filesystem::path stem( ( libname + DEBUG_LIB_TRAIL ).toStdWString() );
-
-    QLibrary lib;
-    typedef adplugin::plugin * ( *factory )();
-
-    for ( auto& path : paths ) {
-        boost::filesystem::path p( path.toStdWString() );
-        if ( p.is_absolute() )
-            lib.setFileName( QString::fromStdWString( ( p / stem ).wstring() ) );
-        else
-            lib.setFileName( QString::fromStdWString( ( install_path / p / stem ).wstring() ) );
-        if ( lib.load() || lib.isLoaded() ) {
-            if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) )
-                return f();
-        }
-    }
-
-    boost::filesystem::path sharedpath( install_path / sharedDirectory );
-    lib.setFileName( QString::fromStdWString( ( sharedpath / stem ).wstring() ) );
-    if ( lib.load() || lib.isLoaded() ) {
-        if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) )
-            return f();
-    }
-
-
-    boost::filesystem::path modulepath( install_path / pluginDirectory );
-    lib.setFileName( QString::fromStdWString( ( sharedpath / stem ).wstring() ) );
-    if ( lib.load() || lib.isLoaded() ) {
-        if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) )
-            return f();
-    }
-
-    boost::filesystem::recursive_directory_iterator it( install_path / pluginDirectory );
-
-    while ( it != boost::filesystem::recursive_directory_iterator() ) {
-        if ( boost::filesystem::is_directory( it->status() ) ) {
-            lib.setFileName( QString::fromStdWString( ( it->path() / stem ).wstring() ) );
-            if ( lib.load() || lib.isLoaded() ) {
-                if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) )
-                    return f();
-            }
-        }
-        ++it;
-    }
-
-    lib.setFileName( QString::fromStdWString( stem.wstring() ) );
-    if ( lib.load() || lib.isLoaded() ) {
-        if ( factory f = reinterpret_cast<factory>( lib.resolve( "adplugin_plugin_instance" ) ) )
-            return f();
-    }
-    return 0;
-}
-#endif
