@@ -40,7 +40,7 @@ iControllerImpl::~iControllerImpl()
 bool
 iControllerImpl::connect()
 {
-    if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "ap240controller", QStringList() ) ) {
+    if ( adplugin::plugin * plugin = adplugin::loader::loadLibrary( "ap240controller" ) ) {
 
         if ( auto manager = plugin->query_interface< adacquire::manager >() ) {
             if ( auto session = manager->session( "ap240::icontrollerimpl" ) ) {

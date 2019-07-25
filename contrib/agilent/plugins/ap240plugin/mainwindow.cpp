@@ -42,7 +42,6 @@
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
 #include <adplugin/lifecycle.hpp>
-#include <adplugin_manager/lifecycleaccessor.hpp>
 #include <adwidgets/controlmethodwidget.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -176,10 +175,8 @@ void
 MainWindow::OnFinalClose()
 {
     for ( auto dock: dockWidgets() ) {
-        adplugin::LifeCycleAccessor accessor( dock->widget() );
-        if ( auto editor = accessor.get() ) {
-            editor->OnFinalClose();
-        }
+      if ( auto editor = qobject_cast< adplugin::LifeCycle * >( dock->widget() ) )
+	editor->OnFinalClose();
     }
 }
 
