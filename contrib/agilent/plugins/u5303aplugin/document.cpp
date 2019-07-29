@@ -242,15 +242,16 @@ namespace u5303a {
                , iControllerImpl_( std::make_shared< u5303a::iControllerImpl >() )
                , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "U5303A" ) )
                , isMethodDirty_( true )
-               , device_status_( 0 )
                , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                , method_( std::make_shared< acqrscontrols::u5303a::method >() )
                , tdm_( std::make_shared< adcontrols::TimeDigitalMethod>() )
+               , resultWriter_( std::make_shared< ResultWriter >() )
+               , device_status_( 0 )
                , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                            , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                           , QLatin1String( "u5303a" ) ) )
+                                                           , QLatin1String( "u5303a" ) ) ) {
                  //, triggers_per_second_(0)
-               , resultWriter_( std::make_shared< ResultWriter >() ) {
+
 
             adcontrols::TofChromatogramsMethod tofm;
             tofm.setNumberOfTriggers( 1000 );
@@ -1271,7 +1272,7 @@ document::addCountingChromatogramsPoint( uint64_t timeSinceEpoch
                                          , uint32_t serialnumber
                                          , const std::vector<uint32_t>& values )
 {
-    auto injectTime = task::instance()->injectTimeSinceEpoch();
+    // auto injectTime = task::instance()->injectTimeSinceEpoch();
 
     double seconds = ( timeSinceEpoch - task::instance()->upTimeSinceEpoch() ) * 1.0e-9;
 
@@ -1281,7 +1282,7 @@ document::addCountingChromatogramsPoint( uint64_t timeSinceEpoch
         if ( size ) {
             std::lock_guard< std::mutex > lock( impl_->mutex_ );
         	for ( uint32_t fcn = 0; fcn < uint32_t( size ); ++fcn ) {
-        		auto item = method->begin() + fcn;
+        		//auto item = method->begin() + fcn;
                 impl_->traces_ [ fcn ]->append( serialnumber, seconds, values [ fcn ] );
                 impl_->traces_ [ fcn ]->setIsCountingTrace( true );
         	}

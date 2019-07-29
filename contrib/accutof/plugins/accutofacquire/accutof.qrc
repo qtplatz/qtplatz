@@ -1,0 +1,34 @@
+<RCC>
+  <qresource prefix="/accutof">
+    <!-- <div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div> -->
+    <file>images/data-management-interface-symbol-with-gears-and-binary-code-numbers.png</file>
+    <!-- <div>Icons made by <a href="https://www.flaticon.com/authors/icomoon" title="Icomoon">Icomoon</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div> -->
+    <file>images/sigma.png</file>
+    <file>images/arrow-circle-double.png</file>
+    <file>images/camera.png</file>
+    <file>images/disk.png</file>
+    <file>images/blue-document-page-next.png</file>
+    <file>images/folder-open-document.png</file>
+    <file>images/blue-folder-open-document.png</file>
+    <file>images/control-pause-record.png</file>
+    <file>images/control-pause.png</file>
+    <file>images/control.png</file>
+    <file>images/control_eject.png</file>
+    <file>images/control_power_blue.png</file>
+    <file>images/control_record.png</file>
+    <file>images/control_stop.png</file>
+    <file>images/disk--plus.png</file>
+    <file>images/document-pdf.png</file>
+    <file>images/folder-horizontal-open.png</file>
+    <file>images/plus-circle.png</file>
+    <file>images/image.png</file>
+    <!-- owl-icon
+         Squid Ink
+         http://thesquid.ink
+         http://www.iconarchive.com/artist/thesquid.ink.html
+    -->
+    <file>images/owl-icon32x32.png</file>
+    <file>images/noun_reflection_591120.png</file>
+    <file>stylesheet/tabbar.qss</file>
+  </qresource>
+</RCC>
