@@ -19,13 +19,6 @@ set(CMAKE_AUTORCC ON)
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
 
-if ( DGIO_LIBRARY )
-  set( DGIO_LIBRARIES ${DGIO_LIBRARY} )
-endif()
-if ( DGIO_INCLUDE_DIR )
-  include_directories( ${DGIO_INCLUDE_DIR} )
-endif()
-
 configure_file(
   "${QTPLATZ_SOURCE_DIR}/src/plugins/pluginspec.in"
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
@@ -41,10 +34,6 @@ add_definitions(
   -DACCUTOFACQUIRE_LIBRARY
   -D_SCL_SECURE_NO_WARNINGS
   )
-
-if ( DGIO_LIBRARY )
-  add_definitions( -DHAVE_DGIO=1 )
-endif()
 
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
@@ -114,7 +103,6 @@ target_link_libraries(
   acqrscontrols
   #  u5303a
   qtwrapper
-  ${DGIO_LIBRARIES}
   ${QWT_LIBRARIES}
   ${Boost_LIBRARIES}
   Threads::Threads

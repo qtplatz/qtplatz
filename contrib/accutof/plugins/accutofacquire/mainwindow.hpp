@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -34,6 +34,7 @@ class QHBoxLayout;
 class QWidget;
 class QToolButton;
 class QAction;
+class QComboBox;
 
 namespace adcontrols { class MassSpectrum; class Trace; class SampleRun; namespace ControlMethod { class Method; } }
 namespace acqrscontrols { class method; }
@@ -103,6 +104,7 @@ namespace accutof {
             void handleControlMethodOpen();
             void handleControlMethodSaveAs();
             void handleModulesFailed( const QStringList& );
+            void axisChanged( QComboBox *, int index );
 
         private:
             QAction * actionConnect_;

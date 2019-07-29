@@ -29,9 +29,7 @@
 #include "pkdavgwriter.hpp"
 #include "resultwriter.hpp"
 #include "task.hpp"
-#if HAVE_DGIO
-#include <trigger_data.hpp>
-#endif
+
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/pkd_counting_data_writer.hpp>
 #include <acqrscontrols/u5303a/histogram.hpp>
@@ -354,10 +352,6 @@ namespace accutof { namespace acquire {
             bool prepareStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool closingStorage( const boost::uuids::uuid&, adacquire::SampleProcessor& sp ) const;
             bool initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) const;
-#if HAVE_DGIO
-            static bool write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::trigger_data >&& );
-            static void debug_write( const std::vector< std::pair< std::string, std::string > >& headers, const map::trigger_data& );
-#endif
             void handle_fsm_state_changed( bool enter, int id_state, adacquire::Instrument::eInstStatus st ) {
                 if ( enter )
                     emit document::instance()->instStateChanged( st );
@@ -417,29 +411,6 @@ namespace accutof { namespace acquire {
                             }
                         }
                     });
-#if HAVE_DGIO
-                blob_->register_blob_handler(
-                    []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& blob ){
-                        if ( auto sequence = adacquire::task::instance()->sampleSequence() ) {
-                            if ( auto sample = sequence->at( 0 ) ) {
-                                if ( sample->inject_triggered() ) {
-                                    try {
-                                        auto data = std::make_unique< map::trigger_data >();
-                                        if ( adportable::binary::deserialize<>()( *data, blob.data(), blob.size() ) ) {
-                                            // document::impl::debug_write( headers, *data );
-                                            document::impl::write( *sample, std::move( data ) );
-                                        }
-                                    } catch ( std::exception& ex ) {
-                                        ADDEBUG() << "serializer failed.";
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                sse_->connect( "/dg/ctl?events", http_host_, http_port_ );
-                blob_->connect( "/dataStorage", http_host_, http_port_ );
-#endif
                 for ( size_t i = 0; i < 2; ++i ) {
                     threads_.emplace_back( [&]{ io_context_.run(); } );
                 }
@@ -1607,93 +1578,6 @@ document::impl::closingStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
     }
     return true;
 }
-
-#if HAVE_DGIO
-bool
-document::impl::write( const adacquire::SampleProcessor& sp, std::unique_ptr< map::trigger_data >&& data )
-{
-    adfs::stmt sql( sp.filesystem().db() );
-
-    sql.prepare( "INSERT INTO map_trigger (trig_count,fpga_clock,posix_clock,protocol,wellKnownEvents"
-                 ",dac_clock,dac_x,dac_y,adc_clock,adc_x,adc_y)"
-                 " VALUES (?,?,?,?,?,?,?,?,?,?,?)" );
-
-    for ( auto& d: *data ) {
-        int id(1);
-        double adc_x = ( d.advalues()[0] - 1250 ) * 2;
-        double adc_y = ( d.advalues()[1] - 1250 ) * 2;
-        sql.bind( id++ ) = d.trig_count();
-        sql.bind( id++ ) = d.fpga_clock();
-        sql.bind( id++ ) = d.posix_clock();
-        sql.bind( id++ ) = d.protocol();
-        sql.bind( id++ ) = d.wellKnownEvents();
-        sql.bind( id++ ) = d.dac_clock();
-        sql.bind( id++ ) = d.dac_x();
-        sql.bind( id++ ) = d.dac_y();
-        sql.bind( id++ ) = d.adc_clock();
-        sql.bind( id++ ) = adc_x;
-        sql.bind( id++ ) = adc_y;
-
-        if ( sql.step() != adfs::sqlite_done ) {
-            ADDEBUG() << "sql error: " << sql.errmsg();
-            break;
-        }
-
-        sql.reset();
-    }
-
-    return true;
-}
-#endif
-
-#if HAVE_DGIO
-void
-document::impl::debug_write( const std::vector< std::pair< std::string, std::string > >& headers, const map::trigger_data& data )
-{
-    constexpr const size_t llimit = 15;
-    static uint64_t fpga_clock(0), posix_clock(0), trig_count(0), skip_count(0);
-    static int64_t last_skip(0);
-    int i = 0;
-
-    for ( auto& datum: data ) {
-        if ( i < llimit || i >= data.size() - 2 ) {
-            std::chrono::nanoseconds dur( datum.posix_clock() );
-            auto tp = std::chrono::time_point< std::chrono::system_clock >( dur );
-            using namespace date;
-            std::ostringstream o;
-            o << tp;
-            ADDEBUG() << boost::format( "[%4d] %d %s\t%.3lf s\t%8.3lf\t%8.3lf ms\t%d" )
-                % i
-                % datum.trig_count()
-                % o.str()
-                % (datum.fpga_clock() * 1.0e-9)
-                % (( datum.fpga_clock() - fpga_clock )/1.0e6)
-                % (( datum.posix_clock() - posix_clock )/1.0e6)
-                % skip_count
-                      << ", " << last_skip;
-        } else if ( i == llimit + 1 ) {
-            ADDEBUG() << "\t...snip...";
-        }
-        if ( trig_count && ( (trig_count + 1 ) != datum.trig_count() ) ) {
-            ++skip_count;
-            last_skip = datum.trig_count() - trig_count;
-            ADDEBUG() << "skip detected: " << trig_count
-                      << boost::format( " [%4d] %d\t%.3lf s\t%8.3lf\t%8.3lf ms\t%d" )
-                % i
-                % datum.trig_count()
-                % (datum.fpga_clock() * 1.0e-9)
-                % (( datum.fpga_clock() - fpga_clock )/1.0e6)
-                % (( datum.posix_clock() - posix_clock )/1.0e6)
-                % skip_count
-                      << ", " << last_skip;
-        }
-        ++i;
-        fpga_clock = datum.fpga_clock();
-        posix_clock = datum.posix_clock();
-                                    trig_count = datum.trig_count();
-    }
-}
-#endif
 
 void
 document::applyTriggered()

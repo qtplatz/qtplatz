@@ -79,6 +79,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <QApplication>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QLineEdit>
@@ -126,36 +127,6 @@ MainWindow::createDockWidgets()
     QString tabStyle( file.readAll() );
 
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::ThresholdWidget >( "ThresholdWidget", "", 1 ) ) {
-
-        if ( auto sse = qtwrapper::make_widget< adwidgets::dgWidget >( "delayPulseMonitor" ) ) {
-
-            if ( auto tab = sse->findChild< QTabWidget * >() )
-                tab->setObjectName( "delayPulseTab" );
-            if ( auto bar = sse->findChild< QTabBar * >() )
-                bar->setObjectName( "delayPulseTabBar" );
-
-            if ( auto tab = widget->findChild< QTabWidget * >() ) {
-                tab->setObjectName( "ThresholdTab" );
-                if ( auto bar = tab->findChild< QTabBar * >() )
-                    bar->setObjectName( "ThresholdTabBar" );
-
-                tab->addTab( sse, "Delay/Pulse" );
-                tab->setStyleSheet( tabStyle );
-            }
-
-            connect( sse, &adwidgets::dgWidget::hostChanged, this, [sse](const QString& host, const QString& port ){
-                    document::instance()->http_addr( host, port );
-                    sse->setUrl( host, port ); // QString("http://%1:%2").arg( host, port ) );
-                });
-
-            connect( document::instance(), &document::onTick, this, [sse]( const QByteArray& data ){
-                    sse->handleTick( data );
-                });
-
-            connect( document::instance(), &document::onDelayPulseData, this, [sse]( const QByteArray& data ){
-                    sse->handleDelayPulseData( data );
-                });
-        }
 
         createDockWidget( widget, "Threshold", "ThresholdMethod" );
 
@@ -326,12 +297,6 @@ MainWindow::OnInitialUpdate()
                                                                                   } );
             }
         }
-    }
-
-    if ( auto w = findChild< adwidgets::dgWidget * >( "delayPulseMonitor" ) ) {
-        QString host, port;
-        std::tie( host, port ) = document::instance()->http_addr();
-        w->setUrl( host, port ); // URL( QString("http://%1:%2").arg( host, port ) );
     }
 
 #if ! defined Q_OS_MAC
@@ -545,13 +510,25 @@ MainWindow::createTopStyledToolbar()
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //---
-
             toolBarLayout->addWidget( toolButton( am->command( Constants::ACTION_DARK )->action() ) );
             toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbxDark", "Dark subtraction" ) );
             //toolBarLayout->addWidget( topLineEdit_.get() );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+
+        // axis (time|m/z)
+        toolBarLayout->addWidget( new QLabel( QString( tr( "Axis %1:" ) ).arg( 1 ) ) );
+        {
+            QComboBox * choice = new QComboBox;
+            choice->setObjectName( QString( "axis_%1" ).arg( QString::number( 1 ) ) );
+            choice->addItems( QStringList() << "m/z" << "time" );
+            toolBarLayout->addWidget( choice );
+            choice->setProperty( "id", QVariant( int(1) ) );
+            connect( choice, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged )
+                     , [=] ( int index ) { axisChanged( choice, index ); } );
+        }
+        //----
         // check boxes
         toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbxHistogram", "Histogram" ) );
         toolBarLayout->addWidget( qtwrapper::make_widget< QCheckBox >( "cbxPKDResult", "PKD Result" ) );
@@ -755,6 +732,23 @@ void
 MainWindow::actDark()
 {
     document::instance()->acquireDark();
+}
+
+void
+MainWindow::axisChanged( QComboBox * combo, int currentIndex )
+{
+    auto id = combo->property( "id" ).toInt();
+
+    if ( auto wnd = findChild< WaveformWnd * >() ) {
+        wnd->setAxis( id, currentIndex );
+        if ( id == 1 )
+            wnd->setAxis( id + 1, currentIndex );
+        //instance_->updateSetpoints();
+    }
+
+    if ( auto settings = document::instance()->settings() ) {
+        settings->setValue( QString( "mainwindow/axis_%1" ).arg( id ), currentIndex );
+    }
 }
 
 void

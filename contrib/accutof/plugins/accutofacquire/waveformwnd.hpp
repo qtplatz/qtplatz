@@ -60,6 +60,7 @@ namespace accutof { namespace acquire {
         // bool pkdSpectrumEnabled() const;
         // void setLongTermHistogramEnabled( bool );
         // void setPKDSpectrumEnabled( bool );
+        void setAxis( int idView, int axis ); // 0: mass, 1: time
 
     public slots:
         void handle_threshold_method( int ch );

@@ -555,3 +555,45 @@ WaveformWnd::handleDrawSettings()
         hpw_->setData( nullptr, 1, true );
     }
 }
+
+void
+WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
+{
+#if 0
+    if ( idView >= 0 && idView < spw_.size() ) {
+
+        auto plot_axis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
+
+        spw_[ idView ]->setAxis( plot_axis, true, []( const QRectF& z, const adcontrols::MassSpectrum& vms, adplot::SpectrumWidget::HorizontalAxis axis ){
+                auto scanLaw = document::instance()->scanLaw();
+                if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
+                    for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
+                        if ( ms.getAcquisitionMassRange().first < z.left() && z.right() < ms.getAcquisitionMassRange().second ) {
+                            auto range = std::make_pair( scanLaw->getTime( z.left(), ms.mode() ), scanLaw->getTime( z.right(), ms.mode() ) );
+                            return QRectF( range.first * std::micro::den, z.bottom(), ( range.second - range.first ) * std::micro::den, z.height() );
+                        }
+                    }
+                } else { // time --> mass
+                    for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
+                        auto left = z.left() / std::micro::den;
+                        auto right = z.right() / std::micro::den;
+                        if ( ms.getMSProperty().instTimeRange().first < left && right < ms.getMSProperty().instTimeRange().second ) {
+                            auto range = std::make_pair( scanLaw->getMass( left, ms.mode() ), scanLaw->getMass( right, ms.mode() ) );
+                            return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
+                        }
+                    }
+                }
+                return QRectF();
+            });
+
+        emit axisChanged( idView );
+
+        if ( idView == 0 && threshold_action_ )
+            _threshold_action( *threshold_action_ );
+    }
+
+    // redraw counting marker
+    if ( auto m = document::instance()->countingMethod() )
+        setMethod( *m );
+#endif
+}
