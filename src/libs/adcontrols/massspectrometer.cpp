@@ -53,7 +53,7 @@ namespace adcontrols {
     ScanLaw::ScanLaw()
     {
     }
-    
+
     ScanLaw::~ScanLaw()
     {
     }
@@ -74,14 +74,14 @@ namespace adcontrols {
 
             adcontrols::translate_state translate( MassSpectrum&
                                                    , const char * data, size_t dsize
-                                                   , const char * meta, size_t msize 
+                                                   , const char * meta, size_t msize
                                                    , const MassSpectrometer&
                                                    , size_t idData
 												   , const wchar_t * traceId ) const override {
                 (void)data; (void)dsize; (void)meta; (void)msize; (void)idData; (void)traceId;
                 return adcontrols::translate_error;
             }
-            
+
             adcontrols::translate_state translate( TraceAccessor&
                                                    , const char * data, size_t dsize
                                                    , const char * meta, size_t msize
@@ -190,8 +190,7 @@ MassSpectrometer::getCalibrateResult( size_t idx ) const
 bool
 MassSpectrometer::assignMasses( MassSpectrum& ms, int64_t /*rowid*/ ) const
 {
-    auto mode = ms.mode();
-    return ms.assign_masses( [&]( double time, int mode ) { return scanLaw()->getMass( time, mode ); } );
+    return ms.assign_masses( [&]( double time, int mode ) { return scanLaw()->getMass( time, ms.mode() ); } );
 }
 
 void
@@ -238,12 +237,12 @@ MassSpectrometer::make_scanlaw( const adcontrols::MSProperty& prop )
     if ( auto spectrometer = create( prop.dataInterpreterClsid() ) ) {
 
         return spectrometer->scanLaw( prop );
-        
+
     }
     return nullptr;
 }
 
-std::vector< std::wstring > 
+std::vector< std::wstring >
 MassSpectrometer::get_model_names()
 {
     std::vector< std::wstring > names;
@@ -265,7 +264,7 @@ MassSpectrometer::timeFromMass( double mass, const MassSpectrum& ms ) const
     return scanLaw()->getTime( mass, ms.mode() );
 }
 
-double 
+double
 MassSpectrometer::massFromTime( double time, const MassSpectrum& ms ) const
 {
     return scanLaw()->getMass( time, ms.mode() );
@@ -274,7 +273,7 @@ MassSpectrometer::massFromTime( double time, const MassSpectrum& ms ) const
 std::pair<double,double>
 MassSpectrometer::timeFromMass( const std::pair<double,double>& range, const MassSpectrum& ms ) const
 {
-    return std::make_pair( timeFromMass( range.first, ms ), timeFromMass( range.second, ms ) );        
+    return std::make_pair( timeFromMass( range.first, ms ), timeFromMass( range.second, ms ) );
 }
 
 std::pair<double,double>
@@ -299,7 +298,7 @@ MassSpectrometer::estimateScanLaw( const std::vector< std::tuple< double, double
                                    , double& t0 ) const
 {
     using namespace adcontrols::metric;
-    
+
     if ( auto law = scanLaw() ) {
 
         if ( peaks.size() == 1 ) {
@@ -310,7 +309,7 @@ MassSpectrometer::estimateScanLaw( const std::vector< std::tuple< double, double
             return true;
 
         } else if ( peaks.size() >= 2 ) {
-        
+
             std::vector<double> x, y, coeffs;
 
             for ( auto& pk : peaks ) {
@@ -319,11 +318,11 @@ MassSpectrometer::estimateScanLaw( const std::vector< std::tuple< double, double
             }
 
             if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
-                
+
                 t0 = coeffs[ 0 ];
                 double t1 = adportable::polfit::estimate_y( coeffs, 1.0 ); // estimate tof for m/z = 1.0, fLength = 1m
                 va = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
-                
+
                 return true;
             }
         }

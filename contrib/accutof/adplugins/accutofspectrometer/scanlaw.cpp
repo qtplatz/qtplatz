@@ -28,7 +28,7 @@
 #include <cmath>
 #include <cassert>
 
-using namespace accutofspectrometer;
+using namespace accutof::spectrometer;
 
 ScanLaw::~ScanLaw()
 {

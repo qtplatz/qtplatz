@@ -386,9 +386,9 @@ task::next_protocol( uint32_t protoIdx, uint32_t nProtocols )
 bool
 task::prepare_for_run( const acqrscontrols::u5303a::method& method )
 {
+#if !defined NDEBUG
     auto& m = method._device_method();
 
-#if !defined NDEBUG
     ADDEBUG() << "u5303a::task::prepare_for_run";
     ADDEBUG() << "\tfront_end_range: " << m.front_end_range << "\tfrontend_offset: " << m.front_end_offset
               << "\text_trigger_level: " << m.ext_trigger_level

@@ -163,9 +163,6 @@ namespace accutof {
             bool pkdSpectrumEnabled() const;
             bool longTermHistogramEnabled() const;
 
-            std::pair<QString,QString> http_addr() const;
-            void http_addr( const QString&, const QString& );
-
             bool hasDark() const;
             void clearDark();
             void acquireDark();

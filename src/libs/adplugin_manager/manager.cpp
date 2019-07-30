@@ -95,7 +95,7 @@ namespace adplugin {
         explicit plugin_data( adplugin::plugin_ptr ptr
                               , boost::dll::shared_library&& dll ) : plugin_( ptr )
                                                                    , dll_( dll ) {
-#ifndef NDEBUG            
+#ifndef NDEBUG
             boost::system::error_code ec;
             ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
 #endif
@@ -132,6 +132,7 @@ namespace adplugin {
             // clear all factories before unload library
             adcontrols::MassSpectrometerBroker::clear_factories();
             adcontrols::datafileBroker::clear_factories();
+            this->keeper_.clear();
         }
         impl() {}
 
@@ -204,6 +205,9 @@ manager::manager(void) : d_( new manager::impl() )
 manager::~manager(void)
 {
     delete d_;
+#ifndef NDEBUG
+    ADDEBUG() << "<<< manager dtor completed.";
+#endif
 }
 
 bool

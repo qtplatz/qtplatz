@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2018 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -30,6 +30,7 @@
 #include "resultwriter.hpp"
 #include "task.hpp"
 
+#include <accutofcontrols/constants.hpp>
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/pkd_counting_data_writer.hpp>
 #include <acqrscontrols/u5303a/histogram.hpp>
@@ -64,7 +65,6 @@
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
 #include <adlog/logger.hpp>
-#include <adplugins/adspectrometer/massspectrometer.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/countrate_calculator.hpp>
 #include <adportable/date_string.hpp>
@@ -98,9 +98,6 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <json.hpp>
-//#include <rapidjson/document.h>
-//#include <rapidjson/writer.h>
-//#include <rapidjson/stringbuffer.h>
 #include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -122,7 +119,7 @@ namespace accutof { namespace acquire {
         struct user_preference {
             static boost::filesystem::path path( QSettings * settings ) {
                 boost::filesystem::path dir( settings->fileName().toStdWString() );
-                return dir.remove_filename() / "pkdavg";
+                return dir.remove_filename() / "accutof";
             }
         };
 
@@ -303,14 +300,12 @@ namespace accutof { namespace acquire {
             std::unique_ptr< adurl::sse > sse_;
             std::unique_ptr< adurl::blob > blob_;
             std::vector< std::thread > threads_;
-            std::string http_host_;
-            std::string http_port_;
             bool hasDark_;
 
             impl() : tdcdoc_( std::make_shared< acqrscontrols::u5303a::tdcdoc >() )
                    , nextSampleRun_( std::make_shared< adcontrols::SampleRun >() )
                    , iU5303AFacade_( std::make_shared< iU5303AFacade >() )
-                   , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "PKDAVG" ) )
+                   , iSequenceImpl_( std::make_shared< adextension::iSequenceImpl >( "AccuTOF" ) )
                    , isMethodDirty_( true )
                    , cm_( std::make_shared< adcontrols::ControlMethod::Method >() )
                    , method_( std::make_shared< acqrscontrols::u5303a::method >() )
@@ -323,21 +318,15 @@ namespace accutof { namespace acquire {
                    , timer_( io_context_ )
                    , sse_( std::make_unique< adurl::sse >( io_context_ ) )
                    , blob_( std::make_unique< adurl::blob >( io_context_ ) )
-                   , http_host_( "httpd-map" )
-                   , http_port_( "80" )
                    , hasDark_( false ) {
 
                 adcontrols::TofChromatogramsMethod tofm;
                 tofm.setNumberOfTriggers( 1000 );
                 tdcdoc_->setTofChromatogramsMethod( tofm );
-                massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( adcontrols::iids::adspectrometer_uuid );
+
                 uint32_t id(0);
                 for ( auto& trace: traces_ )
                     trace = std::make_shared< adcontrols::Trace >( id++, 8192 - 512, 8192 );
-
-                using namespace std::literals::chrono_literals;
-                timer_.expires_from_now( 1s );
-                timer_.async_wait( std::bind( &impl::on_timer, this, std::placeholders::_1 ) );
             }
 
             void addInstController( std::shared_ptr< adextension::iController > p );
@@ -379,58 +368,17 @@ namespace accutof { namespace acquire {
                     break;
                 }
             }
-
-            void on_timer( const boost::system::error_code& ec ) {
-                using namespace std::literals::chrono_literals;
-                if ( !ec ) {
-                    timer_.expires_from_now( 3s );
-                    timer_.async_wait( std::bind( &impl::on_timer, this, std::placeholders::_1 ) );
-
-                    adurl::ajax ajax( http_host_, http_port_ );
-                    if ( ajax( "GET", "/dg/ctl?status.json" ) ) {
-                        size_t sz;
-                        if ( auto resp = ajax.get_response( sz ) ) {
-                            QByteArray data( resp, sz );
-                            emit document::instance()->onDelayPulseData( data );
-                        }
-                    }
-                }
-            }
-
-            void connect_httpd_map() {
-
-                sse_->register_sse_handler(
-                    []( const std::vector< std::pair< std::string, std::string > >& headers, const std::string& body ){
-                        auto it = std::find_if( headers.begin(), headers.end(), [&](auto& h){ return h.first == "data"; });
-                        if ( it != headers.end() )  {
-                            if ( it->second.find( '{' ) == std::string::npos ) { // not a json string := tick number/number k
-                                QByteArray data( it->second.data(), it->second.size() );
-                                emit document::instance()->onTick( data );
-                            } else {
-                                // json comes here
-                            }
-                        }
-                    });
-                for ( size_t i = 0; i < 2; ++i ) {
-                    threads_.emplace_back( [&]{ io_context_.run(); } );
-                }
-            }
-
-            void disconnect_httpd_map() {
-                io_context_.stop();
-                for ( auto& t: threads_ )
-                    t.join();
-            }
         };
 
+        // static members
         std::mutex document::impl::mutex_;
         document * document::impl::instance_( 0 );
         const std::chrono::system_clock::time_point document::impl::uptime_ = std::chrono::system_clock::now();
         const uint64_t document::impl::tp0_ =
             std::chrono::duration_cast<std::chrono::nanoseconds>( document::impl::uptime_.time_since_epoch() ).count();
         std::set< QString > document::impl::blockedModules_ = { "Acquire" };
-    }
-}
+    } // namespace acquire
+} // namespace accutof
 
 document::document() : impl_( new impl() )
 {
@@ -458,6 +406,14 @@ void
 document::actionConnect()
 {
     using namespace std::literals::chrono_literals;
+
+    if ( ! impl_->massSpectrometer_  ) {
+        if ( ( impl_->massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
+            // todo: load mass calibration from settings
+        } else {
+            QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin", QString( tr( "No AccuTOF Spectrometer installed." ) ) );
+        }
+    }
 
     if ( !impl_->iControllers_.empty() ) {
 
@@ -542,8 +498,8 @@ document::actionConnect()
 
         adacquire::task::instance()->fsmStart();
         adacquire::task::instance()->fsmReady();
-    }
-}
+    } // namesapce acquire
+} // namespace accutof
 
 void
 document::actionInject()
@@ -603,7 +559,7 @@ document::addInstController( adextension::iController * p )
 
     } catch ( std::bad_weak_ptr& ) {
 
-        QMessageBox::warning( MainWindow::instance(), "pkdavg plugin"
+        QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin"
                               , QString( tr( "Instrument controller %1 has no shared_ptr; ignored." ) ).arg( p->module_name() ) );
 
     }
@@ -815,22 +771,22 @@ document::initialSetup()
         impl_->longTermHistogramEnabled_ = settings->value( Constants::THIS_GROUP + QString("/longTermHistogramEnabled"),  true ).toBool();
     }
 
-    { // host:port
-        auto settings( impl_->settings_ );
-        impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "httpd-map" ).toString().toStdString();
-        impl_->http_port_ = settings->value( Constants::THIS_GROUP + QString("/http_port"),  "http" ).toString().toStdString();
-    }
+    // { // host:port
+    //     auto settings( impl_->settings_ );
+    //     impl_->http_host_ = settings->value( Constants::THIS_GROUP + QString("/http_host"),  "httpd-map" ).toString().toStdString();
+    //     impl_->http_port_ = settings->value( Constants::THIS_GROUP + QString("/http_port"),  "http" ).toString().toStdString();
+    // }
 
     emit on_threshold_action_changed();
 
     /////////////////////////////////////
-    impl_->connect_httpd_map();
+    //impl_->connect_httpd_map();
 }
 
 void
 document::finalClose()
 {
-    impl_->disconnect_httpd_map();
+    // impl_->disconnect_httpd_map();
 
     for ( auto iController : impl_->iControllers_ )
         iController->disconnect( true );
@@ -844,7 +800,7 @@ document::finalClose()
     boost::filesystem::path dir = user_preference::path( impl_->settings_.get() );
     if ( !boost::filesystem::exists( dir ) ) {
         if ( !boost::filesystem::create_directories( dir ) ) {
-            QMessageBox::information( 0, "u5303a::document"
+            QMessageBox::information( 0, "accutof::document"
                                       , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
             return;
         }
@@ -1492,12 +1448,11 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
     do {
         adfs::stmt sql( db );
 
-        static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
         sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
-        sql.bind( 1 ) = uuid_massspectrometer;
+        sql.bind( 1 ) = accutof::spectrometer::iids::uuid_massspectrometer; // 9568b15d-73b6-48ed-a1c7-ac56a308f712;
         sql.bind( 2 ) = 0;
-        sql.bind( 3 ) = std::string( adspectrometer::MassSpectrometer::class_name );
-        sql.bind( 4 ) = 1.0; // scanLaw->fLength( 0 ); // fLength at mode 0
+        sql.bind( 3 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer ); // := 'AccuTOF'
+        sql.bind( 4 ) = 2.0; // scanLaw->fLength( 0 ); // fLength at mode 0
 
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "sqlite error";
@@ -1543,23 +1498,6 @@ document::impl::prepareStorage( const boost::uuids::uuid& uuid, adacquire::Sampl
         // counting peaks
         if ( uuid == boost::uuids::uuid{{ 0 }} ) {
             acqrscontrols::pkd_counting_data_writer::prepare_storage( sp.filesystem() );
-
-            // map trigger
-            adfs::stmt sql( sp.filesystem().db() );
-            sql.exec(
-                "CREATE TABLE map_trigger ("
-                " trig_count INTEGER PRIMARY KEY"
-                ", fpga_clock INTEGER"
-                ", posix_clock INTEGER"
-                ", protocol INTEGER"
-                ", wellKnownEvents INTEGER"
-                ", dac_clock INTEGER"
-                ", dac_x REAL"
-                ", dac_y REAL"
-                ", adc_clock INTEGER"
-                ", adc_x REAL"
-                ", adc_y REAL"
-                " )" );
         };
 
         return true;
@@ -1796,25 +1734,6 @@ bool
 document::longTermHistogramEnabled() const
 {
     return impl_->longTermHistogramEnabled_;
-}
-
-std::pair< QString, QString>
-document::http_addr() const
-{
-    return std::make_pair( QString::fromStdString( impl_->http_host_ )
-                           , QString::fromStdString( impl_->http_port_ ) );
-}
-
-void
-document::http_addr( const QString& host, const QString& port )
-{
-    impl_->http_host_ = host.toStdString();
-    impl_->http_port_ = port.toStdString();
-    impl_->settings_->setValue( Constants::THIS_GROUP + QString("/http_host"), host );
-    impl_->settings_->setValue( Constants::THIS_GROUP + QString("/http_port"), port );
-
-    impl_->sse_->connect( "/dg/ctl?events", impl_->http_host_, impl_->http_port_ );
-    impl_->blob_->connect( "/dataStorage", impl_->http_host_, impl_->http_port_ );
 }
 
 bool

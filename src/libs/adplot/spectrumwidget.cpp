@@ -1038,6 +1038,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
             text.setColor( Qt::darkGreen );
             text.setFont( Annotation::font() );
             bool added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+            (void)added;
         }
 
         QColor color = Qt::darkGreen;
@@ -1052,6 +1053,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
             text.setColor( color );
             text.setFont( font );
 			auto added = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+            (void)added;
         }
     }
     plot.setUpdatesEnabled( true );

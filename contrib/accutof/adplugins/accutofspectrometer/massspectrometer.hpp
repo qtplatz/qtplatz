@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -38,51 +38,51 @@ namespace adfs { class filesystem; }
 namespace boost { namespace uuids { struct uuid; } }
 namespace multumcontrols { class ScanLaw; class OrbitProtocol; }
 
-namespace accutofspectrometer {
+namespace accutof { namespace spectrometer {
 
-    class AccuTOFDataInterpreter;
-    class ScanLaw;
+        class AccuTOFDataInterpreter;
+        class ScanLaw;
 
-    class MassSpectrometer : public adcontrols::MassSpectrometer {
+        class MassSpectrometer : public adcontrols::MassSpectrometer {
 
-        MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
+            MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
 
-    public:
-        MassSpectrometer();
-        ~MassSpectrometer();
+        public:
+            MassSpectrometer();
+            ~MassSpectrometer();
 
-        // dataformat v3 interface
-        void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& ) override;
-        void setAcceleratorVoltage( double, double ) override;
-        bool assignMasses( adcontrols::MassSpectrum&, int64_t rowid ) const override;
+            // dataformat v3 interface
+            void initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& ) override;
+            void setAcceleratorVoltage( double, double ) override;
+            bool assignMasses( adcontrols::MassSpectrum&, int64_t rowid ) const override;
 
-        std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override;
+            std::shared_ptr< adcontrols::ScanLaw > scanLaw( const adcontrols::MSProperty& ) const override;
 
-        // dataformat v2 class name
-        const wchar_t * name() const override;
+            // dataformat v2 class name
+            const wchar_t * name() const override;
 
-        // dataformat v3 class uuid
-        static constexpr const char * clsid_text = "{306c4cfb-6990-468d-9544-3cbc2583b17a}";
-        static constexpr const char * class_name = "AccuTOF"; // "1f78fc16-8d68-462f-a337-e2b7d704a6ff";
+            // dataformat v3 class uuid
+            static constexpr const char * clsid_text = "{306c4cfb-6990-468d-9544-3cbc2583b17a}";
+            static constexpr const char * class_name = "AccuTOF";
 
-        const char * objtext() const override;
-        const boost::uuids::uuid& objclsid() const override;
-        const char * dataInterpreterText() const override;
-        const boost::uuids::uuid& dataInterpreterUuid() const override;
+            const char * objtext() const override;
+            const boost::uuids::uuid& objclsid() const override;
+            const char * dataInterpreterText() const override;
+            const boost::uuids::uuid& dataInterpreterUuid() const override;
 
-        const adcontrols::ScanLaw * scanLaw() const override;
+            const adcontrols::ScanLaw * scanLaw() const override;
 
-        void setMethod( const adcontrols::ControlMethod::Method& ) override;
-        const adcontrols::ControlMethod::Method * method() const override;
-        int mode( uint32_t protocolNumber ) const override;
-        bool setMSProperty( adcontrols::MassSpectrum&, const adcontrols::ControlMethod::Method&, int ) const override;
-        bool estimateScanLaw( const adcontrols::MSPeaks&, double& va, double& t0 ) const override;
+            void setMethod( const adcontrols::ControlMethod::Method& ) override;
+            const adcontrols::ControlMethod::Method * method() const override;
+            int mode( uint32_t protocolNumber ) const override;
+            bool setMSProperty( adcontrols::MassSpectrum&, const adcontrols::ControlMethod::Method&, int ) const override;
+            bool estimateScanLaw( const adcontrols::MSPeaks&, double& va, double& t0 ) const override;
 
-        //--------- local -----------
-        const adcontrols::ScanLaw * scanLaw( int64_t ) const;
-    private:
-        std::unique_ptr< ScanLaw > scanLaw_;
-        std::unique_ptr< adcontrols::ControlMethod::Method > method_;
-    };
-
+            //--------- local -----------
+            const adcontrols::ScanLaw * scanLaw( int64_t ) const;
+        private:
+            std::unique_ptr< ScanLaw > scanLaw_;
+            std::unique_ptr< adcontrols::ControlMethod::Method > method_;
+        };
+    }
 }

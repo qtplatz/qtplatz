@@ -37,7 +37,7 @@ add_definitions(
 
 include_directories(
   ${QTPLATZ_SOURCE_DIR}/contrib/agilent/libs
-  ${QTPLATZ_SOURCE_DIR}/contrib/multum/libs
+  ${QTPLATZ_SOURCE_DIR}/contrib/accutof/libs
   ${QTPLATZ_SOURCE_DIR}/src/libs
   ${QTPLATZ_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs

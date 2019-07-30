@@ -1,5 +1,5 @@
 /**************************************************************************
- ** Copyright (C) 2014-2018 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2014-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -39,12 +39,13 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
-#include <adcontrols/mappedimage.hpp>
-#include <adcontrols/mappedspectra.hpp>
-#include <adcontrols/mappedspectrum.hpp>
+//#include <adcontrols/mappedimage.hpp>
+//#include <adcontrols/mappedspectra.hpp>
+//#include <adcontrols/mappedspectrum.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adlog/logger.hpp>
@@ -225,9 +226,6 @@ task::initialize()
                         document::instance()->actionInject();
                 });
 
-            // following connection make it 'time events' handling
-            // adacquire::task::instance()->connect_periodic_timer( std::bind( &task::impl::handle_inst_event, impl, std::placeholders::_1 ) );
-
             adacquire::task::instance()->initialize();
 
         } );
@@ -235,9 +233,11 @@ task::initialize()
     return true;
 }
 
+
 bool
 task::finalize()
 {
+    adacquire::task::instance()->finalize();
     return impl_->finalize();
 }
 
@@ -311,16 +311,27 @@ task::post( std::vector< std::future<bool> >& futures )
 
 namespace accutof { namespace acquire {
 
+        struct mass_assignor {
+            double operator()( double time, int ) const {
+                auto sp = document::instance()->massSpectrometer();
+                // todo: if calibration
+                if ( auto law = sp->scanLaw() )
+                    return law->getMass( time, 0 );
+            }
+        };
+
         struct queue_process : boost::static_visitor< void > {
             data_status& status;
             queue_process ( data_status& t ) : status( t )
                 {}
+
+            // software threshold counting
             void operator()( threshold_array_type threshold_results ) const {
                 int channel = 0;
                 for ( auto result: threshold_results ) {
                     if ( result ) {
                         auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *result ) ) {
+                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *result, mass_assignor() ) ) {
                             ms->getMSProperty().setTrigNumber( result->data()->serialnumber_, status.pos_origin_ );
                             document::instance()->setData( acqrscontrols::u5303a::waveform_observer, ms, channel );
                         }
@@ -329,12 +340,14 @@ namespace accutof { namespace acquire {
                 }
             }
 
+            // pkd+avg waveforms
             void operator()( waveform_array_type wforms ) const {
                 int channel = 0;
+
                 for ( auto wform: wforms ) {
                     if ( wform ) {
                         auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *wform ) ) {
+                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *wform, mass_assignor() ) ) {
                             ms->getMSProperty().setTrigNumber( wform->serialnumber_, status.pos_origin_ );
                             document::instance()->setData( acqrscontrols::u5303a::waveform_observer, ms, channel );
                         }

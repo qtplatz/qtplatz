@@ -48,7 +48,7 @@
 #include <memory>
 #include <mutex>
 
-using namespace accutofspectrometer;
+using namespace accutof::spectrometer;
 
 MassSpectrometer::~MassSpectrometer()
 {
@@ -61,7 +61,7 @@ MassSpectrometer::MassSpectrometer() : scanLaw_( std::make_unique< ScanLaw >() )
 const wchar_t *
 MassSpectrometer::name() const
 {
-    return accutofspectrometer::dataInterpreter::spectrometer::name();
+    return accutof::spectrometer::dataInterpreter::spectrometer::name();
 }
 
 std::shared_ptr< adcontrols::ScanLaw >
@@ -92,13 +92,6 @@ const char *
 MassSpectrometer::objtext() const
 {
     return class_name; // 'Accutof'
-}
-
-const boost::uuids::uuid&
-MassSpectrometer::objclsid() const
-{
-    static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
-    return uuid;
 }
 
 const adcontrols::ScanLaw *
@@ -207,7 +200,7 @@ MassSpectrometer::scanLaw( int64_t rowid ) const
 bool
 MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) const
 {
-    auto mode = ms.mode();
+    //auto mode = ms.mode();
     auto scanlaw = scanLaw( rowid );
     return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
 }
@@ -215,11 +208,17 @@ MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) co
 const char *
 MassSpectrometer::dataInterpreterText() const
 {
-    return names::objtext_datainterpreter; // "IniTOF"
+    return names::objtext_datainterpreter; // "AccuTOF"
 }
 
 const boost::uuids::uuid&
 MassSpectrometer::dataInterpreterUuid() const
 {
     return iids::uuid_datainterpreter;
+}
+
+const boost::uuids::uuid&
+MassSpectrometer::objclsid() const
+{
+    return iids::uuid_massspectrometer; // 9568b15d-73b6-48ed-a1c7-ac56a308f712 defined in accutofcontrols/constants.hpp
 }

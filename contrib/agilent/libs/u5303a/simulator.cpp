@@ -50,7 +50,9 @@ namespace u5303a {
     static size_t __counter__;
 
     static const std::vector< std::pair<double, double> >
-    peak_list = { { 104.0e-6, 0.01 }, { 105.0e-6, 0.005 }, { 106.0e-6, 0.0030 } };
+
+    //peak_list = { { 104.0e-6, 0.01 }, { 105.0e-6, 0.005 }, { 106.0e-6, 0.0030 } };
+    peak_list = { { 14.0e-6, 0.01 }, { 25.0e-6, 0.005 }, { 46.0e-6, 0.0030 } };
 
     class waveform_simulator : public adacquire::waveform_simulator {
     public:
@@ -106,13 +108,13 @@ namespace u5303a {
 using namespace u5303a;
 
 simulator::simulator() : hasWaveform_( false )
-                       , sampInterval_( 1.0e-9 )
+                       , pio_( std::make_unique< dgpio::pio >() )
+                       , sampInterval_( 0.3125e-9 )
                        , startDelay_( 0.0 )
                        , nbrSamples_( 10000 & ~0x0f )
                        , nbrWaveforms_( 496 )
                        , exitDelay_( 0.0 )
                        , method_( std::make_shared< acqrscontrols::u5303a::method >() )
-                       , pio_( std::make_unique< dgpio::pio >() )
                        , protocolIndex_( 0 )
                        , protocolReplicates_( 1 )
 {
@@ -204,6 +206,8 @@ simulator::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::
 
     bool invert = method_->_device_method().invert_signal;
     int32_t offset = method_->_device_method().front_end_offset;
+    (void)invert;
+    (void)offset;
 
     if ( ptr ) {
 		auto mblk = std::make_shared< adportable::mblock<int32_t> >( ptr->nbrSamples() );

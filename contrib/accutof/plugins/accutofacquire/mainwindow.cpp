@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2013-2018 MS-Cheminformatics LLC
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
@@ -524,7 +524,7 @@ MainWindow::createTopStyledToolbar()
             choice->setObjectName( QString( "axis_%1" ).arg( QString::number( 1 ) ) );
             choice->addItems( QStringList() << "m/z" << "time" );
             toolBarLayout->addWidget( choice );
-            choice->setProperty( "id", QVariant( int(1) ) );
+            choice->setProperty( "id", QVariant( int(0) ) ); // <------------ combo id
             connect( choice, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged )
                      , [=] ( int index ) { axisChanged( choice, index ); } );
         }
@@ -741,8 +741,7 @@ MainWindow::axisChanged( QComboBox * combo, int currentIndex )
 
     if ( auto wnd = findChild< WaveformWnd * >() ) {
         wnd->setAxis( id, currentIndex );
-        if ( id == 1 )
-            wnd->setAxis( id + 1, currentIndex );
+        wnd->setAxis( id, currentIndex );
         //instance_->updateSetpoints();
     }
 

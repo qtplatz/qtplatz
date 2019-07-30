@@ -28,36 +28,37 @@
 #include <adcontrols/scanlaw.hpp>
 #include <array>
 
-namespace accutofspectrometer {
+namespace accutof { namespace spectrometer {
 
-    //////////////
-    class ScanLaw : public adcontrols::ScanLaw
-                  , protected adportable::TimeSquaredScanLaw {
-    public:
-        ~ScanLaw();
-        ScanLaw( double acceleratorVoltage = 7000, double tDelay = 0 );
+        //////////////
+        class ScanLaw : public adcontrols::ScanLaw
+                      , protected adportable::TimeSquaredScanLaw {
+        public:
+            ~ScanLaw();
+            ScanLaw( double acceleratorVoltage = 7000, double tDelay = 0 );
 
-        ScanLaw( const ScanLaw& t );
-        ScanLaw& operator = ( const ScanLaw& );
+            ScanLaw( const ScanLaw& t );
+            ScanLaw& operator = ( const ScanLaw& );
 
-        // TimeSquaredScanLaw
-        double tDelay() const override;
-        double kAcceleratorVoltage() const override;
-        double acceleratorVoltage( double mass, double time, int mode, double tDelay ) override;
-        void setAcceleratorVoltage( double ) override;
-        void setTDelay( double ) override;
+            // TimeSquaredScanLaw
+            double tDelay() const override;
+            double kAcceleratorVoltage() const override;
+            double acceleratorVoltage( double mass, double time, int mode, double tDelay ) override;
+            void setAcceleratorVoltage( double ) override;
+            void setTDelay( double ) override;
 
-        double acceleratorVoltage( double mass, double time, double flength, double tDelay );
+            double acceleratorVoltage( double mass, double time, double flength, double tDelay );
 
-        // adcontrols::ScanLaw
-        double getMass( double t, int mode ) const override;
-        double getTime( double m, int mode ) const override;
-        double getMass( double t, double fLength ) const override;
-        double getTime( double m, double fLength ) const override;
-        double fLength( int type ) const override;
+            // adcontrols::ScanLaw
+            double getMass( double t, int mode ) const override;
+            double getTime( double m, int mode ) const override;
+            double getMass( double t, double fLength ) const override;
+            double getTime( double m, double fLength ) const override;
+            double fLength( int type ) const override;
 
-        void setLength( int, double );
-        double length( int ) const;
-    };
+            void setLength( int, double );
+            double length( int ) const;
+        };
 
+    }
 }

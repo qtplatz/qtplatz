@@ -30,39 +30,40 @@
 #include <adcontrols/datainterpreter_factory.hpp>
 #include <mutex>
 
-namespace accutofspectrometer {
+namespace accutof { namespace spectrometer {
 
-    class accutofspectrometer_plugin : public adplugin::plugin {
+        class accutofspectrometer_plugin : public adplugin::plugin {
 
-        accutofspectrometer_plugin( const accutofspectrometer_plugin& ) = delete;
+            accutofspectrometer_plugin( const accutofspectrometer_plugin& ) = delete;
 #if _MSC_VER >= 1900
-    public:
+        public:
 #endif
-        accutofspectrometer_plugin() {}
-    public:
-        ~accutofspectrometer_plugin() {}
+            accutofspectrometer_plugin() {}
+        public:
+            ~accutofspectrometer_plugin() {}
 
-        static std::shared_ptr< accutofspectrometer_plugin > instance_;
+            static std::shared_ptr< accutofspectrometer_plugin > instance_;
 
-        static accutofspectrometer_plugin * instance() {
-            static std::once_flag flag;
-            std::call_once( flag, [] () {
-                    struct make_shared_enabler : public accutofspectrometer_plugin {};
-                    instance_ = std::make_shared< make_shared_enabler >();
-                } );
+            static accutofspectrometer_plugin * instance() {
+                static std::once_flag flag;
+                std::call_once( flag, [] () {
+                                          struct make_shared_enabler : public accutofspectrometer_plugin {};
+                                          instance_ = std::make_shared< make_shared_enabler >();
+                                      } );
 
-            return instance_.get();
-        }
+                return instance_.get();
+            }
 
-        // plugin
-        void * query_interface_workaround( const char * ) override { return 0; }
+            // plugin
+            void * query_interface_workaround( const char * ) override { return 0; }
 
-        void accept( adplugin::visitor&, const char * adplugin ) override;
+            void accept( adplugin::visitor&, const char * adplugin ) override;
 
-        const char * iid() const override { return names::iid_accutofspectrometer_plugin; }
-    };
+            const char * iid() const override { return names::iid_accutofspectrometer_plugin; }
+        };
 
-    std::shared_ptr< accutofspectrometer_plugin > accutofspectrometer_plugin::instance_;
+        std::shared_ptr< accutofspectrometer_plugin > accutofspectrometer_plugin::instance_;
+    }
 }
 
 extern "C" {
@@ -72,10 +73,10 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    return accutofspectrometer::accutofspectrometer_plugin::instance();
+    return accutof::spectrometer::accutofspectrometer_plugin::instance();
 }
 
-using namespace accutofspectrometer;
+using namespace accutof::spectrometer;
 
 void
 accutofspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
