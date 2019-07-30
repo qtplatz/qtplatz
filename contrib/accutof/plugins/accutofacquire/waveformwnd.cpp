@@ -561,23 +561,18 @@ WaveformWnd::handleDrawSettings()
 void
 WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
-    ADDEBUG() << "setAxis( " << idView << ", " << axis << ")";
-
+    ADDEBUG() << "########### setAxis( " << idView << ", " << axis << ")";
 
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 
     auto sp = document::instance()->massSpectrometer();
-    auto scanLaw = sp->scanLaw();
-    ADDEBUG() << "mass=" << scanLaw->getMass( 1.0e-6, 0 ); // 1us
-    ADDEBUG() << "mass=" << scanLaw->getMass( 50.0e-6, 0 ); // 50us
 
     for ( auto& spw: { spw_, hpw_ } ) {
         spw->setAxis( haxis, true
                       , []( const QRectF& z, const adcontrols::MassSpectrum& vms, adplot::SpectrumWidget::HorizontalAxis axis ){
                             auto sp = document::instance()->massSpectrometer();
                             auto scanLaw = sp->scanLaw();
-                            ADDEBUG() << "mass=" << scanLaw->getMass( 1.0e-6, 0 );
-                            ADDEBUG() << "mass=" << scanLaw->getMass( 50.0e-6, 0 );
+
                             if ( axis == adplot::SpectrumWidget::HorizontalAxisMass ) { // mass --> time
                                 for ( auto& ms: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( vms ) ) {
                                     if ( ms.getAcquisitionMassRange().first < z.left() && z.right() < ms.getAcquisitionMassRange().second ) {
@@ -593,7 +588,6 @@ WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
                                     auto right = z.right() / std::micro::den;
                                     if ( ms.getMSProperty().instTimeRange().first < left && right < ms.getMSProperty().instTimeRange().second ) {
                                         auto range = std::make_pair( scanLaw->getMass( left, ms.mode() ), scanLaw->getMass( right, ms.mode() ) );
-                                        ADDEBUG() << "range = " << range;
                                         return QRectF( range.first, z.bottom(), range.second - range.first, z.height() );
                                     }
                                 }

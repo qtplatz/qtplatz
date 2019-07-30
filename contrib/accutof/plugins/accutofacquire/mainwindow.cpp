@@ -299,6 +299,16 @@ MainWindow::OnInitialUpdate()
         }
     }
 
+    ///////// Restore AXIS /////////
+    if ( auto settings = document::instance()->settings() ) {
+        auto axis = settings->value( "mainwindow/axis_0" ).toInt();
+        if ( auto choice = findChild< QComboBox * >( "axis_0" ) ) {
+            choice->setCurrentIndex( axis );
+            ADDEBUG() << "------------- found QComboBox index=" << choice->currentIndex() << ", " << choice->currentText().toStdString();
+        }
+    }
+
+
 #if ! defined Q_OS_MAC
     for ( auto dock: dockWidgets() )
         dock->widget()->setStyleSheet( "* { font-size: 9pt; }" );
@@ -518,15 +528,14 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
         // axis (time|m/z)
-        toolBarLayout->addWidget( new QLabel( QString( tr( "Axis %1:" ) ).arg( 1 ) ) );
+        toolBarLayout->addWidget( new QLabel( "Axis 1: " ) );
         {
-            QComboBox * choice = new QComboBox;
-            choice->setObjectName( QString( "axis_%1" ).arg( QString::number( 1 ) ) );
+            const int id = 0;
+            auto choice = qtwrapper::make_widget< QComboBox >( "axis_0" );
             choice->addItems( QStringList() << "m/z" << "time" );
             toolBarLayout->addWidget( choice );
-            choice->setProperty( "id", QVariant( int(0) ) ); // <------------ combo id
-            connect( choice, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged )
-                     , [=] ( int index ) { axisChanged( choice, index ); } );
+            choice->setProperty( "id", QVariant( id ) ); // <------------ combo id
+            connect( choice, qOverload<int>( &QComboBox::currentIndexChanged ), [=] ( int index ) { axisChanged( choice, index ); } );
         }
         //----
         // check boxes
@@ -740,7 +749,6 @@ MainWindow::axisChanged( QComboBox * combo, int currentIndex )
     auto id = combo->property( "id" ).toInt();
 
     if ( auto wnd = findChild< WaveformWnd * >() ) {
-        wnd->setAxis( id, currentIndex );
         wnd->setAxis( id, currentIndex );
         //instance_->updateSetpoints();
     }

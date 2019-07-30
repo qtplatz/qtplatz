@@ -310,9 +310,11 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
 {
     if ( interpreter_ ) {
 
-        objid_ = objid; // objid tells channel/module id
-        objtext_ = objtext; // for debugging convension
-        db_ = dbf._ptr();
+        objid_   = objid;      // objid := uuid of data stream such as '1.u5303a.ms-cheminfo.com'
+        objtext_ = objtext;    // for debugging convension
+        db_      = dbf._ptr();
+
+        // find spectrometer object from ScanLaw table that interpret raw 'waveform' data into 'spectrum' (mass assign)
 
         if ( auto db = db_.lock() ) {
             {
@@ -339,16 +341,16 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
 
             // find ScanLaw
             double acclVoltage( 0 ), tDelay( 0 ), fLength;
-            boost::uuids::uuid clsid {{ 0 }};
-            if ( adutils::v3::AcquiredConf::findScanLaw( *db, objid_, clsid, acclVoltage, tDelay, fLength ) ) {
+            boost::uuids::uuid clsidSpectrometer {{ 0 }};
+            if ( adutils::v3::AcquiredConf::findScanLaw( *db, objid_, clsidSpectrometer, acclVoltage, tDelay, fLength ) ) {
                 // src/adplugins/adspectrometer/massspectrometer.hpp; "adspectrometer"
                 // clsid = boost::uuids::string_generator()( "{E45D27E0-8478-414C-B33D-246F76CF62AD}" );
                 // acclVoltage = 5000.0;
-                if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
+                if ( ( spectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsidSpectrometer ) ) )
                     spectrometer_->initialSetup( *db, {{ 0 }} );
                 else {
                     adportable::debug debug(__FILE__, __LINE__);
-                    debug << "No mass spectrometer class identifed as " << clsid << " installed";
+                    debug << "No mass spectrometer class identifed as " << clsidSpectrometer << " installed";
                     throw std::runtime_error( debug.str() );
                 }
             }

@@ -36,34 +36,32 @@ namespace acqrsinterpreter {
     namespace waveform {
 
         struct translator {
-            
+
             template< typename waveform_type >
             adcontrols::translate_state operator()( waveform_type& wform
                                                     , const char * data, size_t dsize
                                                     , const char * meta, size_t msize ) {
-
-                ADDEBUG() << "###### translator operator ";
 
                 if ( meta && msize )
                     wform.deserialize_xmeta( meta, msize );
 
                 if ( data && dsize ) {
 
-                    
+
                     if ( adportable::bzip2::is_a( data, dsize ) ) {
-                        
+
                         std::string ar;
                         adportable::bzip2::decompress( ar, data, dsize );
                         wform.deserialize_xdata( ar.data(), ar.size() );
-                        
+
                     } else {
 
-                        wform.deserialize_xdata( data, dsize );                        
-                        
+                        wform.deserialize_xdata( data, dsize );
+
                     }
                     return adcontrols::translate_complete;
                 }
-                
+
                 return adcontrols::translate_error;
             }
         };
@@ -88,9 +86,9 @@ namespace acqrsinterpreter {
                                                                     , const int8_t * data, size_t dsize, const int8_t * meta, size_t msize )
         {
             return translator()( wform, reinterpret_cast< const char *>(data), dsize, reinterpret_cast< const char *>(meta), msize );
-        }        
-        
-        
+        }
+
+
         /////////////// public api //////////////////
         // U5303A -> MassSpectrum
         template<> adcontrols::translate_state
@@ -101,9 +99,9 @@ namespace acqrsinterpreter {
                                                                      , size_t idData, const wchar_t * traceId ) const
         {
             auto wform = std::make_unique< acqrscontrols::u5303a::waveform >();
-            
+
             if ( translator()( *wform, data, dsize, meta, msize ) == adcontrols::translate_complete ) {
-                
+
                 if ( auto scanlaw = spectrometer.scanLaw() )
                     acqrscontrols::u5303a::waveform::translate( ms, *wform, [&]( double t, int m ){ return scanlaw->getMass( t, m ); } );
                 else
@@ -111,7 +109,7 @@ namespace acqrsinterpreter {
             }
             return adcontrols::translate_error;
         }
-        
+
         // AP240 -> MassSpectrum
         template<> adcontrols::translate_state
         DataInterpreter<acqrscontrols::ap240::waveform>::translate( adcontrols::MassSpectrum& ms
@@ -121,7 +119,7 @@ namespace acqrsinterpreter {
                                                                     , size_t idData, const wchar_t * traceId ) const
         {
             auto wform = std::make_unique< acqrscontrols::ap240::waveform >();
-            
+
             if ( translator()( *wform, data, dsize, meta, msize ) == adcontrols::translate_complete ) {
                 if ( auto scanlaw = spectrometer.scanLaw() )
                     acqrscontrols::ap240::waveform::translate( ms, *wform, [&]( double t, int m ){ return scanlaw->getMass( t, m ); } );
@@ -129,10 +127,9 @@ namespace acqrsinterpreter {
                     acqrscontrols::ap240::waveform::translate( ms, *wform );
                 return adcontrols::translate_complete;
             }
-            return adcontrols::translate_error;            
+            return adcontrols::translate_error;
         }
         /////////////////////
-        
+
     }
 }
-

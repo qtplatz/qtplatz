@@ -55,6 +55,7 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
+#include <adcontrols/scanlaw.hpp>
 #include <adcontrols/timedigitalhistogram.hpp>
 #include <adcontrols/timedigitalmethod.hpp>
 #include <adcontrols/trace.hpp>
@@ -314,7 +315,7 @@ namespace accutof { namespace acquire {
                    , pkdavgWriter_( std::make_unique< PKDAVGWriter >() )
                    , settings_( std::make_shared< QSettings >( QSettings::IniFormat, QSettings::UserScope
                                                                , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                                               , QLatin1String( "pkdavg" ) ) )
+                                                               , QLatin1String( "accutof" ) ) )
                    , timer_( io_context_ )
                    , sse_( std::make_unique< adurl::sse >( io_context_ ) )
                    , blob_( std::make_unique< adurl::blob >( io_context_ ) )
@@ -406,14 +407,6 @@ void
 document::actionConnect()
 {
     using namespace std::literals::chrono_literals;
-
-    if ( ! impl_->massSpectrometer_  ) {
-        if ( ( impl_->massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
-            // todo: load mass calibration from settings
-        } else {
-            QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin", QString( tr( "No AccuTOF Spectrometer installed." ) ) );
-        }
-    }
 
     if ( !impl_->iControllers_.empty() ) {
 
@@ -739,6 +732,15 @@ document::initialSetup()
             } catch ( std::exception& ex ) {
                 ADDEBUG() << ex.what();
             }
+        }
+    }
+
+    if ( ! impl_->massSpectrometer_  ) {
+        if ( ( impl_->massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
+            ADDEBUG() << "accutof massspectrometer has been installed.";
+            // todo: load mass calibration from settings
+        } else {
+            QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin", QString( tr( "No AccuTOF Spectrometer installed." ) ) );
         }
     }
 
@@ -1445,18 +1447,37 @@ document::impl::initStorage( const boost::uuids::uuid& uuid, adfs::sqlite& db ) 
 #ifndef NDEBUG
     ADDEBUG() << "## " << __FUNCTION__ << " " << uuid << ", " << objtext;
 #endif
-    do {
-        adfs::stmt sql( db );
+    if ( auto sp = document::instance()->massSpectrometer() ) {
+        if ( auto law = sp->scanLaw() ) {
+            adfs::stmt sql( db );
+            sql.prepare( "\
+INSERT OR REPLACE INTO ScanLaw (                                        \
+ objuuid, objtext, acclVoltage, tDelay, spectrometer, clsidSpectrometer) \
+ VALUES ( ?,?,?,?,?,? )" );
+            sql.bind( 1 ) = uuid;
+            sql.bind( 2 ) = objtext;
+            sql.bind( 3 ) = sp->acceleratorVoltage();
+            sql.bind( 4 ) = sp->tDelay();
+            sql.bind( 5 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer );
+            sql.bind( 6 ) = accutof::spectrometer::iids::uuid_massspectrometer;
 
-        sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
-        sql.bind( 1 ) = accutof::spectrometer::iids::uuid_massspectrometer; // 9568b15d-73b6-48ed-a1c7-ac56a308f712;
-        sql.bind( 2 ) = 0;
-        sql.bind( 3 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer ); // := 'AccuTOF'
-        sql.bind( 4 ) = 2.0; // scanLaw->fLength( 0 ); // fLength at mode 0
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << "sqlite error";
+        }
 
-        if ( sql.step() != adfs::sqlite_done )
-            ADDEBUG() << "sqlite error";
-    } while ( 0 );
+        do {
+            adfs::stmt sql( db );
+
+            sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
+            sql.bind( 1 ) = accutof::spectrometer::iids::uuid_massspectrometer; // 9568b15d-73b6-48ed-a1c7-ac56a308f712;
+            sql.bind( 2 ) = 0;
+            sql.bind( 3 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer ); // := 'AccuTOF'
+            sql.bind( 4 ) = sp->fLength();
+
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << "sqlite error";
+        } while ( 0 );
+    }
 
     // Save method
     if ( uuid == boost::uuids::uuid{{ 0 }} ) {
