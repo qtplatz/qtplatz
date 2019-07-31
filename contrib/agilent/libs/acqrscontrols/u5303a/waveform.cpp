@@ -98,7 +98,7 @@ namespace acqrscontrols {
 
         };
 
-        template< typename value_type > 
+        template< typename value_type >
         struct pkd_waveform_copy {
             bool operator()( adcontrols::MassSpectrum& sp, const waveform& w ) const {
                 if ( w.meta_.channelMode == u5303a::PKD ) {
@@ -119,7 +119,7 @@ namespace acqrscontrols {
                 return false;
             }
         };
-        
+
 
         template<typename T = waveform >
         class waveform_xmeta_archive {
@@ -178,7 +178,7 @@ namespace acqrscontrols {
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( boost::archive::xml_woarchive& ar, unsigned int )
         {
-            device_data_archive<> x( *this );            
+            device_data_archive<> x( *this );
             ar & boost::serialization::make_nvp( "device_data", x );
         }
 
@@ -187,7 +187,7 @@ namespace acqrscontrols {
             device_data_archive<> x( *this );
             ar & boost::serialization::make_nvp( "device_data", x );
         }
-        
+
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_oarchive& ar, unsigned int )
         {
             ar & device_data_archive<>( *this );
@@ -195,7 +195,7 @@ namespace acqrscontrols {
 
         template<> ACQRSCONTROLSSHARED_EXPORT void device_data::serialize( portable_binary_iarchive& ar, unsigned int )
         {
-            device_data_archive<> x( *this );            
+            device_data_archive<> x( *this );
             ar & x;
         }
 
@@ -309,7 +309,7 @@ waveform::waveform( const waveform& t, int dataType ) : method_( t.method_ )
             std::copy( t.data<int16_t>(), t.data<int16_t>() + size(), mb->data() );
         else if ( t.meta_.dataType == 4 )
             std::copy( t.data<int32_t>(), t.data<int32_t>() + size(), mb->data() );
-        mblock_ = mb;        
+        mblock_ = mb;
     }
     meta_.dataType = dataType;
 }
@@ -320,7 +320,7 @@ waveform::operator += ( const waveform& t )
     if ( ! is_equivalent( meta_, t.meta_ ) ) {
         throw std::bad_cast();
     }
-    
+
     meta_.actualAverages += ( t.meta_.actualAverages == 0 ) ? 1 : t.meta_.actualAverages;
     wellKnownEvents_ |= t.wellKnownEvents_;
 
@@ -338,7 +338,7 @@ waveform::operator += ( const waveform& t )
             break;
         }
     }
-    
+
     if ( t.meta_.dataType == 2 ) {
         typedef int16_t rvalue_t;
         switch( meta_.dataType ) {
@@ -356,7 +356,7 @@ waveform::operator += ( const waveform& t )
         typedef int32_t rvalue_t;
         switch( meta_.dataType ) {
         case 2:
-            throw std::bad_cast();                
+            throw std::bad_cast();
             break;
         case 4:
             add< int32_t, rvalue_t >( t, dbase );
@@ -426,7 +426,7 @@ waveform::height( double tof, double window ) const
     } else {
         const adcontrols::TofProtocol& this_protocol = method_.protocols() [ method_.protocolIndex() ];
         double ext_adc_delay = this_protocol.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
-        
+
         auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
         auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
         x1 = std::max( 0.0, x1 );
@@ -489,7 +489,7 @@ waveform::accumulate( double tof, double window ) const
         const_cast< waveform& >(*this).rms_ = rms;
         const_cast< waveform& >(*this).tic_ = tic;
     }
-    
+
     if ( std::abs( tof ) <= std::numeric_limits< double >::epsilon() ) {
 
         return tic_;
@@ -497,12 +497,12 @@ waveform::accumulate( double tof, double window ) const
     } else {
         const adcontrols::TofProtocol& this_protocol = method_.protocols() [ method_.protocolIndex() ];
         double ext_adc_delay = this_protocol.delay_pulses().at( adcontrols::TofProtocol::EXT_ADC_TRIG ).first;
-        
+
         auto x1 = ( ( tof - window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
         auto x2 = ( ( tof + window / 2.0 ) - meta_.initialXOffset - ext_adc_delay ) / meta_.xIncrement;
         x1 = std::max( 0.0, x1 );
         x2 = std::max( 0.0, x2 );
-        
+
         if ( meta_.channelMode == PKD ) {
             size_t l = size_t( floor( x1 ) );
             size_t u = size_t( ceil( x2 ) );
@@ -527,7 +527,7 @@ waveform::accumulate( double tof, double window ) const
             case 4:
                 return adportable::spectrum_processor::area( frac, dbase_, begin<int32_t>(), size() );
             case 8:
-                return adportable::spectrum_processor::area( frac, dbase_, begin<int64_t>(), size() );            
+                return adportable::spectrum_processor::area( frac, dbase_, begin<int64_t>(), size() );
             }
         }
     }
@@ -554,7 +554,7 @@ waveform::operator [] ( size_t idx ) const
     case 4: return *(begin<int32_t>() + idx);
     case 8: return *(begin<int64_t>() + idx);
     }
-	throw std::bad_cast();    
+	throw std::bad_cast();
 }
 
 std::pair<double, int64_t>
@@ -563,7 +563,7 @@ waveform::xy( size_t idx ) const
     double time = this->time( idx ); //idx * meta_.xIncrement + meta_.initialXOffset;
 
     assert( meta_.dataType == 2 || meta_.dataType == 4 );
-    
+
     switch( meta_.dataType ) {
     case 2: return std::make_pair( time, *(begin<int16_t>() + idx) );
     case 4: return std::make_pair( time, *(begin<int32_t>() + idx) );
@@ -590,7 +590,7 @@ waveform::toVolts( int32_t d ) const
 {
     if ( method_.mode() == method::DigiMode::Digitizer )
         return toVolts_<int32_t,method::DigiMode::Digitizer>()( meta_, d );
-    else 
+    else
         return toVolts_<int32_t,method::DigiMode::Averager>()( meta_, d );
 }
 
@@ -636,7 +636,7 @@ waveform::deserialize_xmeta( const char * data, size_t size )
 
     // ==> workaround for old bad serializer implementation
     // Only the data using old archive should have follwoing sequence of data, that does not match with collect serializer.
-    if ( size >= 44 && 
+    if ( size >= 44 &&
          data [ 39 ] == 'A' && data [ 40 ] == 'g' && data [ 41 ] == 'M' && data [ 42 ] == 'D' && data [ 43 ] == '2' ) {
 
         // this data is only on WSPC, for CO2 and N2O quantitative analysis acquired from 2015-NOV-24 to 2015-DEC-28
@@ -665,26 +665,26 @@ size_t
 waveform::serialize_xdata( std::string& device ) const
 {
     if ( meta_.dataType == 2 ) {
-        
+
         device.resize( ( size() * sizeof(int16_t) + ( 4 * sizeof(int32_t) ) ) );
         int32_t * dest_p = reinterpret_cast<int32_t *>( const_cast< char * >( device.data() ) );
         *dest_p++ = 0x7ffe0001; // separater & endian marker
         *dest_p++ = int32_t( size() );
 
         adportable::waveform_wrapper< int16_t, acqrscontrols::u5303a::waveform > _16( *this );
-        std::copy( _16.begin(), _16.end(), reinterpret_cast< int16_t *>(dest_p) );        
-        
+        std::copy( _16.begin(), _16.end(), reinterpret_cast< int16_t *>(dest_p) );
+
     } else {
-        
+
         device.resize( ( size() * sizeof(int32_t) + ( 4 * sizeof(int32_t) ) ) );
         int32_t * dest_p = reinterpret_cast<int32_t *>( const_cast< char * >( device.data() ) );
         *dest_p++ = 0x7ffe0001; // separater & endian marker
         *dest_p++ = int32_t( size() );
-        
+
         adportable::waveform_wrapper< int32_t, acqrscontrols::u5303a::waveform > _32( *this );
         std::copy( _32.begin(), _32.end(), dest_p );
     }
-    
+
     return device.size();
 }
 
@@ -701,7 +701,7 @@ waveform::deserialize_xdata( const char * data, size_t size )
     size_t count( 0 );
 
     if ( *src_p++ != 0x7ffe0001 )
-        throw std::bad_cast();        
+        throw std::bad_cast();
 
     count = *src_p++;
 
@@ -712,7 +712,7 @@ waveform::deserialize_xdata( const char * data, size_t size )
         auto mblk = std::make_shared< adportable::mblock< int16_t > >( count );
         mblock_ = mblk;
         std::copy( reinterpret_cast< const int16_t * >(src_p), reinterpret_cast< const int16_t * >(src_p) + count, mblk->data() );
-        
+
     } else if ( meta_.dataType == 4 ) {
 
         auto mblk = std::make_shared< adportable::mblock< int32_t > >( count );
@@ -720,7 +720,7 @@ waveform::deserialize_xdata( const char * data, size_t size )
         std::copy( reinterpret_cast< const int32_t * >(src_p), reinterpret_cast< const int32_t * >(src_p) + count, mblk->data() );
 
     }
-    
+
     return true;
 }
 
@@ -754,9 +754,9 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
         transform( v, w, 1 );
 
         if ( m.filter == adcontrols::threshold_method::SG_Filter ) {
-            
+
             adcontrols::waveform_filter::sg::lowpass_filter( v.size(), v.data(), w.meta_.xIncrement, m.sgwidth );
-            
+
         } else if ( m.filter == adcontrols::threshold_method::DFT_Filter ) {
 
             if ( m.complex_ )
@@ -766,7 +766,7 @@ waveform::apply_filter( std::vector<double>& v, const waveform& w, const adcontr
                 adcontrols::waveform_filter::fft4g::bandpass_filter( v.size(), v.data()
                                                                      , w.meta_.xIncrement, m.hCutoffHz, m.lCutoffHz );
         }
-        
+
         return true;
     }
 
@@ -787,7 +787,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, mas
         prop.setInstMassRange( std::make_pair( lMass, hMass ) );
 
         sp.setAcquisitionMassRange( lMass, hMass );
-        
+
         return sp.assign_masses( assign );
     }
 
@@ -801,7 +801,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const threshold_result& resul
 
         adcontrols::MSProperty& prop = sp.getMSProperty();
         const auto& sinfo = prop.samplingInfo();
-        
+
         double lMass = assign( sinfo.fSampDelay(), prop.mode() );
         double hMass = assign( sinfo.fSampDelay() + sinfo.fSampInterval() * sinfo.nSamples(), prop.mode() );
         prop.setInstMassRange( std::make_pair( lMass, hMass ) );
@@ -847,7 +847,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     prop.setTimeSinceInjection( waveform.timeSinceInject_ );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
     prop.setDataInterpreterClsid( "u5303a" );
-    
+
     if ( this_protocol )
         prop.setTofProtocol( *this_protocol );
     const device_data data( *waveform.ident_, waveform.meta_ );
@@ -957,7 +957,7 @@ waveform::isDEAD() const
 	} else {
 		for ( auto it = begin<int32_t>(); it != end<int32_t>() && count--; ++it )
 			if ( !( *it == 0 || *it == 0xffffdead ) )
-				return false;			
+				return false;
 	}
     return true;
 }
@@ -1027,7 +1027,7 @@ waveform::data()
         auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int16_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
-    throw std::bad_cast();    
+    throw std::bad_cast();
 }
 
 //////////////// int32_t ////////////////
@@ -1059,7 +1059,7 @@ waveform::data() const
         auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
-    throw std::bad_cast();        
+    throw std::bad_cast();
 }
 
 template<> int32_t *
@@ -1069,7 +1069,7 @@ waveform::data()
         auto&& mblk = boost::get < std::shared_ptr< adportable::mblock<int32_t> > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
-    throw std::bad_cast();        
+    throw std::bad_cast();
 }
 
 //////////////// int64_t ////////////////
@@ -1100,7 +1100,7 @@ waveform::data() const
         auto&& mblk = boost::get < std::shared_ptr< adportable::mblock< int64_t > > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
-    throw std::bad_cast();        
+    throw std::bad_cast();
 }
 
 template<> int64_t *
@@ -1110,6 +1110,5 @@ waveform::data()
         auto&& mblk = boost::get < std::shared_ptr< adportable::mblock< int64_t > > >( mblock_ );
         return mblk->data() + firstValidPoint_;
     }
-    throw std::bad_cast();        
+    throw std::bad_cast();
 }
-

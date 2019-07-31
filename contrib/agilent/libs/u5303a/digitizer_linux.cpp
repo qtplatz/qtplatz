@@ -1290,7 +1290,6 @@ digitizer::readData32( AgMD2& md2, const acqrscontrols::u5303a::method& m, acqrs
             data.meta_.protocolIndex = m.protocolIndex();
             data.meta_.dataType = 4;
             data.firstValidPoint_ = firstValidPoint[0];
-            // data.timeSinceEpoch_ = acquire_tp_count + uint64_t( data.meta_.initialXTimeSeconds * 1.0e9 + 0.5 );
             data.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
             data.setData( mblk, firstValidPoint[0] );
 
