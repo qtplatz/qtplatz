@@ -24,6 +24,7 @@
 #include "task.hpp"
 #include "constants.hpp"
 #include "document.hpp"
+#include "mass_assignor.hpp"
 #include <acqrscontrols/constants.hpp>
 #include <acqrscontrols/softaveraged_waveform_accessor.hpp>
 #include <acqrscontrols/u5303a/method.hpp>
@@ -311,15 +312,6 @@ task::post( std::vector< std::future<bool> >& futures )
 
 namespace accutof { namespace acquire {
 
-        struct mass_assignor {
-            double operator()( double time, int ) const {
-                auto sp = document::instance()->massSpectrometer();
-                // todo: if calibration
-                if ( auto law = sp->scanLaw() )
-                    return law->getMass( time, 0 );
-            }
-        };
-
         struct queue_process : boost::static_visitor< void > {
             data_status& status;
             queue_process ( data_status& t ) : status( t )
@@ -381,7 +373,7 @@ task::impl::worker_thread()
             boost::apply_visitor( queue_process( status ), que_ );
 
             if ( ! histogram_clear_cycle_enabled_ ) { // draw co-added pkd waveform
-                if ( auto ms = document::instance()->tdc()->recentSpectrum( acqrscontrols::tdcbase::LongTermPkdWaveform ) )
+                if ( auto ms = document::instance()->tdc()->recentSpectrum( acqrscontrols::tdcbase::LongTermPkdWaveform, mass_assignor() ) )
                     document::instance()->setData( acqrscontrols::u5303a::pkd_coadd_spectrum, ms, 1 );
             }
         }

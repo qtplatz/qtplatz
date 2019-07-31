@@ -38,7 +38,7 @@ namespace u5303a {
         std::atomic< uint32_t > dataSerialNumber_;
     public:
         std::shared_ptr< acqrscontrols::u5303a::identify > ident_;
-        
+
     public:
         impl() : dataSerialNumber_( 0 ) {
         }
@@ -47,13 +47,13 @@ namespace u5303a {
             return dataSerialNumber_++;
         }
     };
-    
+
 }
 
 using namespace u5303a;
 
-AgMD2::AgMD2() : session_( 0 )
-               , impl_( new impl() )
+AgMD2::AgMD2() : impl_( new impl() )
+               , session_( 0 )
 {
 }
 
@@ -88,9 +88,9 @@ AgMD2::InitWithOptions( const std::string& resource, ViBoolean idQuery, ViBoolea
 #ifndef NDEBUG
     log( rcode, __FILE__, __LINE__ );
 #endif
-    return rcode == VI_SUCCESS;    
+    return rcode == VI_SUCCESS;
 }
-        
+
 bool
 AgMD2::log( ViStatus rcode, const char * const file, int line, std::function< std::string()> describe )
 {
@@ -155,22 +155,22 @@ AgMD2::Identify( std::shared_ptr< acqrscontrols::u5303a::identify >& ident )
 
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_VENDOR, str ) )
         ident->Vendor() = str;
-            
+
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_SPECIFIC_DRIVER_DESCRIPTION, str ) )
         ident->Description() = str;
-            
+
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_MODEL, str) )
         ident->InstrumentModel() = str;
 
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_OPTIONS, str) )
         ident->Options() = str;
-        
+
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_FIRMWARE_REVISION, str ) )
         ident->FirmwareRevision() = str;
-                 
+
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_SERIAL_NUMBER_STRING, str ) )
         ident->SerialNumber() = str;
-            
+
     if ( GetAttributeViString( rcode, "", AGMD2_ATTR_INSTRUMENT_INFO_IO_VERSION, str ) )
         ident->IOVersion() = str;
 
@@ -353,7 +353,7 @@ AgMD2::AcquisitionMode() const
 bool
 AgMD2::CalibrationSelfCalibrate()
 {
-    return log( AgMD2_SelfCalibrate( session_ ), __FILE__, __LINE__ );    
+    return log( AgMD2_SelfCalibrate( session_ ), __FILE__, __LINE__ );
 }
 
 bool
@@ -373,7 +373,7 @@ bool
 AgMD2::isAcquisitionIdle() const
 {
     ViInt32 idle( AGMD2_VAL_ACQUISITION_STATUS_RESULT_FALSE );
-    
+
     log( AgMD2_GetAttributeViInt32( session_, "", AGMD2_ATTR_IS_IDLE, &idle ), __FILE__, __LINE__, [=]{ return ( boost::format("isIdle") ).str(); } );
 
     return idle == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE;
@@ -398,7 +398,7 @@ boost::tribool
 AgMD2::isTSRAcquisitionComplete() const
 {
     ViBoolean value( VI_FALSE );
-    if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value ) 
+    if ( log( AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_IS_ACQUISITION_COMPLETE, &value )
               , __FILE__, __LINE__, [](){ return "isTSRAcquisitionComplete()"; } ) ) {
         return value != VI_FALSE;
     }
@@ -414,21 +414,19 @@ AgMD2::TSRMemoryOverflowOccured() const
     if ( log( ( rcode = AgMD2_GetAttributeViBoolean( session_, "", AGMD2_ATTR_TSR_MEMORY_OVERFLOW_OCCURRED, &value ) )
               , __FILE__, __LINE__, [](){ return "TSRMemoryOverflowOccured()"; } ) )
         return value == VI_FALSE ? false : true;
-    
+
     return boost::indeterminate;
 }
 
 bool
 AgMD2::TSRContinue()
 {
-    ViBoolean value( VI_FALSE );
     return log( AgMD2_TSRContinue( session_ ), __FILE__, __LINE__ ) ;
 }
 
 bool
 AgMD2::abort()
 {
-    ViBoolean value( VI_FALSE );
     return log( AgMD2_Abort( session_ ), __FILE__, __LINE__, [](){ return "Abort"; } ) ;
 }
 
@@ -482,7 +480,7 @@ boost::tribool
 AgMD2::isWaitingForArm () const
 {
     ViInt32 status( 0 );
-    
+
     if ( log( AgMD2_IsWaitingForArm( session_, &status ), __FILE__, __LINE__, [](){ return "isWaitingForArm"; }) ) {
         if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE )
             return true;
@@ -498,7 +496,7 @@ boost::tribool
 AgMD2::isWaitingForTrigger() const
 {
     ViInt32 status( 0 );
-    
+
     if ( log( AgMD2_IsWaitingForTrigger( session_, &status ), __FILE__, __LINE__, [](){ return "isWaitingForTrigger"; }) ) {
         if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_TRUE )
             return true;
@@ -507,7 +505,7 @@ AgMD2::isWaitingForTrigger() const
         else if ( status == AGMD2_VAL_ACQUISITION_STATUS_RESULT_UNKNOWN )
             return boost::indeterminate;
     }
-    return boost::indeterminate;    
+    return boost::indeterminate;
 }
 
 /////////////////////////////////////////////
@@ -609,7 +607,7 @@ namespace u5303a {
     {
         return AgMD2_SetAttributeViString( session_, _1, _2, value.c_str() );
     }
-    
+
 
     template<>
     ViStatus

@@ -304,7 +304,8 @@ MainWindow::OnInitialUpdate()
         auto axis = settings->value( "mainwindow/axis_0" ).toInt();
         if ( auto choice = findChild< QComboBox * >( "axis_0" ) ) {
             choice->setCurrentIndex( axis );
-            ADDEBUG() << "------------- found QComboBox index=" << choice->currentIndex() << ", " << choice->currentText().toStdString();
+            if ( auto wnd = findChild< WaveformWnd * >() )
+                wnd->setAxis( 0, axis );
         }
     }
 
@@ -747,7 +748,7 @@ void
 MainWindow::axisChanged( QComboBox * combo, int currentIndex )
 {
     auto id = combo->property( "id" ).toInt();
-
+    ADDEBUG() << "####################### axisChanged " << id << ", " << currentIndex;
     if ( auto wnd = findChild< WaveformWnd * >() ) {
         wnd->setAxis( id, currentIndex );
         //instance_->updateSetpoints();

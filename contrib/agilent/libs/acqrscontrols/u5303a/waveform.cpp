@@ -240,11 +240,11 @@ waveform::waveform( std::shared_ptr< const identify > id
                                                                    , timeSinceEpoch_( tp )
                                                                    , firstValidPoint_( 0 )
                                                                    , timeSinceInject_( 0.0 )
+                                                                   , ident_( id )
                                                                    , hasTic_( false )
                                                                    , tic_( 0 )
                                                                    , dbase_( 0 )
                                                                    , rms_( 0 )
-                                                                   , ident_( id )
 {
 }
 

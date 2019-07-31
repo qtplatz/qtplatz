@@ -25,6 +25,7 @@
 #include "waveformwnd.hpp"
 #include "constants.hpp"
 #include "document.hpp"
+#include "mass_assignor.hpp"
 #include <acqrscontrols/u5303a/method.hpp>
 #include <acqrscontrols/u5303a/tdcdoc.hpp>
 #include <acqrscontrols/u5303a/threshold_result.hpp>
@@ -66,6 +67,7 @@
 #include <sstream>
 
 namespace accutof { namespace acquire {
+
         constexpr size_t widthFactor = 5;
 
         class LegendItem : public QwtPlotLegendItem {
@@ -184,23 +186,13 @@ WaveformWnd::init()
     tpw_->setAxisTitle( QwtPlot::yLeft, tr( "<i>Counts</i>" ) );
     //tpw_->setAxisTitle( QwtPlot::yRight, tr( "<i>Counts</i>" ) );
     //tpw_->enableAxis( QwtPlot::yRight, true );
-#if 0
-    if ( auto legend = new LegendItem() ) {
-        QFont font = legend->font();
-        font.setPointSize( 9 );
-        legend->setFont( font );
-        legend->setMaxColumns( 8 );
-        legend->setAlignment( Qt::AlignLeft | Qt::AlignBottom );
-        legend->attach( tpw_ );
-    }
-#else
+
     if ( auto legend = new QwtLegend() ) {
         tpw_->insertLegend( legend, QwtPlot::LegendPosition( QwtPlot::RightLegend ) );
         QFont font = legend->font();
         font.setPointSize( 9 );
         legend->setFont( font );
     }
-#endif
 
     QBoxLayout * layout = new QVBoxLayout( this );
     layout->setMargin( 0 );
@@ -247,8 +239,14 @@ WaveformWnd::handle_threshold_action()
 {
     if ( auto am = document::instance()->tdc()->threshold_action() ) {
 
-        double lower = ( am->delay - am->width / 2 ) * std::micro::den; // us
-        double upper = ( am->delay + am->width / 2 ) * std::micro::den; // us
+        double lower(0), upper(0);
+        if ( spw_->axis() == adplot::SpectrumWidget::HorizontalAxisTime ) {
+            lower = ( am->delay - am->width / 2 ) * std::micro::den; // us
+            upper = ( am->delay + am->width / 2 ) * std::micro::den; // us
+        } else {
+            lower = mass_assignor()( am->delay - am->width / 2, 0 );
+            upper = mass_assignor()( am->delay + am->width / 2, 0 );
+        }
 
         bool replot( false );
         auto x = threshold_action_marker_->xValue();
@@ -521,18 +519,18 @@ WaveformWnd::setSpanMarker( unsigned int row, unsigned int index /* 0 = time, 1 
         auto range = closeup.marker->xValue();
 
         double width = range.second - range.first;  // us
-        double time = range.first + ( width / 2 );  // us
+        double cx = range.first + ( width / 2 );  // us
         if ( index == 0 ) {
-            time = value * std::micro::den;         // -> us
+            cx = value * std::micro::den;         // -> us
         } else if ( index == 1 ) {
             width = value * std::micro::den;        // -> us
         }
         double vwidth = width * widthFactor;
 
-        closeup.marker->setXValue( time - ( width / 2 ), time + width / 2 );
+        closeup.marker->setXValue( cx - ( width / 2 ), cx + width / 2 );
 
         auto zoom = closeup.sp->zoomer()->zoomBase();
-        zoom.setLeft( time - vwidth / 2 );
+        zoom.setLeft( cx - vwidth / 2 );
         zoom.setWidth( vwidth );
 
         closeup.sp->setZoomStack( zoom );
@@ -561,7 +559,7 @@ WaveformWnd::handleDrawSettings()
 void
 WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
 {
-    ADDEBUG() << "########### setAxis( " << idView << ", " << axis << ")";
+    ADDEBUG() << "########### setAxis(" << axis << ")";
 
     auto haxis = ( axis == 0 ? adplot::SpectrumWidget::HorizontalAxisMass : adplot::SpectrumWidget::HorizontalAxisTime );
 
@@ -596,10 +594,11 @@ WaveformWnd::setAxis( int idView, int axis ) // 0: mass, 1: time
                         });
     }
 
-    //emit axisChanged( idView );
+    handle_threshold_action();
 
-        //if ( idView == 0 && threshold_action_ )
-        //    _threshold_action( *threshold_action_ );
+    //emit axisChanged( idView );
+    //if ( idView == 0 && threshold_action_ )
+    //    _threshold_action( *threshold_action_ );
     // redraw counting marker
     //if ( auto m = document::instance()->countingMethod() )
     //     setMethod( *m );

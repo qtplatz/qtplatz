@@ -59,7 +59,7 @@ namespace adwidgets {
     class ScanLawDialog2::impl {
     public:
         enum columns { c_id, c_formula, c_mass, c_time, c_mode, c_error };
-        
+
         impl() : model1busy_( false )
                , model_( std::make_unique< QStandardItemModel >() )
                , model2_( std::make_unique< QStandardItemModel >() )  {
@@ -124,8 +124,8 @@ namespace adwidgets {
         double t0_;
         adcontrols::MSPeaks peaks_;
     };
-    
-    
+
+
 };
 
 
@@ -146,7 +146,7 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
     connect( impl_->model_.get(), &QStandardItemModel::dataChanged, this
              , [this](const QModelIndex& _1, const QModelIndex& _2, const QVector<int>& _3 ) {
                  if ( _1.column() == impl::c_formula ) {
-                     QSignalBlocker block( impl_->model_.get() );                     
+                     QSignalBlocker block( impl_->model_.get() );
                      double exactMass = MolTableView::getMonoIsotopicMass( _1.data( Qt::EditRole ).toString() );
                      impl_->model_->setData( impl_->model_->index( _1.row(), impl::c_mass ), exactMass, Qt::EditRole );
                  }
@@ -159,7 +159,7 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
                  if ( auto form = findChild< ScanLawForm * >() )
                      updateObservers( form->tDelay(), form->acceleratorVoltage() );
              } );
-    
+
     if ( QVBoxLayout * layout = new QVBoxLayout( this ) ) {
 
         layout->setMargin(4);
@@ -170,7 +170,7 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
             auto moltable = new MolTableView();
             moltable->setObjectName( "peakTable" );
             moltable->setContextMenuHandler( [&]( const QPoint& pt ){ handlePeakTableMenu( pt ); } );
-            
+
             splitter1->addWidget( moltable );
             auto objtable = new MolTableView();
             objtable->setObjectName( "objText" );
@@ -178,9 +178,9 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
             splitter1->setOrientation ( Qt::Vertical );
             splitter1->setStretchFactor( 0, 2 );
             splitter1->setStretchFactor( 0, 0 );
-        
+
             if ( QSplitter * splitter = new QSplitter ) {
-                splitter->addWidget( ( new ScanLawForm ) ); 
+                splitter->addWidget( ( new ScanLawForm ) );
                 splitter->addWidget( splitter1 );
                 splitter->setStretchFactor( 0, 0 );
                 splitter->setStretchFactor( 1, 1 );
@@ -188,9 +188,9 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
                 layout->addWidget( splitter );
             }
         }
-            
+
         if ( auto table = findChild< MolTableView * >("peakTable" ) ) {
-            
+
             table->setModel( impl_->model_.get() );
             table->setColumnHidden( impl::c_id, true );
             table->setColumnField( impl::c_formula, ColumnState::f_formula, true, true ); // editable, checkable
@@ -200,9 +200,9 @@ ScanLawDialog2::ScanLawDialog2(QWidget *parent) : QDialog(parent)
 
             table->onInitialUpdate();
         }
-        
+
         if ( auto table = findChild< MolTableView * >( "objText" ) ) {
-            table->setModel( impl_->model2_.get() );            
+            table->setModel( impl_->model2_.get() );
         }
 
         if ( auto buttons = findChild< QDialogButtonBox * >() ) {
@@ -259,7 +259,7 @@ ScanLawDialog2::setAcceleratorVoltage( double value )
         form->setAcceleratorVoltage( value );
         if ( impl_->spectrometer_ )
             impl_->spectrometer_->setAcceleratorVoltage( form->acceleratorVoltage(), form->tDelay() );
-    }    
+    }
 }
 
 void
@@ -268,8 +268,8 @@ ScanLawDialog2::setTDelay( double value )
     if ( auto form = findChild< ScanLawForm * >() ) {
         form->setTDelay( value );
         if ( impl_->spectrometer_ )
-            impl_->spectrometer_->setAcceleratorVoltage( form->acceleratorVoltage(), form->tDelay() );        
-    }    
+            impl_->spectrometer_->setAcceleratorVoltage( form->acceleratorVoltage(), form->tDelay() );
+    }
 }
 
 double
@@ -286,13 +286,13 @@ ScanLawDialog2::acceleratorVoltage() const
 {
     if ( auto form = findChild< ScanLawForm * >() )
         return form->acceleratorVoltage();
-    return 0;    
+    return 0;
 }
 
 double
 ScanLawDialog2::tDelay() const
 {
-    if ( auto form = findChild< ScanLawForm * >() )    
+    if ( auto form = findChild< ScanLawForm * >() )
         return form->tDelay();
     return 0;
 }
@@ -308,7 +308,7 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
 {
     auto row = impl_->model_->rowCount();
     auto& model = *impl_->model_;
-    
+
     impl_->model1busy_ = true;
 
     model.setRowCount( row + 1 );
@@ -332,7 +332,7 @@ ScanLawDialog2::addPeak( uint32_t id, const QString& formula, double time, doubl
 void
 ScanLawDialog2::updateMassError()
 {
-    auto& model = *impl_->model_;    
+    auto& model = *impl_->model_;
 
     if ( auto form = findChild< ScanLawForm * >() ) {
         adportable::TimeSquaredScanLaw scanlaw( form->acceleratorVoltage()
@@ -374,15 +374,15 @@ ScanLawDialog2::commit()
     adcontrols::MSPeaks peaks;
 
     if ( read( peaks ) ) {
-        
+
         if ( auto form = findChild< ScanLawForm * >() ) {
 
             double t0, acclVolts;
-            
+
             if ( estimateAcceleratorVoltage( t0, acclVolts, peaks ) ) {
                 form->setAcceleratorVoltage( acclVolts );
                 form->setTDelay( t0 * std::micro::den );
-                
+
                 updateMassError();
 
                 return true;
@@ -398,15 +398,15 @@ ScanLawDialog2::handleLengthChanged()
     adcontrols::MSPeaks peaks;
 
     if ( read( peaks ) ) {
-    
+
         if ( auto form = findChild< ScanLawForm * >() ) {
-            
+
             double t0, acclVolts;
-            
+
             if ( estimateAcceleratorVoltage( t0, acclVolts, peaks ) ) {
                 form->setAcceleratorVoltage( acclVolts );
                 form->setTDelay( t0 * std::micro::den );
-                
+
                 updateMassError();
                 updateObservers( t0, acclVolts );
             }
@@ -420,11 +420,11 @@ ScanLawDialog2::handleAcceleratorVoltageChanged()
     adcontrols::MSPeaks peaks;
 
     if ( read( peaks ) ) {
-    
+
         if ( auto form = findChild< ScanLawForm * >() ) {
-            
+
             double t0, L;
-            
+
             if ( estimateLength( t0, L, peaks ) ) {
 
                 form->setLength( L );
@@ -447,19 +447,19 @@ bool
 ScanLawDialog2::read( adcontrols::MSPeaks& peaks ) const
 {
     const auto& m = *impl_->model_;
-    const size_t rowCount = m.rowCount();
+    //const size_t rowCount = m.rowCount();
 
     peaks.clear();
-    
+
     for ( int row = 0; row < impl_->model_->rowCount(); ++row ) {
 
         auto formula = m.index( row, impl::c_formula ).data( Qt::EditRole ).toString();
         double exact_mass = m.index( row, impl::c_mass ).data( Qt::EditRole ).toDouble();
 
         if ( m.index( row, impl::c_formula ).data( Qt::CheckStateRole ).toBool() ) {
-        
+
             if ( ! formula.isEmpty() && exact_mass > 0.5 ) {
-                
+
                 peaks << adcontrols::MSPeak( formula.toStdString()
                                              , 0.0 // mass (observed)
                                              , m.index( row, impl::c_time ).data( Qt::EditRole ).toDouble() / std::micro::den // time
@@ -498,7 +498,7 @@ QVector< QString >
 ScanLawDialog2::checkedObservers() const
 {
     QVector< QString > list;
-    
+
     auto& model = *impl_->model2_;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
@@ -516,27 +516,27 @@ ScanLawDialog2::estimateAcceleratorVoltage( double& t0, double& v, const adcontr
 
     if ( peaks.size() < 1 )
         return false;
-    
+
     if ( peaks.size() == 1 ) {
         t0 = 0.0;
         const adcontrols::MSPeak& pk = peaks[ 0 ];
         double l = impl_->spectrometer_ ? impl_->spectrometer_->scanLaw()->fLength( pk.mode() ) : L;
         v = adportable::TimeSquaredScanLaw::acceleratorVoltage( pk.exact_mass(), pk.time(), l, t0 );
         return true;
-        
+
     } else if ( peaks.size() >= 2 ) {
-        
+
         std::vector<double> x, y, coeffs;
-        
+
         for ( auto& pk : peaks ) {
             double l = impl_->spectrometer_ ? impl_->spectrometer_->scanLaw()->fLength( pk.mode() ) : L;
             qDebug() << "l=" << l << " mode=" << pk.mode();
             x.push_back( std::sqrt( pk.exact_mass() ) * l );
             y.push_back( pk.time() );
         }
-        
+
         if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
-            
+
             t0 = coeffs[ 0 ];
             double t1 = adportable::polfit::estimate_y( coeffs, 1.0 ); // estimate tof for m/z = 1.0, 1mL
             v = adportable::TimeSquaredScanLaw::acceleratorVoltage( 1.0, t1, 1.0, t0 );
@@ -554,24 +554,24 @@ ScanLawDialog2::estimateLength( double& t0, double& L, const adcontrols::MSPeaks
         return false;
 
     const double V = findChild< ScanLawForm * >()->acceleratorVoltage();
-    
+
     if ( peaks.size() == 1 ) {
         t0 = 0.0;
         const adcontrols::MSPeak& pk = peaks[ 0 ];
         L = sqrt( ( adportable::kTimeSquaredCoeffs * V * pk.time() * pk.time() ) / pk.exact_mass() );
         return true;
-        
+
     } else if ( peaks.size() >= 2 ) {
-        
+
         std::vector<double> x, y, coeffs;
-        
+
         for ( auto& pk : peaks ) {
             x.push_back( std::sqrt( pk.exact_mass() ) ); // assume L = 1.0m
             y.push_back( pk.time() );
         }
-        
+
         if ( adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs ) ) {
-            
+
             t0 = coeffs[ 0 ];
             double t1 = adportable::polfit::estimate_y( coeffs, 1.0 );   // estimate tof for m/z = 1.0, for 1m
 
@@ -592,14 +592,14 @@ ScanLawDialog2::handleCopyToClipboard()
 	QString selected_text;
 
     ScanLawDialog2_archive x( *this );
-    
+
 	selected_text.append( QString::number( acceleratorVoltage(), 'e', 14 ) );
 	selected_text.append( '\t' );
 	selected_text.append( QString::number( tDelay(), 'e', 14 ) );
 
 	QMimeData * md = new QMimeData();
 	md->setText( selected_text );
-    
+
     std::wostringstream os;
     try {
         boost::archive::xml_woarchive ar ( os );
@@ -654,7 +654,7 @@ ScanLawDialog2::handleAddPeak()
         auto scanLaw = impl_->spectrometer_->scanLaw();
         time = scanLaw->getTime( mass, mode );
     }
-    
+
     addPeak( -1, "H", time, mass, mode );
 
     for ( int col = impl::c_formula; col < impl::c_error; ++col ) {
