@@ -959,21 +959,24 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         return false;
 
     const double input_rate = it->second;
-    double max_rate = ( options.find("INT") != options.npos ) ? input_rate * 2 : input_rate;
 
-    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) == options.npos ) ) {
+    bool interleave = ( options.find("INT") != options.npos ) && ( m._device_method().samp_rate > input_rate );
+    const bool pkd_enabled = m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos );
+
+    if ( pkd_enabled )
+        interleave = false;  // force disable interleaving
+    else
         adlog::logger(__FILE__,__LINE__,adlog::LOG_WARNING) << "U5303A does not support requested function 'PKD'";
-    }
 
-    if ( m._device_method().pkd_enabled && ( options.find( "PKD" ) != options.npos ) ) {
+    double max_rate = interleave ? input_rate * 2 : input_rate;
 
-        task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
-        max_rate = input_rate;
+    ADINFO() << "##### Supported max. sample rate: " << max_rate << "\tChannel rate: " << input_rate;
+    ADINFO() << "##### User specified sample rate: " << m._device_method().samp_rate << (interleave ? " w/ interleave" : " w/o interleave");
 
-    } else if ( m._device_method().samp_rate > input_rate && options.find( "INT" ) != options.npos ) {
-
+    if ( interleave ) {
         task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "Channel2" );
-
+    } else {
+        task.spDriver()->ConfigureTimeInterleavedChannelList( "Channel1", "" );
     }
 
     AgMD2::log( AgMD2_ConfigureChannel( task.spDriver()->session(), "Channel1"
@@ -995,7 +998,8 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
     }
 
     if ( m.mode() == acqrscontrols::u5303a::method::DigiMode::Digitizer ) { // Digitizer
-        // ADDEBUG() << "Normal Mode";
+
+        ADINFO() << "##### --> digitizer mode";
         task.spDriver()->setTSREnabled( m._device_method().TSR_enabled );
         task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_NORMAL );
         task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
@@ -1006,35 +1010,23 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
         // ADDEBUG() << "Averager Mode";
         task.spDriver()->setTSREnabled( false );
 
-        // ADDEBUG() << "################ Average Mode ##########################";
-
         // PKD - POC
         if ( m._device_method().pkd_enabled && options.find( "PKD" ) != options.npos ) {
-            ADDEBUG() << "################ PKD ON ################################";
+            ADINFO() << "##### PKD ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" )
+                     << "; Amplitude accum. " << (m._device_method().pkd_amplitude_accumulation_enabled ? "enabled" : "disabled");
 
             AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
             AgMD2::log( attribute< acquisition_mode >::set( *task.spDriver(), AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION ), __FILE__,__LINE__ );
 
-            // task.spDriver()->setAttributeViInt64( "", AGMD2_ATTR_NUM_RECORDS_TO_ACQUIRE, 1 ); // == setAcquisitionNumRecordstoacquire
-            // task.spDriver()->setAttributeViInt32( "", AGMD2_ATTR_ACQUISITION_MODE, AGMD2_VAL_ACQUISITION_MODE_PEAK_DETECTION );
-
+            // Configure the data inversion mode - VI_FALSE (no data inversion) by default
             AgMD2::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
                                                                           , "Channel1"
                                                                           , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
-
-            // Configure the data inversion mode - VI_FALSE (no data inversion) by default
-            // task.spDriver()->setAttributeViBoolean( "Channel1"
-            //                                         , AGMD2_ATTR_CHANNEL_DATA_INVERSION_ENABLED
-            //                                         , m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
 
             // Configure the accumulation enable mode: the peak value is stored (VI_TRUE) or the peak value is forced to '1' (VI_FALSE).
             AgMD2::log( attribute< peak_detection_amplitude_accumulation_enabled >::set(
                             *task.spDriver(), "Channel1", m._device_method().pkd_amplitude_accumulation_enabled )
                         , __FILE__,__LINE__ );
-
-            // task.spDriver()->setAttributeViBoolean( "Channel1"
-            //                                         , AGMD2_ATTR_PEAK_DETECTION_AMPLITUDE_ACCUMULATION_ENABLED
-            //                                         , m._device_method().pkd_amplitude_accumulation_enabled ? VI_TRUE : VI_FALSE );
 
             // Configure the RisingDelta and FallingDelta in LSB: define the amount by which two consecutive samples must differ to be
             // considered as rising/falling edge in the peak detection algorithm.
@@ -1042,29 +1034,32 @@ device::initial_setup( task& task, const acqrscontrols::u5303a::method& m, const
             AgMD2::log( attribute< peak_detection_rising_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_raising_delta ), __FILE__,__LINE__ );
             AgMD2::log( attribute< peak_detection_falling_delta >::set( *task.spDriver(), "Channel1", m._device_method().pkd_falling_delta ), __FILE__,__LINE__ );
 
-            // task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_RISING_DELTA, m._device_method().pkd_raising_delta );
-            // task.spDriver()->setAttributeViInt32( "Channel1", AGMD2_ATTR_PEAK_DETECTION_FALLING_DELTA, m._device_method().pkd_falling_delta );
-
             AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
-            // task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
 
             AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
+
             AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
 
-            //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
-            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
-
         } else {
+            ADINFO() << "##### AVG ON; Invert signal " << ( m._device_method().invert_signal ? "true" : "false" );
 
-            task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
-            task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
+            //task.spDriver()->setAcquisitionNumRecordsToAcquire( 1 );
+            AgMD2::log( attribute< num_records_to_acquire >::set( *task.spDriver(), int64_t( 1 ) ), __FILE__,__LINE__ );
 
-            // It looks like this command should be issued as last
-            task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
-            task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
+            //task.spDriver()->setAcquisitionMode( AGMD2_VAL_ACQUISITION_MODE_AVERAGER );
+            AgMD2::log( attribute< acquisition_mode >::set( *task.spDriver(), AGMD2_VAL_ACQUISITION_MODE_AVERAGER ), __FILE__,__LINE__ );
 
-            task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
+            // task.spDriver()->setDataInversionEnabled( "Channel1", m._device_method().invert_signal ? VI_TRUE : VI_FALSE );
+            AgMD2::log( attribute< channel_data_inversion_enabled >::set( *task.spDriver()
+                                                                          , "Channel1"
+                                                                          , bool( m._device_method().invert_signal ) ), __FILE__,__LINE__ );
+
+            //task.spDriver()->setAcquisitionRecordSize( m._device_method().nbr_of_s_to_acquire_ );
+            AgMD2::log( attribute< record_size >::set( *task.spDriver(), m._device_method().nbr_of_s_to_acquire_ ), __FILE__,__LINE__ );
+
+            //It looks like this command should be issued at last
+            //task.spDriver()->setAcquisitionNumberOfAverages( m._device_method().nbr_of_averages );
+            AgMD2::log( attribute< acquisition_number_of_averages >::set( *task.spDriver(), m._device_method().nbr_of_averages ), __FILE__,__LINE__ );
         }
     }
 
