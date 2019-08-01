@@ -5,7 +5,7 @@ cmake_policy( SET CMP0042 NEW )
 project( test_ptree )
 
 find_package( Threads REQUIRED )
-find_package( BZip2 REQUIRED )
+#find_package( BZip2 REQUIRED )
 
 include_directories(
   ${Boost_INCLUDE_DIRS}
@@ -16,7 +16,6 @@ add_executable( ${PROJECT_NAME} main.cpp )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${Boost_LIBRARIES}
-  ${BZIP2_LIBRARIES}
   adfs
   adportable
   adcontrols

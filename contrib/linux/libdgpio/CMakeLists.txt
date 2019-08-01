@@ -5,7 +5,7 @@ project ( libdgpio )
 
 # --> lookup qtplatz build/config
 #find_file( qtplatz_config NAMES "qtplatz-config.cmake" HINTS ${QTPLATZ_BUILD_DIR} )
-find_package( BZip2 REQUIRED )
+#find_package( BZip2 REQUIRED )
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -18,7 +18,7 @@ add_executable( dgpio_test main.cpp )
 
 target_link_libraries( dgpio
   ${Boost_LIBRARIES}
-  ${BZIP2_LIBRARIES}
+  #  ${BZIP2_LIBRARIES}
   )
 target_link_libraries( dgpio_test dgpio )
 

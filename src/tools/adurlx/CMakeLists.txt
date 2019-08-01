@@ -4,7 +4,7 @@ cmake_policy( SET CMP0022 NEW )
 project( adurlx )
 
 find_package( Threads REQUIRED )
-find_package( BZip2 REQUIRED )
+#find_package( BZip2 REQUIRED )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -19,7 +19,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
   Threads::Threads
   ${Boost_LIBRARIES}
-  ${BZIP2_LIBRARIES}
+  #  ${BZIP2_LIBRARIES}
   )
 
 install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin COMPONENT applications )
