@@ -477,7 +477,7 @@ NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 void
 NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
-    adcontrols::datafile * file = processor->file();
+    // adcontrols::datafile * file = processor->file();
     QString filename = processor->qfilename();
 
     QStandardItemModel& model = *pModel_;
