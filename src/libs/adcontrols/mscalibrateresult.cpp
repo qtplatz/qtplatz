@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -45,18 +45,18 @@ namespace adcontrols {
         impl() : tolerance_(0)
                , threshold_(0)
                , references_( new MSReferences )
-               , calibration_( new MSCalibration ) 
-               , assignedMasses_( new MSAssignedMasses ) 
+               , calibration_( new MSCalibration )
+               , assignedMasses_( new MSAssignedMasses )
                , mode_(0) {
         }
 
         impl( const impl& t ) : tolerance_( t.tolerance_ )
-                                    , threshold_( t.threshold_ )
-                                    , references_( new MSReferences( *t.references_ ) )
-                                    , calibration_( new MSCalibration( *t.calibration_ ) )
-                                    , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
-                                    , mode_( t.mode_ )
-                                    , description_( t.description_ ) {
+                              , threshold_( t.threshold_ )
+                              , references_( new MSReferences( *t.references_ ) )
+                              , calibration_( new MSCalibration( *t.calibration_ ) )
+                              , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
+                              , mode_( t.mode_ )
+                              , description_( t.description_ ) {
         }
 
         double tolerance_;
@@ -110,7 +110,7 @@ namespace adcontrols {
     {
         impl_->serialize( ar, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void
     MSCalibrateResult::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
@@ -208,7 +208,7 @@ MSCalibrateResult::calibration()
 }
 
 void
-MSCalibrateResult::calibration( const MSCalibration& t )
+MSCalibrateResult::setCalibration( const MSCalibration& t )
 {
     *impl_->calibration_ = t;
 }
@@ -239,7 +239,7 @@ MSCalibrateResult::mode() const
 }
 
 void
-MSCalibrateResult::mode( int mode )
+MSCalibrateResult::setMode( int mode )
 {
     impl_->mode_ = mode;
 }
@@ -251,9 +251,9 @@ MSCalibrateResult::description() const
 }
 
 void
-MSCalibrateResult::description( const wchar_t * text )
+MSCalibrateResult::setDescription( const std::wstring& text )
 {
-    impl_->description_ = text ? text : L"";
+    impl_->description_ = text;
 }
 
 ////////////////  static //////////////////

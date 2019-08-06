@@ -29,8 +29,8 @@
 #include <boost/serialization/version.hpp>
 #include <memory>
 
-namespace boost { 
-    namespace uuids { struct uuid; }
+namespace boost {
+    namespace uuids { class uuid; }
     namespace serialization { class access; }
 }
 
@@ -39,8 +39,9 @@ namespace adcontrols {
     class MSReferences;
     class MSCalibration;
     class MSAssignedMasses;
+    class ADCONTROLSSHARED_EXPORT MSCalibrateResult;
 
-    class ADCONTROLSSHARED_EXPORT MSCalibrateResult {
+    class MSCalibrateResult {
     public:
         ~MSCalibrateResult();
         MSCalibrateResult();
@@ -64,12 +65,13 @@ namespace adcontrols {
 
         const MSCalibration& calibration() const;
         MSCalibration& calibration();
-        void calibration( const MSCalibration& );
+        void setCalibration( const MSCalibration& );
 
         int mode() const;
-        void mode( int );
+        void setMode( int );
+
         const wchar_t * description() const;
-        void description( const wchar_t * );
+        void setDescription( const std::wstring& );
 
     private:
 
