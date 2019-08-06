@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -77,8 +77,9 @@ namespace adcontrols {
     class annotations;
 	class ScanLaw;
 
+    class ADCONTROLSSHARED_EXPORT MassSpectrum;
 
-    class ADCONTROLSSHARED_EXPORT MassSpectrum {
+    class MassSpectrum {
     public:
         ~MassSpectrum();
         MassSpectrum();
@@ -141,7 +142,7 @@ namespace adcontrols {
         bool assign_masses( mass_assignee_t );
         //void setScanLaw( const adcontrols::ScanLaw&, bool assignMasses = false );
         void setCalibration( const adcontrols::MSCalibration&, bool assignMasses = false );
-        const MSCalibration& calibration() const;
+        std::shared_ptr< const MSCalibration > calibration() const;
 
         void setMSProperty( const adcontrols::MSProperty& );
         const MSProperty& getMSProperty() const;

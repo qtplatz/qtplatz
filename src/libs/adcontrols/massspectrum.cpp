@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
@@ -42,6 +42,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/optional.hpp>
 
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -106,7 +107,7 @@ namespace adcontrols {
         CentroidAlgorithm algo_;
         MS_POLARITY polarity_;
         descriptions descriptions_;
-        MSCalibration calibration_;
+        boost::optional< std::shared_ptr< MSCalibration > > calibration_;
         MSProperty property_;
         annotations annotations_;
 
@@ -134,18 +135,23 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP(algo_)
-                & BOOST_SERIALIZATION_NVP(polarity_)
-                & BOOST_SERIALIZATION_NVP(acqRange_.first)
-                & BOOST_SERIALIZATION_NVP(acqRange_.second)
-                & BOOST_SERIALIZATION_NVP(descriptions_)
-                & BOOST_SERIALIZATION_NVP(calibration_)
-                & BOOST_SERIALIZATION_NVP(property_)
-                & BOOST_SERIALIZATION_NVP(massArray_)
-                & BOOST_SERIALIZATION_NVP(intensityArray_)
-                & BOOST_SERIALIZATION_NVP(tofArray_)
-                & BOOST_SERIALIZATION_NVP(colArray_)
-                & BOOST_SERIALIZATION_NVP( annotations_ )
+            ar & BOOST_SERIALIZATION_NVP( algo_ );
+            ar & BOOST_SERIALIZATION_NVP( polarity_ );
+            ar & BOOST_SERIALIZATION_NVP( acqRange_.first );
+            ar & BOOST_SERIALIZATION_NVP( acqRange_.second );
+            ar & BOOST_SERIALIZATION_NVP( descriptions_ );
+            if ( version < 6 ) {
+                MSCalibration tmp;  // version 0..5 does not has effective calibration.
+                ar & BOOST_SERIALIZATION_NVP( tmp );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( calibration_ );
+            }
+            ar & BOOST_SERIALIZATION_NVP( property_ );
+            ar & BOOST_SERIALIZATION_NVP( massArray_ );
+            ar & BOOST_SERIALIZATION_NVP( intensityArray_ );
+            ar & BOOST_SERIALIZATION_NVP( tofArray_ );
+            ar & BOOST_SERIALIZATION_NVP( colArray_ );
+            ar & BOOST_SERIALIZATION_NVP( annotations_ )
                 ;
             if ( version >= 2 ) {
                 if ( version >= 5 ) {
@@ -207,8 +213,9 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::MassSpectrum::impl, 5 )
+BOOST_CLASS_VERSION( adcontrols::MassSpectrum::impl, 6 )
 // V4 -> V5: change std::vector< MassSpectrum > --> std::vector< std::shared_ptr< MassSpectrum > >
+// V5 -> V6: change MSCalibration --> std::shared_ptr< MSCalibration >
 
 ///////////////////////////////////////////
 
@@ -597,22 +604,25 @@ MassSpectrum::getDescriptions() const
     return impl_->descriptions_;
 }
 
-const MSCalibration&
+std::shared_ptr< const MSCalibration >
 MassSpectrum::calibration() const
 {
-    return impl_->calibration_;
+    return impl_->calibration_ ? impl_->calibration_.get() : nullptr;
 }
 
 void
 MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
 {
-    impl_->calibration_ = calib;
-    if ( assignMasses ) {
-        for ( size_t i = 0; i < impl_->size(); ++i ) {
-            double tof = getTime( i );
-            double mq = MSCalibration::compute( calib.coeffs(), tof );
-            if ( mq > 0.0 )
-                setMass( i, mq * mq );
+    impl_->calibration_ = std::make_shared< MSCalibration >( calib );
+
+    if ( assignMasses && !impl_->massArray_.empty() ) {
+        if ( impl_->tofArray_.empty() ) {
+            size_t idx(0);
+            std::transform( impl_->massArray_.begin(), impl_->massArray_.end(), impl_->massArray_.begin()
+                            , [&]( const double& ){ return calib.compute_mass( MSProperty::toSeconds( idx++, impl_->property_.samplingInfo() ) ); });
+        } else {
+            std::transform( impl_->tofArray_.begin(), impl_->tofArray_.end(), impl_->massArray_.begin()
+                            , [&]( const double& t ){ return calib.compute_mass( t ); } );
         }
     }
 }
