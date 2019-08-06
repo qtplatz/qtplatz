@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( dataproc )
 
 set( PROVIDER MS-Cheminformatics )
-find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network ) 
+find_package( Qt5 CONFIG REQUIRED Core Widgets PrintSupport Svg Sql Network )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -27,7 +27,7 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
   )
 
-execute_process( COMMAND ${XMLPATTERNS} -no-format 
+execute_process( COMMAND ${XMLPATTERNS} -no-format
   -output ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json
   ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
   ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
@@ -80,7 +80,7 @@ add_library( ${PROJECT_NAME} MODULE
 #  isequenceimpl.cpp
   isnapshothandlerimpl.cpp
   mscalibrationwnd.cpp
-  mscalibspectrawnd.cpp
+#  mscalibspectrawnd.cpp
   msprocessingwnd.cpp
   msspectrawnd.cpp
   sessionmanager.cpp
@@ -115,7 +115,7 @@ add_library( ${PROJECT_NAME} MODULE
 #  isequenceimpl.hpp
   isnapshothandlerimpl.hpp
   mscalibrationwnd.hpp
-  mscalibspectrawnd.hpp
+#  mscalibspectrawnd.hpp
   msprocessingwnd.hpp
   msspectrawnd.hpp
   navigationdelegate.hpp
