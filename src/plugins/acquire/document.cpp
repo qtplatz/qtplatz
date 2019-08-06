@@ -26,6 +26,8 @@
 #include "task.hpp"
 #include "idgmodimpl.hpp"
 #include "resultwriter.hpp"
+#include <accutofcontrols/constants.hpp>
+#include <adplugins/adspectrometer/massspectrometer.hpp>
 #include <date/date.h>
 #include <adacquire/masterobserver.hpp>
 #include <adacquire/sampleprocessor.hpp>
@@ -55,7 +57,6 @@
 #include <adlog/logger.hpp>
 #include <adlog/logging_handler.hpp>
 #include <admethods/controlmethod/adtracemethod.hpp>
-#include <adplugins/adspectrometer/massspectrometer.hpp>
 #include <adportable/binary_serializer.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
@@ -365,12 +366,12 @@ namespace acquire {
             do {
                 adfs::stmt sql( db );
 
-                static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
+                //static boost::uuids::uuid uuid_massspectrometer = boost::uuids::string_generator()( adspectrometer::MassSpectrometer::clsid_text );
                 sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
-                sql.bind( 1 ) = uuid_massspectrometer;
+                sql.bind( 1 ) = accutof::spectrometer::iids::uuid_massspectrometer;
                 sql.bind( 2 ) = 0;
-                sql.bind( 3 ) = std::string( adspectrometer::MassSpectrometer::class_name );
-                sql.bind( 4 ) = 1.0; // scanLaw->fLength( 0 ); // fLength at mode 0
+                sql.bind( 3 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer );
+                sql.bind( 4 ) = 2.0; // scanLaw->fLength( 0 ); // fLength at mode 0
 
                 if ( sql.step() != adfs::sqlite_done )
                     ADDEBUG() << "sqlite error";
