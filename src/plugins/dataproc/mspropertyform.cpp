@@ -214,8 +214,9 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     int n = 0;
     for ( auto& m: segments ) {
 
-        const adcontrols::MSCalibration& calib =  m.calibration();
-        size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
+        auto calib =  m.calibration();
+        size_t nrowspan = calib ? 2 : 1; // calib->coeffs().empty() ? 1 : 2;
+
         const adcontrols::MSProperty& prop = m.getMSProperty();
         const adcontrols::SamplingInfo& info = prop.samplingInfo();
         double start_delay = info.delayTime();
@@ -228,34 +229,22 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
           << "<td>" << info.nSamples() << "</td>"
           << "<td>" << info.numberOfTriggers() << "</td>"
           << "<td>" << info.mode() << "</td>"
-		  << "<td>" << prop.dataInterpreterClsid() << "</td>"
+          << "<td>" << prop.dataInterpreterClsid() << "</td>"
           << "<td>" << m.dataReaderUuid() << "</td>"
           << "</tr>";
 
-        if ( ! calib.coeffs().empty() ) {
-            //-----------------------------
+        //-----------------------------
+        if ( calib ) {
             o << "<tr>";
-            o << "<td colspan=7><b>Calibration ID:</b><i>" << utf::to_utf8( calib.calibId() ) << "</i>"
-              << "     " << calib.date();
+            o << "<td colspan=7><b>Calibration ID:</b><i>" << calib->calibrationUuid() << "</i>"
+              << "     " << calib->date();
             o << "<hr>";
-            o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = "
-              << boost::format( "%.14lf" ) % calib.coeffs()[0] << " + ";
-            for ( size_t i = 1; i < calib.coeffs().size(); ++i )
-                o << boost::format( "\t%.14lf &times; t<sup>%d</sup>" ) % calib.coeffs()[i] % i;
-
-            if ( ! calib.t0_coeffs().empty() ) {
-                o << "<br>"
-                  << "T<sub>0</sub> = " << calib.t0_coeffs()[0];
-                for ( size_t i = 1; i < calib.t0_coeffs().size(); ++i )
-                    o << boost::format( "\t%.14lf &times; &radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span><sup>%d</sup>" )
-                        % calib.coeffs()[i] % i;
-                if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED )
-                    o << "\t(MULTITURN_NORMAILZED algorithm)";
-            }
+            o << calib->formulaText( true );
             o << "</tr>";
-            //-----------------------------
-		}
+        }
+        //-----------------------------
     }
+
     o << "</table>";
     o << "<hr>";
 
@@ -305,9 +294,9 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
         if ( auto spectrometer = dp->massSpectrometer() ) {
 
             o << "<pre>"
-              << "Mass spectrometer: " << safe_string()( spectrometer->objtext() ) << "; " << spectrometer->objclsid() << std::endl
+              << "Mass spectrometer: " << safe_string()( spectrometer->massSpectrometerName() ) << "; " << spectrometer->massSpectrometerClsid() << std::endl
               << "Data interpreter:  " << safe_string()( spectrometer->dataInterpreterText() ) << "; " << spectrometer->dataInterpreterUuid() << std::endl
-              << "Property data interpreter: " << safe_string()( ms.getMSProperty().dataInterpreterClsid() ) << std::endl;
+              << "MSProperty dataInterpreterClsid: " << safe_string()( ms.getMSProperty().dataInterpreterClsid() ) << std::endl;
             o << "</pre>" << std::endl;
 
             // high level app oriented interpreter

@@ -105,7 +105,7 @@ namespace dataproc {
         void handleImportChecked();
         void handleExportPeakList();
 
-        enum idPage { idSelMSProcess, idSelElementalComp, idSelMSCalibration, idSelMSCalibSpectra
+        enum idPage { idSelMSProcess, idSelElementalComp, idSelMSCalibration //, idSelMSCalibSpectra
                       , idSelChromatogram, idSelMSPeaks, idSelSpectrogram, idSelSpectra, idNum };
 
         void selPage( idPage );

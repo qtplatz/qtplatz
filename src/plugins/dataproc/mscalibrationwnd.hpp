@@ -54,11 +54,11 @@ namespace dataproc {
         public:
         // explicit MSCalibrationWnd(QWidget *parent = 0);
         MSCalibrationWnd( QWidget * parent = 0 );
-      
+
     signals:
         void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
         void onPrint( QPrinter&, QPainter& );
-      
+
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleProcessed( Dataprocessor*, portfolio::Folium& );
@@ -76,7 +76,8 @@ namespace dataproc {
         void handle_apply_calibration_to_default();
         //---
         void handle_add_selection_to_peak_table( const adcontrols::MSPeaks& );
-        
+        void handleExportCalibration();
+
     private:
         std::shared_ptr<MSCalibrationWndImpl> pImpl_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );

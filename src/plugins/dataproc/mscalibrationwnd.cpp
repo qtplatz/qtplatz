@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -48,29 +48,33 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adwidgets/mscalibratesummarytable.hpp>
-#include <adplot/spectrumwidget.hpp>
+
+#include <adlog/logger.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adplot/plot_stderror.hpp>
+#include <adplot/spectrumwidget.hpp>
 #include <adplot/zoomer.hpp>
-#include <adutils/processeddata.hpp>
-#include <adportable/utf.hpp>
-#include <qtwrapper/font.hpp>
-
-#include <coreplugin/minisplitter.h>
-#include <QBoxLayout>
-#include <QPrinter>
-#include <qmessagebox.h>
-#include <adportable/configuration.hpp>
-#include <adlog/logger.hpp>
-#include <adwidgets/lifecycle.hpp>
 #include <adplugin_manager/manager.hpp>
+#include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <adportable/xml_serializer.hpp> // for quick print
-
-#include <qwt_plot_renderer.h>
+#include <adutils/processeddata.hpp>
+#include <adwidgets/lifecycle.hpp>
+#include <coreplugin/minisplitter.h>
+#include <qtwrapper/font.hpp>
 #include <qwt_plot_marker.h>
+#include <qwt_plot_renderer.h>
+
+#include <QBoxLayout>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QPrinter>
+#include <QStandardPaths>
 
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem/path.hpp>
 #include <stack>
 #include <tuple>
 
@@ -159,6 +163,7 @@ MSCalibrationWnd::init()
             // connect( pSummary, &ST::on_apply_calibration_to_all, this, &MSCalibrationWnd::handle_apply_calibration_to_all );
             connect( pSummary, &ST::on_apply_calibration_to_default, this, &MSCalibrationWnd::handle_apply_calibration_to_default );
             connect( pSummary, &ST::on_add_selection_to_peak_table, this, &MSCalibrationWnd::handle_add_selection_to_peak_table );
+            connect( pSummary, &ST::exportCalibration, this, &MSCalibrationWnd::handleExportCalibration );
 
             // Make a connection to zoomer in order to sync table in visible range
             connect( pImpl_->processedSpectrum_->zoomer(), &adplot::Zoomer::zoomed, pSummary, &ST::handle_zoomed );
@@ -223,6 +228,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         auto it = std::find_if( attachments.begin(), attachments.end(), []( portfolio::Folium& f ){
                 return f.name() == Constants::F_CENTROID_SPECTRUM;
             });
+
         if ( it != attachments.end() ) {
             pImpl_->calibCentroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
             if ( auto fpki
@@ -234,9 +240,11 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         }
 
         // calib result
-        if ( auto fcalibResult = portfolio::find_first_of( attachments, []( portfolio::Folium& f ){
-                    return portfolio::is_type< adcontrols::MSCalibrateResultPtr >(f);
-                }) ) {
+        if ( auto fcalibResult = portfolio::find_first_of( attachments
+                                                           , []( portfolio::Folium& f ){
+                                                                 return portfolio::is_type< adcontrols::MSCalibrateResultPtr >(f);
+                                                             }) ) {
+
             pImpl_->calibResult_ = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
 
             if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( fcalibResult ) )
@@ -336,10 +344,17 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
     if ( calibrator.size() < nterm )
         nterm = static_cast<int>( calibrator.size() );
 
-    adcontrols::MSCalibration calib;
+    boost::uuids::uuid massSpectrometerClsid{{0}};
+    if ( auto processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        if ( auto sp = processor->massSpectrometer() )
+            massSpectrometerClsid = sp->massSpectrometerClsid();
+    }
+
+    adcontrols::MSCalibration calib( massSpectrometerClsid );
+
     if ( calibrator.polfit( calib, nterm ) ) {
 
-        calibResult.calibration( calib );
+        calibResult.setCalibration( calib );
 
         return true;
     }
@@ -472,6 +487,9 @@ MSCalibrationWnd::handle_apply_calibration_to_dataset()
     auto ms = pImpl_->calibCentroid_.lock();
 
     if ( result && ms ) {
+
+        ADDEBUG() << "### " << __FUNCTION__ << " TBD";
+
         if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
             std::wstring clsid = adportable::utf::to_wstring( ms->getMSProperty().dataInterpreterClsid() );
             processor->applyCalibration( clsid, *result );
@@ -481,14 +499,35 @@ MSCalibrationWnd::handle_apply_calibration_to_dataset()
     } else {
         QMessageBox::warning( 0, "Dataproc", "apply calibration to dataset: has no calibration" );
     }
-
 }
 
 void
 MSCalibrationWnd::handle_apply_calibration_to_default()
 {
     handle_reassign_mass_requested();
-	Dataprocessor::saveMSCalibration( pImpl_->folium_ );
+    boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
+    path /= "default.msclb";
+	Dataprocessor::MSCalibrationSave( pImpl_->folium_, QString::fromStdString( path.string() ) );
+}
+
+void
+MSCalibrationWnd::handleExportCalibration()
+{
+    if ( auto processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        handle_reassign_mass_requested();
+
+        boost::filesystem::path path( processor->filename() );
+        QString dir( QString::fromStdString( path.parent_path().string() ) );
+
+        QString file =
+            QFileDialog::getSaveFileName( 0
+                                          , tr( "Export Mass Calibration" )
+                                          , dir
+                                          , tr( "MS Calibration Files(*.msclb)" ) );
+        if ( ! file.isEmpty() ) {
+            Dataprocessor::MSCalibrationSave( pImpl_->folium_, file );
+        }
+    }
 }
 
 void

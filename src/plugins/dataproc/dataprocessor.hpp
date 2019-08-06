@@ -143,9 +143,10 @@ namespace dataproc {
         // portfolio::Portfolio& portfolio() { return *portfolio_; }
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
-        static bool saveMSCalibration( portfolio::Folium& );
-        static bool saveMSCalibration( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
-        static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
+        //static bool saveMSCalibration( portfolio::Folium& );
+        //static bool saveMSCalibration( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        static bool MSCalibrationLoad( const QString&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
+        static bool MSCalibrationSave( portfolio::Folium&, const QString& file );
 
         // implement adcontrols::dataSubscriber
         void notify( adcontrols::dataSubscriber::idError, const std::string& json ) override;

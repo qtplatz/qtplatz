@@ -52,10 +52,11 @@
 #include <coreplugin/mainwindow.h>
 #include <utils/hostosinfo.h>
 #include <extensionsystem/pluginmanager.h>
-#include <QIcon>
-#include <QFileDialog>
-#include <QMessageBox>
 #include <QAction>
+#include <QFileDialog>
+#include <QIcon>
+#include <QMessageBox>
+#include <QStandardPaths>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -118,7 +119,7 @@ ActionManager::initialize_actions( const Core::Context& context )
         action->setEnabled( true );
         connect( action, &QAction::triggered, MainWindow::instance(), &MainWindow::aboutQtPlatz );
     } while(0);
-        
+
 
 	if ( auto * am = Core::ActionManager::instance() ) {
 
@@ -129,7 +130,7 @@ ActionManager::initialize_actions( const Core::Context& context )
             am->registerAction( p, Core::Constants::SAVE, context );
             connect( p, &QAction::triggered, this, &ActionManager::handleSave );
         }
-        
+
         if ( auto p = actions_[ idActSaveAs ] = create( Constants::ICON_SAVE, tr("Save As"), this ) ) {
             am->registerAction( p, Core::Constants::SAVEAS, context );
             connect( p, &QAction::triggered, this, &ActionManager::handleSaveAs );
@@ -187,7 +188,7 @@ ActionManager::initialize_actions( const Core::Context& context )
         }
 
         // edit menu
-        if ( auto p = actions_[ idActCheckAllSpectra ] = new QAction( tr( "Check all spectra" ), this ) ) 
+        if ( auto p = actions_[ idActCheckAllSpectra ] = new QAction( tr( "Check all spectra" ), this ) )
             am->registerAction( p, Constants::CHECK_ALL_SPECTRA, context );
 
         if ( auto p = actions_[ idActUncheckAllSpectra ] = new QAction( tr( "Uncheck all spectra" ), this ) )
@@ -229,7 +230,7 @@ ActionManager::create( const QString& icon_name, const QString& msg, QObject * p
 
     icon.addFile( icon_name );
     QAction * action = new QAction( icon, msg, parent );
-    
+
     return action;
 }
 
@@ -311,20 +312,21 @@ ActionManager::actPrintCurrentView()
 void
 ActionManager::actCalibFileApply()
 {
-    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
-    dir /= L"data";
+    boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
+    path /= "default.msclb";
 
-	QFileDialog dlg( 0, "Open MS Calibration file", QString::fromStdWString( dir.wstring() ) );
+	QFileDialog dlg( 0, "Open MS Calibration file", QString::fromStdString( path.string() ) );
 	dlg.setNameFilter( tr("MSCalibrations(*.msclb)" ) );
-
 	dlg.setFileMode( QFileDialog::ExistingFile );
+
     if ( dlg.exec() == QDialog::Accepted ) {
+
 		auto result = dlg.selectedFiles();
 
         adcontrols::MSCalibrateResult calibResult;
         adcontrols::MassSpectrum ms;
 
-        if ( Dataprocessor::loadMSCalibration( result[0].toStdWString(), calibResult, ms ) ) {
+        if ( Dataprocessor::MSCalibrationLoad( result[0], calibResult, ms ) ) {
 
 			std::wstring dataInterpreterClsid = adportable::utf::to_wstring( ms.getMSProperty().dataInterpreterClsid() );
 
@@ -365,4 +367,3 @@ ActionManager::handleContextChanged( const QList<Core::IContext *>& t1, const Co
         }
     }
 }
-

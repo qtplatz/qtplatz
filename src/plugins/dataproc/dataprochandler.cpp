@@ -81,7 +81,7 @@ DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
 bool
 DataprocHandler::doIsotope( adcontrols::MassSpectrum&, const adcontrols::IsotopeMethod& )
 {
-    adcontrols::ChemicalFormula chemicalFormula; 
+    adcontrols::ChemicalFormula chemicalFormula;
 #if 0
     adcontrols::IsotopeCluster cluster;
     cluster.clearFormulae();
@@ -91,7 +91,7 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum&, const adcontrols::Isotope
         ra = 100;
 
     if ( m.size() ) {
-        
+
         for ( adcontrols::IsotopeMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
             std::wstring stdFormula = chemicalFormula.standardFormula( it->formula );
             cluster.addFormula( stdFormula, it->adduct, it->chargeState, it->relativeAmounts );
@@ -125,14 +125,14 @@ calibresult_validation( const adcontrols::MSCalibrateResult& res
 {
     const adcontrols::MSReferences& ref = res.references();
     const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
-    
+
     std::ofstream of( "massassign.txt" );
     of << "#\tm/z(observed)\ttof(us)\tintensity\t\tformula,\tm/z(exact)\tm/z(calibrated)\terror(mDa)" << std::endl;
-    
+
     adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
         const adcontrols::MSAssignedMass& a = *it;
-        
+
         std::string formula = adportable::string::convert( a.formula() );
         of << std::setprecision(8)
            << std::setw(4) << a.idMassSpectrum() << "\t" // id
@@ -143,24 +143,24 @@ calibresult_validation( const adcontrols::MSCalibrateResult& res
            << std::setprecision(8) << std::fixed   << it->exactMass() << "\t"                             // mass(exact)
            << std::fixed   << a.mass() << "\t"                                    // m/z(calibrated)
            << std::setprecision(1) << ( a.mass() - it->exactMass() ) * 1000 << "\t"  // error(mDa)
-           << ( it->enable() ? "used" : "not used" ) 
+           << ( it->enable() ? "used" : "not used" )
            << std::endl;
     }
     const std::vector<double>& coeffs = res.calibration().coeffs();
-    
+
     of << "#--------------------------- Calibration coefficients: " << std::endl;
     for ( size_t i = 0; i < coeffs.size(); ++i )
         of << std::scientific << std::setprecision(14) << coeffs[i] << std::endl;
-    
+
     of << "#--------------------------- centroid peak list (#,mass,intensity)--------------------------" << std::endl;
-    
+
     adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin();
     for ( size_t i = 0; i < centroid.size(); ++i ) {
         if ( centroid.getIntensity( i ) > threshold ) {
-            
+
             double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), centroid.getTime( i ) );
             double mass = mq * mq;
-            
+
             double error = 0;
             if ( it != res.references().end() && std::abs( it->exactMass() - mass ) < 0.2 ) {
                 error = ( it->exactMass() - mass ) * 1000; // mDa
@@ -182,7 +182,10 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 {
     using adcontrols::MSProperty;
 
-    res.calibration( centroid.calibration() );
+    if ( auto calib = centroid.calibration() ) {
+        res.setCalibration( *calib );
+    }
+
     res.references( m.references() );
     double tolerance = m.massToleranceDa();
     double threshold = adcontrols::segments_helper::max_intensity( centroid ) * m.minimumRAPercent() / 100;
@@ -192,7 +195,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     assign_masses assigner( tolerance, threshold );
 
     adcontrols::MSAssignedMasses assignedMasses;
-    
+
 	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
     int n = 0;
 	for ( auto seg: segments )
@@ -211,7 +214,8 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             double mass = calibrator.compute_mass( it.time(), it.mode(), calib );
             it.mass( mass );
         }
-        res.calibration( calib );
+        calib.setMassSpectrometerClsid({{0}} );
+        res.setCalibration( calib );
         // res.assignedMasses( assignedMasses );
 #if defined _DEBUG && 0
         calibresult_validation( res, centroid, threshold );
@@ -230,7 +234,7 @@ DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
     for ( auto& ms : segments )
         ms.set_annotations( adcontrols::annotations() ); // clear all
 
-    for ( const auto& assigned: assignedMasses ) { 
+    for ( const auto& assigned: assignedMasses ) {
         adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
         size_t idx = assigned.idPeak();
 		if ( assigned.enable() )
@@ -248,7 +252,8 @@ bool
 DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                                   , adcontrols::MassSpectrum& centroid
                                   , const adcontrols::MSCalibrateMethod& m
-                                  , const adcontrols::MSAssignedMasses& assigned )
+                                  , const adcontrols::MSAssignedMasses& assigned
+                                  , std::shared_ptr< adcontrols::MassSpectrometer > sp )
 {
     using adcontrols::MSProperty;
 
@@ -258,18 +263,18 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.threshold( threshold );  // set threshold in result
 
     std::map< size_t, size_t > mode_map;
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) 
+    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it )
         mode_map[ it->mode() ]++;
     // std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
     // int mode = static_cast<int>(itMax->first);
 
     mass_calibrator calibrator( assigned, centroid.getMSProperty() );
-    adcontrols::MSCalibration calib;
+    adcontrols::MSCalibration calib( sp->massSpectrometerClsid() );
     if ( ! calibrator.polfit( calib, m.polynomialDegree() + 1 ) )
         return false;
 
     res.references( m.references() );
-    res.calibration( calib );
+    res.setCalibration( calib );
     centroid.setCalibration( calib, true ); // m/z assign based on manually determined peaks
 
     // continue auto-assign
@@ -286,7 +291,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             it.mass( calibrator2.compute_mass( it.time(), it.mode(), calib ) );
 
         centroid.setCalibration( calib, true );
-        res.calibration( calib );
+        res.setCalibration( calib );
         res.assignedMasses( assignedMasses );
 
         return true;
@@ -300,7 +305,7 @@ bool
 DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chromatogram& c, const adcontrols::PeakMethod& m )
 {
     chromatogr::Chromatography peakfinder( m );
-    
+
     if ( peakfinder( c ) ) {
         r.baselines() = peakfinder.getBaselines();
         r.peaks() = peakfinder.getPeaks();
@@ -314,29 +319,10 @@ bool
 DataprocHandler::apply_calibration( adcontrols::MassSpectrum& ms, const adcontrols::MSCalibration& calib )
 {
     adcontrols::segment_wrapper<> segments( ms );
-    
-    if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
-        for ( auto& fms: segments ) {
 
-            const adcontrols::MSProperty& prop = fms.getMSProperty();
-            auto sp = adcontrols::MassSpectrometer::create( prop.dataInterpreterClsid() );
-            sp->setAcceleratorVoltage( prop.acceleratorVoltage(), prop.tDelay() );
+    for ( auto& fms: segments )
+        fms.setCalibration( calib, true );
 
-            if ( auto scanLaw = sp->scanLaw() ) {
-            
-                adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, calib );
-                for ( size_t i = 0; i < fms.size(); ++i ) {
-                    double mass = mass_calculator( fms.getTime( i ), prop.mode() );
-                    fms.setMass( i, mass );
-                }
-                fms.setCalibration( calib );
-            }
-        }
-		return true;
-    } else {
-		for ( auto& fms: segments )
-			fms.setCalibration( calib, true );
-    }
 	return false;
 }
 
@@ -346,11 +332,11 @@ DataprocHandler::reverse_copy( adcontrols::MSPeakInfo& pkinfo, const adcontrols:
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > ms_segs( ms );
 	adcontrols::segment_wrapper< adcontrols::MSPeakInfo > pkinfo_segs( pkinfo );
-    
+
     for ( size_t fcn = 0; fcn < ms_segs.size(); ++fcn ) {
         auto& fpk = pkinfo_segs[ fcn ];
         auto& fms = ms_segs[ fcn ];
-        
+
         for ( size_t i = 0; i < fms.size(); ++i ) {
             auto pk = fpk.begin() + i;
             pk->assign_mass( fms.getMass( i ) );

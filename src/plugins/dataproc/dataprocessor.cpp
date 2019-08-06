@@ -111,7 +111,8 @@ namespace dataproc {
         static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::TargetingMethod& );
         static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
         static bool applyMethod( Dataprocessor *, portfolio::Folium&
-                                 , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
+                                 , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses&
+                                 , std::shared_ptr< adcontrols::MassSpectrometer > );
         static bool applyMethod( Dataprocessor *, portfolio::Folium&
                                  , const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
         static bool applyMethod( Dataprocessor *, portfolio::Folium&
@@ -753,7 +754,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
 
     // todo: process method to be added
 
-    if ( DataprocessorImpl::applyMethod( this, folium, calibMethod, assigned ) )
+    if ( DataprocessorImpl::applyMethod( this, folium, calibMethod, assigned, massSpectrometer() ) )
         SessionManager::instance()->updateDataprocessor( this, folium );
 
 	setModified( true );
@@ -777,9 +778,11 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
         if ( it == attachments.end() )
             return;
 		adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+
 		// replace calibration
-		if ( DataprocessorImpl::applyMethod( this, folium, *mcalib, assigned ) )
+		if ( DataprocessorImpl::applyMethod( this, folium, *mcalib, assigned, this->massSpectrometer() ) )
 			SessionManager::instance()->updateDataprocessor( this, folium );
+
         setModified( true );
     }
 }
@@ -787,6 +790,8 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 void
 Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibration )
 {
+    ADDEBUG() << "applyCalibration";
+
     if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
 
         setModified( true );
@@ -821,8 +826,11 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
             }
         }
     }
-	file()->applyCalibration( dataInterpreterClsid, calibration );
-    setModified( true );
+
+	if ( file()->applyCalibration( dataInterpreterClsid, calibration ) )
+        setModified( true );
+    else
+        ADDEBUG() << "applyCalibration faild";
 }
 
 void
@@ -1137,6 +1145,7 @@ DataprocessorImpl::applyMethod( Dataprocessor *
 bool
 DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
 {
+#if 0
     auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
     std::string diClsid = profile->getMSProperty().dataInterpreterClsid();
 
@@ -1169,7 +1178,7 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
         adcontrols::segment_wrapper<> segments( *profile );
         for ( auto& fms : segments ) {
             adcontrols::MSProperty prop( fms.getMSProperty() );
-            prop.setDataInterpreterClsid( dataInterpreter.c_str() );
+            // prop.setDataInterpreterClsid( dataInterpreter.c_str(), boost::uuids::uuid{{0}} );
             fms.setMSProperty( prop );
         }
 
@@ -1180,13 +1189,16 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
                 adcontrols::segment_wrapper<> segments( *centroid );
                 for ( auto& fms : segments ) {
                     adcontrols::MSProperty prop( fms.getMSProperty() );
-                    prop.setDataInterpreterClsid( dataInterpreter.c_str() );
+                    // prop.setDataInterpreterClsid( dataInterpreter.c_str(), boost::uuids::uuid{{0}} );
+                    ADDEBUG() << "---- fix me: " << dataInterpreter;
                     fms.setMSProperty( prop );
                 }
             }
         } );
         return true;
     }
+#endif
+    return false;
 }
 
 bool
@@ -1211,6 +1223,8 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
             fixupDataInterpreterClsid( folium );
         }
     }
+
+    ADDEBUG() << "### " << __FUNCTION__ << " TBD";
 
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
@@ -1253,7 +1267,8 @@ bool
 DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium
                                 , const adcontrols::MSCalibrateMethod& m
-                                , const adcontrols::MSAssignedMasses& assigned )
+                                , const adcontrols::MSAssignedMasses& assigned
+                                , std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer )
 {
     using namespace portfolio;
 
@@ -1266,7 +1281,7 @@ DataprocessorImpl::applyMethod( Dataprocessor *
         adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
         if ( pCentroid ) {
             adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
-            if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m, assigned ) ) {
+            if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m, assigned, massSpectrometer ) ) {
 
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
                 att.assign( pResult, pResult->dataClass() );
@@ -1377,35 +1392,27 @@ Dataprocessor::findProcessMethod( const portfolio::Folium& folium )
 
 // static
 bool
-Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
+Dataprocessor::MSCalibrationSave( portfolio::Folium& folium, const QString& file )
 {
-    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
-    dir /= "data";
-    if ( ! boost::filesystem::exists( dir ) )
-        if ( ! boost::filesystem::create_directories( dir ) )
-            return false;
+    if ( file.isEmpty() )
+        return false;
 
-    boost::filesystem::path fname = dir / "default.msclb";
+    boost::filesystem::path fname( file.toStdString() );
+    fname.replace_extension( ".msclb" );
 
     adfs::filesystem dbf;
     if ( !adutils::fsio::create( dbf, fname.wstring() ) )
         return false;
 
-    // argment folium should be profile spectrum
     portfolio::Folio atts = folium.attachments();
     auto it = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() ) {
         const adcontrols::MSCalibrateResultPtr ptr = boost::any_cast< adcontrols::MSCalibrateResultPtr >( it->data() );
         adutils::fsio::save_mscalibfile( dbf, *ptr );
-#if 0
-        // for debugging convension
-        std::string xml;
-        if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( *ptr, xml ) ) {
-            fname.replace_extension( ".msclb.xml" );
-            std::ofstream of( fname.string() );
-            of << xml;
-        }
-#endif
+        //
+        fname.replace_extension( ".msclb.xml" );
+        std::wofstream of( fname.string() );
+        adportable::xml::serialize<>()( *ptr, of );
     }
 
     it = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
@@ -1415,53 +1422,15 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
     }
 
     return true;
+
 }
 
 // static
 bool
-Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResult
-                                  , const adcontrols::MassSpectrum& calibSpectrum )
-{
-    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
-    dir /= "data";
-    if ( ! boost::filesystem::exists( dir ) )
-        if ( ! boost::filesystem::create_directories( dir ) )
-            return false;
-
-    boost::filesystem::path fname = dir / "default.msclb";
-
-    adfs::filesystem dbf;
-    if ( !adutils::fsio::create( dbf, fname.wstring() ) )
-        return false;
-
-    try {
-        adutils::fsio::save_mscalibfile( dbf, calibResult );
-    } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "saveMSCalibration"
-                              , (boost::format("%1% @%2% L%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
-    }
-    try {
-        adutils::fsio::save_mscalibfile( dbf, calibSpectrum );
-    } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "saveMSCalibration"
-                              , (boost::format("%1% @%2% L%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
-    }
-
-    // for debugging convension
-    //if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, xml ) ) {
-    fname.replace_extension( ".msclb.xml" );
-    std::wofstream of( fname.string() );
-    adportable::xml::serialize<>()(calibResult, of);
-
-    return true;
-}
-
-// static
-bool
-Dataprocessor::loadMSCalibration( const std::wstring& filename
+Dataprocessor::MSCalibrationLoad( const QString& filename
                                   , adcontrols::MSCalibrateResult& r, adcontrols::MassSpectrum& ms )
 {
-    boost::filesystem::path path( filename );
+    boost::filesystem::path path( filename.toStdString() );
     if ( ! boost::filesystem::exists( path ) )
         return false;
 

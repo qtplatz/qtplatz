@@ -35,7 +35,7 @@
 #include "mspeaktable.hpp"
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
-#include "mscalibspectrawnd.hpp"
+//#include "mscalibspectrawnd.hpp"
 #include "mspeakswnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
@@ -130,7 +130,7 @@
 
 namespace dataproc {
 
-    typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd*, MSCalibSpectraWnd*
+    typedef boost::variant< MSProcessingWnd*, ElementalCompWnd*, MSCalibrationWnd* //, MSCalibSpectraWnd*
                             , ChromatogramWnd*, MSPeaksWnd*, ContourWnd*, MSSpectraWnd* > wnd_ptr_t;
 
     struct wnd_set_title : public boost::static_visitor < QWidget * > {
@@ -269,11 +269,11 @@ MainWindow::createStyledBarTop()
                 am->registerAction( p, "dataproc.selMSCalibration", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSCalibration ) ) );
             }
-            if ( auto p = new QAction( tr("MS Calib. Spectra"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
-                am->registerAction( p, "dataproc.selMSCalibSpectra", context );
-                toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSCalibSpectra ) ) );
-            }
+            // if ( auto p = new QAction( tr("MS Calib. Spectra"), this ) ) {
+            //     connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
+            //     am->registerAction( p, "dataproc.selMSCalibSpectra", context );
+            //     toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSCalibSpectra ) ) );
+            // }
             if ( auto p = new QAction( tr("Chromatogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
                 am->registerAction( p, "dataproc.selChromatogram", context );
@@ -440,8 +440,8 @@ MainWindow::createContents( Core::IMode * mode )
         wnd.push_back( new MSCalibrationWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration") ), wnd.back() ) );
 
-        wnd.push_back( new MSCalibSpectraWnd );
-        stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration(2)") ), wnd.back() ) );
+        // wnd.push_back( new MSCalibSpectraWnd );
+        // stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration(2)") ), wnd.back() ) );
 
         wnd.push_back( new ChromatogramWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Chromatogram") ), wnd.back() ) );
@@ -714,7 +714,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 	if ( portfolio::Folder folder = folium.parentFolder() ) {
 
 		if ( folder.name() == L"MSCalibration" ) {
-            if ( stack_->currentIndex() != idSelMSCalibration && stack_->currentIndex() != idSelMSCalibSpectra )
+            if ( stack_->currentIndex() != idSelMSCalibration ) // && stack_->currentIndex() != idSelMSCalibSpectra )
                 selPage( idSelMSCalibration );
         } else if ( folder.name() == L"Spectra" ) {
             if ( stack_->currentIndex() != idSelMSProcess &&

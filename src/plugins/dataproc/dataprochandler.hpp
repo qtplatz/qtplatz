@@ -26,11 +26,13 @@
 #ifndef DATAPROCHANDLER_H
 #define DATAPROCHANDLER_H
 
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace adcontrols {
     class MassSpectrum;
+    class MassSpectrometer;
     class Chromatogram;
     class MSCalibrateResult;
 	class MSCalibration;
@@ -71,10 +73,12 @@ namespace dataproc {
         static bool doMSCalibration( adcontrols::MSCalibrateResult& res
                                      , adcontrols::MassSpectrum& centroid
                                      , const adcontrols::MSCalibrateMethod&
-                                     , const adcontrols::MSAssignedMasses& );
+                                     , const adcontrols::MSAssignedMasses&
+                                     , std::shared_ptr< adcontrols::MassSpectrometer > );
+
         static bool compute_polynomials( adcontrols::MSCalibrateResult& res, const adcontrols::MSAssignedMasses& );
 
-        static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& ); 
+        static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& );
         static bool doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
                                              , const adcontrols::MSAssignedMasses& );
 

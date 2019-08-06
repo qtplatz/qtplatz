@@ -63,21 +63,12 @@ mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 	if ( nterm == 0 )
 		return false;
 
+    calib = adcontrols::MSCalibration(); // reset date, calibrationUuid
+
     std::vector< double > coeffs;
     if ( times_.size() >= size_t( nterm ) &&
-         adportable::polfit::fit( times_.data(), sqrtMz_.data(), times_.size(), nterm, coeffs ) ) { 
-        // set polynomials to result
-        calib.coeffs( coeffs );
-
-        // set id
-        const boost::uuids::uuid uuid = boost::uuids::random_generator()();
-        ident_ = boost::lexical_cast< std::wstring >( uuid );
-        calib.calibId( ident_ );
-
-        // set date time
-        boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
-        calib.date( boost::lexical_cast< std::string >( pt ) );
-        
+         adportable::polfit::fit( times_.data(), sqrtMz_.data(), times_.size(), nterm, coeffs ) ) {
+        calib.setCoeffs( coeffs );
         return true;
     }
     return false;
@@ -86,10 +77,5 @@ mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 double
 mass_calibrator::compute_mass( double time, int mode, const adcontrols::MSCalibration& calib )
 {
-    (void)mode;
-	double msqr = adcontrols::MSCalibration::compute( calib.coeffs(), time ); // time / scanLaw_->fLength( mode ) );
-    if ( msqr > 0.0 )
-        return msqr * msqr;
-    return -1; // error
+    return calib.compute_mass( time );
 }
-
