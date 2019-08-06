@@ -200,6 +200,7 @@ MassSpectrometer::scanLaw( int64_t rowid ) const
 bool
 MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) const
 {
+    ADDEBUG() << "--- " << __FUNCTION__ << " --- mass calibration to be fixed.";
     //auto mode = ms.mode();
     auto scanlaw = scanLaw( rowid );
     return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );

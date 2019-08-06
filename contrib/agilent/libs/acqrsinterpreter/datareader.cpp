@@ -324,6 +324,7 @@ DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, 
                 if ( sql.step() == adfs::sqlite_row )
                     objrowid_ = sql.get_column_value< int64_t >( 0 );
             }
+
             // fcnCount
             {
                 adfs::stmt sql( *db );
@@ -975,6 +976,7 @@ DataReader::readSpectrum( const_iterator& it ) const
                             // ADDEBUG() << "\t---> readSpectrum m/z range(" << lMass << ", " << uMass << ")";
                             ptr->setAcquisitionMassRange( lMass, uMass ); // <- maybe override by full acquisition range
                             ptr->getMSProperty().setInstMassRange( std::make_pair( lMass, uMass ) );
+                            ptr->getMSProperty().setMassSpectrometerClsid( spectrometer_->massSpectrometerClsid() );
                         }
                         ptr->addDescription( adcontrols::description( L"title", boost::apply_visitor( make_title(), waveform ).c_str() ) );
                         ptr->setDataReaderUuid( objid_ );

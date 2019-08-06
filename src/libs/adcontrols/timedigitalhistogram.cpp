@@ -454,12 +454,10 @@ TimeDigitalHistogram::translate( adcontrols::MassSpectrum& sp
     prop.setNumAverage( uint32_t( hgrm.trigger_count() ) );
     prop.setTrigNumber( uint32_t( hgrm.serialnumber().first ) );
 
-    // prop.setDataInterpreterClsid( "adcontrols::TimeDigitalHistogram" );
-
     TimeDigitalHistogram::device_data data( hgrm.this_protocol_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size(), "adcontrols::TimeDigitalHistogram" );
+    prop.setDeviceData( ar.data(), ar.size() );
 
     sp.setMSProperty( prop );
     sp.setProtocol( hgrm.protocolIndex_, hgrm.nProtocols_ );

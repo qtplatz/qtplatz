@@ -197,9 +197,14 @@ MSProperty::dataInterpreterClsid() const
 }
 
 void
-MSProperty::setDeviceData( const char * device, size_t size, const std::string& dataInterpreterClsid )
+MSProperty::setDataInterpreterClsid( const std::string& t )  // addatafile v2 data uses dataInterpreterClsid
 {
-    dataInterpreterClsid_ = dataInterpreterClsid;
+    dataInterpreterClsid_ = t;
+}
+
+void
+MSProperty::setDeviceData( const char * device, size_t size )
+{
     deviceData_.resize( size );
     std::copy( device, device + size, deviceData_.begin() );
 }

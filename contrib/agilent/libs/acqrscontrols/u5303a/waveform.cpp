@@ -853,7 +853,7 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     const device_data data( *waveform.ident_, waveform.meta_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size(), "u5303a" );
+    prop.setDeviceData( ar.data(), ar.size() );
 
 #if ! defined NDEBUG && 0
     ADDEBUG() << "===== device_data =====\nIdentifier:\t " << waveform.ident_->Identifier()

@@ -26,8 +26,8 @@
 
 #include <adcontrols/datareader.hpp>
 #include <adplugin/plugin.hpp>
-#include <boost/variant.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/variant.hpp>
 #include <memory>
 #include <mutex>
 #include <vector>

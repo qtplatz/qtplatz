@@ -95,6 +95,8 @@ InfiTofDataInterpreter::translate( adcontrols::MassSpectrum& xms
     (void)meta;
     (void)msize;
 
+    // only if datafile is v2 or older version
+
     translate_state result;
 
     if ( dsize > 0 ) {
@@ -217,6 +219,7 @@ InfiTofDataInterpreter::translate( adcontrols::TraceAccessor& accessor
                                    , const char * data, size_t dsize
                                    , const char * meta, size_t msize, unsigned long events ) const
 {
+    assert( 0 );
     (void)meta;
     (void)msize;
 
@@ -262,36 +265,6 @@ InfiTofDataInterpreter::make_device_text( std::vector< std::pair< std::string, s
     return false;
 }
 
-#if 0
-// static
-double
-InfiTofDataInterpreter::compute_mass( double time, int mode, const adcontrols::MSCalibration& calib, const multumcontrols::ScanLaw& law )
-{
-    using namespace adcontrols;
-    using namespace adcontrols::metric;
-
-    if ( calib.algorithm() == MSCalibration::MULTITURN_NORMALIZED ) {
-        double t0 = 0;
-        if ( calib.t0_coeffs().empty() )
-            return calib.compute_mass( scale_to( calib.time_prefix(), time - law.getTime(0, mode) ) / law.fLength( mode ) );
-
-        double mass = law.getMass( time, mode );
-		for ( int i = 0; i < 2; ++i ) {
-            t0 = metric::scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
-			double T  = scale_to( calib.time_prefix(), time - t0 );
-			mass = calib.compute_mass( T / law.fLength( mode ) );
-		}
-        return mass;
-    } else {
-        double T = metric::scale_to( calib.time_prefix(), time );
-        if ( ! calib.t0_coeffs().empty() )
-            T -= calib.t0_coeffs()[0];
-        return calib.compute_mass( T );
-    }
-    return 0;
-
-}
-#endif
 
 void
 InfiTofDataInterpreter::set_logfile( const char * logfile )

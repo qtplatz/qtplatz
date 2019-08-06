@@ -574,12 +574,11 @@ waveform::translate_property( adcontrols::MassSpectrum& sp, const waveform& wave
 
     prop.setTimeSinceInjection( waveform.timeSinceInject_ ); // meta_.initialXTimeSeconds );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
-    // prop.setDataInterpreterClsid( "ap240" );
 
     const device_data data( waveform.ident_, waveform.meta_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size(), "ap240" );
+    prop.setDeviceData( ar.data(), ar.size() );
 
     sp.setMSProperty( prop );
 
