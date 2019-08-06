@@ -60,7 +60,7 @@ namespace adcontrols {
         MassSpectrometer( void );
         MassSpectrometer( adcontrols::datafile * );
         virtual ~MassSpectrometer(void);
-        
+
         virtual const wchar_t * name() const;
 
         // data format v2 interface
@@ -84,11 +84,13 @@ namespace adcontrols {
         virtual void setDataReader( adcontrols::DataReader * );
         virtual void setMSFractuation( adcontrols::MSFractuation * );
         virtual adcontrols::MSFractuation * msFractuation() const;
-        
-        virtual const char * objtext() const = 0;
-        virtual const boost::uuids::uuid& objclsid() const = 0;
+
+        //virtual const char * objtext() const = 0;
+        //virtual const boost::uuids::uuid& objclsid() const = 0;
+        virtual const char * const massSpectrometerName() const = 0;
+        virtual const boost::uuids::uuid& massSpectrometerClsid() const = 0;
         virtual const ScanLaw * scanLaw() const = 0;
-        virtual const char * dataInterpreterText() const = 0;
+        virtual const char * dataInterpreterText() const = 0;   // dataInterpreter := convert binary stream to waveform
         virtual const boost::uuids::uuid& dataInterpreterUuid() const = 0;
         // end v3 specific
 
@@ -98,11 +100,13 @@ namespace adcontrols {
         virtual bool setMSProperty( MassSpectrum&, const ControlMethod::Method&, int proto = (-1) ) const { return false; }
 
         // helper methods
-        static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
+        static std::shared_ptr< MassSpectrometer > create( const boost::uuids::uuid& massSpectrometerClsid );
+        static std::shared_ptr< MassSpectrometer > create( const char * );
         static std::vector< std::wstring > get_model_names();
         static std::vector< std::pair< boost::uuids::uuid, std::string > > installed_models();
 
-        static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& );
+        static std::shared_ptr< ScanLaw > make_scanlaw( const adcontrols::MSProperty& ); // infiTOF
+        static std::shared_ptr< ScanLaw > make_scanlaw( const boost::uuids::uuid&, const adcontrols::MSProperty& );
         virtual bool estimateScanLaw( const std::vector< std::tuple< double, double, int > >&, double& va, double& t0 ) const;
         virtual bool estimateScanLaw( const adcontrols::MSPeaks&, double& va, double& t0 ) const;
 
@@ -123,4 +127,3 @@ namespace adcontrols {
     };
 
 }
-

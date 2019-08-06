@@ -225,20 +225,40 @@ MassSpectrometer::setDebugTrace( const char * logfile, int level )
 
 // create
 std::shared_ptr< adcontrols::MassSpectrometer >
-MassSpectrometer::create( const char * dataInterpreterClsid )
+MassSpectrometer::create( const boost::uuids::uuid& clsid )
 {
-    return MassSpectrometerBroker::make_massspectrometer( dataInterpreterClsid );
+    return MassSpectrometerBroker::make_massspectrometer( clsid );
+}
+
+// create
+std::shared_ptr< adcontrols::MassSpectrometer >
+MassSpectrometer::create( const char * clsid )
+{
+    return MassSpectrometerBroker::make_massspectrometer( clsid );
+}
+
+//static
+std::shared_ptr< ScanLaw >
+MassSpectrometer::make_scanlaw( const boost::uuids::uuid& clsid, const adcontrols::MSProperty& prop )
+{
+    if ( auto spectrometer = create( clsid ) ) { // prop.dataInterpreterClsid() ) ) {
+
+        return spectrometer->scanLaw( prop );
+
+    }
+    return nullptr;
 }
 
 //static
 std::shared_ptr< ScanLaw >
 MassSpectrometer::make_scanlaw( const adcontrols::MSProperty& prop )
 {
-    if ( auto spectrometer = create( prop.dataInterpreterClsid() ) ) {
+    assert( 0 );
+    // if ( auto spectrometer = create( prop.dataInterpreterClsid() ) ) {
 
-        return spectrometer->scanLaw( prop );
+    //     return spectrometer->scanLaw( prop );
 
-    }
+    // }
     return nullptr;
 }
 
