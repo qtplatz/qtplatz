@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace boost { namespace uuids { struct uuid; } }
+#include <infitofcontrols/constants.hpp>
 
 namespace infitofspectrometer {
 
@@ -41,19 +41,11 @@ namespace infitofspectrometer {
                 static const wchar_t * name() { return L"InfiTOF::chromatographicTrace"; }
             };
         }
-        
+
     }
 
     namespace names {
         const char * const iid_infitofspectrometer_plugin = "jp.ac.osaka-u.qtplatz.adplugins.massSpectrometer.infitof";
-        const char * const objtext_massspectrometer = "InfiTOF"; // historical name (don't change)
-        const char * const objtext_datainterpreter = "InfiTOF"; // historical name (don't change)
     }
 
-    namespace iids {
-
-        extern const boost::uuids::uuid uuid_massspectrometer;
-        extern const boost::uuids::uuid uuid_datainterpreter;
-        
-    }
 }
