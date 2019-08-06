@@ -111,7 +111,7 @@ ThresholdActionForm::get( adcontrols::threshold_action& m ) const
     m.width = ui->doubleSpinBox_2->value() / std::micro::den;
 
     if ( auto sp = spectrometer_.lock() ) {
-        m.objid_spectrometer = sp->objtext();
+        m.objid_spectrometer = sp->massSpectrometerName();
         m.formula = ui->lineEdit->text().toStdString();
         m.mode = ui->spinBox->value();
         m.mass = ui->doubleSpinBox_3->value();
@@ -124,11 +124,6 @@ bool
 ThresholdActionForm::set( const adcontrols::threshold_action& m )
 {
     QSignalBlocker block_this( this );
-#if 0
-    QSignalBlocker blocks[] = { QSignalBlocker( ui->groupBox ), QSignalBlocker( ui->checkBox ), QSignalBlocker( ui->checkBox_2 )
-        , QSignalBlocker( ui->checkBox_3 ), QSignalBlocker( ui->doubleSpinBox ), QSignalBlocker( ui->doubleSpinBox_2 )
-    , QSignalBlocker( ui->lineEdit ), QSignalBlocker( ui->doubleSpinBox_3 ), QSignalBlocker( ui->spinBox ) };
-#endif
 
     ui->checkBox->setChecked( m.enable );
     ui->checkBox_2->setChecked( m.exclusiveDisplay );
@@ -149,7 +144,7 @@ ThresholdActionForm::setMassSpectrometer( std::shared_ptr< const adcontrols::Mas
     if ( sp ) {
 
         ui->groupBox_2->setEnabled( true );
-        QString text = QString("[%1]").arg( QString::fromStdString( sp->objtext() ));
+        QString text = QString("[%1]").arg( QString::fromStdString( sp->massSpectrometerName() ));
         ui->groupBox_2->setTitle( text );
 
     } else {
@@ -254,7 +249,7 @@ ThresholdActionForm::readJson() const
         , { "exclusiveDisplay",   ui->checkBox_2->isChecked()                    }
         , { "delay",              ui->doubleSpinBox->value() / std::micro::den   }
         , { "width",              ui->doubleSpinBox_2->value() / std::micro::den }
-        , { "objid_spectrometer", ( sp ? QString::fromStdString( sp->objtext() ) : "" ) }
+        , { "objid_spectrometer", ( sp ? QString::fromStdString( sp->massSpectrometerName() ) : "" ) }
         , { "formula",            ui->lineEdit->text()                    }
         , { "mode",               ui->spinBox->value()                    }
         , { "mass",               ui->doubleSpinBox_3->value()            }

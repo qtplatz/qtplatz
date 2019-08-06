@@ -197,7 +197,7 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
     QStandardItemModel& model = *pModel_;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-        
+
         QString formula = model.data( model.index( row, c_formula ) ).toString();
         std::wstring wformula = qtwrapper::wstring( formula );
 
@@ -218,7 +218,7 @@ MSCalibrateSummaryTable::getAssignedMasses( adcontrols::MSAssignedMasses& t ) co
                                                  , wformula, exact_mass, time, mass, enable, 0 /* flag */, mode );
             t << assigned;
         }
-    }    
+    }
 }
 
 
@@ -237,41 +237,24 @@ MSCalibrateSummaryTable::setAssignedData( int row, int fcn, int idx, const adcon
     QStandardItemModel& model = *pModel_;
 
     auto it = std::find_if( assigned.begin(), assigned.end(), [=]( const adcontrols::MSAssignedMass& a ){
-            return fcn == int(a.idMassSpectrum()) && idx == int(a.idPeak()); 
+            return fcn == int(a.idMassSpectrum()) && idx == int(a.idPeak());
         });
-    
+
     if ( it == assigned.end() )
         return false;
-	
-	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
-    double mass = 0;        
+
+    double mass = 0;
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
+    assert( calib.massSpectrometerClsid() != boost::uuids::uuid{{0}} );
 
-    if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) ) {
+    if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( calib.massSpectrometerClsid(), pCalibrantSpectrum_->getMSProperty() ) ) {
         adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( *scanLaw, calib );
         mass = mass_calculator( it->time(), it->mode() );
     } else {
         mass = adcontrols::detail::compute_mass< adcontrols::MSCalibration::TIMESQUARED >::compute( it->time(), calib );
     }
 
-    if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
-        double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
-
-        if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) ) {
-            double L = scanLaw->fLength( it->mode() );
-            normalized_time = ( it->time() - t0 ) / L;
-        }
-
-    } else {
-
-        if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) )
-             normalized_time = (it->time()) / scanLaw->fLength( it->mode() );
-         else
-             normalized_time = it->time();
-	 }
-
-    //model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
     model.setData( model.index( row, c_exact_mass ), it->exactMass() );
     model.setData( model.index( row, c_mass_calibrated ), mass );
@@ -319,7 +302,7 @@ MSCalibrateSummaryTable::createModelData( const std::vector< std::pair< int, int
 
         model.setData( model.index( row, c_fcn ),   idx.first );
         model.setData( model.index( row, c_index ), idx.second );
-        
+
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().samplingInfo().mode() ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
         model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
@@ -373,7 +356,7 @@ MSCalibrateSummaryTable::modifyModelData( const std::vector< std::pair< int, int
 
         auto it = std::find_if( indices.begin(), indices.end(), [=]( const std::pair< int, int >& a ){
                 return a.first == fcn &&  a.second == idx;});
-        
+
         if ( it == indices.end() )
             return false;
 
@@ -409,8 +392,10 @@ MSCalibrateSummaryTable::setData( const adcontrols::MSCalibrateResult& res, cons
     *pCalibrantSpectrum_ = ms;
     *pCalibResult_ = res;
 
+    assert( res.calibration().massSpectrometerClsid() != boost::uuids::uuid{{0}} );
+
 	double threshold = res.threshold();
-    
+
     adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
     for ( int fcn = 0; fcn < signed(segments.size()); ++fcn ) {
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
@@ -419,7 +404,7 @@ MSCalibrateSummaryTable::setData( const adcontrols::MSCalibrateResult& res, cons
 				indices.push_back( std::make_pair( fcn, idx ) );
 		}
 	}
-    
+
     if ( ! ( ( model.rowCount() == int(indices.size()) ) && modifyModelData( indices ) ) )
         createModelData( indices );
 }
@@ -431,10 +416,11 @@ MSCalibrateSummaryTable::showContextMenu( const QPoint& pt )
 
     menu.addAction( tr( "Hide" ), this, SLOT( hideRows() ) );
     menu.addAction( tr( "Show" ), this, SLOT( showRows() ) );
-    
-    menu.addAction( tr( "Re-calc polynomials" ), this, SLOT( recalicPolynomials() ) );
+
+    menu.addAction( tr( "Re-calc polynomials" ), this, SLOT( recalcPolynomials() ) );
     menu.addAction( tr( "Assign mass on spectrum" ), this, SLOT( assignMassOnSpectrum() ) );
     menu.addAction( tr( "Apply calibration to the dataset (change all spectra in the dataset)" ), this, SLOT( applyCalibrationToDataset() ) );
+    menu.addAction( tr( "Export..." ), this, [&]{ emit exportCalibration(); } );
     menu.addAction( tr( "Save as default calibration" ), this, SLOT( saveAsDefaultCalibration() ) );
     menu.addAction( tr( "Copy summary to clipboard" ), this, SLOT( copySummaryToClipboard() ) );
     menu.addAction( tr( "Add to peak table" ), this, SLOT( addSelectionToPeakTable() ) );
@@ -481,7 +467,7 @@ MSCalibrateSummaryTable::formulaChanged( const QModelIndex& index )
 	QStandardItemModel& model = *pModel_;
 
     if ( index.column() == c_formula ) {
-        
+
         std::wstring formula = qtwrapper::wstring( index.data( Qt::EditRole ).toString() );
         std::wstring adduct_lose;
         if ( ! formula.empty() ) {
@@ -505,7 +491,7 @@ MSCalibrateSummaryTable::formulaChanged( const QModelIndex& index )
             // update exact mass
             model.setData( model.index( index.row(), c_exact_mass ), exactMass );
             double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
-            model.setData( model.index( index.row(), c_mass_error_mDa ), mass - exactMass );            
+            model.setData( model.index( index.row(), c_mass_error_mDa ), mass - exactMass );
             double calib_mass = model.index( index.row(), c_mass_error_calibrated_mDa ).data( Qt::EditRole ).toDouble();
             if ( calib_mass > 1.0 ) {
                 model.setData( model.index( index.row(), c_mass_error_calibrated_mDa ), calib_mass - exactMass );
@@ -574,13 +560,13 @@ MSCalibrateSummaryTable::assignMassOnSpectrum()
 void
 MSCalibrateSummaryTable::applyCalibrationToDataset()
 {
-    emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset    
+    emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
 }
 
 void
 MSCalibrateSummaryTable::saveAsDefaultCalibration()
 {
-    emit on_apply_calibration_to_default(); // save calibration as system default    
+    emit on_apply_calibration_to_default(); // save calibration as system default
 }
 
 void
@@ -620,7 +606,10 @@ MSCalibrateSummaryTable::addSelectionToPeakTable()
     for ( auto index: list )
         rows.insert( index.row() );
 
-    if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( pCalibrantSpectrum_->getMSProperty() ) ) {
+    auto calib = this->pCalibResult_->calibration();
+    assert( calib.massSpectrometerClsid() != boost::uuids::uuid{{0}} );
+
+    if ( auto scanLaw = adcontrols::MassSpectrometer::make_scanlaw( calib.massSpectrometerClsid(), pCalibrantSpectrum_->getMSProperty() ) ) {
 
         QStandardItemModel& model = *pModel_;
         adcontrols::MSPeaks peaks;
@@ -631,14 +620,14 @@ MSCalibrateSummaryTable::addSelectionToPeakTable()
             if ( !formula.empty() )
                 mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
             int mode = model.index( row, c_mode ).data().toInt();
-                
+
             // const adcontrols::ScanLaw* law = pCalibrantSpectrum_->scanLaw();
             adcontrols::MSPeak peak( time, mass, mode, scanLaw->fLength( mode ) );
             peak.formula( formula );
-                
+
             //peak.spectrumId( pCalibrantSpectrum_->uuid() );
             peaks << peak;
-                
+
             emit on_add_selection_to_peak_table( peaks );
         }
     }
@@ -652,11 +641,13 @@ MSCalibrateSummaryTable::copySummaryToClipboard()
     QString text;
 
     if ( pCalibResult_ ) {
+
         const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
+
         text.append( "Calibration date:\t" );
         text.append( calib.date().c_str() );
         text.append( "\tid\t" );
-        text.append( qtwrapper::qstring( calib.calibId() ) );
+        text.append( QString::fromStdString( boost::uuids::to_string( calib.calibrationUuid() ) ) );
         text.append( '\n' );
         text.append( "SQRT( m/z ) = " );
         for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
@@ -740,7 +731,7 @@ MSCalibrateSummaryTable::hideRows()
 void
 MSCalibrateSummaryTable::showRows()
 {
-    QStandardItemModel& model = *pModel_;    
+    QStandardItemModel& model = *pModel_;
     for ( int row = 0; row < model.rowCount(); ++row ) {
         if ( isRowHidden( row ) )
             setRowHidden( row, false );
@@ -804,7 +795,7 @@ MSCalibrateSummaryTable::handlePrint( QPrinter& printer, QPainter& painter )
 	const QRect rect( printer.pageRect().x() + printer.pageRect().width() * 0.05
                       , printer.pageRect().y() + printer.pageRect().height() * 0.05
                       , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
-    
+
     const int rows = model.rowCount();
     const int cols = model.columnCount();
 
@@ -849,7 +840,7 @@ MSCalibrateSummaryTable::handlePrint( QPrinter& printer, QPainter& painter )
             for ( int col = 0; col < cols; ++col )
                 render( painter, col, model.headerData( col, Qt::Horizontal ).toString() );
             render.new_line( painter );
-            render.draw_horizontal_line( painter );  
+            render.draw_horizontal_line( painter );
         }
     }
     render.draw_horizontal_line( painter );
@@ -994,4 +985,3 @@ print_text::to_print_text( std::string& text, const QModelIndex &index )
         text = index.data( Qt::DisplayRole ).toString().toStdString();
     }
 }
-

@@ -34,11 +34,12 @@
 #include <memory>
 
 namespace adcontrols {
-    class MassSpectrum;
-    class MSReferences;
-    class MSCalibrateResult;
     class MSAssignedMasses;
+    class MSCalibrateResult;
     class MSPeaks;
+    class MSReferences;
+    class MassSpectrometer;
+    class MassSpectrum;
 }
 
 class QPrinter;
@@ -78,6 +79,7 @@ namespace adwidgets {
         void on_apply_calibration_to_all();
         void on_apply_calibration_to_default();
         void on_add_selection_to_peak_table( const adcontrols::MSPeaks& );
+        void exportCalibration();
 
     public slots:
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
