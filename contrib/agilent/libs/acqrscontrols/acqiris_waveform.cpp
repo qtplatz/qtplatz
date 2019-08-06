@@ -50,16 +50,16 @@ namespace boost {
         void serialize( Archive & ar, AqDataDescriptor& _, const unsigned int version )
         {
             ar & BOOST_SERIALIZATION_NVP( _.returnedSamplesPerSeg );
-            ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );    //!< 'data[desc.indexFirstPoint]' is the first valid point. 
+            ar & BOOST_SERIALIZATION_NVP( _.indexFirstPoint );    //!< 'data[desc.indexFirstPoint]' is the first valid point.
             ar & BOOST_SERIALIZATION_NVP( _.sampTime );
             ar & BOOST_SERIALIZATION_NVP( _.vGain );
             ar & BOOST_SERIALIZATION_NVP( _.vOffset );
             ar & BOOST_SERIALIZATION_NVP( _.returnedSegments );   //!< When reading multiple segments in one waveform
-            ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWforms );        
+            ar & BOOST_SERIALIZATION_NVP( _.nbrAvgWforms );
             ar & BOOST_SERIALIZATION_NVP( _.actualTriggersInAcqLo );
             ar & BOOST_SERIALIZATION_NVP( _.actualTriggersInAcqHi );
             ar & BOOST_SERIALIZATION_NVP( _.actualDataSize );
-            ar & BOOST_SERIALIZATION_NVP( _.reserved2 );    
+            ar & BOOST_SERIALIZATION_NVP( _.reserved2 );
             ar & BOOST_SERIALIZATION_NVP( _.reserved3 );
         }
 
@@ -70,19 +70,19 @@ namespace boost {
             ar & BOOST_SERIALIZATION_NVP( _.timeStampLo );
             ar & BOOST_SERIALIZATION_NVP( _.timeStampHi );
         }
-        
+
     }
 }
-        
+
 namespace acqrscontrols {
 namespace aqdrv4 {
-    
+
     template< typename T = waveform >
     struct waveform_archive {
         template<class Archive>
         void serialize( Archive& ar, T& _, const unsigned int version ) {
             using namespace boost::serialization;
-        
+
             ar & BOOST_SERIALIZATION_NVP( _.serialnumber_ );
             ar & BOOST_SERIALIZATION_NVP( _.serialnumber0_ );
             ar & BOOST_SERIALIZATION_NVP( _.timeSinceEpoch_ );
@@ -147,7 +147,7 @@ namespace aqdrv4 {
     waveform::begin() const
     {
         if ( dataType_ != sizeof(int16_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< const int16_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -163,7 +163,7 @@ namespace aqdrv4 {
     waveform::begin() const
     {
         if ( dataType_ != sizeof(int32_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< const int32_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -198,7 +198,7 @@ namespace aqdrv4 {
     waveform::data() const
     {
         if ( dataType_ != sizeof(int8_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< const int8_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -206,7 +206,7 @@ namespace aqdrv4 {
     waveform::data()
     {
         if ( dataType_ != sizeof(int8_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< int8_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -214,7 +214,7 @@ namespace aqdrv4 {
     waveform::data() const
     {
         if ( dataType_ != sizeof(int16_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< const int16_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -222,7 +222,7 @@ namespace aqdrv4 {
     waveform::data()
     {
         if ( dataType_ != sizeof(int16_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< int16_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -230,7 +230,7 @@ namespace aqdrv4 {
     waveform::data() const
     {
         if ( dataType_ != sizeof(int32_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< const int32_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -238,7 +238,7 @@ namespace aqdrv4 {
     waveform::data()
     {
         if ( dataType_ != sizeof(int32_t) )
-            throw std::bad_cast();        
+            throw std::bad_cast();
         return reinterpret_cast< int32_t* >( d_.data() ) + dataDesc_.indexFirstPoint;
     }
 
@@ -259,7 +259,7 @@ namespace aqdrv4 {
         throw std::bad_cast();
     }
 
-    
+
     bool
     waveform::translate( adcontrols::MassSpectrum& ms, const waveform& wform, int scale ) // 0 := binary, 1 = Volts, 1000 = mV ...
     {
@@ -268,10 +268,10 @@ namespace aqdrv4 {
 
         std::vector< double > y( wform.size() );
         transform( y, wform, scale );
-        
+
         ms.resize( wform.size() );
         ms.setIntensityArray( y.data() );
-        
+
         auto prop = ms.getMSProperty();
         adcontrols::SamplingInfo info( wform.xIncrement()
                                        , wform.delayTime() // meta_.initialXOffset
@@ -279,16 +279,16 @@ namespace aqdrv4 {
                                        , uint32_t( wform.size() )
                                        , 0 // actualAverages
                                        , 0 );
-        
+
         info.horPos( wform.segDesc().horPos );
-        
+
         prop.setSamplingInfo( info );
         prop.setAcceleratorVoltage( 3000 );
-        
+
         using namespace adcontrols::metric;
         prop.setTimeSinceInjection( wform.timeSinceInject() * 1.0e6 ); // microseconds
         prop.setTimeSinceEpoch( wform.timeSinceEpoch() );
-        prop.setDataInterpreterClsid( "aqdrv4" );
+        // prop.setDataInterpreterClsid( "aqdrv4" );
         ms.setMSProperty( prop );
 
         return true;

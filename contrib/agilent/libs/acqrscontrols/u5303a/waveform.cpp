@@ -846,14 +846,14 @@ waveform::translate( adcontrols::MassSpectrum& sp, const waveform& waveform, int
     //prop.setTimeSinceInjection( waveform.meta_.initialXTimeSeconds );
     prop.setTimeSinceInjection( waveform.timeSinceInject_ );
     prop.setTimeSinceEpoch( waveform.timeSinceEpoch_ ); // nanoseconds
-    prop.setDataInterpreterClsid( "u5303a" );
+    // prop.setDataInterpreterClsid( "u5303a" );
 
     if ( this_protocol )
         prop.setTofProtocol( *this_protocol );
     const device_data data( *waveform.ident_, waveform.meta_ );
     std::string ar;
     adportable::binary::serialize<>()( data, ar );
-    prop.setDeviceData( ar.data(), ar.size() );
+    prop.setDeviceData( ar.data(), ar.size(), "u5303a" );
 
 #if ! defined NDEBUG && 0
     ADDEBUG() << "===== device_data =====\nIdentifier:\t " << waveform.ident_->Identifier()

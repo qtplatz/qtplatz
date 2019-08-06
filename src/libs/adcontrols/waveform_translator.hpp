@@ -62,8 +62,8 @@ namespace adcontrols {
             prop.setTDelay( trigDelay );
             prop.setTimeSinceInjection( double(waveform.elapsed_time()) / std::nano::den );
             prop.setTimeSinceEpoch( waveform.epoch_time() ); // nanoseconds
-            prop.setDataInterpreterClsid( dataInterpreterClsid );
-            prop.setDeviceData( device_data.data(), device_data.size() );
+            // prop.setDataInterpreterClsid( dataInterpreterClsid );
+            prop.setDeviceData( device_data.data(), device_data.size(), dataInterpreterClsid );
             prop.setTrigNumber( waveform.serialnumber() );
 
             sp.setCentroid( adcontrols::CentroidNone );

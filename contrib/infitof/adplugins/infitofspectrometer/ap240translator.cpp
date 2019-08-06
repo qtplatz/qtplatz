@@ -105,7 +105,7 @@ ap240translator::translate( adcontrols::MassSpectrum& ms
     // set device specific data
     std::string device;
     if ( adportable::binary::serialize<>()( proto, device ) )
-        prop.setDeviceData( device.data(), device.size() );
+        prop.setDeviceData( device.data(), device.size(), "fixme" );
 
     // set sampling data, and set property to spectrum
     prop.setAcceleratorVoltage( avgr.kAcceleratorVoltage );

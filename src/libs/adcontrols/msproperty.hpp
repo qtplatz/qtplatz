@@ -83,9 +83,9 @@ namespace adcontrols {
 
         // Device specific parameters
 
-        void setDataInterpreterClsid( const char * utf8 );
+        // void setDataInterpreterClsid( const char * utf8 );
         const char * dataInterpreterClsid() const;
-        void setDeviceData( const char * device, size_t size );
+        void setDeviceData( const char * device, size_t size, const std::string& dataInterpreterClsid );
         const char * deviceData() const;
         size_t deviceDataSize() const;
 

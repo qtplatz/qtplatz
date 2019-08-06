@@ -102,7 +102,7 @@ textfile::setup( adcontrols::MassSpectrum& ms
 
     multumcontrols::infitof::ScanLaw law;
     adcontrols::MSProperty prop( ms.getMSProperty() );
-    prop.setDataInterpreterClsid( constants::dataInterpreter::spectrometer::utf8_name() );
+    // prop.setDataInterpreterClsid( constants::dataInterpreter::spectrometer::utf8_name() );
 
     std::pair< double, double > massrange;
     if ( !lMass.empty() && !hMass.empty() ) {

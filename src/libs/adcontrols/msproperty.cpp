@@ -190,12 +190,6 @@ MSProperty::operator = ( const MSProperty& t )
     return *this;
 }
 
-void
-MSProperty::setDataInterpreterClsid( const char * utf8 )
-{
-    dataInterpreterClsid_ = utf8;
-}
-
 const char *
 MSProperty::dataInterpreterClsid() const
 {
@@ -203,8 +197,9 @@ MSProperty::dataInterpreterClsid() const
 }
 
 void
-MSProperty::setDeviceData( const char * device, size_t size )
+MSProperty::setDeviceData( const char * device, size_t size, const std::string& dataInterpreterClsid )
 {
+    dataInterpreterClsid_ = dataInterpreterClsid;
     deviceData_.resize( size );
     std::copy( device, device + size, deviceData_.begin() );
 }
