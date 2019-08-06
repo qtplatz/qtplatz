@@ -208,7 +208,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
       << "<th>num. samples</th>"
       << "<th>num. average</th>"
       << "<th>mode</th>"
-      << "<th>classid</th>"
+      << "<th>massSpectrometerClsid</th>"
       << "</tr>";
 
     int n = 0;
@@ -229,8 +229,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
           << "<td>" << info.nSamples() << "</td>"
           << "<td>" << info.numberOfTriggers() << "</td>"
           << "<td>" << info.mode() << "</td>"
-          << "<td>" << prop.dataInterpreterClsid() << "</td>"
-          << "<td>" << m.dataReaderUuid() << "</td>"
+          << "<td>" << prop.massSpectrometerClsid() << "</td>"
           << "</tr>";
 
         //-----------------------------
@@ -269,27 +268,8 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     o << "</table>";
     o << "<hr>";
 
-    // device (averager) dependent data (require data interpreter)
-    const char * ipClsid = prop.dataInterpreterClsid();
-    o << "<h2>digitizer device dependent data '" << ( ( ipClsid && ipClsid[0] ) ? ipClsid : "none" ) << "'</h2>" << std::endl;
-    o << "<p>data reader uuid: " << ms.dataReaderUuid() << "</p>" << std::endl;
-    if ( ipClsid ) {
-        if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( ipClsid ) ) {
-            if ( interpreter->make_device_text( textv, ms.getMSProperty() ) ) {
-                o << "<table border=\"1\" cellpadding=\"4\">";
-                std::for_each( textv.begin(), textv.end()
-                               , [&]( const auto& text ){
-                                     o << "<tr>"
-                                       << "<td>" << text.first << "</td><td>" << text.second << "</td>"
-                                       << "</tr>";
-                                 });
-                o << "</tr>" << std::endl;
-                o << "</table>";
-            }
-        }
-    }
-
-
+    bool processed( false );
+    // addatafile v3 will be handled here
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         if ( auto spectrometer = dp->massSpectrometer() ) {
 
@@ -308,6 +288,28 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
                               << "<td>" << text.first << "</td><td>" << text.second << "</td>"
                               << "</tr>";
                         });
+                    o << "</tr>" << std::endl;
+                    o << "</table>";
+                }
+            }
+            processed = true;
+        }
+    }
+
+    if ( !processed ) {
+        // device (averager) dependent data (require data interpreter)
+        if ( auto ipClsid = prop.dataInterpreterClsid() ) { // addatafile v2 only, v3 and later version no longer use this information
+            o << "<h2>digitizer device dependent data '" << ( ( ipClsid && ipClsid[0] ) ? ipClsid : "none" ) << "'</h2>" << std::endl;
+            o << "<p>data reader uuid: " << ms.dataReaderUuid() << "</p>" << std::endl;
+            if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( ipClsid ) ) {
+                if ( interpreter->make_device_text( textv, ms.getMSProperty() ) ) {
+                    o << "<table border=\"1\" cellpadding=\"4\">";
+                    std::for_each( textv.begin(), textv.end()
+                                   , [&]( const auto& text ){
+                                         o << "<tr>"
+                                           << "<td>" << text.first << "</td><td>" << text.second << "</td>"
+                                           << "</tr>";
+                                     });
                     o << "</tr>" << std::endl;
                     o << "</table>";
                 }

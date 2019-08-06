@@ -25,14 +25,18 @@
 #include "datainterpreter.hpp"
 //#include "importdata.hpp"
 #include "massspectrometer.hpp"
+#include <acqrscontrols/u5303a/waveform.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adfs/cpio.hpp>
-#include <adportable/bzip2.hpp>
 #include <adlog/logger.hpp>
-#include <adportable/serializer.hpp>
+#include <adportable/bzip2.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/binary_serializer.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/format.hpp>
 
 namespace accutofspectrometer {
     class DataInterpreterException : public boost::exception, public std::exception {
@@ -47,6 +51,36 @@ DataInterpreter::DataInterpreter()
 {
 }
 
+bool
+DataInterpreter::make_device_text( std::vector< std::pair< std::string, std::string > >& textv, const adcontrols::MSProperty& prop ) const
+{
+    textv.clear();
+
+    try {
+        // this was encoded by qtplatz/contrib/agilent/libs/acqrscontrols/u5303a/waveform.cpp
+
+        acqrscontrols::u5303a::device_data d;
+        if ( adportable::binary::deserialize<>()( d, prop.deviceData(), prop.deviceDataSize() ) ) {
+            textv.emplace_back( "Identifier",      d.ident_.Identifier() );
+            textv.emplace_back( "Revision",        d.ident_.Revision() );
+            textv.emplace_back( "Vendor",          d.ident_.Vendor() );
+            textv.emplace_back( "Description",     d.ident_.Description() );
+            textv.emplace_back( "InstrumentModel", d.ident_.InstrumentModel() );
+            textv.emplace_back( "FirmwareRevision",d.ident_.FirmwareRevision() );
+            textv.emplace_back( "SerialNumber",    d.ident_.SerialNumber() );
+            textv.emplace_back( "Options",         d.ident_.Options() );
+            textv.emplace_back( "IOVersion",       d.ident_.IOVersion() );
+            textv.emplace_back( "NbrADCBits",      ( boost::format("%1%") % d.ident_.NbrADCBits() ).str() );
+
+            textv.emplace_back( "accutofspectrometer", "dataInterpreter endoded" );
+            return true;
+        }
+    } catch ( ... ) {
+    }
+    return false;
+}
+
+
 adcontrols::translate_state
 DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , const char * data, size_t dsize
@@ -55,6 +89,7 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , size_t idData
 							, const wchar_t * traceId ) const
 {
+    ADDEBUG() << "------------------------ translate -----------------------------";
     try {
         if ( traceId == 0 || (traceId && std::wcscmp( traceId, L"MS.PROFILE") == 0 ) )
             return translate_profile( ms, data, dsize, meta, msize, spectrometer, idData );

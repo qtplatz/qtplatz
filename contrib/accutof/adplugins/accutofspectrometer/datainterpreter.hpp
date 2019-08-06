@@ -27,11 +27,15 @@
 
 #include <adcontrols/datainterpreter.hpp>
 
+namespace adcontrols { class MSProperty; }
+
 namespace accutofspectrometer {
 
     class DataInterpreter : public adcontrols::DataInterpreter {
     public:
         DataInterpreter();
+
+        bool make_device_text( std::vector< std::pair< std::string, std::string > >&, const adcontrols::MSProperty& ) const override;
 
         adcontrols::translate_state translate( adcontrols::MassSpectrum&
                                                , const char * data, size_t dsize

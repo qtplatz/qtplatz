@@ -14,6 +14,7 @@ configure_file(
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/contrib/accutof/libs
+  ${CMAKE_SOURCE_DIR}/contrib/agilent/libs
   ${CMAKE_SOURCE_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/src/adplugins
   )
@@ -40,6 +41,7 @@ add_library( ${PROJECT_NAME} MODULE
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   accutofcontrols
+  acqrscontrols
   adcontrols
   adplugin
   adportable

@@ -89,8 +89,11 @@ DataInterpreterBroker::register_factory( std::shared_ptr< DataInterpreterFactory
 DataInterpreterFactory *
 DataInterpreterBroker::find_factory( const std::string& dataInterpreterClsid )
 {
+    ADDEBUG() << "--> find_factory(" << dataInterpreterClsid << ")";
     auto it = std::find_if( impl::instance().factories_.begin(), impl::instance().factories_.end()
-                            , [&] ( const std::pair<boost::uuids::uuid, impl::value_type>& a ) { return dataInterpreterClsid == a.second.first; } );
+                            , [&] ( const std::pair<boost::uuids::uuid, impl::value_type>& a ) {
+                                  ADDEBUG() << a.second.first;
+                                  return dataInterpreterClsid == a.second.first; } );
     if ( it != impl::instance().factories_.end() ) {
         if ( auto ptr = it->second.second )
             return ptr.get();
