@@ -44,10 +44,10 @@
 namespace adspectrometer {
     class MassSpectrometerException : public boost::exception, public std::exception {};
 
-#if __APPLE__ || __linux__
-    constexpr const char * MassSpectrometer::clsid_text;
-    constexpr const char * MassSpectrometer::class_name;
-#endif
+//#if __APPLE__ || __linux__
+//    constexpr const char * MassSpectrometer::clsid_text;
+//    constexpr const char * MassSpectrometer::class_name;
+//#endif
 }
 
 namespace adspectrometer {
@@ -101,7 +101,7 @@ void
 MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& objuuid )
 {
     adfs::stmt sql( dbf );
-    
+
     sql.prepare(
         "SELECT acclVoltage,tDelay,fLength FROM ScanLaw,Spectrometer"
         " WHERE ScanLaw.spectrometer=Spectrometer.id"
@@ -122,15 +122,15 @@ MassSpectrometer::subscribe( const adcontrols::LCMSDataset& data )
     accessor_ = &data;
     return true;
 }
-        
-const wchar_t * 
-MassSpectrometer::name() const 
+
+const wchar_t *
+MassSpectrometer::name() const
 {
     return L"adspectrometer::import";
 }
 
 const adcontrols::ScanLaw *
-MassSpectrometer::scanLaw() const 
+MassSpectrometer::scanLaw() const
 {
     return scanlaw_.get();
 }
@@ -148,20 +148,20 @@ MassSpectrometer::setCalibration( int mode, const adcontrols::MSCalibrateResult&
 }
 
 const std::shared_ptr< adcontrols::MSCalibrateResult >
-MassSpectrometer::getCalibrateResult( size_t idx ) const 
+MassSpectrometer::getCalibrateResult( size_t idx ) const
 {
     (void)idx;
     return 0;
 }
 
 const adcontrols::MSCalibration *
-MassSpectrometer::findCalibration( int mode ) const 
+MassSpectrometer::findCalibration( int mode ) const
 {
     (void)mode;
     return 0;
 }
 
-const import_continuum_massarray& 
+const import_continuum_massarray&
 MassSpectrometer::continuum_massarray() const
 {
     if ( !continuum_massarray_ )
@@ -212,14 +212,6 @@ MassSpectrometer::load_continuum_massarray()
     return false;
 }
 
-
-const boost::uuids::uuid&
-MassSpectrometer::objclsid() const
-{
-    static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
-    return uuid;
-}
-
 const char *
 MassSpectrometer::dataInterpreterText() const
 {
@@ -232,4 +224,3 @@ MassSpectrometer::dataInterpreterUuid() const
     static boost::uuids::uuid __uuid{ 0 }; // TBD
     return __uuid;
 }
-

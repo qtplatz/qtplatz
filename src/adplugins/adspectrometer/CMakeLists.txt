@@ -12,7 +12,7 @@ configure_file(
   "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.adplugin"
   )
 
-include_directories( 
+include_directories(
   ${CMAKE_SOURCE_DIR}/src/libs
   ${CMAKE_SOURCE_DIR}/src/adplugins
   ${Qt5PrintSupport_INCLUDE_DIRS}
@@ -27,7 +27,6 @@ endif()
 
 add_library( ${PROJECT_NAME} MODULE
   adspectrometer.cpp
-  constants.cpp
   constants.hpp
   importdata.hpp
   massspectrometer.cpp

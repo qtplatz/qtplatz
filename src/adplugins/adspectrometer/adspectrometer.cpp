@@ -49,7 +49,7 @@ namespace adspectrometer {
         static std::shared_ptr< adspectrometer_plugin > instance_;
 
         static adspectrometer_plugin * instance() {
-            
+
             static std::once_flag flag;
             std::call_once( flag, [] () { instance_ = std::make_shared< adspectrometer_plugin >(); } );
             return instance_.get();
@@ -85,10 +85,10 @@ void
 adspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
     using adcontrols::massspectrometer_factory_type;
-    static const boost::uuids::uuid clsid = boost::uuids::string_generator()( MassSpectrometer::clsid_text ); // '{E45D27E0-8478-414C-B33D-246F76CF62AD}"
 
     if ( auto factory =
-         std::make_shared< massspectrometer_factory_type< MassSpectrometer > >( MassSpectrometer::class_name, clsid ) ) {
+         std::make_shared< massspectrometer_factory_type< MassSpectrometer > >( adspectrometer::names::adspectrometer_objtext
+                                                                                , adspectrometer::iids::uuid_massspectrometer ) ) {
         adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
     }
 }

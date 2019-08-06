@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace boost { namespace uuids { struct uuid; } }
+#include <boost/uuid/uuid.hpp>
 
 namespace adspectrometer {
 
@@ -33,11 +33,10 @@ namespace adspectrometer {
         constexpr const char * const iid_adspectrometer_plugin = "adspectrometer.plugin.ms-cheminfo.com";
         constexpr const char * const adspectrometer_objtext = "adspectrometer";
     }
-    
-    namespace iids {
 
-        extern const boost::uuids::uuid uuid_adspectrometer;
-        constexpr const char * const iid_adspectrometer = "{e45d27e0-8478-414c-b33d-246f76cf62ad}";
+    namespace iids {
+        // constexpr const char * const iid_adspectrometer = "{e45d27e0-8478-414c-b33d-246f76cf62ad}";
+        constexpr const boost::uuids::uuid uuid_massspectrometer = {{ 0xE4, 0x5D, 0x27, 0xE0, 0x84, 0x78, 0x41, 0x4C, 0xB3, 0x3D, 0x24, 0x6F, 0x76, 0xCF, 0x62, 0xAD }};
     }
 
 }

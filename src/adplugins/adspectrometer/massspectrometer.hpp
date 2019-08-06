@@ -28,13 +28,14 @@
 #include "constants.hpp"
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/datasubscriber.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <memory>
 
 namespace adcontrols {
     class datafile;
     class MassSpectrometer;
     class MSCalibrateResult;
-    class MSProperty; 
+    class MSProperty;
     class ScanLaw;
     class LCMSDataset;
 }
@@ -46,7 +47,7 @@ namespace adspectrometer {
 
     class MassSpectrometer : public adcontrols::MassSpectrometer
 		                   , public adcontrols::dataSubscriber {
-        
+
         MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
     public:
         virtual ~MassSpectrometer();
@@ -64,21 +65,18 @@ namespace adspectrometer {
         const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const override;
         const adcontrols::MSCalibration * findCalibration( int mode ) const override;
         //-----------
-        
+
         const import_continuum_massarray& continuum_massarray() const;
         void continuum_massarray( const import_continuum_massarray& );
 
         //-----------------------------------------
         // v3 interface
-        static constexpr const char * clsid_text = "{E45D27E0-8478-414C-B33D-246F76CF62AD}";
-        static constexpr const char * class_name = adspectrometer::names::adspectrometer_objtext; // 'adspectrometer'
-
         void setAcceleratorVoltage( double acclVolts, double tDelay ) override;
 
         void initialSetup( adfs::sqlite&, const boost::uuids::uuid& ) override;
-        
-        const char * objtext() const override { return class_name; }
-        const boost::uuids::uuid& objclsid() const override;
+
+        const char * const massSpectrometerName() const override { return adspectrometer::names::adspectrometer_objtext; } // 'adspectrometer'
+        const boost::uuids::uuid& massSpectrometerClsid() const override { return adspectrometer::iids::uuid_massspectrometer; }
         const adcontrols::ScanLaw * scanLaw() const override;
 
         // top level data interpreter
