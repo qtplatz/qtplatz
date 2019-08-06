@@ -24,8 +24,24 @@
 
 #pragma once
 
+#include <boost/uuid/uuid.hpp>
+
 namespace infitofcontrols {
     namespace Constants {
         static constexpr size_t max_protocol = 4;
     };
+}
+
+namespace infitof {
+    namespace names {
+        constexpr const char * const objtext_massspectrometer = "InfiTOF"; // historical name (don't change)
+        constexpr const char * const objtext_datainterpreter = "InfiTOF"; // historical name (don't change)
+    }
+
+    namespace iids {
+        constexpr const boost::uuids::uuid uuid_massspectrometer = {{ 0x90, 0xBB, 0x51, 0x0B, 0x5D, 0xC2, 0x43, 0xAB, 0x89, 0xEF, 0x2E, 0x10, 0x8E, 0x99, 0xEA, 0xAA }};
+
+        // "{06C98B98-9BF7-4056-BB31-0CF42E33FB36}"
+        constexpr const boost::uuids::uuid uuid_datainterpreter = {{ 0x06, 0xC9, 0x8B, 0x98, 0x9B, 0xF7, 0x40, 0x56, 0xBB, 0x31, 0x0C, 0xF4, 0x2E, 0x33, 0xFB, 0x36 }};
+    }
 }
