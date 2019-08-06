@@ -24,8 +24,8 @@
 **************************************************************************/
 
 #include "massspectrometer.hpp"
-#include "metric/prefix.hpp"
 #include "mscalibration.hpp"
+#include <adportable/date_string.hpp>
 #include <compiler/boost/workaround.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
@@ -37,76 +37,62 @@
 
 using namespace adcontrols;
 
-MSCalibration::MSCalibration() : time_prefix_( adcontrols::metric::base )
-                               , t0_method_( LINEAR_TO_SQRT_M )
+MSCalibration::MSCalibration() : calibrationUuid_( boost::uuids::random_generator()() )
 {
-    init();
+    process_date_ = adportable::date_string::logformat( std::chrono::system_clock::now(), true );
 }
 
-MSCalibration::MSCalibration( const MSCalibration& t ) : time_prefix_( t.time_prefix_ )
-                                                       , calibDate_( t.calibDate_ )
-                                                       , calibId_( t.calibId_ )
-                                                       , coeffs_( t.coeffs_ )  
-                                                       , t0_coeffs_( t.t0_coeffs_ )
-                                                       , t0_method_( t.t0_method_ )
-                                                       , algo_( t.algo_ )
+MSCalibration::MSCalibration( const boost::uuids::uuid& clsid ) : calibrationUuid_( boost::uuids::random_generator()() )
+                                                                , massSpectrometerClsid_( clsid )
 {
+    process_date_ = adportable::date_string::logformat( std::chrono::system_clock::now(), true );
 }
 
-MSCalibration::MSCalibration( const std::vector<double>& v
-                              , metric::prefix pfx ) : time_prefix_( pfx )
-                                                     , coeffs_( v )
-                                                     , t0_method_( LINEAR_TO_SQRT_M )
-													 , algo_( TIMESQUARED )
-{
-    init();
-}
 
-MSCalibration::MSCalibration( const std::vector<double>& coeffs
-                              , metric::prefix time_prefix
-                              , const std::vector<double>& t0Coeff
-                              , ALGORITHM algo ) : time_prefix_( time_prefix )
-                                                 , coeffs_( coeffs )
-                                                 , t0_coeffs_( t0Coeff )
-                                                 , t0_method_( LINEAR_TO_SQRT_M ) 
-                                                 , algo_( algo )
+MSCalibration::MSCalibration( const MSCalibration& t ) : process_date_( t.process_date_ )
+                                                       , mode_( t.mode_ )
+                                                       , coeffs_( t.coeffs_ )
+                                                       , calibrationUuid_( t.calibrationUuid_ )
+                                                       , massSpectrometerClsid_( t.massSpectrometerClsid_ )
 {
-    init();
 }
 
 void
-MSCalibration::init()
+MSCalibration::setMassSpectrometerClsid( const boost::uuids::uuid& id )
 {
-    boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
-    calibDate_ = boost::lexical_cast< std::string >( pt );
+    massSpectrometerClsid_ = id;
+}
 
-	const boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    calibId_ = boost::lexical_cast< std::wstring >( uuid );
+const boost::uuids::uuid&
+MSCalibration::massSpectrometerClsid() const
+{
+    return massSpectrometerClsid_;
+}
+
+const boost::uuids::uuid&
+MSCalibration::calibrationUuid() const
+{
+    return calibrationUuid_;
+}
+
+int32_t
+MSCalibration::mode() const
+{
+    return mode_;
+}
+
+void
+MSCalibration::setMode( int32_t value )
+{
+    mode_ = value;
 }
 
 const std::string&
 MSCalibration::date() const
 {
-    return calibDate_;
+    return process_date_;
 }
 
-void
-MSCalibration::date( const std::string& date )
-{
-    calibDate_ = date;
-}
-
-const std::wstring&
-MSCalibration::calibId() const
-{
-    return calibId_;
-}
-
-void
-MSCalibration::calibId( const std::wstring& calibId )
-{
-    calibId_ = calibId;
-}
 
 const std::vector< double >&
 MSCalibration::coeffs() const
@@ -115,45 +101,9 @@ MSCalibration::coeffs() const
 }
 
 void
-MSCalibration::coeffs( const std::vector<double>& v )
+MSCalibration::setCoeffs( const std::vector<double>& v )
 {
     coeffs_ = v;
-}
-
-const std::vector< double >&
-MSCalibration::t0_coeffs() const
-{
-    return t0_coeffs_;
-}
-
-void
-MSCalibration::t0_coeffs( const std::vector<double>& v )
-{
-    t0_coeffs_ = v;
-}
-
-void
-MSCalibration::t0_method( T0_METHOD value )
-{
-    t0_method_ = value;
-}
-
-MSCalibration::T0_METHOD
-MSCalibration::t0_method() const
-{
-    return t0_method_;
-}
-
-void
-MSCalibration::algorithm( ALGORITHM value )
-{
-    algo_ = value;
-}
-
-MSCalibration::ALGORITHM
-MSCalibration::algorithm() const
-{
-    return algo_;
 }
 
 double
@@ -177,20 +127,8 @@ MSCalibration::compute( const std::vector<double>& v, double t )
 	return sqmz;
 }
 
-void
-MSCalibration::time_prefix( metric::prefix pfx )
-{
-    time_prefix_ = pfx;
-}
-
-metric::prefix
-MSCalibration::time_prefix() const
-{
-    return time_prefix_;
-}
-
 std::string
-MSCalibration::formulaText( bool ritchText )
+MSCalibration::formulaText( bool ritchText ) const
 {
     std::ostringstream o;
 

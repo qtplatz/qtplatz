@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -26,80 +26,80 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "metric/prefix.hpp"
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
 
 namespace adcontrols {
 
     class ScanLaw;
+    class ADCONTROLSSHARED_EXPORT MSCalibration;
 
-    class ADCONTROLSSHARED_EXPORT MSCalibration {
+    class MSCalibration {
     public:
-        enum T0_METHOD { IGNORE_T0, LINEAR_TO_SQRT_M };
         enum ALGORITHM { TIMESQUARED, MULTITURN_NORMALIZED };
 
         MSCalibration();
+        MSCalibration( const boost::uuids::uuid& massSpectrometerClsid );
         MSCalibration( const MSCalibration& );
-        MSCalibration( const std::vector<double>&, metric::prefix timepfx = metric::base );
-        MSCalibration( const std::vector<double>&, metric::prefix timepfx, const std::vector<double>&, ALGORITHM algo = TIMESQUARED );
 
         const std::string& date() const;
-        void date( const std::string& );
 
-        const std::wstring& calibId() const;
-        void calibId( const std::wstring& );
+        void setMassSpectrometerClsid( const boost::uuids::uuid& );
+        const boost::uuids::uuid& massSpectrometerClsid() const;
+        const boost::uuids::uuid& calibrationUuid() const;
+        int32_t mode() const;
+        void setMode( int32_t );
 
         const std::vector< double >& coeffs() const;
-        void coeffs( const std::vector<double>& );
+        void setCoeffs( const std::vector<double>& );
 
         double compute_mass( double time ) const;
 
-        static double compute( const std::vector<double>&, double time );
-        std::string formulaText( bool ritchText = true );
+        std::string formulaText( bool ritchText = true ) const;
 
-        const std::vector<double>& t0_coeffs() const;
-        void t0_coeffs( const std::vector<double>& );
-
-        void time_prefix( metric::prefix pfx );
-        metric::prefix time_prefix() const;
-        
-        void t0_method( T0_METHOD );
-        T0_METHOD t0_method() const;
-
-        void algorithm( ALGORITHM );
-        ALGORITHM algorithm() const;
-        
     private:
-        enum metric::prefix time_prefix_;
-        std::string calibDate_;
-        std::wstring calibId_;
-        std::vector< double > coeffs_;
-        std::vector< double > t0_coeffs_;
-        T0_METHOD t0_method_;
-        ALGORITHM algo_;
+        static double compute( const std::vector<double>&, double time );
 
-        void init();
+    private:
+        std::string process_date_;
+        int32_t mode_;
+        std::vector< double > coeffs_;
+        boost::uuids::uuid calibrationUuid_;
+        boost::uuids::uuid massSpectrometerClsid_;
 
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP(calibDate_);
-            ar & BOOST_SERIALIZATION_NVP(calibId_);
-            ar & BOOST_SERIALIZATION_NVP(coeffs_);
-            if ( version >= 2 ) {
-                ar & BOOST_SERIALIZATION_NVP( t0_method_ );
-                ar & BOOST_SERIALIZATION_NVP( t0_coeffs_ );
-                ar & BOOST_SERIALIZATION_NVP( time_prefix_ );
-                ar & BOOST_SERIALIZATION_NVP( algo_ );
+            if ( version <= 2 ) {
+                // don't delete this --- old data (up to 4.1.7-25) contains this structure with empty values
+                int32_t t0_method, algo, time_prefix;
+                std::vector< double > t0_coeffs;
+                std::wstring calibId;
+                ar & BOOST_SERIALIZATION_NVP( process_date_ );
+                ar & BOOST_SERIALIZATION_NVP( calibId );
+                ar & BOOST_SERIALIZATION_NVP( coeffs_ );
+                ar & BOOST_SERIALIZATION_NVP( t0_method );
+                ar & BOOST_SERIALIZATION_NVP( t0_coeffs );
+                ar & BOOST_SERIALIZATION_NVP( time_prefix );
+                ar & BOOST_SERIALIZATION_NVP( algo );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( process_date_ );
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
+                ar & BOOST_SERIALIZATION_NVP( coeffs_ );
+                ar & BOOST_SERIALIZATION_NVP( calibrationUuid_ );
+                ar & BOOST_SERIALIZATION_NVP( massSpectrometerClsid_ );
             }
         }
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSCalibration, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSCalibration, 3 )
