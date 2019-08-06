@@ -495,10 +495,10 @@ MSCalibrationWnd::handle_apply_calibration_to_dataset()
     if ( result && ms ) {
 
         ADDEBUG() << "### " << __FUNCTION__ << " TBD";
+        assert( result->calibration().massSpectrometerClsid() != boost::uuids::uuid{{0}} );
 
         if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
-            std::wstring clsid = adportable::utf::to_wstring( ms->getMSProperty().dataInterpreterClsid() );
-            processor->applyCalibration( clsid, *result );
+            processor->applyCalibration( *result );
         } else {
             QMessageBox::warning( 0, "Dataproc", "apply calibration to dataset: no active dataset" );
         }

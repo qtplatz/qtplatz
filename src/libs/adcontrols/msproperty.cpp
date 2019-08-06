@@ -191,13 +191,13 @@ MSProperty::operator = ( const MSProperty& t )
 }
 
 const char *
-MSProperty::dataInterpreterClsid() const
+MSProperty::dataInterpreterClsid_v2() const
 {
     return dataInterpreterClsid_.c_str();
 }
 
 void
-MSProperty::setDataInterpreterClsid( const std::string& t )  // addatafile v2 data uses dataInterpreterClsid
+MSProperty::setDataInterpreterClsid_v2( const std::string& t )  // addatafile v2 data uses dataInterpreterClsid
 {
     dataInterpreterClsid_ = t;
 }

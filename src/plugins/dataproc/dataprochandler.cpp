@@ -175,10 +175,34 @@ calibresult_validation( const adcontrols::MSCalibrateResult& res
 }
 #endif
 
+// static
+bool
+DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
+                                          , const adcontrols::MSAssignedMasses& assignedMasses )
+{
+	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
+    for ( auto& ms : segments )
+        ms.set_annotations( adcontrols::annotations() ); // clear all
+
+    for ( const auto& assigned: assignedMasses ) {
+        adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
+        size_t idx = assigned.idPeak();
+		if ( assigned.enable() )
+			ms.setColor( idx, 1 ); // red
+		else
+			ms.setColor( idx, 6 ); // dark red
+        std::wstring text = adcontrols::ChemicalFormula::formatFormula( assigned.formula() );
+        adcontrols::annotation anno( text, ms.getMass( idx ),  ms.getIntensity( idx ), static_cast< int >(idx) );
+        ms.get_annotations() << anno;
+    }
+	return true;
+}
+
 bool
 DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
-                                 , adcontrols::MassSpectrum& centroid
-                                 , const adcontrols::MSCalibrateMethod& m )
+                                  , adcontrols::MassSpectrum& centroid
+                                  , const adcontrols::MSCalibrateMethod& m
+                                  , const boost::uuids::uuid& clsid )
 {
     using adcontrols::MSProperty;
 
@@ -208,15 +232,16 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
     mass_calibrator calibrator( assignedMasses, centroid.getMSProperty() );
 
-    adcontrols::MSCalibration calib;
+    adcontrols::MSCalibration calib( clsid );
+
     if ( calibrator.polfit( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses ) {
             double mass = calibrator.compute_mass( it.time(), it.mode(), calib );
             it.mass( mass );
         }
-        calib.setMassSpectrometerClsid({{0}} );
+
         res.setCalibration( calib );
-        // res.assignedMasses( assignedMasses );
+
 #if defined _DEBUG && 0
         calibresult_validation( res, centroid, threshold );
 #endif
@@ -225,35 +250,12 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     return false;
 }
 
-// static
-bool
-DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
-                                          , const adcontrols::MSAssignedMasses& assignedMasses )
-{
-	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
-    for ( auto& ms : segments )
-        ms.set_annotations( adcontrols::annotations() ); // clear all
-
-    for ( const auto& assigned: assignedMasses ) {
-        adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
-        size_t idx = assigned.idPeak();
-		if ( assigned.enable() )
-			ms.setColor( idx, 1 ); // red
-		else
-			ms.setColor( idx, 6 ); // dark red
-        std::wstring text = adcontrols::ChemicalFormula::formatFormula( assigned.formula() );
-        adcontrols::annotation anno( text, ms.getMass( idx ),  ms.getIntensity( idx ), static_cast< int >(idx) );
-        ms.get_annotations() << anno;
-    }
-	return true;
-}
-
 bool
 DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                                   , adcontrols::MassSpectrum& centroid
                                   , const adcontrols::MSCalibrateMethod& m
                                   , const adcontrols::MSAssignedMasses& assigned
-                                  , std::shared_ptr< adcontrols::MassSpectrometer > sp )
+                                  , const boost::uuids::uuid& clsid )
 {
     using adcontrols::MSProperty;
 
@@ -269,7 +271,9 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     // int mode = static_cast<int>(itMax->first);
 
     mass_calibrator calibrator( assigned, centroid.getMSProperty() );
-    adcontrols::MSCalibration calib( sp->massSpectrometerClsid() );
+
+    adcontrols::MSCalibration calib( clsid );
+
     if ( ! calibrator.polfit( calib, m.polynomialDegree() + 1 ) )
         return false;
 

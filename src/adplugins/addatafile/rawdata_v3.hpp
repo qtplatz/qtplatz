@@ -90,10 +90,10 @@ namespace addatafile {
             //
 
             bool loadAcquiredConf();
-            void loadCalibrations();
+            bool loadCalibrations();
             void loadMSFractuation();
 
-            bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
+            bool applyCalibration( const adcontrols::MSCalibrateResult& );
 
             const std::vector< std::string > undefined_spectrometers() const { return undefined_spectrometers_; }
             const std::vector< std::pair< std::string, boost::uuids::uuid > > undefined_data_readers() const { return undefined_data_readers_; }

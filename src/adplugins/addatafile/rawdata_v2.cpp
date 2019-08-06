@@ -322,10 +322,10 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
 
     }
 
-    if ( ms.getMSProperty().dataInterpreterClsid() == 0 ) {
+    if ( ms.getMSProperty().dataInterpreterClsid_v2() == 0 ) {
         // workaround for batchproc::import
         adcontrols::MSProperty prop = ms.getMSProperty();
-        prop.setDataInterpreterClsid( adportable::utf::to_utf8( it->dataInterpreterClsid ) );
+        prop.setDataInterpreterClsid_v2( adportable::utf::to_utf8( it->dataInterpreterClsid ) );
     }
 
     if ( fcn < 0 )

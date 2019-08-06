@@ -120,7 +120,7 @@ namespace dataproc {
         portfolio::Folium findProfiledHistogram( const portfolio::Folium& );
 
         // apply calibration to entire dataset
-        void applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
+        void applyCalibration( const adcontrols::MSCalibrateResult& );
 		void lockMassHandled( const std::wstring& foliumId, const std::shared_ptr< adcontrols::MassSpectrum >&, const adcontrols::lockmass::mslock& );
         void formulaChanged();
 

@@ -276,7 +276,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
             o << "<pre>"
               << "Mass spectrometer: " << safe_string()( spectrometer->massSpectrometerName() ) << "; " << spectrometer->massSpectrometerClsid() << std::endl
               << "Data interpreter:  " << safe_string()( spectrometer->dataInterpreterText() ) << "; " << spectrometer->dataInterpreterUuid() << std::endl
-              << "MSProperty dataInterpreterClsid: " << safe_string()( ms.getMSProperty().dataInterpreterClsid() ) << std::endl;
+              << "MSProperty dataInterpreterClsid: " << safe_string()( ms.getMSProperty().dataInterpreterClsid_v2() ) << std::endl;
             o << "</pre>" << std::endl;
 
             // high level app oriented interpreter
@@ -298,7 +298,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
 
     if ( !processed ) {
         // device (averager) dependent data (require data interpreter)
-        if ( auto ipClsid = prop.dataInterpreterClsid() ) { // addatafile v2 only, v3 and later version no longer use this information
+        if ( auto ipClsid = prop.dataInterpreterClsid_v2() ) { // addatafile v2 only, v3 and later version no longer use this information
             o << "<h2>digitizer device dependent data '" << ( ( ipClsid && ipClsid[0] ) ? ipClsid : "none" ) << "'</h2>" << std::endl;
             o << "<p>data reader uuid: " << ms.dataReaderUuid() << "</p>" << std::endl;
             if ( auto interpreter = adcontrols::DataInterpreterBroker::make_datainterpreter( ipClsid ) ) {

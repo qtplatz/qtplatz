@@ -47,6 +47,8 @@ namespace adcontrols {
     class PeakMethod;
 }
 
+namespace boost { namespace uuids { struct uuid; } }
+
 namespace portfolio {
     class Folium;
 }
@@ -68,15 +70,16 @@ namespace dataproc {
 
         static bool doMSCalibration( adcontrols::MSCalibrateResult& res
                                      , adcontrols::MassSpectrum& centroid
-                                     , const adcontrols::MSCalibrateMethod& );
+                                     , const adcontrols::MSCalibrateMethod&
+                                     , const boost::uuids::uuid& );
 
         static bool doMSCalibration( adcontrols::MSCalibrateResult& res
                                      , adcontrols::MassSpectrum& centroid
                                      , const adcontrols::MSCalibrateMethod&
                                      , const adcontrols::MSAssignedMasses&
-                                     , std::shared_ptr< adcontrols::MassSpectrometer > );
+                                     , const boost::uuids::uuid& );
 
-        static bool compute_polynomials( adcontrols::MSCalibrateResult& res, const adcontrols::MSAssignedMasses& );
+        // static bool compute_polynomials( adcontrols::MSCalibrateResult& res, const adcontrols::MSAssignedMasses& );
 
         static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& );
         static bool doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid

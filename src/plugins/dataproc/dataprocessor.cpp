@@ -109,16 +109,23 @@ namespace dataproc {
     struct DataprocessorImpl {
         static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::IsotopeMethod& );
         static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::TargetingMethod& );
-        static bool applyMethod( Dataprocessor *, portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
+
+        // calibration
         static bool applyMethod( Dataprocessor *, portfolio::Folium&
-                                 , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses&
+                                 , const adcontrols::MSCalibrateMethod& );
+        static bool applyMethod( Dataprocessor *, portfolio::Folium&
+                                 , const adcontrols::MSCalibrateMethod&
+                                 , const adcontrols::MSAssignedMasses&
                                  , std::shared_ptr< adcontrols::MassSpectrometer > );
+        // centroid
         static bool applyMethod( Dataprocessor *, portfolio::Folium&
                                  , const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
+
+        // chromatogram
         static bool applyMethod( Dataprocessor *, portfolio::Folium&
                                  , const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
+
         static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
-        static bool fixupDataInterpreterClsid( portfolio::Folium& );
     };
 
     struct methodselector {
@@ -473,7 +480,6 @@ Dataprocessor::findProfiledHistogram( const portfolio::Folium& folium )
     return portfolio::Folium();
 }
 
-
 portfolio::Folium
 Dataprocessor::addProfiledHistogram( portfolio::Folium& folium )
 {
@@ -788,7 +794,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 }
 
 void
-Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibration )
+Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibration )
 {
     ADDEBUG() << "applyCalibration";
 
@@ -827,7 +833,7 @@ Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const
         }
     }
 
-	if ( file()->applyCalibration( dataInterpreterClsid, calibration ) )
+	if ( file()->applyCalibration( std::wstring(), calibration ) )
         setModified( true );
     else
         ADDEBUG() << "applyCalibration faild";
@@ -1141,87 +1147,34 @@ DataprocessorImpl::applyMethod( Dataprocessor *
     return false;
 }
 
-//static
-bool
-DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
-{
-#if 0
-    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-    std::string diClsid = profile->getMSProperty().dataInterpreterClsid();
-
-    std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
-    if ( models.empty() ) {
-        if ( !diClsid.empty() )
-            QMessageBox::warning( 0
-                                  , QObject::tr( "Calibration" )
-                                  , QObject::tr( "It has no mass spectrometer for %1 installed so that mass can't be assinged." )
-                                  .arg( diClsid.c_str() ) );
-        else
-            QMessageBox::warning( 0
-                                  , QObject::tr( "Calibration" )
-                                  , QObject::tr( "It has no mass spectrometer installed so that mass can't be assigned." ) );
-        return false;
-    }
-
-    std::string dataInterpreter = adportable::utf::to_utf8( models[ 0 ] );
-    if ( !diClsid.empty() ) {
-        QMessageBox::warning( 0
-                              , QObject::tr( "Calibration" )
-                              , QObject::tr( "No mass spectrometer class '%1' installed." ).arg( diClsid.c_str() ) );
-        return false;
-    }
-    else {
-        QMessageBox::warning( 0
-                              , QObject::tr( "Calibration" )
-                              , QObject::tr( "Data has no mass spectrometer information, assume %1" ).arg( dataInterpreter.c_str() ) );
-
-        adcontrols::segment_wrapper<> segments( *profile );
-        for ( auto& fms : segments ) {
-            adcontrols::MSProperty prop( fms.getMSProperty() );
-            // prop.setDataInterpreterClsid( dataInterpreter.c_str(), boost::uuids::uuid{{0}} );
-            fms.setMSProperty( prop );
-        }
-
-        portfolio::Folium::vector_type atts = folium.attachments();
-        std::for_each( atts.begin(), atts.end(), [&] ( portfolio::Folium& att ){
-            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>(att) ) ) {
-                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( att );
-                adcontrols::segment_wrapper<> segments( *centroid );
-                for ( auto& fms : segments ) {
-                    adcontrols::MSProperty prop( fms.getMSProperty() );
-                    // prop.setDataInterpreterClsid( dataInterpreter.c_str(), boost::uuids::uuid{{0}} );
-                    ADDEBUG() << "---- fix me: " << dataInterpreter;
-                    fms.setMSProperty( prop );
-                }
-            }
-        } );
-        return true;
-    }
-#endif
-    return false;
-}
-
 bool
 DataprocessorImpl::applyMethod( Dataprocessor * dp
-                                , portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
+                                , portfolio::Folium& folium
+                                , const adcontrols::MSCalibrateMethod& m )
 {
     using namespace portfolio;
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
-    auto spectrometer = adcontrols::MassSpectrometer::create( pProfile->getMSProperty().dataInterpreterClsid() );
+    auto spectrometer = dp->massSpectrometer();
+    // auto spectrometer = adcontrols::MassSpectrometer::create( pProfile->getMSProperty().dataInterpreterClsid() );
     if ( !spectrometer ) {
         // adcontrols::TimeDigitalHistogram
         adfs::stmt sql ( *dp->db() );
         sql.prepare( "SELECT clsidSpectrometer FROM ScanLaw WHERE objuuid=?" );
         sql.bind( 1 ) = boost::uuids::uuid{{ 0 }};
         if ( sql.step() == adfs::sqlite_row ) {
-            boost::uuids::uuid clsid = sql.get_column_value< boost::uuids::uuid >( 0 );
+            auto clsid = sql.get_column_value< boost::uuids::uuid >( 0 );
             if ( ( spectrometer = adcontrols::MassSpectrometerBroker::make_massspectrometer( clsid ) ) )
-                spectrometer->initialSetup( *dp->db(), {{ 0 }} );
-        } else {
-            fixupDataInterpreterClsid( folium );
+                spectrometer->initialSetup( *dp->db(), {{ 0 }} ); // load existing calibration if any
         }
+    } else {
+        ADDEBUG() << "MassSpectrometer: " << spectrometer->massSpectrometerClsid();
+    }
+
+    if ( !spectrometer ) {
+        ADTRACE() << "## Error: No mass spectrometer has determined";
+        return false;
     }
 
     ADDEBUG() << "### " << __FUNCTION__ << " TBD";
@@ -1244,20 +1197,27 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
 				}
 			}
 
-            adcontrols::MSCalibrateResultPtr pCalibResult( std::make_shared< adcontrols::MSCalibrateResult >() );
-            portfolio::Folium fCalibResult = folium.addAttachment( L"Calibrate Result" );
+            if ( auto pCalibResult = std::make_shared< adcontrols::MSCalibrateResult >() ) {
 
-            if ( DataprocHandler::doMSCalibration( *pCalibResult, *pCentroid, m ) ) {
-                fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
-            } else {
-                // set centroid result for user manual peak assign possible
-                fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
+                portfolio::Folium fCalibResult = folium.addAttachment( L"Calibrate Result" );
+
+                if ( DataprocHandler::doMSCalibration( *pCalibResult, *pCentroid, m, spectrometer->massSpectrometerClsid() ) ) {
+
+                    assert( pCalibResult->calibration().massSpectrometerClsid() != boost::uuids::uuid{{0}} );
+
+                    pCalibResult->calibration().setMassSpectrometerClsid( spectrometer->massSpectrometerClsid() );
+                    fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
+                } else {
+                    // set centroid result for user manual peak assign possible
+                    pCalibResult->calibration().setMassSpectrometerClsid( spectrometer->massSpectrometerClsid() );
+                    fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
+                }
+
+                adcontrols::ProcessMethodPtr method( std::make_shared< adcontrols::ProcessMethod >( m ) );
+                fCalibResult.addAttachment( L"Process Method" ).assign( method, method->dataClass() );
+
+                return true;
             }
-
-            adcontrols::ProcessMethodPtr method( std::make_shared< adcontrols::ProcessMethod >( m ) );
-            fCalibResult.addAttachment( L"Process Method" ).assign( method, method->dataClass() );
-
-            return true;
         }
     }
     return false;
@@ -1278,22 +1238,28 @@ DataprocessorImpl::applyMethod( Dataprocessor *
     Folium::vector_type::iterator it = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
 
     if ( it != atts.end() ) {
-        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
-        if ( pCentroid ) {
-            adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
-            if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m, assigned, massSpectrometer ) ) {
 
-                portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
-                att.assign( pResult, pResult->dataClass() );
+        if ( auto pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) ) ) {
 
-                // rewrite calibration := change m/z asssing on the spectrum
-                pCentroid->setCalibration( pResult->calibration(), true );
+            if ( auto pResult = std::make_shared< adcontrols::MSCalibrateResult >() ) {
 
-                // update profile mass array
-                if ( pProfile )
-                    pProfile->setCalibration( pResult->calibration(), true );
+                if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m, assigned, massSpectrometer->massSpectrometerClsid() ) ) {
+
+                    assert( pResult->calibration().massSpectrometerClsid() != boost::uuids::uuid{{0}} );
+
+                    portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
+                    att.assign( pResult, pResult->dataClass() );
+
+                    // rewrite calibration := change m/z asssing on the spectrum
+                    pCentroid->setCalibration( pResult->calibration(), true );
+
+                    // update profile mass array
+                    if ( pProfile )
+                        pProfile->setCalibration( pResult->calibration(), true );
+
+                    return true;
+                }
             }
-            return true;
         }
     }
     return false;

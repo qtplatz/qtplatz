@@ -210,6 +210,8 @@ MSCalibrateResult::calibration()
 void
 MSCalibrateResult::setCalibration( const MSCalibration& t )
 {
+    assert( t.massSpectrometerClsid() != boost::uuids::uuid{{0}} );
+
     *impl_->calibration_ = t;
 }
 

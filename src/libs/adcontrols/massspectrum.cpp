@@ -613,6 +613,8 @@ MassSpectrum::calibration() const
 void
 MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
 {
+    assert( calib.massSpectrometerClsid() != boost::uuids::uuid{{0}} );
+
     impl_->calibration_ = std::make_shared< MSCalibration >( calib );
 
     if ( assignMasses && !impl_->massArray_.empty() ) {

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -33,6 +33,7 @@
 #include "navigationwidget.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/utf.hpp>
@@ -328,10 +329,10 @@ ActionManager::actCalibFileApply()
 
         if ( Dataprocessor::MSCalibrationLoad( result[0], calibResult, ms ) ) {
 
-			std::wstring dataInterpreterClsid = adportable::utf::to_wstring( ms.getMSProperty().dataInterpreterClsid() );
+            ADTRACE() << "Apply calibration for mass spectrometer: " << calibResult.calibration().massSpectrometerClsid();
 
             if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
-				processor->applyCalibration( dataInterpreterClsid, calibResult );
+				processor->applyCalibration( calibResult );
 
         } else {
             QMessageBox::warning( 0, tr( "apply calibration" ), tr( "Calibration file load failed" ) );

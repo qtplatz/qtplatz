@@ -63,7 +63,7 @@ mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 	if ( nterm == 0 )
 		return false;
 
-    calib = adcontrols::MSCalibration(); // reset date, calibrationUuid
+    calib = adcontrols::MSCalibration( calib.massSpectrometerClsid() ); // reset date, calibrationUuid
 
     std::vector< double > coeffs;
     if ( times_.size() >= size_t( nterm ) &&

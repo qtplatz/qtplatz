@@ -42,6 +42,7 @@
 #include <adcontrols/targeting.hpp>
 #include <adcontrols/quansample.hpp>
 #include <adcontrols/quansequence.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
@@ -236,6 +237,10 @@ namespace addatafile { namespace detail {
                 return rawdata->applyCalibration( dataInterpreterClsid, result );
             }
         };
+
+        template<> bool apply_calibration::operator()( std::unique_ptr< addatafile::v3::rawdata >& rawdata ) const {
+            return rawdata->applyCalibration( result );
+        }
 
     }
 
@@ -541,11 +546,6 @@ bool
 datafile::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& result )
 {
     return boost::apply_visitor( detail::apply_calibration( dataInterpreterClsid, result ), rawdata_ );
-    // if ( rawdata_.which() == 0 ) {
-    //     if ( auto rawdata = boost::get< std::shared_ptr< v2::rawdata > >( rawdata_ ) )
-    //         rawdata->applyCalibration( dataInterpreterClsid, result );
-    // }
-    // return true;
 }
 
 bool

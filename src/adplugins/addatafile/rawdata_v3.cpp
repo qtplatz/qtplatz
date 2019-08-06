@@ -26,12 +26,13 @@
 #include "rawdata_v3.hpp"
 #include <adacquire/signalobserver.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datareader.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/lockmass.hpp>
-#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
@@ -40,19 +41,18 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/traceaccessor.hpp>
-#include <adcontrols/datainterpreter.hpp>
-#include <adportable/binary_serializer.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/utf.hpp>
-#include <adplugin_manager/manager.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
-#include <adportable/array_wrapper.hpp>
-#include <adportable/spectrum_processor.hpp>
 #include <adlog/logger.hpp>
+#include <adplugin_manager/manager.hpp>
+#include <adportable/array_wrapper.hpp>
+#include <adportable/binary_serializer.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/spectrum_processor.hpp>
+#include <adportable/utf.hpp>
 #include <adutils/mscalibio.hpp>
-#include <boost/format.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/format.hpp>
 #include <algorithm>
 #include <memory>
 #include <cstdint>
@@ -205,19 +205,22 @@ rawdata::dataReaders( bool allPossible ) const
 }
 
 bool
-rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
+rawdata::applyCalibration( const adcontrols::MSCalibrateResult& calibResult )
 {
-    return false;
+    return adutils::mscalibio::write( dbf_.db(), calibResult );
 }
 
-void
+bool
 rawdata::loadCalibrations()
 {
+    // nothing to be done
+    return false;
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >
 rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid ) const
 {
+    // nothing to be done (this was for v2 data)
 	assert(0);
 	return nullptr;
     //return const_cast<rawdata *>(this)->getSpectrometer( objid, dataInterpreterClsid );
