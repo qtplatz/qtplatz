@@ -43,6 +43,8 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_serialize.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 namespace adcontrols {
 
@@ -55,7 +57,7 @@ namespace adcontrols {
             if ( version < 6 ) {
                 uint32_t time_since_injection(0);
                 uint32_t deprecated_instSamplingInterval(0);
-                
+
                 ar & boost::serialization::make_nvp( "time_since_injection_", time_since_injection );
                 _.time_since_injection_ = time_since_injection;
                 ar & BOOST_SERIALIZATION_NVP( _.instAccelVoltage_ );
@@ -112,29 +114,32 @@ namespace adcontrols {
 
             if ( version >= 10 ) // add TofProtocol
                 ar & BOOST_SERIALIZATION_NVP( _.tofProtocol_ );
+
+            if ( version >= 11 )
+                ar & BOOST_SERIALIZATION_NVP( _.massSpectrometerClsid_ );
         }
     };
-    
+
     ////////// MSProperty ///////////
     template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
         MSProperty_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
         MSProperty_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
         MSProperty_archive<>().serialize( ar, *this, version );
     }
-    
+
     template<> ADCONTROLSSHARED_EXPORT void MSProperty::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
         MSProperty_archive<>().serialize( ar, *this, version );
-    }    
+    }
 
 }
 
@@ -148,6 +153,7 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
                          , trig_number_origin_( 0 )
                          , instMassRange_( {0, 0} )
                          , samplingData_( new SamplingInfo() )
+                         , massSpectrometerClsid_( {{0}} )
 {
 }
 
@@ -161,6 +167,7 @@ MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_si
                                               , deviceData_( t.deviceData_ )
                                               , samplingData_( std::make_unique< SamplingInfo >( *t.samplingData_ ) )
                                               , tofProtocol_( t.tofProtocol_ )
+                                              , massSpectrometerClsid_( t.massSpectrometerClsid_ )
 {
 }
 
@@ -178,6 +185,8 @@ MSProperty::operator = ( const MSProperty& t )
     *samplingData_        = *t.samplingData_;
     instMassRange_        = t.instMassRange_;
     tofProtocol_          = t.tofProtocol_;
+    massSpectrometerClsid_ = t.massSpectrometerClsid_;
+
     return *this;
 }
 
@@ -255,7 +264,7 @@ MSProperty::instTimeRange() const
 
     double t0 = metric::scale_to_base( x.delayTime(), metric::base );
     double t1 = metric::scale_to_base( x.delayTime() + ( x.nSamples() * x.fSampInterval() ), metric::base );
-    
+
     // workaround for old version of adcontrols::TimeDigitalHistgram::translate implementation
     if ( t0 < ( x.fSampDelay() - x.fSampInterval() * 2 ) ) {
         // delayTime contains trigger interporated time, which is negative time to trigger point.
@@ -399,3 +408,14 @@ MSProperty::tofProtocol() const
     return tofProtocol_;
 }
 
+void
+MSProperty::setMassSpectrometerClsid( const boost::uuids::uuid& t )
+{
+    massSpectrometerClsid_ = t;
+}
+
+const boost::uuids::uuid&
+MSProperty::massSpectrometerClsid() const
+{
+    return massSpectrometerClsid_;
+}

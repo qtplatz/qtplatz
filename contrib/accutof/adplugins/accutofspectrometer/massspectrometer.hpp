@@ -62,11 +62,11 @@ namespace accutof { namespace spectrometer {
             const wchar_t * name() const override;
 
             // dataformat v3 class uuid
-            static constexpr const char * clsid_text = "{306c4cfb-6990-468d-9544-3cbc2583b17a}";
-            static constexpr const char * class_name = "AccuTOF";
+            // static constexpr const char * clsid_text = "{306c4cfb-6990-468d-9544-3cbc2583b17a}";
+            // static constexpr const char * class_name = "AccuTOF";
 
-            const char * objtext() const override;
-            const boost::uuids::uuid& objclsid() const override;
+            const char * const massSpectrometerName() const override;
+            const boost::uuids::uuid& massSpectrometerClsid() const override;
             const char * dataInterpreterText() const override;
             const boost::uuids::uuid& dataInterpreterUuid() const override;
 

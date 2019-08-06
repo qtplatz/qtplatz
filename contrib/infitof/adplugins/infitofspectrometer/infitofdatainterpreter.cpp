@@ -103,11 +103,9 @@ InfiTofDataInterpreter::translate( adcontrols::MassSpectrum& xms
 
         if ( infitof::serializer::deserialize( *avgr, data, dsize ) ) {
 
-            if ( avgr->avgrType == infitof::Averager_AP240 ) {
+            assert( avgr->avgrType == infitof::Averager_U5303A ); // No longer support for AP240
 
-                result = ap240translator::translate( xms, *avgr, idData, spectrometer );
-
-            } else if ( avgr->avgrType == infitof::Averager_U5303A ) {
+            if ( avgr->avgrType == infitof::Averager_U5303A ) {
 
                 result = u5303a_translator::translate( xms, *avgr, idData, spectrometer );
             }
@@ -264,6 +262,7 @@ InfiTofDataInterpreter::make_device_text( std::vector< std::pair< std::string, s
     return false;
 }
 
+#if 0
 // static
 double
 InfiTofDataInterpreter::compute_mass( double time, int mode, const adcontrols::MSCalibration& calib, const multumcontrols::ScanLaw& law )
@@ -292,6 +291,7 @@ InfiTofDataInterpreter::compute_mass( double time, int mode, const adcontrols::M
     return 0;
 
 }
+#endif
 
 void
 InfiTofDataInterpreter::set_logfile( const char * logfile )

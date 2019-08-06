@@ -339,8 +339,8 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         coeffs.push_back( b );
 
         adcontrols::MSCalibration calib;
-        calib.coeffs( coeffs );
-        ms.setCalibration( coeffs );
+        calib.setCoeffs( coeffs );
+        ms.setCalibration( calib );
     }
     ms.setAcquisitionMassRange( massArray.front(), massArray.back() );
     return ms.size();

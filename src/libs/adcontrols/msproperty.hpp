@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include "metric/prefix.hpp"
 #include <string>
+#include <boost/uuid/uuid.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -39,10 +40,12 @@ namespace adcontrols {
 
     class SamplingInfo;
     class TofProtocol;
-    
+
     template< typename T > class MSProperty_archive;
 
-    class ADCONTROLSSHARED_EXPORT MSProperty {
+    class ADCONTROLSSHARED_EXPORT MSProperty;
+
+    class MSProperty {
     public:
         MSProperty();
         MSProperty( const MSProperty& );
@@ -57,7 +60,7 @@ namespace adcontrols {
         int mode() const;
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
-        
+
         double timeSinceInjection() const;
         void setTimeSinceInjection( int64_t, metric::prefix pfx = metric::micro ); // for previous compatibility
         void setTimeSinceInjection( double );
@@ -65,11 +68,11 @@ namespace adcontrols {
         uint64_t timeSinceEpoch() const;
         void setTimeSinceEpoch( uint64_t );
 
-        uint32_t trigNumberOrigin() const;        
+        uint32_t trigNumberOrigin() const;
         uint32_t trigNumber( bool sinceOrigin = true ) const;
         void setTrigNumber( uint32_t, uint32_t origin = 0 );
 
-        const SamplingInfo& samplingInfo() const;        
+        const SamplingInfo& samplingInfo() const;
         void setSamplingInfo( const SamplingInfo& );
 
         // acquisition mass range, usually it is from user parameter based on theoretical calibration
@@ -79,7 +82,7 @@ namespace adcontrols {
         std::pair<double, double> instTimeRange() const;
 
         // Device specific parameters
-        
+
         void setDataInterpreterClsid( const char * utf8 );
         const char * dataInterpreterClsid() const;
         void setDeviceData( const char * device, size_t size );
@@ -91,6 +94,9 @@ namespace adcontrols {
 
         void setTofProtocol( const TofProtocol& );
         std::shared_ptr< const TofProtocol > tofProtocol() const;
+
+        void setMassSpectrometerClsid( const boost::uuids::uuid& );
+        const boost::uuids::uuid& massSpectrometerClsid() const;
 
         static double toSeconds( size_t idx, const SamplingInfo& info );
         static size_t toIndex( double seconds, const SamplingInfo& info, bool closest = true );
@@ -108,7 +114,9 @@ namespace adcontrols {
         std::pair< double, double > instMassRange_;
         std::unique_ptr< SamplingInfo > samplingData_;
         std::shared_ptr< const TofProtocol > tofProtocol_;
-        
+        // v11
+        boost::uuids::uuid massSpectrometerClsid_;
+
         friend class MSProperty_archive< MSProperty >;
         friend class MSProperty_archive< const MSProperty >;
         friend class boost::serialization::access;
@@ -116,5 +124,4 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSProperty, 10 )
-
+BOOST_CLASS_VERSION( adcontrols::MSProperty, 11 )

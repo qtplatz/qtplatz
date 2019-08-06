@@ -80,7 +80,8 @@ u5303a_translator::translate( adcontrols::MassSpectrum& ms
     adcontrols::SamplingInfo info( avgr.sampInterval * 1.0e-12, delay, avgr.nSamplingDelay, avgr.nbrSamples, avgr.nbrAverage, 0 );
 
     adcontrols::MSProperty prop;
-    prop.setDataInterpreterClsid( constants::dataInterpreter::spectrometer::utf8_name() );
+    // prop.setDataInterpreterClsid( infitof::names::objtext_datainterpreter, infitof::iids::uuid_datainterpreter );  // InfiTOF
+    // prop.setMassSpectrometerClsid( infitof::iids::uuid_massspectrometer );  // InfiTOF
     prop.setTimeSinceInjection( avgr.timeSinceInject, adcontrols::metric::micro );
 
     title << boost::format( "#%1%[%2%]" ) % avgr.npos % avgr.protocolId;
@@ -107,7 +108,7 @@ u5303a_translator::translate( adcontrols::MassSpectrum& ms
     // set device specific data
     std::string device;
     if ( adportable::binary::serialize<>()( proto, device ) )
-        prop.setDeviceData( device.data(), device.size() );
+        prop.setDeviceData( device.data(), device.size() ); //, infitof::names::objtext_datainterpreter );
 
     // set sampling data, and set property to spectrum
     prop.setAcceleratorVoltage( avgr.kAcceleratorVoltage );
@@ -128,32 +129,13 @@ u5303a_translator::translate( adcontrols::MassSpectrum& ms
         // either calculate dbase or take minimum in array ??? for baseline to zero
         adportable::spectrum_processor::tic( avgr.nbrSamples, parray, dbase, sd );
 
-#if defined DEBUG && 0
-        adportable::debug(__FILE__, __LINE__) << "exit delay: " << adcontrols::metric::scale_to_micro( exitDelay )
-            << " m/z: " << proto.lower_mass
-            << " lap: " <<  lap
-            << " nTurns: " << nTurns
-            << " dbase: " << dbase
-            << " calib: " << ( calib ? calib->calibId() : L"n/a" );
-#endif
-
-        if ( calib ) {
-            for ( uint32_t i = 0; i < avgr.nbrSamples; ++i ) {
-                double tof = scale_to_base<double>( ( avgr.nSamplingDelay + i ) * avgr.sampInterval, pico );
-                double x = InfiTofDataInterpreter::compute_mass( tof, avgr.protocol_.nlaps_, *calib, scanLaw );
-                double y = parray[ i ] - dbase;
-                fgms.setMass( i, x );
-                fgms.setIntensity( i, y );
-            }
-        } else {
-            for ( uint32_t i = 0; i < avgr.nbrSamples; ++i ) {
-                double tof = udesc->meta_.initialXOffset + ( udesc->meta_.xIncrement * i );
-                // double tof = scale_to_base<double>(( avgr.nSamplingDelay + i ) * avgr.sampInterval, pico );
-                double x = scanLaw.getMass( tof, int( avgr.protocol_.nlaps_ ) );
-                double y = parray[ i ] - dbase;
-                fgms.setMass( i, x );
-                fgms.setIntensity( i, y );
-            }
+        for ( uint32_t i = 0; i < avgr.nbrSamples; ++i ) {
+            double tof = udesc->meta_.initialXOffset + ( udesc->meta_.xIncrement * i );
+            ADDEBUG() << "to be fixed...................................";
+            double x = scanLaw.getMass( tof, int( avgr.protocol_.nlaps_ ) ); // <--------- to be fixed
+            double y = parray[ i ] - dbase;
+            fgms.setMass( i, x );
+            fgms.setIntensity( i, y );
         }
     }
 

@@ -130,7 +130,7 @@ dataprocessor::open( const std::wstring& filename, std::wstring& error_message )
         }
 
         if ( auto sp = massSpectrometer() )
-            ProcessMediator::instance()->onCreate( sp->objclsid(), this->shared_from_this() );
+            ProcessMediator::instance()->onCreate( sp->massSpectrometerClsid(), this->shared_from_this() );
 
         return true;
     }
@@ -460,7 +460,7 @@ dataprocessor::addContextMenu( ContextID context
                                , const std::pair<double, double> & range , bool isTime )
 {
     if ( auto sp = massSpectrometer() )
-        ProcessMediator::instance()->addContextMenu( sp->objclsid()
+        ProcessMediator::instance()->addContextMenu( sp->massSpectrometerClsid()
                                                      , this->shared_from_this()
                                                      , context
                                                      , menu
@@ -475,7 +475,7 @@ dataprocessor::addContextMenu( ContextID context
                                , const portfolio::Folium& folium )
 {
     if ( auto sp = massSpectrometer() )
-        ProcessMediator::instance()->addContextMenu( sp->objclsid()
+        ProcessMediator::instance()->addContextMenu( sp->massSpectrometerClsid()
                                                      , this->shared_from_this()
                                                      , context
                                                      , menu
@@ -487,7 +487,7 @@ dataprocessor::estimateScanLaw( std::shared_ptr< const adcontrols::MassSpectrum 
                                 , const std::vector<std::pair<int, int> > & refs )
 {
     if ( auto sp = massSpectrometer() )
-        return ProcessMediator::instance()->estimateScanLaw( sp->objclsid()
+        return ProcessMediator::instance()->estimateScanLaw( sp->massSpectrometerClsid()
                                                              , this->shared_from_this()
                                                              , ms
                                                              , refs );

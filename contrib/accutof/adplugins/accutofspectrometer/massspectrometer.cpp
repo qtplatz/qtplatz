@@ -88,10 +88,10 @@ MassSpectrometer::setAcceleratorVoltage( double acclVoltage, double tDelay )
     }
 }
 
-const char *
-MassSpectrometer::objtext() const
+const char * const
+MassSpectrometer::massSpectrometerName() const
 {
-    return class_name; // 'Accutof'
+    return accutof::spectrometer::names::objtext_massspectrometer; // 'Accutof'
 }
 
 const adcontrols::ScanLaw *
@@ -218,7 +218,7 @@ MassSpectrometer::dataInterpreterUuid() const
 }
 
 const boost::uuids::uuid&
-MassSpectrometer::objclsid() const
+MassSpectrometer::massSpectrometerClsid() const
 {
     return iids::uuid_massspectrometer; // 9568b15d-73b6-48ed-a1c7-ac56a308f712 defined in accutofcontrols/constants.hpp
 }

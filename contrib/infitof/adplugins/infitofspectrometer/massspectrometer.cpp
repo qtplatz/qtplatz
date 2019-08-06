@@ -90,14 +90,14 @@ MassSpectrometer::setAcceleratorVoltage( double acclVoltage, double tDelay )
     }
 }
 
-const char *
-MassSpectrometer::objtext() const
+const char * const
+MassSpectrometer::massSpectrometerName() const
 {
-    return class_name; // 'InfiTOF'
+    return ::infitof::names::objtext_massspectrometer; // 'InfiTOF'
 }
 
 const boost::uuids::uuid&
-MassSpectrometer::objclsid() const
+MassSpectrometer::massSpectrometerClsid() const
 {
     static boost::uuids::uuid uuid = boost::uuids::string_generator()( clsid_text );
     return uuid;
@@ -285,11 +285,11 @@ MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) co
 const char *
 MassSpectrometer::dataInterpreterText() const
 {
-    return names::objtext_datainterpreter; // "IniTOF"
+    return infitof::names::objtext_datainterpreter; // "IniTOF"
 }
 
 const boost::uuids::uuid&
 MassSpectrometer::dataInterpreterUuid() const
 {
-    return iids::uuid_datainterpreter;
+    return infitof::iids::uuid_datainterpreter;
 }

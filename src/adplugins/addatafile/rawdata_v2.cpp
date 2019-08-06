@@ -157,6 +157,7 @@ rawdata::loadAcquiredConf()
 bool
 rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
 {
+#if 0 // v2 data has no calibration support
     uint64_t objid = 1;
 
     auto it = std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& c){
@@ -191,6 +192,7 @@ rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcon
         loadCalibrations();
         return true;
     }
+#endif
 #endif
     return false;
 }

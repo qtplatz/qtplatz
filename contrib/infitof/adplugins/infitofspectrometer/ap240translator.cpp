@@ -78,7 +78,7 @@ ap240translator::translate( adcontrols::MassSpectrum& ms
     adcontrols::SamplingInfo info( avgr.sampInterval * 1.0e-12, delay, avgr.nSamplingDelay, avgr.nbrSamples, avgr.nbrAverage, 0 );
 
     adcontrols::MSProperty prop;
-    prop.setDataInterpreterClsid( constants::dataInterpreter::spectrometer::utf8_name() );
+    //prop.setDataInterpreterClsid( constants::dataInterpreter::spectrometer::utf8_name() );
     prop.setTimeSinceInjection( avgr.timeSinceInject );
     prop.setTimeSinceEpoch( avgr.timeSinceEpoch );
 
@@ -113,11 +113,6 @@ ap240translator::translate( adcontrols::MassSpectrum& ms
     prop.setSamplingInfo( info );
     fgms.setMSProperty( prop );
 
-    //int mode = nTurns == 0 ? 0 : 1;
-    const adcontrols::MSCalibration * calib = inst.findCalibration( info.mode() == 0 ? 0 : 1 );
-    if ( calib == 0 )
-        calib = inst.findCalibration( info.mode() == 0 ? 1 : 0 );  // take 2nd best
-
     using namespace adcontrols::metric;
 
     const int32_t * parray = avgr.waveform.data() + aqrs->dataDesc.indexFirstPoint;
@@ -134,22 +129,12 @@ ap240translator::translate( adcontrols::MassSpectrum& ms
                                           << " calib: " << ( calib ? calib->calibId() : L"n/a" );
 #endif
 
-    if ( calib ) {
-        for ( uint32_t i = 0; i < avgr.nbrSamples; ++i ) {
-            double tof = scale_to_base<double>(( avgr.nSamplingDelay + i ) * avgr.sampInterval, pico );
-            double x = InfiTofDataInterpreter::compute_mass( tof, avgr.protocol_.nlaps_, *calib, scanLaw );
-            double y = parray[ i ] - dbase;
-            fgms.setMass( i, x );
-            fgms.setIntensity( i, y );
-        }
-    } else {
-        for ( uint32_t i = 0; i < avgr.nbrSamples; ++i ) {
-            double tof = scale_to_base<double>(( avgr.nSamplingDelay + i ) * avgr.sampInterval, pico );
-            double x = scanLaw.getMass( tof, int( avgr.protocol_.nlaps_ ) );
-            double y = parray[ i ] - dbase;
-            fgms.setMass( i, x );
-            fgms.setIntensity( i, y );
-        }
+    for ( uint32_t i = 0; i < avgr.nbrSamples; ++i ) {
+        double tof = scale_to_base<double>(( avgr.nSamplingDelay + i ) * avgr.sampInterval, pico );
+        double x = scanLaw.getMass( tof, int( avgr.protocol_.nlaps_ ) ); // <<-------- to be fixed.
+        double y = parray[ i ] - dbase;
+        fgms.setMass( i, x );
+        fgms.setIntensity( i, y );
     }
 
     ms.setAcquisitionMassRange( ms.getMass( 0 ), fgms.getMass( fgms.size() - 1 ) );

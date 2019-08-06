@@ -39,10 +39,10 @@ namespace boost { namespace uuids { struct uuid; } }
 namespace multumcontrols { class ScanLaw; class OrbitProtocol; }
 
 namespace infitofspectrometer {
-    
+
     class InfiTofDataInterpreter;
     //class MultiTurnScanLaw;
-    
+
     class MassSpectrometer : public adcontrols::MassSpectrometer {
 
         MassSpectrometer( const MassSpectrometer& t ) = delete; // non copyable
@@ -65,11 +65,14 @@ namespace infitofspectrometer {
         static constexpr const char * clsid_text = "{90BB510B-5DC2-43AB-89EF-2E108E99EAAA}";
         static constexpr const char * class_name = "InfiTOF"; // historical name, don't change
 
-        const char * objtext() const override;
-        const boost::uuids::uuid& objclsid() const override;
+        //const char * objtext() const override;
+        //const boost::uuids::uuid& objclsid() const override;
+        const char * const massSpectrometerName() const override;
+        const boost::uuids::uuid& massSpectrometerClsid() const override;
+
         const char * dataInterpreterText() const override;
         const boost::uuids::uuid& dataInterpreterUuid() const override;
-        
+
         const adcontrols::ScanLaw * scanLaw() const override;
 
         void setMethod( const adcontrols::ControlMethod::Method& ) override;

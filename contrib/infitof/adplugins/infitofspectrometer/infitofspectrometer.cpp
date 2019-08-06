@@ -41,27 +41,27 @@ namespace infitofspectrometer {
         infitofspectrometer_plugin() {}
     public:
         ~infitofspectrometer_plugin() {}
-        
+
         static std::shared_ptr< infitofspectrometer_plugin > instance_;
-        
+
         static infitofspectrometer_plugin * instance() {
             static std::once_flag flag;
             std::call_once( flag, [] () {
                     struct make_shared_enabler : public infitofspectrometer_plugin {};
                     instance_ = std::make_shared< make_shared_enabler >();
                 } );
-            
+
             return instance_.get();
         }
-        
+
         // plugin
         void * query_interface_workaround( const char * ) override { return 0; }
-        
+
         void accept( adplugin::visitor&, const char * adplugin ) override;
-        
+
         const char * iid() const override { return names::iid_infitofspectrometer_plugin; }
     };
-    
+
     std::shared_ptr< infitofspectrometer_plugin > infitofspectrometer_plugin::instance_;
 }
 
@@ -81,16 +81,15 @@ void
 infitofspectrometer_plugin::accept( adplugin::visitor& visitor, const char * adplugin )
 {
     if ( auto factory =
-         std::make_shared< adcontrols::massspectrometer_factory_type< MassSpectrometer > >( names::objtext_massspectrometer, iids::uuid_massspectrometer ) ) {
-        
+         std::make_shared< adcontrols::massspectrometer_factory_type< MassSpectrometer > >( infitof::names::objtext_massspectrometer, infitof::iids::uuid_massspectrometer ) ) {
+
         adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
     }
 
     if ( auto factory =
          std::make_shared< adcontrols::datainterpreter::factory_type< InfiTofDataInterpreter > >() ) {
-        
-        adcontrols::DataInterpreterBroker::register_factory( factory, iids::uuid_datainterpreter, names::objtext_datainterpreter );
-    }
-    
-}
 
+        adcontrols::DataInterpreterBroker::register_factory( factory, infitof::iids::uuid_datainterpreter, infitof::names::objtext_datainterpreter );
+    }
+
+}
