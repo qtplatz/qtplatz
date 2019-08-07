@@ -53,6 +53,8 @@
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
 #include <adcontrols/scanlaw.hpp>
@@ -75,6 +77,8 @@
 #include <adurl/ajax.hpp>
 #include <adurl/blob.hpp>
 #include <adurl/sse.hpp>
+#include <adutils/fsio.hpp>
+#include <adutils/mscalibio.hpp>
 #include <app/app_version.h>
 #include <coreplugin/documentmanager.h>
 #include <date/date.h>
@@ -99,12 +103,13 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <json.hpp>
-#include <QSettings>
 #include <QFileInfo>
-#include <QMessageBox>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMessageBox>
 #include <QMetaType>
+#include <QSettings>
+#include <QStandardPaths>
 #include <chrono>
 #include <future>
 #include <fstream>
@@ -736,8 +741,9 @@ document::initialSetup()
     }
 
     if ( ! impl_->massSpectrometer_  ) {
+
         if ( ( impl_->massSpectrometer_ = adcontrols::MassSpectrometerBroker::make_massspectrometer( accutof::spectrometer::iids::uuid_massspectrometer ) ) ) {
-            ADDEBUG() << "accutof massspectrometer has been installed.";
+            ADDEBUG() << "==================== accutof massspectrometer has been installed.";
             // todo: load mass calibration from settings
         } else {
             QMessageBox::warning( MainWindow::instance(), "accutofacquire plugin", QString( tr( "No AccuTOF Spectrometer installed." ) ) );
@@ -1461,6 +1467,8 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
             sql.bind( 5 ) = std::string( accutof::spectrometer::names::objtext_massspectrometer );
             sql.bind( 6 ) = accutof::spectrometer::iids::uuid_massspectrometer;
 
+            ADDEBUG() << "initStorage acceleratorVoltage: " << sp->acceleratorVoltage() << ", " << sp->tDelay() << ", " << uuid;
+
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << "sqlite error";
         }
@@ -1501,6 +1509,27 @@ INSERT OR REPLACE INTO ScanLaw (                                        \
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "sqlite error";
     }
+
+    if ( uuid == boost::uuids::uuid{{ 0 }} ) {
+        // default calibration
+        boost::filesystem::path path = QStandardPaths::locate( QStandardPaths::ConfigLocation, "QtPlatz", QStandardPaths::LocateDirectory ).toStdString();
+        path /= accutof::acquire::Constants::DEFAULT_CALIB_FILE; // default.mscalib
+
+        if ( boost::filesystem::exists( path ) ) {
+            ADTRACE() << "Loading calibration from file: " << path.string();
+            adfs::filesystem fs;
+            if ( fs.mount( path ) ) {
+                adcontrols::MSCalibrateResult calibResult;
+                if ( adutils::fsio::load_mscalibfile( fs, calibResult ) ) {
+                    if ( calibResult.calibration().massSpectrometerClsid() == accutof::spectrometer::iids::uuid_massspectrometer ) {
+                        adutils::mscalibio::write( db, calibResult );
+                        massSpectrometer_->initialSetup( db, {{0}} );
+                    }
+                }
+            }
+        }
+    }
+
 
     return true;
 }

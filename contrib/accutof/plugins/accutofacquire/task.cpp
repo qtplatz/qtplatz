@@ -40,9 +40,6 @@
 #include <adcontrols/controlmethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogrammethod.hpp>
 #include <adcontrols/controlmethod/tofchromatogramsmethod.hpp>
-//#include <adcontrols/mappedimage.hpp>
-//#include <adcontrols/mappedspectra.hpp>
-//#include <adcontrols/mappedspectrum.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/samplerun.hpp>
@@ -323,7 +320,8 @@ namespace accutof { namespace acquire {
                 for ( auto result: threshold_results ) {
                     if ( result ) {
                         auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *result, mass_assignor() ) ) {
+                        mass_assignor assignor;
+                        if ( acqrscontrols::u5303a::waveform::translate( *ms, *result, assignor ) ) {
                             ms->getMSProperty().setTrigNumber( result->data()->serialnumber_, status.pos_origin_ );
                             document::instance()->setData( acqrscontrols::u5303a::waveform_observer, ms, channel );
                         }

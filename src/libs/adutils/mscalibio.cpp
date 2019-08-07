@@ -168,8 +168,16 @@ mscalibio::write( adfs::sqlite& db, const adcontrols::MSCalibrateResult& calibRe
 
 //static
 bool
-mscalibio::read( adfs::sqlite& db, adcontrols::MSCalibrateResult& calibResult )
+mscalibio::read( adfs::sqlite& db, adcontrols::MSCalibrateResult& calibResult, const boost::uuids::uuid& massSpectrometerClsid )
 {
     adfs::stmt sql( db );
+
+    sql.prepare( "SELECT data FROM MSCalibration WHERE massSpectrometerClsid=? ORDER BY rowid DESC LIMIT 1" );
+    sql.bind( 1 ) = massSpectrometerClsid;
+    if ( sql.step() == adfs::sqlite_row ) {
+        adfs::blob blob = sql.get_column_value< adfs::blob >( 0 );
+        return adportable::binary::deserialize<>()( calibResult, reinterpret_cast< const char *>( blob.data() ), blob.size() );
+    }
+
     return false;
 }

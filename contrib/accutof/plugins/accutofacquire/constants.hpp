@@ -89,6 +89,9 @@ namespace accutof { namespace acquire {
             const char * const LAST_METHOD_PKDAVG   = "accutof-acquire.cmth.xml";
             const char * const LAST_PROC_METHOD     = "accutof-acquire.pmth.xml";
 
+            // default calibfile
+            const char * const DEFAULT_CALIB_FILE   = "default.msclb";
+
         } // namespace Constants
 
     }

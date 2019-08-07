@@ -80,12 +80,25 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 void
 MassSpectrometer::setAcceleratorVoltage( double acclVoltage, double tDelay )
 {
-    if ( !scanLaw_ ) {
-        scanLaw_ = std::make_unique< ScanLaw >( acclVoltage, tDelay );
-    } else {
-        scanLaw_->setAcceleratorVoltage( acclVoltage );
-        scanLaw_->setTDelay( tDelay );
-    }
+    ADDEBUG() << "### " << __FUNCTION__ << "(" << acclVoltage << ", " << tDelay << ")";
+    // if ( !scanLaw_ ) {
+    //     scanLaw_ = std::make_unique< ScanLaw >( acclVoltage, tDelay );
+    // } else {
+    //     scanLaw_->setAcceleratorVoltage( acclVoltage );
+    //     scanLaw_->setTDelay( tDelay );
+    // }
+}
+
+double
+MassSpectrometer::tDelay() const
+{
+    return scanLaw_->tDelay();
+}
+
+double
+MassSpectrometer::acceleratorVoltage() const
+{
+    return scanLaw_->kAcceleratorVoltage();
 }
 
 const char * const
@@ -197,6 +210,14 @@ MassSpectrometer::scanLaw( int64_t rowid ) const
     return scanLaw_.get();
 }
 
+const adcontrols::MSCalibration *
+MassSpectrometer::findCalibration( int mode ) const
+{
+    if ( calibration_ )
+        return calibration_.get();
+    return nullptr;
+}
+
 bool
 MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) const
 {
@@ -209,6 +230,17 @@ MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) co
         return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
     }
 }
+
+double
+MassSpectrometer::assignMass( double time, int mode ) const
+{
+    if ( calibration_ ) {
+        return calibration_->compute_mass( time );
+    } else {
+        return scanLaw_->getMass( time, mode );
+    }
+}
+
 
 const char *
 MassSpectrometer::dataInterpreterText() const

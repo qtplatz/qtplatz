@@ -27,15 +27,26 @@
 #include "document.hpp"
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/scanlaw.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <memory>
 
 namespace accutof { namespace acquire {
 
         struct mass_assignor {
-            double operator()( double time, int ) const {
+            const adcontrols::MSCalibration * calib_;
+            std::shared_ptr< const adcontrols::ScanLaw > scanLaw_;
+
+            mass_assignor() : calib_( 0 ), scanLaw_( 0 ) {
                 auto sp = document::instance()->massSpectrometer();
-                // todo: if calibration
-                if ( auto law = sp->scanLaw() )
-                    return law->getMass( time, 0 );
+                calib_ = sp->findCalibration( 0 );
+                // scanLaw_ = sp->scanLaw();
+            }
+
+            double operator()( double time, int ) const {
+                if ( calib_ )
+                    return calib_->compute_mass( time );
+                else
+                    return document::instance()->massSpectrometer()->assignMass( time, 0 );
             }
         };
 
