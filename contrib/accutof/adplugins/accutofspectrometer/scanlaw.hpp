@@ -35,7 +35,8 @@ namespace accutof { namespace spectrometer {
                       , protected adportable::TimeSquaredScanLaw {
         public:
             ~ScanLaw();
-            ScanLaw( double acceleratorVoltage = 7000, double tDelay = 0 );
+            // ScanLaw( double acceleratorVoltage = 7000, double tDelay = 0 );
+            ScanLaw( double acceleratorVoltage = 7197.957, double tDelay = 0.13254e-6 );
 
             ScanLaw( const ScanLaw& t );
             ScanLaw& operator = ( const ScanLaw& );
