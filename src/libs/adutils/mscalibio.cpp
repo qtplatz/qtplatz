@@ -44,8 +44,8 @@ mscalibio::create_table( adfs::sqlite& db )
     adfs::stmt sql( db );
     if ( sql.exec(
              "CREATE TABLE IF NOT EXISTS MSCalibration ("
-             " calibrationUuid      UUID"
-             ",massSpectrometerUuid UUID"
+             " calibrationUuid       UUID"
+             ",massSpectrometerClsid UUID"
              ",mode                 INTEGER"
              ",dataClass            TEXT"
              ",date                 TEXT"
@@ -70,6 +70,7 @@ mscalibio::readCalibration( adfs::sqlite& db
                             , std::vector< char >& device
                             , int64_t& revision )
 {
+#if 0
     adfs::stmt sql( db );
 
     if ( sql.prepare( "SELECT rowid,revision FROM Calibration WHERE dataClass =? AND objid=? ORDER BY revision desc" ) ) {
@@ -90,12 +91,14 @@ mscalibio::readCalibration( adfs::sqlite& db
             }
         }
     }
+#endif
     return false;
 }
 
 bool
 mscalibio::writeCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * calibId, const wchar_t * dataClass, const char * data, size_t size )
 {
+#if 0
     adfs::stmt sql( db );
 
     const char * query = "INSERT INTO Calibration (objid,calibId,dataClass,data) VALUES(:objid,:calibId,:dataClass,:data)";
@@ -118,6 +121,7 @@ mscalibio::writeCalibration( adfs::sqlite& db, uint32_t objId, const wchar_t * c
     }
 
     sql.reset();
+#endif
     return false;
 }
 
@@ -134,7 +138,7 @@ mscalibio::write( adfs::sqlite& db, const adcontrols::MSCalibrateResult& calibRe
     auto calib = calibResult.calibration();
 
     const char * const query = "INSERT INTO MSCalibration "
-        "(calibrationUuid,massSpectrometerUuid,mode,dataClass,date,data,xml,formula)"
+        "(calibrationUuid,massSpectrometerClsid,mode,dataClass,date,data,xml,formula)"
         " VALUES (?,?,?,?,?,?,?,?)";
 
     std::string device;
@@ -149,7 +153,7 @@ mscalibio::write( adfs::sqlite& db, const adcontrols::MSCalibrateResult& calibRe
         sql.bind( 3 ) = calib.mode();
         sql.bind( 4 ) = std::wstring( calibResult.dataClass() );
         sql.bind( 5 ) = calib.date();
-        sql.bind( 6 ) = device;
+        sql.bind( 6 ) = adfs::blob( device.size(), device.data() );
         sql.bind( 7 ) = xml.str();
         sql.bind( 8 ) = calib.formulaText( false );
 

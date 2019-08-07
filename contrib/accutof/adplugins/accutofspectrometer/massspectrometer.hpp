@@ -33,10 +33,9 @@
 #include <memory>
 #include "accutofspectrometer_global.hpp"
 
-namespace adcontrols { class datafile; class MSProperty; namespace ControlMethod { class Method; } }
+namespace adcontrols { class datafile; class MSProperty; class MSCalibration; namespace ControlMethod { class Method; } }
 namespace adfs { class filesystem; }
 namespace boost { namespace uuids { struct uuid; } }
-namespace multumcontrols { class ScanLaw; class OrbitProtocol; }
 
 namespace accutof { namespace spectrometer {
 
@@ -83,6 +82,7 @@ namespace accutof { namespace spectrometer {
         private:
             std::unique_ptr< ScanLaw > scanLaw_;
             std::unique_ptr< adcontrols::ControlMethod::Method > method_;
+            std::unique_ptr< adcontrols::MSCalibration > calibration_;
         };
     }
 }

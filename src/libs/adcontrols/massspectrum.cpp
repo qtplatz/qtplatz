@@ -617,11 +617,12 @@ MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
 
     impl_->calibration_ = std::make_shared< MSCalibration >( calib );
 
-    if ( assignMasses && !impl_->massArray_.empty() ) {
+    if ( assignMasses && ( size() > 0 ) ) {
+        impl_->massArray_.resize( size() );
         if ( impl_->tofArray_.empty() ) {
             size_t idx(0);
             std::transform( impl_->massArray_.begin(), impl_->massArray_.end(), impl_->massArray_.begin()
-                            , [&]( const double& ){ return calib.compute_mass( MSProperty::toSeconds( idx++, impl_->property_.samplingInfo() ) ); });
+                            , [&]( const double& ){ return calib.compute_mass( getTime( idx++ ) ); } );
         } else {
             std::transform( impl_->tofArray_.begin(), impl_->tofArray_.end(), impl_->massArray_.begin()
                             , [&]( const double& t ){ return calib.compute_mass( t ); } );

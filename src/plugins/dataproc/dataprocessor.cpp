@@ -796,8 +796,6 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 void
 Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibration )
 {
-    ADDEBUG() << "applyCalibration";
-
     if ( portfolio::Folder folder = portfolio_->findFolder( L"Spectra" ) ) {
 
         setModified( true );
@@ -833,10 +831,17 @@ Dataprocessor::applyCalibration( const adcontrols::MSCalibrateResult& calibratio
         }
     }
 
-	if ( file()->applyCalibration( std::wstring(), calibration ) )
+    ADTRACE() << "applyCalibration " << calibration.calibration().calibrationUuid()
+              << " for " << calibration.calibration().massSpectrometerClsid()
+              << " to file: " << this->filename();
+
+	if ( file()->applyCalibration( std::wstring(), calibration ) ) {
         setModified( true );
-    else
+        if ( auto spectrometer = this->massSpectrometer() )
+            spectrometer->initialSetup( *db(), {{0}} );
+    } else {
         ADDEBUG() << "applyCalibration faild";
+    }
 }
 
 void

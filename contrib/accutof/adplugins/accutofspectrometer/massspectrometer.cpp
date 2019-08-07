@@ -25,22 +25,26 @@
 #include "massspectrometer.hpp"
 #include "constants.hpp"
 #include "scanlaw.hpp"
+#include "constants.hpp"
 #include <accutofcontrols/method.hpp>
-#include <adplugin/plugin.hpp>
-#include <adplugin/visitor.hpp>
-#include <adportable/debug.hpp>
 #include <adcontrols/controlmethod.hpp>
+#include <adcontrols/datareader.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mspeak.hpp>
 #include <adcontrols/mspeaks.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/tofprotocol.hpp>
-#include <adcontrols/datareader.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/visitor.hpp>
+#include <adportable/binary_serializer.hpp>
+#include <adportable/xml_serializer.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/polfit.hpp>
-#include "constants.hpp"
 #include <compiler/boost/workaround.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <cmath>
@@ -67,14 +71,10 @@ MassSpectrometer::name() const
 std::shared_ptr< adcontrols::ScanLaw >
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 {
-    if ( scanLaw_ ) {
-        auto ptr = std::make_shared< ScanLaw >( *scanLaw_ );
-        ptr->setAcceleratorVoltage( 7000 );
-        ptr->setTDelay( 0 );
-        return ptr;
-    } else {
-        return std::make_shared< ScanLaw >( prop.acceleratorVoltage(), prop.tDelay() );
-    }
+    // AccuTOF ScanLaw has no acquisition parameter dependency
+    if ( !scanLaw_ )
+        std::make_unique< ScanLaw >();
+    return std::make_shared< ScanLaw >( *scanLaw_ );
 }
 
 void
@@ -121,23 +121,7 @@ MassSpectrometer::mode( uint32_t protocolNumber ) const
 bool
 MassSpectrometer::setMSProperty( adcontrols::MassSpectrum& ms, const adcontrols::ControlMethod::Method& m, int proto ) const
 {
-    auto it = m.find( m.begin(), m.end(), accutofcontrols::method::clsid() );
-    if ( it != m.end() ) {
-        accutofcontrols::method im;
-        if ( adcontrols::ControlMethod::MethodItem::get<>( *it, im ) ) {
-            // if ( im.tof().protocols.size() > proto ) {
-            //     ms.setAcquisitionMassRange( im.tof().protocols[proto].lower_mass, im.tof().protocols[proto].upper_mass );
-
-            //     std::vector< adcontrols::TofProtocol > v;
-            //     accutofcontrols::method::copy_protocols( im.tof(), v );
-            //     if ( v.size() > proto ) {
-            //         auto& prop = ms.getMSProperty();
-            //         prop.setTofProtocol( v[ proto ] );
-            //     }
-            //     return true;
-            // }
-        }
-    }
+    // nothing to be done
     return false;
 }
 
@@ -152,6 +136,22 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
     if ( sql.step() == adfs::sqlite_row ) {
         acceleratorVoltage_ = sql.get_column_value< double >( 0 );
         tDelay_             = sql.get_column_value< double >( 1 );
+    }
+
+    sql.prepare( "SELECT data FROM MSCalibration WHERE massSpectrometerClsid=? ORDER BY rowid DESC" );
+    sql.bind( 1 ) = iids::uuid_massspectrometer;
+    if ( sql.step() == adfs::sqlite_row ) {
+
+        adfs::blob blob = sql.get_column_value< adfs::blob >( 0 );
+
+        adcontrols::MSCalibrateResult calibResult;
+        if ( adportable::binary::deserialize<>()( calibResult, reinterpret_cast< const char *>( blob.data() ), blob.size() ) ) {
+            calibration_ = std::make_unique< adcontrols::MSCalibration >( calibResult.calibration() );
+            std::wostringstream o;
+            if ( adportable::xml::serialize<>()( *calibration_, o ) )  {
+                ADDEBUG() << "MSCalibration loaded: " << o.str();
+            }
+        }
     }
 }
 
@@ -200,10 +200,14 @@ MassSpectrometer::scanLaw( int64_t rowid ) const
 bool
 MassSpectrometer::assignMasses( adcontrols::MassSpectrum& ms, int64_t rowid ) const
 {
-    ADDEBUG() << "--- " << __FUNCTION__ << " --- mass calibration to be fixed.";
     //auto mode = ms.mode();
-    auto scanlaw = scanLaw( rowid );
-    return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
+    if ( calibration_ && !calibration_->coeffs().empty() ) {
+        ms.setCalibration( *calibration_, true );
+        return true; // ms.assign_masses( [&]( double time, int mode ) { return calibration_->compute_mass( time ); } );
+    } else {
+        auto scanlaw = scanLaw( rowid );
+        return ms.assign_masses( [&]( double time, int mode ) { return scanlaw->getMass( time, mode ); } );
+    }
 }
 
 const char *
