@@ -51,7 +51,7 @@ namespace adwidgets {
             };
 
             typedef boost::variant<QLabel *, QComboBox *, QPushButton *, QLineEdit * > control_variant;
-            
+
             struct ui_accessor {
                 Ui_MSReferenceDialog * ui_;
                 control_variant ref_;
@@ -88,21 +88,6 @@ namespace adwidgets {
             template<> void align_property::operator() ( QPushButton * ) const {}
             template<> void align_property::operator() ( QLineEdit * w ) const { w->setAlignment( Qt::AlignLeft | Qt::AlignVCenter ); }
 
-#if 0
-            struct font_property : public boost::static_visitor < void > {
-                QFont font;
-                bool bold_;
-                font_property( bool bold = true ) : bold_(bold) {
-                    font.setFamily( "Calibri" );
-                    font.setBold( bold_ );
-                    font.setWeight( 75 );
-                }
-                template< class T > void operator ()( T* widget ) const {
-                    widget->setFont( font );
-                }
-            };
-#endif
-
             struct set_text :  public boost::static_visitor< void > {
                 const QString& text_;
                 set_text( const QString& text ) : text_( text ) {}
@@ -115,7 +100,7 @@ namespace adwidgets {
             };
             template<> std::wstring get_text::operator() ( QComboBox * ) const { return std::wstring(); }
 
-            
+
         } // namespace
     }
 }
@@ -153,6 +138,8 @@ MSReferenceDialog::MSReferenceDialog( QWidget *parent ) : QDialog( parent, Qt::T
     materials->addItem( "Anionic Surfactants 1(-)", "C12H26SO4\tC2H4O\t-H\t" ); // negative
     materials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
     materials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
+    materials->addItem( "TFANa", "\tCF3COONa\t[Na]+\t" ); //
+    materials->addItem( "Acetonitrile", "(CH3CN)2\t\t[H]+\t" ); //
 
     connect( materials, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MSReferenceDialog::handleIndexChanged );
 
@@ -189,7 +176,7 @@ MSReferenceDialog::handleIndexChanged( int index )
     typedef boost::tokenizer< boost::char_separator<wchar_t>
                               , std::wstring::const_iterator
                               , std::wstring > tokenizer_t;
- 
+
 	boost::char_separator<wchar_t> separator( L"\t", L"", boost::keep_empty_tokens );
     tokenizer_t tokens( userData, separator );
 
@@ -200,12 +187,12 @@ MSReferenceDialog::handleIndexChanged( int index )
         endGroup = *token;
         boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idEndGroupLineEdit ) );
     }
-    
+
 	if ( ++token != tokens.end() ) {
         repeat = *token;
         boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idRepeatLineEdit ) );
     }
-    
+
     if ( token != tokens.end() && ++token != tokens.end() ) {
         adducts = *token;
         boost::apply_visitor( set_text( QString::fromStdWString(*token) ), accessor( idAdductLineEdit ) );
@@ -298,4 +285,3 @@ MSReferenceDialog::handleAddReference()
         }
     }
 }
-

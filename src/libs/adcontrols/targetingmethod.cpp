@@ -53,13 +53,13 @@ namespace adcontrols {
             // "(CH3)2SO+H" // DMSO+H
             // "C3H8O+H"    // IPA+H
             // "C3H8O+Na"   // IPA+Na
-            for ( auto adduct : { "H", "Na", "NH4", "K", "CH3CN+H" "CH3CN+Na", "CH3OH+H", "(CH3)2SO+H", "C3H8O+H", "C3H8O+Na" } )
+            for ( auto adduct : { "[H]+", "[Na]+", "[NH4]+", "[K]+", "[CH3CN H]+" "[CH3CN Na]+", "[CH3OH H]+", "[(CH3)2SO H]+", "[C3H8O H]+", "[C3H8O Na]+" } )
                 pos_adducts_.push_back( std::make_pair( false, adduct ) );
 
-            for ( auto adduct : { "-H", "-H2O-H", "Na-H2", "Cl", "K-H2", "COOH-H" } )
+            for ( auto adduct : { "-H", "-H2O-H", "Na-H2", "Cl", "K-H2", "[COO]-" } )
                 neg_adducts_.push_back( std::make_pair( false, adduct ) );
         }
-        
+
         idTarget idTarget_;
         idToleranceMethod toleranceMethod_;
         idFindAlgorithm findAlgorithm_;
@@ -79,7 +79,7 @@ namespace adcontrols {
         moltable molecules_;
 
         //----------
-        
+
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
@@ -125,7 +125,7 @@ namespace adcontrols {
                     ;
 
                 if ( version <= 3 ) {
-                    
+
                     std::vector< std::pair< bool, std::string > > formulae;
                     std::vector< std::pair< bool, std::pair< std::string, std::string > > > peptides;
                     ar & BOOST_SERIALIZATION_NVP( formulae ) & BOOST_SERIALIZATION_NVP( peptides );
@@ -133,7 +133,7 @@ namespace adcontrols {
                 } else {
                     typedef std::pair< std::string, std::pair< bool, std::wstring > > formula_type;
                     typedef std::pair< bool, std::pair< std::string, std::string > > peptide_type;
-                    
+
                     std::vector< formula_type > formulae;
                     std::vector< peptide_type > peptides;
                     ar & BOOST_SERIALIZATION_NVP( formulae ) & BOOST_SERIALIZATION_NVP( peptides );
@@ -175,10 +175,10 @@ namespace adcontrols {
     template<> void
     TargetingMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-        if ( version <= 4 )        
+        if ( version <= 4 )
             impl_->serialize( ar, version );
         else
-            ar & boost::serialization::make_nvp("impl", *impl_);        
+            ar & boost::serialization::make_nvp("impl", *impl_);
     }
 
     ///////// XML archive ////////
@@ -314,7 +314,7 @@ TargetingMethod::isHighMassLimitEnabled( bool value )
 {
     impl_->isHighMassLimitEnabled_ = value;
 }
-        
+
 double
 TargetingMethod::lowMassLimit() const
 {
@@ -356,4 +356,3 @@ TargetingMethod::setMolecules( const moltable& t )
 {
     impl_->molecules_ = t;
 }
-

@@ -39,6 +39,7 @@
 #include <adcontrols/tofprotocol.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
+#include <adlog/logger.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
 #include <adportable/binary_serializer.hpp>
@@ -160,10 +161,13 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
         adcontrols::MSCalibrateResult calibResult;
         if ( adportable::binary::deserialize<>()( calibResult, reinterpret_cast< const char *>( blob.data() ), blob.size() ) ) {
             calibration_ = std::make_unique< adcontrols::MSCalibration >( calibResult.calibration() );
+            ADINFO() << calibration_->calibrationUuid();
+#if !defined NDEBUG
             std::wostringstream o;
             if ( adportable::xml::serialize<>()( *calibration_, o ) )  {
                 ADDEBUG() << "MSCalibration loaded: " << o.str();
             }
+#endif
         }
     }
 }
