@@ -38,7 +38,7 @@ namespace boost { namespace serialization {  class access;  } }
 namespace adcontrols {
 
     class moltable;
-    
+
     class ADCONTROLSSHARED_EXPORT TargetingMethod {
     public:
         enum idTarget { idTargetFormula, idTargetPeptide };
@@ -68,7 +68,7 @@ namespace adcontrols {
         std::pair< bool, bool > isMassLimitsEnabled() const;
         void isLowMassLimitEnabled( bool );
         void isHighMassLimitEnabled( bool );
-        
+
         double lowMassLimit() const;
         void lowMassLimit( double );
 
@@ -78,6 +78,8 @@ namespace adcontrols {
         const moltable& molecules() const;
         moltable& molecules();
         void setMolecules( const moltable& );
+
+        static std::string default_adducts( bool positive = true );
 
     private:
         class impl;

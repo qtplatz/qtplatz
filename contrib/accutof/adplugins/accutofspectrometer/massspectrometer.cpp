@@ -81,13 +81,7 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 void
 MassSpectrometer::setAcceleratorVoltage( double acclVoltage, double tDelay )
 {
-    ADDEBUG() << "### " << __FUNCTION__ << "(" << acclVoltage << ", " << tDelay << ")";
-    // if ( !scanLaw_ ) {
-    //     scanLaw_ = std::make_unique< ScanLaw >( acclVoltage, tDelay );
-    // } else {
-    //     scanLaw_->setAcceleratorVoltage( acclVoltage );
-    //     scanLaw_->setTDelay( tDelay );
-    // }
+    // do nothing for this.
 }
 
 double

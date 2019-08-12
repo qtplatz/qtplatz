@@ -53,11 +53,11 @@ namespace adcontrols {
 
         bool operator ()( const MassSpectrum& );
         bool force_find( const MassSpectrum&, const std::string& formula, int32_t fcn );
-        
+
         const std::vector< Candidate >& candidates() const { return candidates_; }
 
         struct Candidate {
-            uint32_t idx; // peak index on mass-spectrum 
+            uint32_t idx; // peak index on mass-spectrum
             uint32_t fcn; // protocol (aka segment) id
             uint32_t charge;
             double mass_error;
@@ -95,7 +95,7 @@ namespace adcontrols {
         void setup( const TargetingMethod& );
         bool find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive, const std::vector< charge_adduct_type >& list );
         static void setup_adducts( const TargetingMethod&, bool, std::vector< adduct_type >& );
-        static void make_combination( uint32_t charge, const std::vector< adduct_type >&, std::vector< charge_adduct_type >& );
+        //static void make_combination( uint32_t charge, const std::vector< adduct_type >&, std::vector< charge_adduct_type >& );
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, unsigned int ) {

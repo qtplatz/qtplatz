@@ -37,16 +37,16 @@
 
 using namespace adcontrols;
 
-MSCalibration::MSCalibration() : calibrationUuid_( boost::uuids::random_generator()() )
+MSCalibration::MSCalibration() : mode_( 0 )
+                               , calibrationUuid_( boost::uuids::random_generator()() )
                                , massSpectrometerClsid_( {{0}} )
-                               , mode_( 0 )
 {
     process_date_ = adportable::date_string::logformat( std::chrono::system_clock::now(), true );
 }
 
-MSCalibration::MSCalibration( const boost::uuids::uuid& clsid ) : calibrationUuid_( boost::uuids::random_generator()() )
+MSCalibration::MSCalibration( const boost::uuids::uuid& clsid ) : mode_( 0 )
+                                                                , calibrationUuid_( boost::uuids::random_generator()() )
                                                                 , massSpectrometerClsid_( clsid )
-                                                                , mode_( 0 )
 {
     process_date_ = adportable::date_string::logformat( std::chrono::system_clock::now(), true );
     assert( massSpectrometerClsid_ != boost::uuids::uuid{{0}} );

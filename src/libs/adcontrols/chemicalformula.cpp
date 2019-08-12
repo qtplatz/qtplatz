@@ -116,10 +116,10 @@ namespace adcontrols {
                 return true;
             }
 
-            template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type&, bool );
+            template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type&, bool, bool neutral = false );
         };
-        template<> void formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText );
-        template<> void formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText );
+        template<> void formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText, bool neutral );
+        template<> void formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText, bool neutral );
 
         /////////
 
@@ -185,7 +185,7 @@ namespace adcontrols {
         }
 
         template< typename char_type > std::basic_string<char_type>
-        standardFormula( const std::basic_string<char_type>& formula ) {
+        standardFormula( const std::basic_string<char_type>& formula, bool removeCharge ) {
 
             typedef typename std::basic_string< char_type >::const_iterator iterator_type;
             adportable::chem::chemical_formula_parser< iterator_type, adportable::chem::formulaComposition, adportable::chem::icomp_type > comp_parser;
@@ -197,7 +197,7 @@ namespace adcontrols {
             if ( boost::spirit::qi::parse( it, formula.end(), comp_parser, comp ) ) {
 
                 std::basic_ostringstream<char_type> o;
-                if ( comp.second )
+                if ( !removeCharge && comp.second )
                     o << "[";
 
                 for ( auto& p: comp.first ) {
@@ -214,7 +214,7 @@ namespace adcontrols {
                     }
                 }
 
-                if ( comp.second ) {
+                if ( !removeCharge && comp.second ) {
                     o << "]";
                     if ( std::abs( comp.second ) > 1 )
                         o << std::abs( comp.second );
@@ -274,11 +274,22 @@ namespace adcontrols {
                 adportable::chem::chemical_formula_parser< iterator_type, adportable::chem::formulaComposition, adportable::chem::icomp_type > comp_parser;
 
                 std::vector< std::pair<std::basic_string< char_type >, char_type> > list;
+
                 iterator_type it = formula.begin();
+                while (( *it == ' ' || *it == '\t' || *it == ',' || *it == ';') && it != formula.end() ) // remove leading white space
+                    ++it;
+                if ( it == formula.end() )
+                    return list;
+
                 adportable::chem::icomp_type comp;
 
-                std::string::size_type pos = 0;
+                std::string::size_type pos = std::distance( formula.begin(), it );
                 char separator = 0;
+
+                if ( *it == '-' || *it == '+' ) { // if the formula start with '+'/'-' which is adduct/lose separator
+                    separator = *it++;
+                    ++pos;
+                }
 
                 while ( boost::spirit::qi::parse ( it, formula.end(), comp_parser, comp ) ) {
 
@@ -286,8 +297,9 @@ namespace adcontrols {
 
                     list.emplace_back ( formula.substr ( pos, count ), separator );
 
-                    while ( it != formula.end() && ( *it == ',' || *it == ';' ) )
+                    while ( it != formula.end() && ( *it == ',' || *it == ';' || *it == ' ' || *it == '\t') )
                         ++it;
+
                     if ( it == formula.end() )
                         break;
 
@@ -427,6 +439,7 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
     }
 
     int charge = comp.second + lose.second;
+    // ADDEBUG() << "charge : " << comp.second << " + " << lose.second << " = " << charge;
 
     double mass = chem::monoIsotopicMass( comp, false );
     mass -= chem::monoIsotopicMass( lose, false );
@@ -455,15 +468,15 @@ ChemicalFormula::getChemicalMass( const std::wstring& formula ) const
 }
 
 std::wstring
-ChemicalFormula::standardFormula( const std::wstring& formula )
+ChemicalFormula::standardFormula( const std::wstring& formula, bool removeCharge )
 {
-    return chem::standardFormula<wchar_t>( formula );
+    return chem::standardFormula<wchar_t>( formula, removeCharge );
 }
 
 std::string
-ChemicalFormula::standardFormula( const std::string& formula )
+ChemicalFormula::standardFormula( const std::string& formula, bool removeCharge )
 {
-    return chem::standardFormula<char>( formula );
+    return chem::standardFormula<char>( formula, removeCharge );
 }
 
 std::string
@@ -539,6 +552,60 @@ ChemicalFormula::getComposition( std::vector< mol::element >& el, const std::str
         return true;
     }
     return false;
+}
+
+/*
+ * neutralize change ion form to neutral form
+ * ex. '[H]+' --> H
+ */
+//static
+std::pair< std::string, int >
+ChemicalFormula::neutralize( const std::string& formula )
+{
+    chem::formatter formatter;
+
+    chem::iformat_type fmt;
+    std::string::const_iterator it = formula.begin();
+    int charge(0);
+    do {
+        if ( *it == '+' ) {
+            fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put '+' in the text
+            ++it;
+        } else if ( *it == '-' ) {
+            fmt.first.emplace_back( adportable::chem::atom_type( 0, " +" ), 0 ); // put '-' in the text
+            ++it;
+        }
+        charge += fmt.second;
+    } while ( formatter.parse< char >( it, formula.end(), fmt ) && it != formula.end() );
+
+    charge += fmt.second;
+
+    std::ostringstream o;
+    formatter.print_text( o, fmt, false, true );
+
+    return { o.str(), charge };
+}
+
+//static
+size_t
+ChemicalFormula::number_of_atoms( const std::string& formula )   // return true if "H" "Na" ...
+{
+    using namespace adportable::chem;
+
+    typedef typename std::string::const_iterator iterator_type;
+    adportable::chem::chemical_formula_parser< iterator_type
+                                               , adportable::chem::formulaComposition
+                                               , adportable::chem::icomp_type > cf;
+
+    adportable::chem::icomp_type comp;
+    auto it = formula.begin();
+
+    size_t n(0);
+
+    while ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) )
+        n = std::accumulate( comp.first.begin(), comp.first.end(), n, []( size_t a, const adportable::chem::comp_type::value_type& pair ){ return a + pair.second; });
+
+    return n;
 }
 
 /*
@@ -677,7 +744,7 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
 
 
 template<> void
-chem::formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText )
+chem::formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText, bool neutral )
 {
     if ( fmt.second ) // has charge
         o << L"[";
@@ -705,30 +772,48 @@ chem::formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_typ
 }
 
 template<> void
-chem::formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText )
+chem::formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText, bool neutral )
 {
-    if ( fmt.second ) // has charge
+    if ( fmt.second && !neutral ) // has charge
         o << "[";
     for ( auto e: fmt.first ) {
         if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
             o << "(";
         } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
-            o << boost::format( ")<sub>%1%</sub>" ) % e.second;
+            if ( richText )
+                o << boost::format( ")<sub>%1%</sub>" ) % e.second;
+            else
+                o << boost::format( ")%1%" ) % e.second;
         } else {
-            if ( e.first.first )
-                o << boost::format( "<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
+            if ( e.first.first ) {
+                if ( richText )
+                    o << boost::format( "<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
+                else
+                    o << boost::format( "%1%" ) % e.first.first; // element's atomic weight
+            }
 
             o << boost::format( "%s" ) % e.first.second; // element name
 
-            if ( e.second > 1 )
-                o << boost::format( "<sub>%1%</sub>" ) % e.second;
+            if ( e.second > 1 ) {
+                if ( richText )
+                    o << boost::format( "<sub>%1%</sub>" ) % e.second;
+                else
+                    o << boost::format( "%1%" ) % e.second;
+            }
         }
     }
 
-    if ( fmt.second ) {
-        if ( fmt.second > 1 )
-            o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
-        else
-            o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
+    if ( fmt.second && !neutral ) {
+        if ( fmt.second > 1 ) {
+            if ( richText )
+                o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
+            else
+                o << "]" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "";
+        } else {
+            if ( richText )
+                o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
+            else
+                o << "]" << (fmt.second < 0 ? '-' : '+') << "";
+        }
     }
 }

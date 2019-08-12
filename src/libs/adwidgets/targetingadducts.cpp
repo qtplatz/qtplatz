@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -26,6 +26,8 @@
 #include "delegatehelper.hpp"
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adportable/debug.hpp>
+#include <QMenu>
 #include <QStyledItemDelegate>
 #include <QStandardItemModel>
 #include <array>
@@ -55,7 +57,6 @@ namespace adwidgets {
         public:
             void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
                 if ( index.parent() != QModelIndex() && index.column() == c_formula ) {
-                    
                     QStyleOptionViewItem opt = option;
                     initStyleOption( &opt, index );
                     std::string formula = adcontrols::ChemicalFormula::formatFormulae( index.data().toString().toStdString() );
@@ -81,6 +82,21 @@ TargetingAdducts::TargetingAdducts(QWidget *parent) : QTreeView(parent)
 {
     setModel( model_ );
     setItemDelegate( delegate_ );
+
+    setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, &QTreeView::customContextMenuRequested, this, &TargetingAdducts::handleContextMenu );
+}
+
+void
+TargetingAdducts::handleContextMenu( const QPoint& pt )
+{
+    QMenu menu;
+    auto action = menu.addAction( "Reset to default" );
+    if ( auto selected = menu.exec( mapToGlobal( pt ) ) ) {
+        if ( selected == action ) {
+            emit resetAdducts();
+        }
+    }
 }
 
 void
@@ -89,11 +105,11 @@ TargetingAdducts::getContents( adcontrols::TargetingMethod& method )
     using namespace adwidgets::detail;
 	QStandardItemModel& model = *model_;
 
-    std::array< std::pair< bool, int >, 2 > polarities = { { std::make_pair( true, r_pos_adducts ) 
+    std::array< std::pair< bool, int >, 2 > polarities = { { std::make_pair( true, r_pos_adducts )
                                                              , std::make_pair( false, r_neg_adducts ) } };
 
     for ( auto polarity: polarities ) {
-        
+
         if ( auto parent = model.item( polarity.second, c_header ) ) {
 
             auto& adducts = method.adducts( polarity.first );
@@ -103,8 +119,9 @@ TargetingAdducts::getContents( adcontrols::TargetingMethod& method )
                 if ( auto item = model.itemFromIndex( model.index( row, c_header, parent->index() ) ) ) {
                     bool enable = item->data( Qt::CheckStateRole ).toBool();
                     std::string adduct = item->data( Qt::EditRole ).toString().toStdString();
+                    //ADDEBUG() << "adduct: " << adduct << ", " << enable;
                     if ( !adduct.empty() )
-                        adducts.push_back( std::make_pair( enable, adduct ) );
+                        adducts.emplace_back( enable, adduct );
                 }
             }
         }
@@ -156,7 +173,7 @@ TargetingAdducts::OnInitialUpdate()
     rootNode->setColumnCount( nbrColumns );
 
     model.setRowCount( nbrRows );
-    
+
     model.setData( model.index( r_pos_adducts, c_header ),  tr("Adducts(pos)") );
     model.setData( model.index( r_neg_adducts, c_header ),  tr("Adducts/Losses(neg)") );
 

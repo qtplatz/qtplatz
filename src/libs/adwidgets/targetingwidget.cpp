@@ -43,11 +43,11 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
 
         layout->setMargin(0);
         layout->setSpacing(2);
-        
+
         if ( QSplitter * splitter = new QSplitter ) {
-            splitter->addWidget( ( form_ = new TargetingForm ) ); 
+            splitter->addWidget( ( form_ = new TargetingForm ) );
             //splitter->addWidget( ( table_ = new TargetingTable ) );
-            splitter->addWidget( new MolTable ); 
+            splitter->addWidget( new MolTable );
             splitter->addWidget( (new TargetingAdducts) );
             splitter->setStretchFactor( 0, 0 );
             splitter->setStretchFactor( 1, 3 );
@@ -58,6 +58,9 @@ TargetingWidget::TargetingWidget(QWidget *parent) : QWidget(parent)
 
         }
     }
+    if ( auto widget = findChild< TargetingAdducts * >() )
+        connect( widget, &TargetingAdducts::resetAdducts, this, &TargetingWidget::handleResetAdducts );
+
     connect( form_, &TargetingForm::triggerProcess, [this] { emit triggerProcess( "TargetingWidget" ); } );
 }
 
@@ -88,7 +91,7 @@ TargetingWidget::OnInitialUpdate()
     }
 
     form_->setContents( m );
-        
+
     if ( auto tree = findChild< TargetingAdducts * >() ) {
         tree->OnInitialUpdate();
         tree->setContents( m );
@@ -103,6 +106,14 @@ TargetingWidget::onUpdate( boost::any&& )
 void
 TargetingWidget::OnFinalClose()
 {
+}
+
+void
+TargetingWidget::handleResetAdducts()
+{
+    adcontrols::TargetingMethod m( adcontrols::TargetingMethod::idTargetFormula );
+    if ( auto tree = findChild< TargetingAdducts * >() )
+        tree->setContents( m );
 }
 
 bool
@@ -123,7 +134,7 @@ TargetingWidget::getContents( boost::any& a ) const
 
             if ( auto tree = findChild< TargetingAdducts * >() )
                 tree->getContents( method );
-            
+
             pm->appendMethod( method );
 
             return true;
@@ -142,7 +153,7 @@ TargetingWidget::setContents( boost::any&& a )
         return false;
 
     } else if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
-        
+
         const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
 
         if ( const adcontrols::TargetingMethod * t = pm.find< adcontrols::TargetingMethod >() ) {
@@ -151,13 +162,12 @@ TargetingWidget::setContents( boost::any&& a )
 
             if ( auto table = findChild< MolTable *>() )
                 table->setContents( t->molecules() );
-        
+
             if ( auto tree = findChild< TargetingAdducts * >() )
             tree->setContents( *t );
         }
 
     }
-    
+
     return false;
 }
-

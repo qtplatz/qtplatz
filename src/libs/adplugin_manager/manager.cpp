@@ -95,7 +95,7 @@ namespace adplugin {
         explicit plugin_data( adplugin::plugin_ptr ptr
                               , boost::dll::shared_library&& dll ) : plugin_( ptr )
                                                                    , dll_( dll ) {
-#ifndef NDEBUG
+#if !defined NDEBUG && 0
             boost::system::error_code ec;
             ADDEBUG() << ">>> plugin_data ctor : " << dll_.location( ec ) << ", " << ec.message();
 #endif

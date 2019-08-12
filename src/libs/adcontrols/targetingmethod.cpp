@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,6 +25,8 @@
 #include "targetingmethod.hpp"
 #include "serializer.hpp"
 #include "moltable.hpp"
+#include "chemicalformula.hpp"
+#include <adportable/float.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
@@ -32,6 +34,31 @@
 #include <boost/serialization/utility.hpp>
 
 namespace adcontrols {
+
+    // reference,
+    // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
+
+    constexpr const char * const pos_adducts [] = {
+        "+H"
+        , "+Na"
+        , "+NH4"
+        , "+K"
+        , "+CH3CN H"
+        , "+CH3CN Na"
+        , "+CH3OH H"
+        , "+(CH3)2SO H"        // DMSO
+        , "+C3H8O H"           // IPA
+        , "+C3H8O Na"
+    };
+
+    constexpr const char * const neg_adducts [] = {
+        "-H"
+        , "-H2OH"
+        , "-H2Na"
+        , "-H2K"
+        , "+Cl"
+        , "+COO"
+    };
 
     class TargetingMethod::impl {
     public:
@@ -47,17 +74,12 @@ namespace adcontrols {
                             , lowMassLimit_( 1 )
                             , highMassLimit_( 1000 )
                             , tolerance_( 0 ) /* not in use */ {
-            // reference,
-            // http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator/
 
-            // "(CH3)2SO+H" // DMSO+H
-            // "C3H8O+H"    // IPA+H
-            // "C3H8O+Na"   // IPA+Na
-            for ( auto adduct : { "[H]+", "[Na]+", "[NH4]+", "[K]+", "[CH3CN H]+" "[CH3CN Na]+", "[CH3OH H]+", "[(CH3)2SO H]+", "[C3H8O H]+", "[C3H8O Na]+" } )
-                pos_adducts_.push_back( std::make_pair( false, adduct ) );
+            for ( auto adduct : pos_adducts )
+                pos_adducts_.emplace_back( false, adduct );
 
-            for ( auto adduct : { "-H", "-H2O-H", "Na-H2", "Cl", "K-H2", "[COO]-" } )
-                neg_adducts_.push_back( std::make_pair( false, adduct ) );
+            for ( auto adduct : neg_adducts )
+                neg_adducts_.emplace_back( false, adduct );
         }
 
         idTarget idTarget_;
@@ -111,18 +133,18 @@ namespace adcontrols {
                     ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power );
                 else if ( version == 4 )
                     ar & BOOST_SERIALIZATION_NVP( toleranceMethod_ );
-                ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ )
-                    & BOOST_SERIALIZATION_NVP( toleranceDaltons_ )
-                    & BOOST_SERIALIZATION_NVP( chargeStateMin_ )
-                    & BOOST_SERIALIZATION_NVP( chargeStateMax_ )
-                    & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ )
-                    & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ )
-                    & BOOST_SERIALIZATION_NVP( lowMassLimit_ )
-                    & BOOST_SERIALIZATION_NVP( highMassLimit_ )
-                    & BOOST_SERIALIZATION_NVP( tolerance_ )
-                    & BOOST_SERIALIZATION_NVP( pos_adducts_ )
-                    & BOOST_SERIALIZATION_NVP( neg_adducts_ )
-                    ;
+
+                ar & BOOST_SERIALIZATION_NVP( tolerancePpm_ );
+                ar & BOOST_SERIALIZATION_NVP( toleranceDaltons_ );
+                ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
+                ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
+                ar & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ );
+                ar & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ );
+                ar & BOOST_SERIALIZATION_NVP( lowMassLimit_ );
+                ar & BOOST_SERIALIZATION_NVP( highMassLimit_ );
+                ar & BOOST_SERIALIZATION_NVP( tolerance_ );
+                ar & BOOST_SERIALIZATION_NVP( pos_adducts_ );
+                ar & BOOST_SERIALIZATION_NVP( neg_adducts_ );
 
                 if ( version <= 3 ) {
 
@@ -355,4 +377,29 @@ void
 TargetingMethod::setMolecules( const moltable& t )
 {
     impl_->molecules_ = t;
+}
+
+//static
+std::string
+TargetingMethod::default_adducts( bool positive )
+{
+    std::string formulae;
+    if ( positive ) {
+        for ( const auto& adduct: pos_adducts ) {
+            for ( const auto& a: ChemicalFormula::split( adduct ) ) {
+                formulae += a.second == ' ' ? '+' : a.second;
+                formulae += a.first;
+                formulae += ";";
+            }
+        }
+    } else {
+        for ( const auto& adduct: neg_adducts ) {
+            for ( const auto& a: ChemicalFormula::split( adduct ) ) {
+                formulae += a.second == ' ' ? '+' : a.second;
+                formulae += a.first;
+                formulae += ";";
+            }
+        }
+    }
+    return formulae;
 }

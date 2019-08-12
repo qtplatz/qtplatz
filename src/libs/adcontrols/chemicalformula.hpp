@@ -46,25 +46,27 @@ namespace adcontrols {
 
         double getMonoIsotopicMass( const std::wstring& formula ) const;
 		double getMonoIsotopicMass( const std::string& formula ) const;
-        double getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const;        
+        double getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const;
 
         double getChemicalMass( const std::wstring& formula ) const;
 		double getChemicalMass( const std::string& formula ) const;
         double getElectronMass() const;
-        
-		static std::wstring standardFormula( const std::wstring& formula );
-		static std::string standardFormula( const std::string& formula );
+
+		static std::wstring standardFormula( const std::wstring& formula, bool removeChare = false );
+		static std::string standardFormula( const std::string& formula, bool removeCharge = false );
 		static std::string standardFormula( const std::vector< std::pair< std::string, char > >& formulae );
         static bool getComposition( std::vector< mol::element >&, const std::string& formula, int& charge );
         static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
         static std::string formatFormula( const std::string& formula, bool richText = true );
-        
+
         /*
-         * split formula followed by a list of adducts/losses, 
+         * split formula followed by a list of adducts/losses,
          * ex. 'CH3(C2H4)5OH +H +Na +NH3 -C2H4' will return pair(' ', "CH3(C2H4)50H"), pair('+' "Na"), pair('+' "NH3"), pair( '-' "C2H4")
          */
         typedef std::pair< std::string, char > formula_adduct_t;
         static std::vector< formula_adduct_t > split( const std::string& adducts );
+        static std::pair< std::string, int > neutralize( const std::string& formula ); // remove charged form, [H]+ --> H
+        static size_t number_of_atoms( const std::string& formula );   // return true if "H" "Na" ...
 
 #if defined _MSC_VER
         static const char sign_formula = '\0';

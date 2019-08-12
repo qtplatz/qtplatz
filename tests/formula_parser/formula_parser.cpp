@@ -20,8 +20,8 @@ namespace parser {
 
         comp = adportable::chem::icomp_type(); // clear
 
-        typedef typename std::basic_string< char_type >::const_iterator iterator_type;    
-    
+        typedef typename std::basic_string< char_type >::const_iterator iterator_type;
+
         using adportable::chem::formulaComposition;
         using adportable::chem::icomp_type;
         adportable::chem::chemical_formula_parser< iterator_type, formulaComposition, icomp_type > cf;
@@ -34,7 +34,7 @@ namespace formatter {
     static const char * braces [] = { "(", ")" };
     static const char * separators [] = { "+", "-" };
     using adportable::chem::atom_type;
-        
+
     typedef std::vector< std::pair< atom_type, size_t > > format_type;
     typedef std::pair< format_type, int > iformat_type;
 
@@ -53,7 +53,7 @@ namespace formatter {
 
             for ( auto t: a.first )
                 m.first.emplace_back( t );
-            
+
         }
 
         static void formula_repeat( iformat_type& m, std::size_t n ) {
@@ -70,9 +70,9 @@ namespace formatter {
 
         typedef typename std::basic_string< char_type >::const_iterator iterator_type;
         adportable::chem::chemical_formula_parser< iterator_type, formulaFormat, iformat_type > cf;
-        
+
         return boost::spirit::qi::parse( it, end, cf, fmt );
-    }    
+    }
 }
 
 
@@ -89,7 +89,7 @@ main(int argc, char * argv[])
     namespace qi = boost::spirit::qi;
 
     while (std::getline(std::cin, str))  {
-        
+
         if (str.empty() || str[0] == 'q' || str[0] == 'Q')
             break;
 
@@ -106,7 +106,7 @@ main(int argc, char * argv[])
                 std::cout << "---------- " << count++ << " ---------------\n";
                 std::cout << "\tParsing succeeded for '" << str.substr( 0, it - str.begin() ) << "'\n";
                 std::cout << str << " map size: " << comp.first.size() << std::endl;
-                
+
                 for ( auto e: comp.first )
                     std::cout << "\t" << e.first.first
                               << " "  << e.first.second
@@ -132,26 +132,25 @@ main(int argc, char * argv[])
         do {
             formatter::iformat_type fmt;
             std::vector< std::string > list;
-            
-            size_t count(0);
+
             std::basic_string< char >::const_iterator it = str.begin();
             //auto it = str.begin();
-            
+
             while ( formatter::format<char>( it, str.end(), fmt ) ) {
 
                 if ( it == str.end() || std::find( delimiters.begin(), delimiters.end(), *it ) == delimiters.end() )
                     break;
-                
+
                 auto sep = std::find_if( formatter::separators, formatter::separators + 2, [&]( const char * a ){ return *it == *a; } );
                 if ( sep != formatter::separators + 2 ) {
                     fmt.first.emplace_back( adportable::chem::atom_type( 0, *sep ), 0 );
                 }
                 ++it;
             }
-            
+
             if ( it != str.end() )
                 std::cout << "Parse error: ";
-            
+
             if ( fmt.second ) // has charge
                 std::cout << "[";
             for ( auto e: fmt.first )
@@ -165,4 +164,3 @@ main(int argc, char * argv[])
     std::cout << "Bye... :-) \n\n";
 	return 0;
 }
-

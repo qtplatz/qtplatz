@@ -68,6 +68,9 @@ namespace adwidgets {
 
     public slots:
 
+    private slots:
+        void handleResetAdducts();
+
     };
 
 }

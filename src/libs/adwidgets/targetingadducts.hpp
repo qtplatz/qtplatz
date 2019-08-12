@@ -49,8 +49,11 @@ namespace adwidgets {
         void setContents( const adcontrols::TargetingMethod& );
 
     signals:
-
+        void resetAdducts();
     public slots:
+
+    private slots:
+        void handleContextMenu( const QPoint& );
 
     private:
         QStandardItemModel * model_;

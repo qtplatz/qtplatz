@@ -947,10 +947,9 @@ MSPeakTable::exactMass( std::string formula )
 {
     if ( formula.empty() )
         return 0;
-
-    adcontrols::ChemicalFormula formulaParser;
-    double exactMass = formulaParser.getMonoIsotopicMass( formula );
-    return exactMass;
+    auto neutral = adcontrols::ChemicalFormula::neutralize( formula );
+    // ADDEBUG() << "exactMass(" << formula << ") neutral: " << neutral;
+    return adcontrols::ChemicalFormula().getMonoIsotopicMass( adcontrols::ChemicalFormula::split( neutral.first ) );
 }
 
 bool

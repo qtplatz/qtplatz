@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,13 +31,118 @@
 #include <adcontrols/moltable.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/combination.hpp>
+#include <adportable/for_each_combination.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#include <boost/format.hpp>
 #include <algorithm>
 #include <iterator>
 #include <sstream>
 #include <set>
 #include <map>
+
+namespace adcontrols {
+
+    typedef std::map< std::string, uint32_t > adduct_complex_t;
+
+    struct make_formula {
+        template< char sign >
+        bool to_formula( int charge
+                         , const adduct_complex_t& complex
+                         , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts
+                         , std::ostream& o ) {
+
+            bool once_flag(true);
+
+            for ( const auto& a: complex ) {
+                assert( a.second );
+                auto it = adducts.find( a.first );
+                if ( it != adducts.end() ) {
+                    if ( it->second.second == sign ) {
+                        if ( once_flag ) {
+                            o << sign;
+                            if ( charge )
+                                o << "[";
+                            once_flag = false;
+                        }
+                        size_t natoms = adcontrols::ChemicalFormula::number_of_atoms( it->second.first );
+                        if ( a.second > 1 && natoms > 1 )
+                            o << "(";
+                        o << it->second.first;
+                        if ( a.second > 1 && natoms > 1 )
+                            o << ")";
+                        if ( a.second > 1 )
+                            o << a.second;
+                    }
+                }
+            }
+            if ( charge && !once_flag ) {
+                o << "]";
+                if ( std::abs( charge ) > 1 )
+                    o << std::abs( charge );
+                o << (charge > 0 ? '+' : '-');
+            }
+            return !once_flag;
+        }
+
+        std::string
+        operator()( int charge
+                    , const adduct_complex_t& complex
+                    , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts ) {
+            std::ostringstream o;
+            to_formula<'-'>( 0, complex, adducts, o );
+            if ( ! to_formula<'+'>( charge, complex, adducts, o ) ) {
+                std::ostringstream n;
+                to_formula<'-'>( charge, complex, adducts, n );
+                return n.str();
+            }
+            return o.str();
+        }
+
+    };
+
+    struct make_combination {
+
+        typedef std::map< std::string, uint32_t > adduct_complex_t;
+        std::vector< adduct_complex_t > complex_;
+
+        static void print( int charge
+                           , const adduct_complex_t& complex
+                           , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts
+                           , std::ostream& o ) {
+            o << make_formula()( charge, complex, adducts );
+        }
+
+        std::vector< std::string >
+        operator()( uint32_t charge
+                         , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts ) {
+
+            const size_t r = charge;
+            const size_t n = adducts.size();
+
+            std::vector< std::string > v_keys( n );
+            std::transform( adducts.begin(), adducts.end(), v_keys.begin(), [](const auto& a){ return a.first; });
+            std::vector< std::vector< std::string >::const_iterator > v_iter( r, v_keys.begin() );
+            do {
+                std::ostringstream o;
+
+                adduct_complex_t an_adduct;
+                std::for_each( v_iter.begin(), v_iter.end(), [&]( const auto& it ){ an_adduct[ *it ]++; });
+                // print( charge, an_adduct, adducts, o );
+                // ADDEBUG() << "\t" << o.str();
+                complex_.emplace_back( std::move( an_adduct ) );
+
+            } while ( boost::next_mapping( v_iter.begin(), v_iter.end(), v_keys.begin(), v_keys.end() ) );
+
+            std::vector< std::string > results;
+            for ( const auto& complex: complex_ ) {
+                results.emplace_back( make_formula()( charge, complex, adducts ) );
+            }
+            return results;
+        }
+
+    };
+}
 
 using namespace adcontrols;
 
@@ -177,32 +282,56 @@ Targeting::setup( const TargetingMethod& m )
 
     active_formula_.clear();
 
-    for ( auto& x : m.molecules().data() ) {
-        if ( x.enable() ) {
-            auto formula = std::string( x.formula() ) + x.adducts();
-            active_formula_.push_back( std::make_pair( formula, formula_parser.getMonoIsotopicMass( ChemicalFormula::split( formula ) ) ) );
-        }
-    }
-    setup_adducts( m, true, pos_adducts_ );
-    std::sort( pos_adducts_.begin(), pos_adducts_.end() );
+    std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_global;
 
-    setup_adducts( m, false, neg_adducts_ );
-    std::sort( neg_adducts_.begin(), neg_adducts_.end() );
+    bool positive = true;
 
     auto charge_range = m.chargeState();
-    
-    for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-        make_combination( charge, pos_adducts_, poslist_ );
-        make_combination( charge, neg_adducts_, neglist_ );
+
+    for ( auto& a: m.adducts( positive ) ) {
+        if ( a.first ) {
+            for ( const auto& adduct: ChemicalFormula::split( a.second ) ) {
+                auto sign = (adduct.second == '-' ? "-" : "+");
+                adducts_global[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { adduct.first, sign[0] };
+            }
+        }
     }
 
-    std::sort( poslist_.begin(), poslist_.end(), [] ( const charge_adduct_type& a, const charge_adduct_type& b ){
-        return std::get<0>( a ) < std::get<0>( b ); // order by mass
-    } );
+    for ( auto& x : m.molecules().data() ) {
+        if ( x.enable() ) {
 
-    std::sort( neglist_.begin(), neglist_.end(), [] ( const charge_adduct_type& a, const charge_adduct_type& b ){
-        return std::get<0>( a ) < std::get<0>( b ); // order by mass
-    } );
+            std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local( adducts_global );
+
+            if ( !std::string( x.adducts() ).empty() ) {
+                for ( const auto& a: ChemicalFormula::split( x.adducts() ) ) {
+                    auto sign = (a.second == '-' ? "-" : "+");
+                    auto pair = ChemicalFormula::neutralize( a.first ); // neutral formula, charge
+                    adducts_local[ sign + ChemicalFormula::standardFormula( a.first, true ) ] = { pair.first, sign[0] };
+                }
+                auto formula = std::string( x.formula() ) + x.adducts();
+            }
+
+            for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
+                if ( charge == 1 ) {
+                    for ( const auto& a: adducts_local ) {
+                        std::ostringstream t;
+                        t << x.formula() << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
+                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ) ) );
+                    }
+                } else if ( charge >= 2 ) {
+                    for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+                        std::ostringstream t;
+                        t << x.formula() << a;
+                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ) ) );
+                    }
+                }
+            }
+#ifndef NDEBUG
+            for ( const auto& a: active_formula_ )
+                ADDEBUG() << a << ", neutral: " << ChemicalFormula::neutralize( a.first );
+#endif
+        }
+    }
 
 }
 
@@ -211,7 +340,7 @@ Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< 
 {
     ChemicalFormula formula_parser;
 
-    for ( auto& a: m.adducts( positive ) ) { 
+    for ( auto& a: m.adducts( positive ) ) {
 
         if ( a.first ) { // if (enable)
             std::string addformula;
@@ -228,49 +357,51 @@ Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< 
     }
 }
 
-void
-Targeting::make_combination( uint32_t charge
-                             , const std::vector< adduct_type >& adducts
-                             , std::vector< charge_adduct_type >& list )
-{
-    if ( adducts.empty() || charge == 0 )
-        return;
 
-    typedef size_t formula_number;
-    typedef size_t formula_count;
-    std::set< std::map< formula_number, formula_count > > combination_with_repetition;
-    {
-        // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "making combination(2):";
-        std::vector< uint32_t > selector( adducts.size() * charge );
-        auto it = selector.begin();
-        for( uint32_t n = 0; n < adducts.size(); ++n ) {
-            std::fill( it, it + charge, n );
-            std::advance( it, charge );
-        }
-        do {
-            std::map< formula_number, formula_count > formulae;
 
-            for ( auto it = selector.begin(); it != selector.begin() + charge; ++it )
-                formulae[ *it ]++;
+// void
+// Targeting::make_combination( uint32_t charge
+//                              , const std::vector< adduct_type >& adducts
+//                              , std::vector< charge_adduct_type >& list )
+// {
+//     if ( adducts.empty() || charge == 0 )
+//         return;
 
-            combination_with_repetition.insert( formulae );
+//     typedef size_t formula_number;
+//     typedef size_t formula_count;
+//     std::set< std::map< formula_number, formula_count > > combination_with_repetition;
+//     {
+//         // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "making combination(2):";
+//         std::vector< uint32_t > selector( adducts.size() * charge );
+//         auto it = selector.begin();
+//         for( uint32_t n = 0; n < adducts.size(); ++n ) {
+//             std::fill( it, it + charge, n );
+//             std::advance( it, charge );
+//         }
+//         do {
+//             std::map< formula_number, formula_count > formulae;
 
-        } while ( boost::next_combination( selector.begin(), selector.begin() + charge, selector.end() ) );
-    }
+//             for ( auto it = selector.begin(); it != selector.begin() + charge; ++it )
+//                 formulae[ *it ]++;
 
-    // translate index combination into a vector of atoms|formula with exact-mass
+//             combination_with_repetition.insert( formulae );
 
-    for ( auto& fmap : combination_with_repetition ) {
-        std::ostringstream formula;
-        double mass = 0;
-        std::for_each( fmap.begin(), fmap.end(), [&] ( const std::pair< size_t, size_t >& a ){
-            formula << a.second << "(" << adducts[ a.first ].second << ")";
-            mass += adducts[ a.first ].first * a.second;
-        } );
-        list.push_back( std::make_tuple( mass, formula.str(), charge ) );
-        // ADDEBUG() << "charge: " << charge << "\tmass=" << mass << "\t" << formula.str();
-    }
-}
+//         } while ( boost::next_combination( selector.begin(), selector.begin() + charge, selector.end() ) );
+//     }
+
+//     // translate index combination into a vector of atoms|formula with exact-mass
+
+//     for ( auto& fmap : combination_with_repetition ) {
+//         std::ostringstream formula;
+//         double mass = 0;
+//         std::for_each( fmap.begin(), fmap.end(), [&] ( const std::pair< size_t, size_t >& a ){
+//             formula << a.second << "(" << adducts[ a.first ].second << ")";
+//             mass += adducts[ a.first ].first * a.second;
+//         } );
+//         list.push_back( std::make_tuple( mass, formula.str(), charge ) );
+//         // ADDEBUG() << "charge: " << charge << "\tmass=" << mass << "\t" << formula.str();
+//     }
+// }
 
 bool
 Targeting::archive( std::ostream& os, const Targeting& v )
