@@ -1103,6 +1103,7 @@ DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
     return ptr; // can be null
 }
 
+/////////////// targetting /////////////
 bool
 DataprocessorImpl::applyMethod( Dataprocessor *
                                 , portfolio::Folium& folium

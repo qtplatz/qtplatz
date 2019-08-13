@@ -34,18 +34,38 @@ MSSimulatorForm::MSSimulatorForm(QWidget *parent) :
     ui(new Ui::MSSimulatorForm)
 {
     ui->setupUi(this);
+
     connect( ui->spinBox, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
-    connect( ui->spinBox_2, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
-    connect( ui->spinBox_3, static_cast<void( QSpinBox::* )( int )>( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
+
     connect( ui->doubleSpinBox, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_2, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_3, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
     connect( ui->doubleSpinBox_4, static_cast<void( QDoubleSpinBox::* )( double )>( &QDoubleSpinBox::valueChanged ), [this] ( double ) { emit onValueChanged(); } );
+
+    connect( ui->spinBox_2, qOverload< int >( &QSpinBox::valueChanged )
+             , [this] ( int ) {
+                   QSignalBlocker block( ui->spinBox_3 );
+                   if ( ui->spinBox_3->value() < ui->spinBox_2->value() )
+                       ui->spinBox_3->setValue( ui->spinBox_2->value() );
+                   emit onValueChanged();
+               } );
+
+    connect( ui->spinBox_3, qOverload< int >( &QSpinBox::valueChanged )
+             , [this] ( int ) {
+                   QSignalBlocker block( ui->spinBox_2 );
+                   if ( ui->spinBox_3->value() < ui->spinBox_2->value() )
+                       ui->spinBox_2->setValue( ui->spinBox_3->value() );
+                   emit onValueChanged();
+               } );
+
+    connect( ui->spinBox_3, qOverload< int >( &QSpinBox::valueChanged ), [this] ( int ) { emit onValueChanged(); } );
+
     connect( ui->checkBox, &QCheckBox::toggled, [this](bool) { emit onValueChanged(); } );
-    connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );    
+    connect( ui->groupBox, &QGroupBox::toggled, [this](bool) { emit onValueChanged(); } );
     connect( ui->pushButton, &QPushButton::pressed, [this] () { emit triggerProcess(); } );
 
+    // T0
     ui->doubleSpinBox_5->setMinimum( -1000.0 ); // us
     ui->doubleSpinBox_5->setMaximum( 1000.0 ); // us
 }
@@ -77,7 +97,8 @@ MSSimulatorForm::getContents( adcontrols::MSSimulatorMethod& m ) const
     m.setLength( ui->doubleSpinBox_3->value() );
     m.setAcceleratorVoltage( ui->doubleSpinBox_4->value() );
     m.setTDelay( ui->doubleSpinBox_5->value() * 1.0e-6 );
-    
+    m.setIsPositivePolarity( ui->radioButtonPos->isChecked() );
+
     return true;
 }
 
@@ -97,17 +118,18 @@ MSSimulatorForm::setContents( const adcontrols::MSSimulatorMethod& m )
     (void)blocks;
 
     ui->spinBox->setValue( m.resolvingPower() );
-    ui->checkBox->setChecked( m.lMassLimit() > 0 );    
+    ui->checkBox->setChecked( m.lMassLimit() > 0 );
     ui->doubleSpinBox->setValue( m.lMassLimit() > 0 ? m.lMassLimit() : -m.lMassLimit() );
     ui->doubleSpinBox_2->setValue( m.uMassLimit() > 0 ? m.uMassLimit() : -m.uMassLimit() );
-    
-    ui->spinBox_2->setValue(  m.chargeStateMin() );
+
+    ui->spinBox_2->setValue( m.chargeStateMin() );
     ui->spinBox_3->setValue( m.chargeStateMax() );
     ui->groupBox->setChecked ( m.isTof() );
     ui->doubleSpinBox_3->setValue( m.length() );
     ui->doubleSpinBox_4->setValue( m.acceleratorVoltage() );
     ui->doubleSpinBox_5->setValue( m.tDelay() * 1.0e6 );
-    
+
+    ui->radioButtonPos->setChecked( m.isPositivePolarity() );
+
     return true;
 }
-

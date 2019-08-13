@@ -315,9 +315,9 @@ QuanChromatogramProcessor::make_title( const wchar_t * dataSource, const std::st
 
 QuanChromatogramProcessor::QuanChromatogramProcessor( std::shared_ptr< const adcontrols::ProcessMethod > pm )
     : debug_level_( 0 )
+    , save_on_datasource_( false )
     , procm_( std::make_shared< adcontrols::ProcessMethod >( *pm ) )
     , cXmethods_{{ std::make_unique< adcontrols::MSChromatogramMethod >(), std::make_unique< adcontrols::MSChromatogramMethod >() }}
-    , save_on_datasource_( false )
 {
     if ( auto qm = pm->find< adcontrols::QuanMethod >() ) {
         debug_level_ = qm->debug_level();

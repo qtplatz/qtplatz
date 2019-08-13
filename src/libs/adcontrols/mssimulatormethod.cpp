@@ -47,7 +47,7 @@ namespace adcontrols {
         double tof_length_;
         double tof_accelerator_voltage_;
         double tof_tDelay_;
-        
+
         friend class boost::serialization::access;
         template<class Archive>
         void serialize( Archive& ar, const unsigned int version ) {
@@ -62,7 +62,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( tof_tDelay_ );
             ar & BOOST_SERIALIZATION_NVP( molecules_ );
         }
-        
+
         impl() : mass_limits_( -1, -1 )
                , charge_state_( 1, 1 )
                , resolving_power_( 10000.0 )
@@ -70,7 +70,7 @@ namespace adcontrols {
                , is_tof_( true )
                , tof_length_( 0.5 )
                , tof_accelerator_voltage_( 5000.0 )
-               , tof_tDelay_( 0.0 )  {
+               , tof_tDelay_( 0.0 ) {
         }
 
         impl( const impl& t ) : mass_limits_( t.mass_limits_ )
@@ -112,7 +112,7 @@ namespace adcontrols {
         } catch ( std::exception& ) {
             BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize to xml_woarchive" ) );
         }
-        
+
     }
 
     template<> void
@@ -122,7 +122,7 @@ namespace adcontrols {
             ar & boost::serialization::make_nvp( "impl", *impl_ );
         } catch ( std::exception& ) {
             BOOST_THROW_EXCEPTION( serializer_error() << info( "serialize to xml_woarchive" ) );
-        }        
+        }
     }
 }
 
@@ -192,9 +192,9 @@ MSSimulatorMethod::setChargeStateMin( uint32_t value )
 void
 MSSimulatorMethod::setChargeStateMax( uint32_t value )
 {
-    impl_->charge_state_.second = value;    
+    impl_->charge_state_.second = value;
 }
-        
+
 void
 MSSimulatorMethod::setResolvingPower( double value )
 {
@@ -247,7 +247,7 @@ MSSimulatorMethod::isTof() const
 void
 MSSimulatorMethod::setIsTof( bool value )
 {
-    impl_->is_tof_ = value;    
+    impl_->is_tof_ = value;
 }
 
 double
@@ -273,7 +273,7 @@ MSSimulatorMethod::setAcceleratorVoltage( double value )
 {
     impl_->tof_accelerator_voltage_ = value;
 }
-        
+
 double
 MSSimulatorMethod::tDelay() const
 {
@@ -285,4 +285,3 @@ MSSimulatorMethod::setTDelay( double value )
 {
     impl_->tof_tDelay_ = value;
 }
-        

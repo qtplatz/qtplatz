@@ -116,10 +116,52 @@ namespace adcontrols {
                 return true;
             }
 
-            template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type&, bool, bool neutral = false );
+            template< typename char_type > void print_text( std::basic_ostream< char_type >& o, const iformat_type& fmt, bool richText, bool neutral = false ) {
+                if ( fmt.second && !neutral ) // has charge
+                    o << "[";
+                for ( auto e: fmt.first ) {
+                    if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
+                        o << "(";
+                    } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
+                        if ( richText )
+                            o << ")<sub>" << e.second << "</sub>";
+                        else
+                            o << ")" << e.second; // boost::format( ")%1%" ) % e.second;
+                    } else {
+                        if ( e.first.first ) {
+                            if ( richText )
+                                o << "<sup>" << e.first.first << "</sup>"; // boost::format( "<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
+                            else
+                                o << e.first.first; // element's atomic weight // boost::format( "%1%" ) % e.first.first; // element's atomic weight
+                        }
+
+                        o << e.first.second; // boost::format( "%s" ) % e.first.second; // element name
+
+                        if ( e.second > 1 ) {
+                            if ( richText )
+                                o << "<sub>" << e.second << "</sub>"; // boost::format( "<sub>%1%</sub>" ) % e.second;
+                            else
+                                o << e.second; // boost::format( "%1%" ) % e.second;
+                        }
+                    }
+                }
+
+                if ( fmt.second && !neutral ) {
+                    if ( fmt.second > 1 ) {
+                        if ( richText )
+                            o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
+                        else
+                            o << "]" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "";
+                    } else {
+                        if ( richText )
+                            o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
+                        else
+                            o << "]" << (fmt.second < 0 ? '-' : '+') << "";
+                    }
+                }
+            }
+
         };
-        template<> void formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText, bool neutral );
-        template<> void formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText, bool neutral );
 
         /////////
 
@@ -421,7 +463,7 @@ ChemicalFormula::getMonoIsotopicMass( const std::string& formula ) const
 }
 
 double
-ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae ) const
+ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string, char > >& formulae, int charge ) const
 {
     using namespace adportable::chem;
     chemical_formula_parser< std::string::const_iterator, formulaComposition, icomp_type > comp_parser;
@@ -438,7 +480,8 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
         }
     }
 
-    int charge = comp.second + lose.second;
+    if ( charge == 0 )
+        charge = comp.second + lose.second;
     // ADDEBUG() << "charge : " << comp.second << " + " << lose.second << " = " << charge;
 
     double mass = chem::monoIsotopicMass( comp, false );
@@ -447,7 +490,7 @@ ChemicalFormula::getMonoIsotopicMass( const std::vector< std::pair< std::string,
     if ( charge > 0 ) {
         return ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * charge ) ) / charge;
     } else if ( charge < 0 ) {
-        return mass / std::abs(charge);
+        return ( mass - ( adcontrols::TableOfElement::instance()->electronMass() * (-charge) ) ) / (-charge);
     }
     return mass;
 }
@@ -740,80 +783,4 @@ ChemicalFormula::standardFormulae( const std::string& formula, const std::string
 {
     std::vector< std::string > list;
     return standardFormulae( formula, adducts, list );
-}
-
-
-template<> void
-chem::formatter::print_text( std::basic_ostream< wchar_t >& o, const iformat_type& fmt, bool richText, bool neutral )
-{
-    if ( fmt.second ) // has charge
-        o << L"[";
-    for ( auto e: fmt.first ) {
-        if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
-            o << L"(";
-        } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
-            o << boost::wformat( L")<sub>%1%</sub>" ) % e.second;
-        } else {
-            if ( e.first.first )
-                o << boost::wformat( L"<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
-
-            o << boost::wformat( L"%s" ) % e.first.second; // element name
-
-            if ( e.second > 1 )
-                o << boost::wformat( L"<sub>%1%</sub>" ) % e.second;
-        }
-    }
-    if ( fmt.second ) {
-        if ( fmt.second > 1 )
-            o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
-        else
-            o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
-    }
-}
-
-template<> void
-chem::formatter::print_text( std::basic_ostream< char >& o, const iformat_type& fmt, bool richText, bool neutral )
-{
-    if ( fmt.second && !neutral ) // has charge
-        o << "[";
-    for ( auto e: fmt.first ) {
-        if ( std::strcmp( e.first.second, "(" ) == 0 ) { // open repeat-group
-            o << "(";
-        } else if ( std::strcmp( e.first.second, ")" ) == 0 ) { // close repeat-group
-            if ( richText )
-                o << boost::format( ")<sub>%1%</sub>" ) % e.second;
-            else
-                o << boost::format( ")%1%" ) % e.second;
-        } else {
-            if ( e.first.first ) {
-                if ( richText )
-                    o << boost::format( "<sup>%1%</sup>" ) % e.first.first; // element's atomic weight
-                else
-                    o << boost::format( "%1%" ) % e.first.first; // element's atomic weight
-            }
-
-            o << boost::format( "%s" ) % e.first.second; // element name
-
-            if ( e.second > 1 ) {
-                if ( richText )
-                    o << boost::format( "<sub>%1%</sub>" ) % e.second;
-                else
-                    o << boost::format( "%1%" ) % e.second;
-            }
-        }
-    }
-
-    if ( fmt.second && !neutral ) {
-        if ( fmt.second > 1 ) {
-            if ( richText )
-                o << "]<sup>" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "</sup>";
-            else
-                o << "]" << std::abs(fmt.second) << (fmt.second < 0 ? '-' : '+') << "";
-        } else {
-            if ( richText )
-                o << "]<sup>" << (fmt.second < 0 ? '-' : '+') << "</sup>";
-            else
-                o << "]" << (fmt.second < 0 ? '-' : '+') << "";
-        }
-    }
 }

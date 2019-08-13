@@ -23,32 +23,33 @@
 **
 **************************************************************************/
 
-#include "elementalcompwnd.hpp"
-#include "dataprocessor.hpp"
 #include "datafolder.hpp"
+#include "dataprocessor.hpp"
 #include "document.hpp"
+#include "elementalcompwnd.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/timeutil.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/isotopecluster.hpp>
-#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adcontrols/molecule.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/targeting.hpp>
+#include <adcontrols/timeutil.hpp>
 #include <adlog/logger.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/float.hpp>
-#include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/polfit.hpp>
-#include <adutils/processeddata.hpp>
+#include <adportable/timesquaredscanlaw.hpp>
 #include <adportfolio/folium.hpp>
+#include <adutils/processeddata.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_plot.h>
 #include <qwt_plot_renderer.h>
@@ -68,8 +69,7 @@ namespace dataproc {
     class ElementalCompWnd::impl {
     public:
 
-        impl( ElementalCompWnd * p ) : this_( p )
-                                     , isTimeAxis_( false )
+        impl( ElementalCompWnd * p ) : isTimeAxis_( false )
                                      , dirty_( false ) {
 
             for ( size_t i = 0; i < plots_.size(); ++i ) {
@@ -99,7 +99,7 @@ namespace dataproc {
         adplot::SpectrumWidget * profileWidget() { return plots_.at( idProfile ).get(); }
 
     private:
-        ElementalCompWnd * this_;
+        //ElementalCompWnd * this_;
     };
 }
 
@@ -142,10 +142,10 @@ ElementalCompWnd::init()
 
             splitter->addWidget( plot.get() );
         }
-        
+
         splitter->setOrientation( Qt::Vertical );
     }
-  
+
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
@@ -169,7 +169,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name )
             if ( a.dataFormat() == adcontrols::annotation::dataFormula && a.index() >= 0 )
                 ids.push_back( std::make_pair( a.index(), a.text() ) );
         });
-    
+
     std::vector< std::pair< double, double > > time_mass_array;
     for ( auto& id : ids ) {
         double time = ptr->getTime( id.first );
@@ -186,7 +186,7 @@ ElementalCompWnd::estimateScanLaw( const QString& model_name )
         dlg.setScanLaw( *spectrometer->scanLaw() );
         double fLength, accVoltage, tDelay, mass;
         QString formula;
-        
+
         if ( document::instance()->findScanLaw( model_name, fLength, accVoltage, tDelay, mass, formula ) ) {
             dlg.setValues( fLength, accVoltage, tDelay, 0 );
             dlg.setMass( mass );
@@ -238,11 +238,11 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
         auto xit = impl_->dataIds_.find( folium.id() );
         datafolder xdata = ( xit == impl_->dataIds_.end() ) ? datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() ) : xit->second;
-        
+
         if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
-            
+
             xdata.profile = profile;
-                
+
             portfolio::Folio atts = folium.attachments();
             auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
             if ( itCentroid != atts.end() ) {
@@ -251,16 +251,16 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             }
             impl_->dataIds_[ folium.id() ] = xdata;
         }
-        
+
         if ( MainWindow::instance()->curPage() == MainWindow::idSelElementalComp )
             draw( 0 );
 
         if ( folium.attribute( L"isChecked" ) == L"false" ) {
-            
+
             auto it = impl_->dataIds_.find( folium.id() );
             if ( it != impl_->dataIds_.end() )
                 impl_->dataIds_.erase( it );
-            
+
         }
 
     }
@@ -280,7 +280,7 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
 	printer.setOrientation( QPrinter::Landscape );
-    
+
     printer.setDocName( "QtPlatz isotope simulation report" );
     printer.setOutputFileName( pdfname );
     // printer.setResolution( resolution );
@@ -293,13 +293,13 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
     QString fullpath;
     if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
         fullpath = processor->qfilename();
-    
+
 	painter.drawText( drawRect, Qt::TextWordWrap, fullpath, &boundingRect );
 
     drawRect.setTop( boundingRect.bottom() );
     drawRect.setHeight( printer.height() - boundingRect.top() - printer.resolution()/2 );
     //drawRect.setWidth( size.width() );
-    
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
@@ -311,61 +311,46 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 
     renderer.render( impl_->referenceWidget(), &painter, rc );
     rc.moveTo( rc.left(), rc.bottom() );
-    renderer.render( impl_->processedWidget(), &painter, rc );    
+    renderer.render( impl_->processedWidget(), &painter, rc );
 }
 
 void
 ElementalCompWnd::simulate( const adcontrols::MSSimulatorMethod& m )
 {
-    std::vector< std::string > display_formulae; // will expand from molecule + adduct combination
-    std::vector< std::pair< std::string, double > > formula_abundances;
+    const std::pair< int, int > charge_range{ m.chargeStateMin(), m.chargeStateMax() };
+
+    std::vector< std::tuple< std::string, double, int > > formulae; // formula, mass, charge
 
     for ( auto& mol : m.molecules().data() ) {
         if ( mol.enable() ) {
-            if ( !std::string( mol.adducts() ).empty() ) {
-                std::vector< std::string > alist;
-                auto v = adcontrols::ChemicalFormula::standardFormulae( mol.formula(), mol.adducts(), alist );
-                for ( size_t i = 0; i < v.size(); ++i ) {
-                    formula_abundances.push_back( std::make_pair( v[ i ], mol.abundance() ) );
-                    display_formulae.push_back( mol.formula() + alist[ i ] );
-                }
-            } else {
-                formula_abundances.push_back( std::make_pair( mol.formula(), mol.abundance() ) );
-                display_formulae.push_back( mol.formula() );
-            }
+            auto list = adcontrols::Targeting::make_mapping( { m.chargeStateMin(), m.chargeStateMax() }, mol.formula(), mol.adducts(), m.isPositivePolarity() );
+            for ( const auto& a: list )
+                formulae.emplace_back( a );
         }
     }
-    for ( const auto& f: formula_abundances ) {
-        auto list = adcontrols::isotopeCluster::formulae( f.first );
-        for ( auto& x: list )
-            ADDEBUG() << x;
-    }
+    std::sort( formulae.begin(), formulae.end(), []( const auto& a, const auto& b ){ return std::get<1>( a ) < std::get<1>(b); });
+
+    // for ( const auto& formula: formulae ) {
+    //     ADDEBUG() << "isotope cluster: " << std::get<0>( formula ) << ", " << std::get<1>( formula ) << ", " << std::get<2>( formula );
+    // }
 
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
     ms->setCentroid( adcontrols::CentroidNative );
 
-    adcontrols::isotopeCluster()( *ms, formula_abundances, m.resolvingPower() );
+    adcontrols::isotopeCluster()( *ms, formulae, m.resolvingPower() );
+
     if ( m.isTof() ) {
         adportable::TimeSquaredScanLaw scanLaw( m.acceleratorVoltage(), m.tDelay(), m.length() );
         for ( size_t i = 0; i < ms->size(); ++i )
             ms->setTime( i, scanLaw.getTime( ms->getMass( i ), 0 ) );
     }
 
-    // annotation
-    for ( size_t i = 0; i < formula_abundances.size(); ++i ) {
-        double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula_abundances[ i ].first );
-        auto pos = ms->find( mass, mass / m.resolvingPower() );
-        if ( pos != adcontrols::MassSpectrum::npos ) {
-            auto& annots = ms->get_annotations();
-            annots << adcontrols::annotation( display_formulae[ i ], mass, ms->getIntensity( pos ), int( pos ), 0, adcontrols::annotation::dataFormula );
-        }
-    }
-
-	double lMass = ms->getMass( 0 );
-	double hMass = ms->getMass( ms->size() - 1 );
+    double lMass = ms->getMass( 0 );
+    double hMass = ms->getMass( ms->size() - 1 );
     lMass = m.lMassLimit() > 0 ? m.lMassLimit() : double( int( lMass / 10 ) * 10 );
     hMass = m.uMassLimit() > 0 ? m.uMassLimit() : double( int( ( hMass + 10 ) / 10 ) * 10 );
     ms->setAcquisitionMassRange( lMass, hMass );
+
     draw1( ms );
 }
 
@@ -376,19 +361,19 @@ ElementalCompWnd::draw( int which )
     impl_->plots_[ impl::idProcessed ]->clear();  // centroid
 
     QString title;
-    
+
     for ( auto& data: impl_->dataIds_ ) {
         int idx = data.second.idx;
         int traceid = idx * 2;
-        
+
         if ( title.isEmpty() ) {
             title = QString::fromStdWString( data.second.display_name );
         } else {
             title += " .";
         }
-        
+
         QColor color = impl_->plots_[ 0 ]->index_color( idx );
-        
+
         if ( auto profile = data.second.profile.lock() ) {
             impl_->plots_[ impl::idProfile ]->setData( profile, traceid );
             impl_->plots_[ impl::idProfile ]->setColor( traceid, color );
@@ -398,9 +383,9 @@ ElementalCompWnd::draw( int which )
             impl_->plots_[ impl::idProcessed ]->setData( centroid, traceid + 1, true );
             impl_->plots_[ impl::idProcessed ]->setColor( traceid + 1, color );
         }
-        
+
     }
-    
+
     impl_->plots_[ impl::idProfile ]->setTitle( title );
 }
 
@@ -439,8 +424,8 @@ ElementalCompWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plo
         }
 
         //-------------------------//
-        
+
         menu.exec( QCursor::pos() );
     }
-    
+
 }

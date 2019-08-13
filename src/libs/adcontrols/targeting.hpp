@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -40,8 +40,9 @@ namespace adcontrols {
 
     class TargetingMethod;
     class MassSpectrum;
+    class ADCONTROLSSHARED_EXPORT Targeting;
 
-    class ADCONTROLSSHARED_EXPORT Targeting {
+    class Targeting {
     public:
         struct Candidate;
 
@@ -52,7 +53,8 @@ namespace adcontrols {
         Targeting( const TargetingMethod& );
 
         bool operator ()( const MassSpectrum& );
-        bool force_find( const MassSpectrum&, const std::string& formula, int32_t fcn );
+        bool operator ()( MassSpectrum& );
+        bool force_find( const MassSpectrum&, const std::string& formula, int32_t fcn ); // call from quanchromatogramprocessor
 
         const std::vector< Candidate >& candidates() const { return candidates_; }
 
@@ -77,6 +79,10 @@ namespace adcontrols {
             }
         };
 
+        // 'formula+adduct', exact mass, charge
+        static std::vector< std::tuple<std::string, double, int> >
+        make_mapping( const std::pair<uint32_t, uint32_t>&, const std::string& formula, const std::string& adducts, bool positive_polairy );
+
         static bool archive( std::ostream&, const Targeting& );
         static bool restore( std::istream&, Targeting& );
 
@@ -84,18 +90,11 @@ namespace adcontrols {
         std::shared_ptr< TargetingMethod > method_;
         std::vector< Candidate > candidates_;
         typedef std::pair< double, std::string > adduct_type;
-        typedef std::tuple< double, std::string, uint32_t > charge_adduct_type;
 
         std::vector< std::pair< std::string, double > > active_formula_;
-        std::vector< adduct_type > pos_adducts_;
-        std::vector< adduct_type > neg_adducts_;
-        std::vector< charge_adduct_type > poslist_;
-        std::vector< charge_adduct_type > neglist_;
 
         void setup( const TargetingMethod& );
-        bool find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive, const std::vector< charge_adduct_type >& list );
-        static void setup_adducts( const TargetingMethod&, bool, std::vector< adduct_type >& );
-        //static void make_combination( uint32_t charge, const std::vector< adduct_type >&, std::vector< charge_adduct_type >& );
+        bool find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive ); //, const std::vector< charge_adduct_type >& list );
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, unsigned int ) {

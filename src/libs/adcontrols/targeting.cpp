@@ -22,10 +22,12 @@
 **
 **************************************************************************/
 
+#include "isotopecluster.hpp"
 #include "targeting.hpp"
 #include "targetingmethod.hpp"
 #include "chemicalformula.hpp"
 #include "massspectrum.hpp"
+#include "molecule.hpp"
 #include "msproperty.hpp"
 #include "samplinginfo.hpp"
 #include <adcontrols/moltable.hpp>
@@ -153,8 +155,8 @@ Targeting::Targeting() : method_( std::make_shared< TargetingMethod >() )
 Targeting::Targeting( const Targeting& t ) : method_( t.method_ )
                                            , candidates_( t.candidates_ )
                                            , active_formula_( t.active_formula_ )
-                                           , pos_adducts_( t.pos_adducts_ )
-                                           , neg_adducts_( t.neg_adducts_ )
+                                             //, pos_adducts_( t.pos_adducts_ )
+                                             //, neg_adducts_( t.neg_adducts_ )
 {
 }
 
@@ -189,8 +191,10 @@ Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, uint32_t _charge,
 }
 
 bool
-Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive, const std::vector< charge_adduct_type >& list )
+Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positive )
 {
+    (void)polarity_positive;
+
     if ( ms.size() == 0 )
         return false;
 
@@ -202,20 +206,8 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positi
         size_t pos = finder( ms, target_mass );
         if ( pos != MassSpectrum::npos ) {
             double error = ms.getMass( pos ) - target_mass;
-            candidates_.push_back( Candidate( uint32_t( pos /*idx*/ ), fcn, 1/*charge*/, error, formula.first /*formula*/ ) );
-        }
-    }
-
-    (void)polarity_positive; // this will be necessary for account an electron mass, todo
-    for ( auto& adduct : list ) {
-        for ( auto& formula : active_formula_ ) {
-            double target_mass = ( formula.second /* M */ + std::get<0>( adduct /*mass*/ ) ) / std::get<2>( adduct /*charge*/ );
-
-            size_t pos = finder( ms, target_mass );
-            if ( pos != MassSpectrum::npos ) {
-                double error = ms.getMass( pos ) - target_mass;
-                candidates_.push_back( Candidate( uint32_t( pos ), fcn, std::get<2>( adduct ), error, formula.first + "+" + std::get<1>( adduct ) ) );
-            }
+            auto neutral = adcontrols::ChemicalFormula::neutralize( formula.first );
+            candidates_.emplace_back( uint32_t( pos /*idx*/ ), fcn, neutral.second/*charge*/, error, formula.first /*formula*/ );
         }
     }
     return true;
@@ -235,15 +227,42 @@ Targeting::operator()( const MassSpectrum& ms )
     int fcn = 0;
     for ( auto& fms : segs ) {
         if ( polarity_positive ) {
-            find_candidate( fms, fcn++, true, poslist_ );
-        }
-        else {
-            find_candidate( fms, fcn++, false, neglist_ );
+            find_candidate( fms, fcn++, true );
+        } else {
+            find_candidate( fms, fcn++, false);
         }
     }
     return true;
 }
 
+bool
+Targeting::operator()( MassSpectrum& ms )
+{
+    if ( (*this)( static_cast< const MassSpectrum& >( ms ) ) ) {
+
+        for ( const auto& candidate : candidates_ ) {
+            do { // isotope cluster match
+
+                auto neutral = adcontrols::ChemicalFormula::neutralize( candidate.formula );
+                auto formula = ChemicalFormula::standardFormula( ChemicalFormula::split( neutral.first ) );
+                auto formulae = isotopeCluster::formulae( formula );
+                ADDEBUG() << "neutral: " << neutral << " -> stdform: " << formula;
+                std::for_each( formulae.begin(), formulae.end(), [](const auto& f){ ADDEBUG() << f; });
+
+                auto vec = isotopeCluster(1.0e-6, 10000 )( ChemicalFormula::split( neutral.first ), neutral.second );
+                std::for_each( vec.begin(), vec.end(), [](const auto& i){ ADDEBUG() << "mass: " << i.mass << ", abundance: " << i.abundance; });
+
+            } while(0);
+
+
+            adcontrols::segments_helper::set_color( ms, candidate.fcn, candidate.idx, 16 ); // dark orange
+        }
+        return true;
+    }
+    return false;
+}
+
+// Call from quanchromatogramprocessor
 bool
 Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32_t fcn )
 {
@@ -254,7 +273,8 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
     if ( ms.size() == 0 )
         return false;
 
-    double mass = ChemicalFormula().getMonoIsotopicMass( formula );
+    auto neutral = ChemicalFormula::neutralize( formula );
+    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
 
     int proto( 0 );
     for ( auto& fms: segment_wrapper< const adcontrols::MassSpectrum >( ms ) ) {
@@ -274,6 +294,7 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
     }
     return false;
 }
+
 
 void
 Targeting::setup( const TargetingMethod& m )
@@ -335,73 +356,39 @@ Targeting::setup( const TargetingMethod& m )
 
 }
 
-void
-Targeting::setup_adducts( const TargetingMethod& m, bool positive, std::vector< adduct_type >& adducts )
+//static
+std::vector< std::tuple<std::string, double, int> >
+Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range, const std::string& formula, const std::string& adducts, bool positive_polairy )
 {
-    ChemicalFormula formula_parser;
+    std::vector< std::tuple<std::string, double, int> > res;
 
-    for ( auto& a: m.adducts( positive ) ) {
+    std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local;
+    for ( const auto& adduct: ChemicalFormula::split( adducts ) ) {
+        auto sign = (adduct.second == '-' ? "-" : "+");
+        adducts_local[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { ChemicalFormula::neutralize(adduct.first).first, sign[0] };
+    }
 
-        if ( a.first ) { // if (enable)
-            std::string addformula;
-            std::string loseformula;
-            std::pair< double, double > addlose( 0, 0 );
-            if ( !addformula.empty() ) {
-                addlose.first = formula_parser.getMonoIsotopicMass( addformula );
+    for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
+        int icharge = positive_polairy ? charge : -charge;
+        if ( charge == 0 || charge == 1 ) {
+            for ( const auto& a: adducts_local ) {
+                std::ostringstream t;
+                t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
+                double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
+                res.emplace_back( t.str(), mass, icharge );
             }
-            if ( !loseformula.empty() ) {
-                addlose.second = -formula_parser.getMonoIsotopicMass( loseformula );
+        } else if ( charge >= 2 ) {
+            for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+                std::ostringstream t;
+                t << formula << a;
+                double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
+                res.emplace_back( t.str(), mass, icharge );
             }
-            adducts.push_back( std::make_pair( addlose.first + addlose.second, a.second ) );
         }
     }
+
+    return res;
 }
-
-
-
-// void
-// Targeting::make_combination( uint32_t charge
-//                              , const std::vector< adduct_type >& adducts
-//                              , std::vector< charge_adduct_type >& list )
-// {
-//     if ( adducts.empty() || charge == 0 )
-//         return;
-
-//     typedef size_t formula_number;
-//     typedef size_t formula_count;
-//     std::set< std::map< formula_number, formula_count > > combination_with_repetition;
-//     {
-//         // adportable::scoped_debug<> scope( __FILE__, __LINE__ ); scope << "making combination(2):";
-//         std::vector< uint32_t > selector( adducts.size() * charge );
-//         auto it = selector.begin();
-//         for( uint32_t n = 0; n < adducts.size(); ++n ) {
-//             std::fill( it, it + charge, n );
-//             std::advance( it, charge );
-//         }
-//         do {
-//             std::map< formula_number, formula_count > formulae;
-
-//             for ( auto it = selector.begin(); it != selector.begin() + charge; ++it )
-//                 formulae[ *it ]++;
-
-//             combination_with_repetition.insert( formulae );
-
-//         } while ( boost::next_combination( selector.begin(), selector.begin() + charge, selector.end() ) );
-//     }
-
-//     // translate index combination into a vector of atoms|formula with exact-mass
-
-//     for ( auto& fmap : combination_with_repetition ) {
-//         std::ostringstream formula;
-//         double mass = 0;
-//         std::for_each( fmap.begin(), fmap.end(), [&] ( const std::pair< size_t, size_t >& a ){
-//             formula << a.second << "(" << adducts[ a.first ].second << ")";
-//             mass += adducts[ a.first ].first * a.second;
-//         } );
-//         list.push_back( std::make_tuple( mass, formula.str(), charge ) );
-//         // ADDEBUG() << "charge: " << charge << "\tmass=" << mass << "\t" << formula.str();
-//     }
-// }
 
 bool
 Targeting::archive( std::ostream& os, const Targeting& v )
