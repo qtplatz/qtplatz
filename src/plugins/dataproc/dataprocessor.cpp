@@ -30,6 +30,8 @@
 #include "document.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -402,12 +404,14 @@ namespace dataproc {
         }
 
         bool operator () ( const adcontrols::CentroidMethod& m ) const {
+            ADDEBUG() << "doSpectraolProcess -- Centroid";
             if ( ptr_ && ptr_->isCentroid() )
                 ADDEBUG() << "Apply centroid to histogram; converting to profile";
             return DataprocessorImpl::applyMethod( dataprocessor_, folium, m, *ptr_ );
         }
 
         bool operator () ( const adcontrols::TargetingMethod& m ) const {
+            ADDEBUG() << "doSpectraolProcess -- Targeting";
             return DataprocessorImpl::applyMethod( dataprocessor_, folium, m );
         }
 
@@ -447,9 +451,10 @@ namespace dataproc {
         portfolio::Folium& folium_;
         Dataprocessor * dataprocessor_;
 
-        processIt( const adcontrols::ProcessMethod::value_type& m
-                   , portfolio::Folium& f
-                   , Dataprocessor * dp ) : m_(m), folium_(f), dataprocessor_( dp ) {
+        processIt( const adcontrols::ProcessMethod::value_type& m, portfolio::Folium& f, Dataprocessor * dp )
+            : m_(m)
+            , folium_(f)
+            , dataprocessor_( dp ) {
         }
 
         template<typename T> bool operator ()( T& ) const {
@@ -519,10 +524,11 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         methodselector selector( m );
 
         if ( procType == CentroidProcess ) {
+
             selector.append< adcontrols::CentroidMethod >( method );
             selector.append< adcontrols::TargetingMethod >( method ); // always do 'targeting' when centroid
-        }
-        else if ( procType == TargetingProcess ) {
+
+        } else if ( procType == TargetingProcess ) {
             if ( auto fCentroid = portfolio::find_first_of( folium.attachments(), []( portfolio::Folium& f ) {
                         return f.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
                 selector.append< adcontrols::TargetingMethod >( method );
@@ -530,11 +536,9 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
                 selector.append< adcontrols::CentroidMethod >( method );
                 selector.append< adcontrols::TargetingMethod >( method );
             }
-        }
-        else if ( procType == CalibrationProcess ) {
+        } else if ( procType == CalibrationProcess ) {
             // should not be here
-        }
-        else if ( procType == PeakFindProcess ) {
+        } else if ( procType == PeakFindProcess ) {
             selector.append< adcontrols::PeakMethod >( method );
         }
 
@@ -543,6 +547,52 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 
         for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium, this ), data );
+
+        // post processing -- update annotation etc.
+        if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( folium.data() ) ) {
+            ADDEBUG() << "this is MassSpectrum";
+            if ( auto ms = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( folium.data() ) ) {
+                if ( ms->isHistogram() || !ms->isCentroid() ) {
+                    ADDEBUG() << "isCentroid: " << ms->isCentroid() << ", isHistogram: " << ms->isHistogram();
+                    auto atts = folium.attachments();
+                    auto itCentroid = std::find_if( atts.begin(), atts.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; });
+                    if ( itCentroid != atts.end() ) {
+                        /*
+                        auto atts2 = itCentroid->attachments();
+                        auto itTargeting = std::find_if( atts2.begin(), atts2.end(), []( auto& f ){ return f.name() == Constants::F_TARGETING; });
+                        if ( itTargeting != atts.end() ) {
+                            if ( adportable::a_type< std::shared_ptr< adcontrols::Targeting > >::is_a( itTargeting->data() ) ) {
+                                if ( auto targeting = boost::any_cast< std::shared_ptr< adcontrols::Targeting > >( itTargeting->data() ) )
+                                    ADDEBUG() << "Has Targeting";
+                            }
+                        }
+                        */
+                        if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( itCentroid->data() ) ) {
+                            if ( auto processed = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( itCentroid->data() ) ) {
+                                // if has targeting...
+                                size_t i(0);
+                                for ( auto& xms: adcontrols::segment_wrapper<>( *processed ) ) {
+                                    auto& tms = adcontrols::segment_wrapper<>( *ms )[ i ];
+                                    for ( const auto& a: xms.get_annotations() ) {
+                                        if ( ( a.index() >= 0 ) && a.index() < processed->size() ) {
+                                            double mass = processed->mass( a.index() );
+                                            adcontrols::annotation anno( a );
+                                            anno.index( ms->getIndexFromMass( mass ) );
+                                            anno.x( mass );
+                                            anno.y( tms.intensity( anno.index() ) );
+                                            tms.get_annotations() << anno;
+                                        }
+                                    }
+                                    ++i;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // if folium == profile spectrum && process == centroid|targeting, then copy annotation to profile
 
         setModified( true );
 

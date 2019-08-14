@@ -58,6 +58,24 @@ namespace adcontrols {
 
         const std::vector< Candidate >& candidates() const { return candidates_; }
 
+        struct isotope {
+            uint32_t idx;
+            double mass_error;
+            double abundance_ratio;
+            double abundance_ratio_error;
+            isotope() : idx(0), mass_error(0), abundance_ratio(0), abundance_ratio_error(0) {}
+            isotope( size_t _1, double _2, double _3, double _4 ) : idx(_1), mass_error(_2), abundance_ratio(_3), abundance_ratio_error(_4) {}
+            isotope( const isotope& t ) : idx( t.idx ), mass_error( t.mass_error ), abundance_ratio( t.abundance_ratio ), abundance_ratio_error( t.abundance_ratio_error ) {}
+        private:
+            friend class boost::serialization::access;
+            template<class Archive> void serialize(Archive& ar, unsigned int ) {
+                ar & BOOST_SERIALIZATION_NVP( idx );
+                ar & BOOST_SERIALIZATION_NVP( mass_error );
+                ar & BOOST_SERIALIZATION_NVP( abundance_ratio );
+                ar & BOOST_SERIALIZATION_NVP( abundance_ratio_error );
+            }
+        };
+
         struct Candidate {
             uint32_t idx; // peak index on mass-spectrum
             uint32_t fcn; // protocol (aka segment) id
@@ -65,7 +83,7 @@ namespace adcontrols {
             double mass_error;
             std::string formula; // this is the exact formula matched with the peak (contains adducts)
             int32_t score;
-            std::vector< std::pair< uint32_t, uint32_t > > isotopes; // pair of index,fcn (protocol)
+            std::vector< isotope > isotopes;
             Candidate();
             Candidate( const Candidate& );
             Candidate( uint32_t idx, uint32_t fcn, uint32_t charge, double mass_error, const std::string& formula );

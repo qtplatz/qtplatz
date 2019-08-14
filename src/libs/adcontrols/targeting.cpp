@@ -275,7 +275,6 @@ Targeting::operator()( MassSpectrum& ms )
                                , [&](const auto& i){
                                      auto pos = finder( tms, i.mass + error );
                                      if ( pos != MassSpectrum::npos ) {
-                                         tms.setColor( pos, 16 );
                                          double ratio = tms.getIntensity( pos ) / tms.getIntensity( candidate.idx );
                                          int pri = 1000 * (std::log10( tms.intensity( pos ) / tms.maxIntensity() ) + 15);
                                          ADDEBUG() << pos << ":\t" << candidate.formula
@@ -284,8 +283,10 @@ Targeting::operator()( MassSpectrum& ms )
                                                    << boost::format(",\tabundance: %.5g,\t%.5g") % i.abundance % ratio
                                                    << boost::format(",\terror: %g") % ((100*(ratio - i.abundance))/i.abundance)
                                                    << "\tpri=" << pri;
+                                         //----------- annotation ---------
                                          if ( pos != candidate.idx && pos != 0 ) {
-                                             candidate.isotopes.emplace_back( pos, candidate.fcn );
+                                             tms.setColor( pos, 16 );
+                                             candidate.isotopes.emplace_back( pos, (tms.mass( pos ) - i.mass + error), ratio, (ratio - i.abundance)/i.abundance );
                                              tms.get_annotations()
                                                  << annotation( text, tms.getMass( pos ), tms.getIntensity( pos ), pos, pri, annotation::dataText, annotation::flag_targeting );
                                          }

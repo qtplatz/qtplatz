@@ -31,6 +31,7 @@
 #include "mainwindow.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/constants.hpp>
 #include <adcontrols/datafile.hpp>
@@ -1246,8 +1247,59 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     drawRect.setHeight( printer.height() - drawRect.top() );
 
     {
+        // Targeting results
         portfolio::Folio attachments = folium.attachments();
-        auto it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        auto it = std::find_if( attachments.begin(), attachments.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+        if ( it != attachments.end() ) {
+            if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( it->data() ) ) {
+                auto centroid = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( it->data() );
+
+                auto atts = it->attachments();
+                auto tgtIt = std::find_if( atts.begin(), atts.end(), []( auto f ){ return f.name() == Constants::F_TARGETING; } );
+                if ( tgtIt != atts.end() ) {
+                    if ( adportable::a_type< std::shared_ptr< adcontrols::Targeting > >::is_a( tgtIt->data() ) ) {
+                        if ( auto targeting = boost::any_cast< std::shared_ptr< adcontrols::Targeting > >( tgtIt->data() ) ) {
+                            std::ostringstream html;
+                            html << "<table border=\"1\" cellpadding=\"4\">";
+                            html << "<tr>";
+                            html << "<th>Formula</th> <th>Charge</th> <th>m/z</th> <th>Error(mDa)</th> <th>Abundance ratio</th> <th>Ratio error(%)</th>";
+                            html << "</tr>";
+                            for ( const auto& c: targeting->candidates() ) {
+                                auto tms = adcontrols::segment_wrapper<>( *centroid )[ c.fcn ];
+                                html << "<tr>";
+                                html << "<td>" << adcontrols::ChemicalFormula::formatFormulae( c.formula ) << "</td>";
+                                html << "<td>" << c.charge << "</td>";
+                                html << "<td>" << tms.mass( c.idx ) << "</td>";
+                                html << "<td>" << c.mass_error * 1000 << "</td>";
+                                html << "<td>" << 1.0 << "</td>";
+                                html << "</tr>";
+                                // ADDEBUG() << c.idx << c.fcn << c.charge << c.mass_error << c.formula << c.score;
+                                for ( const auto& i: c.isotopes ) {
+                                    html << "<tr>";
+                                    html << "<td></td>"; // Formula
+                                    html << "<td></td>"; // charge
+                                    html << "<td>" << centroid->mass( i.idx ) << "</td>";
+                                    html << "<td>" << i.mass_error * 1000 << "</td>";
+                                    html << "<td>" << i.abundance_ratio << "</td>";
+                                    html << "<td>" << boost::format( "%.1lf" ) % (100 * i.abundance_ratio_error) << "</td>";
+                                    html << "</tr>";
+                                    // ADDEBUG() << i.idx << i.mass_error << i.abundance_ratio << i.abundance_ratio_error;
+                                }
+                            }
+                            html << "</table>";
+                            //
+                            QTextDocument doc;
+                            doc.setHtml( QString::fromStdString( html.str() ) );
+                            printer.newPage();
+                            doc.drawContents( &painter );
+                        }
+                    }
+                }
+            }
+        }
+
+
+        it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it != attachments.end() ) {
             auto atts = it->attachments();
             auto pf = portfolio::Folium::find< adcontrols::ProcessMethodPtr >( atts.begin(), atts.end() );

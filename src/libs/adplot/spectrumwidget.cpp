@@ -196,7 +196,8 @@ namespace adplot {
             {}
         bool autoAnnotation_;
         bool isTimeAxis_;
-        std::weak_ptr< const adcontrols::MassSpectrum > centroid_;  // for annotation
+        // std::weak_ptr< const adcontrols::MassSpectrum > centroid_;  // for annotation
+        std::weak_ptr< const adcontrols::MassSpectrum > ms_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< std::unique_ptr< spectrumwidget::TraceData > > traces_;
 
@@ -208,6 +209,7 @@ namespace adplot {
 
         void clear();
         void update_annotations( plot&, const std::pair<double, double>& );
+        void set_annotations( const adcontrols::annotations& );
 		void clear_annotations();
 
         void handleZoomRect( QRectF& );
@@ -602,11 +604,12 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         }
     }
 
-    if ( ptr && ptr->isCentroid() ) {
-        impl_->centroid_ = ptr;
+    if ( ptr && ptr->isCentroid() && !ptr->isHistogram() ) {
+        impl_->ms_ = ptr;
         update_annotation( false );
     } else {
-        impl_->clear_annotations();
+        impl_->ms_ = ptr;
+        update_annotation( false );
     }
     replot();
 }
@@ -932,8 +935,7 @@ SpectrumWidget::impl::clear_annotations()
 }
 
 void
-SpectrumWidget::impl::update_annotations( plot& plot
-                                       , const std::pair<double, double>& range )
+SpectrumWidget::impl::update_annotations( plot& plot, const std::pair<double, double>& range )
 {
     using adportable::array_wrapper;
     using namespace adcontrols::metric;
@@ -944,15 +946,15 @@ SpectrumWidget::impl::update_annotations( plot& plot
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
 
-    if ( auto centroid = centroid_.lock() ) {
+    if ( auto ms = ms_.lock() ) {
 
         std::vector< peak > peaks;
-        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *centroid );
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
 
         adcontrols::annotations auto_annotations;
         adcontrols::annotations annotations;
 
-        double max_y = adcontrols::segments_helper::max_intensity( *centroid );
+        double max_y = adcontrols::segments_helper::max_intensity( *ms );
 
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
@@ -1001,7 +1003,7 @@ SpectrumWidget::impl::update_annotations( plot& plot
                         annotations << *it;
                 }
 
-                if ( autoAnnotation_ ) {
+                if ( ms.isCentroid() && !ms.isHistogram() && autoAnnotation_ ) {
                     // generate auto-annotation
                     for ( size_t idx = beg; idx <= end; ++idx ) {
                         if ( std::find_if( attached.begin()
@@ -1062,11 +1064,10 @@ SpectrumWidget::impl::update_annotations( plot& plot
 void
 SpectrumWidget::impl::clear()
 {
-    centroid_.reset();
+    ms_.reset();
     annotations_.clear();
-    if ( !traces_.empty() ) {
+    if ( ! traces_.empty() )
         traces_.clear();
-    }
 }
 
 QwtText

@@ -46,7 +46,8 @@ namespace adcontrols {
 
         enum DataFlag {
             flag_auto                = 0
-            , flag_targeting         = 0x00000001
+            , flag_centroid          = 0x00000001
+            , flag_targeting         = 0x00000002
             , flag_manually_assigned = 0x80000000
         };
 
