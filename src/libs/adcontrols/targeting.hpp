@@ -64,18 +64,24 @@ namespace adcontrols {
             uint32_t charge;
             double mass_error;
             std::string formula; // this is the exact formula matched with the peak (contains adducts)
+            int32_t score;
+            std::vector< std::pair< uint32_t, uint32_t > > isotopes; // pair of index,fcn (protocol)
             Candidate();
             Candidate( const Candidate& );
             Candidate( uint32_t idx, uint32_t fcn, uint32_t charge, double mass_error, const std::string& formula );
         private:
             friend class boost::serialization::access;
-            template<class Archive> void serialize(Archive& ar, unsigned int ) {
+            template<class Archive> void serialize(Archive& ar, unsigned int version ) {
                 ar & BOOST_SERIALIZATION_NVP( idx )
                     & BOOST_SERIALIZATION_NVP( fcn )
                     & BOOST_SERIALIZATION_NVP( charge )
                     & BOOST_SERIALIZATION_NVP( mass_error )
                     & BOOST_SERIALIZATION_NVP( formula )
                     ;
+                if ( version >= 2 ) {
+                    ar & BOOST_SERIALIZATION_NVP( score );
+                    ar & BOOST_SERIALIZATION_NVP( isotopes );
+                }
             }
         };
 
@@ -106,5 +112,7 @@ namespace adcontrols {
     typedef std::shared_ptr< Targeting > TargetingPtr;
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::Targeting::Candidate, 2 )
 
 #endif // TARGETING_HPP

@@ -156,11 +156,18 @@ namespace adcontrols {
         template<class T> void set( const T& t );
         template<class T> const T& get();
         std::pair<double, double> getAcquisitionMassRange() const;
-        double getMinIntensity() const;
-        double getMaxIntensity() const;
-        double getMass( size_t idx ) const;
-        double getIntensity( size_t idx ) const;
-        double getTime( size_t idx ) const;
+        std::pair<size_t, size_t> minmax_element() const;
+        double maxIntensity() const;
+        double minIntensity() const;
+        double mass( size_t idx ) const;
+        double intensity( size_t idx ) const;
+        double time( size_t idx ) const;
+
+        [[deprecated]] double getMinIntensity() const;
+        [[deprecated]] double getMaxIntensity() const;
+        [[deprecated]] double getMass( size_t idx ) const;
+        [[deprecated]] double getIntensity( size_t idx ) const;
+        [[deprecated]] double getTime( size_t idx ) const;
 
         size_t getIndexFromMass( double, bool closest = false ) const;
 		size_t getIndexFromTime( double seconds, bool closest = false ) const;

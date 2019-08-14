@@ -196,22 +196,15 @@ namespace adwidgets {
                 adcontrols::segment_wrapper<> segs( *ptr );
                 if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
-                    adcontrols::annotations& annots = ms.get_annotations();
-                    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
-                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
-                    if ( it != annots.end() ) {
-                        if ( formula.empty() )
-                            annots.erase( it );
-                        else
-                            it->text( formula, adcontrols::annotation::dataFormula );
+                    if ( !formula.empty() ) {
+                        ms.get_annotations() << adcontrols::annotation( formula
+                                                                        , ms.getMass( idx )
+                                                                        , ms.getIntensity( idx )
+                                                                        , idx
+                                                                        , 0
+                                                                        , adcontrols::annotation::dataFormula );
                     } else {
-                        if ( !formula.empty() )
-                            annots << adcontrols::annotation( formula
-                                                              , ms.getMass( idx )
-                                                              , ms.getIntensity( idx )
-                                                              , idx
-                                                              , 0
-                                                              , adcontrols::annotation::dataFormula );
+                        ms.get_annotations().erase_if( [&](const auto& a ){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataFormula; });
                     }
                     return true;
                 }
@@ -368,10 +361,11 @@ void
 MSPeakTable::setContents( std::shared_ptr< adcontrols::MassSpectrum > ms, std::function< callback_t > callback )
 {
     impl_->data_source_ = ms;
-
     impl_->callback_.disconnect_all_slots();
+
     if ( callback )
         impl_->callback_.connect( callback );
+
     setPeakInfo( *ms );
 }
 
@@ -438,16 +432,18 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
             matchCount++;
         }
     }
+#if 0
     if ( impl_->data_source_.which() == 1 ) {
         auto wptr = boost::get< std::weak_ptr< adcontrols::MassSpectrum > >( impl_->data_source_ );
         if ( auto ptr = wptr.lock() ) {
-            std::for_each( candidates.begin(), candidates.end(), [&] ( const adcontrols::Targeting::Candidate& c ){
-                detail::annotation_updator()(ptr, c.idx, c.fcn, c.formula);
-                emit formulaChanged( c.idx, c.fcn );
-            } );
+            std::for_each( candidates.begin(), candidates.end()
+                           , [&] ( const adcontrols::Targeting::Candidate& c ){
+                                 detail::annotation_updator()(ptr, c.idx, c.fcn, c.formula);
+                                 emit formulaChanged( c.idx, c.fcn );
+                             } );
         }
     }
-
+#endif
     if ( matchCount )
         hideRows();
 }
@@ -918,23 +914,15 @@ MSPeakTable::descriptionChanged( const QModelIndex& index )
                 adcontrols::segment_wrapper<> segs( *ptr );
                 if ( signed(segs.size()) > fcn ) {
                     auto& ms = segs[fcn];
-                    adcontrols::annotations& annots = ms.get_annotations();
-                    auto it = std::find_if( annots.begin(), annots.end(), [=]( const adcontrols::annotation& a ){
-                            return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataText; });
-                    if ( it != annots.end() ) {
-                        if ( description.empty() )
-                            annots.erase( it );
-                        else
-                            it->text( description, adcontrols::annotation::dataText );
-                    } else {
-                        if ( ! description.empty() )
-                            annots << adcontrols::annotation( description
-                                                          , ms.getMass( idx )
-                                                          , ms.getIntensity( idx )
-                                                          , idx
-                                                          , 0
-                                                          , adcontrols::annotation::dataText );
-                    }
+                    if ( description.empty() )
+                        ms.get_annotations().erase_if( [&](const auto& a){ return a.index() == idx && a.dataFormat() == adcontrols::annotation::dataText; });
+                    else
+                        ms.get_annotations() << adcontrols::annotation( description
+                                                                        , ms.getMass( idx )
+                                                                        , ms.getIntensity( idx )
+                                                                        , idx
+                                                                        , 0
+                                                                        , adcontrols::annotation::dataText );
                     emit formulaChanged( idx, fcn );
                 }
             }

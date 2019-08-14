@@ -565,8 +565,7 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotatio
 
     pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
 
-    adcontrols::annotation annot( label, tR, peak.topHeight(), pri );
-    vec << annot;
+    vec << adcontrols::annotation( label, tR, peak.topHeight(), (-1), pri );
 
     impl_->peaks_.emplace_back( *this, peak );
 }

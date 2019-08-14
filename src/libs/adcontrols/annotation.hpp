@@ -32,7 +32,9 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT annotation {
+    class ADCONTROLSSHARED_EXPORT annotation;
+
+    class annotation {
     public:
         enum DataFormat {
             dataText
@@ -41,9 +43,17 @@ namespace adcontrols {
             , dataSmiles
             , dataMOL
         };
+
+        enum DataFlag {
+            flag_auto                = 0
+            , flag_targeting         = 0x00000001
+            , flag_manually_assigned = 0x80000000
+        };
+
+        ~annotation();
         annotation();
-        annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat f = dataText );
-        annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat f = dataText );
+        annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
+        annotation( const std::string&, double x = 0, double y = 0, int id = (-1), int priority = 0, DataFormat fmt = dataText, DataFlag flag = flag_auto );
         annotation( const annotation& );
 
         const std::string& text() const;
@@ -58,6 +68,9 @@ namespace adcontrols {
 
         int priority() const;
         void priority( int );
+
+        uint32_t flags() const;
+        void setFlags( uint32_t );
 
         double x() const;
         double y() const;
@@ -78,13 +91,15 @@ namespace adcontrols {
 
         double x_, y_;
         double w_, h_;
-        
+
+        uint32_t flags_;
+
         friend class boost::serialization::access;
         template<class Archive>
             void serialize( Archive& ar, const unsigned int version ) {
-            ar & BOOST_SERIALIZATION_NVP( format_ )
-                & BOOST_SERIALIZATION_NVP( index_ )
-                & BOOST_SERIALIZATION_NVP( priority_ );
+            ar & BOOST_SERIALIZATION_NVP( format_ );
+            ar & BOOST_SERIALIZATION_NVP( index_ );
+            ar & BOOST_SERIALIZATION_NVP( priority_ );
             if ( version < 2 ) {
                 std::wstring tmp;
                 ar & BOOST_SERIALIZATION_NVP( tmp );
@@ -92,16 +107,16 @@ namespace adcontrols {
             } else {
                 ar & BOOST_SERIALIZATION_NVP( text_ );
             }
-            ar & BOOST_SERIALIZATION_NVP( x_ )
-                & BOOST_SERIALIZATION_NVP( y_ )
-                & BOOST_SERIALIZATION_NVP( w_ )
-                & BOOST_SERIALIZATION_NVP( h_ )
-                ;
+            ar & BOOST_SERIALIZATION_NVP( x_ );
+            ar & BOOST_SERIALIZATION_NVP( y_ );
+            ar & BOOST_SERIALIZATION_NVP( w_ );
+            ar & BOOST_SERIALIZATION_NVP( h_ );
+            if ( version >= 3 ) {
+                ar & BOOST_SERIALIZATION_NVP( flags_ );
+            }
         }
     };
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::annotation, 2 )
-
-
+BOOST_CLASS_VERSION( adcontrols::annotation, 3 )

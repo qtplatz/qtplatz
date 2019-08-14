@@ -85,10 +85,6 @@ namespace adcontrols {
 
         void clone( const MassSpectrum::impl&, bool deep = false );
 
-        // inline const double * getTimeArray() const { return tofArray_.size() ? tofArray_.data() : 0; }
-        // inline const double * getMassArray() const { return massArray_.size() ? massArray_.data() : 0; }
-        // inline const double * getIntensityArray() const { return intensityArray_.size() ? intensityArray_.data() : 0; }
-        // inline const uint8_t * getColorArray() const { return colArray_.size() ? colArray_.data() : 0; }
         inline size_t size() const { return !intensityArray_.empty() ? intensityArray_.size() : massArray_.size(); }
         inline bool isCentroid() const { return algo_ != CentroidNone; }
         inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
@@ -100,6 +96,16 @@ namespace adcontrols {
         void setIntensityArray( const double * );
         void setColorArray( const uint8_t * );
         void resize( size_t );
+
+        std::pair< size_t, size_t > minmax_element() {
+            if ( !minmax_element_ ) {
+                if ( intensityArray_.empty() )
+                    return {0,0};
+                auto pair = std::minmax_element( intensityArray_.begin(), intensityArray_.end() );
+                minmax_element_ = std::make_pair( std::distance( intensityArray_.begin(), pair.first ), std::distance( intensityArray_.begin(), pair.second ) );
+            }
+            return minmax_element_.get();
+        }
 
         // private:
         static std::wstring empty_string_;  // for error return as reference
@@ -129,7 +135,7 @@ namespace adcontrols {
 
         // exclude from archive
         std::string uuid_; // for instance equality check; out of serialization scope
-        std::tuple< bool, double, double > minmax_;
+        boost::optional< std::pair< size_t, size_t > > minmax_element_;
 
         friend class MassSpectrum;
 
@@ -173,8 +179,7 @@ namespace adcontrols {
             }
 
             // exclude
-            // scanLaw_.reset();
-            minmax_ = std::make_tuple( false, 0.0, 0.0 );
+            minmax_element_ = boost::none;
         }
     };
 
@@ -204,8 +209,7 @@ namespace adcontrols {
         ar & BOOST_SERIALIZATION_NVP( data );
 
         // exclude
-        // scanLaw_.reset();
-        minmax_ = std::make_tuple( false, 0.0, 0.0 );
+        minmax_element_ = boost::none;
     }
 
     template<> void MassSpectrum::impl::serialize( boost::archive::xml_wiarchive&, const unsigned int ) {
@@ -295,6 +299,8 @@ MassSpectrum::size() const
 void
 MassSpectrum::resize( size_t n )
 {
+    impl_->minmax_element_.reset();
+
 	impl_->intensityArray_.resize( n );
 
     if ( ! impl_->massArray_.empty() )
@@ -381,6 +387,8 @@ MassSpectrum::operator << ( const std::pair< double, double >& d )
     if ( ! impl_->tofArray_.empty() )
         impl_->tofArray_.insert( impl_->tofArray_.begin() + pos, 0.0 ); // adjust size
 
+    impl_->minmax_element_.reset();
+
     return pos;
 }
 
@@ -396,30 +404,6 @@ MassSpectrum::setMass( size_t idx, double mass )
     }
 }
 
-double
-MassSpectrum::getMass( size_t idx ) const
-{
-    if ( idx < impl_->massArray_.size() )
-        return impl_->massArray_.at( idx ); // getMassArray()[idx];
-    return 0;
-}
-
-double
-MassSpectrum::getIntensity( size_t idx ) const
-{
-    if ( idx < size() )
-        return impl_->intensityArray_.at( idx ); // getIntensityArray()[idx];
-    return 0;
-}
-
-double
-MassSpectrum::getTime( size_t idx ) const
-{
-    if ( impl_->tofArray_.empty() )
-        return MSProperty::toSeconds( idx, impl_->property_.samplingInfo() );
-
-    return impl_->tofArray_.size() > idx ? impl_->tofArray_[ idx ] : impl_->tofArray_.back(); // [ impl_->tofArray_.size() - 1 ];
-}
 
 size_t
 MassSpectrum::getIndexFromMass( double mass, bool closest ) const
@@ -458,6 +442,8 @@ MassSpectrum::setIntensity( size_t idx, double intensity )
 {
     if ( idx < impl_->size() )
         impl_->intensityArray_[ idx ] = intensity;
+
+    impl_->minmax_element_ = boost::none;
 }
 
 void
@@ -499,12 +485,14 @@ void
 MassSpectrum::setIntensityArray( const double * values )
 {
     std::copy( values, values + size(), impl_->intensityArray_.begin() );
+    impl_->minmax_element_ = boost::none;
 }
 
 void
 MassSpectrum::setIntensityArray( std::vector< double >&& a )
 {
     impl_->intensityArray_ = std::move( a );
+    impl_->minmax_element_ = boost::none;
 }
 
 void
@@ -552,7 +540,10 @@ MassSpectrum::getColorArray() const
 void
 MassSpectrum::setColorArray( std::vector< uint8_t >&& a )
 {
-    impl_->colArray_ = std::move( a );
+    if ( a.empty() )
+        impl_->colArray_.clear();
+    else
+        impl_->colArray_ = std::move( a ); // a can be an empty vector for clear data
 }
 
 void
@@ -571,11 +562,13 @@ MassSpectrum::setColorArray( const uint8_t * values )
 void
 MassSpectrum::setColor( size_t idx, uint8_t color )
 {
-    if ( ( idx < size() ) && impl_->colArray_.empty() )
+    if ( idx >= size() )
+        return;
+
+    if ( impl_->colArray_.size() < size() )
         impl_->colArray_.resize( size() );
 
-    if ( idx < impl_->colArray_.size() )
-        impl_->colArray_[ idx ] = color;
+    impl_->colArray_[ idx ] = color;
 }
 
 int
@@ -669,13 +662,12 @@ MassSpectrum::get_annotations()
 void
 MassSpectrum::addAnnotation( annotation&& a, bool uniq )
 {
-    if ( uniq && a.index() >= 0 ) {
-        auto it = std::find_if( impl_->annotations_.begin(), impl_->annotations_.end()
-                                , [&]( const annotation& x ){ return x.index() == a.index() && x.dataFormat() == a.dataFormat(); } );
-        if ( it != impl_->annotations_.end() )
-             impl_->annotations_.erase( it );
-    }
-
+    // if ( uniq && a.index() >= 0 ) {
+    //     auto it = std::find_if( impl_->annotations_.begin(), impl_->annotations_.end()
+    //                             , [&]( const annotation& x ){ return x.index() == a.index() && x.dataFormat() == a.dataFormat(); } );
+    //     if ( it != impl_->annotations_.end() )
+    //          impl_->annotations_.erase( it );
+    // }
     impl_->annotations_ << std::move( a );
 }
 
@@ -711,28 +703,81 @@ MassSpectrum::getAcquisitionMassRange() const
 }
 
 double
-MassSpectrum::getMinIntensity() const
+MassSpectrum::maxIntensity() const
 {
-    if ( ! isCentroid() ) {
-        if ( !std::get<0>( impl_->minmax_ ) )
-            getMaxIntensity();
-        return std::get<1>( impl_->minmax_ );
-    }
+    if ( !impl_->intensityArray_.empty() )
+        return intensity( impl_->minmax_element().second );
     return 0;
 }
 
 double
+MassSpectrum::minIntensity() const
+{
+    if ( isCentroid() )
+        return 0;
+    if ( !impl_->intensityArray_.empty() )
+        return intensity( impl_->minmax_element().first );
+    return 0;
+}
+
+double
+MassSpectrum::mass( size_t idx ) const
+{
+    if ( idx < impl_->massArray_.size() )
+        return impl_->massArray_.at( idx );
+    return 0;
+}
+
+// deprecated
+double
+MassSpectrum::getMass( size_t idx ) const
+{
+    return mass( idx );
+}
+
+
+double
+MassSpectrum::intensity( size_t idx ) const
+{
+    if ( idx < size() )
+        return impl_->intensityArray_.at( idx ); // getIntensityArray()[idx];
+    return 0;
+}
+
+// deprecated
+double
+MassSpectrum::getIntensity( size_t idx ) const
+{
+    return intensity( idx );
+}
+
+double
+MassSpectrum::time( size_t idx ) const
+{
+    if ( impl_->tofArray_.empty() )
+        return MSProperty::toSeconds( idx, impl_->property_.samplingInfo() );
+    return impl_->tofArray_.size() > idx ? impl_->tofArray_[ idx ] : impl_->tofArray_.back(); // [ impl_->tofArray_.size() - 1 ];
+}
+
+// deprecated
+double
+MassSpectrum::getTime( size_t idx ) const
+{
+    return time( idx );
+}
+
+// deprecated
+double
+MassSpectrum::getMinIntensity() const
+{
+    return minIntensity();
+}
+
+// deprecated
+double
 MassSpectrum::getMaxIntensity() const
 {
-    if ( !std::get<0>( impl_->minmax_ ) ) {
-        std::get<0>( impl_->minmax_ ) = true;
-        auto it = std::minmax_element( impl_->intensityArray_.begin(), impl_->intensityArray_.end() );
-        if ( it.first != impl_->intensityArray_.end() )
-            std::get<1>( impl_->minmax_ ) = *it.first;
-        if ( it.second != impl_->intensityArray_.end() )
-            std::get<2>( impl_->minmax_ ) = *it.second;
-    }
-    return std::get<2>( impl_->minmax_ );
+    return maxIntensity();
 }
 
 int32_t
@@ -994,7 +1039,7 @@ MassSpectrum::impl::impl() : algo_(CentroidNone)
                            , nProtocols_(0)
                            , dataReaderUuid_( { {0} } )
                            , rowid_(0)
-                           , minmax_( std::make_tuple( false, 0.0, 0.0 ) )
+                           , minmax_element_( boost::none )
 {
 }
 
@@ -1016,6 +1061,7 @@ MassSpectrum::impl::clone( const MassSpectrum::impl& t, bool deep )
     nProtocols_ = t.nProtocols_;
     dataReaderUuid_ = t.dataReaderUuid_;
     rowid_ = t.rowid_;
+    minmax_element_ = boost::none;
 
 	if ( deep ) {
 		tofArray_ = t.tofArray_;
@@ -1038,24 +1084,11 @@ MassSpectrum::impl::clone( const MassSpectrum::impl& t, bool deep )
 	}
 }
 
-// void
-// MassSpectrum::impl::addDescription( const description& t )
-// {
-// 	descriptions_.append( t );
-// }
-
-// void
-// MassSpectrum::impl::setCalibration( const MSCalibration& calib )
-// {
-//     calibration_ = calib;
-// }
-
-
 ////////////
 double
 segments_helper::max_intensity( const MassSpectrum& ms )
 {
-    double y = ms.getMaxIntensity();
+    double y = ms.maxIntensity();
     for ( size_t i = 0; i < ms.numSegments(); ++i ) {
         double t = ms.getSegment( i ).getMaxIntensity();
         if ( y < t )
@@ -1068,8 +1101,9 @@ double
 segments_helper::min_intensity( const MassSpectrum& ms )
 {
     if ( ms.isCentroid() )
-        return 0;
-    double y = ms.getMinIntensity();
+        return 0; //. aways 0
+
+    double y = ms.minIntensity();
     for ( size_t i = 0; i < ms.numSegments(); ++i ) {
         double t = ms.getSegment( i ).getMinIntensity();
         if ( y < t )
@@ -1134,7 +1168,7 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double xLeft, double x
     int fcn = 0;
     for ( auto& fms: segments ) {
         if ( isTimeAxis ) {
-            if ( fms.size() && ( xLeft < fms.getTime( fms.size() - 1 ) ) && ( xRight > fms.getTime( 0 ) ) ) {
+            if ( fms.size() && ( xLeft < fms.time( fms.size() - 1 ) ) && ( xRight > fms.time( 0 ) ) ) {
                 const double * intens = fms.getIntensityArray();
                 const double * times  = fms.getTimeArray();
                 auto lIt = std::lower_bound( times, times + fms.size(), xLeft );
@@ -1149,7 +1183,7 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double xLeft, double x
                 }
             }
         } else {
-            if ( fms.size() && ( xLeft < fms.getMass( fms.size() - 1 ) ) && ( xRight > fms.getMass( 0 ) ) ) {
+            if ( fms.size() && ( xLeft < fms.mass( fms.size() - 1 ) ) && ( xRight > fms.mass( 0 ) ) ) {
 
                 const double * intens = fms.getIntensityArray();
                 const double * masses = fms.getMassArray();

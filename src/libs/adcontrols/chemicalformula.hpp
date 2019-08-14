@@ -66,7 +66,8 @@ namespace adcontrols {
         typedef std::pair< std::string, char > formula_adduct_t;
         static std::vector< formula_adduct_t > split( const std::string& adducts );
         static std::pair< std::string, int > neutralize( const std::string& formula ); // remove charged form, [H]+ --> H
-        static size_t number_of_atoms( const std::string& formula );   // return true if "H" "Na" ...
+        static size_t number_of_atoms( const std::string& formula );   // return number of all atoms
+        static size_t number_of_atoms( const std::string& formula, const char * atom );   // return number of specified atom
 
 #if defined _MSC_VER
         static const char sign_formula = '\0';

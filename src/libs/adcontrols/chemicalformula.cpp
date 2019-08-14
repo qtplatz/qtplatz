@@ -651,6 +651,33 @@ ChemicalFormula::number_of_atoms( const std::string& formula )   // return true 
     return n;
 }
 
+//static
+size_t
+ChemicalFormula::number_of_atoms( const std::string& formula, const char * atom )   // return true if "H" "Na" ...
+{
+    using namespace adportable::chem;
+
+    typedef typename std::string::const_iterator iterator_type;
+    adportable::chem::chemical_formula_parser< iterator_type
+                                               , adportable::chem::formulaComposition
+                                               , adportable::chem::icomp_type > cf;
+
+    adportable::chem::icomp_type comp;
+    auto it = formula.begin();
+
+    size_t n(0);
+
+    while ( boost::spirit::qi::parse( it, formula.end(), cf, comp ) )
+        n = std::accumulate( comp.first.begin(), comp.first.end(), n
+                             , [&]( size_t a, const adportable::chem::comp_type::value_type& pair ){
+                                   if ( std::strcmp(pair.first.second, atom) == 0 )
+                                       return a + pair.second;
+                                   else
+                                       return a;
+                               });
+    return n;
+}
+
 /*
  * split formula followed by a list of adducts/losses,
  * ex. 'CH3(C2H4)5OH +H +Na +NH3 -C2H4' will return pair(' ', "CH3(C2H4)50H"), pair('+' "Na"), pair('+' "NH3"), pair( '-' "C2H4")

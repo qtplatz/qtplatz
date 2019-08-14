@@ -27,6 +27,10 @@
 
 using namespace adcontrols;
 
+annotation::~annotation()
+{
+}
+
 annotation::annotation() : format_( dataText )
                          , index_( -1 )
                          , priority_( 0 )
@@ -34,6 +38,7 @@ annotation::annotation() : format_( dataText )
                          , y_( 0 )
                          , w_( 0 )
                          , h_( 0 )
+                         , flags_( 0 )
 {
 }
 
@@ -45,6 +50,7 @@ annotation::annotation( const annotation& t ) : format_( t.format_ )
                                               , y_( t.y_ )
                                               , w_( t.w_ )
                                               , h_( t.h_ )
+                                              , flags_( t.flags_ )
 {
 }
 
@@ -53,13 +59,15 @@ annotation::annotation( const std::wstring& text
                         , double y
                         , int idx
                         , int priority
-                        , DataFormat typ ) : format_( typ )
-                                           , index_( idx )
-                                           , priority_( priority )
-										   , text_( adportable::utf::to_utf8( text ) )
-                                           , x_( x ), y_( y )
-                                           , w_( 0 )
-                                           , h_( 0 )
+                        , DataFormat typ
+                        , DataFlag flg ) : format_( typ )
+                                         , index_( idx )
+                                         , priority_( priority )
+                                         , text_( adportable::utf::to_utf8( text ) )
+                                         , x_( x ), y_( y )
+                                         , w_( 0 )
+                                         , h_( 0 )
+                                         , flags_( flg )
 {
 }
 
@@ -68,13 +76,15 @@ annotation::annotation( const std::string& text
                         , double y
                         , int idx
                         , int priority
-                        , DataFormat typ ) : format_( typ )
-                                           , index_( idx )
-                                           , priority_( priority )
-										   , text_( text )
-                                           , x_( x ), y_( y )
-                                           , w_( 0 )
-                                           , h_( 0 )
+                        , DataFormat typ
+                        , DataFlag flg ) : format_( typ )
+                                         , index_( idx )
+                                         , priority_( priority )
+                                         , text_( text )
+                                         , x_( x ), y_( y )
+                                         , w_( 0 )
+                                         , h_( 0 )
+                                         , flags_( flg )
 {
 }
 
@@ -98,7 +108,7 @@ annotation::text( const std::wstring& text, DataFormat format )
     text_ = adportable::utf::to_utf8( text );
     format_ = format;
 }
- 
+
 int
 annotation::index() const
 {
@@ -143,7 +153,7 @@ annotation::x() const
     return x_;
 }
 
-double 
+double
 annotation::y() const
 {
     return y_;
@@ -182,3 +192,14 @@ annotation::y( double y )
     y_ = y;
 }
 
+uint32_t
+annotation::flags() const
+{
+    return flags_;
+}
+
+void
+annotation::setFlags( uint32_t f )
+{
+    flags_ = f;
+}

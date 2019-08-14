@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#include "annotation.hpp"
+#include "annotations.hpp"
 #include "isotopecluster.hpp"
 #include "targeting.hpp"
 #include "targetingmethod.hpp"
@@ -45,7 +47,7 @@
 
 namespace adcontrols {
 
-    typedef std::map< std::string, uint32_t > adduct_complex_t;
+    typedef std::map< std::string, uint32_t > adduct_complex_t; // adduct[replicates] such as (CH3CN)2, ...
 
     struct make_formula {
         template< char sign >
@@ -117,30 +119,31 @@ namespace adcontrols {
 
         std::vector< std::string >
         operator()( uint32_t charge
-                         , const std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t >& adducts ) {
+                    , const std::map< std::string /*key*/, adcontrols::ChemicalFormula::formula_adduct_t >& adducts /*formula,[+|-]*/) {
 
             const size_t r = charge;
             const size_t n = adducts.size();
 
-            std::vector< std::string > v_keys( n );
-            std::transform( adducts.begin(), adducts.end(), v_keys.begin(), [](const auto& a){ return a.first; });
-            std::vector< std::vector< std::string >::const_iterator > v_iter( r, v_keys.begin() );
-            do {
-                std::ostringstream o;
+            if ( n > 0 ) {
+                std::vector< std::string > v_keys( n );
+                std::transform( adducts.begin(), adducts.end(), v_keys.begin(), [](const auto& a){ return a.first; });
+                std::vector< std::vector< std::string >::const_iterator > v_iter( r, v_keys.begin() );
+                do {
+                    std::ostringstream o;
 
-                adduct_complex_t an_adduct;
-                std::for_each( v_iter.begin(), v_iter.end(), [&]( const auto& it ){ an_adduct[ *it ]++; });
-                // print( charge, an_adduct, adducts, o );
-                // ADDEBUG() << "\t" << o.str();
-                complex_.emplace_back( std::move( an_adduct ) );
+                    adduct_complex_t an_adduct;
+                    std::for_each( v_iter.begin(), v_iter.end(), [&]( const auto& it ){ an_adduct[ *it ]++; });
+                    complex_.emplace_back( std::move( an_adduct ) );
 
-            } while ( boost::next_mapping( v_iter.begin(), v_iter.end(), v_keys.begin(), v_keys.end() ) );
+                } while ( boost::next_mapping( v_iter.begin(), v_iter.end(), v_keys.begin(), v_keys.end() ) );
 
-            std::vector< std::string > results;
-            for ( const auto& complex: complex_ ) {
-                results.emplace_back( make_formula()( charge, complex, adducts ) );
+                std::vector< std::string > results;
+                for ( const auto& complex: complex_ )
+                    results.emplace_back( make_formula()( charge, complex, adducts ) );
+
+                return results;
             }
-            return results;
+            return std::vector< std::string >();
         }
 
     };
@@ -169,6 +172,7 @@ Targeting::Candidate::Candidate() : idx(0)
                                   , fcn(0)
                                   , charge(1)
                                   , mass_error(0)
+                                  , score(0)
 {
 }
 
@@ -177,6 +181,8 @@ Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
                                                       , charge( t.charge )
                                                       , mass_error( t.mass_error )
                                                       , formula( t.formula )
+                                                      , score( t.score )
+                                                      , isotopes( t.isotopes )
 {
 }
 
@@ -187,6 +193,7 @@ Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, uint32_t _charge,
     , charge( _charge )
     , mass_error( _error )
     , formula( _formula )
+    , score( 0 )
 {
 }
 
@@ -240,23 +247,67 @@ Targeting::operator()( MassSpectrum& ms )
 {
     if ( (*this)( static_cast< const MassSpectrum& >( ms ) ) ) {
 
-        for ( const auto& candidate : candidates_ ) {
-            do { // isotope cluster match
+        // erase existing annotations & colors
+        for ( auto& tms: segment_wrapper<>( ms ) ) {
+            tms.setColorArray( std::vector< uint8_t >() ); // clear color array
+            tms.get_annotations().erase_if( [](const auto& a){ return a.flags() <= annotation::flag_targeting; } ); // clear existing annotations
+        }
 
+        adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
+
+        for ( auto& candidate : candidates_ ) {
+            do {
+                ////////////// isotope cluster match ///////////////
+                // generate cluster pattern
                 auto neutral = adcontrols::ChemicalFormula::neutralize( candidate.formula );
-                auto formula = ChemicalFormula::standardFormula( ChemicalFormula::split( neutral.first ) );
-                auto formulae = isotopeCluster::formulae( formula );
-                ADDEBUG() << "neutral: " << neutral << " -> stdform: " << formula;
-                std::for_each( formulae.begin(), formulae.end(), [](const auto& f){ ADDEBUG() << f; });
+                auto v_peak = isotopeCluster( 1.0e-6, 10000 )( ChemicalFormula::split( neutral.first ), neutral.second );
+                auto bp = std::max_element( v_peak.begin(), v_peak.end(), [](const auto& a, const auto& b){ return a.abundance < b.abundance; }); // base peak
 
-                auto vec = isotopeCluster(1.0e-6, 10000 )( ChemicalFormula::split( neutral.first ), neutral.second );
-                std::for_each( vec.begin(), vec.end(), [](const auto& i){ ADDEBUG() << "mass: " << i.mass << ", abundance: " << i.abundance; });
+                auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
 
+                double error = tms.getMass( candidate.idx ) - bp->mass;
+                size_t nCarbons = ChemicalFormula::number_of_atoms( neutral.first, "C" );
+                std::string text = ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
+
+                ADDEBUG() << "----------------------------- " << candidate.formula << " #Carbon: " << nCarbons << " --------------------------";
+
+                std::for_each( v_peak.begin(), v_peak.end()
+                               , [&](const auto& i){
+                                     auto pos = finder( tms, i.mass + error );
+                                     if ( pos != MassSpectrum::npos ) {
+                                         tms.setColor( pos, 16 );
+                                         double ratio = tms.getIntensity( pos ) / tms.getIntensity( candidate.idx );
+                                         int pri = 1000 * (std::log10( tms.intensity( pos ) / tms.maxIntensity() ) + 15);
+                                         ADDEBUG() << pos << ":\t" << candidate.formula
+                                                   << boost::format("\tmass: %.4lf (%.1f)" ) % i.mass % (error*100)
+                                                   << boost::format(",\tmass error(mDa): %.5lf" ) % ((tms.getMass( pos ) - (i.mass + error)) * 1000)
+                                                   << boost::format(",\tabundance: %.5g,\t%.5g") % i.abundance % ratio
+                                                   << boost::format(",\terror: %g") % ((100*(ratio - i.abundance))/i.abundance)
+                                                   << "\tpri=" << pri;
+                                         if ( pos != candidate.idx && pos != 0 ) {
+                                             candidate.isotopes.emplace_back( pos, candidate.fcn );
+                                             tms.get_annotations()
+                                                 << annotation( text, tms.getMass( pos ), tms.getIntensity( pos ), pos, pri, annotation::dataText, annotation::flag_targeting );
+                                         }
+                                     }
+                                 });
+                if ( nCarbons > 0 && candidate.isotopes.empty() )
+                    candidate.score = -9999;
             } while(0);
 
-
-            adcontrols::segments_helper::set_color( ms, candidate.fcn, candidate.idx, 16 ); // dark orange
+            ///////////////////
+            // following annotation may be overwited from adwidgets::mspeaktable through annotation_updatore via setPeakInfo
+            if ( candidate.score >= 0 ) {
+                adcontrols::segments_helper::set_color( ms, candidate.fcn, candidate.idx, 16 ); // dark orange
+                auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
+                tms.get_annotations()
+                    << annotation( candidate.formula, tms.getMass( candidate.idx ), tms.getIntensity( candidate.idx ), candidate.idx, 15000, annotation::dataFormula, annotation::flag_targeting );
+            }
         }
+
+        // erase lower score candidates
+        candidates_.erase( std::remove_if( candidates_.begin(), candidates_.end(), [](const auto& c ){ return c.score < 0; }), candidates_.end() );
+
         return true;
     }
     return false;
@@ -333,24 +384,33 @@ Targeting::setup( const TargetingMethod& m )
             }
 
             for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-                if ( charge == 1 ) {
-                    for ( const auto& a: adducts_local ) {
+                int icharge = positive ? charge : -static_cast<int>(charge);
+                if ( charge == 1 ) { // no charge 0 supported
+                    if ( adducts_local.empty() ) {
                         std::ostringstream t;
-                        t << x.formula() << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ) ) );
+                        t << "[" << x.formula() << "]" << ( positive ? '+' : '-' );
+                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ) );
+                    } else {
+                        for ( const auto& a: adducts_local ) {
+                            std::ostringstream t;
+                            t << x.formula() << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
+                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ) );
+                        }
                     }
                 } else if ( charge >= 2 ) {
-                    for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+                    if ( adducts_local.empty() ) {
                         std::ostringstream t;
-                        t << x.formula() << a;
-                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ) ) );
+                        t << "[" << x.formula() << "]" << charge << ( positive ? '+' : '-' );
+                        active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( x.formula() ), icharge ) );
+                    } else {
+                        for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+                            std::ostringstream t;
+                            t << x.formula() << a;
+                            active_formula_.emplace_back( t.str(), formula_parser.getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ) );
+                        }
                     }
                 }
             }
-#ifndef NDEBUG
-            for ( const auto& a: active_formula_ )
-                ADDEBUG() << a << ", neutral: " << ChemicalFormula::neutralize( a.first );
-#endif
         }
     }
 
@@ -363,26 +423,43 @@ Targeting::make_mapping( const std::pair<uint32_t, uint32_t>& charge_range, cons
     std::vector< std::tuple<std::string, double, int> > res;
 
     std::map< std::string, adcontrols::ChemicalFormula::formula_adduct_t > adducts_local;
+
     for ( const auto& adduct: ChemicalFormula::split( adducts ) ) {
         auto sign = (adduct.second == '-' ? "-" : "+");
         adducts_local[ sign + ChemicalFormula::standardFormula( adduct.first, true ) ] = { ChemicalFormula::neutralize(adduct.first).first, sign[0] };
     }
 
     for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {
-        int icharge = positive_polairy ? charge : -charge;
+        int icharge = positive_polairy ? charge : -static_cast<int>(charge);
         if ( charge == 0 || charge == 1 ) {
-            for ( const auto& a: adducts_local ) {
-                std::ostringstream t;
-                t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
-                double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
-                res.emplace_back( t.str(), mass, icharge );
+            if ( adducts_local.empty() ) {
+                if ( charge == 0 ) {
+                    res.emplace_back( formula, ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( formula ), icharge ), icharge );
+                } else {
+                    std::ostringstream t;
+                    t << "[" << formula << "]" << (icharge > 0 ? '+' : '-');
+                    res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ), icharge );
+                }
+            } else {
+                for ( const auto& a: adducts_local ) {
+                    std::ostringstream t;
+                    t << formula << a.second.second << "[" << a.second.first << "]+";  // "+|-" + ['adduct']+
+                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
+                    res.emplace_back( t.str(), mass, icharge );
+                }
             }
         } else if ( charge >= 2 ) {
-            for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+            if ( adducts_local.empty() ) {
                 std::ostringstream t;
-                t << formula << a;
-                double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
-                res.emplace_back( t.str(), mass, icharge );
+                t << "[" << formula << "]" << charge << (icharge > 0 ? '+' : '-');
+                res.emplace_back( t.str(), ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge ), icharge );
+            } else {
+                for ( const auto& a: make_combination()( charge, adducts_local ) ) {
+                    std::ostringstream t;
+                    t << formula << a;
+                    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( t.str() ), icharge );
+                    res.emplace_back( t.str(), mass, icharge );
+                }
             }
         }
     }

@@ -25,16 +25,19 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "annotation.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <algorithm>
+#include <functional>
 #include <vector>
-#include "annotation.hpp"
 
 namespace adcontrols {
 
     class annotation;
+    class ADCONTROLSSHARED_EXPORT annotations;
 
-    class ADCONTROLSSHARED_EXPORT annotations {
+    class annotations {
     public:
         annotations();
         annotations( const annotations& );
@@ -56,13 +59,20 @@ namespace adcontrols {
         void clear();
         void sort( OrderBy order = Priority );
         annotations& operator << ( const annotation& );
+        annotations& operator << ( annotation&& );
         const annotation& operator [] ( size_t ) const;
         annotation& operator [] ( size_t );
         inline iterator begin() { return vec_.begin(); }
         inline iterator end() { return vec_.end(); }
         inline const_iterator begin() const { return vec_.begin(); }
         inline const_iterator end() const { return vec_.end(); }
-        inline iterator erase( iterator it ) { return vec_.erase( it ); }
+        //inline iterator erase( iterator it ) { return vec_.erase( it ); }
+        template<typename functor>
+        inline iterator erase_if( functor pred ) {
+            if ( !vec_.empty() )
+                return vec_.erase( std::remove_if( vec_.begin(), vec_.end(), std::bind( pred, std::placeholders::_1 ) ) );
+            return vec_.end();
+        }
     private:
         vector_type vec_;
         friend class boost::serialization::access;
@@ -74,4 +84,3 @@ namespace adcontrols {
     };
 
 }
-

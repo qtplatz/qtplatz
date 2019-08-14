@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "annotations.hpp"
+#include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <algorithm>
 
@@ -57,7 +58,22 @@ annotations::clear()
 annotations&
 annotations::operator << ( const annotation& t )
 {
-    vec_.push_back( t );
+    auto it = std::find_if( vec_.begin(), vec_.end(), [&](const auto& a){ return a.index() == t.index() && a.dataFormat() == t.dataFormat(); });
+    if ( it != vec_.end() )
+        *it = t;
+    else
+        vec_.emplace_back( t );
+    return *this;
+}
+
+annotations&
+annotations::operator << ( annotation&& t )
+{
+    auto it = std::find_if( vec_.begin(), vec_.end(), [&](const auto& a){ return a.index() == t.index() && a.dataFormat() == t.dataFormat(); });
+    if ( it != vec_.end() )
+        *it = std::move(t);
+    else
+        vec_.emplace_back( t );
     return *this;
 }
 
