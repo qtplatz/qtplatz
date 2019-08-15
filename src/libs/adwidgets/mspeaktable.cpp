@@ -424,8 +424,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
                     return c.idx == uint32_t(idx) && c.fcn == uint32_t(fcn);  } );
         if ( it != candidates.end() ) {
             model.setData( model.index( row, c_mspeaktable_formula ), QString::fromStdString( it->formula ) );
-            model.setData( model.index( row, c_mspeaktable_exact_mass ), exactMass( it->formula ) );
-            model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass_error );
+            model.setData( model.index( row, c_mspeaktable_exact_mass ), it->exact_mass );
+            model.setData( model.index( row, c_mspeaktable_mass_error ), it->mass - it->exact_mass );
             model.setData( model.index( row, c_mspeaktable_description ), tr( "Target candidate" ) );
 
             setRowHidden( row, false );
@@ -1073,7 +1073,7 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
     for ( int col = 0; col < cols; ++col ) {
         double width = 0;
         switch( col ) {
-        case c_mspeaktable_formula:              width = rect.width() / 180 * 30; break;
+        case c_mspeaktable_formula:              width = rect.width() / 180 * 40; break;
         case c_mspeaktable_exact_mass:           width = rect.width() / 180 * 30; break;
         case c_mspeaktable_mass:                 width = rect.width() / 180 * 30; break;
         case c_mspeaktable_mass_error:           width = rect.width() / 180 * 24; break;
@@ -1110,6 +1110,7 @@ MSPeakTable::handlePrint( QPrinter& printer, QPainter& painter )
                 break;
             case c_mspeaktable_exact_mass:
                 text = formula.isEmpty() ? QString() : QString::number( data.toDouble(), 'g', 7 );
+                render( painter, col, text );
                 break;
             case c_mspeaktable_mass:
                 text = QString::number( data.toDouble(), 'g', 7 );

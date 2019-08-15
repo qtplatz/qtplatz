@@ -33,14 +33,14 @@ if ( NOT WIN32 )
   if ( NOT libxml2_FOUND )
     message( FATAL_ERROR "*** libxml2 NOT FOUND ***")
   endif()
-  
+
   find_package( libxslt )
   if ( NOT libxslt_FOUND )
-    message( FATAL_ERROR "*** libxslt NOT FOUND ***")  
+    message( FATAL_ERROR "*** libxslt NOT FOUND ***")
   endif()
 
   include_directories( ${libxml2_INCLUDE_DIRS} )
-  include_directories( ${libxslt_INCLUDE_DIRS} )  
+  include_directories( ${libxslt_INCLUDE_DIRS} )
 
   set( _xslt_sources libxslt_transformer.cpp libxslt_transformer.hpp )
   set( _xslt_libs ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
@@ -58,27 +58,29 @@ endif()
 set( adpublisher_RESOURCES adpublisher.qrc )
 
 add_library( adpublisher SHARED
-  adpublisher_global.hpp 
+  adpublisher_global.hpp
   adpublisher.hpp
-  document.hpp 
+  document.hpp
   document.cpp
-  doceditor.hpp 
+  doceditor.hpp
   doceditor.cpp
-  doctree.hpp 
+  doctree.hpp
   doctree.cpp
   docedit.hpp
   docedit.cpp
   transformer.cpp
-  transformer.hpp 
+  transformer.hpp
   msxml_transformer.hpp
   printer.hpp
   printer.cpp
+  textedit.cpp
+  textedit.hpp
   ${_xslt_sources}
-  ${adpublisher_RESOURCES}  
+  ${adpublisher_RESOURCES}
   )
 
 target_link_libraries(
-  adpublisher LINK_PUBLIC
+  ${PROJECT_NAME} LINK_PUBLIC
   adportable
   qtwrapper
   xmlparser
@@ -87,7 +89,17 @@ target_link_libraries(
   Qt5::PrintSupport
   ${_xslt_libs}
   ${Boost_LIBRARIES}
-)
+  )
+
+add_executable( adedit
+  main.cpp
+  )
+
+target_link_libraries(
+  adedit LINK_PUBLIC
+  ${PROJECT_NAME}
+  )
+
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications

@@ -106,8 +106,8 @@ namespace quan {
             if ( it != t.candidates().end() ) {
                 try {
                     auto& tms = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( centroid )[ proto ];
-                    ptree.put( "targeting.matchedMass", tms.getMass( it->idx ) );
-                    ptree.put( "targeting.mass_error", it->mass_error );
+                    ptree.put( "targeting.matchedMass", tms.mass( it->idx ) );
+                    ptree.put( "targeting.mass_error", (it->mass - it->exact_mass) );
                     ptree.put( "targeting.idx", it->idx );
                     return true;
                 } catch ( std::exception& ex ) {

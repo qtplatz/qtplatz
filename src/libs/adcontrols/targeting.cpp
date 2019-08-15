@@ -41,6 +41,7 @@
 #include <boost/format.hpp>
 #include <algorithm>
 #include <iterator>
+#include <numeric>
 #include <sstream>
 #include <set>
 #include <map>
@@ -158,8 +159,6 @@ Targeting::Targeting() : method_( std::make_shared< TargetingMethod >() )
 Targeting::Targeting( const Targeting& t ) : method_( t.method_ )
                                            , candidates_( t.candidates_ )
                                            , active_formula_( t.active_formula_ )
-                                             //, pos_adducts_( t.pos_adducts_ )
-                                             //, neg_adducts_( t.neg_adducts_ )
 {
 }
 
@@ -171,7 +170,8 @@ Targeting::Targeting( const TargetingMethod& m ) : method_( std::make_shared<Tar
 Targeting::Candidate::Candidate() : idx(0)
                                   , fcn(0)
                                   , charge(1)
-                                  , mass_error(0)
+                                  , mass(0)
+                                  , exact_mass(0)
                                   , score(0)
 {
 }
@@ -179,20 +179,22 @@ Targeting::Candidate::Candidate() : idx(0)
 Targeting::Candidate::Candidate( const Candidate& t ) : idx( t.idx )
                                                       , fcn( t.fcn )
                                                       , charge( t.charge )
-                                                      , mass_error( t.mass_error )
+                                                      , mass( t.mass )
                                                       , formula( t.formula )
+                                                      , exact_mass( t.exact_mass )
                                                       , score( t.score )
                                                       , isotopes( t.isotopes )
 {
 }
 
 
-Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, uint32_t _charge, double _error, const std::string& _formula )
+Targeting::Candidate::Candidate( uint32_t _idx, uint32_t _fcn, uint32_t _charge, double _mass, double _exact_mass, const std::string& _formula )
     : idx( _idx )
     , fcn( _fcn )
     , charge( _charge )
-    , mass_error( _error )
+    , mass( _mass )
     , formula( _formula )
+    , exact_mass( _exact_mass )
     , score( 0 )
 {
 }
@@ -208,13 +210,13 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, bool polarity_positi
     adcontrols::MSFinder finder( method_->tolerance( method_->toleranceMethod() ), method_->findAlgorithm(), method_->toleranceMethod() );
 
     for ( auto& formula : active_formula_ ) {
-        double target_mass = formula.second; // search 'M'
+        double exact_mass = formula.second; // search 'M'
 
-        size_t pos = finder( ms, target_mass );
+        size_t pos = finder( ms, exact_mass );
         if ( pos != MassSpectrum::npos ) {
-            double error = ms.getMass( pos ) - target_mass;
+            double mass = ms.getMass( pos );
             auto neutral = adcontrols::ChemicalFormula::neutralize( formula.first );
-            candidates_.emplace_back( uint32_t( pos /*idx*/ ), fcn, neutral.second/*charge*/, error, formula.first /*formula*/ );
+            candidates_.emplace_back( uint32_t( pos /*idx*/ ), fcn, neutral.second/*charge*/, mass, exact_mass, formula.first /*formula*/ );
         }
     }
     return true;
@@ -260,49 +262,75 @@ Targeting::operator()( MassSpectrum& ms )
                 ////////////// isotope cluster match ///////////////
                 // generate cluster pattern
                 auto neutral = adcontrols::ChemicalFormula::neutralize( candidate.formula );
-                auto v_peak = isotopeCluster( 1.0e-6, 10000 )( ChemicalFormula::split( neutral.first ), neutral.second );
+                auto v_peak = isotopeCluster( 1.0e-6, 7000 )( ChemicalFormula::split( neutral.first ), neutral.second );
                 auto bp = std::max_element( v_peak.begin(), v_peak.end(), [](const auto& a, const auto& b){ return a.abundance < b.abundance; }); // base peak
 
                 auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
 
                 double error = tms.getMass( candidate.idx ) - bp->mass;
                 size_t nCarbons = ChemicalFormula::number_of_atoms( neutral.first, "C" );
-                std::string text = ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
 
-                ADDEBUG() << "----------------------------- " << candidate.formula << " #Carbon: " << nCarbons << " --------------------------";
+                std::vector< isotope > isotopes( v_peak.size() );
+                std::transform( v_peak.begin(), v_peak.end(), isotopes.begin(), [](const auto& v){ return isotope(-1, 0, 0, 0, v.mass, v.abundance ); });
 
-                std::for_each( v_peak.begin(), v_peak.end()
-                               , [&](const auto& i){
-                                     auto pos = finder( tms, i.mass + error );
-                                     if ( pos != MassSpectrum::npos ) {
-                                         double ratio = tms.getIntensity( pos ) / tms.getIntensity( candidate.idx );
-                                         int pri = 1000 * (std::log10( tms.intensity( pos ) / tms.maxIntensity() ) + 15);
-                                         ADDEBUG() << pos << ":\t" << candidate.formula
-                                                   << boost::format("\tmass: %.4lf (%.1f)" ) % i.mass % (error*100)
-                                                   << boost::format(",\tmass error(mDa): %.5lf" ) % ((tms.getMass( pos ) - (i.mass + error)) * 1000)
-                                                   << boost::format(",\tabundance: %.5g,\t%.5g") % i.abundance % ratio
-                                                   << boost::format(",\terror: %g") % ((100*(ratio - i.abundance))/i.abundance)
-                                                   << "\tpri=" << pri;
-                                         //----------- annotation ---------
-                                         if ( pos != candidate.idx && pos != 0 ) {
-                                             tms.setColor( pos, 16 );
-                                             candidate.isotopes.emplace_back( pos, (tms.mass( pos ) - i.mass + error), ratio, (ratio - i.abundance)/i.abundance );
-                                             tms.get_annotations()
-                                                 << annotation( text, tms.getMass( pos ), tms.getIntensity( pos ), pos, pri, annotation::dataText, annotation::flag_targeting );
-                                         }
-                                     }
-                                 });
-                if ( nCarbons > 0 && candidate.isotopes.empty() )
+                // order of abundance desc
+                std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_abundance > b.exact_abundance; });
+
+                // remove most abundant peak that is equivalent to candidate
+                isotopes.erase( isotopes.begin() );
+
+                for ( std::vector< isotope >::iterator it = isotopes.begin(); it < isotopes.end(); ++it ) {
+                    auto& i = *it;
+                    auto pos = finder( tms, it->exact_mass + error );
+
+                    if ( pos != MassSpectrum::npos ) {
+                        auto pIt = std::find_if( isotopes.begin(), it, [pos]( const auto& a ){ return a.idx == pos; });
+                        if ( pIt == it ) { // if not already exists
+                            i.idx = pos;
+                            i.mass = tms.mass( pos ) - error; // base peak locked
+                            i.abundance_ratio = tms.intensity( pos ) / tms.intensity( candidate.idx );
+                            i.abundance_ratio_error = (i.abundance_ratio - i.exact_abundance)/i.exact_abundance;
+#if !defined NDEBUG
+                            ADDEBUG() << pos << ":\t" << candidate.formula
+                                      << boost::format("\texact_mass: %.4lf (%.1f)" ) % i.exact_mass % (error*100)
+                                      << boost::format(",\tmass error(mDa): %.5lf" ) % ((tms.mass( pos ) - (i.mass + error)) * 1000)
+                                      << boost::format(",\tabundance: %.5g,\t%.5g") % i.exact_abundance % i.abundance_ratio
+                                      << boost::format(",\terror: %g") % ((100*(i.abundance_ratio - i.exact_abundance))/i.exact_abundance);
+#endif
+                        }
+                    }
+                }
+
+                if ( nCarbons && ( isotopes.at(0).idx < 0 ) ) {
                     candidate.score = -9999;
+                } else  {
+                    std::sort( isotopes.begin(), isotopes.end(), [](const auto& a, const auto& b){ return a.exact_mass < b.exact_mass; });
+                    auto tail = std::find_if( isotopes.rbegin(), isotopes.rend(), [](const auto& a){ return a.idx >= 0; } );
+                    isotopes.erase( tail.base(), isotopes.end() );
+                }
+
+                candidate.isotopes = std::move( isotopes );
+
             } while(0);
 
             ///////////////////
             // following annotation may be overwited from adwidgets::mspeaktable through annotation_updatore via setPeakInfo
             if ( candidate.score >= 0 ) {
-                adcontrols::segments_helper::set_color( ms, candidate.fcn, candidate.idx, 16 ); // dark orange
                 auto& tms = segment_wrapper<>( ms )[ candidate.fcn ];
+                tms.setColor( candidate.idx, 16 ); // dark orange
+                int pri = 1000 * (std::log10( tms.intensity( candidate.idx ) / tms.maxIntensity() ) + 15); // 0..15000
                 tms.get_annotations()
-                    << annotation( candidate.formula, tms.getMass( candidate.idx ), tms.getIntensity( candidate.idx ), candidate.idx, 15000, annotation::dataFormula, annotation::flag_targeting );
+                    << annotation( candidate.formula, tms.getMass( candidate.idx ), tms.getIntensity( candidate.idx ), candidate.idx, pri, annotation::dataFormula, annotation::flag_targeting );
+
+                std::string text = ChemicalFormula::formatFormulae( candidate.formula, true ) + "*";
+                for ( const auto& i: candidate.isotopes ) {
+                    if ( i.idx >= 0 ) {
+                        tms.setColor( i.idx, 16 ); // dark orange
+                        int pri = 1000 * (std::log10( tms.intensity( i.idx ) / tms.maxIntensity() ) + 15); // 0..15000
+                        tms.get_annotations()
+                            << annotation( text, tms.getMass( i.idx ), tms.getIntensity( i.idx ), i.idx, pri, annotation::dataText, annotation::flag_targeting );
+                    }
+                }
             }
         }
 
@@ -326,7 +354,7 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
         return false;
 
     auto neutral = ChemicalFormula::neutralize( formula );
-    double mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
+    double exact_mass = ChemicalFormula().getMonoIsotopicMass( ChemicalFormula::split( neutral.first ) );
 
     int proto( 0 );
     for ( auto& fms: segment_wrapper< const adcontrols::MassSpectrum >( ms ) ) {
@@ -334,9 +362,9 @@ Targeting::force_find( const MassSpectrum& ms, const std::string& formula, int32
             double width = method_->tolerance( idToleranceDaltons );
             do {
                 adcontrols::MSFinder finder( width, idFindClosest );
-                size_t pos = finder( fms, mass );
+                size_t pos = finder( fms, exact_mass );
                 if ( pos != MassSpectrum::npos ) {
-                    candidates_.emplace_back( pos, proto, /*charge*/ 1, fms.getMass( pos ) - mass, formula );
+                    candidates_.emplace_back( pos, proto, /*charge*/ 1, fms.mass( pos ), exact_mass, formula );
                     return true;
                 }
                 width += width;

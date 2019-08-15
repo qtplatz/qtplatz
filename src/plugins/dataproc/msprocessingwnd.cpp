@@ -87,6 +87,7 @@
 #include <qwt_plot_marker.h>
 #include <qwt_scale_engine.h>
 #include <qwt_symbol.h>
+#include <QAbstractTextDocumentLayout>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -96,7 +97,9 @@
 #include <QSettings>
 #include <QSlider>
 #include <QSvgGenerator>
+#include <QTextCursor>
 #include <QTextDocument>
+#include <QTextTableFormat>
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -1203,54 +1206,68 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
     QSizeF sizeMM( 180, 80 );
 
-    int resolution = 85;
+    int resolution = 96;
 	const double mmToInch = 1.0 / 25.4;
     const QSizeF size = sizeMM * mmToInch * resolution;
 
 	QPrinter printer;
     printer.setColorMode( QPrinter::Color );
     printer.setPaperSize( QPrinter::A4 );
-    printer.setFullPage( false );
+    printer.setPageMargins( 10.0, 10.0, 10.0, 10.0, printer.Millimeter);
+    printer.setFullPage( true );
 
 	portfolio::Folium folium;
     printer.setDocName( "QtPlatz Process Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
         folium = dp->getPortfolio().findFolium( idActiveFolium_ );
     }
+
+    //printer.setOutputFormat( QPrinter::PdfFormat );
     printer.setOutputFileName( pdfname );
-    // printer.setOutputFormat( QPrinter::PdfFormat );
     printer.setResolution( resolution );
 
     QPainter painter( &printer );
 
-	QRectF boundingRect;
-	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
+    QRectF boundingRect;
+    QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
 
-	painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
+    painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
 
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
 
-	drawRect.setTop( boundingRect.bottom() );
-	drawRect.setHeight( size.height() );
-	drawRect.setWidth( size.width() );
-	renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
+    drawRect.setTop( boundingRect.bottom() );
+    drawRect.setWidth( size.width() );
+    drawRect.setHeight( size.height() );
+    renderer.render( pImpl_->ticPlot_, &painter, drawRect );
 
-	drawRect.setTop( drawRect.bottom() );
-	drawRect.setHeight( size.height() );
+    drawRect.setTop( drawRect.bottom() );
+    drawRect.setHeight( size.height() );
     renderer.render( pImpl_->profileSpectrum_, &painter, drawRect );
 
+    drawRect.setTop( drawRect.bottom() );
+    drawRect.setHeight( size.height() );
+    renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
+
     // -- starting method print
-    drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
-    drawRect.setHeight( printer.height() - drawRect.top() );
+    //drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+    //drawRect.setHeight( printer.height() - drawRect.top() );
+
+    QTextDocument doc;
+    QTextBlockFormat blockFormat;
+    QTextCursor cursor(&doc);
+    auto pageSize = printer.pageRect().size();
+    doc.setPageSize( pageSize );
+    const QRectF textRect( 10, 10, pageSize.width() - 2 * 10, pageSize.height() - 2 * 10 );
 
     {
         // Targeting results
         portfolio::Folio attachments = folium.attachments();
         auto it = std::find_if( attachments.begin(), attachments.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
         if ( it != attachments.end() ) {
+
             if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( it->data() ) ) {
                 auto centroid = boost::any_cast< std::shared_ptr< adcontrols::MassSpectrum > >( it->data() );
 
@@ -1258,46 +1275,84 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                 auto tgtIt = std::find_if( atts.begin(), atts.end(), []( auto f ){ return f.name() == Constants::F_TARGETING; } );
                 if ( tgtIt != atts.end() ) {
                     if ( adportable::a_type< std::shared_ptr< adcontrols::Targeting > >::is_a( tgtIt->data() ) ) {
+
                         if ( auto targeting = boost::any_cast< std::shared_ptr< adcontrols::Targeting > >( tgtIt->data() ) ) {
+
                             std::ostringstream html;
-                            html << "<table border=\"1\" cellpadding=\"4\">";
+                            html << "<html>"
+                                "<head>"
+                                "<meta name=\"qrichtext\" content='1' />"
+                                "<style>table{ border-collapse:collapse; } tr{ border-bottom:1px solid blue;}</style>"
+                                "</head>"
+                                "<body style=\" font-size:8pt; font-weight:400; font-style:normal; text-decoration:none;\">"
+                                ;
+                            //html << "<table border=\"1\" align='center' width='90%' cellspacing='0' cellpadding='4'>";
+                            html << "<table border=\"1\" align=\"center\" width=\"90%\" cellspacing=\"0\" cellpadding=\"4\">";
                             html << "<tr>";
-                            html << "<th>Formula</th> <th>Charge</th> <th>m/z</th> <th>Error(mDa)</th> <th>Abundance ratio</th> <th>Ratio error(%)</th>";
+                            html << "<th>Formula</th> <th>Charge</th> <th>Exact m/z</th> <th>Exact ratio</th> <th>m/z</th> <th>Error(mDa)</th> <th>Ratio</th> <th>Error(%)</th>";
                             html << "</tr>";
+
                             for ( const auto& c: targeting->candidates() ) {
+
                                 auto tms = adcontrols::segment_wrapper<>( *centroid )[ c.fcn ];
                                 html << "<tr>";
-                                html << "<td>" << adcontrols::ChemicalFormula::formatFormulae( c.formula ) << "</td>";
-                                html << "<td>" << c.charge << "</td>";
-                                html << "<td>" << tms.mass( c.idx ) << "</td>";
-                                html << "<td>" << c.mass_error * 1000 << "</td>";
-                                html << "<td>" << 1.0 << "</td>";
+                                html << "<td>"
+                                     << "<span style=\" font-weight:600;\">"
+                                     << adcontrols::ChemicalFormula::formatFormulae( c.formula ) << "</span></td>";
+                                html << "<td style=\"text-align:center\">" << c.charge << "</td>";
+                                html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % c.exact_mass << "</td>";
+                                html << "<td style=\"text-align:right\">" << "1.0" << "</td>";
+                                html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % c.mass << "</td>";
+                                html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % ((c.mass - c.exact_mass) * 1000) << "</td>";
                                 html << "</tr>";
                                 // ADDEBUG() << c.idx << c.fcn << c.charge << c.mass_error << c.formula << c.score;
                                 for ( const auto& i: c.isotopes ) {
                                     html << "<tr>";
-                                    html << "<td></td>"; // Formula
-                                    html << "<td></td>"; // charge
-                                    html << "<td>" << centroid->mass( i.idx ) << "</td>";
-                                    html << "<td>" << i.mass_error * 1000 << "</td>";
-                                    html << "<td>" << i.abundance_ratio << "</td>";
-                                    html << "<td>" << boost::format( "%.1lf" ) % (100 * i.abundance_ratio_error) << "</td>";
+                                    html << "<td colspan=\"2\">" << "</td>"; // Formula
+                                    html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % i.exact_mass << "</td>";
+                                    html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % i.exact_abundance << "</td>";
+                                    if ( i.idx >= 0 ) {
+                                        html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % i.mass << "</td>";
+                                        html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % ((i.mass - i.exact_mass)*1000) << "</td>";
+                                        html << "<td>" << i.abundance_ratio << "</td>";
+                                        html << "<td style=\"text-align:right\">" << boost::format( "%.1lf" ) % (100 * i.abundance_ratio_error) << "</td>";
+                                    } else {
+                                        html << "<td style=\"text-align:right\">" << "n.d." << "</td>";
+                                        html << "<td>" << "--" << "</td>";
+                                        html << "<td>" << "--" << "</td>";
+                                        html << "<td style=\"text-align:right\">" << "--" << "</td>";
+                                    }
                                     html << "</tr>";
-                                    // ADDEBUG() << i.idx << i.mass_error << i.abundance_ratio << i.abundance_ratio_error;
                                 }
                             }
-                            html << "</table>";
-                            //
-                            QTextDocument doc;
+                            html << "</table></font></body></html>";
+
                             doc.setHtml( QString::fromStdString( html.str() ) );
-                            printer.newPage();
-                            doc.drawContents( &painter );
+                            doc.setDefaultStyleSheet( "table{ border-collapse:collapse; } th,td{ border-style: none;}");
+
+                            {
+                                std::ofstream of( "/home/toshi/debug.html" );
+                                of << html.str();
+                            }
+
+
+                            ADDEBUG() << "--------------> " << doc.pageCount();
+                            for ( size_t i = 0; i < doc.pageCount(); ++i ) {
+                                printer.newPage();
+                                painter.save();
+                                const QRectF textPageRect( 0, i * doc.pageSize().height(), doc.pageSize().width(), doc.pageSize().height() );
+                                painter.translate( 0, -textPageRect.top() );
+                                painter.translate( textPageRect.left(), textRect.top() );
+                                doc.drawContents( &painter );
+                                painter.restore();
+                            }
                         }
                     }
                 }
             }
         }
 
+        //doc.print( &printer );
 
         it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it != attachments.end() ) {
@@ -1321,6 +1376,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     if ( auto p = MainWindow::instance()->findChild< adwidgets::MSPeakTable * >( "MSPeakTable" ) ) {
         p->handlePrint( printer, painter );
     }
+
 }
 
 bool

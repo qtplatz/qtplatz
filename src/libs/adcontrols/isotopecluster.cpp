@@ -255,7 +255,7 @@ isotopeCluster::operator()( adcontrols::MassSpectrum& ms
     if ( peaks.empty() )
         return false;
 
-    // merge_peaks( peaks, resolving_power );
+    merge_peaks( peaks, resolving_power );
     ms.resize( peaks.size() );
 
     size_t idx(0);
@@ -311,7 +311,7 @@ isotopeCluster::operator()( MassSpectrum& ms
 
     if ( ! peaks.empty() ) {
 
-        merge_peaks( peaks, resolving_power );
+        //merge_peaks( peaks, resolving_power );
         ms.resize( peaks.size() );
 
         size_t idx(0);
