@@ -119,9 +119,7 @@ ElementalCompWnd::ElementalCompWnd(QWidget *parent) : QWidget(parent)
 void
 ElementalCompWnd::init()
 {
-    Core::MiniSplitter * splitter = new Core::MiniSplitter;
-
-    if ( splitter ) {
+    if ( auto splitter = new Core::MiniSplitter ) {
 
         for ( size_t i = 0; i < impl_->plots_.size(); ++i ) {
             auto& plot = impl_->plots_[ i ];
@@ -144,12 +142,12 @@ ElementalCompWnd::init()
         }
 
         splitter->setOrientation( Qt::Vertical );
-    }
 
-    QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-    toolBarAddingLayout->setMargin(0);
-    toolBarAddingLayout->setSpacing(0);
-    toolBarAddingLayout->addWidget( splitter );
+        QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
+        toolBarAddingLayout->setMargin(0);
+        toolBarAddingLayout->setSpacing(0);
+        toolBarAddingLayout->addWidget( splitter );
+    }
 }
 
 void

@@ -446,6 +446,8 @@ MSPeakTable::setPeakInfo( const adcontrols::Targeting& targeting )
 #endif
     if ( matchCount )
         hideRows();
+
+    this->resizeColumnToContents( c_mspeaktable_formula );
 }
 
 void
@@ -507,6 +509,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MSPeakInfo& info )
     }
     //resizeColumnsToContents();
     //resizeRowsToContents();
+    this->resizeColumnToContents( c_mspeaktable_formula );
     setUpdatesEnabled( true );
 }
 
@@ -591,6 +594,7 @@ MSPeakTable::setPeakInfo( const adcontrols::MassSpectrum& ms )
 
     //resizeColumnsToContents();
     //resizeRowsToContents();
+    this->resizeColumnToContents( c_mspeaktable_formula );
     setUpdatesEnabled( true );
 }
 

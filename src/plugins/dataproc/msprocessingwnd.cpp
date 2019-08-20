@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -73,12 +73,14 @@
 #include <adwidgets/filedialog.hpp>
 #include <adwidgets/scanlawdialog.hpp>
 #include <adwidgets/scanlawdialog2.hpp>
+#include <adwidgets/mspeaktree.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
-#include <qtwrapper/xmlformatter.hpp>
 #include <qtwrapper/font.hpp>
+#include <qtwrapper/make_widget.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/xmlformatter.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
@@ -92,6 +94,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QClipboard>
+#include <QDesktopServices>
 #include <QMenu>
 #include <QPrinter>
 #include <QSettings>
@@ -321,7 +324,12 @@ MSProcessingWnd::init()
 		splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
-        splitter->addWidget( pImpl_->pwplot_ );
+
+        splitter->addWidget( pImpl_->pwplot_ ); // power spectrum
+
+        //////////// add 2019-AUG-19 //////////
+        splitter->addWidget( qtwrapper::make_widget< adwidgets::MSPeakTree >("TargetingTree") );
+
         splitter->setOrientation( Qt::Vertical );
 
         splitter->setChildrenCollapsible( true );
@@ -1286,10 +1294,9 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                                 "</head>"
                                 "<body style=\" font-size:8pt; font-weight:400; font-style:normal; text-decoration:none;\">"
                                 ;
-                            //html << "<table border=\"1\" align='center' width='90%' cellspacing='0' cellpadding='4'>";
                             html << "<table border=\"1\" align=\"center\" width=\"90%\" cellspacing=\"0\" cellpadding=\"4\">";
                             html << "<tr>";
-                            html << "<th>Formula</th> <th>Charge</th> <th>Exact m/z</th> <th>Exact ratio</th> <th>m/z</th> <th>Error(mDa)</th> <th>Ratio</th> <th>Error(%)</th>";
+                            html << "<th>Formula</th> <th>Charge</th> <th>Exact m/z</th> <th>Exact ratio</th> <th>m/z</th> <th>Error(mDa)</th> <th>Abundance</th> <th>Ratio</th> <th>Error(%)</th>";
                             html << "</tr>";
 
                             for ( const auto& c: targeting->candidates() ) {
@@ -1304,17 +1311,21 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                                 html << "<td style=\"text-align:right\">" << "1.0" << "</td>";
                                 html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % c.mass << "</td>";
                                 html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % ((c.mass - c.exact_mass) * 1000) << "</td>";
+                                html << "<td style=\"text-align:right\">" << boost::format( "%.3lf" ) % tms.intensity( c.idx ) << "</td>";
+                                html << "<td style=\"text-align:right\">" << "1.000" << "</td>";
+                                html << "<td style=\"text-align:right\">" << "n/a"   << "</td>";
                                 html << "</tr>";
                                 // ADDEBUG() << c.idx << c.fcn << c.charge << c.mass_error << c.formula << c.score;
                                 for ( const auto& i: c.isotopes ) {
                                     html << "<tr>";
                                     html << "<td colspan=\"2\">" << "</td>"; // Formula
                                     html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % i.exact_mass << "</td>";
-                                    html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % i.exact_abundance << "</td>";
+                                    html << "<td style=\"text-align:right\">" << boost::format( "%.4g" ) % i.exact_abundance << "</td>";
                                     if ( i.idx >= 0 ) {
                                         html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % i.mass << "</td>";
                                         html << "<td style=\"text-align:right\">" << boost::format( "%.4lf" ) % ((i.mass - i.exact_mass)*1000) << "</td>";
-                                        html << "<td>" << i.abundance_ratio << "</td>";
+                                        html << "<td style=\"text-align:right\">" << boost::format( "%.3lf" ) % tms.intensity( i.idx ) << "</td>";
+                                        html << "<td style=\"text-align:right\">" << boost::format( "%.4g" )  % i.abundance_ratio << "</td>";
                                         html << "<td style=\"text-align:right\">" << boost::format( "%.1lf" ) % (100 * i.abundance_ratio_error) << "</td>";
                                     } else {
                                         html << "<td style=\"text-align:right\">" << "n.d." << "</td>";
@@ -1377,6 +1388,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
         p->handlePrint( printer, painter );
     }
 
+    QDesktopServices::openUrl( QUrl( "file://" + pdfname ) );
 }
 
 bool
@@ -1864,4 +1876,11 @@ void
 MSProcessingWnd::autoYZoom( adplot::plot * plot, double xmin, double xmax )
 {
 
+}
+
+void
+MSProcessingWnd::onInitialUpdate()
+{
+    if ( auto tree = findChild< adwidgets::MSPeakTree *>() )
+        tree->OnInitialUpdate();
 }

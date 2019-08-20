@@ -157,18 +157,19 @@ DataprocessWorker::createChromatogramsByMethod( Dataprocessor* processor, std::s
     if ( auto rawfile = processor->rawdata() ) {
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             if ( rawfile->dataformat_version() >= 3 ) {
-                auto datasource = tm->dataSource(); // MSChromatogramMethod::Profile | Centroid
+                // v3
+                // auto datasource = tm->dataSource(); // MSChromatogramMethod::Profile | Centroid
 
                 adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
                 dlg.setProtocolHidden( true );
                 if ( dlg.exec() == QDialog::Accepted ) {
-                    //int fcn = dlg.fcn();
                     if ( auto reader = rawfile->dataReaders().at( dlg.currentSelection() ) )
-                        threads_.push_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
+                        threads_.emplace_back( adportable::asio::thread( [=] { handleChromatogramsByMethod3( processor, *tm, pm, reader, p ); } ) );
                 }
 
             } else {
-                threads_.push_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
+                // v2
+                threads_.emplace_back( adportable::asio::thread( [=] { handleCreateChromatogramsV2( processor, *tm, pm, p ); } ) );
             }
         }
     }
@@ -388,6 +389,8 @@ DataprocessWorker::handleChromatogramsByMethod3( Dataprocessor * processor
                                                  , std::shared_ptr<adwidgets::Progress> progress )
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
+
+    ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name();
 
     if ( auto dset = processor->rawdata() ) {
         adprocessor::v3::MSChromatogramExtractor extract( dset );

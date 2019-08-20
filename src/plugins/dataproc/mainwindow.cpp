@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2017 MS-Cheminformatics LLC
+** Copyright (C) 2010-2019 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2019 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -33,9 +33,9 @@
 #include "elementalcompwnd.hpp"
 #include "filepropertywidget.hpp"
 #include "mspeaktable.hpp"
+#include <adwidgets/mspeaktree.hpp>
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
-//#include "mscalibspectrawnd.hpp"
 #include "mspeakswnd.hpp"
 #include "msspectrawnd.hpp"
 #include "mspropertyform.hpp"
@@ -106,24 +106,25 @@
 #include <utils/styledbar.h>
 
 #include <QComboBox>
-#include <QPushButton>
 #include <QDir>
 #include <QDockWidget>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPixmap>
+#include <QPushButton>
 #include <QResizeEvent>
-#include <qstackedwidget.h>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QToolButton>
 #include <QTabWidget>
 #include <QTextEdit>
-#include <QLabel>
+#include <QToolButton>
+#include <QTreeView>
+#include <QVBoxLayout>
 #include <QtGui/QIcon>
-#include <QLineEdit>
 #include <qdebug.h>
-#include <QFileDialog>
+#include <qstackedwidget.h>
 
 #include <functional>
 #include <fstream>
@@ -269,23 +270,12 @@ MainWindow::createStyledBarTop()
                 am->registerAction( p, "dataproc.selMSCalibration", context );
                 toolBarLayout->addWidget( toolButton( p, QString( "wnd.%1" ).arg( idSelMSCalibration ) ) );
             }
-            // if ( auto p = new QAction( tr("MS Calib. Spectra"), this ) ) {
-            //     connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSCalibSpectra ); } );
-            //     am->registerAction( p, "dataproc.selMSCalibSpectra", context );
-            //     toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSCalibSpectra ) ) );
-            // }
+
             if ( auto p = new QAction( tr("Chromatogram"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelChromatogram ); } );
                 am->registerAction( p, "dataproc.selChromatogram", context );
                 toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelChromatogram ) ) );
             }
-#if 0
-            if ( auto p = new QAction( tr("TOF Plots"), this ) ) {
-                connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelMSPeaks ); } );
-                am->registerAction( p, "dataproc.selTOFPlots", context );
-                toolBarLayout->addWidget( toolButton( p, QString("wnd.%1").arg( idSelMSPeaks ) ) );
-            }
-#endif
 
             if ( auto p = new QAction( tr("Contour"), this ) ) {
                 connect( p, &QAction::triggered, [=](){ stack_->setCurrentIndex( idSelSpectrogram ); } );
@@ -439,9 +429,6 @@ MainWindow::createContents( Core::IMode * mode )
 
         wnd.push_back( new MSCalibrationWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration") ), wnd.back() ) );
-
-        // wnd.push_back( new MSCalibSpectraWnd );
-        // stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("MS Calibration(2)") ), wnd.back() ) );
 
         wnd.push_back( new ChromatogramWnd );
         stack_->addWidget( boost::apply_visitor( wnd_set_title( tr("Chromatogram") ), wnd.back() ) );
@@ -787,6 +774,10 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
                 pLifeCycle->setContents( boost::any( folium ) );
             }
         }
+
+        if ( auto tree = findChild< adwidgets::MSPeakTree * >( "TargetingTree" ) ) {
+            tree->setContents( {  centroid, targeting } );
+        }
     }
 }
 
@@ -925,6 +916,9 @@ MainWindow::OnInitialUpdate()
 			pLifeCycle->OnInitialUpdate();
     }
 
+    if ( auto widget = findChild< MSProcessingWnd * >() )
+        widget->onInitialUpdate();
+
     if ( auto pm = document::instance()->processMethod() ) {
         setProcessMethod( *pm ); // write to UI
         getProcessMethod( *pm ); // read back from UI
@@ -957,6 +951,10 @@ MainWindow::OnInitialUpdate()
             tab->setStyleSheet( "QTableView { font-size: 9pt; }"
                                 "QHeaderView::section { font-size: 9pt; }" );
         }
+    }
+    for ( auto tree: findChildren< QTreeView * >() ) {
+        tree->setStyleSheet( "* { font-size: 9pt; }"
+                             "QHeaderView::section { font-size: 9pt; }" );
     }
 #endif
 }

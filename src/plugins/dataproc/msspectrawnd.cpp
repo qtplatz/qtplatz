@@ -46,6 +46,7 @@
 #include <adplot/spectrogramwidget.hpp>
 #include <adplot/peakmarker.hpp>
 #include <adwidgets/msquantable.hpp>
+#include <adwidgets/mspeaktree.hpp>
 
 #include <adportfolio/folium.hpp>
 #include <adportfolio/folder.hpp>
@@ -76,19 +77,19 @@ namespace dataproc {
                                  , table_( new adwidgets::MSQuanTable() )
                                  , isTimeAxis_( false )
                                  , dirty_( false ) {
-            
+
             for ( size_t i = 0; i < plots_.size(); ++i ) {
-                
+
                 plots_[ i ] = std::make_unique< adplot::SpectrumWidget >();
                 plots_[ i ]->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
                 plots_[ i ]->axisWidget( QwtPlot::yRight )->scaleDraw()->setMinimumExtent( 60 );
-                
+
                 markers_[ i ] = std::make_unique< adplot::PeakMarker >();
 
             }
-            
+
         }
-        
+
         ~impl() {
         }
 
@@ -97,15 +98,16 @@ namespace dataproc {
         std::map< std::wstring /* folium (profile) Guid (attGuid) */, datafolder  > dataIds_;
 
         std::pair< std::wstring, datafolder > profile_;
-        
+
         std::unique_ptr< adwidgets::MSQuanTable > table_;
+        std::unique_ptr< adwidgets::MSPeakTree > tree_;
         std::array< std::unique_ptr< adplot::SpectrumWidget >, 2 > plots_;
         std::array< std::unique_ptr< adplot::PeakMarker >, 2 > markers_;
         bool isTimeAxis_;
         bool dirty_;
-        
+
     };
-    
+
 }
 
 using namespace dataproc;
@@ -179,19 +181,19 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
         for ( auto& folium: folder.folio() ) {
 
             if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                
+
                 if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
                     std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
 
                     auto it = impl_->dataIds_.find( folium.id() );
                     if ( it == impl_->dataIds_.end() ) {
-                        
+
                         auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium );
                         impl_->dataIds_[ folium.id() ] = data;
 
                     }
-                    
+
                 }
             }
         }
@@ -210,7 +212,7 @@ MSSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Folium& folium )
 {
-    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) ) 
+    if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
 
     if ( auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
@@ -222,7 +224,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
     }
 
     bool modified = false;
-    
+
     if ( folium.attribute( L"isChecked" ) == L"false" ) {
 
         if ( auto qpks = document::instance()->msQuanTable() )
@@ -233,32 +235,32 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
             impl_->dataIds_.erase( it );
 
         // TODO:  add to spectrumwidget[1]
-        
+
     } else {
 
         if ( auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium ) ) {
 
             std::wstring display_name = processor->file()->filename() + L"::" + folium.name();
-            
+
             auto it = impl_->dataIds_.find( folium.id() );
             if ( it == impl_->dataIds_.end() ) {
-                
+
                 auto data = datafolder( int( impl_->dataIds_.size() ), display_name, folium.id() );
                 data.profile = profile;
-                
+
                 portfolio::Folio atts = folium.attachments();
                 auto itCentroid = std::find_if( atts.begin(), atts.end(), [] ( const portfolio::Folium& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
                 if ( itCentroid != atts.end() ) {
-                    
+
                     data.idCentroid = itCentroid->id();
                     data.centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *itCentroid );
-                    
+
                 }
-                
+
                 impl_->dataIds_[ folium.id() ] = data;
 
                 modified = true;
-                
+
             }
         }
     }
@@ -267,7 +269,7 @@ MSSpectraWnd::handleSelectionChanged( Dataprocessor * processor, portfolio::Foli
 
     if ( MainWindow::instance()->curPage() != MainWindow::idSelSpectra )
         return;
-    
+
     if ( impl_->dirty_ ) {
         update_quantable();
         draw( 0 );
@@ -279,16 +281,16 @@ void
 MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
 {
     impl_->table_->handleSelected( rc, impl_->isTimeAxis_ );
-    
+
     auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
     if ( d <= 2 ) {
 
 		QMenu menu;
         typedef std::pair < QAction *, std::function<void()> > action_type;
         std::vector < action_type > actions;
-        
+
         actions.push_back( std::make_pair( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } ) );
-        
+
         actions.push_back( std::make_pair( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
                     QString name = QFileDialog::getSaveFileName( MainWindow::instance(), "Save SVG File"
                                                                  , MainWindow::makePrintFilename( impl_->profile_.first, L"_" )
@@ -296,16 +298,16 @@ MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
                     if ( ! name.isEmpty() )
                         adplot::plot::copyImageToFile( plot, name, "svg" );
                 }) );
-        
+
         QAction * selected = menu.exec( QCursor::pos() );
         if ( selected ) {
             auto it = std::find_if( actions.begin(), actions.end(), [selected] ( const action_type& a ){ return a.first == selected; } );
             if ( it != actions.end() )
                 (it->second)();
         }
-        
+
     }
-    
+
 }
 
 void
@@ -342,12 +344,12 @@ MSSpectraWnd::draw( int which )
         if ( auto ms = impl_->profile_.second.centroid.lock() ) {
             impl_->plots_[ 1 ]->setData( ms, 1, true );
             impl_->plots_[ 1 ]->setColor( 1, color );
-            impl_->plots_[ 1 ]->setAlpha( 1, 0x40 ); 
+            impl_->plots_[ 1 ]->setAlpha( 1, 0x40 );
         }
     }
 
     if ( which == 0 || which == ( -1 ) ) {
-        
+
         if ( auto qpks = document::instance()->msQuanTable() ) {
             impl_->table_->setData( qpks );
 
@@ -374,9 +376,9 @@ MSSpectraWnd::draw( int which )
                 if ( auto centroid = data.second.centroid.lock() ) {
                     impl_->plots_[ 0 ]->setData( centroid, traceid + 1, true );
                     impl_->plots_[ 0 ]->setColor( traceid + 1, color );
-                    impl_->plots_[ 0 ]->setAlpha( traceid + 1, 0x40 ); 
+                    impl_->plots_[ 0 ]->setAlpha( traceid + 1, 0x40 );
                 }
-                
+
             }
             impl_->plots_[ 0 ]->setTitle( title );
         }
@@ -516,7 +518,7 @@ MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
     printer.setColorMode( QPrinter::Color );
     printer.setPaperSize( QPrinter::A4 );
     printer.setFullPage( false );
-    
+
     printer.setDocName( "QtPlatz Process Report" );
     printer.setOutputFileName( pdfname );
     printer.setResolution( resolution );
@@ -529,7 +531,7 @@ MSSpectraWnd::handlePrintCurrentView( const QString& pdfname )
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() ) {
         painter.drawText( drawRect, Qt::TextWordWrap, QString::fromStdWString( dp->portfolio().fullpath()), &boundingRect );
     }
-	
+
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
     renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );

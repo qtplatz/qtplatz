@@ -74,6 +74,7 @@ namespace dataproc {
         void idSpectrumFolium( const std::wstring& );
         void idChromatogramFolium( const std::wstring& );
         void handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked );
+        void onInitialUpdate();
 
     public slots:
         void handleSessionAdded( Dataprocessor* );

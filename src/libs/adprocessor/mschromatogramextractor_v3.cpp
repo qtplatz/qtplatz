@@ -275,6 +275,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         }
     }
 
+    ADDEBUG() << __FUNCTION__ << " reader: " << reader->display_name() << ", areaIntensity: " << areaIntensity;
+
     if ( auto cm = pm.find< adcontrols::MSChromatogramMethod >() ) {
 
         std::vector< cXtractor > temp;
@@ -289,6 +291,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         double width = cm->width_at_mass( mol.mass() );
                         double lMass = mol.mass() - width / 2;
                         double uMass = mol.mass() + width / 2;
+                        ADDEBUG() << "proto: " << proto << ", mol: " << mol.formula() << ", width: " << width;
+
                         std::wstring desc = ( boost::wformat( L"%s %.4f (W:%.4gmDa) %s %d" )
                                               % adportable::utf::to_wstring( mol.formula() )
                                               % mol.mass()
@@ -385,8 +389,6 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
         return false;
 
     if ( loadSpectra( &pm, reader, -1, progress ) ) {
-
-        uint32_t cid( 0 );
 
         for ( auto& ms : impl_->spectra_ ) {
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
