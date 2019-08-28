@@ -163,9 +163,8 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
         if ( rawfile->dataformat_version() < 3 )
             return;
 
-        ADDEBUG() << "genChromatogram: " << json.toStdString();
-
         adwidgets::DataReaderChoiceDialog dlg( rawfile->dataReaders() );
+        dlg.setProtocolHidden( true );
         if ( auto tm = pm->find< adcontrols::MSChromatogramMethod >() ) {
             dlg.setMassWidth( tm->width( tm->widthMethod() ) );
             dlg.setTimeWidth( 4e-9 ); // 4ns
@@ -183,8 +182,6 @@ DataprocessWorker::genChromatograms( Dataprocessor * processor
                 double timeWidth = rdpara[ "timeWidth" ].toDouble();
 
                 if ( auto reader = rawfile->dataReaders().at( sel.first ) ) {
-                    //ADDEBUG() << "genChromatogram: " << sel << ", " << reader->display_name();
-                    //ADDEBUG() << "reader param:    " << reader_params.at( sel.first ) << ", enableTime: " << enableTime << ", width: " << massWidth << ", " << timeWidth;
                     double width = enableTime ? timeWidth : massWidth;
                     threads_.emplace_back( adportable::asio::thread( [=] { handleGenChromatogram( processor, pm, reader, json.toStdString(), width, enableTime, progress ); } ) );
                 }

@@ -462,7 +462,7 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
     }
     const char * const wkey = (axis == adcontrols::hor_axis_mass) ? "mass" : "time";
 
-    std::vector< std::pair< std::pair< double, double >, int > > list;
+    std::vector< std::pair< std::pair< double, double >, int > > list;  // pair< range >, fcn
 
     if ( auto formulae = pt.get_child_optional( "formulae" ) ) {
         for ( auto& formula: formulae.get() ) {
@@ -491,10 +491,35 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
 
     if ( loadSpectra( &pm, reader, -1, progress ) ) {
 
+        auto fmt = ( axis == adcontrols::hor_axis_mass ) ? boost::wformat( L"%s m/z %.3f(W:%.1fmDa)_%d" ) : boost::wformat( L"%s %.4lfus(W:%.1ns)_%d" );
+        for ( size_t idx = 0; idx < list.size(); ++idx ) {
+            auto res = std::make_shared< mschromatogramextractor::xChromatogram >( list[ idx ].second, idx );
+            int protocol = list[ idx ].second;
+            double width = list[ idx ].first.second - list[ idx ].first.first;
+            double centre = list[ idx ].first.first + width / 2.0;
+            if ( axis == adcontrols::hor_axis_mass ) {
+                width *= 1000;             // --> mDa
+            } else {
+                centre *= std::micro::den; // --> us
+                width *= std::nano::den;   // --> ns
+            }
+            res->pChr_->addDescription( { L"Create", ( fmt % adportable::utf::to_wstring( reader->display_name() ) % centre % width % protocol ).str() });
+
+            impl_->results_.emplace_back( res );
+        }
+
+        // compute each point on the chromatogram
         for ( auto& ms : impl_->spectra_ ) {
+            size_t cid(0);
             for ( const auto& item: list ) {
-                if ( item.second == ms.second->protocolId() )
-                    impl_->append_to_chromatogram( ms.first, *ms.second, axis, item.first, reader->display_name() );
+                if ( item.second == ms.second->protocolId() ) {
+                    uint32_t pos = ms.first;
+                    double time = ms.second->getMSProperty().timeSinceInjection();
+                    double y(0);
+                    if ( computeIntensity( y, *ms.second, axis, item.first ) )
+                        impl_->results_[ cid ]->append( pos, time, y );
+                }
+                ++cid;
             }
         }
 
@@ -692,7 +717,7 @@ MSChromatogramExtractor::impl::append_to_chromatogram( size_t pos
                 ( *it )->pChr_->addDescription( adcontrols::description(
                                                     L"Create"
                                                     , ( boost::wformat( L"%s m/z %.4lf(W:%.4gmDa)_%d" )
-                                                        % utf::to_wstring( display_name ) % value % value_width % protocol ).str() ) );
+                                                        % utf::to_wstring( display_name ) % value % (value_width * 1000) % protocol ).str() ) );
             } else {
                 ( *it )->pChr_->addDescription( adcontrols::description(
                                                     L"Create"
